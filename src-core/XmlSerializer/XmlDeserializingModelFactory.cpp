@@ -442,7 +442,7 @@ void XmlDeserializingModelFactory::DeserializeSuperStrings(Model* model, pugi::x
     bool found = true;
     int index = 0;
     while (found) {
-        auto an = std::format("SuperStringColour{}", index);
+        auto an = fmt::format("SuperStringColour{}", index);
         if (!node.attribute(an).empty()) {
             model->AddSuperStringColour(xlColor(std::string(node.attribute(an).as_string())));
         } else {
@@ -992,9 +992,9 @@ void XmlDeserializingModelFactory::DeserializeBeamAbility(DmxModel* model, pugi:
 void XmlDeserializingModelFactory::DeserializePresetAbility(DmxModel* model, pugi::xml_node node) {
     DmxPresetAbility* preset_ability = model->GetPresetAbility();
     for (int i = 0; i < DmxPresetAbility::MAX_PRESETS; ++i) {
-        auto dmxChanKey = std::format("DmxPresetChannel{}", i);
-        auto dmxValueKey = std::format("DmxPresetValue{}", i);
-        auto descKey = std::format("DmxPresetDesc{}", i);
+        auto dmxChanKey = fmt::format("DmxPresetChannel{}", i);
+        auto dmxValueKey = fmt::format("DmxPresetValue{}", i);
+        auto descKey = fmt::format("DmxPresetDesc{}", i);
         if (node.attribute(dmxChanKey).empty() || node.attribute(dmxValueKey).empty()) {
             break;
         }
@@ -1045,8 +1045,8 @@ void XmlDeserializingModelFactory::DeserializeColorWheelAttributes(DmxColorAbili
     ability->SetWheelDelay(node.attribute("DmxColorWheelDelay").as_int(0));
     ability->ClearColors();
     for (int i = 0; i< DmxColorAbilityWheel::MAX_COLORS; ++i) {
-        auto dmxkey = std::format("DmxColorWheelDMX{}", i);
-        auto colorkey = std::format("DmxColorWheelColor{}", i);
+        auto dmxkey = fmt::format("DmxColorWheelDMX{}", i);
+        auto colorkey = fmt::format("DmxColorWheelColor{}", i);
         if ( node.attribute(dmxkey).empty() || node.attribute(colorkey).empty() ) {
             break;
         }
@@ -1415,6 +1415,15 @@ Model* XmlDeserializingModelFactory::DeserializeDmxMovingHeadAdv(pugi::xml_node 
         } else if ("HeadMesh" == name) {
             Mesh* msh = model->CreateHeadMesh(name);
             DeserializeMesh(msh, n);
+        } else if ("PositionZone" == name) {
+            PositionZone zone;
+            zone.pan_min = n.attribute("PanMin").as_int(0);
+            zone.pan_max = n.attribute("PanMax").as_int(255);
+            zone.tilt_min = n.attribute("TiltMin").as_int(0);
+            zone.tilt_max = n.attribute("TiltMax").as_int(255);
+            zone.channel = std::max(1, n.attribute("Channel").as_int(1));
+            zone.value = (uint8_t)n.attribute("Value").as_int(0);
+            model->AddPositionZone(zone);
         }
         n = n.next_sibling();
     }

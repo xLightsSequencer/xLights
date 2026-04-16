@@ -17,8 +17,8 @@
 #include <wx/graphics.h>
 #include <wx/file.h>
 #include <wx/numdlg.h>
-#include <wx/config.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/choicdlg.h>
 
 //(*InternalHeaders(CustomModelDialog)
@@ -528,7 +528,7 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) :
 
     SetEscapeId(ButtonCancel->GetId());
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int sashPos = config->Read("xLightsCustomDialogSash", 30);
     if (sashPos < 5) sashPos = 5;
     if (sashPos > 95) sashPos = 95;
@@ -558,7 +558,7 @@ CustomModelDialog::~CustomModelDialog()
 	//(*Destroy(CustomModelDialog)
 	//*)
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int sashPos = ((SplitterWindow1->GetSize().GetHeight() - SplitterWindow1->GetSashPosition()) * 100) / SplitterWindow1->GetSize().GetHeight();
     config->Write("xLightsCustomDialogSash", sashPos);
 

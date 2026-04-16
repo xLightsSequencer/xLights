@@ -19,7 +19,7 @@
 #include "SketchEffectDrawing.h"
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

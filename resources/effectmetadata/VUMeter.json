@@ -202,6 +202,7 @@
             "default": 0,
             "min": -100,
             "max": 100,
+            "valueCurve": true,
             "lockable": true
         },
         {
@@ -214,6 +215,16 @@
             "min": -100,
             "max": 100,
             "valueCurve": true,
+            "lockable": true
+        },
+        {
+            "id": "VUMeter_AudioTrack",
+            "label": "Audio Track",
+            "description": "Selects which audio track drives this VU Meter. 'Main' uses the sequence's primary audio; additional tracks are listed if alternate audio tracks have been added in Sequence Settings.",
+            "type": "enum",
+            "controlType": "choice",
+            "options": [],
+            "default": "",
             "lockable": true
         }
     ]

@@ -30,6 +30,17 @@ static std::random_device rd;
 static std::default_random_engine eng{ rd() };
 static std::uniform_int_distribution<> dist(0, INT_MAX);
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Twinkle.json values).
+int TwinkleEffect::sCountDefault = 3;
+int TwinkleEffect::sCountMin = 2;
+int TwinkleEffect::sCountMax = 100;
+int TwinkleEffect::sStepsDefault = 30;
+int TwinkleEffect::sStepsVCMin = 2;
+int TwinkleEffect::sStepsVCMax = 100;
+bool TwinkleEffect::sStrobeDefault = false;
+bool TwinkleEffect::sReRandomDefault = false;
+std::string TwinkleEffect::sStyleDefault = "Old Render Method";
+
 TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_16, twinkle_24, twinkle_32, twinkle_48, twinkle_64)
 {
     //ctor
@@ -38,6 +49,19 @@ TwinkleEffect::TwinkleEffect(int id) : RenderableEffect(id, "Twinkle", twinkle_1
 TwinkleEffect::~TwinkleEffect()
 {
     //dtor
+}
+
+void TwinkleEffect::OnMetadataLoaded()
+{
+    sCountDefault = GetIntDefault("Twinkle_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Twinkle_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Twinkle_Count", sCountMax);
+    sStepsDefault = GetIntDefault("Twinkle_Steps", sStepsDefault);
+    sStepsVCMin = (int)GetVCMinFromMetadata("Twinkle_Steps", sStepsVCMin);
+    sStepsVCMax = (int)GetVCMaxFromMetadata("Twinkle_Steps", sStepsVCMax);
+    sStrobeDefault = GetBoolDefault("Twinkle_Strobe", sStrobeDefault);
+    sReRandomDefault = GetBoolDefault("Twinkle_ReRandom", sReRandomDefault);
+    sStyleDefault = GetStringDefault("Twinkle_Style", sStyleDefault);
 }
 class StrobeClass
 {
@@ -63,7 +87,7 @@ public:
 
 bool TwinkleEffect::needToAdjustSettings(const std::string& version) {
     // give the base class a chance to adjust any settings
-    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version);
+    return RenderableEffect::needToAdjustSettings(version) || IsVersionOlder("2020.57", version) || IsVersionOlder("2026.06", version);
 }
 
 void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) {
@@ -75,6 +99,27 @@ void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, b
     if (IsVersionOlder("2020.57", version)) {
         SettingsMap& settings = effect->GetSettings();
         settings["E_CHOICE_Twinkle_Style"] = "Old Render Method";
+    }
+    if (IsVersionOlder("2026.06", version)) {
+        // TWINKLE_STEPS_MAX was raised from 100 to 400. UpgradeValueCurve is
+        // disabled for this setting (GetSettingVCDivisor returns 0xFFFF) to
+        // prevent it from rescaling old values into the new range. Instead,
+        // migrate here: preserve the stored values but widen the Max to 400.
+        SettingsMap& settings = effect->GetSettings();
+        std::string vc = settings.Get("E_VALUECURVE_Twinkle_Steps", "");
+        if (vc.find("VALUECURVE") != std::string::npos && vc.find("Max=100.00") != std::string::npos) {
+            ValueCurve v;
+            v.Deserialise(vc, true); // holdminmax=true: keep values, don't rescale
+            v.SetLimits(sStepsVCMin, sStepsVCMax); // extend to new limits (2..400)
+            settings["E_VALUECURVE_Twinkle_Steps"] = v.Serialise();
+        }
+        // Twinkle_Style default changed from "Old Render Method" to "New Render
+        // Method". Preserve the prior rendering for sequences saved before this
+        // change — if the setting wasn't explicitly stored, pin it to the old
+        // default so behavior doesn't silently change on load.
+        if (!settings.Contains("E_CHOICE_Twinkle_Style")) {
+            settings["E_CHOICE_Twinkle_Style"] = "Old Render Method";
+        }
     }
 }
 
@@ -181,11 +226,11 @@ static void place_twinkles(int lights_to_place, int &curIndex, std::vector<Strob
 void TwinkleEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int Count = GetValueCurveInt("Twinkle_Count", 3, SettingsMap, oset, TWINKLE_COUNT_MIN, TWINKLE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Steps = GetValueCurveInt("Twinkle_Steps", 30, SettingsMap, oset, TWINKLE_STEPS_MIN, TWINKLE_STEPS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", false);
-    bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", false);
-    const std::string& twinkle_style = SettingsMap["CHOICE_Twinkle_Style"];
+    int Count = GetValueCurveInt("Twinkle_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Steps = GetValueCurveInt("Twinkle_Steps", sStepsDefault, SettingsMap, oset, sStepsVCMin, sStepsVCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool Strobe = SettingsMap.GetBool("CHECKBOX_Twinkle_Strobe", sStrobeDefault);
+    bool reRandomize = SettingsMap.GetBool("CHECKBOX_Twinkle_ReRandom", sReRandomDefault);
+    const std::string& twinkle_style = SettingsMap.Get("CHOICE_Twinkle_Style", sStyleDefault);
     bool new_algorithm = false;
     bool isByNode = false;
     if (twinkle_style == "New Render Method") {

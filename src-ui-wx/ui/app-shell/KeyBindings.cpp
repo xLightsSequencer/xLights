@@ -159,7 +159,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "JUKEBOX_BTN_3", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_4", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_5", KBSCOPE::Sequence },
-    { "FPP_CONNECT", KBSCOPE::All }
+    { "FPP_CONNECT", KBSCOPE::All },
+    { "FILTER_SEQUENCER", KBSCOPE::Sequence }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
@@ -208,6 +209,7 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "SELECT_ALL_NO_TIMING", "Select all effects but not timing marks." },
     { "SHOW_PRESETS", "Show the effect presets panel." },
     { "SEARCH_TOGGLE", "Toggle display of the effect search panel." },
+    { "FILTER_SEQUENCER", "Show/hide the sequencer prop filter box to jump to a prop." },
     { "PERSPECTIVES_TOGGLE", "Toggle display of the perspectives panel." },
     { "EFFECT_UPDATE", "Apply the current effect settings to all selected effects." },
     { "COLOR_UPDATE", "Apply the current colors to all selected effects." },
@@ -373,6 +375,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("F11", false, "COLOR_DROPPER_TOGGLE", false, true),
     KeyBinding("F12", false, "FOCUS_SEQUENCER"),
     KeyBinding("F11", false, "SEARCH_TOGGLE", true),
+    KeyBinding("f", false, "FILTER_SEQUENCER", true),
     KeyBinding("F12", false, "PERSPECTIVES_TOGGLE", true),
     KeyBinding("F5", false, "EFFECT_UPDATE"),
     KeyBinding("", false, "COLOR_UPDATE"),

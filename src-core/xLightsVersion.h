@@ -17,14 +17,14 @@
 #if __has_include("xlights_build_version.h")
 #include "xlights_build_version.h"
 #else
-static const std::string xlights_version_string  = "2026.05.1";
+static const std::string xlights_version_string  = "2026.06.1";
 #endif
 #ifdef DEBUG
 static const std::string xlights_qualifier       = " DEBUG";
 #else
 static const std::string xlights_qualifier       = ""; // " BETA,ALPHA,PROD";
 #endif
-static const std::string xlights_build_date      = __DATE__;
+extern const std::string xlights_build_date;
 
 inline std::string GetDisplayVersionString() { return xlights_version_string; }
 

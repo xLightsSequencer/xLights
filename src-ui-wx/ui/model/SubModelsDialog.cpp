@@ -46,6 +46,7 @@
 #include "ui/model/NodeSelectGrid.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "xLightsApp.h"
 #include "models/ModelManager.h"
 #include "xLightsMain.h"
@@ -446,7 +447,7 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
         SetPosition(loc);
         SetSize(sz);
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int h = config->ReadLong("SubModelsDialogSashPosition", 0);
     if (h != 0) {
         SplitterWindow1->SetSashPosition(h);
@@ -497,7 +498,7 @@ SubModelsDialog::~SubModelsDialog()
 
     SaveWindowPosition("xLightsSubModelDialogPosition", this);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int i = SplitterWindow1->GetSashPosition();
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
@@ -3348,7 +3349,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
 
     auto oldNodeArrray = Split(oldnodes, ',');
     for (auto const& newNode : nodes) {
-        auto const stNode = std::format("{}", newNode);
+        auto const stNode = fmt::format("{}", newNode);
         bool found = false;
         for (auto const& oldNode : oldNodeArrray) {
             if (oldNode == stNode) {
@@ -3396,7 +3397,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
     auto oldNodeArrray = Split(oldnodes, ',');
 
     for (auto const& newNode : nodes) {
-        auto const stNode = std::format("{}", newNode);
+        auto const stNode = fmt::format("{}", newNode);
         if (suppress) {
             // We're going to replace the last one with space (in case it was duplicated)
             for (auto it = oldNodeArrray.rbegin(); it != oldNodeArrray.rend(); ++it) {
@@ -4099,7 +4100,7 @@ void SubModelsDialog::Shift()
                                 else if (newVal < min) {
                                     newVal += max;
                                 }
-                                newNodeArray.push_back( std::format("{}", newVal) );
+                                newNodeArray.push_back( fmt::format("{}", newVal) );
                             }
                         }
                         sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));
@@ -4145,7 +4146,7 @@ void SubModelsDialog::ShiftSingleSubmodel()
                             else if (newVal < min) {
                                 newVal += max;
                             }
-                            newNodeArray.push_back(std::format("{}", newVal));
+                            newNodeArray.push_back(fmt::format("{}", newVal));
                         }
                     }
                     sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));
@@ -4229,7 +4230,7 @@ void SubModelsDialog::Reverse()
                     long val;
                     if (node.ToCLong(&val) == true) {
                         long newVal = max - val;
-                        newNodeArray.push_back(std::format("{}", newVal));
+                        newNodeArray.push_back(fmt::format("{}", newVal));
                     }
                 }
                 sm->strands[x] = NodeUtils::CompressNodes(Join(newNodeArray, ","));

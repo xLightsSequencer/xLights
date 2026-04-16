@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
@@ -389,26 +389,26 @@ std::list<std::string> DmxSkull::CheckModelSettings()
     int nodeCount = Nodes.size();
 
     if (has_color && eye_brightness_channel > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} eye brightness channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_brightness_channel, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} eye brightness channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_brightness_channel, nodeCount));
     }
 
     if (has_jaw && jaw_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} jaw servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} jaw servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), jaw_servo->GetChannel(), nodeCount));
     }
     if (has_pan && pan_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} pan servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), pan_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} pan servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), pan_servo->GetChannel(), nodeCount));
     }
     if (has_tilt && tilt_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} tilt servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} tilt servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), tilt_servo->GetChannel(), nodeCount));
     }
     if (has_nod && nod_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} nod servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), nod_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} nod servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), nod_servo->GetChannel(), nodeCount));
     }
     if (has_eye_ud && eye_ud_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} eye up/down servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} eye up/down servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_ud_servo->GetChannel(), nodeCount));
     }
     if (has_eye_lr && eye_lr_servo->GetChannel() > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} eye left/right servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} eye left/right servo channel refers to a channel ({}) not present on the model which only has {} channels.", GetName(), eye_lr_servo->GetChannel(), nodeCount));
     }
 
     res.splice(res.end(), DmxModel::CheckModelSettings());

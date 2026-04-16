@@ -235,11 +235,15 @@ wxWindow* ShaderPanel::BuildSpeedRow(wxWindow* parentWin, wxSizer* sizer, int co
 
 wxWindow* ShaderPanel::BuildDynamicParams(wxWindow* parentWin, wxSizer* sizer, int cols) {
     // Container for dynamic shader uniforms. Filled by BuildDynamicUI() on
-    // shader load and wiped on shader change.
+    // shader load and wiped on shader change. Return parentWin so the
+    // framework sees a non-null result and doesn't emit a spurious warning
+    // about CreateCustomControl returning null — the row has no single
+    // primary control to anchor a tooltip, but this property has no JSON
+    // tooltip so parentWin is an inert fallback.
     _dynamicSizer = new wxFlexGridSizer(0, 3, 0, 0);
     _dynamicSizer->AddGrowableCol(1);
     sizer->Add(_dynamicSizer, 1, wxALL | wxEXPAND, 2);
-    return nullptr; // no single wxWindow to return; sizer has no placeholder
+    return parentWin;
 }
 
 void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {
@@ -256,10 +260,14 @@ void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _hiddenFilePicker->SetFileName(wxFileName(selected));
+    _hiddenFilePicker->SetFileName(wxFileName(ToWXString(selected)));
     wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
-                             _hiddenFilePicker->GetId(), selected);
-    ProcessWindowEvent(evt);
+                             _hiddenFilePicker->GetId(), ToWXString(selected));
+    // Dispatch on the picker itself — OnFilePickerChanged is Bind()'d to
+    // _hiddenFilePicker, so the event must be processed through the picker's
+    // handler chain. Processing on `this` walks ShaderPanel's handlers then
+    // propagates up to the parent and never reaches the bound handler.
+    _hiddenFilePicker->ProcessWindowEvent(evt);
 }
 
 void ShaderPanel::OnClearClicked(wxCommandEvent& /*event*/) {
@@ -267,7 +275,7 @@ void ShaderPanel::OnClearClicked(wxCommandEvent& /*event*/) {
     _hiddenFilePicker->SetFileName(wxFileName());
     wxFileDirPickerEvent evt(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
                              _hiddenFilePicker->GetId(), "");
-    ProcessWindowEvent(evt);
+    _hiddenFilePicker->ProcessWindowEvent(evt);
 }
 
 void ShaderPanel::OnDownloadClicked(wxCommandEvent& /*event*/) {
@@ -284,7 +292,8 @@ void ShaderPanel::OnDownloadClicked(wxCommandEvent& /*event*/) {
             wxFileDirPickerEvent e(wxEVT_FILEPICKER_CHANGED, _hiddenFilePicker,
                                    _hiddenFilePicker->GetId(),
                                    _hiddenFilePicker->GetFileName().GetFullPath());
-            wxPostEvent(this, e);
+            // Post to the picker, not `this` — see OnSelectClicked above.
+            wxPostEvent(_hiddenFilePicker, e);
         }
     } else {
         SetCursor(wxCURSOR_DEFAULT);
@@ -292,14 +301,8 @@ void ShaderPanel::OnDownloadClicked(wxCommandEvent& /*event*/) {
 }
 
 void ShaderPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
-    static wxString last = "";
-
     wxString fullPath = event.GetPath();
-    wxString newf = wxFileName(fullPath).GetFullName();
     ObtainAccessToURL(fullPath.ToStdString());
-
-    // If shader name hasn't changed, don't reset parameters.
-    if (newf == last) return;
 
     ValidateWindow();
 
@@ -330,7 +333,6 @@ void ShaderPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
 
     if (fullPath.empty()) {
         Freeze();
-        last = "";
         _shaderCacheEntry.reset();
         _shaderConfig = nullptr;
         ClearDynamicUI();
@@ -356,11 +358,9 @@ void ShaderPanel::OnFilePickerChanged(wxFileDirPickerEvent& event) {
     _shaderCacheEntry->MarkIsUsed();
     if (!_shaderCacheEntry->GetShaderSource().empty()) {
         ApplyShaderConfig(/*resetParams*/ true);
-        last = newf;
         if (_hiddenFilePicker) _hiddenFilePicker->Enable(true); // trigger a re-validate
     } else {
         Freeze();
-        last = "";
         _shaderCacheEntry.reset();
         _shaderConfig = nullptr;
         ClearDynamicUI();

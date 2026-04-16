@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "StateEffect.h"
 #include "../render/RenderBuffer.h"
@@ -28,6 +28,9 @@
 
 #include <log.h>
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with State.json values).
+int StateEffect::sFadeTimeDefault = 0;
+
 StateEffect::StateEffect(int id) :
     RenderableEffect(id, "State", state_16, state_64, state_64, state_64, state_64) {
     // ctor
@@ -37,19 +40,23 @@ StateEffect::~StateEffect() {
     // dtor
 }
 
+void StateEffect::OnMetadataLoaded() {
+    sFadeTimeDefault = GetIntDefault("State_Fade_Time", sFadeTimeDefault);
+}
+
 std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     SubModel* sm = dynamic_cast<SubModel*>(model);
     if (sm != nullptr) {
-        res.push_back(std::format("    ERR: State effect on SubModel will not render properly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: State effect on SubModel will not render properly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     // -Buffer not rotated
     std::string bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
     if (bufferTransform != "None") {
-        res.push_back(std::format("    WARN: State effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: State effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string timing = settings.Get("E_CHOICE_State_TimingTrack", "");
@@ -57,9 +64,9 @@ std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& setti
 
     // - Face chosen or specific phoneme
     if (state == "" && timing == "") {
-        res.push_back(std::format("    ERR: State effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: State effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (timing != "" && GetTiming(timing) == nullptr) {
-        res.push_back(std::format("    ERR: State effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: State effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -116,7 +123,7 @@ void StateEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
                 SettingsMap["CHOICE_State_TimingTrack"],
                 SettingsMap["CHOICE_State_Mode"],
                 SettingsMap["CHOICE_State_Color"],
-                SettingsMap.GetInt("SLIDER_State_Fade_Time", 0));
+                SettingsMap.GetInt("SLIDER_State_Fade_Time", sFadeTimeDefault));
 }
 
 std::string StateEffect::FindState(std::map<std::string, std::string>& map, std::string name) {

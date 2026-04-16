@@ -15,6 +15,7 @@ void GenericClient::SaveSettings() const {
     _sm->setSecretServiceToken("GenericClientAPIKey", token);
     _sm->setServiceSetting("GenericClientModel", model);
     _sm->setServiceSetting("GenericClientImageModel", image_model);
+    _sm->setServiceSetting("GenericClientTranscribeModel", transcribe_model);
     for (auto t : GetTypes()) {
         _sm->setServiceSetting(std::string("GenericClientEnable_") + aiType::TypeSettingsSuffix(t), IsEnabledForType(t));
     }
@@ -25,6 +26,7 @@ void GenericClient::LoadSettings() {
     token = _sm->getSecretServiceToken("GenericClientAPIKey");
     model = _sm->getServiceSetting("GenericClientModel", model);
     image_model = _sm->getServiceSetting("GenericClientImageModel", image_model);
+    transcribe_model = _sm->getServiceSetting("GenericClientTranscribeModel", transcribe_model);
     bool oldEnabled = _sm->getServiceSetting("GenericClientEnable", false);
     for (auto t : GetTypes()) {
         bool enabled = _sm->getServiceSetting(std::string("GenericClientEnable_") + aiType::TypeSettingsSuffix(t), oldEnabled);
@@ -46,6 +48,7 @@ void GenericClient::PopulateLLMSettings(wxPropertyGrid* page) {
     apiKeyProp->SetHelpString("Fake API key");
     page->Append(new wxStringProperty("Completion Model", "GenericClient.Model", model));
     page->Append(new wxStringProperty("Image Model", "GenericClient.ImageModel", image_model));
+    page->Append(new wxStringProperty("Transcribe Model", "GenericClient.TranscribeModel", transcribe_model));
 }
 
 void GenericClient::SetSetting(const std::string& key, const wxVariant& value) {
@@ -60,8 +63,10 @@ void GenericClient::SetSetting(const std::string& key, const wxVariant& value) {
     } else if (key == "GenericClient.APIKey") {
         token = value.GetString();
     } else if (key == "GenericClient.Model") {
-		model = value.GetString();
-	} else if (key == "GenericClient.ImageModel") {
+        model = value.GetString();
+    } else if (key == "GenericClient.ImageModel") {
         image_model = value.GetString();
-	}
+    } else if (key == "GenericClient.TranscribeModel") {
+        transcribe_model = value.GetString();
+    }
 }

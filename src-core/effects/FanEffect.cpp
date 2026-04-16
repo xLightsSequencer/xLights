@@ -27,6 +27,50 @@
 #include "../../include/fan-48.xpm"
 #include "../../include/fan-64.xpm"
 
+int FanEffect::sCenterXDefault = 50;
+int FanEffect::sCenterXMin = 0;
+int FanEffect::sCenterXMax = 100;
+int FanEffect::sCenterYDefault = 50;
+int FanEffect::sCenterYMin = 0;
+int FanEffect::sCenterYMax = 100;
+int FanEffect::sStartRadiusDefault = 1;
+int FanEffect::sStartRadiusMin = 0;
+int FanEffect::sStartRadiusMax = 2500;
+int FanEffect::sStartAngleDefault = 0;
+int FanEffect::sStartAngleMin = 0;
+int FanEffect::sStartAngleMax = 360;
+int FanEffect::sEndRadiusDefault = 10;
+int FanEffect::sEndRadiusMin = 0;
+int FanEffect::sEndRadiusMax = 2500;
+int FanEffect::sRevolutionsDefault = 720; // pre-divisor (= JSON 2.0 * divisor 360)
+int FanEffect::sRevolutionsMin = 0;
+int FanEffect::sRevolutionsMax = 3600;
+int FanEffect::sRevolutionsDivisor = 360;
+int FanEffect::sNumBladesDefault = 3;
+int FanEffect::sNumBladesMin = 1;
+int FanEffect::sNumBladesMax = 16;
+int FanEffect::sBladeWidthDefault = 50;
+int FanEffect::sBladeWidthMin = 5;
+int FanEffect::sBladeWidthMax = 100;
+int FanEffect::sBladeAngleDefault = 90;
+int FanEffect::sBladeAngleMin = -360;
+int FanEffect::sBladeAngleMax = 360;
+int FanEffect::sNumElementsDefault = 1;
+int FanEffect::sNumElementsMin = 1;
+int FanEffect::sNumElementsMax = 4;
+int FanEffect::sElementWidthDefault = 100;
+int FanEffect::sElementWidthMin = 5;
+int FanEffect::sElementWidthMax = 100;
+int FanEffect::sDurationDefault = 80;
+int FanEffect::sDurationMin = 0;
+int FanEffect::sDurationMax = 100;
+int FanEffect::sAccelDefault = 0;
+int FanEffect::sAccelMin = -10;
+int FanEffect::sAccelMax = 10;
+bool FanEffect::sReverseDefault = false;
+bool FanEffect::sBlendEdgesDefault = true;
+bool FanEffect::sScaleDefault = true;
+
 FanEffect::FanEffect(int id) : RenderableEffect(id, "Fan", fan_16, fan_24, fan_32, fan_48, fan_64)
 {
     //ctor
@@ -37,9 +81,58 @@ FanEffect::~FanEffect()
     //dtor
 }
 
+void FanEffect::OnMetadataLoaded()
+{
+    sCenterXDefault = GetIntDefault("Fan_CenterX", sCenterXDefault);
+    sCenterXMin = (int)GetMinFromMetadata("Fan_CenterX", sCenterXMin);
+    sCenterXMax = (int)GetMaxFromMetadata("Fan_CenterX", sCenterXMax);
+    sCenterYDefault = GetIntDefault("Fan_CenterY", sCenterYDefault);
+    sCenterYMin = (int)GetMinFromMetadata("Fan_CenterY", sCenterYMin);
+    sCenterYMax = (int)GetMaxFromMetadata("Fan_CenterY", sCenterYMax);
+    sStartRadiusDefault = GetIntDefault("Fan_Start_Radius", sStartRadiusDefault);
+    sStartRadiusMin = (int)GetMinFromMetadata("Fan_Start_Radius", sStartRadiusMin);
+    sStartRadiusMax = (int)GetMaxFromMetadata("Fan_Start_Radius", sStartRadiusMax);
+    sStartAngleDefault = GetIntDefault("Fan_Start_Angle", sStartAngleDefault);
+    sStartAngleMin = (int)GetMinFromMetadata("Fan_Start_Angle", sStartAngleMin);
+    sStartAngleMax = (int)GetMaxFromMetadata("Fan_Start_Angle", sStartAngleMax);
+    sEndRadiusDefault = GetIntDefault("Fan_End_Radius", sEndRadiusDefault);
+    sEndRadiusMin = (int)GetMinFromMetadata("Fan_End_Radius", sEndRadiusMin);
+    sEndRadiusMax = (int)GetMaxFromMetadata("Fan_End_Radius", sEndRadiusMax);
+    // Fan_Revolutions default in JSON is post-divisor (2.0), but Render uses
+    // the pre-divisor tick count — multiply it back.
+    sRevolutionsDivisor = GetDivisorFromMetadata("Fan_Revolutions", sRevolutionsDivisor);
+    sRevolutionsDefault = (int)(GetDoubleDefault("Fan_Revolutions", (double)sRevolutionsDefault / sRevolutionsDivisor) * sRevolutionsDivisor);
+    sRevolutionsMin = (int)GetMinFromMetadata("Fan_Revolutions", sRevolutionsMin);
+    sRevolutionsMax = (int)GetMaxFromMetadata("Fan_Revolutions", sRevolutionsMax);
+    sNumBladesDefault = GetIntDefault("Fan_Num_Blades", sNumBladesDefault);
+    sNumBladesMin = (int)GetMinFromMetadata("Fan_Num_Blades", sNumBladesMin);
+    sNumBladesMax = (int)GetMaxFromMetadata("Fan_Num_Blades", sNumBladesMax);
+    sBladeWidthDefault = GetIntDefault("Fan_Blade_Width", sBladeWidthDefault);
+    sBladeWidthMin = (int)GetMinFromMetadata("Fan_Blade_Width", sBladeWidthMin);
+    sBladeWidthMax = (int)GetMaxFromMetadata("Fan_Blade_Width", sBladeWidthMax);
+    sBladeAngleDefault = GetIntDefault("Fan_Blade_Angle", sBladeAngleDefault);
+    sBladeAngleMin = (int)GetMinFromMetadata("Fan_Blade_Angle", sBladeAngleMin);
+    sBladeAngleMax = (int)GetMaxFromMetadata("Fan_Blade_Angle", sBladeAngleMax);
+    sNumElementsDefault = GetIntDefault("Fan_Num_Elements", sNumElementsDefault);
+    sNumElementsMin = (int)GetMinFromMetadata("Fan_Num_Elements", sNumElementsMin);
+    sNumElementsMax = (int)GetMaxFromMetadata("Fan_Num_Elements", sNumElementsMax);
+    sElementWidthDefault = GetIntDefault("Fan_Element_Width", sElementWidthDefault);
+    sElementWidthMin = (int)GetMinFromMetadata("Fan_Element_Width", sElementWidthMin);
+    sElementWidthMax = (int)GetMaxFromMetadata("Fan_Element_Width", sElementWidthMax);
+    sDurationDefault = GetIntDefault("Fan_Duration", sDurationDefault);
+    sDurationMin = (int)GetMinFromMetadata("Fan_Duration", sDurationMin);
+    sDurationMax = (int)GetMaxFromMetadata("Fan_Duration", sDurationMax);
+    sAccelDefault = GetIntDefault("Fan_Accel", sAccelDefault);
+    sAccelMin = (int)GetMinFromMetadata("Fan_Accel", sAccelMin);
+    sAccelMax = (int)GetMaxFromMetadata("Fan_Accel", sAccelMax);
+    sReverseDefault = GetBoolDefault("Fan_Reverse", sReverseDefault);
+    sBlendEdgesDefault = GetBoolDefault("Fan_Blend_Edges", sBlendEdgesDefault);
+    sScaleDefault = GetBoolDefault("Fan_Scale", sScaleDefault);
+}
+
 int FanEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                     xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
-    int head_duration = e->GetSettings().GetInt("E_SLIDER_Fan_Duration", 50);
+    int head_duration = e->GetSettings().GetInt("E_SLIDER_Fan_Duration", sDurationDefault);
     int num_colors = e->GetPalette().size();
     int x_mid = (int)((float)(x2-x1) * (float)head_duration / 100.0) + x1;
     int head_length;
@@ -90,22 +183,22 @@ void FanEffect::adjustSettings(const std::string& version, Effect* effect, bool 
 
 void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x = GetValueCurveInt("Fan_CenterX", 50, SettingsMap, eff_pos, FAN_CENTREX_MIN , FAN_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int center_y = GetValueCurveInt("Fan_CenterY", 50, SettingsMap, eff_pos, FAN_CENTREY_MIN, FAN_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_radius = GetValueCurveInt("Fan_Start_Radius", 1, SettingsMap, eff_pos, FAN_STARTRADIUS_MIN, FAN_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_radius = GetValueCurveInt("Fan_End_Radius", 10, SettingsMap, eff_pos, FAN_ENDRADIUS_MIN, FAN_ENDRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_angle = GetValueCurveInt("Fan_Start_Angle", 0, SettingsMap, eff_pos, FAN_STARTANGLE_MIN, FAN_STARTANGLE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int revolutions = GetValueCurveInt("Fan_Revolutions", 720, SettingsMap, eff_pos, FAN_REVOLUTIONS_MIN, FAN_REVOLUTIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 360);
-    int num_blades = GetValueCurveInt("Fan_Num_Blades", 3, SettingsMap, eff_pos, FAN_BLADES_MIN, FAN_BLADES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int blade_width = GetValueCurveInt("Fan_Blade_Width", 50, SettingsMap, eff_pos, FAN_BLADEWIDTH_MIN, FAN_BLADEWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int blade_angle = GetValueCurveInt("Fan_Blade_Angle", 90, SettingsMap, eff_pos, FAN_BLADEANGLE_MIN, FAN_BLADEANGLE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int num_elements = GetValueCurveInt("Fan_Num_Elements", 1, SettingsMap, eff_pos, FAN_NUMELEMENTS_MIN, FAN_NUMELEMENTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int element_width = GetValueCurveInt("Fan_Element_Width", 100, SettingsMap, eff_pos, FAN_ELEMENTWIDTH_MIN, FAN_ELEMENTWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int duration = GetValueCurveInt("Fan_Duration", 80, SettingsMap, eff_pos, FAN_DURATION_MIN, FAN_DURATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int acceleration = GetValueCurveInt("Fan_Accel", 0, SettingsMap, eff_pos, FAN_ACCEL_MIN, FAN_ACCEL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
-    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Fan_Scale", true);
+    int center_x = GetValueCurveInt("Fan_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int center_y = GetValueCurveInt("Fan_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_radius = GetValueCurveInt("Fan_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_radius = GetValueCurveInt("Fan_End_Radius", sEndRadiusDefault, SettingsMap, eff_pos, sEndRadiusMin, sEndRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_angle = GetValueCurveInt("Fan_Start_Angle", sStartAngleDefault, SettingsMap, eff_pos, sStartAngleMin, sStartAngleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int revolutions = GetValueCurveInt("Fan_Revolutions", sRevolutionsDefault, SettingsMap, eff_pos, sRevolutionsMin, sRevolutionsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRevolutionsDivisor);
+    int num_blades = GetValueCurveInt("Fan_Num_Blades", sNumBladesDefault, SettingsMap, eff_pos, sNumBladesMin, sNumBladesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int blade_width = GetValueCurveInt("Fan_Blade_Width", sBladeWidthDefault, SettingsMap, eff_pos, sBladeWidthMin, sBladeWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int blade_angle = GetValueCurveInt("Fan_Blade_Angle", sBladeAngleDefault, SettingsMap, eff_pos, sBladeAngleMin, sBladeAngleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int num_elements = GetValueCurveInt("Fan_Num_Elements", sNumElementsDefault, SettingsMap, eff_pos, sNumElementsMin, sNumElementsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int element_width = GetValueCurveInt("Fan_Element_Width", sElementWidthDefault, SettingsMap, eff_pos, sElementWidthMin, sElementWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int duration = GetValueCurveInt("Fan_Duration", sDurationDefault, SettingsMap, eff_pos, sDurationMin, sDurationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int acceleration = GetValueCurveInt("Fan_Accel", sAccelDefault, SettingsMap, eff_pos, sAccelMin, sAccelMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Fan_Reverse", sReverseDefault);
+    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges", sBlendEdgesDefault);
+    bool scale = SettingsMap.GetBool("CHECKBOX_Fan_Scale", sScaleDefault);
 
     HSVValue hsv, hsv1;
     int num_colors = buffer.palette.Size();
@@ -120,14 +213,19 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
 
     double radius1 = start_radius;
     double radius2 = end_radius;
+    // Full (pre-ramp) outer radius in pixel units. Used by the twist
+    // calculation (r/max_radius)*blade_angle — which defines the full-fan
+    // spiral, independent of the ramp-up/ramp-down region. Must stay a
+    // double: on small buffers (bufferMax<200) scaling can produce
+    // fractional values that would otherwise int-truncate to 0 and trip
+    // the blade_angle=0 safety clamp, silently killing the twist.
+    double max_radius_d = std::max(radius1, radius2);
 
     if (scale) { // convert to percentage of buffer, i.e 100 is 100% of buffer size
         double bufferMax = std::max(buffer.BufferHt, buffer.BufferWi);
         radius1 = radius1 * (bufferMax / 200.0); // 200 bc radius is half of the width
         radius2 = radius2 * (bufferMax / 200.0);
-
-        start_radius = start_radius * (bufferMax / 200.0);
-        end_radius = end_radius * (bufferMax / 200.0);
+        max_radius_d = max_radius_d * (bufferMax / 200.0);
     }
 
     int xc_adj = (center_x-50)*buffer.BufferWi / 100;
@@ -166,14 +264,14 @@ void FanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuf
         std::swap(radius1, radius2);
     }
 
-    int max_radius = std::max(start_radius, end_radius);
-    if (max_radius <= 0)
+    double max_radius = max_radius_d;
+    if (max_radius <= 0.0)
     {
         // A non-positive max radius would be used as a divisor in both the CPU
         // and ISPC twist calculations. Treat this as "no twist" and use a safe
         // positive denominator so both paths remain well-defined.
         blade_angle = 0;
-        max_radius = 1;
+        max_radius = 1.0;
     }
 
     do {

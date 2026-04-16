@@ -14,7 +14,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/SequenceElements.h"
 #include "../render/SequenceMedia.h"
@@ -142,6 +142,10 @@ size_t CSVReader::GetFrameCount() const
     return _lines.size();
 }
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Glediator.json values).
+std::string GlediatorEffect::sFilenameDefault = "";
+std::string GlediatorEffect::sDurationTreatmentDefault = "Normal";
+
 GlediatorEffect::GlediatorEffect(int id) : RenderableEffect(id, "Glediator", glediator_16, glediator_64, glediator_64, glediator_64, glediator_64)
 {
     //ctor
@@ -152,6 +156,12 @@ GlediatorEffect::~GlediatorEffect()
     //dtor
 }
 
+void GlediatorEffect::OnMetadataLoaded()
+{
+    sFilenameDefault = GetStringDefault("Glediator_Filename", sFilenameDefault);
+    sDurationTreatmentDefault = GetStringDefault("Glediator_DurationTreatment", sDurationTreatmentDefault);
+}
+
 std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -159,17 +169,17 @@ std::list<std::string> GlediatorEffect::CheckEffectSettings(const SettingsMap& s
     std::string GledFilename = settings.Get("E_FILEPICKERCTRL_Glediator_Filename", "");
 
     if (GledFilename.empty()) {
-        res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
         auto entry = mm.GetBinaryFile(GledFilename, "glediator");
         entry->MarkIsUsed();
 
         if (!entry->isLoaded()) {
-            res.push_back(std::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Glediator effect cant find file '{}'. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
             if (!FileUtils::IsFileInShowDir(std::string(), GledFilename)) {
-                res.push_back(std::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Glediator effect file '{}' not under show directory. Model '{}', Start {}", GledFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }

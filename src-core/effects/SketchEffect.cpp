@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../utils/nanosvg_xl.h"
 
@@ -75,6 +75,18 @@ public:
     std::vector<uint8_t> rasterBuf;
 };
 
+// Fallback defaults (replaced from Sketch.json in OnMetadataLoaded).
+int SketchEffect::sDrawPercentageDefault = 40;
+int SketchEffect::sDrawPercentageMin = 0;
+int SketchEffect::sDrawPercentageMax = 100;
+int SketchEffect::sThicknessDefault = 1;
+int SketchEffect::sThicknessMin = 1;
+int SketchEffect::sThicknessMax = 25;
+int SketchEffect::sMotionPercentageDefault = 100;
+int SketchEffect::sMotionPercentageMin = 1;
+int SketchEffect::sMotionPercentageMax = 100;
+bool SketchEffect::sMotionEnabledDefault = false;
+
 SketchEffect::SketchEffect(int id) :
     RenderableEffect(id, "Sketch", sketch_16_xpm, sketch_24_xpm, sketch_32_xpm, sketch_48_xpm, sketch_64_xpm)
 {
@@ -84,20 +96,34 @@ SketchEffect::~SketchEffect()
 {
 }
 
+void SketchEffect::OnMetadataLoaded()
+{
+    sDrawPercentageDefault = GetIntDefault("DrawPercentage", sDrawPercentageDefault);
+    sDrawPercentageMin = (int)GetMinFromMetadata("DrawPercentage", sDrawPercentageMin);
+    sDrawPercentageMax = (int)GetMaxFromMetadata("DrawPercentage", sDrawPercentageMax);
+    sThicknessDefault = GetIntDefault("Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Thickness", sThicknessMax);
+    sMotionPercentageDefault = GetIntDefault("MotionPercentage", sMotionPercentageDefault);
+    sMotionPercentageMin = (int)GetMinFromMetadata("MotionPercentage", sMotionPercentageMin);
+    sMotionPercentageMax = (int)GetMaxFromMetadata("MotionPercentage", sMotionPercentageMax);
+    sMotionEnabledDefault = GetBoolDefault("MotionEnabled", sMotionEnabledDefault);
+}
+
 void SketchEffect::Render(Effect* /*effect*/, const SettingsMap& settings, RenderBuffer& buffer)
 {
     double progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
     std::string sketchDef = settings.Get("TEXTCTRL_SketchDef", "");
-    double drawPercentage = GetValueCurveDouble("DrawPercentage", SketchEffect::DrawPercentageDef, settings, progress,
-                                                SketchEffect::DrawPercentageMin, SketchEffect::DrawPercentageMax,
+    double drawPercentage = GetValueCurveDouble("DrawPercentage", sDrawPercentageDefault, settings, progress,
+                                                sDrawPercentageMin, sDrawPercentageMax,
                                                 buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int thickness = GetValueCurveInt("Thickness", SketchEffect::ThicknessDef, settings, progress,
-                                     SketchEffect::ThicknessMin, SketchEffect::ThicknessMax,
+    int thickness = GetValueCurveInt("Thickness", sThicknessDefault, settings, progress,
+                                     sThicknessMin, sThicknessMax,
                                      buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool motionEnabled = settings.GetBool("CHECKBOX_MotionEnabled");
-    int motionPercentage = GetValueCurveInt("MotionPercentage", SketchEffect::MotionPercentageDef, settings, progress,
-                                            SketchEffect::MotionPercentageMin, SketchEffect::MotionPercentageMax,
+    bool motionEnabled = settings.GetBool("CHECKBOX_MotionEnabled", sMotionEnabledDefault);
+    int motionPercentage = GetValueCurveInt("MotionPercentage", sMotionPercentageDefault, settings, progress,
+                                            sMotionPercentageMin, sMotionPercentageMax,
                                             buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     xlColorVector colors(buffer.GetColorCount());
@@ -168,7 +194,7 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
         std::string filename = settings.Get("E_FILEPICKER_SketchBackground", "");
         if (filename.empty()) {
             // this is only a warning as it does not affect rendering
-            res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto imgEntry = mm.GetImage(filename);
@@ -176,11 +202,11 @@ std::list<std::string> SketchEffect::CheckEffectSettings(const SettingsMap& sett
 
             if (!imgEntry->IsOk()) {
                 // this is only a warning as it does not affect rendering
-                res.push_back(std::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Sketch effect cant find image file '{}'. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!imgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), filename)) {
-                        res.push_back(std::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Sketch effect image file '{}' not under show directory. Model '{}', Start {}", filename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }
@@ -194,28 +220,6 @@ std::list<std::string> SketchEffect::GetFileReferences(Model* model, const Setti
 {
     std::list<std::string> res;
     return res;
-}
-
-double SketchEffect::GetSettingVCMin(const std::string& name) const
-{
-    if (name == "E_VALUECURVE_DrawPercentage")
-        return SketchEffect::DrawPercentageMin;
-    if (name == "E_VALUECURVE_Thickness")
-        return SketchEffect::ThicknessMin;
-    if (name == "E_VALUECURVE_MotionPercentage")
-        return SketchEffect::MotionPercentageMin;
-    return RenderableEffect::GetSettingVCMin(name);
-}
-
-double SketchEffect::GetSettingVCMax(const std::string& name) const
-{
-    if (name == "E_VALUECURVE_DrawPercentage")
-        return SketchEffect::DrawPercentageMax;
-    if (name == "E_VALUECURVE_Thickness")
-        return SketchEffect::ThicknessMax;
-    if (name == "E_VALUECURVE_MotionPercentage")
-        return SketchEffect::MotionPercentageMax;
-    return RenderableEffect::GetSettingVCMax(name);
 }
 
 namespace {

@@ -19,6 +19,14 @@
 
 class MhFeature;
 
+struct PositionZone {
+    int pan_min = 0;
+    int pan_max = 255;
+    int tilt_min = 0;
+    int tilt_max = 255;
+    int channel = 1;
+    uint8_t value = 0;
+};
 class DmxMovingHeadAdv : public DmxMovingHeadComm
 {
     public:
@@ -53,6 +61,10 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         Mesh* GetHeadMesh() const { return head_mesh.get(); }
 
         void Accept(BaseObjectVisitor &visitor) const override { return visitor.Visit(*this); }
+        void ApplyPositionZones(uint8_t* frameData, uint32_t startChannel) const;
+        void AddPositionZone(const PositionZone& zone) { position_zones.push_back(zone); }
+        const std::vector<PositionZone>& GetPositionZones() const { return position_zones; }
+        void SetPositionZones(const std::vector<PositionZone>& zones) { position_zones = zones; }
 
     protected:
         virtual void InitModel() override;
@@ -85,5 +97,6 @@ class DmxMovingHeadAdv : public DmxMovingHeadComm
         std::string obj_path;
         std::vector<std::unique_ptr<MhFeature>> features;
         std::map<std::string, PanTiltState> panTiltStates;
+        std::vector<PositionZone> position_zones;
 };
 

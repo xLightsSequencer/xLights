@@ -220,7 +220,7 @@ void PicturesPanel::OnSelectClick(wxCommandEvent& /*event*/) {
     std::string selected = dlg.GetSelectedPath();
     if (selected.empty()) return;
 
-    _filenameCtrl->SetValue(selected);
+    _filenameCtrl->SetValue(ToWXString(selected));
     UpdatePreviewBitmap(selected);
     FireChangeEvent();
 }
@@ -277,6 +277,14 @@ void PicturesPanel::OnClearClick(wxCommandEvent& /*event*/) {
     _filenameCtrl->SetValue("");
     UpdatePreviewBitmap("");
     FireChangeEvent();
+}
+
+void PicturesPanel::SetDefaultParameters() {
+    JsonEffectPanel::SetDefaultParameters();
+    if (_filenameCtrl) {
+        _filenameCtrl->ChangeValue(wxEmptyString);
+    }
+    UpdatePreviewBitmap(wxEmptyString);
 }
 
 void PicturesPanel::ValidateWindow() {

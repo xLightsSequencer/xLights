@@ -35,7 +35,23 @@ public:
     virtual std::list<std::string> GetFacesUsed(const SettingsMap& SettingsMap) const override;
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
 
+    // Cached from Faces.json. The MouthMovements (phoneme/timing track) and
+    // TransparentBlackRow are custom controls not represented as plain
+    // properties — those remain hand-coded in Render.
+    static std::string sFaceDefinitionDefault;
+    static std::string sEyesDefault;
+    static std::string sEyeBlinkFrequencyDefault;
+    static std::string sEyeBlinkDurationDefault;
+    static bool sOutlineDefault;
+    static bool sSuppressShimmerDefault;
+    static std::string sUseStateDefault;
+    static bool sSuppressWhenNotSingingDefault;
+    static int sLeadFramesDefault;
+    static bool sFadeDefault;
+
 protected:
+    virtual void OnMetadataLoaded() override;
+
 private:
     const std::map<std::string, int> eyeBlinkMap;
     void mouth(RenderBuffer& buffer, int Phoneme, int BufferHt, int BufferWt, bool shimmer);

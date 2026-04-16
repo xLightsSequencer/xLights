@@ -28,9 +28,10 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "utils/ip_utils.h"
+#include "render/UICallbacks.h"
 #include <cassert>
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <numeric>
 #include <chrono>
 
@@ -87,12 +88,12 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         auto ipo = dynamic_cast<IPOutput*>(it->first);
 
                         if (ipo->GetIP() == "MULTICAST") {
-                            newsc = std::format("#{}:{}", it->first->GetUniverse(), scc);
+                            newsc = fmt::format("#{}:{}", it->first->GetUniverse(), scc);
                             changed = true;
                             spdlog::debug("Networks conversion MULTICAST {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
                         else {
-                            newsc = std::format("#{}:{}:{}", it->first->GetIP(), it->first->GetUniverse(), scc);
+                            newsc = fmt::format("#{}:{}:{}", it->first->GetIP(), it->first->GetUniverse(), scc);
                             changed = true;
                             spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                         }
@@ -101,7 +102,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         // these convert to a controller 1:1 so just use the referenced controller
 
                         // convert to !name:sc if description isnt blank
-                        newsc = std::format("!{}:{}", it->second->GetName(), scc);
+                        newsc = fmt::format("!{}:{}", it->second->GetName(), scc);
                         changed = true;
                         spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it->first->GetType(), sc, newsc);
                     }
@@ -123,7 +124,7 @@ bool OutputManager::ConvertStartChannel(const std::string sc, std::string& newsc
                         nsc += it2->GetChannels();
                     }
 
-                    newsc = std::format("!{}:{}", it.second->GetName(), nsc + scc);
+                    newsc = fmt::format("!{}:{}", it.second->GetName(), nsc + scc);
                     changed = true;
                     spdlog::debug("Networks conversion {} converted start channel '{}' to '{}'.", it.first->GetType(), sc, newsc);
                     break;
@@ -337,7 +338,7 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
     return true;
 }
 
-bool OutputManager::MergeFromBase(bool prompt)
+bool OutputManager::MergeFromBase(bool prompt, bool& acceptAll, bool& rejectAll, UICallbacks* ui)
 {
     bool changed = false;
 
@@ -369,7 +370,12 @@ bool OutputManager::MergeFromBase(bool prompt)
 
                     bool force = false;
                     if (prompt && !it->IsFromBase()) {
-                        force = Confirm(std::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
+                        if (ui) {
+                            force = ui->PromptYesNoAll(fmt::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()),
+                                                      "Controller clash", acceptAll, rejectAll);
+                        } else {
+                            force = Confirm(fmt::format("Controller {} found that clashes with base show directory. Do you want to take the base show directory version?", it->GetName()), "Controller clash");
+                        }
                     }
 
                     // we only update if controller originally came from base
@@ -477,7 +483,7 @@ bool OutputManager::ConvertModelStartChannels(pugi::xml_node modelsNode) const {
                 if (strAttr.empty()) strAttr = model.attribute("parm1").as_string("0");
                 int strings = std::strtol(strAttr.c_str(), nullptr, 10);
                 for (int i = 1; i <= strings; i++) {
-                    auto s = std::format("String{}", i);
+                    auto s = fmt::format("String{}", i);
                     std::string sc = UnXmlSafe(model.attribute(s).as_string(""));
                     if (ConvertStartChannel(sc, newsc)) {
                         SetXmlNodeAttribute(model, s, XmlSafe(newsc));
@@ -923,7 +929,6 @@ int32_t OutputManager::DecodeStartChannel(const std::string& startChannelString)
 
 #pragma region Getters and Setters
 std::string OutputManager::GetFirstUnusedCommPort() const {
-
     auto ports = SerialOutput::GetAvailableSerialPorts();
     if (ports.size() == 1) {
         if (ports.front() == "(no available ports)") return "NotConnected";
@@ -1065,7 +1070,7 @@ std::string OutputManager::UniqueName(const std::string& prefix) {
     }
 
     do {
-        n = std::format("{}_{}", nprefix, i++);
+        n = fmt::format("{}_{}", nprefix, i++);
     } while (GetController(n) != nullptr);
     return n;
 }
@@ -1133,10 +1138,10 @@ std::string OutputManager::GetChannelName(int32_t channel) {
 
     auto c = GetController(channel, startChannel);
     if (c == nullptr) {
-        return std::format("Ch {}: invalid", channel);
+        return fmt::format("Ch {}: invalid", channel);
     }
     else {
-        return std::format("Ch {}: Net {} #{}",
+        return fmt::format("Ch {}: Net {} #{}",
             channel,
             GetControllerIndex(c) + 1,
             channel - c->GetStartChannel() + 1);
@@ -1180,7 +1185,7 @@ bool OutputManager::StartOutput() {
             if (name == "") name = it->GetCommPort();
 
             spdlog::error("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, (const char*)name.c_str());
-            if (!Confirm(std::format("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, name), "Continue?")) {
+            if (!Confirm(fmt::format("An error occurred opening output {} ({}). Do you want to continue trying to start output?", started + 1, name), "Continue?")) {
                 return _outputting;
             }
             err = true;

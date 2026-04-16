@@ -13,6 +13,8 @@
 #include <wx/msgdlg.h>
 #include <filesystem>
 
+#include "ui/shared/utils/wxUtilities.h"
+
 #include "MeshObjectPropertyAdapter.h"
 #include "models/MeshObject.h"
 #include "graphics/xlMesh.h"
@@ -38,7 +40,7 @@ void MeshObjectPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid,
 int MeshObjectPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("ObjFile" == event.GetPropertyName()) {
         _mesh.SetObjLoaded(false);
-        std::string objFile = event.GetValue().GetString().ToStdString();
+        std::string objFile = ToStdString(event.GetValue().GetString());
         _mesh.SetObjFile(objFile);
         auto mtfs = xlMesh::GetMaterialFilenamesFromOBJ(objFile, false);
         bool hasSpaces = false;

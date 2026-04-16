@@ -28,6 +28,7 @@
 #include <wx/wfstream.h>
 
 #include "ui/shared/controls/BulkEditControls.h"
+#include "ui/shared/controls/MediaPickerCtrl.h"
 #include "ui/shared/utils/xlLockButton.h"
 #include "ui/sequencer/TimingPanel.h"
 #include "ui/shared/utils/wxUtilities.h"
@@ -195,7 +196,13 @@ void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
     bool scrollable = metadata.value("scrollable", false);
     if (scrollable) {
         auto* scrollWin = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition,
-                                                wxDefaultSize, wxVSCROLL | wxHSCROLL);
+                                                wxDefaultSize, wxVSCROLL | wxHSCROLL,
+                                                _T("ID_PANEL_JsonScroll"));
+        // The ID_PANEL_ name prefix matters: GetEffectStringFromWindow only
+        // recurses into wxNotebooks and windows whose name begins with
+        // "ID_PANEL_". Without this, every framework-built control parented
+        // to the scroll window is invisible to the serializer and the panel
+        // silently produces no settings.
         scrollWin->SetScrollRate(5, 5);
         // Cap the scroll window's min size to a small value so it doesn't
         // propagate the content's natural size up to the panel. Without this,
@@ -914,8 +921,20 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         sliderSizer->AddGrowableCol(0);
 
         if (divisor > 1) {
-            // Float slider: primary control is IDD_SLIDER (buddy), text is ID_TEXTCTRL
-            std::string sliderName = "IDD_SLIDER_" + id;
+            // Float slider primary-control selection is PER-PROPERTY based
+            // on what the render engine expects:
+            //   settingPrefix="SLIDER": slider is primary (ID_SLIDER_<id>)
+            //     holding the raw pre-divisor integer. Render reads with
+            //     settingsMap.GetInt("SLIDER_<id>") and divides by the
+            //     divisor itself. Used by Buffer's Rotations / Zoom where
+            //     PixelBuffer.cpp does the division in C++.
+            //   default (no settingPrefix): text is primary (ID_TEXTCTRL_<id>)
+            //     holding the formatted float string. Render reads with
+            //     GetValueCurveDouble / SettingsMap.GetDouble and consumes
+            //     the float directly. Used by ColorWash, Garlands, and
+            //     every other float-divisor effect.
+            bool sliderPrimary = (settingPrefix == "SLIDER");
+            std::string sliderName = (sliderPrimary ? "ID_SLIDER_" : "IDD_SLIDER_") + id;
             wxWindowID sliderId = wxNewId();
             wxSlider* slider = nullptr;
 
@@ -941,7 +960,11 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                    wxString(sliderName));
                     break;
             }
-            info.buddySlider = slider;
+            if (sliderPrimary) {
+                info.slider = slider;
+            } else {
+                info.buddySlider = slider;
+            }
             sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
         } else if (settingPrefix == "TEXTCTRL") {
             // Integer slider where TEXTCTRL is the primary setting key (e.g. On effect)
@@ -993,8 +1016,13 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
 
         // Column 3: Text buddy control
         if (divisor > 1) {
-            // Float text: ID_TEXTCTRL is the primary setting control
-            std::string textName = "ID_TEXTCTRL_" + id;
+            // Float text control naming mirrors the slider choice above:
+            //   settingPrefix="SLIDER": text is display-only buddy
+            //     (IDD_TEXTCTRL_<id>), slider is the primary.
+            //   default: text is primary (ID_TEXTCTRL_<id>) holding the
+            //     formatted float string that the render engine reads.
+            bool sliderPrimary = (settingPrefix == "SLIDER");
+            std::string textName = (sliderPrimary ? "IDD_TEXTCTRL_" : "ID_TEXTCTRL_") + id;
             wxWindowID textId = wxNewId();
             double defaultFloat = prop.value("default", 0.0);
             wxString defaultStr = wxString::Format("%.1f", defaultFloat);
@@ -1023,7 +1051,11 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                     break;
             }
             textCtrl->SetMaxLength(5);
-            info.textCtrl = textCtrl;
+            if (sliderPrimary) {
+                info.buddyText = textCtrl;
+            } else {
+                info.textCtrl = textCtrl;
+            }
             sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
         } else if (settingPrefix == "TEXTCTRL") {
             // Integer slider where text is the primary setting (ID_TEXTCTRL_)
@@ -1056,7 +1088,6 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                               wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                               wxString(lockName));
-            lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
             sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                     (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
@@ -1100,7 +1131,6 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
             auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                               wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                               wxString(lockName));
-            lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
             sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
             Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                     (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
@@ -1159,8 +1189,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                                   wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                   wxString(lockName));
-                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
                 Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                         (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
             } else {
@@ -1248,6 +1277,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
     } else if (controlType == "filepicker") {
         std::string wildcard = prop.value("fileFilter", "All files (*.*)|*.*");
         std::string message = prop.value("fileMessage", "Select a file");
+        std::string mediaTypeStr = prop.value("mediaType", "");
 
         // Column 1: Label
         wxWindowID labelId = wxNewId();
@@ -1265,7 +1295,33 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                                                     wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
                                                     wxDefaultValidator, wxString(ctrlName));
         info.filePicker = picker;
-        sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
+
+        if (!mediaTypeStr.empty()) {
+            // Media-aware variant: hide the plain file picker and overlay a
+            // MediaPickerCtrl that browses the show's media cache via
+            // SelectMediaDialog. The hidden picker is still the serialized
+            // primary control (ID_FILEPICKERCTRL_<id>) — MediaPickerCtrl's
+            // SetLinkedPicker keeps it in sync so bulk edit and setting
+            // round-trip continue to work through the existing framework.
+            MediaType mt = MediaType::BinaryFile;
+            if (mediaTypeStr == "Image") mt = MediaType::Image;
+            else if (mediaTypeStr == "SVG") mt = MediaType::SVG;
+            else if (mediaTypeStr == "Shader") mt = MediaType::Shader;
+            else if (mediaTypeStr == "TextFile") mt = MediaType::TextFile;
+            else if (mediaTypeStr == "Video") mt = MediaType::Video;
+            picker->Hide();
+            auto* mediaPicker = new MediaPickerCtrl(parentWin, wxID_ANY, mt);
+            mediaPicker->SetLinkedPicker(picker);
+            sizer->Add(mediaPicker, 1, wxALL | wxEXPAND, 5);
+            // IMPORTANT: the hidden picker is NOT added to the sizer — if we
+            // did that, it would consume an extra grid cell and push every
+            // subsequent row's columns out by one. It still participates in
+            // the wx parent->child hierarchy (same parentWin), so the
+            // serializer walker in GetEffectStringFromWindow still finds it
+            // via parentWin->GetChildren().
+        } else {
+            sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
+        }
 
         // Columns 3+4: spacers
         if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
@@ -1299,8 +1355,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
                 auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
                                                   wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                   wxString(lockName));
-                lockBtn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
-                sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
                 Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
                         (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
             } else {
@@ -1602,11 +1657,22 @@ wxString JsonEffectPanel::GetEffectString() {
 
         bool isDefault = false;
         if (info.controlType == "slider") {
-            if (info.divisor > 1 && info.textCtrl) {
-                // Use wxAtof for locale-independent parsing (wxString::ToDouble
-                // is locale-aware and breaks for users in locales with ',' decimal).
-                double current = wxAtof(info.textCtrl->GetValue());
-                isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
+            if (info.divisor > 1) {
+                // Float slider — the primary control depends on
+                // settingPrefix. SLIDER-primary: compare slider int against
+                // (default * divisor). Text-primary: compare textCtrl float
+                // string against the default double.
+                if (info.settingPrefix == "SLIDER" && info.slider) {
+                    int current = info.slider->GetValue();
+                    int defaultScaled = static_cast<int>(
+                        info.defaultValue.get<double>() * info.divisor);
+                    isDefault = current == defaultScaled;
+                } else if (info.textCtrl) {
+                    // Locale-independent parse; wxString::ToDouble is
+                    // locale-aware and breaks on users with ',' decimals.
+                    double current = wxAtof(info.textCtrl->GetValue());
+                    isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
+                }
             } else if (!info.settingPrefix.empty() && info.textCtrl) {
                 long current = 0;
                 info.textCtrl->GetValue().ToLong(&current);
@@ -1634,7 +1700,15 @@ wxString JsonEffectPanel::GetEffectString() {
             if (!info.settingPrefix.empty()) {
                 prefix = info.settingPrefix;
             } else if (info.controlType == "slider") {
-                prefix = info.divisor > 1 ? "TEXTCTRL" : "SLIDER";
+                // Float sliders serialize as either SLIDER_<id> (raw int,
+                // render divides) or TEXTCTRL_<id> (formatted float, render
+                // consumes directly) depending on the per-property opt-in
+                // via settingPrefix. Int sliders are always SLIDER_<id>.
+                if (info.divisor > 1 && info.settingPrefix != "SLIDER") {
+                    prefix = "TEXTCTRL";
+                } else {
+                    prefix = "SLIDER";
+                }
             } else if (info.controlType == "checkbox") {
                 prefix = "CHECKBOX";
             } else if (info.controlType == "choice" || info.controlType == "combobox") {
@@ -1827,11 +1901,22 @@ void JsonEffectPanel::SetDefaultParameters() {
 
         if (info.controlType == "slider") {
             if (info.divisor > 1) {
-                // Float slider - set the buddy IDD_SLIDER
-                if (info.buddySlider) {
-                    double fval = info.defaultValue.get<double>();
-                    int ival = static_cast<int>(fval * info.divisor);
-                    SetSliderValue(static_cast<wxSlider*>(info.buddySlider), ival);
+                // Float slider - reset whichever controls exist. Depending
+                // on settingPrefix, primary is either info.slider (SLIDER-
+                // primary, raw int) or info.textCtrl (text-primary, float
+                // string). The other is a buddy and should also be synced.
+                double fval = info.defaultValue.get<double>();
+                int ival = static_cast<int>(fval * info.divisor);
+                if (info.slider) {
+                    SetSliderValue(info.slider, ival);
+                } else if (info.buddySlider) {
+                    static_cast<wxSlider*>(info.buddySlider)->SetValue(ival);
+                }
+                if (info.textCtrl) {
+                    SetTextValue(info.textCtrl, wxString::Format("%.1f", fval).ToStdString());
+                } else if (info.buddyText) {
+                    static_cast<wxTextCtrl*>(info.buddyText)->SetValue(
+                        wxString::Format("%.1f", fval));
                 }
             } else {
                 if (info.slider) {

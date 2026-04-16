@@ -60,6 +60,14 @@ public:
 
     // --- Utilities ---
     virtual double calcPixelSize(double i) = 0;
+    // Returns the GPU viewport scale factor (zoom × world-to-screen) not already included in
+    // calcPixelSize. Used to size GL_POINTS correctly when the layout view is zoomed.
+    // Returns 1.0 for non-layout previews (model/effect panels) where calcPixelSize is sufficient.
+    virtual double getViewScale() const { return 1.0; }
+    // Returns the HiDPI backing scale factor only (translateToBacking(1.0)), without any zoom or
+    // world-to-screen scale. Used to size circle triangles (Solid/Blended Circle pixel styles) so
+    // that the view-matrix scale is not applied twice.
+    virtual double getBackingScaleFactor() const { return 1.0; }
     virtual uint32_t getCurrentFrameTime() const = 0;
 
     // --- State queries ---

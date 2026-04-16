@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include <algorithm>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "SequenceElements.h"
 #include "pugixml.hpp"
@@ -859,7 +859,7 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
                                 loaded += LoadEffects(effectLayer, elemType, effectLayerNode, effectStrings, colorPalettes, importing);
                                 if (count) {
                                     if (renderContext) {
-                                        renderContext->SetLoadingStatusText(std::format("Effects Loaded: {}%.", loaded * 100 / count));
+                                        renderContext->SetLoadingStatusText(fmt::format("Effects Loaded: {}%.", loaded * 100 / count));
                                     }
                                 }
                             } else {
@@ -1194,7 +1194,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                     ModelElement* melem = dynamic_cast<ModelElement*>(elements[x]);
                     if (subModel != "") {
                         SubModelElement* selem = melem->GetSubModel(subModel);
-                        addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth + 1);
+                        addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth);
                     }
                     else {
                         addModelElement(melem, mRowInformation, rowIndex, elements, true, nestDepth + 1);

@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <sstream>
 
 #include "../../include/warp-64.xpm"
@@ -160,6 +160,19 @@ namespace
    }
 }
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Warp.json values).
+std::string WarpEffect::sTypeDefault = "water drops";
+std::string WarpEffect::sTreatmentDefault = "constant";
+int WarpEffect::sXDefault = 50;
+int WarpEffect::sXMin = 0;
+int WarpEffect::sXMax = 100;
+int WarpEffect::sYDefault = 50;
+int WarpEffect::sYMin = 0;
+int WarpEffect::sYMax = 100;
+int WarpEffect::sCycleCountDefault = 1;
+int WarpEffect::sSpeedDefault = 20;
+int WarpEffect::sFrequencyDefault = 20;
+
 WarpEffect::WarpEffect(int i) : RenderableEffect(i, "Warp", warp_16_xpm, warp_24_xpm, warp_32_xpm, warp_48_xpm, warp_64_xpm)
 {
 }
@@ -168,13 +181,28 @@ WarpEffect::~WarpEffect()
 {
 }
 
+void WarpEffect::OnMetadataLoaded()
+{
+    sTypeDefault = GetStringDefault("Warp_Type", sTypeDefault);
+    sTreatmentDefault = GetStringDefault("Warp_Treatment_APPLYLAST", sTreatmentDefault);
+    sXDefault = GetIntDefault("Warp_X", sXDefault);
+    sXMin = (int)GetMinFromMetadata("Warp_X", sXMin);
+    sXMax = (int)GetMaxFromMetadata("Warp_X", sXMax);
+    sYDefault = GetIntDefault("Warp_Y", sYDefault);
+    sYMin = (int)GetMinFromMetadata("Warp_Y", sYMin);
+    sYMax = (int)GetMaxFromMetadata("Warp_Y", sYMax);
+    sCycleCountDefault = GetIntDefault("Warp_Cycle_Count", sCycleCountDefault);
+    sSpeedDefault = GetIntDefault("Warp_Speed", sSpeedDefault);
+    sFrequencyDefault = GetIntDefault("Warp_Frequency", sFrequencyDefault);
+}
+
 std::list<std::string> WarpEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("T_CHECKBOX_Canvas", "0") == "0")
     {
-        res.push_back(std::format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Canvas mode not enabled on a warp effect. Without canvas mode warp won't do anything. Effect: Warp, Model: {}, Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -184,14 +212,14 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
 {
     float progress = buffer.GetEffectTimeIntervalPosition(1.f);
 
-    std::string warpTypeString = SettingsMap.Get( "CHOICE_Warp_Type", "water drops" );
+    std::string warpTypeString = SettingsMap.Get("CHOICE_Warp_Type", sTypeDefault);
     WarpEffect::WarpType warpType = mapWarpType(warpTypeString);
-    std::string warpTreatment = SettingsMap.Get( "CHOICE_Warp_Treatment_APPLYLAST", "constant");
-    std::string warpStrCycleCount = SettingsMap.Get( "TEXTCTRL_Warp_Cycle_Count", "1" );
-    std::string speedStr = SettingsMap.Get( "TEXTCTRL_Warp_Speed", "20" );
-    std::string freqStr = SettingsMap.Get( "TEXTCTRL_Warp_Frequency", "20" );
-    int xPercentage = GetValueCurveInt( "Warp_X", 50, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int yPercentage = GetValueCurveInt( "Warp_Y", 50, SettingsMap, progress, 0, 100, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    std::string warpTreatment = SettingsMap.Get("CHOICE_Warp_Treatment_APPLYLAST", sTreatmentDefault);
+    std::string warpStrCycleCount = SettingsMap.Get("TEXTCTRL_Warp_Cycle_Count", std::to_string(sCycleCountDefault));
+    std::string speedStr = SettingsMap.Get("TEXTCTRL_Warp_Speed", std::to_string(sSpeedDefault));
+    std::string freqStr = SettingsMap.Get("TEXTCTRL_Warp_Frequency", std::to_string(sFrequencyDefault));
+    int xPercentage = GetValueCurveInt("Warp_X", sXDefault, SettingsMap, progress, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int yPercentage = GetValueCurveInt("Warp_Y", sYDefault, SettingsMap, progress, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     double x = 0.01 * xPercentage;
     double y = 0.01 * yPercentage;
     float speed = std::strtof( speedStr.c_str(), nullptr );

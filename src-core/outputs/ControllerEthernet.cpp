@@ -34,7 +34,7 @@
 #endif
 #include "../utils/ip_utils.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -599,26 +599,26 @@ bool ControllerEthernet::SupportsDefaultGamma() const
 std::string ControllerEthernet::GetChannelMapping(int32_t ch) const
 {
 
-    std::string res = std::format("Channel {} maps to ...\nType: {}\nName: {}\nIP: {}\n", ch, GetProtocol(), GetName(), GetIP());
+    std::string res = fmt::format("Channel {} maps to ...\nType: {}\nName: {}\nIP: {}\n", ch, GetProtocol(), GetName(), GetIP());
 
     int32_t sc;
     auto o = GetOutput(ch, sc);
 
     if (o == nullptr) {
-        res += std::format("Channel: INVALID {}\n", ch);
+        res += fmt::format("Channel: INVALID {}\n", ch);
     }
     else {
         if (o->GetType() == OUTPUT_ARTNET || o->GetType() == OUTPUT_E131 || o->GetType() == OUTPUT_xxxETHERNET) {
-            res += std::format("Universe: {}\nChannel: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Universe: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_KINET) {
-            res += std::format("Port: {}\nChannel: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Port: {}\nChannel: {}\n", o->GetUniverseString(), sc);
         }
         else if (o->GetType() == OUTPUT_OPC) {
-            res += std::format("Channel: {}\nMessage Offset: {}\n", o->GetUniverseString(), sc);
+            res += fmt::format("Channel: {}\nMessage Offset: {}\n", o->GetUniverseString(), sc);
         }
         else {
-            res += std::format("Channel: {}\n", sc);
+            res += fmt::format("Channel: {}\n", sc);
         }
     }
 
@@ -713,7 +713,7 @@ void ControllerEthernet::SetExpanded(bool expanded)
 
 std::string ControllerEthernet::GetExport() const {
 
-    return std::format("{},{},{},{},{},{},,,\"{}\",{},{},{},{},{},{},{},{},{}",
+    return fmt::format("{},{},{},{},{},{},,,\"{}\",{},{},{},{},{},{},{},{},{}",
                             GetName(),
                             GetStartChannel(),
                             GetEndChannel(),
@@ -825,6 +825,7 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
         universes = std::max(1, universes);
 
         auto const oldIP = _outputs.front()->GetIP();
+        int32_t const savedBaseStartChannel = _outputs.front()->GetStartChannel();
 
         if (!IsUniversePerString() && SupportsUniversePerString())
         {
@@ -926,6 +927,16 @@ bool ControllerEthernet::SetChannelSize(int32_t channels, std::list<Model*> mode
                     }
                 }
             }
+        }
+
+        // Propagate the preserved base start channel locally to the (possibly
+        // newly-created) outputs so this controller's outputs are self-consistent
+        // after a rebuild, without requiring a global OutputManager::SomethingChanged()
+        // walk (which has historically caused recompute loops during drag/drop).
+        if (savedBaseStartChannel > 0) {
+            int32_t sc = savedBaseStartChannel;
+            int nullcnt = 0;
+            Controller::SetTransientData(sc, nullcnt);
         }
     }
     return true;

@@ -166,7 +166,7 @@ std::string KinetOutput::GetLongDescription() const {
 
 std::string KinetOutput::GetExport() const {
 
-    return std::format(",{},{},,{},{},,,,{},{}",
+    return fmt::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

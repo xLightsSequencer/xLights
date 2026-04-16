@@ -30,14 +30,14 @@
 
 class xLightsPreferencesPage : public wxPreferencesPage {
 public:
-    xLightsPreferencesPage(const wxString &n, const wxBitmap &i, std::function<wxWindow*(wxWindow*)> & f) : wxPreferencesPage(), m_icon(i), m_name(n), m_createFunction(f) {
+    xLightsPreferencesPage(const wxString &n, const wxBitmapBundle &i, std::function<wxWindow*(wxWindow*)> & f) : wxPreferencesPage(), m_icon(i), m_name(n), m_createFunction(f) {
     }
 
     virtual wxString GetName() const override {
         return m_name;
     }
 
-    virtual wxBitmap GetLargeIcon() const override {
+    virtual wxBitmapBundle GetIcon() const override {
         return m_icon;
     }
     virtual wxWindow *CreateWindow (wxWindow *parent) override {
@@ -78,7 +78,7 @@ public:
     }
 
 private:
-    wxBitmap m_icon;
+    wxBitmapBundle m_icon;
     wxString m_name;
     std::function<wxWindow*(wxWindow*)> m_createFunction;
 };
@@ -100,35 +100,36 @@ void xLightsFrame::OnMenuItemPreferencesSelected(wxCommandEvent& event)
 
         mPreferencesEditor.reset(new wxPreferencesEditor("Preferences"));
         std::function<wxWindow*(wxWindow*)> f = [this] (wxWindow *p) { return (wxWindow*)(new BackupSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Backup", wxArtProvider::GetBitmap(wxART_HARDDISK, wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Backup", wxArtProvider::GetBitmapBundle(wxART_HARDDISK, wxART_BUTTON, wxSize(28, 28)), f));
+        wxSize iconSize = wxSize(64, 64);
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new ViewSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("View", wxArtProvider::GetBitmap(wxART_FULL_SCREEN, wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("View", wxArtProvider::GetBitmapBundle(wxART_FULL_SCREEN, wxART_BUTTON, iconSize), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new EffectsGridSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Effects Grid", gridIcon, f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new SequenceFileSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Sequences", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Sequences", wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new OutputSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Output", wxArtProvider::GetBitmap("xlART_OUTPUT_LIGHTS_ON", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Output", wxArtProvider::GetBitmapBundle("xlART_OUTPUT_LIGHTS_ON", wxART_BUTTON, iconSize), f));
 
         f = [this](wxWindow* p) { return (wxWindow*)(new CheckSequenceSettingsPanel(p, this)); };
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Check Sequence", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Check Sequence", wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new RandomEffectsSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Random Effects", wxArtProvider::GetBitmap("xlART_DICE_ICON", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Random Effects", wxArtProvider::GetBitmapBundle("xlART_DICE_ICON", wxART_BUTTON, wxSize(28, 28)), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new ColorManagerSettingsPanel(p, this));};
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Colors", wxArtProvider::GetBitmap("xlART_RENDER_ALL", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Colors", wxArtProvider::GetBitmapBundle("xlART_RENDER_ALL", wxART_BUTTON, iconSize), f));
 
         f = [this] (wxWindow *p) { return (wxWindow*)(new OtherSettingsPanel(p, this));};
         mPreferencesEditor->AddPage(new xLightsPreferencesPage("Other", settingIcon, f));
 
 #ifdef ENABLE_SERVICES
         f = [this](wxWindow* p) { return (wxWindow*)(new ServicesPanel(p, _serviceManager.get())); };
-        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Services", wxArtProvider::GetBitmap("xlART_SETTINGS", wxART_BUTTON, wxSize(64, 64)), f));
+        mPreferencesEditor->AddPage(new xLightsPreferencesPage("Services", wxArtProvider::GetBitmapBundle("xlART_SETTINGS", wxART_BUTTON, iconSize), f));
 #endif
     }
 

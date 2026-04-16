@@ -23,6 +23,17 @@
 #include "../../include/lines-48.xpm"
 #include "../../include/lines-64.xpm"
 
+int LinesEffect::sObjectsDefault = 2;
+int LinesEffect::sSegmentsDefault = 3;
+int LinesEffect::sThicknessDefault = 1;
+int LinesEffect::sThicknessMin = 1;
+int LinesEffect::sThicknessMax = 10;
+int LinesEffect::sSpeedDefault = 1;
+int LinesEffect::sSpeedMin = 1;
+int LinesEffect::sSpeedMax = 10;
+int LinesEffect::sTrailsDefault = 0;
+bool LinesEffect::sFadeTrailsDefault = true;
+
 LinesEffect::LinesEffect(int id) : RenderableEffect(id, "Lines", lines_16, lines_24, lines_32, lines_48, lines_64)
 {
 }
@@ -31,15 +42,29 @@ LinesEffect::~LinesEffect()
 {
 }
 
+void LinesEffect::OnMetadataLoaded()
+{
+    sObjectsDefault = GetIntDefault("Lines_Objects", sObjectsDefault);
+    sSegmentsDefault = GetIntDefault("Lines_Segments", sSegmentsDefault);
+    sThicknessDefault = GetIntDefault("Lines_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Lines_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Lines_Thickness", sThicknessMax);
+    sSpeedDefault = GetIntDefault("Lines_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Lines_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Lines_Speed", sSpeedMax);
+    sTrailsDefault = GetIntDefault("Lines_Trails", sTrailsDefault);
+    sFadeTrailsDefault = GetBoolDefault("Lines_FadeTrails", sFadeTrailsDefault);
+}
+
 void LinesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-        SettingsMap.GetInt("SLIDER_Lines_Objects", 2),
-        SettingsMap.GetInt("SLIDER_Lines_Segments", 3),
-        GetValueCurveInt("Lines_Thickness", 1, SettingsMap, oset, LINES_THICKNESS_MIN, LINES_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Lines_Speed", 1, SettingsMap, oset, LINES_SPEED_MIN, LINES_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        SettingsMap.GetInt("SLIDER_Lines_Trails", 0),
-        SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", true)
+        SettingsMap.GetInt("SLIDER_Lines_Objects", sObjectsDefault),
+        SettingsMap.GetInt("SLIDER_Lines_Segments", sSegmentsDefault),
+        GetValueCurveInt("Lines_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        GetValueCurveInt("Lines_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        SettingsMap.GetInt("SLIDER_Lines_Trails", sTrailsDefault),
+        SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", sFadeTrailsDefault)
     );
 }
 

@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -37,6 +37,50 @@
 #include "../../include/ripple-48.xpm"
 #include "../../include/ripple-64.xpm"
 
+std::string RippleEffect::sDrawStyleDefault = "Old";
+std::string RippleEffect::sObjectToDrawDefault = "Circle";
+std::string RippleEffect::sMovementDefault = "Explode";
+int RippleEffect::sScaleDefault = 100;
+int RippleEffect::sScaleMin = 0;
+int RippleEffect::sScaleMax = 500;
+double RippleEffect::sOutlineDefault = 1.0;
+double RippleEffect::sOutlineMin = 0;
+double RippleEffect::sOutlineMax = 100;
+int RippleEffect::sOutlineDivisor = 10;
+int RippleEffect::sThicknessDefault = 3;
+int RippleEffect::sThicknessMin = 1;
+int RippleEffect::sThicknessMax = 100;
+double RippleEffect::sSpacingDefault = 1.0;
+double RippleEffect::sSpacingMin = 1;
+double RippleEffect::sSpacingMax = 400;
+int RippleEffect::sSpacingDivisor = 10;
+double RippleEffect::sCyclesDefault = 1.0;
+double RippleEffect::sCyclesMin = 0;
+double RippleEffect::sCyclesMax = 300;
+int RippleEffect::sCyclesDivisor = 10;
+int RippleEffect::sPointsDefault = 5;
+int RippleEffect::sRotationDefault = 0;
+int RippleEffect::sRotationMin = -360;
+int RippleEffect::sRotationMax = 360;
+double RippleEffect::sTwistDefault = 0.0;
+double RippleEffect::sTwistMin = -450;
+double RippleEffect::sTwistMax = 450;
+int RippleEffect::sTwistDivisor = 10;
+int RippleEffect::sXCDefault = 0;
+int RippleEffect::sXCMin = -100;
+int RippleEffect::sXCMax = 100;
+int RippleEffect::sYCDefault = 0;
+int RippleEffect::sYCMin = -100;
+int RippleEffect::sYCMax = 100;
+double RippleEffect::sVelocityDefault = 0.0;
+double RippleEffect::sVelocityMin = 0;
+double RippleEffect::sVelocityMax = 300;
+int RippleEffect::sVelocityDivisor = 10;
+int RippleEffect::sDirectionDefault = 0;
+int RippleEffect::sDirectionMin = -360;
+int RippleEffect::sDirectionMax = 360;
+bool RippleEffect::s3DDefault = false;
+
 RippleEffect::RippleEffect(int id) : RenderableEffect(id, "Ripple", ripple_16, ripple_24, ripple_32, ripple_48, ripple_64)
 {
     //ctor
@@ -45,6 +89,53 @@ RippleEffect::RippleEffect(int id) : RenderableEffect(id, "Ripple", ripple_16, r
 RippleEffect::~RippleEffect()
 {
     //dtor
+}
+
+void RippleEffect::OnMetadataLoaded()
+{
+    sDrawStyleDefault = GetStringDefault("Ripple_Draw_Style", sDrawStyleDefault);
+    sObjectToDrawDefault = GetStringDefault("Ripple_Object_To_Draw", sObjectToDrawDefault);
+    sMovementDefault = GetStringDefault("Ripple_Movement", sMovementDefault);
+    sScaleDefault = GetIntDefault("Ripple_Scale", sScaleDefault);
+    sScaleMin = (int)GetMinFromMetadata("Ripple_Scale", sScaleMin);
+    sScaleMax = (int)GetMaxFromMetadata("Ripple_Scale", sScaleMax);
+    sOutlineDefault = GetDoubleDefault("Ripple_Outline", sOutlineDefault);
+    sOutlineMin = GetMinFromMetadata("Ripple_Outline", sOutlineMin);
+    sOutlineMax = GetMaxFromMetadata("Ripple_Outline", sOutlineMax);
+    sOutlineDivisor = GetDivisorFromMetadata("Ripple_Outline", sOutlineDivisor);
+    sThicknessDefault = GetIntDefault("Ripple_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Ripple_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Ripple_Thickness", sThicknessMax);
+    sSpacingDefault = GetDoubleDefault("Ripple_Spacing", sSpacingDefault);
+    sSpacingMin = GetMinFromMetadata("Ripple_Spacing", sSpacingMin);
+    sSpacingMax = GetMaxFromMetadata("Ripple_Spacing", sSpacingMax);
+    sSpacingDivisor = GetDivisorFromMetadata("Ripple_Spacing", sSpacingDivisor);
+    sCyclesDefault = GetDoubleDefault("Ripple_Cycles", sCyclesDefault);
+    sCyclesMin = GetMinFromMetadata("Ripple_Cycles", sCyclesMin);
+    sCyclesMax = GetMaxFromMetadata("Ripple_Cycles", sCyclesMax);
+    sCyclesDivisor = GetDivisorFromMetadata("Ripple_Cycles", sCyclesDivisor);
+    sPointsDefault = GetIntDefault("RIPPLE_POINTS", sPointsDefault);
+    sRotationDefault = GetIntDefault("Ripple_Rotation", sRotationDefault);
+    sRotationMin = (int)GetMinFromMetadata("Ripple_Rotation", sRotationMin);
+    sRotationMax = (int)GetMaxFromMetadata("Ripple_Rotation", sRotationMax);
+    sTwistDefault = GetDoubleDefault("Ripple_Twist", sTwistDefault);
+    sTwistMin = GetMinFromMetadata("Ripple_Twist", sTwistMin);
+    sTwistMax = GetMaxFromMetadata("Ripple_Twist", sTwistMax);
+    sTwistDivisor = GetDivisorFromMetadata("Ripple_Twist", sTwistDivisor);
+    sXCDefault = GetIntDefault("Ripple_XC", sXCDefault);
+    sXCMin = (int)GetMinFromMetadata("Ripple_XC", sXCMin);
+    sXCMax = (int)GetMaxFromMetadata("Ripple_XC", sXCMax);
+    sYCDefault = GetIntDefault("Ripple_YC", sYCDefault);
+    sYCMin = (int)GetMinFromMetadata("Ripple_YC", sYCMin);
+    sYCMax = (int)GetMaxFromMetadata("Ripple_YC", sYCMax);
+    sVelocityDefault = GetDoubleDefault("Ripple_Velocity", sVelocityDefault);
+    sVelocityMin = GetMinFromMetadata("Ripple_Velocity", sVelocityMin);
+    sVelocityMax = GetMaxFromMetadata("Ripple_Velocity", sVelocityMax);
+    sVelocityDivisor = GetDivisorFromMetadata("Ripple_Velocity", sVelocityDivisor);
+    sDirectionDefault = GetIntDefault("Ripple_Direction", sDirectionDefault);
+    sDirectionMin = (int)GetMinFromMetadata("Ripple_Direction", sDirectionMin);
+    sDirectionMax = (int)GetMaxFromMetadata("Ripple_Direction", sDirectionMax);
+    s3DDefault = GetBoolDefault("Ripple3D", s3DDefault);
 }
 #define RENDER_RIPPLE_CIRCLE     0
 #define RENDER_RIPPLE_SQUARE     1
@@ -908,20 +999,20 @@ void RippleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
     const std::string& Object_To_DrawStr = SettingsMap["CHOICE_Ripple_Object_To_Draw"];
     std::string svgFilename = SettingsMap["FILEPICKERCTRL_Ripple_SVG"];
     const std::string& MovementStr = SettingsMap["CHOICE_Ripple_Movement"];
-    int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", 3, SettingsMap, oset, RIPPLE_THICKNESS_MIN, RIPPLE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", false);
-    const std::string& StyleStr = SettingsMap.Get("CHOICE_Ripple_Draw_Style", "Old");
-    float cycles = GetValueCurveDouble("Ripple_Cycles", 1.0, SettingsMap, oset, RIPPLE_CYCLES_MIN, RIPPLE_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_CYCLES_DIVISOR);
-    int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", 5);
-    int rotation = GetValueCurveInt("Ripple_Rotation", 0, SettingsMap, oset, RIPPLE_ROTATION_MIN, RIPPLE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int xcc = GetValueCurveInt("Ripple_XC", 0, SettingsMap, oset, RIPPLE_XC_MIN, RIPPLE_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int ycc = GetValueCurveInt("Ripple_YC", 0, SettingsMap, oset, RIPPLE_YC_MIN, RIPPLE_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    double scale = GetValueCurveDouble("Ripple_Scale", 100, SettingsMap, oset, RIPPLE_SCALE_MIN, RIPPLE_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
-    double spacing = GetValueCurveDouble("Ripple_Spacing", 1.0, SettingsMap, oset, RIPPLE_SPACING_MIN, RIPPLE_SPACING_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_SPACING_DIVISOR);
-    double outline = GetValueCurveDouble("Ripple_Outline", 1.0, SettingsMap, oset, RIPPLE_OUTLINE_MIN, RIPPLE_OUTLINE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_OUTLINE_DIVISOR);
-    double twist = GetValueCurveDouble("Ripple_Twist", 0, SettingsMap, oset, RIPPLE_TWIST_MIN, RIPPLE_TWIST_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_TWIST_DIVISOR);
-    double vel = GetValueCurveDouble("Ripple_Velocity", 0, SettingsMap, oset, RIPPLE_VELOCITY_MIN, RIPPLE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), RIPPLE_VELOCITY_DIVISOR);
-    double veldir = GetValueCurveDouble("Ripple_Direction", 0, SettingsMap, oset, RIPPLE_DIRECTION_MIN, RIPPLE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Ripple_Thickness = GetValueCurveInt("Ripple_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool CheckBox_Ripple3D = SettingsMap.GetBool("CHECKBOX_Ripple3D", s3DDefault);
+    const std::string& StyleStr = SettingsMap.Get("CHOICE_Ripple_Draw_Style", sDrawStyleDefault);
+    float cycles = GetValueCurveDouble("Ripple_Cycles", sCyclesDefault, SettingsMap, oset, sCyclesMin, sCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sCyclesDivisor);
+    int points = SettingsMap.GetInt("SLIDER_RIPPLE_POINTS", sPointsDefault);
+    int rotation = GetValueCurveInt("Ripple_Rotation", sRotationDefault, SettingsMap, oset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int xcc = GetValueCurveInt("Ripple_XC", sXCDefault, SettingsMap, oset, sXCMin, sXCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int ycc = GetValueCurveInt("Ripple_YC", sYCDefault, SettingsMap, oset, sYCMin, sYCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    double scale = GetValueCurveDouble("Ripple_Scale", sScaleDefault, SettingsMap, oset, sScaleMin, sScaleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) / 100.0;
+    double spacing = GetValueCurveDouble("Ripple_Spacing", sSpacingDefault, SettingsMap, oset, sSpacingMin, sSpacingMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpacingDivisor);
+    double outline = GetValueCurveDouble("Ripple_Outline", sOutlineDefault, SettingsMap, oset, sOutlineMin, sOutlineMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sOutlineDivisor);
+    double twist = GetValueCurveDouble("Ripple_Twist", sTwistDefault, SettingsMap, oset, sTwistMin, sTwistMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sTwistDivisor);
+    double vel = GetValueCurveDouble("Ripple_Velocity", sVelocityDefault, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sVelocityDivisor);
+    double veldir = GetValueCurveDouble("Ripple_Direction", sDirectionDefault, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     RippleRenderCache* cache = (RippleRenderCache*)buffer.infoCache[id];
     if (cache == nullptr) {
@@ -1665,16 +1756,16 @@ std::list<std::string> RippleEffect::CheckEffectSettings(const SettingsMap& sett
     if (object == "SVG") {
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_Ripple_SVG", "");
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: Ripple effect can't find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Ripple effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }

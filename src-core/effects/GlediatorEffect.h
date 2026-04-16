@@ -68,9 +68,15 @@ class GlediatorEffect : public RenderableEffect
         virtual bool needToAdjustSettings(const std::string &version) override { return true; }
         virtual bool AppropriateOnNodes() const override { return false; }
         static bool IsGlediatorFile(std::string filename);
-    
+
         // Currently not possible but I think changes could be made to make it support partial
         //virtual bool CanRenderPartialTimeInterval() const override { return true; }
+
+        // Cached from Glediator.json by OnMetadataLoaded().
+        static std::string sFilenameDefault;
+        static std::string sDurationTreatmentDefault;
+
 protected:
+        virtual void OnMetadataLoaded() override;
         bool IsCSVFile(std::string filename) const;
 };

@@ -20,7 +20,7 @@
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
 #include <wx/progdlg.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/dir.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
@@ -1873,7 +1873,7 @@ void VendorModelDialog::OnResize(wxSizeEvent& event)
 
 void VendorModelDialog::OnCheckBox_DontDownloadClick(wxCommandEvent& event)
 {
-    std::string vendor = "";
+    std::string vendor;
     wxTreeItemId startid = GetFocusedItem();
 
     if (GetFocusedItem().IsOk())
@@ -1903,28 +1903,28 @@ void VendorModelDialog::OnCheckBox_DontDownloadClick(wxCommandEvent& event)
 
 bool VendorModelDialog::IsVendorSuppressed(const std::string& vendor)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
-    auto suppress = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
+    std::string const suppress = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
 
-    return suppress.Contains(vendor);
+    return Contains(suppress, vendor);
 }
 
 void VendorModelDialog::SuppressVendor(const std::string& vendor, bool suppress)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
-    auto s = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
+    std::string s = config->Read("xLightsVendorSuppress", "DMX Fixture Library|");
 
-    if (suppress && !s.Contains(vendor))
+    if (suppress && !Contains(s, vendor))
     {
-        if (!s.EndsWith('|')) s += "|";
+        if (!EndsWith(s, "|")) s += "|";
         s += vendor;
     }
-    else if (!suppress && s.Contains(vendor))
+    else if (!suppress && Contains(s, vendor))
     {
-        s.Replace(vendor, "");
-        s.Replace("||", "|");
+        Replace(s, vendor, "");
+        Replace(s, "||", "|");
     }
     config->Write("xLightsVendorSuppress", s);
 }

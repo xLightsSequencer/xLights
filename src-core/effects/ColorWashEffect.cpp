@@ -19,7 +19,7 @@
 #include "ispc/ColorWashFunctions.ispc.h"
 #include "Parallel.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 static const std::string CHECKBOX_ColorWash_HFade("CHECKBOX_ColorWash_HFade");
 static const std::string CHECKBOX_ColorWash_VFade("CHECKBOX_ColorWash_VFade");
@@ -29,6 +29,17 @@ static const std::string CHECKBOX_ColorWash_Shimmer("CHECKBOX_ColorWash_Shimmer"
 static const std::string CHECKBOX_ColorWash_CircularPalette("CHECKBOX_ColorWash_CircularPalette");
 
 
+// Cycles: JSON min=1, max=200, divisor=10 → renders 0.1..20 cycles.
+double ColorWashEffect::sCyclesDefault = 1.0;
+double ColorWashEffect::sCyclesMin = 1;
+double ColorWashEffect::sCyclesMax = 200;
+int ColorWashEffect::sCyclesDivisor = 10;
+bool ColorWashEffect::sVFadeDefault = false;
+bool ColorWashEffect::sHFadeDefault = false;
+bool ColorWashEffect::sReverseFadesDefault = false;
+bool ColorWashEffect::sShimmerDefault = false;
+bool ColorWashEffect::sCircularPaletteDefault = false;
+
 ColorWashEffect::ColorWashEffect(int i) : RenderableEffect(i, "Color Wash", ColorWash, ColorWash, ColorWash, ColorWash, ColorWash)
 {
     //ctor
@@ -37,6 +48,19 @@ ColorWashEffect::ColorWashEffect(int i) : RenderableEffect(i, "Color Wash", Colo
 ColorWashEffect::~ColorWashEffect()
 {
     //dtor
+}
+
+void ColorWashEffect::OnMetadataLoaded()
+{
+    sCyclesDefault = GetDoubleDefault("ColorWash_Cycles", sCyclesDefault);
+    sCyclesMin = GetMinFromMetadata("ColorWash_Cycles", sCyclesMin);
+    sCyclesMax = GetMaxFromMetadata("ColorWash_Cycles", sCyclesMax);
+    sCyclesDivisor = GetDivisorFromMetadata("ColorWash_Cycles", sCyclesDivisor);
+    sVFadeDefault = GetBoolDefault("ColorWash_VFade", sVFadeDefault);
+    sHFadeDefault = GetBoolDefault("ColorWash_HFade", sHFadeDefault);
+    sReverseFadesDefault = GetBoolDefault("ColorWash_ReverseFades", sReverseFadesDefault);
+    sShimmerDefault = GetBoolDefault("ColorWash_Shimmer", sShimmerDefault);
+    sCircularPaletteDefault = GetBoolDefault("ColorWash_CircularPalette", sCircularPaletteDefault);
 }
 
 int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
@@ -58,13 +82,13 @@ int ColorWashEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x
 void ColorWashEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    float cycles = GetValueCurveDouble("ColorWash_Cycles", 1.0, SettingsMap, oset, COLOURWASH_CYCLES_MIN, COLOURWASH_CYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float cycles = GetValueCurveDouble("ColorWash_Cycles", sCyclesDefault, SettingsMap, oset, sCyclesMin, sCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sCyclesDivisor);
 
-    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade);;
-    bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade);
-    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades);
-    bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer);
-    bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette);
+    bool HorizFade = SettingsMap.GetBool(CHECKBOX_ColorWash_HFade, sHFadeDefault);
+    bool VertFade = SettingsMap.GetBool(CHECKBOX_ColorWash_VFade, sVFadeDefault);
+    bool reverseFades = SettingsMap.GetBool(CHECKBOX_ColorWash_ReverseFades, sReverseFadesDefault);
+    bool shimmer = SettingsMap.GetBool(CHECKBOX_ColorWash_Shimmer, sShimmerDefault);
+    bool circularPalette = SettingsMap.GetBool(CHECKBOX_ColorWash_CircularPalette, sCircularPaletteDefault);
 
     xlColor color, orig;
 

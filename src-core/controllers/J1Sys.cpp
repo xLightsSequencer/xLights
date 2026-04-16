@@ -27,7 +27,7 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <log.h>
 
 // This code has been tested with
@@ -117,7 +117,7 @@ std::string J1Sys::BuildStringPort(bool active, int string, char protocol, int s
     spdlog::debug("     Output String {}, Protocol {} Universe {} StartChannel {} Pixels {}",
         string, protocol, universe, startChannel, pixels);
 
-    return std::format("sA{:c}={}&sT{:c}={:c}&sB{:c}={}&sU{:c}={}&sS{:c}={}&sC{:c}={}",
+    return fmt::format("sA{:c}={}&sT{:c}={:c}&sB{:c}={}&sU{:c}={}&sS{:c}={}&sC{:c}={}",
         out, active ? 1 : 0,
         out, protocol,
         out, speed,
@@ -138,16 +138,16 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
     if (!config.empty()) {
         for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            std::regex ar(std::format("sA{:c}[^>]*checked", (char)(i + 65)));
+            std::regex ar(fmt::format("sA{:c}[^>]*checked", (char)(i + 65)));
             j[i].active = std::regex_search(config, ar);
 
             if (i % GetBankSize() == 0) {
-                std::regex pr(std::format("sT{:c}>[^#]*selected>([^<]*)", (char)(i + 65)));
+                std::regex pr(fmt::format("sT{:c}>[^#]*selected>([^<]*)", (char)(i + 65)));
                 std::smatch pm;
                 if (std::regex_search(config, pm, pr)) {
                     j[i].protocol = EncodeStringPortProtocol(pm[1].str());
                 }
-                std::regex sr(std::format("sB{:c}[^>]*value=\"([^\"]*)\"", (char)(i + 65)));
+                std::regex sr(fmt::format("sB{:c}[^>]*value=\"([^\"]*)\"", (char)(i + 65)));
                 std::smatch sm;
                 if (std::regex_search(config, sm, sr)) {
                     j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
@@ -158,17 +158,17 @@ void J1Sys::ReadCurrentConfig(std::vector<J1SysPixelOutput>& j) {
                 j[i].speed = j[i / GetBankSize() * GetBankSize()].speed;
             }
 
-            std::regex ur(std::format("sU{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::regex ur(fmt::format("sU{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
             std::smatch um;
             if (std::regex_search(config, um, ur)) {
                 j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
             }
-            std::regex scr(std::format("sS{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::regex scr(fmt::format("sS{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
             std::smatch scm;
             if (std::regex_search(config, scm, scr)) {
                 j[i].startChannel = (int)std::strtol(scm[1].str().c_str(), nullptr, 10);
             }
-            std::regex pxr(std::format("sC{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
+            std::regex pxr(fmt::format("sC{:c}[^>]*value=\"([0-9]*)", (char)(i + 65)));
             std::smatch pxm;
             if (std::regex_search(config, pxm, pxr)) {
                 j[i].pixels = (int)std::strtol(pxm[1].str().c_str(), nullptr, 10);
@@ -200,7 +200,7 @@ std::string J1Sys::BuildSerialPort(bool active, int port, char protocol, int spe
     spdlog::debug("     Output Serial {}, Protocol {} Universe {}",
         port, protocol, universe);
 
-    return std::format("pA{}={}&pP{}={:c}&pB{}={}&pU{}={}",
+    return fmt::format("pA{}={}&pP{}={:c}&pB{}={}&pU{}={}",
         port, active ? 1 : 0,
         port, protocol,
         port, speed,
@@ -229,21 +229,21 @@ void J1Sys::ReadCurrentSerialConfig(std::vector<J1SysSerialOutput>& j) {
     if (!config.empty()) {
         for (auto i = 0; i < (int)j.size(); i++) {
             j[i].port = i;
-            std::regex ar(std::format("pA{}[^>]*checked", i + 1));
+            std::regex ar(fmt::format("pA{}[^>]*checked", i + 1));
             j[i].active = std::regex_search(config, ar);
 
-            std::regex pr(std::format("pP{}.+?value=\"(.)\" selected", i + 1));
+            std::regex pr(fmt::format("pP{}.+?value=\"(.)\" selected", i + 1));
             std::smatch pm;
             if (std::regex_search(config, pm, pr)) {
                 j[i].protocol = pm[1].str()[0];
             }
-            std::regex sr(std::format("pB{}.+?value=\"([0-9]+)\" selected", i + 1));
+            std::regex sr(fmt::format("pB{}.+?value=\"([0-9]+)\" selected", i + 1));
             std::smatch sm;
             if (std::regex_search(config, sm, sr)) {
                 j[i].speed = (int)std::strtol(sm[1].str().c_str(), nullptr, 10);
             }
 
-            std::regex ur(std::format("pU{}[^>]*value=\"([0-9]*)", i + 1));
+            std::regex ur(fmt::format("pU{}[^>]*value=\"([0-9]*)", i + 1));
             std::smatch um;
             if (std::regex_search(config, um, ur)) {
                 j[i].universe = (int)std::strtol(um[1].str().c_str(), nullptr, 10);
@@ -322,7 +322,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
 
     if (_outputs == 2) {
         if (outputs.size() > 8) {
-            DisplayError(std::format("Attempt to upload {} universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()));
+            DisplayError(fmt::format("Attempt to upload {} universes to j1Sys P2 controller but only 8 are supported.", (int)outputs.size()));
             return false;
         }
     }
@@ -334,7 +334,7 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
         }
         if ((int)outputs.size() > maxUniverses)
         {
-            DisplayError(std::format("Attempt to upload {} universes to j1Sys P12 controller but only {} are supported.", (int)outputs.size(), maxUniverses));
+            DisplayError(fmt::format("Attempt to upload {} universes to j1Sys P12 controller but only {} are supported.", (int)outputs.size(), maxUniverses));
             return false;
         }
     }
@@ -343,12 +343,12 @@ bool J1Sys::SetInputUniverses(Controller* controller, OutputManager* outputManag
     {
         if (o->GetChannels() > 510)
         {
-            DisplayError(std::format("Attempt to upload universe {} to j1Sys controller of size {} but maximum is 510.", o->GetUniverse(), o->GetChannels()));
+            DisplayError(fmt::format("Attempt to upload universe {} to j1Sys controller of size {} but maximum is 510.", o->GetUniverse(), o->GetChannels()));
             return false;
         }
     }
 
-    std::string request = std::format("an=0&e1en={}&anen={}", (e131) ? 1 : 0, (artnet) ? 1 : 0);
+    std::string request = fmt::format("an=0&e1en={}&anen={}", (e131) ? 1 : 0, (artnet) ? 1 : 0);
     std::string res = PutURL("/protect/ipConfig.htm", request, _username, _password);
     if (res != "" && !StartsWith(res, "401 "))
     {

@@ -18,6 +18,7 @@
 #include <wx/listbase.h>
 
 #include "xLightsMain.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "outputs/ControllerEthernet.h"
 
@@ -256,14 +257,14 @@ void MultiControllerUploadDialog::SaveChecked()
         selected_controllers.push_back(c->GetIP());
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("MultiControllerUploadSelection", wxString(Join(selected_controllers, ",")));
     config->Flush();
 }
 
 void MultiControllerUploadDialog::LoadChecked()
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
 
     if (config != nullptr) {
         wxString controllerSelect = "";

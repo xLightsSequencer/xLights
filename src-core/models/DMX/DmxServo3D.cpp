@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -115,7 +115,7 @@ void DmxServo3d::InitModel()
 
     if (_dmxChannelCount < min_channels) {
         UpdateChannelCount(min_channels, false);
-        std::string msg = std::format("Channel count increased to {} to accommodate {} servos at {} bits.", min_channels, num_servos, _16bit ? 16 : 8);
+        std::string msg = fmt::format("Channel count increased to {} to accommodate {} servos at {} bits.", min_channels, num_servos, _16bit ? 16 : 8);
         if (auto* ui = GetModelManager().GetUICallbacks()) {
             ui->ShowMessage(msg, "Minimum Channel Violation");
         }
@@ -323,12 +323,12 @@ std::list<std::string> DmxServo3d::CheckModelSettings()
     int min_channels = num_servos * (_16bit ? 2 : 1);
 
     if (min_channels > nodeCount) {
-        res.push_back(std::format("    ERR: Model {} requires more channels {} than have been allocated to it {}.", GetName(), min_channels, nodeCount));
+        res.push_back(fmt::format("    ERR: Model {} requires more channels {} than have been allocated to it {}.", GetName(), min_channels, nodeCount));
     }
     int i = 1;
     for (const auto& it : servos) {
         if (it->GetChannel() > nodeCount) {
-            res.push_back(std::format("    ERR: Model {} servo {} is assigned to channel {} but the model only has {} channels.", GetName(), i, it->GetChannel(), nodeCount));
+            res.push_back(fmt::format("    ERR: Model {} servo {} is assigned to channel {} but the model only has {} channels.", GetName(), i, it->GetChannel(), nodeCount));
         }
         i++;
     }

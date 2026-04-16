@@ -16,7 +16,7 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/clrpicker.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/file.h>
 #include <wx/image.h>
 #include <wx/menu.h>
@@ -74,7 +74,7 @@ const wxWindowID ColorPanel::ID_MNU_IMPORT = wxNewId();
 const wxWindowID ColorPanel::ID_MNU_GENERATE = wxNewId();
 
 static bool IsLargePalette() {
-    return wxConfigBase::Get()->Read("PaletteSize", "Normal") == "Large";
+    return GetXLightsConfig()->Read("PaletteSize", "Normal") == "Large";
 }
 
 class ColourList : public wxOwnerDrawnComboBox {
@@ -209,7 +209,7 @@ ColorPanel::ColorPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Color");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetColorPanel", &reset, true);
     if (_resetColorPanelCheck) _resetColorPanelCheck->SetValue(reset);
@@ -344,7 +344,12 @@ wxWindow* ColorPanel::BuildPaletteHeaderRow(wxWindow* parentWin, wxSizer* sizer)
     row->Add(menuCol, 0, wxALL | wxALIGN_LEFT, 2);
 
     sizer->Add(row, 1, wxALL | wxEXPAND, 2);
-    return _paletteGridSizer->GetContainingWindow();
+    // Return the reverse-colours button as the "anchor" control so the
+    // framework sees a non-null result. The JSON has no tooltip for this
+    // compound row, so the specific widget chosen here doesn't matter —
+    // only that it's non-null to satisfy the framework's CreateCustomControl
+    // contract and avoid a spurious warning.
+    return _reverseColoursButton;
 }
 
 wxWindow* ColorPanel::BuildResetPanelRow(wxWindow* parentWin, wxSizer* sizer) {
@@ -434,7 +439,6 @@ wxWindow* ColorPanel::BuildSparklesRow(wxWindow* parentWin, wxSizer* sizer) {
                                                wxDefaultPosition, wxSize(14, 14),
                                                wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                _T("ID_BITMAPBUTTON_SLIDER_SparkleFrequency"));
-    _sparkleFrequencyLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     topRow->Add(_sparkleFrequencyLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     _sparkleFrequencyLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
 
@@ -463,7 +467,6 @@ wxWindow* ColorPanel::BuildSparklesRow(wxWindow* parentWin, wxSizer* sizer) {
                                            wxDefaultPosition, wxSize(14, 14),
                                            wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                            _T("ID_BITMAPBUTTON_MusicSparkles"));
-    _musicSparklesLock->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNHIGHLIGHT));
     musicRow->Add(_musicSparklesLock, 0, wxALL | wxALIGN_CENTER_VERTICAL, 0);
     _musicSparklesLock->Bind(wxEVT_BUTTON, &ColorPanel::OnLockButtonClick, this);
 
@@ -989,7 +992,7 @@ void ColorPanel::OnCheckBox_MusicSparklesClick(wxCommandEvent& /*event*/) {
 }
 
 void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetColorPanelCheck) {
         config->Write("xLightsResetColorPanel", _resetColorPanelCheck->IsChecked());
     }
@@ -997,6 +1000,8 @@ void ColorPanel::OnCheckBox_ResetColorPanelClick(wxCommandEvent& /*event*/) {
 
 void ColorPanel::OnCheckBox_EnableChromakeyClick(wxCommandEvent& /*event*/) {
     ValidateWindow();
+    // Chroma key is serialized, so a toggle must trigger a save.
+    FireChangeEvent();
 }
 
 void ColorPanel::OnColourChoiceDropDown(wxCommandEvent& /*event*/) {

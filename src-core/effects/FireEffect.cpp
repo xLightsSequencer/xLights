@@ -11,7 +11,7 @@
 #include "FireEffect.h"
 #include "render/ValueCurve.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -27,6 +27,20 @@
 #include "../../include/fire-48.xpm"
 #include "../../include/fire-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Fire.json values).
+int FireEffect::sHeightDefault = 50;
+int FireEffect::sHeightMin = 1;
+int FireEffect::sHeightMax = 100;
+int FireEffect::sHueShiftDefault = 0;
+int FireEffect::sHueShiftMin = 0;
+int FireEffect::sHueShiftMax = 100;
+double FireEffect::sGrowthCyclesDefault = 0.0;
+double FireEffect::sGrowthCyclesMin = 0;
+double FireEffect::sGrowthCyclesMax = 200;
+int FireEffect::sGrowthCyclesDivisor = 10;
+bool FireEffect::sGrowWithMusicDefault = false;
+std::string FireEffect::sLocationDefault = "Bottom";
+
 FireEffect::FireEffect(int id) : RenderableEffect(id, "Fire", fire_16, fire_24, fire_32, fire_48, fire_64)
 {
     //ctor
@@ -37,12 +51,28 @@ FireEffect::~FireEffect()
     //dtor
 }
 
+void FireEffect::OnMetadataLoaded()
+{
+    sHeightDefault = GetIntDefault("Fire_Height", sHeightDefault);
+    sHeightMin = (int)GetMinFromMetadata("Fire_Height", sHeightMin);
+    sHeightMax = (int)GetMaxFromMetadata("Fire_Height", sHeightMax);
+    sHueShiftDefault = GetIntDefault("Fire_HueShift", sHueShiftDefault);
+    sHueShiftMin = (int)GetMinFromMetadata("Fire_HueShift", sHueShiftMin);
+    sHueShiftMax = (int)GetMaxFromMetadata("Fire_HueShift", sHueShiftMax);
+    sGrowthCyclesDefault = GetDoubleDefault("Fire_GrowthCycles", sGrowthCyclesDefault);
+    sGrowthCyclesMin = GetMinFromMetadata("Fire_GrowthCycles", sGrowthCyclesMin);
+    sGrowthCyclesMax = GetMaxFromMetadata("Fire_GrowthCycles", sGrowthCyclesMax);
+    sGrowthCyclesDivisor = GetDivisorFromMetadata("Fire_GrowthCycles", sGrowthCyclesDivisor);
+    sGrowWithMusicDefault = GetBoolDefault("Fire_GrowWithMusic", sGrowWithMusicDefault);
+    sLocationDefault = GetStringDefault("Fire_Location", sLocationDefault);
+}
+
 std::list<std::string> FireEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", false)) {
-        res.push_back(std::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    if (media == nullptr && settings.GetBool("E_CHECKBOX_Fire_GrowWithMusic", sGrowWithMusicDefault)) {
+        res.push_back(fmt::format("    WARN: Fire effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -148,11 +178,11 @@ static FireRenderCache* GetCache(RenderBuffer &buffer, int id) {
 void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float offset = buffer.GetEffectTimeIntervalPosition();
-    int HeightPct = GetValueCurveInt("Fire_Height", 50, SettingsMap, offset, FIRE_HEIGHT_MIN, FIRE_HEIGHT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int HueShift = GetValueCurveInt("Fire_HueShift", 0, SettingsMap, offset, FIRE_HUE_MIN, FIRE_HUE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float cycles = GetValueCurveDouble("Fire_GrowthCycles", 0.0f, SettingsMap, offset, FIRE_GROWTHCYCLES_MIN, FIRE_GROWTHCYCLES_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), FIRE_GROWTHCYCLES_DIVISOR);
-    bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", false);
-    int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", "Bottom"));
+    int HeightPct = GetValueCurveInt("Fire_Height", sHeightDefault, SettingsMap, offset, sHeightMin, sHeightMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int HueShift = GetValueCurveInt("Fire_HueShift", sHueShiftDefault, SettingsMap, offset, sHueShiftMin, sHueShiftMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float cycles = GetValueCurveDouble("Fire_GrowthCycles", sGrowthCyclesDefault, SettingsMap, offset, sGrowthCyclesMin, sGrowthCyclesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sGrowthCyclesDivisor);
+    bool withMusic = SettingsMap.GetBool("CHECKBOX_Fire_GrowWithMusic", sGrowWithMusicDefault);
+    int loc = GetLocation(SettingsMap.Get("CHOICE_Fire_Location", sLocationDefault));
 
     if (withMusic) {
         HeightPct = 10;
@@ -224,7 +254,7 @@ void FireEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBu
             int v1 = GetFireBuffer(x - 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v2 = GetFireBuffer(x, y - 1, cache->FireBuffer, maxMWi, maxMHt);
             int v3 = GetFireBuffer(x + 1, y - 1, cache->FireBuffer, maxMWi, maxMHt);
-            int v4 = GetFireBuffer(x -2, y - 2, cache->FireBuffer, maxMWi, maxMHt);
+            int v4 = GetFireBuffer(x, y - 2, cache->FireBuffer, maxMWi, maxMHt);
             int n = 0;
             int sum = 0;
             if (v1 >= 0) {

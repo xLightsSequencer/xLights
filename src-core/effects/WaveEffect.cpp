@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <spdlog/fmt/fmt.h>
 
 #include "render/ValueCurve.h"
 #include "../render/Effect.h"
@@ -25,6 +26,32 @@
 #include "../../include/wave-48.xpm"
 #include "../../include/wave-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Wave.json values).
+std::string WaveEffect::sWaveTypeDefault = "Sine";
+std::string WaveEffect::sFillColorsDefault = "None";
+bool WaveEffect::sMirrorWaveDefault = false;
+// Number_Waves is a float count of wave cycles. JSON stores min/max as the
+// pre-divisor degree values (180..3600) so the VC scale is compatible with
+// older sequences; the divisor (360) converts to "cycles" at render time.
+double WaveEffect::sNumberWavesDefault = 2.5;
+double WaveEffect::sNumberWavesMin = 180;
+double WaveEffect::sNumberWavesMax = 3600;
+int WaveEffect::sNumberWavesDivisor = 360;
+int WaveEffect::sThicknessDefault = 5;
+int WaveEffect::sThicknessMin = 0;
+int WaveEffect::sThicknessMax = 100;
+int WaveEffect::sWaveHeightDefault = 50;
+int WaveEffect::sWaveHeightMin = 0;
+int WaveEffect::sWaveHeightMax = 100;
+double WaveEffect::sWaveSpeedDefault = 10.0;
+double WaveEffect::sWaveSpeedMin = 0;
+double WaveEffect::sWaveSpeedMax = 5000;
+int WaveEffect::sWaveSpeedDivisor = 100;
+std::string WaveEffect::sWaveDirectionDefault = "Right to Left";
+int WaveEffect::sYOffsetDefault = 0;
+int WaveEffect::sYOffsetMin = -250;
+int WaveEffect::sYOffsetMax = 250;
+
 WaveEffect::WaveEffect(int id) : RenderableEffect(id, "Wave", wave_16, wave_24, wave_32, wave_48, wave_64)
 {
     //ctor
@@ -34,9 +61,34 @@ WaveEffect::~WaveEffect()
 {
     //dtor
 }
+
+void WaveEffect::OnMetadataLoaded()
+{
+    sWaveTypeDefault = GetStringDefault("Wave_Type", sWaveTypeDefault);
+    sFillColorsDefault = GetStringDefault("Fill_Colors", sFillColorsDefault);
+    sMirrorWaveDefault = GetBoolDefault("Mirror_Wave", sMirrorWaveDefault);
+    sNumberWavesDefault = GetDoubleDefault("Number_Waves", sNumberWavesDefault);
+    sNumberWavesMin = GetMinFromMetadata("Number_Waves", sNumberWavesMin);
+    sNumberWavesMax = GetMaxFromMetadata("Number_Waves", sNumberWavesMax);
+    sNumberWavesDivisor = GetDivisorFromMetadata("Number_Waves", sNumberWavesDivisor);
+    sThicknessDefault = GetIntDefault("Thickness_Percentage", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Thickness_Percentage", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Thickness_Percentage", sThicknessMax);
+    sWaveHeightDefault = GetIntDefault("Wave_Height", sWaveHeightDefault);
+    sWaveHeightMin = (int)GetMinFromMetadata("Wave_Height", sWaveHeightMin);
+    sWaveHeightMax = (int)GetMaxFromMetadata("Wave_Height", sWaveHeightMax);
+    sWaveSpeedDefault = GetDoubleDefault("Wave_Speed", sWaveSpeedDefault);
+    sWaveSpeedMin = GetMinFromMetadata("Wave_Speed", sWaveSpeedMin);
+    sWaveSpeedMax = GetMaxFromMetadata("Wave_Speed", sWaveSpeedMax);
+    sWaveSpeedDivisor = GetDivisorFromMetadata("Wave_Speed", sWaveSpeedDivisor);
+    sWaveDirectionDefault = GetStringDefault("Wave_Direction", sWaveDirectionDefault);
+    sYOffsetDefault = GetIntDefault("Wave_YOffset", sYOffsetDefault);
+    sYOffsetMin = (int)GetMinFromMetadata("Wave_YOffset", sYOffsetMin);
+    sYOffsetMax = (int)GetMaxFromMetadata("Wave_YOffset", sYOffsetMax);
+}
 bool WaveEffect::needToAdjustSettings(const std::string& version)
 {
-    return IsVersionOlder("2022.06", version);
+    return IsVersionOlder("2026.05.2", version);
 }
 
 void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
@@ -59,6 +111,20 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
             }
         }
     }
+
+    if (IsVersionOlder("2026.05.2", version)) {
+        // Number_Waves was an integer degree count (e.g. 900 = 2.5 cycles).
+        // It is now a float cycles slider with divisor 360, stored as a
+        // TEXTCTRL float. The VC form is unchanged (Min/Max/P1/P2 remain in
+        // degree space; Render applies the divisor at read time), but the
+        // plain slider key must migrate to the float representation.
+        std::string numWaves = settings.Get("E_SLIDER_Number_Waves", "");
+        if (!numWaves.empty()) {
+            long degrees = std::strtol(numWaves.c_str(), nullptr, 10);
+            settings.erase("E_SLIDER_Number_Waves");
+            settings["E_TEXTCTRL_Number_Waves"] = fmt::format("{:.2f}", degrees / 360.0);
+        }
+    }
 }
 
 #define WAVETYPE_SINE  0
@@ -71,10 +137,11 @@ void WaveEffect::adjustSettings(const std::string& version, Effect* effect, bool
 
 class WaveRenderCache : public EffectRenderCache {
 public:
-    WaveRenderCache() {};
-    virtual ~WaveRenderCache() {};
+    WaveRenderCache() = default;
+    ~WaveRenderCache() override = default;
 
     std::vector<int> WaveBuffer;
+    float state = 0.0f;
 };
 
 static inline int GetWaveType(const std::string & WaveType) {
@@ -104,17 +171,20 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
 
     float oset = buffer.GetEffectTimeIntervalPosition();
 
-    int WaveType = GetWaveType(SettingsMap["CHOICE_Wave_Type"]);
-    int FillColor = GetWaveFillColor(SettingsMap["CHOICE_Fill_Colors"]);
+    int WaveType = GetWaveType(SettingsMap.Get("CHOICE_Wave_Type", sWaveTypeDefault));
+    int FillColor = GetWaveFillColor(SettingsMap.Get("CHOICE_Fill_Colors", sFillColorsDefault));
 
-    bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave");
-    int NumberWaves = GetValueCurveInt("Number_Waves", 1, SettingsMap, oset, WAVE_NUMBER_MIN, WAVE_NUMBER_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", 5, SettingsMap, oset, WAVE_THICKNESS_MIN, WAVE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int WaveHeight = GetValueCurveInt("Wave_Height", 50, SettingsMap, oset, WAVE_HEIGHT_MIN, WAVE_HEIGHT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    float wspeed = GetValueCurveDouble("Wave_Speed", 10.0, SettingsMap, oset, WAVE_SPEED_MIN, WAVE_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), WAVE_SPEED_DIVISOR);
-    int yoffset = GetValueCurveInt("Wave_YOffset", 0, SettingsMap, oset, WAVE_YOFFSET_MIN, WAVE_YOFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool MirrorWave = SettingsMap.GetBool("CHECKBOX_Mirror_Wave", sMirrorWaveDefault);
+    // Number_Waves is a float "cycles" slider (divisor 360). The underlying
+    // wave math uses degrees across the buffer width, so multiply back up.
+    double waveCycles = GetValueCurveDouble("Number_Waves", sNumberWavesDefault, SettingsMap, oset, sNumberWavesMin, sNumberWavesMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sNumberWavesDivisor);
+    int NumberWaves = (int)std::round(waveCycles * sNumberWavesDivisor);
+    int ThicknessWave = GetValueCurveInt("Thickness_Percentage", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int WaveHeight = GetValueCurveInt("Wave_Height", sWaveHeightDefault, SettingsMap, oset, sWaveHeightMin, sWaveHeightMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    float wspeed = GetValueCurveDouble("Wave_Speed", sWaveSpeedDefault, SettingsMap, oset, sWaveSpeedMin, sWaveSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sWaveSpeedDivisor);
+    int yoffset = GetValueCurveInt("Wave_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    bool WaveDirection = "Left to Right" == SettingsMap["CHOICE_Wave_Direction"] ? true : false;
+    bool WaveDirection = "Left to Right" == SettingsMap.Get("CHOICE_Wave_Direction", sWaveDirectionDefault) ? true : false;
 
     double WaveYOffset = (buffer.BufferHt / 2.0) * (yoffset * 0.01);
     int roundedWaveYOffset = std::round(WaveYOffset);
@@ -137,7 +207,12 @@ void WaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBu
     if (NumberWaves == 0) {
         NumberWaves = 1;
     }
-    float state = (float)(buffer.curPeriod - buffer.curEffStartPer) * wspeed * ((float)buffer.frameTimeInMs / 50.0);
+    if (buffer.needToInit) {
+        cache->state = 0.0f;
+        buffer.needToInit = false;
+    }
+    cache->state += wspeed * ((float)buffer.frameTimeInMs / 50.0f);
+    float state = cache->state;
 
     double yc = buffer.BufferHt / 2.0;
     double r = yc;

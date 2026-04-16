@@ -11,7 +11,7 @@
 #include <cassert>
 #include <chrono>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <string_view>
 #include <regex>
 #include <pugixml.hpp>
@@ -1070,7 +1070,7 @@ std::string Model::GetControllerConnectionString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
+    std::string ret = fmt::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
 
     ret += GetControllerConnectionAttributeString();
     return ret;
@@ -1080,12 +1080,12 @@ std::string Model::GetControllerConnectionRangeString() const
 {
     if (GetControllerProtocol() == "")
         return "";
-    std::string ret = std::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
+    std::string ret = fmt::format("{}:{}", GetControllerProtocol(), GetControllerPort(1));
     if (GetControllerPort(1) == 0) {
         ret = GetControllerProtocol();
     }
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
+        ret = fmt::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
 
     ret += GetControllerConnectionAttributeString();
@@ -1097,7 +1097,7 @@ std::string Model::GetControllerConnectionPortRangeString() const
 {
     std::string ret = std::to_string(GetControllerPort(1));
     if (GetNumPhysicalStrings() > 1 && GetControllerPort(1) != 0 && !IsMatrixProtocol()) {
-        ret = std::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
+        ret = fmt::format("{}-{}", ret, GetControllerPort(GetNumPhysicalStrings()));
     }
     return ret;
 }
@@ -1214,7 +1214,7 @@ std::string Model::GenerateUniqueSubmodelName(const std::string suggested) const
 
     int i = 2;
     for (;;) {
-        auto name = std::format("{}_{}", suggested, i++);
+        auto name = fmt::format("{}_{}", suggested, i++);
         if (GetSubModel(name) == nullptr)
             return name;
     }
@@ -1377,7 +1377,7 @@ std::string Model::GetControllerPortSortString() const
     auto port = GetControllerPort();
     auto sc = GetFirstChannel(); // we assume within a port models are in channel order
 
-    return std::format("{}:{:08d}:{:08d}", controller, port, sc);
+    return fmt::format("{}:{:08d}:{:08d}", controller, port, sc);
 }
 
 std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
@@ -1386,15 +1386,15 @@ std::string Model::GetStartChannelInDisplayFormat(OutputManager* outputManager)
     if (!IsValidStartChannelString()) {
         return "(1)";
     } else if (s[0] == '>') {
-        return s + std::format(" ({})", GetFirstChannel() + 1);
+        return s + fmt::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '@') {
         if (_hasIndivChans) {
             return s;
         } else {
-            return s + std::format(" ({})", GetFirstChannel() + 1);
+            return s + fmt::format(" ({})", GetFirstChannel() + 1);
         };
     } else if (s[0] == '!') {
-        return s + std::format(" ({})", GetFirstChannel() + 1);
+        return s + fmt::format(" ({})", GetFirstChannel() + 1);
     } else if (s[0] == '#') {
         return GetFirstChannelInStartChannelFormat(outputManager);
     } else {
@@ -2526,14 +2526,14 @@ std::string Model::GetNodeXY(int nodeinx)
         return "";
     if (GetCoordCount(nodeinx) > 1) // show count and first + last coordinates
         if (IsCustom())
-            return std::format("{}: {}# @{}{}-{}{}", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return fmt::format("{}: {}# @{}{}-{}{}", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY, AA(Nodes[nodeinx]->Coords.back().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
         else
-            return std::format("{}: {}# @({},{})=({},{})", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
+            return fmt::format("{}: {}# @({},{})=({},{})", GetNodeNumber(nodeinx), GetCoordCount(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY, Nodes[nodeinx]->Coords.back().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.back().bufY); // NOTE: only need first (X,Y) for each channel, but show last and count as well; Y is in reverse order
     else                                                                                                                                                                                                                                                                                         // just show singleton
         if (IsCustom())
-            return std::format("{}: @{}{}", GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return fmt::format("{}: @{}{}", GetNodeNumber(nodeinx), AA(Nodes[nodeinx]->Coords.front().bufX + 1), BufferHt - Nodes[nodeinx]->Coords.front().bufY);
         else
-            return std::format("{}: @({},{})", GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
+            return fmt::format("{}: @({},{})", GetNodeNumber(nodeinx), Nodes[nodeinx]->Coords.front().bufX + 1, BufferHt - Nodes[nodeinx]->Coords.front().bufY);
 }
 
 // extract first (X,Y) from string formatted above:
@@ -2789,7 +2789,7 @@ void Model::ImportSuperStringColours(pugi::xml_node root)
     bool found = true;
     int index = 0;
     while (found) {
-        auto an = std::format("SuperStringColour{}", index);
+        auto an = fmt::format("SuperStringColour{}", index);
         auto attr = root.attribute(an);
         if (!attr.empty()) {
             superStringColours.push_back(xlColor(std::string(attr.as_string())));
@@ -2853,19 +2853,19 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode
     html += "<tr><td>Display As:</td><td>" + DisplayAsTypeToString(DisplayAs) + "</td></tr>";
     html += "<tr><td>String Type:</td><td>" + StringType + "</td></tr>";
     html += "<tr><td>Start Corner:</td><td>" + direction + "</td></tr>";
-    html += std::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
-    html += std::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
+    html += fmt::format("<tr><td>Total nodes:</td><td>{}</td></tr>", NodeCount);
+    html += fmt::format("<tr><td>Height:</td><td>{}</td></tr>", BufferHt);
 
     if (c != nullptr) {
-        html += std::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
+        html += fmt::format("<tr><td>Controller:</td><td>{}</td></tr>", c->GetLongDescription());
     }
 
     if (GetControllerProtocol() != "") {
-        html += std::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
+        html += fmt::format("<tr><td>Pixel protocol:</td><td>{}</td></tr>", GetControllerProtocol());
         if (GetNumStrings() == 1) {
-            html += std::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort(1));
+            html += fmt::format("<tr><td>Controller Connection:</td><td>{}</td></tr>", GetControllerPort(1));
         } else {
-            html += std::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
+            html += fmt::format("<tr><td>Controller Connections:</td><td>{}-{}</td></tr>", GetControllerPort(1), GetControllerPort(GetNumPhysicalStrings()));
         }
     }
     html += "</table><p>Node numbers starting with 1 followed by string number:</p><table border=1>";
@@ -2890,7 +2890,7 @@ std::string Model::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode
                 while (n > NodesPerString()) {
                     n -= NodesPerString();
                 }
-                html += std::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, n, s);
+                html += fmt::format("<td bgcolor='{}'>n{}s{}</td>", bgcolor, n, s);
             }
         }
         html += "</tr>";
@@ -2984,8 +2984,14 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
     }
     bool created = false;
     auto cache = uiCaches[cacheKey];
-    // nothing in the cache is dependent on preview size/rotation/etc..., the cached program is
-    // size indepentent and thus can be re-used
+    // Circle styles bake getBackingScaleFactor() into the geometry; rebuild if it changed.
+    if (cache != nullptr &&
+        (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) &&
+        cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
+        delete cache;
+        uiCaches[cacheKey] = nullptr;
+        cache = nullptr;
+    }
     if (cache == nullptr) {
         screenLocation.UpdateBoundingBox(Nodes);
         cache = new PreviewGraphicsCacheInfo();
@@ -3011,6 +3017,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             needTransparent = true;
         }
         cache->isTransparent = needTransparent;
+        cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
         cache->program = ctx->createGraphicsProgram();
         cache->vica = ctx->createVertexIndexedColorAccumulator();
         cache->vica->SetName(GetName() + (is_3d ? " - 3DPreview" : " - 2DPreview"));
@@ -3019,10 +3026,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         float modelPixelSize = pixelSize;
         // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles
+        // get the size to use for the pixelStyle 3/4 that use triangles.
+        // Use getBackingScaleFactor() rather than calcPixelSize() to avoid double-applying the
+        // view-matrix scale (scale2d) that is already applied by the camera transform.
+        // The factor of 2 converts from modelPixelSize (diameter in local coords) to a radius
+        // that, after ApplyModelViewMatrices (×scalex) and the ViewMatrix (×zoom×scale2d), equals
+        // half the GL_POINTS diameter: backingScale × pixelSize × zoom × scale2d / 2.
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
-            modelPixelSize = preview->calcPixelSize(pixelSize);
-
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
             GetModelScreenLocation().TranslatePoint(x1, y1, z1);
@@ -3030,7 +3040,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
             float length = std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
-            modelPixelSize /= std::abs(length);
+            modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
         }
 
         int first = 0;
@@ -3104,7 +3114,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 ctx->drawTriangles(cache->vica, 0, cache->vica->getCount());
             } else {
                 IModelPreview* preview = static_cast<IModelPreview*>(ctx->getContextualValue("modelPreview"));
-                float pointSize = preview->calcPixelSize(pixelSize);
+                float pointSize = preview->calcPixelSize(pixelSize) * preview->getViewScale();
                 ctx->drawPoints(cache->vica, pointSize, _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SMOOTH, 0, cache->vica->getCount());
             }
         });
@@ -3363,11 +3373,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         mb += GetModelScreenLocation().RenderHt / 2;
 
         auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
-        // nothing in the cache is dependent on preview size, the cached program is
-        // size indepentent and thus can be re-used unless the models rendeWi/Hi
-        // changes (which should trigger the uiObjectsInvalid and clear
-        // the cache anyway)
-        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount) {
+        // Circle styles bake the radius (which depends on scale/w/h/backingScale) into the geometry,
+        // so we must also invalidate the cache when the preview panel size or backing scale changes.
+        if (cache == nullptr || cache->renderWi != renderWi || cache->renderHi != renderHi || cache->modelChangeCount != (int)this->changeCount || cache->width != w || cache->height != h ||
+            cache->backingScaleFactor != (float)preview->getBackingScaleFactor()) {
             if (cache != nullptr) {
                 delete cache;
             }
@@ -3379,6 +3388,7 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             cache->renderWi = renderWi;
             cache->renderHi = renderHi;
             cache->modelChangeCount = this->changeCount;
+            cache->backingScaleFactor = (float)preview->getBackingScaleFactor();
 
             created = true;
 
@@ -3480,7 +3490,12 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                         if (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
                             ecolor += NodeCount;
                         }
-                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, lastPixelSize * pointScale, n, ecolor);
+                        // Radius must equal GL_POINTS radius in window pixels, converted to local coords.
+                        // GL_POINTS diameter = calcPixelSize(pixelSize*pointScale) ≈ backingScale*pixelSize*pointScale.
+                        // After CTX Scale(scale), local_radius * scale = window_pixel_radius.
+                        // So: local_radius = backingScale * pixelSize * pointScale / (2 * scale).
+                        float circleRadius = (float)preview->getBackingScaleFactor() * lastPixelSize * pointScale / (2.0f * scale);
+                        cache->vica->AddCircleAsTriangles(newsx, newsy, 0, circleRadius, n, ecolor);
                     }
                 }
             }
@@ -3529,8 +3544,8 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            ctx->Translate(w / 2.0f - (ml < 0.0f ? ml : 0.0f),
-                           h / 2.0f - (mb < 0.0f ? mb : 0.0f), 0.0f);
+            ctx->Translate(w / 2.0f - ml * scale,
+                           h / 2.0f - mb * scale, 0.0f);
             ctx->Scale(scale, scale, 1.0);
             if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
@@ -3875,7 +3890,7 @@ std::string Model::CreateBufferAsSubmodel() const
     child.append_attribute("type") = "ranges";
 
     for (int x = 0; x < (int)nodearray.size(); ++x) {
-        child.append_attribute(std::format("line{}", x)) = NodeUtils::CompressNodes(Join(nodearray[x], ","));
+        child.append_attribute(fmt::format("line{}", x)) = NodeUtils::CompressNodes(Join(nodearray[x], ","));
     }
 
     // Save just the node (not the xml declaration) to a string
@@ -3898,10 +3913,10 @@ std::list<std::string> Model::CheckModelSettings()
                 maxBrightness = std::max(maxBrightness, (int)std::strtol(it.second["brightness"].c_str(), nullptr, 10));
             }
             if (maxGamma == 0.0) {
-                res.push_back(std::format("    ERR: Model {} has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(fmt::format("    ERR: Model {} has a dimming curve gamma of 0.0 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
             if (maxBrightness == -100) {
-                res.push_back(std::format("    ERR: Model {} has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
+                res.push_back(fmt::format("    ERR: Model {} has a dimming curve brightness of -100 ... this will essentially blank the model so no effects will ever show on it.", GetName()));
             }
         }
     }

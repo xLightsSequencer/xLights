@@ -19,6 +19,13 @@ class StrobeEffect : public RenderableEffect
         virtual ~StrobeEffect();
         virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
         virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+
+        // Cached from Strobe.json by OnMetadataLoaded().
+        static int sNumberStrobesDefault;
+        static int sStrobeDurationDefault;
+        static int sStrobeTypeDefault;
+        static bool sStrobeMusicDefault;
 protected:
+        virtual void OnMetadataLoaded() override;
     private:
 };

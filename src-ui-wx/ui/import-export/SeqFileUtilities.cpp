@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <wx/stopwatch.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/regex.h>
 #include <wx/tokenzr.h>
 #include <wx/uri.h>
@@ -43,10 +43,15 @@
 #include "ui/import-export/xLightsImportChannelMapDialog.h"
 #include "render/SequenceMedia.h"
 #include "media/MediaCompatibility.h"
+#include "media/VideoTranscoder.h"
+#include "utils/FileUtils.h"
+#include <set>
 #include <wx/textdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/checkbox.h>
 #include <wx/textctrl.h>
+#include <wx/progdlg.h>
+#include <wx/filename.h>
 #include "xLightsVersion.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -106,7 +111,7 @@ void xLightsFrame::NewSequence(const std::string& media, uint32_t durationMS, ui
     }
 
     // assign global xml file object
-    CurrentSeqXmlFile = new SequenceFile(CurrentDir.ToStdString(), frameMS);
+    CurrentSeqXmlFile = new SequenceFile(ToStdString(CurrentDir), frameMS);
 
     if (_modelBlendDefaultOff) {
         CurrentSeqXmlFile->setSupportsModelBlending(false);
@@ -258,7 +263,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     } else {
         filename = passed_filename;
     }
-    spdlog::debug("Opening File: {}", filename.ToStdString());
+    spdlog::debug("Opening File: {}", ToStdString(filename));
     if (!filename.empty()) {
         if (filename.Contains(XLIGHTS_RGBEFFECTS_FILE) || filename.Contains(XLIGHTS_NETWORK_FILE) || filename.Contains(XLIGHTS_KEYBINDING_FILE)) {
             wxMessageBox("the 'xlights_rgbeffects.xml', 'xlights_networks.xml' or 'xlights_keybindings.xml' files are not valid sequence files", "Error");
@@ -345,7 +350,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // no FSEQ file found in FSEQ Folder, look for it next to the SEQ File
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // if found, move file to fseq folder
-                    spdlog::debug("Moving FSEQ File: '{}' to '{}'", fseq_file_SEQ_fold.GetPath().ToStdString(), fseq_file.GetPath().ToStdString());
+                    spdlog::debug("Moving FSEQ File: '{}' to '{}'", ToStdString(fseq_file_SEQ_fold.GetPath()), ToStdString(fseq_file.GetPath()));
                     wxRenameFile(fseq_file_SEQ_fold.GetFullPath(), fseq_file.GetFullPath());
                 }
             } else {
@@ -354,7 +359,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                 // TODO: Maybe remove this if Keith/Gil/Dan think it's bad - Scott
                 if (FileExists(fseq_file_SEQ_fold)) {
                     // remove FSEQ file next to seg file
-                    spdlog::debug("Deleting old FSEQ File: '{}'", fseq_file_SEQ_fold.GetPath().ToStdString());
+                    spdlog::debug("Deleting old FSEQ File: '{}'", ToStdString(fseq_file_SEQ_fold.GetPath()));
                     wxRemoveFile(fseq_file_SEQ_fold.GetFullPath()); //
                 }
             }
@@ -394,7 +399,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
             spdlog::debug("        Frames {}", _seqData.NumFrames());
             spdlog::debug("        Length {}", _seqData.TotalTime());
         } else {
-            spdlog::debug("Could not Find FSEQ File at: '{}'", fseq_file.GetFullPath().ToStdString());
+            spdlog::debug("Could not Find FSEQ File at: '{}'", ToStdString(fseq_file.GetFullPath()));
         }
         
         wxFileName realPath = rp;
@@ -403,10 +408,10 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         }
 
         // assign global xml file object
-        CurrentSeqXmlFile = new SequenceFile(xml_file.GetFullPath().ToStdString());
+        CurrentSeqXmlFile = new SequenceFile(ToStdString(xml_file.GetFullPath()));
 
         // open the xml file so we can see if it has media
-        auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, realPath.GetFullPath().ToStdString());
+        auto loadDoc = CurrentSeqXmlFile->Open(GetShowDirectory(), false, ToStdString(realPath.GetFullPath()));
 
         // Check if sequence was created with a very old version of xLights
         if (loadDoc.has_value() && !CurrentSeqXmlFile->GetVersion().empty() &&
@@ -612,7 +617,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
         if (loaded_xml && !_renderMode && !_checkSequenceMode) {
             // Allow user to suppress this warning until the next xLights version release
             wxString suppressedVersion;
-            wxConfigBase::Get()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
+            GetXLightsConfig()->Read("xLightsSuppressMediaCompatWarnVersion", &suppressedVersion, "");
             if (suppressedVersion != xlights_version_string) {
                 std::string audioFile = CurrentSeqXmlFile->GetMediaFile();
                 std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
@@ -643,7 +648,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
                     auto* intro = new wxStaticText(&dlg, wxID_ANY,
-                        "The following media files are not compatible with AVFoundation and will soon not render on a Mac:");
+                        "The following media files are in a format that will not render on upcoming versions of xLights:");
                     intro->Wrap(kWrapWidth);
                     topSizer->Add(intro, 0, wxALL, 12);
 
@@ -662,9 +667,9 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 
                     auto* advice2 = new wxStaticText(&dlg, wxID_ANY,
                         "If you need pixel-perfect lossless RGB video (the original reason for using uncompressed AVI), "
-                        "re-encode the source as an uncompressed RGB MOV — modern AVFoundation has dropped its decoders "
-                        "for the legacy QuickTime lossless codecs (Animation/qtrle, PNG, etc.), so uncompressed RGB in a "
-                        "mov box is the only bit-exact format VideoToolbox still ships a decoder for. With ffmpeg:");
+                        "re-encode the source as an uncompressed RGB MOV — support for the legacy QuickTime lossless "
+                        "codecs (Animation/qtrle, PNG, etc.) is being dropped, so uncompressed RGB in a mov container "
+                        "is the recommended bit-exact format going forward. With ffmpeg:");
                     advice2->Wrap(kWrapWidth);
                     topSizer->Add(advice2, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
@@ -684,17 +689,43 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                         wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
                     topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
-                    wxSizer* btnSizer = dlg.CreateButtonSizer(wxOK);
-                    if (btnSizer) {
-                        topSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+                    // Figure out how many flagged entries are videos — only
+                    // videos can be auto-converted here (audio would need a
+                    // separate AudioToolbox-compatible path).
+                    int videoIssueCount = 0;
+                    for (const auto& issue : issues) {
+                        if (issue.isVideo) ++videoIssueCount;
                     }
+
+                    // Custom ID so we can tell OK apart from "Convert Now".
+                    const int ID_CONVERT_NOW = wxID_HIGHEST + 1;
+
+                    wxBoxSizer* btnRow = new wxBoxSizer(wxHORIZONTAL);
+                    btnRow->AddStretchSpacer(1);
+                    if (videoIssueCount > 0) {
+                        wxButton* convertBtn = new wxButton(&dlg, ID_CONVERT_NOW,
+                            videoIssueCount == 1 ? "Convert Video Now..."
+                                                 : wxString::Format("Convert %d Videos Now...", videoIssueCount));
+                        btnRow->Add(convertBtn, 0, wxRIGHT, 8);
+                        convertBtn->Bind(wxEVT_BUTTON, [&dlg, ID_CONVERT_NOW](wxCommandEvent&) {
+                            dlg.EndModal(ID_CONVERT_NOW);
+                        });
+                    }
+                    wxButton* okBtn = new wxButton(&dlg, wxID_OK, "OK");
+                    btnRow->Add(okBtn, 0);
+                    topSizer->Add(btnRow, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+
                     dlg.SetSizer(topSizer);
                     dlg.SetMinSize(wxSize(600, 480));
                     dlg.Layout();
-                    dlg.ShowModal();
+                    int dlgResult = dlg.ShowModal();
                     if (suppressCheck->IsChecked()) {
-                        wxConfigBase::Get()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
-                        wxConfigBase::Get()->Flush();
+                        GetXLightsConfig()->Write("xLightsSuppressMediaCompatWarnVersion", wxString(xlights_version_string));
+                        GetXLightsConfig()->Flush();
+                    }
+
+                    if (dlgResult == ID_CONVERT_NOW) {
+                        ConvertIncompatibleVideos(issues);
                     }
                 }
             }
@@ -717,6 +748,156 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
     }
 }
 
+void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
+{
+    // Gather the video issues. Audio ones aren't handled here — users will
+    // see the warning but need to re-encode audio separately.
+    std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
+    for (const auto& issue : issues) {
+        if (!issue.isVideo) continue;
+        std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
+        if (target == issue.filePath) {
+            // Source is already .mov — shouldn't happen from the check but be
+            // defensive: write alongside with a suffix.
+            std::filesystem::path p(issue.filePath);
+            p.replace_filename(p.stem().string() + "_converted.mov");
+            target = p.string();
+        }
+        jobs.emplace_back(issue.filePath, target);
+    }
+    if (jobs.empty()) return;
+
+    // Progress dialog spans the whole batch; per-file we weight the progress
+    // bar by frame counts we don't know up front, so just advance one tick
+    // per file completed and use the file's own progress callback for the
+    // fine-grained feedback inside the bar.
+    wxProgressDialog progDlg("Converting video files",
+                             "Preparing...", 1000, this,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+                             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME);
+    progDlg.SetSize(wxSize(520, -1));
+
+    std::map<std::string, std::string> completed; // src -> dst
+    std::vector<std::string> failures;
+    bool userCancelled = false;
+
+    for (size_t i = 0; i < jobs.size() && !userCancelled; ++i) {
+        const auto& [src, dst] = jobs[i];
+        std::string srcName = std::filesystem::path(src).filename().string();
+        wxString baseMsg = wxString::Format("Converting %s (%zu of %zu)...",
+                                            srcName, i + 1, jobs.size());
+        progDlg.Update(0, baseMsg);
+
+        auto progressCb = [&](int frame, int total) -> bool {
+            int pct = 0;
+            if (total > 0) {
+                pct = (int)((double)frame / total * 1000.0);
+                if (pct > 999) pct = 999;
+            } else {
+                pct = (frame % 1000);
+            }
+            bool cont = progDlg.Update(pct, baseMsg + wxString::Format(" frame %d", frame));
+            if (!cont) userCancelled = true;
+            return cont;
+        };
+
+        std::string err = VideoTranscoder::Transcode(src, dst, progressCb);
+        if (userCancelled) break;
+        if (!err.empty()) {
+            spdlog::error("Video conversion failed for {}: {}", src, err);
+            failures.push_back(srcName + ": " + err);
+            // Remove any partial output so the user doesn't mistake it for
+            // a finished file.
+            std::error_code ec;
+            std::filesystem::remove(dst, ec);
+        } else {
+            completed[src] = dst;
+        }
+    }
+    progDlg.Update(1000);
+
+    if (userCancelled) {
+        // Don't rewrite effects if the user aborted — leaving the sequence
+        // pointing at the originals is the least-surprising outcome.
+        wxMessageBox("Conversion cancelled. Any files already completed were left in place but the sequence was not updated.",
+                     "Cancelled", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+
+    // Walk all video effects in the loaded sequence and rewrite filenames
+    // where the (resolved) source path matches one we just converted. Track
+    // the original stored keys so we can evict only those stale entries from
+    // SequenceMedia — wiping the whole cache would also drop images, SVGs,
+    // etc. and leave the Sequence Settings Media tab empty.
+    int rewritten = 0;
+    std::set<std::string> staleCacheKeys;
+    std::set<std::string> newCacheKeys;
+    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
+        Element* elem = _sequenceElements.GetElement(e);
+        if (elem == nullptr) continue;
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            for (int k = 0; k < el->GetEffectCount(); ++k) {
+                Effect* ef = el->GetEffect(k);
+                if (ef->GetEffectName() != "Video") continue;
+                SettingsMap& sm = ef->GetSettings();
+                const std::string stored = sm["E_FILEPICKERCTRL_Video_Filename"];
+                if (stored.empty()) continue;
+                std::string resolved = FileUtils::FixFile("", stored);
+                auto it = completed.find(resolved);
+                if (it == completed.end()) continue;
+
+                staleCacheKeys.insert(stored);
+                staleCacheKeys.insert(resolved);
+
+                // Preserve the relative-vs-absolute shape: if the original
+                // stored value was an absolute path we write absolute; if it
+                // was a bare filename or relative we swap only the extension.
+                std::filesystem::path storedPath(stored);
+                std::filesystem::path newName(it->second);
+                std::string newStored;
+                if (storedPath.is_absolute()) {
+                    newStored = it->second;
+                } else {
+                    std::filesystem::path rewritten_path = storedPath;
+                    rewritten_path.replace_extension(".mov");
+                    newStored = rewritten_path.string();
+                }
+                sm["E_FILEPICKERCTRL_Video_Filename"] = newStored;
+                newCacheKeys.insert(newStored);
+                ef->IncrementChangeCount();
+                ++rewritten;
+            }
+        }
+    }
+
+    // Evict only the stale video entries so the next render picks up the
+    // new .mov files. Leaves images/SVGs/audio/shader caches intact.
+    auto& seqMedia = _sequenceElements.GetSequenceMedia();
+    for (const auto& key : staleCacheKeys) {
+        seqMedia.RemoveMedia(key);
+    }
+    // Pre-register the new .mov files so they appear in the Sequence Settings
+    // Media tab immediately (the renderer would otherwise only lazily register
+    // them on first use).
+    for (const auto& key : newCacheKeys) {
+        seqMedia.GetVideo(key);
+    }
+
+    wxString msg = wxString::Format("Converted %zu of %zu file(s). %d video effect(s) updated.",
+                                    completed.size(), jobs.size(), rewritten);
+    if (!failures.empty()) {
+        msg += "\n\nFailures:\n";
+        for (const auto& f : failures) msg += "  " + f + "\n";
+    }
+    if (!completed.empty()) {
+        msg += "\nRemember to save the sequence to persist the updated file references.";
+    }
+    wxMessageBox(msg, "Video conversion results",
+                 wxOK | (failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
+                 this);
+}
+
 void xLightsFrame::AddToMRU(const std::string& filename)
 {
     if (!_renderMode) {
@@ -737,7 +918,7 @@ bool xLightsFrame::CloseSequence()
 
     if (_autoSavePerspecive && CurrentSeqXmlFile != nullptr) {
         // save perspective on this machine so we can restore it next time
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         wxString machinePerspective = m_mgr->SavePerspective();
         config->Write("xLightsMachinePerspective", machinePerspective);
         spdlog::debug("AutoSave perspective");

@@ -11,7 +11,6 @@
 #include <map>
 
 #include <wx/base64.h>
-#include <wx/confbase.h>
 #include <wx/wfstream.h>
 #include <pugixml.hpp>
 #include <wx/filename.h>
@@ -24,6 +23,7 @@
 #include "ConvertDialog.h"
 #include "import_export/FileConverter.h"
 #include "xLightsMain.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "outputs/Output.h"
 #include "UtilFunctions.h"
 #include "ui/shared/utils/wxUtilities.h"
@@ -178,7 +178,7 @@ ConvertDialog::ConvertDialog(wxWindow* parent, SeqDataType& SeqData_, OutputMana
 	Connect(ID_BUTTON_CLOSE,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ConvertDialog::OnButtonCloseClick);
 	//*)
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     wxString dir;
     bool ok = config->Read("LastDir", &dir);
     wxString ConvertDir;
@@ -223,8 +223,8 @@ void ConvertDialog::OnButtonChooseFileClick(wxCommandEvent& event)
         }
         TextCtrlFilename->ChangeValue(AllNames);
         wxString ConvertDir = FileDialogConvert->GetDirectory();
-        wxConfigBase* config = wxConfigBase::Get();
-        config->Write(wxString("ConvertDir"), ConvertDir);
+        auto* config = GetXLightsConfig();
+        config->Write("ConvertDir", ConvertDir);
         //delete config;
     }
 }

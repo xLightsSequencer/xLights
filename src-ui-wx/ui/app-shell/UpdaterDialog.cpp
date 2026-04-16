@@ -13,7 +13,7 @@
 #include <wx/intl.h>
 //*)
 
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 
 #include "UpdaterDialog.h"
 
@@ -72,7 +72,7 @@ void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
     spdlog::debug("User has chosen to upgrade to version {}. URL: {}",
         urlVersion.ToStdString(), downloadUrl.ToStdString());
     wxLaunchDefaultBrowser(downloadUrl);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("SkipVersion","");
     EndDialog(wxID_OK);
 }
@@ -80,7 +80,7 @@ void UpdaterDialog::OnButtonDownloadNewRelease(wxCommandEvent& event)
 void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 {
     spdlog::debug("User has chosen to skip upgrade to version {}.", urlVersion.ToStdString());
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("SkipVersion","");
     EndDialog(wxID_CANCEL);
 }
@@ -88,7 +88,7 @@ void UpdaterDialog::OnButtonUpdateSkipClick(wxCommandEvent& event)
 void UpdaterDialog::OnButtonUpdateIgnoreClick(wxCommandEvent& event)
 {
     spdlog::debug("User has chosen to ignore upgrade to version {}.", urlVersion.ToStdString());
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("SkipVersion", urlVersion);
     EndDialog(wxID_CLOSE);
 }

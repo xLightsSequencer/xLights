@@ -11,7 +11,7 @@
 #include "CandleEffect.h"
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <map>
 
 #include "../render/Effect.h"
@@ -28,6 +28,21 @@
 #include "../../include/candle-48.xpm"
 #include "../../include/candle-64.xpm"
 
+int CandleEffect::sFlameAgilityDefault = 2;
+int CandleEffect::sFlameAgilityMin = 1;
+int CandleEffect::sFlameAgilityMax = 10;
+int CandleEffect::sWindBaselineDefault = 30;
+int CandleEffect::sWindBaselineMin = 0;
+int CandleEffect::sWindBaselineMax = 255;
+int CandleEffect::sWindVariabilityDefault = 5;
+int CandleEffect::sWindVariabilityMin = 0;
+int CandleEffect::sWindVariabilityMax = 10;
+int CandleEffect::sWindCalmnessDefault = 2;
+int CandleEffect::sWindCalmnessMin = 0;
+int CandleEffect::sWindCalmnessMax = 10;
+bool CandleEffect::sPerNodeDefault = false;
+bool CandleEffect::sUsePaletteDefault = false;
+
 CandleEffect::CandleEffect(int id) : RenderableEffect(id, "Candle", candle_16, candle_24, candle_32, candle_48, candle_64)
 {
     //ctor
@@ -38,12 +53,30 @@ CandleEffect::~CandleEffect()
     //dtor
 }
 
+void CandleEffect::OnMetadataLoaded()
+{
+    sFlameAgilityDefault = GetIntDefault("Candle_FlameAgility", sFlameAgilityDefault);
+    sFlameAgilityMin = (int)GetMinFromMetadata("Candle_FlameAgility", sFlameAgilityMin);
+    sFlameAgilityMax = (int)GetMaxFromMetadata("Candle_FlameAgility", sFlameAgilityMax);
+    sWindBaselineDefault = GetIntDefault("Candle_WindBaseline", sWindBaselineDefault);
+    sWindBaselineMin = (int)GetMinFromMetadata("Candle_WindBaseline", sWindBaselineMin);
+    sWindBaselineMax = (int)GetMaxFromMetadata("Candle_WindBaseline", sWindBaselineMax);
+    sWindVariabilityDefault = GetIntDefault("Candle_WindVariability", sWindVariabilityDefault);
+    sWindVariabilityMin = (int)GetMinFromMetadata("Candle_WindVariability", sWindVariabilityMin);
+    sWindVariabilityMax = (int)GetMaxFromMetadata("Candle_WindVariability", sWindVariabilityMax);
+    sWindCalmnessDefault = GetIntDefault("Candle_WindCalmness", sWindCalmnessDefault);
+    sWindCalmnessMin = (int)GetMinFromMetadata("Candle_WindCalmness", sWindCalmnessMin);
+    sWindCalmnessMax = (int)GetMaxFromMetadata("Candle_WindCalmness", sWindCalmnessMax);
+    sPerNodeDefault = GetBoolDefault("PerNode", sPerNodeDefault);
+    sUsePaletteDefault = GetBoolDefault("UsePalette", sUsePaletteDefault);
+}
+
 std::list<std::string> CandleEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Candle_GrowWithMusic", false)) {
-        res.push_back(std::format("    WARN: Candle effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Candle effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -133,12 +166,12 @@ void CandleEffect::Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, si
 void CandleEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    int flameAgility = GetValueCurveInt("Candle_FlameAgility", 2, SettingsMap, oset, CANDLE_AGILITY_MIN, CANDLE_AGILITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int windCalmness = GetValueCurveInt("Candle_WindCalmness", 2, SettingsMap, oset, CANDLE_WINDCALMNESS_MIN, CANDLE_WINDCALMNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int windVariability = GetValueCurveInt("Candle_WindVariability", 5, SettingsMap, oset, CANDLE_WINDVARIABILITY_MIN, CANDLE_WINDVARIABILITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int windBaseline = GetValueCurveInt("Candle_WindBaseline", 30, SettingsMap, oset, CANDLE_WINDBASELINE_MIN, CANDLE_WINDBASELINE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", false);
-    bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", false);
+    int flameAgility = GetValueCurveInt("Candle_FlameAgility", sFlameAgilityDefault, SettingsMap, oset, sFlameAgilityMin, sFlameAgilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windCalmness = GetValueCurveInt("Candle_WindCalmness", sWindCalmnessDefault, SettingsMap, oset, sWindCalmnessMin, sWindCalmnessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windVariability = GetValueCurveInt("Candle_WindVariability", sWindVariabilityDefault, SettingsMap, oset, sWindVariabilityMin, sWindVariabilityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int windBaseline = GetValueCurveInt("Candle_WindBaseline", sWindBaselineDefault, SettingsMap, oset, sWindBaselineMin, sWindBaselineMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool perNode = SettingsMap.GetBool("CHECKBOX_PerNode", sPerNodeDefault);
+    bool usePalette = SettingsMap.GetBool("CHECKBOX_UsePalette", sUsePaletteDefault);
 
     const auto& pal = effect->GetPalette();
     xlColor c1, c2;

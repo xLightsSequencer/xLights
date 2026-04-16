@@ -6,13 +6,13 @@
 #include <wx/regex.h>
 #include <wx/volume.h>
 #include <wx/progdlg.h>
-#include <wx/config.h>
 #include <wx/dir.h>
 #include <wx/hyperlink.h>
 #include <wx/choicdlg.h>
 
 #include "FPPConnectDialog.h"
 #include "xLightsMain.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "controllers/FPP.h"
 #include "render/SequenceFile.h"
 #include "outputs/Output.h"
@@ -38,6 +38,7 @@
 #include "ui/setup/DiscoveryAuthDialog.h"
 #include "controllers/Falcon.h"
 #include "controllers/Experience.h"
+#include "controllers/PowerDMX.h"
 #include <algorithm>
 
 //(*IdInit(FPPConnectDialog)
@@ -191,7 +192,7 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
                                          wxALIGN_LEFT,
                                          wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     auto seqSortCol = config->ReadLong("xLightsFPPConnectSequenceSortCol", SORT_SEQ_NAME_COL);
     auto seqSortOrder = config->ReadBool("xLightsFPPConnectSequenceSortOrder", true);
     CheckListBox_Sequences->SetSortColumn(seqSortCol, seqSortOrder);
@@ -596,7 +597,8 @@ void FPPConnectDialog::PopulateFPPInstanceList(wxProgressDialog *prgs) {
                 Choice1->SetSelection(inst->mode == "master" ? 1 : 2);
                 FPPInstanceSizer->Add(Choice1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
             }
-        } else if (inst->fppType == FPP_TYPE::FALCONV4V5) {
+        } else if (inst->fppType == FPP_TYPE::FALCONV4V5 
+            || inst->fppType == FPP_TYPE::POWERDMX) {
             wxChoice* Choice1 = new wxChoice(FPPInstanceList, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, FSEQ_COL + rowStr);
             wxFont font = Choice1->GetFont();
             font.SetPointSize(font.GetPointSize() - 2);
@@ -763,7 +765,7 @@ void FPPConnectDialog::OnPopup(wxCommandEvent &event)
 
 void FPPConnectDialog::SequenceSelector(const std::string regexKey) {
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (nullptr == config) {
         return;
     }
@@ -813,7 +815,7 @@ FPPConnectDialog::~FPPConnectDialog()
 {
     unsigned int sortCol = SORT_SEQ_NAME_COL;
     bool ascendingOrder = 1;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     CheckListBox_Sequences->GetSortColumn(&sortCol, &ascendingOrder);
     config->Write("xLightsFPPConnectSequenceSortCol", sortCol);
     config->Write("xLightsFPPConnectSequenceSortOrder", ascendingOrder);
@@ -834,7 +836,7 @@ FPPConnectDialog::~FPPConnectDialog()
 void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
 {
     wxLogNull logNo; //kludge: avoid "error 0" message from wxWidgets
-    spdlog::info("Scanning folder for sequences for FPP upload: {}", dir.ToStdString());
+    spdlog::info("Scanning folder for sequences for FPP upload: {}", ToUTF8(dir));
 
     wxDir directory;
     directory.Open(dir);
@@ -851,7 +853,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
             && (file.Lower().EndsWith("xml") || file.Lower().EndsWith("xsq"))
             && FileExists(filename)) {
             // Quick scan of first few KB to detect xLights sequence and media file
-            XsqFileInfo info = ScanXsqFile(filename.ToStdString());
+            XsqFileInfo info = ScanXsqFile(ToUTF8(filename));
             bool isSequence = info.isSequence;
             std::string mediaName = info.mediaFile;
 
@@ -880,7 +882,7 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
                         }
                     }
                     if (!FileExists(mediaName)) {
-                        std::string fixedMN = FileUtils::FixFile(frame->CurrentDir.ToStdString(), mediaName);
+                        std::string fixedMN = FileUtils::FixFile(ToUTF8(frame->CurrentDir), mediaName);
                         if (!FileExists(fixedMN)) {
                             spdlog::info("Could not find media: {} ", mediaName.c_str());
                             mediaName = "";
@@ -989,7 +991,7 @@ void FPPConnectDialog::LoadSequences()
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
             DisplayDateModified(v, item);
             DisplayPixelCount(v, item);
-            FSEQFile *file = FSEQFile::openFSEQFile(v.ToStdString());
+            FSEQFile *file = FSEQFile::openFSEQFile(ToUTF8(v));
             if (file != nullptr) {
                 for (auto& header : file->getVariableHeaders()) {
                     if (header.code[0] == 'm' && header.code[1] == 'f') {
@@ -1019,9 +1021,9 @@ void FPPConnectDialog::LoadSequences()
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
-        const wxString itcsv = config->Read("FPPConnectSelectedSequences", wxEmptyString);
+        const wxString itcsv = wxString(config->Read("FPPConnectSelectedSequences"));
 
         if (!itcsv.IsEmpty()) {
             wxArrayString savedUploadItems = wxSplit(itcsv, ',');
@@ -1046,7 +1048,7 @@ void FPPConnectDialog::OnButton_UploadClick(wxCommandEvent& event)
     Button_Upload->Enable(false);
     AddFPPButton->Enable(false);
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         config->Write("FPPConnectFailedList", "");
     }
@@ -1211,7 +1213,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
-            FSEQFile *seq = FSEQFile::openFSEQFile(fseqRaw.ToStdString());
+            FSEQFile *seq = FSEQFile::openFSEQFile(fseq);
             if (seq) {
                 prgs->setActionLabel("Checking Media and FSEQ file for " + media + "/" + wxFileName(ToWXString(fseq)).GetFullName());
                 row = 0;
@@ -1368,6 +1370,26 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                                     cancelled = true;
                                 }
                                 inst->ClearTempFile();
+                            } else if (inst->fppType == FPP_TYPE::POWERDMX) {
+                                // a PowerDMX
+                                std::string proxy;
+                                auto c = _outputManager->GetControllers(inst->ipAddress);
+                                if (c.size() == 1) {
+                                    proxy = c.front()->GetFPPProxy();
+                                }
+                                PowerDMX powerMax(inst->ipAddress, proxy);
+                                if (powerMax.IsConnected()) {
+                                    std::function<bool(int, std::string)> updateProg = [&prgs, inst](int val, std::string msg) {
+                                        prgs->setActionLabel(msg);
+                                        inst->updateProgress(val, true);
+                                        return true;
+                                    };
+                                    cancelled |= !powerMax.UploadSequence(inst->GetTempFile(), fseq, updateProg);
+                                } else {
+                                    spdlog::debug("Upload failed as PowerDMX is not connected.");
+                                    cancelled = true;
+                                }
+                                inst->ClearTempFile();
                             }
                         }
                         row++;
@@ -1424,7 +1446,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
         row++;
     }
     if (!failedUploadsList.empty()) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             config->Write("FPPConnectFailedList", failedUploadsList);
         }
@@ -1506,7 +1528,7 @@ void FPPConnectDialog::SetCheckValue(const std::string &col, bool b) {
 
 void FPPConnectDialog::SaveSettings(bool onlyInsts)
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (!onlyInsts) {
         wxString selected = "";
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
@@ -1577,7 +1599,7 @@ wxString FPPConnectDialog::Fixitup(wxString val) {
 
 void FPPConnectDialog::ApplySavedHostSettings()
 {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config != nullptr) {
         int row = 0;
         for (const auto& inst : instances) {
@@ -1679,7 +1701,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
     if ((size_t)curSize < instances.size()) {
         instances.sort(sortByIP);
         // it worked, we found some new instances, record this
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         wxString ip;
         config->Read("FPPConnectForcedIPs", &ip);
         if (locationSortCol == "name") {
@@ -1703,7 +1725,7 @@ void FPPConnectDialog::OnFPPReDiscoverClick(wxCommandEvent& event) {
 void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 {
     wxTextEntryDialog dlg(this, "Find FPP Instance", "Enter IP address or hostname for FPP Instance");
-    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(dlg.GetValue().ToStdString())) {
+    if (dlg.ShowModal() == wxID_OK && ip_utils::IsIPValidOrHostname(ToStdString(dlg.GetValue()))) {
         std::string ipAd = ToStdString(dlg.GetValue());
         int curSize = instances.size();
 
@@ -1734,7 +1756,7 @@ void FPPConnectDialog::OnAddFPPButtonClick(wxCommandEvent& event)
 
             instances.sort(sortByIP);
             //it worked, we found some new instances, record this
-            wxConfigBase* config = wxConfigBase::Get();
+            auto* config = GetXLightsConfig();
             wxString ip;
             config->Read("FPPConnectForcedIPs", &ip);
             if (!ip.Contains(dlg.GetValue())) {

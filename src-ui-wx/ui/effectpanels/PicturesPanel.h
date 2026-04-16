@@ -35,6 +35,7 @@ public:
     ~PicturesPanel() override;
 
     void ValidateWindow() override;
+    void SetDefaultParameters() override;
     bool HasAssistPanel() override { return true; }
     AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 

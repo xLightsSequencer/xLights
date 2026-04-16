@@ -13,7 +13,6 @@
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
-#include <wx/config.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
@@ -29,6 +28,7 @@
 #include "ui/sequencer/SubBufferPanel.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "settings/XLightsConfigAdapter.h"
 
 namespace {
 nlohmann::json LoadBufferMetadata() {
@@ -39,6 +39,7 @@ nlohmann::json LoadBufferMetadata() {
 
 // Roto-Zoom presets (in legacy display order).
 const wxString ROTOZOOM_PRESETS[] = {
+    "",
     "None - Reset",
     "1 Rev CW",
     "1 Rev CCW",
@@ -58,7 +59,7 @@ BufferPanel::BufferPanel(wxWindow* parent, wxWindowID /*id*/,
     SetName("Buffer");
 
     // Restore the 'Reset panel when changing effects' preference.
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool reset = true;
     if (config) config->Read("xLightsResetBufferPanel", &reset, true);
     if (_resetBufferPanelCheck) _resetBufferPanelCheck->SetValue(reset);
@@ -133,10 +134,16 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
                                                 wxDefaultPosition, wxDefaultSize,
                                                 0, nullptr, 0, wxDefaultValidator,
                                                 _T("IDD_CHOICE_RotoZoomPreset"));
+    // The preset picker is a UI-only action dropdown — selecting an entry
+    // mutates several other sliders / value curves in this panel. Bulk Edit
+    // would need to replay those mutations into each target effect's settings
+    // map, which isn't supported by the generic bulk-edit path. Disable it
+    // rather than offer a menu item that silently does nothing useful.
+    _rotoZoomPresetChoice->SetSupportsBulkEdit(false);
     for (const auto& p : ROTOZOOM_PRESETS) {
         _rotoZoomPresetChoice->Append(p);
     }
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     row->Add(_rotoZoomPresetChoice, 1, wxALL | wxEXPAND, 2);
     _rotoZoomPresetChoice->Bind(wxEVT_CHOICE, &BufferPanel::OnPresetSelect, this);
 
@@ -145,24 +152,30 @@ wxWindow* BufferPanel::BuildRotoZoomPresetRow(wxWindow* parentWin, wxSizer* size
 }
 
 void BufferPanel::OnResetBufferPanelClick(wxCommandEvent& /*event*/) {
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (config && _resetBufferPanelCheck) {
         config->Write("xLightsResetBufferPanel", _resetBufferPanelCheck->IsChecked());
     }
 }
 
-void BufferPanel::OnBufferTransformSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event) {
     ValidateWindow();
+    // Must Skip so HandleCommandChange on the parent fires and the save
+    // timer starts — otherwise the user's choice is silently discarded.
+    event.Skip();
 }
 
 bool BufferPanel::CanRenderBufferUseCamera(const std::string& rb) {
     return rb == "Per Preview" || rb == "Per Model Per Preview";
 }
 
-void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     auto* bsInfo = GetPropertyInfo("BufferStyle");
     auto* camInfo = GetPropertyInfo("PerPreviewCamera");
-    if (!bsInfo || !camInfo || !bsInfo->choice || !camInfo->choice) return;
+    if (!bsInfo || !camInfo || !bsInfo->choice || !camInfo->choice) {
+        event.Skip();
+        return;
+    }
 
     std::string bs = bsInfo->choice->GetStringSelection().ToStdString();
     if (CanRenderBufferUseCamera(bs)) {
@@ -187,6 +200,9 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& /*event*/) {
     }
 
     ValidateWindow();
+    // Must Skip so HandleCommandChange on the parent fires and the save
+    // timer starts — otherwise the user's choice is silently discarded.
+    event.Skip();
 }
 
 void BufferPanel::UpdateBufferStyles(const Model* model) {
@@ -245,7 +261,7 @@ void BufferPanel::SetDefaultControls(const Model* model, bool optionbased) {
     UpdateCamera(model);
 
     if (subBufferPanel) subBufferPanel->SetDefaults();
-    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    if (_rotoZoomPresetChoice) _rotoZoomPresetChoice->SetSelection(0);
 
     ValidateWindow();
 }
@@ -294,13 +310,21 @@ wxString BufferPanel::GetBufferString() {
     return s;
 }
 
-void BufferPanel::OnPresetSelect(wxCommandEvent& /*event*/) {
+void BufferPanel::OnPresetSelect(wxCommandEvent& event) {
+    // Must Skip so HandleCommandChange on the parent panel fires and the
+    // save timer captures all the slider/VC mutations below.
+    event.Skip();
     if (!_rotoZoomPresetChoice) return;
     wxString preset = _rotoZoomPresetChoice->GetStringSelection();
+    // The blank entry is the idle state — programmatic reselection after a
+    // preset fires this handler too, and must be a no-op so it doesn't wipe
+    // the values the preset just applied.
+    if (preset.IsEmpty()) return;
 
-    // Helper lookups into the framework-built controls. Int sliders are
-    // SLIDER-primary (info->slider + info->buddyText); float sliders with a
-    // divisor are TEXTCTRL-primary (info->buddySlider + info->textCtrl).
+    // Helper lookups into the framework-built controls. Both int and float
+    // sliders are SLIDER-primary (info->slider + info->buddyText). For float
+    // sliders the slider holds the raw integer (value * divisor) and the
+    // buddy text displays the formatted float.
     auto setIntValue = [this](const char* propId, int value) {
         auto* info = GetPropertyInfo(propId);
         if (info == nullptr) return;
@@ -311,8 +335,8 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& /*event*/) {
         auto* info = GetPropertyInfo(propId);
         if (info == nullptr) return;
         int scaled = static_cast<int>(value * info->divisor);
-        if (info->buddySlider) static_cast<wxSlider*>(info->buddySlider)->SetValue(scaled);
-        if (info->textCtrl) info->textCtrl->SetValue(wxString::Format("%.1f", value));
+        if (info->slider) info->slider->SetValue(scaled);
+        if (info->buddyText) static_cast<wxTextCtrl*>(info->buddyText)->SetValue(wxString::Format("%.1f", value));
     };
     auto vcSetRamp = [this](const char* propId, double p1, double p2, bool active = true) {
         auto* info = GetPropertyInfo(propId);
@@ -384,7 +408,7 @@ void BufferPanel::OnPresetSelect(wxCommandEvent& /*event*/) {
         setIntValue("ZoomQuality", 2);
     }
 
-    _rotoZoomPresetChoice->SetStringSelection("None - Reset");
+    _rotoZoomPresetChoice->SetSelection(0);
     if (auto* rotOrder = GetPropertyInfo("RZ_RotationOrder"); rotOrder && rotOrder->choice) {
         rotOrder->choice->SetSelection(0);
     }

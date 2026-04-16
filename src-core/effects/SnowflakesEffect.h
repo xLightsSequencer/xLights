@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define SNOWFLAKES_COUNT_MIN 1
-#define SNOWFLAKES_COUNT_MAX 100
-
-#define SNOWFLAKES_SPEED_MIN 0
-#define SNOWFLAKES_SPEED_MAX 50
-
 class SnowflakesEffect : public RenderableEffect
 {
 public:
@@ -25,24 +19,17 @@ public:
     virtual ~SnowflakesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Snowflakes_Count")
-            return SNOWFLAKES_COUNT_MIN;
-        if (name == "E_VALUECURVE_Snowflakes_Speed")
-            return SNOWFLAKES_SPEED_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Snowflakes_Count")
-            return SNOWFLAKES_COUNT_MAX;
-        if (name == "E_VALUECURVE_Snowflakes_Speed")
-            return SNOWFLAKES_SPEED_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sCountDefault;
+    static int sCountMin;
+    static int sCountMax;
+    static int sTypeDefault;
+    static int sSpeedDefault;
+    static int sSpeedMin;
+    static int sSpeedMax;
+    static std::string sFallingDefault;
+    static int sWarmupFramesDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     void MoveFlakes(RenderBuffer& buffer, int snowflakeType, const std::string& falling, int count, const xlColor& color1, int& effectState);
 };

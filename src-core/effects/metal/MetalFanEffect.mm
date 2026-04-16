@@ -90,22 +90,22 @@ void MetalFanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Rend
     }
 
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x    = GetValueCurveInt("Fan_CenterX",     50,  SettingsMap, eff_pos, FAN_CENTREX_MIN,     FAN_CENTREX_MAX,     buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int center_y    = GetValueCurveInt("Fan_CenterY",     50,  SettingsMap, eff_pos, FAN_CENTREY_MIN,     FAN_CENTREY_MAX,     buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_radius= GetValueCurveInt("Fan_Start_Radius", 1,  SettingsMap, eff_pos, FAN_STARTRADIUS_MIN, FAN_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_radius  = GetValueCurveInt("Fan_End_Radius",  10,  SettingsMap, eff_pos, FAN_ENDRADIUS_MIN,   FAN_ENDRADIUS_MAX,   buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_angle = GetValueCurveInt("Fan_Start_Angle",  0,  SettingsMap, eff_pos, FAN_STARTANGLE_MIN,  FAN_STARTANGLE_MAX,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int revolutions = GetValueCurveInt("Fan_Revolutions", 720, SettingsMap, eff_pos, FAN_REVOLUTIONS_MIN, FAN_REVOLUTIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 360);
-    int num_blades  = GetValueCurveInt("Fan_Num_Blades",   3,  SettingsMap, eff_pos, FAN_BLADES_MIN,      FAN_BLADES_MAX,      buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int blade_width = GetValueCurveInt("Fan_Blade_Width",  50, SettingsMap, eff_pos, FAN_BLADEWIDTH_MIN,  FAN_BLADEWIDTH_MAX,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int blade_angle = GetValueCurveInt("Fan_Blade_Angle",  90, SettingsMap, eff_pos, FAN_BLADEANGLE_MIN,  FAN_BLADEANGLE_MAX,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int num_elements= GetValueCurveInt("Fan_Num_Elements",  1, SettingsMap, eff_pos, FAN_NUMELEMENTS_MIN, FAN_NUMELEMENTS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int element_width=GetValueCurveInt("Fan_Element_Width",100, SettingsMap, eff_pos, FAN_ELEMENTWIDTH_MIN,FAN_ELEMENTWIDTH_MAX,buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int duration    = GetValueCurveInt("Fan_Duration",     80, SettingsMap, eff_pos, FAN_DURATION_MIN,    FAN_DURATION_MAX,    buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int acceleration= GetValueCurveInt("Fan_Accel",         0, SettingsMap, eff_pos, FAN_ACCEL_MIN,       FAN_ACCEL_MAX,       buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool reverse_dir  = SettingsMap.GetBool("CHECKBOX_Fan_Reverse");
-    bool blend_edges  = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges");
-    bool scale        = SettingsMap.GetBool("CHECKBOX_Fan_Scale", true);
+    int center_x    = GetValueCurveInt("Fan_CenterX",     sCenterXDefault,     SettingsMap, eff_pos, sCenterXMin,     sCenterXMax,     buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int center_y    = GetValueCurveInt("Fan_CenterY",     sCenterYDefault,     SettingsMap, eff_pos, sCenterYMin,     sCenterYMax,     buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_radius= GetValueCurveInt("Fan_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_radius  = GetValueCurveInt("Fan_End_Radius",   sEndRadiusDefault,   SettingsMap, eff_pos, sEndRadiusMin,   sEndRadiusMax,   buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_angle = GetValueCurveInt("Fan_Start_Angle",  sStartAngleDefault,  SettingsMap, eff_pos, sStartAngleMin,  sStartAngleMax,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int revolutions = GetValueCurveInt("Fan_Revolutions",  sRevolutionsDefault, SettingsMap, eff_pos, sRevolutionsMin, sRevolutionsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRevolutionsDivisor);
+    int num_blades  = GetValueCurveInt("Fan_Num_Blades",   sNumBladesDefault,   SettingsMap, eff_pos, sNumBladesMin,   sNumBladesMax,   buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int blade_width = GetValueCurveInt("Fan_Blade_Width",  sBladeWidthDefault,  SettingsMap, eff_pos, sBladeWidthMin,  sBladeWidthMax,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int blade_angle = GetValueCurveInt("Fan_Blade_Angle",  sBladeAngleDefault,  SettingsMap, eff_pos, sBladeAngleMin,  sBladeAngleMax,  buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int num_elements= GetValueCurveInt("Fan_Num_Elements", sNumElementsDefault, SettingsMap, eff_pos, sNumElementsMin, sNumElementsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int element_width=GetValueCurveInt("Fan_Element_Width",sElementWidthDefault,SettingsMap, eff_pos, sElementWidthMin,sElementWidthMax,buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int duration    = GetValueCurveInt("Fan_Duration",     sDurationDefault,    SettingsMap, eff_pos, sDurationMin,    sDurationMax,    buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int acceleration= GetValueCurveInt("Fan_Accel",        sAccelDefault,       SettingsMap, eff_pos, sAccelMin,       sAccelMax,       buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool reverse_dir  = SettingsMap.GetBool("CHECKBOX_Fan_Reverse",     sReverseDefault);
+    bool blend_edges  = SettingsMap.GetBool("CHECKBOX_Fan_Blend_Edges", sBlendEdgesDefault);
+    bool scale        = SettingsMap.GetBool("CHECKBOX_Fan_Scale",       sScaleDefault);
 
     double eff_pos_adj = buffer.calcAccel(eff_pos, acceleration);
     double revs = (double)revolutions;

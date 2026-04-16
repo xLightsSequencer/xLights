@@ -275,14 +275,15 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
 
 #ifdef __WXOSX__
     // Use macOS SF Symbol icons for navigation buttons
-    auto goFwd = wxArtProvider::GetBitmapBundle(wxART_GO_FORWARD, wxART_BUTTON);
-    auto goBack = wxArtProvider::GetBitmapBundle(wxART_GO_BACK, wxART_BUTTON);
-    auto goUp = wxArtProvider::GetBitmapBundle(wxART_GO_UP, wxART_BUTTON);
-    auto goDown = wxArtProvider::GetBitmapBundle(wxART_GO_DOWN, wxART_BUTTON);
-    auto goFwdAll = wxArtProvider::GetBitmapBundle("xlART_GO_FORWARD_ALL", wxART_BUTTON);
-    auto goBackAll = wxArtProvider::GetBitmapBundle("xlART_GO_BACK_ALL", wxART_BUTTON);
-    auto goTop = wxArtProvider::GetBitmapBundle("xlART_GO_TO_TOP", wxART_BUTTON);
-    auto goBottom = wxArtProvider::GetBitmapBundle("xlART_GO_TO_BOTTOM", wxART_BUTTON);
+    wxSize sz(24, 24);
+    auto goFwd = wxArtProvider::GetBitmapBundle(wxART_GO_FORWARD, wxART_BUTTON, sz);
+    auto goBack = wxArtProvider::GetBitmapBundle(wxART_GO_BACK, wxART_BUTTON, sz);
+    auto goUp = wxArtProvider::GetBitmapBundle(wxART_GO_UP, wxART_BUTTON, sz);
+    auto goDown = wxArtProvider::GetBitmapBundle(wxART_GO_DOWN, wxART_BUTTON, sz);
+    auto goFwdAll = wxArtProvider::GetBitmapBundle("xlART_GO_FORWARD_ALL", wxART_BUTTON, sz);
+    auto goBackAll = wxArtProvider::GetBitmapBundle("xlART_GO_BACK_ALL", wxART_BUTTON, sz);
+    auto goTop = wxArtProvider::GetBitmapBundle("xlART_GO_TO_TOP", wxART_BUTTON, sz);
+    auto goBottom = wxArtProvider::GetBitmapBundle("xlART_GO_TO_BOTTOM", wxART_BUTTON, sz);
 
     auto setButtonIcon = [](wxButton* btn, const wxBitmapBundle& bmp) {
         if (bmp.IsOk()) {

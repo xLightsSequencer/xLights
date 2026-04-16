@@ -20,6 +20,11 @@
 #include "../../include/tree-48.xpm"
 #include "../../include/tree-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Tree.json values).
+int TreeEffect::sBranchesDefault = 3;
+int TreeEffect::sSpeedDefault = 10;
+bool TreeEffect::sShowLightsDefault = false;
+
 TreeEffect::TreeEffect(int id) : RenderableEffect(id, "Tree", tree_16, tree_24, tree_32, tree_48, tree_64)
 {
     //ctor
@@ -30,10 +35,17 @@ TreeEffect::~TreeEffect()
     //dtor
 }
 
+void TreeEffect::OnMetadataLoaded()
+{
+    sBranchesDefault = GetIntDefault("Tree_Branches", sBranchesDefault);
+    sSpeedDefault = GetIntDefault("Tree_Speed", sSpeedDefault);
+    sShowLightsDefault = GetBoolDefault("Tree_ShowLights", sShowLightsDefault);
+}
+
 void TreeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", 3);
-    int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", 10);
-    bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", false);
+    int Branches = SettingsMap.GetInt("SLIDER_Tree_Branches", sBranchesDefault);
+    int tspeed = SettingsMap.GetInt("SLIDER_Tree_Speed", sSpeedDefault);
+    bool showlights = SettingsMap.GetBool("CHECKBOX_Tree_ShowLights", sShowLightsDefault);
     
     int effectState = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
     

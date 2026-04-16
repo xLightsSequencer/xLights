@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <cstdlib>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <vector>
 
 #include "../../include/piano-16.xpm"
@@ -26,6 +26,17 @@
 
 #include <log.h>
 
+int PianoEffect::sStartMIDIDefault = 60;
+int PianoEffect::sEndMIDIDefault = 72;
+bool PianoEffect::sShowSharpsDefault = true;
+std::string PianoEffect::sTypeDefault = "True Piano";
+int PianoEffect::sScaleDefault = 100;
+int PianoEffect::sScaleMin = 0;
+int PianoEffect::sScaleMax = 100;
+std::string PianoEffect::sMIDITrackDefault = "";
+int PianoEffect::sXOffsetDefault = 0;
+bool PianoEffect::sFadeNotesDefault = false;
+
 PianoEffect::PianoEffect(int id) :
     RenderableEffect(id, "Piano", piano_16, piano_64, piano_64, piano_64, piano_64)
 {
@@ -37,16 +48,30 @@ PianoEffect::~PianoEffect()
     // dtor
 }
 
+void PianoEffect::OnMetadataLoaded()
+{
+    sStartMIDIDefault = GetIntDefault("Piano_StartMIDI", sStartMIDIDefault);
+    sEndMIDIDefault = GetIntDefault("Piano_EndMIDI", sEndMIDIDefault);
+    sShowSharpsDefault = GetBoolDefault("Piano_ShowSharps", sShowSharpsDefault);
+    sTypeDefault = GetStringDefault("Piano_Type", sTypeDefault);
+    sScaleDefault = GetIntDefault("Piano_Scale", sScaleDefault);
+    sScaleMin = (int)GetMinFromMetadata("Piano_Scale", sScaleMin);
+    sScaleMax = (int)GetMaxFromMetadata("Piano_Scale", sScaleMax);
+    sMIDITrackDefault = GetStringDefault("Piano_MIDITrack_APPLYLAST", sMIDITrackDefault);
+    sXOffsetDefault = GetIntDefault("Piano_XOffset", sXOffsetDefault);
+    sFadeNotesDefault = GetBoolDefault("Piano_FadeNotes", sFadeNotesDefault);
+}
+
 std::list<std::string> PianoEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", "") == "") {
-        res.push_back(std::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Piano effect needs a timing track. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         std::map<int, std::list<std::pair<float, float>>> timings = LoadTimingTrack(settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), 50, false);
         if (timings.size() == 0) {
-            res.push_back(std::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Piano effect timing track '{}' has no notes. Model '{}', Start {}", settings.Get("E_CHOICE_Piano_MIDITrack_APPLYLAST", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -67,14 +92,14 @@ void PianoEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     float oset = buffer.GetEffectTimeIntervalPosition();
     RenderPiano(buffer,
                 effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-                SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI", 60),
-                SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI", 72),
-                SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps", true),
-                std::string(SettingsMap.Get("CHOICE_Piano_Type", "True Piano")),
-                GetValueCurveInt("Piano_Scale", 100, SettingsMap, oset, PIANO_SCALE_MIN, PIANO_SCALE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-                std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", "")),
-                SettingsMap.GetInt("SLIDER_Piano_XOffset", 0),
-                SettingsMap.GetBool("CHECKBOX_Piano_FadeNotes", false));
+                SettingsMap.GetInt("SPINCTRL_Piano_StartMIDI", sStartMIDIDefault),
+                SettingsMap.GetInt("SPINCTRL_Piano_EndMIDI", sEndMIDIDefault),
+                SettingsMap.GetBool("CHECKBOX_Piano_ShowSharps", sShowSharpsDefault),
+                std::string(SettingsMap.Get("CHOICE_Piano_Type", sTypeDefault)),
+                GetValueCurveInt("Piano_Scale", sScaleDefault, SettingsMap, oset, sScaleMin, sScaleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+                std::string(SettingsMap.Get("CHOICE_Piano_MIDITrack_APPLYLAST", sMIDITrackDefault)),
+                SettingsMap.GetInt("SLIDER_Piano_XOffset", sXOffsetDefault),
+                SettingsMap.GetBool("CHECKBOX_Piano_FadeNotes", sFadeNotesDefault));
 }
 
 class PianoCache : public EffectRenderCache
@@ -572,7 +597,7 @@ std::map<int, std::list<std::pair<float, float>>> PianoEffect::LoadTimingTrack(c
 
     spdlog::debug("Loading timings from timing track " + track);
 
-    if (mSequenceElements == nullptr) {
+    if (GetSequenceElements() == nullptr) {
         spdlog::debug("No timing tracks found.");
         return res;
     }

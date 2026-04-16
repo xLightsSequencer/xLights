@@ -19,6 +19,7 @@
     <ClCompile Include="..\src-ui-wx\ui\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
+    <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
@@ -1193,9 +1194,9 @@
     <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasEmpty.cpp">
       <Filter>ui\effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
+    <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
-    </ClCompile>
+    </ClInclude>
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp">
       <Filter>ai</Filter>
     </ClCompile>
@@ -1311,6 +1312,12 @@
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
+    <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
+    <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.h" />
@@ -1328,6 +1335,7 @@
     <ClInclude Include="..\src-ui-wx\ui\setup\IPEntryDialog.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
+    <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
     <ClInclude Include="..\src-core\media\FFmpegAudioDecoder.h" />
     <ClInclude Include="..\src-core\media\IAudioDecoder.h" />
@@ -2718,6 +2726,12 @@
     <ClInclude Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.h" />
     <ClInclude Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
+    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
+    <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
+    <ClInclude Include="..\src-ui-wx\settings\XLightsConfigAdapter.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2818,6 +2832,9 @@
     </Filter>
     <Filter Include="kiss_fft">
       <UniqueIdentifier>{2e0945de-e48d-4c77-a07e-d067acf8a8b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="settings">
+      <UniqueIdentifier>{18798d3c-f7fb-4068-a7b4-b9bbf1a104d9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

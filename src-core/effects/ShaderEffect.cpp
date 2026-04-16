@@ -21,7 +21,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <semaphore>
 #include <sstream>
 
@@ -77,7 +77,7 @@
         #include <EGL/eglext.h>
         #include <EGL/eglext_angle.h>
         #include <GLES3/gl3.h>
-    #else
+    #elif !TARGET_OS_IPHONE
         #include "OpenGL/gl3.h"
         #define __gl_h_
         #include <OpenGL/OpenGL.h>
@@ -250,17 +250,17 @@ std::list<std::string> ShaderEffect::CheckEffectSettings(const SettingsMap& sett
     std::string ifsFilename = settings.Get("E_0FILEPICKERCTRL_IFS", "");
 
     if (ifsFilename.empty()) {
-        res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
         auto entry = mm.GetShader(ifsFilename);
         entry->MarkIsUsed();
 
         if (entry->GetShaderSource().empty()) {
-            res.push_back(std::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Shader effect cant find file '{}'. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else if (!entry->IsEmbedded()) {
             if (!FileUtils::IsFileInShowDir(std::string(), ifsFilename)) {
-                res.push_back(std::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    WARN: Shader effect file '{}' not under show directory. Model '{}', Start {}", ifsFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
         }
     }
@@ -652,7 +652,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
-            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), mSequenceElements);
+            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), GetSequenceElements(buffer));
             if (_shaderConfig != nullptr) {
                 programId = programIdForShaderCode(_shaderConfig, cache);
             }
@@ -1260,25 +1260,25 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
         const std::string& name = p._name;
         switch (p._type) {
         case ShaderParmType::SHADER_PARM_FLOAT: {
-            prependText += std::format("uniform float {};\n", name);
+            prependText += fmt::format("uniform float {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_BOOL:
         case ShaderParmType::SHADER_PARM_EVENT: {
-            prependText += std::format("uniform bool {};\n", name);
+            prependText += fmt::format("uniform bool {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_LONG:
         case ShaderParmType::SHADER_PARM_LONGCHOICE: {
-            prependText += std::format("uniform int {};\n", name);
+            prependText += fmt::format("uniform int {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_POINT2D: {
-            prependText += std::format("uniform vec2 {};\n", name);
+            prependText += fmt::format("uniform vec2 {};\n", name);
             break;
         }
         case ShaderParmType::SHADER_PARM_COLOUR: {
-            prependText += std::format("uniform vec4 {};\n", name);
+            prependText += fmt::format("uniform vec4 {};\n", name);
             break;
         }
         default: {

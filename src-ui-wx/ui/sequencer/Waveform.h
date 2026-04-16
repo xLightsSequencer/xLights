@@ -65,6 +65,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
         void CheckNeedToScroll() const;
         void ForceRedraw();
 
+        int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
+
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
 		virtual ~Waveform();
@@ -103,6 +105,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
         int _lowNote = -1;
         int _highNote = -1;
+        int _activeAudioTrackIndex = 0; // 0 = main, 1..N = alt tracks
         static const long ID_WAVE_MNU_RENDER;
         static const long ID_WAVE_MNU_RAW;
         static const long ID_WAVE_MNU_BASS;
@@ -111,6 +114,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
         static const long ID_WAVE_MNU_CUSTOM;
         static const long ID_WAVE_MNU_NONVOCALS;
         static const long ID_WAVE_MNU_DOUBLEHEIGHT;
+        // Audio track submenu: IDs are ID_WAVE_MNU_AUDIO_TRACK_BASE + index
+        static const long ID_WAVE_MNU_AUDIO_TRACK_BASE;
 
         class WaveView
         {

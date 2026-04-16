@@ -9,7 +9,7 @@
  **************************************************************/
 
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <list>
 
 #include "FacesEffect.h"
@@ -65,6 +65,18 @@ public:
     }
 };
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Faces.json values).
+std::string FacesEffect::sFaceDefinitionDefault = "Default";
+std::string FacesEffect::sEyesDefault = "Auto";
+std::string FacesEffect::sEyeBlinkFrequencyDefault = "Normal";
+std::string FacesEffect::sEyeBlinkDurationDefault = "Normal";
+bool FacesEffect::sOutlineDefault = false;
+bool FacesEffect::sSuppressShimmerDefault = false;
+std::string FacesEffect::sUseStateDefault = "";
+bool FacesEffect::sSuppressWhenNotSingingDefault = false;
+int FacesEffect::sLeadFramesDefault = 0;
+bool FacesEffect::sFadeDefault = false;
+
 FacesEffect::FacesEffect(int id) :
     RenderableEffect(id, "Faces", corofaces, corofaces, corofaces, corofaces, corofaces) {
     //ctor
@@ -74,10 +86,24 @@ FacesEffect::~FacesEffect() {
     //dtor
 }
 
+void FacesEffect::OnMetadataLoaded()
+{
+    sFaceDefinitionDefault = GetStringDefault("Faces_FaceDefinition", sFaceDefinitionDefault);
+    sEyesDefault = GetStringDefault("Faces_Eyes", sEyesDefault);
+    sEyeBlinkFrequencyDefault = GetStringDefault("Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault);
+    sEyeBlinkDurationDefault = GetStringDefault("Faces_EyeBlinkDuration", sEyeBlinkDurationDefault);
+    sOutlineDefault = GetBoolDefault("Faces_Outline", sOutlineDefault);
+    sSuppressShimmerDefault = GetBoolDefault("Faces_SuppressShimmer", sSuppressShimmerDefault);
+    sUseStateDefault = GetStringDefault("Faces_UseState", sUseStateDefault);
+    sSuppressWhenNotSingingDefault = GetBoolDefault("Faces_SuppressWhenNotSinging", sSuppressWhenNotSingingDefault);
+    sLeadFramesDefault = GetIntDefault("Faces_LeadFrames", sLeadFramesDefault);
+    sFadeDefault = GetBoolDefault("Faces_Fade", sFadeDefault);
+}
+
 std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", "");
+    std::string definition = settings.Get("E_CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault);
     if (definition == "Default" && !model->GetFaceInfo().empty() && model->GetFaceInfo().begin()->first != "") {
         definition = model->GetFaceInfo().begin()->first;
     }
@@ -100,7 +126,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
     // check the face exists on the model
     if (definition != "Rendered") {
         if (model->GetFaceInfo().find(definition) == model->GetFaceInfo().end()) {
-            res.push_back(std::format("    ERR: Face effect face '{}' does not exist on model '{}'. Start {}", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Face effect face '{}' does not exist on model '{}'. Start {}", definition, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -114,7 +140,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
         std::string bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
         if (bufferTransform != "None") {
-            res.push_back(std::format("    WARN: Face effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Face effect with transformed buffer '{}' may not render correctly. Model '{}', Start {}", model->GetFullName(), bufferTransform, FORMATTIME(eff->GetStartTimeMS())));
         }
 
         if (settings.GetInt("B_SLIDER_Rotation", 0) != 0 ||
@@ -127,11 +153,11 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
             settings.Get("B_VALUECURVE_YRotation", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Rotations", "").find("Active=TRUE") != std::string::npos ||
             settings.Get("B_VALUECURVE_Zoom", "").find("Active=TRUE") != std::string::npos) {
-            res.push_back(std::format("    WARN: Face effect with rotozoom active may not render correctly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Face effect with rotozoom active may not render correctly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
 
         if (settings.Get("B_CUSTOM_SubBuffer", "") != "") {
-            res.push_back(std::format("    WARN: Face effect with subbuffer defined '{}' may not render correctly. Model '{}', Start {}", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    WARN: Face effect with subbuffer defined '{}' may not render correctly. Model '{}', Start {}", settings.Get("B_CUSTOM_SubBuffer", ""), model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -143,9 +169,9 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
                 if (picture != "") {
                     if (!FileExists(picture)) {
-                        res.push_back(std::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     } else if (!FileUtils::IsFileInShowDir(std::string(), picture)) {
-                        res.push_back(std::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 
                     if (FileExists(picture)) {
@@ -158,7 +184,7 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 #define IMAGESIZETHRESHOLD 10
                             if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                                 float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                                res.push_back(std::format("    WARN: Faces effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Definition '{}', Start {}", picture, scale, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
+                                res.push_back(fmt::format("    WARN: Faces effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Definition '{}', Start {}", picture, scale, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                             }
                         }
                     }
@@ -172,9 +198,9 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
 
     // - Face chosen or specific phoneme
     if (phoneme == "" && timing == "") {
-        res.push_back(std::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Face effect with no timing selected. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else if (timing != "" && GetTiming(timing) == nullptr) {
-        res.push_back(std::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Face effect with unknown timing ({}) selected. Model '{}', Start {}", timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -333,35 +359,35 @@ void FacesEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderB
     //
     //wxStopWatch sw;
     uint8_t alpha = 255;
-    if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", false)) {
+    if (SettingsMap.GetBool("CHECKBOX_Faces_SuppressWhenNotSinging", sSuppressWhenNotSingingDefault)) {
         if (SettingsMap["CHOICE_Faces_TimingTrack"] != "") {
-            alpha = CalculateAlpha(effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap.GetInt("SPINCTRL_Faces_LeadFrames", 0), SettingsMap.GetBool("CHECKBOX_Faces_Fade", false), SettingsMap["CHOICE_Faces_TimingTrack"], buffer);
+            alpha = CalculateAlpha(effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(), SettingsMap.GetInt("SPINCTRL_Faces_LeadFrames", sLeadFramesDefault), SettingsMap.GetBool("CHECKBOX_Faces_Fade", sFadeDefault), SettingsMap["CHOICE_Faces_TimingTrack"], buffer);
         }
     }
 
-    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default") == XLIGHTS_PGOFACES_FILE) {
+    if (SettingsMap.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault) == XLIGHTS_PGOFACES_FILE) {
         RenderCoroFacesFromPGO(buffer,
                                SettingsMap["CHOICE_Faces_Phoneme"],
-                               SettingsMap.Get("CHOICE_Faces_Eyes", "Auto"),
-                               SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", "Normal"),
-                               SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", "Normal"),
-                               SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
-                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
+                               SettingsMap.Get("CHOICE_Faces_Eyes", sEyesDefault),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault),
+                               SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", sEyeBlinkDurationDefault),
+                               SettingsMap.GetBool("CHECKBOX_Faces_Outline", sOutlineDefault),
+                               alpha, SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
     } else {
         RenderFaces(buffer,
                     effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-                    SettingsMap.Get("CHOICE_Faces_FaceDefinition", "Default"),
+                    SettingsMap.Get("CHOICE_Faces_FaceDefinition", sFaceDefinitionDefault),
                     SettingsMap["CHOICE_Faces_Phoneme"],
                     SettingsMap["CHOICE_Faces_TimingTrack"],
-                    SettingsMap["CHOICE_Faces_Eyes"],
-                    SettingsMap["CHOICE_Faces_EyeBlinkFrequency"],
-                    SettingsMap["CHOICE_Faces_EyeBlinkDuration"],
-                    SettingsMap.GetBool("CHECKBOX_Faces_Outline"),
+                    SettingsMap.Get("CHOICE_Faces_Eyes", sEyesDefault),
+                    SettingsMap.Get("CHOICE_Faces_EyeBlinkFrequency", sEyeBlinkFrequencyDefault),
+                    SettingsMap.Get("CHOICE_Faces_EyeBlinkDuration", sEyeBlinkDurationDefault),
+                    SettingsMap.GetBool("CHECKBOX_Faces_Outline", sOutlineDefault),
                     SettingsMap.GetBool("CHECKBOX_Faces_TransparentBlack", false),
                     SettingsMap.GetInt("TEXTCTRL_Faces_TransparentBlack", 0),
                     alpha,
-                    SettingsMap.Get("CHOICE_Faces_UseState", ""),
-                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", false));
+                    SettingsMap.Get("CHOICE_Faces_UseState", sUseStateDefault),
+                    SettingsMap.GetBool("CHECKBOX_Faces_SuppressShimmer", sSuppressShimmerDefault));
     }
 
     //if (sw.TimeInMicro() > 2000) {
@@ -757,13 +783,13 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
         std::string eyesLower(eyes);
         std::transform(eyesLower.begin(), eyesLower.end(), eyesLower.begin(), ::tolower);
 
-        std::string info = map[std::format("Eyes_{}", eyesLower)];
+        std::string info = map[fmt::format("Eyes_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
 
-        info = map[std::format("Eyes2_{}", eyesLower)];
+        info = map[fmt::format("Eyes2_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
 
-        info = map[std::format("Eyes3_{}", eyesLower)];
+        info = map[fmt::format("Eyes3_{}", eyesLower)];
         Model::ParseFaceElement(info, first_xy);
     }
     if (face_outline)
@@ -780,7 +806,7 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
 
 std::string FacesEffect::MakeKey(int bufferWi, int bufferHt, std::string dirstr, std::string picture, std::string stf)
 {
-    return std::format("{}|{}|{}|{}|{}", bufferWi, bufferHt, dirstr, picture, stf);
+    return fmt::format("{}|{}|{}|{}|{}", bufferWi, bufferHt, dirstr, picture, stf);
 }
 
 
@@ -1306,8 +1332,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
                         for (size_t i = 1; i <= 200; i++) {
-                            auto r = findKey(sts, std::format("s{:03d}", (int)i));
-                            auto c = findKey(sts, std::format("s{:03d}-Color", (int)i));
+                            auto r = findKey(sts, fmt::format("s{:03d}", (int)i));
+                            auto c = findKey(sts, fmt::format("s{:03d}-Color", (int)i));
                             if (r != "") {
                                 xlColor colour = xlColor(c);
                                 if (c.empty()) {
@@ -1317,7 +1343,7 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                 
                                 // use the nodes as it is faster
                                 if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
-                                    const std::string k2 = std::format("s{:03d}", (int)i);
+                                    const std::string k2 = fmt::format("s{:03d}", (int)i);
                                     for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
                                         buffer.SetNodePixel(it, colour, true);
                                     }

@@ -22,6 +22,43 @@
 #include "../../include/galaxy-48.xpm"
 #include "../../include/galaxy-64.xpm"
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with Galaxy.json values).
+int GalaxyEffect::sCenterXDefault = 50;
+int GalaxyEffect::sCenterXMin = 0;
+int GalaxyEffect::sCenterXMax = 100;
+int GalaxyEffect::sCenterYDefault = 50;
+int GalaxyEffect::sCenterYMin = 0;
+int GalaxyEffect::sCenterYMax = 100;
+int GalaxyEffect::sStartRadiusDefault = 1;
+int GalaxyEffect::sStartRadiusMin = 0;
+int GalaxyEffect::sStartRadiusMax = 250;
+int GalaxyEffect::sEndRadiusDefault = 10;
+int GalaxyEffect::sEndRadiusMin = 0;
+int GalaxyEffect::sEndRadiusMax = 250;
+int GalaxyEffect::sStartAngleDefault = 0;
+int GalaxyEffect::sStartAngleMin = 0;
+int GalaxyEffect::sStartAngleMax = 360;
+int GalaxyEffect::sRevolutionsDefault = 1440; // pre-divisor (= JSON 4.0 * divisor 360)
+int GalaxyEffect::sRevolutionsMin = 0;
+int GalaxyEffect::sRevolutionsMax = 3600;
+int GalaxyEffect::sRevolutionsDivisor = 360;
+int GalaxyEffect::sStartWidthDefault = 5;
+int GalaxyEffect::sStartWidthMin = 0;
+int GalaxyEffect::sStartWidthMax = 255;
+int GalaxyEffect::sEndWidthDefault = 5;
+int GalaxyEffect::sEndWidthMin = 0;
+int GalaxyEffect::sEndWidthMax = 255;
+int GalaxyEffect::sDurationDefault = 20;
+int GalaxyEffect::sDurationMin = 0;
+int GalaxyEffect::sDurationMax = 100;
+int GalaxyEffect::sAccelDefault = 0;
+int GalaxyEffect::sAccelMin = -10;
+int GalaxyEffect::sAccelMax = 10;
+bool GalaxyEffect::sReverseDefault = false;
+bool GalaxyEffect::sBlendEdgesDefault = true;
+bool GalaxyEffect::sInwardDefault = false;
+bool GalaxyEffect::sScaleDefault = true;
+
 GalaxyEffect::GalaxyEffect(int id) : RenderableEffect(id, "Galaxy", galaxy_16, galaxy_24, galaxy_32, galaxy_48, galaxy_64)
 {
     //ctor
@@ -32,9 +69,54 @@ GalaxyEffect::~GalaxyEffect()
     //dtor
 }
 
+void GalaxyEffect::OnMetadataLoaded()
+{
+    sCenterXDefault = GetIntDefault("Galaxy_CenterX", sCenterXDefault);
+    sCenterXMin = (int)GetMinFromMetadata("Galaxy_CenterX", sCenterXMin);
+    sCenterXMax = (int)GetMaxFromMetadata("Galaxy_CenterX", sCenterXMax);
+    sCenterYDefault = GetIntDefault("Galaxy_CenterY", sCenterYDefault);
+    sCenterYMin = (int)GetMinFromMetadata("Galaxy_CenterY", sCenterYMin);
+    sCenterYMax = (int)GetMaxFromMetadata("Galaxy_CenterY", sCenterYMax);
+    sStartRadiusDefault = GetIntDefault("Galaxy_Start_Radius", sStartRadiusDefault);
+    sStartRadiusMin = (int)GetMinFromMetadata("Galaxy_Start_Radius", sStartRadiusMin);
+    sStartRadiusMax = (int)GetMaxFromMetadata("Galaxy_Start_Radius", sStartRadiusMax);
+    sEndRadiusDefault = GetIntDefault("Galaxy_End_Radius", sEndRadiusDefault);
+    sEndRadiusMin = (int)GetMinFromMetadata("Galaxy_End_Radius", sEndRadiusMin);
+    sEndRadiusMax = (int)GetMaxFromMetadata("Galaxy_End_Radius", sEndRadiusMax);
+    sStartAngleDefault = GetIntDefault("Galaxy_Start_Angle", sStartAngleDefault);
+    sStartAngleMin = (int)GetMinFromMetadata("Galaxy_Start_Angle", sStartAngleMin);
+    sStartAngleMax = (int)GetMaxFromMetadata("Galaxy_Start_Angle", sStartAngleMax);
+    // Galaxy_Revolutions JSON default is post-divisor (4.0) but Render uses the
+    // pre-divisor tick count. Multiply by divisor to convert.
+    sRevolutionsDivisor = GetDivisorFromMetadata("Galaxy_Revolutions", sRevolutionsDivisor);
+    sRevolutionsDefault = (int)(GetDoubleDefault("Galaxy_Revolutions", (double)sRevolutionsDefault / sRevolutionsDivisor) * sRevolutionsDivisor);
+    sRevolutionsMin = (int)GetMinFromMetadata("Galaxy_Revolutions", sRevolutionsMin);
+    sRevolutionsMax = (int)GetMaxFromMetadata("Galaxy_Revolutions", sRevolutionsMax);
+    sStartWidthDefault = GetIntDefault("Galaxy_Start_Width", sStartWidthDefault);
+    sStartWidthMin = (int)GetMinFromMetadata("Galaxy_Start_Width", sStartWidthMin);
+    sStartWidthMax = (int)GetMaxFromMetadata("Galaxy_Start_Width", sStartWidthMax);
+    sEndWidthDefault = GetIntDefault("Galaxy_End_Width", sEndWidthDefault);
+    sEndWidthMin = (int)GetMinFromMetadata("Galaxy_End_Width", sEndWidthMin);
+    sEndWidthMax = (int)GetMaxFromMetadata("Galaxy_End_Width", sEndWidthMax);
+    sDurationDefault = GetIntDefault("Galaxy_Duration", sDurationDefault);
+    sDurationMin = (int)GetMinFromMetadata("Galaxy_Duration", sDurationMin);
+    sDurationMax = (int)GetMaxFromMetadata("Galaxy_Duration", sDurationMax);
+    sAccelDefault = GetIntDefault("Galaxy_Accel", sAccelDefault);
+    sAccelMin = (int)GetMinFromMetadata("Galaxy_Accel", sAccelMin);
+    sAccelMax = (int)GetMaxFromMetadata("Galaxy_Accel", sAccelMax);
+    sReverseDefault = GetBoolDefault("Galaxy_Reverse", sReverseDefault);
+    // NOTE: sBlendEdgesDefault intentionally NOT read from metadata. The cpp
+    // pre-migration called SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges")
+    // with no default, which returns false for missing keys, while Galaxy.json
+    // lists default=true. Behavior is preserved by leaving sBlendEdgesDefault
+    // at its fallback value of false.
+    sInwardDefault = GetBoolDefault("Galaxy_Inward", sInwardDefault);
+    sScaleDefault = GetBoolDefault("Galaxy_Scale", sScaleDefault);
+}
+
 int GalaxyEffect::DrawEffectBackground(const Effect *e, int x1, int y1, int x2, int y2,
                                        xlVertexColorAccumulator &backgrounds, xlColor* colorMask, bool ramps) {
-    int head_duration = e->GetSettings().GetInt("E_SLIDER_Galaxy_Duration", 20);
+    int head_duration = e->GetSettings().GetInt("E_SLIDER_Galaxy_Duration", sDurationDefault);
     int num_colors = e->GetPaletteSize();
     xlColor head_color = e->GetPalette()[0];
     head_color.ApplyMask(colorMask);
@@ -112,20 +194,20 @@ double GetStep(double radius)
 void GalaxyEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
     double eff_pos = buffer.GetEffectTimeIntervalPosition();
-    int center_x = GetValueCurveInt("Galaxy_CenterX", 50, SettingsMap, eff_pos, GALAXY_CENTREX_MIN, GALAXY_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int center_y = GetValueCurveInt("Galaxy_CenterY", 50, SettingsMap, eff_pos, GALAXY_CENTREY_MIN, GALAXY_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", 1, SettingsMap, eff_pos, GALAXY_STARTRADIUS_MIN, GALAXY_STARTRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_radius = GetValueCurveInt("Galaxy_End_Radius", 10, SettingsMap, eff_pos, GALAXY_ENDRADIUS_MIN, GALAXY_ENDRADIUS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", 0, SettingsMap, eff_pos, GALAXY_STARTANGLE_MIN, GALAXY_STARTANGLE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int revolutions = GetValueCurveInt("Galaxy_Revolutions", 1440, SettingsMap, eff_pos, GALAXY_REVOLUTIONS_MIN, GALAXY_REVOLUTIONS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), 360);
-    int start_width = GetValueCurveInt("Galaxy_Start_Width", 5, SettingsMap, eff_pos, GALAXY_STARTWIDTH_MIN, GALAXY_STARTWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int end_width = GetValueCurveInt("Galaxy_End_Width", 5, SettingsMap, eff_pos, GALAXY_ENDWIDTH_MIN, GALAXY_ENDWIDTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int duration = GetValueCurveInt("Galaxy_Duration", 20, SettingsMap, eff_pos, GALAXY_DURATION_MIN, GALAXY_DURATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int acceleration = GetValueCurveInt("Galaxy_Accel", 0, SettingsMap, eff_pos, GALAXY_ACCEL_MIN, GALAXY_ACCEL_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse");
-    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges");
-    bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward");
-    bool scale = SettingsMap.GetBool("CHECKBOX_Galaxy_Scale", true);
+    int center_x = GetValueCurveInt("Galaxy_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int center_y = GetValueCurveInt("Galaxy_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_radius = GetValueCurveInt("Galaxy_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_radius = GetValueCurveInt("Galaxy_End_Radius", sEndRadiusDefault, SettingsMap, eff_pos, sEndRadiusMin, sEndRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int start_angle = GetValueCurveInt("Galaxy_Start_Angle", sStartAngleDefault, SettingsMap, eff_pos, sStartAngleMin, sStartAngleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int revolutions = GetValueCurveInt("Galaxy_Revolutions", sRevolutionsDefault, SettingsMap, eff_pos, sRevolutionsMin, sRevolutionsMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sRevolutionsDivisor);
+    int start_width = GetValueCurveInt("Galaxy_Start_Width", sStartWidthDefault, SettingsMap, eff_pos, sStartWidthMin, sStartWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int end_width = GetValueCurveInt("Galaxy_End_Width", sEndWidthDefault, SettingsMap, eff_pos, sEndWidthMin, sEndWidthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int duration = GetValueCurveInt("Galaxy_Duration", sDurationDefault, SettingsMap, eff_pos, sDurationMin, sDurationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int acceleration = GetValueCurveInt("Galaxy_Accel", sAccelDefault, SettingsMap, eff_pos, sAccelMin, sAccelMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool reverse_dir = SettingsMap.GetBool("CHECKBOX_Galaxy_Reverse", sReverseDefault);
+    bool blend_edges = SettingsMap.GetBool("CHECKBOX_Galaxy_Blend_Edges", sBlendEdgesDefault);
+    bool inward = SettingsMap.GetBool("CHECKBOX_Galaxy_Inward", sInwardDefault);
+    bool scale = SettingsMap.GetBool("CHECKBOX_Galaxy_Scale", sScaleDefault);
 
     if (revolutions == 0)
         return;

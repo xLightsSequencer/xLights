@@ -20,6 +20,7 @@
 #include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/srchctrl.h>
 //*)
 #include <wx/colour.h>
 #include <wx/prntbase.h>
@@ -118,6 +119,7 @@ class ControllerModelDialog: public wxDialog
 		wxStaticText* StaticText1;
 		wxStaticText* StaticText2;
 		wxTextCtrl* TextCtrl_Check;
+		wxSearchCtrl* TextCtrl_ModelFilter;
 		//*)
 
         static const long CONTROLLERModel_PRINT;
@@ -170,6 +172,7 @@ class ControllerModelDialog: public wxDialog
 		static const wxWindowID ID_SCROLLBAR3;
 		static const wxWindowID ID_PANEL4;
 		static const wxWindowID ID_SPLITTERWINDOW1;
+		static const wxWindowID ID_TEXTCTRL_MODEL_FILTER;
 		//*)
 
 	private:
@@ -208,6 +211,8 @@ class ControllerModelDialog: public wxDialog
 		void OnPanelControllerMouseWheel(wxMouseEvent& event);
 		void OnCheckBox_HideOtherControllerModelsClick(wxCommandEvent& event);
 		void OnSlider_ScaleCmdSliderUpdated(wxScrollEvent& event);
+		void OnTextCtrl_ModelFilterText(wxCommandEvent& event);
+		void OnTextCtrl_ModelFilterCancel(wxCommandEvent& event);
 		//*)
 
 		void ScrollToKey(int keyCode);

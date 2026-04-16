@@ -23,7 +23,8 @@ class Discovery;
 enum class FPP_TYPE { FPP,
                       FALCONV4V5,
                       ESPIXELSTICK,
-                      GENIUS };
+                      GENIUS,
+                      POWERDMX };
 
 enum class ReceiverType {
     Standard = 0,

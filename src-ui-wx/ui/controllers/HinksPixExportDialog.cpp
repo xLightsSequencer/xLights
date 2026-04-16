@@ -678,12 +678,12 @@ void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
 
     std::unique_ptr<HinksPix> hixpix = std::make_unique<HinksPix>(controller->GetIP(), controller->GetFPPProxy());
     if (!hixpix->IsConnected()) {
-        DisplayError(std::format("Could not connect to '{}'", controller->GetName()));
+        DisplayError(fmt::format("Could not connect to '{}'", controller->GetName()));
         return;
     }
 
     if (!hixpix->FirmwareSupportsUpload()) {
-        DisplayError(std::format("'{}' CPU Firmware is too old (v{}) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
+        DisplayError(fmt::format("'{}' CPU Firmware is too old (v{}) Update to a Newer Version.", controller->GetName(), hixpix->GetMPUVersion()));
         return;
     }
 
@@ -708,7 +708,7 @@ void HinksPixExportDialog::UploadSchedules(ControllerEthernet* controller) {
         std::string reason;
         if (!schedule.isValid(reason)) {
             error = true;
-            errorMsg = std::format("'{}' Schedule was invalid!\n{}", schedule.Day, reason);
+            errorMsg = fmt::format("'{}' Schedule was invalid!\n{}", schedule.Day, reason);
         }
         auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
         schedule.saveAsFile(temp_schedule);
@@ -1390,7 +1390,7 @@ void HinksPixExportDialog::OnButton_ExportClick(wxCommandEvent& /*event*/) {
             std::string reason;
             if (!schedule.isValid(reason)) {
                 error = true;
-                errorMsg = std::format("'{}' Schedule was invalid!\n%s", schedule.Day, reason);
+                errorMsg = fmt::format("'{}' Schedule was invalid!\n%s", schedule.Day, reason);
             }
             schedule.saveToDrive(drive);
         }
@@ -1579,7 +1579,7 @@ void HinksPixExportDialog::OnButtonUploadClick(wxCommandEvent& /*event*/) {
             std::string reason;
             if (!schedule.isValid(reason)) {
                 error = true;
-                errorMsg = std::format("'{0}' Schedule was invalid!\n{1}", schedule.Day, reason);
+                errorMsg = fmt::format("'{0}' Schedule was invalid!\n{1}", schedule.Day, reason);
             }
             auto temp_schedule = ToStdString(wxFileName::CreateTempFileName("schedule"));
             schedule.saveAsFile(temp_schedule);
@@ -1782,7 +1782,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
 
     std::unique_ptr<FSEQFile> xf(FSEQFile::openFSEQFile(fseqFile));
     if (!xf) {
-        errorMsg = std::format("HinksPix Failed opening FSEQ {}", fseqFile);
+        errorMsg = fmt::format("HinksPix Failed opening FSEQ {}", fseqFile);
         spdlog::error(errorMsg);
         return false;
     }
@@ -1792,7 +1792,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
     int const ogFrame_Rate = xf->getStepTime();
     //if (hix->GetName() == "PRO V3") {
         if (ogFrame_Rate != 50 && ogFrame_Rate != 25) {
-            errorMsg = std::format("HinksPix Failed Framerate must be 25ms or 50ms FSEQ {}", fseqFile);
+            errorMsg = fmt::format("HinksPix Failed Framerate must be 25ms or 50ms FSEQ {}", fseqFile);
             spdlog::error(errorMsg);
             return false;
         }
@@ -1824,7 +1824,7 @@ bool HinksPixExportDialog::Create_HinksPix_HSEQ_File(std::string const& fseqFile
     // read file ready -- do write file
     std::unique_ptr<FSEQFile> ef(new HSEQFile(shortHSEQName, hix, slave1, slave2, ogNumChannels));
     if (!ef) {
-        errorMsg = std::format("HinksPix Failed Write opening FSEQ {}", shortHSEQName);
+        errorMsg = fmt::format("HinksPix Failed Write opening FSEQ {}", shortHSEQName);
         spdlog::error(errorMsg);
         return false;
     }
@@ -1927,7 +1927,7 @@ bool HinksPixExportDialog::Make_AU_From_ProcessedAudio(const std::vector<int16_t
     wxFile fo;
     fo.Open(AU_File, wxFile::write);
     if (!fo.IsOpened()) {
-        errorMsg = std::format("Error Creating the AU Audio file {}", AU_File);
+        errorMsg = fmt::format("Error Creating the AU Audio file {}", AU_File);
         spdlog::error(errorMsg);
         return false;
     }
@@ -1949,7 +1949,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
         if (slave1->GetOutputCount() > 32) {
             spdlog::error("HinksPixExportDialog export - Slave Controller '{}' has too many Universes, Max is 32 Currently Used is {}", slave1->GetName(), slave1->GetOutputCount());
 
-            DisplayError(std::format("Slave Controller '{}' has too many Universes, Max is 32 Currently Used is {}", slave1->GetName(), slave1->GetOutputCount()));
+            DisplayError(fmt::format("Slave Controller '{}' has too many Universes, Max is 32 Currently Used is {}", slave1->GetName(), slave1->GetOutputCount()));
             return false;
         }
         slaveUni -= slave1->GetOutputCount();
@@ -1959,7 +1959,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
         if (slave2->GetOutputCount() > 16) {
             spdlog::error("HinksPixExportDialog export - Slave Controller '{}' has too many Universes, Max is 16 Currently Used is {}", slave2->GetName(), slave2->GetOutputCount());
 
-            DisplayError(std::format("Slave Controller '{}' has too many Universes, Max is 16 Currently Used is {}", slave2->GetName(), slave2->GetOutputCount()));
+            DisplayError(fmt::format("Slave Controller '{}' has too many Universes, Max is 16 Currently Used is {}", slave2->GetName(), slave2->GetOutputCount()));
             return false;
         }
         slaveUni -= slave2->GetOutputCount();
@@ -1971,7 +1971,7 @@ bool HinksPixExportDialog::CheckSlaveControllerSizes(ControllerEthernet* control
 
     spdlog::error("HinksPixExportDialog export - too many Slave Controller Universes - '{}' : Max {} Used {}", controller->GetName(), slaveUni2, (slaveUni2 - slaveUni));
 
-    DisplayError(std::format("Too Many Slave Controller Universes off '{}': Max {} Used {}\n", controller->GetName(), slaveUni2, (slaveUni2 - slaveUni)));
+    DisplayError(fmt::format("Too Many Slave Controller Universes off '{}': Max {} Used {}\n", controller->GetName(), slaveUni2, (slaveUni2 - slaveUni)));
 
     return false;
 }
@@ -2298,10 +2298,10 @@ void HinksPixExportDialog::RedrawSchedules()
         GridSchedule->SetRowLabelValue(row, day);
         SetCell(ScheduleColumn::PlayList, item.Playlist);
         GridSchedule->SetReadOnly(row, 0, true);
-        SetCell(ScheduleColumn::StartHour, std::format("{}", item.StartHour));
-        SetCell(ScheduleColumn::StartMin, std::format("{}", item.StartMin));
-        SetCell(ScheduleColumn::EndHour, std::format("{}", item.EndHour));
-        SetCell(ScheduleColumn::EndMin, std::format("{}", item.EndMin));
+        SetCell(ScheduleColumn::StartHour, fmt::format("{}", item.StartHour));
+        SetCell(ScheduleColumn::StartMin, fmt::format("{}", item.StartMin));
+        SetCell(ScheduleColumn::EndHour, fmt::format("{}", item.EndHour));
+        SetCell(ScheduleColumn::EndMin, fmt::format("{}", item.EndMin));
         SetCell(ScheduleColumn::Enabled  , item.Enabled ? "1" : "");
         row++;
     };

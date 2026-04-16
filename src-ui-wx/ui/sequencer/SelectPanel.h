@@ -27,6 +27,7 @@ class MainSequencer;
 class SequenceElements;
 class Effect;
 class Element;
+class EffectLayer;
 
 class SelectPanel: public wxPanel
 {
@@ -44,6 +45,7 @@ class SelectPanel: public wxPanel
 		wxButton* Button_Select_Model_All;
 		wxButton* Button_Select_Refresh;
 		wxColourPickerCtrl* ColourPickerCtrlSelect;
+		wxComboBox* ComboBox_Select_BufferStyle;
 		wxComboBox* ComboBox_Select_Effect;
 		wxListBox* ListBox_Select_Models;
 		wxListCtrl* ListCtrl_Select_Effects;
@@ -55,6 +57,7 @@ class SelectPanel: public wxPanel
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxStaticText* StaticText7;
+		wxStaticText* StaticText8;
 		wxTextCtrl* TextCtrl_Select_EndTime;
 		wxTextCtrl* TextCtrl_Select_StartTime;
 		//*)
@@ -62,25 +65,27 @@ class SelectPanel: public wxPanel
 	protected:
 
 		//(*Identifiers(SelectPanel)
-		static const long ID_STATICTEXT1;
-		static const long ID_COMBOBOX_SELECT_EFFECT;
-		static const long ID_STATICTEXT2;
-		static const long ID_LISTBOX_SELECT_MODELS;
-		static const long ID_BUTTON_SELECT_MODEL_ALL;
-		static const long ID_STATICTEXT6;
-		static const long ID_STATICTEXT3;
-		static const long ID_TEXTCTRL_SELECT_STARTTIME;
-		static const long ID_STATICTEXT5;
-		static const long ID_TEXTCTRL_SELECT_ENDTIME;
-		static const long ID_BUTTON_SELECT_ALL_TIME;
-		static const long ID_STATICTEXT7;
-		static const long ID_COLOURPICKERCTRL_SELECT;
-		static const long ID_SLIDER_COLOR_SENSITIVITY;
-		static const long ID_BUTTON_SELECT_ALL_COLOR;
-		static const long ID_STATICTEXT4;
-		static const long ID_LISTCTRL_Select_Effects;
-		static const long ID_BUTTON_SELECT_EFFECT_ALL;
-		static const long ID_BUTTON_SELECT_REFRESH;
+		static const wxWindowID ID_STATICTEXT1;
+		static const wxWindowID ID_COMBOBOX_SELECT_EFFECT;
+		static const wxWindowID ID_STATICTEXT8;
+		static const wxWindowID ID_COMBOBOX_SELECT_BUFFERSTYLE;
+		static const wxWindowID ID_STATICTEXT2;
+		static const wxWindowID ID_LISTBOX_SELECT_MODELS;
+		static const wxWindowID ID_BUTTON_SELECT_MODEL_ALL;
+		static const wxWindowID ID_STATICTEXT6;
+		static const wxWindowID ID_STATICTEXT3;
+		static const wxWindowID ID_TEXTCTRL_SELECT_STARTTIME;
+		static const wxWindowID ID_STATICTEXT5;
+		static const wxWindowID ID_TEXTCTRL_SELECT_ENDTIME;
+		static const wxWindowID ID_BUTTON_SELECT_ALL_TIME;
+		static const wxWindowID ID_STATICTEXT7;
+		static const wxWindowID ID_COLOURPICKERCTRL_SELECT;
+		static const wxWindowID ID_SLIDER_COLOR_SENSITIVITY;
+		static const wxWindowID ID_BUTTON_SELECT_ALL_COLOR;
+		static const wxWindowID ID_STATICTEXT4;
+		static const wxWindowID ID_LISTCTRL_Select_Effects;
+		static const wxWindowID ID_BUTTON_SELECT_EFFECT_ALL;
+		static const wxWindowID ID_BUTTON_SELECT_REFRESH;
 		//*)
 
 	private:
@@ -93,8 +98,11 @@ class SelectPanel: public wxPanel
         void SelectEffects();
 
 		void GetEffectTypes();
+		void GetBufferStyles();
 
 		bool ContainsColor(Effect* eff) const;
+		bool MatchesBufferStyle(Effect* eff) const;
+		bool LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString& styleFilter) const;
 
         std::pair< int, int > GetStartAndEndTime();
 
@@ -110,6 +118,7 @@ class SelectPanel: public wxPanel
 		void OnButton_Select_All_TimeClick(wxCommandEvent& event);
 		void OnComboBox_Select_EffectDropdown(wxCommandEvent& event);
 		void OnComboBox_Select_EffectSelected(wxCommandEvent& event);
+		void OnComboBox_Select_BufferStyleSelected(wxCommandEvent& event);
 		void OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event);
 		void OnSliderColorSensitivityCmdSliderUpdated(wxScrollEvent& event);
 		void OnButton_Select_All_ColorClick(wxCommandEvent& event);

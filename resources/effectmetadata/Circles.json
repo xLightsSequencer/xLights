@@ -100,6 +100,7 @@
             "min": -50,
             "max": 50,
             "valueCurve": true,
+            "lockable": true,
             "description": "Shifts the center point of radial rings horizontally. Only active when Radial or Radial 3D is enabled."
         },
         {
@@ -111,6 +112,7 @@
             "min": -50,
             "max": 50,
             "valueCurve": true,
+            "lockable": true,
             "description": "Shifts the center point of radial rings vertically. Only active when Radial or Radial 3D is enabled."
         }
     ],

@@ -16,7 +16,7 @@
 #include <wx/filename.h>
 #include <wx/filepicker.h>
 #include <wx/fontpicker.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/textfile.h>
 
 #include "xLightsMain.h"
@@ -65,6 +65,10 @@
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
 #include "models/ModelGroup.h"
+
+#include "ai/aiType.h"
+#include "ai/aiBase.h"
+#include "ai/ServiceManager.h"
 
 #include <log.h>
 
@@ -238,7 +242,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
         grp->ResetPositions();
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->DeleteEntry("ToolbarLocations");
     config->DeleteEntry("xLightsMachinePerspective");
     SaveWindowPosition("xLightsSubModelDialogPosition", nullptr);
@@ -283,7 +287,7 @@ void xLightsFrame::InitSequencer()
 
     // if we have a saved perspective on this machine then make that the current one
     if (_autoSavePerspecive) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         wxString machinePerspective = config->Read("xLightsMachinePerspective", "");
         if (machinePerspective != "") {
             if (!m_mgr->LoadPerspective(machinePerspective, true)) {
@@ -1181,13 +1185,22 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
         // Dont change page if it is already on correct page
         if (EffectsPanel1->EffectChoicebook->GetSelection()!=pageIndex) {
             EffectsPanel1->SetEffectType(pageIndex);
-            ResetPanelDefaultSettings(EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection(), nullptr, true);
+            wxString effectName = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
+            ResetPanelDefaultSettings(effectName, nullptr, true);
+            EffectsPanel1->SetEffectPanelStatus(nullptr, effectName, 0, 0);
         } else {
-            const std::string eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
-            if (eff == "Moving Head") {
-                // We want new dropped moving head effects to start out empty of commands
+            const wxString eff = EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetStringSelection();
+            // updateBtn=true means the event came from the choicebook dropdown
+            // (wxEVT_CHOICEBOOK_PAGE_CHANGED only fires on an actual change), so
+            // a reset is appropriate. When updateBtn=false the source is the
+            // toolbar button — clicking/dragging the SAME effect that is already
+            // selected should NOT wipe the user's current panel settings.
+            if (event.updateBtn || eff == "Moving Head") {
                 ResetPanelDefaultSettings(eff, nullptr, true);
             }
+            // Populate dynamic choices (timing tracks, effect-driven options) whenever
+            // the panel switches, even when no grid effect is selected.
+            EffectsPanel1->SetEffectPanelStatus(nullptr, eff, 0, 0);
             event.updateUI = false;
         }
     }
@@ -1286,6 +1299,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                     playEndTime = effect->GetEndTimeMS();
                     playStartMS = -1;
                     playModel = GetModel(effect->GetParentEffectLayer()->GetParentElement()->GetModelName());
+                    ResetModelPreviewIfModelChanged();
                     SetAudioControls();
                 }
             }
@@ -1308,6 +1322,15 @@ void xLightsFrame::SelectedRowChanged(wxCommandEvent& event)
 {
     mainSequencer->PanelRowHeadings->SetSelectedRow(event.GetInt());
     playModel = GetModel(event.GetString().ToStdString());
+    ResetModelPreviewIfModelChanged();
+}
+
+void xLightsFrame::ResetModelPreviewIfModelChanged()
+{
+    if (playModel != _lastPlayModel) {
+        _lastPlayModel = playModel;
+        _modelPreviewPanel->Reset();
+    }
 }
 
 void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
@@ -1382,6 +1405,7 @@ void xLightsFrame::EffectDroppedOnGrid(wxCommandEvent& event)
             }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
+            ResetModelPreviewIfModelChanged();
 
 			SetAudioControls();
         }
@@ -1585,6 +1609,7 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
             }
 
             playModel = GetModel(el->GetParentElement()->GetModelName());
+            ResetModelPreviewIfModelChanged();
 
             SetAudioControls();
         }
@@ -1614,6 +1639,7 @@ void xLightsFrame::PlayModel(wxCommandEvent& event)
 {
     std::string model = event.GetString().ToStdString();
     playModel = GetModel(model);
+    ResetModelPreviewIfModelChanged();
     if (playModel != nullptr
         && playType != PLAY_TYPE_MODEL) {
         wxCommandEvent playEvent(EVT_PLAY_SEQUENCE);
@@ -1642,6 +1668,7 @@ void xLightsFrame::ModelSelected(wxCommandEvent& event)
     if (playType == PLAY_TYPE_MODEL)
     {
         playModel = GetModel(event.GetString().ToStdString());
+        ResetModelPreviewIfModelChanged();
     }
 }
 
@@ -1694,8 +1721,9 @@ void xLightsFrame::DoPlaySequence()
 			playStartTime = mainSequencer->PanelTimeLine->GetNewStartTimeMS();
 			playEndTime = mainSequencer->PanelTimeLine->GetNewEndTimeMS();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-				if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-					CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
+				AudioManager* playAudio = GetPlaybackAudio();
+				if (playAudio != nullptr) {
+					playAudio->Seek(playStartTime);
 				}
 			}
 			if (playEndTime == -1 || playEndTime > CurrentSeqXmlFile->GetSequenceDurationMS()) {
@@ -1703,8 +1731,9 @@ void xLightsFrame::DoPlaySequence()
 			}
 			mainSequencer->PanelTimeLine->PlayStarted();
 			if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-				if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-					CurrentSeqXmlFile->GetMedia()->Play();
+				AudioManager* playAudio = GetPlaybackAudio();
+				if (playAudio != nullptr) {
+					playAudio->Play();
 				}
 			}
 		}
@@ -1724,11 +1753,12 @@ void xLightsFrame::PauseSequence(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr) return;
 
     if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-			if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
-				CurrentSeqXmlFile->GetMedia()->Pause();
-            } else if (CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED) {
-				CurrentSeqXmlFile->GetMedia()->Play();
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr) {
+			if (playAudio->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
+				playAudio->Pause();
+            } else if (playAudio->GetPlayingState() == MEDIAPLAYINGSTATE::PAUSED) {
+				playAudio->Play();
 			}
 		}
 	}
@@ -1949,9 +1979,10 @@ void xLightsFrame::DoStopSequence()
 	mLoopAudio = false;
     if( playType == PLAY_TYPE_MODEL || playType == PLAY_TYPE_MODEL_PAUSED ) {
         if( CurrentSeqXmlFile->GetSequenceType() == "Media" ) {
-			if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-				CurrentSeqXmlFile->GetMedia()->Stop();
-				CurrentSeqXmlFile->GetMedia()->Seek(playStartTime);
+			AudioManager* playAudio = GetPlaybackAudio();
+			if (playAudio != nullptr) {
+				playAudio->Stop();
+				playAudio->Seek(playStartTime);
 			}
         }
         mainSequencer->PanelTimeLine->PlayStopped();
@@ -2021,23 +2052,26 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr) return;
 
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
-        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    }
-    else
-    {
-        wxTimeSpan ts = wxDateTime::UNow() - starttime;
-        long curtime = ts.GetMilliseconds().ToLong();
-        int msec;
-        if (playAnimation) {
-            msec = curtime * playSpeed;
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr)
+        {
+            current_play_time = playAudio->Tell();
         }
-        else {
-            msec = curtime;
-        }
+        else
+        {
+            wxTimeSpan ts = wxDateTime::UNow() - starttime;
+            long curtime = ts.GetMilliseconds().ToLong();
+            int msec;
+            if (playAnimation) {
+                msec = curtime * playSpeed;
+            }
+            else {
+                msec = curtime;
+            }
 
-        current_play_time = (playStartTime + msec - playStartMS);
+            current_play_time = (playStartTime + msec - playStartMS);
+        }
     }
 
     long origtime = current_play_time;
@@ -2045,9 +2079,10 @@ void xLightsFrame::SequenceRewind10(wxCommandEvent& event)
     if (current_play_time < 0) current_play_time = 0;
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr)
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr)
         {
-            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+            playAudio->Seek(current_play_time);
         }
     }
     else
@@ -2065,23 +2100,26 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     if (CurrentSeqXmlFile == nullptr) return;
 
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr)
     {
-        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    }
-    else
-    {
-        wxTimeSpan ts = wxDateTime::UNow() - starttime;
-        long curtime = ts.GetMilliseconds().ToLong();
-        int msec;
-        if (playAnimation) {
-            msec = curtime * playSpeed;
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr)
+        {
+            current_play_time = playAudio->Tell();
         }
-        else {
-            msec = curtime;
-        }
+        else
+        {
+            wxTimeSpan ts = wxDateTime::UNow() - starttime;
+            long curtime = ts.GetMilliseconds().ToLong();
+            int msec;
+            if (playAnimation) {
+                msec = curtime * playSpeed;
+            }
+            else {
+                msec = curtime;
+            }
 
-        current_play_time = (playStartTime + msec - playStartMS);
+            current_play_time = (playStartTime + msec - playStartMS);
+        }
     }
 
     long origtime = current_play_time;
@@ -2090,9 +2128,10 @@ void xLightsFrame::SequenceFForward10(wxCommandEvent& event)
     if (current_play_time > end_ms) current_play_time = end_ms;
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr)
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr)
         {
-            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+            playAudio->Seek(current_play_time);
         }
     }
     else
@@ -2110,18 +2149,21 @@ void xLightsFrame::SequencePriorTag(wxCommandEvent& event) {
         return;
 
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
-        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    } else {
-        wxTimeSpan ts = wxDateTime::UNow() - starttime;
-        long curtime = ts.GetMilliseconds().ToLong();
-        int msec;
-        if (playAnimation) {
-            msec = curtime * playSpeed;
+    {
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr) {
+            current_play_time = playAudio->Tell();
         } else {
-            msec = curtime;
+            wxTimeSpan ts = wxDateTime::UNow() - starttime;
+            long curtime = ts.GetMilliseconds().ToLong();
+            int msec;
+            if (playAnimation) {
+                msec = curtime * playSpeed;
+            } else {
+                msec = curtime;
+            }
+            current_play_time = (playStartTime + msec - playStartMS);
         }
-        current_play_time = (playStartTime + msec - playStartMS);
     }
 
     long origtime = current_play_time;
@@ -2132,8 +2174,9 @@ void xLightsFrame::SequencePriorTag(wxCommandEvent& event) {
         current_play_time = end_ms;
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr) {
+            playAudio->Seek(current_play_time);
         }
     } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
@@ -2149,19 +2192,22 @@ void xLightsFrame::SequenceNextTag(wxCommandEvent& event) {
         return;
 
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
-        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    } else {
-        wxTimeSpan ts = wxDateTime::UNow() - starttime;
-        long curtime = ts.GetMilliseconds().ToLong();
-        int msec;
-        if (playAnimation) {
-            msec = curtime * playSpeed;
+    {
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr) {
+            current_play_time = playAudio->Tell();
         } else {
-            msec = curtime;
-        }
+            wxTimeSpan ts = wxDateTime::UNow() - starttime;
+            long curtime = ts.GetMilliseconds().ToLong();
+            int msec;
+            if (playAnimation) {
+                msec = curtime * playSpeed;
+            } else {
+                msec = curtime;
+            }
 
-        current_play_time = (playStartTime + msec - playStartMS);
+            current_play_time = (playStartTime + msec - playStartMS);
+        }
     }
 
     long origtime = current_play_time;
@@ -2171,8 +2217,9 @@ void xLightsFrame::SequenceNextTag(wxCommandEvent& event) {
         current_play_time = end_ms;
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr) {
+            playAudio->Seek(current_play_time);
         }
     } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
@@ -2189,19 +2236,22 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
 
     int pos = event.GetInt();
     int current_play_time;
-    if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr) {
-        current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-    } else {
-        wxTimeSpan ts = wxDateTime::UNow() - starttime;
-        long curtime = ts.GetMilliseconds().ToLong();
-        int msec;
-        if (playAnimation) {
-            msec = curtime * playSpeed;
+    {
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr) {
+            current_play_time = playAudio->Tell();
         } else {
-            msec = curtime;
-        }
+            wxTimeSpan ts = wxDateTime::UNow() - starttime;
+            long curtime = ts.GetMilliseconds().ToLong();
+            int msec;
+            if (playAnimation) {
+                msec = curtime * playSpeed;
+            } else {
+                msec = curtime;
+            }
 
-        current_play_time = (playStartTime + msec - playStartMS);
+            current_play_time = (playStartTime + msec - playStartMS);
+        }
     }
 
     long origtime = current_play_time;
@@ -2212,8 +2262,9 @@ void xLightsFrame::SequenceSeekTo(wxCommandEvent& event)
     }
 
     if (CurrentSeqXmlFile->GetSequenceType() == "Media") {
-        if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-            CurrentSeqXmlFile->GetMedia()->Seek(current_play_time);
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (playAudio != nullptr) {
+            playAudio->Seek(current_play_time);
         }
     } else {
         starttime += wxTimeSpan(0, 0, (origtime - current_play_time) / 1000, (origtime - current_play_time) % 1000);
@@ -2237,6 +2288,7 @@ void xLightsFrame::PlayModelEffect(wxCommandEvent& event)
         EventPlayEffectArgs* args = (EventPlayEffectArgs*)event.GetClientData();
         if (args == nullptr || args->effect == nullptr || !_sequenceElements.IsValidEffect(args->effect)) return;
         playModel = GetModel(args->element->GetModelName());
+        ResetModelPreviewIfModelChanged();
         if (playModel != nullptr) {
             SetPlayStatus(PLAY_TYPE_EFFECT);
             playStartTime = (int)(args->effect->GetStartTimeMS());
@@ -2536,9 +2588,10 @@ int xLightsFrame::GetCurrentPlayTime()
 
     if (playType == PLAY_TYPE_MODEL) {
 
-        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
+        AudioManager* playAudio = GetPlaybackAudio();
+        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr && playAudio->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING)
         {
-            curt = CurrentSeqXmlFile->GetMedia()->Tell();
+            curt = playAudio->Tell();
         }
     }
 
@@ -2652,11 +2705,14 @@ bool xLightsFrame::TimerRgbSeq(long msec)
 
     int current_play_time = 0;
     if (playType == PLAY_TYPE_MODEL) {
-        if (CurrentSeqXmlFile->GetSequenceType() == "Media" && CurrentSeqXmlFile->GetMedia() != nullptr && CurrentSeqXmlFile->GetMedia()->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
-            current_play_time = CurrentSeqXmlFile->GetMedia()->Tell();
-            curt = current_play_time;
-        } else {
-            current_play_time = curt;
+        {
+            AudioManager* playAudio = GetPlaybackAudio();
+            if (CurrentSeqXmlFile->GetSequenceType() == "Media" && playAudio != nullptr && playAudio->GetPlayingState() == MEDIAPLAYINGSTATE::PLAYING) {
+                current_play_time = playAudio->Tell();
+                curt = current_play_time;
+            } else {
+                current_play_time = curt;
+            }
         }
 
         // see if its time to stop model play
@@ -3078,11 +3134,15 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
 {
     int selection = EffectsPanel1->EffectChoicebook->GetSelection();
     wxString effectText = EffectsPanel1->GetEffectString(selection);
-    if (effectText.size() > 0 && effectText[effectText.size()-1] != ',') {
-        effectText += ",";
-    }
-    effectText += timingPanel->GetTimingString();
-    effectText += bufferPanel->GetBufferString();
+    auto appendWithComma = [&effectText](const wxString& part) {
+        if (part.IsEmpty()) return;
+        if (!effectText.IsEmpty() && effectText.Last() != ',') {
+            effectText += ",";
+        }
+        effectText += part;
+    };
+    appendWithComma(timingPanel->GetTimingString());
+    appendWithComma(bufferPanel->GetBufferString());
     palette = colorPanel->GetColorString();
     return ToStdString(effectText);
 }
@@ -4313,4 +4373,48 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
             }
         }
     }
+}
+
+void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
+    if (CurrentSeqXmlFile->GetMedia() != nullptr) {
+        auto service = GetAIService(aiType::SPEECH2TEXT);
+        auto lyrics = service->GenerateLyricTrack(CurrentSeqXmlFile->GetMedia()->FileName());
+        if (!lyrics.error.empty()) {
+            wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);
+            return;
+        }
+
+        auto roudTimestoMilli = [&](int start, int end) {
+            int const startTime = RoundToMultipleOfPeriod(start , CurrentSeqXmlFile->GetFrequency());
+            int endTime = RoundToMultipleOfPeriod(end , CurrentSeqXmlFile->GetFrequency());
+            if (startTime == endTime) {
+                endTime = RoundToMultipleOfPeriod(startTime + CurrentSeqXmlFile->GetFrequency(), CurrentSeqXmlFile->GetFrequency());
+            }
+            return std::make_pair(startTime, endTime);
+        };
+
+        std::string track_name = GetUniqueTimingName("AutoGen");
+
+        Element* element = AddTimingElement(track_name);
+        EffectLayer* effectLayer = element->GetEffectLayer(0);
+
+        for (auto const& lyric : lyrics.lyrics) {
+            auto [wordStartTime, wordEndTime] = roudTimestoMilli(lyric.startMS, lyric.endMS);
+            auto cword = Trim(lyric.word);
+            if (cword.empty()) {
+                continue;
+            }
+            bool const hasText = std::any_of(cword.begin(), cword.end(), [](unsigned char ch) { return !std::isspace(ch); });
+            if (!hasText) {
+                continue;
+            }
+            effectLayer->AddEffect(0, cword, "", "", wordStartTime, wordEndTime, EFFECT_NOT_SELECTED, false);
+        }
+
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(this, eventRowHeaderChanged);
+    } else {
+        wxMessageBox("No media file associated with this sequence. Please add a media file and try again.", "Error", wxICON_ERROR);
+    }
+
 }

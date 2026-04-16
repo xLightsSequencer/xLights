@@ -3,7 +3,7 @@
 #include <tuple>
 #include <wx/colourdata.h>
 
-class wxConfigBase;
+class XLightsConfigAdapter;
 class wxColour;
 class wxWindow;
 
@@ -12,8 +12,8 @@ class xlColourData
 public:
     static xlColourData INSTANCE;
 
-    void Load(wxConfigBase* config);
-    void Save(wxConfigBase* config);
+    void Load(XLightsConfigAdapter* config);
+    void Save(XLightsConfigAdapter* config);
 
     [[nodiscard]] const wxColour& GetColor() const
     {

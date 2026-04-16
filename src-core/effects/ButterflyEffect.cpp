@@ -29,9 +29,38 @@ ButterflyEffect::ButterflyEffect(int i) : RenderableEffect(i, "Butterfly", butte
     //ctor
 }
 
+std::string ButterflyEffect::sColorsDefault = "Rainbow";
+int ButterflyEffect::sStyleDefault = 1;
+int ButterflyEffect::sChunksDefault = 1;
+int ButterflyEffect::sChunksMin = 1;
+int ButterflyEffect::sChunksMax = 10;
+int ButterflyEffect::sSkipDefault = 2;
+int ButterflyEffect::sSkipMin = 2;
+int ButterflyEffect::sSkipMax = 10;
+int ButterflyEffect::sSpeedDefault = 10;
+int ButterflyEffect::sSpeedMin = 0;
+int ButterflyEffect::sSpeedMax = 100;
+std::string ButterflyEffect::sDirectionDefault = "Normal";
+
 ButterflyEffect::~ButterflyEffect()
 {
     //dtor
+}
+
+void ButterflyEffect::OnMetadataLoaded()
+{
+    sColorsDefault = GetStringDefault("Butterfly_Colors", sColorsDefault);
+    sStyleDefault = GetIntDefault("Butterfly_Style", sStyleDefault);
+    sChunksDefault = GetIntDefault("Butterfly_Chunks", sChunksDefault);
+    sChunksMin = (int)GetMinFromMetadata("Butterfly_Chunks", sChunksMin);
+    sChunksMax = (int)GetMaxFromMetadata("Butterfly_Chunks", sChunksMax);
+    sSkipDefault = GetIntDefault("Butterfly_Skip", sSkipDefault);
+    sSkipMin = (int)GetMinFromMetadata("Butterfly_Skip", sSkipMin);
+    sSkipMax = (int)GetMaxFromMetadata("Butterfly_Skip", sSkipMax);
+    sSpeedDefault = GetIntDefault("Butterfly_Speed", sSpeedDefault);
+    sSpeedMin = (int)GetMinFromMetadata("Butterfly_Speed", sSpeedMin);
+    sSpeedMax = (int)GetMaxFromMetadata("Butterfly_Speed", sSpeedMax);
+    sDirectionDefault = GetStringDefault("Butterfly_Direction", sDirectionDefault);
 }
 
 
@@ -56,13 +85,13 @@ static inline int GetButterflyColorScheme(const std::string &color) {
 void ButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer)
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    const int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Skip = GetValueCurveInt("Butterfly_Skip", 2, SettingsMap, oset, BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", 10, SettingsMap, oset, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    const int Chunks = GetValueCurveInt("Butterfly_Chunks", sChunksDefault, SettingsMap, oset, sChunksMin, sChunksMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Skip = GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
-    int ColorScheme = GetButterflyColorScheme(SettingsMap["CHOICE_Butterfly_Colors"]);
-    int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
+    const int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", sStyleDefault);
+    int ColorScheme = GetButterflyColorScheme(SettingsMap.Get("CHOICE_Butterfly_Colors", sColorsDefault));
+    int ButterflyDirection = SettingsMap.Get("CHOICE_Butterfly_Direction", sDirectionDefault) == "Reverse" ? 1 : 0;
 
     const int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;
     const size_t colorcnt=buffer.GetColorCount();

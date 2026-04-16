@@ -9,8 +9,7 @@
  **************************************************************/
 
  //(*InternalHeaders(LayoutPanel)
- #include <wx/stopwatch.h>
-#include <wx/button.h>
+ #include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/choice.h>
  #include <wx/font.h>
@@ -32,12 +31,11 @@
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
 #include <fstream>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <regex>
 #include <sstream>
 #include <wx/artprov.h>
 #include <wx/dataview.h>
-#include <wx/config.h>
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
@@ -46,6 +44,7 @@
 #include "ui/layout/ModelPreview.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
+#include "settings/XLightsConfigAdapter.h"
 #include "ui/model/ChannelLayoutDialog.h"
 #include "ui/setup/ControllerConnectionDialog.h"
 #include "ui/layout/ModelGroupPanel.h"
@@ -448,6 +447,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SplitterWindow2->SplitVertically(LeftPanel, PreviewGLPanel);
 	FlexGridSizerPreview->Add(SplitterWindow2, 1, wxALL|wxEXPAND, 1);
 	SetSizer(FlexGridSizerPreview);
+	FlexGridSizerPreview->SetSizeHints(this);
 
 	Connect(ID_NOTEBOOK_OBJECTS, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_CHECKBOX_3D, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
@@ -537,7 +537,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
     SecondPanel->Destroy();
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int msp = config->Read("LayoutModelSplitterSash", -1);
     int sp = config->Read("LayoutMainSplitterSash", -1);
     is_3d = config->ReadBool("LayoutMode3D", false);
@@ -664,7 +664,7 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
 
     // Because you cant programmatically reorder the columns we have to add them in the right order
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     auto colOrder = config->Read("LayoutModelListCols", "");
 
     int sortcol = 0;
@@ -837,14 +837,14 @@ void LayoutPanel::SaveModelsListColumns()
         }
     }
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutModelListCols", colOrder);
 }
 
 LayoutPanel::~LayoutPanel()
 {
     if (ModelGroupWindow != nullptr) {
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         config->Write("LayoutModelSplitterSash", ModelSplitter->GetSashPosition());
     }
 
@@ -3823,7 +3823,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                                     }
                                 }
                             }
-                            catch (nlohmann::json::parse_error& e) {
+                            catch (nlohmann::json::parse_error& ) {
                             }
                         }
 
@@ -3875,6 +3875,16 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 
         model->SetStartChannel("1");
         model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
+
+        if (!cancelled && model != nullptr) {
+            // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
+            // a correct start channel. Downloaded/imported xmodel files store vendor-specific
+            // channel assignments that are not appropriate for the user's setup.
+            // The deserialized model object has _controllerName="" (C++ default), not
+            // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
+            // point rather than auto-assigning it, leaving it stuck at channel 1.
+            model->SetControllerName(NO_CONTROLLER, true);
+        }
 
         if (!cancelled)
             return model;
@@ -4052,12 +4062,17 @@ void LayoutPanel::FinalizeModel()
                 if (extraModel == nullptr) continue;
 
                 extraModel->SetStartChannel("1");
-                extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
+                Model* loadedExtraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, extraDoc.document_element(), xlights->AllModels, extraCancelled);
 
-                if (extraCancelled || extraModel == nullptr) {
+                if (extraCancelled || loadedExtraModel == nullptr) {
                     delete extraModel;
                     continue;
                 }
+                extraModel = loadedExtraModel;
+
+                // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
+                // a correct start channel (matches behavior in GetXlightsModel for the primary model)
+                extraModel->SetControllerName(NO_CONTROLLER, true);
 
                 extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
@@ -5306,9 +5321,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel(visitor);
             }
@@ -5322,9 +5337,9 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel3D(visitor);
             }
@@ -5373,7 +5388,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
             pugi::xml_document doc = serializer.SerializeModel(md, true);
-            doc.save_file(filename.ToStdString().c_str());
+            doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
@@ -6541,7 +6556,7 @@ void LayoutPanel::OnSplitterWindowSashPosChanged(wxSplitterEvent& event)
         //event during creation
         return;
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutMainSplitterSash", event.GetSashPosition());
 }
 
@@ -7472,7 +7487,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     nz == z)
                                 {
                                     nx += 40;
-                                    SetXmlNodeAttribute(nd, "WorldPosX", std::format("{:6.4f}", (float)nx));
+                                    SetXmlNodeAttribute(nd, "WorldPosX", fmt::format("{:6.4f}", (float)nx));
                                     moved = true;
                                     break;
                                 }
@@ -7844,9 +7859,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel(visitor);
             }
@@ -7860,9 +7875,9 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
-                FileSerializingVisitor visitor(fn.ToStdString(), true /*exporting*/);
+                FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
-                    DisplayError("Unable to create file " + fn.ToStdString());
+                    DisplayError("Unable to create file " + ToStdString(fn));
                 else
                     md->ExportAsCustomXModel3D(visitor);
             }
@@ -7909,7 +7924,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
             pugi::xml_document doc = serializer.SerializeModel(md, true);
-            doc.save_file(filename.ToStdString().c_str());
+            doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
         DeleteCurrentPreview();
@@ -9295,7 +9310,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     }
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->Write("LayoutMode3D", is_3d);
     wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
     wxString nv = is_3d ? "1" : "0";

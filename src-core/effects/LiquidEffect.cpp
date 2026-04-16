@@ -11,7 +11,7 @@
 #include "LiquidEffect.h"
 
 #include <cassert>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <Box2D/Box2D.h>
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -32,12 +32,150 @@
 //#define LE_INTERPOLATE
 #define MAX_PARTICLES 100000
 
+bool LiquidEffect::sTopBarrierDefault = false;
+bool LiquidEffect::sBottomBarrierDefault = true;
+bool LiquidEffect::sLeftBarrierDefault = false;
+bool LiquidEffect::sRightBarrierDefault = false;
+bool LiquidEffect::sHoldColorDefault = true;
+bool LiquidEffect::sMixColorsDefault = false;
+std::string LiquidEffect::sParticleTypeDefault = "Elastic";
+int LiquidEffect::sLifeTimeDefault = 1000;
+int LiquidEffect::sLifeTimeMin = 0;
+int LiquidEffect::sLifeTimeMax = 1000;
+int LiquidEffect::sSizeDefault = 500;
+int LiquidEffect::sWarmUpFramesDefault = 0;
+int LiquidEffect::sDespeckleDefault = 0;
+double LiquidEffect::sGravityDefault = 10.0;
+double LiquidEffect::sGravityMin = -1000;
+double LiquidEffect::sGravityMax = 1000;
+int LiquidEffect::sGravityDivisor = 10;
+int LiquidEffect::sGravityAngleDefault = 0;
+int LiquidEffect::sGravityAngleMin = 0;
+int LiquidEffect::sGravityAngleMax = 360;
+int LiquidEffect::sX1Default = 50;
+int LiquidEffect::sY1Default = 100;
+int LiquidEffect::sDirection1Default = 270;
+int LiquidEffect::sVelocity1Default = 100;
+int LiquidEffect::sFlow1Default = 100;
+int LiquidEffect::sSourceSize1Default = 0;
+bool LiquidEffect::sFlowMusic1Default = false;
+bool LiquidEffect::sEnabled2Default = false;
+int LiquidEffect::sX2Default = 0;
+int LiquidEffect::sY2Default = 50;
+int LiquidEffect::sDirection2Default = 0;
+int LiquidEffect::sVelocity2Default = 100;
+int LiquidEffect::sFlow2Default = 100;
+int LiquidEffect::sSourceSize2Default = 0;
+bool LiquidEffect::sFlowMusic2Default = false;
+bool LiquidEffect::sEnabled3Default = false;
+int LiquidEffect::sX3Default = 50;
+int LiquidEffect::sY3Default = 0;
+int LiquidEffect::sDirection3Default = 90;
+int LiquidEffect::sVelocity3Default = 100;
+int LiquidEffect::sFlow3Default = 100;
+int LiquidEffect::sSourceSize3Default = 0;
+bool LiquidEffect::sFlowMusic3Default = false;
+bool LiquidEffect::sEnabled4Default = false;
+int LiquidEffect::sX4Default = 100;
+int LiquidEffect::sY4Default = 50;
+int LiquidEffect::sDirection4Default = 180;
+int LiquidEffect::sVelocity4Default = 100;
+int LiquidEffect::sFlow4Default = 100;
+int LiquidEffect::sSourceSize4Default = 0;
+bool LiquidEffect::sFlowMusic4Default = false;
+int LiquidEffect::sXMin = 0;
+int LiquidEffect::sXMax = 100;
+int LiquidEffect::sYMin = 0;
+int LiquidEffect::sYMax = 100;
+int LiquidEffect::sDirectionMin = 0;
+int LiquidEffect::sDirectionMax = 360;
+int LiquidEffect::sVelocityMin = 0;
+int LiquidEffect::sVelocityMax = 1000;
+int LiquidEffect::sFlowMin = 0;
+int LiquidEffect::sFlowMax = 1000;
+int LiquidEffect::sSourceSizeMin = 0;
+int LiquidEffect::sSourceSizeMax = 100;
+
 LiquidEffect::LiquidEffect(int id) : RenderableEffect(id, "Liquid", liquid_16, liquid_24, liquid_32, liquid_48, liquid_64)
 {
 }
 
 LiquidEffect::~LiquidEffect()
 {
+}
+
+void LiquidEffect::OnMetadataLoaded()
+{
+    sTopBarrierDefault = GetBoolDefault("TopBarrier", sTopBarrierDefault);
+    sBottomBarrierDefault = GetBoolDefault("BottomBarrier", sBottomBarrierDefault);
+    sLeftBarrierDefault = GetBoolDefault("LeftBarrier", sLeftBarrierDefault);
+    sRightBarrierDefault = GetBoolDefault("RightBarrier", sRightBarrierDefault);
+    sHoldColorDefault = GetBoolDefault("HoldColor", sHoldColorDefault);
+    sMixColorsDefault = GetBoolDefault("MixColors", sMixColorsDefault);
+    sParticleTypeDefault = GetStringDefault("ParticleType", sParticleTypeDefault);
+    sLifeTimeDefault = GetIntDefault("LifeTime", sLifeTimeDefault);
+    sLifeTimeMin = (int)GetMinFromMetadata("LifeTime", sLifeTimeMin);
+    sLifeTimeMax = (int)GetMaxFromMetadata("LifeTime", sLifeTimeMax);
+    sSizeDefault = GetIntDefault("Size", sSizeDefault);
+    sWarmUpFramesDefault = GetIntDefault("WarmUpFrames", sWarmUpFramesDefault);
+    sDespeckleDefault = GetIntDefault("Despeckle", sDespeckleDefault);
+    sGravityDefault = GetDoubleDefault("Liquid_Gravity", sGravityDefault);
+    sGravityMin = GetMinFromMetadata("Liquid_Gravity", sGravityMin);
+    sGravityMax = GetMaxFromMetadata("Liquid_Gravity", sGravityMax);
+    sGravityDivisor = GetDivisorFromMetadata("Liquid_Gravity", sGravityDivisor);
+    sGravityAngleDefault = GetIntDefault("Liquid_GravityAngle", sGravityAngleDefault);
+    sGravityAngleMin = (int)GetMinFromMetadata("Liquid_GravityAngle", sGravityAngleMin);
+    sGravityAngleMax = (int)GetMaxFromMetadata("Liquid_GravityAngle", sGravityAngleMax);
+
+    sX1Default = GetIntDefault("X1", sX1Default);
+    sY1Default = GetIntDefault("Y1", sY1Default);
+    sDirection1Default = GetIntDefault("Direction1", sDirection1Default);
+    sVelocity1Default = GetIntDefault("Velocity1", sVelocity1Default);
+    sFlow1Default = GetIntDefault("Flow1", sFlow1Default);
+    sSourceSize1Default = GetIntDefault("Liquid_SourceSize1", sSourceSize1Default);
+    sFlowMusic1Default = GetBoolDefault("FlowMusic1", sFlowMusic1Default);
+
+    sEnabled2Default = GetBoolDefault("Enabled2", sEnabled2Default);
+    sX2Default = GetIntDefault("X2", sX2Default);
+    sY2Default = GetIntDefault("Y2", sY2Default);
+    sDirection2Default = GetIntDefault("Direction2", sDirection2Default);
+    sVelocity2Default = GetIntDefault("Velocity2", sVelocity2Default);
+    sFlow2Default = GetIntDefault("Flow2", sFlow2Default);
+    sSourceSize2Default = GetIntDefault("Liquid_SourceSize2", sSourceSize2Default);
+    sFlowMusic2Default = GetBoolDefault("FlowMusic2", sFlowMusic2Default);
+
+    sEnabled3Default = GetBoolDefault("Enabled3", sEnabled3Default);
+    sX3Default = GetIntDefault("X3", sX3Default);
+    sY3Default = GetIntDefault("Y3", sY3Default);
+    sDirection3Default = GetIntDefault("Direction3", sDirection3Default);
+    sVelocity3Default = GetIntDefault("Velocity3", sVelocity3Default);
+    sFlow3Default = GetIntDefault("Flow3", sFlow3Default);
+    sSourceSize3Default = GetIntDefault("Liquid_SourceSize3", sSourceSize3Default);
+    sFlowMusic3Default = GetBoolDefault("FlowMusic3", sFlowMusic3Default);
+
+    sEnabled4Default = GetBoolDefault("Enabled4", sEnabled4Default);
+    sX4Default = GetIntDefault("X4", sX4Default);
+    sY4Default = GetIntDefault("Y4", sY4Default);
+    sDirection4Default = GetIntDefault("Direction4", sDirection4Default);
+    sVelocity4Default = GetIntDefault("Velocity4", sVelocity4Default);
+    sFlow4Default = GetIntDefault("Flow4", sFlow4Default);
+    sSourceSize4Default = GetIntDefault("Liquid_SourceSize4", sSourceSize4Default);
+    sFlowMusic4Default = GetBoolDefault("FlowMusic4", sFlowMusic4Default);
+
+    // Shared min/max values across all sources (all X*/Y*/Direction*/Velocity*/Flow*/Liquid_SourceSize*
+    // in Liquid.json share the same range, so read from source 1 as a representative).
+    sXMin = (int)GetMinFromMetadata("X1", sXMin);
+    sXMax = (int)GetMaxFromMetadata("X1", sXMax);
+    sYMin = (int)GetMinFromMetadata("Y1", sYMin);
+    sYMax = (int)GetMaxFromMetadata("Y1", sYMax);
+    sDirectionMin = (int)GetMinFromMetadata("Direction1", sDirectionMin);
+    sDirectionMax = (int)GetMaxFromMetadata("Direction1", sDirectionMax);
+    sVelocityMin = (int)GetMinFromMetadata("Velocity1", sVelocityMin);
+    sVelocityMax = (int)GetMaxFromMetadata("Velocity1", sVelocityMax);
+    sFlowMin = (int)GetMinFromMetadata("Flow1", sFlowMin);
+    sFlowMax = (int)GetMaxFromMetadata("Flow1", sFlowMax);
+    sSourceSizeMin = (int)GetMinFromMetadata("Liquid_SourceSize1", sSourceSizeMin);
+    sSourceSizeMax = (int)GetMaxFromMetadata("Liquid_SourceSize1", sSourceSizeMax);
 }
 
 std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
@@ -48,29 +186,29 @@ std::list<std::string> LiquidEffect::CheckEffectSettings(const SettingsMap& sett
                              settings.GetBool("E_CHECKBOX_FlowMusic2", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic3", false) ||
                              settings.GetBool("E_CHECKBOX_FlowMusic4", false))) {
-        res.push_back(std::format("    WARN: Liquid effect cant change flow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Liquid effect cant change flow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     int frameInterval = 50;
     if (media != nullptr)
         frameInterval = media->GetFrameInterval();
-    int lifetimeFrames = (1.1 * GetValueCurveIntMax("LifeTime", 1000, settings, LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX)) / 100 * frameInterval / 1000; // this is the lifetime in frames
+    int lifetimeFrames = (1.1 * GetValueCurveIntMax("LifeTime", sLifeTimeDefault, settings, sLifeTimeMin, sLifeTimeMax)) / 100 * frameInterval / 1000; // this is the lifetime in frames
     if (lifetimeFrames == 0) {
         lifetimeFrames = (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval;
     }
     lifetimeFrames = std::min(lifetimeFrames, (eff->GetEndTimeMS() - eff->GetStartTimeMS()) / frameInterval);
-    int flow1 = GetValueCurveIntMax("Flow1", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX);
-    int flow2 = settings.GetBool("E_CHECKBOX_Enabled2", false) ? GetValueCurveIntMax("Flow2", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
-    int flow3 = settings.GetBool("E_CHECKBOX_Enabled3", false) ? GetValueCurveIntMax("Flow3", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
-    int flow4 = settings.GetBool("E_CHECKBOX_Enabled4", false) ? GetValueCurveIntMax("Flow4", 100, settings, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX) : 0;
+    int flow1 = GetValueCurveIntMax("Flow1", sFlow1Default, settings, sFlowMin, sFlowMax);
+    int flow2 = settings.GetBool("E_CHECKBOX_Enabled2", sEnabled2Default) ? GetValueCurveIntMax("Flow2", sFlow2Default, settings, sFlowMin, sFlowMax) : 0;
+    int flow3 = settings.GetBool("E_CHECKBOX_Enabled3", sEnabled3Default) ? GetValueCurveIntMax("Flow3", sFlow3Default, settings, sFlowMin, sFlowMax) : 0;
+    int flow4 = settings.GetBool("E_CHECKBOX_Enabled4", sEnabled4Default) ? GetValueCurveIntMax("Flow4", sFlow4Default, settings, sFlowMin, sFlowMax) : 0;
     int count = lifetimeFrames * (flow1 + flow2 + flow3 + flow4);
 
     if (count > MAX_PARTICLES) {
-        res.push_back(std::format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = {} exceeds {}. Particle count will be limited. Model '{}', Start {}", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Liquid effect lifetime * (flow 1 + flow 2 + flow 3 + flow 4) = {} exceeds {}. Particle count will be limited. Model '{}', Start {}", count, MAX_PARTICLES, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
-    if (settings.GetInt("E_TEXTCTRL_Size", 500) > 1000) {
-        res.push_back(std::format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+    if (settings.GetInt("E_TEXTCTRL_Size", sSizeDefault) > 1000) {
+        res.push_back(fmt::format("    WARN: Liquid effect particle size > 1000 can slow render times significantly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     return res;
@@ -80,55 +218,55 @@ void LiquidEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Render
 {
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
-           SettingsMap.GetBool("CHECKBOX_TopBarrier", false),
-           SettingsMap.GetBool("CHECKBOX_BottomBarrier", true),
-           SettingsMap.GetBool("CHECKBOX_LeftBarrier", false),
-           SettingsMap.GetBool("CHECKBOX_RightBarrier", false),
+           SettingsMap.GetBool("CHECKBOX_TopBarrier", sTopBarrierDefault),
+           SettingsMap.GetBool("CHECKBOX_BottomBarrier", sBottomBarrierDefault),
+           SettingsMap.GetBool("CHECKBOX_LeftBarrier", sLeftBarrierDefault),
+           SettingsMap.GetBool("CHECKBOX_RightBarrier", sRightBarrierDefault),
 
-           GetValueCurveInt("LifeTime", 1000, SettingsMap, oset, LIQUID_LIFETIME_MIN, LIQUID_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_HoldColor", true),
-           SettingsMap.GetBool("CHECKBOX_MixColors", false),
-           SettingsMap.GetInt("TEXTCTRL_Size", 500),
-           SettingsMap.GetInt("TEXTCTRL_WarmUpFrames", 0),
+           GetValueCurveInt("LifeTime", sLifeTimeDefault, SettingsMap, oset, sLifeTimeMin, sLifeTimeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_HoldColor", sHoldColorDefault),
+           SettingsMap.GetBool("CHECKBOX_MixColors", sMixColorsDefault),
+           SettingsMap.GetInt("TEXTCTRL_Size", sSizeDefault),
+           SettingsMap.GetInt("TEXTCTRL_WarmUpFrames", sWarmUpFramesDefault),
 
-           GetValueCurveInt("Direction1", 270, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("X1", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Y1", 100, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Velocity1", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Flow1", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Liquid_SourceSize1", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_FlowMusic1", false),
+           GetValueCurveInt("Direction1", sDirection1Default, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X1", sX1Default, SettingsMap, oset, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y1", sY1Default, SettingsMap, oset, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity1", sVelocity1Default, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow1", sFlow1Default, SettingsMap, oset, sFlowMin, sFlowMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize1", sSourceSize1Default, SettingsMap, oset, sSourceSizeMin, sSourceSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic1", sFlowMusic1Default),
 
-           SettingsMap.GetBool("CHECKBOX_Enabled2", false),
-           GetValueCurveInt("Direction2", 0, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("X2", 0, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Y2", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Velocity2", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Flow2", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Liquid_SourceSize2", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_FlowMusic2", false),
+           SettingsMap.GetBool("CHECKBOX_Enabled2", sEnabled2Default),
+           GetValueCurveInt("Direction2", sDirection2Default, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X2", sX2Default, SettingsMap, oset, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y2", sY2Default, SettingsMap, oset, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity2", sVelocity2Default, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow2", sFlow2Default, SettingsMap, oset, sFlowMin, sFlowMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize2", sSourceSize2Default, SettingsMap, oset, sSourceSizeMin, sSourceSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic2", sFlowMusic2Default),
 
-           SettingsMap.GetBool("CHECKBOX_Enabled3", false),
-           GetValueCurveInt("Direction3", 90, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("X3", 50, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Y3", 0, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Velocity3", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Flow3", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Liquid_SourceSize3", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_FlowMusic3", false),
+           SettingsMap.GetBool("CHECKBOX_Enabled3", sEnabled3Default),
+           GetValueCurveInt("Direction3", sDirection3Default, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X3", sX3Default, SettingsMap, oset, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y3", sY3Default, SettingsMap, oset, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity3", sVelocity3Default, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow3", sFlow3Default, SettingsMap, oset, sFlowMin, sFlowMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize3", sSourceSize3Default, SettingsMap, oset, sSourceSizeMin, sSourceSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic3", sFlowMusic3Default),
 
-           SettingsMap.GetBool("CHECKBOX_Enabled4", false),
-           GetValueCurveInt("Direction4", 180, SettingsMap, oset, LIQUID_DIRECTION_MIN, LIQUID_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("X4", 100, SettingsMap, oset, LIQUID_X_MIN, LIQUID_X_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Y4", 50, SettingsMap, oset, LIQUID_Y_MIN, LIQUID_Y_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Velocity4", 100, SettingsMap, oset, LIQUID_VELOCITY_MIN, LIQUID_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Flow4", 100, SettingsMap, oset, LIQUID_FLOW_MIN, LIQUID_FLOW_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("Liquid_SourceSize4", 0, SettingsMap, oset, LIQUID_SOURCESIZE_MIN, LIQUID_SOURCESIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_FlowMusic4", false),
-           SettingsMap.Get("CHOICE_ParticleType", "Elastic"),
-           SettingsMap.GetInt("TEXTCTRL_Despeckle", 0),
-           GetValueCurveDouble("Liquid_Gravity", 10.0, SettingsMap, oset, LIQUID_GRAVITY_MIN, LIQUID_GRAVITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), LIQUID_GRAVITY_DIVISOR),
-           GetValueCurveInt("Liquid_GravityAngle", 0, SettingsMap, oset, LIQUID_GRAVITYANGLE_MIN, LIQUID_GRAVITYANGLE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
+           SettingsMap.GetBool("CHECKBOX_Enabled4", sEnabled4Default),
+           GetValueCurveInt("Direction4", sDirection4Default, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("X4", sX4Default, SettingsMap, oset, sXMin, sXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Y4", sY4Default, SettingsMap, oset, sYMin, sYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Velocity4", sVelocity4Default, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Flow4", sFlow4Default, SettingsMap, oset, sFlowMin, sFlowMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("Liquid_SourceSize4", sSourceSize4Default, SettingsMap, oset, sSourceSizeMin, sSourceSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_FlowMusic4", sFlowMusic4Default),
+           SettingsMap.Get("CHOICE_ParticleType", sParticleTypeDefault),
+           SettingsMap.GetInt("TEXTCTRL_Despeckle", sDespeckleDefault),
+           GetValueCurveDouble("Liquid_Gravity", sGravityDefault, SettingsMap, oset, sGravityMin, sGravityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sGravityDivisor),
+           GetValueCurveInt("Liquid_GravityAngle", sGravityAngleDefault, SettingsMap, oset, sGravityAngleMin, sGravityAngleMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS())
         );
 }
 

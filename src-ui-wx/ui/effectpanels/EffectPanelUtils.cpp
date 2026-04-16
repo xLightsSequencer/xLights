@@ -47,7 +47,7 @@
 
 #include <wx/tglbtn.h>
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 std::map<std::string, bool> EffectPanelUtils::buttonStates;
 static std::map<wxControl *, wxControl*> LINKED_CONTROLS;
@@ -368,8 +368,16 @@ void xlEffectPanel::AddListeners(wxWindow *ParentWin)
             Connect(ChildWin->GetId(),wxEVT_FONTPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleFontChange);
         } else if (ChildName.StartsWith("ID_COLOURPICKERCTR")) {
             Connect(ChildWin->GetId(),wxEVT_COLOURPICKER_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleColorChange);
-        } else if (ChildName.StartsWith("ID_NOTEBOOK")) {
-            Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
+        } else if (ChildName.StartsWith("ID_NOTEBOOK") || ChildName.StartsWith("IDD_NOTEBOOK")) {
+            // Only bind the page-changed event on persisted notebooks
+            // (ID_NOTEBOOK); IDD_NOTEBOOK's selection is NOT serialized so
+            // tab switches must not fire a change event. But in BOTH cases
+            // we must recurse into each page — otherwise the controls on
+            // subsequent pages never get change listeners and the user's
+            // edits silently vanish.
+            if (ChildName.StartsWith("ID_NOTEBOOK")) {
+                Connect(ChildWin->GetId(),wxEVT_NOTEBOOK_PAGE_CHANGED,(wxObjectEventFunction)&xlEffectPanel::HandleNotebookChange);
+            }
             wxBookCtrlBase *nb = (wxBookCtrlBase*)ChildWin;
             for (int x = 0; x < (int)nb->GetPageCount(); x++) {
                 AddListeners(nb->GetPage(x));
@@ -409,7 +417,6 @@ void xlEffectPanel::AddChangeListeners(wxTimer *timer) {
     AddListeners(this);
 }
 void xlEffectPanel::FireChangeEvent() {
-    //static int cnt = 0;  printf("Change fired: %d\n", cnt++);
     if (changeTimer) {
         changeTimer->StartOnce(25);
     }
@@ -491,7 +498,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         wxString AttrName = "E_" + ChildName.Mid(3);
         if (ChildName.StartsWith("ID_SLIDER")) {
             wxSlider* ctrl=(wxSlider*)ChildWin;
-            s += AttrName+ "=" + wxString(std::format("{}", ctrl->GetValue())) + ",";
+            s += AttrName+ "=" + wxString(fmt::format("{}", ctrl->GetValue())) + ",";
         } else if (ChildName.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton* ctrl = (ValueCurveButton*)ChildWin;
             if (ctrl->GetValue()->IsActive()) {
@@ -516,7 +523,7 @@ static wxString GetEffectStringFromWindow(wxWindow *ParentWin) {
         } else if (ChildName.StartsWith("ID_SPINCTRL")) {
             wxSpinCtrl* ctrl = (wxSpinCtrl*)ChildWin;
             int i = ctrl->GetValue();
-            s += AttrName + "=" + wxString(std::format("{}", i)) + ",";
+            s += AttrName + "=" + wxString(fmt::format("{}", i)) + ",";
         } else if (ChildName.StartsWith("ID_CHOICE")) {
             wxChoice* ctrl=(wxChoice*)ChildWin;
             s += AttrName + "=" + ctrl->GetStringSelection() + ",";

@@ -12,12 +12,6 @@
 
 #include "RenderableEffect.h"
 
-#define WARP_X_MIN 0
-#define WARP_X_MAX 100
-
-#define WARP_Y_MIN 0
-#define WARP_Y_MAX 100
-
 class WarpEffect : public RenderableEffect
 {
 public:
@@ -53,21 +47,19 @@ public:
     }
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Warp_X")
-            return WARP_X_MIN;
-        if (name == "E_VALUECURVE_Warp_Y")
-            return WARP_Y_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Warp_X")
-            return WARP_X_MAX;
-        if (name == "E_VALUECURVE_Warp_Y")
-            return WARP_Y_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Warp.json by OnMetadataLoaded().
+    static std::string sTypeDefault;
+    static std::string sTreatmentDefault;
+    static int sXDefault;
+    static int sXMin;
+    static int sXMax;
+    static int sYDefault;
+    static int sYMin;
+    static int sYMax;
+    static int sCycleCountDefault;
+    static int sSpeedDefault;
+    static int sFrequencyDefault;
 
+protected:
+    virtual void OnMetadataLoaded() override;
 };

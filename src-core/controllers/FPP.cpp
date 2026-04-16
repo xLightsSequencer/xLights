@@ -18,7 +18,7 @@
 #include <thread>
 #include <unordered_set>
 #include <cinttypes>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <curl/curl.h>
 
@@ -383,7 +383,7 @@ std::map<int, int> FPP::GetExpansionPorts(ControllerCaps* caps) const
 
     for (int i = 1; i <= ports; i++)
     {
-        auto s = caps->GetCustomPropertyByPath(std::format("fpp{}", i), "0,0");
+        auto s = caps->GetCustomPropertyByPath(fmt::format("fpp{}", i), "0,0");
         if (s != "0,0")
         {
             auto ss = Split(s, ',');
@@ -1703,7 +1703,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
     int totH = std::max(previewHi, int(maxY - minY));
 
     ret += "# Preview Size\n";
-    ret += std::format("{},{}\n", totW, totH);
+    ret += fmt::format("{},{}\n", totW, totH);
 
     for (auto m = allmodels.begin(); m != allmodels.end(); ++m) {
         Model* model = m->second;
@@ -1740,7 +1740,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             stringType = "White";
         }
 
-        ret += std::format("# Model: '{}', {} nodes\n", model->GetName(), model->GetNodeCount());
+        ret += fmt::format("# Model: '{}', {} nodes\n", model->GetName(), model->GetNodeCount());
 
         std::multiset<std::tuple<float, float, float, int>,
                 bool (*)(const std::tuple<float, float, float, int>& l,
@@ -1760,7 +1760,7 @@ void FPP::CreateVirtualDisplayMap(ModelManager &allmodels, ViewObjectManager &ob
             }
         }
         for (auto const&[x,y,z, ch] : modelPts) {
-            ret += std::format("{},{},{},{},{},{},{}\n",
+            ret += fmt::format("{},{},{},{},{},{},{}\n",
                 (int)std::round(x), (int)std::round(y), (int)std::round(z), ch,
                 model->GetChanCountPerNode(), stringType, model->GetPixelSize());
         }
@@ -2520,9 +2520,9 @@ bool FPP::UploadVirtualMatrixOutputs(ModelManager* allmodels,
                     v["colorOrder"] = std::string("RGB");
                     v["invert"] = 0;
                     if (IsVersionAtLeast(8, 0)) {
-                        v["device"] = std::format("HDMI-A-{}", port + 1); //hdmi ports are 1 based, not 0 like fb
+                        v["device"] = fmt::format("HDMI-A-{}", port + 1); //hdmi ports are 1 based, not 0 like fb
                     } else {
-                        v["device"] = std::format("fb{}", port);
+                        v["device"] = fmt::format("fb{}", port);
                     }
                     v["xoff"] = 0;
                     v["description"] = name;
@@ -2939,7 +2939,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
                     vs["endNulls"] = 0;
                     vs["zigZag"] = 0; // If we zigzag in xLights, we don't do it in the controller, if we need it in the controller, we don't know about it here
                     vs["brightness"] = defaultBrightness;
-                    vs["gamma"] = std::format("{:.1f}", defaultGamma);
+                    vs["gamma"] = fmt::format("{:.1f}", defaultGamma);
                 }
                 if (pvs->_reverseSet) {
                     vs["reverse"] = pvs->_reverse == "Reverse" ? 1 : 0;
@@ -3021,7 +3021,7 @@ bool FPP::UploadPixelOutputs(ModelManager* allmodels,
             vs["endNulls"] = 0;
             vs["zigZag"] = 0;
             vs["brightness"] = defaultBrightness;
-            vs["gamma"] = std::format("{:.1f}", defaultGamma);
+            vs["gamma"] = fmt::format("{:.1f}", defaultGamma);
             stringData["outputs"][x]["virtualStrings"].push_back(vs);
         }
         if ((x & 0x3) == 0) {
@@ -4005,6 +4005,11 @@ static bool supportedForFPPConnect(DiscoveredData* res, OutputManager* outputMan
         return res->mode != "bridge";
     }
 
+    if (res->typeId >= 0xD0 && res->typeId <= 0xDF) {
+        // Illuminous
+        return res->mode != "bridge";
+    }
+
     return false;
 }
 
@@ -4159,6 +4164,8 @@ void FPP::TypeIDtoControllerType(int typeId, FPP* inst) {
         inst->fppType = FPP_TYPE::ESPIXELSTICK;
     } else if (typeId >= 0xA0 && typeId <= 0xAF) {
         inst->fppType = FPP_TYPE::GENIUS;
+    } else if (typeId >= 0xD0 && typeId <= 0xDF) {
+        inst->fppType = FPP_TYPE::POWERDMX;
     }
 }
 

@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <fstream>
 #include <sstream>
 #include <string_view>
@@ -72,6 +72,12 @@ SequenceFile::~SequenceFile()
         delete audio;
         audio = nullptr;
     }
+    ValueCurve::ClearAltAudio();
+    for (auto& t : alt_tracks) {
+        delete t.audio;
+        t.audio = nullptr;
+    }
+    alt_tracks.clear();
 }
 
 std::string SequenceFile::GetExt() const
@@ -219,6 +225,83 @@ void SequenceFile::ClearMediaFile()
     SetHeaderInfo(HEADER_INFO_TYPES::ARTIST, "");
     SetHeaderInfo(HEADER_INFO_TYPES::ALBUM, "");
     SetHeaderInfo(HEADER_INFO_TYPES::URL, "");
+}
+
+void SequenceFile::AddAltTrack(const std::string& ShowDir, const std::string& path, const std::string& shortname)
+{
+    AlternateAudioTrack t;
+    t.shortname = shortname;
+    t.path = FileUtils::FixFile(ShowDir, path);
+    if (::FileExists(t.path)) {
+        ObtainAccessToURL(t.path);
+        t.audio = new AudioManager(t.path, GetFrameMS());
+    }
+    alt_tracks.push_back(std::move(t));
+    ValueCurve::SetAltAudio(GetAltTrackDisplayName((int)alt_tracks.size() - 1), alt_tracks.back().audio);
+}
+
+void SequenceFile::RemoveAltTrack(int idx)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    std::string displayName = GetAltTrackDisplayName(idx);
+    delete alt_tracks[idx].audio;
+    alt_tracks.erase(alt_tracks.begin() + idx);
+    // Rebuild alt audio map in ValueCurve
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+void SequenceFile::SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    delete alt_tracks[idx].audio;
+    alt_tracks[idx].audio = nullptr;
+    alt_tracks[idx].path = FileUtils::FixFile(ShowDir, path);
+    if (::FileExists(alt_tracks[idx].path)) {
+        ObtainAccessToURL(alt_tracks[idx].path);
+        alt_tracks[idx].audio = new AudioManager(alt_tracks[idx].path, GetFrameMS());
+    }
+    // Rebuild ValueCurve alt audio map
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+void SequenceFile::SetAltTrackShortname(int idx, const std::string& name)
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return;
+    // Ensure the chosen display name is unique across all other tracks.
+    // If there is a collision, append _2, _3, … until it is unique.
+    std::string candidate = name;
+    int suffix = 2;
+    bool collision = true;
+    while (collision) {
+        collision = false;
+        for (int i = 0; i < (int)alt_tracks.size(); i++) {
+            if (i == idx) continue;
+            if (GetAltTrackDisplayName(i) == candidate) {
+                collision = true;
+                candidate = name + "_" + std::to_string(suffix++);
+                break;
+            }
+        }
+    }
+    alt_tracks[idx].shortname = candidate;
+    // Rebuild alt audio map since display name may have changed
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
+std::string SequenceFile::GetAltTrackDisplayName(int idx) const
+{
+    if (idx < 0 || idx >= (int)alt_tracks.size()) return "";
+    if (!alt_tracks[idx].shortname.empty()) return alt_tracks[idx].shortname;
+    return "Track" + std::to_string(idx + 1);
 }
 
 void SequenceFile::SetRenderMode(const std::string& mode)
@@ -396,6 +479,21 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                             spdlog::error("LoadSequence: audio file does not exist.");
                         }
                     }
+                } else if (name == "altAudioTracks") {
+                    if (!ignore_audio) {
+                        for (auto track : element.children("track")) {
+                            std::string tpath = track.text().as_string("");
+                            std::string tsname = track.attribute("shortname").as_string("");
+                            AlternateAudioTrack t;
+                            t.shortname = tsname;
+                            t.path = FileUtils::FixFile(showDir, tpath);
+                            if (::FileExists(t.path)) {
+                                ObtainAccessToURL(t.path);
+                                t.audio = new AudioManager(t.path, GetFrameMS());
+                            }
+                            alt_tracks.push_back(std::move(t));
+                        }
+                    }
                 } else if (name == "sequenceDuration") {
                     SetSequenceDuration(content);
                 } else if (name == "imageDir") {
@@ -464,6 +562,12 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
         spdlog::info("LoadSequence: No Audio loaded.");
     }
 
+    // Register alt audio tracks with ValueCurve
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+
     spdlog::info("LoadSequence: Sequence timing interval {}ms.", GetFrameMS());
     spdlog::info("LoadSequence: Sequence loaded.");
 
@@ -477,7 +581,7 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
 
 std::string SequenceFile::GetSequenceDurationString() const
 {
-    return std::format("{:.3f}", seq_duration);
+    return fmt::format("{:.3f}", seq_duration);
 }
 
 void SequenceFile::SetSequenceDurationMS(int length)
@@ -487,7 +591,7 @@ void SequenceFile::SetSequenceDurationMS(int length)
 
 void SequenceFile::SetSequenceDuration(double length)
 {
-    SetSequenceDuration(std::format("{:.3f}", length));
+    SetSequenceDuration(fmt::format("{:.3f}", length));
 }
 
 void SequenceFile::SetSequenceDuration(const std::string& length)
@@ -887,7 +991,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
             std::string lower = line;
             std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
             if (lower != "lipsync version 1") {
-                DisplayError(std::format("Invalid papagayo file @line {} (header '{}')", linenum, line));
+                DisplayError(fmt::format("Invalid papagayo file @line {} (header '{}')", linenum, line));
                 return;
             }
         }
@@ -899,7 +1003,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         int samppersec = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (samppersec < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' samples per sec)", linenum, line));
         }
         int ms = 1000 / samppersec;
 
@@ -916,14 +1020,14 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
         int numsamp = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (numsamp < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' song samples)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' song samples)", linenum, line));
         }
 
         line = nextLine();
         int numvoices = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
         linenum++;
         if (numvoices < 1) {
-            DisplayError(std::format("Invalid file @line {} ('{}' voices)", linenum, line));
+            DisplayError(fmt::format("Invalid file @line {} ('{}' voices)", linenum, line));
         }
         spdlog::info("    Voices {}", numvoices);
 
@@ -936,19 +1040,19 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
             std::string voicename = nextLine();
             linenum++;
             if (voicename.empty()) {
-                DisplayError(std::format("Missing voice# {} of {}", v, numvoices));
+                DisplayError(fmt::format("Missing voice# {} of {}", v, numvoices));
                 return;
             }
 
             nextLine(); //all phrases for voice, "|" delimiter
             linenum++;
-            std::string desc = std::format("voice# {} '{}' @line {}", v, voicename, linenum);
+            std::string desc = fmt::format("voice# {} '{}' @line {}", v, voicename, linenum);
 
             line = RemoveTabs(nextLine(), 1);
             int numphrases = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
             linenum++;
             if (numphrases < 0) {
-                DisplayError(std::format("Invalid file @line {} ('{}' phrases for {})", linenum, line, desc));
+                DisplayError(fmt::format("Invalid file @line {} ('{}' phrases for {})", linenum, line, desc));
             }
 
             Element* element = xLightsParent->AddTimingElement(name);
@@ -961,7 +1065,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 std::string label = RemoveTabs(nextLine(), 2);
                 linenum++;
                 if (label.empty()) {
-                    DisplayError(std::format("Missing phrase# {} of {} for {}", p, numphrases, desc));
+                    DisplayError(fmt::format("Missing phrase# {} of {} for {}", p, numphrases, desc));
                     return;
                 }
 
@@ -972,7 +1076,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 line = RemoveTabs(nextLine(), 2);
                 int end = IsAllDigits(line) ? (offset + std::strtol(line.c_str(), nullptr, 10)) * ms : 0;
                 linenum++;
-                desc = std::format("voice# {}, phrase {} '{}', start frame {} end frame {} @line {}", v, p, label, start, end, linenum);
+                desc = fmt::format("voice# {}, phrase {} '{}', start frame {} end frame {} @line {}", v, p, label, start, end, linenum);
 
                 el1->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
@@ -980,7 +1084,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                 int numwords = IsAllDigits(line) ? std::strtol(line.c_str(), nullptr, 10) : -1;
                 linenum++;
                 if (numwords < 0) {
-                    DisplayError(std::format("Invalid file @line {} ('{}' words for {})", linenum, line, desc));
+                    DisplayError(fmt::format("Invalid file @line {} ('{}' words for {})", linenum, line, desc));
                 }
 
                 for (int w = 1; w <= numwords; ++w)
@@ -990,7 +1094,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     auto space1 = line.find(' ');
                     label = line.substr(0, space1);
                     if (label.empty()) {
-                        DisplayError(std::format("Missing word# {} of {} for {}", w, numwords, desc));
+                        DisplayError(fmt::format("Missing word# {} of {} for {}", w, numwords, desc));
                         return;
                     }
 
@@ -1003,7 +1107,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     ss = line.substr(space2 + 1, space3 - space2 - 1);
                     end = IsAllDigits(ss) ? (offset + std::strtol(ss.c_str(), nullptr, 10)) * ms : 0;
                     linenum++;
-                    desc = std::format("voice# {}, phrase# {}, word {} '{}', start frame {} end frame {} @line {}", v, p, w, label, start, end, linenum);
+                    desc = fmt::format("voice# {}, phrase# {}, word {} '{}', start frame {} end frame {} @line {}", v, p, w, label, start, end, linenum);
 
                     el2->AddEffect(0, label, "", "", start, end, EFFECT_NOT_SELECTED, false);
 
@@ -1011,7 +1115,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                     int numphonemes = IsAllDigits(ss) ? std::strtol(ss.c_str(), nullptr, 10) : -1;
                     linenum++;
                     if (numphonemes < 0) {
-                        DisplayError(std::format("Invalid file @line {} ('{}' phonemes for {})", linenum, line, desc));
+                        DisplayError(fmt::format("Invalid file @line {} ('{}' phonemes for {})", linenum, line, desc));
                     }
 
                     int outerend = end;
@@ -1030,7 +1134,7 @@ void SequenceFile::ProcessPapagayo(const std::vector<std::string>& filenames, Re
                         }
                         label = (space4 != std::string::npos) ? line.substr(space4 + 1) : "";
                         if (label.empty()) {
-                            DisplayError(std::format("Missing phoneme# {} of {} for {}", ph, numphonemes, desc));
+                            DisplayError(fmt::format("Missing phoneme# {} of {} for {}", ph, numphonemes, desc));
                             return;
                         }
                         start = end;
@@ -1245,6 +1349,14 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     head.append_child("sequenceTiming").text().set(seq_timing);
     head.append_child("sequenceType").text().set(seq_type);
     head.append_child("mediaFile").text().set(media_file);
+    if (!alt_tracks.empty()) {
+        auto altNode = head.append_child("altAudioTracks");
+        for (const auto& t : alt_tracks) {
+            auto trackNode = altNode.append_child("track");
+            trackNode.append_attribute("shortname") = t.shortname.c_str();
+            trackNode.text().set(t.path.c_str());
+        }
+    }
     head.append_child("sequenceDuration").text().set(GetSequenceDurationString());
     head.append_child("imageDir").text().set(image_dir);
 

@@ -317,6 +317,20 @@ static wxBitmapBundle CreateBitmapBundleFromPNGs(const wxString &id,
 }
 
 
+inline wxSize AdjustSizeForClient(const wxArtClient& client,
+                                  const wxSize& size) {
+    if (size == wxDefaultSize) {
+        if (client == wxART_BUTTON) {
+            return wxSize(24, 24);
+        }
+        wxSize defSize = wxArtProvider::GetNativeDIPSizeHint(client);
+        if ( defSize == wxDefaultSize ) {
+            return wxSize(32, 32);
+        }
+    }
+    return size;
+}
+
 wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
                                                  const wxArtClient& client,
                                                  const wxSize& size) {
@@ -336,6 +350,12 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
     }
     */
     
+#ifdef __WXOSX__
+    // macOS SF Symbol based icons, use instead of our xpms.  Honor light/dark mode, scale properly, etc...
+    if ("xlART_DICE_ICON" == id) {
+        return wxOSXCreateSystemBitmapBundle("dice", AdjustSizeForClient(client, size));
+    }
+#endif
     if ("xlART_STOP_NOW" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {stop_sign_16, stop_sign_24, stop_sign_32, stop_sign_48, stop_sign_64});
     } else if ("xlART_LIGHTS_OFF" == id) {
@@ -574,13 +594,21 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
 #ifdef __WXOSX__
     // macOS SF Symbol based navigation icons
     if ("xlART_GO_TO_TOP" == id) {
-        return wxOSXCreateSystemBitmapBundle("arrow.up.to.line.circle", size);
+        return wxOSXCreateSystemBitmapBundle("arrow.up.to.line.circle", AdjustSizeForClient(client, size));
     } else if ("xlART_GO_TO_BOTTOM" == id) {
-        return wxOSXCreateSystemBitmapBundle("arrow.down.to.line.circle", size);
+        return wxOSXCreateSystemBitmapBundle("arrow.down.to.line.circle", AdjustSizeForClient(client, size));
     } else if ("xlART_GO_FORWARD_ALL" == id) {
-        return wxOSXCreateSystemBitmapBundle("arrow.right.to.line.circle", size);
+        return wxOSXCreateSystemBitmapBundle("arrow.right.to.line.circle", AdjustSizeForClient(client, size));
     } else if ("xlART_GO_BACK_ALL" == id) {
-        return wxOSXCreateSystemBitmapBundle("arrow.left.to.line.circle", size);
+        return wxOSXCreateSystemBitmapBundle("arrow.left.to.line.circle", AdjustSizeForClient(client, size));
+    } else if ("wxART_GO_UP" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.up.circle", AdjustSizeForClient(client, size));
+    } else if ("wxART_GO_DOWN" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.down.circle", AdjustSizeForClient(client, size));
+    } else if ("wxART_GO_BACK" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.backward.circle", AdjustSizeForClient(client, size));
+    } else if ("wxART_GO_FORWARD" == id) {
+        return wxOSXCreateSystemBitmapBundle("arrow.forward.circle", AdjustSizeForClient(client, size));
     }
 #endif
     return wxBitmapBundle();
@@ -661,8 +689,13 @@ const wxImage &BitmapCache::GetCornerIcon(int position, int size) {
 }
 
 wxBitmapBundle BitmapCache::GetLockIcon(bool locked) {
+#ifdef __WXOSX__
+    static wxBitmapBundle lockedIcon =  wxOSXCreateSystemBitmapBundle("lock", wxSize(14, 14));
+    static wxBitmapBundle unlockedIcon =  wxOSXCreateSystemBitmapBundle("lock.open", wxSize(14, 14));
+#else
     static wxBitmapBundle lockedIcon = CreateBitmapBundleFromXPMs(14, "Locked", {padlock_close_14, padlock_close_28});
     static wxBitmapBundle unlockedIcon = CreateBitmapBundleFromXPMs(14, "Unlocked", {padlock_open_14, padlock_open_28});
+#endif
     return locked ? lockedIcon : unlockedIcon;
 }
 

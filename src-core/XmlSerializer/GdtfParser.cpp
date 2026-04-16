@@ -23,7 +23,7 @@
 #include "UtilFunctions.h"
 #include <algorithm>
 #include <string_view>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 namespace XmlSerialize {
     // Helper function to parse value from GDTF format
@@ -251,7 +251,7 @@ namespace XmlSerialize {
                     if (channel.channels == 1) {
                         nodeNames[nodeIndex] = channel.attribute;
                     } else {
-                        nodeNames[nodeIndex] = std::format("{}-{}", channel.attribute, i + 1);
+                        nodeNames[nodeIndex] = fmt::format("{}-{}", channel.attribute, i + 1);
                     }
                 }
             }
@@ -260,9 +260,9 @@ namespace XmlSerialize {
                 std::map<std::string, std::string> states;
                 int stateNum = 1;
                 for (const auto& value : channel.values) {
-                    states[std::format("s{}-Name", stateNum)] = value.description;
-                    states[std::format("s{}", stateNum)] = std::to_string(channel.channelStart);
-                    states[std::format("s{}-Color", stateNum)] = std::format("#{:02x}{:02x}{:02x}", value.low, value.low, value.low);
+                    states[fmt::format("s{}-Name", stateNum)] = value.description;
+                    states[fmt::format("s{}", stateNum)] = std::to_string(channel.channelStart);
+                    states[fmt::format("s{}-Color", stateNum)] = fmt::format("#{:02x}{:02x}{:02x}", value.low, value.low, value.low);
                     stateNum++;
                 }
                 stateInfo[channel.attribute] = states;

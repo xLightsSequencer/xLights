@@ -31,6 +31,9 @@ make xLights                  # Build just xLights (release)
 Build uses Code::Blocks .cbp project files converted to makefiles via cbp2make. Object files go to `.objs_debug/` or `.objs_release/`.
 
 ### Windows
+```
+msbuild -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
+```
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
 ### wxSmith Generated Code
@@ -142,5 +145,5 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 
 ## Key Dependencies
 
-wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), spdlog, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).
+wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), spdlog, nlohmann/json, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).
 

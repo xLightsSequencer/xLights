@@ -36,7 +36,7 @@
 
 #include <log.h>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 #include <memory>
 #include <utility>
 #include <chrono>
@@ -155,14 +155,14 @@ void HinksPixOutput::SetConfig(const std::string& data) {
 
 nlohmann::json HinksPixOutput::BuildCommand() const {
     nlohmann::json cmd;
-    cmd["V"] = std::format("{},{},{},{},{},{},{},{},{},{}",
+    cmd["V"] = fmt::format("{},{},{},{},{},{},{},{},{},{}",
                         output, protocol, controllerStartChannel, pixels, controllerEndChannel,
                         direction, colorOrder, nullPixel, brightness, gamma);
     return cmd;
 }
 
 std::string HinksPixOutput::BuildCommandEasyLights() const {
-    return std::format("{},{},{},{},{},{},{},{},{},{}|",
+    return fmt::format("{},{},{},{},{},{},{},{},{},{}|",
                        output, protocol, controllerStartChannel, pixels, controllerEndChannel,
                        direction, colorOrder, nullPixel, brightness, gamma);
 }
@@ -218,7 +218,7 @@ nlohmann::json HinksPixSerial::BuildCommand() const {
 
 std::string HinksPixSerial::BuildCommandEasyLights(int mode) const
 {
-    return std::format("A,{},B,{},C,{},D,{},E,{},F,{},G,{},H,{}",
+    return fmt::format("A,{},B,{},C,{},D,{},E,{},F,{},G,{},H,{}",
                        mode, (int)e131Enabled, (int)ddpDMXEnabled, e131Universe, e131StartChannel,
                        e131NumOfChan, ddpDMXStartChannel, ddpDMXNumOfChan);
 }
@@ -257,7 +257,7 @@ void HinksSmartOutput::SetConfig(const std::string& data) {
 nlohmann::json HinksSmartOutput::BuildCommand() const {
     //{"V":"1,0,51,51,51,51"}
     nlohmann::json cmd;
-    cmd["V"] = std::format("{},{},{},{},{},{}", id, type, portStartPixel[0], portStartPixel[1],
+    cmd["V"] = fmt::format("{},{},{},{},{},{}", id, type, portStartPixel[0], portStartPixel[1],
                             portStartPixel[2], portStartPixel[3]);
     return cmd;
 }
@@ -274,14 +274,14 @@ void HinksPixInputUniverse::Dump() const {
 
 nlohmann::json HinksPixInputUniverse::BuildCommand() const {
     nlohmann::json cmd;
-    cmd["V"] = std::format("{},{},{},1,{},{}", index,
+    cmd["V"] = fmt::format("{},{},{},1,{},{}", index,
                             universe, numOfChan, hinksPixStartChannel,
                             hinksPixStartChannel + numOfChan - 1);
     return cmd;
 }
 
 std::string HinksPixInputUniverse::BuildCommandEasyLights() const {
-    return std::format("{},{},{},1,{},{}", index,
+    return fmt::format("{},{},{},1,{},{}", index,
                        universe, numOfChan, hinksPixStartChannel,
                        hinksPixStartChannel + numOfChan - 1);
 }
@@ -309,7 +309,7 @@ bool HinksPix::InitControllerOutputData(bool fullControl, int defaultBrightness)
 void HinksPix::InitExpansionBoardData(int expansion, int startport, int length) {
     nlohmann::json data;
 
-    bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, std::format("BLK: {}", expansion - 1));
+    bool const worked = GetControllerDataJSON(GetJSONPortURL(), data, fmt::format("BLK: {}", expansion - 1));
 
     if (!worked || !data.contains("LIST")) {
         spdlog::error("Invalid Data from controller");
@@ -367,7 +367,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
     std::list<Output*> outputs = controller->GetOutputs();
 
     if (controller->GetOutputCount() > _numberOfUniverses) {
-        DisplayError(std::format(
+        DisplayError(fmt::format(
                          "Attempt to upload {} universes to HinksPix controller but only {} are supported.",
                          controller->GetOutputCount(), _numberOfUniverses));
         return false;
@@ -440,7 +440,7 @@ bool HinksPix::UploadInputUniverses(Controller* controller, std::vector<HinksPix
                 index++;
                 num_of_unv++;
             } else if (index <= _numberOfUniverses) {
-                request.push_back({{"V", std::format("{},{},0,1,0,0", index, index)}});
+                request.push_back({{"V", fmt::format("{},{},0,1,0,0", index, index)}});
                 index++;
             } else {
                 request.push_back({{"V", "0,0,0,0,0,0"}});
@@ -524,7 +524,7 @@ bool HinksPix::UploadUnPack(bool& worked, std::vector<std::unique_ptr<UnPack>> c
 
         for (auto it = LL.begin(); it != LL.end(); ++it) {
             if (i > LastIndex) {
-                auto LE = std::format("{{{},{},{}}}", (*it)->MyStart, (*it)->NewStart, (*it)->NumChans);
+                auto LE = fmt::format("{{{},{},{}}}", (*it)->MyStart, (*it)->NewStart, (*it)->NumChans);
                 data["DATA"]["LIST"].push_back(LE);
 
                 LastIndex = i;
@@ -567,7 +567,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
     int const maxUnv = std::stoi(map.at("C"));
 
     if (controller->GetOutputCount() > maxUnv) {
-        DisplayError(std::format("Attempt to upload {} universes to HinksPix controller but only {} are supported.", controller->GetOutputCount(), maxUnv));
+        DisplayError(fmt::format("Attempt to upload {} universes to HinksPix controller but only {} are supported.", controller->GetOutputCount(), maxUnv));
         return false;
     }
 
@@ -602,7 +602,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
         int index {1};
 
         for (int j = 0; j < numberOfCalls; j++) {
-            std::string requestString = std::format("ROWCNT=16:ROW={}:", j);
+            std::string requestString = fmt::format("ROWCNT=16:ROW={}:", j);
             for (int i = 0; i < UN_PER; i++) {
                 auto inpUn = std::find_if(inputUniverses.begin(), inputUniverses.end(), [index](auto const& inp) { return inp.index == index; });
                 if (inpUn != inputUniverses.end()) {
@@ -617,7 +617,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
                     if (i != 0) {
                         requestString += ",";
                     }
-                    requestString += std::format("{},{},0,1,0,0", index, index);
+                    requestString += fmt::format("{},{},0,1,0,0", index, index);
                     index++;
                 }
                 else {
@@ -632,7 +632,7 @@ bool HinksPix::UploadInputUniversesEasyLights(Controller* controller, std::vecto
         }
     }
 
-    auto const cmd = std::format("A,{},B,{},C,{},D,{},E,{}",
+    auto const cmd = fmt::format("A,{},B,{},C,{},D,{},E,{}",
         multi, type, maxUnv, num_of_unv, DDPStart);
 
     //Set Controller Input mode
@@ -1150,7 +1150,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
             _numberOfUniverses = (int)strtol(data.at("MaxU").get<std::string>().c_str(), nullptr, 10);
         }
         if (data.contains("MCPU") && data.contains("PCPU") && data.contains("ECPU") && data.contains("WEB")) {
-            _version = std::format("MAIN:{},POWER:{},WIFI:{},WEB:{}",
+            _version = fmt::format("MAIN:{},POWER:{},WIFI:{},WEB:{}",
                                         data.at("MCPU").get<std::string>().substr(3),
                                         data.at("PCPU").get<std::string>().substr(3),
                                         data.at("ECPU").get<std::string>().substr(3),
@@ -1178,7 +1178,7 @@ HinksPix::HinksPix(const std::string& ip, const std::string& proxy) :
     } else {
         _connected = false;
         spdlog::error("Error connecting to HinksPix controller on {}.", _ip);
-        DisplayError(std::format("Error connecting to HinksPix controller on {}.", _ip));
+        DisplayError(fmt::format("Error connecting to HinksPix controller on {}.", _ip));
     }
 }
 
@@ -1203,17 +1203,17 @@ struct less_than_key
 bool HinksPix::SetOutputs(ModelManager* allmodels, OutputManager* outputManager, Controller* c, UICallbacks* ui) {
     ControllerEthernet* controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(std::format("{} is not a HinksPix controller.", c->GetName()));
+        DisplayError(fmt::format("{} is not a HinksPix controller.", c->GetName()));
         return false;
     }
 
     if (_MCPU_Version < 101 && _controllerType == "H") {
-        DisplayError(std::format("HinksPix CPU Firmware is too old (v{}) Update to v101 or Newer.", _MCPU_Version));
+        DisplayError(fmt::format("HinksPix CPU Firmware is too old (v{}) Update to v101 or Newer.", _MCPU_Version));
         return false;
     }
     /*
     if (_MCPU_Version < 122 && _controllerType == "E") {
-        DisplayError(std::format("Easylights CPU Firmware is too old (v{}) Update to v122 or Newer.", _MCPU_Version));
+        DisplayError(fmt::format("Easylights CPU Firmware is too old (v{}) Update to v122 or Newer.", _MCPU_Version));
         return false;
     }*/
 
@@ -1638,7 +1638,7 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
 
     int maxLoop = std::ceil(std::filesystem::file_size(localpathname) / sizeof(PK.Data)) + 1;
 
-    auto up_message = std::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
+    auto up_message = fmt::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
     progress_dlg(Progress, maxLoop, up_message);
 
     FILE* f = fopen((const char*)localpathname.c_str(), "rb");
@@ -1690,9 +1690,9 @@ bool HinksPix::UploadFileToController(const std::string& localpathname, const st
                 auto const elapsed_seconds = remainingTime / 1000;
                 auto const minutes = elapsed_seconds / 60;
                 auto const seconds = elapsed_seconds % 60;
-                message = std::format("Uploading '{}' ({}/{}) Remaining time: {}m {}s", remotepathname, Progress, maxLoop, minutes, seconds);
+                message = fmt::format("Uploading '{}' ({}/{}) Remaining time: {}m {}s", remotepathname, Progress, maxLoop, minutes, seconds);
             } else {
-                message = std::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
+                message = fmt::format("Uploading '{}' ({}/{})", remotepathname, Progress, maxLoop);
             }
             auto con = progress_dlg(Progress, maxLoop+1, message);
             if (!con) {

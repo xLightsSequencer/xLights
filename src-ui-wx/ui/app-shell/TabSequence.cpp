@@ -12,7 +12,7 @@
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/wfstream.h>
 #include <wx/sstream.h>
 
@@ -606,7 +606,7 @@ void xLightsFrame::LoadEffectsFile()
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
     
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     bool is_3d = config->ReadBool("LayoutMode3D", false);
     is_3d = GetXmlSetting("LayoutMode3D", is_3d ? "1" : "0") == "1";
     modelPreview->Set3D(is_3d);
@@ -1297,7 +1297,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
             if (selectGridIcon) {
@@ -1363,7 +1363,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         printf("Done All Files\n");
         wxBell();
 
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
             if (selectGridIcon) {
@@ -1390,7 +1390,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             auto selectGridIcon = config->ReadBool("BatchRendererGridIconBackgrounds", false);
             if (selectGridIcon) {
@@ -1545,7 +1545,7 @@ void xLightsFrame::SaveSequence()
         wxFileName xmlFileName(NewFilename);//set XML Path based on user input
         _renderCache.SetSequence(renderCacheDirectory, xmlFileName.GetName());
         xmlFileName.SetExt("xsq");
-        CurrentSeqXmlFile->SetFullPath(xmlFileName.GetFullPath().ToStdString());
+        CurrentSeqXmlFile->SetFullPath(ToStdString(xmlFileName.GetFullPath()));
 
         AddToMRU(xmlFileName.GetFullPath());
         UpdateRecentFilesList(false);
@@ -1729,7 +1729,7 @@ void xLightsFrame::SaveAsSequence()
         }
     } while (!ok);
 
-    SaveAsSequence(newFilename);
+    SaveAsSequence(ToStdString(newFilename));
 }
 
 void xLightsFrame::SaveAsSequence(const std::string& filename)
@@ -1738,10 +1738,10 @@ void xLightsFrame::SaveAsSequence(const std::string& filename)
     oName.SetExt("fseq");
     DisplayXlightsFilename(oName.GetFullPath());
 
-    SetPanelSequencerLabel(oName.GetName().ToStdString());
+    SetPanelSequencerLabel(ToStdString(oName.GetName()));
 
     oName.SetExt("xsq");
-    CurrentSeqXmlFile->SetFullPath(oName.GetFullPath().ToStdString());
+    CurrentSeqXmlFile->SetFullPath(ToStdString(oName.GetFullPath()));
     _renderCache.SetSequence(renderCacheDirectory, oName.GetName());
     SaveSequence();
     SetTitle(xlights_base_name + xlights_qualifier + " - " + filename);

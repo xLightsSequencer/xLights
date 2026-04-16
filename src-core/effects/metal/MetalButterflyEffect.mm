@@ -89,7 +89,7 @@ MetalButterflyEffect::~MetalButterflyEffect() {
 
 void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", 1);
+    int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", sStyleDefault);
 
     // if smaller buffer, overhead of prep for GPU will be higher than benefit
     if (rbcd == nullptr || !data->canRenderStyle(Style) || ((buffer.BufferWi * buffer.BufferHt) < 2048)) {
@@ -98,14 +98,14 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     }
 
     float oset = buffer.GetEffectTimeIntervalPosition();
-    const int Chunks = GetValueCurveInt("Butterfly_Chunks", 1, SettingsMap, oset, BUTTERFLY_CHUNKS_MIN, BUTTERFLY_CHUNKS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int Skip = GetValueCurveInt("Butterfly_Skip", 2, SettingsMap, oset, BUTTERFLY_SKIP_MIN, BUTTERFLY_SKIP_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", 10, SettingsMap, oset, BUTTERFLY_SPEED_MIN, BUTTERFLY_SPEED_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    const int Chunks = GetValueCurveInt("Butterfly_Chunks", sChunksDefault, SettingsMap, oset, sChunksMin, sChunksMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int Skip = GetValueCurveInt("Butterfly_Skip", sSkipDefault, SettingsMap, oset, sSkipMin, sSkipMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int butterFlySpeed = GetValueCurveInt("Butterfly_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
-    std::string colors = SettingsMap["CHOICE_Butterfly_Colors"];
+    std::string colors = SettingsMap.Get("CHOICE_Butterfly_Colors", sColorsDefault);
     int ColorScheme = (colors == "Palette") ? 1 : 0;
 
-    int ButterflyDirection = SettingsMap["CHOICE_Butterfly_Direction"] == "Reverse" ? 1 : 0;
+    int ButterflyDirection = SettingsMap.Get("CHOICE_Butterfly_Direction", sDirectionDefault) == "Reverse" ? 1 : 0;
 
     //const int maxframe=buffer.BufferHt*2;
     const int curState = (buffer.curPeriod - buffer.curEffStartPer) * butterFlySpeed * buffer.frameTimeInMs / 50;

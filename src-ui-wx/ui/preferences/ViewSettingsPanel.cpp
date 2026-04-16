@@ -71,6 +71,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     ModelHandleSizeChoice->SetSelection( ModelHandleSizeChoice->Append(_("Normal")) );
     ModelHandleSizeChoice->Append(_("Large"));
     ModelHandleSizeChoice->Append(_("Extra Large"));
+    ModelHandleSizeChoice->Append(_("Small"));
     GridBagSizer1->Add(ModelHandleSizeChoice, wxGBPosition(1, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StaticText5 = new wxStaticText(this, wxID_ANY, _("Effect Assist Window"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     GridBagSizer1->Add(StaticText5, wxGBPosition(2, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
@@ -120,6 +121,7 @@ ViewSettingsPanel::ViewSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWindow
     Choice_PaletteSize->Append(_("Large"));
     GridBagSizer1->Add(Choice_PaletteSize, wxGBPosition(11, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
+    GridBagSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE3, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnToolIconSizeChoiceSelect);
     Connect(ID_CHOICE4, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&ViewSettingsPanel::OnModelHandleSizeChoiceSelect);

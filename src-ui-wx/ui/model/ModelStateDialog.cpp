@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "ModelStateDialog.h"
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/settings.h>
 #include <wx/progdlg.h>
 #include "render/SequenceFile.h"
@@ -313,7 +314,7 @@ ModelStateDialog::~ModelStateDialog()
     //*)
 
     SaveWindowPosition("xLightsModelStateDialogPosition", this);
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int const i = SplitterWindow1->GetSashPosition();
     config->Write("ModelStateDialogSashPosition", i);
     config->Flush();
@@ -341,7 +342,7 @@ void ModelStateDialog::OnInit(wxInitDialogEvent& event) {
         SetPosition(loc);
         SetSize(sz);
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     int h = config->ReadLong("ModelStateDialogSashPosition", 0);
     if (h != 0) {
         SplitterWindow1->SetSashPosition(h);

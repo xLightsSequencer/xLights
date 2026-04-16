@@ -10,7 +10,7 @@
 
 #include <cassert>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "VUMeterEffect.h"
 #include "UtilFunctions.h"
@@ -23,6 +23,7 @@
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
+#include "../render/ValueCurve.h"
 #include "UtilClasses.h"
 #include "../models/Model.h"
 #include "../utils/FileUtils.h"
@@ -118,6 +119,24 @@ namespace ShapeType
 	};
 }
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with VUMeter.json values).
+int VUMeterEffect::sBarsDefault = 6;
+int VUMeterEffect::sSensitivityDefault = 70;
+int VUMeterEffect::sGainDefault = 0;
+int VUMeterEffect::sGainMin = -100;
+int VUMeterEffect::sGainMax = 100;
+int VUMeterEffect::sStartNoteDefault = 36;
+int VUMeterEffect::sEndNoteDefault = 84;
+int VUMeterEffect::sXOffsetDefault = 0;
+int VUMeterEffect::sYOffsetDefault = 0;
+int VUMeterEffect::sYOffsetMin = -100;
+int VUMeterEffect::sYOffsetMax = 100;
+bool VUMeterEffect::sSlowDownFallsDefault = true;
+bool VUMeterEffect::sLogarithmicXDefault = false;
+bool VUMeterEffect::sRegexDefault = false;
+std::string VUMeterEffect::sTypeDefault = "Waveform";
+std::string VUMeterEffect::sShapeDefault = "Circle";
+
 VUMeterEffect::VUMeterEffect(int id) : RenderableEffect(id, "VU Meter", vumeter_16, vumeter_24, vumeter_32, vumeter_48, vumeter_64)
 {
 }
@@ -126,11 +145,31 @@ VUMeterEffect::~VUMeterEffect()
 {
 }
 
+void VUMeterEffect::OnMetadataLoaded()
+{
+    sBarsDefault = GetIntDefault("VUMeter_Bars", sBarsDefault);
+    sSensitivityDefault = GetIntDefault("VUMeter_Sensitivity", sSensitivityDefault);
+    sGainDefault = GetIntDefault("VUMeter_Gain", sGainDefault);
+    sGainMin = (int)GetMinFromMetadata("VUMeter_Gain", sGainMin);
+    sGainMax = (int)GetMaxFromMetadata("VUMeter_Gain", sGainMax);
+    sStartNoteDefault = GetIntDefault("VUMeter_StartNote", sStartNoteDefault);
+    sEndNoteDefault = GetIntDefault("VUMeter_EndNote", sEndNoteDefault);
+    sXOffsetDefault = GetIntDefault("VUMeter_XOffset", sXOffsetDefault);
+    sYOffsetDefault = GetIntDefault("VUMeter_YOffset", sYOffsetDefault);
+    sYOffsetMin = (int)GetMinFromMetadata("VUMeter_YOffset", sYOffsetMin);
+    sYOffsetMax = (int)GetMaxFromMetadata("VUMeter_YOffset", sYOffsetMax);
+    sSlowDownFallsDefault = GetBoolDefault("VUMeter_SlowDownFalls", sSlowDownFallsDefault);
+    sLogarithmicXDefault = GetBoolDefault("VUMeter_LogarithmicX", sLogarithmicXDefault);
+    sRegexDefault = GetBoolDefault("Regex", sRegexDefault);
+    sTypeDefault = GetStringDefault("VUMeter_Type", sTypeDefault);
+    sShapeDefault = GetStringDefault("VUMeter_Shape", sShapeDefault);
+}
+
 std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    std::string type = settings.Get("E_CHOICE_VUMeter_Type", "Waveform");
+    std::string type = settings.Get("E_CHOICE_VUMeter_Type", sTypeDefault);
 
     if (media == nullptr &&
         (type == "Spectrogram" ||
@@ -156,7 +195,7 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
          type == "Dominant Frequency Colour Gradient"
        ))
     {
-        res.push_back(std::format("    ERR: VU Meter effect '{}' is pointless if there is no music. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: VU Meter effect '{}' is pointless if there is no music. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string timing = settings.Get("E_CHOICE_VUMeter_TimingTrack", "");
@@ -165,11 +204,11 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
     {
         if (timing == "")
         {
-            res.push_back(std::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VU Meter effect '{}' needs a timing track. Model '{}', Start {}", type, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
         else if (GetTiming(timing) == nullptr)
         {
-            res.push_back(std::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VU Meter effect '{}' has unknown timing track ({}). Model '{}', Start {}", type, timing, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         }
     }
 
@@ -178,16 +217,16 @@ std::list<std::string> VUMeterEffect::CheckEffectSettings(const SettingsMap& set
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVGFile", "");
 
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: VUMeter effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: VUMeter effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }
@@ -232,7 +271,7 @@ void VUMeterEffect::adjustSettings(const std::string& version, Effect* effect, b
     }
     SettingsMap& settings = effect->GetSettings();
     if (IsVersionOlder("2022.04", version)) {
-        if (settings.Get("CHOICE_VUMeter_Type", "Waveform") == "Timing Event Color") {
+        if (settings.Get("CHOICE_VUMeter_Type", sTypeDefault) == "Timing Event Color") {
             settings["E_SLIDER_VUMeter_Sensitivity"] = "100";
         }
     }
@@ -269,23 +308,28 @@ void VUMeterEffect::RenameTimingTrack(std::string oldname, std::string newname, 
 
 void VUMeterEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    // Resolve alternate audio track override
+    std::string audioTrack = SettingsMap.Get("CHOICE_VUMeter_AudioTrack", "");
+    if (audioTrack == "Main") audioTrack = "";
+    buffer._mediaOverride = audioTrack.empty() ? nullptr : ValueCurve::GetAltAudio(audioTrack);
+
     float oset = buffer.GetEffectTimeIntervalPosition();
     Render(buffer,
            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements(),
-           SettingsMap.GetInt("SLIDER_VUMeter_Bars", 6),
-           SettingsMap.Get("CHOICE_VUMeter_Type", "Waveform"),
+           SettingsMap.GetInt("SLIDER_VUMeter_Bars", sBarsDefault),
+           SettingsMap.Get("CHOICE_VUMeter_Type", sTypeDefault),
            SettingsMap.Get("CHOICE_VUMeter_TimingTrack", ""),
-           SettingsMap.GetInt("SLIDER_VUMeter_Sensitivity", 70),
-           SettingsMap.Get("CHOICE_VUMeter_Shape", "Circle"),
-           SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", true),
-           SettingsMap.GetInt("SLIDER_VUMeter_StartNote", 36),
-           SettingsMap.GetInt("SLIDER_VUMeter_EndNote", 84),
-           SettingsMap.GetInt("SLIDER_VUMeter_XOffset", 0),
-           GetValueCurveInt("VUMeter_YOffset", 0, SettingsMap, oset, VUMETER_OFFSET_MIN, VUMETER_OFFSET_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           GetValueCurveInt("VUMeter_Gain", 0, SettingsMap, oset, VUMETER_GAIN_MIN, VUMETER_GAIN_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-           SettingsMap.GetBool("CHECKBOX_VUMeter_LogarithmicX", false),
+           SettingsMap.GetInt("SLIDER_VUMeter_Sensitivity", sSensitivityDefault),
+           SettingsMap.Get("CHOICE_VUMeter_Shape", sShapeDefault),
+           SettingsMap.GetBool("CHECKBOX_VUMeter_SlowDownFalls", sSlowDownFallsDefault),
+           SettingsMap.GetInt("SLIDER_VUMeter_StartNote", sStartNoteDefault),
+           SettingsMap.GetInt("SLIDER_VUMeter_EndNote", sEndNoteDefault),
+           SettingsMap.GetInt("SLIDER_VUMeter_XOffset", sXOffsetDefault),
+           GetValueCurveInt("VUMeter_YOffset", sYOffsetDefault, SettingsMap, oset, sYOffsetMin, sYOffsetMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           GetValueCurveInt("VUMeter_Gain", sGainDefault, SettingsMap, oset, sGainMin, sGainMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+           SettingsMap.GetBool("CHECKBOX_VUMeter_LogarithmicX", sLogarithmicXDefault),
            SettingsMap.Get("TEXTCTRL_Filter", ""),
-           SettingsMap.GetBool("CHECKBOX_Regex", false),
+           SettingsMap.GetBool("CHECKBOX_Regex", sRegexDefault),
            SettingsMap.Get("FILEPICKERCTRL_SVGFile", ""));
 }
 
@@ -1135,7 +1179,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
     {
         if (start + i >= 0)
         {
-            Effect* timing = GetTimingEvent(timingtrack, (start + i) * buffer.frameTimeInMs, filter, regex);
+            Effect* timing = GetTimingEvent(buffer, timingtrack, (start + i) * buffer.frameTimeInMs, filter, regex);
             if (timing != nullptr && timing->GetStartTimeMS() == (start + i) * buffer.frameTimeInMs)
             {
                 timingmarks.remove(start + i);
@@ -1221,7 +1265,7 @@ void VUMeterEffect::RenderTimingEventFrame(RenderBuffer& buffer, int usebars, in
 
 void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount, const std::string& filter, bool regex)
 {
-    Effect* timing = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+    Effect* timing = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
     if (timing == nullptr) return;
 
@@ -1269,7 +1313,7 @@ void VUMeterEffect::RenderTimingEventTimedSweepFrame(RenderBuffer& buffer, int u
 
 void VUMeterEffect::RenderTimingEventTimedChaseFrame(RenderBuffer& buffer, int usebars, int nType, std::string timingtrack, int& nCount, const std::string& filter, bool regex)
 {
-    Effect* timing = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+    Effect* timing = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
     if (timing == nullptr)
         return;
@@ -2360,14 +2404,17 @@ void VUMeterEffect::RenderLevelShapeFrame(RenderBuffer& buffer, const std::strin
 	}
 }
 
-Effect* VUMeterEffect::GetTimingEvent(const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex)
+Effect* VUMeterEffect::GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex)
 {
     if (timingTrack == "")
         return nullptr;
 
+    SequenceElements* seqEl = GetSequenceElements(buffer);
+    if (seqEl == nullptr) return nullptr;
+
     Element* t = nullptr;
-    for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
-        Element* e = mSequenceElements->GetElement(i);
+    for (size_t i = 0; i < seqEl->GetElementCount(); i++) {
+        Element* e = seqEl->GetElement(i);
         if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingTrack) {
             t = e;
             break;
@@ -2397,7 +2444,7 @@ void VUMeterEffect::RenderTimingEventJumpFrame(RenderBuffer& buffer, int fallfra
 
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs)
         {
@@ -2438,7 +2485,7 @@ void VUMeterEffect::RenderTimingEventPulseFrame(RenderBuffer& buffer, int fadefr
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             lastsize = fadeframes;
@@ -2466,7 +2513,7 @@ void VUMeterEffect::RenderTimingEventPulseColourFrame(RenderBuffer& buffer, int 
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             lastsize = fadeframes;
@@ -2498,7 +2545,7 @@ void VUMeterEffect::RenderTimingEventColourFrame(RenderBuffer& buffer, int& colo
 {
     if (timingtrack != "")
     {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;
@@ -2724,7 +2771,7 @@ void VUMeterEffect::RenderLevelBarFrame(RenderBuffer &buffer, int bars, int sens
 
 void VUMeterEffect::RenderTimingEventBarFrame(RenderBuffer& buffer, int bars, std::string timingtrack, float& lastbar, int& colourindex, bool all, bool random, const std::string& filter, bool regex, bool bounce, int& lastDirection ) {
     if (timingtrack != "") {
-        Effect* eff = GetTimingEvent(timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
+        Effect* eff = GetTimingEvent(buffer, timingtrack, buffer.curPeriod * buffer.frameTimeInMs, filter, regex);
 
         if (eff != nullptr && eff->GetStartTimeMS() == buffer.curPeriod * buffer.frameTimeInMs) {
             colourindex++;

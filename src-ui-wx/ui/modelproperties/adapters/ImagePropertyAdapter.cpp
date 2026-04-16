@@ -11,6 +11,7 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
+#include "ui/shared/utils/wxUtilities.h"
 #include "ImagePropertyAdapter.h"
 #include "models/ImageModel.h"
 #include "models/OutputModelManager.h"
@@ -42,7 +43,7 @@ int ImagePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
     _image.IncrementChangeCount();
     if ("Image" == event.GetPropertyName()) {
         _image.ClearImageCache();
-        std::string val = event.GetValue().GetString();
+        std::string val = ToStdString(event.GetValue().GetString());
         _image.SetImageFile(val);
         _image.IncrementChangeCount();
         _image.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE, "ImagePropertyAdapter::OnPropertyGridChange::Image");

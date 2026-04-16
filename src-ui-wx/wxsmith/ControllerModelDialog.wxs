@@ -141,7 +141,7 @@
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
 							<growablecols>0</growablecols>
-							<growablerows>1</growablerows>
+							<growablerows>2</growablerows>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBox_HideOtherControllerModels" member="yes">
 									<label>Hide models assigned to other controllers</label>
@@ -150,6 +150,17 @@
 								<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
 								<option>1</option>
+							</object>
+							<object class="sizeritem">
+								<object class="wxSearchCtrl" name="ID_TEXTCTRL_MODEL_FILTER" variable="TextCtrl_ModelFilter" member="yes">
+									<hint>Filter models...</hint>
+									<style>wxTE_PROCESS_ENTER</style>
+									<handler function="OnTextCtrl_ModelFilterText" entry="EVT_TEXT" />
+									<handler function="OnTextCtrl_ModelFilterText" entry="EVT_SEARCHCTRL_SEARCH_BTN" />
+									<handler function="OnTextCtrl_ModelFilterCancel" entry="EVT_SEARCHCTRL_CANCEL_BTN" />
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+								<border>5</border>
 							</object>
 							<object class="sizeritem">
 								<object class="wxFlexGridSizer" variable="FlexGridSizer2" member="no">

@@ -179,6 +179,8 @@
 		<Unit filename="../src-core/media/AudioManager.h" />
 		<Unit filename="../src-core/media/MediaCompatibility.cpp" />
 		<Unit filename="../src-core/media/MediaCompatibility.h" />
+		<Unit filename="../src-core/media/VideoTranscoder.cpp" />
+		<Unit filename="../src-core/media/VideoTranscoder.h" />
 		<Unit filename="../src-core/media/AudioLoader.cpp" />
 		<Unit filename="../src-core/media/AudioLoader.h" />
 		<Unit filename="../src-core/media/FFmpegAudioDecoder.cpp" />
@@ -625,6 +627,10 @@
 		<Unit filename="../src-core/cad/VRMLWriter.h" />
 		<Unit filename="../src-core/controllers/AlphaPix.cpp" />
 		<Unit filename="../src-core/controllers/AlphaPix.h" />
+		<Unit filename="../src-core/settings/XLightsSettings.cpp" />
+		<Unit filename="../src-core/settings/XLightsSettings.h" />
+		<Unit filename="../src-ui-wx/settings/XLightsConfigAdapter.cpp" />
+		<Unit filename="../src-ui-wx/settings/XLightsConfigAdapter.h" />
 		<Unit filename="../src-core/controllers/BaseController.cpp" />
 		<Unit filename="../src-core/controllers/BaseController.h" />
 		<Unit filename="../src-core/controllers/ControllerCaps.cpp" />
@@ -656,6 +662,8 @@
 		<Unit filename="../src-core/controllers/Minleon.h" />
 		<Unit filename="../src-core/controllers/Pixlite16.cpp" />
 		<Unit filename="../src-core/controllers/Pixlite16.h" />
+		<Unit filename="../src-core/controllers/PowerDMX.cpp" />
+		<Unit filename="../src-core/controllers/PowerDMX.h" />
 		<Unit filename="../src-core/controllers/SanDevices.cpp" />
 		<Unit filename="../src-core/controllers/SanDevices.h" />
 		<Unit filename="../src-core/controllers/WLED.cpp" />
@@ -1001,6 +1009,8 @@
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.h" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.cpp" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.h" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" />
 		<Unit filename="../src-core/models/GridlinesObject.cpp" />
 		<Unit filename="../src-core/models/GridlinesObject.h" />
 		<Unit filename="../src-core/models/IciclesModel.cpp" />
@@ -1355,38 +1365,29 @@
 		<Unit filename="../src-ui-wx/wxsmith/AIColorPaletteDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AIImageDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AboutDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/AdjustPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AlignmentDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AssistPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AutoLabelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BackupSettingsPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/BarsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BatchRenderDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BufferSizeDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BulkEditColourPickerDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BulkEditComboDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BulkEditFontPickerDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/BulkEditSliderDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ButterflyPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/CandlePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/CharMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/CheckSequenceSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/CheckboxSelectDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/CirclesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ColorCurveDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ColorWashPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ColourReplaceDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ColoursPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ControllerConnectionDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ControllerModelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ConvertDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ConvertLogDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/CurrentPreviewModels.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/CurtainPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/CustomModelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/CustomTimingDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/DuplicateDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/DuplicatePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/EditAliasesDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/EditSubmodelAliasesDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/EffectAssist.wxs" />
@@ -1399,74 +1400,52 @@
 		<Unit filename="../src-ui-wx/wxsmith/ExportModelSelect.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FPPConnectDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FPPUploadProgressDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/FanPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/FillPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/FindDataPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/FirePanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/FireworksPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/GalaxyPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/GarlandsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/GenerateCustomModelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/GenerateLyricsDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/GlediatorPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/GuitarPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/HinksPixExportDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/HousePreviewPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/IPEntryDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ImportPreviewsModelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/JukeboxPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/KaleidoscopePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/KeyBindingEditDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LMSImportChannelMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LayerSelectDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LayoutPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/LifePanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/LightningPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/LinesPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LinkJukeboxButtonDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LorConvertDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LyricUserDictDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/LyricsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MainSequencer.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/MarqueePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MatrixFaceDownloadDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MediaImportOptionsDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/MeteorsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MetronomeLabelDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelChainDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelGroupPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ModelPreview3DDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelRemap.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ModelStateDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/MusicPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/NewTimingDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/NodeSelectGrid.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/NoteImportDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/NoteRangeDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/OffPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/OnPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/OptionChooser.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/OtherSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/OutputSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PathGenerationDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/PianoPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/PinwheelPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PixelTestDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/PlasmaPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/PreviewModels.wxs" />
+		<Unit filename="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/PreviewPane.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RandomEffectsSettingsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RenameTextDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/RenderProgressDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ResizeImageDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/RipplePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SaveChangesDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ScriptsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SearchPanel.wxs" />
@@ -1481,27 +1460,15 @@
 		<Unit filename="../src-ui-wx/wxsmith/ServoConfigDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SevenSegmentDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShaderDownloadDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ShapePanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ShimmerPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/ShockwavePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ShowFolderSearchDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SingleStrandPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SkullConfigDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SnowflakesPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SnowstormPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SpiralsPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/SpirographPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SplashDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/StartChannelDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/StrobePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SubModelsDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/TendrilPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TipOfTheDayDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/TopEffectsPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/TreePanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/TwinklePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/UpdaterDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VAMPPluginDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" />
@@ -1513,8 +1480,6 @@
 		<Unit filename="../src-ui-wx/wxsmith/ViewpointDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/ViewsModelsPanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/VsaImportDialog.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/WarpPanel.wxs" />
-		<Unit filename="../src-ui-wx/wxsmith/WavePanel.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/WiringDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/xLightsframe.wxs" />
@@ -1579,7 +1544,6 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/ControllerModelDialog.wxs" src="../src-ui-wx/ui/setup/ControllerModelDialog.cpp" hdr="../src-ui-wx/ui/setup/ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertDialog.wxs" src="../src-ui-wx/ui/import-export/ConvertDialog.cpp" hdr="../src-ui-wx/ui/import-export/ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertLogDialog.wxs" src="../src-ui-wx/ui/import-export/ConvertLogDialog.cpp" hdr="../src-ui-wx/ui/import-export/ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/CurrentPreviewModels.wxs" src="CurrentPreviewModels.cpp" hdr="CurrentPreviewModels.h" fwddecl="0" i18n="1" name="CurrentPreviewModels" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/CustomModelDialog.wxs" src="../src-ui-wx/ui/model/CustomModelDialog.cpp" hdr="../src-ui-wx/ui/model/CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/CustomTimingDialog.wxs" src="../src-ui-wx/ui/sequencer/CustomTimingDialog.cpp" hdr="../src-ui-wx/ui/sequencer/CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/EffectListDialog.wxs" src="../src-ui-wx/ui/sequencer/EffectListDialog.cpp" hdr="../src-ui-wx/ui/sequencer/EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
@@ -1602,7 +1566,6 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelChainDialog.wxs" src="../src-ui-wx/ui/model/ModelChainDialog.cpp" hdr="../src-ui-wx/ui/model/ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" src="../src-ui-wx/ui/model/ModelDimmingCurveDialog.cpp" hdr="../src-ui-wx/ui/model/ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" src="../src-ui-wx/ui/model/ModelFaceDialog.cpp" hdr="../src-ui-wx/ui/model/ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelPreview3DDialog.wxs" src="ModelPreview3DDialog.cpp" hdr="ModelPreview3DDialog.h" fwddecl="0" i18n="1" name="ModelPreview3DDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/ModelStateDialog.wxs" src="../src-ui-wx/ui/model/ModelStateDialog.cpp" hdr="../src-ui-wx/ui/model/ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" src="../src-ui-wx/ui/setup/MultiControllerUploadDialog.cpp" hdr="../src-ui-wx/ui/setup/MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/NewTimingDialog.wxs" src="../src-ui-wx/ui/sequencer/NewTimingDialog.cpp" hdr="../src-ui-wx/ui/sequencer/NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
@@ -1612,7 +1575,7 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/OptionChooser.wxs" src="../src-ui-wx/ui/shared/dialogs/OptionChooser.cpp" hdr="../src-ui-wx/ui/shared/dialogs/OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PathGenerationDialog.wxs" src="../src-ui-wx/ui/model/PathGenerationDialog.cpp" hdr="../src-ui-wx/ui/model/PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PixelTestDialog.wxs" src="../src-ui-wx/ui/setup/PixelTestDialog.cpp" hdr="../src-ui-wx/ui/setup/PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/PreviewModels.wxs" src="PreviewModels.cpp" hdr="PreviewModels.h" fwddecl="0" i18n="1" name="PreviewModels" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" src="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" hdr="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" fwddecl="0" i18n="1" name="PositionZoneDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/PreviewPane.wxs" src="../src-ui-wx/ui/layout/PreviewPane.cpp" hdr="../src-ui-wx/ui/layout/PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" src="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.cpp" hdr="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/RenameTextDialog.wxs" src="../src-ui-wx/ui/sequencer/RenameTextDialog.cpp" hdr="../src-ui-wx/ui/sequencer/RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
@@ -1630,7 +1593,6 @@
 					<wxDialog wxs="../src-ui-wx/wxsmith/SplashDialog.wxs" src="../src-ui-wx/ui/app-shell/SplashDialog.cpp" hdr="../src-ui-wx/ui/app-shell/SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/StartChannelDialog.wxs" src="../src-ui-wx/ui/model/StartChannelDialog.cpp" hdr="../src-ui-wx/ui/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/StrandNodeNamesDialog.wxs" src="../src-ui-wx/ui/model/StrandNodeNamesDialog.cpp" hdr="../src-ui-wx/ui/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelDrawGrid.wxs" src="SubModelDrawGrid.cpp" hdr="SubModelDrawGrid.h" fwddecl="0" i18n="1" name="SubModelDrawGrid" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" src="../src-ui-wx/ui/model/SubModelGenerateDialog.cpp" hdr="../src-ui-wx/ui/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelsDialog.wxs" src="../src-ui-wx/ui/model/SubModelsDialog.cpp" hdr="../src-ui-wx/ui/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" src="../src-ui-wx/ui/import-export/SuperStarImportDialog.cpp" hdr="../src-ui-wx/ui/import-export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
@@ -1639,7 +1601,6 @@
 							<wxDialog wxs="../src-ui-wx/wxsmith/VAMPPluginDialog.wxs" src="../src-ui-wx/ui/sequencer/VAMPPluginDialog.cpp" hdr="../src-ui-wx/ui/sequencer/VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/VendorModelDialog.wxs" src="../src-ui-wx/ui/import-export/VendorModelDialog.cpp" hdr="../src-ui-wx/ui/import-export/VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/VendorMusicDialog.wxs" src="../src-ui-wx/ui/import-export/VendorMusicDialog.cpp" hdr="../src-ui-wx/ui/import-export/VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ViewsDialog.wxs" src="ViewsDialog.cpp" hdr="ViewsDialog.h" fwddecl="0" i18n="1" name="ViewsDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/VsaImportDialog.wxs" src="../src-ui-wx/ui/import-export/VsaImportDialog.cpp" hdr="../src-ui-wx/ui/import-export/VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/WiringDialog.wxs" src="../src-ui-wx/ui/model/WiringDialog.cpp" hdr="../src-ui-wx/ui/model/WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
 							<wxDialog wxs="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" src="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.cpp" hdr="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
@@ -1652,49 +1613,7 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" src="../src-ui-wx/ui/sequencer/PerspectivesPanel.cpp" hdr="../src-ui-wx/ui/sequencer/PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" src="../src-ui-wx/ui/color/xlColorPickerFields.cpp" hdr="../src-ui-wx/ui/color/xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/EffectAssist.wxs" src="../src-ui-wx/ui/effects/EffectAssist.cpp" hdr="../src-ui-wx/ui/effects/EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/OnPanel.wxs" src="../src-ui-wx/ui/effectpanels/OnPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/OnPanel.h" fwddecl="1" i18n="1" name="OnPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/AdjustPanel.wxs" src="../src-ui-wx/ui/effectpanels/AdjustPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/AdjustPanel.h" fwddecl="1" i18n="1" name="AdjustPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/BarsPanel.wxs" src="../src-ui-wx/ui/effectpanels/BarsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/BarsPanel.h" fwddecl="1" i18n="1" name="BarsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/OffPanel.wxs" src="../src-ui-wx/ui/effectpanels/OffPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/OffPanel.h" fwddecl="1" i18n="1" name="OffPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ButterflyPanel.wxs" src="../src-ui-wx/ui/effectpanels/ButterflyPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ButterflyPanel.h" fwddecl="1" i18n="1" name="ButterflyPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/CandlePanel.wxs" src="../src-ui-wx/ui/effectpanels/CandlePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/CandlePanel.h" fwddecl="1" i18n="1" name="CandlePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/CirclesPanel.wxs" src="../src-ui-wx/ui/effectpanels/CirclesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/CirclesPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ColorWashPanel.wxs" src="../src-ui-wx/ui/effectpanels/ColorWashPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ColorWashPanel.h" fwddecl="1" i18n="1" name="CirclesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/CurtainPanel.wxs" src="../src-ui-wx/ui/effectpanels/CurtainPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/CurtainPanel.h" fwddecl="1" i18n="1" name="CurtainPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/DuplicatePanel.wxs" src="../src-ui-wx/ui/effectpanels/DuplicatePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/DuplicatePanel.h" fwddecl="1" i18n="1" name="DuplicatePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FanPanel.wxs" src="../src-ui-wx/ui/effectpanels/FanPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FanPanel.h" fwddecl="1" i18n="1" name="FanPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FillPanel.wxs" src="../src-ui-wx/ui/effectpanels/FillPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FillPanel.h" fwddecl="1" i18n="1" name="FillPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/FindDataPanel.wxs" src="../src-ui-wx/ui/diagnostics/FindDataPanel.cpp" hdr="../src-ui-wx/ui/diagnostics/FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FirePanel.wxs" src="../src-ui-wx/ui/effectpanels/FirePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FirePanel.h" fwddecl="1" i18n="1" name="FirePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FireworksPanel.wxs" src="../src-ui-wx/ui/effectpanels/FireworksPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/FireworksPanel.h" fwddecl="1" i18n="1" name="FireworksPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/GalaxyPanel.wxs" src="../src-ui-wx/ui/effectpanels/GalaxyPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/GalaxyPanel.h" fwddecl="1" i18n="1" name="GalaxyPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/GarlandsPanel.wxs" src="../src-ui-wx/ui/effectpanels/GarlandsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/GarlandsPanel.h" fwddecl="1" i18n="1" name="GarlandsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/GlediatorPanel.wxs" src="../src-ui-wx/ui/effectpanels/GlediatorPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/GlediatorPanel.h" fwddecl="1" i18n="1" name="GlediatorPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/GuitarPanel.wxs" src="../src-ui-wx/ui/effectpanels/GuitarPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/GuitarPanel.h" fwddecl="1" i18n="1" name="GuitarPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/KaleidoscopePanel.wxs" src="../src-ui-wx/ui/effectpanels/KaleidoscopePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/KaleidoscopePanel.h" fwddecl="1" i18n="1" name="KaleidoscopePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/LifePanel.wxs" src="../src-ui-wx/ui/effectpanels/LifePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LifePanel.h" fwddecl="1" i18n="1" name="LifePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/LightningPanel.wxs" src="../src-ui-wx/ui/effectpanels/LightningPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LightningPanel.h" fwddecl="1" i18n="1" name="LightningPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/LinesPanel.wxs" src="../src-ui-wx/ui/effectpanels/LinesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/LinesPanel.h" fwddecl="1" i18n="1" name="LinesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MarqueePanel.wxs" src="../src-ui-wx/ui/effectpanels/MarqueePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MarqueePanel.h" fwddecl="1" i18n="1" name="MarqueePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MeteorsPanel.wxs" src="../src-ui-wx/ui/effectpanels/MeteorsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MeteorsPanel.h" fwddecl="1" i18n="1" name="MeteorsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MusicPanel.wxs" src="../src-ui-wx/ui/effectpanels/MusicPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MusicPanel.h" fwddecl="1" i18n="1" name="MusicPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PianoPanel.wxs" src="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PianoPanel.h" fwddecl="1" i18n="1" name="PianoPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PinwheelPanel.wxs" src="../src-ui-wx/ui/effectpanels/PinwheelPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PinwheelPanel.h" fwddecl="1" i18n="1" name="PinwheelPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PlasmaPanel.wxs" src="../src-ui-wx/ui/effectpanels/PlasmaPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/PlasmaPanel.h" fwddecl="1" i18n="1" name="PlasmaPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/RipplePanel.wxs" src="../src-ui-wx/ui/effectpanels/RipplePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/RipplePanel.h" fwddecl="1" i18n="1" name="RipplePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ShapePanel.wxs" src="../src-ui-wx/ui/effectpanels/ShapePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ShapePanel.h" fwddecl="1" i18n="1" name="ShapePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ShimmerPanel.wxs" src="../src-ui-wx/ui/effectpanels/ShimmerPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ShimmerPanel.h" fwddecl="1" i18n="1" name="ShimmerPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ShockwavePanel.wxs" src="../src-ui-wx/ui/effectpanels/ShockwavePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/ShockwavePanel.h" fwddecl="1" i18n="1" name="ShockwavePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SingleStrandPanel.wxs" src="../src-ui-wx/ui/effectpanels/SingleStrandPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SingleStrandPanel.h" fwddecl="1" i18n="1" name="SingleStrandPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SnowflakesPanel.wxs" src="../src-ui-wx/ui/effectpanels/SnowflakesPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SnowflakesPanel.h" fwddecl="1" i18n="1" name="SnowflakesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SnowstormPanel.wxs" src="../src-ui-wx/ui/effectpanels/SnowstormPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SnowstormPanel.h" fwddecl="1" i18n="1" name="SnowstormPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SpiralsPanel.wxs" src="../src-ui-wx/ui/effectpanels/SpiralsPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SpiralsPanel.h" fwddecl="1" i18n="1" name="SpiralsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SpirographPanel.wxs" src="../src-ui-wx/ui/effectpanels/SpirographPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/SpirographPanel.h" fwddecl="1" i18n="1" name="SpirographPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/StrobePanel.wxs" src="../src-ui-wx/ui/effectpanels/StrobePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/StrobePanel.h" fwddecl="1" i18n="1" name="StrobePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/TendrilPanel.wxs" src="../src-ui-wx/ui/effectpanels/TendrilPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TendrilPanel.h" fwddecl="1" i18n="1" name="TendrilPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/TreePanel.wxs" src="../src-ui-wx/ui/effectpanels/TreePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TreePanel.h" fwddecl="1" i18n="1" name="TreePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/TwinklePanel.wxs" src="../src-ui-wx/ui/effectpanels/TwinklePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/TwinklePanel.h" fwddecl="1" i18n="1" name="TwinklePanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/WavePanel.wxs" src="../src-ui-wx/ui/effectpanels/WavePanel.cpp" hdr="../src-ui-wx/ui/effectpanels/WavePanel.h" fwddecl="1" i18n="1" name="WavePanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/AssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/LayoutPanel.wxs" src="../src-ui-wx/ui/layout/LayoutPanel.cpp" hdr="../src-ui-wx/ui/layout/LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
@@ -1704,7 +1623,6 @@
 					<wxPanel wxs="../src-ui-wx/wxsmith/SelectPanel.wxs" src="../src-ui-wx/ui/sequencer/SelectPanel.cpp" hdr="../src-ui-wx/ui/sequencer/SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/SequenceVideoPanel.wxs" src="../src-ui-wx/ui/media/SequenceVideoPanel.cpp" hdr="../src-ui-wx/ui/media/SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/JukeboxPanel.wxs" src="../src-ui-wx/ui/media/JukeboxPanel.cpp" hdr="../src-ui-wx/ui/media/JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/WarpPanel.wxs" src="../src-ui-wx/ui/effectpanels/WarpPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/WarpPanel.h" fwddecl="0" i18n="1" name="WarpPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/ViewObjectPanel.wxs" src="../src-ui-wx/ui/layout/ViewObjectPanel.cpp" hdr="../src-ui-wx/ui/layout/ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/BackupSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/BackupSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
 					<wxPanel wxs="../src-ui-wx/wxsmith/CheckSequenceSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />

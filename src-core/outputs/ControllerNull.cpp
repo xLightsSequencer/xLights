@@ -104,7 +104,7 @@ void ControllerNull::Convert(pugi::xml_node node, std::string showDir) {
 }
 
 std::string ControllerNull::GetChannelMapping(int32_t ch) const {
-    return std::format("Channel {} maps to ...\nTYPE: NULL\nName: {}\nChannel: {}\n{}",
+    return fmt::format("Channel {} maps to ...\nTYPE: NULL\nName: {}\nChannel: {}\n{}",
         ch,
         GetName(),
         ch - GetStartChannel() + 1,
@@ -112,7 +112,7 @@ std::string ControllerNull::GetChannelMapping(int32_t ch) const {
 }
 
 std::string ControllerNull::GetExport() const {
-    return std::format("{},{},{},{},NULL,,,,\"{}\",{},{},{},,{},{},,,{}",
+    return fmt::format("{},{},{},{},NULL,,,,\"{}\",{},{},{},,{},{},,,{}",
         GetName(),
         GetStartChannel(),
         GetEndChannel(),

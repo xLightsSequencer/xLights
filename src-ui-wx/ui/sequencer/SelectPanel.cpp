@@ -19,31 +19,35 @@
 #include "Color.h"
 #include "ui/shared/utils/wxUtilities.h"
 
+#include <set>
+
 //(*InternalHeaders(SelectPanel)
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
 
 //(*IdInit(SelectPanel)
-const long SelectPanel::ID_STATICTEXT1 = wxNewId();
-const long SelectPanel::ID_COMBOBOX_SELECT_EFFECT = wxNewId();
-const long SelectPanel::ID_STATICTEXT2 = wxNewId();
-const long SelectPanel::ID_LISTBOX_SELECT_MODELS = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_MODEL_ALL = wxNewId();
-const long SelectPanel::ID_STATICTEXT6 = wxNewId();
-const long SelectPanel::ID_STATICTEXT3 = wxNewId();
-const long SelectPanel::ID_TEXTCTRL_SELECT_STARTTIME = wxNewId();
-const long SelectPanel::ID_STATICTEXT5 = wxNewId();
-const long SelectPanel::ID_TEXTCTRL_SELECT_ENDTIME = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_ALL_TIME = wxNewId();
-const long SelectPanel::ID_STATICTEXT7 = wxNewId();
-const long SelectPanel::ID_COLOURPICKERCTRL_SELECT = wxNewId();
-const long SelectPanel::ID_SLIDER_COLOR_SENSITIVITY = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_ALL_COLOR = wxNewId();
-const long SelectPanel::ID_STATICTEXT4 = wxNewId();
-const long SelectPanel::ID_LISTCTRL_Select_Effects = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
-const long SelectPanel::ID_BUTTON_SELECT_REFRESH = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT1 = wxNewId();
+const wxWindowID SelectPanel::ID_COMBOBOX_SELECT_EFFECT = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT8 = wxNewId();
+const wxWindowID SelectPanel::ID_COMBOBOX_SELECT_BUFFERSTYLE = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT2 = wxNewId();
+const wxWindowID SelectPanel::ID_LISTBOX_SELECT_MODELS = wxNewId();
+const wxWindowID SelectPanel::ID_BUTTON_SELECT_MODEL_ALL = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT6 = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT3 = wxNewId();
+const wxWindowID SelectPanel::ID_TEXTCTRL_SELECT_STARTTIME = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT5 = wxNewId();
+const wxWindowID SelectPanel::ID_TEXTCTRL_SELECT_ENDTIME = wxNewId();
+const wxWindowID SelectPanel::ID_BUTTON_SELECT_ALL_TIME = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT7 = wxNewId();
+const wxWindowID SelectPanel::ID_COLOURPICKERCTRL_SELECT = wxNewId();
+const wxWindowID SelectPanel::ID_SLIDER_COLOR_SENSITIVITY = wxNewId();
+const wxWindowID SelectPanel::ID_BUTTON_SELECT_ALL_COLOR = wxNewId();
+const wxWindowID SelectPanel::ID_STATICTEXT4 = wxNewId();
+const wxWindowID SelectPanel::ID_LISTCTRL_Select_Effects = wxNewId();
+const wxWindowID SelectPanel::ID_BUTTON_SELECT_EFFECT_ALL = wxNewId();
+const wxWindowID SelectPanel::ID_BUTTON_SELECT_REFRESH = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SelectPanel,wxPanel)
@@ -62,11 +66,17 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Hide();
 	FlexGridSizer1 = new wxFlexGridSizer(0, 3, 0, 0);
 	FlexGridSizer1->AddGrowableCol(1);
-	FlexGridSizer1->AddGrowableRow(4);
+	FlexGridSizer1->AddGrowableRow(5);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Effect Type:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	ComboBox_Select_Effect = new wxComboBox(this, ID_COMBOBOX_SELECT_EFFECT, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT|wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SELECT_EFFECT"));
 	FlexGridSizer1->Add(ComboBox_Select_Effect, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticText8 = new wxStaticText(this, ID_STATICTEXT8, _("Render Style:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT8"));
+	FlexGridSizer1->Add(StaticText8, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	ComboBox_Select_BufferStyle = new wxComboBox(this, ID_COMBOBOX_SELECT_BUFFERSTYLE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_READONLY|wxTE_PROCESS_ENTER, wxDefaultValidator, _T("ID_COMBOBOX_SELECT_BUFFERSTYLE"));
+	ComboBox_Select_BufferStyle->Append(_("Any"));
+	FlexGridSizer1->Add(ComboBox_Select_BufferStyle, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Model:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
 	FlexGridSizer1->Add(StaticText2, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -79,13 +89,13 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	FlexGridSizer2 = new wxFlexGridSizer(0, 4, 0, 0);
 	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Start"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
 	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
+	TextCtrl_Select_StartTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_STARTTIME, _T("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_STARTTIME"));
 	TextCtrl_Select_StartTime->SetMaxLength(7);
 	TextCtrl_Select_StartTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_StartTime, 1, wxALL, 5);
 	StaticText5 = new wxStaticText(this, ID_STATICTEXT5, _("End"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT5"));
 	FlexGridSizer2->Add(StaticText5, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
-	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
+	TextCtrl_Select_EndTime = new wxTextCtrl(this, ID_TEXTCTRL_SELECT_ENDTIME, _T("000.0"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(30,-1)), 0, wxDefaultValidator, _T("ID_TEXTCTRL_SELECT_ENDTIME"));
 	TextCtrl_Select_EndTime->SetMaxLength(7);
 	TextCtrl_Select_EndTime->SetMinSize(wxDLG_UNIT(this,wxSize(35,-1)));
 	FlexGridSizer2->Add(TextCtrl_Select_EndTime, 1, wxALL, 5);
@@ -113,23 +123,23 @@ SelectPanel::SelectPanel(SequenceElements* elements, MainSequencer* sequencer, w
 	Button_Select_Refresh = new wxButton(this, ID_BUTTON_SELECT_REFRESH, _("Refresh"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SELECT_REFRESH"));
 	FlexGridSizer1->Add(Button_Select_Refresh, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
-	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
 
-	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectSelected);
-	Connect(ID_COMBOBOX_SELECT_EFFECT,wxEVT_COMMAND_COMBOBOX_DROPDOWN,(wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectDropdown);
-	Connect(ID_LISTBOX_SELECT_MODELS,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListBox_Select_ModelsSelect);
-	Connect(ID_BUTTON_SELECT_MODEL_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Model_AllClick);
-	Connect(ID_TEXTCTRL_SELECT_STARTTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_StartTimeText);
-	Connect(ID_TEXTCTRL_SELECT_ENDTIME,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_EndTimeText);
-	Connect(ID_BUTTON_SELECT_ALL_TIME,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_TimeClick);
-	Connect(ID_COLOURPICKERCTRL_SELECT,wxEVT_COMMAND_COLOURPICKER_CHANGED,(wxObjectEventFunction)&SelectPanel::OnColourPickerCtrlSelectColourChanged);
-	Connect(ID_SLIDER_COLOR_SENSITIVITY,wxEVT_COMMAND_SLIDER_UPDATED,(wxObjectEventFunction)&SelectPanel::OnSliderColorSensitivityCmdSliderUpdated);
-	Connect(ID_BUTTON_SELECT_ALL_COLOR,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_All_ColorClick);
-	Connect(ID_LISTCTRL_Select_Effects,wxEVT_COMMAND_LIST_ITEM_SELECTED,(wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemSelect);
-	Connect(ID_LISTCTRL_Select_Effects,wxEVT_COMMAND_LIST_ITEM_DESELECTED,(wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemDeselect);
-	Connect(ID_BUTTON_SELECT_EFFECT_ALL,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
-	Connect(ID_BUTTON_SELECT_REFRESH,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
+	Connect(ID_COMBOBOX_SELECT_EFFECT, wxEVT_COMMAND_COMBOBOX_SELECTED, (wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectSelected);
+	Connect(ID_COMBOBOX_SELECT_EFFECT, wxEVT_COMMAND_COMBOBOX_DROPDOWN, (wxObjectEventFunction)&SelectPanel::OnComboBox_Select_EffectDropdown);
+	Connect(ID_COMBOBOX_SELECT_BUFFERSTYLE, wxEVT_COMMAND_COMBOBOX_SELECTED, (wxObjectEventFunction)&SelectPanel::OnComboBox_Select_BufferStyleSelected);
+	Connect(ID_LISTBOX_SELECT_MODELS, wxEVT_COMMAND_LISTBOX_SELECTED, (wxObjectEventFunction)&SelectPanel::OnListBox_Select_ModelsSelect);
+	Connect(ID_BUTTON_SELECT_MODEL_ALL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SelectPanel::OnButton_Select_Model_AllClick);
+	Connect(ID_TEXTCTRL_SELECT_STARTTIME, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_StartTimeText);
+	Connect(ID_TEXTCTRL_SELECT_ENDTIME, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SelectPanel::OnTextCtrl_Select_EndTimeText);
+	Connect(ID_BUTTON_SELECT_ALL_TIME, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SelectPanel::OnButton_Select_All_TimeClick);
+	Connect(ID_COLOURPICKERCTRL_SELECT, wxEVT_COMMAND_COLOURPICKER_CHANGED, (wxObjectEventFunction)&SelectPanel::OnColourPickerCtrlSelectColourChanged);
+	Connect(ID_SLIDER_COLOR_SENSITIVITY, wxEVT_COMMAND_SLIDER_UPDATED, (wxObjectEventFunction)&SelectPanel::OnSliderColorSensitivityCmdSliderUpdated);
+	Connect(ID_BUTTON_SELECT_ALL_COLOR, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SelectPanel::OnButton_Select_All_ColorClick);
+	Connect(ID_LISTCTRL_Select_Effects, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemSelect);
+	Connect(ID_LISTCTRL_Select_Effects, wxEVT_COMMAND_LIST_ITEM_DESELECTED, (wxObjectEventFunction)&SelectPanel::OnListCtrl_Select_EffectsItemDeselect);
+	Connect(ID_BUTTON_SELECT_EFFECT_ALL, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SelectPanel::OnButton_Select_Effect_AllClick);
+	Connect(ID_BUTTON_SELECT_REFRESH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SelectPanel::OnButton_Select_RefreshClick);
 	//*)
 
     mSequenceElements = elements;
@@ -150,15 +160,19 @@ void SelectPanel::populateModelsList(const std::string& effectType)
 //    if (effectType.empty()) return; //original behavior (require a type)
     std::vector<wxString> models;
 
+    int styleIdx = ComboBox_Select_BufferStyle->GetSelection();
+    wxString styleFilter = (styleIdx > 0) ? ComboBox_Select_BufferStyle->GetString(styleIdx) : wxString();
+
     for (int i = 0; i < (int)mSequenceElements->GetElementCount(); i++) {
         Element* el = mSequenceElements->GetElement(i);
         if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
             continue;
         }
 
-        for (int i = 0; i < (int)el->GetEffectLayerCount(); ++i) {
-            EffectLayer* elay = el->GetEffectLayer(i);
-			if ((effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType)) {
+        for (int j = 0; j < (int)el->GetEffectLayerCount(); ++j) {
+            EffectLayer* elay = el->GetEffectLayer(j);
+            bool typeMatch = (effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType);
+            if (typeMatch && LayerHasMatchingBufferStyle(elay, styleFilter)) {
                 models.push_back(el->GetFullName());
                 break;
             }
@@ -172,7 +186,8 @@ void SelectPanel::populateModelsList(const std::string& effectType)
                     if (sme != nullptr) {
                         for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
                             EffectLayer* elay = sme->GetEffectLayer(j);
-                            if ((effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType)) {
+                            bool typeMatch = (effectType.empty() && elay->HasEffects()) || elay->HasEffectsByType(effectType);
+                            if (typeMatch && LayerHasMatchingBufferStyle(elay, styleFilter)) {
                                 models.push_back(sme->GetFullName());
                                 break;
                             }
@@ -183,7 +198,22 @@ void SelectPanel::populateModelsList(const std::string& effectType)
         }
     }
     std::sort(models.begin(), models.end());
+
+    // preserve current selections that still exist in new list
+    wxArrayInt prevSelections;
+    ListBox_Select_Models->GetSelections(prevSelections);
+    wxArrayString prevSelected;
+    for (auto idx : prevSelections) {
+        prevSelected.Add(ListBox_Select_Models->GetString(idx));
+    }
+
     ListBox_Select_Models->Set(models);
+
+    for (size_t i = 0; i < ListBox_Select_Models->GetCount(); i++) {
+        if (prevSelected.Index(ListBox_Select_Models->GetString(i)) != wxNOT_FOUND) {
+            ListBox_Select_Models->SetSelection(i);
+        }
+    }
 
     if (ListBox_Select_Models->GetCount() == 1) {
         ListBox_Select_Models->SetSelection(0);
@@ -191,6 +221,19 @@ void SelectPanel::populateModelsList(const std::string& effectType)
     }
 
     TextCtrl_Select_EndTime->SetValue(wxString::Format("%05.1f", (mainSequencer->PanelTimeLine->GetTimeLength() / 1000.0)));
+}
+
+bool SelectPanel::LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString& styleFilter) const
+{
+    if (styleFilter.empty()) return true;
+    for (int k = 0; k < elay->GetEffectCount(); k++) {
+        Effect* eff = elay->GetEffect(k);
+        auto const& style = eff->GetSetting("B_CHOICE_BufferStyle");
+        if ((style.empty() ? "Default" : style) == styleFilter.ToStdString()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void SelectPanel::populateEffectsList()
@@ -201,7 +244,8 @@ void SelectPanel::populateEffectsList()
     wxArrayInt modelsSelected;
     ListBox_Select_Models->GetSelections(modelsSelected);
 
-    auto const& type = ComboBox_Select_Effect->GetValue().ToStdString();
+    int typeIdx = ComboBox_Select_Effect->GetSelection();
+    auto const& type = (typeIdx >= 0) ? ComboBox_Select_Effect->GetString(typeIdx).ToStdString() : std::string();
 
     if (modelsSelected.size() != 0) {
         auto const[starttime, endtime] = GetStartAndEndTime();
@@ -224,7 +268,7 @@ void SelectPanel::populateEffectsList()
 					elay->GetAllEffectsByTime(starttime, endtime):
 					elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                 for (Effect* eff : effs) {
-                    if (ContainsColor(eff)) {
+                    if (ContainsColor(eff) && MatchesBufferStyle(eff)) {
                         auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
                         ListCtrl_Select_Effects->SetItemPtrData(id, (wxUIntPtr)eff);
                     }
@@ -243,7 +287,7 @@ void SelectPanel::populateEffectsList()
 									elay->GetAllEffectsByTime(starttime, endtime):
 									elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
-                                    if (ContainsColor(eff)) {
+                                    if (ContainsColor(eff) && MatchesBufferStyle(eff)) {
                                         auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
                                         ListCtrl_Select_Effects->SetItemPtrData(id, (wxUIntPtr)eff);
                                     }
@@ -294,6 +338,7 @@ void SelectPanel::OnButton_Select_RefreshClick(wxCommandEvent& event)
 #ifdef __LINUX__
     if (!ListCtrl_Select_Effects->GetItemCount()) OnComboBox_Select_EffectDropdown(event); //kludge: compensate for missed evt
 #endif
+    GetBufferStyles();
     populateModelsList(event.GetString().ToStdString());
     populateEffectsList();
 }
@@ -351,11 +396,19 @@ void SelectPanel::OnButton_Select_All_TimeClick(wxCommandEvent& event)
 void SelectPanel::OnComboBox_Select_EffectDropdown(wxCommandEvent& event)
 {
     GetEffectTypes();
+    GetBufferStyles();
+}
+
+void SelectPanel::OnComboBox_Select_BufferStyleSelected(wxCommandEvent& event)
+{
+    populateModelsList(ComboBox_Select_Effect->GetValue().ToStdString());
+    populateEffectsList();
 }
 
 void SelectPanel::OnComboBox_Select_EffectSelected(wxCommandEvent& event)
 {
     populateModelsList(ComboBox_Select_Effect->GetValue().ToStdString());
+    populateEffectsList();
 }
 
 void SelectPanel::GetEffectTypes()
@@ -369,12 +422,59 @@ void SelectPanel::GetEffectTypes()
     ComboBox_Select_Effect->Set(keys);
 }
 
+void SelectPanel::GetBufferStyles()
+{
+    std::set<std::string> styles;
+    for (int i = 0; i < mSequenceElements->GetElementCount(); i++) {
+        Element* el = mSequenceElements->GetElement(i);
+        if (el->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        for (int j = 0; j < el->GetEffectLayerCount(); j++) {
+            EffectLayer* elay = el->GetEffectLayer(j);
+            for (int k = 0; k < elay->GetEffectCount(); k++) {
+                styles.insert(elay->GetEffect(k)->GetSetting("B_CHOICE_BufferStyle").empty() ?
+                    "Default" : elay->GetEffect(k)->GetSetting("B_CHOICE_BufferStyle"));
+            }
+        }
+        if (el->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* mel = dynamic_cast<ModelElement*>(el);
+            if (mel != nullptr) {
+                for (int x = 0; x < mel->GetSubModelAndStrandCount(); x++) {
+                    SubModelElement* sme = mel->GetSubModel(x);
+                    if (sme != nullptr) {
+                        for (size_t j = 0; j < sme->GetEffectLayerCount(); j++) {
+                            EffectLayer* elay = sme->GetEffectLayer(j);
+                            for (int k = 0; k < elay->GetEffectCount(); k++) {
+                                styles.insert(elay->GetEffect(k)->GetSetting("B_CHOICE_BufferStyle").empty() ?
+                                    "Default" : elay->GetEffect(k)->GetSetting("B_CHOICE_BufferStyle"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    auto cur = ComboBox_Select_BufferStyle->GetStringSelection();
+    ComboBox_Select_BufferStyle->Clear();
+    ComboBox_Select_BufferStyle->Append(_("Any"));
+    for (auto const& s : styles) {
+        ComboBox_Select_BufferStyle->Append(s);
+    }
+    if (ComboBox_Select_BufferStyle->FindString(cur) != wxNOT_FOUND) {
+        ComboBox_Select_BufferStyle->SetStringSelection(cur);
+    } else {
+        ComboBox_Select_BufferStyle->SetStringSelection("Any");
+    }
+}
+
 void SelectPanel::ClearData()
 {
     ComboBox_Select_Effect->Clear();
     ListCtrl_Select_Effects->ClearAll();
     ListCtrl_Select_Effects->AppendColumn("", wxLIST_FORMAT_LEFT, 1000);
     ListBox_Select_Models->Clear();
+    ComboBox_Select_BufferStyle->Clear();
+    ComboBox_Select_BufferStyle->Append(_("Any"));
+    ComboBox_Select_BufferStyle->SetStringSelection("Any");
 }
 
 bool SelectPanel::ContainsColor(Effect* eff) const
@@ -401,6 +501,16 @@ bool SelectPanel::ContainsColor(Effect* eff) const
         }
     }
     return false;
+}
+
+bool SelectPanel::MatchesBufferStyle(Effect* eff) const
+{
+    int idx = ComboBox_Select_BufferStyle->GetSelection();
+    if (idx <= 0) return true; // "Any" or nothing selected
+    wxString sel = ComboBox_Select_BufferStyle->GetString(idx);
+    if (sel.empty() || sel == "Any") return true;
+    auto const& style = eff->GetSetting("B_CHOICE_BufferStyle");
+    return (style.empty() ? "Default" : style) == sel.ToStdString();
 }
 
 void SelectPanel::OnColourPickerCtrlSelectColourChanged(wxColourPickerEvent& event)

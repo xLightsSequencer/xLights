@@ -9,7 +9,9 @@
  **************************************************************/
 
 #include "AudioToolboxDecoder.h"
+#if !TARGET_OS_IPHONE
 #include "FFmpegAudioDecoder.h"
+#endif
 
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
@@ -237,12 +239,17 @@ bool AudioToolboxDecoder::DecodeFile(const std::string& path,
                                      leftData, rightData, trackSize, progress)) {
             return true;
         }
+#if !TARGET_OS_IPHONE
         // AVAssetReader also failed (e.g. AVI or other unsupported container) -- fall back to FFmpeg
         spdlog::debug("AudioToolboxDecoder: AVAssetReader can't open {}, falling back to FFmpeg", path);
         FFmpegAudioDecoder ffmpeg;
         return ffmpeg.DecodeFile(path, targetRate, extra, info,
                                  pcmData, pcmDataSize,
                                  leftData, rightData, trackSize, progress);
+#else
+        spdlog::warn("AudioToolboxDecoder: AVAssetReader can't open {}, no FFmpeg fallback on iOS", path);
+        return false;
+#endif
     }
 
     // Get the source format

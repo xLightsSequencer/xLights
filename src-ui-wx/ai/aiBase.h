@@ -27,12 +27,13 @@ class wxSizer;
 class wxDialog;
 class wxBitmap;
 
-class aiBase {  
+class aiBase {
 protected:
     ServiceManager* _sm = nullptr;
     std::set<aiType::TYPE> _enabledTypes;
 public:
-    explicit aiBase(ServiceManager* sm);
+    // Inline so plugin DLLs need no import linkage back to xLights.exe
+    explicit aiBase(ServiceManager* sm) : _sm(sm) {}
     virtual ~aiBase() {}
 
     virtual void SaveSettings() const = 0;
@@ -51,9 +52,9 @@ public:
 
     // Returns all capabilities this service supports (regardless of enabled state)
     [[nodiscard]] virtual std::list<aiType::TYPE> GetTypes() const = 0;
-    
+
     [[nodiscard]] virtual std::pair<std::string, bool> CallLLM(const std::string& prompt) const = 0;
-    [[nodiscard]] virtual std::pair<std::string, bool> TestLLM() const;
+    [[nodiscard]] virtual std::pair<std::string, bool> TestLLM() const { return CallLLM("Hello"); }
     
     virtual void PopulateLLMSettings(wxPropertyGrid* page) = 0;  
     virtual void SetSetting(const std::string& key, const wxVariant& value) = 0;
@@ -78,8 +79,7 @@ public:
     virtual AIColorPalette GenerateColorPalette(const std::string &prompt) const {
         return AIColorPalette();
     }
-    
-    
+
     class AIImageGenerator {
     public:
         virtual ~AIImageGenerator() {}
@@ -123,4 +123,20 @@ public:
         return AIModelMappingResult();
     }
 
+    struct AILyric 
+    {
+        std::string word;
+        int startMS{ 0 };
+        int endMS{ 0 };
+    };
+
+    struct AILyricTrack {
+        std::vector<AILyric> lyrics;
+        std::string error;
+    };
+
+
+    virtual AILyricTrack GenerateLyricTrack(const std::string& audioPath) const {
+        return AILyricTrack();
+    }
 };

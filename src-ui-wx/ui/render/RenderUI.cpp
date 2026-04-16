@@ -403,7 +403,7 @@ void xLightsFrame::RenderTimeSlice(int startms, int endms, bool clear)
                                        std::chrono::steady_clock::now() - sw)
                                        .count() /
                                    1000.0f;
-               std::string displayBuff = std::format("Rendered in {:7.3f} seconds", elapsedTime);
+               std::string displayBuff = fmt::format("Rendered in {:7.3f} seconds", elapsedTime);
                CallAfter(&xLightsFrame::SetStatusText, wxString(displayBuff), 0);
                mRendering = false;
                EnableSequenceControls(true);
@@ -448,7 +448,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     }
     std::string fullpath;
 
-    SetStatusText(std::format("Starting Export for {} - {}", format, Out3));
+    SetStatusText(fmt::format("Starting Export for {} - {}", format, Out3));
     wxYield();
 
     if (doRender) {
@@ -518,7 +518,7 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
     }
     float s = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw).count();
     s /= 1000;
-    SetStatusText(std::format("Finished writing model: {} in {:.3f}s ", fullpath, s));
+    SetStatusText(fmt::format("Finished writing model: {} in {:.3f}s ", fullpath, s));
 
     EnableSequenceControls(true);
 

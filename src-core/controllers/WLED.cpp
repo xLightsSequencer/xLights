@@ -279,7 +279,7 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
 bool WLED::SetupInput(Controller* c, nlohmann::json& jsonVal, bool rgbw) {
     ControllerEthernet *controller = dynamic_cast<ControllerEthernet*>(c);
     if (controller == nullptr) {
-        DisplayError(std::format("{} is not a WLED controller.", c->GetName()));
+        DisplayError(fmt::format("{} is not a WLED controller.", c->GetName()));
         return false;
     }
 
@@ -405,7 +405,7 @@ WLEDOutput* WLED::FindPortData(int port) {
 }
 
 const uint8_t WLED::GetOutputPin(int port, ControllerCaps* caps) {
-    return (int)strtol(caps->GetCustomPropertyByPath(std::format("Port{}", port), "2").c_str(), nullptr, 10);
+    return (int)strtol(caps->GetCustomPropertyByPath(fmt::format("Port{}", port), "2").c_str(), nullptr, 10);
 }
 
 #pragma endregion

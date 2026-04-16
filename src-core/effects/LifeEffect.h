@@ -19,4 +19,12 @@ public:
     virtual ~LifeEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual bool AppropriateOnNodes() const override { return false; }
+
+    // Cached from Life.json by OnMetadataLoaded().
+    static int sCountDefault;
+    static int sSeedDefault;
+    static int sSpeedDefault;
+
+protected:
+    virtual void OnMetadataLoaded() override;
 };

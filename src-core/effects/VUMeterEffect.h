@@ -17,12 +17,6 @@
 #include <string>
 #include <list>
 
-#define VUMETER_OFFSET_MIN -100
-#define VUMETER_OFFSET_MAX 100
-
-#define VUMETER_GAIN_MIN -100
-#define VUMETER_GAIN_MAX 100
-
 // Use prefixed nanosvg type to avoid conflicts with wxWidgets' bundled version
 #define NSVGimage xl_NSVGimage
 struct NSVGimage;
@@ -40,25 +34,26 @@ public:
     virtual std::list<std::string> GetFileReferences(Model* model, const SettingsMap& SettingsMap) const override;
     virtual bool CleanupFileLocations(RenderContext* ctx, SettingsMap& SettingsMap) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_VUMeter_YOffset")
-            return VUMETER_OFFSET_MIN;
-        if (name == "E_VALUECURVE_VUMeter_Gain")
-            return VUMETER_GAIN_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_VUMeter_YOffset")
-            return VUMETER_OFFSET_MAX;
-        if (name == "E_VALUECURVE_VUMeter_Gain")
-            return VUMETER_GAIN_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from VUMeter.json by OnMetadataLoaded().
+    static int sBarsDefault;
+    static int sSensitivityDefault;
+    static int sGainDefault;
+    static int sGainMin;
+    static int sGainMax;
+    static int sStartNoteDefault;
+    static int sEndNoteDefault;
+    static int sXOffsetDefault;
+    static int sYOffsetDefault;
+    static int sYOffsetMin;
+    static int sYOffsetMax;
+    static bool sSlowDownFallsDefault;
+    static bool sLogarithmicXDefault;
+    static bool sRegexDefault;
+    static std::string sTypeDefault;
+    static std::string sShapeDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     static int DecodeType(const std::string& type);
     static int DecodeShape(const std::string& shape);
 
@@ -103,7 +98,7 @@ protected:
     void DrawPresent(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness = 1);
     void DrawSVG(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, NSVGimage* svgFile, int thickness = 1);
 
-    Effect* GetTimingEvent(const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex);
+    Effect* GetTimingEvent(RenderBuffer& buffer, const std::string& timingTrack, uint32_t ms, const std::string& filter, bool regex);
 
     inline float ApplyGain(float value, int gain) const;
 };

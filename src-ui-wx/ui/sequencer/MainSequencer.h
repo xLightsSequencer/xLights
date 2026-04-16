@@ -14,6 +14,7 @@
 #include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/scrolbar.h>
+#include <wx/srchctrl.h>
 #include "RowHeading.h"
 #include "EffectsGrid.h"
 #include "Waveform.h"
@@ -88,6 +89,7 @@ class MainSequencer: public wxPanel
         void SetLargeWaveform();
         void SetSmallWaveform();
         void SetShowAlternateTimingMark(bool b);
+        int GetActiveAudioTrackIndex() const { return PanelWaveForm ? PanelWaveForm->GetActiveAudioTrackIndex() : 0; }
 
         void TouchButtonEvent(wxCommandEvent &event);
         void ToggleHousePreview();
@@ -126,6 +128,7 @@ class MainSequencer: public wxPanel
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_SCROLLBAR_EFFECT_GRID_HORZ;
 		//*)
+    static const wxWindowID ID_TEXTCTRL_SEQ_FILTER;
 
 	private:
 
@@ -157,6 +160,13 @@ class MainSequencer: public wxPanel
 
         wxWindow *mParent;
         SequenceElements* mSequenceElements;
+        wxSearchCtrl* _seqFilterCtrl = nullptr;
+
+        void ShowSeqFilterPanel(bool show);
+        void ApplySeqFilter(const wxString& filter);
+        void OnSeqFilterText(wxCommandEvent& event);
+        void OnSeqFilterCancel(wxCommandEvent& event);
+        void OnSeqFilterEnter(wxCommandEvent& event);
         bool mCanUndo;
         bool mPasteByCell;
         std::string _savedTopModel;

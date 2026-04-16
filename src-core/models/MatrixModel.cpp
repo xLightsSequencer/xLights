@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "MatrixModel.h"
 #include "ModelScreenLocation.h"
@@ -35,7 +35,7 @@ std::list<std::string> MatrixModel::CheckModelSettings()
 
    if (!StartsWith(StringType, "Single Color") && _nodesPerString % _strandsPerString != 0)
    {
-       res.push_back(std::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), _strandsPerString, _nodesPerString, (int)GetNodeCount(), _numStrings * _nodesPerString));
+       res.push_back(fmt::format("    ERR: Model {} strands are not equally sized {} does not divide into string length {} evenly. As a result only {} of {} nodes are initialised.", GetName(), _strandsPerString, _nodesPerString, (int)GetNodeCount(), _numStrings * _nodesPerString));
    }
 
    res.splice(res.end(), Model::CheckModelSettings());

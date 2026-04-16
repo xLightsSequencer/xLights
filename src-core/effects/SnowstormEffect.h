@@ -14,11 +14,19 @@
 
 class SnowstormEffect : public RenderableEffect
 {
-    public:
-        SnowstormEffect(int id);
-        virtual ~SnowstormEffect();
-        virtual void Render(Effect *effect, const SettingsMap &settings, RenderBuffer &buffer) override;
-        virtual bool AppropriateOnNodes() const override { return false; }
+public:
+    SnowstormEffect(int id);
+    virtual ~SnowstormEffect();
+    virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual bool AppropriateOnNodes() const override
+    {
+        return false;
+    }
+
+    static int sCountDefault;
+    static int sLengthDefault;
+    static int sSpeedDefault;
+
 protected:
-    private:
+    virtual void OnMetadataLoaded() override;
 };

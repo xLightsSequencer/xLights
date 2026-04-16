@@ -126,6 +126,9 @@ const long ValueCurveDialog::ID_BUTTON1 = wxNewId();
 const long ValueCurveDialog::ID_BUTTON2 = wxNewId();
 //*)
 
+// Audio track ID (outside wxSmith guard)
+const long ValueCurveDialog::ID_CHOICE_AudioTrack = wxNewId();
+
 BEGIN_EVENT_TABLE(ValueCurveDialog, wxDialog)
 //(*EventTable(ValueCurveDialog)
 //*)
@@ -265,7 +268,7 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     FlexGridSizer7->AddGrowableRow(0);
     PresetSizer = new wxFlexGridSizer(0, 5, 0, 0);
     FlexGridSizer7->Add(PresetSizer, 1, wxALL|wxEXPAND, 2);
-    FlexGridSizer8 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer8 = new wxFlexGridSizer(0, 2, 0, 0);
     ButtonLoad = new wxButton(this, ID_BUTTON3, _("Load"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON3"));
     FlexGridSizer8->Add(ButtonLoad, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     ButtonExport = new wxButton(this, ID_BUTTON4, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
@@ -307,6 +310,20 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     //*)
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(ValueCurveDialog::OnChar), (wxObject*)nullptr, this);
+
+    // Audio track row — added as a proper 3-column row in FlexGridSizer2,
+    // matching the Timing Track and Filter Label rows above it.
+    {
+        StaticText_AudioTrack = new wxStaticText(this, wxID_ANY, _("Audio Track:"), wxDefaultPosition, wxDefaultSize, 0);
+        FlexGridSizer2->Add(StaticText_AudioTrack, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        Choice_AudioTrack = new wxChoice(this, ID_CHOICE_AudioTrack, wxDefaultPosition, wxDefaultSize, 0, nullptr, 0);
+        FlexGridSizer2->Add(Choice_AudioTrack, 1, wxALL | wxEXPAND, 5);
+        FlexGridSizer2->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+        Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+            int sel = Choice_AudioTrack->GetSelection();
+            _vc->SetAudioTrack(sel > 0 ? Choice_AudioTrack->GetStringSelection().ToStdString() : "");
+        }, ID_CHOICE_AudioTrack);
+    }
 
     TextCtrl_FilterLabel->SetToolTip("Only trigger on timing events which contain this token in their text. Blank matches all. Multiple tokens can be ; separated in non-regex mode.");
 
@@ -382,6 +399,26 @@ ValueCurveDialog::ValueCurveDialog(wxWindow* parent, ValueCurve* vc, bool slider
     CheckBox_FilterLabelRegex->SetValue(_vc->IsFilterLabelRegex());
 
     PopulatePresets();
+
+    // Populate audio track choice with available alt tracks
+    Choice_AudioTrack->Clear();
+    Choice_AudioTrack->Append(_("(Main Track)"));
+    {
+        auto* seqFile = xLightsApp::GetFrame()->CurrentSeqXmlFile;
+        if (seqFile != nullptr) {
+            for (int i = 0; i < seqFile->GetAltTrackCount(); i++) {
+                Choice_AudioTrack->Append(wxString(seqFile->GetAltTrackDisplayName(i)));
+            }
+        }
+    }
+    // Restore saved selection
+    if (!_vc->GetAudioTrack().empty()) {
+        if (Choice_AudioTrack->SetStringSelection(wxString(_vc->GetAudioTrack())) == false) {
+            Choice_AudioTrack->SetSelection(0);
+        }
+    } else {
+        Choice_AudioTrack->SetSelection(0);
+    }
 
     Layout();
     Fit();
@@ -1331,6 +1368,21 @@ void ValueCurveDialog::ValidateWindow() {
         TextCtrl_FilterLabel->Enable(false);
         CheckBox_FilterLabelRegex->Enable(false);
         _vc->SetTimingTrack("");
+    }
+
+    // Show audio track selector only for music-reactive types
+    bool isMusicType = (type == "Music" || type == "Inverted Music" || type == "Music Trigger Fade");
+    bool audioWasVisible = (StaticText_AudioTrack != nullptr && StaticText_AudioTrack->IsShown());
+    if (StaticText_AudioTrack != nullptr) StaticText_AudioTrack->Show(isMusicType);
+    if (Choice_AudioTrack != nullptr) Choice_AudioTrack->Show(isMusicType);
+    if (!isMusicType && _vc != nullptr) {
+        _vc->SetAudioTrack("");
+    }
+    GetSizer()->Layout();
+    if (isMusicType != audioWasVisible) {
+        int currentWidth = GetSize().x;
+        Fit();
+        SetSize(currentWidth, GetSize().y);
     }
 }
 

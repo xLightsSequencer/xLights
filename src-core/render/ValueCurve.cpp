@@ -29,12 +29,19 @@
 #include <limits>
 
 AudioManager* ValueCurve::__audioManager = nullptr;
+std::map<std::string, AudioManager*> ValueCurve::__altAudioManagers;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
 static std::string fmt2f(float v) {
+    // Note: deliberately using snprintf rather than std::to_chars. The floating-point
+    // overloads of std::to_chars are only available in Apple's libc++ starting with
+    // macOS 13.3; xLights supports macOS 11, so using them causes a dyld "Symbol not
+    // found" crash at launch on older systems.
     char buf[32];
-    auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), v, std::chars_format::fixed, 2);
-    return std::string(buf, ptr);
+    int n = std::snprintf(buf, sizeof(buf), "%.2f", v);
+    if (n < 0) return {};
+    if (static_cast<size_t>(n) >= sizeof(buf)) n = sizeof(buf) - 1;
+    return std::string(buf, n);
 }
 
 float ValueCurve::SafeParameter(size_t p, float v)
@@ -800,48 +807,43 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
 
     float newrange = newmax - newmin;
     float oldrange = _max - _min;
-    float mindiff = newmin - _min;
-
-    if (newrange < oldrange)
-    {
-        // this is suspicious ... generally ranges increase with versions not decrease so I am going to ignore this request
-        assert(false);
-        // continue otherwise it doesnt stop it happening in future
-        // return;
-    }
+    // Rescale a real-value parameter from the current [_min, _max] range
+    // into [newmin, newmax]:
+    //   new = (old - _min) * newrange / oldrange + newmin
+    // The previous formula ((old * newrange / oldrange) + (newmin - _min))
+    // was only correct when _min == 0, per the original author's comment.
+    // Shrinking ranges (newrange < oldrange) are also valid — the rescale
+    // is linear in both directions.
 
     float min, max;
     GetRangeParm(1, _type, min, max);
     if (min == MINVOID) {
-        _parameter1 = (_parameter1 * newrange / oldrange + mindiff); // / divisor; //MoC - this is only right if _min was 0
+        _parameter1 = (_parameter1 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(2, _type, min, max);
     if (min == MINVOID) {
-        _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
+        _parameter2 = (_parameter2 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(3, _type, min, max);
     if (min == MINVOID) {
-        _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
+        _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
     if (min == MINVOID) {
-        _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
+        _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
-    // now handle custom
+    // Custom curve points: rescale y values the same way.
     if (_type == "Custom")
     {
         assert(_min != MINVOIDF);
         assert(_max != MAXVOIDF);
-        //old max of 10, 1.0 = 10 
-        //new max of 20, 0.5 = 10 
-        //y = y * 0.5 or 10/20 i.e. old range/new range
         for (auto& it : _values)
         {
-            it.y = it.y * oldrange / newrange + mindiff;
+            it.y = (it.y - _min) * newrange / oldrange + newmin;
         }
     }
 }
@@ -1315,6 +1317,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
         _max = max;
     }
     _timingTrack = "";
+    _audioTrackName = "";
     _filterLabelText = "";
     _isFilterLabelRegex = false;
     _parameter1 = 0;
@@ -1340,6 +1343,7 @@ ValueCurve::ValueCurve(const std::string& s)
     _max = MAXVOIDF;
     _divisor = 1;
     _timingTrack = "";
+    _audioTrackName = "";
     _filterLabelText = "";
     _isFilterLabelRegex = false;
     SetDefault();
@@ -1474,6 +1478,9 @@ std::string ValueCurve::Serialise()
         res += "Max=" + fmt2f(_max) + "|";
         if (_timingTrack != "") {
             res += "TT=" + _timingTrack + "|";
+        }
+        if (_audioTrackName != "") {
+            res += "AT=" + _audioTrackName + "|";
         }
         if (_filterLabelText != "") {
             res += "FT=" + _filterLabelText + "|";
@@ -1625,6 +1632,8 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
     }
     else if (k == "TT") {
         _timingTrack = s;
+    } else if (k == "AT") {
+        _audioTrackName = s;
     } else if (k == "FT") {
         _filterLabelText = s;
     } else if (k == "FLR") {
@@ -1774,13 +1783,16 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
 
+    // Resolve which audio manager to use for this curve
+    AudioManager* _am = _audioTrackName.empty() ? __audioManager : GetAltAudio(_audioTrackName);
+
     // If we are music trigger fade and we dont have values ... calculate them on the fly
     if (_type == "Music Trigger Fade") {
         // Just generate what we need on the fly
-        if (__audioManager != nullptr && _values.size() == 0) {
+        if (_am != nullptr && _values.size() == 0) {
             float min = (GetParameter1() - _min) / (_max - _min);
             float max = (GetParameter2() - _min) / (_max - _min);
-            int frameMS = __audioManager->GetFrameInterval();
+            int frameMS = _am->GetFrameInterval();
             int fadeFrames = GetParameter4();
             float yperFrame = (max - min) / fadeFrames;
             float perPoint = vcSortablePoint::perPoint();
@@ -1804,7 +1816,7 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
                 // find the maximum of any intervening frames
                 float f = 0.0;
                 for (long ms = time; ms < time + msperPoint; ms += frameMS) {
-                    auto pf = __audioManager->GetFrameData("", ms + frameMS);
+                    auto pf = _am->GetFrameData("", ms + frameMS);
                     if (pf != nullptr) {
                         if (pf->max > f) {
                             f = pf->max;
@@ -1912,10 +1924,10 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         }
     }
     else if (_type == "Music" || _type == "Inverted Music") {
-        if (__audioManager != nullptr) {
+        if (_am != nullptr) {
             long time = (float)startMS + offset * (endMS - startMS);
             float f = 0.0;
-            auto pf = __audioManager->GetFrameData("", time);
+            auto pf = _am->GetFrameData("", time);
             if (pf != nullptr) {
                 f = ApplyGain(pf->max, GetParameter3());
                 if (_type == "Inverted Music") {

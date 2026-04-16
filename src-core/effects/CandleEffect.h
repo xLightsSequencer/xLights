@@ -14,18 +14,6 @@
 
 #include "RenderableEffect.h"
 
-#define CANDLE_AGILITY_MIN 1
-#define CANDLE_AGILITY_MAX 10
-
-#define CANDLE_WINDBASELINE_MIN 0
-#define CANDLE_WINDBASELINE_MAX 255
-
-#define CANDLE_WINDVARIABILITY_MIN 0
-#define CANDLE_WINDVARIABILITY_MAX 10
-
-#define CANDLE_WINDCALMNESS_MIN 0
-#define CANDLE_WINDCALMNESS_MAX 10
-
 class CandleEffect : public RenderableEffect
 {
 public:
@@ -34,31 +22,22 @@ public:
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Candle_FlameAgility")
-            return CANDLE_AGILITY_MIN;
-        if (name == "E_VALUECURVE_Candle_WindBaseline")
-            return CANDLE_WINDBASELINE_MIN;
-        if (name == "E_VALUECURVE_Candle_WindVariability")
-            return CANDLE_WINDVARIABILITY_MIN;
-        if (name == "E_VALUECURVE_Candle_WindCalmness")
-            return CANDLE_WINDCALMNESS_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Candle_FlameAgility")
-            return CANDLE_AGILITY_MAX;
-        if (name == "E_VALUECURVE_Candle_WindBaseline")
-            return CANDLE_WINDBASELINE_MAX;
-        if (name == "E_VALUECURVE_Candle_WindVariability")
-            return CANDLE_WINDVARIABILITY_MAX;
-        if (name == "E_VALUECURVE_Candle_WindCalmness")
-            return CANDLE_WINDCALMNESS_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    static int sFlameAgilityDefault;
+    static int sFlameAgilityMin;
+    static int sFlameAgilityMax;
+    static int sWindBaselineDefault;
+    static int sWindBaselineMin;
+    static int sWindBaselineMax;
+    static int sWindVariabilityDefault;
+    static int sWindVariabilityMin;
+    static int sWindVariabilityMax;
+    static int sWindCalmnessDefault;
+    static int sWindCalmnessMin;
+    static int sWindCalmnessMax;
+    static bool sPerNodeDefault;
+    static bool sUsePaletteDefault;
 
 protected:
+    virtual void OnMetadataLoaded() override;
     void Update(uint8_t& flameprime, uint8_t& flame, uint8_t& wind, size_t windVariability, size_t flameAgility, size_t windCalmness, size_t windBaseline);
 };

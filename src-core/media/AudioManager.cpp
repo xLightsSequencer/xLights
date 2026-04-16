@@ -43,7 +43,9 @@
 
 #include <log.h>
 
+#if !TARGET_OS_IPHONE
 using namespace Vamp;
+#endif
 
 // Platform-selected audio output manager and decoder
 #if defined(__APPLE__)
@@ -142,8 +144,10 @@ void AudioManager::Play() {
 }
 
 void AudioManager::Stop() {
-    if (__audioManager.GetOutput(_device) != nullptr) {
-        __audioManager.GetOutput(_device)->Stop();
+    auto* out = __audioManager.GetOutput(_device);
+    if (out != nullptr) {
+        out->Pause(_sdlid, true);  // individually pause this stream so it won't mix when device restarts
+        out->Stop();
         _media_state = MEDIAPLAYINGSTATE::STOPPED;
     }
 }
@@ -329,6 +333,7 @@ void AudioManager::CalculateSpectrumAnalysis(const float* in, int n, float& max,
     }
 }
 
+#if !TARGET_OS_IPHONE
 void AudioManager::DoPolyphonicTranscription(AudioManagerProgressCallback fn) {
     
 
@@ -464,6 +469,7 @@ void AudioManager::DoPolyphonicTranscription(AudioManagerProgressCallback fn) {
     _polyphonicTranscriptionDone = true;
     spdlog::info("DoPolyphonicTranscription: Polyphonic transcription completed in {}.", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - sw_start).count());
 }
+#endif // !TARGET_OS_IPHONE
 
 // Frame Data Extraction Functions
 // process audio data and build data for each frame
@@ -684,10 +690,12 @@ const FrameData* AudioManager::GetFrameData(int frame, const std::string& timing
             lock.lock();
         }
     }
+#if !TARGET_OS_IPHONE
     if (needNotes && !_polyphonicTranscriptionDone) {
         // need to do the polyphonic stuff
         DoPolyphonicTranscription(ProgressFunction);
     }
+#endif
     if (frame < (int)_frameData.size()) {
         return &_frameData[frame];
     }
@@ -1319,6 +1327,7 @@ float* AudioManager::GetFilteredRightDataPtr(long offset) {
     return &_data[1][offset];
 }
 
+#if !TARGET_OS_IPHONE
 // xLightsVamp Functions
 xLightsVamp::xLightsVamp() {
     
@@ -1489,6 +1498,7 @@ Vamp::Plugin* xLightsVamp::GetPlugin(std::string name) {
 
     return p;
 }
+#endif // !TARGET_OS_IPHONE
 
 std::list<std::string> AudioManager::GetAudioDevices() {
     return __audioManager.GetOutputDevices();

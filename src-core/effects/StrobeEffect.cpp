@@ -10,7 +10,7 @@
 
 #include "StrobeEffect.h"
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../render/Effect.h"
 #include "../render/RenderBuffer.h"
@@ -19,6 +19,12 @@
 #include "../models/Model.h"
 #include "../../include/strobe.xpm"
 #include "UtilFunctions.h"
+
+// Fallback defaults (used until OnMetadataLoaded replaces them with Strobe.json values).
+int StrobeEffect::sNumberStrobesDefault = 3;
+int StrobeEffect::sStrobeDurationDefault = 10;
+int StrobeEffect::sStrobeTypeDefault = 1;
+bool StrobeEffect::sStrobeMusicDefault = false;
 
 StrobeEffect::StrobeEffect(int id) : RenderableEffect(id, "Strobe", strobe, strobe, strobe, strobe, strobe)
 {
@@ -30,11 +36,19 @@ StrobeEffect::~StrobeEffect()
     //dtor
 }
 
+void StrobeEffect::OnMetadataLoaded()
+{
+    sNumberStrobesDefault = GetIntDefault("Number_Strobes", sNumberStrobesDefault);
+    sStrobeDurationDefault = GetIntDefault("Strobe_Duration", sStrobeDurationDefault);
+    sStrobeTypeDefault = GetIntDefault("Strobe_Type", sStrobeTypeDefault);
+    sStrobeMusicDefault = GetBoolDefault("Strobe_Music", sStrobeMusicDefault);
+}
+
 std::list<std::string> StrobeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Strobe_Music", false)) {
-        res.push_back(std::format("    WARN: Strobe effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Strobe effect cant follow music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
     return res;
 }
@@ -71,10 +85,10 @@ public:
 };
 
 void StrobeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
-    int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", 3);
-    int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", 10);
-    int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", 1);
-    bool reactToMusic = SettingsMap.GetBool("CHECKBOX_Strobe_Music", false);
+    int Number_Strobes = SettingsMap.GetInt("SLIDER_Number_Strobes", sNumberStrobesDefault);
+    int StrobeDuration = SettingsMap.GetInt("SLIDER_Strobe_Duration", sStrobeDurationDefault);
+    int Strobe_Type = SettingsMap.GetInt("SLIDER_Strobe_Type", sStrobeTypeDefault);
+    bool reactToMusic = SettingsMap.GetBool("CHECKBOX_Strobe_Music", sStrobeMusicDefault);
 
     if (reactToMusic) {
         float f = 0.0;

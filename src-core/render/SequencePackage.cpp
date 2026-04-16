@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <pugixml.hpp>
 #include <fstream>
 
@@ -576,4 +577,107 @@ std::filesystem::path SequencePackage::CopyMediaToTarget(const std::string& targ
     }
 
     return targetFile;
+}
+
+std::filesystem::path SequencePackage::FindAndCopyAudio(const std::filesystem::path& targetDir)
+{
+    static const std::vector<std::string> AUDIO_EXTS = {
+        "mp3", "ogg", "m4p", "m4a", "aac", "wav", "flac", "wma", "au", "mp4"
+    };
+
+    // Try to identify the audio filename referenced in the XSQ mediaFile element
+    std::string xsqAudioName;
+    if (!_xsqFile.empty() && FileExists(_xsqFile.string())) {
+        pugi::xml_document xsqDoc;
+        if (xsqDoc.load_file(_xsqFile.string().c_str())) {
+            auto headNode = xsqDoc.child("xsequence").child("head");
+            if (headNode) {
+                auto mediaFileNode = headNode.child("mediaFile");
+                if (mediaFileNode) {
+                    std::filesystem::path p(mediaFileNode.text().as_string());
+                    xsqAudioName = p.filename().string();
+                }
+            }
+        }
+    }
+
+    std::filesystem::path audioFile;
+
+    // Prefer the file referenced by the XSQ
+    if (!xsqAudioName.empty()) {
+        auto it = _media.find(xsqAudioName);
+        if (it != _media.end() && !it->second.empty() && FileExists(it->second.string())) {
+            audioFile = it->second;
+        }
+    }
+
+    // Fall back to first audio file found in _media by extension
+    if (audioFile.empty()) {
+        for (const auto& m : _media) {
+            std::string ext = m.second.extension().string();
+            if (!ext.empty() && ext[0] == '.') ext = ext.substr(1);
+            // lowercase
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            for (const auto& ae : AUDIO_EXTS) {
+                if (ext == ae) {
+                    audioFile = m.second;
+                    break;
+                }
+            }
+            if (!audioFile.empty()) break;
+        }
+    }
+
+    if (audioFile.empty()) {
+        spdlog::warn("SequencePackage: No audio file found in package '{}'", _pkgFile.filename().string());
+        return std::filesystem::path();
+    }
+
+    return CopyMediaToTarget(targetDir.string(), audioFile);
+}
+
+std::vector<std::pair<std::string, std::string>> SequencePackage::FindAndCopyAltAudioTracks(const std::filesystem::path& targetDir)
+{
+    std::vector<std::pair<std::string, std::string>> result;
+
+    if (_xsqFile.empty() || !FileExists(_xsqFile.string())) {
+        return result;
+    }
+
+    pugi::xml_document xsqDoc;
+    if (!xsqDoc.load_file(_xsqFile.string().c_str())) {
+        return result;
+    }
+
+    auto altTracksNode = xsqDoc.child("xsequence").child("head").child("altAudioTracks");
+    if (!altTracksNode) {
+        return result;
+    }
+
+    for (auto trackNode : altTracksNode.children("track")) {
+        std::string shortname = trackNode.attribute("shortname").as_string("");
+        std::string tpath = trackNode.text().as_string("");
+
+        std::string filename;
+        {
+            std::filesystem::path p(tpath);
+            filename = p.filename().string();
+        }
+
+        if (filename.empty()) {
+            result.emplace_back(shortname, std::string());
+            continue;
+        }
+
+        auto it = _media.find(filename);
+        if (it != _media.end() && !it->second.empty() && FileExists(it->second.string())) {
+            std::filesystem::path copied = CopyMediaToTarget(targetDir.string(), it->second);
+            result.emplace_back(shortname, copied.string());
+        } else {
+            spdlog::warn("SequencePackage: Alt audio track '{}' ('{}') not found in package.", shortname, filename);
+            result.emplace_back(shortname, std::string());
+        }
+    }
+
+    return result;
 }

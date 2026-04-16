@@ -20,6 +20,7 @@
 
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "xLightsVersion.h"
 #include "string_utils.h"
 
 #include <string_view>
@@ -44,6 +45,9 @@
 #elif defined(__GCC__) // GCC
 #define thread_local __thread
 #endif
+
+
+const std::string xlights_build_date = __DATE__;
 
 pugi::xml_node FindXmlNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create)
 {
@@ -453,7 +457,7 @@ bool IsVersionOlder(const std::string& compare, const std::string& version) {
     if (version_parts.size() == 2 && compare_parts.size() > 2)
         return true; // remote version has 3 components but local has two so remote must be newer
     if (version_parts.size() > 2 && compare_parts.size() > 2) {
-        if (safeInt(version_parts[2]) <= safeInt(compare_parts[2]))
+        if (safeInt(version_parts[2]) < safeInt(compare_parts[2]))
             return true;
         if (safeInt(version_parts[2]) > safeInt(compare_parts[2]))
             return false;

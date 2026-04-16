@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <pugixml.hpp>
 
@@ -294,7 +294,7 @@ bool ViewObjectManager::MergeBaseXml(const std::string& baseShowDir, pugi::xml_n
     return MergeBaseIntoCurrentObjectsXml(localViewObjectsNode, baseObjects, changedObjects);
 }
 
-bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt)
+bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool prompt, bool& acceptAll, bool& rejectAll)
 {
     pugi::xml_document baseDoc;
     pugi::xml_node baseObjects;
@@ -310,8 +310,8 @@ bool ViewObjectManager::MergeFromBase(const std::string& baseShowDir, bool promp
             auto curr = GetObject(name);
             if (curr != nullptr && !curr->IsFromBase()) {
                 if (auto* ui = GetUICallbacks()) {
-                    if (ui->PromptYesNo(std::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
-                                        "Object clash")) {
+                    if (ui->PromptYesNoAll(fmt::format("Object {} found that clashes with base show directory. Do you want to take the base show directory version?", name),
+                                          "Object clash", acceptAll, rejectAll)) {
                         curr->SetFromBase(true);
                     }
                 }

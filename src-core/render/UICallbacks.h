@@ -35,6 +35,21 @@ public:
     virtual bool PromptYesNo(const std::string& message,
                              const std::string& caption = "xLights") const = 0;
 
+    // Ask a yes/no question with Accept All / Reject All options for batch operations.
+    // Returns true to accept (take base version), false to reject.
+    // Sets acceptAll=true if "Yes to All" was selected; rejectAll=true if "No to All".
+    // If acceptAll is already true on entry, returns true without prompting.
+    // If rejectAll is already true on entry, returns false without prompting.
+    // The default implementation ignores the all-state and falls back to PromptYesNo.
+    virtual bool PromptYesNoAll(const std::string& message,
+                                const std::string& caption,
+                                bool& acceptAll,
+                                bool& rejectAll) const {
+        if (acceptAll) return true;
+        if (rejectAll) return false;
+        return PromptYesNo(message, caption);
+    }
+
     // ---- file / directory pickers ----
     // Returns the chosen path, or empty string if cancelled.
     virtual std::string PromptForDirectory(const std::string& message,

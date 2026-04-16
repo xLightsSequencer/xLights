@@ -11,10 +11,12 @@
 #include "ShapeEffect.h"
 
 #include "../utils/xlPoint.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
+#include <map>
 #include "TextEffect.h" // FontMapLock
 
 #include "../render/Effect.h"
@@ -48,6 +50,49 @@
 
 #define REPEATTRIGGER 20
 
+// Fallback defaults (used until OnMetadataLoaded replaces them with
+// Shape.json values).
+int ShapeEffect::sStartSizeDefault = 1;
+int ShapeEffect::sStartSizeMin = 0;
+int ShapeEffect::sStartSizeMax = 100;
+int ShapeEffect::sThicknessDefault = 1;
+int ShapeEffect::sThicknessMin = 1;
+int ShapeEffect::sThicknessMax = 100;
+int ShapeEffect::sCountDefault = 5;
+int ShapeEffect::sCountMin = 1;
+int ShapeEffect::sCountMax = 100;
+bool ShapeEffect::sRandomInitialDefault = true;
+int ShapeEffect::sVelocityDefault = 0;
+int ShapeEffect::sVelocityMin = 0;
+int ShapeEffect::sVelocityMax = 20;
+int ShapeEffect::sDirectionDefault = 90;
+int ShapeEffect::sDirectionMin = 0;
+int ShapeEffect::sDirectionMax = 359;
+int ShapeEffect::sLifetimeDefault = 5;
+int ShapeEffect::sLifetimeMin = 1;
+int ShapeEffect::sLifetimeMax = 100;
+int ShapeEffect::sGrowthDefault = 10;
+int ShapeEffect::sGrowthMin = -100;
+int ShapeEffect::sGrowthMax = 100;
+int ShapeEffect::sCentreXDefault = 50;
+int ShapeEffect::sCentreXMin = 0;
+int ShapeEffect::sCentreXMax = 100;
+int ShapeEffect::sCentreYDefault = 50;
+int ShapeEffect::sCentreYMin = 0;
+int ShapeEffect::sCentreYMax = 100;
+int ShapeEffect::sPointsDefault = 5;
+int ShapeEffect::sRotationDefault = 0;
+int ShapeEffect::sRotationMin = 0;
+int ShapeEffect::sRotationMax = 360;
+bool ShapeEffect::sRandomLocationDefault = true;
+bool ShapeEffect::sRandomMovementDefault = false;
+bool ShapeEffect::sFadeAwayDefault = true;
+bool ShapeEffect::sHoldColourDefault = true;
+bool ShapeEffect::sUseMusicDefault = false;
+int ShapeEffect::sSensitivityDefault = 50;
+bool ShapeEffect::sFireTimingDefault = false;
+bool ShapeEffect::sFilterRegDefault = false;
+
 ShapeEffect::ShapeEffect(int id) : RenderableEffect(id, "Shape", shape_16, shape_24, shape_32, shape_48, shape_64)
 {
     //ctor
@@ -58,12 +103,56 @@ ShapeEffect::~ShapeEffect()
     //dtor
 }
 
+void ShapeEffect::OnMetadataLoaded()
+{
+    sStartSizeDefault = GetIntDefault("Shape_StartSize", sStartSizeDefault);
+    sStartSizeMin = (int)GetMinFromMetadata("Shape_StartSize", sStartSizeMin);
+    sStartSizeMax = (int)GetMaxFromMetadata("Shape_StartSize", sStartSizeMax);
+    sThicknessDefault = GetIntDefault("Shape_Thickness", sThicknessDefault);
+    sThicknessMin = (int)GetMinFromMetadata("Shape_Thickness", sThicknessMin);
+    sThicknessMax = (int)GetMaxFromMetadata("Shape_Thickness", sThicknessMax);
+    sCountDefault = GetIntDefault("Shape_Count", sCountDefault);
+    sCountMin = (int)GetMinFromMetadata("Shape_Count", sCountMin);
+    sCountMax = (int)GetMaxFromMetadata("Shape_Count", sCountMax);
+    sRandomInitialDefault = GetBoolDefault("Shape_RandomInitial", sRandomInitialDefault);
+    sVelocityDefault = GetIntDefault("Shapes_Velocity", sVelocityDefault);
+    sVelocityMin = (int)GetMinFromMetadata("Shapes_Velocity", sVelocityMin);
+    sVelocityMax = (int)GetMaxFromMetadata("Shapes_Velocity", sVelocityMax);
+    sDirectionDefault = GetIntDefault("Shapes_Direction", sDirectionDefault);
+    sDirectionMin = (int)GetMinFromMetadata("Shapes_Direction", sDirectionMin);
+    sDirectionMax = (int)GetMaxFromMetadata("Shapes_Direction", sDirectionMax);
+    sLifetimeDefault = GetIntDefault("Shape_Lifetime", sLifetimeDefault);
+    sLifetimeMin = (int)GetMinFromMetadata("Shape_Lifetime", sLifetimeMin);
+    sLifetimeMax = (int)GetMaxFromMetadata("Shape_Lifetime", sLifetimeMax);
+    sGrowthDefault = GetIntDefault("Shape_Growth", sGrowthDefault);
+    sGrowthMin = (int)GetMinFromMetadata("Shape_Growth", sGrowthMin);
+    sGrowthMax = (int)GetMaxFromMetadata("Shape_Growth", sGrowthMax);
+    sCentreXDefault = GetIntDefault("Shape_CentreX", sCentreXDefault);
+    sCentreXMin = (int)GetMinFromMetadata("Shape_CentreX", sCentreXMin);
+    sCentreXMax = (int)GetMaxFromMetadata("Shape_CentreX", sCentreXMax);
+    sCentreYDefault = GetIntDefault("Shape_CentreY", sCentreYDefault);
+    sCentreYMin = (int)GetMinFromMetadata("Shape_CentreY", sCentreYMin);
+    sCentreYMax = (int)GetMaxFromMetadata("Shape_CentreY", sCentreYMax);
+    sPointsDefault = GetIntDefault("Shape_Points", sPointsDefault);
+    sRotationDefault = GetIntDefault("Shape_Rotation", sRotationDefault);
+    sRotationMin = (int)GetMinFromMetadata("Shape_Rotation", sRotationMin);
+    sRotationMax = (int)GetMaxFromMetadata("Shape_Rotation", sRotationMax);
+    sRandomLocationDefault = GetBoolDefault("Shape_RandomLocation", sRandomLocationDefault);
+    sRandomMovementDefault = GetBoolDefault("Shapes_RandomMovement", sRandomMovementDefault);
+    sFadeAwayDefault = GetBoolDefault("Shape_FadeAway", sFadeAwayDefault);
+    sHoldColourDefault = GetBoolDefault("Shape_HoldColour", sHoldColourDefault);
+    sUseMusicDefault = GetBoolDefault("Shape_UseMusic", sUseMusicDefault);
+    sSensitivityDefault = GetIntDefault("Shape_Sensitivity", sSensitivityDefault);
+    sFireTimingDefault = GetBoolDefault("Shape_FireTiming", sFireTimingDefault);
+    sFilterRegDefault = GetBoolDefault("Shape_FilterReg", sFilterRegDefault);
+}
+
 std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
     if (media == nullptr && settings.GetBool("E_CHECKBOX_Shape_UseMusic", false)) {
-        res.push_back(std::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    WARN: Shape effect cant grow to music if there is no music. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     }
 
     std::string object = settings["E_CHOICE_Shape_ObjectToDraw"];
@@ -71,16 +160,16 @@ std::list<std::string> ShapeEffect::CheckEffectSettings(const SettingsMap& setti
         auto svgFilename = settings.Get("E_FILEPICKERCTRL_SVG", "");
 
         if (svgFilename.empty()) {
-            res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             auto& mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
             auto svgEntry = mm.GetSVG(svgFilename);
             if (svgEntry->GetSVGContent().empty()) {
-                res.push_back(std::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: Shape effect cant find SVG file '{}'. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             } else {
                 if (!svgEntry->IsEmbedded()) {
                     if (!FileUtils::IsFileInShowDir(std::string(), svgFilename)) {
-                        res.push_back(std::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                        res.push_back(fmt::format("    WARN: Shape effect SVG file '{}' not under show directory. Model '{}', Start {}", svgFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                     }
                 }
             }
@@ -147,7 +236,8 @@ private:
     xlColor _color;
 public:
     xlPoint _centre;
-    xlPoint _movement;
+    float _fmovX = 0;   // float movement accumulator — avoids integer truncation
+    float _fmovY = 0;   // for small speeds / oblique angles
     float _size;
     int _oset;
     int _shape;
@@ -161,8 +251,8 @@ public:
         _holdColour = holdColour;
         _colourIndex = colourIndex;
         _centre = centre;
-        _movement.x = 0;
-        _movement.y = 0;
+        _fmovX = 0;
+        _fmovY = 0;
         _size = size;
         _oset = oset;
         _color = color;
@@ -185,19 +275,21 @@ public:
 
     void Move()
     {
-        int x = _speed * cos(_angle);
-        int y = _speed * sin(_angle);
-        _movement.x += x;
-        _movement.y += y;
-        _centre.x += x;
-        _centre.y += y;
+        float newX = _fmovX + _speed * (float)cos(_angle);
+        float newY = _fmovY + _speed * (float)sin(_angle);
+        // Apply only the integer delta so sub-pixel fractions carry over to the
+        // next frame rather than being lost.
+        _centre.x += (int)std::round(newX) - (int)std::round(_fmovX);
+        _centre.y += (int)std::round(newY) - (int)std::round(_fmovY);
+        _fmovX = newX;
+        _fmovY = newY;
     }
 
     void SetCentre(xlPoint centre)
     {
         _centre = centre;
-        _centre.x += _movement.x;
-        _centre.y += _movement.y;
+        _centre.x += (int)std::round(_fmovX);
+        _centre.y += (int)std::round(_fmovY);
     }
 };
 
@@ -205,6 +297,28 @@ bool compare_shapes(const ShapeData* first, const ShapeData* second)
 {
     return first->_oset > second->_oset;
 }
+
+// Emoji are rendered once at this pixel size and then bilinearly scaled to the
+// required size on each frame.
+static constexpr int EMOJI_REFERENCE_PIXEL_SIZE = 128;
+
+struct EmojiBaseKey {
+    int emoji;
+    int tone;
+    bool operator<(const EmojiBaseKey& o) const {
+        if (emoji != o.emoji) return emoji < o.emoji;
+        return tone < o.tone;
+    }
+};
+
+struct EmojiBaseEntry {
+    std::string text;   // pre-built UTF-8 string
+    double textW = 0;   // measured text width at reference size
+    double textH = 0;   // measured text height at reference size
+    std::vector<uint8_t> pixels; // RGBA at EMOJI_REFERENCE_PIXEL_SIZE; empty = not yet rendered
+    int pixW = 0;
+    int pixH = 0;
+};
 
 class ShapeRenderCache : public EffectRenderCache {
 
@@ -224,6 +338,7 @@ public:
     }
 
     std::list<ShapeData*> _shapes;
+    std::map<EmojiBaseKey, EmojiBaseEntry> _emojiBaseCache;
     int _lastColorIdx = 0;
     int _sinceLastTriggered = 0;
     TextFontInfo _font;
@@ -302,8 +417,8 @@ public:
     {
         if (randomMovement)
         {
-            speed = rand01() * (SHAPE_VELOCITY_MAX - SHAPE_VELOCITY_MIN) - SHAPE_VELOCITY_MIN;
-            angle = rand01() * (SHAPE_DIRECTION_MAX - SHAPE_DIRECTION_MIN) - SHAPE_VELOCITY_MIN;
+            speed = rand01() * (ShapeEffect::sVelocityMax - ShapeEffect::sVelocityMin) - ShapeEffect::sVelocityMin;
+            angle = rand01() * (ShapeEffect::sDirectionMax - ShapeEffect::sDirectionMin) - ShapeEffect::sVelocityMin;
         }
         _shapes.push_back(new ShapeData(centre, size, oset, color, shape, angle, speed, holdColour, colourIndex));
     }
@@ -406,36 +521,36 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 	float oset = buffer.GetEffectTimeIntervalPosition();
 
 	std::string Object_To_DrawStr = SettingsMap["CHOICE_Shape_ObjectToDraw"];
-    int thickness = GetValueCurveInt("Shape_Thickness", 1, SettingsMap, oset, SHAPE_THICKNESS_MIN, SHAPE_THICKNESS_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int points = SettingsMap.GetInt("SLIDER_Shape_Points", 5);
-    bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", true);
-    bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", true);
-    bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", true);
-    bool holdColour = SettingsMap.GetBool("CHECKBOX_Shape_HoldColour", true);
-    int xc = GetValueCurveInt("Shape_CentreX", 50, SettingsMap, oset, SHAPE_CENTREX_MIN, SHAPE_CENTREX_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
-    int yc = GetValueCurveInt("Shape_CentreY", 50, SettingsMap, oset, SHAPE_CENTREY_MIN, SHAPE_CENTREY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
-    int lifetime = GetValueCurveInt("Shape_Lifetime", 5, SettingsMap, oset, SHAPE_LIFETIME_MIN, SHAPE_LIFETIME_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int growth = GetValueCurveInt("Shape_Growth", 10, SettingsMap, oset, SHAPE_GROWTH_MIN, SHAPE_GROWTH_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int count = GetValueCurveInt("Shape_Count", 5, SettingsMap, oset, SHAPE_COUNT_MIN, SHAPE_COUNT_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int startSize = GetValueCurveInt("Shape_StartSize", 5, SettingsMap, oset, SHAPE_STARTSIZE_MIN, SHAPE_STARTSIZE_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int thickness = GetValueCurveInt("Shape_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int points = SettingsMap.GetInt("SLIDER_Shape_Points", sPointsDefault);
+    bool randomLocation = SettingsMap.GetBool("CHECKBOX_Shape_RandomLocation", sRandomLocationDefault);
+    bool fadeAway = SettingsMap.GetBool("CHECKBOX_Shape_FadeAway", sFadeAwayDefault);
+    bool startRandomly = SettingsMap.GetBool("CHECKBOX_Shape_RandomInitial", sRandomInitialDefault);
+    bool holdColour = SettingsMap.GetBool("CHECKBOX_Shape_HoldColour", sHoldColourDefault);
+    int xc = GetValueCurveInt("Shape_CentreX", sCentreXDefault, SettingsMap, oset, sCentreXMin, sCentreXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferWi / 100;
+    int yc = GetValueCurveInt("Shape_CentreY", sCentreYDefault, SettingsMap, oset, sCentreYMin, sCentreYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) * buffer.BufferHt / 100;
+    int lifetime = GetValueCurveInt("Shape_Lifetime", sLifetimeDefault, SettingsMap, oset, sLifetimeMin, sLifetimeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int growth = GetValueCurveInt("Shape_Growth", sGrowthDefault, SettingsMap, oset, sGrowthMin, sGrowthMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int count = GetValueCurveInt("Shape_Count", sCountDefault, SettingsMap, oset, sCountMin, sCountMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int startSize = GetValueCurveInt("Shape_StartSize", sStartSizeDefault, SettingsMap, oset, sStartSizeMin, sStartSizeMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int emoji = SettingsMap.GetInt("SPINCTRL_Shape_Char", 127876);
     int emojiTone = 0;
     std::string font = SettingsMap["FONTPICKER_Shape_Font"];
     std::string svgFilename = SettingsMap["FILEPICKERCTRL_SVG"];
-    int direction = GetValueCurveInt("Shapes_Direction", 90, SettingsMap, oset, SHAPE_DIRECTION_MIN, SHAPE_DIRECTION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    int velocity = GetValueCurveInt("Shapes_Velocity", 0, SettingsMap, oset, SHAPE_VELOCITY_MIN, SHAPE_VELOCITY_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
-    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", false);
-    bool useRegex = SettingsMap.GetBool("CHECKBOX_Shape_FilterReg", false);
+    int direction = GetValueCurveInt("Shapes_Direction", sDirectionDefault, SettingsMap, oset, sDirectionMin, sDirectionMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int velocity = GetValueCurveInt("Shapes_Velocity", sVelocityDefault, SettingsMap, oset, sVelocityMin, sVelocityMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    bool randomMovement = SettingsMap.GetBool("CHECKBOX_Shapes_RandomMovement", sRandomMovementDefault);
+    bool useRegex = SettingsMap.GetBool("CHECKBOX_Shape_FilterReg", sFilterRegDefault);
     std::string filterLabel = SettingsMap.Get("TEXTCTRL_Shape_FilterLabel", "");
 
-    int rotation = GetValueCurveInt("Shape_Rotation", 0, SettingsMap, oset, SHAPE_ROTATION_MIN, SHAPE_ROTATION_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
+    int rotation = GetValueCurveInt("Shape_Rotation", sRotationDefault, SettingsMap, oset, sRotationMin, sRotationMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
 
     int Object_To_Draw = DecodeShape(Object_To_DrawStr);
 
     float f = 0.0;
-    bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", false);
-    float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", 50) / 100.0;
-    bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", false);
+    bool useMusic = SettingsMap.GetBool("CHECKBOX_Shape_UseMusic", sUseMusicDefault);
+    float sensitivity = (float)SettingsMap.GetInt("SLIDER_Shape_Sensitivity", sSensitivityDefault) / 100.0;
+    bool useTiming = SettingsMap.GetBool("CHECKBOX_Shape_FireTiming", sFireTimingDefault);
     std::string timing = SettingsMap.Get("CHOICE_Shape_FireTimingTrack", "");
     if (timing == "") useTiming = false;
     if (useMusic) {
@@ -507,14 +622,14 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
 
     // create missing shapes
     if (useTiming) {
-        if (mSequenceElements == nullptr) {
+        if (GetSequenceElements(buffer) == nullptr) {
             // no timing tracks ... this shouldnt happen
         } else {
             // Load the names of the timing tracks
             Element* t = nullptr;
-            for (size_t l = 0; l < mSequenceElements->GetElementCount(); l++)
+            for (size_t l = 0; l < GetSequenceElements(buffer)->GetElementCount(); l++)
             {
-                Element* e = mSequenceElements->GetElement(l);
+                Element* e = GetSequenceElements(buffer)->GetElement(l);
                 if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING)
                 {
                     if (e->GetName() == timing)
@@ -628,10 +743,9 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         }
     }
 
-    if (Object_To_Draw == RENDER_SHAPE_EMOJI || Object_To_Draw == RENDER_SHAPE_SVG) {
+    if (Object_To_Draw == RENDER_SHAPE_SVG) {
         if (buffer.BufferWi <= 0 || buffer.BufferHt <= 0 || buffer.BufferWi > 15000) {
-            
-            spdlog::error("Shape Effect (Emoji/SVG): Invalid buffer size: width={}, height={}", buffer.BufferWi, buffer.BufferHt);
+            spdlog::error("Shape Effect (SVG): Invalid buffer size: width={}, height={}", buffer.BufferWi, buffer.BufferHt);
             return;
         }
         auto context = buffer.GetTextDrawingContext();
@@ -696,7 +810,7 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
             break;
         case RENDER_SHAPE_EMOJI:
             emojiTone = mapSkinTone(SettingsMap["CHOICE_Shape_SkinTone"]);
-            Drawemoji(buffer, it->_centre.x, it->_centre.y, it->_size, color, emoji, emojiTone, _font);
+            Drawemoji(buffer, it->_centre.x, it->_centre.y, it->_size, color, emoji, emojiTone, _font, cache);
             break;
         case RENDER_SHAPE_SVG:
             DrawSVG(cache, buffer, it->_centre.x, it->_centre.y, it->_size, color, thickness);
@@ -724,24 +838,6 @@ void ShapeEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         it->_size += growthPerFrame;
 
         if (it->_size < 0) it->_size = 0;
-    }
-
-    if (Object_To_Draw == RENDER_SHAPE_EMOJI) {
-        int w, h;
-        const uint8_t* rgba = buffer.GetTextDrawingContext()->FlushAndGetImage(&w, &h);
-        int cur = 0;
-        xlColor c, c2;
-        for (int y = h - 1; y >= 0; y--) {
-            for (int x = 0; x < w; x++) {
-                c.Set(rgba[cur], rgba[cur + 1], rgba[cur + 2], rgba[cur + 3]);
-                buffer.GetPixel(x, y, c2);
-                if (c2 != xlBLACK) {
-                    c.AlphaBlend(c2);
-                }
-                buffer.SetPixel(x, y, c);
-                cur += 4;
-            }
-        }
     }
 
     cache->RemoveOld(lifetimeFrames);
@@ -1211,30 +1307,174 @@ static std::string CodePointToUTF8(int cp) {
     return result;
 }
 
-void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font) const
+static void ScaleAndTintEmoji(
+    const std::vector<uint8_t>& src, int srcW, int srcH,
+    int dstW, int dstH,
+    float tr, float tg, float tb,
+    std::vector<uint8_t>& dst)
+{
+    dst.resize((size_t)dstW * dstH * 4);
+    float xRatio = (float)(srcW - 1) / (float)std::max(dstW - 1, 1);
+    float yRatio = (float)(srcH - 1) / (float)std::max(dstH - 1, 1);
+
+    for (int dy = 0; dy < dstH; dy++) {
+        float fy = dy * yRatio;
+        int sy0 = (int)fy;
+        int sy1 = std::min(sy0 + 1, srcH - 1);
+        float vy = fy - sy0;
+        float ivy = 1.0f - vy;
+
+        for (int dx = 0; dx < dstW; dx++) {
+            float fx = dx * xRatio;
+            int sx0 = (int)fx;
+            int sx1 = std::min(sx0 + 1, srcW - 1);
+            float vx = fx - sx0;
+            float ivx = 1.0f - vx;
+
+            const uint8_t* p00 = src.data() + (sy0 * srcW + sx0) * 4;
+            const uint8_t* p01 = src.data() + (sy0 * srcW + sx1) * 4;
+            const uint8_t* p10 = src.data() + (sy1 * srcW + sx0) * 4;
+            const uint8_t* p11 = src.data() + (sy1 * srcW + sx1) * 4;
+
+            uint8_t* out = dst.data() + (dy * dstW + dx) * 4;
+
+            // Bilinear interpolation for all four channels
+            for (int ch = 0; ch < 4; ch++) {
+                float v = p00[ch] * ivx * ivy
+                        + p01[ch] * vx  * ivy
+                        + p10[ch] * ivx * vy
+                        + p11[ch] * vx  * vy;
+                out[ch] = (uint8_t)std::clamp((int)v, 0, 255);
+            }
+            // Apply palette color tint to RGB; leave alpha as-is
+            out[0] = (uint8_t)std::clamp((int)(out[0] * tr), 0, 255);
+            out[1] = (uint8_t)std::clamp((int)(out[1] * tg), 0, 255);
+            out[2] = (uint8_t)std::clamp((int)(out[2] * tb), 0, 255);
+        }
+    }
+}
+
+void ShapeEffect::Drawemoji(RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int emoji, int emojiTone, TextFontInfo& font, ShapeRenderCache* cache) const
 {
     if (radius < 1)
         return;
 
-    auto context = buffer.GetTextDrawingContext();
+    // Look up (or create) the base-render entry keyed on (emoji, tone) only.
+    EmojiBaseKey baseKey{emoji, emojiTone};
+    auto it = cache->_emojiBaseCache.find(baseKey);
+    if (it == cache->_emojiBaseCache.end()) {
+        EmojiBaseEntry entry;
+        entry.text = CodePointToUTF8(emoji);
+        if (emojiTone) entry.text += CodePointToUTF8(emojiTone);
+        cache->_emojiBaseCache[baseKey] = std::move(entry);
+        it = cache->_emojiBaseCache.find(baseKey);
+    }
+    EmojiBaseEntry& base = it->second;
 
-    TextFontInfo fi = font;
-    fi.pixelSize = (int)radius;
+    // First access: render at reference size into a temporary context to capture
+    // the pixel data once
+    if (base.pixels.empty()) {
+        TextFontInfo fi = font;
+        fi.pixelSize = EMOJI_REFERENCE_PIXEL_SIZE;
 
-    context->SetFont(fi, color);
+        TextDrawingContext* tmpCtx = TextDrawingContext::GetContext();
+        if (tmpCtx == nullptr)
+            return;
 
-    std::string textStr = CodePointToUTF8(emoji);
-    if (emojiTone) {
-        textStr += CodePointToUTF8(emojiTone);
+        // Measure at reference size
+        tmpCtx->ResetSize(EMOJI_REFERENCE_PIXEL_SIZE * 2, EMOJI_REFERENCE_PIXEL_SIZE * 2);
+        tmpCtx->Clear();
+        tmpCtx->SetFont(fi, xlColor(255, 255, 255));
+        tmpCtx->GetTextExtent(base.text, &base.textW, &base.textH);
+
+        if (base.textW < 1 || base.textH < 1) {
+            TextDrawingContext::ReleaseContext(tmpCtx);
+            return;
+        }
+
+        // Re-render at exact measured size (plus a small margin)
+        int tmpW = (int)std::ceil(base.textW) + 4;
+        int tmpH = (int)std::ceil(base.textH) + 4;
+        tmpCtx->ResetSize(tmpW, tmpH);
+        tmpCtx->Clear();
+        tmpCtx->SetFont(fi, xlColor(255, 255, 255));
+        tmpCtx->DrawText(base.text, 2, 2);
+
+        int imgW = 0, imgH = 0;
+        const uint8_t* raw = tmpCtx->FlushAndGetImage(&imgW, &imgH);
+        if (raw && imgW > 0 && imgH > 0) {
+            // On macOS/Linux the renderer writes alpha correctly.
+            // On Windows, D2D does not write alpha back to the GDI DIB, so
+            // every alpha byte is 0.  Reconstruct alpha from RGB: the context
+            // was cleared to transparent black, so any non-black pixel was
+            // drawn by D2D.
+            bool hasAlpha = false;
+            for (int i = 0; i < imgW * imgH; i++) {
+                if (raw[i * 4 + 3] != 0) { hasAlpha = true; break; }
+            }
+
+            base.pixels.resize((size_t)imgW * imgH * 4);
+            base.pixW = imgW;
+            base.pixH = imgH;
+            for (size_t i = 0; i < (size_t)imgW * imgH; i++) {
+                base.pixels[i * 4 + 0] = raw[i * 4 + 0];
+                base.pixels[i * 4 + 1] = raw[i * 4 + 1];
+                base.pixels[i * 4 + 2] = raw[i * 4 + 2];
+                if (hasAlpha) {
+                    base.pixels[i * 4 + 3] = raw[i * 4 + 3];
+                } else {
+                    const uint8_t r = raw[i * 4 + 0];
+                    const uint8_t g = raw[i * 4 + 1];
+                    const uint8_t b = raw[i * 4 + 2];
+                    base.pixels[i * 4 + 3] = (r | g | b) ? 255 : 0;
+                }
+            }
+
+            // Verify we captured actual content
+            bool hasContent = false;
+            for (size_t i = 0; i < (size_t)imgW * imgH; i++) {
+                if (base.pixels[i * 4 + 3] != 0) { hasContent = true; break; }
+            }
+            if (!hasContent) {
+                base.pixels.clear();
+                base.pixW = 0;
+                base.pixH = 0;
+            }
+        }
+        TextDrawingContext::ReleaseContext(tmpCtx);
+
+        if (base.pixels.empty())
+            return;
     }
 
-    double width;
-    double height;
-    context->GetTextExtent(textStr, &width, &height);
+    if (base.pixels.empty())
+        return;
 
-    context->SetOverlayMode(true);
-    context->DrawText(textStr, std::round((float)xc - width / 2.0), std::round((float)(buffer.BufferHt - yc) - height / 2.0));
-    context->SetOverlayMode(false);
+    int iRadius = (int)std::round(radius);
+    float refToTarget = (float)iRadius / (float)EMOJI_REFERENCE_PIXEL_SIZE;
+    int dstW = std::max(1, (int)std::round(base.pixW * refToTarget));
+    int dstH = std::max(1, (int)std::round(base.pixH * refToTarget));
+
+    float tr = color.red   / 255.0f;
+    float tg = color.green / 255.0f;
+    float tb = color.blue  / 255.0f;
+
+    std::vector<uint8_t> scaled;
+    ScaleAndTintEmoji(base.pixels, base.pixW, base.pixH, dstW, dstH, tr, tg, tb, scaled);
+
+    // Buffer Y=0 is at the bottom; image row 0 is at the top, so the Y axis
+    // must be flipped: image row 0 → highest buffer Y, row dstH-1 → lowest.
+    int drawX   = (int)std::round((float)xc - dstW / 2.0f);
+    int topBufY = (int)std::round((float)yc + (dstH - 1) / 2.0f);
+    for (int row = 0; row < dstH; row++) {
+        int bufY = topBufY - row;
+        for (int col = 0; col < dstW; col++) {
+            const uint8_t* p = scaled.data() + (row * dstW + col) * 4;
+            if (p[3] == 0) continue;
+            xlColor c(p[0], p[1], p[2], p[3]);
+            buffer.SetPixel(drawX + col, bufY, c, false, true);
+        }
+    }
 }
 
 void ShapeEffect::DrawSVG(ShapeRenderCache* cache, RenderBuffer& buffer, int xc, int yc, double radius, xlColor color, int thickness) const

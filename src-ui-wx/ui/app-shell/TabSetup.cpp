@@ -16,7 +16,7 @@
 #include <wx/time.h>
 #include <wx/stopwatch.h>
 #include <wx/settings.h>
-#include <wx/config.h>
+#include "settings/XLightsConfigAdapter.h"
 #include <wx/artprov.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
@@ -146,12 +146,12 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     if (idx > 0) {
         p = p.substr(idx + 1);
     }
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     config->SetPath(p);
     if (reload) {
         mruFiles.clear();
         for (int x = 0; x < MRUF_LENGTH; x++) {
-            wxString k = "file" + std::to_string(x);
+            std::string k = "file" + std::to_string(x);
             wxString v;
             if (config->Read(k, &v) && v != "") {
                 mruFiles.push_back(v);
@@ -177,7 +177,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     }
     int cnt = 0;
     for (int x = 0; x < MRUF_LENGTH; x++) {
-        wxString k = "file" + std::to_string(x);
+        std::string k = "file" + std::to_string(x);
         if (x < (int)mruFiles.size()) {
             if (!reload) {
                 config->Write(k, mruFiles[x]);
@@ -189,7 +189,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
-            config->DeleteEntry(k);
+            config->DeleteEntry(k);  // k is std::string after loop fix above
         }
     }
     config->SetPath("/");
@@ -268,14 +268,14 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // save config
     bool DirExists = wxFileName::DirExists(nd);
     wxString value;
-    wxConfigBase* config = wxConfigBase::Get();
+    auto* config = GetXLightsConfig();
     if (permanent) {
         if (DirExists)
-            config->Write(_("LastDir"), nd);
+            config->Write("LastDir", nd);
         _permanentShowFolder = nd;
     }
     for (size_t i = 0; i < MRUD_LENGTH; i++) {
-        wxString mru_name = wxString::Format("mru%d", (int)i);
+        std::string mru_name = "mru" + std::to_string(i);
         if (mrud_MenuItem[i] != nullptr) {
             Disconnect(mrud_MenuItem[i]->GetId(), wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuMRU);
             RecentShowFoldersMenu->Delete(mrud_MenuItem[i]);
@@ -314,7 +314,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         return false;
     }
 
-    ObtainAccessToURL(nd.ToStdString(), true);
+    ObtainAccessToURL(ToStdString(nd), true);
 
     // update UI
     CheckBoxLightOutput->SetValue(false);
@@ -328,7 +328,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     UpdateRecentFilesList(true);
 
     SetFixFileShowDir(CurrentDir);
-    SpecialOptions::StashShowDir(CurrentDir.ToStdString());
+    SpecialOptions::StashShowDir(ToStdString(CurrentDir));
     SpecialOptions::GetOption("", ""); // resets special options
     ApplyLoggingSpecialOptions();
 
@@ -354,10 +354,10 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
 
     long fseqLinkFlag = 0;
-    config->Read(_("FSEQLinkFlag"), &fseqLinkFlag);
+    config->Read("FSEQLinkFlag", &fseqLinkFlag);
     if (fseqLinkFlag) {
         fseqDirectory = CurrentDir;
-        config->Write(_("FSEQDir"), wxString(fseqDirectory));
+        config->Write("FSEQDir", fseqDirectory);
         spdlog::debug("FSEQ Directory set to : {}.", (const char*)fseqDirectory.c_str());
     }
 
@@ -371,7 +371,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
         ObtainAccessToURL(networkFile.GetFullPath());
         spdlog::debug("Loading networks.");
         wxStopWatch sww;
-        if (!_outputManager.Load(CurrentDir.ToStdString())) {
+        if (!_outputManager.Load(ToStdString(CurrentDir))) {
             if (!this->IsVisible()) {
                 // File exists, but is not readable, but xLightsFrame hasn't been fully open
                 // Assume that xLights doesn't have permission to read from the show directory so
@@ -379,7 +379,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
                 DisplayError(wxString::Format("Unable to load network config %s.  Try reselecting the show directory.", networkFile.GetFullPath()));
                 return false;
             }
-            DisplayError(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time()).ToStdString());
+            DisplayError(ToStdString(wxString::Format("Unable to load network config %s : Time %ldms", networkFile.GetFullPath(), sww.Time())));
         } else {
             spdlog::debug("Loaded network config {} : Time {}ms", (const char*)networkFile.GetFullPath().c_str(), sww.Time());
 
@@ -413,7 +413,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             InitialiseControllersTab();
         }
     } else {
-        _outputManager.SetShowDir(CurrentDir.ToStdString());
+        _outputManager.SetShowDir(ToStdString(CurrentDir));
         _outputManager.SetBaseShowDir("");
         _outputManager.SetAutoUpdateFromBaseShowDir(false);
     }
@@ -472,7 +472,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             PromptForDirectorySelection("Reselect Base Show Directory", dstr);
             _outputManager.SetBaseShowDir(dstr);
         }
-        if (_outputManager.MergeFromBase(false)) {
+        bool _acceptAll = false, _rejectAll = false;
+        if (_outputManager.MergeFromBase(false, _acceptAll, _rejectAll)) {
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_UPDATE_NETWORK_LIST, "SetDir-controller");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "SetDir-controller");
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_RESEND_CONTROLLER_CONFIG, "SetDir-controller");
@@ -492,7 +493,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     spdlog::debug("Start channels done.");
 
     if (mBackupOnLaunch && !_renderMode && !CurrentDir.StartsWith(wxFileName::GetTempDir())) {
-        spdlog::debug("Backing up show directory before we do anything this session in this folder : {}.", CurrentDir.ToStdString());
+        spdlog::debug("Backing up show directory before we do anything this session in this folder : {}.", ToStdString(CurrentDir));
         DoBackup(false, true);
         spdlog::debug("Backup completed.");
     }
@@ -550,7 +551,7 @@ bool xLightsFrame::PromptForDirectorySelection(const std::string &msg, std::stri
     wxDirDialog DirDialog1(this, msg, dir, wxDD_DEFAULT_STYLE, wxDefaultPosition, wxDefaultSize, _T("wxDirDialog"));
     while (true) {
         if (DirDialog1.ShowModal() == wxID_OK) {
-            dir = DirDialog1.GetPath();
+            dir = ToStdString(DirDialog1.GetPath());
             ObtainAccessToURL(dir, true);
             return true;
         }
@@ -570,12 +571,12 @@ bool xLightsFrame::PromptForShowDirectory(bool permanent, const std::string &def
         ObtainAccessToURL(newdir, true);
         if (newdir == CurrentDir) return true;
 
-        if (ShowFolderIsInBackup(newdir.ToStdString())) {
+        if (ShowFolderIsInBackup(ToStdString(newdir))) {
             DisplayWarning("WARNING: Opening a show folder inside a backup folder. This is ok but please make sure you change back to your proper show folder and dont make changes in this folder.", this);
         }
 
 #ifdef __WXMSW__
-        if (ShowFolderIsInProgramFiles(newdir.ToStdString())) {
+        if (ShowFolderIsInProgramFiles(ToStdString(newdir))) {
             DisplayWarning("ERROR: Show folder inside your Program Files folder either just wont work or will cause you security issues ... so please choose again.", this);
             dirOK = false;
         }
@@ -662,7 +663,7 @@ std::string xLightsFrame::GetChannelToControllerMapping(int32_t channel) {
     if (c != nullptr) {
         return c->GetChannelMapping(channel);
     }
-    return wxString::Format("Channel %d could not be mapped to a controller.", channel).ToStdString();
+    return ToStdString(wxString::Format("Channel %d could not be mapped to a controller.", channel));
 }
 
 // reset test channel listbox
@@ -1676,7 +1677,7 @@ void xLightsFrame::OnPingTimer(wxTimerEvent& event) {
     }
     _pingInProgress = true;
     for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
-        auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));
+        auto controller = dynamic_cast<Controller*>(_outputManager.GetController(ToStdString(List_Controllers->GetItemText(row, 0))));
         if (controller != nullptr && controller->IsActive()) {
             ControllerPingThread* thread = new ControllerPingThread(controller);
             thread->Run();
@@ -1695,7 +1696,7 @@ void xLightsFrame::StatusRefreshTimer(wxTimerEvent& event) {
     if (Notebook1->GetSelection() == SETUPTAB && List_Controllers != nullptr) {
         List_Controllers->Freeze();
         for (int row = 0; row < List_Controllers->GetItemCount(); ++row) {
-            auto controller = dynamic_cast<Controller*>(_outputManager.GetController(List_Controllers->GetItemText(row, 0).ToStdString()));
+            auto controller = dynamic_cast<Controller*>(_outputManager.GetController(ToStdString(List_Controllers->GetItemText(row, 0))));
             if (controller != nullptr && controller->IsActive()) {
                 int imageIndex = (controller->GetLastPingState() == Output::PINGSTATE::PING_OK || controller->GetLastPingState() == Output::PINGSTATE::PING_WEBOK) ? 0 : 1;
                 List_Controllers->SetItem(row, 12, "", imageIndex);
@@ -1741,7 +1742,7 @@ void xLightsFrame::InitialiseControllersTab(bool rebuildPropGrid) {
         List_Controllers->AppendColumn("Description");
         List_Controllers->AppendColumn("Status", wxLIST_FORMAT_LEFT, _controllerPingInterval >0 ? 45 : 0);
 
-        wxConfigBase* config = wxConfigBase::Get();
+        auto* config = GetXLightsConfig();
         if (config != nullptr) {
             wxString co;
             config->Read("ControllerTabColumnOrder", &co, "0,1,2,3,4,5,6,7,8,9,10,11,12");
@@ -2644,7 +2645,7 @@ void xLightsFrame::OnButtonUploadInputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_WAIT);
 
     auto const name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    spdlog::debug("Uploading controller inputs to" + name.ToStdString());
+    spdlog::debug("Uploading controller inputs to" + ToStdString(name));
     auto controller = _outputManager.GetController(name);
 
     if (controller != nullptr) {
@@ -2670,7 +2671,7 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 
     SetCursor(wxCURSOR_WAIT);
     auto const name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
-    spdlog::debug("Uploading controller outputs to " + name.ToStdString());
+    spdlog::debug("Uploading controller outputs to " + ToStdString(name));
 
     auto controller = _outputManager.GetController(name);
     if (controller != nullptr) {
@@ -3117,7 +3118,7 @@ bool xLightsFrame::RebuildControllerConfig(OutputManager* outputManager, ModelMa
         if (itc->NeedsControllerConfig()) {
             auto eth = dynamic_cast<ControllerEthernet*>(itc);
             if (eth != nullptr && eth->GetProtocol() == OUTPUT_ZCPP) {
-                SetModelData(eth, modelManager, outputManager, CurrentDir.ToStdString());
+                SetModelData(eth, modelManager, outputManager, ToStdString(CurrentDir));
             }
         }
     }

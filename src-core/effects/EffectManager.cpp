@@ -9,6 +9,14 @@
  **************************************************************/
 
 #include "EffectManager.h"
+
+#include <fstream>
+#include <utility>
+
+#include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
+
+#include "utils/ExternalHooks.h"
 #include "OffEffect.h"
 #include "OnEffect.h"
 #include "AdjustEffect.h"
@@ -79,7 +87,8 @@ inline RenderableEffect* CreateGPUEffect(EffectManager::RGB_EFFECTS_e eff) {
 }
 #endif
 
-EffectManager::EffectManager()
+EffectManager::EffectManager(std::string metadataDir)
+    : mMetadataDir(std::move(metadataDir))
 {
     add(createEffect(eff_OFF));
     add(createEffect(eff_ON));
@@ -220,6 +229,7 @@ RenderableEffect *EffectManager::createEffect(RGB_EFFECTS_e eff) {
 
 
 void EffectManager::add(RenderableEffect *eff) {
+    if (eff == nullptr) return;
     int id = eff->GetId();
     if (id >= (int)size()) {
         effects.resize(id + 1);
@@ -227,6 +237,39 @@ void EffectManager::add(RenderableEffect *eff) {
     effects[id] = eff;
     effectsByName[eff->Name()] = eff;
     effectsByName[eff->ToolTip()] = eff;
+    loadMetadataInto(eff);
+}
+
+void EffectManager::loadMetadataInto(RenderableEffect *eff) {
+    if (eff == nullptr || mMetadataDir.empty()) {
+        return;
+    }
+
+    // JSON filenames are the effect's display name with spaces removed, e.g.
+    // "Color Wash" -> ColorWash.json, "VU Meter" -> VUMeter.json.
+    std::string baseName;
+    baseName.reserve(eff->Name().size());
+    for (char c : eff->Name()) {
+        if (c != ' ') baseName.push_back(c);
+    }
+
+    std::string path = mMetadataDir + "/" + baseName + ".json";
+    if (!FileExists(path)) {
+        // Not every effect has a JSON descriptor yet (e.g. Moving Head). That
+        // is fine — the effect simply won't expose metadata to the UI.
+        return;
+    }
+
+    try {
+        std::ifstream f(path);
+        if (!f.is_open()) {
+            spdlog::error("EffectManager: failed to open metadata file {}", path);
+            return;
+        }
+        eff->SetMetadata(nlohmann::json::parse(f));
+    } catch (const nlohmann::json::parse_error& e) {
+        spdlog::error("EffectManager: JSON parse error in {}: {}", path, e.what());
+    }
 }
 
 RenderableEffect *EffectManager::GetEffect(const std::string &str) const {

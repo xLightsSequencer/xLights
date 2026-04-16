@@ -19,7 +19,7 @@
 #include "../models/OutputModelManager.h"
 #include "../utils/SpecialOptions.h"
 #include "../utils/ip_utils.h"
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include <log.h>
 
@@ -138,7 +138,7 @@ void ArtNetOutput::SendSync(const std::string& localIP) {
         // broadcast ... this is not really in line with the spec
         // I should use the net mask but i cant find a good way to do that
         //syncremoteAddr.BroadcastAddress();
-        syncremoteIp = std::format("{}.{}.{}.255", __ip1, __ip2, __ip3);
+        syncremoteIp = fmt::format("{}.{}.{}.255", __ip1, __ip2, __ip3);
         spdlog::debug("artNet Sync broadcasting to {}.", syncremoteIp);
     }
 
@@ -168,7 +168,7 @@ void ArtNetOutput::PrepareDiscovery(Discovery &discovery) {
             spdlog::debug(" ArtNET Valid response.");
             uint32_t channels = 510;
 
-            std::string ip = std::format("{}.{}.{}.{}", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
+            std::string ip = fmt::format("{}.{}.{}.{}", (int)buffer[10], (int)buffer[11], (int)buffer[12], (int)buffer[13]);
             spdlog::debug("     From {}.", ip);
 
             // We cant use Get IP as controller may have responded to multiple discovery requests
@@ -249,12 +249,12 @@ std::string ArtNetOutput::GetLongDescription() const {
 
 std::string ArtNetOutput::GetUniverseString() const {
 
-    return std::format("{}:{}:{} or {}", GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), GetUniverse());
+    return fmt::format("{}:{}:{} or {}", GetArtNetNet(), GetArtNetSubnet(), GetArtNetUniverse(), GetUniverse());
 }
 
 std::string ArtNetOutput::GetExport() const {
 
-    return std::format(",{},{},,{},{},,,,{},{}",
+    return fmt::format(",{},{},,{},{},,,,{},{}",
         GetStartChannel(),
         GetEndChannel(),
         GetType(),

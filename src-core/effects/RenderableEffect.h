@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <string>
+#include <nlohmann/json.hpp>
 #include "Color.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 
@@ -96,6 +97,10 @@ public:
     {
         mSequenceElements = els;
     }
+    // Get SequenceElements from the RenderBuffer's RenderContext.
+    // Falls back to mSequenceElements for legacy callers that don't have a buffer.
+    SequenceElements* GetSequenceElements(RenderBuffer& buffer) const;
+    SequenceElements* GetSequenceElements() const { return mSequenceElements; }
 
     // Methods for rendering the effect
     virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer)
@@ -129,21 +134,61 @@ public:
     // (e.g. "SingleStrand_FX"). Returns empty vector if not dynamic.
     virtual std::vector<std::string> GetSettingOptions(const std::string& setting) const { return {}; }
 
+    // JSON metadata describing the effect's properties (defaults, min/max, control
+    // types, etc.). Loaded by EffectManager at startup from
+    // resources/effectmetadata/<Name>.json. Empty for effects that don't yet have
+    // a JSON descriptor (e.g. Moving Head).
+    //
+    // After storing the JSON, SetMetadata() calls OnMetadataLoaded() so
+    // subclasses can extract values into their own cached members. Render()
+    // must read from those cached members — never call the Get*Default /
+    // Get*FromMetadata helpers during Render, they walk the JSON.
+    void SetMetadata(nlohmann::json md);
+    const nlohmann::json& GetMetadata() const;
+    bool HasMetadata() const;
+
+    // Look up a property by id (e.g. "On_Transparency") within the metadata's
+    // "properties" array. Returns nullptr if not found or no metadata is loaded.
+    // Walks the JSON — call from OnMetadataLoaded or other cold paths only.
+    const nlohmann::json* GetPropertyMetadata(const std::string& id) const;
+
+    // Convenience accessors for reading default/min/max/divisor out of the
+    // metadata. Each returns `fallback` if the property or field is missing.
+    // Intended for use from OnMetadataLoaded() to populate cached members —
+    // NOT for use inside Render() or any hot path (they walk the JSON).
+    int GetIntDefault(const std::string& id, int fallback) const;
+    double GetDoubleDefault(const std::string& id, double fallback) const;
+    bool GetBoolDefault(const std::string& id, bool fallback) const;
+    std::string GetStringDefault(const std::string& id, const std::string& fallback) const;
+    double GetMinFromMetadata(const std::string& id, double fallback) const;
+    double GetMaxFromMetadata(const std::string& id, double fallback) const;
+    int GetDivisorFromMetadata(const std::string& id, int fallback) const;
+
+    // Value-curve min/max. Prefer the JSON `vcMin`/`vcMax` fields if present
+    // (lets a property expose a narrower VC range than its slider range, e.g.
+    // Twinkle_Steps which has slider max 400 but VC max 100). Falls back to
+    // `min`/`max`, then to the provided fallback.
+    double GetVCMinFromMetadata(const std::string& id, double fallback) const;
+    double GetVCMaxFromMetadata(const std::string& id, double fallback) const;
+
 protected:
-    virtual double GetSettingVCMin(const std::string& name) const
-    {
-        assert(false);
-        return 0.0;
-    }
-    virtual double GetSettingVCMax(const std::string& name) const
-    {
-        assert(false);
-        return 100.0;
-    }
-    virtual int GetSettingVCDivisor(const std::string& name) const
-    {
-        return 1;
-    }
+    // Called by SetMetadata() after storing the JSON, giving subclasses a
+    // single point to extract defaults/min/max/divisor into their own
+    // cached member variables. Base impl is a no-op. Runs at startup only
+    // (once per effect), so walking the JSON via GetIntDefault etc. here is
+    // fine — those values end up in cheap plain-member reads at render time.
+    virtual void OnMetadataLoaded() {}
+
+    // Default implementations read from metadata (by stripping the
+    // "E_VALUECURVE_" prefix from `name` and looking up the property id).
+    // Only called from UpgradeValueCurve on sequence load — cold path, so
+    // the JSON walk is acceptable. Effects with static JSON-described
+    // properties get their min/max for free and do not need to override.
+    // Effects with dynamic or non-metadata-described settings (e.g. Shader)
+    // still override to intercept those specific names.
+    virtual double GetSettingVCMin(const std::string& name) const;
+    virtual double GetSettingVCMax(const std::string& name) const;
+    virtual int GetSettingVCDivisor(const std::string& name) const;
 
     double GetValueCurveDouble(const std::string& name, double def, const SettingsMap& SettingsMap, float offset, double min, double max, long startMS, long endMS, int divisor = 1);
     int GetValueCurveInt(const std::string& name, int def, const SettingsMap& SettingsMap, float offset, int min, int max, long startMS, long endMS, int divisor = 1);
@@ -160,4 +205,5 @@ protected:
     const char** iconData[5];
 
 private:
+    nlohmann::json mMetadata;
 };

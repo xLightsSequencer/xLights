@@ -14,9 +14,9 @@
 
 constexpr const char* completion_url = "/chat/completions";
 
-std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const {
-    
+constexpr const char* transcriptions_url = "/audio/transcriptions";
 
+std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const {
     std::string bearerToken = token;
 
     if (bearerToken.empty()) {
@@ -76,8 +76,6 @@ std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const
 
 aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt) const {
     aiBase::AIColorPalette ret;
-    
-
     if (token.empty()) {
         ret.error = "You must set a " + GetLLMName() + " Bearer Token in the Preferences on the Services Panel";
         return ret;
@@ -134,7 +132,7 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
     spdlog::debug("{}: {}", GetLLMName(), request);
 
     int responseCode = 0;
-    std::string response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
+    std::string const response = CurlManager::HTTPSPost(base_url + completion_url, request, "", "", "JSON", 60, customHeaders, &responseCode);
 
     spdlog::debug("{} Response {}: {}", GetLLMName(), responseCode, response);
     if (responseCode != 200) {
@@ -184,4 +182,110 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
 
 aiBase::AIImageGenerator* OpenAIAPI::createAIImageGenerator() const {
     return new OpenAIImageGenerator(base_url, token, image_model);
+}
+
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
+    userp->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+//https://api.openai.com/v1/audio/transcriptions
+aiBase::AILyricTrack OpenAIAPI::GenerateLyricTrack(const std::string& audioPath) const {
+    AILyricTrack ret;
+    if (token.empty()) {
+        ret.error = "You must set a " + GetLLMName() + " Bearer Token in the Preferences on the Services Panel";
+        return ret;
+    }
+
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl_global_init(CURL_GLOBAL_ALL);
+    curl = curl_easy_init();
+
+    if (curl) {
+        curl_mime* form = curl_mime_init(curl);
+
+        // 1. Add file
+        curl_mimepart* field = curl_mime_addpart(form);
+        curl_mime_name(field, "file");
+        curl_mime_filedata(field, audioPath.c_str());
+
+        // 2. Specify model
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "model");
+        curl_mime_data(field, transcribe_model.c_str(), CURL_ZERO_TERMINATED);
+
+        // 3. Set format to verbose_json to get timestamps
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "response_format");
+        curl_mime_data(field, "verbose_json", CURL_ZERO_TERMINATED);
+
+        // 4. Request word-level timestamps
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "timestamp_granularities[]");
+        curl_mime_data(field, "word", CURL_ZERO_TERMINATED);
+
+        struct curl_slist* headerlist = NULL;
+        std::string authHeader = "Authorization: Bearer " + token;
+        headerlist = curl_slist_append(headerlist, authHeader.c_str());
+
+        std::string full_url = base_url + transcriptions_url;
+
+        curl_easy_setopt(curl, CURLOPT_URL, full_url.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 600L);
+        curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        res = curl_easy_perform(curl);
+
+        if (res == CURLE_OK) {
+            spdlog::debug("OpenAI transcription response: {}", readBuffer);
+            try {
+                nlohmann::json root = nlohmann::json::parse(readBuffer);
+                if (root.contains("error")) {
+                    ret.error = root["error"]["message"].get<std::string>();
+                } else if (root.contains("words") && root["words"].is_array()) {
+                    // top-level words array (gpt-4o-transcribe with word granularity)
+                    for (const auto& word : root["words"]) {
+                        AILyric lyric;
+                        lyric.word = word["word"].get<std::string>();
+                        lyric.startMS = static_cast<int>(word["start"].get<double>() * 1000);
+                        lyric.endMS = static_cast<int>(word["end"].get<double>() * 1000);
+                        ret.lyrics.push_back(lyric);
+                    }
+                } else if (root.contains("segments") && root["segments"].is_array()) {
+                    for (const auto& segment : root["segments"]) {
+                        if (segment.contains("words") && segment["words"].is_array()) {
+                            for (const auto& word : segment["words"]) {
+                                AILyric lyric;
+                                lyric.word = word["word"].get<std::string>();
+                                lyric.startMS = static_cast<int>(word["start"].get<double>() * 1000);
+                                lyric.endMS = static_cast<int>(word["end"].get<double>() * 1000);
+                                ret.lyrics.push_back(lyric);
+                            }
+                        }
+                    }
+                } else {
+                    ret.error = "Response does not contain 'words' or 'segments' array.";
+                }
+            } catch (const nlohmann::json::parse_error& e) {
+                ret.error = e.what();
+            } catch (const std::exception& e) {
+                ret.error = e.what();
+            }
+        } else {
+            ret.error = "curl_easy_perform() failed: " + std::string(curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(curl);
+        curl_mime_free(form);
+        curl_slist_free_all(headerlist);
+    }
+    curl_global_cleanup();
+
+    return ret;
 }

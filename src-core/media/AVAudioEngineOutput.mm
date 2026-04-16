@@ -465,6 +465,10 @@ IAudioOutput* AVAudioEngineManager::GetOutput(const std::string& device) {
         return it->second.get();
 
     _impl->outputs[d] = std::make_unique<AVAudioEngineOutput>(d);
+    // Outputs default to globalVolume=100; seed from the manager so a newly
+    // created output (e.g. after opening a new sequence) honours the volume
+    // the user picked from the Audio menu.
+    _impl->outputs[d]->SetGlobalVolume(_impl->globalVolume);
     return _impl->outputs[d].get();
 }
 

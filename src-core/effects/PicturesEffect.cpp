@@ -10,7 +10,7 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <format>
+#include <spdlog/fmt/fmt.h>
 
 #include "../../include/pictures-16.xpm"
 #include "../../include/pictures-24.xpm"
@@ -38,6 +38,26 @@
 
 static int PicturesEffectId = 0;
 
+std::string PicturesEffect::sDirectionDefault = "none";
+double PicturesEffect::sSpeedDefault = 1.0;
+double PicturesEffect::sFrameRateAdjDefault = 1.0;
+bool PicturesEffect::sPixelOffsetsDefault = false;
+std::string PicturesEffect::sScalingDefault = "No Scaling";
+bool PicturesEffect::sShimmerDefault = false;
+bool PicturesEffect::sLoopGIFDefault = false;
+bool PicturesEffect::sSuppressGIFBackgroundDefault = true;
+int PicturesEffect::sXCDefault = 0;
+int PicturesEffect::sXCMin = -100;
+int PicturesEffect::sXCMax = 100;
+bool PicturesEffect::sWrapXDefault = false;
+int PicturesEffect::sYCDefault = 0;
+int PicturesEffect::sYCMin = -100;
+int PicturesEffect::sYCMax = 100;
+int PicturesEffect::sEndXCDefault = 0;
+int PicturesEffect::sEndYCDefault = 0;
+int PicturesEffect::sStartScaleDefault = 100;
+int PicturesEffect::sEndScaleDefault = 100;
+
 PicturesEffect::PicturesEffect(int id) : RenderableEffect(id, "Pictures", pictures_16, pictures_24, pictures_32, pictures_48, pictures_64)
 {
     //ctor
@@ -49,6 +69,29 @@ PicturesEffect::~PicturesEffect()
     //dtor
 }
 
+void PicturesEffect::OnMetadataLoaded()
+{
+    sDirectionDefault = GetStringDefault("Pictures_Direction", sDirectionDefault);
+    sSpeedDefault = GetDoubleDefault("Pictures_Speed", sSpeedDefault);
+    sFrameRateAdjDefault = GetDoubleDefault("Pictures_FrameRateAdj", sFrameRateAdjDefault);
+    sPixelOffsetsDefault = GetBoolDefault("Pictures_PixelOffsets", sPixelOffsetsDefault);
+    sScalingDefault = GetStringDefault("Scaling", sScalingDefault);
+    sShimmerDefault = GetBoolDefault("Pictures_Shimmer", sShimmerDefault);
+    sLoopGIFDefault = GetBoolDefault("LoopGIF", sLoopGIFDefault);
+    sSuppressGIFBackgroundDefault = GetBoolDefault("SuppressGIFBackground", sSuppressGIFBackgroundDefault);
+    sXCDefault = GetIntDefault("PicturesXC", sXCDefault);
+    sXCMin = (int)GetMinFromMetadata("PicturesXC", sXCMin);
+    sXCMax = (int)GetMaxFromMetadata("PicturesXC", sXCMax);
+    sWrapXDefault = GetBoolDefault("Pictures_WrapX", sWrapXDefault);
+    sYCDefault = GetIntDefault("PicturesYC", sYCDefault);
+    sYCMin = (int)GetMinFromMetadata("PicturesYC", sYCMin);
+    sYCMax = (int)GetMaxFromMetadata("PicturesYC", sYCMax);
+    sEndXCDefault = GetIntDefault("PicturesEndXC", sEndXCDefault);
+    sEndYCDefault = GetIntDefault("PicturesEndYC", sEndYCDefault);
+    sStartScaleDefault = GetIntDefault("Pictures_StartScale", sStartScaleDefault);
+    sEndScaleDefault = GetIntDefault("Pictures_EndScale", sEndScaleDefault);
+}
+
 std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache)
 {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
@@ -57,20 +100,20 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
     auto &mm = eff->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
 
     if (pictureFilename == "" || !mm.HasImage(pictureFilename)) {
-        res.push_back(std::format("    ERR: Picture effect cant find image file '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+        res.push_back(fmt::format("    ERR: Picture effect cant find image file '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
     } else {
         auto img = mm.GetImage(pictureFilename);
         if (!img->IsOk()) {
-            res.push_back(std::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+            res.push_back(fmt::format("    ERR: Picture effect cant load image '{}'. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
         } else {
             if (!img->IsEmbedded()) {
                 if (!FileUtils::IsFileInShowDir(std::string(), pictureFilename)) {
-                    res.push_back(std::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    res.push_back(fmt::format("    WARN: Picture effect image file '{}' not under show directory. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
             int imageCount = img->GetImageCount();
             if (imageCount <= 0) {
-                res.push_back(std::format("    ERR: Picture effect '{}' contains no images. Image invalid. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                res.push_back(fmt::format("    ERR: Picture effect '{}' contains no images. Image invalid. Model '{}', Start {}", pictureFilename, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
             }
 
             if (!renderCache) {
@@ -80,7 +123,7 @@ std::list<std::string> PicturesEffect::CheckEffectSettings(const SettingsMap& se
 #define IMAGESIZETHRESHOLD 10
                 if (ih > IMAGESIZETHRESHOLD * model->GetDefaultBufferHt() || iw > IMAGESIZETHRESHOLD * model->GetDefaultBufferWi()) {
                     float scale = std::max((float)ih / model->GetDefaultBufferHt(), (float)iw / model->GetDefaultBufferWi());
-                    res.push_back(std::format("    WARN: Picture effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Start {}", pictureFilename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
+                    res.push_back(fmt::format("    WARN: Picture effect image file '{}' is {:.1f} times the height or width of the model ... xLights is going to need to do lots of work to resize the image. Model '{}', Start {}", pictureFilename, scale, model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
                 }
             }
         }
@@ -338,24 +381,24 @@ bool PicturesEffect::IsPictureFile(std::string filename)
 
 void PicturesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     float oset = buffer.GetEffectTimeIntervalPosition();
-    auto dirstr = SettingsMap["CHOICE_Pictures_Direction"];
+    const auto& dirstr = SettingsMap.Get("CHOICE_Pictures_Direction", sDirectionDefault);
     Render(buffer,
            dirstr,
            SettingsMap["TEXTCTRL_Pictures_Filename"],
-           SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", 1.0),
-           SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", 1.0),
-           dirstr != "vector" ? GetValueCurveInt("PicturesXC", 0, SettingsMap, oset, PICTURES_XC_MIN, PICTURES_XC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesXC", 0),
-           dirstr != "vector" ? GetValueCurveInt("PicturesYC", 0, SettingsMap, oset, PICTURES_YC_MIN, PICTURES_YC_MAX, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesYC", 0),
-           SettingsMap.GetInt("SLIDER_PicturesEndXC", 0),
-           SettingsMap.GetInt("SLIDER_PicturesEndYC", 0),
-           SettingsMap.GetInt("SLIDER_Pictures_StartScale", 100),
-           SettingsMap.GetInt("SLIDER_Pictures_EndScale", 100),
-           SettingsMap.Get("CHOICE_Scaling", "No Scaling"),
-           SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", false),
-           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", false),
-           SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", false),
-           SettingsMap.GetBool("CHECKBOX_LoopGIF", false),
-           SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", true),
+           SettingsMap.GetFloat("TEXTCTRL_Pictures_Speed", sSpeedDefault),
+           SettingsMap.GetFloat("TEXTCTRL_Pictures_FrameRateAdj", sFrameRateAdjDefault),
+           dirstr != "vector" ? GetValueCurveInt("PicturesXC", sXCDefault, SettingsMap, oset, sXCMin, sXCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesXC", sXCDefault),
+           dirstr != "vector" ? GetValueCurveInt("PicturesYC", sYCDefault, SettingsMap, oset, sYCMin, sYCMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()) : SettingsMap.GetInt("SLIDER_PicturesYC", sYCDefault),
+           SettingsMap.GetInt("SLIDER_PicturesEndXC", sEndXCDefault),
+           SettingsMap.GetInt("SLIDER_PicturesEndYC", sEndYCDefault),
+           SettingsMap.GetInt("SLIDER_Pictures_StartScale", sStartScaleDefault),
+           SettingsMap.GetInt("SLIDER_Pictures_EndScale", sEndScaleDefault),
+           SettingsMap.Get("CHOICE_Scaling", sScalingDefault),
+           SettingsMap.GetBool("CHECKBOX_Pictures_PixelOffsets", sPixelOffsetsDefault),
+           SettingsMap.GetBool("CHECKBOX_Pictures_WrapX", sWrapXDefault),
+           SettingsMap.GetBool("CHECKBOX_Pictures_Shimmer", sShimmerDefault),
+           SettingsMap.GetBool("CHECKBOX_LoopGIF", sLoopGIFDefault),
+           SettingsMap.GetBool("CHECKBOX_SuppressGIFBackground", sSuppressGIFBackgroundDefault),
            SettingsMap.GetBool("CHECKBOX_Pictures_TransparentBlack", false),
            SettingsMap.GetInt("TEXTCTRL_Pictures_TransparentBlack", 0)
     );

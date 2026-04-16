@@ -1,0 +1,28 @@
+<Vendor Name="PowerDMX">
+    <AbstractVariant Name="BasePowerDMX">
+        <SupportsUpload/>
+        <SupportsAutoUpload/>
+        <SupportsAutoLayout/>
+        <MaxInputUniverses>1024</MaxInputUniverses>
+        <MaxPixelPortChannels>4096</MaxPixelPortChannels>
+        <ConfigDriver>PowerDMX</ConfigDriver>
+        <InputProtocols>
+            <Protocol>ddp</Protocol>
+            <Protocol>e131</Protocol>
+        </InputProtocols>
+        <PixelProtocols>
+            <Protocol>ws2811</Protocol>
+        </PixelProtocols>
+    </AbstractVariant>
+
+    <Controller Name="PowerDMX-7">
+        <Variant Name="" ID="PowerDMX-7" Base="PowerDMX:BasePowerDMX">
+            <MaxPixelPort>7</MaxPixelPort>
+        </Variant>
+    </Controller>
+    <Controller Name="PowerDMX-49">
+        <Variant Name="" ID="PowerDMX-49" Base="PowerDMX:BasePowerDMX">
+            <MaxPixelPort>49</MaxPixelPort>
+        </Variant>
+    </Controller>
+</Vendor>

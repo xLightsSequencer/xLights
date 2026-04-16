@@ -108,7 +108,7 @@
             "controlType": "custom",
             "fullWidth": true,
             "default": "",
-            "description": "Roto-Zoom preset dropdown: 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. NOT serialized — applies preset values to other sliders and resets selection. UI-only."
+            "description": "Roto-Zoom preset dropdown: blank (idle), 'None - Reset', '1 Rev CW', '1 Rev CCW', 'Explode', 'Collapse', 'Explode + Spin CW', 'Shake', 'Spin CW Accelerate'. Blank is the resting state so the user can actively select 'None - Reset' to trigger a reset. NOT serialized — applies preset values to other sliders and resets selection to blank. UI-only."
         },
         {
             "id": "Rotation",
@@ -125,9 +125,10 @@
         },
         {
             "id": "Rotations",
-            "label": "Rotations",
+            "label": "Z Rotations",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "min": 0,
             "max": 200,
             "default": 0,
@@ -135,11 +136,11 @@
             "valueCurve": true,
             "suppressIfDefault": true,
             "lockable": true,
-            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10."
+            "description": "Number of full Z-axis rotations over the effect duration. Stored as int; the engine divides by 10. settingPrefix:SLIDER because PixelBuffer reads SLIDER_Rotations as raw int and divides itself."
         },
         {
             "id": "PivotPointX",
-            "label": "Pivot Point X",
+            "label": "Z Pivot Point X",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -152,7 +153,7 @@
         },
         {
             "id": "PivotPointY",
-            "label": "Pivot Point Y",
+            "label": "Z Pivot Point Y",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -168,6 +169,7 @@
             "label": "Zoom",
             "type": "float",
             "controlType": "slider",
+            "settingPrefix": "SLIDER",
             "min": 0,
             "max": 30,
             "default": 1.0,
@@ -175,7 +177,7 @@
             "valueCurve": true,
             "suppressIfDefault": true,
             "lockable": true,
-            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x."
+            "description": "Buffer zoom factor. Stored with divisor 10; 10 = 1.0x (no zoom), max 30 = 3.0x. settingPrefix:SLIDER because PixelBuffer reads SLIDER_Zoom as raw int and divides itself."
         },
         {
             "id": "ZoomQuality",
@@ -203,7 +205,7 @@
         },
         {
             "id": "XPivot",
-            "label": "X Pivot",
+            "label": "X Pivot Point",
             "type": "int",
             "controlType": "slider",
             "min": 0,
@@ -227,7 +229,7 @@
         },
         {
             "id": "YPivot",
-            "label": "Y Pivot",
+            "label": "Y Pivot Point",
             "type": "int",
             "controlType": "slider",
             "min": 0,

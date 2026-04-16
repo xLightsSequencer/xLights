@@ -15,9 +15,6 @@
 #include <list>
 #include <map>
 
-#define PIANO_SCALE_MIN 0
-#define PIANO_SCALE_MAX 100
-
 class PianoEffect : public RenderableEffect
 {
 public:
@@ -42,18 +39,20 @@ public:
     // Currently not possible but I think changes could be made to make it support partial
     // virtual bool CanRenderPartialTimeInterval() const override { return true; }
 
-    virtual double GetSettingVCMin(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Piano_Scale")
-            return PIANO_SCALE_MIN;
-        return RenderableEffect::GetSettingVCMin(name);
-    }
-    virtual double GetSettingVCMax(const std::string& name) const override
-    {
-        if (name == "E_VALUECURVE_Piano_Scale")
-            return PIANO_SCALE_MAX;
-        return RenderableEffect::GetSettingVCMax(name);
-    }
+    // Cached from Piano.json by OnMetadataLoaded().
+    static int sStartMIDIDefault;
+    static int sEndMIDIDefault;
+    static bool sShowSharpsDefault;
+    static std::string sTypeDefault;
+    static int sScaleDefault;
+    static int sScaleMin;
+    static int sScaleMax;
+    static std::string sMIDITrackDefault;
+    static int sXOffsetDefault;
+    static bool sFadeNotesDefault;
+
+protected:
+    virtual void OnMetadataLoaded() override;
 
 private:
     void RenderPiano(RenderBuffer& buffer, SequenceElements* elements, const int startmidi, const int endmidi, const bool sharps, const std::string type, int scale, std::string MIDITrack, int xoffset, bool fadeNotes);
