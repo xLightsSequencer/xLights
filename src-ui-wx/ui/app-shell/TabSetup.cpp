@@ -233,11 +233,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
 
-    // Force update of Preset dialog
-    if (EffectTreeDlg != nullptr) {
-        delete EffectTreeDlg;
-    }
-    EffectTreeDlg = nullptr;
+    // Force re-initialization of Effect Presets panel when show directory changes
+    _effectPresetsInitialized = false;
 
     // update most recently used array
     int idx = mruDirectories.Index(nd);

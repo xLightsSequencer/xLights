@@ -12,7 +12,7 @@
 
 //(*Headers(EffectTreeDialog)
 #include <wx/button.h>
-#include <wx/dialog.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/textctrl.h>
@@ -31,13 +31,13 @@
 
 class xLightsFrame;
 
-class EffectTreeDialog : public wxDialog
+class EffectTreeDialog : public wxPanel
 {
     void ValidateWindow();
 
 	public:
 
-		EffectTreeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
+		EffectTreeDialog(wxWindow* parent,wxWindowID id=wxID_ANY,const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize,long style=wxTAB_TRAVERSAL);
 		virtual ~EffectTreeDialog();
 
 		//(*Declarations(EffectTreeDialog)
@@ -99,7 +99,6 @@ class EffectTreeDialog : public wxDialog
 		void OnbtDeleteClick(wxCommandEvent& event);
 		void OnbtAddGroupClick(wxCommandEvent& event);
 		void OnTreeCtrl1ItemActivated(wxTreeEvent& event);
-		void OnButton_OKClick(wxCommandEvent& event);
 		void OnTreeCtrl1BeginDrag(wxTreeEvent& event);
 		void OnbtImportClick(wxCommandEvent& event);
 		void OnbtExportClick(wxCommandEvent& event);

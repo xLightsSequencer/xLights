@@ -322,6 +322,7 @@ const wxWindowID xLightsFrame::ID_MENUITEM17 = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_PRESETS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
@@ -1185,6 +1186,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem18->Append(MenuItemColourDropper);
     MenuItemEffectAssist = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemEffectAssist);
+    MenuItemEffectPresets = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_PRESETS, _("Effect Presets"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemEffectPresets);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemSelectEffect);
     MenuItemSearchEffects = new wxMenuItem(MenuItem18, ID_MENUITEM_SEARCH_EFFECTS, _("Search Effects"), wxEmptyString, wxITEM_CHECK);
@@ -1418,6 +1421,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MNU_VALUECURVES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ValueCurvesSelected);
     Connect(ID_MNU_COLOURDROPPER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColourDropperSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
+    Connect(ID_MENUITEM_EFFECT_PRESETS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectPresetsWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
     Connect(ID_MENUITEM_SEARCH_EFFECTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemSearchEffectsSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
@@ -1984,8 +1988,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("Effects panel initialised.");
 
     _serviceManager = std::make_unique<ServiceManager>(this);
-    
-    EffectTreeDlg = nullptr; // must be before any call to SetDir
 
     starttime = wxDateTime::UNow();
     ResetEffectsXml();
@@ -9294,14 +9296,17 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowPresetsPanel()
 {
-    if (CurrentSeqXmlFile == nullptr)
+    InitSequencer();
+    if (EffectTreeDlg == nullptr)
         return;
 
-    if (EffectTreeDlg == nullptr) {
-        EffectTreeDlg = new EffectTreeDialog(this);
+    if (!_effectPresetsInitialized) {
         EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
     }
-    EffectTreeDlg->Show();
+    m_mgr->GetPane("EffectPresets").Show();
+    m_mgr->Update();
+    UpdateViewMenu();
 }
 
 uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
@@ -9339,19 +9344,27 @@ uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::
 
 void xLightsFrame::TogglePresetsPanel()
 {
-    if (CurrentSeqXmlFile == nullptr)
+    InitSequencer();
+    if (EffectTreeDlg == nullptr)
         return;
 
-    if (EffectTreeDlg == nullptr) {
-        ShowPresetsPanel();
-    } else if (EffectTreeDlg->IsVisible()) {
-        EffectTreeDlg->Hide();
-        EffectTreeDlg->Close();
-        delete EffectTreeDlg;
-        EffectTreeDlg = nullptr;
-    } else {
-        EffectTreeDlg->Show();
+    if (!_effectPresetsInitialized) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
     }
+    bool visible = m_mgr->GetPane("EffectPresets").IsShown();
+    if (visible) {
+        m_mgr->GetPane("EffectPresets").Hide();
+    } else {
+        m_mgr->GetPane("EffectPresets").Show();
+    }
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::ShowHideEffectPresetsWindow(wxCommandEvent& event)
+{
+    TogglePresetsPanel();
 }
 
 void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
@@ -10520,6 +10533,7 @@ void xLightsFrame::UpdateViewMenu()
         { "ValueCurveDropper", MenuItemValueCurves },
         { "ColourDropper", MenuItemColourDropper },
         { "EffectAssist", MenuItemEffectAssist },
+        { "EffectPresets", MenuItemEffectPresets },
         { "SelectEffect", MenuItemSelectEffect },
         { "SequenceVideo", MenuItemVideoPreview },
         { "Jukebox", MenuItemJukebox },
