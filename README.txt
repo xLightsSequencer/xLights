@@ -10,15 +10,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.06  May ??, 2026
+2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
                                     the source is uncompressed, hevc_videotoolbox otherwise) and rewrites the
                                     matching video-effect filenames in the sequence.
-    -enh (dkulp)                Media-compatibility check now runs on Windows/Linux too via an FFmpeg-based
-                                    container + codec allowlist, so Mac-incompatible videos (AVI, WMV, MKV,
-                                    legacy QuickTime codecs, animated GIFs) get the same warning and
-                                    Convert-Now flow as on macOS.
     -enh (AGFazio)              Add 'Yes to All' / 'No to All' options when merging base show directory changes
     -enh (derwin12)             Add alternate audio tracks support incl waveform, VU Meter and value curve access. (#3820)
     -enh (derwin12)             Allow selecting audio from a sequence package (zip/piz/xsqz) in Sequence Settings (#5630)
@@ -85,15 +81,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     Settings are automatically migrated from the legacy system on first run.
     -change (dkulp)             Pinwheel effect now defaults to the New Render Method; existing sequences
                                     are migrated to preserve the Old Render Method so their look is unchanged.
+    -change (dkulp/derwin12)    Twinkle effect now defaults to the New Render Method; existing sequences
+                                    are migrated to preserve the Old Render Method so their look is unchanged.
     -change (dkulp)             Effect panels are now built from JSON metadata files in resources/effectmetadata/
                                     instead of wxSmith-generated C++ code. All 54 "standard" effect panels
-                                    migrated (Moving Head's 2345-line visual designer remains wxSmith-based);
-                                    the State/Timing Track radio buttons on State are removed — pick one side
-                                    by setting it, leave the other empty.
-                                    Side effects: Warp X/Y and Fireworks XLocation/YLocation/XVelocity/YVelocity/Fade
-                                    settings now serialize as E_SLIDER_* instead of E_TEXTCTRL_*. Render code reads
-                                    both forms via GetValueCurveInt fallback so behavior is unchanged, but tools that
-                                    parse sequence XML directly should accept either prefix.
+                                    migrated (Moving Head's 2345-line visual designer remains wxSmith-based).
     -change (dkulp)             Effect default / min / max / divisor values are now read from the JSON metadata at
                                     startup instead of from #define constants in each effect. The JSON is the
                                     source of truth — adjusting a slider's default or range in resources/effectmetadata/

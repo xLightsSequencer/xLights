@@ -113,6 +113,13 @@ void TwinkleEffect::adjustSettings(const std::string& version, Effect* effect, b
             v.SetLimits(sStepsVCMin, sStepsVCMax); // extend to new limits (2..400)
             settings["E_VALUECURVE_Twinkle_Steps"] = v.Serialise();
         }
+        // Twinkle_Style default changed from "Old Render Method" to "New Render
+        // Method". Preserve the prior rendering for sequences saved before this
+        // change — if the setting wasn't explicitly stored, pin it to the old
+        // default so behavior doesn't silently change on load.
+        if (!settings.Contains("E_CHOICE_Twinkle_Style")) {
+            settings["E_CHOICE_Twinkle_Style"] = "Old Render Method";
+        }
     }
 }
 
