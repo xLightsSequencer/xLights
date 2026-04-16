@@ -10,6 +10,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.07  April ??, 2026
+
 2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
