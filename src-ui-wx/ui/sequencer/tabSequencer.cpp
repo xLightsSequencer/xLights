@@ -222,6 +222,11 @@ void xLightsFrame::CreateSequencer()
 
 void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
 {
+    if (Notebook1->GetSelection() == LAYOUTTAB) {
+        layoutPanel->ResetToDefaults();
+        return;
+    }
+
     m_mgr->GetPane("ModelPreview").Caption("Model Preview").Dock().Left().Layer(1).Show();
     m_mgr->GetPane("HousePreview").Caption("House Preview").Dock().Left().Layer(1).Show();
     m_mgr->GetPane("EffectAssist").Caption("Effect Assist").Dock().Left().Layer(1).Hide();
@@ -3331,7 +3336,11 @@ void xLightsFrame::ShowHideSelectEffectsWindow(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuDockAllSelected(wxCommandEvent& event)
 {
-    ResetAllSequencerWindows();
+    if (Notebook1->GetSelection() == LAYOUTTAB) {
+        layoutPanel->DockAll();
+    } else {
+        ResetAllSequencerWindows();
+    }
 }
 
 void xLightsFrame::ShowHideBufferSettingsWindow(wxCommandEvent& event)
