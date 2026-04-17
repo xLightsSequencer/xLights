@@ -1103,7 +1103,13 @@ double ModelPreview::getViewScale() const {
 }
 
 double ModelPreview::getBackingScaleFactor() const {
+#ifdef __APPLE__
+    // Metal Window are always 1:1 for drawing, the translateToBacking is to map
+    // mouse/window coords (which may not be 1:1), but that's not applicable here
+    return 1.0;
+#else
     return translateToBacking(1.0);
+#endif
 }
 
 bool ModelPreview::GetActive() const
