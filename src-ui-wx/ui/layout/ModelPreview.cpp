@@ -1067,13 +1067,8 @@ double ModelPreview::calcPixelSize(double i) {
 }
 
 double ModelPreview::getViewScale() const {
-    if (allowSelected) {
-        if (!is3d) {
-            return camera2d->GetZoom() * currentScale2d;
-        } else {
-            float zoom = camera3d->GetZoom();
-            return zoom > 0.0f ? 1.0 / zoom : 1.0;
-        }
+    if (allowSelected && !is3d) {
+        return camera2d->GetZoom() * currentScale2d;
     }
     return 1.0;
 }
