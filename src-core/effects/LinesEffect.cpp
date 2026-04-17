@@ -28,9 +28,11 @@ int LinesEffect::sSegmentsDefault = 3;
 int LinesEffect::sThicknessDefault = 1;
 int LinesEffect::sThicknessMin = 1;
 int LinesEffect::sThicknessMax = 10;
-int LinesEffect::sSpeedDefault = 1;
-int LinesEffect::sSpeedMin = 1;
-int LinesEffect::sSpeedMax = 10;
+
+double LinesEffect::sSpeedDefault = 1.0;
+double LinesEffect::sSpeedMin = 0.0;
+double LinesEffect::sSpeedMax = 100.0;
+int LinesEffect::sSpeedDivisor = 10;
 int LinesEffect::sTrailsDefault = 0;
 bool LinesEffect::sFadeTrailsDefault = true;
 
@@ -49,9 +51,10 @@ void LinesEffect::OnMetadataLoaded()
     sThicknessDefault = GetIntDefault("Lines_Thickness", sThicknessDefault);
     sThicknessMin = (int)GetMinFromMetadata("Lines_Thickness", sThicknessMin);
     sThicknessMax = (int)GetMaxFromMetadata("Lines_Thickness", sThicknessMax);
-    sSpeedDefault = GetIntDefault("Lines_Speed", sSpeedDefault);
-    sSpeedMin = (int)GetMinFromMetadata("Lines_Speed", sSpeedMin);
-    sSpeedMax = (int)GetMaxFromMetadata("Lines_Speed", sSpeedMax);
+    sSpeedDefault = GetDoubleDefault("Lines_Speed", sSpeedDefault);
+    sSpeedMin = GetMinFromMetadata("Lines_Speed", sSpeedMin);
+    sSpeedMax = GetMaxFromMetadata("Lines_Speed", sSpeedMax);
+    sSpeedDivisor = GetDivisorFromMetadata("Lines_Speed", sSpeedDivisor);
     sTrailsDefault = GetIntDefault("Lines_Trails", sTrailsDefault);
     sFadeTrailsDefault = GetBoolDefault("Lines_FadeTrails", sFadeTrailsDefault);
 }
@@ -62,7 +65,7 @@ void LinesEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderB
         SettingsMap.GetInt("SLIDER_Lines_Objects", sObjectsDefault),
         SettingsMap.GetInt("SLIDER_Lines_Segments", sSegmentsDefault),
         GetValueCurveInt("Lines_Thickness", sThicknessDefault, SettingsMap, oset, sThicknessMin, sThicknessMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
-        GetValueCurveInt("Lines_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS()),
+        GetValueCurveDouble("Lines_Speed", sSpeedDefault, SettingsMap, oset, sSpeedMin, sSpeedMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS(), sSpeedDivisor),
         SettingsMap.GetInt("SLIDER_Lines_Trails", sTrailsDefault),
         SettingsMap.GetBool("CHECKBOX_Lines_FadeTrails", sFadeTrailsDefault)
     );
@@ -127,7 +130,7 @@ public:
         }
         _points.push_back(std::move(pts));
     }
-    void Advance(const RenderBuffer& buffer, int speed, int trails)
+    void Advance(const RenderBuffer& buffer, double speed, int trails)
     {
         while ((int)_points.size() > trails + 1) {
             _points.pop_back();
@@ -191,7 +194,7 @@ public:
     };
     virtual ~LinesRenderCache() {};
     std::list<LineObject> _lineObjects;
-    void Advance(const RenderBuffer& buffer, int speed, int trails) {
+    void Advance(const RenderBuffer& buffer, double speed, int trails) {
         for (auto& it : _lineObjects) {
             it.Advance(buffer, speed, trails);
         }
@@ -208,7 +211,7 @@ public:
     }
 };
 
-void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thickness, int speed, int trails, bool fadeTrails)
+void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thickness, double speed, int trails, bool fadeTrails)
 {
 	// Grab our cache
 	LinesRenderCache *cache = static_cast<LinesRenderCache*>(buffer.infoCache[id]);
@@ -239,5 +242,31 @@ void LinesEffect::Render(RenderBuffer &buffer, int objects, int points, int thic
         temp.Clear();
         line.Draw(temp, c, trails, fadeTrails, thickness);
         buffer.AlphaBlend(temp);
+    }
+}
+
+bool LinesEffect::needToAdjustSettings(const std::string& version)
+{
+    return IsVersionOlder("2026.07", version) || RenderableEffect::needToAdjustSettings(version);
+}
+
+void LinesEffect::adjustSettings(const std::string& version, Effect* effect, bool removeDefaults)
+{
+    if (RenderableEffect::needToAdjustSettings(version)) {
+        RenderableEffect::adjustSettings(version, effect, removeDefaults);
+    }
+
+    if (IsVersionOlder("2026.07", version)) {
+        // Lines_Speed changed from int (E_SLIDER_Lines_Speed, range 1-10)
+        // to float (E_TEXTCTRL_Lines_Speed, range 0.0-10.0).
+        // The stored integer value equals the actual speed, so no scaling is
+        // needed — just rename the key so the new panel control finds it.
+        SettingsMap& settings = effect->GetSettings();
+        const std::string oldKey = "E_SLIDER_Lines_Speed";
+        const std::string newKey = "E_TEXTCTRL_Lines_Speed";
+        if (settings.Contains(oldKey) && !settings.Contains(newKey)) {
+            settings[newKey] = settings.Get(oldKey, "");
+            settings.erase(oldKey);
+        }
     }
 }
