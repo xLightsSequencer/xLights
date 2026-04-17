@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
+    -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)
+    -bug (derwin12)             Preserve Layer Blending and Settings when using Random Effects (#6136)
+    -bug (AGFazio)              Honour 2D to 3D Layout changing (#6133)
+    -bug (AGFazio)              Fix pixel sizing appearing zoomed in (#6139)
+    -bug (derwin12)             Downloadeded models now placed where you drop them (#5912)
+    -bug (derwin12)             Random Value Curve now holds the value properly (#4803)
 
 2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
