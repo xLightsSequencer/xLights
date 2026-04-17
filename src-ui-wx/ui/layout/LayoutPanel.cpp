@@ -4010,9 +4010,10 @@ void LayoutPanel::FinalizeModel()
                 delete prog;
             }
 
-            if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine)
-            {
+            if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine) {
                 _newModel->SetPosition(pos.x, pos.y);
+            } else {
+                _newModel->GetBaseObjectScreenLocation().SetWorldPosition(pos);
             }
             if (b->GetState() == 1)
             {
