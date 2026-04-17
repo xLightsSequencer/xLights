@@ -13,12 +13,12 @@
 #include <wx/string.h>
 //*)
 
-#include <wx/persist/toplevel.h>
 #include <wx/busyinfo.h>
 #include <wx/utils.h>
 #include <wx/artprov.h>
 
 #include "EffectTreeDialog.h"
+#include "xLightsApp.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "render/SequenceMedia.h"
 #include <fstream>
@@ -58,7 +58,7 @@ const wxWindowID EffectTreeDialog::ID_BUTTON_SEARCH = wxNewId();
 const wxWindowID EffectTreeDialog::ID_TIMER_GIF = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(EffectTreeDialog,wxDialog)
+BEGIN_EVENT_TABLE(EffectTreeDialog,wxPanel)
 	//(*EventTable(EffectTreeDialog)
 	//*)
     EVT_COMMAND(wxID_ANY, EVT_EFFTREEDROP, EffectTreeDialog::OnDropEffect)
@@ -67,7 +67,7 @@ END_EVENT_TABLE()
 #define MIN_PREVIEW_SIZE 64
 #define MAX_PREVIEW_SIZE 256
 
-EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size,long style)
 {
 	//(*Initialize(EffectTreeDialog)
 	wxBoxSizer* BoxSizer2;
@@ -76,9 +76,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	wxFlexGridSizer* FlexGridSizer2;
 	wxFlexGridSizer* FlexGridSizer3;
 	wxGridSizer* BoxSizer1;
-	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 
-	Create(parent, wxID_ANY, _("Effect Presets"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
+	Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style, _T("wxID_ANY"));
 	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
 	FlexGridSizer1->AddGrowableCol(0);
 	FlexGridSizer1->AddGrowableRow(0);
@@ -136,13 +135,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	FlexGridSizer3->Add(BoxSizer2, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer2->Add(FlexGridSizer3, 1, wxALL|wxEXPAND, 5);
 	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
-	StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
-	StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, _("Close")));
-	StdDialogButtonSizer1->Realize();
-	FlexGridSizer1->Add(StdDialogButtonSizer1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(FlexGridSizer1);
 	TimerGif.SetOwner(this, ID_TIMER_GIF);
-	FlexGridSizer1->SetSizeHints(this);
 
 	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_BEGIN_DRAG, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1BeginDrag);
 	Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&EffectTreeDialog::OnTreeCtrl1ItemActivated);
@@ -166,21 +160,15 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TIMER_GIF, wxEVT_TIMER, (wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
 	//*)
 
+    Connect(wxEVT_SHOW, (wxObjectEventFunction)&EffectTreeDialog::OnShow);
+
     treeRootID = TreeCtrl1->AddRoot("Effect Presets");
-    xLightParent = (xLightsFrame*)parent;
+    xLightParent = xLightsApp::GetFrame();
 
     EffectTreeDialogTextDropTarget* effDropTarget = new EffectTreeDialogTextDropTarget(this, TreeCtrl1, "EffectPresetOrGroup");
     TreeCtrl1->SetDropTarget(effDropTarget);
 
-    // remember dialog size/location
-    if (!wxPersistentRegisterAndRestore(this, "xLights.EffectTreeDialog")) {
-        // defaults if this hasn't already been persisted
-        SetSize(700, 600);
-        CenterOnScreen();
-    }
-
-
-    // Get the optimal preview size based on current dialog size
+    // Get the optimal preview size based on current panel size
     int previewSize = GetOptimalPreviewSize();
 
     // Set size for bitmap widget and blank image to optimal size so the dialog
@@ -205,6 +193,17 @@ EffectTreeDialog::~EffectTreeDialog()
     //*)
 }
 
+void EffectTreeDialog::OnShow(wxShowEvent& event)
+{
+    if (event.IsShown()) {
+        if (gifImage && gifImage->IsOk())
+            TimerGif.Start(50);
+    } else {
+        TimerGif.Stop();
+    }
+    event.Skip();
+}
+
 void EffectTreeDialog::InitItems(EffectPresetManager& manager)
 {
     _presetManager = &manager;
@@ -216,6 +215,7 @@ void EffectTreeDialog::InitItems(EffectPresetManager& manager)
         EffectsFileDirty();
     }
 
+    TreeCtrl1->DeleteChildren(treeRootID);
     TreeCtrl1->SetItemData(treeRootID, new MyTreeItemData(&_presetManager->GetRoot()));
 
     AddTreeElementsRecursive(_presetManager->GetRoot(), treeRootID);
@@ -677,12 +677,6 @@ void EffectTreeDialog::OnTreeCtrl1ItemActivated(wxTreeEvent& event)
 void EffectTreeDialog::EffectsFileDirty()
 {
     xLightParent->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "EffectsFileDirty");
-}
-
-void EffectTreeDialog::OnButton_OKClick(wxCommandEvent& event)
-{
-    Show(false);
-    ValidateWindow();
 }
 
 void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)

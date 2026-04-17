@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <wxsmith>
-	<object class="wxDialog" name="EffectTreeDialog">
-		<title>Effect Presets</title>
-		<id_arg>0</id_arg>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+	<object class="wxPanel" name="EffectTreeDialog">
 		<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
 			<cols>1</cols>
 			<growablecols>0</growablecols>
@@ -199,18 +196,6 @@
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
-					<object class="button">
-						<object class="wxButton" name="wxID_OK">
-							<label>Close</label>
-						</object>
-					</object>
-				</object>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 				<option>1</option>
 			</object>

@@ -55,6 +55,7 @@
 #include "MainSequencer.h"
 #include "ui/sequencer/PerspectivesPanel.h"
 #include "ui/sequencer/SelectPanel.h"
+#include "ui/sequencer/EffectTreeDialog.h"
 #include "ui/diagnostics/SearchPanel.h"
 #include "ui/layout/LayoutGroup.h"
 #include "ui/media/JukeboxPanel.h"
@@ -194,6 +195,11 @@ void xLightsFrame::CreateSequencer()
     m_mgr->AddPane(_coloursPanel, wxAuiPaneInfo().Name(wxT("ColourDropper")).Caption(wxT("Colours")).Top().Layer(0).Hide());
     m_mgr->AddPane(jukeboxPanel,wxAuiPaneInfo().Name(wxT("Jukebox")).Caption(wxT("Jukebox")).Top().Layer(0).Hide());
     m_mgr->AddPane(_findDataPanel, wxAuiPaneInfo().Name(wxT("FindData")).Caption(wxT("Find Data")).Top().Layer(0).Hide());
+
+    spdlog::debug("CreateSequencer: Adding Effect Presets Panel.");
+    EffectTreeDlg = new EffectTreeDialog(PanelSequencer);
+    m_mgr->AddPane(EffectTreeDlg, wxAuiPaneInfo().Name(wxT("EffectPresets")).Caption(wxT("Effect Presets"))
+        .Float().BestSize(700, 600).Hide());
     // The three shared panels use an internal wxScrolledWindow so they can
     // shrink below the natural content size. MinSize on the AUI pane lets
     // the user drag below the natural content height — the inner scroll
@@ -230,6 +236,7 @@ void xLightsFrame::ResetWindowsToDefaultPositions(wxCommandEvent& event)
     m_mgr->GetPane("Perspectives").Caption("Perspectives").Dock().Left().Layer(1).Hide();
     m_mgr->GetPane("Effect").Caption("Effect").Dock().Left().Layer(0).Show().Row(1);
     m_mgr->GetPane("SelectEffect").Caption("Select Effects").Dock().Left().Layer(1).Hide();
+    m_mgr->GetPane("EffectPresets").Caption("Effect Presets").Float().Hide();
 
     m_mgr->GetPane("EffectDropper").Caption("Effects").Dock().Top().Layer(0).Hide();
     m_mgr->GetPane("Color").Caption("Color").Top().Dock().Layer(0).Show();
@@ -3211,6 +3218,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
+    }
+
+    if (m_mgr->GetPane("EffectPresets").IsShown() && !_effectPresetsInitialized && EffectTreeDlg != nullptr) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
     }
 
     if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
