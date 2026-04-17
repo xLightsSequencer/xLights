@@ -29,6 +29,7 @@ public:
         MIRROR,
         COPY,
         FLIP,
+        SPEED,
 
         COUNT_WARP_STYLES
     };

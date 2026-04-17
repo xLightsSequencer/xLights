@@ -2417,15 +2417,11 @@ void xLightsFrame::RandomizeEffect(wxCommandEvent& event)
                                                                        el->GetIndex(),
                                                                        el->GetEffect(j));
 
-                // Keep canvas mode if it was set as the effect is unlikely to work
-                // properly without it
+                // Preserve layer blending (B_) and transition/layer (T_) settings
+                // so randomizing only changes the effect parameters, not the layer settings
                 for (const auto& it : oldSettings)
                 {
-                    //if (StartsWith(it.first, "B_") || StartsWith(it.first, "T_"))
-                    //{
-                    //    settings += "," + it.first + "=" + it.second;
-                    //}
-                    if (it.first == "T_CHECKBOX_Canvas")
+                    if (StartsWith(it.first, "B_") || StartsWith(it.first, "T_"))
                     {
                         settings += "," + it.first + "=" + it.second;
                     }

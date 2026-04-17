@@ -1,4 +1,4 @@
-/***************************************************************
+ /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -24,6 +24,7 @@
 #include <wx/version.h>
 #include <wx/dirdlg.h>
 #include <wx/filename.h>
+#include <wx/config.h>
 
 #include <stdlib.h>     /* srand */
 #include <time.h>       /* time */
@@ -151,7 +152,7 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         wxString dir;
         wxGetEnv("APPDATA", &dir);
-        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
+        std::string const logFilePath = std::string(dir.c_str()) + "\\xLights\\" + logFileName;
 #endif
 #ifdef __WXOSX__
         wxFileName home;
@@ -674,7 +675,11 @@ bool xLightsApp::OnInit()
         }
         if (parser.Found("s", &showDir)) {
             spdlog::info("-s: Show directory set to {}.", (const char*)showDir.c_str());
-            info += _("Setting show directory to ") + showDir + "\n";
+            wxString lastDir;
+            GetXLightsConfig()->Read("LastDir", &lastDir);
+            if (lastDir != showDir) {
+                info += _("Setting show directory to ") + showDir + "\n";
+            }
         }
 
         if (parser.Found("a")) {

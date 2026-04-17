@@ -46,6 +46,7 @@ public:
     float GetCameraRotationY() const override { return 0.0f; }
     glm::mat4& GetProjViewMatrix() override { return _projViewMatrix; }
     glm::mat4& GetProjMatrix() override { return _projMatrix; }
+    glm::mat4& GetViewMatrix() override { return _viewMatrix; }
 
     xlGraphicsContext* getCurrentGraphicsContext() override;
     xlGraphicsProgram* getCurrentSolidProgram() override { return _solidProgram; }
@@ -76,6 +77,7 @@ private:
     xlGraphicsProgram* _transparentViewObjectProgram = nullptr;
     glm::mat4 _projViewMatrix{1.0f};
     glm::mat4 _projMatrix{1.0f};
+    glm::mat4 _viewMatrix{1.0f};
     uint32_t _currentFrameTime = 0;
     int _virtualW = 1920;
     int _virtualH = 1080;

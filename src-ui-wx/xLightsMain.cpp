@@ -1665,7 +1665,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsSmallWaveform", &_smallWaveform, false);
     spdlog::debug("Small Waveform: {}.", toStr(_smallWaveform));
 
-    config->Read("xlightsRenderBell", &_renderBellEnabled, false);
+    config->Read("xLightsRenderBell", &_renderBellEnabled, false);
     spdlog::debug("Render Bell Enabled: {}.", toStr(_renderBellEnabled));
 
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
@@ -1821,7 +1821,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsIgnoreVendorModelRecommendations2", &_ignoreVendorModelRecommendations, defVMR);
     spdlog::debug("Ignore vendor model recommendations: {}.", toStr(_ignoreVendorModelRecommendations));
 
-    config->Read("XLightsControllerPingInterval", &_controllerPingInterval, 0);
+    config->Read("xLightsControllerPingInterval", &_controllerPingInterval, 0);
     if (_controllerPingInterval > 0) {
         _pingTimer->Start(_controllerPingInterval * 1000);
         _statusRefreshTimer->Start(_controllerPingInterval/2 * 1000);
@@ -4521,7 +4521,7 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
 #ifdef __WXMSW__
     wxString dir;
     wxGetEnv("APPDATA", &dir);
-    wxString filename = dir + "/" + fileName;
+    wxString filename = dir + "/xLights/" + fileName;
 #endif
 #ifdef __WXOSX__
     wxFileName home;

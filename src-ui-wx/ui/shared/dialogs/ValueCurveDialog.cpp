@@ -677,11 +677,11 @@ void ValueCurvePanel::SaveUndoSelected() {
 }
 
 float ValueCurvePanel::ToReal(float y) {
-    return _vc->GetMin() + y * (_vc->GetMax() - _vc->GetMin());
+    return (_vc->GetMin() + y * (_vc->GetMax() - _vc->GetMin())) / _vc->GetDivisor();
 }
 
 float ValueCurvePanel::ToNormalised(float y) {
-    return (y - _vc->GetMin()) / (_vc->GetMax() - _vc->GetMin());
+    return (y * _vc->GetDivisor() - _vc->GetMin()) / (_vc->GetMax() - _vc->GetMin());
 }
 
 void ValueCurvePanel::mouseLeftDClick(wxMouseEvent& event) {
@@ -694,10 +694,10 @@ void ValueCurvePanel::mouseLeftDClick(wxMouseEvent& event) {
             wxTextEntryDialog dlg(GetParent(), "Enter value:", "Manual entry", std::to_string(ToReal(_vc->GetPointAt(point))));
             if (dlg.ShowModal() == wxID_OK) {
                 float v = wxAtof(dlg.GetValue());
-                if (v < _vc->GetMin())
-                    v = _vc->GetMin();
-                if (v > _vc->GetMax())
-                    v = _vc->GetMax();
+                if (v < _vc->GetMin() / _vc->GetDivisor())
+                    v = _vc->GetMin() / _vc->GetDivisor();
+                if (v > _vc->GetMax() / _vc->GetDivisor())
+                    v = _vc->GetMax() / _vc->GetDivisor();
                 SaveUndoSelected();
                 _vc->SetValueAt(x, ToNormalised(v));
                 Refresh();

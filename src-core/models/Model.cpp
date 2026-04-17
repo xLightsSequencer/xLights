@@ -2992,6 +2992,30 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
         uiCaches[cacheKey] = nullptr;
         cache = nullptr;
     }
+
+    // Depth sort applies to 3D previews with non-SQUARE pixel styles. The sort axis is
+    // the 3rd row of (ViewMatrix * ModelMatrix) — for any node at local (x, y, z) the
+    // camera-space Z is axis.dot(x, y, z) + const, so sorting nodes by that dot product
+    // gives back-to-front order for the current camera orientation.
+    const bool depthSort = is_3d && _pixelStyle != PIXEL_STYLE::PIXEL_STYLE_SQUARE;
+    glm::vec3 currentSortAxis(0.0f);
+    if (depthSort) {
+        glm::mat4 mv = preview->GetViewMatrix() * screenLocation.GetModelMatrix();
+        currentSortAxis = glm::vec3(mv[0][2], mv[1][2], mv[2][2]);
+    }
+    // Rebuild the cache if the camera has rotated enough that the baked node order no
+    // longer composites correctly. cos(~14°) ≈ 0.97 — a small enough threshold that drift
+    // during a rotation drag is hard to see, large enough to avoid rebuilding every frame.
+    if (cache != nullptr && depthSort &&
+        glm::dot(cache->viewSortAxis, cache->viewSortAxis) > 0.0f) {
+        float d = glm::dot(glm::normalize(cache->viewSortAxis),
+                           glm::normalize(currentSortAxis));
+        if (d < 0.97f) {
+            delete cache;
+            uiCaches[cacheKey] = nullptr;
+            cache = nullptr;
+        }
+    }
     if (cache == nullptr) {
         screenLocation.UpdateBoundingBox(Nodes);
         cache = new PreviewGraphicsCacheInfo();
@@ -3043,37 +3067,61 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
         }
 
-        int first = 0;
-        int last = NodeCount;
-        int buffFirst = -1;
-        int buffLast = -1;
-        bool left = true;
         int nodeRenderOrder = NodeRenderOrder();
-        // int lastChan = -999;
-        while (first < last) {
-            int n;
-            if (left) {
-                n = first;
-                first++;
-                if (nodeRenderOrder == 1) {
-                    if (buffFirst == -1) {
-                        buffFirst = Nodes[n]->Coords[0].bufX;
-                    }
-                    if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
-                        left = false;
-                    }
-                }
-            } else {
-                last--;
-                n = last;
-                if (buffLast == -1) {
-                    buffLast = Nodes[n]->Coords[0].bufX;
-                }
-                if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
-                    left = true;
-                }
+        std::vector<int> nodeOrder;
+        nodeOrder.reserve(NodeCount);
+        if (depthSort) {
+            for (int n = 0; n < (int)NodeCount; ++n) {
+                nodeOrder.push_back(n);
             }
+            // Sort ascending by camera-space Z so the farthest node (most negative Z in the
+            // OpenGL convention) renders first — i.e. back-to-front.
+            const glm::vec3 axis = currentSortAxis;
+            std::sort(nodeOrder.begin(), nodeOrder.end(), [this, axis](int a, int b) {
+                float za = axis.x * Nodes[a]->Coords[0].screenX +
+                           axis.y * Nodes[a]->Coords[0].screenY +
+                           axis.z * Nodes[a]->Coords[0].screenZ;
+                float zb = axis.x * Nodes[b]->Coords[0].screenX +
+                           axis.y * Nodes[b]->Coords[0].screenY +
+                           axis.z * Nodes[b]->Coords[0].screenZ;
+                return za < zb;
+            });
+            cache->viewSortAxis = currentSortAxis;
+        } else {
+            int first = 0;
+            int last = NodeCount;
+            int buffFirst = -1;
+            int buffLast = -1;
+            bool left = true;
+            while (first < last) {
+                int n;
+                if (left) {
+                    n = first;
+                    first++;
+                    if (nodeRenderOrder == 1) {
+                        if (buffFirst == -1) {
+                            buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
+                            left = false;
+                        }
+                    }
+                } else {
+                    last--;
+                    n = last;
+                    if (buffLast == -1) {
+                        buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
+                        left = true;
+                    }
+                }
+                nodeOrder.push_back(n);
+            }
+        }
 
+        bool firstCoord = true;
+        for (int n : nodeOrder) {
             size_t CoordCount = GetCoordCount(n);
             for (size_t c2 = 0; c2 < CoordCount; ++c2) {
                 // draw node on screen
@@ -3081,13 +3129,14 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 float sy = Nodes[n]->Coords[c2].screenY;
                 float sz = Nodes[n]->Coords[c2].screenZ;
 
-                if (n == 0 && c2 == 0) {
+                if (firstCoord) {
                     cache->boundingBox[0] = sx;
                     cache->boundingBox[1] = sy;
                     cache->boundingBox[2] = sz;
                     cache->boundingBox[3] = sx;
                     cache->boundingBox[4] = sy;
                     cache->boundingBox[5] = sz;
+                    firstCoord = false;
                 } else {
                     cache->boundingBox[0] = std::min(sx, cache->boundingBox[0]);
                     cache->boundingBox[1] = std::min(sy, cache->boundingBox[1]);
@@ -3106,8 +3155,6 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                     cache->vica->AddCircleAsTriangles(sx, sy, sz, ((float)modelPixelSize) / 2.0f, n, eidx, pixelSize);
                 }
             }
-
-            // lastChan = Nodes[n]->ActChan;
         }
         cache->program->addStep([=, this](xlGraphicsContext* ctx) {
             if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {

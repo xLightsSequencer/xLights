@@ -22,7 +22,8 @@
                 "sample on",
                 "mirror",
                 "copy",
-                "flip"
+                "flip",
+                "speed"
             ],
             "default": "water drops"
         },

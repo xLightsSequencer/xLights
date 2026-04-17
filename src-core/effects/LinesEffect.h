@@ -20,7 +20,7 @@ public:
     virtual ~LinesEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     void Render(RenderBuffer& buffer,
-                int objects, int segments, int thickness, int speed, int trails, bool fadeTrails);
+                int objects, int segments, int thickness, double speed, int trails, bool fadeTrails);
 
     // Cached from Lines.json by OnMetadataLoaded().
     static int sObjectsDefault;
@@ -28,12 +28,15 @@ public:
     static int sThicknessDefault;
     static int sThicknessMin;
     static int sThicknessMax;
-    static int sSpeedDefault;
-    static int sSpeedMin;
-    static int sSpeedMax;
+    static double sSpeedDefault;
+    static double sSpeedMin;
+    static double sSpeedMax;
+    static int sSpeedDivisor;
     static int sTrailsDefault;
     static bool sFadeTrailsDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults) override;
 };

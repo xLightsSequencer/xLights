@@ -817,6 +817,10 @@ protected:
         bool isTransparent = false;
         float boundingBox[6] = { 0 };
         float backingScaleFactor = 1.0f;
+        // Local-space sort axis (unnormalized 3rd row of ViewMatrix*ModelMatrix)
+        // used when building the 3D depth-sorted node order. An all-zero vector
+        // means this cache was not built with depth sorting.
+        glm::vec3 viewSortAxis{ 0.0f, 0.0f, 0.0f };
     };
     std::map<std::string, PreviewGraphicsCacheInfo*> uiCaches;
     virtual void deleteUIObjects();
