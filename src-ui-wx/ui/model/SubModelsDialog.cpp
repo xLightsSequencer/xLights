@@ -389,7 +389,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     NodesGrid->Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
         evt.Skip();
         if (NodesGrid->GetNumberCols() < 3) return;
-        const int scrollbarWidth = wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid);
+        const int scrollbarWidth = std::max(0, wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid));
         const int available = evt.GetSize().GetWidth()
                              - NodesGrid->GetRowLabelSize()
                              - NodesGrid->GetColSize(1)
@@ -471,7 +471,7 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
     if (NodesGrid && NodesGrid->GetNumberCols() >= 3) {
         NodesGrid->AutoSizeColumn(1);
         NodesGrid->AutoSizeColumn(2);
-        const int scrollbarWidth = wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid);
+        const int scrollbarWidth = std::max(0, wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid));
         const int available = NodesGrid->GetSize().GetWidth()
                              - NodesGrid->GetRowLabelSize()
                              - NodesGrid->GetColSize(1)
