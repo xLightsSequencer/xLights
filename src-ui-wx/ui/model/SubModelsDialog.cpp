@@ -2675,6 +2675,13 @@ void SubModelsDialog::Aliases()
     if (submodelname.empty()) {
         return;
     }
+
+    // Newly created submodels only exist in SubModelInfo until the dialog is saved.
+    // Flush the current state to the live model so the alias dialog can find the submodel.
+    if (model->GetSubModel(submodelname) == nullptr) {
+        SaveSubModelInfoIntoThisModel(model);
+    }
+
     if (model->GetSubModel(submodelname) == nullptr)
         return;
 
