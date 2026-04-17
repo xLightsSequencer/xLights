@@ -9,8 +9,7 @@
  **************************************************************/
 
  //(*InternalHeaders(LayoutPanel)
- #include <wx/stopwatch.h>
-#include <wx/button.h>
+ #include <wx/button.h>
  #include <wx/checkbox.h>
  #include <wx/choice.h>
  #include <wx/font.h>
@@ -24,6 +23,7 @@
  #include <wx/string.h>
  //*)
 
+#include <wx/stopwatch.h>
 #include <wx/clipbrd.h>
 #include <wx/progdlg.h>
 #include <wx/propgrid/propgrid.h>
@@ -9116,7 +9116,7 @@ void LayoutPanel::DockAll() {
     bool hasModelList = false;
     bool update = false;
     for (size_t i = 0; i < panes.GetCount(); i++) {
-        if (panes[i].IsFloating() && panes[i].IsShown()) {
+        if (panes[i].IsFloating()) {
             if (panes[i].name == "ModelList") {
                 panes[i].Top().Dock();
                 hasModelList = true;
