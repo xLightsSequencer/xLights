@@ -254,7 +254,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	FlexGridSizer6->Add(LayoutCheckbox, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer8->Add(FlexGridSizer6, 1, wxALL|wxFIXED_MINSIZE, 5);
 	NodesGrid = new wxGrid(Panel1, ID_GRID1, wxDefaultPosition, wxDefaultSize, wxVSCROLL, _T("ID_GRID1"));
-	NodesGrid->CreateGrid(5,2);
+	NodesGrid->CreateGrid(5,3);
 	NodesGrid->SetMaxSize(wxSize(400,-1));
 	NodesGrid->EnableEditing(true);
 	NodesGrid->EnableGridLines(true);
@@ -262,6 +262,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
 	NodesGrid->SetDefaultColSize(160, true);
 	NodesGrid->SetColLabelValue(0, _("Node Ranges"));
 	NodesGrid->SetColLabelValue(1, _("Node Count"));
+	NodesGrid->SetColLabelValue(2, _("Line Count"));
 	NodesGrid->SetRowLabelValue(0, _("Strand   1"));
 	NodesGrid->SetDefaultCellFont( NodesGrid->GetFont() );
 	NodesGrid->SetDefaultCellTextColour( NodesGrid->GetForegroundColour() );
@@ -379,9 +380,24 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     ListCtrl_SubModels->InsertColumn(0, nm0);
 
     NodesGrid->SetColFormatNumber(1);
+    NodesGrid->SetColFormatNumber(2);
     for (int row = 0; row < NodesGrid->GetNumberRows(); row++) {
         NodesGrid->SetReadOnly(row, 1);
+        NodesGrid->SetReadOnly(row, 2);
     }
+    NodesGrid->SetColLabelSize(wxGRID_AUTOSIZE);
+    NodesGrid->Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
+        evt.Skip();
+        if (NodesGrid->GetNumberCols() < 3) return;
+        const int scrollbarWidth = std::max(0, wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid));
+        const int available = evt.GetSize().GetWidth()
+                             - NodesGrid->GetRowLabelSize()
+                             - NodesGrid->GetColSize(1)
+                             - NodesGrid->GetColSize(2)
+                             - scrollbarWidth;
+        if (available > NodesGrid->FromDIP(50))
+            NodesGrid->SetColSize(0, available);
+    });
     _parent = parent;
 
     modelPreview = new ModelPreview(ModelPreviewPanelLocation);
@@ -452,13 +468,17 @@ void SubModelsDialog::OnInit(wxInitDialogEvent& event)
     if (h != 0) {
         SplitterWindow1->SetSashPosition(h);
     }
-    if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
-        int gridWidth = NodesGrid->GetSize().GetWidth();
-        int rowLabelWidth = NodesGrid->GetRowLabelSize();
-        int secondColWidth = NodesGrid->FromDIP(80);
-        int firstColWidth = gridWidth - rowLabelWidth - secondColWidth - NodesGrid->FromDIP(20);
-        NodesGrid->SetColSize(0, firstColWidth);
-        NodesGrid->SetColSize(1, secondColWidth);
+    if (NodesGrid && NodesGrid->GetNumberCols() >= 3) {
+        NodesGrid->AutoSizeColumn(1);
+        NodesGrid->AutoSizeColumn(2);
+        const int scrollbarWidth = std::max(0, wxSystemSettings::GetMetric(wxSYS_VSCROLL_X, NodesGrid));
+        const int available = NodesGrid->GetSize().GetWidth()
+                             - NodesGrid->GetRowLabelSize()
+                             - NodesGrid->GetColSize(1)
+                             - NodesGrid->GetColSize(2)
+                             - scrollbarWidth;
+        if (available > NodesGrid->FromDIP(50))
+            NodesGrid->SetColSize(0, available);
     }
 
     const wxSize clientSize = GetClientSize();
@@ -530,6 +550,32 @@ int SubModelsDialog::CountNodesInRange(const wxString& range) {
         } else {
             if (wxAtoi(nodeRange) > 0)
                 count++;
+        }
+    }
+    return count;
+}
+
+// Counts total positions including placeholders (zeros and empty entries between commas).
+// For ranges (e.g. "1-10"), each node in the range counts as a position.
+int SubModelsDialog::CountLinesInRange(const wxString& range) {
+    if (range.IsEmpty())
+        return 0;
+
+    int count = 0;
+    wxStringTokenizer tokenizer(range, ",", wxTOKEN_RET_EMPTY_ALL);
+    while (tokenizer.HasMoreTokens()) {
+        wxString nodeRange = tokenizer.GetNextToken();
+        if (nodeRange.Contains("-")) {
+            int dashPosition = nodeRange.Index('-');
+            int start = wxAtoi(nodeRange.Left(dashPosition));
+            int end = wxAtoi(nodeRange.Right(nodeRange.size() - dashPosition - 1));
+            if (start > 0 && end > 0) {
+                count += std::abs(end - start) + 1;
+            } else {
+                count++;
+            }
+        } else {
+            count++;
         }
     }
     return count;
@@ -1148,7 +1194,7 @@ void SubModelsDialog::OnNodesGridCellChange(wxGridEvent& event)
             wxString newValue = NodesGrid->GetCellValue(r, 0);
             sm->strands[str] = newValue.ToStdString();
             NodesGrid->SetCellValue(r, 1, wxString::Format("%d", CountNodesInRange(newValue)));
-
+            NodesGrid->SetCellValue(r, 2, wxString::Format("%d", CountLinesInRange(newValue)));
         }
     } else {
         spdlog::critical("SubModelsDialog::OnNodesGridCellChange submodel '{}' ... not found. This should have crashed.", (const char*)GetSelectedName().c_str());
@@ -2443,6 +2489,8 @@ void SubModelsDialog::Select(const wxString &name)
             NodesGrid->SetCellValue(cellrow, 0, sm->strands[x]);
             NodesGrid->SetCellValue(cellrow, 1, wxString::Format("%d", CountNodesInRange(sm->strands[x])));
             NodesGrid->SetReadOnly(cellrow, 1);
+            NodesGrid->SetCellValue(cellrow, 2, wxString::Format("%d", CountLinesInRange(sm->strands[x])));
+            NodesGrid->SetReadOnly(cellrow, 2);
         }
 
         applySubmodelRowLabels(name);
@@ -4774,23 +4822,6 @@ void SubModelsDialog::OnCheckBox_OutputToLightsClick(wxCommandEvent& event)
 }
 
 void SubModelsDialog::OnSplitterSashPosChanging(wxSplitterEvent& event) {
-    if (NodesGrid && NodesGrid->GetNumberCols() > 0) {
-        const int newPos = event.GetSashPosition() - FromDIP(310);
-        if (newPos > 200) {
-            NodesGrid->SetColSize(0, newPos);
-        } else {
-            NodesGrid->SetColSize(0, ToDIP(310));
-        }
-        const int sashPos = FromDIP(event.GetSashPosition());
-        if (sashPos < 510) {
-            event.SetSashPosition(FromDIP(510));
-        } else {
-            const int maxWidth = GetClientSize().GetWidth() - FromDIP(200);
-            if (sashPos > maxWidth) {
-                event.SetSashPosition(ToDIP(maxWidth));
-            }
-        }
-    }
     Layout();
 }
 

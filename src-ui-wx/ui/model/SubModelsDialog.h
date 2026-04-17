@@ -336,6 +336,7 @@ protected:
 
     void processAllStrands(std::string (*func)(const std::string&));
     int CountNodesInRange(const wxString& range);
+    int CountLinesInRange(const wxString& range);
 
 private:
 
