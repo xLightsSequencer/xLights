@@ -594,21 +594,33 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event) {
     } else if (type == "Parabolic Down") {
         SetParameter100(1, 4);
         SetParameter100(2, 0);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Parabolic Up") {
         SetParameter100(1, 4);
         SetParameter100(2, 100);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Logarithmic Up") {
         SetParameter100(1, 4);
         SetParameter100(2, 100);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Logarithmic Down") {
         SetParameter100(1, 15);
         SetParameter100(2, 50);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Exponential Up") {
         SetParameter100(1, 100);
         SetParameter100(2, 50);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Exponential Down") {
         SetParameter100(1, 100);
         SetParameter100(2, 50);
+        SetParameter100(3, 0);
+        SetParameter100(4, 100);
     } else if (type == "Sine") {
         SetParameter100(1, 75);
         _vc->SetTimeOffset(0);
@@ -1149,7 +1161,7 @@ void ValueCurveDialog::ValidateWindow() {
         TextCtrl_Parameter3->Disable();
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
-    } else if (type == "Ramp" || type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down" || type == "Timing Track Toggle") {
+    } else if (type == "Ramp" || type == "Timing Track Toggle") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Enable();
@@ -1158,6 +1170,15 @@ void ValueCurveDialog::ValidateWindow() {
         TextCtrl_Parameter3->Disable();
         Slider_Parameter4->Disable();
         TextCtrl_Parameter4->Disable();
+    } else if (type == "Parabolic Down" || type == "Parabolic Up" || type == "Logarithmic Up" || type == "Logarithmic Down" || type == "Exponential Up" || type == "Exponential Down") {
+        Slider_Parameter1->Enable();
+        TextCtrl_Parameter1->Enable();
+        Slider_Parameter2->Enable();
+        TextCtrl_Parameter2->Enable();
+        Slider_Parameter3->Enable();
+        TextCtrl_Parameter3->Enable();
+        Slider_Parameter4->Enable();
+        TextCtrl_Parameter4->Enable();
     } else if (type == "Saw Tooth" || type == "Ramp Up/Down Hold" || type == "Ramp Up/Down" || type == "Square" || type == "Random" || type == "Music" || type == "Inverted Music" || type == "Timing Track Fade Fixed" || type == "Timing Track Fade Proportional") {
         Slider_Parameter1->Enable();
         TextCtrl_Parameter1->Enable();
@@ -1243,39 +1264,29 @@ void ValueCurveDialog::ValidateWindow() {
         _vc->SetParameter4(0);
     } else if (type == "Parabolic Down") {
         StaticText_P1->SetLabel("Slope");
-        StaticText_P2->SetLabel("Low");
-        StaticText_P3->SetLabel("N/A");
-        StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
-        _vc->SetParameter4(0);
+        StaticText_P2->SetLabel("Vertical Offset");
+        StaticText_P3->SetLabel("Start Level");
+        StaticText_P4->SetLabel("End Level");
     } else if (type == "Parabolic Up") {
         StaticText_P1->SetLabel("Slope");
-        StaticText_P2->SetLabel("High");
-        StaticText_P3->SetLabel("N/A");
-        StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
-        _vc->SetParameter4(0);
+        StaticText_P2->SetLabel("Vertical Offset");
+        StaticText_P3->SetLabel("Start Level");
+        StaticText_P4->SetLabel("End Level");
     } else if (type == "Logarithmic Up") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
-        StaticText_P3->SetLabel("N/A");
-        StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
-        _vc->SetParameter4(0);
+        StaticText_P3->SetLabel("Start Level");
+        StaticText_P4->SetLabel("End Level");
     } else if (type == "Logarithmic Down") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
-        StaticText_P3->SetLabel("N/A");
-        StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
-        _vc->SetParameter4(0);
+        StaticText_P3->SetLabel("Start Level");
+        StaticText_P4->SetLabel("End Level");
     } else if (type == "Exponential Up" || type == "Exponential Down") {
         StaticText_P1->SetLabel("Rate");
         StaticText_P2->SetLabel("Vertical Offset");
-        StaticText_P3->SetLabel("N/A");
-        StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter3(0);
-        _vc->SetParameter4(0);
+        StaticText_P3->SetLabel("Start Level");
+        StaticText_P4->SetLabel("End Level");
     } else if (type == "Sine") {
         StaticText_P1->SetLabel("Start");
         StaticText_P2->SetLabel("Amplitude");

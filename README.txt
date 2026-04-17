@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
+    -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End
+                                    Level (P3/P4) to constrain the output range. Sliders show field units for
+                                    intuitive entry. Existing sequences unaffected.
     -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)
     -bug (derwin12)             Preserve Layer Blending and Settings when using Random Effects (#6136)
     -bug (AGFazio)              Honour 2D to 3D Layout changing (#6133)

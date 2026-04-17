@@ -398,21 +398,33 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     }
     else if (type == "Parabolic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Parabolic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Sine")
     {
@@ -479,21 +491,33 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
     else if (type == "Parabolic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Parabolic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Sine")
     {
@@ -724,14 +748,15 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
         _parameter2 = _parameter2 * newrange / oldrange + mindiff;
     }
 
+    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && !p34Legacy)
     {
         _parameter3 = _parameter3 * newrange / oldrange + mindiff;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && !p34Legacy)
     {
         _parameter4 = _parameter4 * newrange / oldrange + mindiff;
     }
@@ -788,14 +813,18 @@ void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
         _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
     }
 
+    // Protect legacy curves where P3/P4 were both 0 (unset). With MINVOID ranges,
+    // FixChangedScale would otherwise shift these zeros into field-unit space, wrongly
+    // activating the Start/End Level feature on old sequences.
+    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && !p34Legacy)
     {
         _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && !p34Legacy)
     {
         _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
@@ -826,13 +855,14 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         _parameter2 = (_parameter2 - _min) * newrange / oldrange + newmin;
     }
 
+    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID) {
+    if (min == MINVOID && !p34Legacy) {
         _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID) {
+    if (min == MINVOID && !p34Legacy) {
         _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
@@ -984,7 +1014,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Parabolic Up")
@@ -1017,7 +1053,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Up")
@@ -1049,7 +1091,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -1081,7 +1129,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Up")
@@ -1113,7 +1167,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Down")
@@ -1145,7 +1205,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_parameter3 != 0 || _parameter4 != 0) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Sine")
