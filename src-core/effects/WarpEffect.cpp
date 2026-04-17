@@ -28,6 +28,15 @@
 #include "ispc/WarpFunctions.ispc.h"
 #include "Parallel.h"
 
+class WarpSpeedCache : public EffectRenderCache
+{
+public:
+    WarpSpeedCache() : accumulatedPos(0.0) {}
+    virtual ~WarpSpeedCache() {}
+    std::vector<xlColorVector> frames;
+    double accumulatedPos;
+};
+
 namespace
 {
     template <class T> T CLAMP( const T& lo, const T&val, const T& hi )
@@ -230,6 +239,47 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
         RenderSampleOn(buffer, x, y);
         return;
     }
+    if (warpType == WarpEffect::WarpType::SPEED) {
+        // Temporal slow-motion: capture canvas frames and replay at reduced speed.
+        // xPercentage (0-100) is the playback speed as a percentage of normal.
+        WarpSpeedCache *cache = (WarpSpeedCache *)buffer.infoCache[id];
+        if (cache == nullptr) {
+            cache = new WarpSpeedCache();
+            buffer.infoCache[id] = cache;
+        }
+        if (buffer.needToInit) {
+            buffer.needToInit = false;
+            cache->frames.clear();
+            cache->accumulatedPos = 0.0;
+        }
+
+        double speedFactor = xPercentage / 100.0;
+        int frameOffset = buffer.curPeriod - buffer.curEffStartPer;
+
+        if (frameOffset >= (int)cache->frames.size()) {
+            cache->frames.resize(frameOffset + 1);
+        }
+        xlColorVector &captured = cache->frames[frameOffset];
+        int pixCount = buffer.BufferWi * buffer.BufferHt;
+        captured.resize(pixCount);
+        for (int py = 0; py < buffer.BufferHt; ++py) {
+            for (int px = 0; px < buffer.BufferWi; ++px) {
+                captured[py * buffer.BufferWi + px] = buffer.GetPixelDirect(px, py);
+            }
+        }
+
+        int targetFrame = (int)cache->accumulatedPos;
+        if (targetFrame >= 0 && targetFrame < (int)cache->frames.size() && !cache->frames[targetFrame].empty()) {
+            const xlColorVector &src = cache->frames[targetFrame];
+            for (int py = 0; py < buffer.BufferHt; ++py) {
+                for (int px = 0; px < buffer.BufferWi; ++px) {
+                    buffer.SetPixelDirect(px, py, src[py * buffer.BufferWi + px]);
+                }
+            }
+        }
+        cache->accumulatedPos += speedFactor;
+        return;
+    }
 
     int count = buffer.GetPixelCount();
     if (count == 0) return;
@@ -352,6 +402,9 @@ WarpEffect::WarpType WarpEffect::mapWarpType(const std::string &s) {
     }
     if (s == "flip") {
         return WarpEffect::FLIP;
+    }
+    if (s == "speed") {
+        return WarpEffect::SPEED;
     }
     return WarpEffect::COPY;
 }
