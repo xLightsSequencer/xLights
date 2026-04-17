@@ -175,16 +175,29 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     AVCodecID outCodecId = useRawvideo ? AV_CODEC_ID_RAWVIDEO : AV_CODEC_ID_HEVC;
     const AVCodec* encoder = nullptr;
     if (!useRawvideo) {
-        // Prefer hevc_videotoolbox on macOS (hardware encode). Fall back to
-        // whatever libavcodec provides for HEVC, then finally rawvideo as a
-        // last resort so at least we produce a bit-exact MOV the user can
-        // play back.
-        encoder = avcodec_find_encoder_by_name("hevc_videotoolbox");
-        if (!encoder) {
-            encoder = avcodec_find_encoder(AV_CODEC_ID_HEVC);
+        // Priority order:
+        //   1. hevc_videotoolbox — macOS hardware HEVC
+        //   2. libx265           — software HEVC (cross-platform)
+        //   3. h264_videotoolbox — macOS hardware H.264
+        //   4. libx264           — software H.264 (almost always available on Windows)
+        //   5. rawvideo          — lossless fallback
+        struct Candidate { const char* name; AVCodecID id; };
+        static constexpr Candidate kCandidates[] = {
+            { "hevc_videotoolbox", AV_CODEC_ID_HEVC  },
+            { "libx265",           AV_CODEC_ID_HEVC  },
+            { "h264_videotoolbox", AV_CODEC_ID_H264  },
+            { "libx264",           AV_CODEC_ID_H264  },
+        };
+        for (const auto& cand : kCandidates) {
+            encoder = avcodec_find_encoder_by_name(cand.name);
+            if (encoder) {
+                outCodecId = cand.id;
+                spdlog::debug("Transcoder: using encoder '{}'", cand.name);
+                break;
+            }
         }
         if (!encoder) {
-            spdlog::warn("Transcoder: no HEVC encoder available, using rawvideo instead");
+            spdlog::warn("Transcoder: no HEVC/H.264 encoder available, falling back to rawvideo");
             useRawvideo = true;
             outCodecId = AV_CODEC_ID_RAWVIDEO;
         }
@@ -221,16 +234,14 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         c.encCtx->has_b_frames = 0;
         c.encCtx->max_b_frames = 0;
     } else {
-        // hevc_videotoolbox wants NV12 when the caller provides software
-        // frames (allow_sw=1). libx265 also accepts NV12, so it's a safe
-        // pick for both encoder paths.
-        encPixFmt = AV_PIX_FMT_NV12;
+        std::string encName(encoder->name);
+        bool isVideotoolbox = (encName == "hevc_videotoolbox" || encName == "h264_videotoolbox");
+        // videotoolbox wants NV12; software encoders (libx264/libx265) want YUV420P.
+        encPixFmt = isVideotoolbox ? AV_PIX_FMT_NV12 : AV_PIX_FMT_YUV420P;
         c.encCtx->pix_fmt = encPixFmt;
         c.encCtx->gop_size = 30;
         c.encCtx->max_b_frames = 2;
-        // Near-visually-lossless quality. For videotoolbox we lean on the
-        // encoder's own quality knob; for libx265 we set CRF.
-        if (std::string(encoder->name) == "hevc_videotoolbox") {
+        if (isVideotoolbox) {
             av_opt_set_int(c.encCtx, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
 #if defined(__aarch64__)
             c.encCtx->flags |= AV_CODEC_FLAG_QSCALE;
@@ -264,6 +275,8 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         outStream->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
     } else if (outCodecId == AV_CODEC_ID_HEVC) {
         outStream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
+    } else if (outCodecId == AV_CODEC_ID_H264) {
+        outStream->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
     }
 
     ret = avio_open(&c.outCtx->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
@@ -400,6 +413,6 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     }
 
     spdlog::debug("Transcoded {} -> {} ({} frames, {})", inputPath, outputPath,
-                  frameCount, useRawvideo ? "rawvideo/rgb24" : "hevc");
+                  frameCount, encoder->name);
     return "";
 }
