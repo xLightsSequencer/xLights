@@ -78,6 +78,7 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
 
     float aspect = (h > 0) ? (float)w / (float)h : 1.0f;
     _projMatrix = glm::perspective(glm::radians(45.0f), aspect, 1.0f, 200000.0f);
+    _viewMatrix = viewMatrix;
     _projViewMatrix = _projMatrix * viewMatrix;
 
     _ctx->SetCamera(viewMatrix);

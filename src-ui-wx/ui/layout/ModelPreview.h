@@ -131,6 +131,7 @@ public:
     bool Is3D() const override { return is3d; }
     glm::mat4& GetProjViewMatrix() override { return ProjViewMatrix; }
     glm::mat4& GetProjMatrix() override { return ProjMatrix; }
+    glm::mat4& GetViewMatrix() override { return ViewMatrix; }
 
 
     void SaveCurrentCameraPosition();

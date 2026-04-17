@@ -73,12 +73,26 @@
     auto* solidVOProg = _preview->getCurrentSolidViewObjectProgram();
     auto* transparentVOProg = _preview->getCurrentTransparentViewObjectProgram();
 
+    // Sort models back-to-front by camera-space Z of their world centre so
+    // alpha-blended pixels from one model composite over models behind them.
+    // Matches ModelPreview::RenderModels on desktop.
     auto models = ctx->GetModelManager().GetModels();
+    const glm::mat4& viewMatrix = _preview->GetViewMatrix();
+    std::vector<std::pair<Model*, float>> keyed;
+    keyed.reserve(models.size());
     for (auto& [name, model] : models) {
-        // Skip model groups — their member models are drawn individually
         if (model->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        glm::vec3 c = model->GetModelScreenLocation().GetCenterPosition();
+        float z = (viewMatrix * glm::vec4(c, 1.0f)).z;
+        keyed.emplace_back(model, z);
+    }
+    std::stable_sort(keyed.begin(), keyed.end(),
+                     [](const std::pair<Model*, float>& a, const std::pair<Model*, float>& b) {
+                         return a.second < b.second;
+                     });
+    for (const auto& [model, z] : keyed) {
         model->DisplayModelOnWindow(_preview.get(), graphicsCtx, solidProg, transparentProg,
-                                     false, nullptr, false, false, false, 0, nullptr);
+                                     true, nullptr, false, false, false, 0, nullptr);
     }
 
     // Draw view objects (house meshes, ground images, gridlines, terrain).

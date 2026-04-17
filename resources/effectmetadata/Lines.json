@@ -37,11 +37,12 @@
         {
             "id": "Lines_Speed",
             "label": "Speed",
-            "type": "int",
+            "type": "float",
             "controlType": "slider",
-            "default": 1,
-            "min": 1,
-            "max": 10,
+            "default": 1.0,
+            "divisor": 10,
+            "min": 0,
+            "max": 100,
             "valueCurve": true,
             "description": "How fast the line points move across the model. Points bounce off the edges when they reach the boundary."
         },

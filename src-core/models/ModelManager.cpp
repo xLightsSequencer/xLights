@@ -1727,18 +1727,29 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
         return true;
     }
 
-    // Check child nodes
+    // Check child nodes (base → local): all base children must exist in local with same content
     for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
         bool found = false;
         for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
             if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
                 found = true;
-                for (pugi::xml_attribute a : nn.attributes()) {
-                    pugi::xml_attribute ccAttr = cc.attribute(a.name());
-                    if (ccAttr.empty() || std::string_view(ccAttr.as_string()) != std::string_view(a.value())) {
-                        return true;
-                    }
+                if (IsXmlNodeChanged(cc, nn)) {
+                    return true;
                 }
+                break;
+            }
+        }
+        if (!found) {
+            return true;
+        }
+    }
+    // Check child nodes (local → base): detect children removed from base (e.g. dimmingCurve reset to default)
+    for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
+        bool found = false;
+        for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
+            if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
+                found = true;
+                break;
             }
         }
         if (!found) {
