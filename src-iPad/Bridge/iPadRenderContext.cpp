@@ -47,6 +47,16 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         ObtainAccessToURL(folder, false);
     }
 
+    // Wire the show dir + media folders into FileUtils::FixFile so that
+    // sequence references (audio, videos, images, 3D meshes, shaders, etc.)
+    // that were saved with absolute paths from another machine get re-resolved
+    // against the iPad's current show/media locations. Without this,
+    // _fixFileSearchDirs stays empty and FixFile has no way to relocate
+    // assets — the raw saved paths fall straight through and FileExists fails.
+    FileUtils::SetFixFileShowDir(showDir);
+    FileUtils::SetFixFileDirectories(_mediaFolders);
+    FileUtils::ClearNonExistentFiles();
+
     // Load network/controller configuration
     if (!_outputManager.Load(showDir)) {
         spdlog::warn("iPadRenderContext: Failed to load xlights_networks.xml from {}", showDir);

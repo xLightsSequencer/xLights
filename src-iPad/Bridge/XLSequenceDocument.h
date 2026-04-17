@@ -31,6 +31,8 @@
 - (NSString*)rowDisplayNameAtIndex:(int)index;
 - (int)rowLayerIndexAtIndex:(int)index;
 - (BOOL)rowIsCollapsedAtIndex:(int)index;
+// Model name for a row (element->GetName()). Empty for non-model rows (e.g. timings).
+- (NSString*)rowModelNameAtIndex:(int)index;
 
 // Effects for a given row
 - (int)effectCountForRow:(int)rowIndex;

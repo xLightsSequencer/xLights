@@ -16,8 +16,14 @@ struct SequencerView: View {
             Divider()
 
             if viewModel.showPreview {
-                HousePreviewView()
-                    .frame(height: 250)
+                HStack(spacing: 0) {
+                    ModelPreviewView()
+                        .frame(maxWidth: .infinity)
+                    Divider()
+                    HousePreviewView()
+                        .frame(maxWidth: .infinity)
+                }
+                .frame(height: 350)
                 Divider()
             }
 
@@ -32,16 +38,17 @@ struct SequencerView: View {
                         if viewModel.hasAudio {
                             Color.clear.frame(height: waveformHeight)
                         }
-                        // Row headers, offset to match vertical scroll
-                        ScrollView(.vertical) {
-                            VStack(spacing: 0) {
-                                ForEach(viewModel.rows) { row in
-                                    rowHeaderCell(row)
-                                }
+                        // Row headers, offset to match vertical scroll. A plain
+                        // VStack (not ScrollView) — ScrollView.disabled(true)
+                        // blocks tap gestures on the header cells.
+                        VStack(spacing: 0) {
+                            ForEach(viewModel.rows) { row in
+                                rowHeaderCell(row)
                             }
-                            .offset(y: verticalOffset)
+                            Spacer(minLength: 0)
                         }
-                        .disabled(true) // Scroll driven by main scroll view
+                        .offset(y: verticalOffset)
+                        .frame(maxHeight: .infinity, alignment: .top)
                         .clipped()
                     }
                     .frame(width: rowHeaderWidth)
@@ -125,7 +132,9 @@ struct SequencerView: View {
     // MARK: - Row Header Cell
 
     private func rowHeaderCell(_ row: SequencerViewModel.RowInfo) -> some View {
-        HStack {
+        let isPreviewed = viewModel.previewModelName != nil
+            && row.displayName == viewModel.previewModelName
+        return HStack {
             if row.layerIndex > 0 {
                 Text("  Layer \(row.layerIndex)")
                     .font(.caption)
@@ -140,7 +149,15 @@ struct SequencerView: View {
         }
         .padding(.horizontal, 6)
         .frame(height: rowHeight)
-        .background(row.id % 2 == 0 ? Color.black.opacity(0.05) : Color.gray.opacity(0.15))
+        .background(
+            isPreviewed
+                ? Color.accentColor.opacity(0.35)
+                : (row.id % 2 == 0 ? Color.black.opacity(0.05) : Color.gray.opacity(0.15))
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            viewModel.selectPreviewModel(rowIndex: row.id)
+        }
     }
 
     // MARK: - Effect Row

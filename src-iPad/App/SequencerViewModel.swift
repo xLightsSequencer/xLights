@@ -35,6 +35,10 @@ class SequencerViewModel {
 
     // Preview
     var showPreview = false
+    /// Name of the model currently shown in the Model Preview pane, or nil
+    /// when no model is selected. Set via `selectPreviewModel(rowIndex:)`
+    /// when a row is tapped in the effects grid.
+    var previewModelName: String? = nil
 
     // Selection & editing
     var selectedEffect: EffectSelection?
@@ -352,6 +356,19 @@ class SequencerViewModel {
 
     func togglePreview() {
         showPreview.toggle()
+    }
+
+    /// Set the model shown in the Model Preview pane to the model at the given
+    /// grid row. Tapping the same row again clears the selection. Non-model
+    /// rows (e.g. timings) are ignored.
+    func selectPreviewModel(rowIndex: Int) {
+        let name = document.rowModelName(at: Int32(rowIndex)) ?? ""
+        if name.isEmpty { return }
+        if previewModelName == name {
+            previewModelName = nil
+        } else {
+            previewModelName = name
+        }
     }
 
     // MARK: - Controller Output

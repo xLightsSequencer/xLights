@@ -109,6 +109,18 @@
     return row ? row->Collapsed : NO;
 }
 
+- (NSString*)rowModelNameAtIndex:(int)index {
+    auto* row = _context->GetSequenceElements().GetRowInformation(index);
+    if (!row || !row->element) return @"";
+    // Only return a name for model-backed elements. Timing tracks don't map
+    // to a displayable model.
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_MODEL &&
+        row->element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
+        return @"";
+    }
+    return [NSString stringWithUTF8String:row->element->GetModelName().c_str()];
+}
+
 - (EffectLayer*)effectLayerForRow:(int)rowIndex {
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
     if (!row || !row->element) return nullptr;
