@@ -148,6 +148,11 @@ void InitialiseLogging(bool fromMain)
     static bool loggingInitialised = false;
 
     if (!loggingInitialised) {
+        // Stash the exe directory so SpecialOptions can find special.options
+        // next to the binary even before the show folder is chosen.
+        SpecialOptions::StashExeDir(
+            wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath().ToStdString());
+
         std::string const logFileName = "xLights_spdlog.log";
 #ifdef __WXMSW__
         wxString dir;
