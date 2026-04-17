@@ -178,21 +178,26 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         // Priority order:
         //   1. hevc_videotoolbox — macOS hardware HEVC
         //   2. libx265           — software HEVC (cross-platform)
-        //   3. h264_videotoolbox — macOS hardware H.264
-        //   4. libx264           — software H.264 (almost always available on Windows)
-        //   5. rawvideo          — lossless fallback
-        struct Candidate { const char* name; AVCodecID id; };
+        //   3. any HEVC encoder  — catches NVENC, QSV, VAAPI, etc.
+        //   4. h264_videotoolbox — macOS hardware H.264
+        //   5. libx264           — software H.264 (almost always available on Windows)
+        //   6. any H.264 encoder — catches NVENC, QSV, VAAPI, etc.
+        //   7. rawvideo          — lossless fallback
+        struct Candidate { const char* name; AVCodecID id; }; // name=nullptr → generic find by id
         static constexpr Candidate kCandidates[] = {
-            { "hevc_videotoolbox", AV_CODEC_ID_HEVC  },
-            { "libx265",           AV_CODEC_ID_HEVC  },
-            { "h264_videotoolbox", AV_CODEC_ID_H264  },
-            { "libx264",           AV_CODEC_ID_H264  },
+            { "hevc_videotoolbox", AV_CODEC_ID_HEVC },
+            { "libx265",           AV_CODEC_ID_HEVC },
+            { nullptr,             AV_CODEC_ID_HEVC },
+            { "h264_videotoolbox", AV_CODEC_ID_H264 },
+            { "libx264",           AV_CODEC_ID_H264 },
+            { nullptr,             AV_CODEC_ID_H264 },
         };
         for (const auto& cand : kCandidates) {
-            encoder = avcodec_find_encoder_by_name(cand.name);
+            encoder = cand.name ? avcodec_find_encoder_by_name(cand.name)
+                                : avcodec_find_encoder(cand.id);
             if (encoder) {
                 outCodecId = cand.id;
-                spdlog::debug("Transcoder: using encoder '{}'", cand.name);
+                spdlog::debug("Transcoder: using encoder '{}'", encoder->name);
                 break;
             }
         }
@@ -235,7 +240,7 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         c.encCtx->max_b_frames = 0;
     } else {
         std::string encName(encoder->name);
-        bool isVideotoolbox = (encName == "hevc_videotoolbox" || encName == "h264_videotoolbox");
+        bool isVideotoolbox = encName.find("videotoolbox") != std::string::npos;
         // videotoolbox wants NV12; software encoders (libx264/libx265) want YUV420P.
         encPixFmt = isVideotoolbox ? AV_PIX_FMT_NV12 : AV_PIX_FMT_YUV420P;
         c.encCtx->pix_fmt = encPixFmt;

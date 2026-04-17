@@ -757,8 +757,8 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
         if (!issue.isVideo || !issue.canConvert()) continue;
         std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
         if (target == issue.filePath) {
-            // Source is already .mov — shouldn't happen from the check but be
-            // defensive: write alongside with a suffix.
+            // Source is already .mov (e.g. qtrle codec) — append _converted
+            // so we don't overwrite the original.
             std::filesystem::path p(issue.filePath);
             p.replace_filename(p.stem().string() + "_converted.mov");
             target = p.string();
@@ -852,15 +852,17 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
 
                 // Preserve the relative-vs-absolute shape: if the original
                 // stored value was an absolute path we write absolute; if it
-                // was a bare filename or relative we swap only the extension.
+                // was a bare filename or relative, preserve the directory
+                // but use the destination's full filename (handles the case
+                // where the output name differs, e.g. _converted.mov).
                 std::filesystem::path storedPath(stored);
-                std::filesystem::path newName(it->second);
                 std::string newStored;
                 if (storedPath.is_absolute()) {
                     newStored = it->second;
                 } else {
                     std::filesystem::path rewritten_path = storedPath;
-                    rewritten_path.replace_extension(".mov");
+                    rewritten_path.replace_filename(
+                        std::filesystem::path(it->second).filename());
                     newStored = rewritten_path.string();
                 }
                 sm["E_FILEPICKERCTRL_Video_Filename"] = newStored;
