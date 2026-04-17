@@ -694,7 +694,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     // separate AudioToolbox-compatible path).
                     int videoIssueCount = 0;
                     for (const auto& issue : issues) {
-                        if (issue.isVideo) ++videoIssueCount;
+                        if (issue.isVideo && issue.canConvert()) ++videoIssueCount;
                     }
 
                     // Custom ID so we can tell OK apart from "Convert Now".
@@ -754,7 +754,7 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     // see the warning but need to re-encode audio separately.
     std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
     for (const auto& issue : issues) {
-        if (!issue.isVideo) continue;
+        if (!issue.isVideo || !issue.canConvert()) continue;
         std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
         if (target == issue.filePath) {
             // Source is already .mov — shouldn't happen from the check but be
