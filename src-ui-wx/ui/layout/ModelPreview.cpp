@@ -553,7 +553,36 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
     const xlColor* selColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_SELECTED);
     const xlColor* overlapColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_OVERLAP);
-    for (auto m : models) {
+
+    // In 3D, walk models back-to-front by camera-space Z of the model centre so that
+    // alpha-blended pixels from one model composite correctly over models behind them.
+    // This only orders between non-intersecting models; intersecting transparent meshes
+    // still need OIT to look perfect.
+    std::vector<Model*> sortedModels;
+    const std::vector<Model*>* iterModels = &models;
+    if (is3d) {
+        sortedModels.reserve(models.size());
+        std::vector<std::pair<Model*, float>> keyed;
+        keyed.reserve(models.size());
+        for (auto m : models) {
+            float z = 0.0f;
+            if (xlights != nullptr && (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m))) {
+                glm::vec3 c = m->GetModelScreenLocation().GetCenterPosition();
+                z = (ViewMatrix * glm::vec4(c, 1.0f)).z;
+            }
+            keyed.emplace_back(m, z);
+        }
+        std::stable_sort(keyed.begin(), keyed.end(),
+                         [](const std::pair<Model*, float>& a, const std::pair<Model*, float>& b) {
+                             return a.second < b.second;
+                         });
+        for (const auto& kv : keyed) {
+            sortedModels.push_back(kv.first);
+        }
+        iterModels = &sortedModels;
+    }
+
+    for (auto m : *iterModels) {
         if (xlights->AllModels.IsModelValid(m) || xlights->IsNewModel(m)) { // this IsModelValid should not be necessary but we are getting crashes due to invalid models
 
             if (xlights->IsNewModel(m)) {

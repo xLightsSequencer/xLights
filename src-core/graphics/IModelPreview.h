@@ -47,6 +47,10 @@ public:
     virtual float GetCameraRotationY() const = 0;
     virtual glm::mat4& GetProjViewMatrix() = 0;
     virtual glm::mat4& GetProjMatrix() = 0;
+    // World-to-camera matrix (excludes projection). Used by Model pixel
+    // accumulation to sort nodes back-to-front when building the 3D cache so
+    // alpha-blended pixel styles composite correctly.
+    virtual glm::mat4& GetViewMatrix() = 0;
 
     // --- Graphics context and programs ---
     virtual xlGraphicsContext* getCurrentGraphicsContext() = 0;

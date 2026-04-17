@@ -17,7 +17,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (AGFazio)              Fix pixel sizing appearing zoomed in (#6139)
     -bug (derwin12)             Downloadeded models now placed where you drop them (#5912)
     -bug (derwin12)             Random Value Curve now holds the value properly (#4803)
-
+    -bug (dkulp)                Sort model pixels back-to-front by camera-space Z when accumulating
+                                    the 3D preview vertex cache, so alpha-blended Smooth points and
+                                    circle triangles composite without seams at any camera orientation.
+                                    The cache is rebuilt when the camera rotates far enough for the
+                                    baked order to go stale. Applies to all models with a non-Square
+                                    pixel style in 3D (Tree, Sphere, Cube, Custom, Matrix, ...). Also
+                                    renders models in the 3D layout/house preview back-to-front by
+                                    bounding-box centre so blended pixels from one model composite
+                                    correctly over models behind them. Intersecting transparent
+                                    geometry still needs OIT and is not fully addressed. (#6126)
 2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
