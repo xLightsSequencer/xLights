@@ -160,6 +160,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TIMER_GIF, wxEVT_TIMER, (wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
 	//*)
 
+    Connect(wxEVT_SHOW, (wxObjectEventFunction)&EffectTreeDialog::OnShow);
+
     treeRootID = TreeCtrl1->AddRoot("Effect Presets");
     xLightParent = xLightsApp::GetFrame();
 
@@ -189,6 +191,17 @@ EffectTreeDialog::~EffectTreeDialog()
 
     //(*Destroy(EffectTreeDialog)
     //*)
+}
+
+void EffectTreeDialog::OnShow(wxShowEvent& event)
+{
+    if (event.IsShown()) {
+        if (gifImage && gifImage->IsOk())
+            TimerGif.Start(50);
+    } else {
+        TimerGif.Stop();
+    }
+    event.Skip();
 }
 
 void EffectTreeDialog::InitItems(EffectPresetManager& manager)

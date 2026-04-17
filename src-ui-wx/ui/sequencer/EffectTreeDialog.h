@@ -114,6 +114,7 @@ class EffectTreeDialog : public wxPanel
 		void OnTreeCtrl1ItemRightClick(wxTreeEvent& event);
 		//*)
 
+        void OnShow(wxShowEvent& event);
         void DeleteSelectedItem();
 
 		std::unique_ptr<wxBitmap> _blankGIFImage;

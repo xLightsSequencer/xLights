@@ -3220,6 +3220,11 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         m_mgr->Update();
     }
 
+    if (m_mgr->GetPane("EffectPresets").IsShown() && !_effectPresetsInitialized && EffectTreeDlg != nullptr) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
+
     if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_OFF) {
         SetEffectAssistWindowState(false);
     } else if (tempEffectAssistMode == EFFECT_ASSIST_ALWAYS_ON) {
