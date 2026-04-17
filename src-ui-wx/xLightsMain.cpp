@@ -4519,7 +4519,7 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
 #ifdef __WXMSW__
     wxString dir;
     wxGetEnv("APPDATA", &dir);
-    wxString filename = dir + "/" + fileName;
+    wxString filename = dir + "/xLights/" + fileName;
 #endif
 #ifdef __WXOSX__
     wxFileName home;

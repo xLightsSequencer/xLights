@@ -1,4 +1,4 @@
-/***************************************************************
+ /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -152,7 +152,7 @@ void InitialiseLogging(bool fromMain)
 #ifdef __WXMSW__
         wxString dir;
         wxGetEnv("APPDATA", &dir);
-        std::string const logFilePath = std::string(dir.c_str()) + "\\" + logFileName;
+        std::string const logFilePath = std::string(dir.c_str()) + "\\xLights\\" + logFileName;
 #endif
 #ifdef __WXOSX__
         wxFileName home;
