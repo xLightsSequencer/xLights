@@ -842,7 +842,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
         UpdateLayoutSplitter();
     };
     layout_mgr = new_layout_mgr;
-    ModelPanelContainer->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
+    new_layout_mgr->Bind(wxEVT_AUI_PANE_CLOSE, &LayoutPanel::OnLayoutPaneClose, this);
 
     FirstPanel->SetMinSize(wxSize(0, kPaneMinHeight));
     int listHeight = (msp > 0) ? msp : kListHeightFallback;
