@@ -1822,6 +1822,12 @@ void JsonEffectPanel::SetPanelStatus(Model* cls) {
             if (info.dynamicOptions != sourceName || info.choice == nullptr) continue;
             wxString selection = info.choice->GetStringSelection();
             info.choice->Clear();
+            bool hasBlankDefault = !info.defaultValue.is_null() &&
+                                   info.defaultValue.is_string() &&
+                                   info.defaultValue.get<std::string>().empty();
+            if (hasBlankDefault) {
+                info.choice->Append("");
+            }
             if (m != nullptr) {
                 std::set<std::string> seen;
                 for (const auto& it : defs) {
@@ -1930,10 +1936,11 @@ void JsonEffectPanel::SetDefaultParameters() {
         } else if (info.controlType == "choice" || info.controlType == "combobox") {
             if (info.choice) {
                 std::string def = info.defaultValue.get<std::string>();
-                // Skip empty defaults: SetChoiceValue would fire a spurious change
-                // event with no useful payload (and SetStringSelection("") fails).
                 if (!def.empty()) {
                     SetChoiceValue(info.choice, def);
+                } else if (info.choice->GetCount() > 0) {
+                    // Empty default means the blank entry (index 0) is the default
+                    info.choice->SetSelection(0);
                 }
             }
         } else if (info.controlType == "spin") {
