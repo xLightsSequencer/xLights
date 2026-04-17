@@ -8313,6 +8313,14 @@ void LayoutPanel::OnChoiceLayoutGroupsSelect(wxCommandEvent& event)
         SetCurrentLayoutGroup(choice_layout);
         UpdateModelList(true);
     }
+    // When switching to a main group, restore the show's saved 3D mode so that
+    // temporary 2D viewing of non-default groups doesn't leave the layout in 2D.
+    if (choice_layout == "Default" || choice_layout == "All Models" || choice_layout == "Unassigned") {
+        auto* config = GetXLightsConfig();
+        bool saved_3d = config->ReadBool("LayoutMode3D", false);
+        bool xml_3d = xlights->GetXmlSetting("LayoutMode3D", saved_3d ? "1" : "0") == "1";
+        Set3d(xml_3d);
+    }
     modelPreview->SetDisplay2DBoundingBox(xlights->GetDisplay2DBoundingBox());
     modelPreview->SetDisplay2DGrid(xlights->GetDisplay2DGrid(), xlights->GetDisplay2DGridSpacing());
     modelPreview->SetDisplay2DCenter0(xlights->GetDisplay2DCenter0());
