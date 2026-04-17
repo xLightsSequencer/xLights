@@ -20,6 +20,9 @@
 #include "utils/FileUtils.h"
 #include <log.h>
 
+#include <algorithm>
+#include <thread>
+
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
       _sequenceElements(this) {
@@ -214,7 +217,12 @@ void iPadRenderContext::RenderAll() {
 
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");
-        _jobPool->Start(4);
+        // RenderEngine workers can block waiting on frames from other models;
+        // with too few threads a contended sequence deadlocks. Oversubscribe
+        // well past core count so a blocked worker never exhausts the pool.
+        size_t hw = std::thread::hardware_concurrency();
+        size_t poolThreads = std::max<size_t>(24, hw * 2);
+        _jobPool->Start(poolThreads);
     }
 
     if (!_renderEngine) {
@@ -234,6 +242,33 @@ void iPadRenderContext::RenderAll() {
 
     spdlog::info("iPadRenderContext: RenderAll started for {} frames, {} channels",
                  numFrames, numChannels);
+}
+
+void iPadRenderContext::HandleMemoryWarning() {
+    if (_renderEngine) {
+        _renderEngine->SignalAbort();
+    }
+    _renderCache.Purge(nullptr, false);
+    spdlog::warn("iPadRenderContext: memory warning handled -- aborted render, purged cache");
+}
+
+void iPadRenderContext::HandleMemoryCritical() {
+    HandleMemoryWarning();
+    // Phase D note: once Model Preview owns its own vertex / texture buffers,
+    // free them here too. iPadModelPreview today rebuilds accumulators per
+    // frame, so there's nothing extra to drop.
+    spdlog::error("iPadRenderContext: memory critical handled");
+}
+
+bool iPadRenderContext::IsRenderDone() const {
+    // NOTE: RenderEngine::IsRenderDone() checks _renderProgressInfo.empty(),
+    // but the desktop drains that list from its RenderStatusTimer loop
+    // (UpdateRenderStatus in RenderUI.cpp). Without that drain loop on iPad,
+    // the list never empties and the flag would stick at false forever.
+    // Until we share a UI-layer-free drain path between desktop and iPad,
+    // fall back to "sequence data is allocated," which matches the previous
+    // iPad behavior.
+    return _sequenceData.IsValidData();
 }
 
 void iPadRenderContext::SetModelColors(int frameMS) {

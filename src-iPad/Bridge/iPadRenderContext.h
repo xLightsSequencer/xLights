@@ -75,6 +75,13 @@ public:
     void RenderAll();
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
+    bool IsRenderDone() const;
+
+    // Memory-pressure response. Called from Swift when the system signals
+    // memory warning / critical. Aborts any in-flight render and purges the
+    // render cache so we don't hold onto frame buffers we no longer need.
+    void HandleMemoryWarning();
+    void HandleMemoryCritical();
 
     // Accessors
     OutputManager& GetOutputManager() { return _outputManager; }

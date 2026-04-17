@@ -18,4 +18,7 @@
 // Draw all models at the given frame time using DisplayEffectOnWindow
 - (void)drawModelsForDocument:(XLSequenceDocument*)doc atMS:(int)frameMS pointSize:(float)pointSize;
 
+// Camera zoom — 1.0 default, >1 zooms in.
+- (void)setCameraZoom:(float)zoom;
+
 @end

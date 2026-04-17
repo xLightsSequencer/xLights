@@ -50,6 +50,12 @@
     _canvas->setScaleFactor(scale);
 }
 
+- (void)setCameraZoom:(float)zoom {
+    if (_preview) {
+        _preview->SetCameraZoom(zoom);
+    }
+}
+
 - (void)drawModelsForDocument:(XLSequenceDocument*)doc atMS:(int)frameMS pointSize:(float)pointSize {
     if (_canvas->getMetalLayer() == nil) return;
     if (_canvas->getWidth() == 0 || _canvas->getHeight() == 0) return;

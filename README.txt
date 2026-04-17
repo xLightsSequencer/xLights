@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
+    -enh (dkulp)                iPad: raise JobPool thread count (max(24, cores*2)) so workers can't deadlock
+                                    blocking on other models' frames with no pool slot left to run them.
+    -enh (dkulp)                iPad: memory-pressure sink -- DispatchSource + UIApplication memory-warning
+                                    notifications abort the in-flight render and purge the render cache; a
+                                    low-memory banner appears when os_proc_available_memory() drops below
+                                    256 MB (clears at 384 MB).
     -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)
     -bug (derwin12)             Preserve Layer Blending and Settings when using Random Effects (#6136)
     -bug (AGFazio)              Honour 2D to 3D Layout changing (#6133)

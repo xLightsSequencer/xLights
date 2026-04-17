@@ -58,6 +58,11 @@ public:
     void EndDrawing(bool swapBuffers = true) override;
 
     double calcPixelSize(double i) override { return i * 2.0; }
+
+    // Camera zoom — 1.0 is the default framing, >1 zooms in, <1 zooms out.
+    // Applied by scaling the camera-to-origin distance in StartDrawing.
+    void SetCameraZoom(double zoom) { _cameraZoom = zoom <= 0.0 ? 1.0 : zoom; }
+    double GetCameraZoom() const { return _cameraZoom; }
     uint32_t getCurrentFrameTime() const override { return _currentFrameTime; }
 
     bool Is3D() const override { return true; }
@@ -82,4 +87,5 @@ private:
     int _virtualW = 1920;
     int _virtualH = 1080;
     bool _isDrawing = false;
+    double _cameraZoom = 1.0;
 };

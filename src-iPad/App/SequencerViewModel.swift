@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @Observable
 class SequencerViewModel {
@@ -50,6 +51,16 @@ class SequencerViewModel {
 
     // Parsed metadata cache per effect name — avoids re-parsing JSON on every selection.
     private var metadataCache: [String: EffectMetadata] = [:]
+
+    // Memory pressure
+    /// True when available memory is below the low-memory threshold.
+    /// Drives the low-memory banner in the UI.
+    var memoryWarning = false
+    private static let memoryWarningThresholdMB: Int64 = 256
+    private static let memoryRecoveredThresholdMB: Int64 = 384  // hysteresis
+    private var memoryPressureSource: DispatchSourceMemoryPressure?
+    private var memoryPollTimer: Timer?
+    private var memoryWarningObserver: NSObjectProtocol?
 
     struct EffectSelection {
         let rowIndex: Int
@@ -137,6 +148,64 @@ class SequencerViewModel {
         hasAudio = false
         rows = []
         waveformPeaks = []
+    }
+
+    // MARK: - Memory Pressure
+
+    /// Register for memory-pressure signals and start polling
+    /// `os_proc_available_memory()`. Call once at app startup.
+    func startMemoryMonitoring() {
+        guard memoryPressureSource == nil else { return }
+
+        let source = DispatchSource.makeMemoryPressureSource(
+            eventMask: [.warning, .critical],
+            queue: .main
+        )
+        source.setEventHandler { [weak self, weak source] in
+            guard let self, let source else { return }
+            let event = source.data
+            if event.contains(.critical) {
+                self.document.handleMemoryCritical()
+            } else if event.contains(.warning) {
+                self.document.handleMemoryWarning()
+            }
+            self.memoryWarning = true
+        }
+        source.activate()
+        memoryPressureSource = source
+
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.document.handleMemoryWarning()
+            self?.memoryWarning = true
+        }
+
+        memoryPollTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            let mb = XLSequenceDocument.availableMemoryMB()
+            if self.memoryWarning {
+                // Clear once we're comfortably above the threshold (hysteresis).
+                if mb >= Self.memoryRecoveredThresholdMB {
+                    self.memoryWarning = false
+                }
+            } else if mb < Self.memoryWarningThresholdMB {
+                self.memoryWarning = true
+            }
+        }
+    }
+
+    func stopMemoryMonitoring() {
+        memoryPressureSource?.cancel()
+        memoryPressureSource = nil
+        memoryPollTimer?.invalidate()
+        memoryPollTimer = nil
+        if let obs = memoryWarningObserver {
+            NotificationCenter.default.removeObserver(obs)
+            memoryWarningObserver = nil
+        }
     }
 
     // MARK: - Playback Controls

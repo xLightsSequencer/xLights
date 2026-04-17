@@ -71,7 +71,10 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
     _ctx->SetViewport(0, h, w, 0, true);
 
     glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -2000.0f));
+    // Zoom by moving the camera closer/farther along Z. zoom=1 is default,
+    // zoom=2 halves the distance (appears 2× larger), zoom=0.5 doubles it.
+    const float zoomedZ = -2000.0f / static_cast<float>(_cameraZoom);
+    glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, zoomedZ));
     glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 viewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;

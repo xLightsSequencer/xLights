@@ -27,6 +27,8 @@
 #include <sstream>
 #include <string>
 
+#import <os/proc.h>
+
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
 }
@@ -367,9 +369,19 @@ static bool isPaletteKey(const std::string& key) {
 }
 
 - (BOOL)isRenderDone {
-    if (!_context->GetSequenceData().IsValidData()) return NO;
-    // Check if render engine exists and is done
-    return YES; // simplified for now
+    return _context->IsRenderDone() ? YES : NO;
+}
+
+- (void)handleMemoryWarning {
+    _context->HandleMemoryWarning();
+}
+
+- (void)handleMemoryCritical {
+    _context->HandleMemoryCritical();
+}
+
++ (int64_t)availableMemoryMB {
+    return (int64_t)(os_proc_available_memory() / (1024 * 1024));
 }
 
 - (int)pixelCountAtMS:(int)frameMS {

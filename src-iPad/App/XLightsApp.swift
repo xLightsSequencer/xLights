@@ -11,6 +11,7 @@ struct XLightsApp: App {
         // to load effectmetadata JSON files.
         XLiPadInit.initialize()
         let vm = SequencerViewModel()
+        vm.startMemoryMonitoring()
         // Attempt to restore the previously-selected show folder + media
         // folders via their persistent security-scoped bookmarks.
         vm.restorePersistedShowFolder()
@@ -30,13 +31,18 @@ struct ContentView: View {
     @State private var showFolderConfig = false
 
     var body: some View {
-        Group {
-            if !viewModel.isShowFolderLoaded {
-                ShowFolderSetupView(showFolderConfig: $showFolderConfig)
-            } else if !viewModel.isSequenceLoaded {
-                SequencePickerView(showFolderConfig: $showFolderConfig)
-            } else {
-                SequencerView()
+        VStack(spacing: 0) {
+            if viewModel.memoryWarning {
+                MemoryWarningBanner()
+            }
+            Group {
+                if !viewModel.isShowFolderLoaded {
+                    ShowFolderSetupView(showFolderConfig: $showFolderConfig)
+                } else if !viewModel.isSequenceLoaded {
+                    SequencePickerView(showFolderConfig: $showFolderConfig)
+                } else {
+                    SequencerView()
+                }
             }
         }
         .sheet(isPresented: $showFolderConfig) {
@@ -49,6 +55,21 @@ struct ContentView: View {
                 showFolderConfig = true
             }
         }
+    }
+}
+
+struct MemoryWarningBanner: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text("Low memory — renders paused")
+                .font(.caption)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.orange)
     }
 }
 

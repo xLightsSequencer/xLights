@@ -97,6 +97,11 @@
 - (void)renderAll;
 - (BOOL)isRenderDone;
 
+// Memory pressure
+- (void)handleMemoryWarning;
+- (void)handleMemoryCritical;
++ (int64_t)availableMemoryMB;
+
 // House preview pixel data at a given time
 // Returns NSData containing packed float x, y and uint8 r, g, b per pixel
 - (int)pixelCountAtMS:(int)frameMS;
