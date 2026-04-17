@@ -255,16 +255,21 @@ void WarpEffect::Render(Effect *eff, const SettingsMap &SettingsMap, RenderBuffe
 
         double speedFactor = xPercentage / 100.0;
         int frameOffset = buffer.curPeriod - buffer.curEffStartPer;
+        int totalFrames = buffer.curEffEndPer - buffer.curEffStartPer + 1;
+        // Only frames up to this index will ever be replayed, so don't capture beyond it.
+        int maxNeededFrame = (int)((totalFrames - 1) * speedFactor);
 
-        if (frameOffset >= (int)cache->frames.size()) {
-            cache->frames.resize(frameOffset + 1);
-        }
-        xlColorVector &captured = cache->frames[frameOffset];
-        int pixCount = buffer.BufferWi * buffer.BufferHt;
-        captured.resize(pixCount);
-        for (int py = 0; py < buffer.BufferHt; ++py) {
-            for (int px = 0; px < buffer.BufferWi; ++px) {
-                captured[py * buffer.BufferWi + px] = buffer.GetPixelDirect(px, py);
+        if (frameOffset <= maxNeededFrame) {
+            if (frameOffset >= (int)cache->frames.size()) {
+                cache->frames.resize(frameOffset + 1);
+            }
+            xlColorVector &captured = cache->frames[frameOffset];
+            int pixCount = buffer.BufferWi * buffer.BufferHt;
+            captured.resize(pixCount);
+            for (int py = 0; py < buffer.BufferHt; ++py) {
+                for (int px = 0; px < buffer.BufferWi; ++px) {
+                    captured[py * buffer.BufferWi + px] = buffer.GetPixelDirect(px, py);
+                }
             }
         }
 
