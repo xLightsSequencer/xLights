@@ -1798,6 +1798,7 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_MusicClick(wxCommandEvent& event)
     ProcessSequenceType();
     BitmapButton_Wiz_Music->Hide();
     BitmapButton_Wiz_Anim->Hide();
+    BitmapButton_Wiz_Effect->Hide();
     CheckBox_Overwrite_Tags->SetValue(true);
     MediaChooser();
     WizardPage2();

@@ -858,7 +858,7 @@ void ValueCurve::RenderType()
     float parameter3 = Normalise(3, _parameter3);
     float parameter4 = Normalise(4, _parameter4);
 
-    if (_type != "Custom")
+    if (_type != "Custom" && !(_type == "Random" && _hasPreloadedValues))
     {
         _values.clear();
     }
@@ -1216,35 +1216,38 @@ void ValueCurve::RenderType()
     }
     else if (_type == "Random")
     {
-        // p1 - minimum
-        // p2 - maximum
-        // p3 - points
-        float min = parameter1 / 100.0;
-        float max = parameter2 / 100.0;
-        int points = std::round(Denormalise(3, parameter3));
-
-        if (points == 1)
+        if (!_hasPreloadedValues)
         {
-            float value = rand01() * (max - min) + min;
-            _values.push_back(vcSortablePoint(0.0f, value, false));
-            _values.push_back(vcSortablePoint(1.0f, value, false));
-        }
-        else
-        {
-            float value = rand01() * (max - min) + min;
-            _values.push_back(vcSortablePoint(0.0f, value, false));
-            value = rand01() * (max - min) + min;
-            _values.push_back(vcSortablePoint(1.0f, value, false));
+            // p1 - minimum
+            // p2 - maximum
+            // p3 - points
+            float min = parameter1 / 100.0;
+            float max = parameter2 / 100.0;
+            int points = std::round(Denormalise(3, parameter3));
 
-            for (int i = 2; i < points; i++)
+            if (points == 1)
             {
-                float x = vcSortablePoint::Normalise(rand01());
-                while (IsSetPoint(x))
-                {
-                    x = vcSortablePoint::Normalise(rand01());
-                }
+                float value = rand01() * (max - min) + min;
+                _values.push_back(vcSortablePoint(0.0f, value, false));
+                _values.push_back(vcSortablePoint(1.0f, value, false));
+            }
+            else
+            {
+                float value = rand01() * (max - min) + min;
+                _values.push_back(vcSortablePoint(0.0f, value, false));
                 value = rand01() * (max - min) + min;
-                _values.push_back(vcSortablePoint(x, value, false));
+                _values.push_back(vcSortablePoint(1.0f, value, false));
+
+                for (int i = 2; i < points; i++)
+                {
+                    float x = vcSortablePoint::Normalise(rand01());
+                    while (IsSetPoint(x))
+                    {
+                        x = vcSortablePoint::Normalise(rand01());
+                    }
+                    value = rand01() * (max - min) + min;
+                    _values.push_back(vcSortablePoint(x, value, false));
+                }
             }
         }
     }
@@ -1368,6 +1371,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _realValues = false;
         _active = true;
         _values.clear();
+        _hasPreloadedValues = false;
         _type = "Flat";
         _parameter1 = 0.0f;
         _parameter2 = 0.0f;
@@ -1530,6 +1534,21 @@ std::string ValueCurve::Serialise()
             }
             res += "|";
         }
+        else if (_type == "Random")
+        {
+            // Persist the generated random values so they survive deserialization
+            // without being re-randomized on every frame
+            res += "Values=";
+            for (auto it = _values.begin(); it != _values.end(); ++it)
+            {
+                res += fmt2f(it->x) + ":" + fmt2f(it->y);
+                if (!(*it == _values.back()))
+                {
+                    res += ";";
+                }
+            }
+            res += "|";
+        }
     }
     else
     {
@@ -1670,9 +1689,12 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
             if (idx != std::string::npos) {
                 float x = std::strtof(vs.substr(0, idx).c_str(), nullptr);
                 float y = std::strtof(vs.substr(idx + 1).c_str(), nullptr);
-                
+
                 _values.push_back(vcSortablePoint(x, y, false));
             }
+        }
+        if (!_values.empty()) {
+            _hasPreloadedValues = true;
         }
     }
 
@@ -1681,6 +1703,7 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
 
 void ValueCurve::SetType(std::string type)
 {
+    _hasPreloadedValues = false;
     _type = type;
     RenderType();
 }
