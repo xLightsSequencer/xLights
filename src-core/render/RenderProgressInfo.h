@@ -10,6 +10,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
 #include <climits>
 #include <functional>
 #include <list>
@@ -30,7 +31,8 @@ public:
     explicit RenderProgressInfo(std::function<void(bool)>&& cb)
         : callback(std::move(cb)),
           numRows(0), startFrame(0), endFrame(0),
-          jobs(nullptr), aggregators(nullptr), progressSink(nullptr)
+          jobs(nullptr), aggregators(nullptr), progressSink(nullptr),
+          jobsRemaining(0), completed(false)
     {}
 
     // Deletes all jobs, aggregators, and the progress sink.
@@ -45,4 +47,12 @@ public:
     AggregatorRenderer** aggregators; // owned array
     IRenderProgressSink* progressSink; // owned; deleted when render group completes
     std::list<Model*> restriction;
+
+    // Completion tracking. jobsRemaining is decremented by each RenderJob as it
+    // exits (via RAII guard in Process) — normal, aborted, or early-bail paths.
+    // When it hits zero, the last thread CAS-flips completed and fires callback.
+    // Platforms without a UI drain loop (iPad) poll `completed` to know when the
+    // render batch has finished.
+    std::atomic<int> jobsRemaining;
+    std::atomic<bool> completed;
 };

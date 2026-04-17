@@ -287,7 +287,12 @@ class SequencerViewModel {
                 self.playPositionMS = Int(pos)
 
                 let state = self.document.audioPlayingState()
-                if state == 2 { // STOPPED (reached end)
+                // Audio naturally ending past the sequence length doesn't
+                // always flip _media_state to STOPPED — the backend only does
+                // that on explicit Stop(). Treat "past end" as end-of-playback.
+                if state == 2 || self.playPositionMS >= self.sequenceDurationMS {
+                    self.playPositionMS = self.sequenceDurationMS
+                    self.document.audioStop()
                     self.isPlaying = false
                     self.isPaused = false
                     self.stopPlaybackTimer()

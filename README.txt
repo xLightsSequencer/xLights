@@ -17,6 +17,17 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                     notifications abort the in-flight render and purge the render cache; a
                                     low-memory banner appears when os_proc_available_memory() drops below
                                     256 MB (clears at 384 MB).
+    -enh (dkulp)                Render: RenderProgressInfo now self-signals completion via an atomic
+                                    counter decremented by a RAII guard in RenderJob::Process, firing the
+                                    batch callback exactly once on the last job out (covers normal, aborted,
+                                    and early-bail exits). iPad can poll completion without a UI drain loop;
+                                    desktop drain simplified to cleanup + progress display only.
+    -enh (dkulp)                iPad: camera zoom in the house preview -- pinch or +/-/1x buttons scale the
+                                    view-matrix distance so models appear closer/farther.
+    -enh (dkulp)                iPad: house preview draws continuously rather than waiting for the full
+                                    render to finish -- unrendered frames show as black and fill in live.
+    -bug (dkulp)                iPad: playback now stops when the audio reaches the end of the sequence
+                                    (the audio backend doesn't flip state to STOPPED on natural end).
     -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)
     -bug (derwin12)             Preserve Layer Blending and Settings when using Random Effects (#6136)
     -bug (AGFazio)              Honour 2D to 3D Layout changing (#6133)

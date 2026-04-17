@@ -71,17 +71,13 @@ struct HousePreviewMetalView: UIViewRepresentable {
         context.coordinator.viewModel = viewModel
         context.coordinator.zoom = zoom
         context.coordinator.bridge?.setCameraZoom(Float(zoom))
-        if viewModel.isRenderDone {
-            if viewModel.isPlaying {
-                if context.coordinator.displayLink == nil {
-                    context.coordinator.startDisplayLink(frameIntervalMS: viewModel.frameIntervalMS)
-                }
-            } else {
-                context.coordinator.stopDisplayLink()
-                uiView.setNeedsDisplay()
+        if viewModel.isPlaying {
+            if context.coordinator.displayLink == nil {
+                context.coordinator.startDisplayLink(frameIntervalMS: viewModel.frameIntervalMS)
             }
         } else {
             context.coordinator.stopDisplayLink()
+            uiView.setNeedsDisplay()
         }
     }
 
@@ -126,7 +122,7 @@ struct HousePreviewMetalView: UIViewRepresentable {
         }
 
         @objc func displayLinkFired() {
-            guard let viewModel, viewModel.isRenderDone else { return }
+            guard let viewModel else { return }
             let currentMS = viewModel.playPositionMS
             if currentMS != lastDrawnMS {
                 lastDrawnMS = currentMS
@@ -141,7 +137,6 @@ struct HousePreviewMetalView: UIViewRepresentable {
 
         func draw(in view: MTKView) {
             guard let viewModel, let bridge else { return }
-            guard viewModel.isRenderDone else { return }
 
             bridge.drawModels(for: viewModel.document, atMS: Int32(viewModel.playPositionMS), pointSize: 2.0)
         }

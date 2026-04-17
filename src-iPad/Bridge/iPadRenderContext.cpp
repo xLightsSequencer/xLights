@@ -11,6 +11,7 @@
 #include "iPadRenderContext.h"
 
 #include "render/Element.h"
+#include "render/RenderProgressInfo.h"
 #include "models/Model.h"
 #include "models/Node.h"
 #include "render/ValueCurve.h"
@@ -260,15 +261,28 @@ void iPadRenderContext::HandleMemoryCritical() {
     spdlog::error("iPadRenderContext: memory critical handled");
 }
 
-bool iPadRenderContext::IsRenderDone() const {
-    // NOTE: RenderEngine::IsRenderDone() checks _renderProgressInfo.empty(),
-    // but the desktop drains that list from its RenderStatusTimer loop
-    // (UpdateRenderStatus in RenderUI.cpp). Without that drain loop on iPad,
-    // the list never empties and the flag would stick at false forever.
-    // Until we share a UI-layer-free drain path between desktop and iPad,
-    // fall back to "sequence data is allocated," which matches the previous
-    // iPad behavior.
-    return _sequenceData.IsValidData();
+bool iPadRenderContext::IsRenderDone() {
+    if (!_sequenceData.IsValidData()) return false;
+    // Each RenderProgressInfo flips its `completed` atomic when its last
+    // RenderJob signals via FinishNotifier (covers normal, aborted, and
+    // early-bail exits). We both check completion and lazily drain finished
+    // entries here -- called from the main thread, so cleanup + callback run
+    // safely off the render workers. Any pending rpi keeps the result false.
+    auto& list = _renderEngine->GetRenderProgressInfo();
+    bool allDone = true;
+    for (auto it = list.begin(); it != list.end();) {
+        RenderProgressInfo* rpi = *it;
+        if (rpi->completed.load()) {
+            rpi->CleanupJobs();
+            if (rpi->callback) rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
+            delete rpi;
+            it = list.erase(it);
+        } else {
+            allDone = false;
+            ++it;
+        }
+    }
+    return allDone;
 }
 
 void iPadRenderContext::SetModelColors(int frameMS) {
