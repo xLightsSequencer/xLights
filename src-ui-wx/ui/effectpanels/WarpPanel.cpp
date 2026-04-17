@@ -12,6 +12,7 @@
 #include "EffectPanelUtils.h"
 
 #include <wx/choice.h>
+#include <wx/stattext.h>
 
 WarpPanel::WarpPanel(wxWindow* parent, const nlohmann::json& metadata)
     : JsonEffectPanel(parent, metadata) {
@@ -34,22 +35,27 @@ void WarpPanel::ValidateWindow() {
     // Force treatment to "constant" for types that only support constant
     bool constantOnly = warpType == "water drops" || warpType == "single water drop" ||
                         warpType == "wavy" || warpType == "sample on" ||
-                        warpType == "copy" || warpType == "mirror" || warpType == "flip";
+                        warpType == "copy" || warpType == "mirror" || warpType == "flip" ||
+                        warpType == "speed";
     if (constantOnly && !warpTreatment.empty() && warpTreatment != "constant") {
         treatmentCtrl->SetStringSelection("constant");
         warpTreatment = "constant";
         wxBell();
     }
 
-    // X/Y: disable for dissolve, drop, wavy
+    // X/Y: disable for dissolve, drop, wavy; disable Y only for speed (X repurposed as speed %)
     bool disableXY = warpType == "dissolve" || warpType == "drop" || warpType == "wavy";
     EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Warp_X", !disableXY);
-    EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Warp_Y", !disableXY);
+    EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Warp_Y", !disableXY && warpType != "speed");
+
+    // Relabel X as "Speed %" when warp type is "speed"
+    auto* xLabel = dynamic_cast<wxStaticText*>(wxWindow::FindWindowByName("ID_STATICTEXT_Warp_X", this));
+    if (xLabel) xLabel->SetLabel(warpType == "speed" ? _("Speed %") : _("X"));
 
     // Cycle Count: enabled for certain types with constant treatment
     bool supportsCycleCount = !(warpType == "water drops" || warpType == "wavy" ||
                                 warpType == "sample on" || warpType == "mirror" ||
-                                warpType == "transpose");
+                                warpType == "transpose" || warpType == "speed");
     if (warpTreatment != "constant") supportsCycleCount = false;
     EffectPanelUtils::enableControlsByName(this, "ID_SLIDER_Warp_Cycle_Count", supportsCycleCount);
 
