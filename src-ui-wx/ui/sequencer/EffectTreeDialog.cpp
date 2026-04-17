@@ -202,6 +202,7 @@ void EffectTreeDialog::InitItems(EffectPresetManager& manager)
         EffectsFileDirty();
     }
 
+    TreeCtrl1->DeleteChildren(treeRootID);
     TreeCtrl1->SetItemData(treeRootID, new MyTreeItemData(&_presetManager->GetRoot()));
 
     AddTreeElementsRecursive(_presetManager->GetRoot(), treeRootID);

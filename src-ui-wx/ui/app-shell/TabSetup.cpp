@@ -233,8 +233,13 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
 
-    // Force re-initialization of Effect Presets panel when show directory changes
+    // Force re-initialization of Effect Presets panel when show directory changes.
+    // If the panel is already visible, reload it immediately; otherwise defer until next show.
     _effectPresetsInitialized = false;
+    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
 
     // update most recently used array
     int idx = mruDirectories.Index(nd);
