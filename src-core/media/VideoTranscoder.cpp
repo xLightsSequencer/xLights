@@ -172,27 +172,43 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     // --- Decide output codec ---------------------------------------------
     bool useRawvideo = IsUncompressedCodec(srcCodecId);
 
+    // Sources with an alpha channel (e.g. qtrle mattes) need an alpha-capable
+    // encoder or transparency is silently flattened. ProRes 4444 (prores_ks)
+    // preserves alpha and is decodable by AVFoundation on macOS and
+    // iPadOS 15.4+.
+    bool sourceHasAlpha = false;
+    if (const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(c.decCtx->pix_fmt)) {
+        sourceHasAlpha = (desc->flags & AV_PIX_FMT_FLAG_ALPHA) != 0;
+    }
+
     AVCodecID outCodecId = useRawvideo ? AV_CODEC_ID_RAWVIDEO : AV_CODEC_ID_HEVC;
     const AVCodec* encoder = nullptr;
     if (!useRawvideo) {
         // Priority order:
-        //   1. hevc_videotoolbox — macOS hardware HEVC
-        //   2. libx265           — software HEVC (cross-platform)
-        //   3. any HEVC encoder  — catches NVENC, QSV, VAAPI, etc.
-        //   4. h264_videotoolbox — macOS hardware H.264
-        //   5. libx264           — software H.264 (almost always available on Windows)
-        //   6. any H.264 encoder — catches NVENC, QSV, VAAPI, etc.
-        //   7. rawvideo          — lossless fallback
-        struct Candidate { const char* name; AVCodecID id; }; // name=nullptr → generic find by id
+        //   1. prores_ks         — only when source has alpha (preserves it)
+        //   2. hevc_videotoolbox — macOS hardware HEVC
+        //   3. libx265           — software HEVC (cross-platform)
+        //   4. any HEVC encoder  — catches NVENC, QSV, VAAPI, etc.
+        //   5. h264_videotoolbox — macOS hardware H.264
+        //   6. libx264           — software H.264 (almost always available on Windows)
+        //   7. any H.264 encoder — catches NVENC, QSV, VAAPI, etc.
+        //   8. rawvideo          — lossless fallback
+        struct Candidate {
+            const char* name;    // null → generic find by id
+            AVCodecID id;
+            bool onlyIfAlpha;    // skip unless the source carries alpha
+        };
         static constexpr Candidate kCandidates[] = {
-            { "hevc_videotoolbox", AV_CODEC_ID_HEVC },
-            { "libx265",           AV_CODEC_ID_HEVC },
-            { nullptr,             AV_CODEC_ID_HEVC },
-            { "h264_videotoolbox", AV_CODEC_ID_H264 },
-            { "libx264",           AV_CODEC_ID_H264 },
-            { nullptr,             AV_CODEC_ID_H264 },
+            { "prores_ks",         AV_CODEC_ID_PRORES, true  },
+            { "hevc_videotoolbox", AV_CODEC_ID_HEVC,   false },
+            { "libx265",           AV_CODEC_ID_HEVC,   false },
+            { nullptr,             AV_CODEC_ID_HEVC,   false },
+            { "h264_videotoolbox", AV_CODEC_ID_H264,   false },
+            { "libx264",           AV_CODEC_ID_H264,   false },
+            { nullptr,             AV_CODEC_ID_H264,   false },
         };
         for (const auto& cand : kCandidates) {
+            if (cand.onlyIfAlpha && !sourceHasAlpha) continue;
             encoder = cand.name ? avcodec_find_encoder_by_name(cand.name)
                                 : avcodec_find_encoder(cand.id);
             if (encoder) {
@@ -205,6 +221,9 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
             spdlog::warn("Transcoder: no HEVC/H.264 encoder available, falling back to rawvideo");
             useRawvideo = true;
             outCodecId = AV_CODEC_ID_RAWVIDEO;
+        } else if (sourceHasAlpha && outCodecId != AV_CODEC_ID_PRORES) {
+            spdlog::warn("Transcoder: source has alpha but encoder '{}' will flatten it (prores_ks unavailable)",
+                         encoder->name);
         }
     }
     if (useRawvideo) {
@@ -238,6 +257,14 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         c.encCtx->gop_size = 1;
         c.encCtx->has_b_frames = 0;
         c.encCtx->max_b_frames = 0;
+    } else if (outCodecId == AV_CODEC_ID_PRORES) {
+        // ProRes 4444: 10-bit YUVA 4:4:4:4, all-intra. Profile 4 = 4444.
+        encPixFmt = AV_PIX_FMT_YUVA444P10LE;
+        c.encCtx->pix_fmt = encPixFmt;
+        c.encCtx->gop_size = 1;
+        c.encCtx->has_b_frames = 0;
+        c.encCtx->max_b_frames = 0;
+        av_opt_set_int(c.encCtx, "profile", 4, AV_OPT_SEARCH_CHILDREN);
     } else {
         std::string encName(encoder->name);
         bool isVideotoolbox = encName.find("videotoolbox") != std::string::npos;
@@ -282,6 +309,8 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         outStream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
     } else if (outCodecId == AV_CODEC_ID_H264) {
         outStream->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
+    } else if (outCodecId == AV_CODEC_ID_PRORES) {
+        outStream->codecpar->codec_tag = MKTAG('a', 'p', '4', 'h');
     }
 
     ret = avio_open(&c.outCtx->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
