@@ -65,6 +65,7 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     // Create ModelManager + ViewObjectManager
     _modelManager = std::make_unique<ModelManager>(&_outputManager, this);
     _viewObjectManager = std::make_unique<ViewObjectManager>(this);
+    _viewsManager.SetModelManager(_modelManager.get());
 
     // Load models from xlights_rgbeffects.xml
     std::string rgbPath = showDir + "/xlights_rgbeffects.xml";
@@ -109,6 +110,16 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                     spdlog::info("iPadRenderContext: Loaded {} view objects",
                                  _viewObjectManager->size());
                 }
+
+                // Load saved views. `SequenceViewManager::GetViews()` always
+                // ensures a Master View entry, but the rest (Christmas,
+                // Halloween, etc.) come from the <views> node.
+                auto viewsNode = xlightsNode.child("views");
+                if (viewsNode) {
+                    _viewsManager.Load(viewsNode, 0);
+                    spdlog::info("iPadRenderContext: Loaded {} views",
+                                 _viewsManager.GetViewCount());
+                }
             }
         }
     } else {
@@ -132,12 +143,23 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
         return false;
     }
 
+    // Must set the views manager BEFORE LoadSequencerFile so SequenceElements
+    // can resolve the current view while populating rows. Desktop does the
+    // same in `tabSequencer.cpp::NewSequence/OpenSequence`.
+    _sequenceElements.SetViewsManager(&_viewsManager);
+
     if (!_sequenceElements.LoadSequencerFile(*_sequenceFile, *_sequenceDoc, _showDir)) {
         spdlog::warn("iPadRenderContext: Failed to load sequence elements from {}", path);
         _sequenceFile.reset();
         _sequenceDoc.reset();
         return false;
     }
+
+    // PrepareViews grows mAllViews so there is one slot per view in the
+    // view manager. Without this only the Master slot exists and switching
+    // to any other view crashes inside PopulateRowInformation at
+    // `mAllViews[mCurrentView]`. Desktop calls this from tabSequencer.cpp.
+    _sequenceElements.PrepareViews(*_sequenceFile);
 
     _sequenceElements.PopulateRowInformation();
 

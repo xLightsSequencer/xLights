@@ -225,67 +225,359 @@ re-prompt UX needs a Swift callback + `UIDocumentPickerViewController`.
 ### Phase B: Rebuild the effects grid
 
 Goal: UI that behaves like the desktop effects grid so muscle memory
-transfers. The current SwiftUI grid is the replacement target, not the
-starting point.
+transfers from desktop xLights (1000s of existing users, deviation is
+a non-starter) while adapting individual interactions for touch. The
+current SwiftUI grid (`SequencerView.swift` + `EffectBlockView.swift`)
+is the replacement target, not the starting point.
 
-1. Layout study -- define a spec that matches the desktop grid's row
-   model, snap behavior, drag behavior, and visual treatment. This is
-   intentionally its own step before any code: rebuilding without a
-   spec is how the current grid ended up the way it did.
-2. Implement the grid on top of a proper coordinate/hit-testing layer
-   (likely a `UIViewRepresentable` wrapping a custom `UIView` or
-   `MTKView`, not a SwiftUI `ZStack` of `EffectBlockView`s). Effects
-   are dense; SwiftUI's view graph buckles once sequences get real.
-3. Gesture set, in priority order:
-   - Tap to select
-   - Pinch to zoom timeline
-   - Long press -> context menu (copy / paste / delete)
-   - Drag to move effects
-   - Edge-grab to resize (20pt hit zones)
-   - Multi-select via selection-mode toolbar toggle
-   - Apple Pencil precision (finer slop, hover preview)
-4. **Edit actions trigger targeted re-render.** The inspector already
-   calls `RenderEffectForModel(model, startMS, endMS, clear=false)`
-   when a single setting changes. Grid edits must do the same -- every
+1. **Layout spec: six regions, 3 rows x 2 columns.** Top chrome is
+   vertically locked; left column is horizontally locked. The
+   bottom-right (main grid) is the only cell that scrolls in both
+   axes. The timing-tracks band is its own vertically-locked row so
+   timing marks stay visible while the user scrolls through hundreds
+   of model rows.
+
+   ```
+   +- View/Time --------+- Ruler + Waveform ---------------+
+   | (locked both)      | (h-scrolls, v-locked)             | row 1
+   +--------------------+-----------------------------------+
+   | Timing headers     | Timing effects                    |
+   | (locked both)      | (h-scrolls, v-locked)             | row 2
+   +--------------------+-----------------------------------+
+   | Model headers      | Model effects (main grid)         |
+   | (h-locked,         | (h-scrolls,                       | row 3
+   |  v-scrolls)        |  v-scrolls)                       |
+   +--------------------+-----------------------------------+
+   ```
+
+   Two shared state observables coordinate scroll:
+   - `TimelineState { hScrollMS, pixelsPerMS }` -- column 2's three
+     cells bind to this; driving h-scroll in any one of them updates
+     all three.
+   - `RowsScrollState { vScrollPx }` -- row 3's two cells bind to
+     this.
+
+   Row 2 (timing band) grows with the number of timing elements in
+   the active view, up to a cap (roughly 1/3 of available grid
+   height). If a view has more timing tracks than fit, the band
+   gains its own internal vertical scroll -- rare in practice but
+   needs to not break.
+
+   Upper-left region (row 1 left cell) holds the View picker
+   dropdown ("Master", etc.) and a monospace time readout
+   `H:MM:SS.FF / H:MM:SS.FF`. This removes the time display from the
+   main toolbar (it was redundant); the toolbar keeps play/stop,
+   zoom, volume, output, inspector / preview toggles.
+
+2. **Rendering approach.** Drop the ZStack-of-`EffectBlockView`s.
+   Main grid and timing grid each become a `UIViewRepresentable`
+   wrapping `UIScrollView` + a custom `UIView` that draws all
+   visible effects via Core Graphics in a single `draw(_:)` pass.
+   Reasons:
+   - SwiftUI view-graph buckles past ~100 effects; real sequences
+     carry thousands.
+   - Core Graphics gives pixel-accurate parity with desktop's
+     `DrawEffects` (`src-ui-wx/ui/sequencer/EffectsGrid.cpp:6619`).
+   - `UIScrollView` provides real pinch-zoom via `setZoomScale` +
+     `viewForZooming`, and handles momentum / rubber-banding the way
+     users expect.
+   - UIKit gesture recognizers are cleaner than SwiftUI gestures for
+     overlapping controls (row scroll vs effect drag vs edge
+     resize).
+
+   Migration to `MTKView` is a later option if CG isn't fast enough;
+   none of the public API changes when that happens because all
+   drawing goes through the `UIView` subclass's `draw(_:)`.
+
+3. **Effect visual spec.** Per-effect drawing matches desktop
+   line-for-line. Let `x1 = startMS * pixelsPerMS`,
+   `x2 = endMS * pixelsPerMS`, `y = rowMidline`:
+   - Vertical bracket: line `(x1, rowTop) -> (x1, rowBottom)` and
+     `(x2, rowTop) -> (x2, rowBottom)`.
+   - Horizontal centerline: line from `(x1, y)` to icon-left-edge,
+     and from icon-right-edge to `(x2, y)`.
+   - Icon: sprite from the existing `effectIconTexture` PNG atlas
+     (already shipped for desktop OpenGL), centered at
+     `((x1+x2)/2, y)`, sized to roughly `rowHeight - 6`. If the
+     effect's on-screen width is below `MINIMUM_EFFECT_WIDTH_FOR_SMALL_RECT`
+     the icon is replaced with a centerline dash -- matches desktop.
+   - Transition bars: green rectangle at top-left spanning fade-in
+     width (`T_TEXTCTRL_Fadein` seconds converted via
+     `pixelsPerMS`), red rectangle at top-right for fade-out. Same
+     styling as desktop's `DrawFadeHints`
+     (`EffectsGrid.cpp:6899`); yellow where they overlap.
+   - Line / fill colors: `effect-default` unselected,
+     `effect-selected` selected, `effect-locked` if `IsLocked()`,
+     `effect-disabled` if `IsRenderDisabled()`. Pull from the
+     existing `ColorManager` palette -- shared with desktop so
+     custom user palettes round-trip.
+   - Rendered effect-background thumbnails (the per-effect textured
+     fill some effects produce -- Fireworks, Pictures, Ripple --
+     visible in `Screenshot 2026-04-18 at 8.11.35 AM.png`) are
+     **deferred to a Phase B v2 polish pass.** Plumbing the
+     per-effect `DrawEffectBackground` virtual
+     (`RenderableEffect::DrawEffectBackground`) into an iPad bitmap
+     cache is non-trivial: it currently writes into
+     `xlColorVertexAccumulator`, which has no CG target. Ship
+     without this; the bracket-and-icon look is already a massive
+     upgrade over the current colored blocks.
+
+4. **Grid metrics -- configurable, designed for future preferences.**
+   All sizes live in a single struct so a future preference pane
+   (post-MVP) can adjust them without touching the grid code:
+
+   ```swift
+   struct GridMetrics {
+       var rowHeight: CGFloat = 24
+       var selectedRowMultiplier: CGFloat = 1.5
+       var timingRowHeight: CGFloat = 24
+       var rulerHeight: CGFloat = 24
+       var waveformHeight: CGFloat = 48
+       var rowHeaderWidth: CGFloat = 180
+       var edgeHandleHitWidth: CGFloat = 24
+       var transitionHandleHitWidth: CGFloat = 20
+   }
+   ```
+
+   Selected row grows to `rowHeight * selectedRowMultiplier`.
+   Default 1.5x (36pt at `rowHeight=24`) per current sizing
+   feedback; if on-device testing shows fingers can't reliably hit
+   the handles, bump the multiplier (or `edgeHandleHitWidth`) in
+   one place. The waveform is deliberately shorter than desktop
+   (48pt vs desktop's ~80pt) to conserve vertical screen space.
+   Zoom does not touch these values -- desktop parity, zoom only
+   changes `pixelsPerMS`. Future preference exposure: `rowHeight`
+   as small/medium/large (matches desktop's preference for same),
+   `selectedRowMultiplier` as a standalone setting.
+
+5. **Gesture set**, in priority order:
+   - Tap empty grid cell -> deselect (or drop palette effect if one
+     is armed in `EffectPaletteView`).
+   - Tap effect -> select; row grows to selected height; edge
+     handles + transition handles appear.
+   - Long-press effect -> context menu (copy / paste / delete /
+     lock / disable).
+   - Drag center of a selected effect -> move the effect. Snaps to
+     timing marks if a timing row is the active "snap source"
+     (matches desktop's selected-timing-row snap behavior).
+   - Drag left or right edge handle -> resize that edge; opposite
+     edge anchored. Hit zone = `edgeHandleHitWidth` (24pt);
+     visible only when selected.
+   - Drag fade-in or fade-out handle -> adjust `T_TEXTCTRL_Fadein`
+     / `Fadeout`. Hit zone = `transitionHandleHitWidth`. Visible
+     only when selected.
+   - Pinch on main grid -> horizontal zoom; `pixelsPerMS` clamped
+     0.005..2.0. Vertical extent unchanged.
+   - Multi-select via toolbar toggle -- follow-up, not in first
+     landed grid.
+   - Apple Pencil precision (finer edge slop, hover preview) --
+     follow-up.
+
+6. **Row header spec.**
+   - **Timing rows (row 2 left):** colored background sourced from
+     `ColorManager::GetTimingColor(colorIndex)` -- same palette as
+     desktop. Tapping anywhere on the label toggles the element's
+     `GetActive()` / `SetActive()` (controls whether vertical
+     timing-mark lines draw on the grid). A filled circle at the
+     left edge indicates active; an outlined circle indicates
+     inactive. Long-press -> rename / delete / convert type menu
+     (follow-up; first cut shows only active-toggle).
+   - **Model rows (row 3 left):** display name; `[+]` / `[-]` icon
+     when `layerCount > 1` (tap toggles `Element::SetCollapsed`);
+     group icon when `DisplayAsType::ModelGroup`. Sub-layers
+     render as indented nested rows labeled `"  Layer N"`. Tapping
+     the row header selects that model for the Model Preview
+     (preserves existing behavior).
+
+7. **Bridge additions.** New ObjC++ methods on `XLSequenceDocument`
+   that thin-wrap existing desktop types. No new C++ in
+   `src-core/`.
+   - `timingRowIndices` -> `NSArray<NSNumber*>` of row indices
+     whose element type is `ELEMENT_TYPE_TIMING`.
+   - `timingRowIsActive(idx)` / `setTimingRowActive(idx, bool)` --
+     wraps `TimingElement::GetActive` / `SetActive`.
+   - `elementIsModelGroup(idx)`, `elementLayerCount(idx)`,
+     `elementIsCollapsed(idx)`, `toggleElementCollapsed(idx)` --
+     drives header indicators and collapse/expand.
+   - `effectFadeInMS(row, idx)` / `setEffectFadeInMS(value, row, idx)`
+     + fade-out siblings. Read/write `T_TEXTCTRL_Fadein` /
+     `Fadeout` in the effect's SettingsMap; writes trigger a
+     targeted re-render.
+   - `resizeEffectEdge(row, idx, edge: Left|Right, newMS)` -> BOOL
+     -- sibling of existing `moveEffectInRow`, anchors the
+     opposite edge. Validates no overlap with adjacent effects on
+     the same layer.
+   - `availableViews` -> `NSArray<NSString*>`, `currentViewIndex` /
+     `setCurrentViewIndex(idx)` -- wraps
+     `SequenceElements::GetViews` / `SetCurrentView`. Drives the
+     upper-left View picker.
+   - All mutating methods return `BOOL` and kick
+     `renderEffectForModel` for the affected range on success.
+
+8. **Edit actions trigger targeted re-render.** The inspector
+   already calls `RenderEffectForModel(model, startMS, endMS, clear=false)`
+   on a single setting change. Grid edits must do the same -- every
    mutating action re-renders the affected model(s) across the
-   affected time range:
-   - **Add** -- render `[startMS, endMS]` on the new effect's model.
-   - **Delete** -- render `[startMS, endMS]` with `clear=true` so the
-     removed effect's output is cleared from `SequenceData`.
-   - **Move / resize** -- render the union of old and new `[start, end]`
-     on the model; if moved to a different row, render on both source
-     and destination models.
-   - Multi-effect operations coalesce by model before dispatch so we
-     don't queue N overlapping renders.
-   The `RenderEngine` API already supports this, but
-   `XLSequenceDocument` currently exposes only the single-effect path;
-   bridge methods need to widen.
-5. **Selection-scoped preview scrub.** When an effect is selected (and
-   audio isn't playing), the preview windows play the effect's time
-   range on loop with no audio: play-head advances `startMS -> endMS`
-   at frame rate, wraps. This is how the desktop app lets you see what
-   an effect looks like without committing to full-sequence playback.
+   affected range:
+   - **Add** -- render `[startMS, endMS]` on the new effect's
+     model.
+   - **Delete** -- render `[startMS, endMS]` with `clear=true` so
+     the removed effect's output is wiped from `SequenceData`.
+   - **Move / resize** -- render the union of old and new
+     `[start, end]` on the model; if moved across rows, render on
+     source and destination models.
+   - **Transition edit** -- render the effect's own
+     `[startMS, endMS]` range.
+   - Multi-effect operations coalesce by model before dispatch so
+     we don't queue N overlapping renders.
+   The `RenderEngine` API already supports this; bridge item 7
+   widens `XLSequenceDocument`'s edit surface to match.
+
+9. **Selection-scoped preview scrub.** When an effect is selected
+   and audio isn't playing, the preview windows play the effect's
+   time range on loop with no audio: play-head advances
+   `startMS -> endMS` at frame rate, wraps at `endMS`. Desktop
+   parity -- the user sees the effect's output without committing
+   to full-sequence playback.
    - Start loop on selection, stop on deselection / audio play.
    - Only drives `playPositionMS` for preview; does not move the
-     sequence timeline's main play-head marker (or does so with a
-     distinct "preview" marker -- TBD in spec).
+     sequence timeline's main play-head marker (or moves a
+     distinct "preview" marker -- TBD during implementation).
    - Multi-select: loop across the union range
      `[min(starts), max(ends)]`.
-6. **View picker.** The desktop app organizes the row set via named
-   views ("Master", "Trees", "Matrices", "Candy Canes", ...); the
-   current iPad grid always shows every visible row from
-   `SequenceElements::GetRowInformation()`, which is unusable on a
-   sequence with hundreds of models.
-   - Bridge `SequenceElements::GetViews()` /
-     `SequenceElements::SetCurrentView(viewIndex)` through
-     `XLSequenceDocument`.
-   - Toolbar picker (menu button with view names) switches the active
-     view; grid re-reads row info after the switch.
-   - Persist last-used view per sequence via `SceneStorage`.
-   - "Master" is always the first entry.
-7. Undo manager plumbing -- `document.undoManager` through
-   `SequencerViewModel`, register inverse actions for
-   add/delete/move/setting-change. Cmd+Z / Cmd+Shift+Z.
+
+10. **View picker.** Upper-left region (row 1 left cell) holds a
+    SwiftUI Menu-style dropdown. "Master" is always first. Switching
+    views calls `setCurrentViewIndex` -> grid re-reads row info and
+    re-lays-out. Persist last-used view per sequence via
+    `SceneStorage`. Writing rarely (view hasn't changed) is the
+    common case; debounce.
+
+11. **Undo manager plumbing.** `document.undoManager` through
+    `SequencerViewModel`; register inverse actions for add / delete
+    / move / resize / setting-change / transition-change. Keyboard:
+    Cmd+Z / Cmd+Shift+Z; discoverable from the Cmd menu (Phase E-4).
+
+**Implementation order.** Each step independently shippable and
+verifiable on device:
+
+- B-1 (this spec) ->
+- B-2 six-region shell with scroll coupling, no effect drawing yet
+  (verify sticky-top + sticky-left work with placeholder content)
+  **[landed. Originally shipped behind a `useBetaGrid` `@AppStorage`
+  toggle so testers could A/B against the old ZStack-of-
+  `EffectBlockView`s grid; the legacy grid + its `EffectBlockView.swift`
+  file + the `useBetaGrid` toggle have since been deleted outright
+  since the legacy path was unusable. `TimelineState` now lives on
+  `SequencerView` and is passed down into `SequencerGridV2View` so
+  toolbar zoom buttons and in-grid pinch-to-zoom share the same
+  state. Fix 1: initial load was showing an empty timeline + waveform
+  until the user zoomed in several times, then they rendered
+  misaligned until a scroll-to-left. Root cause was a stale
+  `TimelineState.sequenceDurationMS` State property that defaulted to
+  0 and only synced via `.onAppear`, so the first body eval produced
+  a collapsed `contentW`; removed the mirrored State — `contentW` is
+  now computed inline from `viewModel.sequenceDurationMS`. Fix 2: the
+  top chrome (timeline + waveform) and the grid/timing band were
+  visibly out of sync and the top chrome didn't render on initial load
+  for typical multi-minute sequences. Root cause was a SwiftUI `Canvas`
+  wrapped by `UIHostingController` inside `SyncedScrollView` — it does
+  not render reliably at multi-thousand-pixel widths and took a
+  different zoom/scroll path than the UIView-backed timing + grid
+  canvases. Replaced both SwiftUI canvases with a single
+  `TopChromeCanvasUIView` (Core Graphics draw, `intrinsicContentSize`)
+  that mirrors `TimingCanvasUIView`/`EffectsCanvasUIView`, deleted
+  `WaveformView.swift` and the legacy `TimelineRulerView`. Pinch-to-
+  zoom is now installed on all three canvases via a shared
+  `pinchZoomAction` on `SequencerGridV2View`, and pan scrolls
+  naturally in all four regions through the outer `SyncedScrollView`s.
+  Follow-up polish: waveform now renders as a filled light-blue
+  polygon with a white outline (desktop `COLOR_WAVEFORM` at 130/178/207)
+  rather than per-column vertical lines. The peak buffer is also
+  re-sampled on zoom: `SequencerViewModel.refreshWaveformForZoom`
+  targets ~1 min/max bucket per 2 pixels of rendered timeline
+  (clamped 2000..400000 samples) and is called from an
+  `.onChange(of: timeline.pixelsPerMS)` on the grid, debounced
+  120 ms so a continuous pinch only kicks one bridge call at the
+  end. Skips the reload when the current buffer is already within
+  1.5x of the new target -- at high zoom you now see finer
+  envelope detail, matching the desktop `WaveView` cache-per-zoom
+  behavior in `Waveform.cpp`. Ruler ticks use a nice-
+  interval table so e.g. a 5-second span subdivides at 1-second
+  major ticks instead of producing an off-by-one "0.02" label, and
+  labels are formatted `mm:ss.fff` (precision dropping to seconds
+  once the major interval >= 1 s). Zoom-to-fit on sequence load:
+  `fitIfNeeded` sets `timeline.pixelsPerMS` so the full duration
+  fills the available content width, keyed off the duration value
+  so it only runs once per sequence open (later user pinch/zoom
+  isn't clobbered). The timing-band left header was previously
+  wrapped in a standalone SwiftUI `ScrollView`, so dragging the
+  timing headers vertically didn't move the timing-effects band
+  next to it; both panes are now bound to a shared
+  `timingScroll: RowsScrollState` via `SyncedScrollView`, so
+  vertical scroll in either pane keeps them aligned. The "Start
+  Output" toolbar button was removed for the MVP -- controller
+  output isn't in scope for initial ship.]** ->
+- B-7 bridge additions (timing rows, layer counts, views, resize,
+  fades) **[landed; `XLSequenceDocument` gained `timingRowIndices`,
+  `timingRowIsActive`/`setTimingRowActive`, `rowIsModelGroup`,
+  `rowLayerCount`, `rowIsElementCollapsed`/`toggleElementCollapsed`,
+  `availableViews` / `currentViewIndex` / `setCurrentViewIndex`,
+  `effectFadeInSeconds` / `effectFadeOutSeconds` with setters,
+  `resizeEffectEdge`]** ->
+- B-6 row headers (timing + model, active toggle, collapse/expand)
+  **[landed as `RowHeaderViews.swift`; `TimingRowHeader` toggles
+  `TimingElement::GetActive()` on tap; `ModelRowHeader` shows group
+  icon for ModelGroups + collapse button when layerCount > 1 + tap
+  selects the model for the preview pane. Follow-up polish: timing
+  row backgrounds now draw the desktop Timing1..Timing5 palette
+  (cyan / red / green / blue / yellow, darkened for legible white
+  text) derived from `SequenceElements::RowInformation::colorIndex`
+  via new bridge methods `timingRowColorIndexAtIndex`,
+  `timingRowElementNameAtIndex`, `rowLayerNameAtIndex`. The
+  per-element active-dot + tap handler only render on the first
+  layer (`layerIndex == 0`), matching desktop behavior for lyric
+  tracks with phrase / word / phoneme sub-layers. `SequencerViewModel`
+  gained a `TimingRowInfo` sub-struct on `RowInfo`, and
+  `reloadRows()` falls back to the element name for non-collapsed
+  multi-layer timing rows that have empty `displayName`, producing
+  "[N] LayerName" labels for higher layers]** ->
+- B-3 effect drawing (brackets + icons + transitions + vertical
+  timing-mark lines) **[first cut landed as `EffectCanvasViews.swift`;
+  `ModelEffectsCanvas` draws brackets + centerline + 3-letter icon
+  placeholder + green/red/yellow fade bars + vertical timing lines
+  from active timing rows; `TimingEffectsCanvas` draws mark brackets
+  + labels. Real PNG-atlas icon rendering + per-effect background
+  thumbnails deferred to v2 polish pass]** ->
+- B-10 view picker **[landed; top-left corner renders a SwiftUI
+  `Menu` listing `SequenceElements::GetViews()`; selecting a view
+  calls `setCurrentViewIndex` and reloads rows]** ->
+- B-5 gesture set (tap, drag, edge resize, transition handles, pinch
+  zoom) with B-8 targeted re-render wired in **[landed on
+  `EffectsCanvasUIView`: tap selects/deselects, pan-from-center-of-
+  selected-effect moves, pan-from-edge-of-selected-effect resizes,
+  pinch zooms `pixelsPerMS` with anchor-under-finger preservation.
+  All mutating actions call `renderEffect(forRow:at:)` for targeted
+  re-render. Long-press on an effect selects it and fires
+  `onRequestContextMenu`, which the grid shell presents as a
+  `.confirmationDialog` with Copy / Paste Here / Lock-Unlock /
+  Disable-Enable / Delete / Cancel. Only fade-handle drag gestures
+  remain deferred]** ->
+- B-9 selection-scoped scrub **[landed; `SequencerViewModel.startScrub`
+  runs a frame-interval timer that loops `playPositionMS` over the
+  selected effect's range. Starts on `selectEffect`, stops on
+  `clearSelection` or real playback. No audio, preview-only]** ->
+- B-11 undo **[landed; `SequencerViewModel` gained a `@MainActor`
+  isolation + an `UndoManager`. Move / resize / add / delete / lock /
+  disable register inverse actions via the `UndoManager`; add/delete
+  capture the full settings+palette string (via new
+  `addEffectWithSettings` path) so undoing a delete recreates the
+  effect with its original settings intact. Toolbar buttons +
+  Cmd+Z / Cmd+Shift+Z keyboard shortcuts invoke undo/redo.
+  Setting-change (inspector) undo wiring is still a follow-up]**.
+
+B-3 v2 (rendered effect backgrounds) is a final polish pass once all
+of the above is stable.
 
 ### Phase C: Effect settings inspector, tabbed
 
@@ -345,7 +637,7 @@ Both previews, fully interactive. Self-contained phase -- deliverables
 plug into Phase E's window system as finished building blocks.
 
 1. **Model Preview.** **Done** (minus selection-scoped scrub, which
-   waits on Phase B-5). Desktop always has two previews alongside
+   waits on Phase B-9). Desktop always has two previews alongside
    the grid: **House Preview** (full display) and **Model Preview**
    (currently selected model, isolated).
    - Shared `PreviewPaneView` (MTKView + `CADisplayLink`) wraps an
@@ -369,7 +661,7 @@ plug into Phase E's window system as finished building blocks.
      variant (derive model from selected effect's parent element)
      is deferred until the new grid (Phase B) ships.
    - Selection-scoped preview scrub is deferred -- depends on
-     Phase B-5.
+     Phase B-9.
    - Model Preview fills its container; the 2D path in
      `iPadModelPreview::StartDrawing` uses
      `_virtualW/_virtualH == 0` as "no virtual-canvas scaling",
@@ -495,7 +787,7 @@ Display Elements dialog.
    `SceneStorage` / `@AppStorage`. Currently only folder bookmarks
    survive.
 6. **Display Elements dialog.** The desktop "Display Elements" panel
-   is how users create and edit the named Views that Phase B-6
+   is how users create and edit the named Views that Phase B-10
    switches between. Without it, the view picker is read-only.
    Implement as a modal sheet (`.sheet`) rather than a dockable panel
    -- it's used infrequently and doesn't need to stay on screen.

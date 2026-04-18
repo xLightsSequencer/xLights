@@ -89,7 +89,12 @@ struct PreviewPaneView: UIViewRepresentable {
         context.coordinator.viewModel = viewModel
         context.coordinator.bridge?.setPreviewModel(previewModelName ?? "")
 
-        if viewModel.isPlaying {
+        // The display link drives per-frame redraws. Keep it running not
+        // just during full playback but also while the selection-scoped
+        // scrub loop is advancing `playPositionMS` — otherwise the
+        // preview freezes on the effect start frame.
+        let needsAnimation = viewModel.isPlaying || viewModel.isScrubbing
+        if needsAnimation {
             if context.coordinator.displayLink == nil {
                 context.coordinator.startDisplayLink(frameIntervalMS: viewModel.frameIntervalMS)
             }

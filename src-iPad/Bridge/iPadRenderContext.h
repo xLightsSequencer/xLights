@@ -17,6 +17,7 @@
 #include "render/SequenceData.h"
 #include "render/SequenceElements.h"
 #include "render/SequenceFile.h"
+#include "render/SequenceViewManager.h"
 #include "render/RenderEngine.h"
 #include "render/RenderCache.h"
 #include "render/IRenderProgressSink.h"
@@ -56,6 +57,7 @@ public:
     std::string MakeRelativePath(const std::string& file) const override;
 
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }
+    SequenceViewManager& GetSequenceViewManager() { return _viewsManager; }
     bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
     AudioManager* GetCurrentMediaManager() const override;
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
@@ -107,6 +109,7 @@ private:
     std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
     SequenceElements _sequenceElements;
+    SequenceViewManager _viewsManager;
     std::unique_ptr<SequenceFile> _sequenceFile;
     std::optional<pugi::xml_document> _sequenceDoc;
 
