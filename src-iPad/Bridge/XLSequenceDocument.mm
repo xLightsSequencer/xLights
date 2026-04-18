@@ -468,6 +468,23 @@ static bool isPaletteKey(const std::string& key) {
     }
 }
 
+- (BOOL)removeEffectSettingForKey:(NSString*)key
+                            inRow:(int)rowIndex
+                          atIndex:(int)effectIndex {
+    auto* layer = [self effectLayerForRow:rowIndex];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+
+    std::string k = [key UTF8String];
+    SettingsMap& map = isPaletteKey(k) ? e->GetPaletteMap() : e->GetSettings();
+    if (!map.Contains(k)) return NO;
+    map.erase(k);
+    e->IncrementChangeCount();
+    return YES;
+}
+
 // MARK: - Fade In/Out
 
 static const char* kFadeInKey  = "T_TEXTCTRL_Fadein";

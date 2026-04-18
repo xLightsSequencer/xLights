@@ -254,6 +254,9 @@ struct EffectMetadataPanel: View {
                 switch item.kind {
                 case .property(let prop):
                     if isPropertyVisible(prop) {
+                        if prop.separator == true {
+                            Divider().padding(.vertical, 2)
+                        }
                         EffectPropertyView(property: prop,
                                            metadataPrefix: metadata.settingKeyPrefix)
                     }
@@ -278,6 +281,9 @@ struct EffectMetadataPanel: View {
                         VStack(alignment: .leading, spacing: 0) {
                             ForEach(tab.properties, id: \.self) { propId in
                                 if let prop = propsById[propId], isPropertyVisible(prop) {
+                                    if prop.separator == true {
+                                        Divider().padding(.vertical, 2)
+                                    }
                                     EffectPropertyView(property: prop,
                                                        metadataPrefix: metadata.settingKeyPrefix)
                                 }
@@ -298,19 +304,36 @@ struct EffectMetadataPanel: View {
                 }
                 ForEach(group.properties ?? [], id: \.self) { propId in
                     if let prop = propsById[propId], isPropertyVisible(prop) {
+                        if prop.separator == true {
+                            Divider().padding(.vertical, 2)
+                        }
                         EffectPropertyView(property: prop,
                                            metadataPrefix: metadata.settingKeyPrefix)
                     }
                 }
             }
             .padding(.vertical, 4)
+        case "xyCenter":
+            if let xId = group.xProperty,
+               let yId = group.yProperty,
+               let xProp = propsById[xId],
+               let yProp = propsById[yId] {
+                XYCenterPadView(xProp: xProp,
+                                yProp: yProp,
+                                wrapX: group.wrapX.flatMap { propsById[$0] },
+                                wrapY: group.wrapY.flatMap { propsById[$0] },
+                                prefix: metadata.settingKeyPrefix)
+            }
         default:
             EmptyView()
         }
     }
 
-    /// Simple visibility-rule evaluation: supports `equals` and `oneOf`.
-    /// Everything else is treated as "visible". Full rule engine is TODO.
+    /// Visibility-rule evaluation mirroring the desktop engine at
+    /// `JsonEffectPanel.cpp:1516-1570`. A `show` rule keeps the property
+    /// visible only when its condition is met; a `hide` rule removes the
+    /// property when its condition is met. Absent / unmatched rules leave
+    /// the property visible.
     private func isPropertyVisible(_ prop: PropertyMetadata) -> Bool {
         guard let rules = metadata.visibilityRules else { return true }
         for rule in rules {
@@ -325,21 +348,74 @@ struct EffectMetadataPanel: View {
         return true
     }
 
-    private func evaluateCondition(_ when: VisibilityRuleMetadata.WhenCondition) -> Bool {
-        guard let propId = when.property else { return false }
-        // Look up the target property's current value via its metadata.
+    /// Returns the current string value of the property whose id is `propId`
+    /// within this metadata, falling back to the metadata default.
+    private func propertyValue(forId propId: String) -> String? {
         let allProps = metadata.properties ?? []
-        guard let target = allProps.first(where: { $0.id == propId }) else { return false }
-
+        guard let target = allProps.first(where: { $0.id == propId }) else { return nil }
         let key = target.settingKey(prefix: metadata.settingKeyPrefix)
-        let value = viewModel.settingValue(forKey: key, defaultValue: target.defaultAsString())
+        return viewModel.settingValue(forKey: key, defaultValue: target.defaultAsString())
+    }
+
+    private func evaluateCondition(_ when: VisibilityRuleMetadata.WhenCondition) -> Bool {
+        // `any`: OR across a list of checkbox-style properties. Matches
+        // JsonEffectPanel.cpp:1521-1530 — conditionMet iff any listed
+        // property is truthy.
+        if let anyIds = when.any, !anyIds.isEmpty {
+            for id in anyIds {
+                if let v = propertyValue(forId: id), isTruthy(v) { return true }
+            }
+            return false
+        }
+
+        guard let propId = when.property,
+              let value = propertyValue(forId: propId) else {
+            return false
+        }
 
         if let equals = when.equals {
-            return value == equals.stringValue
+            return valuesMatch(value, equals)
+        }
+        if let notEquals = when.notEquals {
+            return !valuesMatch(value, notEquals)
         }
         if let oneOf = when.oneOf {
-            return oneOf.contains(where: { $0.stringValue == value })
+            return oneOf.contains(where: { valuesMatch(value, $0) })
+        }
+        if let notOneOf = when.notOneOf {
+            return !notOneOf.contains(where: { valuesMatch(value, $0) })
+        }
+        if let greaterThan = when.greaterThan {
+            let threshold = numericValue(greaterThan) ?? 0
+            let lhs = Double(value) ?? 0
+            return lhs > threshold
+        }
+        if let prefix = when.startsWith, !prefix.isEmpty {
+            return value.hasPrefix(prefix)
         }
         return false
+    }
+
+    /// Compares a settings-map string value against a Codable literal,
+    /// normalising booleans to their stored "1"/"0" form.
+    private func valuesMatch(_ stored: String, _ literal: AnyCodable) -> Bool {
+        if let b = literal.value as? Bool {
+            return isTruthy(stored) == b
+        }
+        return stored == literal.stringValue
+    }
+
+    private func isTruthy(_ s: String) -> Bool {
+        return s == "1" || s.lowercased() == "true"
+    }
+
+    private func numericValue(_ v: AnyCodable) -> Double? {
+        switch v.value {
+        case let d as Double: return d
+        case let i as Int:    return Double(i)
+        case let b as Bool:   return b ? 1 : 0
+        case let s as String: return Double(s)
+        default:              return nil
+        }
     }
 }

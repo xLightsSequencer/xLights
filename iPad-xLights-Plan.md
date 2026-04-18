@@ -729,13 +729,13 @@ each row is addressed in the sub-phases below.
 | `controlType: filepicker` | 2 props (Glediator, VUMeter file) | not rendered |
 | `controlType: fontpicker` | 1 prop (Text_Font) | not rendered |
 | `controlType: custom` beyond PaletteHeaderRow | 38 props, 15 effects | placeholder "(custom)" |
-| `group.type: xyCenter` | 6 props (Pictures, Marquee, Pinwheel, Text, Shader) | members hidden, no pad |
-| `separator: true` | 3 uses | ignored |
-| `suppressIfDefault: true` | 35 uses | ignored (writes default back to settings map) |
+| `separator: true` | 3 uses | **landed (C-2)** — `Divider` inserted before property |
+| `suppressIfDefault: true` | 35 uses | **landed (C-2)** — write equal-to-default removes the key via bridge `removeEffectSettingForKey:` |
 | `lockable: true` | 261 uses | no lock UI |
 | `dynamicOptions` | 11 uses (timingTracks, states, faces, modelNodeNames, lyricTimingTracks, effect) | empty option list |
-| visibility: `notEquals`/`notOneOf`/`greaterThan`/`any` | multiple | only `equals`/`oneOf` evaluate |
-| `valueCurve: true` | 238 uses, 45 effects | no VC button; base slider edit silently bypasses an active curve |
+| visibility: `notEquals`/`notOneOf`/`greaterThan`/`startsWith`/`any` | several | **landed (C-3)** — full engine evaluates all operators |
+| `group.type: xyCenter` | 6 props (Pictures, Marquee, Pinwheel, Text, Shader) | **landed (C-2)** — `XYCenterPadView` with draggable handle + optional wrap toggles |
+| `valueCurve: true` | 238 uses, 45 effects | **landed (C-5)** — VC button next to every flagged slider; editor sheet covers all 23 curve types, P1-P4, min/max, wrap / real-values / time-offset, timing / audio / filter fields, live preview strip, custom-point touch canvas; base slider dimmed+disabled while curve is active |
 
 Per-tab work summary:
 
@@ -789,15 +789,45 @@ tab they were on, not always "Effect" (persist in
    is name-agnostic so `sharedMetadataJsonNamed:"Blending"` just
    works; `SequencerViewModel.timingMetadata` renamed to
    `blendingMetadata`.**]**
-2. **C-2 Schema-feature coverage.** Render the `filepicker`,
-   `fontpicker`, `radiobutton` controlTypes; honor `separator` and
-   `suppressIfDefault`; implement the `xyCenter` group as a SwiftUI
-   XY pad (draggable handle in a square, with the underlying X/Y
-   sliders wired to the same settings keys as desktop). `lockable`
-   deferred to C-7.
-3. **C-3 Full visibility engine.** Support `notEquals`, `notOneOf`,
-   `greaterThan`, and `any` (ORs a list of property ids). Matches
-   `JsonEffectPanel.cpp:1441-1468`.
+2. **C-2 Schema-feature coverage.** **[partially landed.** `separator`,
+   `suppressIfDefault`, and the `xyCenter` group are in.
+   `EffectMetadataPanel` inserts a `Divider()` before any property
+   whose metadata has `separator: true` (applied in the flat layout,
+   section groups, and tab groups). `SequencerViewModel.setSettingValue`
+   gained a `suppressIfDefault:` parameter; when the new value equals
+   that default, it calls a new bridge method
+   `removeEffectSettingForKey:inRow:atIndex:` that `SettingsMap.erase`s
+   the key instead of persisting a redundant default -- matches the
+   desktop framework's `suppressIfDefault` behaviour in
+   `JsonEffectPanel::GetEffectString`. All standard control types
+   (slider / checkbox / choice / spin / text) route writes through a
+   shared `writeValue` helper that applies suppressIfDefault. The
+   new `XYCenterPadView` (`src-iPad/App/XYCenterPadView.swift`)
+   renders a square touch pad with a draggable handle, dashed
+   midlines at the X/Y range centre, current-value readout, and
+   optional Wrap X / Wrap Y toggles pulled from `group.wrapX` /
+   `group.wrapY`. Mapping uses bottom-up Y so higher values render
+   upward, matching desktop. `EffectMetadataPanel.groupView`
+   recognises `type: "xyCenter"` and hands off to the pad; member
+   properties are already hidden from the flat layout. Still
+   pending: `filepicker` (2 props), `fontpicker` (1 prop),
+   `radiobutton` (0 real uses but schema-allowed). `lockable`
+   deferred to C-7.**]**
+3. **C-3 Full visibility engine.** **[landed.**
+   `VisibilityRuleMetadata.WhenCondition` grew `notOneOf`,
+   `greaterThan`, and `startsWith` fields (alongside existing
+   `equals` / `notEquals` / `oneOf` / `any`). `evaluateCondition`
+   rewritten to match `JsonEffectPanel.cpp:1516-1570`: `any` does OR
+   over the truthiness of a list of property ids; `notEquals` is
+   the negation of equals; `notOneOf` is the negation of oneOf;
+   `greaterThan` parses both sides with Swift's non-throwing
+   `Double(_:)` init (plus an `AnyCodable` → `Double` helper);
+   `startsWith` is a plain string prefix. A new `valuesMatch` helper
+   normalises booleans so `"equals": true` compares against stored
+   `"1"` correctly. Only real-world usage in the tree today is
+   `any` (Circles, Fireworks) and `startsWith` (SingleStrand); the
+   other operators land anyway so future JSON authors don't need
+   parallel iPad work.**]**
 4. **C-4 `dynamicOptions`.** Expose the option sources the desktop
    pulls from: `timingTracks` (names of timing elements in the
    sequence), `lyricTimingTracks` (subset with lyric data),
@@ -806,47 +836,44 @@ tab they were on, not always "Effect" (persist in
    methods on `XLSequenceDocument` returning `NSArray<NSString*>`
    for each; `EffectPropertyView` branches on `prop.dynamicOptions`
    when building a `choice`.
-5. **C-5 Value curves -- desktop parity.** If a user can create a
-   curve on desktop, they can edit and create the same curve on
-   iPad. No read-only escape hatch.
-   - VC button renders next to every `valueCurve:true` property
-     (almost always a slider). Button shows an active/inactive glyph
-     + a tiny curve thumbnail when active.
-   - Storage key is `<prefix>VALUECURVE_<id>`; reuse
-     `src-core/render/ValueCurve` `Serialise` / `Deserialise` via a
-     new `XLSequenceDocument` bridge so the on-disk string matches
-     desktop byte-for-byte (all 16 curve types + optional TT / AT /
-     FT / FLR / TO / WRAP / RV fields round-trip).
-   - Editor sheet supports: active toggle, type picker (all 16 types:
-     Flat, Ramp, Ramp Up/Down, Ramp Up/Down Hold, Music Trigger Fade,
-     Square, Parabolic Up/Down, Logarithmic Up/Down, Exponential
-     Up/Down, Sine, Decaying Sine, Abs Sine, Random, Custom), P1-P4
-     parameters (range + label per curve type, read from
-     `ValueCurveConsts`), Min/Max, Wrap, Real Values, Time Offset.
-   - Timing-track picker (`TT=...`) for Music Trigger Fade, populated
-     via the C-4 `dynamicOptions` bridge. Audio-track picker (`AT=`)
-     similarly. Filter label + regex (`FT=` / `FLR=`) exposed.
-   - **Custom-point editor** -- touch-canvas editor backed by a
-     `UIViewRepresentable`. Tap empty area to add a point, drag to
-     move, long-press (or swipe-off) to delete. Matches desktop
-     `ValueCurveDialog`'s editable curve surface. Values serialize as
-     `Values=x:y;x:y;...`.
-   - Curve-type preset gallery -- recreates desktop's
-     "saved value curves" picker (`ValueCurvesPanel`) so users can
-     load a named preset from the same on-disk store.
-   - Live preview strip inside the editor uses
-     `ValueCurve::GetValueAt` (already wx-free) to render 1-px-wide
-     columns. Extract the draw routine from
-     `src-ui-wx/ui/shared/utils/ValueCurveRendering.cpp` into a
-     platform-neutral helper under `src-core/render/` so desktop and
-     iPad share it.
-   - Data preservation: when a property has an active VC and the user
-     edits the base slider, the VC is **not** silently cleared.
-     Desktop keeps both side-by-side -- the curve takes effect, the
-     slider value becomes the fallback when the curve is toggled off.
-     iPad mirrors this: while the curve is active, the base slider is
-     dimmed and a "curve active -- tap to edit" chip replaces the raw
-     number; toggling the VC off in the editor restores the slider.
+5. **C-5 Value curves -- desktop parity.** **[landed.** If a user can
+   create a curve on desktop, they can edit and create the same curve
+   on iPad. New ObjC++ bridge class `XLValueCurve`
+   (`src-iPad/Bridge/XLValueCurve.{h,mm}`) wraps
+   `src-core/render/ValueCurve` so serialisation is byte-for-byte
+   identical — `initWithSerialised:forId:min:max:divisor:` chains
+   through `Deserialise(holdminmax=false)` after seeding with the
+   property's scale (matches JsonEffectPanel). Every getter/setter
+   routes directly to `ValueCurve`'s methods; `GetRangeParm` exposed
+   as a class method for per-type param ranges; `GetValueAt` via
+   `valueAtOffset:` for preview sampling. Swift side:
+   `EditableValueCurve` (`@Observable` wrapper) owns the ObjC core
+   and re-serialises + writes back to the settings map via
+   `SequencerViewModel.setSettingValue` on every mutation, with
+   `Active=FALSE|` as `suppressIfDefault` so dropping back to
+   inactive removes the key rather than persisting a dead marker.
+   `ValueCurveButton` renders a small pill next to every slider whose
+   metadata has `valueCurve:true` and opens the editor sheet.
+   `ValueCurveEditorSheet` contains: Active toggle, type picker (all
+   23 types sourced from `XLValueCurve.availableTypes()` so the
+   string list is the single source of truth), live preview strip
+   (`ValueCurvePreviewStrip` — Canvas that re-samples `GetValueAt`
+   at 1 px/column, matches the algorithm in
+   `ValueCurveRendering.cpp`), P1-P4 sliders with per-type ranges
+   from `GetRangeParm` and desktop-matching labels, min/max
+   TextFields, Wrap/Real Values/Time Offset toggles, Timing Track /
+   Audio Track / Filter Label fields surfaced only for the curve
+   types that consume them. `ValueCurveCustomPointEditor` is a touch
+   canvas for `Custom` / `Random` — tap empty to add, drag to move,
+   points stored via `SetValueAt` (normalised to the 1/200 x grid
+   matching desktop). `EffectPropertyView.sliderView` dims + disables
+   the base slider when the stored VC string starts with
+   `Active=TRUE` so the underlying value can't be edited behind the
+   curve's back. Follow-ups: dynamicOptions-driven pickers for TT/AT
+   (wait on C-4); saved preset gallery (`ValueCurvesPanel`
+   equivalent) deferred; extracting `ValueCurveRendering` into a
+   platform-neutral helper in `src-core/` is optional polish since
+   the Swift Canvas impl is already a straight port.**]**
 6. **C-6 Custom controls, effect-by-effect.** 39 properties across 15
    effects, in priority order (by likely user traffic):
    - **Pictures** -- `Pictures_FilenameBlock` (file picker + animated

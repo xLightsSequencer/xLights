@@ -111,6 +111,14 @@
                         inRow:(int)rowIndex
                       atIndex:(int)effectIndex;
 
+// Remove a setting from the effect (used for properties with
+// suppressIfDefault=true when the new value equals the default, so the
+// settings map doesn't persist a redundant default). Returns YES if the
+// key was present and was removed.
+- (BOOL)removeEffectSettingForKey:(NSString*)key
+                            inRow:(int)rowIndex
+                          atIndex:(int)effectIndex;
+
 // Fade in/out (seconds, stored as T_TEXTCTRL_Fadein / T_TEXTCTRL_Fadeout).
 - (float)effectFadeInSecondsForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (float)effectFadeOutSecondsForRow:(int)rowIndex atIndex:(int)effectIndex;

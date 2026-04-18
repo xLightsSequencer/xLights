@@ -547,24 +547,47 @@ class SequencerViewModel {
         return defaultValue
     }
 
-    /// Write a single setting value and trigger a re-render of the affected
-    /// range if the value actually changed. Registers an undo step so
-    /// Cmd+Z reverts the inspector change.
-    func setSettingValue(_ value: String, forKey key: String) {
+    /// range if the value actually changed. When `suppressIfDefault` is
+    /// non-nil and the new value equals that default, the settings map
+    /// entry is removed instead of written — matches the desktop
+    /// `suppressIfDefault:true` JSON metadata flag so we don't persist
+    /// redundant defaults in the effect string. Registers an undo step
+    /// so Cmd+Z reverts the inspector change; the undo re-writes the
+    /// previous value via `setSettingValueAt` even if the forward action
+    /// was a remove.
+    func setSettingValue(_ value: String,
+                          forKey key: String,
+                          suppressIfDefault: String? = nil) {
         guard let sel = selectedEffect else { return }
+
         // Capture the previous value BEFORE writing so the undo closure
-        // restores exactly what was stored (falls back to empty if the
-        // key wasn't set yet — the bridge treats "" as "remove").
+        // restores exactly what was stored (empty string if the key
+        // wasn't set yet — the bridge treats "" as "remove").
         let prev = document.effectSettingValue(forKey: key,
                                                 inRow: Int32(sel.rowIndex),
                                                 at: Int32(sel.effectIndex)) ?? ""
         guard prev != value else { return }
-        let changed = document.setEffectSettingValue(value,
+
+        let shouldSuppress = (suppressIfDefault != nil && value == suppressIfDefault!)
+        let changed: Bool
+        if shouldSuppress {
+            changed = document.removeEffectSetting(forKey: key,
+                                                    inRow: Int32(sel.rowIndex),
+                                                    at: Int32(sel.effectIndex))
+            if changed || selectedEffectSettings[key] != nil {
+                selectedEffectSettings.removeValue(forKey: key)
+            }
+        } else {
+            changed = document.setEffectSettingValue(value,
                                                       forKey: key,
                                                       inRow: Int32(sel.rowIndex),
                                                       at: Int32(sel.effectIndex))
+            if changed {
+                selectedEffectSettings[key] = value
+            }
+        }
+
         if changed {
-            selectedEffectSettings[key] = value
             document.renderEffect(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex))
             let rowIndex = sel.rowIndex
             let effectIndex = sel.effectIndex

@@ -131,11 +131,25 @@ struct VisibilityRuleMetadata: Codable {
     let show: [String]?
     let hide: [String]?
 
+    // Mirrors the desktop `VisibilityRule` evaluated in
+    // JsonEffectPanel.cpp:1433-1570. Supported operators:
+    //   - equals      — string/bool equality with the target property's value
+    //   - notEquals   — negation of equals
+    //   - oneOf       — target value appears in the list (choice controls)
+    //   - notOneOf    — inverse of oneOf
+    //   - greaterThan — numeric (>), parsed with strtod (non-throwing)
+    //   - startsWith  — string prefix match on a choice selection
+    //   - any         — OR across a list of checkbox-style property ids
+    // `any` is mutually exclusive with the single-property operators
+    // (desktop never combines them on one rule).
     struct WhenCondition: Codable {
         let property: String?
         let equals: AnyCodable?
         let notEquals: AnyCodable?
         let oneOf: [AnyCodable]?
+        let notOneOf: [AnyCodable]?
+        let greaterThan: AnyCodable?
+        let startsWith: String?
         let any: [String]?
     }
 }

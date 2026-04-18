@@ -17,6 +17,19 @@ struct EffectPropertyView: View {
         viewModel.settingValue(forKey: settingKey, defaultValue: defaultValueString)
     }
 
+    /// For properties flagged `suppressIfDefault: true` in the JSON metadata,
+    /// pass the default through to the setter so it removes the key instead
+    /// of persisting a redundant default. Nil → always write.
+    private var suppressDefault: String? {
+        (property.suppressIfDefault == true) ? defaultValueString : nil
+    }
+
+    private func writeValue(_ value: String) {
+        viewModel.setSettingValue(value,
+                                   forKey: settingKey,
+                                   suppressIfDefault: suppressDefault)
+    }
+
     var body: some View {
         switch property.controlType {
         case "slider":
@@ -65,12 +78,21 @@ struct EffectPropertyView: View {
         let binding = Binding<Double>(
             get: { Double(storedInt) },
             set: { newVal in
-                viewModel.setSettingValue(String(Int(newVal)), forKey: settingKey)
+                writeValue(String(Int(newVal)))
             }
         )
 
+        // An active value curve replaces this slider's runtime value. Dim
+        // the slider while one is active — the user can still scrub to
+        // pre-set a fallback, but it won't apply until they toggle the
+        // curve off in the VC editor.
+        let vcKey = property.valueCurveKey(prefix: metadataPrefix)
+        let vcActive = property.valueCurve == true
+            && viewModel.settingValue(forKey: vcKey, defaultValue: "")
+                .hasPrefix("Active=TRUE")
+
         return VStack(alignment: .leading, spacing: 2) {
-            HStack {
+            HStack(spacing: 6) {
                 Text(property.label)
                     .font(.caption)
                 Spacer()
@@ -80,8 +102,13 @@ struct EffectPropertyView: View {
                     .monospacedDigit()
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                if property.valueCurve == true {
+                    ValueCurveButton(property: property, prefix: metadataPrefix)
+                }
             }
             Slider(value: binding, in: minVal...maxVal, step: 1)
+                .opacity(vcActive ? 0.4 : 1.0)
+                .disabled(vcActive)
         }
         .padding(.vertical, 2)
     }
@@ -101,7 +128,7 @@ struct EffectPropertyView: View {
         let binding = Binding<Bool>(
             get: { rawValue == "1" || rawValue.lowercased() == "true" },
             set: { newVal in
-                viewModel.setSettingValue(newVal ? "1" : "0", forKey: settingKey)
+                writeValue(newVal ? "1" : "0")
             }
         )
         let label = property.checkboxLabel ?? property.label
@@ -119,7 +146,7 @@ struct EffectPropertyView: View {
         let options = property.options ?? []
         let binding = Binding<String>(
             get: { rawValue.isEmpty ? defaultValueString : rawValue },
-            set: { viewModel.setSettingValue($0, forKey: settingKey) }
+            set: { writeValue($0) }
         )
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
@@ -142,7 +169,7 @@ struct EffectPropertyView: View {
         let maxVal = Int(property.max ?? 100)
         let binding = Binding<Int>(
             get: { Int(rawValue) ?? Int(defaultValueString) ?? 0 },
-            set: { viewModel.setSettingValue(String($0), forKey: settingKey) }
+            set: { writeValue(String($0)) }
         )
         return HStack {
             Text(property.label)
@@ -164,7 +191,7 @@ struct EffectPropertyView: View {
     private var textView: some View {
         let binding = Binding<String>(
             get: { rawValue },
-            set: { viewModel.setSettingValue($0, forKey: settingKey) }
+            set: { writeValue($0) }
         )
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
