@@ -155,6 +155,8 @@ const wxWindowID LayoutPanel::ID_PANEL2 = wxNewId();
 const wxWindowID LayoutPanel::ID_SPLITTERWINDOW1 = wxNewId();
 const wxWindowID LayoutPanel::ID_CHECKBOX_3D = wxNewId();
 const wxWindowID LayoutPanel::ID_CHECKBOXOVERLAP = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOXSHOWNAMES = wxNewId();
+const wxWindowID LayoutPanel::ID_CHECKBOXSHOWINFO = wxNewId();
 const wxWindowID LayoutPanel::ID_BUTTON_SAVE_PREVIEW = wxNewId();
 const wxWindowID LayoutPanel::ID_PANEL5 = wxNewId();
 const wxWindowID LayoutPanel::ID_STATICTEXT1 = wxNewId();
@@ -404,13 +406,19 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	SecondPanel = new wxPanel(ModelSplitter, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL2"));
 	ModelSplitter->SplitHorizontally(FirstPanel, SecondPanel);
 	LeftPanelSizer->Add(ModelSplitter, 1, wxALL|wxEXPAND, 2);
-	FlexGridSizer3 = new wxFlexGridSizer(0, 3, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(0, 2, 0, 0);
 	CheckBox_3D = new wxCheckBox(LeftPanel, ID_CHECKBOX_3D, _("3D"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_3D"));
 	CheckBox_3D->SetValue(false);
 	FlexGridSizer3->Add(CheckBox_3D, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	CheckBoxOverlap = new wxCheckBox(LeftPanel, ID_CHECKBOXOVERLAP, _("Overlap checks enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXOVERLAP"));
 	CheckBoxOverlap->SetValue(false);
 	FlexGridSizer3->Add(CheckBoxOverlap, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 1);
+	CheckBoxShowNames = new wxCheckBox(LeftPanel, ID_CHECKBOXSHOWNAMES, _("Show Names"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXSHOWNAMES"));
+	CheckBoxShowNames->SetValue(false);
+	FlexGridSizer3->Add(CheckBoxShowNames, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	CheckBoxShowInfo = new wxCheckBox(LeftPanel, ID_CHECKBOXSHOWINFO, _("Show Start Channel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOXSHOWINFO"));
+	CheckBoxShowInfo->SetValue(false);
+	FlexGridSizer3->Add(CheckBoxShowInfo, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	LeftPanelSizer->Add(FlexGridSizer3, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
 	ButtonSavePreview = new wxButton(LeftPanel, ID_BUTTON_SAVE_PREVIEW, _("Save"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SAVE_PREVIEW"));
 	LeftPanelSizer->Add(ButtonSavePreview, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -452,6 +460,8 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Connect(ID_NOTEBOOK_OBJECTS, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnNotebook_ObjectsPageChanged);
 	Connect(ID_CHECKBOX_3D, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBox_3DClick);
 	Connect(ID_CHECKBOXOVERLAP, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxOverlapClick);
+	Connect(ID_CHECKBOXSHOWNAMES, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxShowNamesClick);
+	Connect(ID_CHECKBOXSHOWINFO, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnCheckBoxShowInfoClick);
 	Connect(ID_BUTTON_SAVE_PREVIEW, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&LayoutPanel::OnButtonSavePreviewClick);
 	Connect(ID_CHOICE_PREVIEWS, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&LayoutPanel::OnChoiceLayoutGroupsSelect);
 	Connect(ID_SPLITTERWINDOW2, wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, (wxObjectEventFunction)&LayoutPanel::OnSplitterWindowSashPosChanged);
@@ -2907,6 +2917,16 @@ void LayoutPanel::OnCheckBoxOverlapClick(wxCommandEvent& event)
             }
         }
     }
+}
+
+void LayoutPanel::OnCheckBoxShowNamesClick(wxCommandEvent& event)
+{
+    modelPreview->SetShowModelNames(CheckBoxShowNames->GetValue());
+}
+
+void LayoutPanel::OnCheckBoxShowInfoClick(wxCommandEvent& event)
+{
+    modelPreview->SetShowModelInfo(CheckBoxShowInfo->GetValue());
 }
 
 bool LayoutPanel::SaveEffects()

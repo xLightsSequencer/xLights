@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
-
+    -enh (scott)                Add "Show Names" and "Show Start Channel" checkboxes to Layout tab to display model names
+                                and controller/port or start channel in the layout preview
     -enh (derwin12)             Picture effect auto-sets scaling to "Scale To Fit" when appropriate
     -enh (derwin12)             Add Speed as a Warp effect type (#4596)
     -enh (derwin12)             Add more variability to Lines Effect. Now using float values (#4532)

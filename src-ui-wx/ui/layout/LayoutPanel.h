@@ -113,6 +113,8 @@ class LayoutPanel: public wxPanel
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
 		wxCheckBox* CheckBox_3D;
+		wxCheckBox* CheckBoxShowInfo;
+		wxCheckBox* CheckBoxShowNames;
 		wxChoice* ChoiceLayoutGroups;
 		wxFlexGridSizer* ToolSizer;
 		wxNotebook* Notebook_Objects;
@@ -149,6 +151,8 @@ class LayoutPanel: public wxPanel
 		static const wxWindowID ID_SPLITTERWINDOW1;
 		static const wxWindowID ID_CHECKBOX_3D;
 		static const wxWindowID ID_CHECKBOXOVERLAP;
+		static const wxWindowID ID_CHECKBOXSHOWNAMES;
+		static const wxWindowID ID_CHECKBOXSHOWINFO;
 		static const wxWindowID ID_BUTTON_SAVE_PREVIEW;
 		static const wxWindowID ID_PANEL5;
 		static const wxWindowID ID_STATICTEXT1;
@@ -273,6 +277,8 @@ class LayoutPanel: public wxPanel
 		void OnPreviewMagnify(wxMouseEvent& event);
 		void OnPreviewModelPopup(wxCommandEvent &event);
 		void OnCheckBoxOverlapClick(wxCommandEvent& event);
+		void OnCheckBoxShowNamesClick(wxCommandEvent& event);
+		void OnCheckBoxShowInfoClick(wxCommandEvent& event);
 		void OnButtonSavePreviewClick(wxCommandEvent& event);
 		void OnPropertyGridChange(wxPropertyGridEvent& event);
 		void OnPropertyGridChanging(wxPropertyGridEvent& event);
