@@ -31,6 +31,8 @@
 - (NSString*)rowDisplayNameAtIndex:(int)index;
 - (int)rowLayerIndexAtIndex:(int)index;
 - (BOOL)rowIsCollapsedAtIndex:(int)index;
+// Model name for a row (element->GetName()). Empty for non-model rows (e.g. timings).
+- (NSString*)rowModelNameAtIndex:(int)index;
 
 // Effects for a given row
 - (int)effectCountForRow:(int)rowIndex;
@@ -96,6 +98,11 @@
 // Rendering
 - (void)renderAll;
 - (BOOL)isRenderDone;
+
+// Memory pressure
+- (void)handleMemoryWarning;
+- (void)handleMemoryCritical;
++ (int64_t)availableMemoryMB;
 
 // House preview pixel data at a given time
 // Returns NSData containing packed float x, y and uint8 r, g, b per pixel

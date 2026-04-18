@@ -196,21 +196,18 @@ void xLightsFrame::UpdateRenderStatus()
         int countModels = 0;
         int countFrames = 0;
 
-        bool done = true;
         RenderProgressInfo* rpi = *it;
         bool shown = rpi->progressSink ? rpi->progressSink->IsShown() : false;
 
         int frames = rpi->endFrame - rpi->startFrame + 1;
         if (frames <= 0) frames = 1;
 
+        // Poll per-job frame progress for the UI progress bar.
         for (size_t row = 0; row < (size_t)rpi->numRows; ++row) {
             if (rpi->jobs[row]) {
                 int i = rpi->jobs[row]->GetCurrentFrame();
                 if (i > rpi->jobs[row]->GetEndFrame()) {
                     i = END_OF_RENDER_FRAME;
-                }
-                if (i != END_OF_RENDER_FRAME) {
-                    done = false;
                 }
                 if (rpi->jobs[row]->GetEndFrame() > rpi->endFrame) {
                     frames += rpi->jobs[row]->GetEndFrame() - rpi->endFrame;
@@ -247,7 +244,11 @@ void xLightsFrame::UpdateRenderStatus()
             }
         }
 
-        if (done) {
+        // Batch completion is signaled atomically by the last RenderJob's
+        // FinishNotifier (see RenderEngine::NotifyJobFinished). The drain
+        // runs on the wx main thread, so this is where we invoke the user
+        // callback -- it typically touches UI.
+        if (rpi->completed.load()) {
             if (IsRenderBell() && !_renderMode && mRendering) {
                 wxBell();
             }

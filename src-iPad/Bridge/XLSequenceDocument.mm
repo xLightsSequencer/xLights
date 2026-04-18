@@ -27,6 +27,8 @@
 #include <sstream>
 #include <string>
 
+#import <os/proc.h>
+
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
 }
@@ -105,6 +107,18 @@
 - (BOOL)rowIsCollapsedAtIndex:(int)index {
     auto* row = _context->GetSequenceElements().GetRowInformation(index);
     return row ? row->Collapsed : NO;
+}
+
+- (NSString*)rowModelNameAtIndex:(int)index {
+    auto* row = _context->GetSequenceElements().GetRowInformation(index);
+    if (!row || !row->element) return @"";
+    // Only return a name for model-backed elements. Timing tracks don't map
+    // to a displayable model.
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_MODEL &&
+        row->element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
+        return @"";
+    }
+    return [NSString stringWithUTF8String:row->element->GetModelName().c_str()];
 }
 
 - (EffectLayer*)effectLayerForRow:(int)rowIndex {
@@ -367,9 +381,19 @@ static bool isPaletteKey(const std::string& key) {
 }
 
 - (BOOL)isRenderDone {
-    if (!_context->GetSequenceData().IsValidData()) return NO;
-    // Check if render engine exists and is done
-    return YES; // simplified for now
+    return _context->IsRenderDone() ? YES : NO;
+}
+
+- (void)handleMemoryWarning {
+    _context->HandleMemoryWarning();
+}
+
+- (void)handleMemoryCritical {
+    _context->HandleMemoryCritical();
+}
+
++ (int64_t)availableMemoryMB {
+    return (int64_t)(os_proc_available_memory() / (1024 * 1024));
 }
 
 - (int)pixelCountAtMS:(int)frameMS {

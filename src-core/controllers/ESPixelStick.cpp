@@ -758,15 +758,25 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             break;
         }
 
-        for (int currentPortId = 0; currentPortId < cud.GetMaxPixelPort(); currentPortId++)
+        bool const fullControl = controller->IsFullxLightsControl();
+        int const maxPixelPorts = fullControl ? rules->GetMaxPixelPort() : cud.GetMaxPixelPort();
+
+        for (int currentPortId = 0; currentPortId < maxPixelPorts; currentPortId++)
         {
+            auto const s_currentPortId = std::to_string(currentPortId);
+
             if (!cud.HasPixelPort(currentPortId + 1))
             {
-                // not a valid port
+                // no model assigned to this port — disable it when in full control
+                if (fullControl && EspsConfig.contains(s_currentPortId))
+                {
+                    EspsPort& CurrentEspsPort = EspsConfig[s_currentPortId];
+                    CurrentEspsPort.Disable();
+                    changed |= (CurrentEspsPort.WriteConfigToJson(outputConfig) != 0);
+                }
                 continue;
             }
 
-            auto const s_currentPortId = std::to_string(currentPortId);
             EspsPort& CurrentEspsPort = EspsConfig[s_currentPortId];
             UDControllerPort* port = cud.GetControllerPixelPort(currentPortId + 1);
 
@@ -795,7 +805,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
                 CurrentEspsPort.Disable();
                 continue;
             }
-            Protocol.SetIsFullxLightsControl(controller->IsFullxLightsControl());
+            Protocol.SetIsFullxLightsControl(fullControl);
 
             // bind protocol to the port
             CurrentEspsPort.CurrentProtocolId = Protocol.Id();
@@ -829,18 +839,27 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
 
             } // end have a model
 
-            changed = CurrentEspsPort.WriteConfigToJson(outputConfig);
+            changed |= (CurrentEspsPort.WriteConfigToJson(outputConfig) != 0);
         } // end for each xLights pixel port on this controller
 
-        for (int currentPortId = 0; currentPortId < cud.GetMaxSerialPort(); currentPortId++)
+        int const maxSerialPorts = fullControl ? rules->GetMaxSerialPort() : cud.GetMaxSerialPort();
+
+        for (int currentPortId = 0; currentPortId < maxSerialPorts; currentPortId++)
         {
+            auto const s_currentPortId = std::to_string(currentPortId);
+
             if (!cud.HasSerialPort(currentPortId + 1))
             {
-                // not a valid serial port
+                // no model assigned to this port — disable it when in full control
+                if (fullControl && EspsConfig.contains(s_currentPortId))
+                {
+                    EspsPort& CurrentEspsPort = EspsConfig[s_currentPortId];
+                    CurrentEspsPort.Disable();
+                    changed |= (CurrentEspsPort.WriteConfigToJson(outputConfig) != 0);
+                }
                 continue;
             }
 
-            auto const s_currentPortId = std::to_string(currentPortId);
             EspsPort& CurrentEspsPort = EspsConfig[s_currentPortId];
 
             if (!EspsConfig.contains(s_currentPortId))
@@ -887,7 +906,7 @@ bool ESPixelStick::SetOutputsV4(ModelManager* allmodels, OutputManager* outputMa
             Protocol.PutSetting("num_chan", port->Channels(), 0);
             Protocol.PutSetting("baudrate", model->GetModel()->GetControllerProtocolSpeed(), 57600);
 
-            changed = CurrentEspsPort.WriteConfigToJson(outputConfig);
+            changed |= (CurrentEspsPort.WriteConfigToJson(outputConfig) != 0);
 
         } // end for each serial port on this controller
 

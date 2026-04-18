@@ -11,6 +11,7 @@
 #include "iPadRenderContext.h"
 
 #include "render/Element.h"
+#include "render/RenderProgressInfo.h"
 #include "models/Model.h"
 #include "models/Node.h"
 #include "render/ValueCurve.h"
@@ -19,6 +20,9 @@
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
 #include <log.h>
+
+#include <algorithm>
+#include <thread>
 
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
@@ -42,6 +46,16 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
     for (const auto& folder : _mediaFolders) {
         ObtainAccessToURL(folder, false);
     }
+
+    // Wire the show dir + media folders into FileUtils::FixFile so that
+    // sequence references (audio, videos, images, 3D meshes, shaders, etc.)
+    // that were saved with absolute paths from another machine get re-resolved
+    // against the iPad's current show/media locations. Without this,
+    // _fixFileSearchDirs stays empty and FixFile has no way to relocate
+    // assets — the raw saved paths fall straight through and FileExists fails.
+    FileUtils::SetFixFileShowDir(showDir);
+    FileUtils::SetFixFileDirectories(_mediaFolders);
+    FileUtils::ClearNonExistentFiles();
 
     // Load network/controller configuration
     if (!_outputManager.Load(showDir)) {
@@ -214,7 +228,12 @@ void iPadRenderContext::RenderAll() {
 
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");
-        _jobPool->Start(4);
+        // RenderEngine workers can block waiting on frames from other models;
+        // with too few threads a contended sequence deadlocks. Oversubscribe
+        // well past core count so a blocked worker never exhausts the pool.
+        size_t hw = std::thread::hardware_concurrency();
+        size_t poolThreads = std::max<size_t>(24, hw * 2);
+        _jobPool->Start(poolThreads);
     }
 
     if (!_renderEngine) {
@@ -234,6 +253,46 @@ void iPadRenderContext::RenderAll() {
 
     spdlog::info("iPadRenderContext: RenderAll started for {} frames, {} channels",
                  numFrames, numChannels);
+}
+
+void iPadRenderContext::HandleMemoryWarning() {
+    if (_renderEngine) {
+        _renderEngine->SignalAbort();
+    }
+    _renderCache.Purge(nullptr, false);
+    spdlog::warn("iPadRenderContext: memory warning handled -- aborted render, purged cache");
+}
+
+void iPadRenderContext::HandleMemoryCritical() {
+    HandleMemoryWarning();
+    // Phase D note: once Model Preview owns its own vertex / texture buffers,
+    // free them here too. iPadModelPreview today rebuilds accumulators per
+    // frame, so there's nothing extra to drop.
+    spdlog::error("iPadRenderContext: memory critical handled");
+}
+
+bool iPadRenderContext::IsRenderDone() {
+    if (!_sequenceData.IsValidData()) return false;
+    // Each RenderProgressInfo flips its `completed` atomic when its last
+    // RenderJob signals via FinishNotifier (covers normal, aborted, and
+    // early-bail exits). We both check completion and lazily drain finished
+    // entries here -- called from the main thread, so cleanup + callback run
+    // safely off the render workers. Any pending rpi keeps the result false.
+    auto& list = _renderEngine->GetRenderProgressInfo();
+    bool allDone = true;
+    for (auto it = list.begin(); it != list.end();) {
+        RenderProgressInfo* rpi = *it;
+        if (rpi->completed.load()) {
+            rpi->CleanupJobs();
+            if (rpi->callback) rpi->callback(_renderEngine->GetAbortedRenderJobs() > 0);
+            delete rpi;
+            it = list.erase(it);
+        } else {
+            allDone = false;
+            ++it;
+        }
+    }
+    return allDone;
 }
 
 void iPadRenderContext::SetModelColors(int frameMS) {

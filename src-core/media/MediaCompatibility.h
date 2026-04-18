@@ -21,6 +21,14 @@ struct MediaCompatibilityIssue {
     std::string filePath;
     std::string reason;     // e.g. "Unsupported video codec", "Cannot open audio file"
     bool isVideo;           // true = video, false = audio
+
+    // Returns true if the file can be transcoded (i.e. it opened successfully).
+    // Files that failed to open ("Cannot open file" / "Cannot read stream info")
+    // cannot be converted — only warned about.
+    bool canConvert() const {
+        return reason.rfind("Cannot open", 0) != 0 &&
+               reason.rfind("Cannot read", 0) != 0;
+    }
 };
 
 class MediaCompatibility {

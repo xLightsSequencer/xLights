@@ -78,6 +78,11 @@ public:
     void OnRenderJobComplete(const std::string& modelName);
     void OnAllRenderJobsComplete();
 
+    // Called by each RenderJob's RAII guard as it exits Process() (any path:
+    // normal, aborted, early-bail). The thread that decrements the last job
+    // fires the render-batch completion callback.
+    void NotifyJobFinished(RenderProgressInfo* rpi);
+
     // ---- state access (for UI layer) ----
     std::list<RenderProgressInfo*>& GetRenderProgressInfo() { return _renderProgressInfo; }
     int GetAbortedRenderJobs() const { return _abortedRenderJobs; }

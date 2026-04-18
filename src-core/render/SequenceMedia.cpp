@@ -560,17 +560,15 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         return ret;
     }
 
-    // For relative paths, resolve to an absolute path using FileUtils::FixFile so the
-    // entry can be loaded from disk.  The cache key stays as the relative path.
-    std::string loadPath = filepath;
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty())
-            loadPath = resolved;
-    }
+    // Resolve to an absolute (and existing) path using FileUtils::FixFile so
+    // the entry can be loaded from disk. Absolute paths go through FixFile too
+    // -- sequences moved between machines keep their saved absolute paths, and
+    // FixFile re-resolves them against the current show/media folders. The
+    // cache key stays as the original path.
+    std::string loadPath = ResolvePath(filepath);
     // Check if the resolved path matches an existing entry
     for (auto& [key, entry] : _imageCache) {
-        if (entry->GetFilePath() == loadPath || (!std::filesystem::path(key).is_absolute() ? FileUtils::FixFile("", key) : key) == loadPath) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) {
                 lock.unlock();
                 entry->Load();
@@ -600,15 +598,9 @@ void SequenceMedia::RemoveImage(const std::string& filepath)
 }
 
 void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
-    // Resolve relative paths the same way GetImage does, so FileExists and
-    // LoadFile operate on a valid absolute path.
-    std::string loadPath = filepath;
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty()) {
-            loadPath = resolved;
-        }
-    }
+    // Resolve paths the same way GetImage does, so FileExists and LoadFile
+    // operate on a valid absolute path.
+    std::string loadPath = ResolvePath(filepath);
     std::filesystem::path loadFsPath(loadPath);
     std::string extension = loadFsPath.extension().string();
     std::string stemStr = loadFsPath.stem().string();
@@ -1205,14 +1197,12 @@ VideoMediaCacheEntry::VideoMediaCacheEntry(const std::string& filePath)
 void VideoMediaCacheEntry::Load() {
     std::scoped_lock lock(_cacheMutex);
     if (!_loadingDone) {
-        // Videos are path-only: resolve to absolute path for VideoReader
-        _resolvedPath = _filePath;
-        if (!std::filesystem::path(_filePath).is_absolute()) {
-            std::string resolved = FileUtils::FixFile("", _filePath);
-            if (!resolved.empty()) {
-                _resolvedPath = resolved;
-            }
-        }
+        // Videos are path-only: resolve to an absolute (and existing) path
+        // for VideoReader. Absolute paths go through FixFile too so sequences
+        // saved on another machine get their paths re-resolved against the
+        // current show/media folders.
+        std::string resolved = FileUtils::FixFile("", _filePath);
+        _resolvedPath = resolved.empty() ? _filePath : resolved;
         RecordFileTimestamp();
         _loadingDone = true;
     }
@@ -1318,10 +1308,13 @@ void VideoMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
 // =====================================================================
 
 std::string SequenceMedia::ResolvePath(const std::string& filepath) {
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty()) return resolved;
-    }
+    // Absolute paths also go through FixFile so sequences saved on a different
+    // machine (e.g. desktop-saved sequence opened on iPad) get their embedded
+    // absolute paths re-resolved against the current show/media folders.
+    // FixFile's fast path is FileExists(file, false) → early return, so
+    // untouched paths stay cheap on desktop.
+    std::string resolved = FileUtils::FixFile("", filepath);
+    if (!resolved.empty()) return resolved;
     return filepath;
 }
 

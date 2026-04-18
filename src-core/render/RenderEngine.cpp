@@ -794,7 +794,14 @@ public:
         }
     }
     virtual void Process() override {
-        
+        // RAII guard — fires rpi completion signal on every exit path (normal,
+        // early-bail, abort, exception). Must come before any return.
+        struct FinishNotifier {
+            RenderEngine* engine;
+            RenderProgressInfo* rpi;
+            ~FinishNotifier() { if (engine && rpi) engine->NotifyJobFinished(rpi); }
+        } finisher{_engine, _rpi};
+
         auto logger_jobpool = spdlog::get("job");
         // Log the thread ID as a hash value
         size_t tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
@@ -983,6 +990,8 @@ public:
 
     ModelElement* GetModelElement() const { return rowToRender; }
 
+    void SetRenderProgressInfo(RenderProgressInfo* rpi) { _rpi = rpi; }
+
 private:
 
     void initialize(int layer, int frame, Effect *el, SettingsMap &settingsMap, PixelBufferClass *buffer) {
@@ -1088,6 +1097,7 @@ private:
     std::function<void(int, const std::string&)> progressCallback;
     std::atomic_int currentFrame;
     std::atomic_bool abort;
+    RenderProgressInfo* _rpi = nullptr; // non-owning; set after construction by Render()
 
     std::vector<EffectLayerInfo *> subModelInfos;
 
@@ -1407,7 +1417,6 @@ void RenderEngine::Render(SequenceElements& seqElements,
     logger_render->debug("Aggregators created.");
 
     channelMaps.clear();
-    unsigned int count = 0;
     if (clear) {
         for (int f = startFrame; f <= endFrame; f++) {
             for (const auto& it : ranges) {
@@ -1418,60 +1427,74 @@ void RenderEngine::Render(SequenceElements& seqElements,
 
     logger_render->debug("Data cleared.");
 
+    // Count live jobs up front — rpi must exist and be linked to each RenderJob
+    // BEFORE any job is pushed to the pool, otherwise a fast worker could call
+    // NotifyJobFinished on a null rpi.
+    unsigned int count = 0;
+    for (row = 0; row < (size_t)numRows; ++row) {
+        if (jobs[row]) ++count;
+    }
+
+    if (count == 0) {
+        delete[] jobs;
+        delete[] aggregators;
+        callback(_abortedRenderJobs > 0);
+        // sink auto-deleted by unique_ptr
+        return;
+    }
+
+    // Copy RenderJob* into IRenderJobStatus* array for RenderProgressInfo.
+    IRenderJobStatus** statusJobs = new IRenderJobStatus*[numRows];
+    for (int i = 0; i < numRows; ++i) {
+        statusJobs[i] = jobs[i]; // implicit upcast; nullptr rows allowed
+    }
+
+    RenderProgressInfo* pi = new RenderProgressInfo(std::move(callback));
+    pi->numRows = numRows;
+    pi->startFrame = startFrame;
+    pi->endFrame = endFrame;
+    pi->jobs = statusJobs;
+    pi->progressSink = sink.release(); // RenderProgressInfo takes ownership
+    pi->restriction = restrictToModels;
+    pi->aggregators = aggregators;
+    pi->jobsRemaining.store((int)count);
+
+    // Link every live job to rpi so the FinishNotifier guard can signal.
+    for (row = 0; row < (size_t)numRows; ++row) {
+        if (jobs[row]) jobs[row]->SetRenderProgressInfo(pi);
+    }
+
+    _renderProgressInfo.push_back(pi);
+    if (_onRenderStatusTimerStart) _onRenderStatusTimerStart();
+
+    // First pass: push jobs that have no upstream dependencies so they can
+    // start rendering while we finish setup on the rest.
     for (row = 0; row < (size_t)numRows; ++row) {
         if (jobs[row]) {
             if (aggregators[row]->getNumAggregated() == 0) {
-                //start all the jobs that don't depend on anything above them
-                //get them rendering while we setup the rest
                 jobs[row]->setPreviousFrameDone(END_OF_RENDER_FRAME);
                 _jobPool.PushJob(jobs[row]);
-                ++count;
             }
-            if (sink) {
-                sink->SetupJobProgress(jobs[row]);
+            if (pi->progressSink) {
+                pi->progressSink->SetupJobProgress(jobs[row]);
             }
         }
     }
 
     logger_render->debug("Job pool start size {}.", (int)_jobPool.size());
+
+    // Second pass: push the dependent jobs.
     for (row = 0; row < (size_t)numRows; ++row) {
         if (jobs[row] && aggregators[row]->getNumAggregated() != 0) {
-            //now start the rest
             _jobPool.PushJob(jobs[row]);
-            ++count;
         }
     }
     logger_render->debug("Job pool new size {}.", (int)_jobPool.size());
 
-    if (count) {
-        if (sink) {
-            sink->OnRenderSetupComplete();
-        }
+    delete[] jobs;
 
-        // Copy RenderJob* array into IRenderJobStatus* array for RenderProgressInfo
-        // (RenderProgressInfo only needs the status interface for progress/cleanup).
-        IRenderJobStatus **statusJobs = new IRenderJobStatus*[numRows];
-        for (int i = 0; i < numRows; ++i) {
-            statusJobs[i] = jobs[i]; // implicit upcast
-        }
-        delete[] jobs;
-
-        RenderProgressInfo *pi = new RenderProgressInfo(std::move(callback));
-        pi->numRows = numRows;
-        pi->startFrame = startFrame;
-        pi->endFrame = endFrame;
-        pi->jobs = statusJobs;
-        pi->progressSink = sink.release(); // RenderProgressInfo takes ownership
-        pi->restriction = restrictToModels;
-        pi->aggregators = aggregators;
-
-        _renderProgressInfo.push_back(pi);
-        if (_onRenderStatusTimerStart) _onRenderStatusTimerStart();
-    } else {
-        delete[] jobs;
-        delete[] aggregators;
-        callback(_abortedRenderJobs > 0);
-        // sink auto-deleted by unique_ptr
+    if (pi->progressSink) {
+        pi->progressSink->OnRenderSetupComplete();
     }
 }
 
@@ -1878,5 +1901,19 @@ void RenderEngine::OnRenderJobComplete(const std::string& modelName) {
 
 void RenderEngine::OnAllRenderJobsComplete() {
     if (_onAllRenderJobsComplete) _onAllRenderJobsComplete();
+}
+
+void RenderEngine::NotifyJobFinished(RenderProgressInfo* rpi) {
+    if (!rpi) return;
+    // The thread that decrements the counter to zero is the last one out and
+    // owns completion signaling. fetch_sub returns the pre-decrement value, so
+    // returning 1 means "I just took the last slot". We only flip the atomic
+    // flag here -- the callback itself typically touches UI and must run on
+    // the platform's main thread, so firing is the platform drain's job
+    // (desktop: UpdateRenderStatus on the wx main loop; iPad: IsRenderDone
+    // poll).
+    if (rpi->jobsRemaining.fetch_sub(1) != 1) return;
+    bool expected = false;
+    rpi->completed.compare_exchange_strong(expected, true);
 }
 

@@ -51,6 +51,9 @@ class ModelPreview : public GRAPHICS_BASE_CLASS, public IModelPreview
     int _cameraPos_latched_x = 0;
     int _cameraPos_latched_y = 0;
     bool _showFirstPixel = false;
+    bool _showModelNames = false;
+    bool _showModelInfo = false;
+    xlTexture* _fontTexture = nullptr;
 
 public:
     ModelPreview(wxPanel* parent, xLightsFrame* xlights = nullptr);
@@ -99,6 +102,8 @@ public:
     void Render(uint32_t frameTime, const unsigned char *data, bool swapBuffers=true);
     void RenderModels(const std::vector<Model*>& models, bool selected, bool showFirstPixel);
     void RenderModel(Model* m, bool wiring = false, bool highlightFirst = false, int highlightpixel = 0);
+    void SetShowModelNames(bool b) { _showModelNames = b; Refresh(); }
+    void SetShowModelInfo(bool b) { _showModelInfo = b; Refresh(); }
 
     double calcPixelSize(double i) override;
     double getViewScale() const override;
@@ -186,6 +191,7 @@ private:
     void OnZoomGesture(wxZoomGestureEvent& event);
 
     void OnPopup(wxCommandEvent& event);
+    void DrawModelNames(const std::vector<Model*>& models);
 
     bool mIsDrawing = false;
     bool mBackgroundImageExists = false;

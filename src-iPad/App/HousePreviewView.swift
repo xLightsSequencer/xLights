@@ -1,95 +1,119 @@
 import SwiftUI
-import MetalKit
 
-struct HousePreviewView: UIViewRepresentable {
+/// House Preview — shows every model plus view objects.
+struct HousePreviewView: View {
+    @State private var controlsVisible: Bool = false
+
+    var body: some View {
+        PreviewContainer(title: "House",
+                         previewName: "HousePreview",
+                         previewModelName: nil,
+                         controlsVisible: $controlsVisible)
+    }
+}
+
+/// Model Preview — shows the single selected model.
+struct ModelPreviewView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @State private var controlsVisible: Bool = false
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
+    var body: some View {
+        PreviewContainer(title: "Model",
+                         previewName: "ModelPreview",
+                         previewModelName: viewModel.previewModelName,
+                         controlsVisible: $controlsVisible)
     }
+}
 
-    func makeUIView(context: Context) -> MTKView {
-        let view = MTKView()
-        view.device = MTLCreateSystemDefaultDevice()
-        view.colorPixelFormat = .bgra8Unorm
-        view.clearColor = MTLClearColorMake(0, 0, 0, 1)
-        // Use on-demand drawing — we trigger via setNeedsDisplay
-        view.isPaused = true
-        view.enableSetNeedsDisplay = true
-        view.delegate = context.coordinator
+/// Shared container that hosts a PreviewPaneView and overlays the controls
+/// toggle and — when visible — camera shortcut buttons.
+private struct PreviewContainer: View {
+    let title: String
+    let previewName: String
+    let previewModelName: String?
+    @Binding var controlsVisible: Bool
 
-        context.coordinator.bridge = XLMetalBridge(name: "HousePreview")
-        if let layer = view.layer as? CAMetalLayer {
-            context.coordinator.bridge?.attach(layer)
-        }
-        context.coordinator.mtkView = view
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            PreviewPaneView(previewName: previewName,
+                            previewModelName: previewModelName,
+                            controlsVisible: $controlsVisible)
 
-        return view
-    }
-
-    func updateUIView(_ uiView: MTKView, context: Context) {
-        context.coordinator.viewModel = viewModel
-        if viewModel.isRenderDone {
-            // Start display link for continuous updates during playback
-            if viewModel.isPlaying {
-                if context.coordinator.displayLink == nil {
-                    context.coordinator.startDisplayLink(frameIntervalMS: viewModel.frameIntervalMS)
+            VStack(alignment: .trailing, spacing: 4) {
+                Button {
+                    controlsVisible.toggle()
+                } label: {
+                    Image(systemName: controlsVisible
+                          ? "slider.horizontal.3"
+                          : "slider.horizontal.below.rectangle")
                 }
-            } else {
-                context.coordinator.stopDisplayLink()
-                // Static redraw for current position
-                uiView.setNeedsDisplay()
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+
+                if controlsVisible {
+                    PreviewControlsOverlay(previewName: previewName)
+                }
             }
-        } else {
-            context.coordinator.stopDisplayLink()
+            .padding(6)
+
+            // Small title label in the upper-left for orientation.
+            VStack {
+                HStack {
+                    Text(title)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.black.opacity(0.4), in: RoundedRectangle(cornerRadius: 4))
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(6)
+            .allowsHitTesting(false)
         }
+        .background(Color.black)
+        .clipped()
+    }
+}
+
+/// Camera shortcut buttons — drive the preview's camera through the bridge
+/// via a small proxy that `PreviewPaneView` writes into its Coordinator on
+/// makeUIView. For now we pipe the buttons through the SwiftUI environment
+/// using a shared notification so both panes pick up their own button.
+private struct PreviewControlsOverlay: View {
+    let previewName: String
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Button { post(.zoomOut) } label: { Image(systemName: "minus.magnifyingglass") }
+            Button { post(.zoomReset) } label: { Text("1×").font(.caption.monospacedDigit()) }
+            Button { post(.zoomIn) } label: { Image(systemName: "plus.magnifyingglass") }
+            Button { post(.reset) } label: { Image(systemName: "arrow.counterclockwise") }
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
     }
 
-    class Coordinator: NSObject, MTKViewDelegate {
-        var bridge: XLMetalBridge?
-        var viewModel: SequencerViewModel?
-        weak var mtkView: MTKView?
-        var displayLink: CADisplayLink?
-        private var lastDrawnMS: Int = -1
-
-        func startDisplayLink(frameIntervalMS: Int) {
-            stopDisplayLink()
-            let link = CADisplayLink(target: self, selector: #selector(displayLinkFired))
-            // Match sequence frame rate
-            let fps = max(1, 1000 / max(frameIntervalMS, 1))
-            link.preferredFramesPerSecond = fps
-            link.add(to: .main, forMode: .common)
-            displayLink = link
-        }
-
-        func stopDisplayLink() {
-            displayLink?.invalidate()
-            displayLink = nil
-        }
-
-        @objc func displayLinkFired() {
-            guard let viewModel, viewModel.isRenderDone else { return }
-            let currentMS = viewModel.playPositionMS
-            if currentMS != lastDrawnMS {
-                lastDrawnMS = currentMS
-                mtkView?.setNeedsDisplay()
-            }
-        }
-
-        func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-            let scale = view.contentScaleFactor
-            bridge?.setDrawableSize(size, scale: scale)
-        }
-
-        func draw(in view: MTKView) {
-            guard let viewModel, let bridge else { return }
-            guard viewModel.isRenderDone else { return }
-
-            bridge.drawModels(for: viewModel.document, atMS: Int32(viewModel.playPositionMS), pointSize: 2.0)
-        }
-
-        deinit {
-            stopDisplayLink()
-        }
+    private enum Action {
+        case zoomIn, zoomOut, zoomReset, reset
     }
+
+    private func post(_ action: Action) {
+        let name: Notification.Name
+        switch action {
+        case .zoomIn: name = .previewZoomIn
+        case .zoomOut: name = .previewZoomOut
+        case .zoomReset: name = .previewZoomReset
+        case .reset: name = .previewResetCamera
+        }
+        NotificationCenter.default.post(name: name, object: previewName)
+    }
+}
+
+extension Notification.Name {
+    static let previewZoomIn = Notification.Name("PreviewZoomIn")
+    static let previewZoomOut = Notification.Name("PreviewZoomOut")
+    static let previewZoomReset = Notification.Name("PreviewZoomReset")
+    static let previewResetCamera = Notification.Name("PreviewResetCamera")
 }

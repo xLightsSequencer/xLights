@@ -33,6 +33,8 @@
 
 #include <log.h>
 
+#include "graphics/xlFontInfo.h"
+
 BEGIN_EVENT_TABLE(ModelPreview, GRAPHICS_BASE_CLASS)
 	EVT_MOTION(ModelPreview::mouseMoved)
 	EVT_LEFT_DOWN(ModelPreview::mouseLeftDown)
@@ -763,6 +765,86 @@ void ModelPreview::SetCenterOffset(ModelGroup* mg, int x, int y)
     mg->SetCentreDefined( true );
 }
 
+void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
+{
+    if (!solidProgram || !currentContext) {
+        return;
+    }
+
+    const xlFontInfo& font = xlFontInfo::FindFont(20);
+    if (!_fontTexture) {
+        _fontTexture = currentContext->createTextureForFont(font);
+    }
+    if (!_fontTexture) {
+        return;
+    }
+    // Scale text to render at ~14 screen pixels tall, growing proportionally with zoom.
+    double const vs = getViewScale();
+    float factor = (vs > 0.0) ? (float)(font.getSize() * vs / 14.0) : 1.0F;
+    factor = std::max(0.1F, std::min(factor, 10.0F));
+    float const charH = (float)font.getSize() / factor;
+
+    xlTexture* tex = _fontTexture;
+    xLightsFrame* xl = xlights;
+    // populate() uses a Y-down coordinate system (origin at top), but the layout
+    // preview uses Y-up (origin at bottom).  We build vertices in Y-down space and
+    // then apply Scale(1,-1) + Translate(0,-virtualH) in the draw step to flip them
+    // into the correct Y-up positions without inverting the glyphs.
+    float const vH = (float)virtualHeight;
+
+    bool const showNames = _showModelNames;
+    bool const showInfo = _showModelInfo;
+    solidProgram->addStep([models, tex, factor, charH, xl, vH, showNames, showInfo](xlGraphicsContext* ctx) {
+        const xlFontInfo& font = xlFontInfo::FindFont(20);
+        xlVertexTextureAccumulator* vta = ctx->createVertexTextureAccumulator();
+        const float gap = 2.0f;
+        const float lineGap = 2.0f;
+        for (auto m : models) {
+            if (!xl->AllModels.IsModelValid(m) && !xl->IsNewModel(m)) { continue; }
+            if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->Selected() && !m->GroupSelected()) { continue; }
+            float const cx = m->GetHcenterPos();
+            // Place text just below the model's bottom handle edge.
+            // GetBottom() is in Y-up space; convert to Y-down yBase for populate():
+            //   top_of_text (Y-up) = bottom - gap
+            //   yBase (Y-down)     = vH - bottom + gap + charH
+            float const modelBottom = m->GetBottom();
+            float const yBase = vH - modelBottom + gap + charH;
+            if (showNames) {
+                const std::string& name = m->GetName();
+                float const textWidth = font.widthOf(name, factor);
+                font.populate(*vta, cx - textWidth / 2.0f, yBase, name, factor);
+            }
+            if (showInfo) {
+                std::string infoStr;
+                std::string const ctrlName = m->GetControllerName();
+                if (!ctrlName.empty() && ctrlName != "No Controller") {
+                    std::string const connRange = m->GetControllerConnectionPortRangeString();
+                    infoStr = ctrlName;
+                    if (!connRange.empty()) {
+                        infoStr += ": " + connRange;
+                    }
+                } else {
+                    infoStr = m->GetStartChannelInDisplayFormat(xl->GetOutputManager());
+                }
+                float const infoYBase = showNames ? (yBase + charH + lineGap) : yBase;
+                float const infoWidth = font.widthOf(infoStr, factor);
+                font.populate(*vta, cx - infoWidth / 2.0f, infoYBase, infoStr, factor);
+            }
+        }
+        if (vta->getCount() > 0) {
+            // Apply Y-flip to map Y-down vertices back to Y-up canvas space.
+            // MVP * Scale(1,-1) * Translate(0,-vH) maps (x, y_down) → (x, vH - y_down).
+            ctx->PushMatrix();
+            ctx->Scale(1.0f, -1.0f, 1.0f);
+            ctx->Translate(0.0f, -vH, 0.0f);
+            ctx->enableBlending();
+            ctx->drawTexture(vta, tex, xlWHITE);
+            ctx->PopMatrix();
+        }
+        delete vta;
+    });
+}
+
 void ModelPreview::RenderModel(Model* m, bool wiring, bool highlightFirst, int highlightpixel)
 {
     const xlColor* defColor = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
@@ -800,6 +882,9 @@ void ModelPreview::Render()
             }
         }
         RenderModels(smodels, isModelSelected, _showFirstPixel);
+        if (_showModelNames || _showModelInfo) {
+            DrawModelNames(smodels);
+        }
     }
 
     // draw all the view objects
@@ -1015,6 +1100,9 @@ ModelPreview::~ModelPreview()
 
     if (background) {
         texturesToDelete.push_back(background);
+    }
+    if (_fontTexture) {
+        texturesToDelete.push_back(_fontTexture);
     }
     for (auto &t : texturesToDelete) {
         delete t;

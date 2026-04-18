@@ -65,23 +65,55 @@ bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
 
     _isDrawing = true;
 
-    // 3D perspective camera mirroring desktop ModelPreview 3D setup
-    // (see ModelPreview::Render in src-ui-wx/ui/layout/ModelPreview.cpp).
-    // Uses PreviewCamera defaults: angleX=20°, angleY=5°, distance=-2000.
-    _ctx->SetViewport(0, h, w, 0, true);
+    // SetViewport builds the context's projection matrix internally: perspective
+    // for is3D, ortho(0, w, 0, h, 1, 0) for 2D. Passing the wrong flag makes
+    // vertices clip out of NDC — Model Preview's 2D geometry disappears under
+    // a perspective projection.
+    _ctx->SetViewport(0, h, w, 0, _is3d);
 
-    glm::mat4 ViewTranslatePan = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 ViewTranslateDistance = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, -2000.0f));
-    glm::mat4 ViewRotateX = glm::rotate(glm::mat4(1.0f), glm::radians(20.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 ViewRotateY = glm::rotate(glm::mat4(1.0f), glm::radians(5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 viewMatrix = ViewTranslateDistance * ViewRotateX * ViewRotateY * ViewTranslatePan;
+    // Mirror desktop ModelPreview::StartDrawing matrix construction
+    // (src-ui-wx/ui/layout/ModelPreview.cpp). 2D uses an orthographic
+    // projection driven by zoom + panx/pany/zoom_corr; 3D uses perspective
+    // with the camera's view matrix from PreviewCamera::GetViewMatrix().
+    PreviewCamera& cam = ActiveCamera();
+    if (_is3d) {
+        float aspect = (h > 0) ? (float)w / (float)h : 1.0f;
+        _projMatrix = glm::perspective(glm::radians(45.0f), aspect, 1.0f, 200000.0f);
+        _viewMatrix = cam.GetViewMatrix();
+    } else {
+        // 2D ortho mirroring desktop ModelPreview::StartDrawing (ModelPreview.cpp:1241).
+        // Projection is in WINDOW pixel space; ViewMatrix carries the
+        // virtual→window scale and camera pan/zoom. When _virtualW/_virtualH
+        // are 0 (default), scale2d stays 1 and the model is drawn directly in
+        // pixel space — that's the Model Preview single-model fit-to-window
+        // case, where Model::DisplayEffectOnWindow already produces geometry
+        // in the (0..w, 0..h) range via its ctx->Translate/Scale steps.
+        float scale2d = 1.0f;
+        float scale_corrx = 0.0f;
+        float scale_corry = 0.0f;
+        if (_virtualW != 0 && _virtualH != 0) {
+            float scale2dh = (float)h / (float)_virtualH;
+            float scale2dw = (float)w / (float)_virtualW;
+            if (scale2dh < scale2dw) {
+                scale2d = scale2dh;
+                scale_corrx = ((scale2dw*(float)_virtualW - (scale2d*(float)_virtualW)) * cam.GetZoom()) / 2.0f;
+            } else {
+                scale2d = scale2dw;
+                scale_corry = ((scale2dh*(float)_virtualH - (scale2d*(float)_virtualH)) * cam.GetZoom()) / 2.0f;
+            }
+        }
+        glm::mat4 ViewScale = glm::scale(glm::mat4(1.0f),
+            glm::vec3(cam.GetZoom() * scale2d, cam.GetZoom() * scale2d, 1.0f));
+        glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f),
+            glm::vec3(cam.GetPanX()*cam.GetZoom() - cam.GetZoomCorrX() + scale_corrx,
+                      cam.GetPanY()*cam.GetZoom() - cam.GetZoomCorrY() + scale_corry,
+                      0.0f));
+        _viewMatrix = ViewTranslate * ViewScale;
+        _projMatrix = glm::ortho(0.0f, (float)w, 0.0f, (float)h);
+    }
+    _projViewMatrix = _projMatrix * _viewMatrix;
 
-    float aspect = (h > 0) ? (float)w / (float)h : 1.0f;
-    _projMatrix = glm::perspective(glm::radians(45.0f), aspect, 1.0f, 200000.0f);
-    _viewMatrix = viewMatrix;
-    _projViewMatrix = _projMatrix * viewMatrix;
-
-    _ctx->SetCamera(viewMatrix);
+    _ctx->SetCamera(_viewMatrix);
     _ctx->PushMatrix();
 
     // Set this preview as contextual value so models can retrieve it

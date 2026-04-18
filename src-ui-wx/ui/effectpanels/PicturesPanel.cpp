@@ -37,6 +37,7 @@
 #include "assist/xlGridCanvasPictures.h"
 #include "xLightsMain.h"
 #include "effects/PicturesEffect.h"
+#include "models/Model.h"
 
 PicturesPanel::PicturesPanel(wxWindow* parent, const nlohmann::json& metadata)
     : JsonEffectPanel(parent, metadata, /*deferBuild*/ true) {
@@ -221,6 +222,24 @@ void PicturesPanel::OnSelectClick(wxCommandEvent& /*event*/) {
     if (selected.empty()) return;
 
     _filenameCtrl->SetValue(ToWXString(selected));
+
+    if (_currentModel) {
+        auto entry = media.GetImage(selected);
+        if (entry && entry->IsOk()) {
+            int imgW = entry->GetImageWidth();
+            int imgH = entry->GetImageHeight();
+            int bufW = _currentModel->GetDefaultBufferWi();
+            int bufH = _currentModel->GetDefaultBufferHt();
+            if (imgW > bufW && imgH > bufH) {
+                auto* scalingChoice = dynamic_cast<wxChoice*>(
+                    wxWindow::FindWindowByName("ID_CHOICE_Scaling", this));
+                if (scalingChoice && scalingChoice->GetStringSelection() == "No Scaling") {
+                    SetChoiceValue(scalingChoice, "Scale To Fit");
+                }
+            }
+        }
+    }
+
     UpdatePreviewBitmap(selected);
     FireChangeEvent();
 }
@@ -285,6 +304,11 @@ void PicturesPanel::SetDefaultParameters() {
         _filenameCtrl->ChangeValue(wxEmptyString);
     }
     UpdatePreviewBitmap(wxEmptyString);
+}
+
+void PicturesPanel::SetPanelStatus(Model* cls) {
+    JsonEffectPanel::SetPanelStatus(cls);
+    _currentModel = cls;
 }
 
 void PicturesPanel::ValidateWindow() {

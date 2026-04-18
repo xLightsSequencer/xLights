@@ -694,7 +694,7 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     // separate AudioToolbox-compatible path).
                     int videoIssueCount = 0;
                     for (const auto& issue : issues) {
-                        if (issue.isVideo) ++videoIssueCount;
+                        if (issue.isVideo && issue.canConvert()) ++videoIssueCount;
                     }
 
                     // Custom ID so we can tell OK apart from "Convert Now".
@@ -754,11 +754,11 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     // see the warning but need to re-encode audio separately.
     std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
     for (const auto& issue : issues) {
-        if (!issue.isVideo) continue;
+        if (!issue.isVideo || !issue.canConvert()) continue;
         std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
         if (target == issue.filePath) {
-            // Source is already .mov — shouldn't happen from the check but be
-            // defensive: write alongside with a suffix.
+            // Source is already .mov (e.g. qtrle codec) — append _converted
+            // so we don't overwrite the original.
             std::filesystem::path p(issue.filePath);
             p.replace_filename(p.stem().string() + "_converted.mov");
             target = p.string();
@@ -832,9 +832,8 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     int rewritten = 0;
     std::set<std::string> staleCacheKeys;
     std::set<std::string> newCacheKeys;
-    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
-        Element* elem = _sequenceElements.GetElement(e);
-        if (elem == nullptr) continue;
+
+    auto rewriteEffectLayers = [&](Element* elem) {
         for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
             EffectLayer* el = elem->GetEffectLayer(layer);
             for (int k = 0; k < el->GetEffectCount(); ++k) {
@@ -852,21 +851,42 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
 
                 // Preserve the relative-vs-absolute shape: if the original
                 // stored value was an absolute path we write absolute; if it
-                // was a bare filename or relative we swap only the extension.
+                // was a bare filename or relative, preserve the directory
+                // but use the destination's full filename (handles the case
+                // where the output name differs, e.g. _converted.mov).
                 std::filesystem::path storedPath(stored);
-                std::filesystem::path newName(it->second);
                 std::string newStored;
                 if (storedPath.is_absolute()) {
                     newStored = it->second;
                 } else {
                     std::filesystem::path rewritten_path = storedPath;
-                    rewritten_path.replace_extension(".mov");
+                    rewritten_path.replace_filename(
+                        std::filesystem::path(it->second).filename());
                     newStored = rewritten_path.string();
                 }
                 sm["E_FILEPICKERCTRL_Video_Filename"] = newStored;
                 newCacheKeys.insert(newStored);
                 ef->IncrementChangeCount();
                 ++rewritten;
+            }
+        }
+    };
+
+    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
+        Element* elem = _sequenceElements.GetElement(e);
+        if (elem == nullptr) continue;
+        rewriteEffectLayers(elem);
+        if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(elem);
+            for (int j = 0; j < me->GetStrandCount(); ++j) {
+                StrandElement* se = me->GetStrand(j);
+                rewriteEffectLayers(se);
+            }
+            for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
+                Element* sme = me->GetSubModel(j);
+                if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                    rewriteEffectLayers(sme);
+                }
             }
         }
     }

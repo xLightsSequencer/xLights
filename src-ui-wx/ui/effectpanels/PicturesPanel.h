@@ -36,6 +36,7 @@ public:
 
     void ValidateWindow() override;
     void SetDefaultParameters() override;
+    void SetPanelStatus(Model* cls) override;
     bool HasAssistPanel() override { return true; }
     AssistPanel* GetAssistPanel(wxWindow* parent, xLightsFrame* xl_frame) override;
 
@@ -86,4 +87,5 @@ private:
     size_t _currentPreviewFrame = 0;
 
     SequenceMedia* _sequenceMedia = nullptr;
+    Model* _currentModel = nullptr;
 };
