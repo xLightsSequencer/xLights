@@ -146,12 +146,15 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     if (idx > 0) {
         p = p.substr(idx + 1);
     }
+    // Prefix keys with the show directory so each folder has its own MRU list.
+    // SetPath() is a no-op on the flat JSON config store, so the path is embedded
+    // directly in the key name instead.
+    std::string keyPrefix = p.ToStdString() + "/";
     auto* config = GetXLightsConfig();
-    config->SetPath(p);
     if (reload) {
         mruFiles.clear();
         for (int x = 0; x < MRUF_LENGTH; x++) {
-            std::string k = "file" + std::to_string(x);
+            std::string k = keyPrefix + "file" + std::to_string(x);
             wxString v;
             if (config->Read(k, &v) && v != "") {
                 mruFiles.push_back(v);
@@ -177,7 +180,7 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
     }
     int cnt = 0;
     for (int x = 0; x < MRUF_LENGTH; x++) {
-        std::string k = "file" + std::to_string(x);
+        std::string k = keyPrefix + "file" + std::to_string(x);
         if (x < (int)mruFiles.size()) {
             if (!reload) {
                 config->Write(k, mruFiles[x]);
@@ -189,10 +192,9 @@ void xLightsFrame::UpdateRecentFilesList(bool reload) {
             Connect(menuID, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMRUSequence);
             RecentSequencesMenu->Append(mruf_MenuItem[x]);
         } else {
-            config->DeleteEntry(k);  // k is std::string after loop fix above
+            config->DeleteEntry(k);
         }
     }
-    config->SetPath("/");
     config->Flush();
     RecentSequencesMenu->UpdateUI();
     MenuFile->FindItem(ID_MENUITEM_OPENRECENTSEQUENCE)->Enable(cnt != 0);
