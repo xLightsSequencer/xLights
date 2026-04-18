@@ -3271,9 +3271,17 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
         } else {
             sy -= GetModelScreenLocation().RenderHt / 2.0;
         }
+        sy = ((sy * scale) + (h / 2));
+        sx = (sx * scale) + (w / 2);
+    } else {
+        // Must match DisplayEffectOnWindow's Translate(w/2 - ml*scale, h/2 - mb*scale)
+        float ml, mb;
+        GetMinScreenXY(ml, mb);
+        ml += GetModelScreenLocation().RenderWi / 2;
+        mb += GetModelScreenLocation().RenderHt / 2;
+        sx = ((sx - ml) * scale) + (w / 2);
+        sy = ((sy - mb) * scale) + (h / 2);
     }
-    sy = ((sy * scale) + (h / 2));
-    sx = (sx * scale) + (w / 2);
 }
 
 std::string Model::GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip)
