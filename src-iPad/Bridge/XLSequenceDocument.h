@@ -168,6 +168,13 @@
 // Rendering
 - (void)renderAll;
 - (BOOL)isRenderDone;
+// Signal all in-flight render jobs to abort and block until they've
+// completed (or `timeoutSeconds` elapses). Returns YES if the render
+// is fully quiesced by the time the call returns. Call on shutdown /
+// sequence-close paths before tearing down `SequenceElements` et al —
+// the render workers hold pointers into those structures and would
+// crash otherwise.
+- (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds;
 
 // Memory pressure
 - (void)handleMemoryWarning;

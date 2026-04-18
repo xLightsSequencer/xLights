@@ -294,6 +294,9 @@ void iPadRenderContext::HandleMemoryCritical() {
 }
 
 bool iPadRenderContext::IsRenderDone() {
+    // No render ever kicked off (or already torn down) — treat as
+    // "done" so abort-and-wait short-circuits cleanly.
+    if (!_renderEngine) return true;
     if (!_sequenceData.IsValidData()) return false;
     // Each RenderProgressInfo flips its `completed` atomic when its last
     // RenderJob signals via FinishNotifier (covers normal, aborted, and

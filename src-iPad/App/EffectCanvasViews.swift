@@ -40,11 +40,15 @@ final class CanvasTileView: UIView {
     }
 }
 
-/// Mark only the tiles that overlap `xRanges` as needing display, using
-/// `setNeedsDisplay(_ rect:)` in each tile's own coordinate space. Rows
-/// span every tile vertically, so we always invalidate the tile's full
-/// height — the x-range is the only thing that narrows the dirty region.
-/// Callers pass ranges in the canvas's world-x coordinate system.
+/// Mark every tile whose frame overlaps any of `xRanges` as needing a
+/// full redraw. Callers pass world-x ranges; we test each tile's
+/// `[tileOriginX, tileOriginX+width]` for intersection. Going full-tile
+/// (`setNeedsDisplay()`) rather than sub-rect (`setNeedsDisplay(_:)`)
+/// avoids a stale-residue artifact where UIKit's sub-rect dirty
+/// tracking combined with our CTM translation in `CanvasTileView.draw`
+/// could leave older draw output visible outside the current dirty
+/// rect. A single 4096-px tile redraw during drag is still cheap;
+/// tiles outside the range aren't touched.
 private func invalidateTileRanges(
     _ tiles: [CanvasTileView],
     xRanges: [ClosedRange<CGFloat>]
@@ -54,14 +58,11 @@ private func invalidateTileRanges(
         let tileMin = tile.tileOriginX
         let tileMax = tileMin + tile.bounds.width
         for range in xRanges {
-            let lo = max(range.lowerBound, tileMin)
-            let hi = min(range.upperBound, tileMax)
-            if lo > hi { continue }
-            let localX = lo - tileMin
-            let localW = hi - lo
-            tile.setNeedsDisplay(CGRect(x: localX, y: 0,
-                                        width: localW,
-                                        height: tile.bounds.height))
+            if range.upperBound < tileMin || range.lowerBound > tileMax {
+                continue
+            }
+            tile.setNeedsDisplay()
+            break
         }
     }
 }
@@ -111,6 +112,9 @@ struct EffectCanvasActions {
     var onTapEmpty: () -> Void = { }
     var onMoveEffect: (_ row: Int, _ effect: Int, _ newStartMS: Int, _ newEndMS: Int) -> Void = { _,_,_,_ in }
     var onResizeEdge: (_ row: Int, _ effect: Int, _ edge: Int, _ newMS: Int) -> Void = { _,_,_,_ in }
+    /// Fires when a fade-in or fade-out drag ends. `edge`: 0 = fade-in,
+    /// 1 = fade-out. `seconds` is the new committed fade duration.
+    var onAdjustFade: (_ row: Int, _ effect: Int, _ edge: Int, _ seconds: Float) -> Void = { _,_,_,_ in }
     var onPinchZoom: (_ scaleDelta: CGFloat, _ anchorX: CGFloat) -> Void = { _,_ in }
     /// Fires when a long-press selects an effect. The canvas converts
     /// the touch location into view-space coordinates so the menu can
@@ -159,14 +163,19 @@ struct ModelEffectsCanvas: UIViewRepresentable {
 
         // Changes where the whole canvas layout shifts (row count, row
         // heights, zoom, total size, timing-mark lines) force every tile
-        // to redraw. Anything more localized (rows changed but same
-        // structure, selection moved) is narrowed to a dirty x-range.
+        // to redraw. A selection row change also triggers full redraw
+        // because the selected row grows (metrics.selectedRowHeight),
+        // which shifts the y of every row below it. Anything more
+        // localized (rows changed but same structure, selection moved
+        // within the same row) is narrowed to a dirty x-range.
+        let selRowChanged = view.selection?.rowIndex != selection?.rowIndex
         let fullInvalidate =
             view.metrics != metrics ||
             view.pixelsPerMS != pixelsPerMS ||
             view.totalSize != newSize ||
             view.timingMarkTimesMS != timingMarkTimesMS ||
-            !rowStructureMatches(old: view.rows, new: rows)
+            !rowStructureMatches(old: view.rows, new: rows) ||
+            selRowChanged
 
         var dirtyRanges: [ClosedRange<CGFloat>] = []
         if !fullInvalidate {
@@ -232,7 +241,8 @@ private func rowStructureMatches(
 /// Per-slot diff. Assumes `rowStructureMatches` already returned true.
 /// Produces one x-range per slot whose `(startMS, endMS, name)` changed.
 /// Each range is the union of the old and new effect extents, widened
-/// a couple of pixels so the bracket strokes aren't clipped.
+/// generously so selection bracket strokes, fade-handle diamonds, lock
+/// glyph, and anti-aliased edges are all inside the dirty rect.
 private func rowEffectDiffRanges(
     old: [SequencerViewModel.RowInfo],
     new: [SequencerViewModel.RowInfo],
@@ -246,8 +256,8 @@ private func rowEffectDiffRanges(
                 && oE.name == nE.name { continue }
             let startMS = min(oE.startTimeMS, nE.startTimeMS)
             let endMS   = max(oE.endTimeMS,   nE.endTimeMS)
-            let x1 = CGFloat(startMS) * pixelsPerMS - 2
-            let x2 = CGFloat(endMS) * pixelsPerMS + 2
+            let x1 = CGFloat(startMS) * pixelsPerMS - 16
+            let x2 = CGFloat(endMS) * pixelsPerMS + 16
             if x2 > x1 { out.append(x1...x2) }
         }
     }
@@ -258,8 +268,8 @@ private func selectionRange(
     _ sel: SequencerViewModel.EffectSelection,
     pixelsPerMS: CGFloat
 ) -> ClosedRange<CGFloat> {
-    let x1 = CGFloat(sel.startTimeMS) * pixelsPerMS - 3
-    let x2 = CGFloat(sel.endTimeMS) * pixelsPerMS + 3
+    let x1 = CGFloat(sel.startTimeMS) * pixelsPerMS - 16
+    let x2 = CGFloat(sel.endTimeMS) * pixelsPerMS + 16
     return x1...x2
 }
 
@@ -287,6 +297,46 @@ final class EffectsCanvasUIView: UIView {
     // centerline dash.
     private let minIconWidth: CGFloat = 14
 
+    /// Draw a small diamond handle centered at `(x, y)` — used to
+    /// indicate the current fade-in / fade-out edge on the selected
+    /// effect. White outline keeps it readable against any fade color.
+    private func drawFadeHandle(cg: CGContext, x: CGFloat, y: CGFloat, fill: UIColor) {
+        let r: CGFloat = 3.5
+        let path = CGMutablePath()
+        path.move(to: CGPoint(x: x, y: y - r))
+        path.addLine(to: CGPoint(x: x + r, y: y))
+        path.addLine(to: CGPoint(x: x, y: y + r))
+        path.addLine(to: CGPoint(x: x - r, y: y))
+        path.closeSubpath()
+        cg.addPath(path)
+        cg.setFillColor(fill.withAlphaComponent(0.95).cgColor)
+        cg.fillPath()
+        cg.addPath(path)
+        cg.setStrokeColor(UIColor.white.cgColor)
+        cg.setLineWidth(1)
+        cg.strokePath()
+    }
+
+    /// Per-row heights and cumulative top offsets. The row whose `id`
+    /// matches the current selection's row grows to
+    /// `metrics.selectedRowHeight` so the edge + fade handles become
+    /// finger-friendly; everyone else uses `metrics.rowHeight`.
+    private func rowLayout() -> (tops: [CGFloat], heights: [CGFloat]) {
+        var tops: [CGFloat] = []
+        var heights: [CGFloat] = []
+        tops.reserveCapacity(rows.count)
+        heights.reserveCapacity(rows.count)
+        let selId = selection?.rowIndex
+        var y: CGFloat = 0
+        for row in rows {
+            tops.append(y)
+            let h = (row.id == selId) ? metrics.selectedRowHeight : metrics.rowHeight
+            heights.append(h)
+            y += h
+        }
+        return (tops, heights)
+    }
+
     /// Fetch the decoded XPM icon for this effect at the appropriate
     /// size bucket for the current display scale. The cache is keyed by
     /// (name, bucket) so zooms that stay inside one bucket reuse.
@@ -299,18 +349,45 @@ final class EffectsCanvasUIView: UIView {
     }
 
     // Pan drag state.
-    private enum DragKind { case move, resizeLeft, resizeRight }
+    private enum DragKind { case move, resizeLeft, resizeRight, fadeIn, fadeOut }
     private struct DragState {
         let rowIndex: Int
         let effectIndex: Int
         let origStartMS: Int
         let origEndMS: Int
+        let origFadeInSec: Float
+        let origFadeOutSec: Float
+        /// Hard floor for start — either 0 (no left neighbor) or the
+        /// previous effect's `endTimeMS` on the same row. Enforced at
+        /// every .changed tick so dragging can't plow into an adjacent
+        /// effect.
+        let minStartMS: Int
+        /// Hard ceiling for end — either `Int.max` (no right neighbor)
+        /// or the next effect's `startTimeMS` on the same row.
+        let maxEndMS: Int
         let kind: DragKind
     }
     private var drag: DragState?
     // Transient overrides so dragged effects render live under the finger.
     private var liveStartMS: Int?
     private var liveEndMS: Int?
+    private var liveFadeInSec: Float?
+    private var liveFadeOutSec: Float?
+    // High-water-mark extremes of the drag. Monotonically grow from the
+    // drag's origin: if the user drags right to 500 ms then back left,
+    // these still remember the 500 ms excursion so we can invalidate
+    // every tile the effect has *ever* been rendered at during the
+    // current drag — otherwise the right-excursion tiles would keep
+    // their stale render after the finger returns.
+    private var dragMinMS: Int = 0
+    private var dragMaxMS: Int = 0
+    // Scroll-suppression: while a canvas drag is active we disable the
+    // enclosing UIScrollView's pan so the whole grid doesn't scroll
+    // along with our move/resize. Restored on drag end/cancel/fail.
+    private weak var suppressedScrollView: UIScrollView?
+    // Canvas's own pan recognizer — stored so we can configure the
+    // enclosing scroll view to require it to fail before scrolling.
+    private weak var ownPanRecognizer: UIPanGestureRecognizer?
 
     override var intrinsicContentSize: CGSize { totalSize }
 
@@ -337,15 +414,16 @@ final class EffectsCanvasUIView: UIView {
     }
 
     fileprivate func drawContent(cg: CGContext, worldRect rect: CGRect) {
+        let (tops, heights) = rowLayout()
+
         // Row zebra-striping.
-        var y: CGFloat = 0
-        for row in rows {
-            let h = metrics.rowHeight
+        for (i, row) in rows.enumerated() {
+            let y = tops[i]
+            let h = heights[i]
             cg.setFillColor((row.id % 2 == 0
                              ? UIColor(white: 0.08, alpha: 1)
                              : UIColor(white: 0.10, alpha: 1)).cgColor)
             cg.fill(CGRect(x: rect.minX, y: y, width: rect.width, height: h))
-            y += h
         }
 
         // Vertical timing lines from active timing rows — draw across
@@ -363,9 +441,9 @@ final class EffectsCanvasUIView: UIView {
         }
 
         // Effects per row.
-        y = 0
-        for (rIdx, row) in rows.enumerated() {
-            let h = metrics.rowHeight
+        for (i, row) in rows.enumerated() {
+            let y = tops[i]
+            let h = heights[i]
             let top = y + 1
             let bottom = y + h - 1
             let mid = (top + bottom) / 2
@@ -383,8 +461,6 @@ final class EffectsCanvasUIView: UIView {
                            effect: effect, isSelected: isSelected,
                            rowIndex: row.id, effectIndex: eIdx)
             }
-            _ = rIdx
-            y += h
         }
     }
 
@@ -477,8 +553,16 @@ final class EffectsCanvasUIView: UIView {
             cg.strokePath()
         }
 
-        // Fade-in/fade-out bars (top edge).
-        let (fadeInSec, fadeOutSec) = fadeProvider(rowIndex, effectIndex)
+        // Fade-in/fade-out bars (top edge). During a fade drag, the
+        // live overrides take precedence so the bar animates under the
+        // finger; for anything else we read from the document via the
+        // fadeProvider closure.
+        let isDraggedFade = (drag?.rowIndex == rowIndex
+                             && drag?.effectIndex == effectIndex
+                             && (drag?.kind == .fadeIn || drag?.kind == .fadeOut))
+        let resolved = fadeProvider(rowIndex, effectIndex)
+        let fadeInSec:  Float = isDraggedFade ? (liveFadeInSec  ?? resolved.0) : resolved.0
+        let fadeOutSec: Float = isDraggedFade ? (liveFadeOutSec ?? resolved.1) : resolved.1
         let fadeInPx = CGFloat(fadeInSec) * 1000 * pixelsPerMS
         let fadeOutPx = CGFloat(fadeOutSec) * 1000 * pixelsPerMS
         let barH: CGFloat = 3
@@ -496,6 +580,19 @@ final class EffectsCanvasUIView: UIView {
                 cg.setFillColor(UIColor.systemYellow.withAlphaComponent(0.95).cgColor)
                 cg.fill(overlap)
             }
+        }
+
+        // Fade handles (diamond glyphs) — only on the selected effect so
+        // the user sees a grabbable target that tracks the current fade.
+        if isSelected && width > 8 {
+            drawFadeHandle(cg: cg,
+                           x: x1 + min(fadeInPx, width),
+                           y: top + barH / 2,
+                           fill: UIColor.systemGreen)
+            drawFadeHandle(cg: cg,
+                           x: max(x1, x2 - fadeOutPx),
+                           y: top + barH / 2,
+                           fill: UIColor.systemRed)
         }
 
         // Lock glyph in the upper-right if the effect is locked.
@@ -518,6 +615,7 @@ final class EffectsCanvasUIView: UIView {
         pan.maximumNumberOfTouches = 1
         pan.delegate = gestureDelegate
         addGestureRecognizer(pan)
+        ownPanRecognizer = pan
 
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(_:)))
         pinch.delegate = gestureDelegate
@@ -528,6 +626,20 @@ final class EffectsCanvasUIView: UIView {
         longPress.allowableMovement = 10
         longPress.delegate = gestureDelegate
         addGestureRecognizer(longPress)
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        // Now that the canvas is attached to the view hierarchy, tell
+        // the enclosing UIScrollView's pan to wait for our pan to fail
+        // before scrolling. When our pan.shouldBegin returns true (a
+        // drag target is under the finger), the scroll view's pan is
+        // blocked and the grid stays still during the drag; when we
+        // return false, the scroll view's pan takes over normally.
+        guard window != nil,
+              let ourPan = ownPanRecognizer,
+              let sv = findEnclosingScrollView() else { return }
+        sv.panGestureRecognizer.require(toFail: ourPan)
     }
 
     @objc private func onLongPress(_ g: UILongPressGestureRecognizer) {
@@ -550,24 +662,73 @@ final class EffectsCanvasUIView: UIView {
         return d
     }()
 
-    private enum HitZone { case empty, center, leftEdge, rightEdge }
+    private enum HitZone { case empty, center, leftEdge, rightEdge, fadeIn, fadeOut }
     private struct Hit {
         let rowIndex: Int
         let effectIndex: Int
         let zone: HitZone
     }
 
+    /// Vertical hit-slop for the fade drag zone at the top of a selected
+    /// effect. Also controls the visual tap-target — the fade bar itself
+    /// is only 3 px tall, but we treat the top ~7 px as grabbable.
+    private let fadeHitStripH: CGFloat = 7
+
+    /// Pixel threshold for snapping to nearby active timing marks
+    /// during a move or resize drag. Matches desktop feel.
+    private let snapThresholdPx: CGFloat = 10
+
+    /// Snap `ms` to any active timing-mark time within
+    /// `snapThresholdPx` pixels. Returns `ms` unchanged if no mark is
+    /// close enough.
+    private func snapToNearestMark(_ ms: Int) -> Int {
+        guard !timingMarkTimesMS.isEmpty, pixelsPerMS > 0 else { return ms }
+        let thresholdMS = Int(snapThresholdPx / pixelsPerMS)
+        var bestMS = ms
+        var bestDelta = thresholdMS + 1
+        for mark in timingMarkTimesMS {
+            let d = abs(mark - ms)
+            if d < bestDelta {
+                bestDelta = d
+                bestMS = mark
+            }
+        }
+        return bestMS
+    }
+
     private func hitTestEffect(at p: CGPoint) -> Hit? {
-        let rowH = metrics.rowHeight
-        let rIdxInList = Int(p.y / rowH)
-        guard rIdxInList >= 0, rIdxInList < rows.count else { return nil }
+        let (tops, heights) = rowLayout()
+        var rIdxInList = -1
+        for i in 0..<rows.count {
+            if p.y >= tops[i] && p.y < tops[i] + heights[i] {
+                rIdxInList = i
+                break
+            }
+        }
+        guard rIdxInList >= 0 else { return nil }
         let row = rows[rIdxInList]
         let ms = Int(p.x / pixelsPerMS)
         let slop = metrics.edgeHandleHitWidth / pixelsPerMS // ms
+        let rowTop = tops[rIdxInList]
+        let inFadeStrip = (p.y - rowTop) < fadeHitStripH + 1
         for (eIdx, effect) in row.effects.enumerated() {
             if ms < effect.startTimeMS - Int(slop) { break }
             if ms > effect.endTimeMS + Int(slop) { continue }
             let isSelected = (selection?.rowIndex == row.id && selection?.effectIndex == eIdx)
+
+            // Fade zones only exist while selected. They live in the top
+            // strip of the effect's rectangle; take priority over edge
+            // resize so touching the corner of a selected effect grabs
+            // the fade, not the edge.
+            if isSelected
+                && inFadeStrip
+                && ms >= effect.startTimeMS
+                && ms <= effect.endTimeMS {
+                let midMS = (effect.startTimeMS + effect.endTimeMS) / 2
+                return Hit(rowIndex: row.id, effectIndex: eIdx,
+                           zone: ms <= midMS ? .fadeIn : .fadeOut)
+            }
+
             if ms >= effect.startTimeMS - Int(slop/2) && ms <= effect.startTimeMS + Int(slop/2) && isSelected {
                 return Hit(rowIndex: row.id, effectIndex: eIdx, zone: .leftEdge)
             }
@@ -602,15 +763,45 @@ final class EffectsCanvasUIView: UIView {
             switch hit.zone {
             case .leftEdge:  kind = .resizeLeft
             case .rightEdge: kind = .resizeRight
+            case .fadeIn:    kind = .fadeIn
+            case .fadeOut:   kind = .fadeOut
             default:         kind = .move
             }
+            let (curFadeIn, curFadeOut) = fadeProvider(hit.rowIndex, hit.effectIndex)
+            // Neighbor bounds on the same row — effects are stored in
+            // start-time order so index-1/index+1 gives the adjacent
+            // effects. Used below to clamp live move/resize values so
+            // effects can't overlap.
+            let prevEnd = hit.effectIndex > 0
+                ? row.effects[hit.effectIndex - 1].endTimeMS
+                : 0
+            let nextStart = hit.effectIndex + 1 < row.effects.count
+                ? row.effects[hit.effectIndex + 1].startTimeMS
+                : Int.max
             drag = DragState(rowIndex: hit.rowIndex,
                              effectIndex: hit.effectIndex,
                              origStartMS: effect.startTimeMS,
                              origEndMS: effect.endTimeMS,
+                             origFadeInSec: curFadeIn,
+                             origFadeOutSec: curFadeOut,
+                             minStartMS: prevEnd,
+                             maxEndMS: nextStart,
                              kind: kind)
             liveStartMS = effect.startTimeMS
             liveEndMS = effect.endTimeMS
+            liveFadeInSec = curFadeIn
+            liveFadeOutSec = curFadeOut
+            dragMinMS = effect.startTimeMS
+            dragMaxMS = effect.endTimeMS
+            // Prevent the enclosing UIScrollView from panning the whole
+            // grid along with the drag. Disabling cancels any in-flight
+            // recognition; we re-enable on .ended/.cancelled/.failed.
+            if let sv = findEnclosingScrollView() {
+                suppressedScrollView = sv
+                sv.panGestureRecognizer.isEnabled = false
+                sv.panGestureRecognizer.isEnabled = true
+                sv.panGestureRecognizer.isEnabled = false
+            }
         case .changed:
             guard let d = drag else { return }
             let tx = g.translation(in: self).x
@@ -619,49 +810,151 @@ final class EffectsCanvasUIView: UIView {
             let prevEnd   = liveEndMS   ?? d.origEndMS
             switch d.kind {
             case .move:
-                liveStartMS = max(0, d.origStartMS + dMS)
-                liveEndMS   = max(liveStartMS! + 1, d.origEndMS + dMS)
+                // Snap whichever edge is closer to a timing mark; keep
+                // duration fixed so the effect slides as a whole.
+                let duration = d.origEndMS - d.origStartMS
+                // Clamp against left + right neighbors so the effect
+                // can't be pushed over an adjacent one.
+                let minStart = d.minStartMS
+                let maxStart = d.maxEndMS == Int.max
+                    ? Int.max
+                    : d.maxEndMS - duration
+                let tentativeStart = max(minStart,
+                                          min(maxStart, d.origStartMS + dMS))
+                let tentativeEnd = tentativeStart + duration
+                let snappedStart = snapToNearestMark(tentativeStart)
+                let snappedEnd   = snapToNearestMark(tentativeEnd)
+                let withinLeft  = snappedStart >= minStart
+                let withinRight = snappedEnd   <= d.maxEndMS
+                if withinLeft && withinRight
+                    && snappedStart != tentativeStart
+                    && snappedEnd == tentativeEnd {
+                    liveStartMS = snappedStart
+                    liveEndMS   = snappedStart + duration
+                } else if withinLeft && withinRight
+                    && snappedEnd != tentativeEnd
+                    && snappedStart == tentativeStart {
+                    liveEndMS   = snappedEnd
+                    liveStartMS = snappedEnd - duration
+                } else if withinLeft && withinRight
+                    && snappedStart != tentativeStart
+                    && snappedEnd != tentativeEnd {
+                    // Both snap — pick whichever is closer.
+                    if abs(snappedStart - tentativeStart) <= abs(snappedEnd - tentativeEnd) {
+                        liveStartMS = snappedStart
+                        liveEndMS   = snappedStart + duration
+                    } else {
+                        liveEndMS   = snappedEnd
+                        liveStartMS = snappedEnd - duration
+                    }
+                } else {
+                    liveStartMS = tentativeStart
+                    liveEndMS   = tentativeEnd
+                }
             case .resizeLeft:
-                let ns = max(0, d.origStartMS + dMS)
-                liveStartMS = min(ns, d.origEndMS - 1)
+                // Floor at left neighbor's end (or 0); ceiling is just
+                // below the anchored right edge.
+                let ns = max(d.minStartMS, d.origStartMS + dMS)
+                var snapped = snapToNearestMark(ns)
+                if snapped < d.minStartMS { snapped = ns }
+                liveStartMS = min(snapped, d.origEndMS - 1)
                 liveEndMS = d.origEndMS
             case .resizeRight:
-                let ne = d.origEndMS + dMS
-                liveEndMS = max(ne, d.origStartMS + 1)
+                // Ceiling at right neighbor's start (or Int.max);
+                // floor is just above the anchored left edge.
+                let raw = d.origEndMS + dMS
+                let capped = min(d.maxEndMS, raw)
+                var snapped = snapToNearestMark(capped)
+                if snapped > d.maxEndMS { snapped = capped }
+                liveEndMS = max(snapped, d.origStartMS + 1)
                 liveStartMS = d.origStartMS
+            case .fadeIn, .fadeOut:
+                // Fades: clamp so fadeIn + fadeOut <= effect duration
+                // (half each if both pushed to max).
+                let durMS = max(1, d.origEndMS - d.origStartMS)
+                let otherFade = d.kind == .fadeIn
+                    ? d.origFadeOutSec
+                    : d.origFadeInSec
+                let otherMS = Int(otherFade * 1000)
+                let maxMS = max(0, durMS - otherMS)
+                let deltaMS = d.kind == .fadeIn ? dMS : -dMS
+                let origMS = Int((d.kind == .fadeIn ? d.origFadeInSec : d.origFadeOutSec) * 1000)
+                let newMS = max(0, min(maxMS, origMS + deltaMS))
+                let newSec = Float(newMS) / 1000.0
+                if d.kind == .fadeIn {
+                    liveFadeInSec = newSec
+                } else {
+                    liveFadeOutSec = newSec
+                }
             }
-            // Invalidate only tiles covering the effect's old + new
-            // positions this frame. For a small per-frame delta this
-            // usually touches 1–2 tiles, not all of them.
-            let lo = min(prevStart, liveStartMS ?? prevStart)
-            let hi = max(prevEnd,   liveEndMS   ?? prevEnd)
-            let x1 = CGFloat(lo) * pixelsPerMS - 3
-            let x2 = CGFloat(hi) * pixelsPerMS + 3
+            // Expand the drag's high-water-mark range to include this
+            // frame's position. This monotonically grows — so if the
+            // user drags right and then back, the right-excursion
+            // tiles still get invalidated and their stale draw
+            // cleared. Invalidate the entire high-water range each
+            // frame, widened with generous slop for selection bracket
+            // strokes / fade handles / lock glyph / anti-alias.
+            _ = prevStart; _ = prevEnd
+            if let ls = liveStartMS { dragMinMS = min(dragMinMS, ls) }
+            if let le = liveEndMS   { dragMaxMS = max(dragMaxMS, le) }
+            let slop: CGFloat = 16
+            let x1 = CGFloat(dragMinMS) * pixelsPerMS - slop
+            let x2 = CGFloat(dragMaxMS) * pixelsPerMS + slop
             invalidate(xRanges: [x1...x2])
         case .ended, .cancelled, .failed:
-            guard let d = drag, let ls = liveStartMS, let le = liveEndMS else {
-                drag = nil; return
-            }
-            // Clear live overrides and invalidate the final path range
-            // before committing — the subsequent render-triggered
-            // row reload will diff-invalidate the committed position.
-            let x1 = CGFloat(min(d.origStartMS, ls)) * pixelsPerMS - 3
-            let x2 = CGFloat(max(d.origEndMS, le)) * pixelsPerMS + 3
+            guard let d = drag else { drag = nil; return }
+            _ = d
+            if let ls = liveStartMS { dragMinMS = min(dragMinMS, ls) }
+            if let le = liveEndMS   { dragMaxMS = max(dragMaxMS, le) }
+            let endSlop: CGFloat = 16
+            let x1 = CGFloat(dragMinMS) * pixelsPerMS - endSlop
+            let x2 = CGFloat(dragMaxMS) * pixelsPerMS + endSlop
             switch d.kind {
             case .move:
-                actions.onMoveEffect(d.rowIndex, d.effectIndex, ls, le)
+                if let ls = liveStartMS, let le = liveEndMS {
+                    actions.onMoveEffect(d.rowIndex, d.effectIndex, ls, le)
+                }
             case .resizeLeft:
-                actions.onResizeEdge(d.rowIndex, d.effectIndex, 0, ls)
+                if let ls = liveStartMS {
+                    actions.onResizeEdge(d.rowIndex, d.effectIndex, 0, ls)
+                }
             case .resizeRight:
-                actions.onResizeEdge(d.rowIndex, d.effectIndex, 1, le)
+                if let le = liveEndMS {
+                    actions.onResizeEdge(d.rowIndex, d.effectIndex, 1, le)
+                }
+            case .fadeIn:
+                if let v = liveFadeInSec {
+                    actions.onAdjustFade(d.rowIndex, d.effectIndex, 0, v)
+                }
+            case .fadeOut:
+                if let v = liveFadeOutSec {
+                    actions.onAdjustFade(d.rowIndex, d.effectIndex, 1, v)
+                }
             }
             drag = nil
             liveStartMS = nil
             liveEndMS = nil
+            liveFadeInSec = nil
+            liveFadeOutSec = nil
             invalidate(xRanges: [x1...x2])
+            // Re-enable the host UIScrollView's pan now that the drag
+            // is settled; the next touch can scroll normally again.
+            suppressedScrollView?.panGestureRecognizer.isEnabled = true
+            suppressedScrollView = nil
         default:
             break
         }
+    }
+
+    /// Walk `superview` chain to find the UIScrollView that wraps this
+    /// canvas. Used to suspend its pan during an effect drag.
+    private func findEnclosingScrollView() -> UIScrollView? {
+        var v: UIView? = superview
+        while let cur = v {
+            if let sv = cur as? UIScrollView { return sv }
+            v = cur.superview
+        }
+        return nil
     }
 
     private var pinchAnchorX: CGFloat = 0
@@ -696,7 +989,10 @@ final class EffectsCanvasUIView: UIView {
             // move — this keeps the finger free to scroll otherwise.
             return selection?.rowIndex == hit.rowIndex && selection?.effectIndex == hit.effectIndex
         }
-        return hit.zone == .leftEdge || hit.zone == .rightEdge
+        return hit.zone == .leftEdge
+            || hit.zone == .rightEdge
+            || hit.zone == .fadeIn
+            || hit.zone == .fadeOut
     }
 }
 
@@ -719,8 +1015,15 @@ final class CanvasGestureDelegate: NSObject, UIGestureRecognizerDelegate {
         return true
     }
 
+    // Pan-vs-pan: if our pan wants to recognize, don't let the
+    // surrounding UIScrollView's pan run at the same time — otherwise
+    // the grid scrolls along with an effect drag/resize. Other gesture
+    // pairings (pinch + pan for zoom during scroll) still simulcast.
     func gestureRecognizer(_ g: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+        if g is UIPanGestureRecognizer && other is UIPanGestureRecognizer {
+            return false
+        }
         return true
     }
 }

@@ -59,8 +59,13 @@ struct SequencerGridV2View: View {
             let rawTimingH = CGFloat(timingRows.count) * metrics.timingRowHeight
             // Cap timing band at ~1/3 of available grid height.
             let timingBandH = min(rawTimingH, availableGridH / 3)
-            let modelAreaH = max(CGFloat(modelRows.count) * metrics.rowHeight,
-                                 availableGridH - timingBandH)
+            // Selected row grows to `selectedRowHeight` so edge + fade
+            // handles are easier to hit. One row at a time.
+            let selectedRowId = viewModel.selectedEffect?.rowIndex
+            let modelRowsH = modelRows.reduce(CGFloat(0)) { sum, r in
+                sum + ((r.id == selectedRowId) ? metrics.selectedRowHeight : metrics.rowHeight)
+            }
+            let modelAreaH = max(modelRowsH, availableGridH - timingBandH)
 
             ZStack(alignment: .topLeading) {
                 VStack(spacing: 0) {
@@ -351,11 +356,14 @@ struct SequencerGridV2View: View {
     // MARK: - Row 3: model area
 
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
-        VStack(spacing: 0) {
+        let selectedRowId = viewModel.selectedEffect?.rowIndex
+        return VStack(spacing: 0) {
             ForEach(rows) { row in
+                let h: CGFloat = (row.id == selectedRowId)
+                    ? metrics.selectedRowHeight : metrics.rowHeight
                 ModelRowHeader(
                     row: row,
-                    height: metrics.rowHeight,
+                    height: h,
                     document: viewModel.document,
                     onSelect: { viewModel.selectPreviewModel(rowIndex: row.id) }
                 )
@@ -368,7 +376,10 @@ struct SequencerGridV2View: View {
         contentWidth: CGFloat
     ) -> some View {
         let timingMarkTimes = collectActiveTimingMarkTimes()
-        let canvasH = CGFloat(modelRows.count) * metrics.rowHeight
+        let selectedRowId = viewModel.selectedEffect?.rowIndex
+        let canvasH = modelRows.reduce(CGFloat(0)) { sum, r in
+            sum + ((r.id == selectedRowId) ? metrics.selectedRowHeight : metrics.rowHeight)
+        }
         var actions = EffectCanvasActions()
         actions.onTapEffect = { rowIdx, effIdx in
             viewModel.selectEffect(rowIndex: rowIdx, effectIndex: effIdx)
@@ -383,6 +394,13 @@ struct SequencerGridV2View: View {
         actions.onResizeEdge = { rowIdx, effIdx, edge, newMS in
             viewModel.resizeEffectEdge(rowIndex: rowIdx, effectIndex: effIdx,
                                        edge: edge, newMS: newMS)
+        }
+        actions.onAdjustFade = { rowIdx, effIdx, edge, seconds in
+            // edge: 0 = fade-in, 1 = fade-out. Leave the other value
+            // untouched by passing -1 through.
+            viewModel.adjustFade(rowIndex: rowIdx, effectIndex: effIdx,
+                                 fadeInSec:  edge == 0 ? seconds : -1,
+                                 fadeOutSec: edge == 1 ? seconds : -1)
         }
         actions.onPinchZoom = pinchZoomAction
         actions.onRequestContextMenu = { rowIdx, effIdx, _ in

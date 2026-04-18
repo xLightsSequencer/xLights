@@ -329,6 +329,25 @@
     Effect* e = layer->GetEffect(effectIndex);
     if (!e) return NO;
 
+    if (newStartMS < 0) newStartMS = 0;
+    if (newEndMS <= newStartMS) return NO;
+
+    // Reject overlap with any other effect on the same layer. Effects
+    // are stored in start-time order so neighbour check is enough, but
+    // we walk the full layer to also defend against stale indexes.
+    for (int i = 0; i < layer->GetEffectCount(); i++) {
+        if (i == effectIndex) continue;
+        Effect* other = layer->GetEffect(i);
+        if (!other) continue;
+        int os = other->GetStartTimeMS();
+        int oe = other->GetEndTimeMS();
+        // Overlap: ranges [newStart,newEnd] and [os,oe] intersect iff
+        // newStart < oe AND newEnd > os.
+        if (newStartMS < oe && newEndMS > os) {
+            return NO;
+        }
+    }
+
     e->SetStartTimeMS(newStartMS);
     e->SetEndTimeMS(newEndMS);
     return YES;
@@ -672,6 +691,28 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 
 - (BOOL)isRenderDone {
     return _context->IsRenderDone() ? YES : NO;
+}
+
+- (BOOL)abortRenderAndWait:(NSTimeInterval)timeoutSeconds {
+    if (!_context) return YES;
+    // Signal every in-flight render job to bail. Workers test the
+    // abort flag at their next frame boundary, so this unblocks them
+    // within milliseconds for typical sequences.
+    _context->AbortRender();
+    // Spin-wait on IsRenderDone(). The poll interval is short because
+    // we're on the main thread here and want the UI to close promptly,
+    // but aborted jobs finish quickly so the expected case is one or
+    // two iterations. The timeout is a safety net — we'd rather force
+    // a late teardown than hang the app indefinitely on a stuck job.
+    NSDate* deadline = [NSDate dateWithTimeIntervalSinceNow:
+                        timeoutSeconds > 0 ? timeoutSeconds : 5.0];
+    while (!_context->IsRenderDone()) {
+        if ([[NSDate date] compare:deadline] == NSOrderedDescending) {
+            return NO;
+        }
+        [NSThread sleepForTimeInterval:0.01];
+    }
+    return YES;
 }
 
 - (void)handleMemoryWarning {

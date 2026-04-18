@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct XLightsApp: App {
     @State private var viewModel: SequencerViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Must initialize xLights core (sets FileUtils::GetResourcesDir) BEFORE
@@ -22,6 +23,16 @@ struct XLightsApp: App {
         WindowGroup("xLights", id: "sequencer") {
             ContentView()
                 .environment(viewModel)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            // Going to .background typically precedes termination; iOS
+            // may kill the process without further notice. Abort the
+            // render and block briefly so the worker threads exit
+            // cleanly before the teardown race — otherwise they crash
+            // mid-frame on freed SequenceElements/SequenceData.
+            if newPhase == .background {
+                viewModel.shutdownForBackground()
+            }
         }
     }
 }

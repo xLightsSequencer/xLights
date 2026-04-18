@@ -608,8 +608,49 @@ verifiable on device:
   re-render. Long-press on an effect selects it and fires
   `onRequestContextMenu`, which the grid shell presents as a
   `.confirmationDialog` with Copy / Paste Here / Lock-Unlock /
-  Disable-Enable / Delete / Cancel. Only fade-handle drag gestures
-  remain deferred]** ->
+  Disable-Enable / Delete / Cancel. Follow-up: fade-in / fade-out
+  drag handles landed — small diamond glyphs render at the current
+  fade edge on the selected effect (green for fade-in, red for
+  fade-out). Hit zone is the top 7 px of the effect rect; left half
+  of effect = fade-in, right half = fade-out. Drag updates the
+  `T_TEXTCTRL_Fadein` / `Fadeout` setting via a new
+  `adjustFade(rowIndex:effectIndex:fadeInSec:fadeOutSec:)` on the
+  view model (-1 means leave that edge alone). Clamped so fadeIn +
+  fadeOut never exceeds the effect duration. The bar animates live
+  under the finger and the final value commits to the document
+  with an "Adjust Fade" undo step. Timing-mark snap also landed:
+  `snapToNearestMark()` on the canvas pulls the dragged edge to any
+  active timing-mark time within 10 pixels. For move drags, snaps
+  whichever of start/end is closer to a mark (preserves duration);
+  for edge resize, snaps just the dragged edge. Selected row grow
+  landed: the row whose `id` matches `selectedEffect.rowIndex`
+  renders at `metrics.selectedRowHeight` (1.5× `rowHeight` by
+  default), giving the edge + fade handles a finger-friendly
+  vertical target. `SequencerGridV2View` computes `modelRowsH` and
+  `canvasH` by summing per-row heights, passes per-row height into
+  `ModelRowHeader`, and the canvas's `rowLayout()` helper produces
+  `tops[]` / `heights[]` arrays used by both `drawContent` and
+  `hitTestEffect`. The Representable adds a selection-row-change
+  check to its `fullInvalidate` bit so rows below the selected row
+  repaint at their new Y when the selection moves. Scroll-vs-drag
+  fight resolved: `EffectsCanvasUIView.didMoveToWindow` calls
+  `scrollView.panGestureRecognizer.require(toFail: ourPan)` so the
+  enclosing `SyncedScrollView` waits for our pan to resolve — if
+  the touch has no drag target, our pan fails immediately and the
+  scroll view scrolls normally; otherwise scrolling is blocked
+  for the whole drag. A belt-and-suspenders `isEnabled = false`
+  on drag.began cancels any scroll that may have already started
+  during the shouldBegin race, and the delegate also returns
+  `false` from `shouldRecognizeSimultaneouslyWith` for pan-vs-pan.
+  Overlap protection: the canvas's live clamp now respects
+  neighbor effect bounds on the same row — `minStartMS` and
+  `maxEndMS` are captured on drag.began (from prev/next effects'
+  endTimeMS/startTimeMS) and clamp every tick so move / resize
+  can't plow an effect into a neighbor. Bridge-side safety net:
+  `XLSequenceDocument.moveEffectInRow:...` now walks the layer
+  and returns `NO` if the new range overlaps any other effect —
+  this catches the non-drag paths too (paste, undo, scripted
+  moves)]** ->
 - B-9 selection-scoped scrub **[landed; `SequencerViewModel.startScrub`
   runs a frame-interval timer that loops `playPositionMS` over the
   selected effect's range. Starts on `selectEffect`, stops on
@@ -633,7 +674,14 @@ verifiable on device:
   `addEffectWithSettings` path) so undoing a delete recreates the
   effect with its original settings intact. Toolbar buttons +
   Cmd+Z / Cmd+Shift+Z keyboard shortcuts invoke undo/redo.
-  Setting-change (inspector) undo wiring is still a follow-up]**.
+  Follow-up: inspector setting-change undo also landed.
+  `setSettingValue(_:forKey:)` now captures the previous value via
+  `document.effectSettingValue(forKey:inRow:at:)` before writing,
+  then registers an undo closure that dispatches to a private
+  `setSettingValueAt(rowIndex:effectIndex:key:value:)` helper —
+  the by-index variant is the undo target so the reversal still
+  applies if the user has deselected between edit and undo. Action
+  name is "Edit {key}" so the system undo menu labels it].**
 
 B-3 v2 (rendered effect backgrounds) is a final polish pass once all
 of the above is stable.

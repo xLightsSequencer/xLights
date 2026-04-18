@@ -173,10 +173,25 @@ class SequencerViewModel {
         }
     }
 
+    /// Called when the app scene moves to `.background` — iOS may kill
+    /// the process at any time from that point. Abort all in-flight
+    /// render jobs and wait briefly so the workers unwind before we
+    /// (or the system) tear down the sequence data they're reading.
+    func shutdownForBackground() {
+        guard isSequenceLoaded else { return }
+        cancelBackgroundRender()
+        _ = document.abortRenderAndWait(3.0)
+    }
+
     func closeSequence() {
         if isOutputting { toggleOutput() }
         stopPlayback()
         cancelBackgroundRender()
+        // Wait for any background render jobs to exit before tearing
+        // down SequenceElements / SequenceData — the render workers
+        // hold pointers into those structures and would crash on next
+        // frame access if we proceeded with close while they're busy.
+        _ = document.abortRenderAndWait(5.0)
         document.closeSequence()
         isSequenceLoaded = false
         isRenderDone = false
@@ -533,9 +548,17 @@ class SequencerViewModel {
     }
 
     /// Write a single setting value and trigger a re-render of the affected
-    /// range if the value actually changed.
+    /// range if the value actually changed. Registers an undo step so
+    /// Cmd+Z reverts the inspector change.
     func setSettingValue(_ value: String, forKey key: String) {
         guard let sel = selectedEffect else { return }
+        // Capture the previous value BEFORE writing so the undo closure
+        // restores exactly what was stored (falls back to empty if the
+        // key wasn't set yet — the bridge treats "" as "remove").
+        let prev = document.effectSettingValue(forKey: key,
+                                                inRow: Int32(sel.rowIndex),
+                                                at: Int32(sel.effectIndex)) ?? ""
+        guard prev != value else { return }
         let changed = document.setEffectSettingValue(value,
                                                       forKey: key,
                                                       inRow: Int32(sel.rowIndex),
@@ -543,6 +566,43 @@ class SequencerViewModel {
         if changed {
             selectedEffectSettings[key] = value
             document.renderEffect(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex))
+            let rowIndex = sel.rowIndex
+            let effectIndex = sel.effectIndex
+            undoManager.registerUndo(withTarget: self) { vm in
+                vm.setSettingValueAt(rowIndex: rowIndex,
+                                     effectIndex: effectIndex,
+                                     key: key,
+                                     value: prev)
+            }
+            undoManager.setActionName("Edit \(key)")
+        }
+    }
+
+    /// Undo-redirect entry: writes a setting on a specific effect by
+    /// row/index rather than via the current selection. Used as the
+    /// undo target for `setSettingValue` so the change still applies
+    /// if the user has deselected between change and undo.
+    private func setSettingValueAt(rowIndex: Int, effectIndex: Int,
+                                    key: String, value: String) {
+        let prev = document.effectSettingValue(forKey: key,
+                                                inRow: Int32(rowIndex),
+                                                at: Int32(effectIndex)) ?? ""
+        guard prev != value else { return }
+        let changed = document.setEffectSettingValue(value,
+                                                      forKey: key,
+                                                      inRow: Int32(rowIndex),
+                                                      at: Int32(effectIndex))
+        if changed {
+            if selectedEffect?.rowIndex == rowIndex
+                && selectedEffect?.effectIndex == effectIndex {
+                selectedEffectSettings[key] = value
+            }
+            document.renderEffect(forRow: Int32(rowIndex), at: Int32(effectIndex))
+            undoManager.registerUndo(withTarget: self) { vm in
+                vm.setSettingValueAt(rowIndex: rowIndex, effectIndex: effectIndex,
+                                     key: key, value: prev)
+            }
+            undoManager.setActionName("Edit \(key)")
         }
     }
 
@@ -630,6 +690,47 @@ class SequencerViewModel {
             }
             undoManager.setActionName("Move Effect")
         }
+    }
+
+    /// Commit new fade-in / fade-out seconds for an effect. Either
+    /// argument == -1 leaves that value unchanged. Registers a single
+    /// undo step covering both edges. Triggers a targeted re-render.
+    func adjustFade(rowIndex: Int, effectIndex: Int,
+                    fadeInSec: Float, fadeOutSec: Float) {
+        guard rowIndex < rows.count, effectIndex < rows[rowIndex].effects.count else { return }
+        let oldIn  = document.effectFadeInSeconds(forRow: Int32(rowIndex),
+                                                    at: Int32(effectIndex))
+        let oldOut = document.effectFadeOutSeconds(forRow: Int32(rowIndex),
+                                                     at: Int32(effectIndex))
+        var changed = false
+        if fadeInSec >= 0, abs(fadeInSec - oldIn) > 1e-4 {
+            if document.setEffectFadeInSeconds(fadeInSec,
+                                                forRow: Int32(rowIndex),
+                                                at: Int32(effectIndex)) {
+                changed = true
+            }
+        }
+        if fadeOutSec >= 0, abs(fadeOutSec - oldOut) > 1e-4 {
+            if document.setEffectFadeOutSeconds(fadeOutSec,
+                                                 forRow: Int32(rowIndex),
+                                                 at: Int32(effectIndex)) {
+                changed = true
+            }
+        }
+        guard changed else { return }
+        document.renderEffect(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        // Don't reloadRows — fade changes don't affect rows[] geometry,
+        // and we don't want to invalidate all tiles. The canvas reads
+        // live fades via the fadeProvider closure, which hits the
+        // document directly, so its next invalidate(xRanges:) picks up
+        // the new values. Do bump the @Observable by nil-ing and
+        // re-setting the selection so SwiftUI re-evaluates bodies that
+        // depend on selected settings.
+        undoManager.registerUndo(withTarget: self) { vm in
+            vm.adjustFade(rowIndex: rowIndex, effectIndex: effectIndex,
+                          fadeInSec: oldIn, fadeOutSec: oldOut)
+        }
+        undoManager.setActionName("Adjust Fade")
     }
 
     /// Resize one edge of an effect. `edge`: 0 = left/start, 1 = right/end.
