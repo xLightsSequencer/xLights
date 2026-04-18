@@ -832,9 +832,8 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
     int rewritten = 0;
     std::set<std::string> staleCacheKeys;
     std::set<std::string> newCacheKeys;
-    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
-        Element* elem = _sequenceElements.GetElement(e);
-        if (elem == nullptr) continue;
+
+    auto rewriteEffectLayers = [&](Element* elem) {
         for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
             EffectLayer* el = elem->GetEffectLayer(layer);
             for (int k = 0; k < el->GetEffectCount(); ++k) {
@@ -869,6 +868,25 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
                 newCacheKeys.insert(newStored);
                 ef->IncrementChangeCount();
                 ++rewritten;
+            }
+        }
+    };
+
+    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
+        Element* elem = _sequenceElements.GetElement(e);
+        if (elem == nullptr) continue;
+        rewriteEffectLayers(elem);
+        if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(elem);
+            for (int j = 0; j < me->GetStrandCount(); ++j) {
+                StrandElement* se = me->GetStrand(j);
+                rewriteEffectLayers(se);
+            }
+            for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
+                Element* sme = me->GetSubModel(j);
+                if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                    rewriteEffectLayers(sme);
+                }
             }
         }
     }
