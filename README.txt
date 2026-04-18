@@ -11,27 +11,25 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
-    -enh (dkulp)                Render: RenderProgressInfo now self-signals completion via an atomic
-                                    counter decremented by a RAII guard in RenderJob::Process, firing the
-                                    batch callback exactly once on the last job out (covers normal, aborted,
-                                    and early-bail exits). Desktop drain simplified to cleanup + progress
-                                    display only.
+
+    -enh (derwin12)             Picture effect auto-sets scaling to "Scale To Fit" when appropriate
+    -enh (derwin12)             Add Speed as a Warp effect type (#4596)
+    -enh (derwin12)             Add more variability to Lines Effect. Now using float values (#4532)
+    -enh (AGFazio)              Inclulde Node Count in Submodel dialog (#5359)
+    -enh (dkulp)                Render: RenderProgressInfo now self-signals completion via an atomic flag
+    -bug (dkup/derwin)          Handle various codec issues in avi conversions (#6142, #6153)
+    -bug (derwin12)             Fix Use State as Outline for Face Effect default
+    -bug (derwin12)             New polyline with default drop pattern did not render (#6156)
+    -bug (derwin12)             ESPixelStick: clear unused ports when uploading with FullxLights Control (#5689)
     -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)
     -bug (derwin12)             Preserve Layer Blending and Settings when using Random Effects (#6136)
     -bug (AGFazio)              Honour 2D to 3D Layout changing (#6133)
     -bug (AGFazio)              Fix pixel sizing appearing zoomed in (#6139)
     -bug (derwin12)             Downloadeded models now placed where you drop them (#5912)
     -bug (derwin12)             Random Value Curve now holds the value properly (#4803)
-    -bug (dkulp)                Sort model pixels back-to-front by camera-space Z when accumulating
-                                    the 3D preview vertex cache, so alpha-blended Smooth points and
-                                    circle triangles composite without seams at any camera orientation.
-                                    The cache is rebuilt when the camera rotates far enough for the
-                                    baked order to go stale. Applies to all models with a non-Square
-                                    pixel style in 3D (Tree, Sphere, Cube, Custom, Matrix, ...). Also
-                                    renders models in the 3D layout/house preview back-to-front by
-                                    bounding-box centre so blended pixels from one model composite
-                                    correctly over models behind them. Intersecting transparent
-                                    geometry still needs OIT and is not fully addressed. (#6126)
+    -bug (scott)                Fix some values not being stored in (new) settings file (#6134)
+    -bug (dkulp)                Fix layout render glitches by sorting pixels back-to-front by camera-space Z (#6126)
+
 2026.06  April 16, 2026
     -enh (dkulp)                Media-compatibility warning on sequence load now offers "Convert Videos Now" —
                                     transcodes flagged files to .mov next to the originals (rawvideo/rgb24 if
@@ -90,7 +88,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)             Improve Shape effect emoji rendering on Windows and Direction (#5636)
     -bug (derwin12)             Fix 3D Spiral gradient flip when Rotation value curve crosses zero (#4807)
     -bug (AGFazio)              Fix Square and Smooth Circle model appearances not scaling with zoom in the layout view (#5849)
-    -bug (dkulp)                Fix Pinwheel Rotation default mismatch between renderer and panel
     -bug (derwin12)             Fix crash after using Join in the SubModels dialog. (#6064)
     -bug (dkulp)                Fix Guitar BaseWaveFactor/StringWaveFactor losing user values after JSON panel migration.
                                     Old E_SLIDER_*WaveFactor int values are migrated forward to E_TEXTCTRL_*WaveFactor floats.
