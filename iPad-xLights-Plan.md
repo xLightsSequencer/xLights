@@ -517,7 +517,33 @@ verifiable on device:
   `timingScroll: RowsScrollState` via `SyncedScrollView`, so
   vertical scroll in either pane keeps them aligned. The "Start
   Output" toolbar button was removed for the MVP -- controller
-  output isn't in scope for initial ship.]** ->
+  output isn't in scope for initial ship. Canvas virtualization:
+  the ruler+waveform, timing-effects, and model-effects canvases
+  would previously blow past Metal's ~16k texture limit at high
+  zoom (CoreAnimation logged "Ignoring bogus layer size
+  (26013, 3096)" then blanked the view). CATiledLayer was tried
+  first and crashed with `_dispatch_assert_queue_fail` on
+  `com.apple.coreanimation.imageprovider.concurrent` — our mix of
+  CG + UIKit text drawing isn't background-safe. Settled on manual
+  horizontal tiling: each canvas UIView is a gesture-owning
+  container that, in `layoutSubviews`, creates/reuses a set of
+  `CanvasTileView` subviews (≤ 4096 logical px wide). Each tile
+  translates CG by `-tileOriginX` in its `draw(_:)` and proxies
+  back to the parent's `drawContent(cg:worldRect:)` — drawing code
+  keeps using world-x coords unchanged. Tiles set
+  `isUserInteractionEnabled = false` so taps/drags still hit the
+  parent. Per-tile dirty invalidation layered on top:
+  `ModelEffectsCanvas`/`TimingEffectsCanvas` `updateUIView` diffs
+  old vs new state — structural changes (row count, effect count,
+  zoom, timing marks) still do a full invalidate, but per-effect
+  edits (move/resize/rename) compute the union x-range of each
+  slot's old+new extent and call a new `invalidate(xRanges:)` that
+  sets `setNeedsDisplay(_ rect:)` on just the overlapping tiles.
+  Selection change invalidates old + new selected effect extents
+  only. The drag-loop in `EffectsCanvasUIView.onPan` does the same
+  thing per frame — invalidates the union of previous-frame and
+  current-frame live range, so each drag tick touches 1–2 tiles
+  instead of all 150 of them at max zoom.]** ->
 - B-7 bridge additions (timing rows, layer counts, views, resize,
   fades) **[landed; `XLSequenceDocument` gained `timingRowIndices`,
   `timingRowIsActive`/`setTimingRowActive`, `rowIsModelGroup`,
@@ -541,14 +567,35 @@ verifiable on device:
   gained a `TimingRowInfo` sub-struct on `RowInfo`, and
   `reloadRows()` falls back to the element name for non-collapsed
   multi-layer timing rows that have empty `displayName`, producing
-  "[N] LayerName" labels for higher layers]** ->
+  "[N] LayerName" labels for higher layers. Model row headers now
+  mirror the timing-row layer convention: the first-layer row
+  shows "`ModelName [N]`" when the element has more than one layer
+  (N = total layer count), and sub-layer rows show just
+  "`[layerIndex+1]`" — matching the bracket notation used on the
+  timing side for phrase/word/phoneme rows.]** ->
 - B-3 effect drawing (brackets + icons + transitions + vertical
-  timing-mark lines) **[first cut landed as `EffectCanvasViews.swift`;
-  `ModelEffectsCanvas` draws brackets + centerline + 3-letter icon
-  placeholder + green/red/yellow fade bars + vertical timing lines
-  from active timing rows; `TimingEffectsCanvas` draws mark brackets
-  + labels. Real PNG-atlas icon rendering + per-effect background
-  thumbnails deferred to v2 polish pass]** ->
+  timing-mark lines) **[landed as `EffectCanvasViews.swift`;
+  `ModelEffectsCanvas` draws brackets + centerline + icon +
+  green/red/yellow fade bars + vertical timing lines from active
+  timing rows; `TimingEffectsCanvas` draws mark brackets + labels.
+  Real effect icons now render from the desktop's compiled-in XPM
+  data: new bridge method
+  `iconBGRAForEffectNamed:desiredSize:outputSize:` on
+  `XLSequenceDocument` looks up `RenderableEffect` via
+  `iPadRenderContext::GetEffectManager()`, pulls
+  `GetIconData(sizeIdx)` for the appropriate bucket
+  (16/24/32/48/64), and parses the XPM char-array into a
+  BGRA-premultiplied byte buffer. Swift-side `EffectIconCache`
+  singleton wraps it in a `CGImage` cached per
+  (effect-name, bucket). `drawEffect` blits the bitmap with a CTM
+  flip (CG bottom-up vs our top-down context) and falls back to
+  the 3-letter abbreviation only when an effect's icon can't be
+  loaded. Timing-effect grid now draws two alternating band
+  colors keyed on `row.timing?.elementName` rather than row index,
+  so all layers of a single timing track share one stripe and the
+  next track takes the other. Per-effect rendered background
+  thumbnails (desktop's `RenderBuffer` preview blit) still
+  deferred to a v2 polish pass]** ->
 - B-10 view picker **[landed; top-left corner renders a SwiftUI
   `Menu` listing `SequenceElements::GetViews()`; selecting a view
   calls `setCurrentViewIndex` and reloads rows]** ->
@@ -566,7 +613,19 @@ verifiable on device:
 - B-9 selection-scoped scrub **[landed; `SequencerViewModel.startScrub`
   runs a frame-interval timer that loops `playPositionMS` over the
   selected effect's range. Starts on `selectEffect`, stops on
-  `clearSelection` or real playback. No audio, preview-only]** ->
+  `clearSelection` or real playback. No audio, preview-only.
+  Follow-up fix: the Model Preview pane was freezing on the first
+  scrub frame because `PreviewPaneView.updateUIView` only started
+  its `CADisplayLink` while `viewModel.isPlaying == true`.
+  `SequencerViewModel` now exposes an observable `isScrubbing`
+  flag toggled by `startScrub`/`stopScrub`, and the preview pane
+  runs its display link when `isPlaying || isScrubbing` — the
+  scrub loop actually animates in the pane now. `selectEffect`
+  also calls a new non-toggling `setPreviewModel(rowIndex:)` that
+  routes the Model Preview to the effect's own model (the
+  existing `selectPreviewModel(rowIndex:)` from the row header
+  still toggles on re-tap, which would defeat scrub if reused
+  here)]** ->
 - B-11 undo **[landed; `SequencerViewModel` gained a `@MainActor`
   isolation + an `UndoManager`. Move / resize / add / delete / lock /
   disable register inverse actions via the `UndoManager`; add/delete
