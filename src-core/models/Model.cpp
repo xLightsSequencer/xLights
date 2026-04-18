@@ -3591,14 +3591,20 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            ctx->Translate(w / 2.0f - ml * scale,
-                           h / 2.0f - mb * scale, 0.0f);
-            ctx->Scale(scale, scale, 1.0);
             if (!GetModelScreenLocation().IsCenterBased()) {
+                // Non-center-based models (e.g. polylines) have screenX/Y in [0, RenderWi/RenderHt].
+                // The inner translate centers the model at origin, so the outer translate is just
+                // the panel center — no ml/mb offset needed (ml would shift it to lower-left).
+                ctx->Translate(w / 2.0f, h / 2.0f, 0.0f);
+                ctx->Scale(scale, scale, 1.0);
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
                                GetModelScreenLocation().GetVScaleFactor() < 0 ? GetModelScreenLocation().RenderHt / 2.0 : -GetModelScreenLocation().RenderHt / 2.0,
                                0.0f);
                 ctx->Scale(1.0, GetModelScreenLocation().GetVScaleFactor(), 1.0);
+            } else {
+                ctx->Translate(w / 2.0f - ml * scale,
+                               h / 2.0f - mb * scale, 0.0f);
+                ctx->Scale(scale, scale, 1.0);
             }
             cache->program->runSteps(ctx);
             ctx->PopMatrix();
