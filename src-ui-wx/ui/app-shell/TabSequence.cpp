@@ -35,7 +35,7 @@
 #include "ui/media/JukeboxPanel.h"
 #include "ui/diagnostics/FindDataPanel.h"
 #include "ui/sequencer/EffectsPanel.h"
-#include "ui/sequencer/TimingPanel.h"
+#include "ui/sequencer/BlendingPanel.h"
 #include "ui/color/ColorPanel.h"
 #include "ui/layout/LayoutGroup.h"
 #include "ui/layout/ModelPreview.h"
@@ -1849,8 +1849,8 @@ void xLightsFrame::EnableSequenceControls(bool enable)
 
     enableAllChildControls(EffectsPanel1, enableSeqNotAC);
     if (enableSeqNotAC) EffectsPanel1->ValidateWindow();
-    enableAllChildControls(timingPanel, enableSeqNotAC);
-    if (enableSeqNotAC) timingPanel->ValidateWindow();
+    enableAllChildControls(blendingPanel, enableSeqNotAC);
+    if (enableSeqNotAC) blendingPanel->ValidateWindow();
     enableAllChildControls(bufferPanel, enableSeqNotAC);
     if (enableSeqNotAC) bufferPanel->ValidateWindow();
     enableAllChildControls(perspectivePanel, enableSeq);

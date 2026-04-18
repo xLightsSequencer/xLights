@@ -30,7 +30,7 @@
 #include "../../ui/effects/ShaderDownloadDialog.h"
 #include "../../ui/media/ManageMediaPanel.h"
 #include "../../ui/media/ShaderPreviewGenerator.h"
-#include "../../ui/sequencer/TimingPanel.h"
+#include "../../ui/sequencer/BlendingPanel.h"
 #include "../../xLightsApp.h"
 #include "../../xLightsMain.h"
 #include "effects/ShaderEffect.h"
@@ -397,7 +397,7 @@ void ShaderPanel::ApplyShaderConfig(bool resetParams) {
         if (desc != "") desc += "\n";
         if (_shaderConfig->IsCanvasShader()) {
             desc += "Use Canvas Mode for this shader.";
-            TimingPanel* layerBlendingPanel = xl->GetLayerBlendingPanel();
+            BlendingPanel* layerBlendingPanel = xl->GetLayerBlendingPanel();
             layerBlendingPanel->CheckBox_Canvas->SetValue(true);
         }
         wxString const shortName = wxFileName(_shaderConfig->GetFilename()).GetFullName();

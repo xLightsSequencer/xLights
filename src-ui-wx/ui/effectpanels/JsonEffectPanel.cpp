@@ -30,7 +30,7 @@
 #include "ui/shared/controls/BulkEditControls.h"
 #include "ui/shared/controls/MediaPickerCtrl.h"
 #include "ui/shared/utils/xlLockButton.h"
-#include "ui/sequencer/TimingPanel.h"
+#include "ui/sequencer/BlendingPanel.h"
 #include "ui/shared/utils/wxUtilities.h"
 #include "effects/RenderableEffect.h"
 #include "models/Model.h"
@@ -1964,7 +1964,7 @@ void JsonEffectPanel::SetDefaultParameters() {
     if (metadata_.value("canvasMode", false)) {
         xLightsFrame* frame = xLightsApp::GetFrame();
         if (frame) {
-            TimingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
+            BlendingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
             if (layerBlendingPanel) {
                 layerBlendingPanel->CheckBox_Canvas->SetValue(true);
             }

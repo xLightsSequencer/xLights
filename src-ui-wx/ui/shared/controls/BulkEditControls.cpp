@@ -1281,8 +1281,11 @@ std::string FixIdForPanel(std::string panel, std::string id)
     {
         i.Replace("ID_", "C_");
     }
-    else if (panel == "Timing")
+    else if (panel == "Blending")
     {
+        // Panel was historically "Timing"; the user-visible and SetName label
+        // is now "Blending" but the on-disk setting-key prefix stays T_ so
+        // existing .xsq files round-trip unchanged.
         i.Replace("ID_", "T_");
     }
     else if (panel == "Buffer")
@@ -1306,7 +1309,7 @@ wxWindow* GetPanel(wxWindow* w)
         if (name == "Effect" ||
             name == "Color" ||
             name == "Buffer" ||
-            name == "Timing")
+            name == "Blending")
         {
             return w;
         }

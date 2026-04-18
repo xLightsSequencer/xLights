@@ -504,8 +504,8 @@
 		<Unit filename="../src-ui-wx/ui/app-shell/TabSetup.cpp" />
 		<Unit filename="../src-core/utils/TempFileManager.cpp" />
 		<Unit filename="../src-core/utils/TempFileManager.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimingPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimingPanel.h" />
+		<Unit filename="../src-ui-wx/ui/sequencer/BlendingPanel.cpp" />
+		<Unit filename="../src-ui-wx/ui/sequencer/BlendingPanel.h" />
 		<Unit filename="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.cpp" />
 		<Unit filename="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.h" />
 		<Unit filename="../src-ui-wx/ui/sequencer/TopEffectsPanel.cpp" />

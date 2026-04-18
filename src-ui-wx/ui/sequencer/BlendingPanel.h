@@ -21,12 +21,18 @@ class wxButton;
 class wxCheckBox;
 class wxSizer;
 
-class TimingPanel : public JsonEffectPanel {
+// Layer-blending settings panel: layer-mix method / morph / canvas + fade-in /
+// fade-out transitions. Historically named "TimingPanel" because the transitions
+// live here, but the dominant content is how the layer blends with the layer
+// below — the real timeline/timing UI is on the main sequencer, not in here.
+// The on-disk setting-key prefix stays `T_` so existing .xsq files round-trip
+// unchanged; only the user-visible label and the C++ class name are "Blending".
+class BlendingPanel : public JsonEffectPanel {
 public:
-    TimingPanel(wxWindow* parent, wxWindowID id = wxID_ANY,
-                const wxPoint& pos = wxDefaultPosition,
-                const wxSize& size = wxDefaultSize);
-    ~TimingPanel() override = default;
+    BlendingPanel(wxWindow* parent, wxWindowID id = wxID_ANY,
+                  const wxPoint& pos = wxDefaultPosition,
+                  const wxSize& size = wxDefaultSize);
+    ~BlendingPanel() override = default;
 
     // Layer-bracket info provided by xLightsFrame so the Layers button can
     // open the LayerSelectDialog with the right range.
@@ -40,16 +46,16 @@ public:
 
     // Custom serializer used by xLightsFrame::GetEffectTextFromWindows to
     // collect the T_-prefixed settings from this panel. Emits only non-
-    // default values (the suppressIfDefault flag in Timing.json), replaces
+    // default values (the suppressIfDefault flag in Blending.json), replaces
     // the framework's default E_ prefix with T_, and appends the LayersSelected
     // blob when Canvas mode is enabled.
-    wxString GetTimingString();
+    wxString GetBlendingString();
 
     void SetDefaultControls(const Model* model, bool optionbased = false);
     void ValidateWindow() override;
 
-    // Referenced from tabSequencer.cpp:2434 — keep as a public member
-    // pointer so external check-then-enable-randomise logic keeps working.
+    // Referenced from tabSequencer.cpp — keep as a public member pointer so
+    // external check-then-enable-randomise logic keeps working.
     xlLockButton* BitmapButton_CheckBox_LayerMorph = nullptr;
 
     // Referenced from ShaderPanel.cpp and JsonEffectPanel.cpp (effect
@@ -68,7 +74,7 @@ private:
     wxWindow* BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer, bool isIn);
 
     // Handlers
-    void OnResetTimingPanelClick(wxCommandEvent& event);
+    void OnResetBlendingPanelClick(wxCommandEvent& event);
     void OnLayerMethodSelect(wxCommandEvent& event);
     void OnCanvasClick(wxCommandEvent& event);
     void OnLayersClick(wxCommandEvent& event);
@@ -80,7 +86,7 @@ private:
     void OnTransitionTypeSelect(wxCommandEvent& event);
 
     // Cached pointers (used by handlers / validate / serializer)
-    wxCheckBox* _resetTimingPanelCheck = nullptr;
+    wxCheckBox* _resetBlendingPanelCheck = nullptr;
     BulkEditCheckBox* _layerMorphCheck = nullptr;
     BulkEditSlider* _effectLayerMixSlider = nullptr;
     BulkEditTextCtrl* _effectLayerMixText = nullptr;

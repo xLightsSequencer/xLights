@@ -5,7 +5,7 @@
 
 namespace {
 // Detect a setting key embedded inside another setting's value — the result
-// of a long-standing missing-comma bug between GetTimingString() and
+// of a long-standing missing-comma bug between GetBlendingString() and
 // GetBufferString() that fused the last T_ setting into the first B_ setting.
 // Each save-then-load round appended one more B_/C_ fragment, so a corrupted
 // value can contain several embedded keys. We split the value at the first

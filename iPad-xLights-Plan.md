@@ -648,25 +648,200 @@ settings-key prefixes:
    `resources/effectmetadata/<Name>.json`.
 2. **Colors** -- `C_*` keys (palette map). Color pickers + palette
    swatches.
-3. **Blending** -- `B_*` keys (the shared "Buffer" panel today, which
-   is a misnomer in the current code and needs renaming internally).
-4. **Timing** -- timing range + `T_*` transition keys (shared Timing
-   panel plus `T_CHECKBOX_*` / `T_CHOICE_*` transition editors that
-   aren't wired yet).
+3. **Blending** -- `T_*` keys (`shared/Blending.json`). Layer blending
+   method, morph, canvas, transitions, suppress-until / freeze-at
+   frame. This was historically called the "Timing" panel; the
+   on-disk prefix stayed `T_` for backward compat but the panel name
+   is now "Blending" because the dominant content is how the layer
+   blends with those below -- real timeline timing lives on the
+   sequencer, not here.
+4. **Buffer** -- `B_*` keys (`shared/Buffer.json`). Render style,
+   camera, transforms, blur, sub-buffer, roto-zoom. Per-layer render
+   target settings.
 
-Per-tab work:
+Guiding principle: **the JSON metadata is the source of truth for what
+a property means; every property that exists in
+`resources/effectmetadata/` must render _something_ on iPad.** Nothing
+silently vanishes. A control type we haven't built yet still renders a
+read-only placeholder that surfaces the current value, so editing a
+desktop-authored sequence on iPad can't lose data just because the
+user didn't scroll past an unsupported control. Value curves are a
+hard requirement for parity: if a user can create or edit a curve on
+desktop, they can do it on iPad too.
 
-- **Effect** -- full visibility-rule engine (`notEquals`,
-  `greaterThan`, `lessThan`, `and`, `or`), `xyCenter` group as an XY
-  pad, value-curve preview (edit later).
+**Baseline gap (2026-04-18).** Inspector shell is now a four-tab
+segmented layout (`EffectSettingsView.swift`, C-1). Out of the full
+schema (`resources/effectmetadata/_schema.json`), iPad handles:
+`slider`, `checkbox`, `choice`, `spin`, `text`, and the single
+`custom` id `PaletteHeaderRow`. Everything in this table is pending;
+each row is addressed in the sub-phases below.
+
+| Schema feature | Desktop uses | Status |
+|---|---|---|
+| `controlType: filepicker` | 2 props (Glediator, VUMeter file) | not rendered |
+| `controlType: fontpicker` | 1 prop (Text_Font) | not rendered |
+| `controlType: custom` beyond PaletteHeaderRow | 38 props, 15 effects | placeholder "(custom)" |
+| `group.type: xyCenter` | 6 props (Pictures, Marquee, Pinwheel, Text, Shader) | members hidden, no pad |
+| `separator: true` | 3 uses | ignored |
+| `suppressIfDefault: true` | 35 uses | ignored (writes default back to settings map) |
+| `lockable: true` | 261 uses | no lock UI |
+| `dynamicOptions` | 11 uses (timingTracks, states, faces, modelNodeNames, lyricTimingTracks, effect) | empty option list |
+| visibility: `notEquals`/`notOneOf`/`greaterThan`/`any` | multiple | only `equals`/`oneOf` evaluate |
+| `valueCurve: true` | 238 uses, 45 effects | no VC button; base slider edit silently bypasses an active curve |
+
+Per-tab work summary:
+
+- **Effect** -- full visibility-rule engine (`notEquals`, `notOneOf`,
+  `greaterThan`, `any`, plus the existing `equals` / `oneOf`);
+  `xyCenter` group as an XY pad; `separator` / `suppressIfDefault`
+  honored; `dynamicOptions` wired up.
 - **Colors** -- wire the existing `ColorPaletteView` to write
-  `C_BUTTON_Palette*` keys.
-- **Blending** -- layout cleanup on the B_ panel.
-- **Timing** -- add `T_CHECKBOX_*` / `T_CHOICE_*` transition editing
-  (currently dead).
+  `C_BUTTON_Palette*` keys (landed). Layout cleanup on
+  `shared/Color.json` compound rows (`ChromaKeyRow`, `SparklesRow`,
+  `ResetPanelRow` -- currently just "(custom)" placeholders).
+- **Blending** -- add `T_CHECKBOX_*` / `T_CHOICE_*` transition
+  editing (currently dead); `shared/Blending.json` has
+  `SuppressEffectUntil` / `FreezeEffectAtFrame` (already work) plus
+  `LayerMorphRow` / `LayerMethodRow` / `CanvasRow` /
+  `In_Transition_*` / `Out_Transition_*` custom rows (currently
+  placeholders).
+- **Buffer** -- layout cleanup on `shared/Buffer.json`; most
+  controls are standard `slider` / `choice` / `checkbox` and already
+  render -- they just need to live in the Buffer tab. The roto-zoom
+  notebook group needs the `tabs` group type to render (already
+  supported).
 
 Tab identity is preserved across selections so the user returns to the
-tab they were on, not always "Effect."
+tab they were on, not always "Effect" (persist in
+`@AppStorage("inspectorTab")`).
+
+**Sub-phases.** Each shippable and verifiable independently:
+
+1. **C-1 Tabbed inspector shell.** **[landed.** `EffectSettingsView.swift`
+   replaced with a four-tab segmented-picker layout (SF Symbols:
+   `slider.horizontal.3` / `paintpalette` / `square.stack.3d.up` /
+   `square.grid.3x3`). New `InspectorTab` enum (`.effect` / `.colors`
+   / `.blending` / `.buffer`) is `Hashable` + `Codable` so Phase E can
+   route it through `WindowGroup(for:)`. Tab identity persists via
+   `@AppStorage("inspectorTab")`. Each tab scrolls independently below
+   the fixed name + start/end-time header. Desktop-side shared-panel
+   rename landed alongside: the misnamed "Timing" effect-settings
+   panel is now "Blending" -- `TimingPanel.{cpp,h}` →
+   `BlendingPanel.{cpp,h}`, `shared/Timing.json` →
+   `shared/Blending.json` (`effectName: "Blending"`, `prefix: "T_"`
+   unchanged), class + method + member + handler renames
+   (`GetBlendingString`, `OnResetBlendingPanelClick`,
+   `_resetBlendingPanelCheck`, `ShowHideLayerBlendingWindow`),
+   `BulkEditControls` panel-name lookup updated to match the new
+   `SetName("Blending")`. Not user-visible: the on-disk `T_` setting
+   prefix and the AUI pane id `"LayerTiming"` are untouched so
+   existing `.xsq` files and saved perspectives round-trip. The
+   `xLightsResetTimingPanel` wxConfig pref is now
+   `xLightsResetBlendingPanel` (one-time reset per user). iPad bridge
+   is name-agnostic so `sharedMetadataJsonNamed:"Blending"` just
+   works; `SequencerViewModel.timingMetadata` renamed to
+   `blendingMetadata`.**]**
+2. **C-2 Schema-feature coverage.** Render the `filepicker`,
+   `fontpicker`, `radiobutton` controlTypes; honor `separator` and
+   `suppressIfDefault`; implement the `xyCenter` group as a SwiftUI
+   XY pad (draggable handle in a square, with the underlying X/Y
+   sliders wired to the same settings keys as desktop). `lockable`
+   deferred to C-7.
+3. **C-3 Full visibility engine.** Support `notEquals`, `notOneOf`,
+   `greaterThan`, and `any` (ORs a list of property ids). Matches
+   `JsonEffectPanel.cpp:1441-1468`.
+4. **C-4 `dynamicOptions`.** Expose the option sources the desktop
+   pulls from: `timingTracks` (names of timing elements in the
+   sequence), `lyricTimingTracks` (subset with lyric data),
+   `states` / `faces` (definitions on the effect's model),
+   `modelNodeNames`, `effect` (list of other effect types). Bridge
+   methods on `XLSequenceDocument` returning `NSArray<NSString*>`
+   for each; `EffectPropertyView` branches on `prop.dynamicOptions`
+   when building a `choice`.
+5. **C-5 Value curves -- desktop parity.** If a user can create a
+   curve on desktop, they can edit and create the same curve on
+   iPad. No read-only escape hatch.
+   - VC button renders next to every `valueCurve:true` property
+     (almost always a slider). Button shows an active/inactive glyph
+     + a tiny curve thumbnail when active.
+   - Storage key is `<prefix>VALUECURVE_<id>`; reuse
+     `src-core/render/ValueCurve` `Serialise` / `Deserialise` via a
+     new `XLSequenceDocument` bridge so the on-disk string matches
+     desktop byte-for-byte (all 16 curve types + optional TT / AT /
+     FT / FLR / TO / WRAP / RV fields round-trip).
+   - Editor sheet supports: active toggle, type picker (all 16 types:
+     Flat, Ramp, Ramp Up/Down, Ramp Up/Down Hold, Music Trigger Fade,
+     Square, Parabolic Up/Down, Logarithmic Up/Down, Exponential
+     Up/Down, Sine, Decaying Sine, Abs Sine, Random, Custom), P1-P4
+     parameters (range + label per curve type, read from
+     `ValueCurveConsts`), Min/Max, Wrap, Real Values, Time Offset.
+   - Timing-track picker (`TT=...`) for Music Trigger Fade, populated
+     via the C-4 `dynamicOptions` bridge. Audio-track picker (`AT=`)
+     similarly. Filter label + regex (`FT=` / `FLR=`) exposed.
+   - **Custom-point editor** -- touch-canvas editor backed by a
+     `UIViewRepresentable`. Tap empty area to add a point, drag to
+     move, long-press (or swipe-off) to delete. Matches desktop
+     `ValueCurveDialog`'s editable curve surface. Values serialize as
+     `Values=x:y;x:y;...`.
+   - Curve-type preset gallery -- recreates desktop's
+     "saved value curves" picker (`ValueCurvesPanel`) so users can
+     load a named preset from the same on-disk store.
+   - Live preview strip inside the editor uses
+     `ValueCurve::GetValueAt` (already wx-free) to render 1-px-wide
+     columns. Extract the draw routine from
+     `src-ui-wx/ui/shared/utils/ValueCurveRendering.cpp` into a
+     platform-neutral helper under `src-core/render/` so desktop and
+     iPad share it.
+   - Data preservation: when a property has an active VC and the user
+     edits the base slider, the VC is **not** silently cleared.
+     Desktop keeps both side-by-side -- the curve takes effect, the
+     slider value becomes the fallback when the curve is toggled off.
+     iPad mirrors this: while the curve is active, the base slider is
+     dimmed and a "curve active -- tap to edit" chip replaces the raw
+     number; toggling the VC off in the editor restores the slider.
+6. **C-6 Custom controls, effect-by-effect.** 39 properties across 15
+   effects, in priority order (by likely user traffic):
+   - **Pictures** -- `Pictures_FilenameBlock` (file picker + animated
+     thumbnail + filename label, swapping
+     `E_FILEPICKER_Pictures_Filename`),
+     `Pictures_TransparentBlackRow` (enable + threshold slider).
+   - **Shader** -- `Shader_FilenameBlock`, `Shader_SpeedRow` (speed
+     slider + VC on an f/100 divisor), `Shader_DynamicParams` (UI
+     rebuilt from the selected shader's `.fs` uniforms -- reads
+     uniform metadata via the existing `FragmentShader::parse` path,
+     produces sliders / checks / color pickers on the fly).
+   - **Video** -- `Video_FilenameBlock`, `Video_DurationRow`,
+     `Video_TransparentBlackRow`.
+   - **Text** -- `Text_File_Row` (inline-text vs file toggle),
+     `Text_Font_XL_Row` (font picker routed through the CG font
+     lookup from Phase A-2).
+   - **Faces** -- `Faces_MouthMovements` (phoneme timing-track
+     picker), `Faces_TransparentBlackRow`.
+   - **Morph** -- `Morph_QuickSet` (preset sweep grid), `Morph_Swap`.
+   - **Servo** -- `Servo_StartEndRow` (dual sliders+VC with a link
+     toggle), `Servo_ButtonRow`.
+   - **DMX** -- `DMX_ChannelsNotebook` (up to 48 channels, each with
+     slider + VC + invert toggle, labels from model),
+     `DMX_ButtonsRow` (Remap / Save As State / Load From State).
+   - **State** -- `State_StateSource` (state-definition vs
+     timing-track radio).
+   - **Shape** -- `Shape_Font`, `Shape_Char`, `Shape_SkinTone`, `SVG`.
+   - **Sketch** -- `Sketch_Info`, `Sketch_DefRow`,
+     `Sketch_BackgroundRow` (route into a Sketch-assist sheet;
+     lowest priority, can ship read-only first).
+   - **Ripple** -- `Ripple_SVG`.
+   - Color-panel compound rows (`ChromaKeyRow`, `SparklesRow`,
+     `ResetPanelRow`) handled under the Colors tab work.
+7. **C-7 Lockable properties.** Small lock glyph next to each
+   `lockable:true` property that writes `LOCK_<id>=1` into the
+   effect's settings string. Low priority -- only relevant for
+   desktop-style bulk-edit workflows, which iPad may never grow.
+
+Ship order: C-1 first (everything else lands inside the new shell),
+then C-2 + C-3 in parallel (both small), then C-5 (the big one;
+unblocks VC-aware custom controls in C-6), then C-4 (feeds C-5's
+timing-track picker -- C-5 can ship without it and pick up the
+option list when C-4 lands), then C-6 effect-by-effect, then C-7.
 
 **Detaching tabs into windows.** On desktop xLights each of these four
 panes is a separate dockable pane. iPadOS 26 can't float palettes the

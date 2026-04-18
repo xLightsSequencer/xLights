@@ -84,7 +84,7 @@ constexpr int OUT_TRANSITION_MIN = 0;
 constexpr int OUT_TRANSITION_MAX = 100;
 
 // --- Lookup functions ---
-// These replace the static methods formerly on BufferPanel, ColorPanel, TimingPanel.
+// These replace the static methods formerly on BufferPanel, ColorPanel, BlendingPanel.
 
 namespace ValueCurveConsts {
 

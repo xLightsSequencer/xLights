@@ -1,64 +1,77 @@
 import SwiftUI
 
-// Inspector sidebar for the currently selected effect. Builds its UI from the
-// effect's JSON metadata (resources/effectmetadata/<Name>.json) plus the three
-// shared panels (Buffer, Color, Timing). Each shared panel is a collapsible
-// section to save screen space on iPad.
+// Four-tab sidebar for the currently selected effect, matching desktop
+// xLights' effect settings notebook. Tab identity persists across effect
+// selection changes via @AppStorage so the user returns to the tab they
+// were on, not always "Effect".
+//
+// Each tab is populated from JSON metadata in resources/effectmetadata/:
+//   - Effect   — <EffectName>.json     (E_ prefix)
+//   - Colors   — shared/Color.json     (C_ prefix, palette map)
+//   - Blending — shared/Blending.json  (T_ prefix — layer-blend method,
+//                                       morph, canvas, transitions)
+//   - Buffer   — shared/Buffer.json    (B_ prefix — render style, transforms,
+//                                       roto-zoom, sub-buffer)
+//
+// The tabs map to the same four dockable panes on desktop. Phase E will
+// expose per-tab "Open in new window" actions; for now they're locked
+// into the sidebar.
+enum InspectorTab: String, CaseIterable, Identifiable, Hashable, Codable {
+    case effect
+    case colors
+    case blending
+    case buffer
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .effect:   return "Effect"
+        case .colors:   return "Colors"
+        case .blending: return "Blending"
+        case .buffer:   return "Buffer"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .effect:   return "slider.horizontal.3"
+        case .colors:   return "paintpalette"
+        case .blending: return "square.stack.3d.up"
+        case .buffer:   return "square.grid.3x3"
+        }
+    }
+}
+
 struct EffectSettingsView: View {
     @Environment(SequencerViewModel.self) var viewModel
 
-    @State private var bufferExpanded = false
-    @State private var colorExpanded = false
-    @State private var timingExpanded = false
+    // Persist the selected tab across sequence loads and app launches.
+    @AppStorage("inspectorTab") private var storedTab: String = InspectorTab.effect.rawValue
+
+    private var selectedTab: Binding<InspectorTab> {
+        Binding<InspectorTab>(
+            get: { InspectorTab(rawValue: storedTab) ?? .effect },
+            set: { storedTab = $0.rawValue }
+        )
+    }
 
     var body: some View {
         Group {
             if viewModel.selectedEffect != nil {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        header
-                        Divider()
-                        timingRow
-                        Divider()
-
-                        // Effect-specific properties (expanded by default)
-                        if let md = viewModel.selectedEffectMetadata {
-                            EffectMetadataPanel(metadata: md)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 6)
-                        } else {
-                            Text("No metadata available for this effect")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding()
+                VStack(spacing: 0) {
+                    header
+                    timingRow
+                    Divider()
+                    tabBar
+                    Divider()
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            tabContent
                         }
-
-                        Divider()
-
-                        // Shared Buffer panel
-                        sharedSection(
-                            title: "Buffer",
-                            metadata: viewModel.bufferMetadata,
-                            expanded: $bufferExpanded
-                        )
-
-                        Divider()
-
-                        // Shared Color panel
-                        sharedSection(
-                            title: "Color",
-                            metadata: viewModel.colorMetadata,
-                            expanded: $colorExpanded
-                        )
-
-                        Divider()
-
-                        // Shared Timing panel
-                        sharedSection(
-                            title: "Timing",
-                            metadata: viewModel.timingMetadata,
-                            expanded: $timingExpanded
-                        )
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             } else {
@@ -78,13 +91,16 @@ struct EffectSettingsView: View {
         HStack {
             Text(viewModel.selectedEffect?.name ?? "")
                 .font(.headline)
+                .lineLimit(1)
             Spacer()
             Button(action: { viewModel.deleteSelectedEffect() }) {
                 Image(systemName: "trash")
                     .foregroundStyle(.red)
             }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 
     private var timingRow: some View {
@@ -98,38 +114,63 @@ struct EffectSettingsView: View {
                 .monospacedDigit()
         }
         .font(.caption)
+        .foregroundStyle(.secondary)
         .padding(.horizontal)
-        .padding(.vertical, 4)
+        .padding(.bottom, 6)
     }
 
-    // MARK: - Shared Section (collapsible)
+    // MARK: - Tab bar
 
-    @ViewBuilder
-    private func sharedSection(title: String,
-                                metadata: EffectMetadata?,
-                                expanded: Binding<Bool>) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Button(action: { expanded.wrappedValue.toggle() }) {
-                HStack {
-                    Image(systemName: expanded.wrappedValue ? "chevron.down" : "chevron.right")
-                        .font(.caption2)
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Spacer()
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            if expanded.wrappedValue, let md = metadata {
-                EffectMetadataPanel(metadata: md)
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 6)
+    private var tabBar: some View {
+        Picker("Inspector Tab", selection: selectedTab) {
+            ForEach(InspectorTab.allCases) { tab in
+                Image(systemName: tab.symbol)
+                    .accessibilityLabel(tab.label)
+                    .tag(tab)
             }
         }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+    }
+
+    // MARK: - Tab content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab.wrappedValue {
+        case .effect:
+            if let md = viewModel.selectedEffectMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("No metadata available for this effect")
+            }
+        case .colors:
+            if let md = viewModel.colorMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Color metadata not loaded")
+            }
+        case .blending:
+            if let md = viewModel.blendingMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Blending metadata not loaded")
+            }
+        case .buffer:
+            if let md = viewModel.bufferMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Buffer metadata not loaded")
+            }
+        }
+    }
+
+    private func unavailable(_ msg: String) -> some View {
+        Text(msg)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding()
     }
 
     private func formatMS(_ ms: Int) -> String {

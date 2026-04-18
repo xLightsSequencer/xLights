@@ -58,11 +58,14 @@ class SequencerViewModel {
     var selectedPaletteEffect: String?
     var showInspector = false
 
-    // Metadata for the currently selected effect and shared panels
+    // Metadata for the currently selected effect and shared panels.
+    // Keys in `blendingMetadata` serialize with the T_ prefix (the panel was
+    // historically called "Timing" — desktop renamed it "Blending" without
+    // changing the on-disk prefix).
     var selectedEffectMetadata: EffectMetadata?
     var bufferMetadata: EffectMetadata?
     var colorMetadata: EffectMetadata?
-    var timingMetadata: EffectMetadata?
+    var blendingMetadata: EffectMetadata?
 
     // Parsed metadata cache per effect name — avoids re-parsing JSON on every selection.
     private var metadataCache: [String: EffectMetadata] = [:]
@@ -491,7 +494,7 @@ class SequencerViewModel {
         // Shared metadata is the same for every effect; load once and reuse.
         if bufferMetadata == nil { bufferMetadata = loadSharedMetadata("Buffer") }
         if colorMetadata == nil { colorMetadata = loadSharedMetadata("Color") }
-        if timingMetadata == nil { timingMetadata = loadSharedMetadata("Timing") }
+        if blendingMetadata == nil { blendingMetadata = loadSharedMetadata("Blending") }
     }
 
     func clearSelection() {

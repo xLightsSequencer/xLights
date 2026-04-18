@@ -8,7 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include "ui/sequencer/TimingPanel.h"
+#include "ui/sequencer/BlendingPanel.h"
 
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -35,7 +35,7 @@
 namespace {
 // Long tooltip shown on the Layer Method choice and also used by the "?"
 // About button as a quick reference popup. Kept verbatim from the legacy
-// TimingPanel so users see the same text.
+// panel so users see the same text.
 constexpr const char* LAYER_METHOD_TOOLTIP =
     "Layering defines how Effect 1 and Effect 2 will be mixed together.\n"
     "Here are the Choices\n"
@@ -66,7 +66,7 @@ constexpr const char* LAYER_METHOD_TOOLTIP =
     "* Canvas - Blend the selected layers into this layer";
 
 // Transitions that ignore the Adjustment slider — the slider/VC/text are
-// disabled for these when selected. Matches legacy TimingPanel.cpp.
+// disabled for these when selected. Matches the legacy panel layout.
 const std::vector<wxString> TRANSITIONS_NO_ADJUST = {
     "Fade", "Square Explode", "Circle Explode", "Fold", "Dissolve",
     "Circular Swirl", "Zoom", "Doorway", "Swap", "Shatter"
@@ -92,16 +92,16 @@ const std::vector<wxString> LAYER_METHODS = {
     "Additive", "Subtractive", "Brightness", "Max", "Min"
 };
 
-nlohmann::json LoadTimingMetadata() {
+nlohmann::json LoadBlendingMetadata() {
     std::string metaDir = EffectPanelManager::GetMetadataDirectory();
     if (metaDir.empty()) return {};
-    return JsonEffectPanel::LoadMetadata(metaDir + "/shared/Timing.json");
+    return JsonEffectPanel::LoadMetadata(metaDir + "/shared/Blending.json");
 }
 } // namespace
 
-TimingPanel::TimingPanel(wxWindow* parent, wxWindowID /*id*/,
+BlendingPanel::BlendingPanel(wxWindow* parent, wxWindowID /*id*/,
                          const wxPoint& /*pos*/, const wxSize& /*size*/) :
-    JsonEffectPanel(parent, LoadTimingMetadata(), /*deferBuild*/ true) {
+    JsonEffectPanel(parent, LoadBlendingMetadata(), /*deferBuild*/ true) {
     BuildFromJson(metadata_);
 
     // Cache pointers to the framework-built controls used by the validate
@@ -123,31 +123,31 @@ TimingPanel::TimingPanel(wxWindow* parent, wxWindowID /*id*/,
         _layerMethodChoice->SetToolTip(wxString(LAYER_METHOD_TOOLTIP));
     }
 
-    SetName("Timing");
+    SetName("Blending");
 
     // Restore the 'Reset panel when changing effects' preference.
     auto* config = GetXLightsConfig();
     bool reset = true;
-    if (config) config->Read("xLightsResetTimingPanel", &reset, true);
-    if (_resetTimingPanelCheck) _resetTimingPanelCheck->SetValue(reset);
+    if (config) config->Read("xLightsResetBlendingPanel", &reset, true);
+    if (_resetBlendingPanelCheck) _resetBlendingPanelCheck->SetValue(reset);
 
     ValidateWindow();
     SetMinSize(wxSize(50, 50));
 }
 
-wxWindow* TimingPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
+wxWindow* BlendingPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
                                             const nlohmann::json& prop, int /*cols*/) {
     std::string id = prop.value("id", "");
     if (id == "ResetPanelRow") {
-        _resetTimingPanelCheck = new wxCheckBox(parentWin, wxNewId(),
+        _resetBlendingPanelCheck = new wxCheckBox(parentWin, wxNewId(),
                                                  "Reset panel when changing effects",
                                                  wxDefaultPosition, wxDefaultSize, 0,
                                                  wxDefaultValidator,
-                                                 _T("IDD_CHECKBOX_ResetTimingPanel"));
-        _resetTimingPanelCheck->SetValue(true);
-        sizer->Add(_resetTimingPanelCheck, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-        _resetTimingPanelCheck->Bind(wxEVT_CHECKBOX, &TimingPanel::OnResetTimingPanelClick, this);
-        return _resetTimingPanelCheck;
+                                                 _T("IDD_CHECKBOX_ResetBlendingPanel"));
+        _resetBlendingPanelCheck->SetValue(true);
+        sizer->Add(_resetBlendingPanelCheck, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+        _resetBlendingPanelCheck->Bind(wxEVT_CHECKBOX, &BlendingPanel::OnResetBlendingPanelClick, this);
+        return _resetBlendingPanelCheck;
     }
     if (id == "LayerMorphRow") {
         return BuildLayerMorphRow(parentWin, sizer);
@@ -167,7 +167,7 @@ wxWindow* TimingPanel::CreateCustomControl(wxWindow* parentWin, wxSizer* sizer,
     return nullptr;
 }
 
-wxWindow* TimingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
+wxWindow* BlendingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
     // 4-col layout: [Morph checkbox] [EffectLayerMix slider] [text] [lock]
     auto* row = new wxFlexGridSizer(0, 4, 0, 0);
     row->AddGrowableCol(1);
@@ -200,7 +200,7 @@ wxWindow* TimingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
                                       wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                       _T("ID_BITMAPBUTTON_SLIDER_EffectLayerMix"));
     _layerMixLock->SetToolTip("Lock/Unlock. If Locked then a \"Create Random Effects\" will NOT change this value.");
-    _layerMixLock->Bind(wxEVT_BUTTON, &TimingPanel::OnLockButtonClick, this);
+    _layerMixLock->Bind(wxEVT_BUTTON, &BlendingPanel::OnLockButtonClick, this);
     row->Add(_layerMixLock, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
 
     // Also expose the Morph lock button (separate from the mix lock) since
@@ -210,13 +210,13 @@ wxWindow* TimingPanel::BuildLayerMorphRow(wxWindow* parentWin, wxSizer* sizer) {
                                                         wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
                                                         _T("ID_BITMAPBUTTON_CHECKBOX_LayerMorph"));
     BitmapButton_CheckBox_LayerMorph->Hide(); // legacy kept it on the row but it's rarely visible
-    BitmapButton_CheckBox_LayerMorph->Bind(wxEVT_BUTTON, &TimingPanel::OnLockButtonClick, this);
+    BitmapButton_CheckBox_LayerMorph->Bind(wxEVT_BUTTON, &BlendingPanel::OnLockButtonClick, this);
 
     sizer->Add(row, 1, wxALL | wxEXPAND, 2);
     return _layerMorphCheck;
 }
 
-wxWindow* TimingPanel::BuildLayerMethodRow(wxWindow* parentWin, wxSizer* sizer) {
+wxWindow* BlendingPanel::BuildLayerMethodRow(wxWindow* parentWin, wxSizer* sizer) {
     // 2-col: [LayerMethod choice] [About "?" button]
     auto* row = new wxFlexGridSizer(0, 2, 0, 0);
     row->AddGrowableCol(0);
@@ -226,20 +226,20 @@ wxWindow* TimingPanel::BuildLayerMethodRow(wxWindow* parentWin, wxSizer* sizer) 
                                              wxFULL_REPAINT_ON_RESIZE, wxDefaultValidator,
                                              _T("ID_CHOICE_LayerMethod"));
     row->Add(_layerMethodChoice, 1, wxALL | wxEXPAND, 2);
-    _layerMethodChoice->Bind(wxEVT_CHOICE, &TimingPanel::OnLayerMethodSelect, this);
+    _layerMethodChoice->Bind(wxEVT_CHOICE, &BlendingPanel::OnLayerMethodSelect, this);
 
     _aboutLayersButton = new wxButton(parentWin, wxNewId(), "?",
                                        wxDefaultPosition, wxSize(25, 23), 0,
                                        wxDefaultValidator, _T("IDD_BUTTON_ABOUT_LAYERS"));
     _aboutLayersButton->SetToolTip("About Layer Blending Types");
     row->Add(_aboutLayersButton, 0, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
-    _aboutLayersButton->Bind(wxEVT_BUTTON, &TimingPanel::OnAboutLayersClick, this);
+    _aboutLayersButton->Bind(wxEVT_BUTTON, &BlendingPanel::OnAboutLayersClick, this);
 
     sizer->Add(row, 1, wxALL | wxEXPAND, 2);
     return _layerMethodChoice;
 }
 
-wxWindow* TimingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer, bool isIn) {
+wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer, bool isIn) {
     // Compound single-line row: [transition type choice] + "Time (s)" label
     // + [fade combobox]. Matches the legacy layout and uses the same wx
     // control names so the framework's window-walk serializer picks them up.
@@ -318,7 +318,7 @@ wxWindow* TimingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* sizer
     return typeChoice;
 }
 
-wxWindow* TimingPanel::BuildCanvasRow(wxWindow* parentWin, wxSizer* sizer) {
+wxWindow* BlendingPanel::BuildCanvasRow(wxWindow* parentWin, wxSizer* sizer) {
     // Horizontal row: [Canvas checkbox][Layers ... button][spacer].
     // Checkbox and button sit right next to each other so the user can click
     // Layers immediately after enabling Canvas; the spacer absorbs the rest
@@ -331,13 +331,13 @@ wxWindow* TimingPanel::BuildCanvasRow(wxWindow* parentWin, wxSizer* sizer) {
                                             _T("ID_CHECKBOX_Canvas"));
     CheckBox_Canvas->SetValue(false);
     row->Add(CheckBox_Canvas, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    CheckBox_Canvas->Bind(wxEVT_CHECKBOX, &TimingPanel::OnCanvasClick, this);
+    CheckBox_Canvas->Bind(wxEVT_CHECKBOX, &BlendingPanel::OnCanvasClick, this);
 
     _layersButton = new wxButton(parentWin, wxNewId(), "Layers ...",
                                   wxDefaultPosition, wxDefaultSize, 0,
                                   wxDefaultValidator, _T("IDD_BUTTON_Layers"));
     row->Add(_layersButton, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
-    _layersButton->Bind(wxEVT_BUTTON, &TimingPanel::OnLayersClick, this);
+    _layersButton->Bind(wxEVT_BUTTON, &BlendingPanel::OnLayersClick, this);
 
     row->AddStretchSpacer(1);
 
@@ -345,14 +345,14 @@ wxWindow* TimingPanel::BuildCanvasRow(wxWindow* parentWin, wxSizer* sizer) {
     return CheckBox_Canvas;
 }
 
-void TimingPanel::OnResetTimingPanelClick(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnResetBlendingPanelClick(wxCommandEvent& /*event*/) {
     auto* config = GetXLightsConfig();
-    if (config && _resetTimingPanelCheck) {
-        config->Write("xLightsResetTimingPanel", _resetTimingPanelCheck->IsChecked());
+    if (config && _resetBlendingPanelCheck) {
+        config->Write("xLightsResetBlendingPanel", _resetBlendingPanelCheck->IsChecked());
     }
 }
 
-void TimingPanel::OnLayerMethodSelect(wxCommandEvent& event) {
+void BlendingPanel::OnLayerMethodSelect(wxCommandEvent& event) {
     if (_layerMethodChoice && _layerMethodChoice->GetStringSelection() == "Canvas") {
         wxCommandEvent eventUpdateEffect(EVT_UPDATE_EFFECT);
         wxPostEvent(GetParent(), eventUpdateEffect);
@@ -364,12 +364,12 @@ void TimingPanel::OnLayerMethodSelect(wxCommandEvent& event) {
     event.Skip();
 }
 
-void TimingPanel::OnCanvasClick(wxCommandEvent& event) {
+void BlendingPanel::OnCanvasClick(wxCommandEvent& event) {
     ValidateWindow();
     event.Skip();
 }
 
-void TimingPanel::OnLayersClick(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnLayersClick(wxCommandEvent& /*event*/) {
     wxASSERT(_startLayer <= _endLayer);
     LayerSelectDialog dlg(this, _startLayer, _endLayer, _modelBlending,
                           _layersSelected, _layerWithEffect);
@@ -380,21 +380,21 @@ void TimingPanel::OnLayersClick(wxCommandEvent& /*event*/) {
     }
 }
 
-void TimingPanel::OnAboutLayersClick(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnAboutLayersClick(wxCommandEvent& /*event*/) {
     if (_layerMethodChoice && _layerMethodChoice->GetToolTip()) {
         ViewTempFile(_layerMethodChoice->GetToolTip()->GetTip(), "layerblendhelp");
     }
 }
 
-void TimingPanel::OnFadeinText(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnFadeinText(wxCommandEvent& /*event*/) {
     ValidateWindow();
 }
 
-void TimingPanel::OnFadeoutText(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnFadeoutText(wxCommandEvent& /*event*/) {
     ValidateWindow();
 }
 
-void TimingPanel::OnFadeinDropdown(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnFadeinDropdown(wxCommandEvent& /*event*/) {
     if (auto* p = GetPropertyInfo("Fadein")) {
         if (auto* cb = dynamic_cast<BulkEditComboBox*>(p->comboBox)) {
             cb->PopulateComboBox();
@@ -402,7 +402,7 @@ void TimingPanel::OnFadeinDropdown(wxCommandEvent& /*event*/) {
     }
 }
 
-void TimingPanel::OnFadeoutDropdown(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnFadeoutDropdown(wxCommandEvent& /*event*/) {
     if (auto* p = GetPropertyInfo("Fadeout")) {
         if (auto* cb = dynamic_cast<BulkEditComboBox*>(p->comboBox)) {
             cb->PopulateComboBox();
@@ -410,12 +410,12 @@ void TimingPanel::OnFadeoutDropdown(wxCommandEvent& /*event*/) {
     }
 }
 
-void TimingPanel::OnTransitionTypeSelect(wxCommandEvent& /*event*/) {
+void BlendingPanel::OnTransitionTypeSelect(wxCommandEvent& /*event*/) {
     ValidateWindow();
 }
 
-void TimingPanel::SetDefaultControls(const Model* /*model*/, bool optionbased) {
-    bool reset = !optionbased || (_resetTimingPanelCheck && _resetTimingPanelCheck->GetValue());
+void BlendingPanel::SetDefaultControls(const Model* /*model*/, bool optionbased) {
+    bool reset = !optionbased || (_resetBlendingPanelCheck && _resetBlendingPanelCheck->GetValue());
     if (!reset) {
         ValidateWindow();
         return;
@@ -451,7 +451,7 @@ void TimingPanel::SetDefaultControls(const Model* /*model*/, bool optionbased) {
     ValidateWindow();
 }
 
-void TimingPanel::ValidateWindow() {
+void BlendingPanel::ValidateWindow() {
     JsonEffectPanel::ValidateWindow();
 
     // Canvas mode requires a valid layer range before the Layers button
@@ -519,7 +519,7 @@ void TimingPanel::ValidateWindow() {
     enableRow(outReverse, outEnable && !inList(TRANSITIONS_NO_REVERSE, outTypeSel));
 }
 
-wxString TimingPanel::GetTimingString() {
+wxString BlendingPanel::GetBlendingString() {
     // The framework's GetEffectString honours suppressIfDefault on every
     // JSON property, so we get a filtered settings string out of the box.
     // But the four transition header controls (Type choice + Fade combobox

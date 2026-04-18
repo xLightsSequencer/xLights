@@ -934,7 +934,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSequence.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSetup.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\TimingPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\sequencer\BlendingPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\TipOfTheDayDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.cpp" />
@@ -1487,7 +1487,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\support\FastComboEditor.h" />
     <ClInclude Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.h" />
     <ClInclude Include="..\src-core\utils\VectorMath.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\TimingPanel.h" />
+    <ClInclude Include="..\src-ui-wx\ui\sequencer\BlendingPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\app-shell\TipOfTheDayDialog.h" />
     <ClInclude Include="..\src-ui-wx\ui\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.h" />

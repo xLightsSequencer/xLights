@@ -99,7 +99,7 @@
     <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSequence.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\DiscoveryHelpers.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSetup.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\TimingPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\sequencer\BlendingPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\shared\utils\tmGridCell.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\app-shell\UpdaterDialog.cpp" />
@@ -1411,7 +1411,7 @@
     <ClInclude Include="..\src-ui-wx\ui\model\StrandNodeNamesDialog.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\SubBufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\import-export\SuperStarImportDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\TimingPanel.h" />
+    <ClInclude Include="..\src-ui-wx\ui\sequencer\BlendingPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\shared\utils\tmGridCell.h" />
     <ClInclude Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.h" />
     <ClInclude Include="..\src-ui-wx\ui\app-shell\UpdaterDialog.h" />

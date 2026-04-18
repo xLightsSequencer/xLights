@@ -4,9 +4,11 @@ import Foundation
 //
 // See also:
 //   resources/effectmetadata/<EffectName>.json — per-effect metadata
-//   resources/effectmetadata/shared/Buffer.json — buffer panel (B_ prefix)
-//   resources/effectmetadata/shared/Color.json — color panel (C_ prefix)
-//   resources/effectmetadata/shared/Timing.json — timing panel (T_ prefix)
+//   resources/effectmetadata/shared/Buffer.json   — buffer panel (B_ prefix)
+//   resources/effectmetadata/shared/Color.json    — color panel (C_ prefix)
+//   resources/effectmetadata/shared/Blending.json — layer-blending panel
+//                                                   (T_ prefix; file was
+//                                                   previously Timing.json)
 //
 // The desktop wx UI consumes these via src-ui-wx/ui/effectpanels/JsonEffectPanel.cpp;
 // this Swift layer re-implements the same controls for the iPad.

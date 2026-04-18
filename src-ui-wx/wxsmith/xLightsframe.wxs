@@ -184,7 +184,7 @@
 						<object class="wxAuiToolBarItem" name="ID_AUITOOLBARITEM3" variable="AuiToolBarLayers" member="yes">
 							<bitmap code='GetToolbarBitmapBundle(&quot;xlART_LAYERS2&quot;)' />
 							<shorthelp>Layer Blending</shorthelp>
-							<handler function="ShowHideLayerTimingWindow" entry="EVT_TOOL" />
+							<handler function="ShowHideLayerBlendingWindow" entry="EVT_TOOL" />
 						</object>
 						<label>Layer Blending</label>
 					</object>
@@ -1422,7 +1422,7 @@
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM16" variable="MenuItemLayerBlending" member="yes">
 						<label>Layer Blending</label>
-						<handler function="ShowHideLayerTimingWindow" entry="EVT_MENU" />
+						<handler function="ShowHideLayerBlendingWindow" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
 					<object class="wxMenuItem" name="ID_MENUITEM9" variable="MenuItemLayerSettings" member="yes">

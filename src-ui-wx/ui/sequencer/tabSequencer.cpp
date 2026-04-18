@@ -50,7 +50,7 @@
 #include "ui/sequencer/EffectsPanel.h"
 #include "ui/effects/EffectAssist.h"
 #include "ui/color/ColorPanel.h"
-#include "ui/sequencer/TimingPanel.h"
+#include "ui/sequencer/BlendingPanel.h"
 #include "ui/layout/ModelPreview.h"
 #include "MainSequencer.h"
 #include "ui/sequencer/PerspectivesPanel.h"
@@ -77,7 +77,7 @@ void xLightsFrame::CreateSequencer()
     // Lots of logging here as this function hard crashes
     
     EffectsPanel1 = nullptr;
-    timingPanel = nullptr;
+    blendingPanel = nullptr;
 
     spdlog::debug("CreateSequencer: Creating Panels.");
 
@@ -134,8 +134,8 @@ void xLightsFrame::CreateSequencer()
     colorPanel->AddChangeListeners(&EffectSettingsTimer);
 
     spdlog::debug("        Timing.");
-    timingPanel = new TimingPanel(PanelSequencer);
-    timingPanel->AddChangeListeners(&EffectSettingsTimer);
+    blendingPanel = new BlendingPanel(PanelSequencer);
+    blendingPanel->AddChangeListeners(&EffectSettingsTimer);
 
     spdlog::debug("        Buffer.");
     bufferPanel = new BufferPanel(PanelSequencer);
@@ -200,7 +200,9 @@ void xLightsFrame::CreateSequencer()
     // window shows the scroll bar.
     auto smallMin = wxSize(50, 50);
     m_mgr->AddPane(colorPanel, wxAuiPaneInfo().Name(wxT("Color")).Caption(wxT("Color")).Top().Layer(0).MinSize(smallMin));
-    m_mgr->AddPane(timingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0).MinSize(smallMin));
+    // AUI pane id kept as "LayerTiming" so users' saved perspectives continue
+    // to resolve this pane after the class/JSON rename to Blending.
+    m_mgr->AddPane(blendingPanel,wxAuiPaneInfo().Name(wxT("LayerTiming")).Caption(wxT("Layer Blending")).Top().Layer(0).MinSize(smallMin));
     m_mgr->AddPane(bufferPanel,wxAuiPaneInfo().Name(wxT("LayerSettings")).Caption(wxT("Layer Settings")).Top().Layer(0).MinSize(smallMin));
 
     spdlog::debug( "        Sequence Video." );
@@ -277,7 +279,7 @@ void xLightsFrame::InitSequencer()
         }
     }
 
-    if (EffectsPanel1 == nullptr || timingPanel == nullptr) {
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr) {
         return;
     }
 
@@ -1160,7 +1162,7 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
         int start = selectedEffect->GetParentEffectLayer()->GetLayerNumber() + 1;
 		std::vector<int> effectLayers = selectedEffect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(selectedEffect->GetStartTimeMS(), selectedEffect->GetEndTimeMS());
         if (start > layers) start = -1;
-        timingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
+        blendingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
     }
 }
 
@@ -1261,7 +1263,7 @@ void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
                 int start = effect->GetParentEffectLayer()->GetLayerNumber() + 1;
                 std::vector<int> effectLayers = effect->GetParentEffectLayer()->GetParentElement()->GetLayersWithEffectsByTime(effect->GetStartTimeMS(), effect->GetEndTimeMS());
                 if (start > layers) start = -1;
-                timingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
+                blendingPanel->SetLayersBelow(start, layers, effectLayers, _sequenceElements.SupportsModelBlending());
 
                 bool resetStrings = false;
                 if ("Random" == effect->GetEffectName()) {
@@ -2483,7 +2485,7 @@ void xLightsFrame::OnEffectSettingsTimerTrigger(wxTimerEvent& event)
         }
     }
 
-    if (eff != nullptr && timingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
+    if (eff != nullptr && blendingPanel->BitmapButton_CheckBox_LayerMorph->IsEnabled()) {
         AddTraceMessage("Effect not null and enabled");
 
         std::string palette;
@@ -2828,7 +2830,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
                                      int startTimeMs, int endTimeMs, bool setDefaults) {
     
     if (CurrentSeqXmlFile == nullptr) return;
-    //timingPanel->Freeze();
+    //blendingPanel->Freeze();
     //bufferPanel->Freeze();
     //colorPanel->Freeze();
     SetChoicebook(EffectsPanel1->EffectChoicebook, effectName);
@@ -2851,7 +2853,7 @@ void xLightsFrame::SetEffectControls(const std::string &modelName, const std::st
         spdlog::warn("Setting effect controls for unknown effect type: {}", effectName);
     }
     //p->Thaw();
-    //timingPanel->Thaw();
+    //blendingPanel->Thaw();
     //bufferPanel->Thaw();
     //colorPanel->Thaw();
 }
@@ -2867,7 +2869,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 	} else if (name.StartsWith("T_")) {
         // Layers selected is not stored in a control so we handle it here
         if (name == "T_LayersSelected") {
-            timingPanel->SetLayersSelected(value.ToStdString());
+            blendingPanel->SetLayersSelected(value.ToStdString());
             return res;
         }
 
@@ -2875,7 +2877,7 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			//temporary until this key is remapped
 			ContextWin = bufferPanel;
 		} else {
-			ContextWin = timingPanel;
+			ContextWin = blendingPanel;
 		}
 	} else if (name.StartsWith("B_")) {
 	    ContextWin = bufferPanel;
@@ -3071,7 +3073,7 @@ void xLightsFrame::SetEffectControlsApplyLast(const SettingsMap &settings) {
 void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Model* model, bool optionbased)
 {
     SetChoicebook(EffectsPanel1->EffectChoicebook, effect);
-    timingPanel->SetDefaultControls(model, optionbased);
+    blendingPanel->SetDefaultControls(model, optionbased);
     bufferPanel->SetDefaultControls(model, optionbased);
     colorPanel->SetDefaultSettings(optionbased);
 
@@ -3084,7 +3086,7 @@ void xLightsFrame::ResetAllPanelDefaultSettings() {
     
     // Now do the explicits to set to what we want for the default state
     SetChoicebook(EffectsPanel1->EffectChoicebook, "Off");
-    timingPanel->SetDefaultControls(nullptr, false);
+    blendingPanel->SetDefaultControls(nullptr, false);
     bufferPanel->SetDefaultControls(nullptr, false);
     colorPanel->SetDefaultSettings(false);
     EffectsPanel1->SetDefaultEffectValues("Off");
@@ -3119,7 +3121,7 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
 void xLightsFrame::ValidatePanels()
 {
-    timingPanel->ValidateWindow();
+    blendingPanel->ValidateWindow();
     bufferPanel->ValidateWindow();
     colorPanel->ValidateWindow();
     wxCommandEvent e(EVT_VALIDATEWINDOW);
@@ -3137,7 +3139,7 @@ std::string xLightsFrame::GetEffectTextFromWindows(std::string &palette) const
         }
         effectText += part;
     };
-    appendWithComma(timingPanel->GetTimingString());
+    appendWithComma(blendingPanel->GetBlendingString());
     appendWithComma(bufferPanel->GetBufferString());
     palette = colorPanel->GetColorString();
     return ToStdString(effectText);
@@ -3392,7 +3394,7 @@ void xLightsFrame::ShowHideColorWindow(wxCommandEvent& event)
     UpdateViewMenu();
 }
 
-void xLightsFrame::ShowHideLayerTimingWindow(wxCommandEvent& event)
+void xLightsFrame::ShowHideLayerBlendingWindow(wxCommandEvent& event)
 {
     InitSequencer();
     bool visible = m_mgr->GetPane("LayerTiming").IsShown();

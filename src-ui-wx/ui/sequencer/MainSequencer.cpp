@@ -686,7 +686,7 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
             }
             else if (type == "LAYER_BLENDING_TOGGLE") {
                 wxCommandEvent e;
-                xLightsApp::GetFrame()->ShowHideLayerTimingWindow(e);
+                xLightsApp::GetFrame()->ShowHideLayerBlendingWindow(e);
             }
             else if (type == "MODEL_PREVIEW_TOGGLE") {
                 ToggleModelPreview();

@@ -72,7 +72,7 @@ protected:
 
     // Info about a built property row. Made protected so subclasses can
     // reach into the framework-built controls for custom serialization
-    // (e.g. TimingPanel::GetTimingString needs to walk the map with the
+    // (e.g. BlendingPanel::GetBlendingString needs to walk the map with the
     // T_ prefix instead of the default E_).
     struct PropertyInfo {
         std::string id;

@@ -128,7 +128,7 @@ class ValueCurvesPanel;
 class ColoursPanel;
 class JukeboxPanel;
 class FindDataPanel;
-class TimingPanel;
+class BlendingPanel;
 class ColorPanel;
 class EffectsPanel;
 class EffectAssist;
@@ -552,7 +552,7 @@ public:
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
     void ShowHideEffectSettingsWindow(wxCommandEvent& event);
     void ShowHideColorWindow(wxCommandEvent& event);
-    void ShowHideLayerTimingWindow(wxCommandEvent& event);
+    void ShowHideLayerBlendingWindow(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
@@ -1884,7 +1884,7 @@ private:
     LayoutPanel *layoutPanel = nullptr;
     EffectAssist* sEffectAssist = nullptr;
     ColorPanel* colorPanel = nullptr;
-    TimingPanel* timingPanel = nullptr;
+    BlendingPanel* blendingPanel = nullptr;
     PerspectivesPanel* perspectivePanel = nullptr;
     EffectIconPanel* effectPalettePanel = nullptr;
     ValueCurvesPanel* _valueCurvesPanel = nullptr;
@@ -2044,7 +2044,7 @@ public:
 
     ModelGroup* GetSelectedModelGroup() const;
     static pugi::xml_node FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
-    TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
+    BlendingPanel* GetLayerBlendingPanel() const { return blendingPanel; }
 
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);
