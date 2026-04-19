@@ -32,6 +32,13 @@ AudioManager* ValueCurve::__audioManager = nullptr;
 std::map<std::string, AudioManager*> ValueCurve::__altAudioManagers;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
+static bool IsStartEndLevelType(const std::string& type)
+{
+    return type == "Exponential Up" || type == "Exponential Down" ||
+           type == "Logarithmic Up" || type == "Logarithmic Down" ||
+           type == "Parabolic Down" || type == "Parabolic Up";
+}
+
 static std::string fmt2f(float v) {
     // Note: deliberately using snprintf rather than std::to_chars. The floating-point
     // overloads of std::to_chars are only available in Apple's libc++ starting with
@@ -749,13 +756,13 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter3 = _parameter3 * newrange / oldrange + mindiff;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter4 = _parameter4 * newrange / oldrange + mindiff;
     }
@@ -813,13 +820,13 @@ void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
@@ -851,12 +858,12 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel) {
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel)) {
         _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && _hasStartEndLevel) {
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel)) {
         _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
@@ -1433,6 +1440,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _active = true;
         _values.clear();
         _hasPreloadedValues = false;
+        _hasStartEndLevel = false;
         _type = "Flat";
         _parameter1 = 0.0f;
         _parameter2 = 0.0f;
