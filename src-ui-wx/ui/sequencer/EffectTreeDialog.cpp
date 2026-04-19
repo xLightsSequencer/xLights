@@ -66,6 +66,7 @@ END_EVENT_TABLE()
 
 #define MIN_PREVIEW_SIZE 64
 #define MAX_PREVIEW_SIZE 256
+#define GIF_DELAY 50
 
 EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size,long style)
 {
@@ -1094,7 +1095,6 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
     }
 }
 
-#define GIF_DELAY 50
 void EffectTreeDialog::LoadGifImage(wxString const& path)
 {
     TimerGif.Stop();
@@ -1216,22 +1216,15 @@ bool EffectTreeDialog::FixName(std::string& name) {
 }
 
 void EffectTreeDialog::FixDuplicatesInGroup(wxTreeItemId parent) {
-    std::list<std::pair<std::string, int>> children;
+    std::map<std::string, int> counts;
 
     wxTreeItemIdValue cookie;
     for (wxTreeItemId item = TreeCtrl1->GetFirstChild(parent, cookie); item.IsOk(); item = TreeCtrl1->GetNextChild(parent, cookie)) {
-        std::string name = TreeCtrl1->GetItemText(item);
-        std::string value;
-        auto existingItem = std::find_if(children.begin(), children.end(), [value](std::pair<std::string, int> const &b) {
-                                    return b.first == value;
-                                });
-
-        if (children.end() == existingItem) {
-            children.push_back(std::make_pair(existingItem->first, 1));
-        } else {
-            int childUniqueIdx = existingItem->second + 1;
-            TreeCtrl1->SetItemText(item, wxString::Format("%s_%d", TreeCtrl1->GetItemText(item), childUniqueIdx));
-            existingItem->second = childUniqueIdx;
+        std::string name = TreeCtrl1->GetItemText(item).ToStdString();
+        auto [it, inserted] = counts.emplace(name, 1);
+        if (!inserted) {
+            int idx = ++(it->second);
+            TreeCtrl1->SetItemText(item, wxString::Format("%s_%d", TreeCtrl1->GetItemText(item), idx));
         }
     }
 }
