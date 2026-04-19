@@ -197,7 +197,7 @@ void EffectTreeDialog::OnShow(wxShowEvent& event)
 {
     if (event.IsShown()) {
         if (gifImage && gifImage->IsOk())
-            TimerGif.Start(50);
+            TimerGif.Start(GIF_DELAY);
     } else {
         TimerGif.Stop();
     }
