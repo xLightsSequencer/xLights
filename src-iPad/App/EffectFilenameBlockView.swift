@@ -9,14 +9,26 @@ import UniformTypeIdentifiers
 // Pictures_FilenameBlock  → E_TEXTCTRL_Pictures_Filename
 // Video_FilenameBlock     → E_FILEPICKERCTRL_Video_Filename
 // Shader_FilenameBlock    → E_0FILEPICKERCTRL_IFS
+//
+// Picked files that are outside the show / media folders go through
+// `MediaRelocation` → prompt user for a destination (show folder or
+// one of the configured media folders) and copy the file there before
+// storing the path. Files already inside an enforced root are stored
+// as-is (relative to the show folder when possible). No stored path
+// ever points outside the iPad's enforced media roots.
 struct EffectFilenameBlockView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let label: String
     let settingKey: String
     /// wx pipe-delimited filter string, e.g. `"Images (*.png)|*.png"`.
     let fileFilter: String
+    /// Destination subdirectory under the chosen root (show or media
+    /// folder). Desktop uses `/Images`, `/Videos`, `/Shaders`, etc. —
+    /// each effect has its own canonical location.
+    let subdirectory: String
 
     @State private var presentingPicker = false
+    @State private var pendingPick: URL?
 
     private var currentPath: String {
         viewModel.settingValue(forKey: settingKey, defaultValue: "")
@@ -53,7 +65,15 @@ struct EffectFilenameBlockView: View {
         .padding(.vertical, 2)
         .fileImporter(isPresented: $presentingPicker,
                       allowedContentTypes: allowedTypes()) { result in
-            handleResult(result)
+            if case .success(let url) = result {
+                pendingPick = url
+            }
+        }
+        .mediaRelocationPrompt(
+            picked: $pendingPick,
+            subdirectory: subdirectory
+        ) { storedPath in
+            viewModel.setSettingValue(storedPath, forKey: settingKey)
         }
     }
 
@@ -73,18 +93,6 @@ struct EffectFilenameBlockView: View {
             }
         }
         return types.isEmpty ? [.data] : types
-    }
-
-    private func handleResult(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            _ = url.startAccessingSecurityScopedResource()
-            _ = XLSequenceDocument.obtainAccess(toPath: url.path,
-                                                  enforceWritable: false)
-            viewModel.setSettingValue(url.path, forKey: settingKey)
-        case .failure:
-            break
-        }
     }
 }
 

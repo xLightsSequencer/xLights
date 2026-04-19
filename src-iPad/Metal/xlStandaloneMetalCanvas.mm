@@ -179,8 +179,9 @@ private:
 
 // --- xlStandaloneMetalCanvas implementation ---
 
-xlStandaloneMetalCanvas::xlStandaloneMetalCanvas(const std::string& name, bool is3d)
-    : _name(name), _is3d(is3d) {
+xlStandaloneMetalCanvas::xlStandaloneMetalCanvas(const std::string& name, bool is3d,
+                                                   bool useLogicalSize)
+    : _name(name), _is3d(is3d), _useLogicalSize(useLogicalSize) {
     MetalDeviceManager::instance().retain();
 }
 

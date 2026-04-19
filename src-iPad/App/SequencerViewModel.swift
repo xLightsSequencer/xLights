@@ -58,13 +58,46 @@ class SequencerViewModel {
     var selectedPaletteEffect: String?
     var showInspector = false
 
-    /// Bumps every time an inspector edit writes a setting. Observed by
-    /// `ModelEffectsCanvas.updateUIView` so fade-bar widths, bracket
-    /// colours, and (eventually) cached effect-background thumbnails
-    /// redraw when the user changes a setting without moving / resizing
-    /// the effect. The view-model holds the selection context, so the
-    /// canvas can derive WHICH effect's slot to invalidate from
-    /// `selectedEffect` at the moment the revision changes.
+    // Active drag snapshot, set by the grid's gesture handlers and
+    // consumed by any view that needs to render live drag feedback
+    // (cross-row ghost, drag-pill label, live position of the
+    // dragged effect). Moving this out of the UIKit canvas lets
+    // the Metal grid draw identical feedback during migration.
+    var activeDrag: ActiveDrag?
+
+    /// Rendering-relevant subset of what happens during a drag. All
+    /// the gesture-internal machinery (scroll suppression, auto-
+    /// scroll display link, drag high-water marks for invalidation,
+    /// pan translation origin) stays inside the gesture-handling
+    /// UIView; only the fields both paths want to paint live show
+    /// up here.
+    struct ActiveDrag: Equatable {
+        enum Kind: Equatable {
+            case move, resizeLeft, resizeRight, fadeIn, fadeOut
+        }
+        let kind: Kind
+        let srcRowId: Int
+        let effectIndex: Int
+        let origStartMS: Int
+        let origEndMS: Int
+        var liveStartMS: Int
+        var liveEndMS: Int
+        var liveFadeInSec: Float
+        var liveFadeOutSec: Float
+        /// `nil` when the drag is hovering over its source row. A
+        /// non-nil row id flags a cross-row move; the ghost should
+        /// render at that row instead of the source.
+        var liveRowId: Int?
+        /// True when a cross-row drop would collide with an effect
+        /// in the target row — the ghost shows a red tint and
+        /// `.ended` cancels the move rather than committing it.
+        var liveDropInvalid: Bool
+    }
+
+    /// Bumps every time an inspector edit writes a setting. Observed
+    /// by the Metal grid so fade-bar widths, bracket colours, etc.
+    /// redraw when the user changes a setting without moving /
+    /// resizing the effect.
     var inspectorRevision: Int = 0
 
     // Metadata for the currently selected effect and shared panels.

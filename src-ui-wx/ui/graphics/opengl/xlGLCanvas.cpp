@@ -270,6 +270,10 @@ xlGLCanvas::xlGLCanvas(wxWindow* parent,
 
 xlGLCanvas::~xlGLCanvas()
 {
+    if (m_exportReadbackBuffer) {
+        delete[] m_exportReadbackBuffer;
+        m_exportReadbackBuffer = nullptr;
+    }
     if (m_context && m_context != m_sharedContext) {
         // VAOs owned by m_context are freed automatically when the context is destroyed.
         // Do not call SetCurrent here: the window may already be hidden or destroyed
@@ -693,28 +697,42 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
     if (bufferSize < reqSize) {
         return false;
     }
-    uint8_t *tmpBuf = new uint8_t[w * 4 * h];
-    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, tmpBuf);
 
+    // Read as RGB directly (no per-pixel RGBA->RGB conversion needed) into a
+    // persistent readback buffer (no per-frame allocation). The frame comes
+    // back with origin at bottom-left, so we flip row-by-row via memcpy when
+    // copying into the caller's destination buffer.
+    size_t rowBytes = (size_t)w * 3;
+    size_t needed = rowBytes * (size_t)h;
+    if (needed > m_exportReadbackBufferSize) {
+        delete[] m_exportReadbackBuffer;
+        m_exportReadbackBuffer = new uint8_t[needed];
+        m_exportReadbackBufferSize = needed;
+    }
+    // Force tight row packing for the readback, then restore the previous
+    // setting so later GL operations that assume the default alignment aren't
+    // affected.
+    GLint previousPackAlignment = 4;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &previousPackAlignment);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_exportReadbackBuffer);
+    glPixelStorei(GL_PACK_ALIGNMENT, previousPackAlignment);
+
+    size_t dstRowBytes = (size_t)widthWithPadding * 3;
     unsigned char *dst = buffer;
     if (padHeight) {
-        memset(dst, 0, widthWithPadding * 3);
-        dst += widthWithPadding * 3;
+        memset(dst, 0, dstRowBytes);
+        dst += dstRowBytes;
     }
     for (int y = h - 1; y >= 0; --y) {
-        const unsigned char *src = tmpBuf + 4 * w * y;
-        for (int x = 0; x < w; ++x, src += 4, dst += 3) {
-            dst[0] = src[0];
-            dst[1] = src[1];
-            dst[2] = src[2];
-        }
+        const unsigned char *src = m_exportReadbackBuffer + rowBytes * (size_t)y;
+        memcpy(dst, src, rowBytes);
         if (padWidth) {
-            dst[0] = dst[1] = dst[2] = 0x00;
-            dst += 3;
+            dst[rowBytes] = dst[rowBytes + 1] = dst[rowBytes + 2] = 0x00;
         }
+        dst += dstRowBytes;
     }
-    delete [] tmpBuf;
-    
+
     return true;
 }
 

@@ -17,6 +17,7 @@ extern "C"
 #include <libavutil/avutil.h>
 #include <libavutil/opt.h>
 #include <libavutil/channel_layout.h>
+#include <libavutil/hwcontext.h>
 #include <libswscale/swscale.h>
 }
 
@@ -157,15 +158,37 @@ void GenericVideoExporter::initialize()
         _outParams.videoCodec.find("H.265") != std::string::npos) {
 
         enum AVCodecID best = _outParams.videoCodec.find("H.264") != std::string::npos ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265;
-        if (_outParams.height > 1080) {
-            // h264 technically only allows up to 1080p
-            best = AV_CODEC_ID_H265;
+        // Note: H.264 High/High10 profiles support up to 4096x2304 (Level 5.2),
+        // so we no longer force HEVC for height > 1080. The user's codec choice wins.
+#if defined(__APPLE__)
+        // Prefer the Apple hardware encoder on macOS. avcodec_find_encoder()
+        // returns whichever encoder FFmpeg registered first for the codec ID,
+        // which on builds that include libx264 ends up being software — an
+        // order of magnitude slower than VideoToolbox.
+        const char* hwName = (best == AV_CODEC_ID_H265) ? "hevc_videotoolbox" : "h264_videotoolbox";
+        videoCodec = ::avcodec_find_encoder_by_name(hwName);
+        if (videoCodec == nullptr) {
+            videoCodec = ::avcodec_find_encoder(best);
         }
+#else
         videoCodec = ::avcodec_find_encoder(best);
+#endif
         if (videoCodec == nullptr) {
             // try flipping back/forth to h264/h265 to see if that can be loaded
             best = (best == AV_CODEC_ID_H265 ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265);
+#if defined(__APPLE__)
+            const char* hwName2 = (best == AV_CODEC_ID_H265) ? "hevc_videotoolbox" : "h264_videotoolbox";
+            videoCodec = ::avcodec_find_encoder_by_name(hwName2);
+            if (videoCodec == nullptr) {
+                videoCodec = ::avcodec_find_encoder(best);
+            }
+#else
             videoCodec = ::avcodec_find_encoder(best);
+#endif
+        }
+        if (videoCodec != nullptr) {
+            spdlog::info("VideoExporter - selected video encoder: {}",
+                         videoCodec->name ? videoCodec->name : "?");
         }
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
@@ -251,10 +274,38 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     }
 
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
-#if defined(XL_DRAWING_WITH_METAL)
-        // if Drawing with GL, we don't have the raw CVImage anyway
-        // so use the normal ffmpeg routines
-        _videoCodecContext->pix_fmt = AV_PIX_FMT_VIDEOTOOLBOX;
+#if defined(__APPLE__)
+        // Set up a VideoToolbox hardware frames context so the encoder can
+        // consume GPU-backed CVPixelBuffers directly (no CPU sws_scale).
+        int hwErr = ::av_hwdevice_ctx_create(&_hwDeviceCtx, AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
+                                             nullptr, nullptr, 0);
+        if (hwErr >= 0) {
+            _hwFramesCtx = ::av_hwframe_ctx_alloc(_hwDeviceCtx);
+            if (_hwFramesCtx) {
+                auto* frames = reinterpret_cast<AVHWFramesContext*>(_hwFramesCtx->data);
+                frames->format    = AV_PIX_FMT_VIDEOTOOLBOX;
+                frames->sw_format = AV_PIX_FMT_NV12;   // native CVPixelBuffer format
+                frames->width     = _outParams.width;
+                frames->height    = _outParams.height;
+                // Need at least enough buffers to cover our ring + whatever the
+                // encoder retains mid-flight. MAX_EXPORT_BUFFER_FRAMES is 20;
+                // double that to give slack for in-flight encoder references.
+                frames->initial_pool_size = MAX_EXPORT_BUFFER_FRAMES * 2;
+                hwErr = ::av_hwframe_ctx_init(_hwFramesCtx);
+                if (hwErr >= 0) {
+                    _videoCodecContext->pix_fmt       = AV_PIX_FMT_VIDEOTOOLBOX;
+                    _videoCodecContext->hw_frames_ctx = ::av_buffer_ref(_hwFramesCtx);
+                } else {
+                    spdlog::warn("VideoExporter - av_hwframe_ctx_init failed ({}), falling back to software pix_fmt", hwErr);
+                    ::av_buffer_unref(&_hwFramesCtx);
+                }
+            }
+            if (_hwFramesCtx == nullptr) {
+                ::av_buffer_unref(&_hwDeviceCtx);
+            }
+        } else {
+            spdlog::warn("VideoExporter - av_hwdevice_ctx_create(VideoToolbox) failed ({})", hwErr);
+        }
 #endif
         if (AV_CODEC_ID_H265 == codec->id) {
             // HEVC sw encoder seems to have issues if frames aren't sent in real time, require hw encoder
@@ -263,6 +314,13 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         } else {
             ::av_opt_set_int(_videoCodecContext->priv_data, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
         }
+        // VideoToolbox performance hints: we're encoding offline and want max throughput.
+        // - realtime=0: don't pace to wall-clock; encode as fast as possible.
+        // - prio_speed=1: bias the encoder toward speed over quality.
+        // - frames_before=0: don't buffer a large lookahead window.
+        ::av_opt_set_int(_videoCodecContext->priv_data, "realtime", 0, AV_OPT_SEARCH_CHILDREN);
+        ::av_opt_set_int(_videoCodecContext->priv_data, "prio_speed", 1, AV_OPT_SEARCH_CHILDREN);
+        ::av_opt_set_int(_videoCodecContext->priv_data, "frames_before", 0, AV_OPT_SEARCH_CHILDREN);
     } else {
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
         ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
@@ -272,6 +330,7 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
     }
     int status = ::avcodec_open2(_videoCodecContext, nullptr, nullptr);
     if (status != 0 && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+        spdlog::warn("VideoExporter - VideoToolbox encoder failed to open, downgrading");
         // could not initialize hardware encoder, drop to ffmpeg mpeg4
         if (strcmp(codec->name, "hevc_videotoolbox") == 0) {
             //first try downgrade from h265 -> h264
@@ -286,6 +345,17 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         if (codec) {
             ::avcodec_free_context(&_videoCodecContext);
             _videoCodecContext = nullptr;
+            // Tear down the hardware frames context we tried to attach above;
+            // the fallback encoder may be software (e.g. mpeg4) and expect a
+            // software pix_fmt. Leaving _hwFramesCtx populated would cause
+            // initializeFrames() to allocate AV_PIX_FMT_VIDEOTOOLBOX frames
+            // for a codec that can't consume them.
+            if (_hwFramesCtx != nullptr) {
+                ::av_buffer_unref(&_hwFramesCtx);
+            }
+            if (_hwDeviceCtx != nullptr) {
+                ::av_buffer_unref(&_hwDeviceCtx);
+            }
             return initializeVideo(codec);
         }
     }
@@ -351,18 +421,19 @@ void GenericVideoExporter::initializeAudio(const AVCodec* codec)
 void GenericVideoExporter::initializeFrames()
 {
     int status = 0;
+    const bool useHwFrames = (_hwFramesCtx != nullptr);
     for (int x = 0; x < MAX_EXPORT_BUFFER_FRAMES; x++) {
         _videoFrames[x] = ::av_frame_alloc();
-        _videoFrames[x]->width = _outParams.width;
+        _videoFrames[x]->width  = _outParams.width;
         _videoFrames[x]->height = _outParams.height;
-        _videoFrames[x]->format = _outParams.pfmt;
-        status = ::av_frame_get_buffer(_videoFrames[x], 0);
-#if defined(XL_DRAWING_WITH_METAL)
-        if (_videoCodecContext->codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
-            // this is using videotoolbox, we can pass image in directly, no conversion needed
-            _videoFrames[x]->format = AV_PIX_FMT_VIDEOTOOLBOX;
+        if (useHwFrames) {
+            // av_hwframe_get_buffer sets format=AV_PIX_FMT_VIDEOTOOLBOX and
+            // attaches a pool-allocated CVPixelBufferRef in data[3].
+            status = ::av_hwframe_get_buffer(_hwFramesCtx, _videoFrames[x], 0);
+        } else {
+            _videoFrames[x]->format = _outParams.pfmt;
+            status = ::av_frame_get_buffer(_videoFrames[x], 0);
         }
-#endif
         if (status != 0) {
             throw std::runtime_error("VideoExporter - Error initializing video frame");
         }
@@ -578,6 +649,13 @@ void GenericVideoExporter::cleanup()
         ::sws_freeContext(_swsContext);
         _swsContext = nullptr;
     }
+
+    if (_hwFramesCtx != nullptr) {
+        ::av_buffer_unref(&_hwFramesCtx);
+    }
+    if (_hwDeviceCtx != nullptr) {
+        ::av_buffer_unref(&_hwDeviceCtx);
+    }
 }
 
 int GenericVideoExporter::pushVideoUntilPacketFilled(int index)
@@ -596,7 +674,24 @@ int GenericVideoExporter::pushVideoUntilPacketFilled(int index)
         frameSize = stride[0] * frameHeight;
     }
     do {
+        // When using a hw frames pool, the encoder may still hold a reference
+        // to the CVPixelBuffer from a previous pass through this ring slot.
+        // av_frame_make_writable() detects that and pulls a fresh buffer from
+        // the pool; if the encoder has already released it, this is a no-op.
+        if (_hwFramesCtx != nullptr) {
+            int mw = ::av_frame_make_writable(_videoFrames[_curVideoFrame]);
+            if (mw < 0) {
+                throw std::runtime_error("VideoExporter - av_frame_make_writable (hw) failed");
+            }
+        }
         if (_getVideo(_videoFrames[_curVideoFrame], data[0], frameSize, index++)) {
+            // sws_scale cannot write into an opaque AV_PIX_FMT_VIDEOTOOLBOX frame.
+            // A callback that returns true when the destination is a hw frame is
+            // a bug (the hw path populates data[3] directly and should return
+            // false); guard against it rather than segfault inside sws_scale.
+            if (_videoFrames[_curVideoFrame]->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+                throw std::runtime_error("VideoExporter - callback filled RGB buffer but destination is a VideoToolbox hw frame");
+            }
             int height = ::sws_scale(_swsContext, data, stride, 0, frameHeight, _videoFrames[_curVideoFrame]->data, _videoFrames[_curVideoFrame]->linesize);
             if (height != _videoCodecContext->height) {
                 throw std::runtime_error("VideoExporter - color conversion error");

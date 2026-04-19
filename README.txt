@@ -11,7 +11,24 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
-
+    -enh (charlie)              Dramatically faster House Preview -> Video export on macOS
+                                (~17x at 4K): wire up a proper VideoToolbox hw_frames_ctx so
+                                h264_videotoolbox / hevc_videotoolbox consume GPU-backed
+                                CVPixelBuffers directly, skipping the CPU-side sws_scale
+                                RGB->YUV conversion that was dominating export time; also
+                                explicitly prefer the hardware encoder over libx264, remove
+                                the stale "force HEVC above 1080p" rule (H.264 supports 4K
+                                fine), and pass VideoToolbox performance hints
+                                (realtime=0, prio_speed=1). Also: eliminate per-frame
+                                readback buffer allocation in the GL canvas, use
+                                Accelerate (vImage) for BGRA->RGB on the Metal fallback
+                                path, and use GL_RGB directly for readback (no more
+                                RGBA->RGB CPU loop)
+    -bug (charlie)              Harden Node::GetForChannels / SetFromChannels against an
+                                out-of-range offsets[x] relative to chanCnt (only 255 was
+                                previously treated as the "no channel" sentinel), and
+                                null-check the node in the PixelBufferClass::GetColors
+                                parallel branch to match the serial branch
     -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
     -enh (scott)                Add "Show Names" and "Show Start Channel" checkboxes to Layout tab to display model names
                                 and controller/port or start channel in the layout preview

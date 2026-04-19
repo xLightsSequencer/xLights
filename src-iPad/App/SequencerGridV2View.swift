@@ -44,64 +44,46 @@ struct SequencerGridV2View: View {
             let timingRows = viewModel.rows.filter { timingIdxSet.contains($0.id) }
             let modelRows = viewModel.rows.filter { !timingIdxSet.contains($0.id) }
 
-            // Read duration inline from the view model instead of via a
-            // @State-mirrored copy. With a mirrored copy, the first body
-            // eval runs before `.onAppear` has copied the value across —
-            // contentW collapses to the viewport width, the hosted Canvas
-            // measures at that small size, and subsequent updates never
-            // re-trigger a full re-measure from inside the scroll view's
-            // UIHostingController. Reading viewModel directly means the
-            // very first render already computes the correct width.
             let durationMS = viewModel.sequenceDurationMS
-            let contentW = max(timeline.contentWidth(forDurationMS: durationMS),
-                               geo.size.width - metrics.rowHeaderWidth)
             let availableGridH = max(geo.size.height - metrics.topChromeHeight, 1)
             let rawTimingH = CGFloat(timingRows.count) * metrics.timingRowHeight
             // Cap timing band at ~1/3 of available grid height.
             let timingBandH = min(rawTimingH, availableGridH / 3)
-            // Selected row grows to `selectedRowHeight` so edge + fade
-            // handles are easier to hit. One row at a time.
             let selectedRowId = viewModel.selectedEffect?.rowIndex
-            let modelRowsH = modelRows.reduce(CGFloat(0)) { sum, r in
+            let modelAreaH = modelRows.reduce(CGFloat(0)) { sum, r in
                 sum + ((r.id == selectedRowId) ? metrics.selectedRowHeight : metrics.rowHeight)
             }
-            // Hosted content height must match the actual row content
-            // so SyncedScrollView's width/height constraints don't
-            // over-propose a taller size to the inner SwiftUI view.
-            // Earlier this was `max(modelRowsH, availableGridH - timingBandH)`
-            // to reserve the full viewport; when the view had few
-            // rows and no timing band the extra height caused the
-            // left-column header VStack to render at the bottom of
-            // its host while the right-column canvas stayed at the
-            // top, visibly misaligning the two sides.
-            let modelAreaH = modelRowsH
 
             ZStack(alignment: .topLeading) {
                 VStack(spacing: 0) {
-                    // Row 1
+                    // Row 1: view-picker corner + ruler/waveform strip.
                     HStack(alignment: .top, spacing: 0) {
                         topLeftCorner
                             .frame(width: metrics.rowHeaderWidth,
                                    height: metrics.topChromeHeight)
                         Divider()
-                        SyncedScrollView(
-                            targetHOffset: timeline.hScrollOffsetPx,
-                            targetVOffset: nil,
-                            contentWidth: contentW,
-                            contentHeight: metrics.topChromeHeight,
-                            showsIndicators: false,
-                            onScroll: { newOffset in
-                                timeline.hScrollOffsetPx = newOffset.x
-                            }
-                        ) {
-                            topChromeContent(contentWidth: contentW)
-                        }
+                        TopChromeMetalGridView(
+                            durationMS: durationMS,
+                            pixelsPerMS: timeline.pixelsPerMS,
+                            rulerHeight: metrics.rulerHeight,
+                            waveformHeight: metrics.waveformHeight,
+                            hasAudio: viewModel.hasAudio,
+                            peaks: viewModel.hasAudio ? viewModel.waveformPeaks : [],
+                            scrollOffsetX: Binding(
+                                get: { timeline.hScrollOffsetPx },
+                                set: { timeline.hScrollOffsetPx = $0 }),
+                            onSeek: { ms in viewModel.seekTo(ms: ms) },
+                            onPinchZoom: pinchZoomAction
+                        )
                         .frame(height: metrics.topChromeHeight)
                     }
                     .frame(height: metrics.topChromeHeight)
                     Divider()
 
-                    // Row 2 — only render if there are timing tracks
+                    // Row 2: timing headers on the left (SwiftUI row
+                    // labels in a scroll view for vertical sync), Metal
+                    // canvas on the right. Only rendered when the
+                    // current view has timing tracks.
                     if !timingRows.isEmpty {
                         let timingContentH = CGFloat(timingRows.count) * metrics.timingRowHeight
                         HStack(alignment: .top, spacing: 0) {
@@ -120,20 +102,19 @@ struct SequencerGridV2View: View {
                             .frame(width: metrics.rowHeaderWidth,
                                    height: timingBandH)
                             Divider()
-                            SyncedScrollView(
-                                targetHOffset: timeline.hScrollOffsetPx,
-                                targetVOffset: timingScroll.vScrollOffsetPx,
-                                contentWidth: contentW,
-                                contentHeight: timingContentH,
-                                showsIndicators: false,
-                                onScroll: { newOffset in
-                                    timeline.hScrollOffsetPx = newOffset.x
-                                    timingScroll.vScrollOffsetPx = newOffset.y
-                                }
-                            ) {
-                                timingEffectsPlaceholder(timingRows: timingRows,
-                                                         contentWidth: contentW)
-                            }
+                            TimingEffectsMetalGridView(
+                                rows: timingRows,
+                                rowHeight: metrics.timingRowHeight,
+                                pixelsPerMS: timeline.pixelsPerMS,
+                                scrollOffsetX: Binding(
+                                    get: { timeline.hScrollOffsetPx },
+                                    set: { timeline.hScrollOffsetPx = $0 }),
+                                scrollOffsetY: Binding(
+                                    get: { timingScroll.vScrollOffsetPx },
+                                    set: { timingScroll.vScrollOffsetPx = $0 }),
+                                onSeek: { ms in viewModel.seekTo(ms: ms) },
+                                onPinchZoom: pinchZoomAction
+                            )
                             .frame(height: timingBandH)
                         }
                         .frame(height: timingBandH)
@@ -156,20 +137,7 @@ struct SequencerGridV2View: View {
                         }
                         .frame(width: metrics.rowHeaderWidth)
                         Divider()
-                        SyncedScrollView(
-                            targetHOffset: timeline.hScrollOffsetPx,
-                            targetVOffset: rowsScroll.vScrollOffsetPx,
-                            contentWidth: contentW,
-                            contentHeight: modelAreaH,
-                            showsIndicators: true,
-                            onScroll: { newOffset in
-                                timeline.hScrollOffsetPx = newOffset.x
-                                rowsScroll.vScrollOffsetPx = newOffset.y
-                            }
-                        ) {
-                            modelEffectsPlaceholder(modelRows: modelRows,
-                                                    contentWidth: contentW)
-                        }
+                        modelEffectsMetalView(modelRows: modelRows)
                     }
                 }
 
@@ -292,29 +260,6 @@ struct SequencerGridV2View: View {
         .background(Color(white: 0.12))
     }
 
-    // UIView-backed canvas for the ruler + waveform. A SwiftUI Canvas
-    // inside a UIHostingController inside a UIScrollView does not render
-    // reliably at multi-thousand-pixel widths, so both strips are drawn
-    // in one Core Graphics pass — matching the approach used for the
-    // timing band and effect grid so all three stay in sync.
-    private func topChromeContent(contentWidth: CGFloat) -> some View {
-        var actions = EffectCanvasActions()
-        actions.onPinchZoom = pinchZoomAction
-        actions.onSeekToMS = { ms in
-            viewModel.seekTo(ms: ms)
-        }
-        return TopChromeCanvas(
-            durationMS: viewModel.sequenceDurationMS,
-            pixelsPerMS: timeline.pixelsPerMS,
-            contentWidth: max(contentWidth, 1),
-            rulerHeight: metrics.rulerHeight,
-            waveformHeight: metrics.waveformHeight,
-            hasAudio: viewModel.hasAudio,
-            peaks: viewModel.hasAudio ? viewModel.waveformPeaks : [],
-            actions: actions
-        )
-    }
-
     /// Shared pinch-to-zoom handler used by all three canvases so zoom
     /// steps and anchor behavior match everywhere.
     private var pinchZoomAction: (CGFloat, CGFloat) -> Void {
@@ -401,25 +346,6 @@ struct SequencerGridV2View: View {
         }
     }
 
-    private func timingEffectsPlaceholder(
-        timingRows: [SequencerViewModel.RowInfo],
-        contentWidth: CGFloat
-    ) -> some View {
-        var actions = EffectCanvasActions()
-        actions.onPinchZoom = pinchZoomAction
-        actions.onSeekToMS = { ms in
-            viewModel.seekTo(ms: ms)
-        }
-        return TimingEffectsCanvas(
-            rows: timingRows,
-            rowHeight: metrics.timingRowHeight,
-            pixelsPerMS: timeline.pixelsPerMS,
-            contentWidth: max(contentWidth, 1),
-            contentHeight: CGFloat(timingRows.count) * metrics.timingRowHeight,
-            actions: actions
-        )
-    }
-
     // MARK: - Row 3: model area
 
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
@@ -440,24 +366,17 @@ struct SequencerGridV2View: View {
         .frame(maxHeight: .infinity, alignment: .top)
     }
 
-    private func modelEffectsPlaceholder(
-        modelRows: [SequencerViewModel.RowInfo],
-        contentWidth: CGFloat
+    /// Interactive Metal grid for the model-effect column. Builds
+    /// the same `EffectCanvasActions` + `EffectStateLookup` the CG
+    /// path constructs so the action semantics stay identical.
+    private func modelEffectsMetalView(
+        modelRows: [SequencerViewModel.RowInfo]
     ) -> some View {
-        let timingMarkTimes = collectActiveTimingMarkTimes()
-        let selectedRowId = viewModel.selectedEffect?.rowIndex
-        let canvasH = modelRows.reduce(CGFloat(0)) { sum, r in
-            sum + ((r.id == selectedRowId) ? metrics.selectedRowHeight : metrics.rowHeight)
-        }
         var actions = EffectCanvasActions()
         actions.onTapEffect = { rowIdx, effIdx in
             viewModel.selectEffect(rowIndex: rowIdx, effectIndex: effIdx)
         }
         actions.onTapEmpty = { rowIdx, ms in
-            // If the user has armed a palette effect and the tap
-            // landed on an empty time range of a model row, create a
-            // new effect there. Otherwise the tap just clears the
-            // current selection (previous behavior).
             if let row = rowIdx, let atMS = ms,
                viewModel.selectedPaletteEffect != nil {
                 viewModel.addEffectFromPaletteTap(rowIndex: row, atMS: atMS)
@@ -479,11 +398,12 @@ struct SequencerGridV2View: View {
                                        edge: edge, newMS: newMS)
         }
         actions.onAdjustFade = { rowIdx, effIdx, edge, seconds in
-            // edge: 0 = fade-in, 1 = fade-out. Leave the other value
-            // untouched by passing -1 through.
             viewModel.adjustFade(rowIndex: rowIdx, effectIndex: effIdx,
                                  fadeInSec:  edge == 0 ? seconds : -1,
                                  fadeOutSec: edge == 1 ? seconds : -1)
+        }
+        actions.onActiveDragChanged = { snapshot in
+            viewModel.activeDrag = snapshot
         }
         actions.onPinchZoom = pinchZoomAction
         actions.onRequestContextMenu = { rowIdx, effIdx, _ in
@@ -496,22 +416,36 @@ struct SequencerGridV2View: View {
         stateLookup.isDisabled = { [document = viewModel.document] rowIdx, effIdx in
             document.effectIsRenderDisabled(inRow: Int32(rowIdx), at: Int32(effIdx))
         }
-        return ModelEffectsCanvas(
+        return EffectsMetalGridView(
             rows: modelRows,
             metrics: metrics,
             pixelsPerMS: timeline.pixelsPerMS,
-            contentWidth: max(contentWidth, 1),
-            contentHeight: canvasH,
-            timingMarkTimesMS: timingMarkTimes,
             selection: viewModel.selectedEffect,
-            inspectorRevision: viewModel.inspectorRevision,
+            activeDrag: viewModel.activeDrag,
+            timingMarkTimesMS: collectActiveTimingMarkTimes(),
+            scrollOffsetX: Binding(
+                get: { timeline.hScrollOffsetPx },
+                set: { timeline.hScrollOffsetPx = $0 }),
+            scrollOffsetY: Binding(
+                get: { rowsScroll.vScrollOffsetPx },
+                set: { rowsScroll.vScrollOffsetPx = $0 }),
+            actions: actions,
+            stateLookup: stateLookup,
             fadeProvider: { [document = viewModel.document] rowIdx, effIdx in
                 let fi = document.effectFadeInSeconds(forRow: Int32(rowIdx), at: Int32(effIdx))
                 let fo = document.effectFadeOutSeconds(forRow: Int32(rowIdx), at: Int32(effIdx))
                 return (fi, fo)
             },
-            stateLookup: stateLookup,
-            actions: actions,
+            iconProvider: { [document = viewModel.document] name, bucket in
+                var outSize: Int32 = 0
+                guard let data = document.iconBGRA(
+                    forEffectNamed: name,
+                    desiredSize: Int32(bucket),
+                    outputSize: &outSize),
+                    outSize > 0
+                else { return nil }
+                return data
+            },
             document: viewModel.document
         )
     }

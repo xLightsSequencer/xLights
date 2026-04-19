@@ -22,7 +22,12 @@
 #include <log.h>
 
 #include <algorithm>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <system_error>
 #include <thread>
+#include <vector>
 
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
@@ -200,6 +205,113 @@ std::string iPadRenderContext::MakeRelativePath(const std::string& file) const {
         return file.substr(_showDir.size() + 1);
     }
     return file;
+}
+
+namespace {
+// Byte-equal comparison; matches desktop's wx FilesMatch semantics
+// closely enough for the "skip the copy when an identical file already
+// exists" branch.
+bool FilesMatchBytes(const std::filesystem::path& a,
+                     const std::filesystem::path& b) {
+    std::error_code ec;
+    auto sa = std::filesystem::file_size(a, ec);
+    if (ec) return false;
+    auto sb = std::filesystem::file_size(b, ec);
+    if (ec || sa != sb) return false;
+    std::ifstream fa(a, std::ios::binary);
+    std::ifstream fb(b, std::ios::binary);
+    if (!fa.is_open() || !fb.is_open()) return false;
+    constexpr size_t blk = 64 * 1024;
+    std::vector<char> bufA(blk), bufB(blk);
+    while (fa && fb) {
+        fa.read(bufA.data(), blk);
+        fb.read(bufB.data(), blk);
+        auto ra = fa.gcount();
+        auto rb = fb.gcount();
+        if (ra != rb) return false;
+        if (ra == 0) return true;
+        if (std::memcmp(bufA.data(), bufB.data(), (size_t)ra) != 0) return false;
+    }
+    return fa.eof() && fb.eof();
+}
+
+/// Shared routine for MoveToShowFolder / CopyToMediaFolder. Copies
+/// `file` into `<destRoot>/<subdir>/<basename>`, appends `_N` on
+/// collision unless `reuse` and the existing file matches byte-for-
+/// byte. Empty string on any failure. Creates the subdir if missing.
+std::string CopyIntoRoot(const std::string& file,
+                        const std::string& destRoot,
+                        const std::string& subdirectory,
+                        bool reuse) {
+    if (destRoot.empty() || file.empty()) return "";
+
+    namespace fs = std::filesystem;
+    fs::path src(file);
+    if (!fs::exists(src)) return "";
+
+    // Normalise subdir: strip leading separator. Desktop's callers
+    // pass both "/Images" and "Images"; the trailing concat either way
+    // ends up inside destRoot.
+    std::string sub = subdirectory;
+    while (!sub.empty() && (sub.front() == '/' || sub.front() == '\\')) {
+        sub.erase(sub.begin());
+    }
+
+    fs::path dir = fs::path(destRoot);
+    if (!sub.empty()) dir /= sub;
+
+    std::error_code ec;
+    fs::create_directories(dir, ec);
+    if (ec) {
+        spdlog::error("iPadRenderContext: Unable to create media target folder {}: {}",
+                      dir.string(), ec.message());
+        return "";
+    }
+
+    fs::path target = dir / src.filename();
+    if (!reuse) {
+        // Append _N until we find an unused name (or until an existing
+        // file at that slot matches our source byte-for-byte, in which
+        // case we reuse it silently).
+        std::string stem = src.stem().string();
+        std::string ext  = src.extension().string();
+        int n = 1;
+        while (fs::exists(target) && !FilesMatchBytes(src, target)) {
+            target = dir / (stem + "_" + std::to_string(n++) + ext);
+        }
+    }
+
+    if (!fs::exists(target)) {
+        fs::copy_file(src, target, fs::copy_options::none, ec);
+        if (ec) {
+            spdlog::error("iPadRenderContext: Copy {} -> {} failed: {}",
+                          src.string(), target.string(), ec.message());
+            return "";
+        }
+    }
+    return target.string();
+}
+} // namespace
+
+std::string iPadRenderContext::MoveToShowFolder(const std::string& file,
+                                                  const std::string& subdirectory,
+                                                  bool reuse) {
+    if (_showDir.empty()) return "";
+    return CopyIntoRoot(file, _showDir, subdirectory, reuse);
+}
+
+std::string iPadRenderContext::CopyToMediaFolder(const std::string& file,
+                                                  const std::string& mediaFolderPath,
+                                                  const std::string& subdirectory) {
+    // Refuse unknown media folders — writing outside the configured
+    // set would break the "media must be in show or media folder"
+    // invariant iPad enforces.
+    bool known = false;
+    for (const auto& mf : _mediaFolders) {
+        if (mf == mediaFolderPath) { known = true; break; }
+    }
+    if (!known) return "";
+    return CopyIntoRoot(file, mediaFolderPath, subdirectory, /*reuse*/ false);
 }
 
 AudioManager* iPadRenderContext::GetCurrentMediaManager() const {

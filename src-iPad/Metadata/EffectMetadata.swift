@@ -57,6 +57,18 @@ struct PropertyMetadata: Codable {
     let checkboxLabel: String?
     let description: String?
 
+    // Per-axis bounds for `controlType: "point2d"`. Each axis falls back
+    // to the single-valued `min` / `max` / `default` fields when its
+    // per-axis variant is absent — matches desktop's behaviour in
+    // `JsonEffectPanel.cpp:1447-1458` so a symmetric point2d only
+    // needs one range specified.
+    let minX: Double?
+    let maxX: Double?
+    let defaultX: AnyCodable?
+    let minY: Double?
+    let maxY: Double?
+    let defaultY: AnyCodable?
+
     enum CodingKeys: String, CodingKey {
         case id, label, tooltip, type, controlType
         case defaultValue = "default"
@@ -64,6 +76,7 @@ struct PropertyMetadata: Codable {
         case options, dynamicOptions, separator, suppressIfDefault
         case fileFilter, fileMessage, settingPrefix
         case fullWidth, expandToFill, growable, checkboxLabel, description
+        case minX, maxX, defaultX, minY, maxY, defaultY
     }
 
     /// Float values stored as int with divisor. Slider min/max are raw ints; the

@@ -4,9 +4,12 @@ import UniformTypeIdentifiers
 // File-picker row for JSON properties with `controlType: "filepicker"`
 // (Glediator_Filename, VUMeter_Filename). Mirrors the desktop wxFilePicker:
 // a button that opens a document picker, a label showing the current file's
-// last-path component, and a Clear button. The stored value is the absolute
-// path — callers must invoke `ObtainAccessToPath` so the picked file stays
-// reachable after app restart via the persisted security-scoped bookmark.
+// last-path component, and a Clear button.
+//
+// Picked files route through `MediaRelocation` — if the source is
+// outside the show / media folders the user is prompted for a
+// destination and the file is copied there before the path is
+// committed. Nothing outside the enforced roots is ever stored.
 struct FilepickerPropertyView: View {
     let property: PropertyMetadata
     let currentPath: String
@@ -14,10 +17,25 @@ struct FilepickerPropertyView: View {
     let onClear: () -> Void
 
     @State private var presentingPicker = false
+    @State private var pendingPick: URL?
 
     private var filename: String {
         if currentPath.isEmpty { return "(none)" }
         return (currentPath as NSString).lastPathComponent
+    }
+
+    /// Derive the canonical subdirectory from the property id. The two
+    /// real filepicker uses in the metadata today are Glediator's `.gled`
+    /// files (→ `Glediator`, matching desktop's `GlediatorEffect.cpp:287`)
+    /// and VUMeter's SVG file (→ `Images`, matching
+    /// `VUMeterEffect.cpp:254`). Unknown ids fall back to the show
+    /// root — the file still lands inside the enforced media roots, it
+    /// just isn't tucked into a subfolder.
+    private var subdirectory: String {
+        let id = property.id.lowercased()
+        if id.contains("glediator") { return "Glediator" }
+        if id.contains("svg") || id.contains("vumeter") { return "Images" }
+        return ""
     }
 
     var body: some View {
@@ -46,7 +64,15 @@ struct FilepickerPropertyView: View {
         .padding(.vertical, 2)
         .fileImporter(isPresented: $presentingPicker,
                       allowedContentTypes: allowedTypes()) { result in
-            handleResult(result)
+            if case .success(let url) = result {
+                pendingPick = url
+            }
+        }
+        .mediaRelocationPrompt(
+            picked: $pendingPick,
+            subdirectory: subdirectory
+        ) { storedPath in
+            onChoose(storedPath)
         }
     }
 
@@ -75,20 +101,5 @@ struct FilepickerPropertyView: View {
             }
         }
         return types.isEmpty ? [.data] : types
-    }
-
-    private func handleResult(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            // Security-scoped bookmark so subsequent reads (including after
-            // relaunch) can reach the file. Matches the pattern used in
-            // FolderConfig for show folders.
-            _ = url.startAccessingSecurityScopedResource()
-            _ = XLSequenceDocument.obtainAccess(toPath: url.path,
-                                                  enforceWritable: false)
-            onChoose(url.path)
-        case .failure:
-            break
-        }
     }
 }

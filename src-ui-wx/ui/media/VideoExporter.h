@@ -104,6 +104,13 @@ protected:
    ProgressReportCb        _progressReporter = nullptr;
    uint32_t                _curVideoFrame = 0;
    int64_t                 _curPts = 0LL;
+
+   // Optional hardware acceleration context (used for VideoToolbox on Apple).
+   // When populated, _videoCodecContext->pix_fmt is AV_PIX_FMT_VIDEOTOOLBOX and
+   // each AVFrame's data[3] is a pool-allocated CVPixelBufferRef, which skips
+   // the CPU-side sws_scale conversion entirely.
+   struct AVBufferRef*     _hwDeviceCtx = nullptr;
+   struct AVBufferRef*     _hwFramesCtx = nullptr;
 };
 
 class VideoExporter : public GenericVideoExporter

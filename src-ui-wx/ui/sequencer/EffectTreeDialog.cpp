@@ -188,6 +188,7 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 
 EffectTreeDialog::~EffectTreeDialog()
 {
+    TimerGif.Stop();
     StaticBitmapGif->SetBitmap(wxNullBitmap);
 
     //(*Destroy(EffectTreeDialog)
@@ -196,6 +197,8 @@ EffectTreeDialog::~EffectTreeDialog()
 
 void EffectTreeDialog::OnShow(wxShowEvent& event)
 {
+    if (IsBeingDeleted())
+        return;
     if (event.IsShown()) {
         if (gifImage && gifImage->IsOk())
             TimerGif.Start(GIF_DELAY);

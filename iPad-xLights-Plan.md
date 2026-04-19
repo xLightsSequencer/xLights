@@ -771,8 +771,191 @@ verifiable on device:
   applies if the user has deselected between edit and undo. Action
   name is "Edit {key}" so the system undo menu labels it].**
 
-B-3 v2 (rendered effect backgrounds) is a final polish pass once all
-of the above is stable.
+B-3 v2 (rendered effect backgrounds) is folded into Phase B-Metal
+below rather than kept as a Core Graphics polish pass — once the
+grid draws through `xlGraphicsContext` accumulators, the desktop's
+`DrawEffectBackground` implementation drops in with no reinvention.
+
+### Phase B-Metal: Grid render pipeline migration (CG → Metal)
+
+The current effect-grid, timing-effects, and top-chrome canvases are
+all Core Graphics `UIView.draw(_:)` paths, manually tiled into
+`CanvasTileView` subviews so per-tile backing stores stay under
+Metal's ~16k texture limit at high zoom on long sequences. That
+architecture works but has paid a steady bug tax — scroll-vs-drag
+races, view-switch layout glitches, per-tile invalidation slop,
+stale-content artifacts when a tile's dirty rect undercovers an
+updated effect. The deferred "rendered effect backgrounds" item
+(plan §3 bullet 5) was originally designed around desktop's
+`xlGraphicsContext` / `xlVertexAccumulator` /
+`xlColorVertexAccumulator` / `xlTexture` / `xlFontInfo`
+abstractions, all of which already have Metal implementations in
+`src-core/graphics/metal/xlMetalGraphicsContext.{h,mm}`, and all of
+which the iPad already uses for Model + House previews via
+`src-iPad/Metal/XLMetalBridge.mm` + `xlStandaloneMetalCanvas`.
+
+Rather than keep bolting CG polish onto a pipeline that has to grow
+effect-background thumbnails next anyway, migrate the three grid
+canvases to Metal. The real win isn't just perf — it eliminates the
+tiling machinery entirely. Metal renders into a CAMetalLayer's
+drawable (viewport-sized), not into a content-sized bitmap, so the
+16k limit stops applying at any zoom. Scroll offset becomes a
+uniform instead of a frame position; the right-column
+`SyncedScrollView` host wrapper for the grid goes away. The
+left-column row-headers stay in SwiftUI — static labels are cheap
+there and keep the gesture model simple.
+
+**Migration order** — each step independently shippable:
+
+- **BM-1 Foundation.** **[landed]** Shared grid bridge that stands
+  up an `xlStandaloneMetalCanvas` + `xlMetalGraphicsContext` per
+  grid canvas, mirroring the preview pattern. Files landed:
+  `src-iPad/Metal/iPadGridPreview.{h,mm}` (C++ owner of the canvas
+  + per-frame context, `BeginFrame`/`EndFrame`/`ctx()`),
+  `src-iPad/Metal/XLGridMetalBridge.{h,mm}` (ObjC bridge — Swift-
+  callable `attachLayer:` / `setDrawableSize:scale:` /
+  `beginFrame` / `endFrame` plus `fillRectX:...` and
+  `lineX1:...` primitives), `src-iPad/App/GridMetalCanvas.swift`
+  (SwiftUI `UIViewRepresentable` wrapping an `MTKView`; draw
+  closure receives `(XLGridMetalBridge, CGSize)` inside a
+  `beginFrame`/`endFrame` pair; `revision: Int` drives on-demand
+  redraws). `iPad-Bridging-Header.h` updated. Verified end-to-end
+  on device via a three-rect overlay probe — Metal frames reach
+  the screen through the same path the Model/House previews
+  already use. Per-frame state push shape (visible ms range,
+  vertical scroll offset, selection, rows, drag overrides) is
+  still TBD; for now the Swift draw closure captures that state
+  directly from SwiftUI.
+- **BM-2 Model-effect grid port.** **[landed]** Replaced
+  `EffectsCanvasUIView` + `CanvasTileView` subviews with an
+  MTKView-subclass `EffectsGridMetalView` that holds the same
+  state properties (rows, metrics, selection, drag overrides,
+  etc.) and installs the same gesture recognizers + delegate.
+  Its `draw(_:)` / MTKViewDelegate path replaces the per-tile
+  CG drawing with a single Metal frame via `XLGridMetalBridge`.
+  Reproduce current visuals: row zebra stripes, bracket L's,
+  centerlines, XPM icons, green/red/yellow fade bars + handles,
+  selection stroke, lock glyph, disabled overlay, timing-mark
+  vertical lines, drag feedback pill, cross-row ghost +
+  invalid-drop red tint. Hit-testing stays in Swift over
+  `rowLayout()`.
+
+  **Scroll restructure — the hard part.** The current right
+  column is wrapped in `SyncedScrollView` so its hosted UIView
+  is content-sized (huge at high zoom). Keeping MTKView there
+  would still blow past Metal's texture limit because
+  `drawableSize` tracks bounds. So BM-2 also removes that
+  wrapper for the model-effects column: MTKView is
+  viewport-sized, the grid view installs its own pan gesture
+  that mutates `timeline.hScrollOffsetPx` and
+  `rowsScroll.vScrollOffsetPx` directly, and the render applies
+  those offsets as a uniform translation in world-coord draws.
+  The left-column row-headers `SyncedScrollView` keeps its
+  vertical-sync off `rowsScroll.vScrollOffsetPx`, so it still
+  moves in lock-step; the top chrome and timing band keep their
+  `SyncedScrollView` (still CG until BM-3/BM-4). First cut can
+  skip scroll-view momentum + bouncing + indicators — if those
+  turn out to matter we re-introduce a thin UIScrollView that
+  just provides gesture mechanics with a viewport-sized
+  hosted content and pins MTKView via `layoutSubviews`.
+
+  **Suggested sub-steps** so BM-2 lands incrementally without
+  breaking the existing grid:
+  1. Extend `XLGridMetalBridge` with texture upload/draw so
+     XPM icons port without needing text yet; add whatever line-
+     width handling we need (e.g. draw strokes as thin tris if
+     Metal's 1-px line default is too thin at Retina).
+  2. Build `EffectsGridMetalView` as a parallel class —
+     same state + gestures as `EffectsCanvasUIView`, MTKView-
+     based. Behind an `@AppStorage("useMetalGrid")` toggle
+     (default off) so CG stays the shipping path. Render just
+     row stripes + brackets + centerlines first.
+  3. Port fade bars, fade handles, selection stroke, disabled
+     overlay, icons (via step 1's texture API), lock glyph
+     (simple quad — text deferred to BM-5), drag feedback pill
+     (simple rect — text deferred).
+  4. Port cross-row ghost + invalid-drop tint + timing-mark
+     vertical lines.
+  5. Wire the pan/pinch restructure so Metal canvas no longer
+     needs a scroll-view wrapper. Confirm scroll-sync with
+     model-headers + timing band + top chrome.
+  6. Flip `useMetalGrid` default to on, delete the CG
+     `EffectsCanvasUIView` + `CanvasTileView` + the tiling
+     helpers (`layoutHorizontalTiles`, `invalidateTileRanges`,
+     `CanvasTileView`). Gestures' drag high-water invalidation
+     collapses into a single `setNeedsDisplay()` since
+     viewport-sized MTKView has no tiles.
+
+  Text-bearing features (effect-name labels, lock glyph label,
+  drag feedback pill label, timing-mark labels) stay CG-drawn
+  during BM-2 — i.e. a small transparent UIView overlay on top
+  of the MTKView, rendered via the existing drawContent path,
+  handles only the text. BM-5 swaps that overlay for the font
+  atlas once the atlas exists.
+- **BM-3 Timing effects band.** **[landed]** Smaller surface
+  (brackets + labels + tap-to-seek), same pattern. Track-level
+  alternating stripes are color-varied quads. Shipped as
+  `TimingEffectsMetalGridView`.
+- **BM-4 Top chrome.** **[landed]** Ruler ticks as line
+  accumulators, tick labels via per-string cached text textures,
+  waveform as a filled polygon (two-pass
+  stroke on top). Play-head marker + flag stay as a SwiftUI
+  overlay so playback ticks don't force a Metal frame redraw.
+With BM-1 through BM-4 landed, the CG grid path and the
+`useMetalGrid` toggle have been removed. Deleted:
+`EffectsCanvasUIView`, `TimingCanvasUIView`,
+`TopChromeCanvasUIView`, `CanvasTileView`, the tiling helpers
+(`layoutHorizontalTiles`, `invalidateTileRanges`), the row-diff
+helpers, and the dev-era read-only `ModelEffectsMetalOverlay` /
+`TimingEffectsMetalOverlay` / `TopChromeMetalOverlay` /
+`GridMetalCanvas` scaffolding. `EffectCanvasViews.swift` now
+holds only the shared `EffectCanvasActions` + `EffectStateLookup`
+structs (still used by the Metal path).
+
+- **BM-5 Font atlas.** **[landed]** ASCII strings (effect names,
+  ruler labels, timing labels, drag pill) now go through a shared
+  font atlas. `XLGridMetalBridge._fontTextureForSize:` builds a
+  white-on-alpha copy of the compiled-in `xlFontInfo` image (the
+  baked atlas stores black-on-alpha; inverting the RGB lets
+  `drawTexture(vac, tex, xlColor)`'s colour multiplier pass the
+  caller's tint through cleanly) and uploads one `xlTexture` per
+  font size (9/10/11pt). `drawText` populates an
+  `xlVertexTextureAccumulator` via `xlFontInfo::populate`, then
+  issues one tinted `drawTexture` call. Non-ASCII strings (only
+  the lock glyph 🔒 today) fall through to the original per-string
+  CoreText path since `xlFontInfo` is ASCII 32–127 only.
+  `sizeOfText` uses `xlFontInfo::widthOf` for ASCII so layout math
+  sees the same metrics the atlas geometry uses. Upload volume
+  drops from ~60 per-string textures per bridge to a single atlas
+  texture per font size; the per-string fallback remains for
+  unicode glyphs.
+- **BM-6 Effect background thumbnails (B-3 v2).** **[landed]**
+  Extended `XLGridMetalBridge` with an effect-background batch
+  (`beginEffectBackgroundBatch` / `flushEffectBackgroundBatch` /
+  `effectBackgroundAccumulator`) — one shared
+  `xlVertexColorAccumulator` per frame, matching desktop's pattern
+  in `EffectsGrid::DrawEffects`. Added
+  `-[XLSequenceDocument appendEffectBackgroundForRow:atIndex:x1:y1:x2:y2:bridge:drawRamps:]`
+  which resolves the `RenderableEffect` + model color mask (mirrors
+  `EffectsGrid::DrawEffectBackground` at EffectsGrid.cpp:6572) and
+  calls `RenderableEffect::DrawEffectBackground` with the bridge's
+  accumulator. `EffectsMetalGridView` now runs a dedicated
+  background pass before the disabled-overlay / brackets passes,
+  captures the returned icon hint (0/1/2), and uses it to skip the
+  centerline + icon when the effect drew a complete background or
+  shrink them when it drew a partial background. No iPad-side
+  cache — effects already cache expensive work via
+  `xlDisplayList`. Add a size-bucket cache later if profiling
+  points to it.
+
+**What survives untouched across the migration:** the view model
+(selection, clipboard, undo/redo, scrub, scroll-selection-into-
+view, arrow-key navigation), the gesture recognizers and their
+delegate logic (require-to-fail, drag-candidate filter), the
+row-header left column, the inspector, palette, toolbar +
+keyboard shortcuts, and every bridge method already wired. The
+migration is strictly a draw-layer swap — the surrounding app
+keeps working while we're in-flight.
 
 ### Phase C: Effect settings inspector, tabbed
 
@@ -816,7 +999,8 @@ each row is addressed in the sub-phases below.
 |---|---|---|
 | `controlType: filepicker` | 2 props (Glediator, VUMeter file) | **landed (C-2)** — `FilepickerPropertyView`: `.fileImporter` sheet filtered by UTTypes parsed from `fileFilter`; stores absolute path + registers security-scoped bookmark via `obtainAccessToPath:` |
 | `controlType: fontpicker` | 1 prop (Text_Font) | **landed (C-2)** — `FontpickerPropertyView` sheet over `UIFont.familyNames` + size stepper + bold/italic; stores wx `NativeFontInfo` user-desc (e.g. `"bold Arial 26 utf-8"`) that the Phase A-2 `ParseFontString` already round-trips |
-| `controlType: custom` beyond PaletteHeaderRow | 38 props, 15 effects | **in progress (C-6)** — 26 custom ids landed + ResetPanelRow hidden (27/38). Pending: DMX_ChannelsNotebook / DMX_ButtonsRow, Sketch_Info / Sketch_DefRow / Sketch_BackgroundRow, Video_DurationRow, Text_Font_XL_Row, Shader_DynamicParams |
+| `controlType: custom` beyond PaletteHeaderRow | 38 props, 15 effects | **in progress (C-6)** — 27 custom ids landed + ResetPanelRow hidden (28/38). Pending: DMX_ChannelsNotebook / DMX_ButtonsRow, Sketch_Info / Sketch_DefRow / Sketch_BackgroundRow, Video_DurationRow, Text_Font_XL_Row |
+| `controlType: point2d` | shader dynamic params (per `.fs`) | **landed** — `Point2DPropertyView` synthesises two sibling slider rows keyed `<id>X` / `<id>Y` with per-axis bounds |
 | `separator: true` | 3 uses | **landed (C-2)** — `Divider` inserted before property |
 | `suppressIfDefault: true` | 35 uses | **landed (C-2)** — write equal-to-default removes the key via bridge `removeEffectSettingForKey:` |
 | `lockable: true` | 261 uses | no lock UI |
@@ -1089,17 +1273,26 @@ tab they were on, not always "Effect" (persist in
      "match-effect-length" action.
    - **Text** -- `Text_Font_XL_Row` still pending — needs a bridge
      enumerating the xLights-bundled bitmap fonts under `fonts/`.
-   - **Shader** -- `Shader_DynamicParams` core-side landed; iPad
-     still needs to plumb the JSON from
-     `ShaderConfig::GetDynamicPropertiesJson` into the existing
-     view builder so the dynamic slider / check / choice / point2d
-     rows render without a separate parser.
+   - **Shader** -- `Shader_DynamicParams` ✅
+     (`ShaderDynamicParamsView` — calls new bridge
+     `shaderDynamicPropertiesJsonForPath:` which parses the picked
+     `.fs` via `ShaderEffect::ParseShader` and returns the JSON from
+     `ShaderConfig::GetDynamicPropertiesJson`; decodes into an array
+     of `PropertyMetadata` and renders each through
+     `EffectPropertyView` so every shader uniform lands as a native
+     slider / choice / checkbox / point2d row with VC buttons,
+     editable value fields, and suppressIfDefault for free).
+     Re-parses on shader-path change so swapping shaders rebuilds
+     the dynamic UI without requiring a deselect/reselect.
+     Side-effect: `controlType: "point2d"` (new in schema) is
+     rendered via `Point2DPropertyView` which synthesises two
+     sibling sliders keyed `<id>X` / `<id>Y` with per-axis bounds
+     from `minX`/`maxX`/`defaultX` + fall-back to single-axis
+     values — matches `JsonEffectPanel.cpp:1427-1601`.
    - `Video_DurationRow` still pending (needs a bridge for the
      picked video's total duration + a "match effect length" action).
    - `Text_Font_XL_Row` still pending (needs bridge enumerating the
      xLights-bundled bitmap fonts under `fonts/`).
-   - Shader `Shader_DynamicParams` core JSON emitter landed;
-     iPad binding to consume it still pending.
 7. **C-7 Lockable properties.** Small lock glyph next to each
    `lockable:true` property that writes `LOCK_<id>=1` into the
    effect's settings string. Low priority -- only relevant for

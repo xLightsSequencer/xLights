@@ -2479,6 +2479,9 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
             parallel_for(
                 0, layers[0]->buffer.Nodes.size(), [&](int i) {
                     auto& n = layers[0]->buffer.Nodes[i];
+                    // Defensive: skip null node pointers. The sibling SetColors
+                    // function already does this.
+                    if (n == nullptr) return;
                     size_t start = n->ActChan;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this

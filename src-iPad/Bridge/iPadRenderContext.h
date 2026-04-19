@@ -53,7 +53,21 @@ public:
     const std::list<std::string>& GetMediaFolders() const override { return _mediaFolders; }
     bool IsInShowFolder(const std::string& file) const override;
     bool IsInShowOrMediaFolder(const std::string& file) const override;
-    std::string MoveToShowFolder(const std::string&, const std::string&, bool) override { return ""; }
+    // Copy `file` into `<showDir>/<subdirectory>`, returning the final
+    // absolute path. Appends `_N` on name collision unless `reuse` and
+    // the existing file's contents already match. Empty string on
+    // failure (no show folder configured, copy error).
+    std::string MoveToShowFolder(const std::string& file,
+                                  const std::string& subdirectory,
+                                  bool reuse) override;
+
+    // Same as MoveToShowFolder but the destination root is one of the
+    // configured media folders (`mediaFolderPath` must appear in
+    // `_mediaFolders` or we refuse). Used by the iPad fileImporter
+    // "destination: Media Folder X" branch.
+    std::string CopyToMediaFolder(const std::string& file,
+                                   const std::string& mediaFolderPath,
+                                   const std::string& subdirectory);
     std::string MakeRelativePath(const std::string& file) const override;
 
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }

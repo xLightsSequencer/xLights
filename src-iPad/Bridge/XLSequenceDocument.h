@@ -16,6 +16,35 @@
 // bookmark is stored in UserDefaults and access survives app restart.
 + (BOOL)obtainAccessToPath:(NSString*)path enforceWritable:(BOOL)enforceWritable;
 
+// Show / media folder accessors — needed by the file-relocation logic
+// so Swift can tell whether a picked URL is already inside the
+// enforced roots.
+- (NSString*)showFolderPath;
+- (NSArray<NSString*>*)mediaFolderPaths;
+
+// Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
+// to the basename on collision. Returns the destination absolute path
+// on success, nil on failure (no show folder loaded, copy error).
+- (NSString*)moveFileToShowFolder:(NSString*)sourcePath
+                        subdirectory:(NSString*)subdirectory;
+
+// Copy `sourcePath` into `<mediaFolderPath>/<subdirectory>`.
+// `mediaFolderPath` must already be in `mediaFolderPaths`; unknown
+// paths are rejected so the "media always lives in a configured root"
+// invariant isn't broken.
+- (NSString*)copyFileToMediaFolder:(NSString*)sourcePath
+                       mediaFolderPath:(NSString*)mediaFolderPath
+                        subdirectory:(NSString*)subdirectory;
+
+// True iff `path` is under the show folder or any configured media
+// folder. Used to decide whether a picked file needs copying.
+- (BOOL)pathIsInShowOrMediaFolder:(NSString*)path;
+
+// Compute a show-folder-relative path (e.g. `Images/foo.png`). Absolute
+// paths outside the show folder round-trip unchanged so media-folder
+// files aren't clobbered.
+- (NSString*)makeRelativePath:(NSString*)path;
+
 // Sequence
 - (BOOL)openSequence:(NSString*)path;
 - (void)closeSequence;
@@ -117,6 +146,12 @@
 // Effect metadata — returns JSON string as loaded from resources/effectmetadata/<Name>.json
 // Empty string if no metadata is available for the effect.
 - (NSString*)metadataJsonForEffectNamed:(NSString*)effectName;
+
+// Shader dynamic properties — parses the .fs file at `shaderPath` and
+// returns a JSON-encoded array of property entries that drop into
+// `EffectPropertyView` using the same schema as static metadata. Empty
+// string if the file isn't a parseable shader or the path is empty.
+- (NSString*)shaderDynamicPropertiesJsonForPath:(NSString*)shaderPath;
 
 // Shared metadata — returns JSON string for Buffer/Color/Timing shared panels.
 // name must be one of "Buffer", "Color", "Timing".
@@ -235,6 +270,32 @@
 - (NSData*)waveformDataFromMS:(long)startMS
                          toMS:(long)endMS
                    numSamples:(int)numSamples;
+
+// Effect-background batch append. Mirrors desktop's
+// `EffectsGrid::DrawEffectBackground` helper — resolves the
+// RenderableEffect + color mask, then calls
+// `RenderableEffect::DrawEffectBackground` with the bridge's current
+// effect-background accumulator. Caller must have wrapped the visible-
+// effects loop in `-beginEffectBackgroundBatch` / `-flushEffectBackgroundBatch`
+// on the bridge. Coordinates are in logical pixel space, top-left
+// origin (matches the grid's coord system — desktop uses bottom-left
+// but the accumulator just stores the numbers, so we stay consistent
+// with the grid's other calls).
+//
+// Returns the draw-icon hint desktop uses:
+//   0 — effect drew a full background, skip the icon
+//   1 — show the normal-size icon
+//   2 — show a smaller icon (leaves room for partial background)
+// Bridge is declared `id` in the header so this file doesn't have to
+// import `XLGridMetalBridge.h`; the .mm casts it back.
+- (int)appendEffectBackgroundForRow:(int)rowIndex
+                            atIndex:(int)effectIndex
+                                 x1:(float)x1
+                                 y1:(float)y1
+                                 x2:(float)x2
+                                 y2:(float)y2
+                             bridge:(id)bridge
+                          drawRamps:(BOOL)drawRamps;
 
 // Effect icons. Returns BGRA-premultiplied pixel data (width*height*4
 // bytes) plus the chosen bucket size — parsed directly from the

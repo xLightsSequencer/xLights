@@ -538,7 +538,8 @@ struct ShapeSVGRowView: View {
     var body: some View {
         EffectFilenameBlockView(label: "SVG File",
                                  settingKey: "E_FILEPICKERCTRL_SVG",
-                                 fileFilter: "SVG (*.svg)|*.svg")
+                                 fileFilter: "SVG (*.svg)|*.svg",
+                                 subdirectory: "Images")
     }
 }
 
@@ -550,6 +551,7 @@ struct RippleSVGRowView: View {
     var body: some View {
         EffectFilenameBlockView(label: "SVG File",
                                  settingKey: "E_FILEPICKERCTRL_Ripple_SVG",
-                                 fileFilter: "SVG (*.svg)|*.svg")
+                                 fileFilter: "SVG (*.svg)|*.svg",
+                                 subdirectory: "Images")
     }
 }
