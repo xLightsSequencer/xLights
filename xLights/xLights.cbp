@@ -1017,6 +1017,8 @@
 		<Unit filename="../src-core/models/IciclesModel.h" />
 		<Unit filename="../src-core/models/ImageModel.cpp" />
 		<Unit filename="../src-core/models/ImageModel.h" />
+		<Unit filename="../src-core/models/LabelModel.cpp" />
+		<Unit filename="../src-core/models/LabelModel.h" />
 		<Unit filename="../src-core/models/ImageObject.cpp" />
 		<Unit filename="../src-core/models/ImageObject.h" />
 		<Unit filename="../src-core/models/MatrixModel.cpp" />
@@ -1264,6 +1266,8 @@
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/WreathPropertyAdapter.h" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImagePropertyAdapter.cpp" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImagePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/LabelPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/LabelPropertyAdapter.h" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CustomPropertyAdapter.cpp" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CustomPropertyAdapter.h" />
 		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PolyLinePropertyAdapter.cpp" />

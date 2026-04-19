@@ -594,6 +594,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\WindowFramePropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\WreathPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.cpp" />
+    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\LabelPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CustomPropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PolyLinePropertyAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\MultiPointPropertyAdapter.cpp" />
@@ -653,6 +654,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SkullConfigDialog.cpp" />
     <ClCompile Include="..\src-core\models\GridlinesObject.cpp" />
     <ClCompile Include="..\src-core\models\ImageModel.cpp" />
+    <ClCompile Include="..\src-core\models\LabelModel.cpp" />
     <ClCompile Include="..\src-core\models\ImageObject.cpp" />
     <ClCompile Include="..\src-core\models\MeshObject.cpp" />
     <ClCompile Include="..\src-core\models\MultiPointModel.cpp" />
@@ -1209,6 +1211,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SkullConfigDialog.h" />
     <ClInclude Include="..\src-core\models\GridlinesObject.h" />
     <ClInclude Include="..\src-core\models\ImageModel.h" />
+    <ClInclude Include="..\src-core\models\LabelModel.h" />
     <ClInclude Include="..\src-core\models\ImageObject.h" />
     <ClInclude Include="..\src-core\models\MeshObject.h" />
     <ClInclude Include="..\src-core\models\MultiPointModel.h" />
@@ -1583,6 +1586,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\WindowFramePropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\WreathPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.h" />
+    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\LabelPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\CustomPropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PolyLinePropertyAdapter.h" />
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\MultiPointPropertyAdapter.h" />

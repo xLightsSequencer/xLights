@@ -216,6 +216,9 @@
     <ClCompile Include="..\src-core\models\ImageModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\LabelModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\MatrixModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -914,6 +917,9 @@
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.cpp">
       <Filter>ui\modelproperties\adapters</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\LabelPropertyAdapter.cpp">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CustomPropertyAdapter.cpp">
       <Filter>ui\modelproperties\adapters</Filter>
     </ClCompile>
@@ -1531,6 +1537,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ImageModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\LabelModel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\MatrixModel.h">
@@ -2281,6 +2290,9 @@
       <Filter>ui\modelproperties\adapters</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.h">
+      <Filter>ui\modelproperties\adapters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\LabelPropertyAdapter.h">
       <Filter>ui\modelproperties\adapters</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SingleLinePropertyAdapter.h">

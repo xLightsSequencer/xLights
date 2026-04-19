@@ -23,8 +23,8 @@ void LabelPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Outp
     grid->Append(new wxStringProperty("Label Text", "LabelText", _label.GetLabelText()));
 
     wxPGProperty* p = grid->Append(new wxUIntProperty("Font Size", "LabelFontSize", _label.GetLabelFontSize()));
-    p->SetAttribute("Min", 4);
-    p->SetAttribute("Max", 200);
+    p->SetAttribute("Min", 8);
+    p->SetAttribute("Max", 40);
     p->SetEditor("SpinCtrl");
 
     xlColor tc = _label.GetLabelTextColor();

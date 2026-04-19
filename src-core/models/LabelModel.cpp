@@ -18,9 +18,14 @@
 LabelModel::LabelModel(const ModelManager &manager) : ModelWithScreenLocation(manager)
 {
     DisplayAs = DisplayAsType::Label;
-    _fontSize = 8;
+    _fontSize = 14;
     _textColor = xlWHITE;
     _labelText = "Label";
+}
+
+LabelModel::~LabelModel()
+{
+    delete _fontTexture;
 }
 
 void LabelModel::GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
@@ -84,7 +89,12 @@ void LabelModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         if (!_labelText.empty()) {
             int fontSize = std::max(8, std::min(_fontSize, 40));
             const xlFontInfo &font = xlFontInfo::FindFont(fontSize);
-            xlTexture *fontTex = ctx->createTextureForFont(font);
+            if (_fontTexture == nullptr || _cachedFontSize != fontSize) {
+                delete _fontTexture;
+                _fontTexture = ctx->createTextureForFont(font);
+                _cachedFontSize = fontSize;
+            }
+            xlTexture *fontTex = _fontTexture;
 
             float factor = 1.0f;
             float textW = font.widthOf(_labelText, factor);
@@ -122,7 +132,12 @@ void LabelModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext 
     if (!_labelText.empty()) {
         int fontSize = std::max(8, std::min(_fontSize, 40));
         const xlFontInfo &font = xlFontInfo::FindFont(fontSize);
-        xlTexture *fontTex = ctx->createTextureForFont(font);
+        if (_fontTexture == nullptr || _cachedFontSize != fontSize) {
+            delete _fontTexture;
+            _fontTexture = ctx->createTextureForFont(font);
+            _cachedFontSize = fontSize;
+        }
+        xlTexture *fontTex = _fontTexture;
 
         // factor = getSize() makes character height = 1.0 model-local unit.
         // The model spans -0.5..+0.5, so the text fills the model height.

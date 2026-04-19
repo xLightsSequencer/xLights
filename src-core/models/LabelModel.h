@@ -16,7 +16,8 @@ class LabelModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
 public:
     explicit LabelModel(const ModelManager &manager);
-    ~LabelModel() override = default;
+    ~LabelModel() override;
+
 
     void GetBufferSize(const std::string &type, const std::string &camera, const std::string &transform,
                        int &BufferWi, int &BufferHi, int stagger) const override;
@@ -51,4 +52,7 @@ protected:
     std::string _labelText;
     int _fontSize;
     xlColor _textColor;
+
+    mutable xlTexture* _fontTexture = nullptr;
+    mutable int _cachedFontSize = 0;
 };
