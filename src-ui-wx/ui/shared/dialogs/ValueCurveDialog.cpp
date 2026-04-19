@@ -594,31 +594,37 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event) {
     } else if (type == "Parabolic Down") {
         SetParameter100(1, 4);
         SetParameter100(2, 0);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Parabolic Up") {
         SetParameter100(1, 4);
         SetParameter100(2, 100);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Logarithmic Up") {
         SetParameter100(1, 4);
         SetParameter100(2, 100);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Logarithmic Down") {
         SetParameter100(1, 15);
         SetParameter100(2, 50);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Exponential Up") {
         SetParameter100(1, 100);
         SetParameter100(2, 50);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Exponential Down") {
         SetParameter100(1, 100);
         SetParameter100(2, 50);
+        _vc->SetStartEndLevelActive(true);
         SetParameter100(3, 0);
         SetParameter100(4, 100);
     } else if (type == "Sine") {
@@ -952,8 +958,10 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event) {
     float i = wxAtof(TextCtrl_Parameter3->GetValue());
     float low, high;
     ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low == MINVOID)
+    if (low == MINVOID) {
+        _vc->SetStartEndLevelActive(true);
         i *= _vc->GetDivisor();
+    }
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
@@ -961,6 +969,10 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event) {
 void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event) {
     UpdateLinkedTextCtrl(event);
     float i = Slider_Parameter3->GetValue();
+    float low, high;
+    ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low == MINVOID)
+        _vc->SetStartEndLevelActive(true);
     _vc->SetParameter3(i);
     _vcp->Refresh();
 }
@@ -970,8 +982,10 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event) {
     float i = wxAtof(TextCtrl_Parameter4->GetValue());
     float low, high;
     ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
-    if (low == MINVOID)
+    if (low == MINVOID) {
+        _vc->SetStartEndLevelActive(true);
         i *= _vc->GetDivisor();
+    }
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }
@@ -979,6 +993,10 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event) {
 void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event) {
     UpdateLinkedTextCtrl(event);
     float i = Slider_Parameter4->GetValue();
+    float low, high;
+    ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
+    if (low == MINVOID)
+        _vc->SetStartEndLevelActive(true);
     _vc->SetParameter4(i);
     _vcp->Refresh();
 }

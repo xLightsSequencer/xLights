@@ -748,15 +748,14 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
         _parameter2 = _parameter2 * newrange / oldrange + mindiff;
     }
 
-    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && !p34Legacy)
+    if (min == MINVOID && _hasStartEndLevel)
     {
         _parameter3 = _parameter3 * newrange / oldrange + mindiff;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && !p34Legacy)
+    if (min == MINVOID && _hasStartEndLevel)
     {
         _parameter4 = _parameter4 * newrange / oldrange + mindiff;
     }
@@ -813,18 +812,14 @@ void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
         _parameter2 = (_parameter2 * newrange / oldrange + mindiff); // / divisor;
     }
 
-    // Protect legacy curves where P3/P4 were both 0 (unset). With MINVOID ranges,
-    // FixChangedScale would otherwise shift these zeros into field-unit space, wrongly
-    // activating the Start/End Level feature on old sequences.
-    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && !p34Legacy)
+    if (min == MINVOID && _hasStartEndLevel)
     {
         _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && !p34Legacy)
+    if (min == MINVOID && _hasStartEndLevel)
     {
         _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
@@ -855,14 +850,13 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         _parameter2 = (_parameter2 - _min) * newrange / oldrange + newmin;
     }
 
-    bool p34Legacy = (_parameter3 == 0.0f && _parameter4 == 0.0f);
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID && !p34Legacy) {
+    if (min == MINVOID && _hasStartEndLevel) {
         _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID && !p34Legacy) {
+    if (min == MINVOID && _hasStartEndLevel) {
         _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
@@ -1015,7 +1009,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1054,7 +1048,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1092,7 +1086,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1130,7 +1124,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1168,7 +1162,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1206,7 +1200,7 @@ void ValueCurve::RenderType()
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
             float fy = Safe01(y);
-            if (_parameter3 != 0 || _parameter4 != 0) {
+            if (_hasStartEndLevel) {
                 float sn = parameter3 / 100.0f;
                 float en = parameter4 / 100.0f;
                 fy = Safe01(sn + fy * (en - sn));
@@ -1397,6 +1391,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     _active = false;
     _wrap = false;
     _realValues = true;
+    _hasStartEndLevel = false;
     if (divisor != MAXVOID)
     {
         _divisor = divisor;
@@ -1566,13 +1561,22 @@ std::string ValueCurve::Serialise()
         {
             res += "P2=" + fmt2f(_parameter2) + "|";
         }
-        if (_parameter3 != 0)
+        if (_hasStartEndLevel)
         {
+            res += "SE=Y|";
             res += "P3=" + fmt2f(_parameter3) + "|";
-        }
-        if (_parameter4 != 0)
-        {
             res += "P4=" + fmt2f(_parameter4) + "|";
+        }
+        else
+        {
+            if (_parameter3 != 0)
+            {
+                res += "P3=" + fmt2f(_parameter3) + "|";
+            }
+            if (_parameter4 != 0)
+            {
+                res += "P4=" + fmt2f(_parameter4) + "|";
+            }
         }
         if (_timeOffset != 0)
         {
@@ -1737,6 +1741,8 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
         _realValues = true;
     } else if (k == "P2") {
         _parameter2 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "SE") {
+        _hasStartEndLevel = true;
     } else if (k == "P3") {
         _parameter3 = std::strtof(s.c_str(), nullptr);
     } else if (k == "P4") {
