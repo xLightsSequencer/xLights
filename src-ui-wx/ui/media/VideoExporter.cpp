@@ -345,6 +345,17 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         if (codec) {
             ::avcodec_free_context(&_videoCodecContext);
             _videoCodecContext = nullptr;
+            // Tear down the hardware frames context we tried to attach above;
+            // the fallback encoder may be software (e.g. mpeg4) and expect a
+            // software pix_fmt. Leaving _hwFramesCtx populated would cause
+            // initializeFrames() to allocate AV_PIX_FMT_VIDEOTOOLBOX frames
+            // for a codec that can't consume them.
+            if (_hwFramesCtx != nullptr) {
+                ::av_buffer_unref(&_hwFramesCtx);
+            }
+            if (_hwDeviceCtx != nullptr) {
+                ::av_buffer_unref(&_hwDeviceCtx);
+            }
             return initializeVideo(codec);
         }
     }
@@ -674,6 +685,13 @@ int GenericVideoExporter::pushVideoUntilPacketFilled(int index)
             }
         }
         if (_getVideo(_videoFrames[_curVideoFrame], data[0], frameSize, index++)) {
+            // sws_scale cannot write into an opaque AV_PIX_FMT_VIDEOTOOLBOX frame.
+            // A callback that returns true when the destination is a hw frame is
+            // a bug (the hw path populates data[3] directly and should return
+            // false); guard against it rather than segfault inside sws_scale.
+            if (_videoFrames[_curVideoFrame]->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+                throw std::runtime_error("VideoExporter - callback filled RGB buffer but destination is a VideoToolbox hw frame");
+            }
             int height = ::sws_scale(_swsContext, data, stride, 0, frameHeight, _videoFrames[_curVideoFrame]->data, _videoFrames[_curVideoFrame]->linesize);
             if (height != _videoCodecContext->height) {
                 throw std::runtime_error("VideoExporter - color conversion error");

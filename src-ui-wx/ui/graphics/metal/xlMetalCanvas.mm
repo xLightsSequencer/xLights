@@ -375,10 +375,28 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
         }
         return false;
     }
+    // Fail fast if the caller-provided RGB buffer is too small.
+    size_t requiredSize = (size_t)w * (size_t)h * 3;
+    if (buffer == nullptr || bufferSize < 0 || (size_t)bufferSize < requiredSize) {
+        return false;
+    }
+
     // SIMD-accelerated BGRA -> RGB conversion via Accelerate.framework.
     vImage_Buffer srcBuf = { captureBuffer->buffer.contents, (vImagePixelCount)h, (vImagePixelCount)w, (size_t)w * 4 };
     vImage_Buffer dstBuf = { buffer, (vImagePixelCount)h, (vImagePixelCount)w, (size_t)w * 3 };
-    vImageConvert_BGRA8888toRGB888(&srcBuf, &dstBuf, kvImageNoFlags);
+    vImage_Error err = vImageConvert_BGRA8888toRGB888(&srcBuf, &dstBuf, kvImageNoFlags);
+    if (err == kvImageNoError) {
+        return true;
+    }
+
+    // Fall back to a scalar BGRA -> RGB conversion if Accelerate rejects the buffers.
+    uint8_t *src = (uint8_t *)captureBuffer->buffer.contents;
+    uint8_t *dst = buffer;
+    for (int x = 0; x < w * h; x++, src += 4, dst += 3) {
+        dst[0] = src[2];
+        dst[1] = src[1];
+        dst[2] = src[0];
+    }
     return true;
 }
 

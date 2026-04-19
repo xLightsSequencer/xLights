@@ -709,8 +709,14 @@ bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int
         m_exportReadbackBuffer = new uint8_t[needed];
         m_exportReadbackBufferSize = needed;
     }
+    // Force tight row packing for the readback, then restore the previous
+    // setting so later GL operations that assume the default alignment aren't
+    // affected.
+    GLint previousPackAlignment = 4;
+    glGetIntegerv(GL_PACK_ALIGNMENT, &previousPackAlignment);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, m_exportReadbackBuffer);
+    glPixelStorei(GL_PACK_ALIGNMENT, previousPackAlignment);
 
     size_t dstRowBytes = (size_t)widthWithPadding * 3;
     unsigned char *dst = buffer;
