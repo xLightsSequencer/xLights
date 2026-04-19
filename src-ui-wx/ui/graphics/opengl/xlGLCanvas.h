@@ -108,4 +108,7 @@ class xlGLCanvas
         static wxGLContext *m_sharedContext;
 
         std::shared_ptr<spdlog::logger> m_logger{ nullptr };
+
+        uint8_t* m_exportReadbackBuffer = nullptr;
+        size_t m_exportReadbackBufferSize = 0;
 };

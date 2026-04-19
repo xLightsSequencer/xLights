@@ -2479,6 +2479,7 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
             parallel_for(
                 0, layers[0]->buffer.Nodes.size(), [&](int i) {
                     auto& n = layers[0]->buffer.Nodes[i];
+                    if (n == nullptr) return; // matches the serial branch
                     size_t start = n->ActChan;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this

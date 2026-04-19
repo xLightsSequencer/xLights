@@ -249,7 +249,12 @@ public:
 
     virtual void SetFromChannels(const unsigned char* buf) {
         for (int x = 0; x < 3; x++) {
-            if (offsets[x] != 255) {
+            // Guard against a corrupted/mismatched offsets[x] writing past the
+            // caller's chanCnt-sized buffer. 255 is the explicit "no channel"
+            // sentinel; anything >= chanCnt also means "nothing to read" for
+            // this node (either a subclass mismatch or an rgbOrder that didn't
+            // contain R/G/B so std::string::find returned npos and truncated).
+            if (offsets[x] != 255 && offsets[x] < chanCnt) {
                 c[x] = buf[offsets[x]];
             }
         }
@@ -257,7 +262,7 @@ public:
 
     virtual void GetForChannels(unsigned char* buf) const {
         for (int x = 0; x < 3; x++) {
-            if (offsets[x] != 255) {
+            if (offsets[x] != 255 && offsets[x] < chanCnt) {
                 buf[offsets[x]] = c[x];
             }
         }
