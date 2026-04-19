@@ -11,27 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
-    -bug (dkulp)                Metal render: drain autoreleased MTLCommandEncoders per frame instead of
-                                per render-job (large memory growth during long renders), fix sparkleBuffer
-                                use-after-free, and release retained Metal objects at shutdown
-    -enh (charlie)              Dramatically faster House Preview -> Video export on macOS
-                                (~17x at 4K): wire up a proper VideoToolbox hw_frames_ctx so
-                                h264_videotoolbox / hevc_videotoolbox consume GPU-backed
-                                CVPixelBuffers directly, skipping the CPU-side sws_scale
-                                RGB->YUV conversion that was dominating export time; also
-                                explicitly prefer the hardware encoder over libx264, remove
-                                the stale "force HEVC above 1080p" rule (H.264 supports 4K
-                                fine), and pass VideoToolbox performance hints
-                                (realtime=0, prio_speed=1). Also: eliminate per-frame
-                                readback buffer allocation in the GL canvas, use
-                                Accelerate (vImage) for BGRA->RGB on the Metal fallback
-                                path, and use GL_RGB directly for readback (no more
-                                RGBA->RGB CPU loop)
-    -bug (charlie)              Harden Node::GetForChannels / SetFromChannels against an
-                                out-of-range offsets[x] relative to chanCnt (only 255 was
-                                previously treated as the "no channel" sentinel), and
-                                null-check the node in the PixelBufferClass::GetColors
-                                parallel branch to match the serial branch
+    -enh (charlie)              Improve macOS House Preview 
     -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
     -enh (scott)                Add "Show Names" and "Show Start Channel" checkboxes to Layout tab to display model names
                                 and controller/port or start channel in the layout preview
@@ -43,8 +23,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
+    -bug (derwin12)             Fix copy-paste model not assigning the next available start channel
+    -bug (dkulp)                Metal render: drain autoreleased MTLCommandEncoders per frame instead of
+                                per render-job (large memory growth during long renders), fix sparkleBuffer
+                                use-after-free, and release retained Metal objects at shutdown
     -bug (dkup/derwin)          Handle various codec issues in avi conversions (#6142, #6153)
-    -bug (derwin12)             Fix Use State as Outline for Face Effect default
+    -bug (derwin12)             Fix Use State as Outline for Face Effect default (#6148)
     -bug (derwin12)             New polyline with default drop pattern did not render (#6156)
     -bug (derwin12)             ESPixelStick: clear unused ports when uploading with FullxLights Control (#5689)
     -bug (derwin12)             Fix base show folder merge not detecting child element changes (#4265)

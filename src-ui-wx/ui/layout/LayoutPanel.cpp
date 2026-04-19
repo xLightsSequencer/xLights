@@ -7547,10 +7547,13 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                         if (cc) {
                             nd.remove_child(cc);
                         }
-                        newModel->SetStartChannel("1");
 
 						name = xlights->AllModels.GenerateModelName(newModel->name);
                         newModel->SetControllerName(NO_CONTROLLER);
+                        // If original model was already on NO_CONTROLLER, SetControllerName returns
+                        // early without clearing the start channel. Force it empty so ReworkStartChannel
+                        // assigns the next available channel rather than leaving it at the copied value.
+                        newModel->SetStartChannel("");
 						newModel->name = name;
 						newModel->Lock(false);
 						newModel->AddOffset(0.02, 0.02, 0.0);
@@ -7599,7 +7602,8 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                                   OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                                   OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                                  OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DoPaste", nullptr, nullptr, name);
+                                                                  OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                                  OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::DoPaste", nullptr, nullptr, name);
                     modelPreview->SetCursor(wxCURSOR_DEFAULT);
                 }
             } else {
