@@ -12,6 +12,8 @@
 
 #include "Model.h"
 
+class xlTexture;
+
 class LabelModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
 public:
