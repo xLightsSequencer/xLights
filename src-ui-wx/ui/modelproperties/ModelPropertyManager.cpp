@@ -25,6 +25,7 @@
 #include "adapters/SpherePropertyAdapter.h"
 #include "adapters/CubePropertyAdapter.h"
 #include "adapters/ImagePropertyAdapter.h"
+#include "adapters/LabelPropertyAdapter.h"
 #include "adapters/CustomPropertyAdapter.h"
 #include "adapters/PolyLinePropertyAdapter.h"
 #include "adapters/MultiPointPropertyAdapter.h"
@@ -73,6 +74,8 @@ std::unique_ptr<ModelPropertyAdapter> ModelPropertyManager::CreateAdapter(Model&
             return std::make_unique<CubePropertyAdapter>(model);
         case DisplayAsType::Image:
             return std::make_unique<ImagePropertyAdapter>(model);
+        case DisplayAsType::Label:
+            return std::make_unique<LabelPropertyAdapter>(model);
         case DisplayAsType::Custom:
             return std::make_unique<CustomPropertyAdapter>(model);
         case DisplayAsType::PolyLine:

@@ -314,6 +314,11 @@ namespace XmlNodeKeys {
     constexpr auto WhiteAsAlphaAttribute  = "WhiteAsAlpha";
     constexpr auto OffBrightnessAttribute = "OffBrightness";
 
+    // Label Model
+    constexpr auto LabelTextAttribute      = "LabelText";
+    constexpr auto LabelFontSizeAttribute  = "LabelFontSize";
+    constexpr auto LabelTextColorAttribute = "LabelTextColor";
+
     // Icicles Model
     constexpr auto DropPatternAttribute = "DropPattern";
 
@@ -441,6 +446,7 @@ namespace XmlNodeKeys {
     constexpr auto DmxSkullType         = "DmxSkull";
     constexpr auto IciclesType          = "Icicles";
     constexpr auto ImageType            = "Image";
+    constexpr auto LabelType            = "Label";
     constexpr auto MatrixType           = "Matrix";
     constexpr auto ModelGroupType       = "ModelGroup";
     constexpr auto MultiPointType       = "MultiPoint";

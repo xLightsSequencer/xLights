@@ -4345,7 +4345,7 @@ void Model::SaveDisplayDimensions()
 
 void Model::RestoreDisplayDimensions()
 {
-    if (!IsDmxDisplayType(DisplayAs) && DisplayAs != DisplayAsType::Image) {
+    if (!IsDmxDisplayType(DisplayAs) && DisplayAs != DisplayAsType::Image && DisplayAs != DisplayAsType::Label) {
         SetWidth(_savedWidth, true);
         // We dont want to set the height of three point models
         if (dynamic_cast<const ThreePointScreenLocation*>(&(GetModelScreenLocation())) == nullptr) {

@@ -81,6 +81,7 @@
 #include "wreath-icon-16.xpm"
 #include "wreath-icon-64.xpm"
 #include "models/image_model.xpm"
+#include "models/label_model.xpm"
 
 #include "link-48.xpm"
 #include "unlink-48.xpm"
@@ -504,6 +505,8 @@ wxBitmapBundle xlArtProvider::CreateBitmapBundle(const wxArtID& id,
         return CreateBitmapBundleFromXPMs(sz, id, {wreath_icon_16_xpm, wreath_icon_16_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm, wreath_icon_64_xpm});
     } else if ("xlART_IMAGE_ICON" == id || "xlART_Image_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {image_xpm, image_xpm, image_xpm, image_xpm, image_xpm});
+    } else if ("xlART_LABEL_ICON" == id || "xlART_Label_ICON" == id) {
+        return CreateBitmapBundleFromXPMs(sz, id, {label_model_xpm, label_model_xpm, label_model_xpm, label_model_xpm, label_model_xpm});
     } else if ("xlART_DICE_ICON" == id) {
         return CreateBitmapBundleFromXPMs(sz, id, {dice_24, dice_24, dice_32, dice_48, dice_64});
     } else if ("xlART_cc_time_xpm" == id) {

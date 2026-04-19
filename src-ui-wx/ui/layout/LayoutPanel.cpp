@@ -558,7 +558,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 
     spdlog::debug("LayoutPanel property grid created");
 
-    ToolSizer->SetCols(21);
+    ToolSizer->SetCols(22);
     AddModelButton("Arches", arches);
     AddModelButton("Candy Canes", canes);
     AddModelButton("Channel Block", channelblock_xpm);
@@ -568,6 +568,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     AddModelButton("DMX", add_dmx_xpm);
     AddModelButton("Icicles", icicles_xpm);
     AddModelButton("Image", image_xpm);
+    AddModelButton("Label", label_model_xpm);
     AddModelButton("Matrix", matrix);
     AddModelButton("Poly Line", polyline);
     AddModelButton("Single Line", singleline);
@@ -5607,7 +5608,7 @@ void LayoutPanel::ExportFacesStatesSubModels() {
     wxArrayString choices;
     
     for (const auto& model : modelPreview->GetModels()) {
-        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image)
+        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image || model->GetDisplayAs() == DisplayAsType::Label)
             continue;
         choices.Add(model->Name());
     }

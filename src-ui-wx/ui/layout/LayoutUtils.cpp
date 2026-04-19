@@ -17,6 +17,7 @@
 
 #include <wx/artprov.h>
 #include <wx/imaglist.h>
+#include <wx/bitmap.h>
 
 namespace LayoutUtils
 {
@@ -40,6 +41,7 @@ namespace LayoutUtils
         idxs[Icon_Dmx] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_DMX_ICON", wxART_LIST));
         idxs[Icon_Icicle] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_ICICLE_ICON", wxART_LIST));
         idxs[Icon_Image] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_IMAGE_ICON", wxART_LIST));
+        idxs[Icon_Label] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_LABEL_ICON", wxART_LIST));
         idxs[Icon_Line] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_LINE_ICON", wxART_LIST));
         idxs[Icon_Matrix] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_MATRIX_ICON", wxART_LIST));
         idxs[Icon_Poly] = pushBack(imageList, wxArtProvider::GetBitmapBundle("xlART_POLY_ICON", wxART_LIST));
@@ -86,6 +88,8 @@ namespace LayoutUtils
             return Icon_Dmx;
         } else if( type == "Image" ) {
             return Icon_Image;
+        } else if( type == "Label" ) {
+            return Icon_Label;
         } else if( type == "Icicles" ) {
             return Icon_Icicle;
         } else if( type == "Single Line" ) {

@@ -32,6 +32,7 @@ namespace LayoutUtils
         Icon_Dmx,
         Icon_Icicle,
         Icon_Image,
+        Icon_Label,
         Icon_Line,
         Icon_Matrix,
         Icon_Poly,

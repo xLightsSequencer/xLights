@@ -91,6 +91,7 @@ public:
     void Visit(const CustomModel& model) override;
     void Visit(const IciclesModel& model) override;
     void Visit(const ImageModel& model) override;
+    void Visit(const LabelModel& model) override;
     void Visit(const MatrixModel& model) override;
     void Visit(const ModelGroup& model) override;
     void Visit(const MultiPointModel& model) override;

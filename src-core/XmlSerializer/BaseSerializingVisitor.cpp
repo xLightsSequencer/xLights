@@ -29,6 +29,7 @@
 #include "../models/IciclesModel.h"
 #include "../models/ImageModel.h"
 #include "../models/ImageObject.h"
+#include "../models/LabelModel.h"
 #include "../models/MatrixModel.h"
 #include "../models/MultiPointModel.h"
 #include "../models/MeshObject.h"
@@ -772,6 +773,19 @@ void BaseSerializingVisitor::Visit(const ImageModel& model) {
     attrs.Add(XmlNodeKeys::ImageAttribute,         model.GetImageFile());
     attrs.Add(XmlNodeKeys::WhiteAsAlphaAttribute,  model.IsWhiteAsAlpha() ? "True" : "False");
     attrs.Add(XmlNodeKeys::OffBrightnessAttribute, std::to_string(model.GetOffBrightness()));
+    SortAttributes(attrs);
+    WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
+    WriteOtherElements(dynamic_cast<const Model*>(&model));
+    WriteCloseTag();
+}
+
+void BaseSerializingVisitor::Visit(const LabelModel& model) {
+    AttrCollector attrs;
+    CommonVisitSteps(model, attrs);
+    AddBoxedScreenLocationAttributes(model, attrs);
+    attrs.Add(XmlNodeKeys::LabelTextAttribute,      model.GetLabelText());
+    attrs.Add(XmlNodeKeys::LabelFontSizeAttribute,  std::to_string(model.GetLabelFontSize()));
+    attrs.Add(XmlNodeKeys::LabelTextColorAttribute, (std::string)model.GetLabelTextColor());
     SortAttributes(attrs);
     WriteOpenTag(XmlNodeKeys::ModelNodeName, attrs, false);
     WriteOtherElements(dynamic_cast<const Model*>(&model));

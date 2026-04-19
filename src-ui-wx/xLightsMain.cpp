@@ -5652,7 +5652,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("Models spanning controllers");
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             int32_t start = it.second->GetFirstChannel() + 1;
             int32_t end = it.second->GetLastChannel() + 1;
 
@@ -5726,7 +5726,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxYield();
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5758,7 +5758,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {

@@ -25,6 +25,7 @@
 #include "../models/CustomModel.h"
 #include "../models/IciclesModel.h"
 #include "../models/ImageModel.h"
+#include "../models/LabelModel.h"
 #include "../models/MatrixModel.h"
 #include "../models/ModelGroup.h"
 #include "../models/MultiPointModel.h"
@@ -135,6 +136,8 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
         return DeserializeIcicles(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ImageType) {
         return DeserializeImage(node, modelManager, importing);
+    } else if (type == XmlNodeKeys::LabelType) {
+        return DeserializeLabel(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::MatrixType) != std::string::npos || node_name == "matrixmodel") {
         return DeserializeMatrix(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ModelGroupType || node_name == "modelGroup") {
@@ -626,6 +629,18 @@ Model* XmlDeserializingModelFactory::DeserializeImage(pugi::xml_node node, Model
     model->SetImageFile(node.attribute(XmlNodeKeys::ImageAttribute).as_string(""));
     model->SetWhiteAsAlpha(std::string_view(node.attribute(XmlNodeKeys::WhiteAsAlphaAttribute).as_string("False")) == "True");
     model->SetOffBrightness(node.attribute(XmlNodeKeys::OffBrightnessAttribute).as_int(80));
+    model->Setup();
+    return model;
+}
+
+Model* XmlDeserializingModelFactory::DeserializeLabel(pugi::xml_node node, ModelManager& modelManager, bool importing) {
+    LabelModel* model = new LabelModel(modelManager);
+    CommonDeserializeSteps(model, node, modelManager, importing);
+    model->SetLabelText(node.attribute(XmlNodeKeys::LabelTextAttribute).as_string("Label"));
+    model->SetLabelFontSize(node.attribute(XmlNodeKeys::LabelFontSizeAttribute).as_int(14));
+    xlColor color;
+    color.SetFromString(node.attribute(XmlNodeKeys::LabelTextColorAttribute).as_string("#FFFFFF"));
+    model->SetLabelTextColor(color);
     model->Setup();
     return model;
 }
