@@ -788,13 +788,31 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
     xLightsFrame* xl = xlights;
     // populate() uses a Y-down coordinate system (origin at top), but the layout
     // preview uses Y-up (origin at bottom).  We build vertices in Y-down space and
-    // then apply Scale(1,-1) + Translate(0,-virtualH) in the draw step to flip them
+    // then apply Scale(1,-1) + Translate(0,-H) in the draw step to flip them
     // into the correct Y-up positions without inverting the glyphs.
     float const vH = (float)virtualHeight;
+    bool const is3dMode = is3d;
+    float const wW = (float)mWindowWidth;
+    float const wH = (float)mWindowHeight;
+    glm::mat4 const pvm = ProjViewMatrix;
+
+    // In 3D mode we do a screen-space overlay: project each model's world position to
+    // screen pixels and draw labels using an ortho projection over window pixels.
+    // Pre-compute the transform that replaces the perspective MVP with the required ortho
+    // (Y-flip already baked in) while ProjViewMatrix is still valid.
+    // ApplyMatrix(T) does: new_MVP = current_MVP * T, so T = inverse(ProjViewMatrix) * target.
+    glm::mat4 screenTransform(1.0f);
+    if (is3dMode && mWindowWidth > 0 && mWindowHeight > 0) {
+        glm::mat4 const target =
+            glm::ortho(0.0f, wW, 0.0f, wH) *
+            glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f)) *
+            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -wH, 0.0f));
+        screenTransform = glm::inverse(ProjViewMatrix) * target;
+    }
 
     bool const showNames = _showModelNames;
     bool const showInfo = _showModelInfo;
-    solidProgram->addStep([models, tex, factor, charH, xl, vH, showNames, showInfo](xlGraphicsContext* ctx) {
+    solidProgram->addStep([models, tex, factor, charH, xl, vH, is3dMode, pvm, wW, wH, screenTransform, showNames, showInfo](xlGraphicsContext* ctx) {
         const xlFontInfo& font = xlFontInfo::FindFont(20);
         xlVertexTextureAccumulator* vta = ctx->createVertexTextureAccumulator();
         const float gap = 2.0f;
@@ -803,16 +821,35 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
             if (!xl->AllModels.IsModelValid(m) && !xl->IsNewModel(m)) { continue; }
             if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->Selected() && !m->GroupSelected()) { continue; }
             float const cx = m->GetHcenterPos();
-            // Place text just below the model's bottom handle edge.
-            // GetBottom() is in Y-up space; convert to Y-down yBase for populate():
-            //   top_of_text (Y-up) = bottom - gap
-            //   yBase (Y-down)     = vH - bottom + gap + charH
             float const modelBottom = m->GetBottom();
-            float const yBase = vH - modelBottom + gap + charH;
+
+            float nameX, nameYBase;
+            if (is3dMode) {
+                // Project the model's bottom-centre from world space to screen pixels.
+                glm::vec4 ndcPos = pvm * glm::vec4(cx, modelBottom, m->GetDcenterPos(), 1.0f);
+                if (ndcPos.w <= 0.0f) { continue; }
+                ndcPos /= ndcPos.w;
+                if (ndcPos.x < -1.5f || ndcPos.x > 1.5f || ndcPos.y < -1.5f || ndcPos.y > 1.5f) { continue; }
+                // NDC → Y-up screen pixels, then convert to Y-down yBase for populate()
+                // so that after the Y-flip baked into screenTransform the glyph top lands
+                // at screenY_up - gap on screen.
+                float const screenX = (ndcPos.x + 1.0f) * wW * 0.5f;
+                float const screenY_up = (ndcPos.y + 1.0f) * wH * 0.5f;
+                nameX    = screenX;
+                nameYBase = wH - screenY_up + gap + charH;
+            } else {
+                // 2D: place text just below the model's bottom handle edge.
+                // GetBottom() is in Y-up space; convert to Y-down yBase for populate():
+                //   top_of_text (Y-up) = bottom - gap
+                //   yBase (Y-down)     = vH - bottom + gap + charH
+                nameX    = cx;
+                nameYBase = vH - modelBottom + gap + charH;
+            }
+
             if (showNames) {
                 const std::string& name = m->GetName();
                 float const textWidth = font.widthOf(name, factor);
-                font.populate(*vta, cx - textWidth / 2.0f, yBase, name, factor);
+                font.populate(*vta, nameX - textWidth / 2.0f, nameYBase, name, factor);
             }
             if (showInfo) {
                 std::string infoStr;
@@ -826,18 +863,24 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
                 } else {
                     infoStr = m->GetStartChannelInDisplayFormat(xl->GetOutputManager());
                 }
-                float const infoYBase = showNames ? (yBase + charH + lineGap) : yBase;
+                float const infoYBase = showNames ? (nameYBase + charH + lineGap) : nameYBase;
                 float const infoWidth = font.widthOf(infoStr, factor);
-                font.populate(*vta, cx - infoWidth / 2.0f, infoYBase, infoStr, factor);
+                font.populate(*vta, nameX - infoWidth / 2.0f, infoYBase, infoStr, factor);
             }
         }
         if (vta->getCount() > 0) {
-            // Apply Y-flip to map Y-down vertices back to Y-up canvas space.
-            // MVP * Scale(1,-1) * Translate(0,-vH) maps (x, y_down) → (x, vH - y_down).
             ctx->PushMatrix();
-            ctx->Scale(1.0f, -1.0f, 1.0f);
-            ctx->Translate(0.0f, -vH, 0.0f);
             ctx->enableBlending();
+            if (is3dMode) {
+                // Replace perspective MVP with screen-space ortho (Y-flip already baked
+                // into screenTransform) so labels render as a 2D HUD overlay.
+                ctx->ApplyMatrix(screenTransform);
+            } else {
+                // Apply Y-flip to map Y-down vertices back to Y-up canvas space.
+                // MVP * Scale(1,-1) * Translate(0,-vH) maps (x, y_down) → (x, vH - y_down).
+                ctx->Scale(1.0f, -1.0f, 1.0f);
+                ctx->Translate(0.0f, -vH, 0.0f);
+            }
             ctx->drawTexture(vta, tex, xlWHITE);
             ctx->PopMatrix();
         }

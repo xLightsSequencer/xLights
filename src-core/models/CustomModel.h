@@ -42,6 +42,8 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
                                           bool highlightFirst = false, int highlightpixel = 0,
                                           float *boundingBox = nullptr) override;
 
+        virtual void DisplayEffectOnWindow(IModelPreview* preview, double pointSize) override;
+
         [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 
         [[nodiscard]] bool IsAllNodesUnique() const;
