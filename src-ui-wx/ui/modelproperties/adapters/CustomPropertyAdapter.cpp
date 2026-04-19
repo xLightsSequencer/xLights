@@ -138,6 +138,18 @@ void CustomPropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Out
     p->SetAttribute(wxPG_FILE_WILDCARD, "Image files|*.png;*.bmp;*.jpg;*.gif;*.jpeg"
                                         ";*.webp"
                                         "|All files (*.*)|*.*");
+
+    p = grid->Append(new wxUIntProperty("Background Image Scale %", "CustomBkgScale", _custom.GetCustomBkgScale()));
+    p->SetAttribute("Min", 10);
+    p->SetAttribute("Max", 500);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Scale of the background image as a percentage of the model size (100 = fit model bounds).");
+
+    p = grid->Append(new wxUIntProperty("Background Image Brightness %", "CustomBkgBrightness", _custom.GetCustomBkgBrightness()));
+    p->SetAttribute("Min", 0);
+    p->SetAttribute("Max", 100);
+    p->SetEditor("SpinCtrl");
+    p->SetHelpString("Brightness of the background image (0 = black, 100 = full brightness).");
 }
 
 int CustomPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
@@ -157,6 +169,18 @@ int CustomPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, w
         _custom.IncrementChangeCount();
         _custom.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgImage");
+        return 0;
+    } else if ("CustomBkgScale" == event.GetPropertyName()) {
+        _custom.SetCustomBkgScale(event.GetValue().GetInteger());
+        _custom.IncrementChangeCount();
+        _custom.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgScale");
+        return 0;
+    } else if ("CustomBkgBrightness" == event.GetPropertyName()) {
+        _custom.SetCustomBkgBrightness(event.GetValue().GetInteger());
+        _custom.IncrementChangeCount();
+        _custom.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
+                    OutputModelManager::WORK_RELOAD_MODEL_FROM_XML, "CustomModel::OnPropertyGridChange::CustomBkgBrightness");
         return 0;
     } else if ("CustomModelStrings" == event.GetPropertyName()) {
         int old_string_count = _custom.GetNumStrings();

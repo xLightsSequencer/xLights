@@ -730,6 +730,8 @@ void BaseSerializingVisitor::Visit(const CustomModel& model) {
     if (!model.GetCustomBackground().empty()) {
         attrs.Add(XmlNodeKeys::BkgImageAttribute,     model.GetCustomBackground());
         attrs.Add(XmlNodeKeys::BkgLightnessAttribute, std::to_string(model.GetCustomLightness()));
+        attrs.Add(XmlNodeKeys::BkgScaleAttribute,      std::to_string(model.GetCustomBkgScale()));
+        attrs.Add(XmlNodeKeys::BkgBrightnessAttribute, std::to_string(model.GetCustomBkgBrightness()));
     }
     if (model.HasIndivStartNodes()) {
         int cnt = model.GetIndivStartNodesCount();

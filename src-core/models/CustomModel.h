@@ -12,6 +12,8 @@
 
 #include "Model.h"
 
+class xlTexture;
+
 class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 {
     public:
@@ -33,6 +35,12 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
 
         [[nodiscard]] virtual std::list<std::string> GetFileReferences() override;
         [[nodiscard]] virtual bool CleanupFileLocations(RenderContext* ctx) override;
+
+        virtual void DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext *ctx,
+                                          xlGraphicsProgram *solidProgram, xlGraphicsProgram *transparentProgram, bool is_3d = false,
+                                          const xlColor* color = nullptr, bool allowSelected = false, bool wiring = false,
+                                          bool highlightFirst = false, int highlightpixel = 0,
+                                          float *boundingBox = nullptr) override;
 
         [[nodiscard]] virtual std::string GetStartLocation() const override { return "n/a"; }
 
@@ -59,6 +67,10 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetCustomBackground(std::string background);
         [[nodiscard]] long GetCustomLightness() const { return _lightness; }
         void SetCustomLightness(long lightness) { _lightness = lightness; }
+        [[nodiscard]] int GetCustomBkgScale() const { return _bkg_scale; }
+        void SetCustomBkgScale(int scale) { _bkg_scale = scale; }
+        [[nodiscard]] int GetCustomBkgBrightness() const { return _bkg_brightness; }
+        void SetCustomBkgBrightness(int brightness) { _bkg_brightness = brightness; }
 
         [[nodiscard]] virtual bool SupportsExportAsCustom() const override { return false; }
         [[nodiscard]] virtual bool SupportsWiringView() const override { return true; }
@@ -93,6 +105,9 @@ class CustomModel : public ModelWithScreenLocation<BoxedScreenLocation>
         long _customHeight = 1;
         long _depth = 1;
         std::string _custom_background;
+        int _bkg_scale = 100;
+        int _bkg_brightness = 20;
+        std::map<std::string, xlTexture*> _bkg_images;
         int _strings = 1;
         long _lightness = 0;
         std::vector<std::vector<std::vector<int>>> _locations;

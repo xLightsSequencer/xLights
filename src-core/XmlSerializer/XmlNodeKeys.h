@@ -300,6 +300,8 @@ namespace XmlNodeKeys {
     constexpr auto PixelAttribute          = "Pixel";
     constexpr auto BkgLightnessAttribute   = "CustomBkgLightness";
     constexpr auto BkgImageAttribute       = "CustomBkgImage";
+    constexpr auto BkgScaleAttribute       = "CustomBkgScale";
+    constexpr auto BkgBrightnessAttribute  = "CustomBkgBrightness";
     constexpr auto BkgAttribute            = "Bkg";
     constexpr auto CMDepthAttribute        = "Depth";
     constexpr auto CustomStringsAttribute  = "CustomStrings";
