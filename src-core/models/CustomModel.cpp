@@ -181,7 +181,7 @@ void CustomModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext
                     ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0f);
                 }
                 GetModelScreenLocation().ApplyModelViewMatrices(ctx);
-                ctx->drawTexture(va, texture, 100, _bkg_brightness * 255 / 100, 0, va->getCount());
+                ctx->drawTexture(va, texture, _bkg_brightness, 255, 0, va->getCount());
                 ctx->PopMatrix();
                 delete va;
             });
