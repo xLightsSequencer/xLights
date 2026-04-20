@@ -2310,6 +2310,15 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     }
     float newAngle = static_cast<float>(angle);
 
+    // Snapshot the full models XML before any changes so a single Ctrl-Z
+    // rolls back the entire bulk rotation as one undo step. "All" type
+    // captures the complete state - this is the same pattern used by
+    // multi-model delete / group operations elsewhere in LayoutPanel.
+    // We defer taking the snapshot until after the dialog is accepted and
+    // the value parsed, so Cancel / invalid input doesn't leave a no-op
+    // entry on the undo stack.
+    CreateUndoPoint("All", wxString::Format("BulkRotate%c", axis).ToStdString(), entered);
+
     int changed = 0;
     for (Model* model : modelsToEdit) {
         if (model == nullptr) continue;
