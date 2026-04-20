@@ -104,64 +104,84 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
 
     std::string node_name = node.name();  // need this to support importing old models that did not have the DisplayAs attribute
 
+    Model* model = nullptr;
     if (type == XmlNodeKeys::ArchesType || node_name == "archesmodel") {
-        return DeserializeArches(node, modelManager, importing);
+        model = DeserializeArches(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CandyCaneType) {
-        return DeserializeCandyCane(node, modelManager, importing);
+        model = DeserializeCandyCane(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ChannelBlockType) {
-        return DeserializeChannelBlock(node, modelManager, importing);
+        model = DeserializeChannelBlock(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CircleType || node_name == "circlemodel") {
-        return DeserializeCircle(node, modelManager, importing);
+        model = DeserializeCircle(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CubeType || node_name == "Cubemodel") {
-        return DeserializeCube(node, modelManager, importing);
+        model = DeserializeCube(node, modelManager, importing);
     } else if (type == XmlNodeKeys::CustomType || node_name == "custommodel") {
-        return DeserializeCustom(node, modelManager, importing);
+        model = DeserializeCustom(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxMovingHeadType) {
-        return DeserializeDmxMovingHead(node, modelManager, importing);
+        model = DeserializeDmxMovingHead(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxMovingHeadAdvType) {
-        return DeserializeDmxMovingHeadAdv(node, modelManager, importing);
+        model = DeserializeDmxMovingHeadAdv(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxFloodAreaType) {
-        return DeserializeDmxFloodArea(node, modelManager, importing);
+        model = DeserializeDmxFloodArea(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxFloodlightType) {
-        return DeserializeDmxFloodlight(node, modelManager, importing);
+        model = DeserializeDmxFloodlight(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxGeneralType || node_name == "dmxgeneral") {
-        return DeserializeDmxGeneral(node, modelManager, importing);
+        model = DeserializeDmxGeneral(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
-        return DeserializeDmxServo(node, modelManager, importing);
+        model = DeserializeDmxServo(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
-        return DeserializeDmxServo3d(node, modelManager, importing);
+        model = DeserializeDmxServo3d(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
-        return DeserializeDmxSkull(node, modelManager, importing);
+        model = DeserializeDmxSkull(node, modelManager, importing);
     } else if (type == XmlNodeKeys::IciclesType || node_name == "iciclemodel") {
-        return DeserializeIcicles(node, modelManager, importing);
+        model = DeserializeIcicles(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ImageType) {
-        return DeserializeImage(node, modelManager, importing);
+        model = DeserializeImage(node, modelManager, importing);
     } else if (type == XmlNodeKeys::LabelType) {
-        return DeserializeLabel(node, modelManager, importing);
+        model = DeserializeLabel(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::MatrixType) != std::string::npos || node_name == "matrixmodel") {
-        return DeserializeMatrix(node, modelManager, importing);
+        model = DeserializeMatrix(node, modelManager, importing);
     } else if (type == XmlNodeKeys::ModelGroupType || node_name == "modelGroup") {
-        return DeserializeModelGroup(node, modelManager, importing);
+        model = DeserializeModelGroup(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::MultiPointType) != std::string::npos || node_name == "multipointmodel") {
-        return DeserializeMultiPoint(node, modelManager, importing);
+        model = DeserializeMultiPoint(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SingleLineType) {
-        return DeserializeSingleLine(node, modelManager, importing);
+        model = DeserializeSingleLine(node, modelManager, importing);
     } else if (type == XmlNodeKeys::PolyLineType || node_name == "polylinemodel") {
-        return DeserializePolyLine(node, modelManager, importing);
+        model = DeserializePolyLine(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SphereType || node_name == "spheremodel") {
-        return DeserializeSphere(node, modelManager, importing);
+        model = DeserializeSphere(node, modelManager, importing);
     } else if (type == XmlNodeKeys::SpinnerType) {
-        return DeserializeSpinner(node, modelManager, importing);
+        model = DeserializeSpinner(node, modelManager, importing);
     } else if (type == XmlNodeKeys::StarType || node_name == "starmodel") {
-        return DeserializeStar(node, modelManager, importing);
+        model = DeserializeStar(node, modelManager, importing);
     } else if (type.find(XmlNodeKeys::TreeType) != std::string::npos || node_name == "treemodel") {
-        return DeserializeTree(node, modelManager, importing);
+        model = DeserializeTree(node, modelManager, importing);
     } else if (type == XmlNodeKeys::WindowType) {
-        return DeserializeWindow(node, modelManager, importing);
+        model = DeserializeWindow(node, modelManager, importing);
     } else if (type == XmlNodeKeys::WreathType) {
-        return DeserializeWreath(node, modelManager, importing);
+        model = DeserializeWreath(node, modelManager, importing);
+    } else {
+        throw std::runtime_error("Unknown model type: " + type);
     }
-    throw std::runtime_error("Unknown model type: " + type);
+
+    // Apply real-world dimensions after Setup() has initialized RenderWi/RenderHt.
+    // This must happen here rather than in DeserializeCommonModelChildElements because
+    // SetMWidth/SetMHeight divide by (RenderWi-1) / (RenderHt-1), and those values are
+    // only correct after each Deserialize* function has called model->Setup().
+    if (model != nullptr && importing && RulerObject::GetRuler() != nullptr) {
+        pugi::xml_node dimNode = node.child(XmlNodeKeys::DimNodeName);
+        if (dimNode) {
+            std::string units = dimNode.attribute(XmlNodeKeys::DimUnitsAttribute).as_string("mm");
+            float width  = dimNode.attribute(XmlNodeKeys::DimWidthAttribute).as_float(0);
+            float height = dimNode.attribute(XmlNodeKeys::DimHeightAttribute).as_float(0);
+            float depth  = dimNode.attribute(XmlNodeKeys::DimDepthAttribute).as_float(0);
+            model->ApplyDimensions(units, width, height, depth);
+            modelManager.SetUsedRuler();
+        }
+    }
+
+    return model;
 }
 
 void XmlDeserializingModelFactory::CommonDeserializeSteps(Model* model, pugi::xml_node node, ModelManager& modelManager, bool importing) {
@@ -323,15 +343,6 @@ void XmlDeserializingModelFactory::DeserializeCommonModelChildElements(Model* mo
             model->AddModelGroups(f, model->GetName(), merge, showPopup);
         } else if (strcasecmp(f.name(), "shadowmodels") == 0 && importing) {
             model->ImportExtraModels(f, modelManager, "Unassigned");
-        } else if ("dimensions" == fname && importing) {
-            if (RulerObject::GetRuler() != nullptr) {
-                std::string units = f.attribute("units").as_string("mm");
-                float width = f.attribute("width").as_float(1000);
-                float height = f.attribute("height").as_float(1000);
-                float depth = f.attribute("depth").as_float(0);
-                model->ApplyDimensions(units, width, height, depth);
-                modelManager.SetUsedRuler();
-            }
         } else if (strcasecmp(f.name(), "associatedmodels") == 0 && importing) {
             model->ImportExtraModels(f, modelManager, model->GetLayoutGroup());
         } else if ("ControllerConnection" == fname) {
