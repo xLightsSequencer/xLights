@@ -31,6 +31,7 @@
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
+#include <cmath>
 #include <fstream>
 #include <functional>
 #include <spdlog/fmt/fmt.h>
@@ -2311,18 +2312,38 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::string entered = dlg.GetValue().ToStdString();
     char* endp = nullptr;
     double angle = std::strtod(entered.c_str(), &endp);
-    if (endp == entered.c_str()) {
-        // Nothing parsed - abort silently rather than setting 0.
+    if (endp == entered.c_str() || !std::isfinite(angle)) {
+        // Unparseable or NaN/Inf - abort silently rather than letting garbage
+        // propagate into transform matrices.
+        return;
+    }
+    // Match the [-180, 180] range enforced by the rotation property grid
+    // (see ScreenLocationPropertyHelper.cpp RotateX/Y/Z Min/Max). Out-of-range
+    // values are silently reset to 0 by BoxedScreenLocation::Init(), so reject
+    // them here with a clear message rather than letting the user lose their
+    // change without warning.
+    if (angle < -180.0 || angle > 180.0) {
+        wxMessageBox(
+            wxString::Format("Rotation angle must be between -180 and 180 degrees (got %g).", angle),
+            "Invalid rotation angle", wxOK | wxICON_WARNING, this);
         return;
     }
     float newAngle = static_cast<float>(angle);
 
     // Snapshot the full models XML before any changes so a single Ctrl-Z
     // rolls back the entire bulk rotation as one undo step. Taken only after
-    // we know we have at least one editable model and a parseable angle, so
-    // Cancel / invalid input / all-locked selections don't leave a no-op
+    // we know we have at least one editable model and a valid in-range angle,
+    // so Cancel / invalid input / all-locked selections don't leave a no-op
     // entry on the undo stack.
-    CreateUndoPoint("All", wxString::Format("BulkRotate%c", axis).ToStdString(), entered);
+    //
+    // The second CreateUndoPoint argument is used later in DoUndo() as the
+    // "selectedModel" hint passed to AddASAPWork, so it must be an actual
+    // model name rather than an operation label - otherwise post-undo
+    // selection logic would try to resolve a nonexistent model. Operation
+    // context goes in the key/data fields.
+    CreateUndoPoint("All", editableModels.front()->name,
+                    wxString::Format("BulkRotate%c", axis).ToStdString(),
+                    entered);
 
     for (Model* model : editableModels) {
         auto& loc = model->GetBaseObjectScreenLocation();
