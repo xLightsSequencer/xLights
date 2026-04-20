@@ -211,6 +211,9 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEX;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEY;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEZ;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_GROUND;
@@ -403,6 +406,10 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerPreview();
         void BulkEditGroupControllerPreview();
         void BulkEditDimmingCurves();
+        void BulkEditRotateX();
+        void BulkEditRotateY();
+        void BulkEditRotateZ();
+        void BulkEditRotateAxis(char axis);
         void ReplaceModel();
         void EditSubModelAlias();
         void ShowNodeLayout();

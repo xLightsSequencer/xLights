@@ -394,6 +394,9 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT = wxNe
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEX = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEY = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEZ = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_GROUND = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
@@ -2263,6 +2266,75 @@ void LayoutPanel::BulkEditPixelSize() {
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
     }
+}
+
+void LayoutPanel::BulkEditRotateX() { BulkEditRotateAxis('X'); }
+void LayoutPanel::BulkEditRotateY() { BulkEditRotateAxis('Y'); }
+void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
+
+void LayoutPanel::BulkEditRotateAxis(char axis) {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+    // remember the selected models so we can restore the selection after the reload
+    std::vector<std::list<std::string>> selectedModelPaths = GetSelectedTreeModelPaths();
+
+    // Pre-fill the dialog with the first unlocked model's current rotation so
+    // the user only has to type a value if they want to change it.
+    float initial = 0.0f;
+    for (Model* model : modelsToEdit) {
+        if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
+            switch (axis) {
+                case 'X': initial = model->GetBaseObjectScreenLocation().GetRotateX(); break;
+                case 'Y': initial = model->GetBaseObjectScreenLocation().GetRotateY(); break;
+                case 'Z': initial = model->GetBaseObjectScreenLocation().GetRotateZ(); break;
+            }
+            break;
+        }
+    }
+
+    wxString title = wxString::Format("Bulk Edit Rotate %c", axis);
+    wxString prompt = wxString::Format("Rotate %c (degrees):", axis);
+    wxTextEntryDialog dlg(this, prompt, title, wxString::Format("%g", initial));
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    // Parse the entered angle. Use strtod (not std::stod) because xLights has
+    // effectively no exception handling - see CLAUDE.md "Prefer std::* Over wx*".
+    std::string entered = dlg.GetValue().ToStdString();
+    char* endp = nullptr;
+    double angle = std::strtod(entered.c_str(), &endp);
+    if (endp == entered.c_str()) {
+        // Nothing parsed - abort silently rather than setting 0.
+        return;
+    }
+    float newAngle = static_cast<float>(angle);
+
+    int changed = 0;
+    for (Model* model : modelsToEdit) {
+        if (model == nullptr) continue;
+        auto& loc = model->GetBaseObjectScreenLocation();
+        if (loc.IsLocked()) continue;
+        switch (axis) {
+            case 'X': loc.SetRotateX(newAngle); break;
+            case 'Y': loc.SetRotateY(newAngle); break;
+            case 'Z': loc.SetRotateZ(newAngle); break;
+        }
+        ++changed;
+    }
+
+    if (changed == 0) {
+        return;
+    }
+
+    // Match the persistence + selection-restore pattern used by BulkEditPixelSize
+    // and the other bulk-edit commands: clear, reload, then reselect the tree
+    // rows so the user sees the same models still selected after the redraw.
+    xlights->GetOutputModelManager()->ClearSelectedModel();
+    xlights->GetOutputModelManager()->AddImmediateWork(
+        OutputModelManager::WORK_RELOAD_ALLMODELS,
+        wxString::Format("BulkEditRotate%c", axis).ToStdString());
+    ReselectTreeModels(selectedModelPaths);
 }
 
 void LayoutPanel::BulkEditPixelStyle() {
@@ -5387,6 +5459,11 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SHADOWMODELFOR, "Shadow Model For");
 
         mnuBulkEdit->AppendSeparator();
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEX, "Rotate X");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEY, "Rotate Y");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEZ, "Rotate Z");
+
+        mnuBulkEdit->AppendSeparator();
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Port");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT, "Controller Port and Increment");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL, "Controller Protocol");
@@ -5607,6 +5684,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
@@ -8427,6 +8510,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
