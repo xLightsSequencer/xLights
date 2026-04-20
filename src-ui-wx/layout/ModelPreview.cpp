@@ -1227,10 +1227,21 @@ double ModelPreview::calcPixelSize(double i) {
 }
 
 double ModelPreview::getViewScale() const {
-    if (allowSelected && !is3d) {
-        return camera2d->GetZoom() * currentScale2d;
+    static constexpr double kBaseScale = 0.6;
+    if (allowSelected) {
+        if (!is3d) {
+            // 2D zoom increases when zooming in. Cap circles at kBaseScale when zoomed in;
+            // shrink proportionally when zoomed out (zoom < 1).
+            return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
+        } else {
+            // 3D zoom increases when zooming out (camera moves further away). Keep circles
+            // at kBaseScale when zoomed in (zoom <= 1); shrink proportionally when zoomed out.
+            float z = camera3d->GetZoom();
+            return z > 1.0f ? kBaseScale / z : kBaseScale;
+        }
     }
-    return 1.0;
+    // Non-layout previews (house preview, model preview): shrink with zoom-out, cap when zoomed in.
+    return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
 }
 
 double ModelPreview::getBackingScaleFactor() const {
