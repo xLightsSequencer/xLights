@@ -969,6 +969,14 @@ Model* XmlDeserializingModelFactory::DeserializeModelGroup(pugi::xml_node node, 
         }
     }
 
+    // Deserialize child elements (Aliases)
+    for (pugi::xml_node child = node.first_child(); child; child = child.next_sibling()) {
+        std::string_view childName = child.name();
+        if (childName == XmlNodeKeys::AliasesAttribute || childName == "aliases") {
+            DeserializeAliases(model, child);
+        }
+    }
+
     // Note: We call RebuildBuffers() to finalize the model group
     // This handles node initialization and buffer setup
     model->RebuildBuffers();

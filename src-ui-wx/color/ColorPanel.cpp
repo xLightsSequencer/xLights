@@ -818,12 +818,6 @@ void ColorPanel::SetDefaultSettings(bool optionbased) {
         for (const auto& it : checkBoxes) {
             it->SetValue(false);
         }
-        if (checkBoxes.size() > 0) {
-            checkBoxes[0]->SetValue(true);
-        }
-        if (checkBoxes.size() > 1) {
-            checkBoxes[1]->SetValue(true);
-        }
     }
 
     if (!optionbased || (_resetColorPanelCheck && _resetColorPanelCheck->GetValue())) {
