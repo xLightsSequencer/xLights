@@ -2275,18 +2275,27 @@ void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
 void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
 
-    // Pre-fill the dialog with the first unlocked model's current rotation so
-    // the user only has to type a value if they want to change it.
-    float initial = 0.0f;
+    // Filter to only the models we can actually modify (non-null, non-locked).
+    // Doing this up front lets us skip the undo snapshot entirely when nothing
+    // would change - see Copilot review on PR #6184.
+    std::vector<Model*> editableModels;
+    editableModels.reserve(modelsToEdit.size());
     for (Model* model : modelsToEdit) {
         if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
-            switch (axis) {
-                case 'X': initial = model->GetBaseObjectScreenLocation().GetRotateX(); break;
-                case 'Y': initial = model->GetBaseObjectScreenLocation().GetRotateY(); break;
-                case 'Z': initial = model->GetBaseObjectScreenLocation().GetRotateZ(); break;
-            }
-            break;
+            editableModels.push_back(model);
         }
+    }
+    if (editableModels.empty()) {
+        return;
+    }
+
+    // Pre-fill the dialog with the first editable model's current rotation so
+    // the user only has to type a value if they want to change it.
+    float initial = 0.0f;
+    switch (axis) {
+        case 'X': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateX(); break;
+        case 'Y': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateY(); break;
+        case 'Z': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateZ(); break;
     }
 
     wxString title = wxString::Format("Bulk Edit Rotate %c", axis);
@@ -2309,16 +2318,14 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     float newAngle = static_cast<float>(angle);
 
     // Snapshot the full models XML before any changes so a single Ctrl-Z
-    // rolls back the entire bulk rotation as one undo step. Deferred until
-    // after the dialog is accepted and the value parsed, so Cancel / invalid
-    // input doesn't leave a no-op entry on the undo stack.
+    // rolls back the entire bulk rotation as one undo step. Taken only after
+    // we know we have at least one editable model and a parseable angle, so
+    // Cancel / invalid input / all-locked selections don't leave a no-op
+    // entry on the undo stack.
     CreateUndoPoint("All", wxString::Format("BulkRotate%c", axis).ToStdString(), entered);
 
-    int changed = 0;
-    for (Model* model : modelsToEdit) {
-        if (model == nullptr) continue;
+    for (Model* model : editableModels) {
         auto& loc = model->GetBaseObjectScreenLocation();
-        if (loc.IsLocked()) continue;
         switch (axis) {
             case 'X': loc.SetRotateX(newAngle); break;
             case 'Y': loc.SetRotateY(newAngle); break;
@@ -2334,11 +2341,6 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
         // load-time Init). Calling both makes the cache consistent immediately.
         loc.Reload();
         loc.Init();
-        ++changed;
-    }
-
-    if (changed == 0) {
-        return;
     }
 
     // Use WORK_SCREEN_LOCATION_CHANGE (not WORK_RELOAD_ALLMODELS) to match how

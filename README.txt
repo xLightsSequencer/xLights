@@ -11,9 +11,6 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
-    -enh (heffneil)             Layout tab: Bulk Edit menu now includes Rotate X / Rotate Y / Rotate Z items so a
-                                rotation can be applied to every selected model in one operation, with the tree
-                                selection preserved after the change.
     -enh (dkulp)                Shape effect: Effect panel now organises its 27 properties into Shape / Size / Motion /
                                 Triggers tabs instead of a flat scroll, matching the grouped layout other large effects use.
     -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
