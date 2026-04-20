@@ -1277,6 +1277,21 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     else {
         if (editing_models) {
             xlights->AbortRender();
+            // Guard against a dangling selectedBaseObject. A modal dialog that
+            // was cancelled mid-edit (ModelStateDialog / SubModelsDialog with an
+            // active node-selection in progress, escape pressed before the
+            // selection is released) can free the model the cache pointed at
+            // without notifying us. The plain != nullptr check below would then
+            // pass and the dynamic_cast / SaveDisplayDimensions call that
+            // follows would crash on freed memory.
+            if (selectedBaseObject != nullptr && !IsSelectedBaseObjectValid()) {
+                spdlog::warn("LayoutPanel::OnPropertyGridChange: selectedBaseObject was stale; clearing cached selection.");
+                selectedBaseObject = nullptr;
+                highlightedBaseObject = nullptr;
+                _propertyAdapter.reset();
+                updatingProperty = false;
+                return;
+            }
             if (selectedBaseObject != nullptr) {
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
                 //model property
@@ -1344,6 +1359,14 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
+    // Same dangling-pointer guard as OnPropertyGridChange - see IsSelectedBaseObjectValid.
+    if (selectedBaseObject != nullptr && !IsSelectedBaseObjectValid()) {
+        spdlog::warn("LayoutPanel::OnPropertyGridChanging: selectedBaseObject was stale; clearing cached selection.");
+        selectedBaseObject = nullptr;
+        highlightedBaseObject = nullptr;
+        _propertyAdapter.reset();
+        return;
+    }
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             xlights->AbortRender();
@@ -8135,6 +8158,36 @@ void LayoutPanel::DoUndo(wxCommandEvent& event) {
 
         undoBuffer.resize(sz);
     }
+}
+
+bool LayoutPanel::IsSelectedBaseObjectValid() const {
+    // Pointer-address comparison only - never dereferences selectedBaseObject.
+    // selectedBaseObject can be left pointing to freed memory if a modal dialog
+    // (e.g. ModelStateDialog or SubModelsDialog) was cancelled mid-edit while
+    // a node selection was in progress: the dialog tears down the model it was
+    // editing without invalidating the LayoutPanel cache. Without this guard,
+    // OnPropertyGridChange's null check passes (the pointer isn't literally
+    // nullptr) and a subsequent dynamic_cast / dereference crashes on the
+    // dangling pointer.
+    if (selectedBaseObject == nullptr) {
+        return false;
+    }
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
+        if (static_cast<BaseObject*>(it->second) == selectedBaseObject) {
+            return true;
+        }
+        for (auto* sm : it->second->GetSubModels()) {
+            if (static_cast<BaseObject*>(sm) == selectedBaseObject) {
+                return true;
+            }
+        }
+    }
+    for (auto it = xlights->AllObjects.begin(); it != xlights->AllObjects.end(); ++it) {
+        if (static_cast<BaseObject*>(it->second) == selectedBaseObject) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void LayoutPanel::CreateUndoPoint(const std::string &tp, const std::string &model, const std::string &key, const std::string &data) {

@@ -537,6 +537,14 @@ class LayoutPanel: public wxPanel
         };
         std::vector<UndoStep> undoBuffer;
         void CreateUndoPoint(const std::string &type, const std::string &model, const std::string &key = "", const std::string &data = "");
+
+        // Returns true only if selectedBaseObject is currently a live pointer in
+        // either AllModels (incl. submodels) or AllObjects. Performs pointer-address
+        // comparison only, never dereferences selectedBaseObject - so it is safe to
+        // call when the cached pointer may already be dangling (e.g. after a modal
+        // dialog cancelled mid-edit and tore down the model it was editing). When it
+        // returns false the caller should treat the selection as cleared.
+        bool IsSelectedBaseObjectValid() const;
     public:
         xLightsFrame *xlights = nullptr;
         void UpdateModelList(bool full_refresh);
