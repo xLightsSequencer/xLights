@@ -257,6 +257,19 @@ public:
     const static int STYLE_STRINGS = 2;
     const static int STYLE_CHANNELS = 4;
     const static int STYLE_LABEL = 8;
+
+    // Live visualizer filter - lowercase, empty means "no filter, show
+    // everything at full opacity". Set by the dialog's filter SearchCtrl on
+    // every keystroke. Read by ModelCMObject::Draw at paint time to decide
+    // whether to dim the model (non-matching rows fade to stay spatially
+    // present but visually de-emphasized). Static so Draw can read it
+    // without plumbing an extra parameter through the whole call chain.
+    static wxString _visualizerFilterLower;
+    static bool MatchesVisualizerFilter(const std::string& name) {
+        if (_visualizerFilterLower.IsEmpty()) return true;
+        return wxString(name).Lower().Contains(_visualizerFilterLower);
+    }
+
     enum class HITLOCATION { NONE,
                              LEFT,
                              RIGHT,
@@ -370,6 +383,10 @@ public:
         _location = wxPoint(_location.x + x, _location.y + y);
     }
 };
+
+// Static member definition for BaseCMObject::_visualizerFilterLower.
+// Initially empty (no filter applied).
+wxString BaseCMObject::_visualizerFilterLower;
 
 class PortCMObject : public BaseCMObject
 {
@@ -1381,6 +1398,13 @@ public:
         Model* m = _mm->GetModel(_name);
         UDControllerPortModel* udcpm = GetUDModel();
 
+        // If a visualizer filter is active and this model doesn't match, paint
+        // it with a dimmed / de-emphasized palette so the controller layout
+        // stays spatially intact but the user's eye is drawn to the matching
+        // models. Printing and drag operations skip this so nothing is hidden
+        // when exporting or manipulating.
+        const bool dimForFilter = !printing && !_dragging && !MatchesVisualizerFilter(_name);
+
         if (!border) {
             dc.SetPen(*wxTRANSPARENT_PEN);
         } else {
@@ -1415,6 +1439,16 @@ public:
         } else if (mouse.x > portMargin && HitTest(adjustedMouse) != HITLOCATION::NONE && !printing) {
             _outline = true;
             dc.SetPen(wxPen(dc.GetPen().GetColour(), 3));
+        }
+
+        // Apply the dimming overrides LAST so they win over brush/pen choices
+        // above. Uses solid pale greys since wxDC alpha blending isn't portable
+        // across every backend we ship - this gives a consistent visual
+        // on Windows, macOS and Linux.
+        if (dimForFilter) {
+            dc.SetBrush(wxBrush(wxColour(240, 240, 240)));
+            dc.SetPen(wxPen(wxColour(200, 200, 200)));
+            dc.SetTextForeground(wxColour(170, 170, 170));
         }
 
         auto location = _location * scale;
@@ -2047,6 +2081,41 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Connect(ID_SCROLLBAR3, wxEVT_SCROLL_THUMBTRACK, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollThumbTrack);
     Connect(ID_SCROLLBAR3, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
     //*)
+
+    // Add a realtime "find on controller" filter above Panel3's existing
+    // content. The existing sizer (FlexGridSizer5) is preserved intact by
+    // wrapping it inside a new vertical box sizer whose first row is the
+    // search control. Done outside the wxSmith guard so the .wxs file does
+    // not need touching.
+    TextCtrl_VisualizerFilter = new wxSearchCtrl(Panel3, wxID_ANY, wxEmptyString,
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    TextCtrl_VisualizerFilter->SetDescriptiveText(_("Find on controller..."));
+    TextCtrl_VisualizerFilter->ShowCancelButton(true);
+    TextCtrl_VisualizerFilter->SetToolTip(_(
+        "Type to dim non-matching models on the visualizer. Matching models "
+        "stay at full opacity so you can find them in a dense wiring view. "
+        "Empty filter = normal view."));
+    TextCtrl_VisualizerFilter->Bind(wxEVT_TEXT,
+        &ControllerModelDialog::OnTextCtrl_VisualizerFilterText, this);
+    TextCtrl_VisualizerFilter->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN,
+        &ControllerModelDialog::OnTextCtrl_VisualizerFilterText, this);
+    TextCtrl_VisualizerFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
+        [this](wxCommandEvent&) {
+            TextCtrl_VisualizerFilter->SetValue(wxEmptyString);
+            BaseCMObject::_visualizerFilterLower.Clear();
+            PanelController->Refresh();
+        });
+
+    // Re-parent Panel3's content: put the filter on top, keep the original
+    // FlexGridSizer5 as everything-below. SetSizer(..., false) preserves
+    // the existing sizer (does not delete it) so its child widget bindings
+    // and growable-row config remain intact.
+    wxSizer* existingSizer = Panel3->GetSizer();
+    wxBoxSizer* wrapSizer = new wxBoxSizer(wxVERTICAL);
+    wrapSizer->Add(TextCtrl_VisualizerFilter, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 5);
+    wrapSizer->Add(existingSizer, 1, wxEXPAND);
+    Panel3->SetSizer(wrapSizer, false);
+    Panel3->Layout();
 
     ::SetColours(false);
 
@@ -4787,6 +4856,18 @@ void ControllerModelDialog::OnTextCtrl_ModelFilterCancel(wxCommandEvent& event)
     TextCtrl_ModelFilter->SetValue(wxEmptyString);
     ScrollBar_Models->SetThumbPosition(0);
     ReloadModels();
+}
+
+void ControllerModelDialog::OnTextCtrl_VisualizerFilterText(wxCommandEvent& event)
+{
+    // Update the static filter state that ModelCMObject::Draw reads at paint
+    // time, then trigger a repaint so the dimming / un-dimming is applied
+    // immediately (realtime). Lowercased once here so the Draw-time match is
+    // a cheap Contains() call per model rather than re-lowercasing every
+    // paint frame.
+    if (TextCtrl_VisualizerFilter == nullptr) return;
+    BaseCMObject::_visualizerFilterLower = TextCtrl_VisualizerFilter->GetValue().Lower();
+    PanelController->Refresh();
 }
 
 double ControllerModelDialog::getFontSize()
