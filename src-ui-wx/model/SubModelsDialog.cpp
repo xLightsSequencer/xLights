@@ -3398,8 +3398,32 @@ void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
 
 void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
 {
+    auto sanitizeStrand = [](const wxString& strand) {
+        auto expandedNodes = NodeUtils::ExpandNodes(strand);
+        auto nodeArray = Split(expandedNodes, ',');
+        nodeArray.erase(std::remove(nodeArray.begin(), nodeArray.end(), ""), nodeArray.end());
+        return NodeUtils::CompressNodes(Join(nodeArray, ","));
+    };
+
+    auto sanitizeSelectedSubModelStrands = [&]() {
+        wxString selectedName = GetSelectedName();
+        if (selectedName == "") {
+            return;
+        }
+
+        SubModelInfo* selectedSm = GetSubModelInfo(selectedName);
+        if (selectedSm == nullptr || !selectedSm->isRanges) {
+            return;
+        }
+
+        for (auto& strand : selectedSm->strands) {
+            strand = sanitizeStrand(strand);
+        }
+    };
+
     if (shiftDwn) {
         RemoveNodes(ctrlDown);
+        sanitizeSelectedSubModelStrands();
         return;
     }
     wxString name = GetSelectedName();
@@ -3473,10 +3497,11 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
     SelectRow(row);
     ValidateWindow();
 
-    // Always re-open the editor so the user can continue typing after a drag-select
-    // without having to click the cell first. The editor was closed by the mouse-down
-    // on the preview before this function ran, so wasEditing is always false — we just
-    // unconditionally restore edit mode here.
+    // Re-open the editor so the user can continue typing after a drag-select without
+    // having to click the cell first. Ensure the grid has focus first (the preview
+    // panel had it during the drag).
+    Panel3->SetFocus();
+    NodesGrid->SetFocus();
     NodesGrid->SetGridCursor(row, 0);
     NodesGrid->EnableCellEditControl();
 }
