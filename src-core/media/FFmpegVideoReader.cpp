@@ -818,6 +818,17 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         if (!gpuScaleOk) {
                             spdlog::warn("VideoReader: scale_cuda pipeline failed; disabling GPU scaling");
                             _cudaScaleFilterActive = false;
+                            if (_cudaScaledFrame != nullptr) {
+                                av_frame_free(&_cudaScaledFrame);
+                                _cudaScaledFrame = nullptr;
+                            }
+                            if (_cudaFilterGraph != nullptr) {
+                                avfilter_graph_free(&_cudaFilterGraph);
+                                _cudaFilterGraph   = nullptr;
+                                _cudaBufferSrcCtx  = nullptr;
+                                _cudaScaleCtx      = nullptr;
+                                _cudaBufferSinkCtx = nullptr;
+                            }
                             if (_swsCtx != nullptr) { sws_freeContext(_swsCtx); _swsCtx = nullptr; }
                         }
                     }
@@ -984,6 +995,7 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                         } else {
                             decodeCount++;
                             if (decodeCount == 100) {
+                                _codecContext->skip_frame = AVDISCARD_NONE;
                                 return nullptr;
                             }
                         }
