@@ -264,6 +264,12 @@ public:
     // whether to dim the model (non-matching rows fade to stay spatially
     // present but visually de-emphasized). Static so Draw can read it
     // without plumbing an extra parameter through the whole call chain.
+    //
+    // Match is a per-call case-insensitive substring test. The filter is
+    // already lowercased (by the SearchCtrl handler) so only the candidate
+    // name needs lowercasing here. A typical controller has tens of models,
+    // not thousands - the per-frame cost of Lower() on model names is
+    // negligible compared to the paint itself, so no separate cache.
     static wxString _visualizerFilterLower;
     static bool MatchesVisualizerFilter(const std::string& name) {
         if (_visualizerFilterLower.IsEmpty()) return true;
@@ -1401,9 +1407,20 @@ public:
         // If a visualizer filter is active and this model doesn't match, paint
         // it with a dimmed / de-emphasized palette so the controller layout
         // stays spatially intact but the user's eye is drawn to the matching
-        // models. Printing and drag operations skip this so nothing is hidden
-        // when exporting or manipulating.
-        const bool dimForFilter = !printing && !_dragging && !MatchesVisualizerFilter(_name);
+        // models.
+        //
+        // Scope: the SAME ModelCMObject::Draw is used by both panes of this
+        // dialog. The left (controller) pane calls Draw with a positive
+        // portMargin (space reserved for port labels). The right (available
+        // models) pane calls Draw with portMargin==0 - so we gate dimming
+        // on portMargin>0 to keep the right pane's filter (TextCtrl_ModelFilter)
+        // completely independent from the visualizer filter.
+        //
+        // Printing paths also pass portMargin==0, so they're naturally
+        // excluded. The previous !_dragging check was dead code - drag state
+        // is tracked by ControllerModelDialog::_dragging (a pointer) not by
+        // BaseCMObject::_dragging (a bool that's never set).
+        const bool dimForFilter = portMargin > 0 && !MatchesVisualizerFilter(_name);
 
         if (!border) {
             dc.SetPen(*wxTRANSPARENT_PEN);
@@ -1442,13 +1459,38 @@ public:
         }
 
         // Apply the dimming overrides LAST so they win over brush/pen choices
-        // above. Uses solid pale greys since wxDC alpha blending isn't portable
-        // across every backend we ship - this gives a consistent visual
-        // on Windows, macOS and Linux.
+        // above. Solid colours (not alpha) so the visual is consistent across
+        // every wx backend we ship, and derived from the active theme so
+        // "dimmed" truly means less prominent in BOTH light mode (pale grey
+        // approaching the light background) and dark mode (dark grey
+        // approaching the dark background). The previous fixed 240/200/170
+        // palette looked right in light mode but became MORE prominent than
+        // normal items in dark mode.
         if (dimForFilter) {
-            dc.SetBrush(wxBrush(wxColour(240, 240, 240)));
-            dc.SetPen(wxPen(wxColour(200, 200, 200)));
-            dc.SetTextForeground(wxColour(170, 170, 170));
+            const wxColour bg = __backgroundBrush.GetColour();
+            const wxColour fg = __textForeground;
+            auto blend = [](unsigned char bc, unsigned char fc, int fgWeightPct) -> unsigned char {
+                return static_cast<unsigned char>(
+                    (bc * (100 - fgWeightPct) + fc * fgWeightPct) / 100);
+            };
+            // Dark mode needs a little more foreground weight to stay
+            // legible since the starting point is near-black.
+            const bool dark = IsDarkMode();
+            const int brushW = dark ? 15 : 8;
+            const int penW   = dark ? 30 : 22;
+            const int textW  = dark ? 45 : 35;
+            dc.SetBrush(wxBrush(wxColour(
+                blend(bg.Red(),   fg.Red(),   brushW),
+                blend(bg.Green(), fg.Green(), brushW),
+                blend(bg.Blue(),  fg.Blue(),  brushW))));
+            dc.SetPen(wxPen(wxColour(
+                blend(bg.Red(),   fg.Red(),   penW),
+                blend(bg.Green(), fg.Green(), penW),
+                blend(bg.Blue(),  fg.Blue(),  penW))));
+            dc.SetTextForeground(wxColour(
+                blend(bg.Red(),   fg.Red(),   textW),
+                blend(bg.Green(), fg.Green(), textW),
+                blend(bg.Blue(),  fg.Blue(),  textW)));
         }
 
         auto location = _location * scale;
@@ -2082,6 +2124,12 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
     Connect(ID_SCROLLBAR3, wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&ControllerModelDialog::OnScrollBar_ModelsScrollChanged);
     //*)
 
+    // Reset the static visualizer filter to empty on every dialog construction
+    // so a stale value from a previous dialog session can't carry over and
+    // unexpectedly dim models on the newly-opened visualizer. The SearchCtrl
+    // itself starts empty, so this just keeps the static in sync.
+    BaseCMObject::_visualizerFilterLower.Clear();
+
     // Add a realtime "find on controller" filter above Panel3's existing
     // content. The existing sizer (FlexGridSizer5) is preserved intact by
     // wrapping it inside a new vertical box sizer whose first row is the
@@ -2220,6 +2268,11 @@ ControllerModelDialog::ControllerModelDialog(wxWindow* parent, UDController* cud
 
 ControllerModelDialog::~ControllerModelDialog()
 {
+    // Clear the static visualizer filter - otherwise a stale value would
+    // linger past the lifetime of this dialog and dim models the next time
+    // the dialog is constructed before the user typed anything.
+    BaseCMObject::_visualizerFilterLower.Clear();
+
     SaveWindowPosition("ControllerModelDialogPosition", this);
     auto* config = GetXLightsConfig();
     config->Write("ControllerModelSashPosition", SplitterWindow1->GetSashPosition());
