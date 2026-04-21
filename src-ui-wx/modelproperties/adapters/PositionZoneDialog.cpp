@@ -60,13 +60,18 @@ PositionZoneDialog::PositionZoneDialog(std::vector<PositionZone>& zones, wxWindo
     //*)
 
     // instruction text above the grid
-    wxStaticText* helpText = new wxStaticText(this, wxID_ANY,
-        "Define zones that trigger a DMX channel output when the moving head enters that pan/tilt range.\n"
-        "  \u2022  Pan Min/Max: pan channel value range (0-255) that defines this zone\n"
-        "  \u2022  Tilt Min/Max: tilt channel value range (0-255) that defines this zone\n"
-        "  \u2022  Channel: DMX channel number to set when the head is inside this zone\n"
-        "  \u2022  Value: DMX value (0-255) to send on that channel");
+    const wxString bullet(wxUniChar(0x2022));
+    const wxString helpTextLabel = wxString::Format(
+        _("Define zones that trigger a DMX channel output when the moving head enters that pan/tilt range.\n"
+          "  %s  Pan Min/Max: pan channel value range (0-255) that defines this zone\n"
+          "  %s  Tilt Min/Max: tilt channel value range (0-255) that defines this zone\n"
+          "  %s  Channel: DMX channel number to set when the head is inside this zone\n"
+          "  %s  Value: DMX value (0-255) to send on that channel"),
+        bullet, bullet, bullet, bullet);
+    wxStaticText* helpText = new wxStaticText(this, wxID_ANY, helpTextLabel);
     FlexGridSizer1->Prepend(helpText, 0, wxALL | wxEXPAND, 8);
+    FlexGridSizer1->RemoveGrowableRow(0);
+    FlexGridSizer1->AddGrowableRow(1);
 
     // per-column spin editors with min/max ranges
     auto makeAttr = [](int min, int max) {
