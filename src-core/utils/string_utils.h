@@ -231,6 +231,8 @@ extern const std::string xlEMPTY_STRING;
     }
     inline void Split(const std::string &frag, char splitBy, std::vector<std::string>& tokens, bool trim = false)
     {
+        if (frag.empty())
+            return;
         // Loop infinitely - break is internal.
         size_t lastIdx = 0;
         while (true) {
