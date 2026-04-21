@@ -1057,6 +1057,27 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
 
     playModel = nullptr;
     PreviewModels.clear();
+
+    // Suppress AddASAPWork during the parallel model deserialize. Each model's
+    // DeserializeBaseObjectAttributes calls model->SetActive(...) which in
+    // turn fires AddASAPWork three times. OutputModelManager::AddASAPWork
+    // mutates shared std::string members without synchronization, so with
+    // many worker threads all posting work concurrently it races and can
+    // crash in std::string internals (observed in 2026.06 production crash
+    // report, Thread 0 in std::string::__assign_no_alias called from
+    // AddASAPWork -> SetActive -> DeserializeBaseObjectAttributes).
+    //
+    // These per-model work items are redundant during an initial load
+    // anyway - the whole state is being rebuilt and the bulk refresh
+    // happens once the load is done. Scope the disable as tightly as
+    // possible and restore on every exit path via a small RAII guard so
+    // an exception in LoadModels still re-enables the queue.
+    struct AsapWorkGuard {
+        OutputModelManager* mgr;
+        ~AsapWorkGuard() { if (mgr) mgr->DisableASAPWork(false); }
+    } asapGuard{ GetOutputModelManager() };
+    GetOutputModelManager()->DisableASAPWork(true);
+
     AllModels.LoadModels(modelsNode,
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
