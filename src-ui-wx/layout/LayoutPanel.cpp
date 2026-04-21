@@ -8766,14 +8766,17 @@ void LayoutPanel::ReplaceModel()
     // temp-name, target trash-name, clone final-name) and the user didn't ask
     // to rename anything - they asked to replace wholesale, so the alias
     // question doesn't apply. Restore the previous setting after the batch so
-    // normal rename operations still obey the user's preference. Uses a
-    // scope_guard-style RAII restore so we don't leak the override on early
-    // return paths.
-    const wxString savedAliasBehavior = xlights->GetRenameModelAliasPromptBehavior();
+    // normal rename operations still obey the user's preference.
+    //
+    // Real RAII guard so the restore is resilient to any early return path
+    // (current or future) - the destructor fires on scope exit regardless of
+    // how we leave this function.
+    struct AliasBehaviorRestore {
+        xLightsFrame* frame;
+        wxString saved;
+        ~AliasBehaviorRestore() { frame->SetRenameModelAliasPromptBehavior(saved); }
+    } aliasGuard{ xlights, xlights->GetRenameModelAliasPromptBehavior() };
     xlights->SetRenameModelAliasPromptBehavior("Always No");
-    auto restoreAliasBehavior = [&]() {
-        xlights->SetRenameModelAliasPromptBehavior(savedAliasBehavior);
-    };
 
     // One undo snapshot for the whole batch so a single Ctrl-Z rolls it all back.
     CreateUndoPoint("All", sourceModel->GetName(), "ReplaceModel");
@@ -8785,8 +8788,7 @@ void LayoutPanel::ReplaceModel()
     if (!sourceXml.IsOk()) {
         wxMessageBox("Failed to serialize the source model; aborting.",
                      "Replace Model", wxOK | wxICON_ERROR, this);
-        restoreAliasBehavior();
-        return;
+        return; // aliasGuard destructor restores the behaviour
     }
 
     int successCount = 0;
@@ -8814,9 +8816,22 @@ void LayoutPanel::ReplaceModel()
             continue;
         }
 
-        // Park the clone under a unique temporary name before registering it so
-        // the rename dance below doesn't collide with existing entries.
-        const std::string tmpNewName = "__xl_rmm_new_" + std::to_string(successCount);
+        // Park the clone under a temporary name that is GUARANTEED not to
+        // collide with any currently-registered model. The double-underscore
+        // prefix makes accidental user collisions extremely unlikely, but
+        // AllModels.AddModel() silently replaces (deletes!) a pre-existing
+        // model with the same name - so we still have to verify uniqueness
+        // before handing the name over. Same goes for trashName below.
+        auto uniqueTempName = [this](const std::string& base, int seedSuffix) {
+            std::string name = base + std::to_string(seedSuffix);
+            int suffix = seedSuffix;
+            while (xlights->AllModels[name] != nullptr) {
+                ++suffix;
+                name = base + std::to_string(suffix);
+            }
+            return name;
+        };
+        const std::string tmpNewName = uniqueTempName("__xl_rmm_new_", successCount);
         clone->Rename(tmpNewName);
         xlights->AllModels.AddModel(clone);
 
@@ -8857,12 +8872,19 @@ void LayoutPanel::ReplaceModel()
         // Rename dance: swap the target out and the clone in under the target's
         // original name, then delete the parked target. Mirrors the approach
         // used by the existing single-replace path.
-        const std::string trashName = "__xl_rmm_old_" + std::to_string(successCount);
+        const std::string trashName = uniqueTempName("__xl_rmm_old_", successCount);
         xlights->AllModels.RenameInListOnly(targetName, trashName);
         target->Rename(trashName);
         xlights->AllModels.RenameInListOnly(tmpNewName, targetName);
         clone->Rename(targetName);
-        xlights->AllModels.Delete(trashName);
+        // Delete returns false if the named model wasn't found - treat as a
+        // failure so we don't silently leave a stray renamed target behind,
+        // and record it in the failures list so the final summary surfaces it.
+        if (!xlights->AllModels.Delete(trashName)) {
+            spdlog::warn("ReplaceModel: failed to delete trashed target '{}'", trashName);
+            failures.push_back(targetName);
+            continue;
+        }
 
         ++successCount;
     }
@@ -8904,7 +8926,7 @@ void LayoutPanel::ReplaceModel()
         wxMessageBox(msg, "Replace Model", wxOK | wxICON_WARNING, this);
     }
 
-    restoreAliasBehavior();
+    // aliasGuard goes out of scope here and restores the user's preference
 }
 
 void LayoutPanel::UnlinkSelectedModels()
