@@ -3967,6 +3967,10 @@ void xLightsFrame::SetToolIconSize(int size)
     effectPalettePanel->Layout();
     effectsPnl->BitmapButtonSelectedEffect->SetSizeHints(size, size, size, size);
     effectsPnl->Layout();
+
+    if (layoutPanel != nullptr) {
+        layoutPanel->UpdateModelButtonSizes();
+    }
 }
 
 void xLightsFrame::SetFrequency(int frequency)

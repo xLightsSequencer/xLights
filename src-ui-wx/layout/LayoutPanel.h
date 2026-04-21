@@ -316,6 +316,7 @@ class LayoutPanel: public wxPanel
         void ResetToDefaults();
         void HideFloatingPanes();
         void RestoreFloatingPanes();
+        void UpdateModelButtonSizes();
         void OnLayoutPaneClose(wxAuiManagerEvent& event);
         void DockAndRefresh(bool setModelListHeight);
         void SaveLayoutPerspective();

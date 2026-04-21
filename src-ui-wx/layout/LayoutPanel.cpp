@@ -506,11 +506,31 @@ class NewModelBitmapButton : public wxBitmapButton
 {
 public:
 
-    NewModelBitmapButton(wxWindow *parent, const wxBitmapBundle &bmp, const wxBitmapBundle& bmpDis, const wxBitmapBundle& pBmp, const std::string &type)
-        : wxBitmapButton(parent, wxID_ANY, bmp), modelType(type), bitmap(bmp), bitmapDisabled(bmpDis), pressedBitmap(pBmp) {
+    NewModelBitmapButton(wxWindow *parent, const wxImage &img, int iconSize, const std::string &type)
+        : wxBitmapButton(parent, wxID_ANY, wxBitmapBundle()), modelType(type),
+          originalImage(img), originalDisabled(img.ConvertToDisabled()), originalPressed(img.ConvertToDisabled(128)) {
         SetToolTip("Create new " + type);
+        UpdateIconSize(iconSize);
     }
     virtual ~NewModelBitmapButton() {}
+
+    void UpdateIconSize(int iconSize) {
+#ifdef __WXMSW__
+        const wxImageResizeQuality quality = wxIMAGE_QUALITY_BICUBIC;
+#else
+        const wxImageResizeQuality quality = wxIMAGE_QUALITY_HIGH;
+#endif
+        wxImage imgScaled = originalImage.Scale(iconSize, iconSize, quality);
+        wxImage disScaled = originalDisabled.Scale(iconSize, iconSize, quality);
+        wxImage presScaled = originalPressed.Scale(iconSize, iconSize, quality);
+
+        bitmap = wxBitmapBundle::FromBitmaps(imgScaled, originalImage);
+        bitmapDisabled = wxBitmapBundle::FromBitmaps(disScaled, originalDisabled);
+        pressedBitmap = wxBitmapBundle::FromBitmaps(presScaled, originalPressed);
+
+        SetBitmap(bitmap);
+        InvalidateBestSize();
+    }
 
     void SetState(unsigned int s) {
         if (s > 2) {
@@ -537,6 +557,9 @@ protected:
 private:
     const std::string modelType;
     uint32_t state = 0;
+    wxImage originalImage;
+    wxImage originalDisabled;
+    wxImage originalPressed;
     wxBitmapBundle bitmap;
     wxBitmapBundle bitmapDisabled;
     wxBitmapBundle pressedBitmap;
@@ -1096,33 +1119,23 @@ std::string LayoutPanel::GetCurrentPreview() const
     return ChoiceLayoutGroups->GetStringSelection().ToStdString();
 }
 
-#ifdef __WXMSW__
-// On windows wxIMAGE_QUALITY_HIGH results in blank rescaled images
-#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_BICUBIC 
-#else
-#define RESCALE_MODEL_BUTTON_QUALITY wxIMAGE_QUALITY_HIGH
-#endif
-
 NewModelBitmapButton* LayoutPanel::AddModelButton(const std::string &type, const char *data[]) {
 
     wxImage image(data);
-    wxImage disImage = image.ConvertToDisabled();
-    wxImage presImage = image.ConvertToDisabled(128);
-
-   int iconSize = PreviewGLPanel->FromDIP(24);
-    wxImage img24 = image.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
-    wxImage disImg24 = disImage.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
-    wxImage presImg24 = presImage.Scale(iconSize, iconSize, RESCALE_MODEL_BUTTON_QUALITY);
-
-    wxBitmapBundle bmp = wxBitmapBundle::FromBitmaps(img24, image);
-    wxBitmapBundle disBmp = wxBitmapBundle::FromBitmaps(disImg24, disImage);
-    wxBitmapBundle presBmp = wxBitmapBundle::FromBitmaps(presImg24, presImage);
-
-    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, bmp, disBmp, presBmp, type);
+    int iconSize = PreviewGLPanel->FromDIP(xlights->ToolIconSize());
+    NewModelBitmapButton *button = new NewModelBitmapButton(PreviewGLPanel, image, iconSize, type);
     ToolSizer->Add(button, 1, wxALL, 0);
     buttons.push_back(button);
     Connect(button->GetId(), wxEVT_BUTTON, (wxObjectEventFunction)&LayoutPanel::OnNewModelTypeButtonClicked);
     return button;
+}
+
+void LayoutPanel::UpdateModelButtonSizes() {
+    int iconSize = PreviewGLPanel->FromDIP(xlights->ToolIconSize());
+    for (auto *btn : buttons) {
+        btn->UpdateIconSize(iconSize);
+    }
+    ToolSizer->Layout();
 }
 
 int LayoutPanel::GetColumnIndex(const std::string& name) const
