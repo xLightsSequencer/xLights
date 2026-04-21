@@ -1609,5 +1609,9 @@ void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
             ctx->drawLines(grid2d, xlGREENTRANSLUCENT, grid2d->getCount() - 8, 8);
         });
     }
-    
+
+}
+
+bool ModelPreview::GetShowZoneIndicator() const {
+    return xlights != nullptr && xlights->GetShowZoneIndicator();
 }

@@ -86,6 +86,8 @@ public:
     // ---- misc ----
     virtual void SuspendAutoSave(bool suspend) = 0;
     virtual bool IsLowDefinitionRender() const { return false; }
+    virtual bool GetEnablePositionZones() const { return true; }
+    virtual bool GetShowZoneIndicator() const { return false; }
 
     // ---- UI callbacks (nullptr when running headless) ----
     virtual UICallbacks* GetUICallbacks() { return nullptr; }

@@ -151,6 +151,7 @@ public:
     void SetDisplay2DCenter0(bool bb) { _center2D0 = bb; grid2dValid=false; }
 
     bool IsNoCurrentModel() override { return currentModel == "&---none---&"; }
+    bool GetShowZoneIndicator() const override;
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 

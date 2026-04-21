@@ -1831,6 +1831,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     config->Read("xLightsPurgeDownloadCacheOnStart", &_purgeDownloadCacheOnStart, false);
     spdlog::debug("Purge download cache on start: {}.", toStr(_purgeDownloadCacheOnStart));
+    config->Read("xLightsEnablePositionZones", &_enablePositionZones, true);
+    config->Read("xLightsShowZoneIndicator", &_showZoneIndicator, false);
 
     config->Read("xLightsVideoExportCodec", &_videoExportCodec, "H.264");
     spdlog::debug("Video Export Codec: {}.", (const char*)_videoExportCodec.c_str());
@@ -2437,6 +2439,8 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsIgnoreVendorModelRecommendations2", _ignoreVendorModelRecommendations);
     config->Write("xLightsControllerPingInterval", _controllerPingInterval);
     config->Write("xLightsPurgeDownloadCacheOnStart", _purgeDownloadCacheOnStart);
+    config->Write("xLightsEnablePositionZones", _enablePositionZones);
+    config->Write("xLightsShowZoneIndicator", _showZoneIndicator);
     config->Write("xLightsExcludeAudioPkgSeq", _excludeAudioFromPackagedSequences);
     config->Write("xLightsShowACLights", _showACLights);
     config->Write("xLightsShowACRamps", _showACRamps);

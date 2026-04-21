@@ -769,11 +769,13 @@ public:
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
 
             // Position Zone processing (DMX)
-            const Model* model = buffer->GetModel();
-            if (model != nullptr && model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
-                const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(model);
-                if (mh != nullptr) {
-                    mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+            if (_ctx->GetEnablePositionZones()) {
+                const Model* model = buffer->GetModel();
+                if (model != nullptr && model->GetDisplayAs() == DisplayAsType::DmxMovingHeadAdv) {
+                    const DmxMovingHeadAdv* mh = dynamic_cast<const DmxMovingHeadAdv*>(model);
+                    if (mh != nullptr) {
+                        mh->ApplyPositionZones(&((*seqData)[frame][0]), mh->GetFirstChannel());
+                    }
                 }
             }
         }

@@ -1161,6 +1161,8 @@ public:
     bool _renderBellEnabled = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
+    bool _enablePositionZones = true;
+    bool _showZoneIndicator = false;
     int _controllerPingInterval = 0;
     int _fseqVersion;
     int _timelineZooming;
@@ -1324,6 +1326,10 @@ public:
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
     void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
+    bool GetEnablePositionZones() const { return _enablePositionZones; }
+    void SetEnablePositionZones(bool b) { _enablePositionZones = b; }
+    bool GetShowZoneIndicator() const { return _showZoneIndicator; }
+    void SetShowZoneIndicator(bool b) { _showZoneIndicator = b; }
 
     bool GetRecycleTips() const;
     void SetRecycleTips(bool b);
