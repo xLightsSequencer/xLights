@@ -145,6 +145,54 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
 
+## PR Self-Review Checklist
+
+This repo runs an automated Copilot code review on every PR. Over many rounds of review on this codebase, Copilot has repeatedly flagged the same 20 issue patterns — walking the diff against this checklist *before* pushing catches most of them. When you deliberately don't fix one of these, call that out in the PR body with a rationale so the maintainer can see the decision was intentional.
+
+### Safety / correctness
+
+1. **Return values** — does every `Delete`, `Compile`, `LoadFile`, `Write`, `Open`, etc. return a status? Check it or cast to `(void)` deliberately. `ModelManager::Delete(name)` returning `false` is especially important — silently proceeding leaves a stray renamed model behind.
+2. **Unique temp names** — any `"__internal_prefix_" + counter` written to a shared map (e.g. `AllModels.AddModel(m)`) must loop until `map[name] == nullptr` before committing. `AddModel()` silently deletes a colliding entry — catastrophic data loss if the user happens to have a model with that name.
+3. **Ownership transfer** — if a function takes a pointer and frees it internally (e.g. `Model::CreateDefaultModelFromSavedModelNode`), do NOT also `delete` it in the caller on the failure path. Read the function body, not just the signature.
+4. **Static / cached state lifecycle** — any `static`, member cache, or dialog-level filter state must be reset in both the constructor and destructor so a reopened dialog starts clean instead of inheriting the previous session's state.
+5. **Validate numeric input** — `std::strtod` / `strtol` accept `"nan"`, `"inf"`, and values outside a physically meaningful range. Always guard with `std::isfinite()` plus an explicit range check (use the same range the property grid uses if one exists — e.g. rotation is `[-180, 180]`).
+6. **RAII over manual restore** — every `saved = X; override; … do stuff; restore(saved);` pattern should become a small struct with a destructor. Exception-safe, future-proof against new return paths. Applies to preferences, global flags, `OutputModelManager::DisableASAPWork`, etc.
+7. **Thread safety on shared managers** — any manager-level `std::string` / `std::function` / container accessed from a `parallel_for` either needs a mutex or a `DisableXxx()` guard that brackets the parallel section. `OutputModelManager::AddASAPWork` is the known footgun — use `DisableASAPWork(true/false)` around bulk loads.
+
+### Event & selection hygiene
+
+8. **`ChangeValue` vs `SetValue` on wx text controls** — `SetValue("")` fires `wxEVT_TEXT`, which re-invokes your own text-changed handler and causes double work / flicker. Use `ChangeValue("")` when you want the widget updated without re-entering the event chain.
+9. **Tree-widget native selection ≠ internal tracking** — `UnSelectAllModels()` clears per-`Model` `Selected()` flags and internal vectors but does NOT call `TreeListViewModels->UnselectAll()`. When the user expects a clean slate (e.g. before paste), clear BOTH. On a `wxTL_MULTIPLE` tree, a surviving native row means subsequent `Select(item)` calls ADD to the selection rather than replacing it.
+10. **Never clear state before verifying success** — `UnSelectAllModels()` / cache-clear / preference-override calls must be INSIDE the success guard (`if (nd) {}` / `if (dlg.ShowModal() == wxID_OK) {}`). If the operation fails, the user's prior state should be untouched.
+11. **`CreateUndoPoint("All", model, ...)` — the second arg must be a real model name**, not an operation label. It's stored as `undoBuffer[i].model` and passed to `AddASAPWork(..., selectedModel)` during `DoUndo`, where a non-existent model name breaks post-undo selection logic.
+
+### UI polish
+
+12. **Theme-aware colors** — no hard-coded RGB triples for "dimmed" / "disabled" / "placeholder" text. Blend between `__textForeground` (or the active theme's equivalent) and `__backgroundBrush` with `IsDarkMode()`-tuned weights so dark mode doesn't invert the visual meaning (a "pale grey" dim becomes MORE prominent on a dark background).
+13. **Debounce heavy per-keystroke work** — `wxEVT_TEXT` handlers that call anything as expensive as `UpdateModelList(true)` (preview recompute + full tree rebuild) should wrap that call behind a 150 ms `wxTimer::StartOnce` so fast-typed bursts collapse into a single refresh. Have Enter / search-button / cancel explicitly `timer.Stop()` and refresh synchronously so they still feel immediate.
+14. **Silent safety caps** — loop guards (`while (moved && loopGuard++ < 500)`, etc.) must `spdlog::warn(...)` when they trip, including the relevant state. A silent cap makes the failure case invisible to anyone debugging later.
+
+### wxSmith / structural
+
+15. **Anything inside `//(* ... //*)` guards must be mirrored in the corresponding `.wxs` file** — OR live outside the guard entirely. Handler declarations that are inside the guard but wired via `Bind()` (instead of wxSmith's generated event table) get dropped the next time someone opens the `.wxs` in wxSmith and regenerates.
+16. **Match surrounding indentation style** — tabs if the file uses tabs, spaces if spaces. `wxSmith`-generated blocks in this codebase use tabs; hand-written new blocks pasted next to them should match.
+
+### Scope discipline
+
+17. **Widget draw functions often serve multiple panes** — e.g. `ModelCMObject::Draw` runs in BOTH the Controller Visualiser's left pane AND the "available models" right-pane list. Scope pane-specific behaviour to the right caller via an unambiguous signal (`portMargin > 0` for the visualizer pane, which the models list passes as 0). Don't rely on flags like `_dragging` that only exist in your head — verify they're actually set somewhere.
+18. **Keep comments and code in sync** — "cheap `Contains()` without re-lowercasing each paint" in a comment while the code actually does `wxString(name).Lower()` per call is a review hit every time. Either cache what you claim to cache, or rewrite the comment to match what the code actually does.
+
+### Dead-code detection
+
+19. **Every guard variable you read must be written somewhere** — `!_dragging` where `_dragging` on `BaseCMObject` is a `bool` nothing ever writes is dead code that Copilot notices immediately. `grep` the setter; if there is none, delete the check (or wire up the real state).
+20. **Bulk operations shouldn't inherit single-operation side effects** — the most common case is the "Save old name as alias?" prompt inside `Model::Rename`. A wholesale replace/duplicate flow that internally does `N × 3` renames will fire the prompt `N × 3` times. Save/set/restore the user's preference (wrapped in RAII guard — see #6) for the duration of the bulk op so the prompt fires zero times; the user's global setting stays untouched for subsequent rename operations.
+
+### How to apply
+
+Before `git commit` on a change, walk the diff against this list (or a shorter "likely-to-hit" subset based on what the change actually touches). For each item you deliberately don't fix, note it in the PR body with the reason, so the maintainer can see the decision was intentional rather than missed.
+
+Also apply the list to your OWN follow-up commits that address Copilot feedback — Copilot re-reviews every push and often surfaces new findings on the fix itself.
+
 ## Key Dependencies
 
 wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), spdlog, nlohmann/json, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).
