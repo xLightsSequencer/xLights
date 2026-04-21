@@ -389,15 +389,38 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxStringProperty("Description", "Description", _model.GetDescription()));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
+    // Decorate the popup-dialog rows with "(N)" counts so the user can see
+    // at a glance how many Faces / States / Submodels / Nodes a model has
+    // without having to open each editor. Requested in issue #5905.
+    // The INTERNAL name (second arg) stays unchanged so property lookups by
+    // name elsewhere in the codebase keep working - only the display label
+    // (first arg) gets the count suffix.
+    const auto nodeCount   = _model.GetNodeCount();
+    const auto faceCount   = _model.GetFaceInfo().size();
+    const auto stateCount  = _model.GetStateInfo().size();
+    const auto subCount    = _model.GetNumSubModels();
+
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        wxString::Format("Strand/Node Names (%u nodes)", nodeCount).ToStdString(),
+        "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        wxString::Format("Faces (%zu)", faceCount).ToStdString(),
+        "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "States", "ModelStates", CLICK_TO_EDIT, 4));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        wxString::Format("States (%zu)", stateCount).ToStdString(),
+        "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        wxString::Format("SubModels (%d)", subCount).ToStdString(),
+        "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
     grid->LimitPropertyEditing(p);
