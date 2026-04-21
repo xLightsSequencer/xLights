@@ -3301,10 +3301,29 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     if (row < 0)
         return;
 
+    // Commit any in-progress cell edit so sm->strands reflects the current cell value
+    if (NodesGrid->IsCellEditControlEnabled()) {
+        NodesGrid->SaveEditControlValue();
+        NodesGrid->DisableCellEditControl();
+    }
+
     std::vector<wxRealPoint> pts;
-    auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    const std::string strandStr = sm->strands[sm->strands.size() - 1 - row];
+
+    auto const oldnodes = NodeUtils::ExpandNodes(strandStr);
     auto oldNodeArrray = Split(oldnodes, ',');
-    oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), ""), oldNodeArrray.end());
+    // Keep empty strings (placeholder buffer positions). Exception: exactly one trailing
+    // empty is a continuation separator — remove it so added nodes don't produce a double-comma.
+    {
+        int trailingEmpties = 0;
+        for (int i = (int)oldNodeArrray.size() - 1; i >= 0; --i) {
+            if (oldNodeArrray[i].empty()) ++trailingEmpties;
+            else break;
+        }
+        if (trailingEmpties == 1) {
+            oldNodeArrray.pop_back();
+        }
+    }
 
     //toggle nodes if double click
     bool found = false;
@@ -3318,14 +3337,13 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     if (!found) {
         oldNodeArrray.push_back(stNode);//add if not in list
     }
-    sm->strands[sm->strands.size() - 1 - row] = NodeUtils::CompressNodes(wxJoin(oldNodeArrray, ',').ToStdString());
+    std::string result = NodeUtils::CompressNodes(Join(oldNodeArrray, ","));
+    sm->strands[sm->strands.size() - 1 - row] = result;
 
-    Select(GetSelectedName());
-    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-    SelectRow(row >= 0 ? row : 0);
-
+    NodesGrid->SetCellValue(row, 0, wxString(result));
+    NodesGrid->SetCellValue(row, 1, wxString::Format("%d", CountNodesInRange(result)));
+    NodesGrid->SetCellValue(row, 2, wxString::Format("%d", CountLinesInRange(result)));
+    SelectRow(row);
     ValidateWindow();
 }
 
@@ -3397,14 +3415,41 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
     if (row < 0)
         return;
 
+    // Commit any in-progress cell edit to the grid cell backing store.
+    // Note: the editor is typically already closed by the time this runs (mouse-down on the
+    // preview closed it), so IsCellEditControlEnabled() is usually false here.
+    if (NodesGrid->IsCellEditControlEnabled()) {
+        NodesGrid->SaveEditControlValue();
+        NodesGrid->DisableCellEditControl();
+    }
+
     std::vector<wxRealPoint> pts;
     std::vector<int> nodes = model->GetNodesInBoundingBox(modelPreview, xlPoint(m_bound_start_x, m_bound_start_y), xlPoint(m_bound_end_x, m_bound_end_y));
     if (nodes.size() == 0)
         return;
-    auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
+    // Read from the cell directly — this is the most current value regardless of whether
+    // EVT_GRID_CELL_CHANGED fired to update sm->strands when the editor auto-closed.
+    const std::string strandStr = NodesGrid->GetCellValue(row, 0).ToStdString();
 
+    auto const oldnodes = NodeUtils::ExpandNodes(strandStr);
     auto oldNodeArrray = Split(oldnodes, ',');
-    oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), ""), oldNodeArrray.end());
+    // Empty strings are placeholder buffer positions (from leading/trailing/interior commas)
+    // and must NOT be stripped — CompressNodes re-emits them in place so nothing shifts.
+    // Exception: if there is exactly ONE trailing empty string, it is a "continuation
+    // separator" (e.g. the user typed "0,0,0," meaning "zeros, then more to come here").
+    // Remove it so the new nodes slot in directly without producing a double-comma.
+    // Two or more trailing empties are intentional buffer position markers (e.g. ",,,")
+    // and are preserved so new nodes appear after them.
+    {
+        int trailingEmpties = 0;
+        for (int i = (int)oldNodeArrray.size() - 1; i >= 0; --i) {
+            if (oldNodeArrray[i].empty()) ++trailingEmpties;
+            else break;
+        }
+        if (trailingEmpties == 1) {
+            oldNodeArrray.pop_back();
+        }
+    }
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
         bool found = false;
@@ -3419,16 +3464,21 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         }
     }
 
-    sm->strands[sm->strands.size() - 1 - row] = NodeUtils::CompressNodes(Join(oldNodeArrray, ","));
+    std::string result = NodeUtils::CompressNodes(Join(oldNodeArrray, ","));
+    sm->strands[sm->strands.size() - 1 - row] = result;
 
-    Select(GetSelectedName());
-
-    NodesGrid->SetGridCursor(row >= 0 ? row : 0, 0);
-    Panel3->SetFocus();
-    NodesGrid->SetFocus();
-    SelectRow(row >= 0 ? row : 0);
-
+    NodesGrid->SetCellValue(row, 0, wxString(result));
+    NodesGrid->SetCellValue(row, 1, wxString::Format("%d", CountNodesInRange(result)));
+    NodesGrid->SetCellValue(row, 2, wxString::Format("%d", CountLinesInRange(result)));
+    SelectRow(row);
     ValidateWindow();
+
+    // Always re-open the editor so the user can continue typing after a drag-select
+    // without having to click the cell first. The editor was closed by the mouse-down
+    // on the preview before this function ran, so wasEditing is always false — we just
+    // unconditionally restore edit mode here.
+    NodesGrid->SetGridCursor(row, 0);
+    NodesGrid->EnableCellEditControl();
 }
 
 void SubModelsDialog::RemoveNodes(bool suppress)

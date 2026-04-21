@@ -786,10 +786,6 @@ std::vector<wxString> NodeSelectGrid::GetRowData()
             }
         }
         row.erase(row.length() - 1, 1);
-        while (row.StartsWith(","))
-            row = row.Mid(1);
-        while (row.EndsWith(","))
-            row = row.RemoveLast();
         returnValue.insert(returnValue.begin(), row);
     }
     return returnValue;
