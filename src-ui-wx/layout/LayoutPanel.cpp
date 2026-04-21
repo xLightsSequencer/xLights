@@ -43,6 +43,7 @@
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
+#include <wx/statline.h>
 
 #include "layout/LayoutPanel.h"
 #include "layout/ModelPreview.h"
@@ -6085,7 +6086,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
         
         if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
-            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace Model(s) With This Model...");
         }
     }
 }
@@ -8501,108 +8502,409 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+
+namespace {
+
+// Inline multi-select dialog with live filter. Keeps check state persistent
+// across filter changes so the user can type to narrow the list, check
+// things, change the filter, and retain earlier selections. Scoped to this
+// TU since it is only used by LayoutPanel::ReplaceModel.
+class ReplaceModelDialog : public wxDialog {
+public:
+    ReplaceModelDialog(wxWindow* parent,
+                       const wxString& sourceName,
+                       const std::vector<std::string>& candidateNames)
+        : wxDialog(parent, wxID_ANY,
+                   wxString::Format("Replace Model(s) With: %s", sourceName),
+                   wxDefaultPosition, wxSize(460, 560),
+                   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+          _allCandidates(candidateNames)
+    {
+        auto* top = new wxBoxSizer(wxVERTICAL);
+
+        // Intro: kept short so it fits one line at default dialog width.
+        // Wrap() is still called as a belt-and-suspenders for narrower widths
+        // (user resize, platforms where default font is wider, etc).
+        auto* intro = new wxStaticText(this, wxID_ANY,
+            "Each selected model will be replaced with a copy of the current model.");
+        intro->Wrap(420);
+        top->Add(intro, 0, wxALL, 8);
+
+        auto* filterRow = new wxBoxSizer(wxHORIZONTAL);
+        filterRow->Add(new wxStaticText(this, wxID_ANY, "Filter:"),
+                       0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 8);
+        _filterCtrl = new wxTextCtrl(this, wxID_ANY);
+        _filterCtrl->SetHint("type to filter by name...");
+        filterRow->Add(_filterCtrl, 1, wxEXPAND | wxRIGHT, 8);
+        top->Add(filterRow, 0, wxEXPAND | wxBOTTOM, 4);
+
+        // Build the list ourselves instead of using a native list widget. This
+        // gives us:
+        //   - real native wxCheckBox rendering on Windows / macOS / Linux
+        //   - perfect vertical alignment, because the header row and each item
+        //     row share the same 2-column (checkbox + name) sizer layout
+        //   - the "select / clear all visible" master checkbox literally in
+        //     the header cell next to "Model Name" - requested in PR review
+        //
+        // The outer frame is a wxStaticBox for a clean visual border around
+        // the header + rows. The rows go in a scrollable inner wxPanel so the
+        // dialog stays usable with 100+ models.
+        auto* listBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+        auto* listBoxSizer = new wxStaticBoxSizer(listBox, wxVERTICAL);
+
+        // Header row: [master checkbox] [bold "Model Name" label]
+        auto* headerPanel = new wxPanel(listBox, wxID_ANY);
+        auto* headerSizer = new wxBoxSizer(wxHORIZONTAL);
+        _masterCB = new wxCheckBox(headerPanel, wxID_ANY, wxEmptyString,
+                                   wxDefaultPosition, wxDefaultSize, wxCHK_3STATE);
+        _masterCB->SetToolTip("Select / clear all currently visible models");
+        auto* headerLabel = new wxStaticText(headerPanel, wxID_ANY, "Model Name");
+        wxFont headerFont = headerLabel->GetFont();
+        headerFont.SetWeight(wxFONTWEIGHT_BOLD);
+        headerLabel->SetFont(headerFont);
+        headerSizer->Add(_masterCB, 0, wxALIGN_CENTER_VERTICAL | wxALL, 4);
+        headerSizer->Add(headerLabel, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 6);
+        headerPanel->SetSizer(headerSizer);
+        listBoxSizer->Add(headerPanel, 0, wxEXPAND | wxBOTTOM, 2);
+
+        // Thin separator so the header reads as a proper column header.
+        auto* separator = new wxStaticLine(listBox, wxID_ANY,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxLI_HORIZONTAL);
+        listBoxSizer->Add(separator, 0, wxEXPAND | wxBOTTOM, 2);
+
+        // Scrollable rows. Each row is its own wxCheckBox (native look) sized
+        // to match the header's checkbox column, followed by the name text.
+        _rowsWindow = new wxScrolledWindow(listBox, wxID_ANY,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxVSCROLL | wxBORDER_NONE);
+        _rowsWindow->SetScrollRate(0, 16);
+        _rowsSizer = new wxBoxSizer(wxVERTICAL);
+        _rowsWindow->SetSizer(_rowsSizer);
+        listBoxSizer->Add(_rowsWindow, 1, wxEXPAND);
+
+        top->Add(listBoxSizer, 1, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
+
+        top->Add(new wxStaticText(this, wxID_ANY, "For each replaced model, also:"),
+                 0, wxLEFT | wxRIGHT | wxTOP, 8);
+        _copyStartChannelCB = new wxCheckBox(this, wxID_ANY,
+            "Copy target's start channel and controller settings");
+        _mergeSubmodelsCB = new wxCheckBox(this, wxID_ANY,
+            "Merge target's submodels into the replacement");
+        _copySizePosCB = new wxCheckBox(this, wxID_ANY,
+            "Use target's original size and position");
+        _copyStartChannelCB->SetValue(true);
+        _copySizePosCB->SetValue(true);
+        const int cbFlags = wxLEFT | wxRIGHT | wxTOP;
+        const int cbPad = 4;
+        top->Add(_copyStartChannelCB, 0, cbFlags, cbPad);
+        top->Add(_mergeSubmodelsCB,   0, cbFlags, cbPad);
+        top->Add(_copySizePosCB,      0, cbFlags, cbPad);
+
+        auto* btnRow = CreateButtonSizer(wxOK | wxCANCEL);
+        if (btnRow != nullptr) {
+            top->Add(btnRow, 0, wxEXPAND | wxALL, 8);
+        }
+        SetSizer(top);
+
+        RepopulateRows();
+        UpdateMasterState();
+
+        _filterCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+            RepopulateRows();
+            UpdateMasterState();
+        });
+        _masterCB->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+            // wx's default tri-state click cycles 2-state visibly (unchecked
+            // -> checked -> unchecked). IsChecked() reflects the desired new
+            // state after the click - apply to every visible row.
+            const bool shouldCheck = _masterCB->IsChecked();
+            for (const auto& row : _rows) {
+                row.cb->SetValue(shouldCheck);
+                if (shouldCheck) {
+                    _checkedSet.insert(row.name);
+                } else {
+                    _checkedSet.erase(row.name);
+                }
+            }
+            UpdateMasterState();
+        });
+    }
+
+    std::vector<std::string> GetSelectedNames() const {
+        std::vector<std::string> out(_checkedSet.begin(), _checkedSet.end());
+        std::sort(out.begin(), out.end());
+        return out;
+    }
+
+    bool CopyStartChannel() const { return _copyStartChannelCB->IsChecked(); }
+    bool MergeSubmodels()   const { return _mergeSubmodelsCB->IsChecked(); }
+    bool CopySizePos()      const { return _copySizePosCB->IsChecked(); }
+
+private:
+    // Filter is case-insensitive substring match.
+    static bool PassesFilter(const std::string& name, const std::string& filterLower) {
+        if (filterLower.empty()) return true;
+        std::string lower = name;
+        std::transform(lower.begin(), lower.end(), lower.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        return lower.find(filterLower) != std::string::npos;
+    }
+
+    void RepopulateRows() {
+        std::string filterLower = _filterCtrl->GetValue().ToStdString();
+        std::transform(filterLower.begin(), filterLower.end(), filterLower.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+
+        _rowsWindow->Freeze();
+        _rowsSizer->Clear(true); // deletes existing row widgets
+        _rows.clear();
+
+        for (const auto& name : _allCandidates) {
+            if (!PassesFilter(name, filterLower)) continue;
+            auto* cb = new wxCheckBox(_rowsWindow, wxID_ANY, name);
+            cb->SetValue(_checkedSet.count(name) > 0);
+            _rowsSizer->Add(cb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
+            _rows.push_back({ name, cb });
+
+            // When an individual row checkbox is toggled, mirror the change
+            // into _checkedSet and re-evaluate the master tri-state.
+            const std::string capturedName = name;
+            cb->Bind(wxEVT_CHECKBOX, [this, capturedName, cb](wxCommandEvent&) {
+                if (cb->GetValue()) {
+                    _checkedSet.insert(capturedName);
+                } else {
+                    _checkedSet.erase(capturedName);
+                }
+                UpdateMasterState();
+            });
+        }
+
+        _rowsWindow->FitInside();
+        _rowsWindow->Layout();
+        _rowsWindow->Thaw();
+    }
+
+    void UpdateMasterState() {
+        // Aggregate state of currently visible rows -> master checkbox tri-state.
+        if (_rows.empty()) {
+            _masterCB->Set3StateValue(wxCHK_UNCHECKED);
+            _masterCB->Enable(false);
+            return;
+        }
+        _masterCB->Enable(true);
+        size_t checked = 0;
+        for (const auto& r : _rows) {
+            if (r.cb->GetValue()) ++checked;
+        }
+        if (checked == 0) {
+            _masterCB->Set3StateValue(wxCHK_UNCHECKED);
+        } else if (checked == _rows.size()) {
+            _masterCB->Set3StateValue(wxCHK_CHECKED);
+        } else {
+            _masterCB->Set3StateValue(wxCHK_UNDETERMINED);
+        }
+    }
+
+    struct RowEntry {
+        std::string name;
+        wxCheckBox* cb;
+    };
+
+    wxTextCtrl* _filterCtrl = nullptr;
+    wxCheckBox* _masterCB = nullptr;
+    wxScrolledWindow* _rowsWindow = nullptr;
+    wxBoxSizer* _rowsSizer = nullptr;
+    wxCheckBox* _copyStartChannelCB = nullptr;
+    wxCheckBox* _mergeSubmodelsCB = nullptr;
+    wxCheckBox* _copySizePosCB = nullptr;
+
+    std::vector<std::string> _allCandidates;
+    std::vector<RowEntry> _rows;
+    std::set<std::string> _checkedSet;
+};
+
+} // namespace
+
 void LayoutPanel::ReplaceModel()
 {
     if (selectedBaseObject == nullptr) return;
+    Model* sourceModel = dynamic_cast<Model*>(selectedBaseObject);
+    if (sourceModel == nullptr) return;
 
-    Model* modelToReplaceItWith = dynamic_cast<Model*>(selectedBaseObject);
-
-    wxArrayString choices;
-
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->GetName() != selectedBaseObject->GetName())
-        {
-            choices.Add(modelPreview->GetModels()[i]->GetName());
+    // Build alphabetised candidate list - everything in the preview except the source itself.
+    std::vector<std::string> candidates;
+    candidates.reserve(modelPreview->GetModels().size());
+    for (auto* m : modelPreview->GetModels()) {
+        if (m != nullptr && m != sourceModel) {
+            candidates.push_back(m->GetName());
         }
     }
+    if (candidates.empty()) {
+        wxMessageBox("There are no other models in the layout to replace.",
+                     "Replace Model", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+    std::sort(candidates.begin(), candidates.end());
 
-    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
-    dlg.SetSelection(0);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
     OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) return;
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-        xlights->AbortRender(); // we dont want to be rendering when we do this
+    auto targetNames = dlg.GetSelectedNames();
+    if (targetNames.empty()) return;
 
-        Model* replaceModel = nullptr;
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GetName() == dlg.GetStringSelection())
-            {
-                replaceModel = modelPreview->GetModels()[i];
-            }
-        }
+    const bool copyStartCh = dlg.CopyStartChannel();
+    const bool mergeSubs   = dlg.MergeSubmodels();
+    const bool copySizePos = dlg.CopySizePos();
 
-        if (replaceModel == nullptr) return;
+    xlights->UnselectEffect(); // in case an effect lives on one of the targets
+    xlights->AbortRender();
 
-        CreateUndoPoint("All", "", "");
+    // Suppress Model::Rename's "Save old name as alias?" prompt for the duration
+    // of this batch. Each target triggers several intermediate renames (clone
+    // temp-name, target trash-name, clone final-name) and the user didn't ask
+    // to rename anything - they asked to replace wholesale, so the alias
+    // question doesn't apply. Restore the previous setting after the batch so
+    // normal rename operations still obey the user's preference. Uses a
+    // scope_guard-style RAII restore so we don't leak the override on early
+    // return paths.
+    const wxString savedAliasBehavior = xlights->GetRenameModelAliasPromptBehavior();
+    xlights->SetRenameModelAliasPromptBehavior("Always No");
+    auto restoreAliasBehavior = [&]() {
+        xlights->SetRenameModelAliasPromptBehavior(savedAliasBehavior);
+    };
 
-        // Prompt user to copy the target models start channel ...but only if
-        // they are not already the same and the new model uses a chaining start
-        // channel ... the theory being if you took time to set the start channel
-        // you probably want to keep it and so a prompt will just be annoying
-        if ((replaceModel->ModelStartChannel !=
-            modelToReplaceItWith->ModelStartChannel &&
-            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
-            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && (modelToReplaceItWith->GetControllerName() == "" || modelToReplaceItWith->GetControllerName() == NO_CONTROLLER)))
-        {
-            auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
-            if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
-            {
-                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel);
+    // One undo snapshot for the whole batch so a single Ctrl-Z rolls it all back.
+    CreateUndoPoint("All", sourceModel->GetName(), "ReplaceModel");
 
-                modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
-                modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
-                modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
-                modelToReplaceItWith->SetSmartRemote(replaceModel->GetSmartRemote());
-                modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
-                modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
-                modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
-            }
-        }
-
-        if (replaceModel->GetNumSubModels() > 0 ) {
-            if (wxMessageBox("Merge The Submodels", "Merge The Submodels", wxYES_NO) == wxYES) {
-                for (int i = 0; i < replaceModel->GetNumSubModels(); ++i) {
-                    auto name{ replaceModel->GetSubModel(i)->Name() };
-                    if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
-                        continue;
-                    }
-                    
-                    // Create SubModel using copy constructor
-                    const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(replaceModel->GetSubModel(i));
-                    SubModel* sm = new SubModel(modelToReplaceItWith, sourceSubModel);
-                    modelToReplaceItWith->AddSubmodel(sm);
-                }
-            }
-        }
-
-        auto rmn = replaceModel->GetName();
-        auto riw = modelToReplaceItWith->GetName();
-
-        if (wxMessageBox("Use original size and position of " + rmn, "Use original size and position", wxYES_NO) == wxYES) {
-            modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
-            modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
-            modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
-            modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
-            modelToReplaceItWith->SetHeight(replaceModel->GetHeight());       
-            modelToReplaceItWith->SetWidth(replaceModel->GetWidth());    
-            modelToReplaceItWith->SetDepth(replaceModel->GetDepth());    
-        }
-
-        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
-        replaceModel->Rename("Iamgoingtodeletethismodel");
-        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
-        modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
-        xlights->AllModels.Delete("Iamgoingtodeletethismodel");
-        xlights->ReplaceModelWithModelFixGroups(rmn, riw);
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                      OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                                                      OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
+    // Capture the source's XML ONCE. Each iteration builds a fresh clone from this
+    // snapshot so the original source stays intact across the whole batch.
+    CopyPasteBaseObject sourceXml;
+    sourceXml.SetBaseObject(sourceModel);
+    if (!sourceXml.IsOk()) {
+        wxMessageBox("Failed to serialize the source model; aborting.",
+                     "Replace Model", wxOK | wxICON_ERROR, this);
+        restoreAliasBehavior();
+        return;
     }
+
+    int successCount = 0;
+    std::vector<std::string> failures;
+
+    for (const auto& targetName : targetNames) {
+        // Re-resolve the target from the model manager each iteration - names
+        // are stable but pointers may have changed due to earlier iterations.
+        Model* target = xlights->AllModels[targetName];
+        if (target == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        auto owned = sourceXml.GetBaseObjectXml();
+        pugi::xml_node nd = owned;
+        if (!nd) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        Model* clone = xlights->AllModels.CreateModel(nd);
+        if (clone == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        // Park the clone under a unique temporary name before registering it so
+        // the rename dance below doesn't collide with existing entries.
+        const std::string tmpNewName = "__xl_rmm_new_" + std::to_string(successCount);
+        clone->Rename(tmpNewName);
+        xlights->AllModels.AddModel(clone);
+
+        // Per-target carryovers. These match the semantics of the three Yes/No
+        // prompts in the existing single-replace flow (see ReplaceModel()).
+        if (copyStartCh) {
+            clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetControllerProtocol(target->GetControllerProtocol());
+            clone->SetControllerPort(target->GetControllerPort());
+            clone->SetControllerName(target->GetControllerName());
+            clone->SetSmartRemote(target->GetSmartRemote());
+            clone->SetSmartRemoteType(target->GetSmartRemoteType());
+            clone->SetSRMaxCascade(target->GetSRMaxCascade());
+            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+        }
+        if (mergeSubs) {
+            for (int i = 0; i < target->GetNumSubModels(); ++i) {
+                const auto smName = target->GetSubModel(i)->Name();
+                if (clone->GetSubModel(smName) != nullptr) {
+                    continue; // clone already has a submodel with this name - skip
+                }
+                const SubModel* srcSub = dynamic_cast<const SubModel*>(target->GetSubModel(i));
+                if (srcSub == nullptr) continue;
+                SubModel* sm = new SubModel(clone, srcSub);
+                clone->AddSubmodel(sm);
+            }
+        }
+        if (copySizePos) {
+            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
+            clone->SetHcenterPos(target->GetHcenterPos());
+            clone->SetVcenterPos(target->GetVcenterPos());
+            clone->SetDcenterPos(target->GetDcenterPos());
+            clone->SetHeight(target->GetHeight());
+            clone->SetWidth(target->GetWidth());
+            clone->SetDepth(target->GetDepth());
+        }
+
+        // Rename dance: swap the target out and the clone in under the target's
+        // original name, then delete the parked target. Mirrors the approach
+        // used by the existing single-replace path.
+        const std::string trashName = "__xl_rmm_old_" + std::to_string(successCount);
+        xlights->AllModels.RenameInListOnly(targetName, trashName);
+        target->Rename(trashName);
+        xlights->AllModels.RenameInListOnly(tmpNewName, targetName);
+        clone->Rename(targetName);
+        xlights->AllModels.Delete(trashName);
+
+        ++successCount;
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                  OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER,
+                                                  "ReplaceModel");
+
+    // Always show a confirmation so the user knows the operation finished,
+    // even when it was a silent full success. The icon makes the outcome
+    // obvious at a glance (info / warning / error).
+    if (successCount == static_cast<int>(targetNames.size()) && failures.empty()) {
+        wxMessageBox(
+            wxString::Format("Successfully replaced %d model%s.",
+                             successCount, successCount == 1 ? "" : "s"),
+            "Replace Model", wxOK | wxICON_INFORMATION, this);
+    } else if (successCount == 0) {
+        wxString msg = "No models were replaced.";
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_ERROR, this);
+    } else {
+        wxString msg = wxString::Format("Replaced %d of %zu model(s).",
+                                        successCount, targetNames.size());
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_WARNING, this);
+    }
+
+    restoreAliasBehavior();
 }
 
 void LayoutPanel::UnlinkSelectedModels()
