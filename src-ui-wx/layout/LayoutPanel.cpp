@@ -528,7 +528,7 @@ public:
         bitmapDisabled = wxBitmapBundle::FromBitmaps(disScaled, originalDisabled);
         pressedBitmap = wxBitmapBundle::FromBitmaps(presScaled, originalPressed);
 
-        SetBitmap(bitmap);
+        SetState(state);
         InvalidateBestSize();
     }
 
