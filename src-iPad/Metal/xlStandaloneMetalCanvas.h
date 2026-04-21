@@ -20,7 +20,16 @@
 
 class xlStandaloneMetalCanvas : public IMetalCanvas {
 public:
-    xlStandaloneMetalCanvas(const std::string& name, bool is3d = false);
+    // `useLogicalSize` flips the canvas into CG-style logical-point
+    // coordinates: `setSize` receives bounds in points (not pixels),
+    // `xlMetalGraphicsContext::SetViewport` builds its ortho matrix
+    // in logical-point space, and the Metal viewport is scaled up
+    // to backing pixels via `translateToBacking`. Model / House
+    // previews use the default (pixel coords) because they own
+    // their own projection matrices; the grid canvases use logical
+    // so Swift-side draw code can push point-space values unchanged.
+    xlStandaloneMetalCanvas(const std::string& name, bool is3d = false,
+                             bool useLogicalSize = false);
     ~xlStandaloneMetalCanvas() override;
 
     // IMetalCanvas
@@ -28,7 +37,7 @@ public:
     xlColor ClearBackgroundColor() const override { return xlBLACK; }
     bool usesMSAA() override { return _is3d; }
     bool RequiresDepthBuffer() const override { return _is3d; }
-    bool drawingUsingLogicalSize() const override { return false; }
+    bool drawingUsingLogicalSize() const override { return _useLogicalSize; }
     double translateToBacking(double x) const override;
     void* getMetalDelegate() override;
 
@@ -46,6 +55,7 @@ public:
 private:
     std::string _name;
     bool _is3d;
+    bool _useLogicalSize = false;
     int _width = 0;
     int _height = 0;
     double _scaleFactor = 2.0;

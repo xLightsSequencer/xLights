@@ -5,6 +5,11 @@
 #endif
 
 #ifdef __cplusplus
+
+// Always included — wx headers use wcslen in inline functions without
+// ensuring <cwchar> is reachable, so NO_PCH builds fail without this.
+#include <cwchar>
+
 #ifndef NO_PCH
 
 #include <vector>

@@ -9,6 +9,7 @@
             "options": [],
             "default": "",
             "dynamicOptions": "modelNodeNames",
+            "expandToFill": true,
             "description": "Selects which channel on the DMX model to control. The channel list is populated from the model's node names."
         },
         {
@@ -35,6 +36,7 @@
             "options": [],
             "default": "",
             "dynamicOptions": "lyricTimingTracks",
+            "expandToFill": true,
             "description": "Selects which timing track to use for phoneme-driven servo positioning when Use Timing Track is enabled."
         },
         {

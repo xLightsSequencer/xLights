@@ -73,7 +73,7 @@
             "controlType": "custom",
             "default": "",
             "fullWidth": true,
-            "description": "Container for per-shader dynamic uniform controls. The subclass parses the loaded shader's uniform declarations and builds sliders, checkboxes, choices, and point controls here; this sizer is wiped and rebuilt whenever the shader file changes."
+            "description": "Container for per-shader dynamic uniform controls. ShaderPanel reserves the sizer here; ShaderConfig::GetDynamicPropertiesJson emits a schema-shaped JSON array for every visible uniform, and the JsonEffectPanel builder renders the rows so iPad and desktop share the same layout logic. The sizer is wiped (and its PropertyInfo entries purged via RemovePropertiesWithPrefix) whenever the shader file changes."
         }
     ]
 }

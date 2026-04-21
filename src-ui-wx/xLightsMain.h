@@ -77,19 +77,19 @@
 #include "render/PixelBuffer.h"
 #include "render/SequenceData.h"
 #include "effects/EffectManager.h"
-#include "ui/effectpanels/EffectPanelManager.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "effectpanels/EffectPanelManager.h"
+#include "shared/utils/wxUtilities.h"
 #include "models/ModelManager.h"
 #include "models/ViewObjectManager.h"
-#include "ui/shared/utils/xLightsTimer.h"
+#include "shared/utils/xLightsTimer.h"
 #include "JobPool.h"
 #include "render/SequenceViewManager.h"
-#include "ui/color/ColorManager.h"
-#include "ui/effects/EffectPresetManager.h"
+#include "color/ColorManager.h"
+#include "effects/EffectPresetManager.h"
 #include "render/ViewpointMgr.h"
-#include "ui/sequencer/PhonemeDictionary.h"
+#include "sequencer/PhonemeDictionary.h"
 #include "render/SequenceFile.h"
-#include "ui/sequencer/EffectsGrid.h"
+#include "sequencer/EffectsGrid.h"
 #include "render/RenderCache.h"
 #include "outputs/ZCPP.h"
 #include "models/OutputModelManager.h"
@@ -99,9 +99,9 @@
 #include "render/UICallbacks.h"
 #include "models/Model.h"
 #include "render/SequencePackage.h"
-#include "ui/automation/ScriptsDialog.h"
-#include "ui/app-shell/TipOfTheDayDialog.h"
-#include "ui/diagnostics/CheckSequenceReport.h"
+#include "automation/ScriptsDialog.h"
+#include "app-shell/TipOfTheDayDialog.h"
+#include "diagnostics/CheckSequenceReport.h"
 
 #include "ai/aiType.h"
 #include "ai/ServiceManager.h"
@@ -128,7 +128,7 @@ class ValueCurvesPanel;
 class ColoursPanel;
 class JukeboxPanel;
 class FindDataPanel;
-class TimingPanel;
+class BlendingPanel;
 class ColorPanel;
 class EffectsPanel;
 class EffectAssist;
@@ -552,7 +552,7 @@ public:
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);
     void ShowHideEffectSettingsWindow(wxCommandEvent& event);
     void ShowHideColorWindow(wxCommandEvent& event);
-    void ShowHideLayerTimingWindow(wxCommandEvent& event);
+    void ShowHideLayerBlendingWindow(wxCommandEvent& event);
     void ShowHideEffectDropper(wxCommandEvent& event);
     void ResetToolbarLocations(wxCommandEvent& event);
     void OnMenuItemImportEffects(wxCommandEvent& event);
@@ -561,6 +561,7 @@ public:
     void ShowHidePerspectivesWindow(wxCommandEvent& event);
     void ShowHideDisplayElementsWindow(wxCommandEvent& event);
     void ShowHideEffectAssistWindow(wxCommandEvent& event);
+    void ShowHideEffectPresetsWindow(wxCommandEvent& event);
     void OnMenuItem_File_SaveAs_SequenceSelected(wxCommandEvent& event);
     void OnMenuDockAllSelected(wxCommandEvent& event);
     void ShowHideBufferSettingsWindow(wxCommandEvent& event);
@@ -853,6 +854,7 @@ public:
     static const wxWindowID ID_MNU_VALUECURVES;
     static const wxWindowID ID_MNU_COLOURDROPPER;
     static const wxWindowID ID_MENUITEM_EFFECT_ASSIST_WINDOW;
+    static const wxWindowID ID_MENUITEM_EFFECT_PRESETS;
     static const wxWindowID ID_MENUITEM_SELECT_EFFECT;
     static const wxWindowID ID_MENUITEM_SEARCH_EFFECTS;
     static const wxWindowID ID_MENUITEM_VIDEOPREVIEW;
@@ -985,6 +987,7 @@ public:
     wxMenuItem* MenuItemDisplayElements;
     wxMenuItem* MenuItemEffectAssist;
     wxMenuItem* MenuItemEffectDropper;
+    wxMenuItem* MenuItemEffectPresets;
     wxMenuItem* MenuItemEffectSettings;
     wxMenuItem* MenuItemFindData;
     wxMenuItem* MenuItemFindShowFolder;
@@ -1884,7 +1887,7 @@ private:
     LayoutPanel *layoutPanel = nullptr;
     EffectAssist* sEffectAssist = nullptr;
     ColorPanel* colorPanel = nullptr;
-    TimingPanel* timingPanel = nullptr;
+    BlendingPanel* blendingPanel = nullptr;
     PerspectivesPanel* perspectivePanel = nullptr;
     EffectIconPanel* effectPalettePanel = nullptr;
     ValueCurvesPanel* _valueCurvesPanel = nullptr;
@@ -2041,10 +2044,11 @@ public:
     ColorManager color_mgr;
     ViewpointMgr viewpoint_mgr;
     EffectTreeDialog *EffectTreeDlg = nullptr;
+    bool _effectPresetsInitialized = false;
 
     ModelGroup* GetSelectedModelGroup() const;
     static pugi::xml_node FindNode(pugi::xml_node parent, const std::string& tag, const std::string& attr, const std::string& value, bool create = false);
-    TimingPanel* GetLayerBlendingPanel() const { return timingPanel; }
+    BlendingPanel* GetLayerBlendingPanel() const { return blendingPanel; }
 
     int GetPlayStatus() const { return playType; }
     void SetPlayStatus(int status);

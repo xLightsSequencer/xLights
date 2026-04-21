@@ -4,11 +4,13 @@ import Foundation
 //
 // See also:
 //   resources/effectmetadata/<EffectName>.json — per-effect metadata
-//   resources/effectmetadata/shared/Buffer.json — buffer panel (B_ prefix)
-//   resources/effectmetadata/shared/Color.json — color panel (C_ prefix)
-//   resources/effectmetadata/shared/Timing.json — timing panel (T_ prefix)
+//   resources/effectmetadata/shared/Buffer.json   — buffer panel (B_ prefix)
+//   resources/effectmetadata/shared/Color.json    — color panel (C_ prefix)
+//   resources/effectmetadata/shared/Blending.json — layer-blending panel
+//                                                   (T_ prefix; file was
+//                                                   previously Timing.json)
 //
-// The desktop wx UI consumes these via src-ui-wx/ui/effectpanels/JsonEffectPanel.cpp;
+// The desktop wx UI consumes these via src-ui-wx/effectpanels/JsonEffectPanel.cpp;
 // this Swift layer re-implements the same controls for the iPad.
 
 struct EffectMetadata: Codable {
@@ -55,6 +57,18 @@ struct PropertyMetadata: Codable {
     let checkboxLabel: String?
     let description: String?
 
+    // Per-axis bounds for `controlType: "point2d"`. Each axis falls back
+    // to the single-valued `min` / `max` / `default` fields when its
+    // per-axis variant is absent — matches desktop's behaviour in
+    // `JsonEffectPanel.cpp:1447-1458` so a symmetric point2d only
+    // needs one range specified.
+    let minX: Double?
+    let maxX: Double?
+    let defaultX: AnyCodable?
+    let minY: Double?
+    let maxY: Double?
+    let defaultY: AnyCodable?
+
     enum CodingKeys: String, CodingKey {
         case id, label, tooltip, type, controlType
         case defaultValue = "default"
@@ -62,6 +76,7 @@ struct PropertyMetadata: Codable {
         case options, dynamicOptions, separator, suppressIfDefault
         case fileFilter, fileMessage, settingPrefix
         case fullWidth, expandToFill, growable, checkboxLabel, description
+        case minX, maxX, defaultX, minY, maxY, defaultY
     }
 
     /// Float values stored as int with divisor. Slider min/max are raw ints; the
@@ -86,7 +101,6 @@ struct PropertyMetadata: Codable {
         case "filepicker":                  return "FILEPICKER"
         case "fontpicker":                  return "FONTPICKER"
         case "colourpicker":                return "COLOURPICKER"
-        case "radiobutton":                 return "RADIOBUTTON"
         default:                            return "TEXTCTRL"
         }
     }
@@ -129,11 +143,25 @@ struct VisibilityRuleMetadata: Codable {
     let show: [String]?
     let hide: [String]?
 
+    // Mirrors the desktop `VisibilityRule` evaluated in
+    // JsonEffectPanel.cpp:1433-1570. Supported operators:
+    //   - equals      — string/bool equality with the target property's value
+    //   - notEquals   — negation of equals
+    //   - oneOf       — target value appears in the list (choice controls)
+    //   - notOneOf    — inverse of oneOf
+    //   - greaterThan — numeric (>), parsed with strtod (non-throwing)
+    //   - startsWith  — string prefix match on a choice selection
+    //   - any         — OR across a list of checkbox-style property ids
+    // `any` is mutually exclusive with the single-property operators
+    // (desktop never combines them on one rule).
     struct WhenCondition: Codable {
         let property: String?
         let equals: AnyCodable?
         let notEquals: AnyCodable?
         let oneOf: [AnyCodable]?
+        let notOneOf: [AnyCodable]?
+        let greaterThan: AnyCodable?
+        let startsWith: String?
         let any: [String]?
     }
 }
@@ -197,5 +225,47 @@ func parseEffectMetadata(_ jsonString: String) -> EffectMetadata? {
     } catch {
         print("parseEffectMetadata failed: \(error)")
         return nil
+    }
+}
+
+// MARK: - Synthetic PropertyMetadata
+
+extension PropertyMetadata {
+    /// Build a `PropertyMetadata` from raw field values — used by custom
+    /// compound rows that want to delegate rendering of a sub-control
+    /// (slider with VC, for instance) to `EffectPropertyView` without
+    /// reinventing its state wiring. Internally JSON-encodes the dict
+    /// and re-decodes so every Codable-only field gets the same default
+    /// initialisation as a file-loaded property.
+    static func makeSynthetic(id: String,
+                               label: String,
+                               type: String = "float",
+                               controlType: String,
+                               defaultValue: Any? = nil,
+                               min: Double? = nil,
+                               max: Double? = nil,
+                               divisor: Int? = nil,
+                               valueCurve: Bool = false,
+                               vcMin: Double? = nil,
+                               vcMax: Double? = nil,
+                               settingPrefix: String? = nil) -> PropertyMetadata? {
+        var obj: [String: Any] = [
+            "id": id,
+            "label": label,
+            "type": type,
+            "controlType": controlType,
+        ]
+        if let d = defaultValue { obj["default"] = d }
+        if let v = min { obj["min"] = v }
+        if let v = max { obj["max"] = v }
+        if let v = divisor { obj["divisor"] = v }
+        if valueCurve { obj["valueCurve"] = true }
+        if let v = vcMin { obj["vcMin"] = v }
+        if let v = vcMax { obj["vcMax"] = v }
+        if let v = settingPrefix { obj["settingPrefix"] = v }
+        guard let data = try? JSONSerialization.data(withJSONObject: obj) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(PropertyMetadata.self, from: data)
     }
 }

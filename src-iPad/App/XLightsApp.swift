@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct XLightsApp: App {
     @State private var viewModel: SequencerViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Must initialize xLights core (sets FileUtils::GetResourcesDir) BEFORE
@@ -11,6 +12,7 @@ struct XLightsApp: App {
         // to load effectmetadata JSON files.
         XLiPadInit.initialize()
         let vm = SequencerViewModel()
+        vm.startMemoryMonitoring()
         // Attempt to restore the previously-selected show folder + media
         // folders via their persistent security-scoped bookmarks.
         vm.restorePersistedShowFolder()
@@ -22,6 +24,30 @@ struct XLightsApp: App {
             ContentView()
                 .environment(viewModel)
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .inactive:
+                // Temporary suspension (app switcher, incoming call,
+                // Control Center). Pause playback + scrub so the
+                // frame timers and audio stop burning energy;
+                // keep render state so returning to .active is
+                // instant. `.background` follows if the app really
+                // goes away — that's handled below.
+                viewModel.quiesceForInactive()
+            case .background:
+                // May precede termination; iOS can kill the process
+                // without further notice. Pause playback, stop scrub,
+                // then abort the render and block briefly so worker
+                // threads exit cleanly before the teardown race —
+                // otherwise they crash mid-frame on freed
+                // SequenceElements / SequenceData.
+                viewModel.shutdownForBackground()
+            case .active:
+                break
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
@@ -30,13 +56,18 @@ struct ContentView: View {
     @State private var showFolderConfig = false
 
     var body: some View {
-        Group {
-            if !viewModel.isShowFolderLoaded {
-                ShowFolderSetupView(showFolderConfig: $showFolderConfig)
-            } else if !viewModel.isSequenceLoaded {
-                SequencePickerView(showFolderConfig: $showFolderConfig)
-            } else {
-                SequencerView()
+        VStack(spacing: 0) {
+            if viewModel.memoryWarning {
+                MemoryWarningBanner()
+            }
+            Group {
+                if !viewModel.isShowFolderLoaded {
+                    ShowFolderSetupView(showFolderConfig: $showFolderConfig)
+                } else if !viewModel.isSequenceLoaded {
+                    SequencePickerView(showFolderConfig: $showFolderConfig)
+                } else {
+                    SequencerView()
+                }
             }
         }
         .sheet(isPresented: $showFolderConfig) {
@@ -49,6 +80,21 @@ struct ContentView: View {
                 showFolderConfig = true
             }
         }
+    }
+}
+
+struct MemoryWarningBanner: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text("Low memory — renders paused")
+                .font(.caption)
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.orange)
     }
 }
 

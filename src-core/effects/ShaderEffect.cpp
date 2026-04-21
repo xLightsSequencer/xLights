@@ -1547,6 +1547,119 @@ bool ShaderConfig::UsesEvents() const
                        [](const ShaderParm& p) { return p._type == ShaderParmType::SHADER_PARM_EVENT; });
 }
 
+nlohmann::json ShaderConfig::GetDynamicPropertiesJson() const
+{
+    // Panel-builder settingPrefix decides which control owns the serialized
+    // value. Shader floats/longs historically stored the primary under
+    // E_SLIDER_SHADERXYZZY_<name> with 100× scaling for floats; keeping that
+    // exact key is what makes old .xsq sequences still load. Choices serialize
+    // as label strings under E_CHOICE_; bools under E_CHECKBOX_. Point2d
+    // expands into two sibling slider rows suffixed X / Y, matching the
+    // legacy ShaderPanel layout and the render path in
+    // ShaderEffect::Render (which appends "X"/"Y" to the VC-undecorated id).
+    nlohmann::json out = nlohmann::json::array();
+
+    for (const auto& p : _parms) {
+        if (!p.ShowParm())
+            continue;
+
+        // Namespace the id to match the legacy SHADERXYZZY_<name> setting-map
+        // keys that the render code reads via GetUndecoratedId.
+        const std::string id = "SHADERXYZZY_" + p._name;
+
+        nlohmann::json entry;
+        entry["id"] = id;
+        entry["label"] = p.GetLabel();
+
+        switch (p._type) {
+        case ShaderParmType::SHADER_PARM_FLOAT:
+            entry["type"] = "float";
+            entry["controlType"] = "slider";
+            entry["settingPrefix"] = "SLIDER";
+            entry["divisor"] = 100;
+            entry["min"] = static_cast<int>(p._min * 100.0);
+            entry["max"] = static_cast<int>(p._max * 100.0);
+            entry["default"] = p._default;
+            entry["valueCurve"] = true;
+            break;
+
+        case ShaderParmType::SHADER_PARM_LONG:
+            entry["type"] = "int";
+            entry["controlType"] = "slider";
+            entry["min"] = static_cast<int>(p._min);
+            entry["max"] = static_cast<int>(p._max);
+            entry["default"] = static_cast<int>(p._default);
+            entry["valueCurve"] = true;
+            break;
+
+        case ShaderParmType::SHADER_PARM_LONGCHOICE: {
+            entry["type"] = "enum";
+            entry["controlType"] = "choice";
+            nlohmann::json options = nlohmann::json::array();
+            std::string defaultLabel;
+            const int defaultIdx = static_cast<int>(p._default);
+            for (const auto& [idx, label] : p._valueOptions) {
+                options.push_back(label);
+                if (idx == defaultIdx)
+                    defaultLabel = label;
+            }
+            entry["options"] = std::move(options);
+            if (!defaultLabel.empty())
+                entry["default"] = defaultLabel;
+            break;
+        }
+
+        case ShaderParmType::SHADER_PARM_EVENT: {
+            // Event params are populated with timing-track names at parse time
+            // (see ShaderConfig ctor's SHADER_PARM_EVENT branch). Emit the
+            // current list as a plain choice — render reads it as a string
+            // name and matches against timing tracks.
+            entry["type"] = "enum";
+            entry["controlType"] = "choice";
+            nlohmann::json options = nlohmann::json::array();
+            std::string defaultLabel;
+            const int defaultIdx = static_cast<int>(p._default);
+            for (const auto& [idx, label] : p._valueOptions) {
+                options.push_back(label);
+                if (idx == defaultIdx)
+                    defaultLabel = label;
+            }
+            entry["options"] = std::move(options);
+            if (!defaultLabel.empty())
+                entry["default"] = defaultLabel;
+            break;
+        }
+
+        case ShaderParmType::SHADER_PARM_BOOL:
+            entry["type"] = "bool";
+            entry["controlType"] = "checkbox";
+            entry["default"] = (p._default != 0.0);
+            break;
+
+        case ShaderParmType::SHADER_PARM_POINT2D:
+            entry["type"] = "float";
+            entry["controlType"] = "point2d";
+            entry["settingPrefix"] = "SLIDER";
+            entry["divisor"] = 100;
+            entry["minX"] = static_cast<int>(p._minPt.x * 100.0);
+            entry["maxX"] = static_cast<int>(p._maxPt.x * 100.0);
+            entry["defaultX"] = p._defaultPt.x;
+            entry["minY"] = static_cast<int>(p._minPt.y * 100.0);
+            entry["maxY"] = static_cast<int>(p._maxPt.y * 100.0);
+            entry["defaultY"] = p._defaultPt.y;
+            entry["valueCurve"] = true;
+            break;
+
+        default:
+            continue;
+        }
+
+        out.push_back(std::move(entry));
+    }
+
+    return out;
+}
+
 #if defined(__APPLE__) && !defined(USE_GLES)
 #pragma clang diagnostic pop
 #endif

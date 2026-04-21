@@ -230,7 +230,7 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
             case 4:
                 red = value * (1.0 - saturation * (1.0 - f));
                 green = p;
-                blue = hsv.value;
+                blue = value;
                 break;
 
             default:    // case 5:
@@ -240,9 +240,9 @@ static void fromHSV(xlColor & rgb, const HSVValue &hsv) {
                 break;
         }
     }
-    rgb.Set((uint8_t)(red * 255.0),
-            (uint8_t)(green * 255.0),
-            (uint8_t)(blue * 255.0));
+    rgb.Set((uint8_t)std::lround(red * 255.0),
+            (uint8_t)std::lround(green * 255.0),
+            (uint8_t)std::lround(blue * 255.0));
 }
 
 void xlColor::fromHSV(const HSVValue &hsv) {

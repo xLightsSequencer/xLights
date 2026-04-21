@@ -33,6 +33,9 @@ PolyLineModel::PolyLineModel(const ModelManager &manager) : ModelWithScreenLocat
     _polyLineSegDropSizes.resize(1);
     _polyLeadOffset.resize(1);
     _polyTrailOffset.resize(1);
+    // Parse the default drop pattern so _dropSizes and _maxH are valid before
+    // InitModel() runs. Without this, _maxH stays 0 and SetBufferSize(0,...) means nothing renders.
+    ParseDropSizes();
 }
 
 PolyLineModel::~PolyLineModel()

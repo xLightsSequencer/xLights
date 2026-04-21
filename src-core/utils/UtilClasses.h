@@ -41,6 +41,32 @@ public:
     SettingValue(const char *s) : std::string(s), curType(STRING) {}
     SettingValue(const SettingValue& v) = default;
 
+    // Invalidate the cached type-converted value whenever the string
+    // is reassigned via an inherited std::string op. Without this,
+    // `getBool()` / `getInt()` / etc. cache their result on first call
+    // and any subsequent in-place reassignment (e.g. desktop panels
+    // rebuild via `map.Parse`, but iPad's direct `map[key] = "0"`
+    // palette writes) returns the stale cached value. Desktop avoids
+    // this by Parse-ing a fresh map each save; iPad needs the fix
+    // at this layer so direct mutation stays correct.
+    SettingValue& operator=(const std::string& s) {
+        std::string::operator=(s);
+        curType = STRING;
+        return *this;
+    }
+    SettingValue& operator=(const char* s) {
+        std::string::operator=(s);
+        curType = STRING;
+        return *this;
+    }
+    SettingValue& operator=(const SettingValue& v) {
+        if (this != &v) {
+            std::string::operator=(v);
+            curType = STRING;
+        }
+        return *this;
+    }
+
     bool getBool() const {
         if (curType != BOOLEAN) {
             valHolder.bt = length() >= 1 && this->at(0) == '1';
@@ -92,7 +118,7 @@ public:
     const std::string &operator[](const std::string &key) const {
         return Get(key, xlEMPTY_STRING);
     }
-    std::string &operator[](const std::string &key) {
+    SettingValue &operator[](const std::string &key) {
         return _internal[key];
     }
     int GetInt(const std::string &key, const int def = 0) const {
@@ -150,7 +176,7 @@ public:
     const std::string& operator[](const char* key) const {
         return Get(key, xlEMPTY_STRING);
     }
-    std::string& operator[](const char* ckey) {
+    SettingValue& operator[](const char* ckey) {
         std::string key(ckey);
         return _internal[key];
     }

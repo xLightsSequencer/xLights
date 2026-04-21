@@ -16,24 +16,24 @@
 #include "render/FSEQFile.h"
 #include "outputs/Controller.h"
 #include "outputs/ControllerEthernet.h"
-#include "ui/layout/LayoutPanel.h"
-#include "ui/layout/ViewsModelsPanel.h"
+#include "layout/LayoutPanel.h"
+#include "layout/ViewsModelsPanel.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/FPP.h"
 #include "controllers/Falcon.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 #include "../xLightsApp.h"
-#include "ui/media/JukeboxPanel.h"
+#include "media/JukeboxPanel.h"
 #include "outputs/E131Output.h"
 #include "../../dependencies/wxHTTPServer/wxhttpserver.h"
-#include "../ui/sequencer/MainSequencer.h"
-#include "../ui/layout/ModelPreview.h"
+#include "../sequencer/MainSequencer.h"
+#include "../layout/ModelPreview.h"
 #include <wx/uri.h>
 
 #include "LuaRunner.h"
-#include "ui/setup/DiscoveryAuthDialog.h"
+#include "setup/DiscoveryAuthDialog.h"
 
 #include <log.h>
 

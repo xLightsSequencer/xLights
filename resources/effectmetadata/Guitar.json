@@ -23,6 +23,7 @@
             "options": [],
             "default": "",
             "dynamicOptions": "timingTracks",
+            "expandToFill": true,
             "description": "The timing track containing MIDI note data that drives the guitar visualization."
         },
         {

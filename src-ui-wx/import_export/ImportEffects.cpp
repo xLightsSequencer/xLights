@@ -21,16 +21,16 @@
 
 #include <pugixml.hpp>
 
-#include "../ui/import-export/LMSImportChannelMapDialog.h"
+#include "../import_export/LMSImportChannelMapDialog.h"
 #include "LOREdit.h"
-#include "../ui/import-export/SuperStarImportDialog.h"
+#include "../import_export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 #include "VSAFile.h"
-#include "../ui/import-export/VsaImportDialog.h"
-#include "ui/sequencer/BufferPanel.h"
+#include "../import_export/VsaImportDialog.h"
+#include "sequencer/BufferPanel.h"
 #include "FileConverter.h"
-#include "../ui/import-export/xLightsImportChannelMapDialog.h"
+#include "../import_export/xLightsImportChannelMapDialog.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "xLightsVersion.h"
@@ -50,7 +50,7 @@
 #include "render/FontManager.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
-#include "../ui/sequencer/MainSequencer.h"
+#include "../sequencer/MainSequencer.h"
 #include "render/RenderUtils.h"
 
 #include <log.h>

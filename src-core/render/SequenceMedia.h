@@ -327,6 +327,12 @@ public:
 
     void GeneratePreview(int maxWidth, int maxHeight) override;
 
+    // Total duration in milliseconds. Lazily probed on first call
+    // (via `VideoReader::GetVideoLength`) and cached for the entry's
+    // lifetime — subsequent calls are free. Returns 0 when the file
+    // can't be opened.
+    int GetDurationMS();
+
     void Load() override;
     bool LoadFromXml(const pugi::xml_node& node) override;
     void SaveToXml(pugi::xml_node& parent) const override;
@@ -335,6 +341,8 @@ private:
     std::string _resolvedPath;
     std::shared_ptr<xlImage> _thumbnail;
     int _thumbW = 0, _thumbH = 0;
+    // -1 sentinel: not yet probed. 0: probed and failed. >0: duration.
+    std::atomic<int> _durationMS{-1};
 };
 
 /**

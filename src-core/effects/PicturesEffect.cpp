@@ -443,7 +443,16 @@ void PicturesEffect::Render(RenderBuffer& buffer,
             buffer.needToInit = false;
             scale_image = true;
 
-            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) && !FileExists(NewPictureName)) {
+            // `FileExists(NewPictureName)` is tested on the raw stored
+            // path — desktop-saved sequences store absolute paths that
+            // don't resolve on iPad (or any machine other than the one
+            // they were saved on). Resolve through FixFile first so the
+            // existence check uses the actual target path the loader
+            // will use; otherwise this guard short-circuits to red and
+            // `GetImage` never gets a chance to run its own FixFile.
+            std::string resolvedName = FileUtils::FixFile("", NewPictureName);
+            if (!buffer.GetSequenceMedia()->HasImage(NewPictureName) &&
+                !FileExists(resolvedName)) {
                 noImageFile = true;
             } else {
                 cache->PictureName = NewPictureName;

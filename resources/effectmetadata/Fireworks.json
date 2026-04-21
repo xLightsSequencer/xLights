@@ -145,6 +145,7 @@
             "options": [],
             "default": "",
             "dynamicOptions": "timingTracks",
+            "expandToFill": true,
             "description": "The timing track whose marks trigger firework explosions when Fire with timing track is enabled."
         }
     ],

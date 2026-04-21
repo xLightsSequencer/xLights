@@ -19,5 +19,6 @@
 struct SpecialOptions
 {
     static std::string StashShowDir(const std::string& showDir = "");
+    static std::string StashExeDir(const std::string& exeDir = "");
     static std::string GetOption(const std::string& option, const std::string& defaultValue = "");
 };

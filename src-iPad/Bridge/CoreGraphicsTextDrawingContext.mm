@@ -18,8 +18,64 @@
 #include "render/TextDrawingContext.h"
 #include "utils/Color.h"
 
+#include <cctype>
 #include <cstring>
+#include <mutex>
+#include <string>
+#include <unordered_map>
 #include <vector>
+
+// Resolve a wx-supplied font face name to a CoreText family name that
+// actually exists on the device. wx writes face names to the .xsq in
+// whatever case it feels like ("arial", "Arial", "ARIAL"), and
+// CTFontCreateWithName silently substitutes the system fallback when the
+// lookup misses — so "arial" quietly becomes Helvetica and the text renders
+// in the wrong typeface. Try the caller's string first, then a
+// case-insensitive scan of the installed families. Cache the mapping so
+// we only enumerate fonts once per process.
+static std::string ResolveFontFamily(const std::string& input) {
+    static std::mutex cacheMutex;
+    static std::unordered_map<std::string, std::string> inputCache;
+    static std::unordered_map<std::string, std::string> lowerToCanonical;
+    static bool familiesLoaded = false;
+
+    std::lock_guard<std::mutex> lock(cacheMutex);
+
+    if (auto it = inputCache.find(input); it != inputCache.end()) {
+        return it->second;
+    }
+
+    if (!familiesLoaded) {
+        CFArrayRef names = CTFontManagerCopyAvailableFontFamilyNames();
+        if (names) {
+            CFIndex count = CFArrayGetCount(names);
+            for (CFIndex i = 0; i < count; i++) {
+                CFStringRef name = (CFStringRef)CFArrayGetValueAtIndex(names, i);
+                char buf[256];
+                if (CFStringGetCString(name, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                    std::string canonical = buf;
+                    std::string lower = canonical;
+                    for (char& c : lower) c = (char)std::tolower((unsigned char)c);
+                    lowerToCanonical.emplace(std::move(lower), std::move(canonical));
+                }
+            }
+            CFRelease(names);
+        }
+        familiesLoaded = true;
+    }
+
+    std::string lower = input;
+    for (char& c : lower) c = (char)std::tolower((unsigned char)c);
+
+    std::string resolved;
+    if (auto it = lowerToCanonical.find(lower); it != lowerToCanonical.end()) {
+        resolved = it->second;
+    } else {
+        resolved = "Helvetica";
+    }
+    inputCache.emplace(input, resolved);
+    return resolved;
+}
 
 class CoreGraphicsTextDrawingContext : public TextDrawingContext {
 public:
@@ -57,16 +113,11 @@ public:
         if (_ctx) CGContextFlush(_ctx);
         if (width) *width = _width;
         if (height) *height = _height;
-        // CGBitmapContext renders bottom-up; flip vertically for xLights (top-down)
-        int rowBytes = _width * 4;
-        std::vector<uint8_t> tmp(rowBytes);
-        for (int y = 0; y < _height / 2; y++) {
-            int topOff = y * rowBytes;
-            int botOff = (_height - 1 - y) * rowBytes;
-            std::memcpy(tmp.data(), &_pixels[topOff], rowBytes);
-            std::memcpy(&_pixels[topOff], &_pixels[botOff], rowBytes);
-            std::memcpy(&_pixels[botOff], tmp.data(), rowBytes);
-        }
+        // CGBitmapContext uses bottom-left CG drawing coordinates, but the
+        // backing memory is top-to-bottom (row 0 = top visual row). DrawText
+        // already converts the caller's y=0-at-top input to CG coords via
+        // `_height - y`, so the text lands in memory rows starting at row 0.
+        // The interface contract is "row-major, top-to-bottom" — no flip.
         return _pixels.data();
     }
 
@@ -76,7 +127,8 @@ public:
             _currentFont = nullptr;
         }
 
-        NSString* fontName = [NSString stringWithUTF8String:font.faceName.c_str()];
+        std::string canonical = ResolveFontFamily(font.faceName);
+        NSString* fontName = [NSString stringWithUTF8String:canonical.c_str()];
         CGFloat size = font.pixelSize > 0 ? font.pixelSize : 12;
 
         CTFontSymbolicTraits traits = 0;
@@ -136,9 +188,14 @@ public:
         NSAttributedString* attrStr = [[NSAttributedString alloc] initWithString:str attributes:attrs];
         CTLineRef line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)attrStr);
 
-        CGRect bounds = CTLineGetBoundsWithOptions(line, 0);
-        if (width) *width = bounds.size.width;
-        if (height) *height = bounds.size.height;
+        // Match wxOSXCG's DoGetTextExtent: ascent + descent + leading from
+        // CTLineGetTypographicBounds. TextEffect centers the block using this
+        // height via y = (top+bottom+1 - heightText)/2, so any divergence
+        // from the value wx returns shifts the whole block.
+        CGFloat ascent = 0, descent = 0, leading = 0;
+        double w = CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+        if (width) *width = w;
+        if (height) *height = ascent + descent + leading;
 
         CFRelease(line);
     }
@@ -177,8 +234,11 @@ private:
         CGColorSpaceRelease(colorSpace);
 
         if (_ctx) {
-            CGContextSetShouldAntialias(_ctx, true);
-            CGContextSetShouldSmoothFonts(_ctx, true);
+            // Text effects render into the pixel buffer that drives the LED
+            // grid, so smoothing/AA just produces blurry half-lit pixels. Match
+            // desktop behavior (antiAliased=false in wxTextDrawingContext).
+            CGContextSetShouldAntialias(_ctx, false);
+            CGContextSetShouldSmoothFonts(_ctx, false);
         }
     }
 
@@ -201,7 +261,13 @@ private:
         NSAttributedString* attrStr = [[NSAttributedString alloc] initWithString:str attributes:attrs];
         CTLineRef line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)attrStr);
 
-        CGContextSetTextPosition(_ctx, x, y - CTFontGetDescent(_currentFont));
+        // DrawText's (x, y) anchors the TOP of the glyph box (wxDC semantics
+        // — TextEffect passes `y = rect.GetTop()` and advances by heightLine).
+        // Pull ascent from the line (same source GetTextExtent reports
+        // height from) so positioning and measurement can't disagree.
+        CGFloat ascent = 0, descent = 0, leading = 0;
+        CTLineGetTypographicBounds(line, &ascent, &descent, &leading);
+        CGContextSetTextPosition(_ctx, x, y - ascent);
         CTLineDraw(line, _ctx);
 
         CFRelease(line);
@@ -216,13 +282,18 @@ private:
     std::vector<uint8_t> _pixels;
 };
 
-// Parse wx-style font description: "FaceName [Bold] [Italic] [Light] Size"
-// e.g. "Arial 12", "Arial Bold 14", "Courier New Bold Italic 10"
+// Parse a wx native-font-info user description. The format is loose — tokens
+// can include style keywords, a numeric pixel/point size, a charset (e.g.
+// "utf-8"), and the face name in any order. Examples observed in .xsq files:
+//   "bold arial 26 utf-8"
+//   "Arial 12"
+//   "Courier New Bold Italic 10"
+// Strategy: case-insensitively classify each whitespace-separated token as
+// style / size / charset / face, then stitch the face tokens back together.
 static TextFontInfo ParseFontString(const std::string& fontString) {
     TextFontInfo info;
     if (fontString.empty()) return info;
 
-    // Split on spaces
     std::vector<std::string> parts;
     std::string current;
     for (char c : fontString) {
@@ -238,46 +309,50 @@ static TextFontInfo ParseFontString(const std::string& fontString) {
     if (!current.empty()) parts.push_back(current);
     if (parts.empty()) return info;
 
-    // Last part should be the size (number)
-    int size = 12;
-    if (!parts.empty()) {
+    auto lower = [](const std::string& s) {
+        std::string out = s;
+        for (char& c : out) c = (char)std::tolower((unsigned char)c);
+        return out;
+    };
+
+    int size = 0;
+    std::vector<std::string> faceParts;
+    for (const std::string& part : parts) {
+        std::string lp = lower(part);
+        if (lp == "bold") { info.bold = true; continue; }
+        if (lp == "italic" || lp == "oblique") { info.italic = true; continue; }
+        if (lp == "light") { info.light = true; continue; }
+        if (lp == "underlined") { info.underlined = true; continue; }
+        if (lp == "strikethrough") { info.strikethrough = true; continue; }
+        if (lp == "regular" || lp == "normal") { continue; }
+
+        // Numeric token → size.
         char* end = nullptr;
-        long val = std::strtol(parts.back().c_str(), &end, 10);
-        if (end != parts.back().c_str() && *end == '\0' && val > 0) {
+        long val = std::strtol(part.c_str(), &end, 10);
+        if (end != part.c_str() && *end == '\0' && val > 0) {
             size = (int)val;
-            parts.pop_back();
+            continue;
         }
-    }
-    info.pixelSize = size;
 
-    // Check for style keywords from the end
-    while (!parts.empty()) {
-        std::string& last = parts.back();
-        if (last == "Bold" || last == "bold") {
-            info.bold = true;
-            parts.pop_back();
-        } else if (last == "Italic" || last == "italic") {
-            info.italic = true;
-            parts.pop_back();
-        } else if (last == "Light" || last == "light") {
-            info.light = true;
-            parts.pop_back();
-        } else if (last == "Underlined" || last == "underlined") {
-            info.underlined = true;
-            parts.pop_back();
-        } else if (last == "Strikethrough" || last == "strikethrough") {
-            info.strikethrough = true;
-            parts.pop_back();
-        } else {
-            break;
+        // Charset markers like "utf-8", "iso-8859-1", "windows-1252" — contain
+        // a digit and a hyphen. wx writes the charset last; discard it so it
+        // doesn't pollute the face name.
+        bool hasDigit = false, hasHyphen = false;
+        for (char c : part) {
+            if (std::isdigit((unsigned char)c)) hasDigit = true;
+            if (c == '-') hasHyphen = true;
         }
+        if (hasDigit && hasHyphen) continue;
+
+        faceParts.push_back(part);
     }
 
-    // Remaining parts are the face name
+    info.pixelSize = size > 0 ? size : 12;
+
     std::string faceName;
-    for (size_t i = 0; i < parts.size(); i++) {
+    for (size_t i = 0; i < faceParts.size(); i++) {
         if (i > 0) faceName += " ";
-        faceName += parts[i];
+        faceName += faceParts[i];
     }
     info.faceName = faceName.empty() ? "Helvetica" : faceName;
 

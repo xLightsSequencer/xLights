@@ -28,7 +28,7 @@
 					<Add option="-D__WXDEBUG__" />
 					<Add option='-D__cdecl=&quot;&quot;' />
 					<Add directory="../include" />
-					<Add directory="../src-ui-wx/ui/sequencer" />
+					<Add directory="../src-ui-wx/sequencer" />
 					<Add directory="../src-core/render" />
 					<Add directory="../src-core/utils" />
 					<Add directory="../src-core" />
@@ -39,7 +39,7 @@
 					<Add directory="../src-core/effects/assist" />
 					<Add directory="../include" />
 					<Add directory="../src-core/models/" />
-					<Add directory="../src-ui-wx/ui/support" />
+					<Add directory="../src-ui-wx/support" />
 					<Add directory="../src-core/outputs" />
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
@@ -90,7 +90,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D__cdecl=&apos;&apos;" />
 					<Add directory="../include" />
-					<Add directory="../src-ui-wx/ui/sequencer" />
+					<Add directory="../src-ui-wx/sequencer" />
 					<Add directory="../src-core/render" />
 					<Add directory="../src-core/utils" />
 					<Add directory="../src-core" />
@@ -101,7 +101,7 @@
 					<Add directory="../src-core/effects/assist" />
 					<Add directory="../include" />
 					<Add directory="../src-core/models/" />
-					<Add directory="../src-ui-wx/ui/support" />
+					<Add directory="../src-ui-wx/support" />
 					<Add directory="../src-core/outputs" />
 					<Add directory="../src-core" />
 					<Add directory="../src-core/models" />
@@ -171,10 +171,10 @@
 		<Unit filename="../dependencies/wxJSON/jsonval.h" />
 		<Unit filename="../dependencies/wxJSON/jsonwriter.cpp" />
 		<Unit filename="../dependencies/wxJSON/jsonwriter.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/AboutDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/AboutDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/AlignmentDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/AlignmentDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/AboutDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/AboutDialog.h" />
+		<Unit filename="../src-ui-wx/model/AlignmentDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/AlignmentDialog.h" />
 		<Unit filename="../src-core/media/AudioManager.cpp" />
 		<Unit filename="../src-core/media/AudioManager.h" />
 		<Unit filename="../src-core/media/MediaCompatibility.cpp" />
@@ -190,249 +190,249 @@
 		<Unit filename="../src-core/media/SDLAudioOutput.cpp" />
 		<Unit filename="../src-core/media/SDLAudioOutput.h" />
 		<Unit filename="../src-core/media/xLightsVamp.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/AutoLabelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/AutoLabelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BatchRenderDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BatchRenderDialog.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/BitmapCache.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/BitmapCache.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BufferPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BufferPanel.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BufferSizeDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BufferSizeDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditColourPickerDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditColourPickerDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditComboDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditComboDialog.h" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/BulkEditControls.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/BulkEditControls.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditFontPickerDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditFontPickerDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditSliderDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/BulkEditSliderDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.h" />
+		<Unit filename="../src-ui-wx/shared/utils/BitmapCache.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/BitmapCache.h" />
+		<Unit filename="../src-ui-wx/sequencer/BufferPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BufferPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/BufferSizeDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BufferSizeDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditColourPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditColourPickerDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditComboDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditComboDialog.h" />
+		<Unit filename="../src-ui-wx/shared/controls/BulkEditControls.cpp" />
+		<Unit filename="../src-ui-wx/shared/controls/BulkEditControls.h" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditFontPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditFontPickerDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditSliderDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BulkEditSliderDialog.h" />
 		<Unit filename="../src-core/utils/CachedFileDownloader.cpp" />
 		<Unit filename="../src-core/utils/CachedFileDownloader.h" />
-		<Unit filename="../src-ui-wx/ui/model/ChannelLayoutDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ChannelLayoutDialog.h" />
-		<Unit filename="../src-ui-wx/ui/effects/CharMapDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/effects/CharMapDialog.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/CheckSequenceReport.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/CheckSequenceReport.h" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/CheckboxSelectDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/CheckboxSelectDialog.h" />
+		<Unit filename="../src-ui-wx/model/ChannelLayoutDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ChannelLayoutDialog.h" />
+		<Unit filename="../src-ui-wx/effects/CharMapDialog.cpp" />
+		<Unit filename="../src-ui-wx/effects/CharMapDialog.h" />
+		<Unit filename="../src-ui-wx/diagnostics/CheckSequenceReport.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/CheckSequenceReport.h" />
+		<Unit filename="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.cpp" />
+		<Unit filename="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.h" />
 		<Unit filename="../src-core/utils/Color.cpp" />
 		<Unit filename="../src-core/utils/Color.h" />
 		<Unit filename="../src-core/utils/CursorType.h" />
 		<Unit filename="../src-core/utils/ExternalHooks.h" />
 		<Unit filename="../src-core/render/ColorCurve.cpp" />
 		<Unit filename="../src-core/render/ColorCurve.h" />
-		<Unit filename="../src-ui-wx/ui/color/wxColorCurveButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/wxColorCurveButton.h" />
-		<Unit filename="../src-ui-wx/ui/color/wxColorCurveRenderer.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/wxColorCurveRenderer.h" />
-		<Unit filename="../src-ui-wx/ui/color/ColorCurveDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/ColorCurveDialog.h" />
-		<Unit filename="../src-ui-wx/ui/color/ColorManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/ColorManager.h" />
-		<Unit filename="../src-ui-wx/ui/color/ColorPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/ColorPanel.h" />
-		<Unit filename="../src-ui-wx/ui/color/ColourReplaceDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/ColourReplaceDialog.h" />
-		<Unit filename="../src-ui-wx/ui/color/ColoursPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/ColoursPanel.h" />
+		<Unit filename="../src-ui-wx/color/wxColorCurveButton.cpp" />
+		<Unit filename="../src-ui-wx/color/wxColorCurveButton.h" />
+		<Unit filename="../src-ui-wx/color/wxColorCurveRenderer.cpp" />
+		<Unit filename="../src-ui-wx/color/wxColorCurveRenderer.h" />
+		<Unit filename="../src-ui-wx/color/ColorCurveDialog.cpp" />
+		<Unit filename="../src-ui-wx/color/ColorCurveDialog.h" />
+		<Unit filename="../src-ui-wx/color/ColorManager.cpp" />
+		<Unit filename="../src-ui-wx/color/ColorManager.h" />
+		<Unit filename="../src-ui-wx/color/ColorPanel.cpp" />
+		<Unit filename="../src-ui-wx/color/ColorPanel.h" />
+		<Unit filename="../src-ui-wx/color/ColourReplaceDialog.cpp" />
+		<Unit filename="../src-ui-wx/color/ColourReplaceDialog.h" />
+		<Unit filename="../src-ui-wx/color/ColoursPanel.cpp" />
+		<Unit filename="../src-ui-wx/color/ColoursPanel.h" />
 		<Unit filename="../src-core/models/ControllerConnection.cpp" />
 		<Unit filename="../src-core/models/ControllerConnection.h" />
-		<Unit filename="../src-ui-wx/ui/setup/ControllerConnectionDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/ControllerConnectionDialog.h" />
-		<Unit filename="../src-ui-wx/ui/setup/ControllerModelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/ControllerModelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/ConvertDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/ConvertDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/ConvertLogDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/ConvertLogDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/CopyFormat1.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/CopyFormat1.h" />
-		<Unit filename="../src-ui-wx/ui/model/CustomModelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/CustomModelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/CustomTimingDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/CustomTimingDialog.h" />
+		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/ControllerConnectionDialog.h" />
+		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/ControllerModelDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/ConvertDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/ConvertDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/ConvertLogDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/ConvertLogDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/CopyFormat1.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/CopyFormat1.h" />
+		<Unit filename="../src-ui-wx/model/CustomModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/CustomModelDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/CustomTimingDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/CustomTimingDialog.h" />
 		<Unit filename="../src-core/render/DataLayer.cpp" />
 		<Unit filename="../src-core/render/DataLayer.h" />
 		<Unit filename="../src-core/render/DimmingCurve.cpp" />
 		<Unit filename="../src-core/render/DimmingCurve.h" />
-		<Unit filename="../src-ui-wx/ui/color/DimmingCurvePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/DimmingCurvePanel.h" />
+		<Unit filename="../src-ui-wx/color/DimmingCurvePanel.cpp" />
+		<Unit filename="../src-ui-wx/color/DimmingCurvePanel.h" />
 		<Unit filename="../src-core/discovery/Discovery.cpp" />
 		<Unit filename="../src-core/discovery/Discovery.h" />
-		<Unit filename="../src-ui-wx/ui/setup/DiscoveryAuthDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/DiscoveryAuthDialog.h" />
+		<Unit filename="../src-ui-wx/setup/DiscoveryAuthDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/DiscoveryAuthDialog.h" />
 		<Unit filename="../src-core/render/DissolveTransitionPattern.cpp" />
 		<Unit filename="../src-core/render/DissolveTransitionPattern.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/DragColoursBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/DragColoursBitmapButton.h" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/DragValueCurveBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/DragValueCurveBitmapButton.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/DuplicateDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/DuplicateDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/EditAliasesDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/EditAliasesDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/EditSubmodelAliasesDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/EditSubmodelAliasesDialog.h" />
-		<Unit filename="../src-ui-wx/ui/effects/EffectAssist.cpp" />
-		<Unit filename="../src-ui-wx/ui/effects/EffectAssist.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectIconPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectIconPanel.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectListDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectListDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectTimingDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectTimingDialog.h" />
-		<Unit filename="../src-ui-wx/ui/effects/EffectPresetManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/effects/EffectPresetManager.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectTreeDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectTreeDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/EmailDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/EmailDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/ExportModelSelect.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/ExportModelSelect.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/ExportSettings.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/ExportSettings.h" />
+		<Unit filename="../src-ui-wx/shared/utils/DragColoursBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/DragColoursBitmapButton.h" />
+		<Unit filename="../src-ui-wx/shared/controls/DragValueCurveBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/shared/controls/DragValueCurveBitmapButton.h" />
+		<Unit filename="../src-ui-wx/sequencer/DuplicateDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/DuplicateDialog.h" />
+		<Unit filename="../src-ui-wx/model/EditAliasesDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/EditAliasesDialog.h" />
+		<Unit filename="../src-ui-wx/model/EditSubmodelAliasesDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/EditSubmodelAliasesDialog.h" />
+		<Unit filename="../src-ui-wx/effects/EffectAssist.cpp" />
+		<Unit filename="../src-ui-wx/effects/EffectAssist.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectIconPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectIconPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectListDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectListDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.h" />
+		<Unit filename="../src-ui-wx/effects/EffectPresetManager.cpp" />
+		<Unit filename="../src-ui-wx/effects/EffectPresetManager.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.h" />
+		<Unit filename="../src-ui-wx/app-shell/EmailDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/EmailDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/ExportModelSelect.cpp" />
+		<Unit filename="../src-ui-wx/import_export/ExportModelSelect.h" />
+		<Unit filename="../src-ui-wx/import_export/ExportSettings.cpp" />
+		<Unit filename="../src-ui-wx/import_export/ExportSettings.h" />
 		<Unit filename="../src-core/render/FSEQFile.cpp" />
 		<Unit filename="../src-core/render/FSEQFile.h" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.cpp" />
 		<Unit filename="../src-ui-wx/import_export/FileConverter.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/FindDataPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/FindDataPanel.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/FlickerFreeBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/FlickerFreeBitmapButton.h" />
+		<Unit filename="../src-ui-wx/diagnostics/FindDataPanel.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/FindDataPanel.h" />
+		<Unit filename="../src-ui-wx/shared/utils/FlickerFreeBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/FlickerFreeBitmapButton.h" />
 		<Unit filename="../src-core/render/FontManager.cpp" />
 		<Unit filename="../src-core/render/FontManager.h" />
 		<Unit filename="../src-core/render/GPURenderUtils.cpp" />
 		<Unit filename="../src-core/render/GPURenderUtils.h" />
-		<Unit filename="../src-ui-wx/ui/model/GenerateCustomModelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/GenerateCustomModelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/GenerateLyricsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/GenerateLyricsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/layout/HousePreviewPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/HousePreviewPanel.h" />
-		<Unit filename="../src-ui-wx/ui/setup/IPEntryDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/IPEntryDialog.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/Images_png.h" />
-		<Unit filename="../src-ui-wx/ui/model/ImportPreviewsModelsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ImportPreviewsModelsDialog.h" />
+		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/GenerateCustomModelDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/GenerateLyricsDialog.h" />
+		<Unit filename="../src-ui-wx/layout/HousePreviewPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/HousePreviewPanel.h" />
+		<Unit filename="../src-ui-wx/setup/IPEntryDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/IPEntryDialog.h" />
+		<Unit filename="../src-ui-wx/shared/utils/Images_png.h" />
+		<Unit filename="../src-ui-wx/model/ImportPreviewsModelsDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ImportPreviewsModelsDialog.h" />
 		<Unit filename="../src-core/utils/AppCallbacks.cpp" />
 		<Unit filename="../src-core/utils/AppCallbacks.h" />
 		<Unit filename="../src-core/utils/JobPool.cpp" />
 		<Unit filename="../src-core/utils/JobPool.h" />
-		<Unit filename="../src-ui-wx/ui/media/JukeboxPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/JukeboxPanel.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/KeyBindingEditDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/KeyBindingEditDialog.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/KeyBindings.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/KeyBindings.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/LMSImportChannelMapDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/LMSImportChannelMapDialog.h" />
+		<Unit filename="../src-ui-wx/media/JukeboxPanel.cpp" />
+		<Unit filename="../src-ui-wx/media/JukeboxPanel.h" />
+		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/KeyBindingEditDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/KeyBindings.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
+		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/LOREdit.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LOREdit.h" />
-		<Unit filename="../src-ui-wx/ui/layout/LORPreview.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/LORPreview.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LayerSelectDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LayerSelectDialog.h" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutGroup.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutGroup.h" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutPanel.h" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutUtils.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/LayoutUtils.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LinkJukeboxButtonDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LinkJukeboxButtonDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/LorConvertDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/LorConvertDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricUserDictDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricUserDictDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricsDialog.h" />
+		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
+		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
+		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.h" />
+		<Unit filename="../src-ui-wx/layout/LayoutGroup.cpp" />
+		<Unit filename="../src-ui-wx/layout/LayoutGroup.h" />
+		<Unit filename="../src-ui-wx/layout/LayoutPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/LayoutPanel.h" />
+		<Unit filename="../src-ui-wx/layout/LayoutUtils.cpp" />
+		<Unit filename="../src-ui-wx/layout/LayoutUtils.h" />
+		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/LyricsDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LyricsDialog.h" />
 		<Unit filename="../dependencies/midifile/src/Binasc.cpp" />
 		<Unit filename="../dependencies/midifile/src/MidiEvent.cpp" />
 		<Unit filename="../dependencies/midifile/src/MidiEventList.cpp" />
 		<Unit filename="../dependencies/midifile/src/MidiFile.cpp" />
 		<Unit filename="../dependencies/midifile/src/MidiMessage.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/ManageMediaPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/ManageMediaPanel.h" />
-		<Unit filename="../src-ui-wx/ui/media/ShaderPreviewGenerator.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/ShaderPreviewGenerator.h" />
-		<Unit filename="../src-ui-wx/ui/model/MatrixFaceDownloadDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/MatrixFaceDownloadDialog.h" />
-		<Unit filename="../src-ui-wx/ui/media/MediaImportOptionsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/MediaImportOptionsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/MetronomeLabelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/MetronomeLabelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/ModelChainDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ModelChainDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/ModelDimmingCurveDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ModelDimmingCurveDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/ModelFaceDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ModelFaceDialog.h" />
-		<Unit filename="../src-ui-wx/ui/layout/ModelGroupPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/ModelGroupPanel.h" />
-		<Unit filename="../src-ui-wx/ui/layout/ModelPreview.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/ModelPreview.h" />
+		<Unit filename="../src-ui-wx/media/ManageMediaPanel.cpp" />
+		<Unit filename="../src-ui-wx/media/ManageMediaPanel.h" />
+		<Unit filename="../src-ui-wx/media/ShaderPreviewGenerator.cpp" />
+		<Unit filename="../src-ui-wx/media/ShaderPreviewGenerator.h" />
+		<Unit filename="../src-ui-wx/model/MatrixFaceDownloadDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/MatrixFaceDownloadDialog.h" />
+		<Unit filename="../src-ui-wx/media/MediaImportOptionsDialog.cpp" />
+		<Unit filename="../src-ui-wx/media/MediaImportOptionsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/MetronomeLabelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/MetronomeLabelDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelChainDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelChainDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelDimmingCurveDialog.h" />
+		<Unit filename="../src-ui-wx/model/ModelFaceDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelFaceDialog.h" />
+		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/ModelGroupPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ModelPreview.cpp" />
+		<Unit filename="../src-ui-wx/layout/ModelPreview.h" />
 		<Unit filename="../src-core/graphics/IModelPreview.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/ModelRemap.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/ModelRemap.h" />
-		<Unit filename="../src-ui-wx/ui/model/ModelStateDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ModelStateDialog.h" />
-		<Unit filename="../src-ui-wx/ui/layout/Mouse3DManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/Mouse3DManager.h" />
-		<Unit filename="../src-ui-wx/ui/setup/MultiControllerUploadDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/MultiControllerUploadDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/MusicXML.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/MusicXML.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NewTimingDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NewTimingDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/NodeSelectGrid.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/NodeSelectGrid.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/NodesGridCellEditor.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/NodesGridCellEditor.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NoteImportDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NoteImportDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NoteRangeDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/NoteRangeDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/ModelRemap.cpp" />
+		<Unit filename="../src-ui-wx/import_export/ModelRemap.h" />
+		<Unit filename="../src-ui-wx/model/ModelStateDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ModelStateDialog.h" />
+		<Unit filename="../src-ui-wx/layout/Mouse3DManager.cpp" />
+		<Unit filename="../src-ui-wx/layout/Mouse3DManager.h" />
+		<Unit filename="../src-ui-wx/setup/MultiControllerUploadDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/MultiControllerUploadDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/MusicXML.cpp" />
+		<Unit filename="../src-ui-wx/import_export/MusicXML.h" />
+		<Unit filename="../src-ui-wx/sequencer/NewTimingDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/NewTimingDialog.h" />
+		<Unit filename="../src-ui-wx/model/NodeSelectGrid.cpp" />
+		<Unit filename="../src-ui-wx/model/NodeSelectGrid.h" />
+		<Unit filename="../src-ui-wx/shared/utils/NodesGridCellEditor.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/NodesGridCellEditor.h" />
+		<Unit filename="../src-ui-wx/sequencer/NoteImportDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/NoteImportDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/NoteRangeDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/NoteRangeDialog.h" />
 		<Unit filename="../src-core/effects/OpenGLShaders.cpp" />
 		<Unit filename="../src-core/effects/OpenGLShaders.h" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/OptionChooser.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/OptionChooser.h" />
+		<Unit filename="../src-ui-wx/shared/dialogs/OptionChooser.cpp" />
+		<Unit filename="../src-ui-wx/shared/dialogs/OptionChooser.h" />
 		<Unit filename="../src-core/models/OutputModelManager.cpp" />
 		<Unit filename="../src-core/models/OutputModelManager.h" />
 		<Unit filename="../src-core/utils/Parallel.cpp" />
 		<Unit filename="../src-core/utils/Parallel.h" />
-		<Unit filename="../src-ui-wx/ui/model/PathGenerationDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/PathGenerationDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/PerspectivesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/PerspectivesPanel.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/PhonemeDictionary.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/PhonemeDictionary.h" />
+		<Unit filename="../src-ui-wx/model/PathGenerationDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/PathGenerationDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/PhonemeDictionary.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/PhonemeDictionary.h" />
 		<Unit filename="../src-core/render/IRenderJobStatus.h" />
 		<Unit filename="../src-core/render/IRenderProgressSink.h" />
 		<Unit filename="../src-core/render/JukeboxButtonData.h" />
 		<Unit filename="../src-core/render/PixelBuffer.cpp" />
 		<Unit filename="../src-core/render/PixelBuffer.h" />
-		<Unit filename="../src-ui-wx/ui/setup/PixelTestDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/PixelTestDialog.h" />
+		<Unit filename="../src-ui-wx/setup/PixelTestDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/PixelTestDialog.h" />
 		<Unit filename="../src-core/models/Pixels.cpp" />
 		<Unit filename="../src-core/models/Pixels.h" />
-		<Unit filename="../src-ui-wx/ui/layout/PreviewPane.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/PreviewPane.h" />
-		<Unit filename="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RenameTextDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RenameTextDialog.h" />
+		<Unit filename="../src-ui-wx/layout/PreviewPane.cpp" />
+		<Unit filename="../src-ui-wx/layout/PreviewPane.h" />
+		<Unit filename="../src-ui-wx/setup/RemapDMXChannelsDialog.cpp" />
+		<Unit filename="../src-ui-wx/setup/RemapDMXChannelsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/RenameTextDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/RenameTextDialog.h" />
 		<Unit filename="../src-core/render/RenderEngine.cpp" />
 		<Unit filename="../src-core/render/RenderEngine.h" />
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
-		<Unit filename="../src-ui-wx/ui/render/RenderUI.cpp" />
+		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
 		<Unit filename="../src-core/render/RenderBuffer.cpp" />
 		<Unit filename="../src-core/render/RenderBuffer.h" />
 		<Unit filename="../src-core/render/RenderCache.cpp" />
@@ -440,126 +440,126 @@
 		<Unit filename="../src-core/render/RenderContext.h" />
 		<Unit filename="../src-core/render/RenderProgressInfo.h" />
 		<Unit filename="../src-core/render/RenderUtils.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RenderCommandEvent.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RenderCommandEvent.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/RenderProgressDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/RenderProgressDialog.h" />
-		<Unit filename="../src-ui-wx/ui/media/ResizeImageDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/ResizeImageDialog.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/RestoreBackupDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/RestoreBackupDialog.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/SaveChangesDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/SaveChangesDialog.h" />
-		<Unit filename="../src-ui-wx/ui/automation/ScriptsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/automation/ScriptsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/SearchPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/SearchPanel.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SelectPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SelectPanel.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SelectTimingsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SelectTimingsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/SeqElementMismatchDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/SeqElementMismatchDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/SeqExportDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/SeqExportDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/SeqFileUtilities.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SeqSettingsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SeqSettingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/RenderCommandEvent.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/RenderCommandEvent.h" />
+		<Unit filename="../src-ui-wx/diagnostics/RenderProgressDialog.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/RenderProgressDialog.h" />
+		<Unit filename="../src-ui-wx/media/ResizeImageDialog.cpp" />
+		<Unit filename="../src-ui-wx/media/ResizeImageDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/RestoreBackupDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/RestoreBackupDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/SaveChangesDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/SaveChangesDialog.h" />
+		<Unit filename="../src-ui-wx/automation/ScriptsDialog.cpp" />
+		<Unit filename="../src-ui-wx/automation/ScriptsDialog.h" />
+		<Unit filename="../src-ui-wx/diagnostics/SearchPanel.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/SearchPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/SelectPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SelectPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.h" />
+		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/SeqExportDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/SeqExportDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/SeqFileUtilities.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SeqSettingsDialog.h" />
 		<Unit filename="../src-core/render/SequenceData.cpp" />
 		<Unit filename="../src-core/render/SequenceData.h" />
 		<Unit filename="../src-core/render/SequencePackage.cpp" />
 		<Unit filename="../src-core/render/SequencePackage.h" />
-		<Unit filename="../src-ui-wx/ui/media/SequenceVideoPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/SequenceVideoPanel.h" />
-		<Unit filename="../src-ui-wx/ui/media/SequenceVideoPreview.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/SequenceVideoPreview.h" />
+		<Unit filename="../src-ui-wx/media/SequenceVideoPanel.cpp" />
+		<Unit filename="../src-ui-wx/media/SequenceVideoPanel.h" />
+		<Unit filename="../src-ui-wx/media/SequenceVideoPreview.cpp" />
+		<Unit filename="../src-ui-wx/media/SequenceVideoPreview.h" />
 		<Unit filename="../src-core/render/SequenceViewManager.cpp" />
 		<Unit filename="../src-core/render/SequenceViewManager.h" />
-		<Unit filename="../src-ui-wx/ui/model/SevenSegmentDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/SevenSegmentDialog.h" />
-		<Unit filename="../src-ui-wx/ui/effects/ShaderDownloadDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/effects/ShaderDownloadDialog.h" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/ShowFolderSearchDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/diagnostics/ShowFolderSearchDialog.h" />
+		<Unit filename="../src-ui-wx/model/SevenSegmentDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/SevenSegmentDialog.h" />
+		<Unit filename="../src-ui-wx/effects/ShaderDownloadDialog.cpp" />
+		<Unit filename="../src-ui-wx/effects/ShaderDownloadDialog.h" />
+		<Unit filename="../src-ui-wx/diagnostics/ShowFolderSearchDialog.cpp" />
+		<Unit filename="../src-ui-wx/diagnostics/ShowFolderSearchDialog.h" />
 		<Unit filename="../src-core/utils/SpecialOptions.cpp" />
 		<Unit filename="../src-core/utils/SpecialOptions.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/SplashDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/SplashDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/StartChannelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/StartChannelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/StrandNodeNamesDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/StrandNodeNamesDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SubBufferPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/SubBufferPanel.h" />
-		<Unit filename="../src-ui-wx/ui/model/SubModelGenerateDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/SubModelGenerateDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/SubModelsDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/SubModelsDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/SuperStarImportDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/SuperStarImportDialog.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TabConvert.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TabPreview.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TabSequence.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/DiscoveryHelpers.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TabSetup.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/SplashDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/SplashDialog.h" />
+		<Unit filename="../src-ui-wx/model/StartChannelDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/StartChannelDialog.h" />
+		<Unit filename="../src-ui-wx/model/StrandNodeNamesDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/StrandNodeNamesDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SubBufferPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SubBufferPanel.h" />
+		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/SubModelGenerateDialog.h" />
+		<Unit filename="../src-ui-wx/model/SubModelsDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/SubModelsDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/SuperStarImportDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/TabConvert.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/TabPreview.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/TabSequence.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/DiscoveryHelpers.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/TabSetup.cpp" />
 		<Unit filename="../src-core/utils/TempFileManager.cpp" />
 		<Unit filename="../src-core/utils/TempFileManager.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimingPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimingPanel.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TopEffectsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TopEffectsPanel.h" />
+		<Unit filename="../src-ui-wx/sequencer/BlendingPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/BlendingPanel.h" />
+		<Unit filename="../src-ui-wx/app-shell/TipOfTheDayDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/TipOfTheDayDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/TopEffectsPanel.h" />
 		<Unit filename="../src-core/utils/TraceLog.cpp" />
 		<Unit filename="../src-core/utils/TraceLog.h" />
-		<Unit filename="../src-ui-wx/ui/app-shell/UpdaterDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/app-shell/UpdaterDialog.h" />
+		<Unit filename="../src-ui-wx/app-shell/UpdaterDialog.cpp" />
+		<Unit filename="../src-ui-wx/app-shell/UpdaterDialog.h" />
 		<Unit filename="../src-core/utils/UtilClasses.cpp" />
 		<Unit filename="../src-core/utils/UtilClasses.h" />
 		<Unit filename="../src-core/utils/UtilFunctions.cpp" />
 		<Unit filename="../src-core/utils/UtilFunctions.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/VAMPPluginDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/VAMPPluginDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/VAMPPluginDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/VAMPPluginDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/VSAFile.cpp" />
 		<Unit filename="../src-ui-wx/import_export/VSAFile.h" />
 		<Unit filename="../src-core/render/ValueCurve.cpp" />
 		<Unit filename="../src-core/render/ValueCurve.h" />
 		<Unit filename="../src-core/render/ValueCurveConsts.cpp" />
 		<Unit filename="../src-core/render/ValueCurveConsts.h" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/ValueCurveButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/ValueCurveButton.h" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/ValueCurveDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/dialogs/ValueCurveDialog.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/ValueCurveRendering.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/ValueCurveRendering.h" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/ValueCurvesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/ValueCurvesPanel.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorModelDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorModelDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorMusicDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorMusicDialog.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorMusicHelpers.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/VendorMusicHelpers.h" />
-		<Unit filename="../src-ui-wx/ui/media/VideoExporter.cpp" />
-		<Unit filename="../src-ui-wx/ui/media/VideoExporter.h" />
+		<Unit filename="../src-ui-wx/shared/controls/ValueCurveButton.cpp" />
+		<Unit filename="../src-ui-wx/shared/controls/ValueCurveButton.h" />
+		<Unit filename="../src-ui-wx/shared/dialogs/ValueCurveDialog.cpp" />
+		<Unit filename="../src-ui-wx/shared/dialogs/ValueCurveDialog.h" />
+		<Unit filename="../src-ui-wx/shared/utils/ValueCurveRendering.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/ValueCurveRendering.h" />
+		<Unit filename="../src-ui-wx/shared/controls/ValueCurvesPanel.cpp" />
+		<Unit filename="../src-ui-wx/shared/controls/ValueCurvesPanel.h" />
+		<Unit filename="../src-ui-wx/import_export/VendorModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/VendorModelDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/VendorMusicDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/VendorMusicDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/VendorMusicHelpers.cpp" />
+		<Unit filename="../src-ui-wx/import_export/VendorMusicHelpers.h" />
+		<Unit filename="../src-ui-wx/media/VideoExporter.cpp" />
+		<Unit filename="../src-ui-wx/media/VideoExporter.h" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.cpp" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.h" />
 		<Unit filename="../src-core/media/VideoFrame.h" />
 		<Unit filename="../src-core/media/VideoReader.cpp" />
 		<Unit filename="../src-core/media/VideoReader.h" />
 		<Unit filename="../src-core/media/VideoReaderImpl.h" />
-		<Unit filename="../src-ui-wx/ui/layout/ViewObjectPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/ViewObjectPanel.h" />
-		<Unit filename="../src-ui-wx/ui/model/ViewpointDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/ViewpointDialog.h" />
-		<Unit filename="../src-ui-wx/ui/layout/ViewsModelsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/layout/ViewsModelsPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.h" />
+		<Unit filename="../src-ui-wx/model/ViewpointDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/ViewpointDialog.h" />
+		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.cpp" />
+		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.h" />
 		<Unit filename="../src-ui-wx/import_export/Vixen3.cpp" />
 		<Unit filename="../src-ui-wx/import_export/Vixen3.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/VsaImportDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/VsaImportDialog.h" />
-		<Unit filename="../src-ui-wx/ui/model/WiringDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/model/WiringDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.h" />
+		<Unit filename="../src-ui-wx/model/WiringDialog.cpp" />
+		<Unit filename="../src-ui-wx/model/WiringDialog.h" />
 		<Unit filename="../dependencies/pugixml/src/pugixml.cpp" />
 		<Unit filename="../src-core/XmlSerializer/BaseSerializingVisitor.cpp" />
 		<Unit filename="../src-core/XmlSerializer/BaseSerializingVisitor.h" />
@@ -644,16 +644,16 @@
 		<Unit filename="../src-core/controllers/Experience.h" />
 		<Unit filename="../src-core/controllers/FPP.cpp" />
 		<Unit filename="../src-core/controllers/FPP.h" />
-		<Unit filename="../src-ui-wx/ui/controllers/FPPConnectDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllers/FPPConnectDialog.h" />
-		<Unit filename="../src-ui-wx/ui/controllers/FPPUploadProgressDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllers/FPPUploadProgressDialog.h" />
+		<Unit filename="../src-ui-wx/controllers/FPPConnectDialog.cpp" />
+		<Unit filename="../src-ui-wx/controllers/FPPConnectDialog.h" />
+		<Unit filename="../src-ui-wx/controllers/FPPUploadProgressDialog.cpp" />
+		<Unit filename="../src-ui-wx/controllers/FPPUploadProgressDialog.h" />
 		<Unit filename="../src-core/controllers/Falcon.cpp" />
 		<Unit filename="../src-core/controllers/Falcon.h" />
 		<Unit filename="../src-core/controllers/HinksPix.cpp" />
 		<Unit filename="../src-core/controllers/HinksPix.h" />
-		<Unit filename="../src-ui-wx/ui/controllers/HinksPixExportDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllers/HinksPixExportDialog.h" />
+		<Unit filename="../src-ui-wx/controllers/HinksPixExportDialog.cpp" />
+		<Unit filename="../src-ui-wx/controllers/HinksPixExportDialog.h" />
 		<Unit filename="../src-core/controllers/ILightThat.cpp" />
 		<Unit filename="../src-core/controllers/ILightThat.h" />
 		<Unit filename="../src-core/controllers/J1Sys.cpp" />
@@ -689,26 +689,26 @@
 		<Unit filename="../src-core/effects/CurtainEffect.h" />
 		<Unit filename="../src-core/effects/DMXEffect.cpp" />
 		<Unit filename="../src-core/effects/DMXEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DMXPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DMXPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/DMXPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/DMXPanel.h" />
 		<Unit filename="../src-core/effects/DuplicateEffect.cpp" />
 		<Unit filename="../src-core/effects/DuplicateEffect.h" />
 		<Unit filename="../src-core/effects/EffectManager.cpp" />
 		<Unit filename="../src-core/effects/EffectManager.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectIconCache.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectIconCache.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectPanelUtils.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectPanelUtils.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectPanelManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/EffectPanelManager.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/JsonEffectPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/JsonEffectPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectIconCache.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectIconCache.h" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectPanelUtils.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectPanelUtils.h" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectPanelManager.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/EffectPanelManager.h" />
+		<Unit filename="../src-ui-wx/effectpanels/JsonEffectPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/JsonEffectPanel.h" />
 		<Unit filename="../src-core/effects/FX.cpp" />
 		<Unit filename="../src-core/effects/FX.h" />
 		<Unit filename="../src-core/effects/FacesEffect.cpp" />
 		<Unit filename="../src-core/effects/FacesEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/FacesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/FacesPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/FacesPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/FacesPanel.h" />
 		<Unit filename="../src-core/effects/FanEffect.cpp" />
 		<Unit filename="../src-core/effects/FanEffect.h" />
 		<Unit filename="../src-core/effects/FillEffect.cpp" />
@@ -743,27 +743,27 @@
 		<Unit filename="../src-core/effects/MeteorsEffect.h" />
 		<Unit filename="../src-core/effects/MorphEffect.cpp" />
 		<Unit filename="../src-core/effects/MorphEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MorphPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MorphPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MorphPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MorphPanel.h" />
 		<Unit filename="../src-core/effects/MovingHeadEffect.cpp" />
 		<Unit filename="../src-core/effects/MovingHeadEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHColorPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHColorWheelPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHColorWheelPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHPresetBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHPresetBitmapButton.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHRgbPickerPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MHRgbPickerPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHColorPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHColorWheelPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHColorWheelPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHDimmerPresetBitmapButton.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPathPresetBitmapButton.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPresetBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHPresetBitmapButton.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHRgbPickerPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MHRgbPickerPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MovingHeadCanvasPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MovingHeadPanels/MovingHeadDimmerPanel.h" />
 		<Unit filename="../src-core/effects/MusicEffect.cpp" />
 		<Unit filename="../src-core/effects/MusicEffect.h" />
 		<Unit filename="../src-core/effects/OffEffect.cpp" />
@@ -774,8 +774,8 @@
 		<Unit filename="../src-core/effects/PianoEffect.h" />
 		<Unit filename="../src-core/effects/PicturesEffect.cpp" />
 		<Unit filename="../src-core/effects/PicturesEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PicturesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PicturesPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/PicturesPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/PicturesPanel.h" />
 		<Unit filename="../src-core/effects/PinwheelEffect.cpp" />
 		<Unit filename="../src-core/effects/PinwheelEffect.h" />
 		<Unit filename="../src-core/effects/PlasmaEffect.cpp" />
@@ -788,12 +788,12 @@
 		<Unit filename="../src-core/effects/RippleEffect.h" />
 		<Unit filename="../src-core/effects/ServoEffect.cpp" />
 		<Unit filename="../src-core/effects/ServoEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ServoPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ServoPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/ServoPanel.h" />
 		<Unit filename="../src-core/effects/ShaderEffect.cpp" />
 		<Unit filename="../src-core/effects/ShaderEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShaderPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShaderPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/ShaderPanel.h" />
 		<Unit filename="../src-core/effects/ShapeEffect.cpp" />
 		<Unit filename="../src-core/effects/ShapeEffect.h" />
 		<Unit filename="../src-core/effects/ShimmerEffect.cpp" />
@@ -806,8 +806,8 @@
 		<Unit filename="../src-core/effects/SketchEffect.h" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.cpp" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SketchPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SketchPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.h" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.cpp" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.h" />
 		<Unit filename="../src-core/effects/SnowstormEffect.cpp" />
@@ -818,64 +818,64 @@
 		<Unit filename="../src-core/effects/SpirographEffect.h" />
 		<Unit filename="../src-core/effects/StateEffect.cpp" />
 		<Unit filename="../src-core/effects/StateEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/StatePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/StatePanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/StatePanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/StatePanel.h" />
 		<Unit filename="../src-core/effects/StrobeEffect.cpp" />
 		<Unit filename="../src-core/effects/StrobeEffect.h" />
 		<Unit filename="../src-core/effects/TendrilEffect.cpp" />
 		<Unit filename="../src-core/effects/TendrilEffect.h" />
 		<Unit filename="../src-core/effects/TextEffect.cpp" />
 		<Unit filename="../src-core/effects/TextEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/TextPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/TextPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/TextPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/TextPanel.h" />
 		<Unit filename="../src-core/effects/TreeEffect.cpp" />
 		<Unit filename="../src-core/effects/TreeEffect.h" />
 		<Unit filename="../src-core/effects/TwinkleEffect.cpp" />
 		<Unit filename="../src-core/effects/TwinkleEffect.h" />
 		<Unit filename="../src-core/effects/VUMeterEffect.cpp" />
 		<Unit filename="../src-core/effects/VUMeterEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/VUMeterPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/VUMeterPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/VUMeterPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/VUMeterPanel.h" />
 		<Unit filename="../src-core/effects/VideoEffect.cpp" />
 		<Unit filename="../src-core/effects/VideoEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/VideoPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/VideoPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/VideoPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/VideoPanel.h" />
 		<Unit filename="../src-core/effects/WarpEffect.cpp" />
 		<Unit filename="../src-core/effects/WarpEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WarpPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WarpPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/WarpPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/WarpPanel.h" />
 		<Unit filename="../src-core/effects/WaveEffect.cpp" />
 		<Unit filename="../src-core/effects/WaveEffect.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/SketchAssistPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/SketchAssistPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/SketchCanvasPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/SketchCanvasPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasEmpty.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasEmpty.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasMorph.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasMorph.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasPictures.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/assist/xlGridCanvasPictures.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/AdjustPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/DuplicatePanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/MusicPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/PianoPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/RipplePanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/ShapePanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/SnowflakesPanel.h" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/effectpanels/WavePanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/AssistPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/AssistPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/PicturesAssistPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/PicturesAssistPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/SketchAssistPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/SketchAssistPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/SketchCanvasPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/SketchCanvasPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasEmpty.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasEmpty.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasMorph.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasMorph.h" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasPictures.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/assist/xlGridCanvasPictures.h" />
+		<Unit filename="../src-ui-wx/effectpanels/AdjustPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/AdjustPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/DuplicatePanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/DuplicatePanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/MusicPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/MusicPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/PianoPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/PianoPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/RipplePanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/RipplePanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/ShapePanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/ShapePanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/SnowflakesPanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/SnowflakesPanel.h" />
+		<Unit filename="../src-ui-wx/effectpanels/WavePanel.cpp" />
+		<Unit filename="../src-ui-wx/effectpanels/WavePanel.h" />
 		<Unit filename="../src-core/effects/ispc/BarsFunctions.ispc">
 			<Option link="1" />
 		</Unit>
@@ -918,11 +918,11 @@
 			<Option compiler="gcc" use="0" buildCommand="../ispc-v1.25.3-linux.aarch64/bin/ispc -o $object $file" />
 		</Unit>
 		<Unit filename="../src-core/effects/ispc/LayerBlendingFunctions.ispc.h" />
-		<Unit filename="../src-ui-wx/ui/graphics/xlGraphicsBase.h" />
-		<Unit filename="../src-ui-wx/ui/graphics/opengl/xlGLCanvas.cpp" />
-		<Unit filename="../src-ui-wx/ui/graphics/opengl/xlGLCanvas.h" />
-		<Unit filename="../src-ui-wx/ui/graphics/opengl/xlOGL3GraphicsContext.cpp" />
-		<Unit filename="../src-ui-wx/ui/graphics/opengl/xlOGL3GraphicsContext.h" />
+		<Unit filename="../src-ui-wx/graphics/xlGraphicsBase.h" />
+		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.cpp" />
+		<Unit filename="../src-ui-wx/graphics/opengl/xlGLCanvas.h" />
+		<Unit filename="../src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.cpp" />
+		<Unit filename="../src-ui-wx/graphics/opengl/xlOGL3GraphicsContext.h" />
 		<Unit filename="../src-core/graphics/xlFontInfo.cpp" />
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
@@ -1005,18 +1005,20 @@
 		<Unit filename="../src-core/models/DMX/MovingHeads/MhFeature.h" />
 		<Unit filename="../src-core/models/DMX/Servo.cpp" />
 		<Unit filename="../src-core/models/DMX/Servo.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ServoConfigDialog.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ServoConfigDialog.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.h" />
 		<Unit filename="../src-core/models/GridlinesObject.cpp" />
 		<Unit filename="../src-core/models/GridlinesObject.h" />
 		<Unit filename="../src-core/models/IciclesModel.cpp" />
 		<Unit filename="../src-core/models/IciclesModel.h" />
 		<Unit filename="../src-core/models/ImageModel.cpp" />
 		<Unit filename="../src-core/models/ImageModel.h" />
+		<Unit filename="../src-core/models/LabelModel.cpp" />
+		<Unit filename="../src-core/models/LabelModel.h" />
 		<Unit filename="../src-core/models/ImageObject.cpp" />
 		<Unit filename="../src-core/models/ImageObject.h" />
 		<Unit filename="../src-core/models/MatrixModel.cpp" />
@@ -1139,27 +1141,27 @@
 		<Unit filename="../src-core/outputs/xxxEthernetOutput.h" />
 		<Unit filename="../src-core/outputs/xxxSerialOutput.cpp" />
 		<Unit filename="../src-core/outputs/xxxSerialOutput.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/BackupSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/BackupSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/ColorManagerSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/ColorManagerSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/EffectsGridSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/EffectsGridSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/OtherSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/OtherSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/OutputSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/OutputSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/RandomEffectsSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/RandomEffectsSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/SequenceFileSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/SequenceFileSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/ServicesPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/ServicesPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/ViewSettingsPanel.cpp" />
-		<Unit filename="../src-ui-wx/ui/preferences/ViewSettingsPanel.h" />
-		<Unit filename="../src-ui-wx/ui/preferences/xLightsPreferences.cpp" />
+		<Unit filename="../src-ui-wx/preferences/BackupSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/BackupSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/CheckSequenceSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/CheckSequenceSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ColorManagerSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ColorManagerSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/OtherSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/OutputSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/RandomEffectsSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/SequenceFileSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/SequenceFileSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ServicesPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ServicesPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/ViewSettingsPanel.cpp" />
+		<Unit filename="../src-ui-wx/preferences/ViewSettingsPanel.h" />
+		<Unit filename="../src-ui-wx/preferences/xLightsPreferences.cpp" />
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="MinGW_Debug" />
@@ -1167,147 +1169,149 @@
 			<Option target="64bit MinGW_Release" />
 			<Option target="64bit MinGW_Debug" />
 		</Unit>
-		<Unit filename="../src-ui-wx/ui/sequencer/DragEffectBitmapButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/DragEffectBitmapButton.h" />
+		<Unit filename="../src-ui-wx/sequencer/DragEffectBitmapButton.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="../src-core/render/Effect.cpp" />
 		<Unit filename="../src-core/render/Effect.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectDropTarget.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectDropTarget.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.h" />
 		<Unit filename="../src-core/render/EffectLayer.cpp" />
 		<Unit filename="../src-core/render/EffectLayer.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/ElementLayers.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectsGrid.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/EffectsGrid.h" />
+		<Unit filename="../src-ui-wx/sequencer/ElementLayers.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectsGrid.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectsGrid.h" />
 		<Unit filename="../src-core/render/Element.cpp" />
 		<Unit filename="../src-core/render/Element.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/MainSequencer.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/MainSequencer.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricBreakdown.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/LyricBreakdown.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RowHeading.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/RowHeading.h" />
+		<Unit filename="../src-ui-wx/sequencer/MainSequencer.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/MainSequencer.h" />
+		<Unit filename="../src-ui-wx/sequencer/LyricBreakdown.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LyricBreakdown.h" />
+		<Unit filename="../src-ui-wx/sequencer/RowHeading.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
 		<Unit filename="../src-core/render/TextDrawingContext.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimeLine.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/TimeLine.h" />
+		<Unit filename="../src-ui-wx/sequencer/TimeLine.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/TimeLine.h" />
 		<Unit filename="../src-core/render/UICallbacks.h" />
 		<Unit filename="../src-core/render/UndoManager.cpp" />
 		<Unit filename="../src-core/render/UndoManager.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/Waveform.cpp" />
-		<Unit filename="../src-ui-wx/ui/sequencer/Waveform.h" />
-		<Unit filename="../src-ui-wx/ui/sequencer/tabSequencer.cpp" />
-		<Unit filename="../src-ui-wx/ui/support/EzGrid.cpp" />
-		<Unit filename="../src-ui-wx/ui/support/EzGrid.h" />
-		<Unit filename="../src-ui-wx/ui/support/FastComboEditor.cpp" />
-		<Unit filename="../src-ui-wx/ui/support/FastComboEditor.h" />
-		<Unit filename="../src-ui-wx/ui/support/GridCellChoiceRenderer.cpp" />
-		<Unit filename="../src-ui-wx/ui/support/GridCellChoiceRenderer.h" />
+		<Unit filename="../src-ui-wx/sequencer/Waveform.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/Waveform.h" />
+		<Unit filename="../src-ui-wx/sequencer/tabSequencer.cpp" />
+		<Unit filename="../src-ui-wx/support/EzGrid.cpp" />
+		<Unit filename="../src-ui-wx/support/EzGrid.h" />
+		<Unit filename="../src-ui-wx/support/FastComboEditor.cpp" />
+		<Unit filename="../src-ui-wx/support/FastComboEditor.h" />
+		<Unit filename="../src-ui-wx/support/GridCellChoiceRenderer.cpp" />
+		<Unit filename="../src-ui-wx/support/GridCellChoiceRenderer.h" />
 		<Unit filename="../src-core/utils/VectorMath.cpp" />
 		<Unit filename="../src-core/utils/VectorMath.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/tmGridCell.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/tmGridCell.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/PropertyGridHelpers.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/PropertyGridHelpers.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ScreenLocationPropertyHelper.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ScreenLocationPropertyHelper.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/helpers/DmxAbilityPropertyHelpers.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/helpers/DmxAbilityPropertyHelpers.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/helpers/DmxComponentPropertyHelpers.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/helpers/DmxComponentPropertyHelpers.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerEthernetPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerEthernetPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerNullPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerNullPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerPropertyManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerPropertyManager.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerSerialPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/ControllerSerialPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/OutputPropertyAdapters.cpp" />
-		<Unit filename="../src-ui-wx/ui/controllerproperties/OutputPropertyAdapters.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ModelPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ModelPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ModelPropertyManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ModelPropertyManager.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ArchesPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ArchesPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CandyCanePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CandyCanePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ChannelBlockPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ChannelBlockPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CirclePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CirclePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CubePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CubePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/IciclesPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/IciclesPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MatrixPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MatrixPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SingleLinePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SingleLinePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SpherePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SpherePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SpinnerPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SpinnerPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/StarPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/StarPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/TreePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/TreePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/WindowFramePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/WindowFramePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/WreathPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/WreathPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImagePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImagePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CustomPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/CustomPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PolyLinePropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/PolyLinePropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MultiPointPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MultiPointPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxGeneralPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxGeneralPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxFloodlightPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxFloodlightPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxMovingHeadPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxMovingHeadPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxSkullPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxSkullPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxServoPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxServoPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxServo3dPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/DmxServo3dPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SubModelPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/SubModelPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MeshObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/MeshObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImageObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/ImageObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/GridlinesObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/GridlinesObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/TerrainObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/TerrainObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/RulerObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/adapters/RulerObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ViewObjectPropertyAdapter.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ViewObjectPropertyAdapter.h" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ViewObjectPropertyManager.cpp" />
-		<Unit filename="../src-ui-wx/ui/modelproperties/ViewObjectPropertyManager.h" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/MediaPickerCtrl.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/controls/MediaPickerCtrl.h" />
-		<Unit filename="../src-ui-wx/ui/graphics/wxTextDrawingContext.cpp" />
-		<Unit filename="../src-ui-wx/ui/graphics/wxTextDrawingContext.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxUtilities.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxUtilities.h" />
+		<Unit filename="../src-ui-wx/shared/utils/tmGridCell.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/tmGridCell.h" />
+		<Unit filename="../src-ui-wx/modelproperties/PropertyGridHelpers.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/PropertyGridHelpers.h" />
+		<Unit filename="../src-ui-wx/modelproperties/ScreenLocationPropertyHelper.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/ScreenLocationPropertyHelper.h" />
+		<Unit filename="../src-ui-wx/modelproperties/helpers/DmxAbilityPropertyHelpers.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/helpers/DmxAbilityPropertyHelpers.h" />
+		<Unit filename="../src-ui-wx/modelproperties/helpers/DmxComponentPropertyHelpers.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/helpers/DmxComponentPropertyHelpers.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerEthernetPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerEthernetPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerNullPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerNullPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerPropertyManager.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerPropertyManager.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerSerialPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/ControllerSerialPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/controllerproperties/OutputPropertyAdapters.cpp" />
+		<Unit filename="../src-ui-wx/controllerproperties/OutputPropertyAdapters.h" />
+		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyManager.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/ModelPropertyManager.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ArchesPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ArchesPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CandyCanePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CandyCanePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ChannelBlockPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ChannelBlockPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CirclePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CirclePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CubePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CubePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/IciclesPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/IciclesPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MatrixPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MatrixPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SingleLinePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SingleLinePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SpherePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SpherePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SpinnerPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SpinnerPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/StarPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/StarPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/TreePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/TreePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/WindowFramePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/WindowFramePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/WreathPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/WreathPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ImagePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ImagePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/LabelPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/LabelPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CustomPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/CustomPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/PolyLinePropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/PolyLinePropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MultiPointPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MultiPointPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxGeneralPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxGeneralPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxFloodlightPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxFloodlightPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxMovingHeadPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxMovingHeadPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxMovingHeadAdvPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxSkullPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxSkullPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxServoPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxServoPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxServo3dPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/DmxServo3dPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SubModelPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/SubModelPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MeshObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/MeshObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ImageObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/ImageObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/GridlinesObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/GridlinesObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/TerrainObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/TerrainObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/RulerObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/adapters/RulerObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/ViewObjectPropertyAdapter.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/ViewObjectPropertyAdapter.h" />
+		<Unit filename="../src-ui-wx/modelproperties/ViewObjectPropertyManager.cpp" />
+		<Unit filename="../src-ui-wx/modelproperties/ViewObjectPropertyManager.h" />
+		<Unit filename="../src-ui-wx/shared/controls/MediaPickerCtrl.cpp" />
+		<Unit filename="../src-ui-wx/shared/controls/MediaPickerCtrl.h" />
+		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.cpp" />
+		<Unit filename="../src-ui-wx/graphics/wxTextDrawingContext.h" />
+		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/wxUtilities.h" />
 		<Unit filename="../src-core/utils/GitUtils.cpp" />
 		<Unit filename="../src-core/utils/GitUtils.h" />
 		<Unit filename="../src-core/utils/CurlManager.cpp" />
@@ -1358,10 +1362,10 @@
 		<Unit filename="../dependencies/vamp-hostsdk/plugguard.h" />
 		<Unit filename="../dependencies/vamp-hostsdk/vamp-hostsdk.h" />
 		<Unit filename="../dependencies/vamp-hostsdk/vamp.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxCheckedListCtrl.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxCheckedListCtrl.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxModelGridCellRenderer.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/wxModelGridCellRenderer.h" />
+		<Unit filename="../src-ui-wx/shared/utils/wxCheckedListCtrl.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/wxCheckedListCtrl.h" />
+		<Unit filename="../src-ui-wx/shared/utils/wxModelGridCellRenderer.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/wxModelGridCellRenderer.h" />
 		<Unit filename="../src-ui-wx/wxsmith/AIColorPaletteDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AIImageDialog.wxs" />
 		<Unit filename="../src-ui-wx/wxsmith/AboutDialog.wxs" />
@@ -1486,37 +1490,37 @@
 		<Unit filename="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" />
 		<Unit filename="../src-ui-wx/xLightsApp.cpp" />
 		<Unit filename="../src-ui-wx/xLightsApp.h" />
-		<Unit filename="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.cpp" />
-		<Unit filename="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.h" />
+		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" />
+		<Unit filename="../src-ui-wx/import_export/xLightsImportChannelMapDialog.h" />
 		<Unit filename="../src-ui-wx/xLightsMain.cpp" />
 		<Unit filename="../src-ui-wx/xLightsMain.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/ExternalHooksUI.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlCustomControl.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xLightsTimer.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xLightsTimer.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlPropertyGrid.h" />
+		<Unit filename="../src-ui-wx/shared/utils/ExternalHooksUI.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlCustomControl.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xLightsTimer.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/xLightsTimer.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlPropertyGrid.h" />
 		<Unit filename="../src-core/xLightsVersion.h" />
 		<Unit filename="../src-core/render/SequenceFile.cpp" />
 		<Unit filename="../src-core/render/SequenceFile.h" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorCanvas.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorCanvas.h" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorPicker.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorPicker.h" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorPickerFields.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/xlColorPickerFields.h" />
-		<Unit filename="../src-ui-wx/ui/color/xlColourData.cpp" />
-		<Unit filename="../src-ui-wx/ui/color/xlColourData.h" />
+		<Unit filename="../src-ui-wx/color/xlColorCanvas.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColorCanvas.h" />
+		<Unit filename="../src-ui-wx/color/xlColorPicker.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColorPicker.h" />
+		<Unit filename="../src-ui-wx/color/xlColorPickerFields.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColorPickerFields.h" />
+		<Unit filename="../src-ui-wx/color/xlColourData.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourData.h" />
 		<Unit filename="../src-core/utils/xlImage.cpp" />
 		<Unit filename="../src-core/utils/xlImage.h" />
 		<Unit filename="../src-core/utils/Base64.h" />
 		<Unit filename="../src-core/utils/XsqFileScanner.cpp" />
 		<Unit filename="../src-core/utils/XsqFileScanner.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlGridCanvas.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlGridCanvas.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlLockButton.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlLockButton.h" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlSlider.cpp" />
-		<Unit filename="../src-ui-wx/ui/shared/utils/xlSlider.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlGridCanvas.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/xlGridCanvas.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlLockButton.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/xlLockButton.h" />
+		<Unit filename="../src-ui-wx/shared/utils/xlSlider.cpp" />
+		<Unit filename="../src-ui-wx/shared/utils/xlSlider.h" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="0" line="0" />
@@ -1531,128 +1535,128 @@
 				<gui name="wxWidgets" src="../src-ui-wx/xLightsApp.cpp" main="xLightsFrame" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="../src-ui-wx/wxsmith/xLightsframe.wxs" src="../src-ui-wx/xLightsMain.cpp" hdr="../src-ui-wx/xLightsMain.h" fwddecl="0" i18n="1" name="xLightsFrame" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/AlignmentDialog.wxs" src="../src-ui-wx/ui/model/AlignmentDialog.cpp" hdr="../src-ui-wx/ui/model/AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BatchRenderDialog.wxs" src="../src-ui-wx/ui/sequencer/BatchRenderDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BufferSizeDialog.wxs" src="../src-ui-wx/ui/sequencer/BufferSizeDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditFontPickerDialog.wxs" src="../src-ui-wx/ui/sequencer/BulkEditFontPickerDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditSliderDialog.wxs" src="../src-ui-wx/ui/sequencer/BulkEditSliderDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ChannelLayoutDialog.wxs" src="../src-ui-wx/ui/model/ChannelLayoutDialog.cpp" hdr="../src-ui-wx/ui/model/ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/CharMapDialog.wxs" src="../src-ui-wx/ui/effects/CharMapDialog.cpp" hdr="../src-ui-wx/ui/effects/CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/CheckboxSelectDialog.wxs" src="../src-ui-wx/ui/shared/dialogs/CheckboxSelectDialog.cpp" hdr="../src-ui-wx/ui/shared/dialogs/CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ColorCurveDialog.wxs" src="../src-ui-wx/ui/color/ColorCurveDialog.cpp" hdr="../src-ui-wx/ui/color/ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ControllerConnectionDialog.wxs" src="../src-ui-wx/ui/setup/ControllerConnectionDialog.cpp" hdr="../src-ui-wx/ui/setup/ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ControllerModelDialog.wxs" src="../src-ui-wx/ui/setup/ControllerModelDialog.cpp" hdr="../src-ui-wx/ui/setup/ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertDialog.wxs" src="../src-ui-wx/ui/import-export/ConvertDialog.cpp" hdr="../src-ui-wx/ui/import-export/ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertLogDialog.wxs" src="../src-ui-wx/ui/import-export/ConvertLogDialog.cpp" hdr="../src-ui-wx/ui/import-export/ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/CustomModelDialog.wxs" src="../src-ui-wx/ui/model/CustomModelDialog.cpp" hdr="../src-ui-wx/ui/model/CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/CustomTimingDialog.wxs" src="../src-ui-wx/ui/sequencer/CustomTimingDialog.cpp" hdr="../src-ui-wx/ui/sequencer/CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EffectListDialog.wxs" src="../src-ui-wx/ui/sequencer/EffectListDialog.cpp" hdr="../src-ui-wx/ui/sequencer/EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EffectTimingDialog.wxs" src="../src-ui-wx/ui/sequencer/EffectTimingDialog.cpp" hdr="../src-ui-wx/ui/sequencer/EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EffectTreeDialog.wxs" src="../src-ui-wx/ui/sequencer/EffectTreeDialog.cpp" hdr="../src-ui-wx/ui/sequencer/EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EmailDialog.wxs" src="../src-ui-wx/ui/app-shell/EmailDialog.cpp" hdr="../src-ui-wx/ui/app-shell/EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/FPPConnectDialog.wxs" src="../src-ui-wx/ui/controllers/FPPConnectDialog.cpp" hdr="../src-ui-wx/ui/controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/GenerateCustomModelDialog.wxs" src="../src-ui-wx/ui/model/GenerateCustomModelDialog.cpp" hdr="../src-ui-wx/ui/model/GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/GenerateLyricsDialog.wxs" src="../src-ui-wx/ui/sequencer/GenerateLyricsDialog.cpp" hdr="../src-ui-wx/ui/sequencer/GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/HinksPixExportDialog.wxs" src="../src-ui-wx/ui/controllers/HinksPixExportDialog.cpp" hdr="../src-ui-wx/ui/controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/ImportPreviewsModelsDialog.wxs" src="../src-ui-wx/ui/model/ImportPreviewsModelsDialog.cpp" hdr="../src-ui-wx/ui/model/ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/IPEntryDialog.wxs" src="../src-ui-wx/ui/setup/IPEntryDialog.cpp" hdr="../src-ui-wx/ui/setup/IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/LayerSelectDialog.wxs" src="../src-ui-wx/ui/sequencer/LayerSelectDialog.cpp" hdr="../src-ui-wx/ui/sequencer/LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/LinkJukeboxButtonDialog.wxs" src="../src-ui-wx/ui/sequencer/LinkJukeboxButtonDialog.cpp" hdr="../src-ui-wx/ui/sequencer/LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/LMSImportChannelMapDialog.wxs" src="../src-ui-wx/ui/import-export/LMSImportChannelMapDialog.cpp" hdr="../src-ui-wx/ui/import-export/LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/LorConvertDialog.wxs" src="../src-ui-wx/ui/import-export/LorConvertDialog.cpp" hdr="../src-ui-wx/ui/import-export/LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/LyricsDialog.wxs" src="../src-ui-wx/ui/sequencer/LyricsDialog.cpp" hdr="../src-ui-wx/ui/sequencer/LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/LyricUserDictDialog.wxs" src="../src-ui-wx/ui/sequencer/LyricUserDictDialog.cpp" hdr="../src-ui-wx/ui/sequencer/LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/MatrixFaceDownloadDialog.wxs" src="../src-ui-wx/ui/model/MatrixFaceDownloadDialog.cpp" hdr="../src-ui-wx/ui/model/MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelChainDialog.wxs" src="../src-ui-wx/ui/model/ModelChainDialog.cpp" hdr="../src-ui-wx/ui/model/ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" src="../src-ui-wx/ui/model/ModelDimmingCurveDialog.cpp" hdr="../src-ui-wx/ui/model/ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" src="../src-ui-wx/ui/model/ModelFaceDialog.cpp" hdr="../src-ui-wx/ui/model/ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelStateDialog.wxs" src="../src-ui-wx/ui/model/ModelStateDialog.cpp" hdr="../src-ui-wx/ui/model/ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" src="../src-ui-wx/ui/setup/MultiControllerUploadDialog.cpp" hdr="../src-ui-wx/ui/setup/MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/NewTimingDialog.wxs" src="../src-ui-wx/ui/sequencer/NewTimingDialog.cpp" hdr="../src-ui-wx/ui/sequencer/NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/NodeSelectGrid.wxs" src="../src-ui-wx/ui/model/NodeSelectGrid.cpp" hdr="../src-ui-wx/ui/model/NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/NoteImportDialog.wxs" src="../src-ui-wx/ui/sequencer/NoteImportDialog.cpp" hdr="../src-ui-wx/ui/sequencer/NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/NoteRangeDialog.wxs" src="../src-ui-wx/ui/sequencer/NoteRangeDialog.cpp" hdr="../src-ui-wx/ui/sequencer/NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/OptionChooser.wxs" src="../src-ui-wx/ui/shared/dialogs/OptionChooser.cpp" hdr="../src-ui-wx/ui/shared/dialogs/OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/PathGenerationDialog.wxs" src="../src-ui-wx/ui/model/PathGenerationDialog.cpp" hdr="../src-ui-wx/ui/model/PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/PixelTestDialog.wxs" src="../src-ui-wx/ui/setup/PixelTestDialog.cpp" hdr="../src-ui-wx/ui/setup/PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" src="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.cpp" hdr="../src-ui-wx/ui/modelproperties/adapters/PositionZoneDialog.h" fwddecl="0" i18n="1" name="PositionZoneDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/PreviewPane.wxs" src="../src-ui-wx/ui/layout/PreviewPane.cpp" hdr="../src-ui-wx/ui/layout/PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" src="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.cpp" hdr="../src-ui-wx/ui/setup/RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/RenameTextDialog.wxs" src="../src-ui-wx/ui/sequencer/RenameTextDialog.cpp" hdr="../src-ui-wx/ui/sequencer/RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/RenderProgressDialog.wxs" src="../src-ui-wx/ui/diagnostics/RenderProgressDialog.cpp" hdr="../src-ui-wx/ui/diagnostics/RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/ResizeImageDialog.wxs" src="../src-ui-wx/ui/media/ResizeImageDialog.cpp" hdr="../src-ui-wx/ui/media/ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SaveChangesDialog.wxs" src="../src-ui-wx/ui/app-shell/SaveChangesDialog.cpp" hdr="../src-ui-wx/ui/app-shell/SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/SelectTimingsDialog.wxs" src="../src-ui-wx/ui/sequencer/SelectTimingsDialog.cpp" hdr="../src-ui-wx/ui/sequencer/SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SeqElementMismatchDialog.wxs" src="../src-ui-wx/ui/diagnostics/SeqElementMismatchDialog.cpp" hdr="../src-ui-wx/ui/diagnostics/SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/SeqExportDialog.wxs" src="../src-ui-wx/ui/import-export/SeqExportDialog.cpp" hdr="../src-ui-wx/ui/import-export/SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SeqSettingsDialog.wxs" src="../src-ui-wx/ui/sequencer/SeqSettingsDialog.cpp" hdr="../src-ui-wx/ui/sequencer/SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ServoConfigDialog.wxs" src="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.cpp" hdr="../src-ui-wx/ui/modelproperties/adapters/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SkullConfigDialog.wxs" src="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.cpp" hdr="../src-ui-wx/ui/modelproperties/adapters/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SevenSegmentDialog.wxs" src="../src-ui-wx/ui/model/SevenSegmentDialog.cpp" hdr="../src-ui-wx/ui/model/SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ShaderDownloadDialog.wxs" src="../src-ui-wx/ui/effects/ShaderDownloadDialog.cpp" hdr="../src-ui-wx/ui/effects/ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SplashDialog.wxs" src="../src-ui-wx/ui/app-shell/SplashDialog.cpp" hdr="../src-ui-wx/ui/app-shell/SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/StartChannelDialog.wxs" src="../src-ui-wx/ui/model/StartChannelDialog.cpp" hdr="../src-ui-wx/ui/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/StrandNodeNamesDialog.wxs" src="../src-ui-wx/ui/model/StrandNodeNamesDialog.cpp" hdr="../src-ui-wx/ui/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" src="../src-ui-wx/ui/model/SubModelGenerateDialog.cpp" hdr="../src-ui-wx/ui/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelsDialog.wxs" src="../src-ui-wx/ui/model/SubModelsDialog.cpp" hdr="../src-ui-wx/ui/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" src="../src-ui-wx/ui/import-export/SuperStarImportDialog.cpp" hdr="../src-ui-wx/ui/import-export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/UpdaterDialog.wxs" src="../src-ui-wx/ui/app-shell/UpdaterDialog.cpp" hdr="../src-ui-wx/ui/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" src="../src-ui-wx/ui/shared/dialogs/ValueCurveDialog.cpp" hdr="../src-ui-wx/ui/shared/dialogs/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/VAMPPluginDialog.wxs" src="../src-ui-wx/ui/sequencer/VAMPPluginDialog.cpp" hdr="../src-ui-wx/ui/sequencer/VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/VendorModelDialog.wxs" src="../src-ui-wx/ui/import-export/VendorModelDialog.cpp" hdr="../src-ui-wx/ui/import-export/VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/VendorMusicDialog.wxs" src="../src-ui-wx/ui/import-export/VendorMusicDialog.cpp" hdr="../src-ui-wx/ui/import-export/VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/VsaImportDialog.wxs" src="../src-ui-wx/ui/import-export/VsaImportDialog.cpp" hdr="../src-ui-wx/ui/import-export/VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/WiringDialog.wxs" src="../src-ui-wx/ui/model/WiringDialog.cpp" hdr="../src-ui-wx/ui/model/WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" src="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.cpp" hdr="../src-ui-wx/ui/import-export/xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/EffectsPanel.wxs" src="../src-ui-wx/ui/sequencer/EffectsPanel.cpp" hdr="../src-ui-wx/ui/sequencer/EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MainSequencer.wxs" src="../src-ui-wx/ui/sequencer/MainSequencer.cpp" hdr="../src-ui-wx/ui/sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/TopEffectsPanel.wxs" src="../src-ui-wx/ui/sequencer/TopEffectsPanel.cpp" hdr="../src-ui-wx/ui/sequencer/TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/EffectIconPanel.wxs" src="../src-ui-wx/ui/sequencer/EffectIconPanel.cpp" hdr="../src-ui-wx/ui/sequencer/EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ValueCurvesPanel.wxs" src="../src-ui-wx/ui/shared/controls/ValueCurvesPanel.cpp" hdr="../src-ui-wx/ui/shared/controls/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ColoursPanel.wxs" src="../src-ui-wx/ui/color/ColoursPanel.cpp" hdr="../src-ui-wx/ui/color/ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" src="../src-ui-wx/ui/sequencer/PerspectivesPanel.cpp" hdr="../src-ui-wx/ui/sequencer/PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" src="../src-ui-wx/ui/color/xlColorPickerFields.cpp" hdr="../src-ui-wx/ui/color/xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/EffectAssist.wxs" src="../src-ui-wx/ui/effects/EffectAssist.cpp" hdr="../src-ui-wx/ui/effects/EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/FindDataPanel.wxs" src="../src-ui-wx/ui/diagnostics/FindDataPanel.cpp" hdr="../src-ui-wx/ui/diagnostics/FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/AssistPanel.wxs" src="../src-ui-wx/ui/effectpanels/assist/AssistPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/LayoutPanel.wxs" src="../src-ui-wx/ui/layout/LayoutPanel.cpp" hdr="../src-ui-wx/ui/layout/LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ModelGroupPanel.wxs" src="../src-ui-wx/ui/layout/ModelGroupPanel.cpp" hdr="../src-ui-wx/ui/layout/ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ViewsModelsPanel.wxs" src="../src-ui-wx/ui/layout/ViewsModelsPanel.cpp" hdr="../src-ui-wx/ui/layout/ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/HousePreviewPanel.wxs" src="../src-ui-wx/ui/layout/HousePreviewPanel.cpp" hdr="../src-ui-wx/ui/layout/HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SelectPanel.wxs" src="../src-ui-wx/ui/sequencer/SelectPanel.cpp" hdr="../src-ui-wx/ui/sequencer/SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SequenceVideoPanel.wxs" src="../src-ui-wx/ui/media/SequenceVideoPanel.cpp" hdr="../src-ui-wx/ui/media/SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/JukeboxPanel.wxs" src="../src-ui-wx/ui/media/JukeboxPanel.cpp" hdr="../src-ui-wx/ui/media/JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ViewObjectPanel.wxs" src="../src-ui-wx/ui/layout/ViewObjectPanel.cpp" hdr="../src-ui-wx/ui/layout/ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/BackupSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/BackupSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/CheckSequenceSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ViewSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/ViewSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SequenceFileSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/SequenceFileSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/OutputSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/OutputSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/OtherSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/OtherSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/OtherSettingsPanel.h" fwddecl="1" i18n="1" name="OtherSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/EffectsGridSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/EffectsGridSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/RandomEffectsSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/RandomEffectsSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ColorManagerSettingsPanel.wxs" src="../src-ui-wx/ui/preferences/ColorManagerSettingsPanel.cpp" hdr="../src-ui-wx/ui/preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/SearchPanel.wxs" src="../src-ui-wx/ui/diagnostics/SearchPanel.cpp" hdr="../src-ui-wx/ui/diagnostics/SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" src="../src-ui-wx/ui/effectpanels/MovingHeadPanel.cpp" hdr="../src-ui-wx/ui/effectpanels/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditColourPickerDialog.wxs" src="../src-ui-wx/ui/sequencer/BulkEditColourPickerDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/KeyBindingEditDialog.wxs" src="../src-ui-wx/ui/app-shell/KeyBindingEditDialog.cpp" hdr="../src-ui-wx/ui/app-shell/KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/AboutDialog.wxs" src="../src-ui-wx/ui/app-shell/AboutDialog.cpp" hdr="../src-ui-wx/ui/app-shell/AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
-							<wxDialog wxs="../src-ui-wx/wxsmith/MediaImportOptionsDialog.wxs" src="../src-ui-wx/ui/media/MediaImportOptionsDialog.cpp" hdr="../src-ui-wx/ui/media/MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ScriptsDialog.wxs" src="../src-ui-wx/ui/automation/ScriptsDialog.cpp" hdr="../src-ui-wx/ui/automation/ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ColourReplaceDialog.wxs" src="../src-ui-wx/ui/color/ColourReplaceDialog.cpp" hdr="../src-ui-wx/ui/color/ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/TipOfTheDayDialog.wxs" src="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.cpp" hdr="../src-ui-wx/ui/app-shell/TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ModelRemap.wxs" src="../src-ui-wx/ui/import-export/ModelRemap.cpp" hdr="../src-ui-wx/ui/import-export/ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/RestoreBackupDialog.wxs" src="../src-ui-wx/ui/app-shell/RestoreBackupDialog.cpp" hdr="../src-ui-wx/ui/app-shell/RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditComboDialog.wxs" src="../src-ui-wx/ui/sequencer/BulkEditComboDialog.cpp" hdr="../src-ui-wx/ui/sequencer/BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/DuplicateDialog.wxs" src="../src-ui-wx/ui/sequencer/DuplicateDialog.cpp" hdr="../src-ui-wx/ui/sequencer/DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/MetronomeLabelDialog.wxs" src="../src-ui-wx/ui/sequencer/MetronomeLabelDialog.cpp" hdr="../src-ui-wx/ui/sequencer/MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/FPPUploadProgressDialog.wxs" src="../src-ui-wx/ui/controllers/FPPUploadProgressDialog.cpp" hdr="../src-ui-wx/ui/controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/AutoLabelDialog.wxs" src="../src-ui-wx/ui/sequencer/AutoLabelDialog.cpp" hdr="../src-ui-wx/ui/sequencer/AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EditAliasesDialog.wxs" src="../src-ui-wx/ui/model/EditAliasesDialog.cpp" hdr="../src-ui-wx/ui/model/EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/EditSubmodelAliasesDialog.wxs" src="../src-ui-wx/ui/model/EditSubmodelAliasesDialog.cpp" hdr="../src-ui-wx/ui/model/EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
-					<wxDialog wxs="../src-ui-wx/wxsmith/ShowFolderSearchDialog.wxs" src="../src-ui-wx/ui/diagnostics/ShowFolderSearchDialog.cpp" hdr="../src-ui-wx/ui/diagnostics/ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
-					<wxPanel wxs="../src-ui-wx/wxsmith/ServicesPanel.wxs" src="../src-ui-wx/ui/preferences/ServicesPanel.cpp" hdr="../src-ui-wx/ui/preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/AlignmentDialog.wxs" src="../src-ui-wx/model/AlignmentDialog.cpp" hdr="../src-ui-wx/model/AlignmentDialog.h" fwddecl="0" i18n="1" name="AlignmentDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BatchRenderDialog.wxs" src="../src-ui-wx/sequencer/BatchRenderDialog.cpp" hdr="../src-ui-wx/sequencer/BatchRenderDialog.h" fwddecl="1" i18n="1" name="BatchRenderDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BufferSizeDialog.wxs" src="../src-ui-wx/sequencer/BufferSizeDialog.cpp" hdr="../src-ui-wx/sequencer/BufferSizeDialog.h" fwddecl="0" i18n="1" name="BufferSizeDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditFontPickerDialog.wxs" src="../src-ui-wx/sequencer/BulkEditFontPickerDialog.cpp" hdr="../src-ui-wx/sequencer/BulkEditFontPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditFontPickerDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditSliderDialog.wxs" src="../src-ui-wx/sequencer/BulkEditSliderDialog.cpp" hdr="../src-ui-wx/sequencer/BulkEditSliderDialog.h" fwddecl="0" i18n="1" name="BulkEditSliderDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ChannelLayoutDialog.wxs" src="../src-ui-wx/model/ChannelLayoutDialog.cpp" hdr="../src-ui-wx/model/ChannelLayoutDialog.h" fwddecl="0" i18n="1" name="ChannelLayoutDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/CharMapDialog.wxs" src="../src-ui-wx/effects/CharMapDialog.cpp" hdr="../src-ui-wx/effects/CharMapDialog.h" fwddecl="0" i18n="1" name="CharMapDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/CheckboxSelectDialog.wxs" src="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.cpp" hdr="../src-ui-wx/shared/dialogs/CheckboxSelectDialog.h" fwddecl="0" i18n="1" name="CheckboxSelectDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ColorCurveDialog.wxs" src="../src-ui-wx/color/ColorCurveDialog.cpp" hdr="../src-ui-wx/color/ColorCurveDialog.h" fwddecl="0" i18n="1" name="ColorCurveDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ControllerConnectionDialog.wxs" src="../src-ui-wx/setup/ControllerConnectionDialog.cpp" hdr="../src-ui-wx/setup/ControllerConnectionDialog.h" fwddecl="0" i18n="1" name="ControllerConnectionDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ControllerModelDialog.wxs" src="../src-ui-wx/setup/ControllerModelDialog.cpp" hdr="../src-ui-wx/setup/ControllerModelDialog.h" fwddecl="0" i18n="1" name="ControllerModelDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertDialog.wxs" src="../src-ui-wx/import_export/ConvertDialog.cpp" hdr="../src-ui-wx/import_export/ConvertDialog.h" fwddecl="0" i18n="1" name="ConvertDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/ConvertLogDialog.wxs" src="../src-ui-wx/import_export/ConvertLogDialog.cpp" hdr="../src-ui-wx/import_export/ConvertLogDialog.h" fwddecl="0" i18n="1" name="ConvertLogDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/CustomModelDialog.wxs" src="../src-ui-wx/model/CustomModelDialog.cpp" hdr="../src-ui-wx/model/CustomModelDialog.h" fwddecl="1" i18n="1" name="CustomModelDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/CustomTimingDialog.wxs" src="../src-ui-wx/sequencer/CustomTimingDialog.cpp" hdr="../src-ui-wx/sequencer/CustomTimingDialog.h" fwddecl="0" i18n="1" name="CustomTimingDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EffectListDialog.wxs" src="../src-ui-wx/sequencer/EffectListDialog.cpp" hdr="../src-ui-wx/sequencer/EffectListDialog.h" fwddecl="0" i18n="1" name="EffectListDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EffectTimingDialog.wxs" src="../src-ui-wx/sequencer/EffectTimingDialog.cpp" hdr="../src-ui-wx/sequencer/EffectTimingDialog.h" fwddecl="0" i18n="1" name="EffectTimingDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EffectTreeDialog.wxs" src="../src-ui-wx/sequencer/EffectTreeDialog.cpp" hdr="../src-ui-wx/sequencer/EffectTreeDialog.h" fwddecl="0" i18n="1" name="EffectTreeDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EmailDialog.wxs" src="../src-ui-wx/app-shell/EmailDialog.cpp" hdr="../src-ui-wx/app-shell/EmailDialog.h" fwddecl="0" i18n="1" name="EmailDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/FPPConnectDialog.wxs" src="../src-ui-wx/controllers/FPPConnectDialog.cpp" hdr="../src-ui-wx/controllers/FPPConnectDialog.h" fwddecl="0" i18n="1" name="FPPConnectDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/GenerateCustomModelDialog.wxs" src="../src-ui-wx/model/GenerateCustomModelDialog.cpp" hdr="../src-ui-wx/model/GenerateCustomModelDialog.h" fwddecl="0" i18n="1" name="GenerateCustomModelDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/GenerateLyricsDialog.wxs" src="../src-ui-wx/sequencer/GenerateLyricsDialog.cpp" hdr="../src-ui-wx/sequencer/GenerateLyricsDialog.h" fwddecl="0" i18n="1" name="GenerateLyricsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/HinksPixExportDialog.wxs" src="../src-ui-wx/controllers/HinksPixExportDialog.cpp" hdr="../src-ui-wx/controllers/HinksPixExportDialog.h" fwddecl="0" i18n="1" name="HinksPixExportDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/ImportPreviewsModelsDialog.wxs" src="../src-ui-wx/model/ImportPreviewsModelsDialog.cpp" hdr="../src-ui-wx/model/ImportPreviewsModelsDialog.h" fwddecl="0" i18n="1" name="ImportPreviewsModelsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/IPEntryDialog.wxs" src="../src-ui-wx/setup/IPEntryDialog.cpp" hdr="../src-ui-wx/setup/IPEntryDialog.h" fwddecl="0" i18n="1" name="IPEntryDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/LayerSelectDialog.wxs" src="../src-ui-wx/sequencer/LayerSelectDialog.cpp" hdr="../src-ui-wx/sequencer/LayerSelectDialog.h" fwddecl="0" i18n="1" name="LayerSelectDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/LinkJukeboxButtonDialog.wxs" src="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.cpp" hdr="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.h" fwddecl="0" i18n="1" name="LinkJukeboxButtonDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/LMSImportChannelMapDialog.wxs" src="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" hdr="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" fwddecl="0" i18n="1" name="LMSImportChannelMapDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/LorConvertDialog.wxs" src="../src-ui-wx/import_export/LorConvertDialog.cpp" hdr="../src-ui-wx/import_export/LorConvertDialog.h" fwddecl="0" i18n="1" name="LorConvertDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/LyricsDialog.wxs" src="../src-ui-wx/sequencer/LyricsDialog.cpp" hdr="../src-ui-wx/sequencer/LyricsDialog.h" fwddecl="0" i18n="1" name="LyricsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/LyricUserDictDialog.wxs" src="../src-ui-wx/sequencer/LyricUserDictDialog.cpp" hdr="../src-ui-wx/sequencer/LyricUserDictDialog.h" fwddecl="0" i18n="1" name="LyricUserDictDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/MatrixFaceDownloadDialog.wxs" src="../src-ui-wx/model/MatrixFaceDownloadDialog.cpp" hdr="../src-ui-wx/model/MatrixFaceDownloadDialog.h" fwddecl="0" i18n="1" name="MatrixFaceDownloadDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ModelChainDialog.wxs" src="../src-ui-wx/model/ModelChainDialog.cpp" hdr="../src-ui-wx/model/ModelChainDialog.h" fwddecl="0" i18n="1" name="ModelChainDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ModelDimmingCurveDialog.wxs" src="../src-ui-wx/model/ModelDimmingCurveDialog.cpp" hdr="../src-ui-wx/model/ModelDimmingCurveDialog.h" fwddecl="0" i18n="1" name="ModelDimmingCurveDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ModelFaceDialog.wxs" src="../src-ui-wx/model/ModelFaceDialog.cpp" hdr="../src-ui-wx/model/ModelFaceDialog.h" fwddecl="0" i18n="1" name="ModelFaceDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ModelStateDialog.wxs" src="../src-ui-wx/model/ModelStateDialog.cpp" hdr="../src-ui-wx/model/ModelStateDialog.h" fwddecl="0" i18n="1" name="ModelStateDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/MultiControllerUploadDialog.wxs" src="../src-ui-wx/setup/MultiControllerUploadDialog.cpp" hdr="../src-ui-wx/setup/MultiControllerUploadDialog.h" fwddecl="0" i18n="1" name="MultiControllerUploadDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/NewTimingDialog.wxs" src="../src-ui-wx/sequencer/NewTimingDialog.cpp" hdr="../src-ui-wx/sequencer/NewTimingDialog.h" fwddecl="0" i18n="1" name="NewTimingDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/NodeSelectGrid.wxs" src="../src-ui-wx/model/NodeSelectGrid.cpp" hdr="../src-ui-wx/model/NodeSelectGrid.h" fwddecl="0" i18n="1" name="NodeSelectGrid" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/NoteImportDialog.wxs" src="../src-ui-wx/sequencer/NoteImportDialog.cpp" hdr="../src-ui-wx/sequencer/NoteImportDialog.h" fwddecl="0" i18n="1" name="NoteImportDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/NoteRangeDialog.wxs" src="../src-ui-wx/sequencer/NoteRangeDialog.cpp" hdr="../src-ui-wx/sequencer/NoteRangeDialog.h" fwddecl="0" i18n="1" name="NoteRangeDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/OptionChooser.wxs" src="../src-ui-wx/shared/dialogs/OptionChooser.cpp" hdr="../src-ui-wx/shared/dialogs/OptionChooser.h" fwddecl="0" i18n="1" name="OptionChooser" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PathGenerationDialog.wxs" src="../src-ui-wx/model/PathGenerationDialog.cpp" hdr="../src-ui-wx/model/PathGenerationDialog.h" fwddecl="0" i18n="1" name="PathGenerationDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PixelTestDialog.wxs" src="../src-ui-wx/setup/PixelTestDialog.cpp" hdr="../src-ui-wx/setup/PixelTestDialog.h" fwddecl="0" i18n="1" name="PixelTestDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PositionZoneDialog.wxs" src="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.cpp" hdr="../src-ui-wx/modelproperties/adapters/PositionZoneDialog.h" fwddecl="0" i18n="1" name="PositionZoneDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/PreviewPane.wxs" src="../src-ui-wx/layout/PreviewPane.cpp" hdr="../src-ui-wx/layout/PreviewPane.h" fwddecl="0" i18n="1" name="PreviewPane" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/RemapDMXChannelsDialog.wxs" src="../src-ui-wx/setup/RemapDMXChannelsDialog.cpp" hdr="../src-ui-wx/setup/RemapDMXChannelsDialog.h" fwddecl="0" i18n="1" name="RemapDMXChannelsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/RenameTextDialog.wxs" src="../src-ui-wx/sequencer/RenameTextDialog.cpp" hdr="../src-ui-wx/sequencer/RenameTextDialog.h" fwddecl="0" i18n="1" name="RenameTextDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/RenderProgressDialog.wxs" src="../src-ui-wx/diagnostics/RenderProgressDialog.cpp" hdr="../src-ui-wx/diagnostics/RenderProgressDialog.h" fwddecl="1" i18n="1" name="RenderProgressDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/ResizeImageDialog.wxs" src="../src-ui-wx/media/ResizeImageDialog.cpp" hdr="../src-ui-wx/media/ResizeImageDialog.h" fwddecl="0" i18n="1" name="ResizeImageDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SaveChangesDialog.wxs" src="../src-ui-wx/app-shell/SaveChangesDialog.cpp" hdr="../src-ui-wx/app-shell/SaveChangesDialog.h" fwddecl="0" i18n="1" name="SaveChangesDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/SelectTimingsDialog.wxs" src="../src-ui-wx/sequencer/SelectTimingsDialog.cpp" hdr="../src-ui-wx/sequencer/SelectTimingsDialog.h" fwddecl="0" i18n="1" name="SelectTimingsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SeqElementMismatchDialog.wxs" src="../src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp" hdr="../src-ui-wx/diagnostics/SeqElementMismatchDialog.h" fwddecl="0" i18n="1" name="SeqElementMismatchDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/SeqExportDialog.wxs" src="../src-ui-wx/import_export/SeqExportDialog.cpp" hdr="../src-ui-wx/import_export/SeqExportDialog.h" fwddecl="0" i18n="1" name="SeqExportDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SeqSettingsDialog.wxs" src="../src-ui-wx/sequencer/SeqSettingsDialog.cpp" hdr="../src-ui-wx/sequencer/SeqSettingsDialog.h" fwddecl="0" i18n="1" name="SeqSettingsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ServoConfigDialog.wxs" src="../src-ui-wx/modelproperties/adapters/ServoConfigDialog.cpp" hdr="../src-ui-wx/modelproperties/adapters/ServoConfigDialog.h" fwddecl="0" i18n="1" name="ServoConfigDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SkullConfigDialog.wxs" src="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.cpp" hdr="../src-ui-wx/modelproperties/adapters/SkullConfigDialog.h" fwddecl="0" i18n="1" name="SkullConfigDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SevenSegmentDialog.wxs" src="../src-ui-wx/model/SevenSegmentDialog.cpp" hdr="../src-ui-wx/model/SevenSegmentDialog.h" fwddecl="0" i18n="1" name="SevenSegmentDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ShaderDownloadDialog.wxs" src="../src-ui-wx/effects/ShaderDownloadDialog.cpp" hdr="../src-ui-wx/effects/ShaderDownloadDialog.h" fwddecl="0" i18n="1" name="ShaderDownloadDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SplashDialog.wxs" src="../src-ui-wx/app-shell/SplashDialog.cpp" hdr="../src-ui-wx/app-shell/SplashDialog.h" fwddecl="0" i18n="1" name="SplashDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/StartChannelDialog.wxs" src="../src-ui-wx/model/StartChannelDialog.cpp" hdr="../src-ui-wx/model/StartChannelDialog.h" fwddecl="0" i18n="1" name="StartChannelDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/StrandNodeNamesDialog.wxs" src="../src-ui-wx/model/StrandNodeNamesDialog.cpp" hdr="../src-ui-wx/model/StrandNodeNamesDialog.h" fwddecl="0" i18n="1" name="StrandNodeNamesDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelGenerateDialog.wxs" src="../src-ui-wx/model/SubModelGenerateDialog.cpp" hdr="../src-ui-wx/model/SubModelGenerateDialog.h" fwddecl="0" i18n="1" name="SubModelGenerateDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/SubModelsDialog.wxs" src="../src-ui-wx/model/SubModelsDialog.cpp" hdr="../src-ui-wx/model/SubModelsDialog.h" fwddecl="1" i18n="1" name="SubModelsDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/SuperStarImportDialog.wxs" src="../src-ui-wx/import_export/SuperStarImportDialog.cpp" hdr="../src-ui-wx/import_export/SuperStarImportDialog.h" fwddecl="0" i18n="1" name="SuperStarImportDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/UpdaterDialog.wxs" src="../src-ui-wx/app-shell/UpdaterDialog.cpp" hdr="../src-ui-wx/app-shell/UpdaterDialog.h" fwddecl="0" i18n="1" name="UpdaterDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ValueCurveDialog.wxs" src="../src-ui-wx/shared/dialogs/ValueCurveDialog.cpp" hdr="../src-ui-wx/shared/dialogs/ValueCurveDialog.h" fwddecl="0" i18n="1" name="ValueCurveDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/VAMPPluginDialog.wxs" src="../src-ui-wx/sequencer/VAMPPluginDialog.cpp" hdr="../src-ui-wx/sequencer/VAMPPluginDialog.h" fwddecl="0" i18n="1" name="VAMPPluginDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/VendorModelDialog.wxs" src="../src-ui-wx/import_export/VendorModelDialog.cpp" hdr="../src-ui-wx/import_export/VendorModelDialog.h" fwddecl="0" i18n="1" name="VendorModelDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/VendorMusicDialog.wxs" src="../src-ui-wx/import_export/VendorMusicDialog.cpp" hdr="../src-ui-wx/import_export/VendorMusicDialog.h" fwddecl="0" i18n="1" name="VendorMusicDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/VsaImportDialog.wxs" src="../src-ui-wx/import_export/VsaImportDialog.cpp" hdr="../src-ui-wx/import_export/VsaImportDialog.h" fwddecl="0" i18n="1" name="VsaImportDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/WiringDialog.wxs" src="../src-ui-wx/model/WiringDialog.cpp" hdr="../src-ui-wx/model/WiringDialog.h" fwddecl="0" i18n="1" name="WiringDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/xLightsImportChannelMapDialog.wxs" src="../src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp" hdr="../src-ui-wx/import_export/xLightsImportChannelMapDialog.h" fwddecl="0" i18n="1" name="xLightsImportChannelMapDialog" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/EffectsPanel.wxs" src="../src-ui-wx/sequencer/EffectsPanel.cpp" hdr="../src-ui-wx/sequencer/EffectsPanel.h" fwddecl="0" i18n="1" name="EffectsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/MainSequencer.wxs" src="../src-ui-wx/sequencer/MainSequencer.cpp" hdr="../src-ui-wx/sequencer/MainSequencer.h" fwddecl="0" i18n="1" name="MainSequencer" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/TopEffectsPanel.wxs" src="../src-ui-wx/sequencer/TopEffectsPanel.cpp" hdr="../src-ui-wx/sequencer/TopEffectsPanel.h" fwddecl="0" i18n="1" name="TopEffectsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/EffectIconPanel.wxs" src="../src-ui-wx/sequencer/EffectIconPanel.cpp" hdr="../src-ui-wx/sequencer/EffectIconPanel.h" fwddecl="0" i18n="1" name="EffectIconPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ValueCurvesPanel.wxs" src="../src-ui-wx/shared/controls/ValueCurvesPanel.cpp" hdr="../src-ui-wx/shared/controls/ValueCurvesPanel.h" fwddecl="0" i18n="1" name="ValueCurvesPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ColoursPanel.wxs" src="../src-ui-wx/color/ColoursPanel.cpp" hdr="../src-ui-wx/color/ColoursPanel.h" fwddecl="0" i18n="1" name="ColoursPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/PerspectivesPanel.wxs" src="../src-ui-wx/sequencer/PerspectivesPanel.cpp" hdr="../src-ui-wx/sequencer/PerspectivesPanel.h" fwddecl="0" i18n="1" name="PerspectivesPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/xlColorPickerFields.wxs" src="../src-ui-wx/color/xlColorPickerFields.cpp" hdr="../src-ui-wx/color/xlColorPickerFields.h" fwddecl="0" i18n="1" name="xlColorPickerFields" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/EffectAssist.wxs" src="../src-ui-wx/effects/EffectAssist.cpp" hdr="../src-ui-wx/effects/EffectAssist.h" fwddecl="0" i18n="1" name="EffectAssist" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/FindDataPanel.wxs" src="../src-ui-wx/diagnostics/FindDataPanel.cpp" hdr="../src-ui-wx/diagnostics/FindDataPanel.h" fwddecl="1" i18n="1" name="FindDataPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/PicturesAssistPanel.wxs" src="../src-ui-wx/effectpanels/assist/PicturesAssistPanel.cpp" hdr="../src-ui-wx/effectpanels/assist/PicturesAssistPanel.h" fwddecl="0" i18n="1" name="PicturesAssistPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/AssistPanel.wxs" src="../src-ui-wx/effectpanels/assist/AssistPanel.cpp" hdr="../src-ui-wx/effectpanels/assist/AssistPanel.h" fwddecl="0" i18n="1" name="AssistPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/LayoutPanel.wxs" src="../src-ui-wx/layout/LayoutPanel.cpp" hdr="../src-ui-wx/layout/LayoutPanel.h" fwddecl="1" i18n="1" name="LayoutPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ModelGroupPanel.wxs" src="../src-ui-wx/layout/ModelGroupPanel.cpp" hdr="../src-ui-wx/layout/ModelGroupPanel.h" fwddecl="0" i18n="1" name="ModelGroupPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ViewsModelsPanel.wxs" src="../src-ui-wx/layout/ViewsModelsPanel.cpp" hdr="../src-ui-wx/layout/ViewsModelsPanel.h" fwddecl="0" i18n="1" name="ViewsModelsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/HousePreviewPanel.wxs" src="../src-ui-wx/layout/HousePreviewPanel.cpp" hdr="../src-ui-wx/layout/HousePreviewPanel.h" fwddecl="0" i18n="1" name="HousePreviewPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/SelectPanel.wxs" src="../src-ui-wx/sequencer/SelectPanel.cpp" hdr="../src-ui-wx/sequencer/SelectPanel.h" fwddecl="0" i18n="1" name="SelectPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/SequenceVideoPanel.wxs" src="../src-ui-wx/media/SequenceVideoPanel.cpp" hdr="../src-ui-wx/media/SequenceVideoPanel.h" fwddecl="0" i18n="1" name="SequenceVideoPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/JukeboxPanel.wxs" src="../src-ui-wx/media/JukeboxPanel.cpp" hdr="../src-ui-wx/media/JukeboxPanel.h" fwddecl="0" i18n="1" name="JukeboxPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ViewObjectPanel.wxs" src="../src-ui-wx/layout/ViewObjectPanel.cpp" hdr="../src-ui-wx/layout/ViewObjectPanel.h" fwddecl="0" i18n="1" name="ViewObjectPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/BackupSettingsPanel.wxs" src="../src-ui-wx/preferences/BackupSettingsPanel.cpp" hdr="../src-ui-wx/preferences/BackupSettingsPanel.h" fwddecl="1" i18n="1" name="BackupSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/CheckSequenceSettingsPanel.wxs" src="../src-ui-wx/preferences/CheckSequenceSettingsPanel.cpp" hdr="../src-ui-wx/preferences/CheckSequenceSettingsPanel.h" fwddecl="1" i18n="1" name="CheckSequenceSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ViewSettingsPanel.wxs" src="../src-ui-wx/preferences/ViewSettingsPanel.cpp" hdr="../src-ui-wx/preferences/ViewSettingsPanel.h" fwddecl="1" i18n="1" name="ViewSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/SequenceFileSettingsPanel.wxs" src="../src-ui-wx/preferences/SequenceFileSettingsPanel.cpp" hdr="../src-ui-wx/preferences/SequenceFileSettingsPanel.h" fwddecl="1" i18n="1" name="SequenceFileSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/OutputSettingsPanel.wxs" src="../src-ui-wx/preferences/OutputSettingsPanel.cpp" hdr="../src-ui-wx/preferences/OutputSettingsPanel.h" fwddecl="1" i18n="1" name="OutputSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/OtherSettingsPanel.wxs" src="../src-ui-wx/preferences/OtherSettingsPanel.cpp" hdr="../src-ui-wx/preferences/OtherSettingsPanel.h" fwddecl="1" i18n="1" name="OtherSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/EffectsGridSettingsPanel.wxs" src="../src-ui-wx/preferences/EffectsGridSettingsPanel.cpp" hdr="../src-ui-wx/preferences/EffectsGridSettingsPanel.h" fwddecl="1" i18n="1" name="EffectsGridSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/RandomEffectsSettingsPanel.wxs" src="../src-ui-wx/preferences/RandomEffectsSettingsPanel.cpp" hdr="../src-ui-wx/preferences/RandomEffectsSettingsPanel.h" fwddecl="1" i18n="1" name="RandomEffectsSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ColorManagerSettingsPanel.wxs" src="../src-ui-wx/preferences/ColorManagerSettingsPanel.cpp" hdr="../src-ui-wx/preferences/ColorManagerSettingsPanel.h" fwddecl="0" i18n="1" name="ColorManagerSettingsPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/SearchPanel.wxs" src="../src-ui-wx/diagnostics/SearchPanel.cpp" hdr="../src-ui-wx/diagnostics/SearchPanel.h" fwddecl="0" i18n="1" name="SearchPanel" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/MovingHeadPanel.wxs" src="../src-ui-wx/effectpanels/MovingHeadPanel.cpp" hdr="../src-ui-wx/effectpanels/MovingHeadPanel.h" fwddecl="0" i18n="1" name="MovingHeadPanel" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditColourPickerDialog.wxs" src="../src-ui-wx/sequencer/BulkEditColourPickerDialog.cpp" hdr="../src-ui-wx/sequencer/BulkEditColourPickerDialog.h" fwddecl="0" i18n="1" name="BulkEditColourPickerDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/KeyBindingEditDialog.wxs" src="../src-ui-wx/app-shell/KeyBindingEditDialog.cpp" hdr="../src-ui-wx/app-shell/KeyBindingEditDialog.h" fwddecl="0" i18n="1" name="KeyBindingEditDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/AboutDialog.wxs" src="../src-ui-wx/app-shell/AboutDialog.cpp" hdr="../src-ui-wx/app-shell/AboutDialog.h" fwddecl="1" i18n="1" name="AboutDialog" language="CPP" />
+							<wxDialog wxs="../src-ui-wx/wxsmith/MediaImportOptionsDialog.wxs" src="../src-ui-wx/media/MediaImportOptionsDialog.cpp" hdr="../src-ui-wx/media/MediaImportOptionsDialog.h" fwddecl="0" i18n="1" name="MediaImportOptionsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ScriptsDialog.wxs" src="../src-ui-wx/automation/ScriptsDialog.cpp" hdr="../src-ui-wx/automation/ScriptsDialog.h" fwddecl="0" i18n="1" name="ScriptsDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ColourReplaceDialog.wxs" src="../src-ui-wx/color/ColourReplaceDialog.cpp" hdr="../src-ui-wx/color/ColourReplaceDialog.h" fwddecl="0" i18n="1" name="ColourReplaceDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/TipOfTheDayDialog.wxs" src="../src-ui-wx/app-shell/TipOfTheDayDialog.cpp" hdr="../src-ui-wx/app-shell/TipOfTheDayDialog.h" fwddecl="0" i18n="1" name="TipOfTheDayDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ModelRemap.wxs" src="../src-ui-wx/import_export/ModelRemap.cpp" hdr="../src-ui-wx/import_export/ModelRemap.h" fwddecl="0" i18n="1" name="ModelRemap" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/RestoreBackupDialog.wxs" src="../src-ui-wx/app-shell/RestoreBackupDialog.cpp" hdr="../src-ui-wx/app-shell/RestoreBackupDialog.h" fwddecl="0" i18n="1" name="RestoreBackupDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/BulkEditComboDialog.wxs" src="../src-ui-wx/sequencer/BulkEditComboDialog.cpp" hdr="../src-ui-wx/sequencer/BulkEditComboDialog.h" fwddecl="0" i18n="1" name="BulkEditComboDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/DuplicateDialog.wxs" src="../src-ui-wx/sequencer/DuplicateDialog.cpp" hdr="../src-ui-wx/sequencer/DuplicateDialog.h" fwddecl="0" i18n="1" name="DuplicateDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/MetronomeLabelDialog.wxs" src="../src-ui-wx/sequencer/MetronomeLabelDialog.cpp" hdr="../src-ui-wx/sequencer/MetronomeLabelDialog.h" fwddecl="0" i18n="1" name="MetronomeLabelDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/FPPUploadProgressDialog.wxs" src="../src-ui-wx/controllers/FPPUploadProgressDialog.cpp" hdr="../src-ui-wx/controllers/FPPUploadProgressDialog.h" fwddecl="0" i18n="1" name="FPPUploadProgressDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/AutoLabelDialog.wxs" src="../src-ui-wx/sequencer/AutoLabelDialog.cpp" hdr="../src-ui-wx/sequencer/AutoLabelDialog.h" fwddecl="0" i18n="1" name="AutoLabelDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EditAliasesDialog.wxs" src="../src-ui-wx/model/EditAliasesDialog.cpp" hdr="../src-ui-wx/model/EditAliasesDialog.h" fwddecl="0" i18n="1" name="EditAliasesDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/EditSubmodelAliasesDialog.wxs" src="../src-ui-wx/model/EditSubmodelAliasesDialog.cpp" hdr="../src-ui-wx/model/EditSubmodelAliasesDialog.h" fwddecl="0" i18n="1" name="EditSubmodelAliasesDialog" language="CPP" />
+					<wxDialog wxs="../src-ui-wx/wxsmith/ShowFolderSearchDialog.wxs" src="../src-ui-wx/diagnostics/ShowFolderSearchDialog.cpp" hdr="../src-ui-wx/diagnostics/ShowFolderSearchDialog.h" fwddecl="0" i18n="1" name="ShowFolderSearchDialog" language="CPP" />
+					<wxPanel wxs="../src-ui-wx/wxsmith/ServicesPanel.wxs" src="../src-ui-wx/preferences/ServicesPanel.cpp" hdr="../src-ui-wx/preferences/ServicesPanel.h" fwddecl="0" i18n="1" name="ServicesPanel" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/AIColorPaletteDialog.wxs" src="../src-ui-wx/ai/AIColorPaletteDialog.cpp" hdr="../src-ui-wx/ai/AIColorPaletteDialog.h" fwddecl="0" i18n="0" name="AIColorPaletteDialog" language="CPP" />
 					<wxDialog wxs="../src-ui-wx/wxsmith/AIImageDialog.wxs" src="../src-ui-wx/ai/AIImageDialog.cpp" hdr="../src-ui-wx/ai/AIImageDialog.h" fwddecl="0" i18n="0" name="AIImageDialog" language="CPP" />
 				</resources>

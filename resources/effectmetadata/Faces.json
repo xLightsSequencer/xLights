@@ -17,7 +17,8 @@
             "controlType": "choice",
             "options": [],
             "default": "Default",
-            "dynamicOptions": "faces"
+            "dynamicOptions": "faces",
+            "expandToFill": true
         },
         {
             "id": "Faces_Eyes",
@@ -88,7 +89,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "states"
+            "dynamicOptions": "states",
+            "expandToFill": true
         },
         {
             "id": "Faces_SuppressWhenNotSinging",

@@ -36,11 +36,11 @@
 #include "xLightsApp.h"
 #include "xLightsVersion.h"
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 #include "settings/XLightsConfigAdapter.h"
 #include "utils/TraceLog.h"
 #include "utils/ExternalHooks.h"
-#include "ui/shared/utils/BitmapCache.h"
+#include "shared/utils/BitmapCache.h"
 #include "utils/CurlManager.h"
 #include "render/SequencePackage.h"
 #include "utils/AppCallbacks.h"
@@ -148,6 +148,11 @@ void InitialiseLogging(bool fromMain)
     static bool loggingInitialised = false;
 
     if (!loggingInitialised) {
+        // Stash the exe directory so SpecialOptions can find special.options
+        // next to the binary even before the show folder is chosen.
+        SpecialOptions::StashExeDir(
+            wxFileName(wxStandardPaths::Get().GetExecutablePath()).GetPath().ToStdString());
+
         std::string const logFileName = "xLights_spdlog.log";
 #ifdef __WXMSW__
         wxString dir;

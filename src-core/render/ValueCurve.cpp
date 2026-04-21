@@ -32,6 +32,13 @@ AudioManager* ValueCurve::__audioManager = nullptr;
 std::map<std::string, AudioManager*> ValueCurve::__altAudioManagers;
 SequenceElements* ValueCurve::__sequenceElements = nullptr;
 
+static bool IsStartEndLevelType(const std::string& type)
+{
+    return type == "Exponential Up" || type == "Exponential Down" ||
+           type == "Logarithmic Up" || type == "Logarithmic Down" ||
+           type == "Parabolic Down" || type == "Parabolic Up";
+}
+
 static std::string fmt2f(float v) {
     // Note: deliberately using snprintf rather than std::to_chars. The floating-point
     // overloads of std::to_chars are only available in Apple's libc++ starting with
@@ -398,21 +405,33 @@ void ValueCurve::GetRangeParm3(const std::string& type, float& low, float &high)
     }
     else if (type == "Parabolic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Parabolic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Sine")
     {
@@ -479,21 +498,33 @@ void ValueCurve::GetRangeParm4(const std::string& type, float& low, float &high)
     }
     else if (type == "Parabolic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Parabolic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Logarithmic Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Up")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Exponential Down")
     {
+        low = MINVOID;
+        high = MAXVOID;
     }
     else if (type == "Sine")
     {
@@ -725,13 +756,13 @@ void ValueCurve::UnFixChangedScale(float newmin, float newmax)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter3 = _parameter3 * newrange / oldrange + mindiff;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter4 = _parameter4 * newrange / oldrange + mindiff;
     }
@@ -789,13 +820,13 @@ void ValueCurve::FixChangedScale(float newmin, float newmax, int divisor)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter3 = (_parameter3 * newrange / oldrange + mindiff); // / divisor;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID)
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel))
     {
         _parameter4 = (_parameter4 * newrange / oldrange + mindiff); // / divisor;
     }
@@ -827,12 +858,12 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
     }
 
     GetRangeParm(3, _type, min, max);
-    if (min == MINVOID) {
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel)) {
         _parameter3 = (_parameter3 - _min) * newrange / oldrange + newmin;
     }
 
     GetRangeParm(4, _type, min, max);
-    if (min == MINVOID) {
+    if (min == MINVOID && (!IsStartEndLevelType(_type) || _hasStartEndLevel)) {
         _parameter4 = (_parameter4 - _min) * newrange / oldrange + newmin;
     }
 
@@ -984,7 +1015,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Parabolic Up")
@@ -1017,7 +1054,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Up")
@@ -1049,7 +1092,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Logarithmic Down")
@@ -1081,7 +1130,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Up")
@@ -1113,7 +1168,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Exponential Down")
@@ -1145,7 +1206,13 @@ void ValueCurve::RenderType()
             }
             bool lastwrapped = false;
             if (_values.size() > 0) _values.back().IsWrapped();
-            _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
+            float fy = Safe01(y);
+            if (_hasStartEndLevel) {
+                float sn = parameter3 / 100.0f;
+                float en = parameter4 / 100.0f;
+                fy = Safe01(sn + fy * (en - sn));
+            }
+            _values.push_back(vcSortablePoint(i, fy, (lastwrapped != wrapped)));
         }
     }
     else if (_type == "Sine")
@@ -1331,6 +1398,7 @@ void ValueCurve::SetDefault(float min, float max, int divisor)
     _active = false;
     _wrap = false;
     _realValues = true;
+    _hasStartEndLevel = false;
     if (divisor != MAXVOID)
     {
         _divisor = divisor;
@@ -1372,6 +1440,7 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
         _active = true;
         _values.clear();
         _hasPreloadedValues = false;
+        _hasStartEndLevel = false;
         _type = "Flat";
         _parameter1 = 0.0f;
         _parameter2 = 0.0f;
@@ -1500,13 +1569,22 @@ std::string ValueCurve::Serialise()
         {
             res += "P2=" + fmt2f(_parameter2) + "|";
         }
-        if (_parameter3 != 0)
+        if (_hasStartEndLevel)
         {
+            res += "SE=Y|";
             res += "P3=" + fmt2f(_parameter3) + "|";
-        }
-        if (_parameter4 != 0)
-        {
             res += "P4=" + fmt2f(_parameter4) + "|";
+        }
+        else
+        {
+            if (_parameter3 != 0)
+            {
+                res += "P3=" + fmt2f(_parameter3) + "|";
+            }
+            if (_parameter4 != 0)
+            {
+                res += "P4=" + fmt2f(_parameter4) + "|";
+            }
         }
         if (_timeOffset != 0)
         {
@@ -1671,6 +1749,8 @@ void ValueCurve::SetSerialisedValue(const std::string &k, const std::string &s)
         _realValues = true;
     } else if (k == "P2") {
         _parameter2 = std::strtof(s.c_str(), nullptr);
+    } else if (k == "SE") {
+        _hasStartEndLevel = true;
     } else if (k == "P3") {
         _parameter3 = std::strtof(s.c_str(), nullptr);
     } else if (k == "P4") {

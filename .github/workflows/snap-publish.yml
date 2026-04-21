@@ -1,0 +1,42 @@
+name: Build and Publish Snap
+
+on:
+  push:
+    tags:
+      - '*'
+
+  workflow_dispatch:
+
+jobs:
+  snap:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Set snap version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          sed -i "s/^version: .*/version: '${VERSION}'/" snap/snapcraft.yaml
+
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: build
+
+      - name: Publish to Snap Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: stable
+
+      - name: Upload snap to GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: true
+          artifacts: ${{ steps.build.outputs.snap }}
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,2144 @@
+/***************************************************************
+ * This source files comes from the xLights project
+ * https://www.xlights.org
+ * https://github.com/xLightsSequencer/xLights
+ * See the github commit history for a record of contributing
+ * developers.
+ * Copyright claimed based on commit dates recorded in Github
+ * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
+ **************************************************************/
+
+#include "JsonEffectPanel.h"
+
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/slider.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/spinctrl.h>
+#include <wx/notebook.h>
+#include <wx/filepicker.h>
+#include <wx/fontpicker.h>
+#include <wx/clrpicker.h>
+#include <wx/tglbtn.h>
+#include <wx/statline.h>
+#include <wx/tokenzr.h>
+#include <wx/wfstream.h>
+
+#include "shared/controls/BulkEditControls.h"
+#include "shared/controls/MediaPickerCtrl.h"
+#include "shared/utils/xlLockButton.h"
+#include "sequencer/BlendingPanel.h"
+#include "shared/utils/wxUtilities.h"
+#include "effects/RenderableEffect.h"
+#include "models/Model.h"
+#include "models/ModelGroup.h"
+#include "render/SequenceElements.h"
+#include "xLightsApp.h"
+#include "xLightsMain.h"
+
+#include <fstream>
+#include <spdlog/spdlog.h>
+
+nlohmann::json JsonEffectPanel::LoadMetadata(const std::string& jsonPath) {
+    std::ifstream f(jsonPath);
+    if (!f.is_open()) {
+        spdlog::error("JsonEffectPanel: Failed to open metadata file: {}", jsonPath);
+        return {};
+    }
+    try {
+        return nlohmann::json::parse(f);
+    } catch (const nlohmann::json::parse_error& e) {
+        spdlog::error("JsonEffectPanel: JSON parse error in {}: {}", jsonPath, e.what());
+        return {};
+    }
+}
+
+JsonEffectPanel::JsonEffectPanel(wxWindow* parent, const nlohmann::json& metadata, bool deferBuild)
+    : xlEffectPanel(), metadata_(metadata) {
+    Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("wxID_ANY"));
+    if (!deferBuild) {
+        // Sanity check: if the metadata declares any "custom" controlType properties,
+        // the panel must be a subclass that overrides CreateCustomControl, which only
+        // works if the subclass passes deferBuild=true (otherwise virtual dispatch from
+        // this base constructor resolves to the no-op base method). Detect that mistake
+        // here so it fails loudly rather than silently producing a broken panel.
+        if (metadata.contains("properties")) {
+            for (const auto& prop : metadata["properties"]) {
+                if (prop.value("controlType", "") == "custom") {
+                    spdlog::error("JsonEffectPanel: effect '{}' has a 'custom' controlType property "
+                                  "('{}') but the panel was constructed with deferBuild=false. "
+                                  "Subclasses with CreateCustomControl overrides must pass deferBuild=true "
+                                  "and call BuildFromJson() themselves, otherwise the override will not run.",
+                                  metadata.value("effectName", "?"),
+                                  prop.value("id", "?"));
+                    break;
+                }
+            }
+        }
+        BuildFromJson(metadata);
+    }
+}
+
+JsonEffectPanel::~JsonEffectPanel() {
+}
+
+wxSize JsonEffectPanel::DoGetBestClientSize() const {
+    // When scrollable, return a small default so the panel (and the AUI
+    // pane that hosts it) computes its minimum from this rather than from
+    // the sizer's CalcMin() — which would include the natural height of
+    // every row and prevent the user from resizing the pane smaller than
+    // the whole content. The inner scroll window handles overflow.
+    if (contentParent_ != nullptr && contentParent_ != this) {
+        return wxSize(50, 50);
+    }
+    return wxPanel::DoGetBestClientSize();
+}
+
+void JsonEffectPanel::BuildFromJson(const nlohmann::json& metadata) {
+    if (metadata.is_null() || !metadata.is_object()) {
+        spdlog::warn("JsonEffectPanel: BuildFromJson called with null/invalid metadata - panel will be empty");
+        return;
+    }
+    std::string effectName = metadata.value("effectName", "Unknown");
+
+    // Collect property ids that are owned by groups (tabs, xyCenter, section).
+    // Tabs and sections each anchor at the index of their first listed
+    // property in the overall property list, so they interleave naturally
+    // with ungrouped flat-grid properties in source order. (Pre-fix, tabs
+    // were always emitted at the top — that broke layouts like Liquid where
+    // a notebook follows a block of global settings.)
+    std::set<std::string> groupedPropIds;
+    std::vector<nlohmann::json> xyCenterGroups;
+    enum class GroupKind { Tabs, Section };
+    struct AnchoredGroup {
+        GroupKind kind;
+        nlohmann::json group;
+    };
+    std::map<int, AnchoredGroup> groupsByFirstIndex;
+
+    auto findFirstIndex = [&metadata](const std::set<std::string>& propIds) -> int {
+        if (!metadata.contains("properties")) return -1;
+        int idx = 0;
+        for (const auto& prop : metadata["properties"]) {
+            if (propIds.count(prop.value("id", ""))) return idx;
+            idx++;
+        }
+        return -1;
+    };
+
+    if (metadata.contains("groups")) {
+        for (const auto& group : metadata["groups"]) {
+            std::string gtype = group.value("type", "");
+            if (gtype == "tabs") {
+                std::set<std::string> tabPropIds;
+                for (const auto& tab : group["tabs"]) {
+                    for (const auto& pid : tab["properties"]) {
+                        tabPropIds.insert(pid.get<std::string>());
+                        groupedPropIds.insert(pid.get<std::string>());
+                    }
+                }
+                int firstIdx = findFirstIndex(tabPropIds);
+                if (firstIdx >= 0) {
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Tabs, group};
+                }
+            } else if (gtype == "xyCenter") {
+                xyCenterGroups.push_back(group);
+                if (group.contains("xProperty")) groupedPropIds.insert(group["xProperty"].get<std::string>());
+                if (group.contains("yProperty")) groupedPropIds.insert(group["yProperty"].get<std::string>());
+                if (group.contains("wrapX")) groupedPropIds.insert(group["wrapX"].get<std::string>());
+                if (group.contains("wrapY")) groupedPropIds.insert(group["wrapY"].get<std::string>());
+            } else if (gtype == "section" && group.contains("properties")) {
+                std::set<std::string> sectionPropIds;
+                for (const auto& pid : group["properties"]) {
+                    sectionPropIds.insert(pid.get<std::string>());
+                    groupedPropIds.insert(pid.get<std::string>());
+                }
+                int firstIdx = findFirstIndex(sectionPropIds);
+                if (firstIdx >= 0) {
+                    groupsByFirstIndex[firstIdx] = {GroupKind::Section, group};
+                }
+            }
+        }
+    }
+
+    // Add description text at the top if present
+    std::string descText;
+    if (metadata.contains("description")) {
+        descText = metadata["description"].get<std::string>();
+    }
+
+    // Single unified layout pass: walks the property list in declared order,
+    // emitting tabs/sections inline at their anchor index and putting the
+    // rest into flat grids. Always uses an outer 1-col sizer when the panel
+    // has anything that breaks out of the flat grid.
+    bool hasXY = !xyCenterGroups.empty();
+    bool hasGroups = !groupsByFirstIndex.empty();
+    bool hasSeparator = false;
+    bool hasFullWidthCustom = false;
+    if (metadata.contains("properties")) {
+        for (const auto& prop : metadata["properties"]) {
+            if (prop.value("separator", false)) { hasSeparator = true; }
+            if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false)) {
+                hasFullWidthCustom = true;
+            }
+        }
+    }
+    bool needsOuter = hasXY || hasGroups || hasSeparator || !descText.empty() || hasFullWidthCustom;
+
+    // When the metadata requests a scrollable panel, create a wxScrolledWindow
+    // as a child of the panel and use it as contentParent_ for all subsequent
+    // child creation. The panel itself gets a 1-item sizer hosting the scroll
+    // window so small panel sizes show scroll bars instead of clipping.
+    contentParent_ = this;
+    bool scrollable = metadata.value("scrollable", false);
+    if (scrollable) {
+        auto* scrollWin = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition,
+                                                wxDefaultSize, wxVSCROLL | wxHSCROLL,
+                                                _T("ID_PANEL_JsonScroll"));
+        // The ID_PANEL_ name prefix matters: GetEffectStringFromWindow only
+        // recurses into wxNotebooks and windows whose name begins with
+        // "ID_PANEL_". Without this, every framework-built control parented
+        // to the scroll window is invisible to the serializer and the panel
+        // silently produces no settings.
+        scrollWin->SetScrollRate(5, 5);
+        // Cap the scroll window's min size to a small value so it doesn't
+        // propagate the content's natural size up to the panel. Without this,
+        // wxWidgets uses the content's CalcMin() as the scroll window's min
+        // size, which in turn becomes the panel's min size and prevents the
+        // user from resizing the panel below that — the scroll bars never
+        // appear because the window can't shrink below its content.
+        scrollWin->SetMinSize(wxSize(50, 50));
+        contentParent_ = scrollWin;
+
+        auto* panelSizer = new wxFlexGridSizer(0, 1, 0, 0);
+        panelSizer->AddGrowableCol(0);
+        panelSizer->AddGrowableRow(0);
+        panelSizer->Add(scrollWin, 1, wxALL | wxEXPAND, 0);
+        SetSizer(panelSizer);
+    }
+
+    auto* outerSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    outerSizer->AddGrowableCol(0);
+
+    if (!descText.empty()) {
+        auto* descLabel = new wxStaticText(contentParent_, wxID_ANY, wxString(descText));
+        descLabel->Wrap(300);
+        outerSizer->Add(descLabel, 0, wxALL | wxEXPAND, 5);
+    }
+
+    auto* gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+    gridSizer->AddGrowableCol(1);
+
+    auto flushGrid = [&]() {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+        } else {
+            delete gridSizer;
+        }
+        gridSizer = new wxFlexGridSizer(0, 4, 0, 0);
+        gridSizer->AddGrowableCol(1);
+    };
+
+    // Helper: does any property inside this group's tabs have growable:true?
+    // If yes, the group's row in the outer sizer must also be growable so
+    // the growable child has vertical space to expand into.
+    auto groupHasGrowableChild = [&](const nlohmann::json& group) {
+        if (group.value("type", "") != "tabs") return false;
+        if (!group.contains("tabs")) return false;
+        std::map<std::string, nlohmann::json> propLookup;
+        for (const auto& p : metadata.value("properties", nlohmann::json::array())) {
+            propLookup[p.value("id", "")] = p;
+        }
+        for (const auto& tab : group["tabs"]) {
+            for (const auto& pid : tab["properties"]) {
+                auto it = propLookup.find(pid.get<std::string>());
+                if (it != propLookup.end() && it->second.value("growable", false)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    int propIndex = 0;
+    for (const auto& prop : metadata.value("properties", nlohmann::json::array())) {
+        // Insert any tabs/section that anchors at this position before
+        // emitting the next flat property.
+        auto groupIt = groupsByFirstIndex.find(propIndex);
+        if (groupIt != groupsByFirstIndex.end()) {
+            flushGrid();
+            if (groupIt->second.kind == GroupKind::Tabs) {
+                BuildTabGroup(outerSizer, groupIt->second.group, metadata);
+                // Propagate growability: if any property inside the tabs
+                // is marked growable, the notebook's row in outerSizer must
+                // stretch vertically to give the tab page extra space.
+                if (groupHasGrowableChild(groupIt->second.group)) {
+                    int rowIdx = (int)outerSizer->GetItemCount() - 1;
+                    if (rowIdx >= 0) outerSizer->AddGrowableRow(rowIdx);
+                }
+            } else {
+                BuildSection(outerSizer, groupIt->second.group, metadata["properties"]);
+            }
+        }
+        propIndex++;
+
+        std::string pid = prop.value("id", "");
+        if (groupedPropIds.find(pid) != groupedPropIds.end()) continue;
+
+        if (prop.value("separator", false) && needsOuter) {
+            flushGrid();
+            auto* line = new wxStaticLine(contentParent_, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+            outerSizer->Add(line, 0, wxALL | wxEXPAND, 5);
+        }
+
+        // Full-width custom properties break out of the 4-col grid so their
+        // single-item sizer.Add() spans the panel width. Without this, the
+        // custom only fills one of four grid columns and the next property's
+        // controls leak into the same row.
+        if (prop.value("controlType", "") == "custom" && prop.value("fullWidth", false) && needsOuter) {
+            flushGrid();
+            BuildPropertyRow(contentParent_, outerSizer, prop, 1);
+            continue;
+        }
+
+        BuildPropertyRow(contentParent_, gridSizer, prop, 4);
+    }
+
+    if (needsOuter) {
+        if (gridSizer->GetItemCount() > 0) {
+            outerSizer->Add(gridSizer, 0, wxALL | wxEXPAND, 0);
+        } else {
+            delete gridSizer;
+        }
+        // Skip xyCenter groups whose xProperty is owned by a tab page —
+        // BuildTabGroup already emits the XY layout inside the tab itself.
+        // Without this filter, panels like Pictures (which have xyCenter
+        // groups for the Start Position / End Position tab contents) would
+        // show the XY controls twice: once inside the tab and again as a
+        // floating block at the bottom of the panel.
+        std::set<std::string> tabbedXyXIds;
+        if (metadata.contains("groups")) {
+            for (const auto& g : metadata["groups"]) {
+                if (g.value("type", "") != "tabs") continue;
+                for (const auto& tab : g["tabs"]) {
+                    for (const auto& pid : tab["properties"]) {
+                        tabbedXyXIds.insert(pid.get<std::string>());
+                    }
+                }
+            }
+        }
+        for (const auto& xyGroup : xyCenterGroups) {
+            std::string xId = xyGroup.value("xProperty", "");
+            if (tabbedXyXIds.count(xId)) continue;
+            BuildXYCenter(contentParent_, outerSizer, xyGroup, metadata["properties"]);
+        }
+        // When we created a scroll wrapper, the outer sizer lives on the
+        // scrolled window, not on the panel itself (which already has a
+        // 1-item sizer hosting the scroll window).
+        if (contentParent_ != this) {
+            contentParent_->SetSizer(outerSizer);
+        } else {
+            SetSizer(outerSizer);
+        }
+    } else {
+        delete outerSizer;
+        if (contentParent_ != this) {
+            contentParent_->SetSizer(gridSizer);
+        } else {
+            SetSizer(gridSizer);
+        }
+    }
+
+    // Parse visibility rules
+    ParseVisibilityRules(metadata);
+
+    // Connect change events on controls that are visibility rule conditions
+    // so that ValidateWindow is called when they change
+    std::set<std::string> conditionIds;
+    for (const auto& rule : visibilityRules_) {
+        if (!rule.conditionPropertyId.empty()) conditionIds.insert(rule.conditionPropertyId);
+        for (const auto& id : rule.conditionAnyIds) conditionIds.insert(id);
+    }
+    for (const auto& cid : conditionIds) {
+        auto it = properties_.find(cid);
+        if (it != properties_.end()) {
+            if (it->second.choice) {
+                it->second.choice->Bind(wxEVT_CHOICE, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.checkBox) {
+                it->second.checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.slider) {
+                it->second.slider->Bind(wxEVT_SLIDER, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.spinCtrl) {
+                it->second.spinCtrl->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.textCtrl) {
+                it->second.textCtrl->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+            if (it->second.comboBox) {
+                it->second.comboBox->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+                it->second.comboBox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) { ValidateWindow(); e.Skip(); });
+            }
+        }
+    }
+
+    // Connect standard events
+    Connect(wxID_ANY, EVT_VC_CHANGED, (wxObjectEventFunction)&JsonEffectPanel::OnVCChanged, 0, this);
+    Connect(wxID_ANY, EVT_VALIDATEWINDOW, (wxObjectEventFunction)&JsonEffectPanel::OnValidateWindow, 0, this);
+
+    // Refresh timing-track choices when a track is renamed elsewhere in the UI.
+    // We ignore the event payload (which sends an unfiltered name list) and
+    // re-derive the lists from mSequenceElements ourselves so layer-count
+    // filtering stays consistent with SetPanelStatus.
+    bool hasTimingTrackChoices = false;
+    for (const auto& [id, info] : properties_) {
+        if (info.dynamicOptions == "timingTracks" || info.dynamicOptions == "lyricTimingTracks") {
+            hasTimingTrackChoices = true;
+            break;
+        }
+    }
+    if (hasTimingTrackChoices) {
+        Bind(EVT_SETTIMINGTRACKS, [this](wxCommandEvent& event) {
+            RepopulateTimingTrackChoices();
+            event.Skip();
+        });
+    }
+
+    // Set panel name for identification
+    SetName(wxString::Format("ID_PANEL_%s", wxString(effectName).Upper()));
+
+    ValidateWindow();
+}
+
+void JsonEffectPanel::BuildTabGroup(wxSizer* parentSizer, const nlohmann::json& group,
+                                     const nlohmann::json& metadata) {
+    const auto& allProps = metadata["properties"];
+
+    // Create the notebook. The name prefix controls serialization behavior:
+    //   "ID_NOTEBOOK" — serializer records the active page text as a setting
+    //   "IDD_NOTEBOOK" — serializer skips the selection (still recurses into pages)
+    // JSON tab groups can set "persistSelection": false to get the IDD_ variant,
+    // which is what the shared Timing/Buffer panels want.
+    std::string settingKey = group.value("settingKey", "");
+    bool persistSelection = group.value("persistSelection", true);
+    std::string notebookName;
+    if (settingKey.empty()) {
+        notebookName = persistSelection ? "ID_NOTEBOOK" : "IDD_NOTEBOOK";
+    } else {
+        // settingKey is typically "E_NOTEBOOK_X" from effect panels; strip the
+        // 2-char prefix and re-prepend ID_ or IDD_ depending on persistSelection.
+        notebookName = (persistSelection ? "ID_" : "IDD_") + settingKey.substr(2);
+    }
+    wxWindowID notebookId = wxNewId();
+    auto* notebook = new wxNotebook(contentParent_ ? contentParent_ : this, notebookId,
+                                     wxDefaultPosition, wxDefaultSize, 0, wxString(notebookName));
+    notebook->SetName(wxString(notebookName));
+    // When the tabs group itself is scrollable (per-tab scroll), cap the
+    // notebook's min size so the tallest tab page doesn't dictate the panel's
+    // minimum height — the inner scrolled pages will handle overflow.
+    // Do NOT cap when only root-level scrolling is active: the root scroll
+    // needs the notebook's natural size to know when to show scrollbars.
+    bool tabsScrollable = group.value("scrollable", false);
+    if (tabsScrollable) {
+        notebook->SetMinSize(wxSize(50, 50));
+    }
+
+    // Build a lookup of property id -> property json
+    std::map<std::string, nlohmann::json> propLookup;
+    for (const auto& prop : allProps) {
+        propLookup[prop.value("id", "")] = prop;
+    }
+
+    // Collect xyCenter groups and their property ids
+    std::vector<nlohmann::json> xyCenterGroups;
+    std::set<std::string> xyCenterPropIds;
+    if (metadata.contains("groups")) {
+        for (const auto& g : metadata["groups"]) {
+            if (g.value("type", "") == "xyCenter") {
+                xyCenterGroups.push_back(g);
+                if (g.contains("xProperty")) xyCenterPropIds.insert(g["xProperty"].get<std::string>());
+                if (g.contains("yProperty")) xyCenterPropIds.insert(g["yProperty"].get<std::string>());
+                if (g.contains("wrapX")) xyCenterPropIds.insert(g["wrapX"].get<std::string>());
+                if (g.contains("wrapY")) xyCenterPropIds.insert(g["wrapY"].get<std::string>());
+            }
+        }
+    }
+
+    // Build a set of all properties that appear in tabs
+    std::set<std::string> tabbedPropIds;
+    for (const auto& tab : group["tabs"]) {
+        for (const auto& propId : tab["properties"]) {
+            tabbedPropIds.insert(propId.get<std::string>());
+        }
+    }
+
+    // Create pages
+    for (const auto& tab : group["tabs"]) {
+        std::string tabLabel = tab.value("label", "");
+        // Per-tab scroll: each page is a wxScrolledWindow so the tallest tab
+        // doesn't dictate the notebook's minimum height — the scrollbars show
+        // up inside the page when the user drags the panel smaller. Legacy
+        // BufferPanel uses this pattern (ScrolledWindow1/2 inside Panel3/4).
+        wxPanel* page = nullptr;
+        if (tabsScrollable) {
+            auto* sp = new wxScrolledWindow(notebook, wxID_ANY, wxDefaultPosition,
+                                             wxDefaultSize, wxVSCROLL | wxHSCROLL);
+            sp->SetScrollRate(5, 5);
+            sp->SetMinSize(wxSize(50, 50));
+            page = sp;
+        } else {
+            page = new wxPanel(notebook, wxID_ANY);
+        }
+
+        // Check if this tab contains xyCenter properties
+        // If so, use a 1-col outer sizer to stack grid + XY
+        std::vector<nlohmann::json> tabXYGroups;
+        for (const auto& xyg : xyCenterGroups) {
+            std::string xp = xyg.value("xProperty", "");
+            // Check if xProperty is in this tab's properties
+            for (const auto& pid : tab["properties"]) {
+                if (pid.get<std::string>() == xp) {
+                    tabXYGroups.push_back(xyg);
+                    break;
+                }
+            }
+        }
+
+        if (!tabXYGroups.empty()) {
+            // Mixed tab: grid properties + XY groups (+ possible separators)
+            auto* pageOuterSizer = new wxFlexGridSizer(0, 1, 0, 0);
+            pageOuterSizer->AddGrowableCol(0);
+            auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+            pageSizer->AddGrowableCol(1);
+
+            for (const auto& propId : tab["properties"]) {
+                std::string id = propId.get<std::string>();
+                if (xyCenterPropIds.find(id) != xyCenterPropIds.end()) continue;
+                auto it = propLookup.find(id);
+                if (it != propLookup.end()) {
+                    if (it->second.value("separator", false)) {
+                        pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+                        auto* line = new wxStaticLine(page, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+                        pageOuterSizer->Add(line, 0, wxALL | wxEXPAND, 5);
+                        pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                        pageSizer->AddGrowableCol(1);
+                    }
+                    BuildPropertyRow(page, pageSizer, it->second, 4);
+                }
+            }
+            pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+
+            for (const auto& xyg : tabXYGroups) {
+                BuildXYCenter(page, pageOuterSizer, xyg, allProps);
+            }
+            page->SetSizer(pageOuterSizer);
+        } else {
+            // Check for fullWidth custom properties in this tab — they need to
+            // break out of the 4-col grid or subsequent rows will leak into
+            // the unfilled columns.
+            bool tabHasFullWidthCustom = false;
+            for (const auto& propId : tab["properties"]) {
+                auto it = propLookup.find(propId.get<std::string>());
+                if (it == propLookup.end()) continue;
+                if (it->second.value("controlType", "") == "custom" &&
+                    it->second.value("fullWidth", false)) {
+                    tabHasFullWidthCustom = true;
+                    break;
+                }
+                if (it->second.value("growable", false)) {
+                    tabHasFullWidthCustom = true;
+                    break;
+                }
+            }
+
+            if (tabHasFullWidthCustom) {
+                // Mixed tab: alternate grid segments and full-width customs
+                // the same way the outer flat walk does.
+                auto* pageOuterSizer = new wxFlexGridSizer(0, 1, 0, 0);
+                pageOuterSizer->AddGrowableCol(0);
+                auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                pageSizer->AddGrowableCol(1);
+
+                auto flushTabGrid = [&]() {
+                    if (pageSizer->GetItemCount() > 0) {
+                        pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+                    } else {
+                        delete pageSizer;
+                    }
+                    pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                    pageSizer->AddGrowableCol(1);
+                };
+
+                for (const auto& propId : tab["properties"]) {
+                    std::string id = propId.get<std::string>();
+                    auto it = propLookup.find(id);
+                    if (it == propLookup.end()) continue;
+                    bool isFullWidth = it->second.value("controlType", "") == "custom" &&
+                                        it->second.value("fullWidth", false);
+                    bool isGrowable = it->second.value("growable", false);
+                    if (isFullWidth || isGrowable) {
+                        flushTabGrid();
+                        BuildPropertyRow(page, pageOuterSizer, it->second, 1);
+                        // A growable custom row gets its flex-grid row marked
+                        // growable so it expands to fill remaining vertical
+                        // space on the tab page (e.g. Buffer panel's SubBuffer
+                        // live preview stretches to fill the Buffer tab).
+                        if (isGrowable) {
+                            int rowIdx = (int)pageOuterSizer->GetItemCount() - 1;
+                            if (rowIdx >= 0) pageOuterSizer->AddGrowableRow(rowIdx);
+                        }
+                    } else {
+                        BuildPropertyRow(page, pageSizer, it->second, 4);
+                    }
+                }
+                if (pageSizer->GetItemCount() > 0) {
+                    pageOuterSizer->Add(pageSizer, 0, wxALL | wxEXPAND, 0);
+                } else {
+                    delete pageSizer;
+                }
+                page->SetSizer(pageOuterSizer);
+            } else {
+                // Simple tab: all grid properties
+                auto* pageSizer = new wxFlexGridSizer(0, 4, 0, 0);
+                pageSizer->AddGrowableCol(1);
+
+                for (const auto& propId : tab["properties"]) {
+                    std::string id = propId.get<std::string>();
+                    auto it = propLookup.find(id);
+                    if (it != propLookup.end()) {
+                        BuildPropertyRow(page, pageSizer, it->second, 4);
+                    }
+                }
+                page->SetSizer(pageSizer);
+            }
+        }
+
+        notebook->AddPage(page, wxString(tabLabel));
+    }
+
+    parentSizer->Add(notebook, 1, wxALL | wxEXPAND, 0);
+    // Untabbed properties used to be emitted below the notebook here, but
+    // they're now handled by the unified flat walk in BuildFromJson which
+    // emits this notebook at the index of its first listed property.
+}
+
+void JsonEffectPanel::BuildXYCenter(wxWindow* parentWin, wxSizer* parentSizer,
+                                     const nlohmann::json& group, const nlohmann::json& allProps) {
+    // Build a lookup of property id -> property json
+    std::map<std::string, nlohmann::json> propLookup;
+    for (const auto& prop : allProps) {
+        propLookup[prop.value("id", "")] = prop;
+    }
+
+    std::string xId = group.value("xProperty", "");
+    std::string yId = group.value("yProperty", "");
+    std::string wrapXId = group.value("wrapX", "");
+    std::string wrapYId = group.value("wrapY", "");
+
+    auto xIt = propLookup.find(xId);
+    auto yIt = propLookup.find(yId);
+    if (xIt == propLookup.end() || yIt == propLookup.end()) return;
+
+    const auto& xProp = xIt->second;
+    const auto& yProp = yIt->second;
+    int xMin = xProp.value("min", 0);
+    int xMax = xProp.value("max", 100);
+    int xDef = xProp.value("default", 0);
+    int yMin = yProp.value("min", 0);
+    int yMax = yProp.value("max", 100);
+    int yDef = yProp.value("default", 0);
+    bool xHasVC = xProp.value("valueCurve", false);
+    bool yHasVC = yProp.value("valueCurve", false);
+
+    // Layout: 2-column outer sizer
+    // Left column: X label, X slider row, optional Wrap X
+    // Right column: Y label, Y VC+text, Y vertical slider, optional Wrap Y
+    auto* xySizer = new wxFlexGridSizer(0, 2, 0, 0);
+    xySizer->AddGrowableCol(0);
+
+    // === Left column (X) ===
+    auto* xSizer = new wxFlexGridSizer(0, 1, 0, 0);
+    xSizer->AddGrowableCol(0);
+
+    // X label
+    auto* xLabel = new wxStaticText(parentWin, wxID_ANY, wxString(xProp.value("label", "X-axis Center")));
+    xSizer->Add(xLabel, 0, wxALL | wxALIGN_LEFT, 5);
+
+    // X slider row
+    auto* xSliderRow = new wxFlexGridSizer(0, 3, 0, 0);
+    xSliderRow->AddGrowableCol(0);
+
+    wxWindowID xSliderId = wxNewId();
+    std::string xSliderName = "ID_SLIDER_" + xId;
+    auto* xSlider = new BulkEditSlider(parentWin, xSliderId, xDef, xMin, xMax,
+                                        wxDefaultPosition, wxDefaultSize, 0,
+                                        wxDefaultValidator, wxString(xSliderName));
+    xSliderRow->Add(xSlider, 1, wxALL | wxEXPAND, 5);
+
+    PropertyInfo xInfo;
+    xInfo.id = xId;
+    xInfo.controlType = "slider";
+    xInfo.type = "int";
+    xInfo.defaultValue = xDef;
+    xInfo.slider = xSlider;
+
+    if (xHasVC) {
+        std::string xVCName = "ID_VALUECURVE_" + xId;
+        wxWindowID xVCId = wxNewId();
+        auto* xVCBtn = new BulkEditValueCurveButton(parentWin, xVCId, GetValueCurveNotSelectedBitmap(),
+                                                      wxDefaultPosition, wxDefaultSize,
+                                                      wxBU_AUTODRAW | wxBORDER_NONE,
+                                                      wxDefaultValidator, wxString(xVCName));
+        xVCBtn->GetValue()->SetLimits(static_cast<float>(xMin), static_cast<float>(xMax));
+        xInfo.valueCurveBtn = xVCBtn;
+        xSliderRow->Add(xVCBtn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+        Connect(xVCId, wxEVT_COMMAND_BUTTON_CLICKED,
+                (wxObjectEventFunction)&JsonEffectPanel::OnVCButtonClick);
+    }
+
+    // X buddy text
+    wxWindowID xTextId = wxNewId();
+    std::string xTextName = "IDD_TEXTCTRL_" + xId;
+    auto* xText = new BulkEditTextCtrl(parentWin, xTextId, wxString::Format("%d", xDef),
+                                        wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                        0, wxDefaultValidator, wxString(xTextName));
+    xText->SetMaxLength(5);
+    xInfo.buddyText = xText;
+    xSliderRow->Add(xText, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+
+    xSizer->Add(xSliderRow, 1, wxALL | wxEXPAND, 0);
+
+    // Wrap X checkbox (optional)
+    if (!wrapXId.empty()) {
+        auto wrapXIt = propLookup.find(wrapXId);
+        if (wrapXIt != propLookup.end()) {
+            const auto& wrapXProp = wrapXIt->second;
+            std::string wrapXName = "ID_CHECKBOX_" + wrapXId;
+            wxWindowID wrapXCtrlId = wxNewId();
+            std::string wrapLabel = wrapXProp.value("label", "Wrap X");
+            auto* wrapXCb = new BulkEditCheckBox(parentWin, wrapXCtrlId, wxString(wrapLabel),
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator, wxString(wrapXName));
+            wrapXCb->SetValue(wrapXProp.value("default", false));
+            xSizer->Add(wrapXCb, 0, wxALL, 5);
+
+            PropertyInfo wrapXInfo;
+            wrapXInfo.id = wrapXId;
+            wrapXInfo.controlType = "checkbox";
+            wrapXInfo.type = "bool";
+            wrapXInfo.defaultValue = wrapXProp.value("default", false);
+            wrapXInfo.checkBox = wrapXCb;
+            properties_[wrapXId] = wrapXInfo;
+        }
+    }
+
+    xySizer->Add(xSizer, 1, wxALL | wxEXPAND, 0);
+    properties_[xId] = xInfo;
+
+    // === Right column (Y) ===
+    auto* ySizer = new wxFlexGridSizer(0, 2, 0, 0);
+
+    // Y label + VC + text (stacked vertically in left sub-column)
+    auto* yInfoSizer = new wxFlexGridSizer(0, 1, 0, 0);
+
+    auto* yLabel = new wxStaticText(parentWin, wxID_ANY, wxString(yProp.value("label", "Y-axis Center")));
+    yInfoSizer->Add(yLabel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+    auto* yVCTextSizer = new wxFlexGridSizer(0, 2, 0, 0);
+
+    PropertyInfo yInfo;
+    yInfo.id = yId;
+    yInfo.controlType = "slider";
+    yInfo.type = "int";
+    yInfo.defaultValue = yDef;
+
+    if (yHasVC) {
+        std::string yVCName = "ID_VALUECURVE_" + yId;
+        wxWindowID yVCId = wxNewId();
+        auto* yVCBtn = new BulkEditValueCurveButton(parentWin, yVCId, GetValueCurveNotSelectedBitmap(),
+                                                      wxDefaultPosition, wxDefaultSize,
+                                                      wxBU_AUTODRAW | wxBORDER_NONE,
+                                                      wxDefaultValidator, wxString(yVCName));
+        yVCBtn->GetValue()->SetLimits(static_cast<float>(yMin), static_cast<float>(yMax));
+        yInfo.valueCurveBtn = yVCBtn;
+        yVCTextSizer->Add(yVCBtn, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+        Connect(yVCId, wxEVT_COMMAND_BUTTON_CLICKED,
+                (wxObjectEventFunction)&JsonEffectPanel::OnVCButtonClick);
+    }
+
+    // Y buddy text
+    wxWindowID yTextId = wxNewId();
+    std::string yTextName = "IDD_TEXTCTRL_" + yId;
+    auto* yText = new BulkEditTextCtrl(parentWin, yTextId, wxString::Format("%d", yDef),
+                                        wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                        0, wxDefaultValidator, wxString(yTextName));
+    yText->SetMaxLength(5);
+    yInfo.buddyText = yText;
+    yVCTextSizer->Add(yText, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+
+    yInfoSizer->Add(yVCTextSizer, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+
+    // Wrap Y checkbox (optional)
+    if (!wrapYId.empty()) {
+        auto wrapYIt = propLookup.find(wrapYId);
+        if (wrapYIt != propLookup.end()) {
+            const auto& wrapYProp = wrapYIt->second;
+            std::string wrapYName = "ID_CHECKBOX_" + wrapYId;
+            wxWindowID wrapYCtrlId = wxNewId();
+            std::string wrapLabel = wrapYProp.value("label", "Wrap Y");
+            auto* wrapYCb = new BulkEditCheckBox(parentWin, wrapYCtrlId, wxString(wrapLabel),
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator, wxString(wrapYName));
+            wrapYCb->SetValue(wrapYProp.value("default", false));
+            yInfoSizer->Add(wrapYCb, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
+
+            PropertyInfo wrapYInfo;
+            wrapYInfo.id = wrapYId;
+            wrapYInfo.controlType = "checkbox";
+            wrapYInfo.type = "bool";
+            wrapYInfo.defaultValue = wrapYProp.value("default", false);
+            wrapYInfo.checkBox = wrapYCb;
+            properties_[wrapYId] = wrapYInfo;
+        }
+    }
+
+    ySizer->Add(yInfoSizer, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 1);
+
+    // Y vertical slider (right sub-column)
+    wxWindowID ySliderId = wxNewId();
+    std::string ySliderName = "ID_SLIDER_" + yId;
+    auto* ySlider = new BulkEditSlider(parentWin, ySliderId, yDef, yMin, yMax,
+                                        wxDefaultPosition, wxDefaultSize,
+                                        wxSL_VERTICAL | wxSL_INVERSE,
+                                        wxDefaultValidator, wxString(ySliderName));
+    yInfo.slider = ySlider;
+    ySizer->Add(ySlider, 1, wxALL | wxEXPAND, 5);
+
+    xySizer->Add(ySizer, 0, wxALL | wxEXPAND, 0);
+    properties_[yId] = yInfo;
+
+    parentSizer->Add(xySizer, 0, wxALL | wxEXPAND, 0);
+}
+
+void JsonEffectPanel::BuildSection(wxSizer* parentSizer, const nlohmann::json& group,
+                                    const nlohmann::json& allProps) {
+    std::string label = group.value("label", "");
+    int columns = group.value("columns", 4);
+
+    // Build a lookup of property id -> property json for quick access.
+    std::map<std::string, nlohmann::json> propLookup;
+    for (const auto& prop : allProps) {
+        propLookup[prop.value("id", "")] = prop;
+    }
+
+    // If a label is provided wrap the section in a wxStaticBoxSizer so it
+    // reads visually as a grouped region, otherwise just use a plain grid.
+    wxSizer* contentSizer = nullptr;
+    wxWindow* parentWin = contentParent_ ? contentParent_ : this;
+
+    wxFlexGridSizer* innerGrid = new wxFlexGridSizer(0, columns, 0, 0);
+    if (columns >= 2) {
+        // Column 1 is typically labels; grow column 2 (controls) so rows
+        // expand horizontally the same way the flat panel grid does.
+        innerGrid->AddGrowableCol(1);
+    } else {
+        innerGrid->AddGrowableCol(0);
+    }
+
+    if (!label.empty()) {
+        // Parent the static box to contentParent_ (the scroll window when
+        // the panel is scrollable) so the frame scrolls with its contents.
+        auto* boxSizer = new wxStaticBoxSizer(wxVERTICAL, parentWin, wxString(label));
+        boxSizer->Add(innerGrid, 1, wxALL | wxEXPAND, 2);
+        parentSizer->Add(boxSizer, 0, wxALL | wxEXPAND, 5);
+    } else {
+        parentSizer->Add(innerGrid, 0, wxALL | wxEXPAND, 5);
+    }
+    contentSizer = innerGrid;
+
+    // Emit each listed property into the section's inner grid, preserving
+    // declared order within the section.
+    if (group.contains("properties")) {
+        for (const auto& pid : group["properties"]) {
+            auto it = propLookup.find(pid.get<std::string>());
+            if (it == propLookup.end()) continue;
+            BuildPropertyRow(parentWin, contentSizer, it->second, columns);
+        }
+    }
+}
+
+void JsonEffectPanel::BuildPropertiesIntoSizer(wxWindow* parentWin, wxSizer* sizer,
+                                                 const nlohmann::json& propArray, int cols) {
+    if (!propArray.is_array()) return;
+    for (const auto& prop : propArray) {
+        BuildPropertyRow(parentWin, sizer, prop, cols);
+    }
+}
+
+void JsonEffectPanel::RemovePropertiesWithPrefix(const std::string& prefix) {
+    for (auto it = properties_.begin(); it != properties_.end(); ) {
+        if (it->first.rfind(prefix, 0) == 0) {
+            it = properties_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
+    std::string id = prop.value("id", "");
+    std::string label = prop.value("label", id);
+    std::string type = prop.value("type", "int");
+    std::string controlType = prop.value("controlType", "slider");
+    bool hasValueCurve = prop.value("valueCurve", false);
+    bool isLockable = prop.value("lockable", false);
+    int divisor = prop.value("divisor", 1);
+    std::string settingPrefix = prop.value("settingPrefix", "");
+    std::string tooltip = prop.value("tooltip", "");
+
+    PropertyInfo info;
+    info.id = id;
+    info.controlType = controlType;
+    info.type = type;
+    info.divisor = divisor;
+    info.suppressIfDefault = prop.value("suppressIfDefault", false);
+    info.settingPrefix = settingPrefix;
+    info.dynamicOptions = prop.value("dynamicOptions", "");
+    if (prop.contains("default")) {
+        info.defaultValue = prop["default"];
+    }
+
+    if (controlType == "slider") {
+        int minVal = prop.value("min", 0);
+        int maxVal = prop.value("max", 100);
+        int defaultInt;
+        if (divisor > 1) {
+            double defaultFloat = prop.value("default", 0.0);
+            defaultInt = static_cast<int>(defaultFloat * divisor);
+        } else {
+            defaultInt = prop.value("default", 0);
+        }
+
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Slider + VC button in sub-sizer
+        auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+        sliderSizer->AddGrowableCol(0);
+
+        if (divisor > 1) {
+            // Float slider primary-control selection is PER-PROPERTY based
+            // on what the render engine expects:
+            //   settingPrefix="SLIDER": slider is primary (ID_SLIDER_<id>)
+            //     holding the raw pre-divisor integer. Render reads with
+            //     settingsMap.GetInt("SLIDER_<id>") and divides by the
+            //     divisor itself. Used by Buffer's Rotations / Zoom where
+            //     PixelBuffer.cpp does the division in C++.
+            //   default (no settingPrefix): text is primary (ID_TEXTCTRL_<id>)
+            //     holding the formatted float string. Render reads with
+            //     GetValueCurveDouble / SettingsMap.GetDouble and consumes
+            //     the float directly. Used by ColorWash, Garlands, and
+            //     every other float-divisor effect.
+            bool sliderPrimary = (settingPrefix == "SLIDER");
+            std::string sliderName = (sliderPrimary ? "ID_SLIDER_" : "IDD_SLIDER_") + id;
+            wxWindowID sliderId = wxNewId();
+            wxSlider* slider = nullptr;
+
+            switch (divisor) {
+                case 10:
+                    slider = new BulkEditSliderF1(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+                case 100:
+                    slider = new BulkEditSliderF2(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+                case 360:
+                    slider = new BulkEditSliderF360(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                                     wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                     wxString(sliderName));
+                    break;
+                default:
+                    slider = new BulkEditSliderF1(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+            }
+            if (sliderPrimary) {
+                info.slider = slider;
+            } else {
+                info.buddySlider = slider;
+            }
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+        } else if (settingPrefix == "TEXTCTRL") {
+            // Integer slider where TEXTCTRL is the primary setting key (e.g. On effect)
+            // Slider is buddy (IDD_SLIDER_), text control is primary (ID_TEXTCTRL_)
+            std::string sliderName = "IDD_SLIDER_" + id;
+            wxWindowID sliderId = wxNewId();
+            auto* slider = new BulkEditSlider(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                               wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                               wxString(sliderName));
+            info.buddySlider = slider;
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+        } else {
+            // Integer slider: primary control is ID_SLIDER
+            std::string sliderName = "ID_SLIDER_" + id;
+            wxWindowID sliderId = wxNewId();
+            auto* slider = new BulkEditSlider(parentWin, sliderId, defaultInt, minVal, maxVal,
+                                               wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                               wxString(sliderName));
+            info.slider = slider;
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+        }
+
+        // Value curve button
+        if (hasValueCurve) {
+            std::string vcName = "ID_VALUECURVE_" + id;
+            wxWindowID vcId = wxNewId();
+            auto* vcBtn = new BulkEditValueCurveButton(parentWin, vcId, GetValueCurveNotSelectedBitmap(),
+                                                        wxDefaultPosition, wxDefaultSize,
+                                                        wxBU_AUTODRAW | wxBORDER_NONE,
+                                                        wxDefaultValidator, wxString(vcName));
+            info.valueCurveBtn = vcBtn;
+
+            // Set limits and divisor (vcMin/vcMax override slider min/max for value curves)
+            float vcMinF = prop.contains("vcMin") ? prop["vcMin"].get<float>() : static_cast<float>(minVal);
+            float vcMaxF = prop.contains("vcMax") ? prop["vcMax"].get<float>() : static_cast<float>(maxVal);
+            vcBtn->GetValue()->SetLimits(vcMinF, vcMaxF);
+            if (divisor > 1) {
+                vcBtn->GetValue()->SetDivisor(divisor);
+            }
+
+            sliderSizer->Add(vcBtn, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+
+            // Connect VC button click
+            Connect(vcId, wxEVT_COMMAND_BUTTON_CLICKED,
+                    (wxObjectEventFunction)&JsonEffectPanel::OnVCButtonClick);
+        }
+
+        sizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+        // Column 3: Text buddy control
+        if (divisor > 1) {
+            // Float text control naming mirrors the slider choice above:
+            //   settingPrefix="SLIDER": text is display-only buddy
+            //     (IDD_TEXTCTRL_<id>), slider is the primary.
+            //   default: text is primary (ID_TEXTCTRL_<id>) holding the
+            //     formatted float string that the render engine reads.
+            bool sliderPrimary = (settingPrefix == "SLIDER");
+            std::string textName = (sliderPrimary ? "IDD_TEXTCTRL_" : "ID_TEXTCTRL_") + id;
+            wxWindowID textId = wxNewId();
+            double defaultFloat = prop.value("default", 0.0);
+            wxString defaultStr = wxString::Format("%.1f", defaultFloat);
+            BulkEditTextCtrl* textCtrl = nullptr;
+
+            switch (divisor) {
+                case 10:
+                    textCtrl = new BulkEditTextCtrlF1(parentWin, textId, defaultStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+                case 100:
+                    textCtrl = new BulkEditTextCtrlF2(parentWin, textId, defaultStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+                case 360:
+                    textCtrl = new BulkEditTextCtrlF360(parentWin, textId, defaultStr,
+                                                         wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                         0, wxDefaultValidator, wxString(textName));
+                    break;
+                default:
+                    textCtrl = new BulkEditTextCtrlF1(parentWin, textId, defaultStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+            }
+            textCtrl->SetMaxLength(5);
+            if (sliderPrimary) {
+                info.buddyText = textCtrl;
+            } else {
+                info.textCtrl = textCtrl;
+            }
+            sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+        } else if (settingPrefix == "TEXTCTRL") {
+            // Integer slider where text is the primary setting (ID_TEXTCTRL_)
+            std::string textName = "ID_TEXTCTRL_" + id;
+            wxWindowID textId = wxNewId();
+            wxString defaultStr = wxString::Format("%d", defaultInt);
+            auto* textCtrl = new BulkEditTextCtrl(parentWin, textId, defaultStr,
+                                                    wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                    0, wxDefaultValidator, wxString(textName));
+            textCtrl->SetMaxLength(5);
+            info.textCtrl = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+        } else {
+            // Integer slider: IDD_TEXTCTRL is a display buddy
+            std::string textName = "IDD_TEXTCTRL_" + id;
+            wxWindowID textId = wxNewId();
+            wxString defaultStr = wxString::Format("%d", defaultInt);
+            auto* textCtrl = new BulkEditTextCtrl(parentWin, textId, defaultStr,
+                                                    wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                    0, wxDefaultValidator, wxString(textName));
+            textCtrl->SetMaxLength(5);
+            info.buddyText = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+        }
+
+        // Column 4: Lock button
+        if (isLockable) {
+            std::string lockName = "ID_BITMAPBUTTON_SLIDER_" + id;
+            wxWindowID lockId = wxNewId();
+            auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                              wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                              wxString(lockName));
+            sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                    (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+        } else if (cols >= 4) {
+            sizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+        }
+
+    } else if (controlType == "checkbox") {
+        bool defaultVal = prop.value("default", false);
+        std::string checkboxLabel = prop.value("checkboxLabel", "");
+
+        std::string ctrlName = "ID_CHECKBOX_" + id;
+        wxWindowID ctrlId = wxNewId();
+        // If there's a separate checkboxLabel, use it on the control and put the main label in col 1
+        wxString cbText = checkboxLabel.empty() ? wxString(label) : wxString(checkboxLabel);
+        auto* cb = new BulkEditCheckBox(parentWin, ctrlId, cbText, wxDefaultPosition, wxDefaultSize,
+                                         0, wxDefaultValidator, wxString(ctrlName));
+        cb->SetValue(defaultVal);
+        info.checkBox = cb;
+
+        if (!checkboxLabel.empty()) {
+            // Has separate label: col 1 = label, col 2 = checkbox
+            wxWindowID labelId = wxNewId();
+            std::string labelName = "ID_STATICTEXT_" + id;
+            auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                                 wxDefaultSize, 0, wxString(labelName));
+            sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+        } else {
+            // No separate label: spacer for col 1, checkbox has its own label text
+            sizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+        }
+        sizer->Add(cb, 1, wxALL | wxEXPAND, 2);
+
+        // Spacer for col 3 (buddy text column)
+        sizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
+
+        // Lock button (col 4)
+        if (isLockable) {
+            std::string lockName = "ID_BITMAPBUTTON_CHECKBOX_" + id;
+            wxWindowID lockId = wxNewId();
+            auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                              wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                              wxString(lockName));
+            sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+            Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                    (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+        } else if (cols >= 4) {
+            sizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+        }
+
+    } else if (controlType == "choice" || controlType == "combobox") {
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Choice control
+        std::string ctrlName = "ID_CHOICE_" + id;
+        wxWindowID ctrlId = wxNewId();
+        auto* choice = new BulkEditChoice(parentWin, ctrlId, wxDefaultPosition, wxDefaultSize,
+                                           0, nullptr, 0, wxDefaultValidator, wxString(ctrlName));
+        info.choice = choice;
+
+        // Add options
+        if (prop.contains("options")) {
+            std::string defaultVal = prop.value("default", "");
+            for (const auto& opt : prop["options"]) {
+                choice->Append(wxString(opt.get<std::string>()));
+            }
+            if (!defaultVal.empty()) {
+                choice->SetStringSelection(wxString(defaultVal));
+            } else {
+                choice->SetSelection(0);
+            }
+        }
+        // By default choices stay at their natural (shortest-entry) width
+        // so static lists don't stretch awkwardly. Set "expandToFill": true
+        // on the JSON property for dynamically-populated choices (e.g. Buffer
+        // panel Render Style / Camera) where entries arrive at runtime and
+        // can otherwise get truncated with "..." despite a growable column.
+        int choiceFlags = wxALL | wxALIGN_CENTER_VERTICAL;
+        if (prop.value("expandToFill", false)) {
+            choiceFlags |= wxEXPAND;
+        } else {
+            choiceFlags |= wxALIGN_LEFT;
+        }
+        sizer->Add(choice, 1, choiceFlags, 5);
+
+        // Columns 3+4: spacers (choices don't have buddy text or usually lock)
+        if (cols >= 3) {
+            sizer->Add(-1, -1, 1, wxALL, 1);
+        }
+        if (cols >= 4) {
+            if (isLockable) {
+                std::string lockName = "ID_BITMAPBUTTON_CHOICE_" + id;
+                wxWindowID lockId = wxNewId();
+                auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                                  wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                                  wxString(lockName));
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                        (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+            } else {
+                sizer->Add(-1, -1, 1, wxALL, 1);
+            }
+        }
+
+    } else if (controlType == "spin") {
+        int minVal = prop.value("min", 0);
+        int maxVal = prop.value("max", 100);
+        int defaultVal = prop.value("default", 0);
+
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Spin control
+        std::string ctrlName = "ID_SPINCTRL_" + id;
+        wxWindowID ctrlId = wxNewId();
+        auto* spin = new BulkEditSpinCtrl(parentWin, ctrlId, wxString::Format("%d", defaultVal),
+                                           wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS,
+                                           minVal, maxVal, defaultVal, wxString(ctrlName));
+        info.spinCtrl = spin;
+        sizer->Add(spin, 1, wxALL | wxEXPAND, 2);
+
+        // Columns 3+4: spacers
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+
+    } else if (controlType == "text") {
+        std::string defaultVal = prop.value("default", "");
+
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Text control. If "commonValues" is provided, build as a
+        // BulkEditComboBox with those entries in the dropdown — used by the
+        // Timing panel's fade time fields where 0.5 / 1.0 / 2.0 are common.
+        std::string ctrlName = "ID_TEXTCTRL_" + id;
+        wxWindowID ctrlId = wxNewId();
+        if (prop.contains("commonValues") && prop["commonValues"].is_array() && !prop["commonValues"].empty()) {
+            // BulkEditComboBox's constructor asserts when non-null choices are
+            // passed directly (see BulkEditControls.cpp:297). The legacy usage
+            // pattern is: construct empty, then AppendDefault + Append for each
+            // item so _defaultOptions tracks the list for later PopulateComboBox
+            // refreshes. Match that here.
+            auto* combo = new BulkEditComboBox(parentWin, ctrlId, wxString(defaultVal),
+                                                wxDefaultPosition, wxDefaultSize,
+                                                0, nullptr, 0,
+                                                wxDefaultValidator, wxString(ctrlName));
+            for (const auto& v : prop["commonValues"]) {
+                std::string item;
+                if (v.is_string()) {
+                    item = v.get<std::string>();
+                } else if (v.is_number()) {
+                    item = wxString::Format("%g", v.get<double>()).ToStdString();
+                } else {
+                    continue;
+                }
+                combo->AppendDefault(item);
+                combo->Append(wxString(item));
+            }
+            combo->SetValue(wxString(defaultVal));
+            info.comboBox = combo;
+            sizer->Add(combo, 1, wxALL | wxEXPAND, 2);
+        } else {
+            auto* textCtrl = new BulkEditTextCtrl(parentWin, ctrlId, wxString(defaultVal),
+                                                   wxDefaultPosition, wxDefaultSize, 0,
+                                                   wxDefaultValidator, wxString(ctrlName));
+            info.textCtrl = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 2);
+        }
+
+        // Columns 3+4: spacers
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+
+    } else if (controlType == "filepicker") {
+        std::string wildcard = prop.value("fileFilter", "All files (*.*)|*.*");
+        std::string message = prop.value("fileMessage", "Select a file");
+        std::string mediaTypeStr = prop.value("mediaType", "");
+
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
+
+        // Column 2: File picker (spans remaining columns)
+        std::string ctrlName = "ID_FILEPICKERCTRL_" + id;
+        wxWindowID ctrlId = wxNewId();
+        auto* picker = new BulkEditFilePickerCtrl(parentWin, ctrlId, wxEmptyString,
+                                                    wxString(message), wxString(wildcard),
+                                                    wxDefaultPosition, wxDefaultSize,
+                                                    wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL,
+                                                    wxDefaultValidator, wxString(ctrlName));
+        info.filePicker = picker;
+
+        if (!mediaTypeStr.empty()) {
+            // Media-aware variant: hide the plain file picker and overlay a
+            // MediaPickerCtrl that browses the show's media cache via
+            // SelectMediaDialog. The hidden picker is still the serialized
+            // primary control (ID_FILEPICKERCTRL_<id>) — MediaPickerCtrl's
+            // SetLinkedPicker keeps it in sync so bulk edit and setting
+            // round-trip continue to work through the existing framework.
+            MediaType mt = MediaType::BinaryFile;
+            if (mediaTypeStr == "Image") mt = MediaType::Image;
+            else if (mediaTypeStr == "SVG") mt = MediaType::SVG;
+            else if (mediaTypeStr == "Shader") mt = MediaType::Shader;
+            else if (mediaTypeStr == "TextFile") mt = MediaType::TextFile;
+            else if (mediaTypeStr == "Video") mt = MediaType::Video;
+            picker->Hide();
+            auto* mediaPicker = new MediaPickerCtrl(parentWin, wxID_ANY, mt);
+            mediaPicker->SetLinkedPicker(picker);
+            sizer->Add(mediaPicker, 1, wxALL | wxEXPAND, 5);
+            // IMPORTANT: the hidden picker is NOT added to the sizer — if we
+            // did that, it would consume an extra grid cell and push every
+            // subsequent row's columns out by one. It still participates in
+            // the wx parent->child hierarchy (same parentWin), so the
+            // serializer walker in GetEffectStringFromWindow still finds it
+            // via parentWin->GetChildren().
+        } else {
+            sizer->Add(picker, 1, wxALL | wxEXPAND, 5);
+        }
+
+        // Columns 3+4: spacers
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+
+    } else if (controlType == "fontpicker") {
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Font picker
+        std::string ctrlName = "ID_FONTPICKER_" + id;
+        wxWindowID ctrlId = wxNewId();
+        auto* picker = new BulkEditFontPicker(parentWin, ctrlId, wxNullFont, wxDefaultPosition, wxDefaultSize,
+                                               wxFNTP_FONTDESC_AS_LABEL, wxDefaultValidator,
+                                               wxString(ctrlName));
+        info.fontPicker = picker;
+        sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
+
+        // Column 3: spacer
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        // Column 4: Lock button (matches legacy ID_BITMAPBUTTON_FONTPICKER_<id>
+        // naming used by Text panel so old saved sequences round-trip).
+        if (cols >= 4) {
+            if (isLockable) {
+                std::string lockName = "ID_BITMAPBUTTON_FONTPICKER_" + id;
+                wxWindowID lockId = wxNewId();
+                auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                                  wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                                  wxString(lockName));
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                        (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+            } else {
+                sizer->Add(-1, -1, 1, wxALL, 1);
+            }
+        }
+
+    } else if (controlType == "colourpicker") {
+        std::string defaultColor = prop.value("default", "#FFFFFF");
+
+        // Column 1: Label
+        wxWindowID labelId = wxNewId();
+        std::string labelName = "ID_STATICTEXT_" + id;
+        auto* staticText = new wxStaticText(parentWin, labelId, wxString(label), wxDefaultPosition,
+                                             wxDefaultSize, 0, wxString(labelName));
+        sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+        // Column 2: Colour picker
+        std::string ctrlName = "ID_COLOURPICKERCTRL_" + id;
+        wxWindowID ctrlId = wxNewId();
+        wxColour colour;
+        colour.Set(wxString(defaultColor));
+        auto* picker = new BulkEditColourPickerCtrl(parentWin, ctrlId, colour, wxDefaultPosition, wxDefaultSize,
+                                                      wxCLRP_DEFAULT_STYLE, wxDefaultValidator,
+                                                      wxString(ctrlName));
+        info.colourPicker = picker;
+        sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
+
+        // Columns 3+4: spacers
+        if (cols >= 3) sizer->Add(-1, -1, 1, wxALL, 1);
+        if (cols >= 4) sizer->Add(-1, -1, 1, wxALL, 1);
+
+    } else if (controlType == "point2d") {
+        // Two rows, one per axis, each laid out like a float-slider row with
+        // the slider as the serialized primary. Control names get an "X"/"Y"
+        // suffix appended to the property id so setting keys round-trip as
+        // E_SLIDER_<id>X / E_SLIDER_<id>Y — the legacy shape that
+        // ShaderEffect::Render reads via GetUndecoratedId + "X"/"Y".
+        //
+        // Properties supported:
+        //   divisor         : slider scale (100 for float percents)
+        //   minX/maxX/defaultX, minY/maxY/defaultY : per-axis range/default
+        //                    (floats in user units; we scale to int by divisor)
+        //   valueCurve      : add a VC button per axis
+        //   lockable        : add a lock button per axis
+        //
+        // Falls back to min/max/default if the per-axis variants are absent,
+        // so a symmetric point2d can be declared with a single range.
+        const int divisor = prop.value("divisor", 1);
+        const bool hasVC = prop.value("valueCurve", false);
+        const bool lockable = prop.value("lockable", false);
+
+        auto readAxis = [&](const std::string& axis,
+                            double& minOut, double& maxOut, double& defOut) {
+            const std::string minKey = "min" + axis;
+            const std::string maxKey = "max" + axis;
+            const std::string defKey = "default" + axis;
+            minOut = prop.contains(minKey) ? prop[minKey].get<double>()
+                                           : prop.value("min", 0.0);
+            maxOut = prop.contains(maxKey) ? prop[maxKey].get<double>()
+                                           : prop.value("max", 1.0);
+            defOut = prop.contains(defKey) ? prop[defKey].get<double>()
+                                           : prop.value("default", 0.0);
+        };
+
+        auto buildAxis = [&](const std::string& axis) {
+            double axMin = 0, axMax = 0, axDef = 0;
+            readAxis(axis, axMin, axMax, axDef);
+            const std::string axId = id + axis;
+            const int scaledMin = static_cast<int>(axMin * (divisor > 1 ? divisor : 1));
+            const int scaledMax = static_cast<int>(axMax * (divisor > 1 ? divisor : 1));
+            const int scaledDef = static_cast<int>(axDef * (divisor > 1 ? divisor : 1));
+
+            PropertyInfo axInfo;
+            axInfo.id = axId;
+            axInfo.controlType = "slider";
+            axInfo.type = "float";
+            axInfo.divisor = divisor;
+            axInfo.settingPrefix = "SLIDER";
+
+            // Col 1: label
+            std::string labelName = "ID_STATICTEXT_" + axId;
+            auto* staticText = new wxStaticText(parentWin, wxNewId(),
+                                                wxString(label) + " " + axis,
+                                                wxDefaultPosition, wxDefaultSize, 0,
+                                                wxString(labelName));
+            sizer->Add(staticText, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 2);
+
+            // Col 2: slider (+ optional VC button) in sub-sizer
+            auto* sliderSizer = new wxFlexGridSizer(0, 2, 0, 0);
+            sliderSizer->AddGrowableCol(0);
+
+            wxWindowID sliderWxId = wxNewId();
+            wxSlider* slider = nullptr;
+            std::string sliderName = "ID_SLIDER_" + axId;
+            if (divisor > 1) {
+                switch (divisor) {
+                case 10:
+                    slider = new BulkEditSliderF1(parentWin, sliderWxId, scaledDef, scaledMin, scaledMax,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+                case 100:
+                    slider = new BulkEditSliderF2(parentWin, sliderWxId, scaledDef, scaledMin, scaledMax,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+                case 360:
+                    slider = new BulkEditSliderF360(parentWin, sliderWxId, scaledDef, scaledMin, scaledMax,
+                                                     wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                     wxString(sliderName));
+                    break;
+                default:
+                    slider = new BulkEditSliderF1(parentWin, sliderWxId, scaledDef, scaledMin, scaledMax,
+                                                   wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                                   wxString(sliderName));
+                    break;
+                }
+            } else {
+                slider = new BulkEditSlider(parentWin, sliderWxId, scaledDef, scaledMin, scaledMax,
+                                             wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator,
+                                             wxString(sliderName));
+            }
+            axInfo.slider = slider;
+            sliderSizer->Add(slider, 1, wxALL | wxEXPAND, 2);
+
+            if (hasVC) {
+                std::string vcName = "ID_VALUECURVE_" + axId;
+                wxWindowID vcId = wxNewId();
+                auto* vcBtn = new BulkEditValueCurveButton(parentWin, vcId, GetValueCurveNotSelectedBitmap(),
+                                                            wxDefaultPosition, wxDefaultSize,
+                                                            wxBU_AUTODRAW | wxBORDER_NONE,
+                                                            wxDefaultValidator, wxString(vcName));
+                axInfo.valueCurveBtn = vcBtn;
+                vcBtn->GetValue()->SetLimits(static_cast<float>(scaledMin),
+                                             static_cast<float>(scaledMax));
+                if (divisor > 1) vcBtn->GetValue()->SetDivisor(divisor);
+                sliderSizer->Add(vcBtn, 1, wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 0);
+                Connect(vcId, wxEVT_COMMAND_BUTTON_CLICKED,
+                        (wxObjectEventFunction)&JsonEffectPanel::OnVCButtonClick);
+            }
+            sizer->Add(sliderSizer, 1, wxALL | wxEXPAND, 0);
+
+            // Col 3: buddy text control
+            std::string textName = "IDD_TEXTCTRL_" + axId;
+            wxWindowID textWxId = wxNewId();
+            BulkEditTextCtrl* textCtrl = nullptr;
+            if (divisor > 1) {
+                wxString defStr = wxString::Format("%.2f", axDef);
+                switch (divisor) {
+                case 10:
+                    textCtrl = new BulkEditTextCtrlF1(parentWin, textWxId, defStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+                case 100:
+                    textCtrl = new BulkEditTextCtrlF2(parentWin, textWxId, defStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+                case 360:
+                    textCtrl = new BulkEditTextCtrlF360(parentWin, textWxId, defStr,
+                                                         wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                         0, wxDefaultValidator, wxString(textName));
+                    break;
+                default:
+                    textCtrl = new BulkEditTextCtrlF1(parentWin, textWxId, defStr,
+                                                       wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                       0, wxDefaultValidator, wxString(textName));
+                    break;
+                }
+            } else {
+                wxString defStr = wxString::Format("%d", scaledDef);
+                textCtrl = new BulkEditTextCtrl(parentWin, textWxId, defStr,
+                                                 wxDefaultPosition, wxDLG_UNIT(parentWin, wxSize(20, -1)),
+                                                 0, wxDefaultValidator, wxString(textName));
+            }
+            textCtrl->SetMaxLength(5);
+            axInfo.buddyText = textCtrl;
+            sizer->Add(textCtrl, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 2);
+
+            // Col 4: lock button or spacer
+            if (cols >= 4) {
+                if (lockable) {
+                    std::string lockName = "ID_BITMAPBUTTON_SLIDER_" + axId;
+                    wxWindowID lockId = wxNewId();
+                    auto* lockBtn = new xlLockButton(parentWin, lockId, wxNullBitmap, wxDefaultPosition, wxSize(14, 14),
+                                                      wxBU_AUTODRAW | wxBORDER_NONE, wxDefaultValidator,
+                                                      wxString(lockName));
+                    sizer->Add(lockBtn, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                    Connect(lockId, wxEVT_COMMAND_BUTTON_CLICKED,
+                            (wxObjectEventFunction)&JsonEffectPanel::OnLockButtonClick);
+                } else {
+                    sizer->Add(-1, -1, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 1);
+                }
+            }
+
+            properties_[axId] = axInfo;
+        };
+
+        buildAxis("X");
+        buildAxis("Y");
+
+        // point2d doesn't aggregate into a single PropertyInfo — each axis
+        // lives under <id>X / <id>Y. Skip the trailing properties_[id] = info
+        // store and tooltip-attach since there's no single "primary" control.
+        return;
+
+    } else if (controlType == "custom") {
+        // Delegate to subclass to create the control
+        wxWindow* customCtrl = CreateCustomControl(parentWin, sizer, prop, cols);
+        if (customCtrl == nullptr) {
+            spdlog::warn("JsonEffectPanel: property '{}' has controlType 'custom' but CreateCustomControl returned null. "
+                          "If this is a subclass with a custom override, ensure the subclass passes deferBuild=true to JsonEffectPanel.", id);
+        } else if (!tooltip.empty()) {
+            customCtrl->SetToolTip(wxString(tooltip));
+        }
+        // Don't store in properties_ - the subclass manages custom controls
+        return;
+    }
+
+    properties_[id] = info;
+
+    // Apply tooltip to the primary control for this property
+    if (!tooltip.empty()) {
+        wxWindow* primary = FindControlForProperty(id);
+        if (primary != nullptr) {
+            primary->SetToolTip(wxString(tooltip));
+        }
+    }
+}
+
+void JsonEffectPanel::ParseVisibilityRules(const nlohmann::json& metadata) {
+    if (!metadata.contains("visibilityRules")) return;
+
+    for (const auto& rule : metadata["visibilityRules"]) {
+        VisibilityRule vr;
+        if (rule.contains("when")) {
+            const auto& when = rule["when"];
+            vr.conditionPropertyId = when.value("property", "");
+            if (when.contains("equals")) {
+                vr.conditionEquals = true;
+                if (when["equals"].is_boolean()) {
+                    vr.conditionBoolValue = when["equals"].get<bool>();
+                } else if (when["equals"].is_string()) {
+                    vr.conditionStringEquals = when["equals"].get<std::string>();
+                }
+            }
+            if (when.contains("notEquals")) {
+                vr.conditionEquals = false;
+                if (when["notEquals"].is_boolean()) {
+                    vr.conditionBoolValue = when["notEquals"].get<bool>();
+                } else if (when["notEquals"].is_string()) {
+                    vr.conditionStringEquals = when["notEquals"].get<std::string>();
+                }
+            }
+            if (when.contains("oneOf")) {
+                for (const auto& v : when["oneOf"]) {
+                    vr.conditionOneOf.push_back(v.get<std::string>());
+                }
+            }
+            if (when.contains("notOneOf")) {
+                vr.conditionOneOfInverted = true;
+                for (const auto& v : when["notOneOf"]) {
+                    vr.conditionOneOf.push_back(v.get<std::string>());
+                }
+            }
+            if (when.contains("greaterThan")) {
+                vr.conditionHasGreaterThan = true;
+                vr.conditionGreaterThan = when["greaterThan"].get<double>();
+            }
+            if (when.contains("startsWith")) {
+                vr.conditionStartsWith = when["startsWith"].get<std::string>();
+            }
+            if (when.contains("any")) {
+                for (const auto& v : when["any"]) {
+                    vr.conditionAnyIds.push_back(v.get<std::string>());
+                }
+            }
+        }
+
+        auto readIds = [](const nlohmann::json& rule, const std::string& key, std::vector<std::string>& out) {
+            if (rule.contains(key)) {
+                for (const auto& id : rule[key]) {
+                    out.push_back(id.get<std::string>());
+                }
+            }
+        };
+        readIds(rule, "enable", vr.enableIds);
+        readIds(rule, "disable", vr.disableIds);
+        readIds(rule, "show", vr.showIds);
+        readIds(rule, "hide", vr.hideIds);
+
+        visibilityRules_.push_back(vr);
+    }
+}
+
+wxWindow* JsonEffectPanel::FindControlForProperty(const std::string& propId) {
+    auto it = properties_.find(propId);
+    if (it == properties_.end()) return nullptr;
+    const auto& info = it->second;
+    if (info.slider) return info.slider;
+    if (info.textCtrl) return info.textCtrl;
+    if (info.comboBox) return info.comboBox;
+    if (info.checkBox) return info.checkBox;
+    if (info.choice) return info.choice;
+    if (info.spinCtrl) return info.spinCtrl;
+    if (info.filePicker) return info.filePicker;
+    if (info.fontPicker) return info.fontPicker;
+    if (info.colourPicker) return info.colourPicker;
+    if (info.buddySlider) return info.buddySlider;
+    return nullptr;
+}
+
+void JsonEffectPanel::ApplyVisibilityRules() {
+    for (const auto& rule : visibilityRules_) {
+        bool conditionMet = false;
+
+        // "any" condition: OR of multiple checkbox properties
+        if (!rule.conditionAnyIds.empty()) {
+            for (const auto& anyId : rule.conditionAnyIds) {
+                auto it = properties_.find(anyId);
+                if (it != properties_.end() && it->second.checkBox) {
+                    if (it->second.checkBox->GetValue()) {
+                        conditionMet = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            // Single property condition
+            auto it = properties_.find(rule.conditionPropertyId);
+            if (it != properties_.end()) {
+                const auto& info = it->second;
+                if (info.checkBox) {
+                    bool val = info.checkBox->GetValue();
+                    conditionMet = rule.conditionEquals ? (val == rule.conditionBoolValue)
+                                                         : (val != rule.conditionBoolValue);
+                } else if (info.choice) {
+                    std::string sel = info.choice->GetStringSelection().ToStdString();
+                    if (!rule.conditionOneOf.empty()) {
+                        bool inList = false;
+                        for (const auto& v : rule.conditionOneOf) {
+                            if (sel == v) { inList = true; break; }
+                        }
+                        conditionMet = rule.conditionOneOfInverted ? !inList : inList;
+                    } else if (!rule.conditionStartsWith.empty()) {
+                        conditionMet = sel.find(rule.conditionStartsWith) == 0;
+                    } else if (!rule.conditionStringEquals.empty()) {
+                        conditionMet = rule.conditionEquals ? (sel == rule.conditionStringEquals)
+                                                             : (sel != rule.conditionStringEquals);
+                    }
+                } else if (info.textCtrl && rule.conditionHasGreaterThan) {
+                    // Numeric-text condition: compare the control's current
+                    // value against the threshold using strtod so bad input
+                    // doesn't throw (matching the codebase's no-exception rule).
+                    wxString text = info.textCtrl->GetValue();
+                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                    conditionMet = value > rule.conditionGreaterThan;
+                } else if (info.comboBox && rule.conditionHasGreaterThan) {
+                    wxString text = info.comboBox->GetValue();
+                    double value = std::strtod(text.ToStdString().c_str(), nullptr);
+                    conditionMet = value > rule.conditionGreaterThan;
+                } else if (info.spinCtrl && rule.conditionHasGreaterThan) {
+                    conditionMet = static_cast<double>(info.spinCtrl->GetValue()) > rule.conditionGreaterThan;
+                } else if (info.slider && rule.conditionHasGreaterThan) {
+                    conditionMet = static_cast<double>(info.slider->GetValue()) > rule.conditionGreaterThan;
+                }
+            }
+        }
+
+        auto setEnabled = [this](const std::vector<std::string>& ids, bool enabled) {
+            for (const auto& id : ids) {
+                auto it2 = properties_.find(id);
+                if (it2 != properties_.end()) {
+                    wxWindow* ctrl = FindControlForProperty(id);
+                    if (ctrl) ctrl->Enable(enabled);
+                    // Also enable/disable buddy controls and VC button
+                    if (it2->second.buddySlider) it2->second.buddySlider->Enable(enabled);
+                    if (it2->second.buddyText) it2->second.buddyText->Enable(enabled);
+                    if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
+                        it2->second.textCtrl->Enable(enabled);
+                    if (it2->second.comboBox && ctrl != it2->second.comboBox)
+                        it2->second.comboBox->Enable(enabled);
+                    if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Enable(enabled);
+                }
+            }
+        };
+
+        // Tracks whether show/hide was actually applied; triggers a single
+        // Layout() pass at the end so sizer cells collapse/expand correctly.
+        bool visibilityChanged = false;
+        auto setVisible = [this, &visibilityChanged](const std::vector<std::string>& ids, bool visible) {
+            for (const auto& id : ids) {
+                auto it2 = properties_.find(id);
+                if (it2 == properties_.end()) continue;
+
+                wxWindow* ctrl = FindControlForProperty(id);
+                if (ctrl) { ctrl->Show(visible); visibilityChanged = true; }
+                if (it2->second.buddySlider) it2->second.buddySlider->Show(visible);
+                if (it2->second.buddyText) it2->second.buddyText->Show(visible);
+                if (it2->second.textCtrl && ctrl != it2->second.textCtrl)
+                    it2->second.textCtrl->Show(visible);
+                if (it2->second.comboBox && ctrl != it2->second.comboBox)
+                    it2->second.comboBox->Show(visible);
+                if (it2->second.valueCurveBtn) it2->second.valueCurveBtn->Show(visible);
+
+                // Hide the sibling label so the row doesn't leave an orphan cell.
+                wxWindow* label = wxWindow::FindWindowByName(wxString::Format("ID_STATICTEXT_%s", id), this);
+                if (label) label->Show(visible);
+
+                // Hide the lock button if present. The name encodes the control
+                // type (SLIDER/CHECKBOX/CHOICE); the wrong ones just return null.
+                for (const char* type : { "SLIDER", "CHECKBOX", "CHOICE" }) {
+                    wxWindow* lock = wxWindow::FindWindowByName(
+                        wxString::Format("ID_BITMAPBUTTON_%s_%s", type, id), this);
+                    if (lock) lock->Show(visible);
+                }
+            }
+        };
+
+        if (conditionMet) {
+            setEnabled(rule.enableIds, true);
+            setEnabled(rule.disableIds, false);
+            setVisible(rule.showIds, true);
+            setVisible(rule.hideIds, false);
+        } else {
+            // Reverse the rule when condition is not met
+            setEnabled(rule.enableIds, false);
+            setEnabled(rule.disableIds, true);
+            setVisible(rule.showIds, false);
+            setVisible(rule.hideIds, true);
+        }
+
+        // wxFlexGridSizer won't collapse hidden cells without a relayout.
+        if (visibilityChanged) {
+            Layout();
+        }
+    }
+}
+
+wxString JsonEffectPanel::GetEffectString() {
+    // Check if any property uses suppressIfDefault
+    bool hasSuppression = false;
+    for (const auto& [id, info] : properties_) {
+        if (info.suppressIfDefault) { hasSuppression = true; break; }
+    }
+    if (!hasSuppression) {
+        return xlEffectPanel::GetEffectString();
+    }
+
+    // Build set of setting keys to suppress (those at default value)
+    std::set<std::string> suppressKeys;
+    for (const auto& [id, info] : properties_) {
+        if (!info.suppressIfDefault || info.defaultValue.is_null()) continue;
+
+        bool isDefault = false;
+        if (info.controlType == "slider") {
+            if (info.divisor > 1) {
+                // Float slider — the primary control depends on
+                // settingPrefix. SLIDER-primary: compare slider int against
+                // (default * divisor). Text-primary: compare textCtrl float
+                // string against the default double.
+                if (info.settingPrefix == "SLIDER" && info.slider) {
+                    int current = info.slider->GetValue();
+                    int defaultScaled = static_cast<int>(
+                        info.defaultValue.get<double>() * info.divisor);
+                    isDefault = current == defaultScaled;
+                } else if (info.textCtrl) {
+                    // Locale-independent parse; wxString::ToDouble is
+                    // locale-aware and breaks on users with ',' decimals.
+                    double current = wxAtof(info.textCtrl->GetValue());
+                    isDefault = std::abs(current - info.defaultValue.get<double>()) < 0.001;
+                }
+            } else if (!info.settingPrefix.empty() && info.textCtrl) {
+                long current = 0;
+                info.textCtrl->GetValue().ToLong(&current);
+                isDefault = current == info.defaultValue.get<int>();
+            } else if (info.slider) {
+                isDefault = info.slider->GetValue() == info.defaultValue.get<int>();
+            } else if (info.buddySlider) {
+                isDefault = static_cast<wxSlider*>(info.buddySlider)->GetValue() == info.defaultValue.get<int>();
+            }
+        } else if (info.controlType == "checkbox" && info.checkBox) {
+            isDefault = info.checkBox->GetValue() == info.defaultValue.get<bool>();
+        } else if ((info.controlType == "choice" || info.controlType == "combobox") && info.choice) {
+            isDefault = info.choice->GetStringSelection().ToStdString() == info.defaultValue.get<std::string>();
+        } else if (info.controlType == "spin" && info.spinCtrl) {
+            isDefault = info.spinCtrl->GetValue() == info.defaultValue.get<int>();
+        } else if (info.controlType == "text" && info.textCtrl) {
+            isDefault = info.textCtrl->GetValue().ToStdString() == info.defaultValue.get<std::string>();
+        } else if (info.controlType == "text" && info.comboBox) {
+            isDefault = info.comboBox->GetValue().ToStdString() == info.defaultValue.get<std::string>();
+        }
+
+        if (isDefault) {
+            // Build the setting key prefix for this property
+            std::string prefix;
+            if (!info.settingPrefix.empty()) {
+                prefix = info.settingPrefix;
+            } else if (info.controlType == "slider") {
+                // Float sliders serialize as either SLIDER_<id> (raw int,
+                // render divides) or TEXTCTRL_<id> (formatted float, render
+                // consumes directly) depending on the per-property opt-in
+                // via settingPrefix. Int sliders are always SLIDER_<id>.
+                if (info.divisor > 1 && info.settingPrefix != "SLIDER") {
+                    prefix = "TEXTCTRL";
+                } else {
+                    prefix = "SLIDER";
+                }
+            } else if (info.controlType == "checkbox") {
+                prefix = "CHECKBOX";
+            } else if (info.controlType == "choice" || info.controlType == "combobox") {
+                prefix = "CHOICE";
+            } else if (info.controlType == "spin") {
+                prefix = "SPINCTRL";
+            } else if (info.controlType == "text") {
+                prefix = "TEXTCTRL";
+            }
+            suppressKeys.insert("E_" + prefix + "_" + id);
+        }
+    }
+
+    // Get the full effect string from the base class, then filter
+    wxString full = xlEffectPanel::GetEffectString();
+    if (suppressKeys.empty() || full.empty()) return full;
+
+    wxString result;
+    wxStringTokenizer tkz(full, ",");
+    while (tkz.HasMoreTokens()) {
+        wxString token = tkz.GetNextToken();
+        wxString key = token.BeforeFirst('=');
+        if (suppressKeys.find(key.ToStdString()) == suppressKeys.end()) {
+            if (!result.empty()) result += ",";
+            result += token;
+        }
+    }
+    return result;
+}
+
+void JsonEffectPanel::ValidateWindow() {
+    ApplyVisibilityRules();
+}
+
+void JsonEffectPanel::SetRenderableEffect(RenderableEffect* eff) {
+    if (eff == nullptr) return;
+    for (auto& [id, info] : properties_) {
+        if (info.dynamicOptions == "effect" && info.choice) {
+            auto options = eff->GetSettingOptions(id);
+            if (!options.empty()) {
+                wxString selection = info.choice->GetStringSelection();
+                info.choice->Clear();
+                for (const auto& opt : options) {
+                    info.choice->Append(wxString(opt));
+                }
+                if (!selection.empty()) {
+                    info.choice->SetStringSelection(selection);
+                }
+                // If still no selection (e.g. brand-new effect), try the JSON
+                // default first, then fall back to the first available option.
+                if (info.choice->GetSelection() == wxNOT_FOUND &&
+                    !info.defaultValue.is_null() && info.defaultValue.is_string()) {
+                    std::string def = info.defaultValue.get<std::string>();
+                    if (!def.empty()) {
+                        info.choice->SetStringSelection(wxString(def));
+                    }
+                }
+                if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                    info.choice->SetSelection(0);
+                }
+            }
+        }
+    }
+}
+
+void JsonEffectPanel::RepopulateTimingTrackChoices() {
+    // Walk all properties; for each one that wants timing tracks, query
+    // mSequenceElements directly with the appropriate layer-count filter.
+    // Regular ("timingTracks") = layers <= 1, lyric ("lyricTimingTracks") = 3.
+    for (auto& [id, info] : properties_) {
+        bool wantsRegular = info.dynamicOptions == "timingTracks";
+        bool wantsLyric = info.dynamicOptions == "lyricTimingTracks";
+        if ((!wantsRegular && !wantsLyric) || info.choice == nullptr) continue;
+
+        wxString selection = info.choice->GetStringSelection();
+        info.choice->Clear();
+        if (mSequenceElements != nullptr) {
+            for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
+                Element* e = mSequenceElements->GetElement(i);
+                if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) continue;
+                int layers = e->GetEffectLayerCount();
+                bool match = wantsRegular ? (layers <= 1) : (layers == 3);
+                if (match) info.choice->Append(e->GetName());
+            }
+        }
+        if (!selection.empty()) {
+            info.choice->SetStringSelection(selection);
+        }
+        // Fall back to JSON default for brand-new effects.
+        if (info.choice->GetSelection() == wxNOT_FOUND &&
+            !info.defaultValue.is_null() && info.defaultValue.is_string()) {
+            std::string def = info.defaultValue.get<std::string>();
+            if (!def.empty()) info.choice->SetStringSelection(wxString(def));
+        }
+        info.choice->Enable(info.choice->GetCount() > 0);
+    }
+}
+
+void JsonEffectPanel::SetPanelStatus(Model* cls) {
+    RepopulateTimingTrackChoices();
+
+    // Populate model-driven choices (states, faces, modelNodeNames). For
+    // ModelGroups, use the first contained model — matches legacy behavior.
+    Model* m = cls;
+    if (cls != nullptr && cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        m = static_cast<ModelGroup*>(cls)->GetFirstModel();
+    }
+
+    auto populateFromDefinitions = [this, m](const std::string& sourceName, const FaceStateData& defs) {
+        for (auto& [id, info] : properties_) {
+            if (info.dynamicOptions != sourceName || info.choice == nullptr) continue;
+            wxString selection = info.choice->GetStringSelection();
+            info.choice->Clear();
+            bool hasBlankDefault = !info.defaultValue.is_null() &&
+                                   info.defaultValue.is_string() &&
+                                   info.defaultValue.get<std::string>().empty();
+            if (hasBlankDefault) {
+                info.choice->Append("");
+            }
+            if (m != nullptr) {
+                std::set<std::string> seen;
+                for (const auto& it : defs) {
+                    if (seen.insert(it.first).second) {
+                        info.choice->Append(wxString(it.first));
+                    }
+                }
+            }
+            if (!selection.empty()) {
+                info.choice->SetStringSelection(selection);
+            }
+            if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                info.choice->SetSelection(0);
+            }
+        }
+    };
+
+    if (m != nullptr) {
+        populateFromDefinitions("states", m->GetStateInfo());
+        populateFromDefinitions("faces", m->GetFaceInfo());
+
+        // Populate any choice that wants the model's per-channel node names
+        // (e.g. Servo's Channel selector). Skips empty / "-"-prefixed names
+        // to match legacy ServoPanel behavior.
+        int numChannels = m->GetNumChannels();
+        for (auto& [id, info] : properties_) {
+            if (info.dynamicOptions != "modelNodeNames" || info.choice == nullptr) continue;
+            wxString selection = info.choice->GetStringSelection();
+            info.choice->Clear();
+            for (int i = 0; i <= numChannels; ++i) {
+                std::string name = m->GetNodeName(i);
+                if (!name.empty() && name[0] != '-') {
+                    info.choice->Append(wxString(name));
+                }
+            }
+            if (!selection.empty()) {
+                info.choice->SetStringSelection(selection);
+            }
+            if (info.choice->GetSelection() == wxNOT_FOUND && info.choice->GetCount() > 0) {
+                info.choice->SetSelection(0);
+            }
+        }
+    } else {
+        // Model is null (brand-new effect with no associated model) — clear any
+        // model-driven choices so stale entries from a previous model aren't shown.
+        for (auto& [id, info] : properties_) {
+            if ((info.dynamicOptions == "states" ||
+                 info.dynamicOptions == "faces" ||
+                 info.dynamicOptions == "modelNodeNames") && info.choice) {
+                info.choice->Clear();
+            }
+        }
+    }
+}
+
+JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std::string& propId) {
+    auto it = properties_.find(propId);
+    return it == properties_.end() ? nullptr : &it->second;
+}
+
+const JsonEffectPanel::PropertyInfo* JsonEffectPanel::GetPropertyInfo(const std::string& propId) const {
+    auto it = properties_.find(propId);
+    return it == properties_.end() ? nullptr : &it->second;
+}
+
+void JsonEffectPanel::SetDefaultParameters() {
+    // Deactivate all value curves
+    for (auto& [id, info] : properties_) {
+        if (info.valueCurveBtn) {
+            info.valueCurveBtn->SetActive(false);
+        }
+    }
+
+    // Set controls to their default values from metadata
+    for (auto& [id, info] : properties_) {
+        if (info.defaultValue.is_null()) continue;
+
+        if (info.controlType == "slider") {
+            if (info.divisor > 1) {
+                // Float slider - reset whichever controls exist. Depending
+                // on settingPrefix, primary is either info.slider (SLIDER-
+                // primary, raw int) or info.textCtrl (text-primary, float
+                // string). The other is a buddy and should also be synced.
+                double fval = info.defaultValue.get<double>();
+                int ival = static_cast<int>(fval * info.divisor);
+                if (info.slider) {
+                    SetSliderValue(info.slider, ival);
+                } else if (info.buddySlider) {
+                    static_cast<wxSlider*>(info.buddySlider)->SetValue(ival);
+                }
+                if (info.textCtrl) {
+                    SetTextValue(info.textCtrl, wxString::Format("%.1f", fval).ToStdString());
+                } else if (info.buddyText) {
+                    static_cast<wxTextCtrl*>(info.buddyText)->SetValue(
+                        wxString::Format("%.1f", fval));
+                }
+            } else {
+                if (info.slider) {
+                    SetSliderValue(info.slider, info.defaultValue.get<int>());
+                }
+            }
+        } else if (info.controlType == "checkbox") {
+            if (info.checkBox) {
+                SetCheckBoxValue(info.checkBox, info.defaultValue.get<bool>());
+            }
+        } else if (info.controlType == "choice" || info.controlType == "combobox") {
+            if (info.choice) {
+                std::string def = info.defaultValue.get<std::string>();
+                if (!def.empty()) {
+                    SetChoiceValue(info.choice, def);
+                } else if (info.choice->GetCount() > 0) {
+                    // Empty default means the blank entry (index 0) is the default
+                    info.choice->SetSelection(0);
+                }
+            }
+        } else if (info.controlType == "spin") {
+            if (info.spinCtrl) {
+                SetSpinValue(info.spinCtrl, info.defaultValue.get<int>());
+            }
+        } else if (info.controlType == "text") {
+            std::string def = info.defaultValue.get<std::string>();
+            // Skip empty default for text controls for the same reason.
+            if (!def.empty()) {
+                if (info.textCtrl) {
+                    SetTextValue(info.textCtrl, def);
+                } else if (info.comboBox) {
+                    info.comboBox->SetValue(wxString(def));
+                }
+            }
+        }
+    }
+
+    // Enable canvas mode if the effect requires it
+    if (metadata_.value("canvasMode", false)) {
+        xLightsFrame* frame = xLightsApp::GetFrame();
+        if (frame) {
+            BlendingPanel* layerBlendingPanel = frame->GetLayerBlendingPanel();
+            if (layerBlendingPanel) {
+                layerBlendingPanel->CheckBox_Canvas->SetValue(true);
+            }
+        }
+    }
+}

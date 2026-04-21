@@ -58,7 +58,8 @@
             "controlType": "choice",
             "options": [],
             "default": "",
-            "dynamicOptions": "timingTracks"
+            "dynamicOptions": "timingTracks",
+            "expandToFill": true
         },
         {
             "id": "Piano_Scale",

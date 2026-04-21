@@ -6,7 +6,7 @@
 #include <wx/mstream.h>
 #include <wx/numdlg.h>
 #include <wx/dcbuffer.h>
-#include "../ui/media/ResizeImageDialog.h"
+#include "../media/ResizeImageDialog.h"
 
 //#define BYPASS_GEMINI // set this to use a local image for testing local functions
 
@@ -216,12 +216,12 @@ END_EVENT_TABLE()
 #include "utils/CurlManager.h"
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
-#include "../ui/sequencer/MainSequencer.h"
+#include "../sequencer/MainSequencer.h"
 #include "../ai/aiBase.h"
 #include "ServiceManager.h"
 #include "TempFileManager.h"
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 
 #include <log.h>
 

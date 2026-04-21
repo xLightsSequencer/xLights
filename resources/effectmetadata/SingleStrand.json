@@ -186,6 +186,7 @@
             "options": [],
             "default": "Blink",
             "dynamicOptions": "effect",
+            "expandToFill": true,
             "description": "Selects which WS2812FX-style animation to run, such as Blink, Breath, Color Wipe, Rainbow, Fire Flicker, and many more."
         },
         {
@@ -196,6 +197,7 @@
             "options": [],
             "default": "Default",
             "dynamicOptions": "effect",
+            "expandToFill": true,
             "description": "Selects the color palette mode used by the chosen FX animation, controlling how colors are applied to the effect."
         },
         {

@@ -15,6 +15,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 
 #include <log.h>
 
@@ -41,18 +42,33 @@ MediaCacheEntry::MediaCacheEntry(MediaType type, const std::string& path, const 
 MediaCacheEntry::~MediaCacheEntry() {}
 
 void MediaCacheEntry::LoadRawFromFile(const std::string& filepath) {
-    ObtainAccessToURL(filepath);
-    FileExists(filepath, true);
+    bool accessOK = ObtainAccessToURL(filepath);
+    bool exists = FileExists(filepath, true);
     std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
     if (stream.is_open()) {
         auto size = stream.tellg();
-        if (size <= 0) return;
+        if (size <= 0) {
+            spdlog::warn("MediaCacheEntry::LoadRawFromFile: 0-byte file '{}'", filepath);
+            return;
+        }
         stream.seekg(0);
         std::vector<uint8_t> buffer(static_cast<size_t>(size));
         stream.read(reinterpret_cast<char*>(buffer.data()), size);
-        if (!stream) return;
+        if (!stream) {
+            spdlog::warn("MediaCacheEntry::LoadRawFromFile: read failed for '{}'", filepath);
+            return;
+        }
         _embeddedData = Base64::Encode(buffer.data(), buffer.size());
         RecordFileTimestamp();
+    } else {
+        // Surface the failure so sandbox / path-resolution regressions
+        // are visible in the log instead of showing up only as the
+        // red-pixel fallback from PicturesEffect. Logs the flags we
+        // care about so we can tell whether the problem was access
+        // (sandbox), existence (path wrong), or something else.
+        spdlog::warn("MediaCacheEntry::LoadRawFromFile: could not open '{}' "
+                     "(ObtainAccessToURL={}, FileExists={}, errno={})",
+                     filepath, accessOK, exists, errno);
     }
 }
 
@@ -560,17 +576,15 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
         return ret;
     }
 
-    // For relative paths, resolve to an absolute path using FileUtils::FixFile so the
-    // entry can be loaded from disk.  The cache key stays as the relative path.
-    std::string loadPath = filepath;
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty())
-            loadPath = resolved;
-    }
+    // Resolve to an absolute (and existing) path using FileUtils::FixFile so
+    // the entry can be loaded from disk. Absolute paths go through FixFile too
+    // -- sequences moved between machines keep their saved absolute paths, and
+    // FixFile re-resolves them against the current show/media folders. The
+    // cache key stays as the original path.
+    std::string loadPath = ResolvePath(filepath);
     // Check if the resolved path matches an existing entry
     for (auto& [key, entry] : _imageCache) {
-        if (entry->GetFilePath() == loadPath || (!std::filesystem::path(key).is_absolute() ? FileUtils::FixFile("", key) : key) == loadPath) {
+        if (entry->GetFilePath() == loadPath || ResolvePath(key) == loadPath) {
             if (!entry->isLoaded()) {
                 lock.unlock();
                 entry->Load();
@@ -584,6 +598,17 @@ std::shared_ptr<ImageCacheEntry> SequenceMedia::GetImage(const std::string& file
     lock.unlock();
 
     np->Load();
+    // Surface resolution failures in the log — the pictures effect
+    // otherwise just shows a red frame with no indication why.
+    // Desktop historically relied on the file-picker + user vetting,
+    // so this path is quiet; on iPad the path can mis-resolve
+    // (sandbox, missing bookmark, desktop-saved absolute path with no
+    // matching file in the show folder) and we need visibility.
+    if (!np->IsOk()) {
+        spdlog::warn("SequenceMedia::GetImage: not OK after load. "
+                     "requested='{}' resolved='{}'",
+                     filepath, loadPath);
+    }
     return np;
 }
 
@@ -600,15 +625,9 @@ void SequenceMedia::RemoveImage(const std::string& filepath)
 }
 
 void SequenceMedia::AddAnimatedImage(const std::string& filepath, int msFrameTime) {
-    // Resolve relative paths the same way GetImage does, so FileExists and
-    // LoadFile operate on a valid absolute path.
-    std::string loadPath = filepath;
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty()) {
-            loadPath = resolved;
-        }
-    }
+    // Resolve paths the same way GetImage does, so FileExists and LoadFile
+    // operate on a valid absolute path.
+    std::string loadPath = ResolvePath(filepath);
     std::filesystem::path loadFsPath(loadPath);
     std::string extension = loadFsPath.extension().string();
     std::string stemStr = loadFsPath.stem().string();
@@ -1205,14 +1224,12 @@ VideoMediaCacheEntry::VideoMediaCacheEntry(const std::string& filePath)
 void VideoMediaCacheEntry::Load() {
     std::scoped_lock lock(_cacheMutex);
     if (!_loadingDone) {
-        // Videos are path-only: resolve to absolute path for VideoReader
-        _resolvedPath = _filePath;
-        if (!std::filesystem::path(_filePath).is_absolute()) {
-            std::string resolved = FileUtils::FixFile("", _filePath);
-            if (!resolved.empty()) {
-                _resolvedPath = resolved;
-            }
-        }
+        // Videos are path-only: resolve to an absolute (and existing) path
+        // for VideoReader. Absolute paths go through FixFile too so sequences
+        // saved on another machine get their paths re-resolved against the
+        // current show/media folders.
+        std::string resolved = FileUtils::FixFile("", _filePath);
+        _resolvedPath = resolved.empty() ? _filePath : resolved;
         RecordFileTimestamp();
         _loadingDone = true;
     }
@@ -1248,6 +1265,28 @@ std::shared_ptr<xlImage> VideoMediaCacheEntry::GetThumbnail(int maxWidth, int ma
     return _thumbnail;
 }
 
+int VideoMediaCacheEntry::GetDurationMS() {
+    int cached = _durationMS.load();
+    if (cached >= 0) return cached;
+
+    std::string path;
+    {
+        std::scoped_lock lock(_cacheMutex);
+        path = _resolvedPath;
+    }
+    if (path.empty() || !FileExists(path)) {
+        _durationMS.store(0);
+        return 0;
+    }
+    // Static VideoReader probe — doesn't open decoders, just reads
+    // the container header. Much cheaper than constructing a full
+    // VideoReader when duration is the only thing needed.
+    long ms = VideoReader::GetVideoLength(path);
+    int val = (ms > 0 && ms < std::numeric_limits<int>::max()) ? (int)ms : 0;
+    _durationMS.store(val);
+    return val;
+}
+
 void VideoMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
     {
         std::scoped_lock lock(_cacheMutex);
@@ -1274,6 +1313,9 @@ void VideoMediaCacheEntry::GeneratePreview(int maxWidth, int maxHeight) {
 
     // Extract first 1 second of frames at 50ms intervals
     int lengthMS = reader.GetLengthMS();
+    // Free side-effect: cache the full duration here so a subsequent
+    // `GetDurationMS()` doesn't have to reopen the file.
+    _durationMS.store(lengthMS > 0 ? lengthMS : 0);
     int maxMS = std::min(lengthMS, 1000);
     int frameTimeMS = 50;
 
@@ -1318,10 +1360,13 @@ void VideoMediaCacheEntry::SaveToXml(pugi::xml_node& parent) const {
 // =====================================================================
 
 std::string SequenceMedia::ResolvePath(const std::string& filepath) {
-    if (!std::filesystem::path(filepath).is_absolute()) {
-        std::string resolved = FileUtils::FixFile("", filepath);
-        if (!resolved.empty()) return resolved;
-    }
+    // Absolute paths also go through FixFile so sequences saved on a different
+    // machine (e.g. desktop-saved sequence opened on iPad) get their embedded
+    // absolute paths re-resolved against the current show/media folders.
+    // FixFile's fast path is FileExists(file, false) → early return, so
+    // untouched paths stay cheap on desktop.
+    std::string resolved = FileUtils::FixFile("", filepath);
+    if (!resolved.empty()) return resolved;
     return filepath;
 }
 

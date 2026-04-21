@@ -5,7 +5,7 @@
 
 namespace {
 // Detect a setting key embedded inside another setting's value — the result
-// of a long-standing missing-comma bug between GetTimingString() and
+// of a long-standing missing-comma bug between GetBlendingString() and
 // GetBufferString() that fused the last T_ setting into the first B_ setting.
 // Each save-then-load round appended one more B_/C_ fragment, so a corrupted
 // value can contain several embedded keys. We split the value at the first
@@ -15,7 +15,7 @@ namespace {
 // The regex matches the canonical key shapes the framework writes:
 //   B_/C_/T_/E_  +  one of the known control-type prefixes  +  _ID...=
 const std::regex kEmbeddedKeyRe(
-    R"([BCTE]_(?:SLIDER|VALUECURVE|CHOICE|CHECKBOX|TEXTCTRL|SPINCTRL|RADIOBUTTON|TOGGLEBUTTON|FILEPICKER|0FILEPICKER|FONTPICKER|CUSTOM|NOTEBOOK|PANEL)_[A-Za-z0-9_]+=)");
+    R"([BCTE]_(?:SLIDER|VALUECURVE|CHOICE|CHECKBOX|TEXTCTRL|SPINCTRL|TOGGLEBUTTON|FILEPICKER|0FILEPICKER|FONTPICKER|CUSTOM|NOTEBOOK|PANEL)_[A-Za-z0-9_]+=)");
 
 // If `value` contains an embedded key, truncate value at that point and
 // prepend the embedded portion back onto `remainder` (the still-unparsed tail

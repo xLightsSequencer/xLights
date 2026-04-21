@@ -53,8 +53,8 @@
                 },
                 "controlType": {
                     "type": "string",
-                    "enum": ["slider", "checkbox", "choice", "combobox", "spin", "text", "filepicker", "fontpicker", "colourpicker", "radiobutton", "togglebutton"],
-                    "description": "UI control type hint"
+                    "enum": ["slider", "checkbox", "choice", "combobox", "spin", "text", "filepicker", "fontpicker", "colourpicker", "togglebutton", "point2d", "custom"],
+                    "description": "UI control type hint. 'point2d' expands into two slider rows suffixed X/Y; use minX/maxX/defaultX and minY/maxY/defaultY for per-axis bounds (falls back to min/max/default if absent)."
                 },
                 "default": {
                     "description": "Default value (type depends on 'type' field)"
@@ -116,6 +116,30 @@
                 "fileMessage": {
                     "type": "string",
                     "description": "Dialog title for file picker controls"
+                },
+                "minX": {
+                    "type": "number",
+                    "description": "Per-axis minimum for point2d controls (X axis). Falls back to 'min' if omitted."
+                },
+                "maxX": {
+                    "type": "number",
+                    "description": "Per-axis maximum for point2d controls (X axis). Falls back to 'max' if omitted."
+                },
+                "defaultX": {
+                    "type": "number",
+                    "description": "Per-axis default for point2d controls (X axis). Falls back to 'default' if omitted."
+                },
+                "minY": {
+                    "type": "number",
+                    "description": "Per-axis minimum for point2d controls (Y axis). Falls back to 'min' if omitted."
+                },
+                "maxY": {
+                    "type": "number",
+                    "description": "Per-axis maximum for point2d controls (Y axis). Falls back to 'max' if omitted."
+                },
+                "defaultY": {
+                    "type": "number",
+                    "description": "Per-axis default for point2d controls (Y axis). Falls back to 'default' if omitted."
                 }
             }
         },

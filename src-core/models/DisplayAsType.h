@@ -34,6 +34,7 @@ enum class DisplayAsType {
     DmxSkull,
     Icicles,
     Image,
+    Label,
     Matrix,
     ModelGroup,
     MultiPoint,

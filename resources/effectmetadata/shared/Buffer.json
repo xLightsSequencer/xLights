@@ -43,10 +43,11 @@
             "type": "enum",
             "controlType": "choice",
             "options": ["2D"],
+            "dynamicOptions": "cameras",
             "default": "2D",
             "expandToFill": true,
             "suppressIfDefault": true,
-            "description": "Camera to project the model through when BufferStyle is 'Per Preview'. Populated at runtime from 3D cameras in the preview setup."
+            "description": "Camera to project the model through when BufferStyle is 'Per Preview'. Populated at runtime from 3D cameras in the preview setup (iPad: via the 'cameras' dynamicOptions source; desktop: via BufferPanel::OnBufferStyleChoiceSelect)."
         },
         {
             "id": "BufferTransform",

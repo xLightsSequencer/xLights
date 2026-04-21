@@ -16,6 +16,7 @@
 #include "UtilFunctions.h"
 #include "../utils/xlPoint.h"
 #include <spdlog/fmt/fmt.h>
+#include <nlohmann/json.hpp>
 #include <map>
 #include <string>
 
@@ -196,6 +197,16 @@ public:
     bool HasTime() const { return _hasTime; }
     bool HasCoord() const { return _hasCoord; }
     bool UsesEvents() const;
+
+    // Emit a JSON array of property entries — one per visible shader uniform —
+    // shaped to match the static effect-panel schema so callers can feed the
+    // result back into the same panel builder used for Shader.json proper.
+    // Ids are namespaced with SHADERXYZZY_ to match the legacy settings-map
+    // keys the render path reads via GetUndecoratedId; settingPrefix on each
+    // entry pins the primary control to the serialization slot that
+    // ShaderEffect::Render expects (SLIDER for float/long/point2d,
+    // CHECKBOX for bool, CHOICE for longchoice/event).
+    nlohmann::json GetDynamicPropertiesJson() const;
 };
 class ShaderRenderCache;
 

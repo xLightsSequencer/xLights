@@ -46,85 +46,85 @@
 #include <thread>
 #include <string>
 
-#include "ui/app-shell/AboutDialog.h"
-#include "ui/sequencer/BatchRenderDialog.h"
+#include "app-shell/AboutDialog.h"
+#include "sequencer/BatchRenderDialog.h"
 #include "CachedFileDownloader.h"
-#include "ui/shared/dialogs/CheckboxSelectDialog.h"
-#include "ui/shared/dialogs/OptionChooser.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
+#include "shared/dialogs/OptionChooser.h"
 #include "graphics/GLContextManager.h"
 #ifndef __APPLE__
-#include "ui/effectpanels/ShaderPanel.h"
-#include "ui/graphics/opengl/xlGLCanvas.h"
+#include "effectpanels/ShaderPanel.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #endif
-#include "ui/color/ColourReplaceDialog.h"
-#include "ui/color/ColoursPanel.h"
-#include "ui/import-export/ConvertDialog.h"
-#include "ui/effects/EffectAssist.h"
-#include "ui/sequencer/EffectIconPanel.h"
-#include "ui/sequencer/EffectsPanel.h"
-#include "ui/app-shell/EmailDialog.h"
-#include "ui/import-export/ExportSettings.h"
-#include "ui/shared/utils/ExternalHooksUI.h"
-#include "ui/diagnostics/FindDataPanel.h"
+#include "color/ColourReplaceDialog.h"
+#include "color/ColoursPanel.h"
+#include "import_export/ConvertDialog.h"
+#include "effects/EffectAssist.h"
+#include "sequencer/EffectIconPanel.h"
+#include "sequencer/EffectsPanel.h"
+#include "app-shell/EmailDialog.h"
+#include "import_export/ExportSettings.h"
+#include "shared/utils/ExternalHooksUI.h"
+#include "diagnostics/FindDataPanel.h"
 #include "render/GPURenderUtils.h"
 #include "render/SequenceMedia.h"
-#include "ui/shared/utils/wxUtilities.h"
-#include "ui/graphics/wxTextDrawingContext.h"
+#include "shared/utils/wxUtilities.h"
+#include "graphics/wxTextDrawingContext.h"
 #include "utils/AppCallbacks.h"
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include <wx/gifdecod.h>
 #include <wx/anidecod.h>
-#include "ui/model/GenerateCustomModelDialog.h"
-#include "ui/sequencer/GenerateLyricsDialog.h"
-#include "ui/layout/HousePreviewPanel.h"
-#include "ui/setup/IPEntryDialog.h"
-#include "ui/media/JukeboxPanel.h"
-#include "ui/app-shell/KeyBindingEditDialog.h"
-#include "ui/layout/LayoutGroup.h"
-#include "ui/layout/LayoutPanel.h"
-#include "ui/sequencer/LyricUserDictDialog.h"
-#include "ui/layout/ModelPreview.h"
-#include "ui/import-export/ModelRemap.h"
-#include "ui/setup/MultiControllerUploadDialog.h"
+#include "model/GenerateCustomModelDialog.h"
+#include "sequencer/GenerateLyricsDialog.h"
+#include "layout/HousePreviewPanel.h"
+#include "setup/IPEntryDialog.h"
+#include "media/JukeboxPanel.h"
+#include "app-shell/KeyBindingEditDialog.h"
+#include "layout/LayoutGroup.h"
+#include "layout/LayoutPanel.h"
+#include "sequencer/LyricUserDictDialog.h"
+#include "layout/ModelPreview.h"
+#include "import_export/ModelRemap.h"
+#include "setup/MultiControllerUploadDialog.h"
 #include "Parallel.h"
-#include "ui/model/PathGenerationDialog.h"
-#include "ui/setup/PixelTestDialog.h"
-#include "ui/sequencer/RenderCommandEvent.h"
-#include "ui/app-shell/RestoreBackupDialog.h"
-#include "ui/sequencer/SeqSettingsDialog.h"
-#include "ui/effects/ShaderDownloadDialog.h"
+#include "model/PathGenerationDialog.h"
+#include "setup/PixelTestDialog.h"
+#include "sequencer/RenderCommandEvent.h"
+#include "app-shell/RestoreBackupDialog.h"
+#include "sequencer/SeqSettingsDialog.h"
+#include "effects/ShaderDownloadDialog.h"
 #include "utils/SpecialOptions.h"
-#include "ui/app-shell/SplashDialog.h"
-#include "ui/diagnostics/ShowFolderSearchDialog.h"
-#include "ui/sequencer/TopEffectsPanel.h"
+#include "app-shell/SplashDialog.h"
+#include "diagnostics/ShowFolderSearchDialog.h"
+#include "sequencer/TopEffectsPanel.h"
 #include "utils/TraceLog.h"
-#include "ui/app-shell/UpdaterDialog.h"
+#include "app-shell/UpdaterDialog.h"
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
-#include "ui/shared/controls/ValueCurveButton.h"
-#include "ui/shared/controls/ValueCurvesPanel.h"
-#include "ui/import-export/VendorModelDialog.h"
-#include "ui/import-export/VendorMusicDialog.h"
-#include "ui/media/VideoExporter.h"
-#include "ui/layout/ViewsModelsPanel.h"
+#include "shared/utils/wxUtilities.h"
+#include "shared/controls/ValueCurveButton.h"
+#include "shared/controls/ValueCurvesPanel.h"
+#include "import_export/VendorModelDialog.h"
+#include "import_export/VendorMusicDialog.h"
+#include "media/VideoExporter.h"
+#include "layout/ViewsModelsPanel.h"
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "xLightsVersion.h"
 #include "settings/XLightsConfigAdapter.h"
-#include "ui/controllerproperties/ControllerPropertyAdapter.h"
+#include "controllerproperties/ControllerPropertyAdapter.h"
 #include "controllers/ControllerCaps.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ESPixelStick.h"
-#include "ui/controllers/FPPConnectDialog.h"
+#include "controllers/FPPConnectDialog.h"
 #include "controllers/Falcon.h"
-#include "ui/controllers/HinksPixExportDialog.h"
-#include "ui/effectpanels/EffectIconCache.h"
+#include "controllers/HinksPixExportDialog.h"
+#include "effectpanels/EffectIconCache.h"
 #include "effects/FacesEffect.h"
 #include "effects/RenderableEffect.h"
 #include "effects/ShaderEffect.h"
 #include "effects/StateEffect.h"
-#include "ui/graphics/opengl/xlGLCanvas.h"
+#include "graphics/opengl/xlGLCanvas.h"
 #include "models/ModelGroup.h"
 #include "models/RulerObject.h"
 #include "models/SubModel.h"
@@ -134,16 +134,16 @@
 #include "outputs/E131Output.h"
 #include "outputs/IPOutput.h"
 #include "outputs/ZCPPOutput.h"
-#include "ui/sequencer/MainSequencer.h"
+#include "sequencer/MainSequencer.h"
 #include "utils/ip_utils.h"
 #include "TempFileManager.h"
-#include "ui/color/xlColourData.h"
+#include "color/xlColourData.h"
 #include "utils/CurlManager.h"
 #include "utils/FileUtils.h"
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"
 #include "models/DMX/DmxMovingHeadComm.h"
-#include "ui/color/ColorPanel.h"
+#include "color/ColorPanel.h"
 
 #include "../dependencies/wxHTTPServer/wxhttpserver.h"
 
@@ -155,7 +155,7 @@
 #include "../include/control-play-blue-icon.xpm"
 
 #include <xlsxwriter.h>
-#include "ui/diagnostics/CheckSequenceReport.h"
+#include "diagnostics/CheckSequenceReport.h"
 #include <log.h>
 
 //(*InternalHeaders(xLightsFrame)
@@ -322,6 +322,7 @@ const wxWindowID xLightsFrame::ID_MENUITEM17 = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_VALUECURVES = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_COLOURDROPPER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_ASSIST_WINDOW = wxNewId();
+const wxWindowID xLightsFrame::ID_MENUITEM_EFFECT_PRESETS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SELECT_EFFECT = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
@@ -1185,6 +1186,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem18->Append(MenuItemColourDropper);
     MenuItemEffectAssist = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_ASSIST_WINDOW, _("Effect Assist"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemEffectAssist);
+    MenuItemEffectPresets = new wxMenuItem(MenuItem18, ID_MENUITEM_EFFECT_PRESETS, _("Effect Presets"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemEffectPresets);
     MenuItemSelectEffect = new wxMenuItem(MenuItem18, ID_MENUITEM_SELECT_EFFECT, _("Select Effect"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemSelectEffect);
     MenuItemSearchEffects = new wxMenuItem(MenuItem18, ID_MENUITEM_SEARCH_EFFECTS, _("Search Effects"), wxEmptyString, wxITEM_CHECK);
@@ -1297,7 +1300,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_AUITOOLBARITEM2, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_AUITOOLBARITEM5, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM7, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
-    Connect(ID_AUITOOLBARITEM3, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
+    Connect(ID_AUITOOLBARITEM3, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideLayerBlendingWindow);
     Connect(ID_TOGGLE_MODEL_PREVIEW, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideModelPreview);
     Connect(ID_TOGGLE_HOUSE_PREVIEW, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_AUITOOLBARITEM6, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideDisplayElementsWindow);
@@ -1412,12 +1415,13 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENU_TOGGLE_HOUSE_PREVIEW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideHousePreview);
     Connect(ID_MENUITEM14, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_MENUITEM15, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
-    Connect(ID_MENUITEM16, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideLayerTimingWindow);
+    Connect(ID_MENUITEM16, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideLayerBlendingWindow);
     Connect(ID_MENUITEM9, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
     Connect(ID_MENUITEM17, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectDropper);
     Connect(ID_MNU_VALUECURVES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ValueCurvesSelected);
     Connect(ID_MNU_COLOURDROPPER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_ColourDropperSelected);
     Connect(ID_MENUITEM_EFFECT_ASSIST_WINDOW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectAssistWindow);
+    Connect(ID_MENUITEM_EFFECT_PRESETS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectPresetsWindow);
     Connect(ID_MENUITEM_SELECT_EFFECT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemSelectEffectSelected);
     Connect(ID_MENUITEM_SEARCH_EFFECTS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemSearchEffectsSelected);
     Connect(ID_MENUITEM_VIDEOPREVIEW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
@@ -1984,8 +1988,6 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("Effects panel initialised.");
 
     _serviceManager = std::make_unique<ServiceManager>(this);
-    
-    EffectTreeDlg = nullptr; // must be before any call to SetDir
 
     starttime = wxDateTime::UNow();
     ResetEffectsXml();
@@ -2476,6 +2478,10 @@ xLightsFrame::~xLightsFrame()
     config->Write("ControllerTabColumnOrder", colOrd.RemoveLast());
 
     SaveDockable();
+
+    if (layoutPanel != nullptr) {
+        layoutPanel->SaveLayoutPerspective();
+    }
 
     xlColourData::INSTANCE.Save(config);
 
@@ -5654,7 +5660,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     LogCheckSequenceMsg("");
     LogCheckSequenceMsg("Models spanning controllers");
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             int32_t start = it.second->GetFirstChannel() + 1;
             int32_t end = it.second->GetLastChannel() + 1;
 
@@ -5728,7 +5734,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     wxYield();
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -5760,7 +5766,7 @@ std::string xLightsFrame::CheckSequence(bool displayInEditor, bool writeToFile)
     }
 
     for (const auto& it : AllModels) {
-        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
+        if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup && it.second->GetDisplayAs() != DisplayAsType::Label) {
             std::string start = it.second->ModelStartChannel;
 
             if (start[0] == '>' || start[0] == '@') {
@@ -7208,7 +7214,7 @@ int xLightsFrame::ExportNodes(wxFile& f, StrandElement* e, NodeLayer* nl, int n,
                                  duration / 60000,
                                  (duration % 60000) / 1000,
                                  duration % 1000,
-                                 sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
+                                 sm.Contains("X_Effect_Description") ? std::string(sm["X_Effect_Description"]) : std::string(""),
                                  name,
                                  type,
                                  fs));
@@ -7286,7 +7292,7 @@ int xLightsFrame::ExportElement(wxFile& f, Element* e, std::map<std::string, int
                                          duration / 60000,
                                          (duration % 60000) / 1000,
                                          duration % 1000,
-                                         sm.Contains("X_Effect_Description") ? sm["X_Effect_Description"] : "",
+                                         sm.Contains("X_Effect_Description") ? std::string(sm["X_Effect_Description"]) : std::string(""),
                                          (const char*)(e->GetFullName()).c_str(),
                                          type,
                                          fs));
@@ -9296,14 +9302,17 @@ void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 
 void xLightsFrame::ShowPresetsPanel()
 {
-    if (CurrentSeqXmlFile == nullptr)
+    InitSequencer();
+    if (EffectTreeDlg == nullptr)
         return;
 
-    if (EffectTreeDlg == nullptr) {
-        EffectTreeDlg = new EffectTreeDialog(this);
+    if (!_effectPresetsInitialized) {
         EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
     }
-    EffectTreeDlg->Show();
+    m_mgr->GetPane("EffectPresets").Show();
+    m_mgr->Update();
+    UpdateViewMenu();
 }
 
 uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS)
@@ -9341,19 +9350,27 @@ uint64_t xLightsFrame::BadDriveAccess(const std::list<std::string>& files, std::
 
 void xLightsFrame::TogglePresetsPanel()
 {
-    if (CurrentSeqXmlFile == nullptr)
+    InitSequencer();
+    if (EffectTreeDlg == nullptr)
         return;
 
-    if (EffectTreeDlg == nullptr) {
-        ShowPresetsPanel();
-    } else if (EffectTreeDlg->IsVisible()) {
-        EffectTreeDlg->Hide();
-        EffectTreeDlg->Close();
-        delete EffectTreeDlg;
-        EffectTreeDlg = nullptr;
-    } else {
-        EffectTreeDlg->Show();
+    if (!_effectPresetsInitialized) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
     }
+    bool visible = m_mgr->GetPane("EffectPresets").IsShown();
+    if (visible) {
+        m_mgr->GetPane("EffectPresets").Hide();
+    } else {
+        m_mgr->GetPane("EffectPresets").Show();
+    }
+    m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::ShowHideEffectPresetsWindow(wxCommandEvent& event)
+{
+    TogglePresetsPanel();
 }
 
 void xLightsFrame::OnMenuItemSelectEffectSelected(wxCommandEvent& event)
@@ -10522,6 +10539,7 @@ void xLightsFrame::UpdateViewMenu()
         { "ValueCurveDropper", MenuItemValueCurves },
         { "ColourDropper", MenuItemColourDropper },
         { "EffectAssist", MenuItemEffectAssist },
+        { "EffectPresets", MenuItemEffectPresets },
         { "SelectEffect", MenuItemSelectEffect },
         { "SequenceVideo", MenuItemVideoPreview },
         { "Jukebox", MenuItemJukebox },

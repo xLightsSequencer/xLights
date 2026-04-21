@@ -34,13 +34,13 @@
 #include <pugixml.hpp>
 #include <sstream>
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Controller.h"
 #ifndef FPP
     #include "xLightsMain.h"
-    #include "ui/import-export/ConvertDialog.h"
-    #include "ui/import-export/ConvertLogDialog.h"
+    #include "import_export/ConvertDialog.h"
+    #include "import_export/ConvertLogDialog.h"
     #include "outputs/Output.h"
     #define string_format wxString::Format
 #endif

@@ -4,169 +4,169 @@
     <ClCompile Include="..\src-ui-wx\import_export\ExportEffects.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ImportEffects.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\TimingImport.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\BulkEditControls.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BulkEditSliderDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\controls\BulkEditControls.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BulkEditSliderDialog.cpp" />
     <ClCompile Include="..\src-core\utils\CachedFileDownloader.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\ColorManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\CustomTimingDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectTimingDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\ColorManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\CustomTimingDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectTimingDialog.cpp" />
     <ClCompile Include="..\src-core\utils\AnimatedImage.cpp" />
     <ClCompile Include="..\src-core\render\FontManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\GenerateLyricsDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\HousePreviewPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\IPEntryDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\MatrixFaceDownloadDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\HousePreviewPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\IPEntryDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
     <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\BitmapCache.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BufferPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BufferSizeDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\ChannelLayoutDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ChannelLayoutDialog.cpp" />
     <ClCompile Include="..\src-core\utils\Color.cpp" />
     <ClCompile Include="..\src-core\render\ColorCurve.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\ColorCurveDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\ColorPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\ControllerConnectionDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\ConvertDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\ConvertLogDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\ColorCurveDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\ColorPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\ControllerConnectionDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\ConvertDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\ConvertLogDialog.cpp" />
     <ClCompile Include="..\src-core\render\DataLayer.cpp" />
     <ClCompile Include="..\src-core\render\DimmingCurve.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\DimmingCurvePanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effects\EffectAssist.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectIconPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectListDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectsPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effects\EffectPresetManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectTreeDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\ExportModelSelect.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\DimmingCurvePanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\effects\EffectAssist.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectIconPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectListDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\effects\EffectPresetManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\FlickerFreeBitmapButton.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\GenerateCustomModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\GenerateCustomModelDialog.cpp" />
     <ClCompile Include="..\src-core\utils\AppCallbacks.cpp" />
     <ClCompile Include="..\src-core\utils\JobPool.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\KeyBindings.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\LayoutGroup.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\LayoutPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\LMSImportChannelMapDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\LorConvertDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\LyricsDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\ModelPreview.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\KeyBindings.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\LayoutGroup.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\LorConvertDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LyricsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ModelPreview.cpp" />
     <ClCompile Include="..\src-core\models\Shapes.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\MusicXML.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\NewTimingDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\NodesGridCellEditor.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\NoteImportDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\dialogs\OptionChooser.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\MusicXML.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\NewTimingDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\NodesGridCellEditor.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\NoteImportDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\dialogs\OptionChooser.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\PerspectivesPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\PhonemeDictionary.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\PhonemeDictionary.cpp" />
     <ClCompile Include="..\src-core\render\PixelBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\layout\PreviewPane.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\RenameTextDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\PreviewPane.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\RenderBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\RenderCommandEvent.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\RenderProgressDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\ResizeImageDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\SaveChangesDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\SelectPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\SelectTimingsDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\SeqElementMismatchDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\SeqExportDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\SeqFileUtilities.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\SeqSettingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\RenderCommandEvent.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\RenderProgressDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\ResizeImageDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SeqSettingsDialog.cpp" />
     <ClCompile Include="..\src-core\render\SequenceData.cpp" />
     <ClCompile Include="..\src-core\render\SequenceViewManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\SevenSegmentDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\SplashDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\StartChannelDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\StrandNodeNamesDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\SubBufferPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\SuperStarImportDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\TabConvert.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\TabPreview.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSequence.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\DiscoveryHelpers.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\TabSetup.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\TimingPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\tmGridCell.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\UpdaterDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\SevenSegmentDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\SplashDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\StartChannelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\StrandNodeNamesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SubBufferPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\SuperStarImportDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\TabConvert.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\TabPreview.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\TabSequence.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\DiscoveryHelpers.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\TabSetup.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BlendingPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\tmGridCell.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\TopEffectsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\UpdaterDialog.cpp" />
     <ClCompile Include="..\src-core\render\ValueCurve.cpp" />
     <ClCompile Include="..\src-core\render\ValueCurveConsts.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\ValueCurveButton.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\dialogs\ValueCurveDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\VAMPPluginDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\VideoExporter.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\VendorModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\controls\ValueCurveButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\dialogs\ValueCurveDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\VAMPPluginDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\VideoExporter.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\VendorModelDialog.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\ViewsModelsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ViewsModelsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VSAFile.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\VsaImportDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\WiringDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\wxCheckedListCtrl.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\xlColorCanvas.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\xlColorPicker.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\xlColorPickerFields.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\xlGridCanvas.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\VsaImportDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\WiringDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\wxCheckedListCtrl.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColorCanvas.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\xLightsImportChannelMapDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\xLightsTimer.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFile.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\xlSlider.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\PixelTestDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\SequenceVideoPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\SequenceVideoPreview.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\xlSlider.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\PixelTestDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\SequenceVideoPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\SequenceVideoPreview.cpp" />
     <ClCompile Include="..\src-core\controllers\WebSocketClient.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\LayerSelectDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LayerSelectDialog.cpp" />
     <ClCompile Include="..\dependencies\md5\md5.cpp" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\ioapi.c" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\unzip.c" />
     <ClCompile Include="..\dependencies\libxlsxwriter\third_party\minizip\zip.c" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\VendorMusicDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\VendorMusicHelpers.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\JukeboxPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\LinkJukeboxButtonDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\VendorMusicDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\VendorMusicHelpers.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\JukeboxPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="..\src-core\render\DissolveTransitionPattern.cpp" />
     <ClCompile Include="..\src-core\effects\OpenGLShaders.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\xlLockButton.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\ViewpointDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\xlLockButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ViewpointDialog.cpp" />
     <ClCompile Include="..\src-core\render\ViewpointMgr.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\LyricUserDictDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LyricUserDictDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderCache.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\utils\Parallel.cpp" />
     <ClCompile Include="..\src-core\models\ObjectManager.cpp" />
     <ClCompile Include="..\src-core\models\ViewObjectManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\ViewObjectPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\NodeSelectGrid.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\MultiControllerUploadDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\wxModelGridCellRenderer.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\ViewObjectPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\NodeSelectGrid.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\MultiControllerUploadDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\wxModelGridCellRenderer.cpp" />
     <ClCompile Include="..\src-core\render\FSEQFile.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\PathGenerationDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\RemapDMXChannelsDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\setup\DiscoveryAuthDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\LOREdit.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\AlignmentDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effects\CharMapDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\effects\CharMapDialog.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -198,7 +198,7 @@
     <ClCompile Include="..\src-core\models\CubeModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\CustomModelDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\CustomModelDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\CustomModel.cpp">
@@ -214,6 +214,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ImageModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\LabelModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\MatrixModel.cpp">
@@ -240,7 +243,7 @@
     <ClCompile Include="..\src-core\models\SubModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\SubModelsDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\TreeModel.cpp">
@@ -255,16 +258,16 @@
     <ClCompile Include="..\src-core\models\ModelGroup.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\ModelFaceDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\ModelFaceDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\ModelDimmingCurveDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\ModelDimmingCurveDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ModelScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\ModelStateDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\ModelStateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\SingleLineModel.cpp">
@@ -273,8 +276,8 @@
     <ClCompile Include="..\src-core\models\MeshObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\ImportPreviewsModelsDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effects\ShaderDownloadDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\ImportPreviewsModelsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\effects\ShaderDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\outputs\ZCPPOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -350,7 +353,7 @@
     <ClCompile Include="..\src-core\controllers\FPP.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllers\FPPConnectDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\controllers\FPPConnectDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\controllers\J1Sys.cpp">
@@ -369,7 +372,7 @@
     <ClCompile Include="..\src-core\effects\MusicEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\NoteRangeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\NoteRangeDialog.cpp" />
     <ClCompile Include="..\src-core\effects\ShaderEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -439,10 +442,10 @@
     <ClCompile Include="..\src-core\models\WindowFrameModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\ModelChainDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\ModelChainDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\layout\ModelGroupPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\layout\ModelGroupPanel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\LiquidEffect.cpp">
@@ -487,7 +490,7 @@
     <ClCompile Include="..\src-core\controllers\SanDevices.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BulkEditFontPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BulkEditFontPickerDialog.cpp" />
     <ClCompile Include="..\src-core\outputs\NullOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -512,13 +515,13 @@
     <ClCompile Include="..\src-core\outputs\LOROutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\shared\dialogs\CheckboxSelectDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\EmailDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\DragValueCurveBitmapButton.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\ValueCurveRendering.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\ValueCurvesPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\ColoursPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\DragColoursBitmapButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\dialogs\CheckboxSelectDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\EmailDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\controls\DragValueCurveBitmapButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\ValueCurveRendering.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\controls\ValueCurvesPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\ColoursPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.cpp" />
     <ClCompile Include="..\src-core\utils\TraceLog.cpp" />
     <ClCompile Include="..\src-core\effects\StrobeEffect.cpp">
       <Filter>Effects</Filter>
@@ -532,7 +535,7 @@
     <ClCompile Include="..\src-core\controllers\HinksPix.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllers\HinksPixExportDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\controllers\HinksPixExportDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\ColorWashEffect.cpp">
@@ -571,41 +574,41 @@
     <ClCompile Include="..\src-core\models\DMX\Servo.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\BackupSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\BackupSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\SequenceFileSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\ViewSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\ViewSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\xLightsPreferences.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\xLightsPreferences.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\OtherSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\OtherSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\OutputSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\OutputSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\ColorManagerSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\EffectsGridSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\RandomEffectsSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ServoConfigDialog.cpp">
-      <Filter>UI\ModelProperties\Adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ServoConfigDialog.cpp">
+      <Filter>ModelProperties\Adapters</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxSkull.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SkullConfigDialog.cpp">
-      <Filter>UI\ModelProperties\Adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SkullConfigDialog.cpp">
+      <Filter>ModelProperties\Adapters</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\controllers\ControllerCaps.cpp">
       <Filter>Controllers</Filter>
@@ -626,18 +629,18 @@
     <ClCompile Include="..\src-core\controllers\BaseController.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\setup\ControllerModelDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\SubModelGenerateDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\setup\ControllerModelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\model\SubModelGenerateDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BulkEditColourPickerDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.cpp" />
     <ClCompile Include="..\src-core\outputs\RenardOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\outputs\OPCOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\KeyBindingEditDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.cpp" />
     <ClCompile Include="..\src-core\outputs\PixelNetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
@@ -653,35 +656,35 @@
     <ClCompile Include="..\src-core\models\DMX\DmxGeneral.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\AboutDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\AboutDialog.cpp" />
     <ClCompile Include="..\src-core\outputs\KinetOutput.cpp">
       <Filter>Outputs</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\DragEffectBitmapButton.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\Effect.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectDropTarget.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectDropTarget.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\EffectLayer.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\EffectsGrid.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectsGrid.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\Element.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\MainSequencer.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\MainSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\LyricBreakdown.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\LyricBreakdown.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\RowHeading.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
@@ -693,16 +696,16 @@
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\tabSequencer.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\TimeLine.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\TimeLine.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\UndoManager.cpp">
       <Filter>render</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\Waveform.cpp">
+    <ClCompile Include="..\src-ui-wx\sequencer\Waveform.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\TerrainScreenLocation.cpp">
@@ -711,8 +714,8 @@
     <ClCompile Include="..\src-core\models\TerrainObject.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\CopyFormat1.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\MediaImportOptionsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\CopyFormat1.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\MediaImportOptionsDialog.cpp" />
     <ClCompile Include="..\src-core\render\SequencePackage.cpp" />
     <ClCompile Include="..\src-core\cad\CADModel.cpp">
       <Filter>cad</Filter>
@@ -736,14 +739,14 @@
       <Filter>Controllers</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\Pixels.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\LORPreview.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\ExportSettings.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\LORPreview.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\ExportSettings.cpp" />
     <ClCompile Include="..\src-core\render\GPURenderUtils.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\automation\ScriptsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
@@ -762,12 +765,12 @@
     <ClCompile Include="..\common\xlBaseApp.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\layout\Mouse3DManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\Mouse3DManager.cpp" />
     <ClCompile Include="..\src-core\effects\FX.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\media\WindowsHardwareVideoReader.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\ColourReplaceDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\ColourReplaceDialog.cpp" />
     <ClCompile Include="..\src-core\models\BoxedScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -780,14 +783,14 @@
     <ClCompile Include="..\src-core\models\TwoPointScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\FindDataPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\FindDataPanel.cpp" />
     <ClCompile Include="..\src-core\models\MultiPointModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\MultiPointScreenLocation.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\SearchPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\SearchPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -806,11 +809,11 @@
     <ClCompile Include="..\src-core\models\DMX\DmxPresetAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\TipOfTheDayDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\import-export\ModelRemap.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\app-shell\RestoreBackupDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\layout\LayoutUtils.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\preferences\CheckSequenceSettingsPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\import_export\ModelRemap.cpp" />
+    <ClCompile Include="..\src-ui-wx\app-shell\RestoreBackupDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
+    <ClCompile Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\utils\UtilClasses.cpp" />
@@ -820,7 +823,7 @@
     <ClCompile Include="..\src-core\controllers\Experience.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\BulkEditComboDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\BulkEditComboDialog.cpp" />
     <ClCompile Include="..\src-core\utils\string_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -830,173 +833,176 @@
     <ClCompile Include="..\src-core\utils\ip_utils.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\shared\utils\wxUtilities.cpp">
-      <Filter>ui</Filter>
+    <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp">
+      <Filter>shared\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerNullPropertyAdapter.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerPropertyAdapter.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerPropertyAdapter.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerPropertyManager.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\ControllerSerialPropertyAdapter.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllerproperties\OutputPropertyAdapters.cpp">
-      <Filter>ui\controllerproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.cpp">
+      <Filter>controllerproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\ModelPropertyAdapter.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.cpp">
+      <Filter>modelproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\ModelPropertyManager.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\ModelPropertyManager.cpp">
+      <Filter>modelproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\MatrixPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\MatrixPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\PropertyGridHelpers.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\PropertyGridHelpers.cpp">
+      <Filter>modelproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\ScreenLocationPropertyHelper.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\ScreenLocationPropertyHelper.cpp">
+      <Filter>modelproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\helpers\DmxAbilityPropertyHelpers.cpp">
-      <Filter>ui\modelproperties\helpers</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxAbilityPropertyHelpers.cpp">
+      <Filter>modelproperties\helpers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\helpers\DmxComponentPropertyHelpers.cpp">
-      <Filter>ui\modelproperties\helpers</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\helpers\DmxComponentPropertyHelpers.cpp">
+      <Filter>modelproperties\helpers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ArchesPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CandyCanePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\CandyCanePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ChannelBlockPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ChannelBlockPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CirclePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\CirclePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CubePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\CubePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\IciclesPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\IciclesPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SingleLinePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SingleLinePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SpherePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SpherePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SpinnerPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SpinnerPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\StarPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\StarPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\TreePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\TreePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\WindowFramePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\WindowFramePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\WreathPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\WreathPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ImagePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\CustomPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\LabelPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PolyLinePropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\CustomPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\MultiPointPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\PolyLinePropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\MultiPointPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxGeneralPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxFloodlightPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxGeneralPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxMovingHeadPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxFloodlightPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxMovingHeadPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxSkullPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxServoPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxSkullPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\DmxServo3dPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxServoPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\SubModelPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\DmxServo3dPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\MeshObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\SubModelPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\ImageObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\MeshObjectPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\GridlinesObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\ImageObjectPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\TerrainObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\GridlinesObjectPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\RulerObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\TerrainObjectPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\ViewObjectPropertyAdapter.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\RulerObjectPropertyAdapter.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\ViewObjectPropertyManager.cpp">
-      <Filter>ui\modelproperties</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\ViewObjectPropertyAdapter.cpp">
+      <Filter>modelproperties</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\DuplicateDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\modelproperties\ViewObjectPropertyManager.cpp">
+      <Filter>modelproperties</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\DuplicateDialog.cpp" />
     <ClCompile Include="..\src-core\models\DMX\DmxColorAbilityCMY.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\GuitarEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\MetronomeLabelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.cpp" />
     <ClCompile Include="..\src-core\utils\CurlManager.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\controllers\FPPUploadProgressDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\controllers\FPPUploadProgressDialog.cpp">
       <Filter>Controllers</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\sequencer\AutoLabelDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\AutoLabelDialog.cpp" />
     <ClCompile Include="..\src-core\effects\DuplicateEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\AdjustEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\model\EditAliasesDialog.cpp">
+    <ClCompile Include="..\src-ui-wx\model\EditAliasesDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\utils\TempFileManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\xlColourData.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourData.cpp" />
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-core\effects\MovingHeadEffect.cpp">
@@ -1008,17 +1014,17 @@
     <ClCompile Include="..\src-core\models\DMX\MovingHeads\MhFeature.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHRgbPickerPanel.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHRgbPickerPanel.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHPresetBitmapButton.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPresetBitmapButton.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHPathPresetBitmapButton.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPathPresetBitmapButton.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHColorWheelPanel.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorWheelPanel.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxMotor.cpp">
       <Filter>Models\DMX</Filter>
@@ -1027,21 +1033,21 @@
       <Filter>Models\DMX</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\utils\SpecialOptions.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\model\EditSubmodelAliasesDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\model\EditSubmodelAliasesDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxDimmerAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\ShowFolderSearchDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.cpp" />
     <ClCompile Include="..\src-core\effects\ispc\ISPCComputeUtilities.cpp">
       <Filter>Effects\ispc</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\preferences\ServicesPanel.cpp">
+    <ClCompile Include="..\src-ui-wx\preferences\ServicesPanel.cpp">
       <Filter>Preferences</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp">
@@ -1056,7 +1062,7 @@
     <ClCompile Include="..\src-ui-wx\ai\claude.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-ui-wx\diagnostics\CheckSequenceReport.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\ollama.cpp">
       <Filter>ai</Filter>
     </ClCompile>
@@ -1091,8 +1097,8 @@
     <ClCompile Include="..\src-core\models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\media\ManageMediaPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\media\ShaderPreviewGenerator.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\ManageMediaPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\media\ShaderPreviewGenerator.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\GdtfParser.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\Gemini.cpp">
@@ -1107,92 +1113,92 @@
     <ClCompile Include="..\src-ui-wx\ai\OpenAIImageGenerator.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\DMXPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\DMXPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\FacesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\FacesPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MorphPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MorphPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\PicturesPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ServoPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\ServoPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShaderPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\ShaderPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SketchPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\SketchPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\StatePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\StatePanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\TextPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\TextPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\VideoPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\VideoPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\VUMeterPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\VUMeterPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\AdjustPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\DuplicatePanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MusicPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MusicPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\PianoPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\PianoPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\RipplePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\RipplePanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\ShapePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\ShapePanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\SnowflakesPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\WavePanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\WavePanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\WarpPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\WarpPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\AssistPanel.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\AssistPanel.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\SketchAssistPanel.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchAssistPanel.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\PicturesAssistPanel.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\PicturesAssistPanel.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.cpp">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.cpp">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasPictures.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasPictures.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasMorph.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasMorph.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasEmpty.cpp">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasEmpty.cpp">
+      <Filter>effectpanels\assist</Filter>
     </ClCompile>
     <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h">
       <Filter>ai</Filter>
@@ -1218,17 +1224,17 @@
     <ClCompile Include="..\src-core\models\Node.cpp">
       <Filter>Models</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\EffectIconCache.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\EffectIconCache.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\EffectPanelUtils.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\EffectPanelUtils.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\EffectPanelManager.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\EffectPanelManager.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ui\effectpanels\JsonEffectPanel.cpp">
-      <Filter>ui\effectpanels</Filter>
+    <ClCompile Include="..\src-ui-wx\effectpanels\JsonEffectPanel.cpp">
+      <Filter>effectpanels</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\EffectManager.cpp">
       <Filter>Effects</Filter>
@@ -1290,16 +1296,16 @@
     <ClCompile Include="..\src-core\discovery\Discovery.cpp" />
     <ClCompile Include="..\src-core\utils\FileUtils.cpp" />
     <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlGLCanvas.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveButton.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\render\RenderUI.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\support\EzGrid.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\support\FastComboEditor.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.cpp" />
+    <ClCompile Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.cpp" />
+    <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.cpp" />
+    <ClCompile Include="..\src-ui-wx\graphics\wxTextDrawingContext.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\wxColorCurveButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\wxColorCurveRenderer.cpp" />
+    <ClCompile Include="..\src-ui-wx\render\RenderUI.cpp" />
+    <ClCompile Include="..\src-ui-wx\support\EzGrid.cpp" />
+    <ClCompile Include="..\src-ui-wx\support\FastComboEditor.cpp" />
+    <ClCompile Include="..\src-ui-wx\support\GridCellChoiceRenderer.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\acsymbols.c" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\FFT.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\Files.cpp" />
@@ -1312,27 +1318,27 @@
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginSummarisingAdapter.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\PluginWrapper.cpp" />
     <ClCompile Include="..\dependencies\vamp-hostsdk\RealTime.cpp" />
-    <ClCompile Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.cpp">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClCompile Include="..\src-ui-wx\modelproperties\adapters\PositionZoneDialog.cpp">
+      <Filter>modelproperties\adapters</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BatchRenderDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\BulkEditControls.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BulkEditSliderDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\controls\BulkEditControls.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BulkEditSliderDialog.h" />
     <ClInclude Include="..\src-core\utils\CachedFileDownloader.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\ColorManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectTimingDialog.h" />
+    <ClInclude Include="..\src-ui-wx\color\ColorManager.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectTimingDialog.h" />
     <ClInclude Include="..\src-core\render\FontManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\GenerateLyricsDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\HousePreviewPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\MatrixFaceDownloadDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\CustomTimingDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\GenerateLyricsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\layout\HousePreviewPanel.h" />
+    <ClInclude Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\CustomTimingDialog.h" />
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\IPEntryDialog.h" />
+    <ClInclude Include="..\src-ui-wx\setup\IPEntryDialog.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
     <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
@@ -1342,148 +1348,148 @@
     <ClInclude Include="..\src-core\media\IAudioOutput.h" />
     <ClInclude Include="..\src-core\media\SDLAudioOutput.h" />
     <ClInclude Include="..\src-core\media\xLightsVamp.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\BitmapCache.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BufferPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BufferSizeDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\ChannelLayoutDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\ChannelLayoutDialog.h" />
     <ClInclude Include="..\src-core\utils\Color.h" />
     <ClInclude Include="..\src-core\render\ColorCurve.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\ColorPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\ControllerConnectionDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ConvertDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ConvertLogDialog.h" />
+    <ClInclude Include="..\src-ui-wx\color\ColorPanel.h" />
+    <ClInclude Include="..\src-ui-wx\setup\ControllerConnectionDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\ConvertDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\ConvertLogDialog.h" />
     <ClInclude Include="..\src-core\render\DataLayer.h" />
     <ClInclude Include="..\src-core\render\DimmingCurve.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\DimmingCurvePanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effects\EffectAssist.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectIconPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectListDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectsPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effects\EffectPresetManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectTreeDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ExportModelSelect.h" />
+    <ClInclude Include="..\src-ui-wx\color\DimmingCurvePanel.h" />
+    <ClInclude Include="..\src-ui-wx\effects\EffectAssist.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectIconPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectListDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\effects\EffectPresetManager.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\FlickerFreeBitmapButton.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\GenerateCustomModelDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\Images_png.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
+    <ClInclude Include="..\src-ui-wx\model\GenerateCustomModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\Images_png.h" />
     <ClInclude Include="..\src-core\utils\AppCallbacks.h" />
     <ClInclude Include="..\src-core\utils\JobPool.h" />
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\KeyBindings.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\LayoutGroup.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\LayoutPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\LMSImportChannelMapDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\LorConvertDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\LyricsDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\ModelPreview.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
+    <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
+    <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LyricsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ModelPreview.h" />
     <ClInclude Include="..\src-core\graphics\IModelPreview.h" />
     <ClInclude Include="..\src-core\models\Shapes.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\MusicXML.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\NewTimingDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\NodesGridCellEditor.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\NoteImportDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\dialogs\OptionChooser.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\MusicXML.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\NewTimingDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\NodesGridCellEditor.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\NoteImportDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\dialogs\OptionChooser.h" />
     <ClInclude Include="..\src-core\utils\ExternalHooks.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\PerspectivesPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\PhonemeDictionary.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\PhonemeDictionary.h" />
     <ClInclude Include="..\src-core\render\PixelBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\layout\PreviewPane.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-ui-wx\layout\PreviewPane.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
     <ClInclude Include="..\src-core\render\RenderBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\RenderCommandEvent.h" />
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\RenderProgressDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\ResizeImageDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\SaveChangesDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\SelectPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\SelectTimingsDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\SeqElementMismatchDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\SeqExportDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\SeqSettingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\RenderCommandEvent.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\RenderProgressDialog.h" />
+    <ClInclude Include="..\src-ui-wx\media\ResizeImageDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
     <ClInclude Include="..\src-core\render\SequenceData.h" />
     <ClInclude Include="..\src-core\render\SequenceViewManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\SevenSegmentDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\SplashDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\StartChannelDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\StrandNodeNamesDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\SubBufferPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\SuperStarImportDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\TimingPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\tmGridCell.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\TopEffectsPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\UpdaterDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\SevenSegmentDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\SplashDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\StartChannelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\StrandNodeNamesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SubBufferPanel.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\SuperStarImportDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BlendingPanel.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\tmGridCell.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\TopEffectsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\UpdaterDialog.h" />
     <ClInclude Include="..\src-core\utils\UtilClasses.h" />
     <ClInclude Include="..\src-core\render\ValueCurve.h" />
     <ClInclude Include="..\src-core\render\ValueCurveConsts.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\ValueCurveButton.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\dialogs\ValueCurveDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\VAMPPluginDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\VideoExporter.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\VendorModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\controls\ValueCurveButton.h" />
+    <ClInclude Include="..\src-ui-wx\shared\dialogs\ValueCurveDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\VAMPPluginDialog.h" />
+    <ClInclude Include="..\src-ui-wx\media\VideoExporter.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\VendorModelDialog.h" />
     <ClInclude Include="..\src-core\media\FFmpegVideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\ViewsModelsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ViewsModelsPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VSAFile.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\VsaImportDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\WiringDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\wxCheckedListCtrl.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\xlColorCanvas.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\xlColorPicker.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\xlColorPickerFields.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlCustomControl.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlGridCanvas.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\VsaImportDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\WiringDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\wxCheckedListCtrl.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlCustomControl.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlGridCanvas.h" />
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\xLightsImportChannelMapDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlSlider.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\PixelTestDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\SequenceVideoPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\SequenceVideoPreview.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlSlider.h" />
+    <ClInclude Include="..\src-ui-wx\setup\PixelTestDialog.h" />
+    <ClInclude Include="..\src-ui-wx\media\SequenceVideoPanel.h" />
+    <ClInclude Include="..\src-ui-wx\media\SequenceVideoPreview.h" />
     <ClInclude Include="..\src-core\controllers\WebSocketClient.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\LayerSelectDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LayerSelectDialog.h" />
     <ClInclude Include="..\dependencies\md5\md5.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\VendorMusicDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\VendorMusicHelpers.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\JukeboxPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\LinkJukeboxButtonDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\VendorMusicDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\VendorMusicHelpers.h" />
+    <ClInclude Include="..\src-ui-wx\media\JukeboxPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.h" />
     <ClInclude Include="..\src-core\render\RenderUtils.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\DissolveTransitionPattern.h" />
     <ClInclude Include="..\src-core\effects\OpenGLShaders.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlLockButton.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\ViewpointDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlLockButton.h" />
+    <ClInclude Include="..\src-ui-wx\model\ViewpointDialog.h" />
     <ClInclude Include="..\src-core\render\ViewpointMgr.h" />
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\LyricUserDictDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LyricUserDictDialog.h" />
     <ClInclude Include="..\src-core\render\RenderCache.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\Parallel.h" />
     <ClInclude Include="..\src-core\models\ObjectManager.h" />
     <ClInclude Include="..\src-core\models\ViewObjectManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\ViewObjectPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\NodeSelectGrid.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\MultiControllerUploadDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\wxModelGridCellRenderer.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ViewObjectPanel.h" />
+    <ClInclude Include="..\src-ui-wx\model\NodeSelectGrid.h" />
+    <ClInclude Include="..\src-ui-wx\setup\MultiControllerUploadDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\wxModelGridCellRenderer.h" />
     <ClInclude Include="..\src-core\render\FSEQFile.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\PathGenerationDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\RemapDMXChannelsDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\setup\DiscoveryAuthDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\PathGenerationDialog.h" />
+    <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\AlignmentDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effects\CharMapDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
+    <ClInclude Include="..\src-ui-wx\effects\CharMapDialog.h" />
     <ClInclude Include="..\src-core\models\ArchesModel.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -1515,7 +1521,7 @@
     <ClInclude Include="..\src-core\models\CubeModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\CustomModelDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\CustomModelDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\CustomModel.h">
@@ -1531,6 +1537,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ImageModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\LabelModel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\MatrixModel.h">
@@ -1557,7 +1566,7 @@
     <ClInclude Include="..\src-core\models\SubModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\SubModelsDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\TreeModel.h">
@@ -1572,16 +1581,16 @@
     <ClInclude Include="..\src-core\models\ModelGroup.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\ModelFaceDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\ModelFaceDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\ModelDimmingCurveDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\ModelDimmingCurveDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ModelScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\ModelStateDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\ModelStateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\SingleLineModel.h">
@@ -1590,8 +1599,8 @@
     <ClInclude Include="..\src-core\models\MeshObject.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\ImportPreviewsModelsDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effects\ShaderDownloadDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\ImportPreviewsModelsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\effects\ShaderDownloadDialog.h" />
     <ClInclude Include="..\src-core\outputs\ZCPP.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1676,7 +1685,7 @@
     <ClInclude Include="..\src-core\controllers\FPP.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllers\FPPConnectDialog.h">
+    <ClInclude Include="..\src-ui-wx\controllers\FPPConnectDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\controllers\J1Sys.h">
@@ -1698,7 +1707,7 @@
     <ClInclude Include="..\src-core\effects\MusicEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\NoteRangeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\NoteRangeDialog.h" />
     <ClInclude Include="..\src-core\effects\ShaderEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
@@ -1768,10 +1777,10 @@
     <ClInclude Include="..\src-core\models\WindowFrameModel.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\ModelChainDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\ModelChainDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\layout\ModelGroupPanel.h">
+    <ClInclude Include="..\src-ui-wx\layout\ModelGroupPanel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\LiquidEffect.h">
@@ -1816,7 +1825,7 @@
     <ClInclude Include="..\src-core\controllers\SanDevices.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BulkEditFontPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BulkEditFontPickerDialog.h" />
     <ClInclude Include="..\src-core\outputs\NullOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1841,12 +1850,12 @@
     <ClInclude Include="..\src-core\outputs\LOROutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\EmailDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\DragValueCurveBitmapButton.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\ValueCurveRendering.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\ValueCurvesPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\ColoursPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\DragColoursBitmapButton.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\EmailDialog.h" />
+    <ClInclude Include="..\src-ui-wx\shared\controls\DragValueCurveBitmapButton.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\ValueCurveRendering.h" />
+    <ClInclude Include="..\src-ui-wx\shared\controls\ValueCurvesPanel.h" />
+    <ClInclude Include="..\src-ui-wx\color\ColoursPanel.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\DragColoursBitmapButton.h" />
     <ClInclude Include="..\src-core\utils\SpecialOptions.h" />
     <ClInclude Include="..\src-core\utils\TraceLog.h" />
     <ClInclude Include="..\src-core\effects\StrobeEffect.h">
@@ -1861,7 +1870,7 @@
     <ClInclude Include="..\src-core\controllers\HinksPix.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllers\HinksPixExportDialog.h">
+    <ClInclude Include="..\src-ui-wx\controllers\HinksPixExportDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\ColorWashEffect.h">
@@ -1901,38 +1910,38 @@
     <ClInclude Include="..\src-core\models\DMX\Servo.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\BackupSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\BackupSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\SequenceFileSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\SequenceFileSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\ViewSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\ViewSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\OtherSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\OtherSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\OutputSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\OutputSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\ColorManagerSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\ColorManagerSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\EffectsGridSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\EffectsGridSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\RandomEffectsSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\RandomEffectsSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ServoConfigDialog.h">
-      <Filter>UI\ModelProperties\Adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ServoConfigDialog.h">
+      <Filter>ModelProperties\Adapters</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\DMX\DmxSkull.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SkullConfigDialog.h">
-      <Filter>UI\ModelProperties\Adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SkullConfigDialog.h">
+      <Filter>ModelProperties\Adapters</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\controllers\ControllerCaps.h">
       <Filter>Controllers</Filter>
@@ -1950,18 +1959,18 @@
     <ClInclude Include="..\src-core\controllers\BaseController.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\setup\ControllerModelDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\SubModelGenerateDialog.h">
+    <ClInclude Include="..\src-ui-wx\setup\ControllerModelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\SubModelGenerateDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BulkEditColourPickerDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.h" />
     <ClInclude Include="..\src-core\outputs\RenardOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\outputs\OPCOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\KeyBindingEditDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\KeyBindingEditDialog.h" />
     <ClInclude Include="..\src-core\outputs\PixelNetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
@@ -1977,38 +1986,38 @@
     <ClInclude Include="..\src-core\models\DMX\DmxGeneral.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\AboutDialog.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\AboutDialog.h" />
     <ClInclude Include="..\src-core\outputs\KinetOutput.h">
       <Filter>Outputs</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\DragEffectBitmapButton.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\Effect.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectDropTarget.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\EffectLayer.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\EffectsGrid.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\Element.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\ElementLayers.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\ElementLayers.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\MainSequencer.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\MainSequencer.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\LyricBreakdown.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\LyricBreakdown.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\RowHeading.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceElements.h">
@@ -2020,13 +2029,13 @@
     <ClInclude Include="..\src-core\render\TextDrawingContext.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\TimeLine.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\UndoManager.h">
       <Filter>render</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\Waveform.h">
+    <ClInclude Include="..\src-ui-wx\sequencer\Waveform.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\TerrainObject.h">
@@ -2035,8 +2044,8 @@
     <ClInclude Include="..\src-core\models\TerrainScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\CopyFormat1.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\MediaImportOptionsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\CopyFormat1.h" />
+    <ClInclude Include="..\src-ui-wx\media\MediaImportOptionsDialog.h" />
     <ClInclude Include="..\src-core\render\SequencePackage.h" />
     <ClInclude Include="..\src-core\cad\CADModel.h">
       <Filter>cad</Filter>
@@ -2063,8 +2072,8 @@
       <Filter>Controllers</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\Pixels.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\LORPreview.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ExportSettings.h" />
+    <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\ExportSettings.h" />
     <ClInclude Include="..\src-core\graphics\xlGraphicsContext.h">
       <Filter>graphics</Filter>
     </ClInclude>
@@ -2072,7 +2081,7 @@
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\xlFontInfo.h" />
-    <ClInclude Include="..\src-ui-wx\ui\automation\ScriptsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\automation\ScriptsDialog.h" />
     <ClInclude Include="..\src-core\graphics\tiny_obj_loader.h">
       <Filter>graphics</Filter>
     </ClInclude>
@@ -2091,12 +2100,12 @@
     <ClInclude Include="..\common\xlStackWalker.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\layout\Mouse3DManager.h" />
+    <ClInclude Include="..\src-ui-wx\layout\Mouse3DManager.h" />
     <ClInclude Include="..\src-core\effects\FX.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\media\WindowsHardwareVideoReader.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\ColourReplaceDialog.h" />
+    <ClInclude Include="..\src-ui-wx\color\ColourReplaceDialog.h" />
     <ClInclude Include="..\src-core\models\BoxedScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
@@ -2109,14 +2118,14 @@
     <ClInclude Include="..\src-core\models\TwoPointScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\FindDataPanel.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\FindDataPanel.h" />
     <ClInclude Include="..\src-core\models\MultiPointModel.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\MultiPointScreenLocation.h">
       <Filter>Models</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\SearchPanel.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\SearchPanel.h" />
     <ClInclude Include="..\src-core\effects\SketchEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
@@ -2135,11 +2144,11 @@
     <ClInclude Include="..\src-core\models\DMX\DmxPresetAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\TipOfTheDayDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\import-export\ModelRemap.h" />
-    <ClInclude Include="..\src-ui-wx\ui\app-shell\RestoreBackupDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\layout\LayoutUtils.h" />
-    <ClInclude Include="..\src-ui-wx\ui\preferences\CheckSequenceSettingsPanel.h">
+    <ClInclude Include="..\src-ui-wx\app-shell\TipOfTheDayDialog.h" />
+    <ClInclude Include="..\src-ui-wx\import_export\ModelRemap.h" />
+    <ClInclude Include="..\src-ui-wx\app-shell\RestoreBackupDialog.h" />
+    <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
+    <ClInclude Include="..\src-ui-wx\preferences\CheckSequenceSettingsPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h">
@@ -2148,7 +2157,7 @@
     <ClInclude Include="..\src-core\controllers\Experience.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\BulkEditComboDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\BulkEditComboDialog.h" />
     <ClInclude Include="..\src-core\utils\string_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -2164,177 +2173,180 @@
     <ClInclude Include="..\src-core\utils\ip_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\DuplicateDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\DuplicateDialog.h" />
     <ClInclude Include="..\src-core\models\DMX\DmxColorAbilityCMY.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\GuitarEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\MetronomeLabelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\wxUtilities.h">
-      <Filter>ui</Filter>
+    <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h">
+      <Filter>shared\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerEthernetPropertyAdapter.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerNullPropertyAdapter.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerNullPropertyAdapter.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerPropertyAdapter.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerPropertyAdapter.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerPropertyManager.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerPropertyManager.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\ControllerSerialPropertyAdapter.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerSerialPropertyAdapter.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllerproperties\OutputPropertyAdapters.h">
-      <Filter>ui\controllerproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\controllerproperties\OutputPropertyAdapters.h">
+      <Filter>controllerproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\ModelPropertyAdapter.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyAdapter.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\ModelPropertyManager.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\ModelPropertyManager.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\MatrixPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\MatrixPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ArchesPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ArchesPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\CandyCanePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\CandyCanePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ChannelBlockPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ChannelBlockPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\CirclePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\CirclePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\CubePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\CubePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\CustomPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\CustomPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PolyLinePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\PolyLinePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\MultiPointPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\MultiPointPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxGeneralPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxGeneralPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxFloodlightPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxFloodlightPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxMovingHeadPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxMovingHeadPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxMovingHeadAdvPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxSkullPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxSkullPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxServoPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxServoPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\DmxServo3dPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\DmxServo3dPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SubModelPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SubModelPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\MeshObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\MeshObjectPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ImageObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ImageObjectPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\GridlinesObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\GridlinesObjectPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\TerrainObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\TerrainObjectPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\RulerObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\RulerObjectPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\ViewObjectPropertyAdapter.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\ViewObjectPropertyAdapter.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\ViewObjectPropertyManager.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\ViewObjectPropertyManager.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\IciclesPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\IciclesPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\ImagePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\ImagePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SingleLinePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\LabelPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SpherePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SingleLinePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\SpinnerPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SpherePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\StarPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\SpinnerPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\TreePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\StarPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\WindowFramePropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\TreePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\WreathPropertyAdapter.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\WindowFramePropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\PropertyGridHelpers.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\WreathPropertyAdapter.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\ScreenLocationPropertyHelper.h">
-      <Filter>ui\modelproperties</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\PropertyGridHelpers.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\helpers\DmxAbilityPropertyHelpers.h">
-      <Filter>ui\modelproperties\helpers</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\ScreenLocationPropertyHelper.h">
+      <Filter>modelproperties</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\helpers\DmxComponentPropertyHelpers.h">
-      <Filter>ui\modelproperties\helpers</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\helpers\DmxAbilityPropertyHelpers.h">
+      <Filter>modelproperties\helpers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\controllers\FPPUploadProgressDialog.h">
+    <ClInclude Include="..\src-ui-wx\modelproperties\helpers\DmxComponentPropertyHelpers.h">
+      <Filter>modelproperties\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\controllers\FPPUploadProgressDialog.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\sequencer\AutoLabelDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\AutoLabelDialog.h" />
     <ClInclude Include="..\src-core\effects\DuplicateEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\AdjustEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\model\EditAliasesDialog.h">
+    <ClInclude Include="..\src-ui-wx\model\EditAliasesDialog.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\xlColourData.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourData.h" />
     <ClInclude Include="..\src-core\utils\xlImage.h" />
     <ClInclude Include="..\src-core\utils\Base64.h" />
     <ClInclude Include="..\src-core\utils\XsqFileScanner.h" />
-    <ClInclude Include="..\src-ui-wx\ui\model\EditSubmodelAliasesDialog.h" />
+    <ClInclude Include="..\src-ui-wx\model\EditSubmodelAliasesDialog.h" />
     <ClInclude Include="..\src-core\models\DMX\DmxDimmerAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2347,26 +2359,26 @@
     <ClInclude Include="..\src-core\models\DMX\DmxMovingHeadComm.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadCanvasPanel.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHRgbPickerPanel.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHRgbPickerPanel.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHColorWheelPanel.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorWheelPanel.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHColorPanel.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHColorPanel.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\ShowFolderSearchDialog.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\effects\ispc\ISPCComputeUtilities.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\ispc\LayerBlendingFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\preferences\ServicesPanel.h">
+    <ClInclude Include="..\src-ui-wx\preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ai\aiBase.h">
@@ -2378,7 +2390,7 @@
     <ClInclude Include="..\src-ui-wx\ai\claude.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-ui-wx\diagnostics\CheckSequenceReport.h" />
     <ClInclude Include="..\src-ui-wx\ai\ollama.h">
       <Filter>ai</Filter>
     </ClInclude>
@@ -2425,8 +2437,8 @@
     <ClInclude Include="..\src-core\models\DMX\DmxBeamAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\media\ManageMediaPanel.h" />
-    <ClInclude Include="..\src-ui-wx\ui\media\ShaderPreviewGenerator.h" />
+    <ClInclude Include="..\src-ui-wx\media\ManageMediaPanel.h" />
+    <ClInclude Include="..\src-ui-wx\media\ShaderPreviewGenerator.h" />
     <ClInclude Include="..\src-core\XmlSerializer\GdtfParser.h" />
     <ClInclude Include="..\src-ui-wx\ai\gemini.h">
       <Filter>ai</Filter>
@@ -2440,89 +2452,89 @@
     <ClInclude Include="..\src-ui-wx\ai\OpenAIImageGenerator.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\DMXPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\DMXPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\FacesPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\FacesPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MorphPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MorphPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\PicturesPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\PicturesPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ServoPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\ServoPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShaderPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\ShaderPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\SketchCanvasPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SketchPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\SketchPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\StatePanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\StatePanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\TextPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\TextPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\VideoPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\VideoPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\VUMeterPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\VUMeterPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\AdjustPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\AdjustPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\DuplicatePanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\DuplicatePanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MusicPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MusicPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\PianoPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\PianoPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\RipplePanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\RipplePanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\ShapePanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\ShapePanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\SnowflakesPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\SnowflakesPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\WavePanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\WavePanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\WarpPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\WarpPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\AssistPanel.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\AssistPanel.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\SketchAssistPanel.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchAssistPanel.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\PicturesAssistPanel.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\PicturesAssistPanel.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasPictures.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasPictures.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasMorph.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasMorph.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\assist\xlGridCanvasEmpty.h">
-      <Filter>ui\effectpanels\assist</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\assist\xlGridCanvasEmpty.h">
+      <Filter>effectpanels\assist</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\ai\AIImageDialog.h">
       <Filter>ai</Filter>
@@ -2572,11 +2584,11 @@
     <ClInclude Include="..\src-core\effects\ispc\VideoFunctions.ispc.h">
       <Filter>Effects\ispc</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHPathPresetBitmapButton.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPathPresetBitmapButton.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHPresetBitmapButton.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHPresetBitmapButton.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\DMX\MovingHeads\MhFeature.h">
       <Filter>Models\DMX</Filter>
@@ -2593,17 +2605,17 @@
     <ClInclude Include="..\dependencies\wxHTTPServer\wxhttpserver.h">
       <Filter>wxHTTPServer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\EffectIconCache.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\EffectIconCache.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\EffectPanelUtils.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\EffectPanelUtils.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\EffectPanelManager.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\EffectPanelManager.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\JsonEffectPanel.h">
-      <Filter>ui\effectpanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\JsonEffectPanel.h">
+      <Filter>effectpanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\EffectManager.h">
       <Filter>Effects</Filter>
@@ -2671,38 +2683,38 @@
     <ClInclude Include="..\src-core\graphics\GLContextManager.h">
       <Filter>graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\graphics\xlGraphicsBase.h">
+    <ClInclude Include="..\src-ui-wx\graphics\xlGraphicsBase.h">
       <Filter>graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\ExternalHooksUI.h">
+    <ClInclude Include="..\src-ui-wx\shared\utils\ExternalHooksUI.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xlPropertyGrid.h">
+    <ClInclude Include="..\src-ui-wx\shared\utils\xlPropertyGrid.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\dialogs\CheckboxSelectDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\shared\dialogs\CheckboxSelectDialog.h" />
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MHDimmerPresetBitmapButton.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.h">
-      <Filter>ui\effectpanels\MovingHeadPanels</Filter>
+    <ClInclude Include="..\src-ui-wx\effectpanels\MovingHeadPanels\MovingHeadDimmerPanel.h">
+      <Filter>effectpanels\MovingHeadPanels</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\discovery\Discovery.h" />
-    <ClInclude Include="..\src-ui-wx\ui\graphics\opengl\xlGLCanvas.h">
+    <ClInclude Include="..\src-ui-wx\graphics\opengl\xlGLCanvas.h">
       <Filter>graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ui\shared\utils\xLightsTimer.h">
+    <ClInclude Include="..\src-ui-wx\shared\utils\xLightsTimer.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\FileUtils.h" />
     <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
-    <ClInclude Include="..\src-ui-wx\ui\graphics\opengl\xlOGL3GraphicsContext.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveButton.h" />
-    <ClInclude Include="..\src-ui-wx\ui\color\wxColorCurveRenderer.h" />
-    <ClInclude Include="..\src-ui-wx\ui\support\EzGrid.h" />
-    <ClInclude Include="..\src-ui-wx\ui\support\FastComboEditor.h" />
-    <ClInclude Include="..\src-ui-wx\ui\support\GridCellChoiceRenderer.h" />
+    <ClInclude Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.h" />
+    <ClInclude Include="..\src-ui-wx\color\wxColorCurveButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\wxColorCurveRenderer.h" />
+    <ClInclude Include="..\src-ui-wx\support\EzGrid.h" />
+    <ClInclude Include="..\src-ui-wx\support\FastComboEditor.h" />
+    <ClInclude Include="..\src-ui-wx\support\GridCellChoiceRenderer.h" />
     <ClInclude Include="..\dependencies\vamp-hostsdk\Files.h" />
     <ClInclude Include="..\dependencies\vamp-hostsdk\host-c.h" />
     <ClInclude Include="..\dependencies\vamp-hostsdk\hostguard.h" />
@@ -2723,11 +2735,11 @@
     <ClInclude Include="..\dependencies\vamp-hostsdk\vamp-hostsdk.h" />
     <ClInclude Include="..\dependencies\vamp-hostsdk\vamp.h" />
     <ClInclude Include="..\dependencies\vamp-hostsdk\Window.h" />
-    <ClInclude Include="..\src-ui-wx\ui\shared\controls\MediaPickerCtrl.h" />
-    <ClInclude Include="..\src-ui-wx\ui\graphics\wxTextDrawingContext.h" />
+    <ClInclude Include="..\src-ui-wx\shared\controls\MediaPickerCtrl.h" />
+    <ClInclude Include="..\src-ui-wx\graphics\wxTextDrawingContext.h" />
     <ClInclude Include="..\src-core\effects\ispc\CirclesFunctions.ispc.h" />
-    <ClInclude Include="..\src-ui-wx\ui\modelproperties\adapters\PositionZoneDialog.h">
-      <Filter>ui\modelproperties\adapters</Filter>
+    <ClInclude Include="..\src-ui-wx\modelproperties\adapters\PositionZoneDialog.h">
+      <Filter>modelproperties\adapters</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
     <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
@@ -2773,19 +2785,16 @@
     <Filter Include="common">
       <UniqueIdentifier>{d66f2316-0042-426b-8102-445d990406d2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui">
-      <UniqueIdentifier>{a3b2c1d0-1234-5678-abcd-ef0123456789}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ui\controllerproperties">
+    <Filter Include="controllerproperties">
       <UniqueIdentifier>{e7f6a5b4-5678-9abc-ef01-23456789abcd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\modelproperties">
+    <Filter Include="modelproperties">
       <UniqueIdentifier>{b4c3d2e1-2345-6789-bcde-f01234567890}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\modelproperties\adapters">
+    <Filter Include="modelproperties\adapters">
       <UniqueIdentifier>{c5d4e3f2-3456-789a-cdef-012345678901}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\modelproperties\helpers">
+    <Filter Include="modelproperties\helpers">
       <UniqueIdentifier>{d6e5f4a3-4567-89ab-def0-123456789012}</UniqueIdentifier>
     </Filter>
     <Filter Include="utils">
@@ -2806,13 +2815,13 @@
     <Filter Include="XmlSerializer">
       <UniqueIdentifier>{a607134a-9f54-4e95-bde9-6ce848d33a6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\effectpanels">
+    <Filter Include="effectpanels">
       <UniqueIdentifier>{8bfcf60f-4c95-43c2-9b4e-21ce7d04216d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\effectpanels\assist">
+    <Filter Include="effectpanels\assist">
       <UniqueIdentifier>{a062af6d-bd36-4c27-b9f5-62d65e7ba7a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ui\effectpanels\MovingHeadPanels">
+    <Filter Include="effectpanels\MovingHeadPanels">
       <UniqueIdentifier>{dea5bd41-37f4-437f-872b-6b26dc00a5c9}</UniqueIdentifier>
     </Filter>
     <Filter Include="vamp-hostsdk">

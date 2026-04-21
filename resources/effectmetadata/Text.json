@@ -39,9 +39,29 @@
             "id": "Text_Font_XL_Row",
             "label": "XL Font",
             "description": "Selects an xLights bitmap font (under fonts/) to use instead of the OS font. 'Use OS Fonts' falls back to the Font picker above.",
-            "type": "string",
+            "type": "enum",
             "controlType": "custom",
-            "default": ""
+            "default": "Use OS Fonts",
+            "options": [
+                "Use OS Fonts",
+                "5-5x5 Thin",
+                "5-5x5 Mono",
+                "6-5x6 Thin",
+                "6-5x6 Thin Vertical",
+                "6-6x6 Thin",
+                "6-6x6 Thin Vertical",
+                "7-7x9 Thin",
+                "7-7x9 Thin Narrow",
+                "7-7x9 Bold",
+                "8-8x8 Thin",
+                "8-8x8 Thin Vertical",
+                "10-12x12 Bold",
+                "10-12x12 Bold Vertical",
+                "10-12x12 Thin",
+                "10-12x12 Thin Vertical",
+                "12-15x15 Bold",
+                "12-15x15 Bold Vertical"
+            ]
         },
         {
             "id": "Text_Dir",

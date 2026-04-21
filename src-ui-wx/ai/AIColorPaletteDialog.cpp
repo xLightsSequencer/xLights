@@ -24,7 +24,7 @@ END_EVENT_TABLE()
 
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
-#include "../ui/sequencer/MainSequencer.h"
+#include "../sequencer/MainSequencer.h"
 #include "../ai/aiBase.h"
 
 AIColorPaletteDialog::AIColorPaletteDialog(wxWindow* parent,wxWindowID id)

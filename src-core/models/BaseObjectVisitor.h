@@ -27,6 +27,7 @@ class DmxServo3d;
 class DmxSkull;
 class ImageModel;
 class IciclesModel;
+class LabelModel;
 class MatrixModel;
 class ModelGroup;
 class MultiPointModel;
@@ -63,6 +64,7 @@ public:
     virtual void Visit(const DmxSkull& model) = 0;
     virtual void Visit(const ImageModel& model) = 0;
     virtual void Visit(const IciclesModel& model) = 0;
+    virtual void Visit(const LabelModel& model) = 0;
     virtual void Visit(const MatrixModel& model) = 0;
     virtual void Visit(const ModelGroup& model) = 0;
     virtual void Visit(const MultiPointModel& model) = 0;

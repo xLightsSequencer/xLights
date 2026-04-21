@@ -27,6 +27,9 @@
 #include "../utils/string_utils.h"
 #include "outputs/OutputManager.h"
 #include "../graphics/IModelPreview.h"
+#include "../graphics/xlGraphicsAccumulators.h"
+#include "../graphics/xlGraphicsContext.h"
+#include "../utils/xlImage.h"
 #include "RulerObject.h"
 #include "../XmlSerializer/XmlSerializer.h"
 #include "../XmlSerializer/XmlNodeKeys.h"
@@ -48,6 +51,10 @@ CustomModel::CustomModel(const ModelManager &manager) : ModelWithScreenLocation(
 CustomModel::~CustomModel()
 {
     _locations.clear();
+    for (auto& it : _bkg_images) {
+        delete it.second;
+    }
+    _bkg_images.clear();
 }
 
 
@@ -131,6 +138,119 @@ void CustomModel::SetCustomData(const std::vector<std::vector<std::vector<int>>>
 void CustomModel::SetCustomBackground(std::string background)
 {
     _custom_background = background;
+    for (auto& it : _bkg_images) {
+        delete it.second;
+    }
+    _bkg_images.clear();
+}
+
+void CustomModel::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
+                                       xlGraphicsProgram* solidProgram, xlGraphicsProgram* transparentProgram, bool is_3d,
+                                       const xlColor* color, bool allowSelected, bool wiring,
+                                       bool highlightFirst, int highlightpixel,
+                                       float* boundingBox)
+{
+    if (!_custom_background.empty() && FileExists(_custom_background)) {
+        xlTexture* texture = _bkg_images[preview->getName()];
+        if (texture == nullptr) {
+            xlImage img;
+            if (img.LoadFromFile(_custom_background)) {
+                texture = ctx->createTexture(img, GetName() + "_bkg", true);
+                _bkg_images[preview->getName()] = texture;
+            }
+        }
+        if (texture) {
+            // Node positions are offset by half a cell, so center the image accordingly.
+            static const float kHalfCellOffset = -0.5f;
+            float hw = (GetModelScreenLocation().GetRenderWi() / 2.0f) * _bkg_scale / 100.0f;
+            float hh = (GetModelScreenLocation().GetRenderHt() / 2.0f) * _bkg_scale / 100.0f;
+            float cx = kHalfCellOffset;
+            float cy = kHalfCellOffset;
+            xlVertexTextureAccumulator* va = ctx->createVertexTextureAccumulator();
+            va->PreAlloc(6);
+            va->AddVertex(cx - hw, cy - hh, 0.0f, 0.0f, 1.0f);
+            va->AddVertex(cx + hw, cy - hh, 0.0f, 1.0f, 1.0f);
+            va->AddVertex(cx - hw, cy + hh, 0.0f, 0.0f, 0.0f);
+            va->AddVertex(cx - hw, cy + hh, 0.0f, 0.0f, 0.0f);
+            va->AddVertex(cx + hw, cy - hh, 0.0f, 1.0f, 1.0f);
+            va->AddVertex(cx + hw, cy + hh, 0.0f, 1.0f, 0.0f);
+            GetModelScreenLocation().PrepareToDraw(is_3d, allowSelected);
+            solidProgram->addStep([=, this](xlGraphicsContext* ctx) {
+                ctx->PushMatrix();
+                if (!is_3d) {
+                    ctx->ScaleViewMatrix(1.0f, 1.0f, 0.0f);
+                }
+                GetModelScreenLocation().ApplyModelViewMatrices(ctx);
+                ctx->drawTexture(va, texture, _bkg_brightness, 255, 0, va->getCount());
+                ctx->PopMatrix();
+                delete va;
+            });
+        }
+    }
+    Model::DisplayModelOnWindow(preview, ctx, solidProgram, transparentProgram, is_3d,
+                                color, allowSelected, wiring, highlightFirst, highlightpixel, boundingBox);
+}
+
+void CustomModel::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
+{
+    bool mustEnd = false;
+    xlGraphicsContext* ctx = preview->getCurrentGraphicsContext();
+    if (ctx == nullptr) {
+        if (!preview->StartDrawing(pointSize)) {
+            return;
+        }
+        ctx = preview->getCurrentGraphicsContext();
+        mustEnd = true;
+    }
+
+    if (!_custom_background.empty() && FileExists(_custom_background)) {
+        xlTexture* texture = _bkg_images[preview->getName()];
+        if (texture == nullptr) {
+            xlImage img;
+            if (img.LoadFromFile(_custom_background)) {
+                texture = ctx->createTexture(img, GetName() + "_bkg", true);
+                _bkg_images[preview->getName()] = texture;
+            }
+        }
+        if (texture) {
+            int w, h;
+            float scale = GetPreviewDimScale(preview, w, h);
+            float ml, mb;
+            GetMinScreenXY(ml, mb);
+            ml += GetModelScreenLocation().RenderWi / 2;
+            mb += GetModelScreenLocation().RenderHt / 2;
+
+            float hw = (GetModelScreenLocation().GetRenderWi() / 2.0f) * _bkg_scale / 100.0f;
+            float hh = (GetModelScreenLocation().GetRenderHt() / 2.0f) * _bkg_scale / 100.0f;
+
+            xlVertexTextureAccumulator* va = ctx->createVertexTextureAccumulator();
+            va->PreAlloc(6);
+            va->AddVertex(-hw, -hh, 0.0f, 0.0f, 1.0f);
+            va->AddVertex(+hw, -hh, 0.0f, 1.0f, 1.0f);
+            va->AddVertex(-hw, +hh, 0.0f, 0.0f, 0.0f);
+            va->AddVertex(-hw, +hh, 0.0f, 0.0f, 0.0f);
+            va->AddVertex(+hw, -hh, 0.0f, 1.0f, 1.0f);
+            va->AddVertex(+hw, +hh, 0.0f, 1.0f, 0.0f);
+
+            int brightness = _bkg_brightness;
+            preview->getCurrentSolidProgram()->addStep([=](xlGraphicsContext* ctx) {
+                ctx->PushMatrix();
+                ctx->Translate(w / 2.0f - ml * scale, h / 2.0f - mb * scale, 0.0f);
+                ctx->Scale(scale, scale, 1.0f);
+                ctx->drawTexture(va, texture, brightness, 255, 0, va->getCount());
+                ctx->PopMatrix();
+                delete va;
+            });
+        }
+    }
+
+    // Let the base class add its node-rendering step after the background.
+    // Since ctx is non-null here, the base won't call StartDrawing or EndDrawing itself.
+    Model::DisplayEffectOnWindow(preview, pointSize);
+
+    if (mustEnd) {
+        preview->EndDrawing();
+    }
 }
 
 bool CustomModel::CleanupFileLocations(RenderContext* ctx)

@@ -1,5 +1,64 @@
 {
     "effectName": "Shape",
+    "groups": [
+        {
+            "type": "tabs",
+            "tabs": [
+                {
+                    "label": "Shape",
+                    "properties": [
+                        "Shape_ObjectToDraw",
+                        "Shape_Font",
+                        "Shape_Char",
+                        "Shape_SkinTone",
+                        "SVG"
+                    ]
+                },
+                {
+                    "label": "Size",
+                    "properties": [
+                        "Shape_Thickness",
+                        "Shape_Count",
+                        "Shape_StartSize",
+                        "Shape_RandomInitial",
+                        "Shape_Growth",
+                        "Shape_Points",
+                        "Shape_Rotation"
+                    ]
+                },
+                {
+                    "label": "Motion",
+                    "properties": [
+                        "Shape_CentreX",
+                        "Shape_CentreY",
+                        "Shapes_Velocity",
+                        "Shapes_Direction",
+                        "Shape_Lifetime",
+                        "Shape_RandomLocation",
+                        "Shapes_RandomMovement",
+                        "Shape_FadeAway",
+                        "Shape_HoldColour"
+                    ]
+                },
+                {
+                    "label": "Triggers",
+                    "properties": [
+                        "Shape_UseMusic",
+                        "Shape_Sensitivity",
+                        "Shape_FireTiming",
+                        "Shape_FireTimingTrack",
+                        "Shape_FilterLabel",
+                        "Shape_FilterReg"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "xyCenter",
+            "xProperty": "Shape_CentreX",
+            "yProperty": "Shape_CentreY"
+        }
+    ],
     "properties": [
         {
             "id": "Shape_ObjectToDraw",
@@ -266,7 +325,8 @@
             "options": [],
             "default": "",
             "description": "Selects which timing track to use for triggering new shapes when Fire with timing track is enabled.",
-            "dynamicOptions": "timingTracks"
+            "dynamicOptions": "timingTracks",
+            "expandToFill": true
         },
         {
             "id": "Shape_FilterLabel",

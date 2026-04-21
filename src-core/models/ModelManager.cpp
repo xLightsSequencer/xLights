@@ -27,6 +27,7 @@
 #include "utils/ExternalHooks.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
+#include "LabelModel.h"
 #include "Model.h"
 #include "ModelGroup.h"
 #include "ModelManager.h"
@@ -1338,6 +1339,14 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
         protocol = xlEMPTY_STRING;
         dynamic_cast<ImageModel*>(model)->SetImageFile("");
         model->SetStringType("Single Color White");
+    } else if (type == "Label") {
+        auto* m = new LabelModel(*this);
+        protocol = xlEMPTY_STRING;
+        m->SetLabelText("Label");
+        m->SetLabelFontSize(14);
+        m->SetLabelTextColor(xlWHITE);
+        m->SetStringType("Single Color White");
+        model = m;
     } else if (type == "Window Frame") {
         auto* m = new WindowFrameModel(*this);
         m->SetTopNodes(16);

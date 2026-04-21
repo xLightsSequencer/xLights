@@ -355,6 +355,16 @@ bool ColorCurve::IsSetPoint(float offset)
 
 void ColorCurve::DeletePoint(float offset)
 {
+    // The equality check below uses a normalised comparison
+    // (`operator==` → `x == Normalise(r)`), but the walk termination
+    // uses raw `<=`. For an `offset` that isn't already on the
+    // 1/100 grid and an existing point at `Normalise(offset)`, raw
+    // `<=` exits one iteration too early and the point is never
+    // reached. Snap on entry so both comparisons operate in the
+    // same space. (Previously this showed up on iPad as drag-move
+    // spawning ghost points — raw drag x values rarely land exactly
+    // on a grid boundary.)
+    offset = ccSortableColorPoint::Normalise(offset);
     if (GetPointCount() > 1)
     {
         auto it = _values.begin();
@@ -424,6 +434,13 @@ void ColorCurve::LoadXCC(const std::string& filename)
 
 void ColorCurve::SetValueAt(float offset, xlColor c)
 {
+    // Snap to the grid before the replace-or-insert walk. See
+    // `DeletePoint` for the full explanation — raw `<=` vs
+    // normalised `==` along the search path would otherwise let
+    // the walk exit too early and leave the existing point in
+    // place, so `push_back` ends up writing a duplicate at the
+    // same grid cell.
+    offset = ccSortableColorPoint::Normalise(offset);
     auto it = _values.begin();
     while (it != _values.end() && *it <= offset)
     {

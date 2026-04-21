@@ -9,6 +9,7 @@
             "options": [],
             "default": "",
             "dynamicOptions": "states",
+            "expandToFill": true,
             "description": "Selects which state definition to use from the model's configured state maps (e.g., SingleNode, NodeRange, or custom state definitions)."
         },
         {

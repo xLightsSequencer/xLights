@@ -1,0 +1,181 @@
+name: xlights
+title: xLights
+version: '2026.06.2'
+summary: Free and open source lighting sequencer for holiday and event displays
+description: |
+  xLights is a free, open-source program that enables you to design, create, and
+  play amazing lighting displays through the use of DMX controllers, E1.31
+  (sACN), ArtNet, DDP, and other protocols.
+
+  Key features:
+    - Timeline-based sequence editor with 50+ built-in effects
+    - Upload support for FPP, Falcon, WLED, HinksPix, Minleon, and many more
+    - Audio synchronisation and phoneme-based lip sync
+    - 3D OpenGL model preview
+    - Morph, Shader, Video, Picture, Glediator, and many other effects
+    - Cross-platform: Linux, macOS, Windows
+
+  Supported output protocols: E1.31 (sACN), ArtNet, DDP, ZCPP, OPC, DMX, LOR,
+  and more. Connects to serial and network-based controllers.
+
+  Website: https://xlights.org
+  Source:  https://github.com/xLightsSequencer/xLights
+
+grade: stable
+confinement: strict
+base: core24
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  xlights:
+    command: usr/bin/xLights
+    desktop: usr/share/applications/xlights.desktop
+    # No gnome extension — it injects gnome-46-2404-sdk GCC-13 headers into
+    # the build environment which conflict with wxWidgets' bmpsvg.cpp (unqualified
+    # isnan).  Desktop integration is handled via plugs and environment below.
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl           # 3D model preview
+      - audio-playback   # sequence audio playback
+      - network          # controller discovery and upload
+      - network-bind     # sACN / ArtNet listener
+      - home             # show directory and sequence files in $HOME
+      - removable-media  # show directories on USB drives / external storage
+      - raw-usb          # USB DMX dongles
+      - serial-port      # RS-485 / serial DMX adapters
+    environment:
+      # GTK3 environment so wxWidgets can find schemas, themes, and modules
+      GSETTINGS_SCHEMA_DIR: $SNAP/usr/share/glib-2.0/schemas
+      GIO_MODULE_DIR: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gio/modules
+      XDG_DATA_DIRS: $SNAP/usr/share:$XDG_DATA_DIRS
+      # GStreamer plugins bundled in the snap
+      GST_PLUGIN_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gstreamer-1.0
+      GST_PLUGIN_SYSTEM_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gstreamer-1.0
+
+# Map the standard FHS data path into the snap so xLights can find resources
+# using the same absolute path it expects from a system install.
+layout:
+  /usr/share/xLights:
+    bind: $SNAP/usr/share/xLights
+
+parts:
+  xlights:
+    plugin: make
+    source: .
+    source-type: git
+
+    build-packages:
+      # Build toolchain
+      - build-essential
+      - git
+      - curl
+      - wget
+      - pkg-config
+      - cbp2make           # converts xLights.cbp -> xLights.cbp.mak
+      # wxWidgets 3.3 build dependencies
+      - libgtk-3-dev
+      - libgstreamer1.0-dev
+      - libgstreamer-plugins-base1.0-dev
+      - libsecret-1-dev
+      - libegl-dev
+      - libgl-dev
+      - libglu1-mesa-dev
+      - freeglut3-dev
+      # FFmpeg (audio/video decoding)
+      - libavcodec-dev
+      - libavformat-dev
+      - libswscale-dev
+      - libswresample-dev
+      - libavutil-dev
+      # Audio
+      - libsdl2-dev
+      - libpulse-dev
+      - libasound2-dev
+      - libportmidi-dev
+      # Networking / HTTP
+      - libcurl4-openssl-dev
+      # Compression
+      - libzstd-dev
+      # Image formats
+      - libwebp-dev
+      # X11 (needed by wxWidgets even in GTK3 mode)
+      - libx11-dev
+      - libxext-dev
+      # Lua (xLights scripting; Ubuntu pkg-config name is lua5.3 / lua5.4)
+      - liblua5.3-dev
+      - liblua5.4-dev
+
+    override-build: |
+      # Build wxWidgets, ISPC, and xLights sequentially.
+      # PREFIX=/usr installs wxWidgets into the container's /usr so that
+      # wx-config is on PATH before the xLights compile starts.
+      # SUDO= because we are already root inside the LXD container.
+      make -j4 SUDO= PREFIX=/usr
+      # Install xLights artefacts into the snap's staging area.
+      make install DESTDIR="$CRAFT_PART_INSTALL" SUDO= PREFIX=/usr
+
+    stage-packages:
+      # GTK3 runtime
+      - libgtk-3-0t64
+      - libgtk-3-common
+      - gsettings-desktop-schemas
+      - libglib2.0-0t64
+      - libglib2.0-data
+      # GStreamer (audio/video playback)
+      - libgstreamer1.0-0
+      - libgstreamer-plugins-base1.0-0
+      - gstreamer1.0-plugins-base
+      - gstreamer1.0-plugins-good
+      - gstreamer1.0-alsa
+      - gstreamer1.0-pulseaudio
+      # FFmpeg
+      - libavcodec60
+      - libavformat60
+      - libswscale7
+      - libswresample4
+      - libavutil58
+      # Audio
+      - libsdl2-2.0-0
+      - libpulse0
+      - libasound2t64
+      - libportmidi0
+      # OpenGL / EGL
+      - libgl1
+      - libglu1-mesa
+      - libgles2
+      - libegl1
+      # HTTP (controller uploads)
+      - libcurl4t64
+      # Compression
+      - libzstd1
+      # Image formats
+      - libwebp7
+      # Secret / keyring
+      - libsecret-1-0
+      # GIO modules (needed for gsettings back-ends)
+      - libglib2.0-bin
+      # X11 / Wayland
+      - libx11-6
+      - libxext6
+      - libxrender1
+      - libwayland-client0
+      - libwayland-cursor0
+      - libwayland-egl1
+      - libxkbcommon0
+
+  # The upstream Makefile installs then immediately removes xlights.desktop
+  # (Makefile lines 133 vs 163).  Re-install it via a separate dump part.
+  desktop-file:
+    plugin: dump
+    source: .
+    source-type: git
+    organize:
+      bin/xlights.desktop: usr/share/applications/xlights.desktop
+    prime:
+      - usr/share/applications/xlights.desktop

@@ -15,7 +15,7 @@
 #include "xLightsMain.h"
 #include "utils/CurlManager.h"
 #include "UtilFunctions.h"
-#include "ui/shared/utils/wxUtilities.h"
+#include "shared/utils/wxUtilities.h"
 
 #include <wx/secretstore.h>
 #include <wx/filename.h>

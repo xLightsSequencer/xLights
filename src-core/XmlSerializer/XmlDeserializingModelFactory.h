@@ -48,6 +48,7 @@ private:
     Model* DeserializeCustom(pugi::xml_node node, ModelManager& modelManager, bool importing);
     Model* DeserializeIcicles(pugi::xml_node node, ModelManager& modelManager, bool importing);
     Model* DeserializeImage(pugi::xml_node node, ModelManager& modelManager, bool importing);
+    Model* DeserializeLabel(pugi::xml_node node, ModelManager& modelManager, bool importing);
     Model* DeserializeMatrix(pugi::xml_node node, ModelManager& modelManager, bool importing);
     Model* DeserializeMultiPoint(pugi::xml_node node, ModelManager& modelManager, bool importing);
     Model* DeserializeSingleLine(pugi::xml_node node, ModelManager& modelManager, bool importing);

@@ -31,6 +31,7 @@ std::string DisplayAsTypeToString(DisplayAsType type) {
         case DisplayAsType::DmxSkull:         return XmlNodeKeys::DmxSkullType;
         case DisplayAsType::Icicles:          return XmlNodeKeys::IciclesType;
         case DisplayAsType::Image:            return XmlNodeKeys::ImageType;
+        case DisplayAsType::Label:            return XmlNodeKeys::LabelType;
         case DisplayAsType::Matrix:           return XmlNodeKeys::MatrixType;
         case DisplayAsType::ModelGroup:       return XmlNodeKeys::ModelGroupType;
         case DisplayAsType::MultiPoint:       return XmlNodeKeys::MultiPointType;
@@ -73,6 +74,7 @@ DisplayAsType DisplayAsTypeFromString(const std::string& str) {
         {XmlNodeKeys::DmxSkullType,         DisplayAsType::DmxSkull},
         {XmlNodeKeys::IciclesType,          DisplayAsType::Icicles},
         {XmlNodeKeys::ImageType,            DisplayAsType::Image},
+        {XmlNodeKeys::LabelType,            DisplayAsType::Label},
         {XmlNodeKeys::MatrixType,           DisplayAsType::Matrix},
         {XmlNodeKeys::ModelGroupType,       DisplayAsType::ModelGroup},
         {XmlNodeKeys::MultiPointType,       DisplayAsType::MultiPoint},
