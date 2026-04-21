@@ -3304,6 +3304,7 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
     std::vector<wxRealPoint> pts;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
     auto oldNodeArrray = Split(oldnodes, ',');
+    oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), ""), oldNodeArrray.end());
 
     //toggle nodes if double click
     bool found = false;
@@ -3403,6 +3404,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
 
     auto oldNodeArrray = Split(oldnodes, ',');
+    oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), ""), oldNodeArrray.end());
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
         bool found = false;
