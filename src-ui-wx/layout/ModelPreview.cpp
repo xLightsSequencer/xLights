@@ -863,24 +863,13 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
                 } else {
                     infoStr = m->GetStartChannelInDisplayFormat(xl->GetOutputManager());
                 }
-<<<<<<< HEAD:src-ui-wx/ui/layout/ModelPreview.cpp
-                float const infoYBase = showNames ? (yBase + charH + lineGap) : yBase;
-                float const infoWidth = font.widthOf(infoStr, factor);
-                font.populate(*vta, cx - infoWidth / 2.0f, infoYBase, infoStr, factor);
-=======
                 float const infoYBase = showNames ? (nameYBase + charH + lineGap) : nameYBase;
                 float const infoWidth = font.widthOf(infoStr, factor);
                 font.populate(*vta, nameX - infoWidth / 2.0f, infoYBase, infoStr, factor);
->>>>>>> master:src-ui-wx/layout/ModelPreview.cpp
             }
         }
         if (vta->getCount() > 0) {
             ctx->PushMatrix();
-<<<<<<< HEAD:src-ui-wx/ui/layout/ModelPreview.cpp
-            ctx->Scale(1.0f, -1.0f, 1.0f);
-            ctx->Translate(0.0f, -vH, 0.0f);
-            ctx->enableBlending();
-=======
             ctx->enableBlending();
             if (is3dMode) {
                 // Replace perspective MVP with screen-space ortho (Y-flip already baked
@@ -892,7 +881,6 @@ void ModelPreview::DrawModelNames(const std::vector<Model*>& models)
                 ctx->Scale(1.0f, -1.0f, 1.0f);
                 ctx->Translate(0.0f, -vH, 0.0f);
             }
->>>>>>> master:src-ui-wx/layout/ModelPreview.cpp
             ctx->drawTexture(vta, tex, xlWHITE);
             ctx->PopMatrix();
         }
