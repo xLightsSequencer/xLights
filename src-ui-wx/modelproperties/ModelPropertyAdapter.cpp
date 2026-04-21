@@ -241,6 +241,26 @@ protected:
     int m_tp = 0;
 };
 
+// Helpers to format the popup-dialog row labels with their current counts.
+// Kept free functions so AddProperties and UpdateProperties can both reuse
+// them without duplicating the format strings. See issue #5905.
+namespace {
+wxString FormatStrandNodeNamesLabel(const Model& m) {
+    const auto nodes = m.GetNodeCount();
+    return wxString::Format("Strand/Node Names (%u %s)",
+                            nodes, nodes == 1 ? "node" : "nodes");
+}
+wxString FormatFacesLabel(const Model& m) {
+    return wxString::Format("Faces (%zu)", m.GetFaceInfo().size());
+}
+wxString FormatStatesLabel(const Model& m) {
+    return wxString::Format("States (%zu)", m.GetStateInfo().size());
+}
+wxString FormatSubModelsLabel(const Model& m) {
+    return wxString::Format("SubModels (%d)", m.GetNumSubModels());
+}
+} // namespace
+
 class StartChannelProperty : public wxStringProperty {
 public:
     StartChannelProperty(Model* m, int strand, const wxString& label, const wxString& name,
@@ -392,34 +412,33 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     // Decorate the popup-dialog rows with "(N)" counts so the user can see
     // at a glance how many Faces / States / Submodels / Nodes a model has
     // without having to open each editor. Requested in issue #5905.
-    // The INTERNAL name (second arg) stays unchanged so property lookups by
-    // name elsewhere in the codebase keep working - only the display label
-    // (first arg) gets the count suffix.
-    const auto nodeCount   = _model.GetNodeCount();
-    const auto faceCount   = _model.GetFaceInfo().size();
-    const auto stateCount  = _model.GetStateInfo().size();
-    const auto subCount    = _model.GetNumSubModels();
-
+    // The INTERNAL name (second arg to PopupDialogProperty) stays unchanged
+    // so property lookups by name elsewhere in the codebase keep working -
+    // only the display label (first arg) gets the count suffix.
+    //
+    // PopupDialogProperty takes a wxString label, so pass the formatted
+    // wxString directly - no ToStdString round-trip. Label refresh after
+    // the user edits any of these lists lives in UpdateProperties() below.
     p = grid->Append(new PopupDialogProperty(
         &_model, outputManager,
-        wxString::Format("Strand/Node Names (%u nodes)", nodeCount).ToStdString(),
+        FormatStrandNodeNamesLabel(_model),
         "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(
         &_model, outputManager,
-        wxString::Format("Faces (%zu)", faceCount).ToStdString(),
+        FormatFacesLabel(_model),
         "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(
         &_model, outputManager,
-        wxString::Format("States (%zu)", stateCount).ToStdString(),
+        FormatStatesLabel(_model),
         "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(
         &_model, outputManager,
-        wxString::Format("SubModels (%d)", subCount).ToStdString(),
+        FormatSubModelsLabel(_model),
         "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
@@ -528,6 +547,23 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
 
 void ModelPropertyAdapter::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     UpdateTypeProperties(grid);
+
+    // Refresh the "(N)" count suffixes on the popup-dialog rows so that
+    // after the user opens one of those editors and adds/removes entries
+    // the count in the label stays accurate instead of reflecting
+    // whatever was there when the property grid was first built. #5905.
+    if (auto* pp = grid->GetPropertyByName("ModelStrandNodeNames")) {
+        pp->SetLabel(FormatStrandNodeNamesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelFaces")) {
+        pp->SetLabel(FormatFacesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelStates")) {
+        pp->SetLabel(FormatStatesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("SubModels")) {
+        pp->SetLabel(FormatSubModelsLabel(_model));
+    }
 
     if (grid->GetPropertyByName("Controller") != nullptr) {
         grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);
