@@ -3380,8 +3380,32 @@ void SubModelsDialog::GetMouseLocation(int x, int y, glm::vec3& ray_origin, glm:
 
 void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
 {
+    auto sanitizeStrand = [](const wxString& strand) {
+        auto expandedNodes = NodeUtils::ExpandNodes(strand);
+        auto nodeArray = Split(expandedNodes, ',');
+        nodeArray.erase(std::remove(nodeArray.begin(), nodeArray.end(), ""), nodeArray.end());
+        return NodeUtils::CompressNodes(Join(nodeArray, ","));
+    };
+
+    auto sanitizeSelectedSubModelStrands = [&]() {
+        wxString selectedName = GetSelectedName();
+        if (selectedName == "") {
+            return;
+        }
+
+        SubModelInfo* selectedSm = GetSubModelInfo(selectedName);
+        if (selectedSm == nullptr || !selectedSm->isRanges) {
+            return;
+        }
+
+        for (auto& strand : selectedSm->strands) {
+            strand = sanitizeStrand(strand);
+        }
+    };
+
     if (shiftDwn) {
         RemoveNodes(ctrlDown);
+        sanitizeSelectedSubModelStrands();
         return;
     }
     wxString name = GetSelectedName();
@@ -3419,7 +3443,7 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         }
     }
 
-    sm->strands[sm->strands.size() - 1 - row] = NodeUtils::CompressNodes(Join(oldNodeArrray, ","));
+    sm->strands[sm->strands.size() - 1 - row] = sanitizeStrand(Join(oldNodeArrray, ","));
 
     Select(GetSelectedName());
 
