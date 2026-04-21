@@ -1070,13 +1070,27 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
     // These per-model work items are redundant during an initial load
     // anyway - the whole state is being rebuilt and the bulk refresh
     // happens once the load is done. Scope the disable as tightly as
-    // possible and restore on every exit path via a small RAII guard so
-    // an exception in LoadModels still re-enables the queue.
+    // possible and restore the PRIOR state (not an unconditional false)
+    // on every exit path via a small RAII guard. _disableASAPWork
+    // defaults to true in the header and xLightsFrame's ctor only flips
+    // it to false near the end, so LoadModels() can legitimately be
+    // invoked while ASAP work is already disabled - restoring to false
+    // unconditionally would enable work earlier than intended.
+    //
+    // OutputModelManager::DisableASAPWork now returns the previous value
+    // for exactly this save/restore use case; we capture that into the
+    // guard and the destructor writes it back regardless of exception
+    // or early-return path.
+    OutputModelManager* outputModelManager = GetOutputModelManager();
     struct AsapWorkGuard {
         OutputModelManager* mgr;
-        ~AsapWorkGuard() { if (mgr) mgr->DisableASAPWork(false); }
-    } asapGuard{ GetOutputModelManager() };
-    GetOutputModelManager()->DisableASAPWork(true);
+        bool previousDisabled;
+        ~AsapWorkGuard() { if (mgr) mgr->DisableASAPWork(previousDisabled); }
+    };
+    AsapWorkGuard asapGuard{ outputModelManager,
+                             outputModelManager != nullptr
+                                 ? outputModelManager->DisableASAPWork(true)
+                                 : false };
 
     AllModels.LoadModels(modelsNode,
         modelPreview->GetVirtualCanvasWidth(),

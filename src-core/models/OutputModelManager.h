@@ -171,7 +171,15 @@ public:
     void ForceSelectedController(const std::string& name) { _selectedController = name; }
     void ClearModelToReload() { _modelToModelFromXml = nullptr; _workASAP &= ~WORK_RELOAD_MODEL_FROM_XML; }
     void ClearWorkRequested() { _workRequested = false; }
-    void DisableASAPWork( bool disable ) { _disableASAPWork = disable; }
+    // Returns the previous value so callers can save/restore (e.g. via an
+    // RAII guard around a bulk load that must not schedule per-item work).
+    // Callers that don't care about the old value can ignore the return.
+    bool DisableASAPWork(bool disable) {
+        bool prev = _disableASAPWork;
+        _disableASAPWork = disable;
+        return prev;
+    }
+    bool IsASAPWorkDisabled() const { return _disableASAPWork; }
     void SuspendDeferredWork(bool suspend) {
         _suspendedDeferredWork = suspend; 
         if (!suspend) {
