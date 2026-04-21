@@ -7889,23 +7889,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         if (wxTheClipboard->Open()) {
             CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
-            // Clear any existing selection before creating the new model. Without
-            // this the original (source) model stays Selected() from the Ctrl-C
-            // action, and when WORK_RELOAD_MODELLIST fires with the new model's
-            // name as a selection hint BOTH end up highlighted in the preview.
-            // Users expect only the freshly-pasted model to be selected.
-            //
-            // UnSelectAllModels() clears the per-Model Selected() flags and our
-            // own selection tracking vectors, but does NOT clear the
-            // wxTreeListCtrl widget's native selection. On a multi-select tree
-            // (wxTL_MULTIPLE) an old selected row lingers, and when
-            // SelectBaseObject -> SelectModelInTree -> TreeListViewModels->Select()
-            // runs after reload it ADDS to the existing tree selection rather
-            // than replacing it - which is why the original still looks
-            // selected after paste. Clear both.
-            UnSelectAllModels();
-            UnSelectAllModelsInTree();
-
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
 
@@ -7921,6 +7904,23 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd)
                 {
+                    // Clear any existing selection ONLY after we've confirmed the
+                    // clipboard has valid paste data - otherwise a failed paste
+                    // (empty clipboard, bad XML) would wipe the user's selection
+                    // for nothing. See Copilot review on PR #6192.
+                    //
+                    // UnSelectAllModels() clears the per-Model Selected() flags
+                    // and our own tracking vectors. It does NOT clear the
+                    // wxTreeListCtrl widget's native selection though - on a
+                    // multi-select tree (wxTL_MULTIPLE) the old row lingers and
+                    // the post-reload SelectBaseObject->SelectModelInTree adds
+                    // the new row to it instead of replacing it. Hence we also
+                    // need UnSelectAllModelsInTree() to call
+                    // TreeListViewModels->UnselectAll() so only the new copy
+                    // ends up highlighted.
+                    UnSelectAllModels();
+                    UnSelectAllModelsInTree();
+
                     auto nda = DisplayAsTypeFromString(nd.attribute("DisplayAs").as_string());
                     auto nx = (int)nd.attribute("WorldPosX").as_double();
                     auto ny = (int)nd.attribute("WorldPosY").as_double();
@@ -7949,35 +7949,55 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     // behaviour as before, so e.g. an Arches paste doesn't get
                     // pushed past unrelated Pixel Matrixes that happen to be
                     // nearby.
+                    //
+                    // ViewObject pastes (Images / Meshes) use a separate
+                    // coordinate space and overlap detection isn't meaningful
+                    // against AllModels entries, so we scope the loop to the
+                    // Model paste path only. See Copilot review on PR #6192.
                     constexpr float PASTE_PADDING = 20.0f; // extra gap between copies
                     constexpr float PASTE_MIN_OFFSET = 80.0f; // guard against zero-width edge case
+                    constexpr int   PASTE_LOOP_MAX  = 500; // safety cap
 
-                    bool moved = true;
-                    int loopGuard = 0; // belt-and-suspenders against an impossible infinite loop
-                    while (moved && loopGuard++ < 500)
+                    if (!copyData.IsViewObject())
                     {
-                        moved = false;
-                        for (const auto& it : xlights->AllModels)
+                        bool moved = true;
+                        int loopGuard = 0;
+                        while (moved && loopGuard++ < PASTE_LOOP_MAX)
                         {
-                            if (nda != it.second->GetDisplayAs()) continue;
-
-                            auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
-                            float itWidth = std::max(it.second->GetRestorableMWidth(), PASTE_MIN_OFFSET);
-                            float itHalf = itWidth * 0.5f;
-
-                            // Centre-distance overlap along X, exact match along Y/Z.
-                            // The paste is being offset along X only (historical
-                            // behaviour) so Y/Z still use the integer centre match.
-                            if ((int)pos.y == ny &&
-                                (int)pos.z == nz &&
-                                std::abs(static_cast<float>(nx) - pos.x) < itHalf)
+                            moved = false;
+                            for (const auto& it : xlights->AllModels)
                             {
-                                nx = static_cast<int>(pos.x + itHalf + PASTE_PADDING);
-                                SetXmlNodeAttribute(nd, "WorldPosX",
-                                                    fmt::format("{:6.4f}", (float)nx));
-                                moved = true;
-                                break;
+                                if (nda != it.second->GetDisplayAs()) continue;
+
+                                auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
+                                float itWidth = std::max(it.second->GetRestorableMWidth(), PASTE_MIN_OFFSET);
+                                float itHalf = itWidth * 0.5f;
+
+                                // Centre-distance overlap along X, exact match along Y/Z.
+                                // The paste is being offset along X only (historical
+                                // behaviour) so Y/Z still use the integer centre match.
+                                if ((int)pos.y == ny &&
+                                    (int)pos.z == nz &&
+                                    std::abs(static_cast<float>(nx) - pos.x) < itHalf)
+                                {
+                                    nx = static_cast<int>(pos.x + itHalf + PASTE_PADDING);
+                                    SetXmlNodeAttribute(nd, "WorldPosX",
+                                                        fmt::format("{:6.4f}", (float)nx));
+                                    moved = true;
+                                    break;
+                                }
                             }
+                        }
+                        // Surface the pathological case in the log rather than
+                        // silently pasting a potentially still-overlapping copy.
+                        // PASTE_LOOP_MAX is a very high ceiling (500 collisions
+                        // in a row) so hitting it likely indicates a bug in the
+                        // position math or a genuinely saturated layout.
+                        if (loopGuard >= PASTE_LOOP_MAX) {
+                            spdlog::warn("LayoutPanel::DoPaste: collision-avoidance "
+                                         "loop hit the {}-iteration safety cap; the "
+                                         "pasted copy may still visually overlap an "
+                                         "existing model at x={}.", PASTE_LOOP_MAX, nx);
                         }
                     }
 
