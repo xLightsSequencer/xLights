@@ -7889,6 +7889,23 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         if (wxTheClipboard->Open()) {
             CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
+            // Clear any existing selection before creating the new model. Without
+            // this the original (source) model stays Selected() from the Ctrl-C
+            // action, and when WORK_RELOAD_MODELLIST fires with the new model's
+            // name as a selection hint BOTH end up highlighted in the preview.
+            // Users expect only the freshly-pasted model to be selected.
+            //
+            // UnSelectAllModels() clears the per-Model Selected() flags and our
+            // own selection tracking vectors, but does NOT clear the
+            // wxTreeListCtrl widget's native selection. On a multi-select tree
+            // (wxTL_MULTIPLE) an old selected row lingers, and when
+            // SelectBaseObject -> SelectModelInTree -> TreeListViewModels->Select()
+            // runs after reload it ADDS to the existing tree selection rather
+            // than replacing it - which is why the original still looks
+            // selected after paste. Clear both.
+            UnSelectAllModels();
+            UnSelectAllModelsInTree();
+
             wxTextDataObject data;
             wxTheClipboard->GetData(data);
 
@@ -7910,28 +7927,56 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     auto nz = (int)nd.attribute("WorldPosZ").as_double();
                     source_model_name = nd.attribute("name").as_string();
 
+                    // Push the paste out of the way of anything it would visually
+                    // overlap. Two improvements over the old center-point + fixed
+                    // 40-unit bump:
+                    //
+                    //   1. Step size is the COLLIDED model's width (plus a small
+                    //      padding) so the paste actually clears that model's
+                    //      bounding box. A fixed bump was fine for small arches
+                    //      but left large matrices visually overlapping.
+                    //
+                    //   2. Overlap test uses the collided model's half-width
+                    //      either side of centre rather than requiring an exact
+                    //      integer-truncated centre match. This catches copies
+                    //      that land inside a wide model without being on its
+                    //      exact centre, which is the common case when pasting
+                    //      repeatedly (clipboard keeps the original position;
+                    //      the bump from the previous paste may land inside the
+                    //      next model's bbox but not on its exact centre).
+                    //
+                    // Only same-type models are considered "colliding" - same
+                    // behaviour as before, so e.g. an Arches paste doesn't get
+                    // pushed past unrelated Pixel Matrixes that happen to be
+                    // nearby.
+                    constexpr float PASTE_PADDING = 20.0f; // extra gap between copies
+                    constexpr float PASTE_MIN_OFFSET = 80.0f; // guard against zero-width edge case
+
                     bool moved = true;
-                    while (moved)
+                    int loopGuard = 0; // belt-and-suspenders against an impossible infinite loop
+                    while (moved && loopGuard++ < 500)
                     {
                         moved = false;
-                        // is there a model in the same location of the same type ... if so offset the pasting of the model
                         for (const auto& it : xlights->AllModels)
                         {
-                            if (nda == it.second->GetDisplayAs())
+                            if (nda != it.second->GetDisplayAs()) continue;
+
+                            auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
+                            float itWidth = std::max(it.second->GetRestorableMWidth(), PASTE_MIN_OFFSET);
+                            float itHalf = itWidth * 0.5f;
+
+                            // Centre-distance overlap along X, exact match along Y/Z.
+                            // The paste is being offset along X only (historical
+                            // behaviour) so Y/Z still use the integer centre match.
+                            if ((int)pos.y == ny &&
+                                (int)pos.z == nz &&
+                                std::abs(static_cast<float>(nx) - pos.x) < itHalf)
                             {
-                                auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
-                                auto x = (int)pos.x;
-                                auto y = (int)pos.y;
-                                auto z = (int)pos.z;
-                                if (nx == x &&
-                                    ny == y &&
-                                    nz == z)
-                                {
-                                    nx += 40;
-                                    SetXmlNodeAttribute(nd, "WorldPosX", fmt::format("{:6.4f}", (float)nx));
-                                    moved = true;
-                                    break;
-                                }
+                                nx = static_cast<int>(pos.x + itHalf + PASTE_PADDING);
+                                SetXmlNodeAttribute(nd, "WorldPosX",
+                                                    fmt::format("{:6.4f}", (float)nx));
+                                moved = true;
+                                break;
                             }
                         }
                     }
