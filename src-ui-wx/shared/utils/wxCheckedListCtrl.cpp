@@ -58,10 +58,17 @@ void wxCheckedListCtrl::OnMouseEvent(wxMouseEvent& event)
     // was still smaller than what the user sees. GetColumnWidth is
     // scale-factor independent and matches the visible column, so it
     // gives the user the full-width hit area they expect.
+    //
+    // This uses client X coords, so we additionally require the list not
+    // to be horizontally scrolled — when hScroll > 0 column 0 may be off
+    // the left edge and x in [0, col0Width) can fall on another column.
+    // In the panels that use this control the eye-only column 0 is
+    // always visible at scroll 0 in practice, so this guard is enough.
     if (!iconHit && item > -1 && (flags & wxLIST_HITTEST_ONITEM)) {
         const int col0Width = GetColumnWidth(0);
         const int x = event.GetX();
-        if (col0Width > 0 && x >= 0 && x < col0Width) {
+        const int hScrollPos = GetScrollPos(wxHORIZONTAL);
+        if (hScrollPos == 0 && col0Width > 0 && x >= 0 && x < col0Width) {
             iconHit = true;
         }
     }
@@ -74,7 +81,12 @@ void wxCheckedListCtrl::OnMouseEvent(wxMouseEvent& event)
     SetChecked(item, !IsChecked(item));
     wxCommandEvent eventChecked(EVT_LISTITEM_CHECKED);
     eventChecked.SetClientData((wxClientData*)GetItemData(item));
-    eventChecked.SetClientObject((wxClientData*)item);
+    // Row index is carried in ExtraLong; the prior code stashed it by
+    // casting a long row number to wxClientData* and calling
+    // SetClientObject, which is undefined behaviour (SetClientObject
+    // assumes a heap-allocated wxClientData and the event takes
+    // ownership). No consumer of EVT_LISTITEM_CHECKED reads it today.
+    eventChecked.SetExtraLong(item);
     wxPostEvent(GetParent(), eventChecked);
 }
 
