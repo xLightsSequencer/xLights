@@ -59,7 +59,7 @@ static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelF
         }
     }
 
-    spdlog::debug("HW format negotiation: requested {} not offered by codec; will fall back to software decode.",
+    spdlog::debug("HW format negotiation: requested {} not offered by codec; codec open will fail.",
                   av_get_pix_fmt_name(__hw_pix_fmt));
 #ifdef VIDEO_EXTRALOGGING
     spdlog::debug("   Looking for {} but only found:", av_get_pix_fmt_name(__hw_pix_fmt));
@@ -440,14 +440,16 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     } else {
         _codecContext->thread_type = FF_THREAD_SLICE;
         _codecContext->thread_count = 0;
-        _abandonHardwareDecode = true;
-        if (_hw_device_ctx) {
-            av_buffer_unref(&_hw_device_ctx);
-            _hw_device_ctx = nullptr;
-        }
-        if (_swsCtx != nullptr) {
-            sws_freeContext(_swsCtx);
-            _swsCtx = nullptr;
+        if (!allowHWDecoder) {
+            _abandonHardwareDecode = true;
+            if (_hw_device_ctx) {
+                av_buffer_unref(&_hw_device_ctx);
+                _hw_device_ctx = nullptr;
+            }
+            if (_swsCtx != nullptr) {
+                sws_freeContext(_swsCtx);
+                _swsCtx = nullptr;
+            }
         }
     }
     _codecContext->skip_frame = AVDISCARD_NONE;
@@ -487,8 +489,8 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     if (avcodec_open2(_codecContext, decoderToUse, &opts) < 0) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
-        if (usingCuvid) {
-            spdlog::debug("VideoReader: NVDEC '{}' failed to open; falling back to software decode", decoderToUse->name);
+        if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
+            spdlog::debug("VideoReader: HW decoder '{}' failed to open; falling back to software decode", decoderToUse->name);
             reopenContext(false);
         } else {
             spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
