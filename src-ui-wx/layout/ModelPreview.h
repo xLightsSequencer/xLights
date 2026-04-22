@@ -153,6 +153,7 @@ public:
     bool IsNoCurrentModel() override { return currentModel == "&---none---&"; }
 
     void AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
+    void AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2);
 
 
     void render() override;

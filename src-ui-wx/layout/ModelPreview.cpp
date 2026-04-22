@@ -1553,6 +1553,31 @@ void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
     });
 }
 
+void ModelPreview::AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    acc->AddRectAsDashedLines((float)x1, (float)y1, (float)x2, (float)y2, mapLogicalToAbsolute(8),
+                              ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    int count = acc->getCount() - start;
+
+    int w = mWindowWidth;
+    int h = mWindowHeight;
+    glm::mat4 pvm = ProjViewMatrix;
+
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        // Replace current perspective MVP with a screen-space ortho so the
+        // pixel coordinates of the selection rectangle map directly to the window.
+        // glm::ortho(l,r,b,t): (0,0)=top-left, (w,h)=bottom-right for screen pixels.
+        glm::mat4 screenOrtho = glm::ortho(0.0f, (float)w, (float)h, 0.0f);
+        // ApplyMatrix multiplies MVP = MVP * m.  At execution time MVP == pvm, so
+        // m = inverse(pvm) * screenOrtho  gives  MVP_new = pvm * m = screenOrtho.
+        ctx->ApplyMatrix(glm::inverse(pvm) * screenOrtho);
+        ctx->drawLines(acc, start, count);
+        ctx->PopMatrix();
+    });
+}
+
 void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
 {
     if (grid2d == nullptr) {

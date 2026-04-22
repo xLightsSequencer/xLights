@@ -1490,6 +1490,8 @@ void LayoutPanel::RenderLayout()
     {
         if (!is_3d) {
             modelPreview->AddBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
+        } else {
+            modelPreview->AddScreenSpaceBoundingBoxToAccumulator(m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y);
         }
     }
     modelPreview->EndDrawing();
@@ -3885,6 +3887,11 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             }
         }
     } else if (event.ShiftDown()) {
+        m_3d_lasso_fresh_start = !m_3d_lasso_shift_continuous;
+        if (m_3d_lasso_fresh_start) {
+            UnSelectAllModels(false);
+        }
+        m_3d_lasso_shift_continuous = false;
         m_creating_bound_rect = true;
         m_bound_start_x = event.GetX();
         m_bound_start_y = event.GetY();
@@ -4059,6 +4066,11 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
         if (is_3d) {
             m_bound_end_x = event.GetX();
             m_bound_end_y = event.GetY();
+            m_3d_lasso_shift_continuous = event.ShiftDown();
+            if (m_3d_lasso_fresh_start) {
+                // Fresh-start lasso: clear tree so only the new box items end up selected.
+                TreeListViewModels->UnselectAll();
+            }
         } else {
             glm::vec3 ray_origin;
             glm::vec3 ray_direction;
@@ -4863,6 +4875,10 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
     
 
     xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D");
+
+    if (!m_creating_bound_rect && !event.ShiftDown()) {
+        m_3d_lasso_shift_continuous = false;
+    }
 
     if (m_creating_bound_rect)
     {

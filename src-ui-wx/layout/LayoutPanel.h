@@ -478,6 +478,8 @@ class LayoutPanel: public wxPanel
         int m_bound_start_y = 0;
         int m_bound_end_x = 0;
         int m_bound_end_y = 0;
+        bool m_3d_lasso_shift_continuous = false;  // shift was still held when last 3D lasso ended
+        bool m_3d_lasso_fresh_start = false;       // current 3D lasso clears prior selection
         int m_over_handle = -1;
         bool m_moving_handle = false;
         bool m_wheel_down = false;
