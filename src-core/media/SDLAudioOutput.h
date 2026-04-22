@@ -15,6 +15,7 @@
 
 #include "IAudioOutput.h"
 
+#include <cstdlib>
 #include <list>
 #include <map>
 #include <memory>

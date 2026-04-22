@@ -12,6 +12,8 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
 #include <string>
@@ -900,8 +902,9 @@ int OutputSDL::AddAudio(long len, uint8_t* buffer, int volume, int rate, long tr
             ad->_stretchedBuffer = stretched;
             ad->_stretchedLen    = stretchedLen;
             ad->_stretchRatio    = _playbackrate;
+            ad->Seek(0);
         } else {
-            spdlog::warn("SDL AddAudio: StretchAudioAtempo failed, audio will have pitch shift at {}x", _playbackrate);
+            spdlog::warn("SDL AddAudio: StretchAudioAtempo failed, audio will play at 1x speed instead of {}x", _playbackrate);
         }
     }
 #endif
@@ -947,6 +950,7 @@ void OutputSDL::Pause(int id, bool pause) {
 
 void OutputSDL::RebuildStretchedBuffers() {
 #ifndef __APPLE__
+    std::unique_lock<std::mutex> locker(_audio_Lock);
     for (auto* ad : _audioData) {
         free(ad->_stretchedBuffer);
         ad->_stretchedBuffer = nullptr;
@@ -985,12 +989,13 @@ void OutputSDL::SetRate(float rate) {
 
     _playbackrate = rate;
 
-    // Rebuild stretched buffers (time-consuming FFmpeg processing; audio is stopped)
+    // Rebuild stretched buffers (time-consuming FFmpeg processing; audio is stopped).
+    // RebuildStretchedBuffers() holds _audio_Lock internally.
     RebuildStretchedBuffers();
 
-    // Reopen device at natural sample rate with updated buffers
-    CloseDevice();
-    if (OpenDevice()) {
+    // Restore playback positions; no device close/reopen needed since OpenDevice()
+    // is independent of _playbackrate (device always runs at natural sample rate).
+    {
         std::unique_lock<std::mutex> locker(_audio_Lock);
         for (const auto& it : _audioData) {
             it->RestorePos();
