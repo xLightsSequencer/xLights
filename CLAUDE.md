@@ -247,6 +247,7 @@ Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their o
 - Opening braces on same line (K&R style)
 - Match the style of nearby code — the codebase is not perfectly consistent
 - Avoid purely cosmetic changes in PRs
+- **Comments**: Default to writing no comments. Only add one when the WHY is non-obvious: a hidden constraint, a subtle invariant, a workaround for a specific bug, or behavior that would surprise a reader. Don't explain what the code does (well-named identifiers do that), and don't reference the current task or fix (those belong in the commit message).
 
 ## Prefer std::* Over wx* Types
 
