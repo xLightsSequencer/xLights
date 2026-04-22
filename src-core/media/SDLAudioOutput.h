@@ -41,8 +41,13 @@ public:
     long _trackSize;
     long _lengthMS;
     bool _paused;
+    // Time-stretched buffer for pitch-preserving speed change (owned; nullptr = no stretch)
+    uint8_t* _stretchedBuffer = nullptr;
+    long _stretchedLen = 0;
+    float _stretchRatio = 1.0f;
     AudioData();
     ~AudioData() {
+        free(_stretchedBuffer);
     }
     long Tell() const;
     void Seek(long ms);
@@ -136,6 +141,7 @@ public:
     std::list<AudioData*> GetAudio() const;
     [[nodiscard]] std::mutex* GetAudioLock();
     AudioData* GetData(int id) const;
+    void RebuildStretchedBuffers();
 
     // SDL-specific (used by Waveform)
     std::vector<float> GetSpectrum(int ms) const;
