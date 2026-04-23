@@ -16,6 +16,7 @@
 #include <wx/dnd.h>
 #include <wx/listctrl.h>
 #include <wx/regex.h>
+#include <wx/spinctrl.h>
 #include <wx/timer.h>
 #include <glm/glm.hpp>
 
@@ -181,8 +182,8 @@ public:
     //*)
 
     wxButton* Button_PlayAnim = nullptr;
-    wxSlider* Slider_AnimSpeed = nullptr;
-    wxSlider* Slider_AnimTrail = nullptr;
+    wxSpinCtrl* Spin_AnimSpeed = nullptr;
+    wxSpinCtrl* Spin_AnimTrail = nullptr;
 
 protected:
 
@@ -407,7 +408,7 @@ private:
     void OnTimer1Trigger(wxTimerEvent& event);
     void OnAnimTimerTick(wxTimerEvent& event);
     void OnPlayAnimClick(wxCommandEvent& event);
-    void OnAnimSpeedChange(wxCommandEvent& event);
+    void OnAnimSpeedChange(wxSpinEvent& event);
 
     void ParseAnimRows();
     void StopAnimation();

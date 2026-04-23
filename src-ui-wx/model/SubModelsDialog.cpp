@@ -31,6 +31,7 @@
 #include <wx/mimetype.h>
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
+#include <wx/spinctrl.h>
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
 
@@ -426,24 +427,25 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     subBufferPanel->Connect(wxEVT_SIZE, (wxObjectEventFunction)&SubModelsDialog::OnSubbufferSize, nullptr, this);
 
     wxStaticBox* animBox = new wxStaticBox(Panel2, wxID_ANY, _("Node Animation"));
-    wxStaticBoxSizer* animSizer = new wxStaticBoxSizer(animBox, wxHORIZONTAL);
+    wxStaticBoxSizer* animSizer = new wxStaticBoxSizer(animBox, wxVERTICAL);
 
     Button_PlayAnim = new wxButton(animBox, ID_BUTTON_PLAY_ANIM, _("Play"));
-    animSizer->Add(Button_PlayAnim, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    animSizer->Add(Button_PlayAnim, 0, wxALL | wxEXPAND, 5);
 
-    animSizer->Add(new wxStaticText(animBox, wxID_ANY, _("Speed:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    Slider_AnimSpeed = new wxSlider(animBox, ID_SLIDER_ANIM_SPEED, 90, 1, 100, wxDefaultPosition, wxSize(FromDIP(120), -1));
-    animSizer->Add(Slider_AnimSpeed, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-    animSizer->Add(new wxStaticText(animBox, wxID_ANY, _("Trail:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    Slider_AnimTrail = new wxSlider(animBox, ID_SLIDER_ANIM_TRAIL, 5, 1, 20, wxDefaultPosition, wxSize(FromDIP(120), -1));
-    animSizer->Add(Slider_AnimTrail, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    wxBoxSizer* controlsRow = new wxBoxSizer(wxHORIZONTAL);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Speed:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimSpeed = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_SPEED, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 9);
+    controlsRow->Add(Spin_AnimSpeed, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Trail:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimTrail = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_TRAIL, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 5);
+    controlsRow->Add(Spin_AnimTrail, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    animSizer->Add(controlsRow, 0, wxEXPAND);
 
     wxStaticCast(Panel2->GetSizer(), wxFlexGridSizer)->SetRows(0);
     Panel2->GetSizer()->Add(animSizer, 0, wxALL | wxEXPAND, 5);
 
     Connect(ID_BUTTON_PLAY_ANIM, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnPlayAnimClick);
-    Connect(ID_SLIDER_ANIM_SPEED, wxEVT_SLIDER, (wxObjectEventFunction)&SubModelsDialog::OnAnimSpeedChange);
+    Connect(ID_SLIDER_ANIM_SPEED, wxEVT_SPINCTRL, (wxObjectEventFunction)&SubModelsDialog::OnAnimSpeedChange);
 
     _animTimer.SetOwner(this, ID_ANIM_TIMER);
     Connect(ID_ANIM_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&SubModelsDialog::OnAnimTimerTick);
@@ -5021,21 +5023,21 @@ void SubModelsDialog::OnPlayAnimClick(wxCommandEvent& event)
     Button_PlayAnim->SetLabel(_("Stop"));
     NodesGrid->EnableEditing(false);
 
-    int interval = 520 - 5 * Slider_AnimSpeed->GetValue();
+    int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
     _animTimer.Start(interval);
 }
 
-void SubModelsDialog::OnAnimSpeedChange(wxCommandEvent& event)
+void SubModelsDialog::OnAnimSpeedChange(wxSpinEvent& event)
 {
     if (_animPlaying) {
-        int interval = 520 - 5 * Slider_AnimSpeed->GetValue();
+        int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
         _animTimer.Start(interval);
     }
 }
 
 void SubModelsDialog::OnAnimTimerTick(wxTimerEvent& event)
 {
-    int trail = std::min(Slider_AnimTrail->GetValue(), _animTotalSteps);
+    int trail = std::min(Spin_AnimTrail->GetValue(), _animTotalSteps);
 
     // reset only submodel nodes to white — non-submodel nodes stay dark from play-start
     for (int n : _animSubmodelNodes)
@@ -5059,6 +5061,6 @@ void SubModelsDialog::OnAnimTimerTick(wxTimerEvent& event)
 
     model->DisplayEffectOnWindow(modelPreview, mPointSize);
     _animStep = (_animStep + 1) % _animMaxSteps;
-    if (_animTotalSteps < Slider_AnimTrail->GetMax())
+    if (_animTotalSteps < Spin_AnimTrail->GetMax())
         ++_animTotalSteps;
 }
