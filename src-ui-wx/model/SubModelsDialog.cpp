@@ -551,6 +551,7 @@ SubModelsDialog::~SubModelsDialog()
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
 
+    _animTimer.Stop();
     StopOutputToLights();
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
@@ -4941,14 +4942,20 @@ void SubModelsDialog::ParseAnimRows()
             wxString token = wtkz.GetNextToken().Trim(true).Trim(false);
             if (token.Contains("-")) {
                 int idx = token.Index('-');
-                int start = wxAtoi(token.Left(idx)) - 1;
-                int end = wxAtoi(token.Right(token.size() - idx - 1)) - 1;
-                int step = (start <= end) ? 1 : -1;
-                for (int n = start; n != end + step; n += step) {
-                    std::vector<int> slot;
-                    if (n >= 0 && n < nodeCount)
-                        slot.push_back(n);
-                    rowSlots.push_back(std::move(slot));
+                int startRaw = wxAtoi(token.Left(idx));
+                int endRaw   = wxAtoi(token.Right(token.size() - idx - 1));
+                if (startRaw > 0 && endRaw > 0) {
+                    int start = startRaw - 1;
+                    int end   = endRaw - 1;
+                    int step  = (start <= end) ? 1 : -1;
+                    for (int n = start; n != end + step; n += step) {
+                        std::vector<int> slot;
+                        if (n < nodeCount)
+                            slot.push_back(n);
+                        rowSlots.push_back(std::move(slot));
+                    }
+                } else {
+                    rowSlots.push_back({});
                 }
             } else {
                 std::vector<int> slot;
@@ -4964,6 +4971,17 @@ void SubModelsDialog::ParseAnimRows()
         _animMaxSteps = std::max(_animMaxSteps, (int)rowSlots.size());
         _animRows.push_back(std::move(rowSlots));
     }
+
+    // build flat deduplicated node list for efficient per-tick resets
+    _animSubmodelNodes.clear();
+    for (auto const& row : _animRows)
+        for (auto const& slot : row)
+            for (int n : slot)
+                _animSubmodelNodes.push_back(n);
+    std::sort(_animSubmodelNodes.begin(), _animSubmodelNodes.end());
+    _animSubmodelNodes.erase(
+        std::unique(_animSubmodelNodes.begin(), _animSubmodelNodes.end()),
+        _animSubmodelNodes.end());
 }
 
 void SubModelsDialog::StopAnimation()
@@ -4991,6 +5009,11 @@ void SubModelsDialog::OnPlayAnimClick(wxCommandEvent& event)
     if (_animMaxSteps == 0)
         return;
 
+    // one-time clear: set all nodes dark, then paint submodel white
+    ClearNodeColor(model);
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
+
     _animPlaying = true;
     _animStep = 0;
     _animTotalSteps = 0;
@@ -5013,19 +5036,15 @@ void SubModelsDialog::OnAnimTimerTick(wxTimerEvent& event)
 {
     int trail = std::min(Slider_AnimTrail->GetValue(), _animTotalSteps);
 
-    ClearNodeColor(model);
-
-    // paint all submodel rows white so the full submodel stays visible
-    for (int i = 0; i < NodesGrid->GetNumberRows(); ++i)
-        SetNodeColor(i, xlWHITE, false);
+    // reset only submodel nodes to white — non-submodel nodes stay dark from play-start
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
 
     // paint trail first, head last — blue head fades back to white
     static const xlColor animHead(0, 120, 255);
     for (int offset = trail; offset >= 0; --offset) {
         int step = ((_animStep - offset) % _animMaxSteps + _animMaxSteps) % _animMaxSteps;
-        float frac = (offset == 0) ? 1.0f : (float)(trail - offset) / trail;
-        if (frac == 0.0f)
-            continue;
+        float frac = (float)(trail - offset + 1) / (trail + 1);
         xlColor c((uint8_t)(animHead.red   * frac + 255.0f * (1.0f - frac)),
                   (uint8_t)(animHead.green * frac + 255.0f * (1.0f - frac)),
                   (uint8_t)(animHead.blue  * frac + 255.0f * (1.0f - frac)));

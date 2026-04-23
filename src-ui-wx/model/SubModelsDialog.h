@@ -120,6 +120,7 @@ class SubModelsDialog : public wxDialog
     int _animTotalSteps = 0;
     int _animMaxSteps = 0;
     AnimRows _animRows;
+    std::vector<int> _animSubmodelNodes;
 
     bool m_creating_bound_rect;
     int m_bound_start_x;
