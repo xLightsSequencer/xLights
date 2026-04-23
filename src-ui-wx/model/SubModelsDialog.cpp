@@ -425,7 +425,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
     subBufferPanel->Connect(wxEVT_SIZE, (wxObjectEventFunction)&SubModelsDialog::OnSubbufferSize, nullptr, this);
 
-    wxStaticBox* animBox = new wxStaticBox(this, wxID_ANY, _("Node Animation"));
+    wxStaticBox* animBox = new wxStaticBox(Panel2, wxID_ANY, _("Node Animation"));
     wxStaticBoxSizer* animSizer = new wxStaticBoxSizer(animBox, wxHORIZONTAL);
 
     Button_PlayAnim = new wxButton(animBox, ID_BUTTON_PLAY_ANIM, _("Play"));
@@ -439,7 +439,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Slider_AnimTrail = new wxSlider(animBox, ID_SLIDER_ANIM_TRAIL, 5, 1, 20, wxDefaultPosition, wxSize(FromDIP(120), -1));
     animSizer->Add(Slider_AnimTrail, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
-    FlexGridSizer1->Insert(1, animSizer, 0, wxALL | wxEXPAND, 5);
+    wxStaticCast(Panel2->GetSizer(), wxFlexGridSizer)->SetRows(0);
+    Panel2->GetSizer()->Add(animSizer, 0, wxALL | wxEXPAND, 5);
 
     Connect(ID_BUTTON_PLAY_ANIM, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnPlayAnimClick);
     Connect(ID_SLIDER_ANIM_SPEED, wxEVT_SLIDER, (wxObjectEventFunction)&SubModelsDialog::OnAnimSpeedChange);
