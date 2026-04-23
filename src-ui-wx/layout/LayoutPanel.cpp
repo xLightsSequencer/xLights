@@ -6125,15 +6125,17 @@ void LayoutPanel::ExportLayoutDXF()
 }
 
 void LayoutPanel::ExportFacesStatesSubModels() {
+    Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+    if (selectedModel == nullptr || selectedModel->GetDisplayAs() == DisplayAsType::ModelGroup || selectedModel->GetDisplayAs() == DisplayAsType::SubModel)
+        return;
+
     if (wxMessageBox("Are you sure you want to Export this model's Face/States/SubModels definitions to other models?\nThis will override all the other model's existing properties and there is no way to undo it.","Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
-
-    Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
     wxArrayString choices;
     
     for (const auto& model : modelPreview->GetModels()) {
-        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image || model->GetDisplayAs() == DisplayAsType::Label)
+        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image || model->GetDisplayAs() == DisplayAsType::Label || model->GetDisplayAs() == DisplayAsType::ModelGroup)
             continue;
         choices.Add(model->Name());
     }
