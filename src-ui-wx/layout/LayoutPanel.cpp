@@ -8941,9 +8941,8 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
                     return (xlights->AllModels.GetModel(s) == nullptr);
                 }), models.end());
 
-            if (!includeEmptyGroups && models.empty()) {
-                spdlog::warn("Import model group '{}' failed as no models in the group exist in this display.", (const char*)it2->GetName().c_str());
-                continue;
+            if (models.empty()) {
+                spdlog::info("Import model group '{}' has no models in this display, creating empty group.", (const char*)it2->GetName().c_str());
             }
 
             wxString const name = it2->GetName();

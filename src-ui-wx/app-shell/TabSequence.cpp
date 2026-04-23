@@ -1723,8 +1723,8 @@ void xLightsFrame::SaveAsSequence()
             wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
             if (!filePath.StartsWith(showPath)) {
                 ok = false;
-                DisplayWarning("Sequence files must be saved within the current show directory:\n" + showPath +
-                               "\n\nPlease choose a location inside the show directory.", this);
+                DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
+                             "\n\nPlease choose a location inside the show directory.", this);
                 fd.SetDirectory(CurrentDir);
             }
         }

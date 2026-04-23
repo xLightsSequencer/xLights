@@ -471,7 +471,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
             const char* opt = nullptr;
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
-                spdlog::debug("Failed to create specified HW device.");
+                spdlog::warn("VideoReader: Failed to create HW device '{}' for {} - falling back to software decode.", av_hwdevice_get_type_name(type), _filename.c_str());
                 type = AV_HWDEVICE_TYPE_NONE;
             } else {
                 _codecContext->hw_device_ctx = av_buffer_ref(_hw_device_ctx);
@@ -503,7 +503,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
         if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
-            spdlog::debug("VideoReader: HW decoder '{}' failed to open; falling back to software decode", decoderToUse->name);
+            spdlog::warn("VideoReader: HW decoder '{}' failed to open for {}; falling back to software decode", decoderToUse->name, _filename.c_str());
             reopenContext(false);
         } else {
             spdlog::error("VideoReader: Couldn't open the context with the decoder in {}", _filename.c_str());
@@ -909,7 +909,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
 
                 if (_swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
-                        spdlog::warn("VideoReader: Hardware decoding abandoned due to directx error.");
+                        spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
                     }
                     if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
@@ -1033,7 +1033,9 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                 int ret = avcodec_send_packet(_codecContext, _packet);
                 while (!_abort && ret != 0) {
                     if (ret != AVERROR(EAGAIN) && !_abandonHardwareDecode && (_videoToolboxAccelerated || _hw_device_ctx )) {
-                        spdlog::debug("    Hardware video decoding failed for {}. Reverting to software decoding.", (const char*)_filename.c_str());
+                        char errbuf[AV_ERROR_MAX_STRING_SIZE];
+                        av_strerror(ret, errbuf, sizeof(errbuf));
+                        spdlog::warn("VideoReader: Hardware video decoding failed for {} (error: {}). Reverting to software decoding.", (const char*)_filename.c_str(), errbuf);
                         reopenContext(false);
                         Seek(timestampMS, false);
                         currenttime = GetPos();

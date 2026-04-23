@@ -2012,9 +2012,9 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
-                spdlog::warn("Model Group ({}), Actual Grid Size of {} exceeded the Max Grid Size of {}.",
-                    (const char*)GetFullName().c_str(), 
-                    ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)), 
+                spdlog::warn("Model Group ({}), Actual Grid Size of {:.0f} exceeded the Max Grid Size of {}.",
+                    (const char*)GetFullName().c_str(),
+                    ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)),
                     maxDimension);
                 factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
                 // But if it is already smaller we dont want to make it bigger
