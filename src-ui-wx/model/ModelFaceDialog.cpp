@@ -1769,6 +1769,8 @@ wxArrayString ModelFaceDialog::getModelList(ModelManager* modelManager)
         Model* m = it->second;
         if (m->Name() == model->Name())//Skip Current Model
             continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
+            continue;
         choices.Add(m->Name());
     }
     return choices;

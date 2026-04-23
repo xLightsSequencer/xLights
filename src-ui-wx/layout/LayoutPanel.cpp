@@ -6133,7 +6133,7 @@ void LayoutPanel::ExportFacesStatesSubModels() {
     wxArrayString choices;
     
     for (const auto& model : modelPreview->GetModels()) {
-        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image || model->GetDisplayAs() == DisplayAsType::Label)
+        if (model->Name() == selectedBaseObject->Name() || model->GetDisplayAs() == DisplayAsType::Image || model->GetDisplayAs() == DisplayAsType::Label || model->GetDisplayAs() == DisplayAsType::ModelGroup)
             continue;
         choices.Add(model->Name());
     }
