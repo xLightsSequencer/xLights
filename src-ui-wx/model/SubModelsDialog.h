@@ -112,6 +112,15 @@ class SubModelsDialog : public wxDialog
     SubBufferPanel *subBufferPanel = nullptr;
     bool _isMatrix = false;
 
+    using AnimRows = std::vector<std::vector<std::vector<int>>>;
+
+    wxTimer _animTimer;
+    bool _animPlaying = false;
+    int _animStep = 0;
+    int _animTotalSteps = 0;
+    int _animMaxSteps = 0;
+    AnimRows _animRows;
+
     bool m_creating_bound_rect;
     int m_bound_start_x;
     int m_bound_start_y;
@@ -169,6 +178,10 @@ public:
     wxStaticText* StaticTextName;
     wxTextCtrl* TextCtrl_Name;
     //*)
+
+    wxButton* Button_PlayAnim = nullptr;
+    wxSlider* Slider_AnimSpeed = nullptr;
+    wxSlider* Slider_AnimTrail = nullptr;
 
 protected:
 
@@ -250,6 +263,11 @@ protected:
     static const long SUBMODEL_DIALOG_BLANKS_AS_ZERO;
     static const long SUBMODEL_DIALOG_BLANKS_AS_EMPTY;
     static const long SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS;
+
+    static const long ID_BUTTON_PLAY_ANIM;
+    static const long ID_SLIDER_ANIM_SPEED;
+    static const long ID_SLIDER_ANIM_TRAIL;
+    static const long ID_ANIM_TIMER;
 
     void SaveSubModelInfoIntoThisModel(Model* m);
     wxString GetSelectedName() const;
@@ -386,6 +404,12 @@ private:
     void OnPreviewLeftDClick(wxMouseEvent& event);
     void OnPreviewMouseMove(wxMouseEvent& event);
     void OnTimer1Trigger(wxTimerEvent& event);
+    void OnAnimTimerTick(wxTimerEvent& event);
+    void OnPlayAnimClick(wxCommandEvent& event);
+    void OnAnimSpeedChange(wxCommandEvent& event);
+
+    void ParseAnimRows();
+    void StopAnimation();
 
     void OnImportBtnPopup(wxCommandEvent& event);
     void OnEditBtnPopup(wxCommandEvent& event);
