@@ -69,10 +69,12 @@ std::string SpecialOptions::GetOption(const std::string& option, const std::stri
         if (!result) {
             spdlog::error("SpecialOptions: failed to parse '{}': {} (offset {})",
                           file, result.description(), result.offset);
+            __loaded = true;
             return defaultValue;
         }
         if (!doc.document_element()) {
             spdlog::error("SpecialOptions: '{}' parsed but has no root element (file may be empty)", file);
+            __loaded = true;
             return defaultValue;
         }
         __loaded = true;

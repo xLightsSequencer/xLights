@@ -679,6 +679,10 @@ bool xLightsApp::OnInit()
             GetXLightsConfig()->Read("LastDir", &lastDir);
             if (lastDir != showDir) {
                 info += _("Setting show directory to ") + showDir + "\n";
+                // re-apply logging with the command-line show dir overriding LastDir
+                SpecialOptions::StashShowDir(showDir.ToStdString());
+                SpecialOptions::GetOption("", "");
+                ApplyLoggingSpecialOptions();
             }
         }
 

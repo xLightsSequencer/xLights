@@ -335,7 +335,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 }
 
 void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
-    spdlog::info("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
+    spdlog::debug("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
 
 #if LIBAVFORMAT_VERSION_MAJOR > 57
     if (_cudaScaledFrame != nullptr) {
