@@ -335,6 +335,7 @@ FFmpegVideoReader::FFmpegVideoReader(const std::string& filename, int maxwidth, 
 }
 
 void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
+    spdlog::info("VideoReader: reopenContext({}) for {}", allowHWDecoder, _filename);
 
 #if LIBAVFORMAT_VERSION_MAJOR > 57
     if (_cudaScaledFrame != nullptr) {
@@ -357,6 +358,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
+    }
+    if (_hw_device_ctx != nullptr) {
+        av_buffer_unref(&_hw_device_ctx);
+        _hw_device_ctx = nullptr;
     }
     enum AVHWDeviceType type = ::AVHWDeviceType::AV_HWDEVICE_TYPE_NONE;
     if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
@@ -486,7 +491,15 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     AVDictionary *opts = nullptr;
+    if (usingCuvid) {
+        // Limit NVDEC surface pool: default is max(DPB,20) per decoder instance.
+        // With many models each holding their own VideoReader this multiplies to
+        // several GB.  8 covers H.264 Level 4.1 max DPB (8 ref frames) while
+        // keeping per-instance VRAM well below the 20-surface default.
+        av_dict_set_int(&opts, "surfaces", 8, 0);
+    }
     if (avcodec_open2(_codecContext, decoderToUse, &opts) < 0) {
+        av_dict_free(&opts);
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
         if (allowHWDecoder && IsHardwareAcceleratedVideo()) {
@@ -497,6 +510,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         }
         return;
     }
+    av_dict_free(&opts);
 }
 
 static int64_t MStoDTS(int ms, double dtspersec)

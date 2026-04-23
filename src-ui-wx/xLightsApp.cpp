@@ -202,21 +202,17 @@ void InitialiseLogging(bool fromMain)
 
 void ApplyLoggingSpecialOptions()
 {
-    static bool levelsApplied = false;
-    if (!levelsApplied) {
-        levelsApplied = true;
-        auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
-            std::string level = SpecialOptions::GetOption(option, defaultLevel);
-            spdlog::get(name)->set_level(spdlog::level::from_str(level));
-            spdlog::info("Logger '{}' level set to '{}'", name, level);
-        };
-        applyLevel("xLights", "xLights_logger", "info");
-        applyLevel("render", "render_logger", "warn");
-        applyLevel("curl",   "curl_logger",   "info");
-        applyLevel("opengl", "opengl_logger", "info");
-        applyLevel("job",    "job_logger",    "info");
-        applyLevel("work",   "work_logger",   "info");
-    }
+    auto applyLevel = [](const std::string& name, const std::string& option, const std::string& defaultLevel) {
+        std::string level = SpecialOptions::GetOption(option, defaultLevel);
+        spdlog::get(name)->set_level(spdlog::level::from_str(level));
+        spdlog::info("Logger '{}' level set to '{}'", name, level);
+    };
+    applyLevel("xLights", "xLights_logger", "info");
+    applyLevel("render", "render_logger", "warn");
+    applyLevel("curl",   "curl_logger",   "info");
+    applyLevel("opengl", "opengl_logger", "info");
+    applyLevel("job",    "job_logger",    "info");
+    applyLevel("work",   "work_logger",   "info");
 
     if (SpecialOptions::GetOption("console_logger", "false") != "true") return;
 
@@ -552,6 +548,18 @@ bool xLightsApp::OnInit()
     GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     InitializeXLightsConfig();
     DumpConfig();
+
+    // Stash the remembered show folder so show-folder special.options is applied
+    // before the frame is constructed. InitialiseLogging() only knew the exe folder;
+    // this re-applies logger levels now that the show folder is known.
+    {
+        wxString lastDir;
+        if (GetXLightsConfig()->Read("LastDir", &lastDir) && !lastDir.IsEmpty()) {
+            SpecialOptions::StashShowDir(lastDir.ToStdString());
+            SpecialOptions::GetOption("", ""); // reset cache to pick up show folder
+            ApplyLoggingSpecialOptions();
+        }
+    }
 
     int id = (int)wxThread::GetCurrentId();
     spdlog::info("Main thread id: 0x{:x} or {}", id, id);
