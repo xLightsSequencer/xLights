@@ -3510,7 +3510,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std
     }
 
     // Deactivate active timing mark so new one is selected;
-    _sequenceElements.DeactivateAllTimingElements();
+    _sequenceElements.DeactivateAllTimingElements(true);
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
     TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
@@ -3879,7 +3879,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 
     if (dlgNoteImport.ShowModal() == wxID_OK) {
         wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
-        _sequenceElements.DeactivateAllTimingElements();
+        _sequenceElements.DeactivateAllTimingElements(true);
         Element* element = AddTimingElement(std::string(name.ToStdString()));
         EffectLayer* effectLayer = element->GetEffectLayer(0);
         // _sequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
@@ -3977,7 +3977,7 @@ void xLightsFrame::ImportTimingElement()
             } else {
                 CurrentSeqXmlFile->ProcessAudacityTimingFiles( filenames, this);
             }
-            _sequenceElements.DeactivateAllTimingElements();
+            _sequenceElements.DeactivateAllTimingElements(true);
             int timingCount = _sequenceElements.GetNumberOfTimingElements();
             if (timingCount > 0) {
                 TimingElement* te = _sequenceElements.GetTimingElement(timingCount - 1);

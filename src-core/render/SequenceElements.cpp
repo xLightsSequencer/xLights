@@ -1438,13 +1438,14 @@ int SequenceElements::GetNumberOfActiveTimingEffects()
     return num_timing_effects;
 }
 
-void SequenceElements::DeactivateAllTimingElements()
+void SequenceElements::DeactivateAllTimingElements(bool allViews)
 {
-    for(size_t i=0;i<mAllViews[MASTER_VIEW].size();i++)
+    int view = allViews ? MASTER_VIEW : mCurrentView;
+    for(size_t i=0;i<mAllViews[view].size();i++)
     {
-        if(mAllViews[MASTER_VIEW][i]->GetType()== ElementType::ELEMENT_TYPE_TIMING)
+        if(mAllViews[view][i]->GetType()== ElementType::ELEMENT_TYPE_TIMING)
         {
-            dynamic_cast<TimingElement*>(mAllViews[MASTER_VIEW][i])->SetActive(false);
+            dynamic_cast<TimingElement*>(mAllViews[view][i])->SetActive(false);
         }
     }
 }
