@@ -400,6 +400,7 @@ private:
     //*)
 
     void OnCancel(wxCloseEvent& event);
+    void OnOK(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);
     void OnPreviewLeftDown(wxMouseEvent& event);

@@ -371,6 +371,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
     Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
     Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(wxID_OK, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnOK);
     Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::ApplySubmodelName);
 
     TextCtrl_Name->Bind(wxEVT_KILL_FOCUS, &SubModelsDialog::OnTextCtrl_NameText_KillFocus, this);
@@ -538,6 +539,12 @@ void SubModelsDialog::OnCancel(wxCloseEvent& event)
     SubModelsDialog::EndDialog(wxID_CANCEL);
 }
 
+void SubModelsDialog::OnOK(wxCommandEvent& event)
+{
+    StopAnimation();
+    SubModelsDialog::EndDialog(wxID_OK);
+}
+
 SubModelsDialog::~SubModelsDialog()
 {
     //(*Destroy(SubModelsDialog)
@@ -554,7 +561,7 @@ SubModelsDialog::~SubModelsDialog()
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
 
-    _animTimer.Stop();
+    StopAnimation();
     StopOutputToLights();
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
@@ -2459,7 +2466,7 @@ void SubModelsDialog::ValidateWindow()
 
     Button_PlayAnim->Enable(
         _animPlaying ||
-        (ListCtrl_SubModels->GetSelectedItemCount() > 0 && TypeNotebook->GetSelection() == 0)
+        (ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0)
     );
 }
 
@@ -5005,7 +5012,7 @@ void SubModelsDialog::OnPlayAnimClick(wxCommandEvent& event)
         return;
     }
 
-    if (TypeNotebook->GetSelection() != 0)
+    if (TypeNotebook->GetSelection() != 0 || ListCtrl_SubModels->GetSelectedItemCount() != 1)
         return;
 
     ParseAnimRows();
