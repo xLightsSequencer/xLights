@@ -1058,16 +1058,53 @@ void collectFromSequenceMedia(SequenceMedia& media,
     }
 }
 
+// Walk the in-memory sequence elements to find which face definitions each
+// model uses. Returns map of model_name -> list of face definition names so
+// all images for only those definitions are packaged.
+static std::map<std::string, std::list<std::string>> collectFacesUsedInSequence(SequenceElements& seqElements)
+{
+    std::map<std::string, std::list<std::string>> result;
+
+    size_t elemCount = seqElements.GetElementCount(MASTER_VIEW);
+    for (size_t i = 0; i < elemCount; ++i) {
+        Element* elem = seqElements.GetElement(i, MASTER_VIEW);
+        if (!elem) continue;
+        const std::string& modelName = elem->GetModelName();
+
+        size_t layerCount = elem->GetEffectLayerCount();
+        for (size_t l = 0; l < layerCount; ++l) {
+            EffectLayer* layer = elem->GetEffectLayer(l);
+            if (!layer) continue;
+            int effectCount = layer->GetEffectCount();
+            for (int e = 0; e < effectCount; ++e) {
+                Effect* eff = layer->GetEffect(e);
+                if (!eff) continue;
+                const std::string& effName = eff->GetEffectName();
+                if (effName != "Faces" && effName != "CoroFaces") continue;
+                std::string faceName = eff->GetSettings().Get("E_CHOICE_Faces_FaceDefinition", "Default");
+                if (!faceName.empty()) {
+                    auto& lst = result[modelName];
+                    if (std::find(lst.begin(), lst.end(), faceName) == lst.end())
+                        lst.push_back(faceName);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 // Enumerate file references from every model (or view-object). We
 // use the iterator pair exposed by `ModelManager::begin/end` /
 // `ViewObjectManager::begin/end` — BaseObject itself doesn't
-// expose enumeration. Matrix-face images come from
-// `Model::GetFaceFiles(..., /*all=*/true)`.
+// expose enumeration. For models with Faces effects, all images for
+// the used face definitions are included (every phoneme in those definitions).
 template<typename ManagerT>
 void collectFromObjectManager(ManagerT& mgr,
                               const std::string& showDir,
                               const std::filesystem::path& canonShowDir,
                               const std::string& defaultSubdir,
+                              const std::map<std::string, std::list<std::string>>& modelFacesUsed,
                               std::map<std::string, std::string>& outRewrites,
                               std::map<std::string, std::string>& outToPack,
                               std::set<std::string>& claimed,
@@ -1079,14 +1116,23 @@ void collectFromObjectManager(ManagerT& mgr,
         if (!obj) continue;
 
         std::list<std::string> refs = obj->GetFileReferences();
+        // Face images are collected separately so they bypass the mesh
+        // group-colocation logic and land under "Faces/" instead of "Objects/".
+        std::list<std::string> faceRefs;
         if constexpr (std::is_same_v<ManagerT, ModelManager>) {
-            // Models also have Matrix-face images (and optional state
-            // images on some subtypes) that aren't part of
-            // GetFileReferences. all=true asks for every face,
-            // not just ones the sequence uses, since we want to
-            // package the full model definition.
-            auto faceFiles = obj->GetFaceFiles({}, /*all=*/true);
-            for (const auto& f : faceFiles) refs.push_back(f);
+            auto facesIt = modelFacesUsed.find(it->first);
+            if (facesIt != modelFacesUsed.end()) {
+                const auto& usedDefs = facesIt->second;
+                for (const auto& [defName, defMap] : obj->GetFaceInfo()) {
+                    if (std::find(usedDefs.begin(), usedDefs.end(), defName) == usedDefs.end()) continue;
+                    auto typeIt = defMap.find("Type");
+                    if (typeIt == defMap.end() || typeIt->second != "Matrix") continue;
+                    for (const auto& [key, val] : defMap) {
+                        if (key != "CustomColors" && key != "ImagePlacement" && key != "Type" && !val.empty())
+                            faceRefs.push_back(val);
+                    }
+                }
+            }
         }
 
         // Resolve every ref to an absolute path up-front so we can
@@ -1105,7 +1151,7 @@ void collectFromObjectManager(ManagerT& mgr,
             }
             resolved.push_back({raw, abs});
         }
-        if (resolved.empty()) continue;
+        if (resolved.empty() && faceRefs.empty()) continue;
 
         // Group colocation: MeshObject::GetFileReferences returns
         // .obj + .mtl + texture images, all from the same source
@@ -1194,6 +1240,42 @@ void collectFromObjectManager(ManagerT& mgr,
                 outRewrites[r.abs] = zipPath;
             }
         }
+
+        // Face images are processed independently of the mesh group-colocation
+        // logic above. They always land under "Faces/" when external, preserving
+        // their parent directory name so e.g. Faces/Woody/Woody_AI.png stays grouped.
+        for (const auto& raw : faceRefs) {
+            if (raw.empty()) continue;
+            std::string abs = resolveToAbsolute(showDir, raw);
+            if (abs.empty()) {
+                std::string msg = "Could not locate face image '" + raw + "' referenced by model '" + it->first + "' — not included in package";
+                spdlog::warn("Pack: {}", msg);
+                outWarnings.push_back(msg);
+                continue;
+            }
+            if (outToPack.count(abs)) continue;
+            // Place under show-relative path if inside showDir, otherwise
+            // use Faces/<parentBasename>/<filename> to preserve grouping.
+            std::string zipPath;
+            if (isUnderCanonDir(std::filesystem::path(abs), canonShowDir)) {
+                std::error_code ec;
+                auto rel = std::filesystem::relative(abs, showDir, ec);
+                if (!ec && !rel.empty()) {
+                    zipPath = rel.generic_string();
+                    claimed.insert(zipPath);
+                }
+            }
+            if (zipPath.empty()) {
+                auto absPath = std::filesystem::path(abs);
+                std::string parentName = absPath.parent_path().filename().string();
+                if (parentName.empty()) parentName = "Faces";
+                std::string subdir = "Faces/" + parentName;
+                zipPath = claimUniqueZipPath(claimed, subdir, absPath.filename().string());
+            }
+            outToPack[abs] = zipPath;
+            if (raw != zipPath) outRewrites[raw] = zipPath;
+            if (abs != raw && abs != zipPath) outRewrites[abs] = zipPath;
+        }
     }
 }
 
@@ -1208,6 +1290,7 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
                            SequenceMedia& media,
                            ModelManager& models,
                            ViewObjectManager& viewObjects,
+                           SequenceElements& seqElements,
                            const SequencePackOptions& options,
                            std::vector<std::string>* outWarnings,
                            ProgressCallback progress)
@@ -1271,12 +1354,14 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
                              rewrites, absToZip, claimedZipPaths, warnings);
     tick(20);
 
+    auto modelFacesUsed = collectFacesUsedInSequence(seqElements);
+
     collectFromObjectManager(models, showDir, canonShowDir, "Images",
-                             rewrites, absToZip, claimedZipPaths, claimedGroupDirs, warnings);
+                             modelFacesUsed, rewrites, absToZip, claimedZipPaths, claimedGroupDirs, warnings);
     tick(35);
 
     collectFromObjectManager(viewObjects, showDir, canonShowDir, "Objects",
-                             rewrites, absToZip, claimedZipPaths, claimedGroupDirs, warnings);
+                             modelFacesUsed, rewrites, absToZip, claimedZipPaths, claimedGroupDirs, warnings);
     tick(45);
 
     // Audio is treated separately — comes from the sequence header,

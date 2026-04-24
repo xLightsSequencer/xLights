@@ -118,6 +118,7 @@ class SequencePackage {
                          SequenceMedia& media,
                          ModelManager& models,
                          ViewObjectManager& viewObjects,
+                         SequenceElements& seqElements,
                          const SequencePackOptions& options,
                          std::vector<std::string>* outWarnings = nullptr,
                          ProgressCallback progress = nullptr);

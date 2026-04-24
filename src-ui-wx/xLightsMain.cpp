@@ -7570,6 +7570,7 @@ std::string xLightsFrame::PackageSequence(bool showDialogs)
         _sequenceElements.GetSequenceMedia(),
         AllModels,
         AllObjects,
+        _sequenceElements,
         opts,
         &packWarnings,
         [&prog](int pct) -> bool {
