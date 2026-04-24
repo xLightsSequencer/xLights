@@ -1219,11 +1219,7 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 }
 
 double ModelPreview::calcPixelSize(double i) {
-    double d = translateToBacking(i * currentPixelScaleFactor);
-    if (d < 1.0) {
-        d = 1.0;
-    }
-    return d;
+    return translateToBacking(i * currentPixelScaleFactor);
 }
 
 double ModelPreview::getViewScale() const {
