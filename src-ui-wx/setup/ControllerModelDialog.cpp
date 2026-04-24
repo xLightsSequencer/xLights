@@ -2593,6 +2593,10 @@ void ControllerModelDialog::OnPopupCommand(wxCommandEvent& event)
                 m->GetModel()->SetControllerPort(0);
             }
         }
+        while (!_xLights->DoAllWork()) {
+            // dont get into a redraw loop from here
+            _xLights->GetOutputModelManager()->RemoveWork("ASAP", OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW);
+        }
         ReloadModels();
     } else if (_popup != nullptr) {
         if (_popup->HandlePopup(this, event, id)) {
