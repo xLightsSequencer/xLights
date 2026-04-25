@@ -1686,23 +1686,14 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
         TreeListViewModels->GetDataView()->GetModel()->Resort();
     }
     
-    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
-    // we should have calculated a size, now turn off the auto-sizes as it's SLOW to update anything later
-    int i = TreeListViewModels->GetColumnWidth(0);
-    if (i <= 20) {
-        i = TreeListViewModels->GetSize().GetWidth() / 3;
-    }
-    if (i <= 20) {
-        i = 100;
-    }
-    TreeListViewModels->SetColumnWidth(0, i);
-    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
-    
     for (auto &i : toExpand) {
         TreeListViewModels->Expand(i);
     }
     TreeListViewModels->Thaw();
     TreeListViewModels->Refresh();
+
+    TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
+    TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
 }
 
 void LayoutPanel::SetTreeListViewItemText(wxTreeListItem &item, int col, const wxString &txt) {
