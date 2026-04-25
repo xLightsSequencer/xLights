@@ -2112,6 +2112,15 @@ void JsonEffectPanel::SetDefaultParameters() {
             } else {
                 if (info.slider) {
                     SetSliderValue(info.slider, info.defaultValue.get<int>());
+                } else if (info.settingPrefix == "TEXTCTRL") {
+                    // TEXTCTRL primary: text control holds the value, slider is a visual buddy
+                    int ival = info.defaultValue.get<int>();
+                    if (info.textCtrl) {
+                        SetTextValue(info.textCtrl, wxString::Format("%d", ival).ToStdString());
+                    }
+                    if (info.buddySlider) {
+                        static_cast<wxSlider*>(info.buddySlider)->SetValue(ival);
+                    }
                 }
             }
         } else if (info.controlType == "checkbox") {
