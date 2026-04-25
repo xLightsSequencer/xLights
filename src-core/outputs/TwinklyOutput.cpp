@@ -106,7 +106,8 @@ bool TwinklyOutput::SetLEDMode(bool rt)
         if (!MakeCall("POST", "/xled/v1/led/mode", result, "{\"mode\": \"rt\"}")) {
             return false;
         }
-        _lastLEDModeTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        _lastLEDModeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
     }
     else
     {
@@ -140,16 +141,33 @@ bool TwinklyOutput::Open()
 
     OpenDatagram();
 
+    if (_datagram == nullptr) {
+        return false;
+    }
+
     // set real time mode
     if (!SetLEDMode(true)) {
         return false;
     }
 
-    return _datagram != nullptr;
+    _ledModeStop = false;
+    _ledModeNeeded = false;
+    _ledModeThread = std::thread(&TwinklyOutput::LEDModeThread, this);
+
+    return true;
 }
 
 void TwinklyOutput::Close()
 {
+    {
+        std::lock_guard<std::mutex> lock(_ledModeMutex);
+        _ledModeStop = true;
+    }
+    _ledModeCv.notify_one();
+    if (_ledModeThread.joinable()) {
+        _ledModeThread.join();
+    }
+
     if (_datagram != nullptr) {
         delete _datagram;
         _datagram = nullptr;
@@ -159,6 +177,17 @@ void TwinklyOutput::Close()
         SetLEDMode(false);
 
     IPOutput::Close();
+}
+void TwinklyOutput::LEDModeThread()
+{
+    while (true) {
+        std::unique_lock<std::mutex> lock(_ledModeMutex);
+        _ledModeCv.wait(lock, [this] { return _ledModeNeeded.load() || _ledModeStop.load(); });
+        if (_ledModeStop) break;
+        _ledModeNeeded = false;
+        lock.unlock();
+        SetLEDMode(true);
+    }
 }
 #pragma endregion
 
@@ -235,10 +264,12 @@ void TwinklyOutput::EndFrame(int suppressFrames)
 
     FrameOutput();
 
-    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    if ((now - _lastLEDModeTime).count() > ENSURELEDMODE_SECS * 1000)
-    {
-        SetLEDMode(true);
+    long long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    if ((now - _lastLEDModeMs.load()) > ENSURELEDMODE_SECS * 1000) {
+        _lastLEDModeMs = now; // update now to prevent re-triggering before the thread runs
+        _ledModeNeeded = true;
+        _ledModeCv.notify_one();
     }
 }
 
