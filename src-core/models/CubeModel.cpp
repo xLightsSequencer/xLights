@@ -835,6 +835,19 @@ void CubeModel::InitModel()
         }
     }
 
+    if (Nodes.size() == 1 && width * height * depth > 1)
+    {
+        Nodes[0]->Coords.resize(width * height * depth);
+        for (int n = 0; n < width * height * depth; n++)
+        {
+            Nodes[0]->Coords[n].bufX = 0;
+            Nodes[0]->Coords[n].bufY = 0;
+            Nodes[0]->Coords[n].screenX = std::get<0>(locations[n]) - width / 2;
+            Nodes[0]->Coords[n].screenY = std::get<1>(locations[n]) - height / 2;
+            Nodes[0]->Coords[n].screenZ = depth - std::get<2>(locations[n]) - 1 - depth / 2;
+        }
+    }
+
     if (Contains(CUBE_STYLES_VALUES[_cubeStyle], "Left/Right")) {
         _strandLength = width * height;
         _strands = depth;
@@ -863,6 +876,11 @@ int CubeModel::MapToNodeIndex(int strand, int node) const
 
 std::string CubeModel::ChannelLayoutHtml(OutputManager* outputManager, bool darkMode)
 {
+    if (SingleNode || SingleChannel || Nodes.size() == 1)
+    {
+        return Model::ChannelLayoutHtml(outputManager, darkMode);
+    }
+
     size_t NodeCount = GetNodeCount();
 
     std::vector<int> chmap;
