@@ -79,6 +79,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
     -enh (scott)                Add "Show Names" and "Show Start Channel" checkboxes to Layout tab to display model names
                                 and controller/port or start channel in the layout preview
+    -enh (derwin12)             Add timing track trigger for Shockwave effect
+    -enh (derwin12)             Include fonts in a Package Sequence (#3503)
+    -enh (derwin12)             Better cube visualizion for dumb rgb (#4652)
+    -enh (derwin12)             Windows now preserves audio pitch at various speeds (#2149)
+    -enh (derwin12)             Show losso box when selecting props in 3D (#3841)
+    -enh (derwin12)             Show warning if you set String property when Controller color order is available (#5441)
+    -enh (derwin12)             Up the pixielink port count capability (#4079)
+    -enh (derwin12)             Add new Label text model (#5145)
+    -enh (derwin12)             Add optional image to custom models (#3825)
     -enh (derwin12)             Picture effect auto-sets scaling to "Scale To Fit" when appropriate
     -enh (derwin12)             Add Speed as a Warp effect type (#4596)
     -enh (derwin12)             Add more variability to Lines Effect. Now using float values (#4532)
@@ -87,6 +96,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
+    -bug (derwin12)             Layout was sizing groups and model names too quickly (#6236)
+    -bug (derwin12)             Fix ON effect was resetting the intensity values (#6233)
+    -bug (derwin12)             Fix visualizer clearing all models (#6227)
+    -bug (derwin12)             Twinkly was blocking the render when devices were offline (#4101)
     -bug (derwin12)             Fix copy-paste model not assigning the next available start channel
     -bug (dkulp)                Metal render: drain autoreleased MTLCommandEncoders per frame instead of
                                 per render-job (large memory growth during long renders), fix sparkleBuffer

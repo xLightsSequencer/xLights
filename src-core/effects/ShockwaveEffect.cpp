@@ -15,6 +15,7 @@
 #include "UtilClasses.h"
 #include "UtilFunctions.h"
 #include "../render/Effect.h"
+#include "../render/SequenceElements.h"
 
 #include "../../include/shockwave-16.xpm"
 #include "../../include/shockwave-24.xpm"
@@ -24,6 +25,12 @@
 
 #include "ispc/ShockwaveFunctions.ispc.h"
 #include "Parallel.h"
+
+class ShockwaveRenderCache : public EffectRenderCache {
+public:
+    ShockwaveRenderCache() {}
+    virtual ~ShockwaveRenderCache() {}
+};
 
 // Fallback defaults (replaced from Shockwave.json in OnMetadataLoaded).
 int ShockwaveEffect::sCenterXDefault = 50;
@@ -46,8 +53,10 @@ int ShockwaveEffect::sEndWidthMin = 0;
 int ShockwaveEffect::sEndWidthMax = 255;
 int ShockwaveEffect::sAccelDefault = 0;
 int ShockwaveEffect::sCyclesDefault = 1;
+int ShockwaveEffect::sDurationDefault = 1000;
 bool ShockwaveEffect::sScaleDefault = true;
 bool ShockwaveEffect::sBlendEdgesDefault = true;
+bool ShockwaveEffect::sFilterRegexDefault = false;
 
 ShockwaveEffect::ShockwaveEffect(int id) :
     RenderableEffect(id, "Shockwave", shockwave_16, shockwave_24, shockwave_32, shockwave_48, shockwave_64)
@@ -82,8 +91,10 @@ void ShockwaveEffect::OnMetadataLoaded()
     sEndWidthMax = (int)GetMaxFromMetadata("Shockwave_End_Width", sEndWidthMax);
     sAccelDefault = GetIntDefault("Shockwave_Accel", sAccelDefault);
     sCyclesDefault = GetIntDefault("Shockwave_Cycles", sCyclesDefault);
+    sDurationDefault = GetIntDefault("Shockwave_Duration", sDurationDefault);
     sScaleDefault = GetBoolDefault("Shockwave_Scale", sScaleDefault);
     sBlendEdgesDefault = GetBoolDefault("Shockwave_Blend_Edges", sBlendEdgesDefault);
+    sFilterRegexDefault = GetBoolDefault("Shockwave_FilterRegex", sFilterRegexDefault);
 }
 
 int ShockwaveEffect::DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
@@ -120,11 +131,88 @@ void ShockwaveEffect::adjustSettings(const std::string& version, Effect* effect,
 
 #define ToRadians(x) ((double)x * PI / (double)180.0)
 
+void ShockwaveEffect::RenameTimingTrack(std::string oldname, std::string newname, Effect* effect)
+{
+    std::string timing = effect->GetSettings().Get("E_CHOICE_Shockwave_TimingTrack", "");
+    if (timing == oldname) {
+        effect->GetSettings()["E_CHOICE_Shockwave_TimingTrack"] = newname;
+    }
+}
+
 void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, RenderBuffer& buffer)
 {
+    std::string timingtrack = SettingsMap.Get("CHOICE_Shockwave_TimingTrack", "");
+    std::string filterLabel = SettingsMap.Get("TEXTCTRL_Shockwave_FilterLabel", "");
+    bool filterRegex = SettingsMap.GetBool("CHECKBOX_Shockwave_FilterRegex", sFilterRegexDefault);
+
+    ShockwaveRenderCache* cache = static_cast<ShockwaveRenderCache*>(buffer.infoCache[id]);
+    if (cache == nullptr) {
+        cache = new ShockwaveRenderCache();
+        buffer.infoCache[id] = cache;
+    }
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+        if (!timingtrack.empty()) {
+            auto* seqEl = GetSequenceElements(buffer);
+            if (seqEl) seqEl->AddRenderDependency(timingtrack, buffer.cur_model);
+        }
+    }
+
     int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
     if (cycles < 1) cycles = 1;
-    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+
+    double eff_pos;
+    if (timingtrack.empty()) {
+        eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+    } else {
+        EffectLayer* el = nullptr;
+        auto* seqEl = GetSequenceElements(buffer);
+        if (seqEl) {
+            for (size_t i = 0; i < seqEl->GetElementCount(); i++) {
+                Element* e = seqEl->GetElement(i);
+                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
+                    el = e->GetEffectLayer(0);
+                    break;
+                }
+            }
+        }
+
+        if (el == nullptr) {
+            eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+        } else {
+            int effectStartMs = (int)buffer.GetStartTimeMS();
+            int currentMs = buffer.curPeriod * buffer.frameTimeInMs;
+            int lastMarkMs = -1;
+            for (int j = 0; j < el->GetEffectCount(); j++) {
+                Effect* mark = el->GetEffect(j);
+                int startMs = mark->GetStartTimeMS();
+                if (startMs < effectStartMs) continue; // ignore marks before effect start
+                if (startMs <= currentMs) {
+                    if (mark->FilteredIn(filterLabel, filterRegex))
+                        lastMarkMs = startMs;
+                } else {
+                    break;
+                }
+            }
+
+            if (lastMarkMs < 0) return; // no timing mark within effect has fired yet
+
+            int durationMs = SettingsMap.GetInt("SLIDER_Shockwave_Duration", sDurationDefault);
+            if (durationMs < buffer.frameTimeInMs) durationMs = buffer.frameTimeInMs;
+
+            float periodsPerCycle = (float)durationMs / buffer.frameTimeInMs;
+            float lastMarkPeriod = (float)lastMarkMs / buffer.frameTimeInMs;
+            float periodsSinceMark = (float)buffer.curPeriod - lastMarkPeriod;
+
+            // All cycles for this mark have completed — nothing to draw
+            if (periodsSinceMark >= periodsPerCycle * cycles) return;
+
+            float retval = periodsSinceMark;
+            while (retval >= periodsPerCycle) retval -= periodsPerCycle;
+            retval /= (periodsPerCycle - 1.0f);
+            eff_pos = retval > 1.0f ? 1.0f : retval;
+        }
+    }
     int center_x = GetValueCurveInt("Shockwave_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Shockwave_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_radius = GetValueCurveInt("Shockwave_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

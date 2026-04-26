@@ -1970,6 +1970,12 @@ void JsonEffectPanel::RepopulateTimingTrackChoices() {
 
         wxString selection = info.choice->GetStringSelection();
         info.choice->Clear();
+        bool hasBlankDefault = !info.defaultValue.is_null() &&
+                               info.defaultValue.is_string() &&
+                               info.defaultValue.get<std::string>().empty();
+        if (hasBlankDefault) {
+            info.choice->Append("");
+        }
         if (mSequenceElements != nullptr) {
             for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
                 Element* e = mSequenceElements->GetElement(i);
@@ -1979,9 +1985,7 @@ void JsonEffectPanel::RepopulateTimingTrackChoices() {
                 if (match) info.choice->Append(e->GetName());
             }
         }
-        if (!selection.empty()) {
-            info.choice->SetStringSelection(selection);
-        }
+        info.choice->SetStringSelection(selection);
         // Fall back to JSON default for brand-new effects.
         if (info.choice->GetSelection() == wxNOT_FOUND &&
             !info.defaultValue.is_null() && info.defaultValue.is_string()) {

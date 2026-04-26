@@ -20,6 +20,7 @@ public:
     virtual bool needToAdjustSettings(const std::string& version) override;
     virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
+    virtual void RenameTimingTrack(std::string oldname, std::string newname, Effect* effect) override;
     virtual int DrawEffectBackground(const Effect* e, int x1, int y1, int x2, int y2,
                                      xlVertexColorAccumulator& backgrounds, xlColor* colorMask, bool ramps) override;
     virtual bool SupportsRadialColorCurves(const SettingsMap& SettingsMap) const override
@@ -55,8 +56,10 @@ public:
     static int sEndWidthMax;
     static int sAccelDefault;
     static int sCyclesDefault;
+    static int sDurationDefault;
     static bool sScaleDefault;
     static bool sBlendEdgesDefault;
+    static bool sFilterRegexDefault;
 
 protected:
     virtual void OnMetadataLoaded() override;
