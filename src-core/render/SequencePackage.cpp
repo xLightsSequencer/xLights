@@ -23,6 +23,14 @@
 #include "utils/ExternalHooks.h"
 #include "utils/FileUtils.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#ifdef __APPLE__
+#include <CoreText/CoreText.h>
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 extern "C" {
 #include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
 #include "../../dependencies/libxlsxwriter/third_party/minizip/zip.h"
@@ -1058,6 +1066,224 @@ void collectFromSequenceMedia(SequenceMedia& media,
     }
 }
 
+// Extract the typeface name from the stored wxFont native-info string.
+// Three formats can appear:
+//   Windows LOGFONT:  "0;-16;0;...;Bold;FaceName"  — face after last semicolon
+//   Simple quoted:    "'Face Name' 12"               — between first pair of '
+//   Bare word:        "Arial"                        — whole string (no spaces expected)
+static std::string parseFaceNameFromFontString(const std::string& fontStr)
+{
+    if (fontStr.empty()) return {};
+
+    // Windows LOGFONT serialisation — last semicolon-delimited token is the face name.
+    auto lastSemi = fontStr.rfind(';');
+    if (lastSemi != std::string::npos) {
+        std::string face = fontStr.substr(lastSemi + 1);
+        while (!face.empty() && std::isspace((unsigned char)face.back()))  face.pop_back();
+        while (!face.empty() && std::isspace((unsigned char)face.front())) face.erase(face.begin());
+        if (!face.empty()) return face;
+    }
+
+    // Quoted format used by LOR import: 'Face Name' 12
+    if (fontStr.front() == '\'') {
+        auto close = fontStr.find('\'', 1);
+        if (close != std::string::npos) return fontStr.substr(1, close - 1);
+    }
+
+    // Bare: everything before the first space (or the whole string).
+    auto sp = fontStr.find(' ');
+    return sp != std::string::npos ? fontStr.substr(0, sp) : fontStr;
+}
+
+// Scan all effects in the sequence for FONTPICKER settings and return the
+// unique set of OS typeface names that are referenced.
+static std::set<std::string> collectFontFaceNames(SequenceElements& seqElements)
+{
+    std::set<std::string> faces;
+    static const std::string FONTPICKER_PREFIX = "E_FONTPICKER_";
+
+    size_t elemCount = seqElements.GetElementCount(MASTER_VIEW);
+    for (size_t i = 0; i < elemCount; ++i) {
+        Element* elem = seqElements.GetElement(i, MASTER_VIEW);
+        if (!elem) continue;
+        size_t layerCount = elem->GetEffectLayerCount();
+        for (size_t l = 0; l < layerCount; ++l) {
+            EffectLayer* layer = elem->GetEffectLayer(l);
+            if (!layer) continue;
+            int effectCount = layer->GetEffectCount();
+            for (int e = 0; e < effectCount; ++e) {
+                Effect* eff = layer->GetEffect(e);
+                if (!eff) continue;
+                const auto& settings = eff->GetSettings();
+                for (const auto& [key, val] : settings) {
+                    if (key.rfind(FONTPICKER_PREFIX, 0) != 0) continue;
+                    std::string strVal = val;
+                    if (strVal.empty()) continue;
+                    std::string face = parseFaceNameFromFontString(strVal);
+                    if (!face.empty()) {
+                        spdlog::info("Pack: found font face '{}' in effect '{}' key '{}'",
+                                      face, eff->GetEffectName(), key);
+                        faces.insert(face);
+                    }
+                }
+            }
+        }
+    }
+    return faces;
+}
+
+// Resolve an OS typeface name to an absolute font file path.
+// Returns empty string if the font cannot be located or is a guaranteed-present
+// system font that does not need bundling.
+#ifdef _WIN32
+static std::string resolveFontFaceToFile(const std::string& faceName)
+{
+    // Build font directory paths from environment variables.
+    auto getEnvW = [](const wchar_t* var) -> std::wstring {
+        DWORD len = GetEnvironmentVariableW(var, nullptr, 0);
+        if (len == 0) return {};
+        std::wstring buf(len, L'\0');
+        GetEnvironmentVariableW(var, buf.data(), len);
+        if (!buf.empty() && buf.back() == L'\0') buf.pop_back();
+        return buf;
+    };
+
+    auto wToUtf8 = [](const std::wstring& ws) -> std::string {
+        if (ws.empty()) return {};
+        int n = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        if (n <= 0) return {};
+        std::string s(n - 1, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, s.data(), n, nullptr, nullptr);
+        return s;
+    };
+
+    std::filesystem::path sysFontsDir =
+        std::filesystem::path(getEnvW(L"WINDIR")) / L"Fonts";
+    std::filesystem::path perUserFontsDir =
+        std::filesystem::path(getEnvW(L"LOCALAPPDATA")) / L"Microsoft" / L"Windows" / L"Fonts";
+
+    std::string faceNameLower = faceName;
+    std::transform(faceNameLower.begin(), faceNameLower.end(), faceNameLower.begin(),
+                   [](unsigned char c) { return (char)std::tolower(c); });
+
+    static const wchar_t* FONT_REG_KEY =
+        L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts";
+
+    struct Entry { HKEY root; std::filesystem::path dir; };
+    Entry entries[] = {
+        { HKEY_CURRENT_USER, perUserFontsDir },   // per-user (Win10+)
+        { HKEY_LOCAL_MACHINE, sysFontsDir }        // system-wide
+    };
+
+    for (const auto& entry : entries) {
+        HKEY hKey = nullptr;
+        if (RegOpenKeyExW(entry.root, FONT_REG_KEY, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+            continue;
+
+        DWORD idx = 0;
+        wchar_t valueName[512];
+        wchar_t valueData[512];
+        std::string found;
+
+        while (found.empty()) {
+            DWORD nameLen = 512;
+            DWORD dataLen = sizeof(valueData);
+            DWORD type = 0;
+            LONG res = RegEnumValueW(hKey, idx++, valueName, &nameLen, nullptr,
+                                     &type, reinterpret_cast<LPBYTE>(valueData), &dataLen);
+            if (res == ERROR_NO_MORE_ITEMS) break;
+            if (res != ERROR_SUCCESS || type != REG_SZ) continue;
+
+            std::string regName = wToUtf8(valueName);
+            // Strip trailing style/format annotations: "Arial Bold (TrueType)" -> "Arial Bold"
+            // then strip bold/italic variants so "Arial (TrueType)" matches face "Arial".
+            for (const char* sfx : { " (TrueType)", " (OpenType)", " (TrueType Collection)" }) {
+                auto pos = regName.rfind(sfx);
+                if (pos != std::string::npos) { regName = regName.substr(0, pos); break; }
+            }
+            std::string regLower = regName;
+            std::transform(regLower.begin(), regLower.end(), regLower.begin(),
+                           [](unsigned char c) { return (char)std::tolower(c); });
+
+            // Match either exact ("Arial") or with style suffix ("Arial Bold").
+            if (regLower != faceNameLower &&
+                regLower.rfind(faceNameLower + " ", 0) != 0) continue;
+
+            // Resolve relative paths against the font directory for this hive.
+            std::wstring dataStr(valueData);
+            std::filesystem::path fontPath =
+                std::filesystem::path(dataStr).is_absolute()
+                    ? std::filesystem::path(dataStr)
+                    : entry.dir / dataStr;
+
+            std::error_code ec;
+            if (std::filesystem::exists(fontPath, ec))
+                found = fontPath.string();
+        }
+
+        RegCloseKey(hKey);
+        if (!found.empty()) return found;
+    }
+    return {};
+}
+
+#elif defined(__APPLE__)
+static std::string resolveFontFaceToFile(const std::string& faceName)
+{
+    CFStringRef cfName = CFStringCreateWithCString(
+        kCFAllocatorDefault, faceName.c_str(), kCFStringEncodingUTF8);
+    if (!cfName) return {};
+
+    CTFontDescriptorRef desc = CTFontDescriptorCreateWithNameAndSize(cfName, 12.0);
+    CFRelease(cfName);
+    if (!desc) return {};
+
+    CFURLRef urlRef = (CFURLRef)CTFontDescriptorCopyAttribute(desc, kCTFontURLAttribute);
+    CFRelease(desc);
+    if (!urlRef) return {};
+
+    char pathBuf[4096] = {};
+    bool ok = CFURLGetFileSystemRepresentation(urlRef, true,
+                                               reinterpret_cast<UInt8*>(pathBuf),
+                                               sizeof(pathBuf));
+    CFRelease(urlRef);
+    if (!ok) return {};
+
+    std::string path(pathBuf);
+    // /System/Library/Fonts/ is present on every Mac — skip it.
+    if (path.rfind("/System/Library/Fonts/", 0) == 0) return {};
+
+    return path;
+}
+
+#else
+static std::string resolveFontFaceToFile(const std::string&) { return {}; }
+#endif
+
+// Collect OS font files used by Text/Shape/etc. effects and queue them
+// under Fonts/ in the zip.
+static void collectFontFiles(SequenceElements& seqElements,
+                              std::map<std::string, std::string>& outToPack,
+                              std::set<std::string>& claimed,
+                              std::vector<std::string>& outWarnings)
+{
+    auto faceNames = collectFontFaceNames(seqElements);
+    if (faceNames.empty()) return;
+
+    for (const auto& face : faceNames) {
+        std::string fontPath = resolveFontFaceToFile(face);
+        if (fontPath.empty()) {
+            spdlog::debug("Pack: font '{}' not resolved to a bundleable file — skipping", face);
+            continue;
+        }
+        if (outToPack.count(fontPath)) continue;
+        std::string basename = std::filesystem::path(fontPath).filename().string();
+        std::string zipPath = claimUniqueZipPath(claimed, "Fonts", basename);
+        outToPack[fontPath] = zipPath;
+        spdlog::info("Pack: bundling font '{}' from '{}' as '{}'", face, fontPath, zipPath);
+    }
+}
+
 // Walk the in-memory sequence elements to find which face definitions each
 // model uses. Returns map of model_name -> list of face definition names so
 // all images for only those definitions are packaged.
@@ -1363,6 +1589,13 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
     collectFromObjectManager(viewObjects, showDir, canonShowDir, "Objects",
                              modelFacesUsed, rewrites, absToZip, claimedZipPaths, claimedGroupDirs, warnings);
     tick(45);
+
+    // Font files used by Text / Shape / other effects with FONTPICKER controls.
+    // Placed under Fonts/ in the zip; no path rewrite needed because font
+    // strings store a face name, not a file path — the importer registers
+    // the bundled file with AddPrivateFont() before rendering.
+    collectFontFiles(seqElements, absToZip, claimedZipPaths, warnings);
+    tick(50);
 
     // Audio is treated separately — comes from the sequence header,
     // not from SequenceMedia (audio isn't cached there). Primary
