@@ -18,6 +18,7 @@
 #include <pugixml.hpp>
 #include <wx/artprov.h>
 #include <wx/dnd.h>
+#include <wx/srchctrl.h>
 
 #include "model-16.xpm"
 #include "timing-16.xpm"
@@ -252,7 +253,25 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     _gridBagSizer = GridBagSizer1;
     _viewButtonsSizer = FlexGridSizer8;
 
-    
+    // Insert a filter control above the "Available" (non-models) list.
+    // The wxSmith block put ListCtrlNonModels at (1, 0) spanning rows 1-3.
+    // Detach it, drop the filter into row 1, and re-attach the list to
+    // rows 2-3 so the bottom row stays the growable one.
+    GridBagSizer1->Detach(ListCtrlNonModels);
+    TextCtrl_NonModelsFilter = new wxSearchCtrl(this, wxID_ANY, wxEmptyString,
+                                                wxDefaultPosition, wxDefaultSize,
+                                                wxTE_PROCESS_ENTER);
+    TextCtrl_NonModelsFilter->SetDescriptiveText(_("Filter models..."));
+    TextCtrl_NonModelsFilter->ShowCancelButton(true);
+    GridBagSizer1->Add(TextCtrl_NonModelsFilter, wxGBPosition(1, 0), wxDefaultSpan,
+                       wxALL | wxEXPAND, 2);
+    GridBagSizer1->Add(ListCtrlNonModels, wxGBPosition(2, 0), wxGBSpan(2, 1),
+                       wxALL | wxEXPAND, 2);
+    TextCtrl_NonModelsFilter->Bind(wxEVT_TEXT,
+        &ViewsModelsPanel::OnNonModelsFilterText, this);
+    TextCtrl_NonModelsFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
+        &ViewsModelsPanel::OnNonModelsFilterCancel, this);
+
     GridBagSizer1->AddGrowableCol(0, 2);
     GridBagSizer1->AddGrowableCol(2, 1);
     GridBagSizer1->AddGrowableRow(3);
@@ -889,6 +908,14 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
 
     MarkViewsChanged();
+
+    // Clear the Available filter so the user sees the full list again
+    // after moving items to the right (consistent with what we agreed —
+    // filter served its purpose, reset state).
+    if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.empty()) {
+        TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
+        _nonModelFilter.clear();
+    }
     PopulateModels(wxJoin(addedModels, ',').ToStdString());
 
     // Update Grid
@@ -1438,9 +1465,22 @@ void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)
 
 #pragma region Non Models
 
+bool ViewsModelsPanel::IsFilteredOutOfNonModels(const std::string& name) const
+{
+    if (_nonModelFilter.empty()) {
+        return false;
+    }
+    // Case-insensitive substring match. _nonModelFilter is already lower.
+    wxString lname = wxString::FromUTF8(name).Lower();
+    return lname.Find(wxString::FromUTF8(_nonModelFilter)) == wxNOT_FOUND;
+}
+
 void ViewsModelsPanel::AddTimingToNotList(Element* timing)
 {
     if (timing != nullptr) {
+        if (IsFilteredOutOfNonModels(timing->GetName())) {
+            return;
+        }
         wxListItem li;
         li.SetId(_numNonModels);
         li.SetText(_(""));
@@ -1455,6 +1495,9 @@ void ViewsModelsPanel::AddTimingToNotList(Element* timing)
 void ViewsModelsPanel::AddModelToNotList(Element* model)
 {
     if (model != nullptr) {
+        if (IsFilteredOutOfNonModels(model->GetName())) {
+            return;
+        }
         wxListItem li;
         li.SetId(_numNonModels);
         li.SetText(_(""));
@@ -1469,6 +1512,19 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
 
         _numNonModels++;
     }
+}
+
+void ViewsModelsPanel::OnNonModelsFilterText(wxCommandEvent& /*event*/)
+{
+    _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower().ToStdString();
+    PopulateModels();
+}
+
+void ViewsModelsPanel::OnNonModelsFilterCancel(wxCommandEvent& /*event*/)
+{
+    TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
+    _nonModelFilter.clear();
+    PopulateModels();
 }
 
 void ViewsModelsPanel::OnListCtrlNonModelsItemSelect(wxListEvent& event)

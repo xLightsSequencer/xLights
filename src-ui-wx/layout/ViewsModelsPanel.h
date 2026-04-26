@@ -25,6 +25,9 @@
 #include "render/SequenceData.h"
 #include <list>
 #include <map>
+#include <string>
+
+class wxSearchCtrl;
 
 class SequenceElements;
 class xLightsFrame;
@@ -255,6 +258,14 @@ private:
     void OnDrop(wxCommandEvent& event);
     void OnModelsPopup(wxCommandEvent& event);
     void OnImportBtnPopup(wxCommandEvent& event);
+
+    // Filter for the "Available" (non-models) list. Created outside the
+    // wxSmith block so the .wxs file does not need to know about it.
+    wxSearchCtrl* TextCtrl_NonModelsFilter = nullptr;
+    std::string _nonModelFilter;
+    void OnNonModelsFilterText(wxCommandEvent& event);
+    void OnNonModelsFilterCancel(wxCommandEvent& event);
+    bool IsFilteredOutOfNonModels(const std::string& name) const;
 
     DECLARE_EVENT_TABLE()
 };
