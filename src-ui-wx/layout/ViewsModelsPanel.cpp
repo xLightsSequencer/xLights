@@ -254,18 +254,23 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     _viewButtonsSizer = FlexGridSizer8;
 
     // Insert a filter control above the "Available" (non-models) list.
-    // The wxSmith block put ListCtrlNonModels at (1, 0) spanning rows 1-3.
-    // Detach it, drop the filter into row 1, and re-attach the list to
-    // rows 2-3 so the bottom row stays the growable one.
+    // The wxSmith block put ListCtrlNonModels at (1, 0) span(3, 1).
+    // Detach it, build a vertical box sizer holding [filter, listctrl],
+    // and put the whole sizer back at the original GB position. We need
+    // to wrap them in a sizer (not put the filter in its own GB row)
+    // because row 1 of the GridBagSizer is stretched by ListCtrlViews
+    // on the right, which would leave a tall gap between the filter
+    // and the list.
     GridBagSizer1->Detach(ListCtrlNonModels);
     TextCtrl_NonModelsFilter = new wxSearchCtrl(this, wxID_ANY, wxEmptyString,
                                                 wxDefaultPosition, wxDefaultSize,
                                                 wxTE_PROCESS_ENTER);
     TextCtrl_NonModelsFilter->SetDescriptiveText(_("Filter models..."));
     TextCtrl_NonModelsFilter->ShowCancelButton(true);
-    GridBagSizer1->Add(TextCtrl_NonModelsFilter, wxGBPosition(1, 0), wxDefaultSpan,
-                       wxALL | wxEXPAND, 2);
-    GridBagSizer1->Add(ListCtrlNonModels, wxGBPosition(2, 0), wxGBSpan(2, 1),
+    auto* nonModelsSizer = new wxBoxSizer(wxVERTICAL);
+    nonModelsSizer->Add(TextCtrl_NonModelsFilter, 0, wxBOTTOM | wxEXPAND, 2);
+    nonModelsSizer->Add(ListCtrlNonModels, 1, wxEXPAND, 0);
+    GridBagSizer1->Add(nonModelsSizer, wxGBPosition(1, 0), wxGBSpan(3, 1),
                        wxALL | wxEXPAND, 2);
     TextCtrl_NonModelsFilter->Bind(wxEVT_TEXT,
         &ViewsModelsPanel::OnNonModelsFilterText, this);
@@ -575,13 +580,20 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                 if (topM + visibileM - 1 < ListCtrlModels->GetItemCount()) {
                     ListCtrlModels->EnsureVisible(topM + visibileM - 1);
                 }
-                ListCtrlModels->EnsureVisible(topM);
+                if (topM >= 0 && topM < ListCtrlModels->GetItemCount()) {
+                    ListCtrlModels->EnsureVisible(topM);
+                }
             }
             if (ListCtrlNonModels->GetItemCount() > 0) {
                 if (topN + visibileN - 1 < ListCtrlNonModels->GetItemCount()) {
                     ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
                 }
-                ListCtrlNonModels->EnsureVisible(topN);
+                // Filtering can shrink the non-models list below topN, so
+                // clamp before calling EnsureVisible to avoid the wx
+                // generic listctrl assert.
+                if (topN >= 0 && topN < ListCtrlNonModels->GetItemCount()) {
+                    ListCtrlNonModels->EnsureVisible(topN);
+                }
             }
         }
 
