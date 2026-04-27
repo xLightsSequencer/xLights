@@ -19,6 +19,7 @@
 #include <wx/artprov.h>
 #include <wx/dnd.h>
 #include <wx/srchctrl.h>
+#include <wx/timer.h>
 
 #include "model-16.xpm"
 #include "timing-16.xpm"
@@ -277,6 +278,12 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     TextCtrl_NonModelsFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
         &ViewsModelsPanel::OnNonModelsFilterCancel, this);
 
+    // Debounce keystrokes so PopulateModels (full rebuild of both lists)
+    // doesn't run on every character on large shows.
+    _filterDebounceTimer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &ViewsModelsPanel::OnFilterDebounceTimer, this,
+         _filterDebounceTimer->GetId());
+
     GridBagSizer1->AddGrowableCol(0, 2);
     GridBagSizer1->AddGrowableCol(2, 1);
     GridBagSizer1->AddGrowableRow(3);
@@ -418,6 +425,12 @@ ViewsModelsPanel::~ViewsModelsPanel()
 {
     //(*Destroy(ViewsModelsPanel)
     //*)
+
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+        delete _filterDebounceTimer;
+        _filterDebounceTimer = nullptr;
+    }
 
     //for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
     //{
@@ -934,8 +947,12 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
 
     // Clear the Available filter so the user sees the full list again
     // after moving items to the right (filter served its purpose, reset
-    // state).
+    // state). Also stop any pending debounce so the upcoming
+    // PopulateModels call doesn't get re-run a moment later.
     if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.IsEmpty()) {
+        if (_filterDebounceTimer != nullptr) {
+            _filterDebounceTimer->Stop();
+        }
         TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
         _nonModelFilter.Clear();
     }
@@ -1542,14 +1559,30 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
 
 void ViewsModelsPanel::OnNonModelsFilterText(wxCommandEvent& /*event*/)
 {
+    // Capture the current text immediately so the cached filter stays
+    // in sync with what the user sees, but debounce the expensive
+    // PopulateModels rebuild — restart the one-shot timer on each
+    // keystroke and only rebuild after the user pauses for ~150 ms.
     _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower();
-    PopulateModels();
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Start(kFilterDebounceMs, wxTIMER_ONE_SHOT);
+    }
 }
 
 void ViewsModelsPanel::OnNonModelsFilterCancel(wxCommandEvent& /*event*/)
 {
+    // Explicit cancel — rebuild immediately so the user sees the full
+    // list without waiting for the debounce window.
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+    }
     TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
     _nonModelFilter.Clear();
+    PopulateModels();
+}
+
+void ViewsModelsPanel::OnFilterDebounceTimer(wxTimerEvent& /*event*/)
+{
     PopulateModels();
 }
 

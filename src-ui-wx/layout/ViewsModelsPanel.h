@@ -263,10 +263,18 @@ private:
     // wxSmith block so the .wxs file does not need to know about it.
     // Held as wxString (already lower-cased) so encoding stays consistent
     // with the wxString-based names we compare against.
+    //
+    // PopulateModels is O(N+M) and rebuilds both list controls plus the
+    // model-group heap allocations. wxEVT_TEXT fires on every keystroke,
+    // so we debounce: keystrokes restart a one-shot timer; the rebuild
+    // only fires once the user pauses for kFilterDebounceMs.
     wxSearchCtrl* TextCtrl_NonModelsFilter = nullptr;
     wxString _nonModelFilter;
+    wxTimer* _filterDebounceTimer = nullptr;
+    static constexpr int kFilterDebounceMs = 150;
     void OnNonModelsFilterText(wxCommandEvent& event);
     void OnNonModelsFilterCancel(wxCommandEvent& event);
+    void OnFilterDebounceTimer(wxTimerEvent& event);
     bool IsFilteredOutOfNonModels(const std::string& name) const;
 
     DECLARE_EVENT_TABLE()
