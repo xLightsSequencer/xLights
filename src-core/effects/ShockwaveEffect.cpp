@@ -153,8 +153,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     if (buffer.needToInit) {
         buffer.needToInit = false;
         if (!timingtrack.empty()) {
-            auto* seqEl = GetSequenceElements(buffer);
-            if (seqEl) seqEl->AddRenderDependency(timingtrack, buffer.cur_model);
+            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timingtrack, buffer.cur_model);
         }
     }
 
@@ -165,17 +164,7 @@ void ShockwaveEffect::Render(Effect* effect, const SettingsMap& SettingsMap, Ren
     if (timingtrack.empty()) {
         eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
     } else {
-        EffectLayer* el = nullptr;
-        auto* seqEl = GetSequenceElements(buffer);
-        if (seqEl) {
-            for (size_t i = 0; i < seqEl->GetElementCount(); i++) {
-                Element* e = seqEl->GetElement(i);
-                if (e->GetEffectLayerCount() == 1 && e->GetType() == ElementType::ELEMENT_TYPE_TIMING && e->GetName() == timingtrack) {
-                    el = e->GetEffectLayer(0);
-                    break;
-                }
-            }
-        }
+        EffectLayer* el = GetTiming(timingtrack);
 
         if (el == nullptr) {
             eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
