@@ -261,8 +261,10 @@ private:
 
     // Filter for the "Available" (non-models) list. Created outside the
     // wxSmith block so the .wxs file does not need to know about it.
+    // Held as wxString (already lower-cased) so encoding stays consistent
+    // with the wxString-based names we compare against.
     wxSearchCtrl* TextCtrl_NonModelsFilter = nullptr;
-    std::string _nonModelFilter;
+    wxString _nonModelFilter;
     void OnNonModelsFilterText(wxCommandEvent& event);
     void OnNonModelsFilterCancel(wxCommandEvent& event);
     bool IsFilteredOutOfNonModels(const std::string& name) const;

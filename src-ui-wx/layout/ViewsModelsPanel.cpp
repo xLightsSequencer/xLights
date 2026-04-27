@@ -374,6 +374,12 @@ void ViewsModelsPanel::SetEffectSequenceMode(bool effectSeq)
         // Expand ListCtrlModels to cover the right side
         _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(0, 2));
         _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(4, 1));
+        // Row 1 is shared with the [filter + ListCtrlNonModels] box sizer
+        // on the left (col 0). Making row 1 growable lets the right-side
+        // ListCtrlModels (rows 0-3) get a fair vertical share. The filter
+        // itself does NOT stretch because inside the box sizer it sits at
+        // proportion 0; the listctrl below it (proportion 1) absorbs all
+        // row growth.
         _gridBagSizer->AddGrowableRow(1);
         _gridBagSizer->RemoveGrowableCol(2);
         _gridBagSizer->AddGrowableCol(2, 2);
@@ -555,10 +561,14 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             }
         }
 
-        // Add model groups not already in the sequence elements list
+        // Add model groups not already in the sequence elements list.
+        // Check the Available filter BEFORE allocating the ModelElement -
+        // AddModelToNotList drops filtered items without inserting, so an
+        // up-front allocation would leak per keystroke on a filtered list.
         for (const auto& it : _xlFrame->AllModels) {
             if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
-                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                if (!_sequenceElements->ElementExists(it.first, 0) &&
+                    !IsFilteredOutOfNonModels(it.first)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
                 }
@@ -568,7 +578,8 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         // Add regular models not already in the sequence elements list
         for (const auto& it : _xlFrame->AllModels) {
             if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
-                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                if (!_sequenceElements->ElementExists(it.first, 0) &&
+                    !IsFilteredOutOfNonModels(it.first)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
                 }
@@ -922,11 +933,11 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     MarkViewsChanged();
 
     // Clear the Available filter so the user sees the full list again
-    // after moving items to the right (consistent with what we agreed —
-    // filter served its purpose, reset state).
-    if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.empty()) {
+    // after moving items to the right (filter served its purpose, reset
+    // state).
+    if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.IsEmpty()) {
         TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
-        _nonModelFilter.clear();
+        _nonModelFilter.Clear();
     }
     PopulateModels(wxJoin(addedModels, ',').ToStdString());
 
@@ -1479,12 +1490,15 @@ void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)
 
 bool ViewsModelsPanel::IsFilteredOutOfNonModels(const std::string& name) const
 {
-    if (_nonModelFilter.empty()) {
+    if (_nonModelFilter.IsEmpty()) {
         return false;
     }
-    // Case-insensitive substring match. _nonModelFilter is already lower.
+    // Case-insensitive substring match. _nonModelFilter is already
+    // lower-cased and held as wxString so we stay encoding-consistent
+    // (avoids std::string round-trips through ToStdString/FromUTF8 that
+    // can break non-ASCII names on non-UTF-8 wx builds).
     wxString lname = wxString::FromUTF8(name).Lower();
-    return lname.Find(wxString::FromUTF8(_nonModelFilter)) == wxNOT_FOUND;
+    return lname.Find(_nonModelFilter) == wxNOT_FOUND;
 }
 
 void ViewsModelsPanel::AddTimingToNotList(Element* timing)
@@ -1528,14 +1542,14 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
 
 void ViewsModelsPanel::OnNonModelsFilterText(wxCommandEvent& /*event*/)
 {
-    _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower().ToStdString();
+    _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower();
     PopulateModels();
 }
 
 void ViewsModelsPanel::OnNonModelsFilterCancel(wxCommandEvent& /*event*/)
 {
     TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
-    _nonModelFilter.clear();
+    _nonModelFilter.Clear();
     PopulateModels();
 }
 
