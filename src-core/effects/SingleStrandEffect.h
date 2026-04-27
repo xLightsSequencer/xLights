@@ -74,5 +74,5 @@ private:
     void RenderSingleStrandFX(RenderBuffer& buffer, Effect* eff, int intensity, int speed, const std::string& fx, const std::string& palette);
     void draw_chase(RenderBuffer& buffer,
                     int x, bool group, int ColorScheme, int Number_Chases, bool autoReverse, int width,
-                    int Color_Mix1, const std::string& Fade_Type, int ChaseDirection, bool mirror);
+                    int Color_Mix1, int fadeType, int ChaseDirection, bool mirror);
 };
