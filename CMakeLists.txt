@@ -501,6 +501,49 @@ if(CURL_LINK_TARGET)
     target_link_libraries(xLights PRIVATE ${CURL_LINK_TARGET})
 endif()
 
+# ─── WebP ───────────────────────────────────────────────────────────────────
+# Required for wxWidgets WebP image support (wxUSE_WEBP is defined above).
+# Try cmake config first (vcpkg provides WebP::webp and WebP::webpdemux targets).
+find_package(WebP QUIET CONFIG)
+if(WebP_FOUND AND TARGET WebP::webp AND TARGET WebP::webpdemux)
+    target_link_libraries(xLights PRIVATE WebP::webp WebP::webpdemux)
+    message(STATUS "WebP found via cmake CONFIG package")
+else()
+    # Manual fallback — vendored on Windows, system on Linux.
+    if(WIN32)
+        find_library(WEBP_LIB NAMES libwebp webp
+            HINTS ${XL_LIB}/windows64
+            PATHS /usr/lib /usr/local/lib
+            NO_DEFAULT_PATH)
+        if(NOT WEBP_LIB)
+            find_library(WEBP_LIB NAMES libwebp webp)
+        endif()
+        find_library(WEBPDEMUX_LIB NAMES libwebpdemux webpdemux
+            HINTS ${XL_LIB}/windows64
+            PATHS /usr/lib /usr/local/lib
+            NO_DEFAULT_PATH)
+        if(NOT WEBPDEMUX_LIB)
+            find_library(WEBPDEMUX_LIB NAMES libwebpdemux webpdemux)
+        endif()
+    else()
+        find_library(WEBP_LIB NAMES webp
+            PATHS /usr/lib /usr/local/lib)
+        find_library(WEBPDEMUX_LIB NAMES webpdemux
+            PATHS /usr/lib /usr/local/lib)
+    endif()
+
+    if(WEBP_LIB AND WEBPDEMUX_LIB)
+        target_link_libraries(xLights PRIVATE ${WEBP_LIB} ${WEBPDEMUX_LIB})
+        message(STATUS "WebP found via vendored libs: ${WEBP_LIB}, ${WEBPDEMUX_LIB}")
+    else()
+        if(XLIGHTS_USE_VCPKG)
+            message(FATAL_ERROR "XLIGHTS_USE_VCPKG=ON but WebP not found. Run: vcpkg install libwebp")
+        else()
+            message(WARNING "libwebp or libwebpdemux not found — WebP image support may fail to link")
+        endif()
+    endif()
+endif()
+
 # OpenGL 
 target_link_libraries(xLights PRIVATE OpenGL::GL)
 if(WIN32)

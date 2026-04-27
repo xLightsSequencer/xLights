@@ -1,27 +1,44 @@
 import SwiftUI
 import UIKit
 
-/// F-5 — destroys any persisted scene sessions at launch before
-/// SwiftUI has a chance to restore them. iPadOS 26's default
+/// F-5 — destroys any persisted scene sessions iPadOS would
+/// otherwise restore from a previous launch. iPadOS 26's default
 /// state restoration conflates geometry across our multiple
 /// `WindowGroup`s — closing the main sequencer with a detached
 /// preview open can result in the main coming back at a detached
 /// pane's position/size on the next launch (see
 /// `plans/phase-f-window-system.md` § F-5 carryover).
 ///
+/// We do this in `configurationForConnecting`, not
+/// `didFinishLaunchingWithOptions`, because the connecting
+/// session is *itself* in `openSessions` at that early stage —
+/// destroying it leaves iPadOS with no scene to display and the
+/// app immediately exits ("Finished Running…" on first cold
+/// launch, fine on the second). Skipping the actively-connecting
+/// session preserves the main window while still wiping the
+/// stale auxiliary sessions.
+///
 /// Tradeoff: the main window no longer remembers its size between
 /// launches. Predictability wins — every launch starts at the
 /// main WindowGroup's `.defaultSize`, which is a vastly better
 /// experience than "small thumbnail surprise" on reopen.
 class XLAppDelegate: NSObject, UIApplicationDelegate {
+    private var didCleanStaleSessions = false
+
     func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions:
-                        [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        for session in UIApplication.shared.openSessions {
-            UIApplication.shared.requestSceneSessionDestruction(
-                session, options: nil, errorHandler: nil)
+                     configurationForConnecting connectingSceneSession: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        if !didCleanStaleSessions {
+            didCleanStaleSessions = true
+            let live = ObjectIdentifier(connectingSceneSession)
+            for session in UIApplication.shared.openSessions
+            where ObjectIdentifier(session) != live {
+                UIApplication.shared.requestSceneSessionDestruction(
+                    session, options: nil, errorHandler: nil)
+            }
         }
-        return true
+        return UISceneConfiguration(name: nil,
+                                     sessionRole: connectingSceneSession.role)
     }
 }
 
@@ -54,10 +71,11 @@ struct XLightsApp: App {
                 // launch. Without it, iPadOS inherits the
                 // last-active scene's size (often a detached
                 // pane's small thumbnail) and main opens tiny in a
-                // corner. 1000×700 is the smallest we want main
-                // to be; users can drag larger, but the floor
-                // prevents the "surprise thumbnail" relaunch.
-                .frame(minWidth: 1000, minHeight: 700)
+                // corner. The floor must fit the smallest supported
+                // iPad portrait width (iPad Mini ~744 pt) — anything
+                // larger forces content to overflow the screen edges
+                // in portrait, clipping row headings and list views.
+                .frame(minWidth: 700, minHeight: 700)
         }
         .windowResizability(.contentSize)
         .commands {

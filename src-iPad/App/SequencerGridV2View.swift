@@ -1719,7 +1719,8 @@ struct SequencerGridV2View: View {
                     onInsertMultipleLayersBelow: {
                         insertLayersCountText = "3"
                         insertLayersTargetRow = row.id
-                    }
+                    },
+                    isSelected: row.id == selectedRowId
                 )
             }
             Spacer(minLength: 0)

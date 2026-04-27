@@ -315,6 +315,11 @@ struct ModelRowHeader: View {
     /// owns the count prompt; we just fire the closure with the
     /// chosen value.
     var onInsertMultipleLayersBelow: (() -> Void)?
+    /// True when this row hosts the currently-selected effect.
+    /// Drives a soft accent tint on the heading so the active row
+    /// is recognisable at a glance — pairs with the height bump
+    /// already applied by `SequencerGridV2View.modelHeaders`.
+    var isSelected: Bool = false
 
     @State private var showDeleteLayerConfirm: Bool = false
     @State private var showDeleteAllEffectsConfirm: Bool = false
@@ -420,6 +425,14 @@ struct ModelRowHeader: View {
         .background(row.id % 2 == 0
                     ? Color.black.opacity(0.25)
                     : Color.black.opacity(0.15))
+        .background(isSelected ? Color.accentColor.opacity(0.22) : Color.clear)
+        .overlay(alignment: .leading) {
+            if isSelected {
+                Rectangle()
+                    .fill(Color.accentColor)
+                    .frame(width: 3)
+            }
+        }
         // B66 — render-disabled (desktop calls it "muted") rows
         // show at 45 % opacity so the user can tell at a glance
         // which models won't contribute to the render pass.

@@ -57,6 +57,16 @@ refactor given the session-destruction policy adopted for F-5.
   side-by-side; narrower regular widths still dock both (no
   notebook-switcher regression); compact falls back to a picker
   between the two.
+- Landscape (regular width, inspector visible) tucks the preview
+  band above the grid column only so the inspector sidebar runs
+  the full vertical span — settings have a lot of controls and
+  benefit from the extra height. Portrait keeps the original
+  full-width preview band above grid+inspector.
+- Inspector sidebar width is draggable via a leading-edge handle
+  (mirrors the preview-height handle), persisted via `@AppStorage`
+  and clamped 280…720 pt and ≤60% of the viewport. Default bumped
+  to 340 pt so the four-tab segmented picker ("Effect | Colors |
+  Blending | Buffer") fits without clipping in portrait.
 
 ### F-5 — Persistence
 

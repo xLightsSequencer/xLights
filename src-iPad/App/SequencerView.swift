@@ -80,6 +80,15 @@ struct SequencerView: View {
     private static let previewMinHeight: Double = 160
     private static let previewMaxHeight: Double = 800
 
+    // Persisted inspector-pane width. 340 fits all four segmented
+    // tabs ("Effect | Colors | Blending | Buffer") on first launch;
+    // users can drag wider for cramped controls or narrower to give
+    // the grid more room. Like the preview height we also clamp
+    // against the live viewport so the grid never gets squeezed.
+    @AppStorage("inspectorPaneWidth") private var inspectorPaneWidth: Double = 340
+    private static let inspectorMinWidth: Double = 280
+    private static let inspectorMaxWidth: Double = 720
+
     // F-3 narrow-mode docked-preview selection. @AppStorage until
     // F-5 lifts this to @SceneStorage.
     @AppStorage("dockedPreview") private var dockedPreviewRaw: String = DockedPreviewKind.house.rawValue
@@ -112,27 +121,60 @@ struct SequencerView: View {
             let effectiveH = min(max(previewPaneHeight,
                                      Self.previewMinHeight), cap)
             let mode = layoutMode(for: geo.size.width)
+            // Inspector width: clamp against viewport so the grid
+            // always retains at least ~40% of the window even after
+            // an over-eager drag.
+            let inspectorCap = max(Self.inspectorMinWidth,
+                                   min(Self.inspectorMaxWidth,
+                                       geo.size.width * 0.6))
+            let effectiveInspectorW = min(max(inspectorPaneWidth,
+                                              Self.inspectorMinWidth),
+                                          inspectorCap)
+            // In landscape on a regular-width iPad with the inspector
+            // visible, give the settings panel the full vertical span
+            // by tucking the preview band above just the grid column.
+            // Portrait and compact keep the previews stretching the
+            // full window width above the grid+sidebar row.
+            let inspectorFullHeight = mode != .compact
+                && viewModel.showInspector
+                && geo.size.width > geo.size.height
             VStack(spacing: 0) {
                 toolbar
                 Divider()
 
-                if viewModel.showPreview {
-                    previewBand(mode: mode, effectiveH: effectiveH)
-                    previewResizeHandle(cap: cap)
-                }
-
-                HStack(spacing: 0) {
-                    SequencerGridV2View(timeline: timeline)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    // F-2: inspector stays as a 280pt sidebar on
-                    // regular widths. In compact mode the sidebar is
-                    // dropped and the inspector is presented as a
-                    // sheet instead (see the `.sheet(...)` modifier
-                    // further down).
-                    if mode != .compact, viewModel.showInspector {
-                        Divider()
+                if inspectorFullHeight {
+                    HStack(spacing: 0) {
+                        VStack(spacing: 0) {
+                            if viewModel.showPreview {
+                                previewBand(mode: mode, effectiveH: effectiveH)
+                                previewResizeHandle(cap: cap)
+                            }
+                            SequencerGridV2View(timeline: timeline)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        inspectorResizeHandle(cap: inspectorCap)
                         EffectSettingsView()
-                            .frame(width: 280)
+                            .frame(width: effectiveInspectorW)
+                    }
+                } else {
+                    if viewModel.showPreview {
+                        previewBand(mode: mode, effectiveH: effectiveH)
+                        previewResizeHandle(cap: cap)
+                    }
+
+                    HStack(spacing: 0) {
+                        SequencerGridV2View(timeline: timeline)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // F-2: inspector stays as a resizable sidebar
+                        // on regular widths. In compact mode the
+                        // sidebar is dropped and the inspector is
+                        // presented as a sheet instead (see the
+                        // `.sheet(...)` modifier further down).
+                        if mode != .compact, viewModel.showInspector {
+                            inspectorResizeHandle(cap: inspectorCap)
+                            EffectSettingsView()
+                                .frame(width: effectiveInspectorW)
+                        }
                     }
                 }
 
@@ -258,9 +300,25 @@ struct SequencerView: View {
         )
     }
 
+    /// Draggable divider on the leading edge of the inspector.
+    /// Horizontal drag updates the persisted `inspectorPaneWidth`,
+    /// clamped against the viewport-derived `cap`.
+    private func inspectorResizeHandle(cap: Double) -> some View {
+        InspectorResizeHandle(
+            width: Binding(
+                get: { inspectorPaneWidth },
+                set: { inspectorPaneWidth = min(max($0, Self.inspectorMinWidth), cap) }
+            )
+        )
+    }
+
     // MARK: - Toolbar
 
     @State private var showingUnsavedPrompt = false
+    /// Tracks whether the scene fills the device screen. When true,
+    /// no Stage Manager / Slide Over close-pill is overlaying the
+    /// top-left corner so the toolbar can hug the leading edge.
+    @State private var sceneIsFullScreen: Bool = true
 
     private var toolbar: some View {
         HStack(spacing: 12) {
@@ -369,6 +427,8 @@ struct SequencerView: View {
 
             Text(viewModel.sequenceName ?? "")
                 .font(.headline)
+                .lineLimit(1)
+                .truncationMode(.middle)
 
             Spacer()
 
@@ -395,13 +455,12 @@ struct SequencerView: View {
 
             Divider().frame(height: 24)
 
-            // Preview toggle
+            // Preview toggle — house icon stands in for the preview
+            // panes; filled = panes shown, outline = hidden.
             Button(action: { viewModel.togglePreview() }) {
-                Label(
-                    viewModel.showPreview ? "Hide Preview" : "Show Preview",
-                    systemImage: viewModel.showPreview ? "eye.fill" : "eye"
-                )
+                Image(systemName: viewModel.showPreview ? "house.fill" : "house")
             }
+            .help(viewModel.showPreview ? "Hide Preview" : "Show Preview")
 
             Divider().frame(height: 24)
 
@@ -433,14 +492,20 @@ struct SequencerView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        // F-1: iPadOS 26 Stage Manager renders a close/-/fullscreen
-        // pill (~75pt wide) at the window's top-left as an overlay —
-        // it's NOT reported via safe-area insets. `safeAreaPadding`
-        // is a no-op here, so hard-code the clearance. Apps in
-        // fullscreen mode will see ~80pt of extra space on the
-        // toolbar's leading edge, which reads as normal margin.
-        .padding(.leading, 80)
+        // F-1: iPadOS 26 Stage Manager / Slide Over renders a
+        // close/-/fullscreen pill (~75pt wide) at the window's
+        // top-left as an overlay — it's NOT reported via safe-area
+        // insets. `safeAreaPadding` is a no-op here, so hard-code
+        // the clearance only when the pill is actually present.
+        // `WindowingModeProbe` reports whether the scene fills the
+        // device screen; in fullscreen the toolbar hugs the leading
+        // edge, in windowed modes it clears the pill.
+        .padding(.leading, sceneIsFullScreen ? 0 : 80)
         .background(.bar)
+        .background(
+            WindowingModeProbe(isFullScreen: $sceneIsFullScreen)
+                .frame(width: 0, height: 0)
+        )
     }
 
     // MARK: - Preview band (F-2 / F-3)
@@ -577,6 +642,46 @@ private struct PreviewResizeHandle: View {
                         }
                     }
                     .onEnded { _ in dragStartH = nil }
+            )
+    }
+}
+
+/// Thin draggable divider on the leading edge of the inspector
+/// sidebar. Horizontal drag resizes the panel — leftward widens it
+/// (handle is on the panel's leading edge), rightward narrows it.
+/// Mirrors `PreviewResizeHandle`'s overlay-on-Color.clear pattern
+/// to keep the strip a fixed 14pt wide regardless of siblings.
+private struct InspectorResizeHandle: View {
+    @Binding var width: Double
+    @State private var dragStartW: Double? = nil
+
+    var body: some View {
+        Color.clear
+            .frame(width: 14)
+            .overlay(alignment: .leading) {
+                Rectangle()
+                    .fill(Color(white: 0.25))
+                    .frame(width: 0.5)
+            }
+            .overlay {
+                VStack(spacing: 3) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        Circle()
+                            .fill(Color.secondary.opacity(0.6))
+                            .frame(width: 3, height: 3)
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if dragStartW == nil { dragStartW = width }
+                        if let start = dragStartW {
+                            width = start - value.translation.width
+                        }
+                    }
+                    .onEnded { _ in dragStartW = nil }
             )
     }
 }
