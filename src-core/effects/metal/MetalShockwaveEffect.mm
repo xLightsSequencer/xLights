@@ -3,7 +3,10 @@
 #include "MetalEffects.hpp"
 #include "MetalEffectDataTypes.h"
 
+#include "../../render/Effect.h"
 #include "../../render/RenderBuffer.h"
+#include "../../render/SequenceElements.h"
+
 #include "UtilClasses.h"
 
 #include <array>
@@ -95,9 +98,27 @@ void MetalShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     MetalShockwaveData rdata;
     rdata.width = buffer.BufferWi;
     rdata.height = buffer.BufferHt;
+        
+    std::string timingtrack = SettingsMap.Get("CHOICE_Shockwave_TimingTrack", "");
+    if (buffer.needToInit) {
+        buffer.needToInit = false;
+        if (!timingtrack.empty()) {
+            effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->AddRenderDependency(timingtrack, buffer.cur_model);
+        }
+    }
+    double eff_pos;
+    if (timingtrack.empty()) {
+        int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
+        if (cycles < 1) cycles = 1;
+        eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
+    } else {
+        eff_pos = getEffectPosition(buffer, SettingsMap, timingtrack);
+        if (eff_pos < 0) {
+            //nothing to draw yet
+            return;
+        }
+    }
     
-    int cycles = SettingsMap.GetInt("SLIDER_Shockwave_Cycles", sCyclesDefault);
-    double eff_pos = buffer.GetEffectTimeIntervalPosition(cycles);
     int center_x = GetValueCurveInt("Shockwave_CenterX", sCenterXDefault, SettingsMap, eff_pos, sCenterXMin, sCenterXMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int center_y = GetValueCurveInt("Shockwave_CenterY", sCenterYDefault, SettingsMap, eff_pos, sCenterYMin, sCenterYMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());
     int start_radius = GetValueCurveInt("Shockwave_Start_Radius", sStartRadiusDefault, SettingsMap, eff_pos, sStartRadiusMin, sStartRadiusMax, buffer.GetStartTimeMS(), buffer.GetEndTimeMS());

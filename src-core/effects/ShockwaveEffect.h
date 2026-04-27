@@ -36,6 +36,8 @@ public:
         return true;
     }
 
+    double getEffectPosition(RenderBuffer& buffer, const SettingsMap& SettingsMap, const std::string &timingTrack);
+    
     static int sCenterXDefault;
     static int sCenterXMin;
     static int sCenterXMax;

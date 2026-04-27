@@ -823,6 +823,7 @@ std::string subdirForMediaType(MediaType t)
         case MediaType::TextFile:   return "";
         case MediaType::BinaryFile: return "Glediators";
         case MediaType::Video:      return "Videos";
+        case MediaType::Audio:      return "Audio";
     }
     return "";
 }
