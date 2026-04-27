@@ -3428,7 +3428,8 @@ void PixelTestDialog::OnTimer(long curtime)
                     }
                     if (curtime >= NextSequenceStart) {
                         rgbCycle++;
-                        rgbCycle = rgbCycle % ports;
+                        if (ports > 0) rgbCycle = rgbCycle % ports;
+                        else rgbCycle = 0;
                         NextSequenceStart = curtime + (interval * 2);
                     }
                 } else if (testFunc == PixelTestDialog::TestFunctions::ColorBlocks) {

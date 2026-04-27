@@ -1917,6 +1917,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() != 1 || _outputManager.GetController(selections.front()) == nullptr) {
+        _controllerAdapter.reset();
         Controllers_PropertyEditor->Clear();
         ButtonVisualise->Enable(false);
         ButtonUploadInput->Enable(false);
@@ -2019,7 +2020,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             }
 
             // one item selected - display selected controller properties
-            if (rebuildPropGrid) {
+            if (rebuildPropGrid || !_controllerAdapter || _controllerAdapter->GetController() != controller) {
                 Controllers_PropertyEditor->Clear();
                 _controllerAdapter = ControllerPropertyManager::CreateAdapter(*controller);
                 _controllerAdapter->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);

@@ -1771,16 +1771,14 @@ bool Pixlite16::SetOutputs(ModelManager* allmodels, OutputManager* outputManager
                 _config._outputUniverse[pp - 1] = port->GetUniverse();
                 _config._outputStartChannel[pp - 1] = port->GetUniverseStartChannel();
                 _config._outputPixels[pp - 1] = port->Pixels();
-                _config._outputNullPixels[pp - 1] = port->GetFirstModel()->GetStartNullPixels(0);
-                _config._outputGrouping[pp - 1] = std::max(1, port->GetFirstModel()->GetGroupCount(1));
-                _config._outputBrightness[pp - 1] = port->GetFirstModel()->GetBrightness(100);
-                _config._outputColourOrder[pp - 1] = EncodeColourOrder(port->GetFirstModel()->GetColourOrder("RGB"));
-                _config._outputZigZag[pp - 1] = port->GetFirstModel()->GetZigZag(0);
-                if (port->GetFirstModel()->GetDirection("Forward") == "Reverse") {
-                    _config._outputReverse[pp - 1] = 1;
-                }
-                else {
-                    _config._outputReverse[pp - 1] = 0;
+                auto firstModel = port->GetFirstModel();
+                if (firstModel != nullptr) {
+                    _config._outputNullPixels[pp - 1] = firstModel->GetStartNullPixels(0);
+                    _config._outputGrouping[pp - 1] = std::max(1, firstModel->GetGroupCount(1));
+                    _config._outputBrightness[pp - 1] = firstModel->GetBrightness(100);
+                    _config._outputColourOrder[pp - 1] = EncodeColourOrder(firstModel->GetColourOrder("RGB"));
+                    _config._outputZigZag[pp - 1] = firstModel->GetZigZag(0);
+                    _config._outputReverse[pp - 1] = firstModel->GetDirection("Forward") == "Reverse" ? 1 : 0;
                 }
 
                 port->CreateVirtualStrings(true);
