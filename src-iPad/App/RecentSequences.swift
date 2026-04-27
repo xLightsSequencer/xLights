@@ -12,9 +12,11 @@ import Foundation
 // `ObtainAccessToURL` machinery which resolves the stored
 // bookmark for the show folder containing the sequence.
 //
-// Missing / moved files stay in the list — the open flow
-// surfaces an error instead, and the user can clean them up via
-// the swipe-to-remove action in the Recent picker.
+// Entries pointing to files that no longer exist on disk are
+// pruned (and persisted-back) on every `load()`. iCloud-evicted
+// files are NOT pruned: their on-device placeholder still
+// satisfies `fileExists`, so notDownloaded entries keep
+// appearing and the user can tap to trigger a download.
 enum RecentSequences {
     private static let key = "xLights.recentSequences"
     static let maxEntries = 12
@@ -38,13 +40,20 @@ enum RecentSequences {
         }
     }
 
-    /// Load the full recent list (most recent first). Filters
-    /// out any entries whose decoded struct is malformed.
+    /// Load the full recent list (most recent first). Drops any
+    /// entries whose underlying file no longer exists on disk and
+    /// persists the trimmed list so subsequent reads are clean.
     static func load() -> [Entry] {
         guard let data = UserDefaults.standard.data(forKey: key),
               let entries = try? JSONDecoder().decode([Entry].self, from: data)
         else { return [] }
-        return entries.sorted { $0.lastOpened > $1.lastOpened }
+        let valid = entries.filter {
+            FileManager.default.fileExists(atPath: $0.path)
+        }
+        if valid.count != entries.count {
+            save(valid)
+        }
+        return valid.sorted { $0.lastOpened > $1.lastOpened }
     }
 
     /// Push a path to the top of the list. De-duplicates by path;

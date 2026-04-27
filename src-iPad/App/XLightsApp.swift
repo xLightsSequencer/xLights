@@ -733,6 +733,7 @@ struct SequencePickerView: View {
 
     @State private var recent: [RecentSequences.Entry] = RecentSequences.load()
     @State private var showingNewWizard: Bool = false
+    @State private var openErrorMessage: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -827,6 +828,15 @@ struct SequencePickerView: View {
                         recent = RecentSequences.load()
                     }
             }
+            .alert("Cannot Open Sequence",
+                   isPresented: Binding(
+                    get: { openErrorMessage != nil },
+                    set: { if !$0 { openErrorMessage = nil } }
+                   )) {
+                Button("OK", role: .cancel) { openErrorMessage = nil }
+            } message: {
+                Text(openErrorMessage ?? "")
+            }
         }
     }
 
@@ -841,6 +851,18 @@ struct SequencePickerView: View {
     /// cases we just open immediately.
     private func openWithDownloadIfNeeded(path: String,
                                            status: UbiquityStatus) {
+        // Race guard for files deleted between display and tap
+        // (e.g. a recent entry whose source vanished while the
+        // picker was on screen). Skip the iCloud branch — those
+        // files don't have to be locally present yet.
+        if status != .notDownloaded
+            && !FileManager.default.fileExists(atPath: path) {
+            let name = (path as NSString).lastPathComponent
+            openErrorMessage = "\"\(name)\" no longer exists. It has been removed from Recent."
+            RecentSequences.remove(path: path)
+            recent = RecentSequences.load()
+            return
+        }
         guard status == .notDownloaded else {
             viewModel.openSequence(path: path)
             return

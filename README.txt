@@ -98,6 +98,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
+    -bug (derwin12)             Fix state/face definitions copied in layout not rendering in sequence until restart (#6239)
     -bug (derwin12)             Layout was sizing groups and model names too quickly (#6236)
     -bug (derwin12)             Fix ON effect was resetting the intensity values (#6233)
     -bug (derwin12)             Fix visualizer clearing all models (#6227)

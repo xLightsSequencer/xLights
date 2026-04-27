@@ -2,14 +2,15 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 // E-3 — Sequence Settings dialog. Post-open editor for
-// sequence-wide settings. Restrained v1 covers the four tabs
-// users actually touch on a finished sequence: Info (read-only
-// + sequence type), Metadata (song / artist / album / author /
-// website / comment / music URL), Media file (swap audio),
-// Render Mode / Blending (model-blending toggle + frame rate).
-// Timings import/export, Audio Tracks, and Data Layers are
-// deferred — covered elsewhere (row-header long-press for basic
-// timing management) or out of MVP.
+// sequence-wide settings. Four tabs: Info (read-only metadata +
+// sequence type + audio file swap), Metadata (song / artist /
+// album / author / website / comment / music URL), Media
+// (per-effect media inventory — embed/extract/rename/replace,
+// mirrors desktop's "Manage All Media" panel), Render
+// (model-blending + frame rate + autosave). Timings
+// import/export and Data Layers are deferred — covered elsewhere
+// (row-header long-press for basic timing management) or out of
+// MVP.
 //
 // Entry: gear icon in the sequencer toolbar. Changes mark the
 // sequence dirty through the bridge's normal
@@ -35,7 +36,7 @@ struct SequenceSettingsSheet: View {
             switch self {
             case .info:     return "info.circle"
             case .metadata: return "character.book.closed"
-            case .media:    return "music.note"
+            case .media:    return "photo.stack"
             case .render:   return "cpu"
             }
         }
@@ -55,16 +56,22 @@ struct SequenceSettingsSheet: View {
                 .padding(.horizontal)
                 .padding(.vertical, 8)
                 Divider()
-                ScrollView {
-                    Group {
-                        switch selectedTab {
-                        case .info:     InfoTab()
-                        case .metadata: MetadataTab()
-                        case .media:    MediaTab()
-                        case .render:   RenderTab()
-                        }
+                Group {
+                    switch selectedTab {
+                    case .info:
+                        ScrollView { InfoTab().padding() }
+                    case .metadata:
+                        ScrollView { MetadataTab().padding() }
+                    case .media:
+                        // Embedded variant — outer sheet supplies
+                        // the Done button; the manager contributes
+                        // its ellipsis "Remove Unused…" menu to the
+                        // shared toolbar via SwiftUI's toolbar
+                        // composition.
+                        MediaManagerContent(showsDoneButton: false)
+                    case .render:
+                        ScrollView { RenderTab().padding() }
                     }
-                    .padding()
                 }
             }
             .navigationTitle("Sequence Settings")
@@ -84,6 +91,9 @@ private struct InfoTab: View {
     @Environment(SequencerViewModel.self) var viewModel
 
     @State private var seqType: String = ""
+    @State private var currentMediaPath: String = ""
+    @State private var pickingMediaFile = false
+    @State private var pickedMediaURL: URL? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -99,10 +109,10 @@ private struct InfoTab: View {
             SettingsRow(label: "Models / Submodels",
                         value: "\(viewModel.document.sequenceModelCount())")
             Divider().padding(.vertical, 4)
-            // Type selector — changing from Media to Animation
-            // clears the media file + audio (bridge's SetSequenceType
-            // handles that). Changing to Media does not auto-pick a
-            // file — user must swap in via the Media tab.
+            // Changing from Musical to Animation clears the audio
+            // file (bridge's SetSequenceType handles that). Changing
+            // to Musical doesn't auto-pick a file — the user picks
+            // one via the Audio File row below.
             Text("Sequence Type")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -116,14 +126,60 @@ private struct InfoTab: View {
                 guard !new.isEmpty else { return }
                 if viewModel.document.sequenceType() != new {
                     _ = viewModel.document.setSequenceType(new)
+                    currentMediaPath = viewModel.document.currentMediaFilePath() ?? ""
                 }
             }
             Text("Changing from Musical clears the attached audio file.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+            Divider().padding(.vertical, 4)
+            Text("Audio File")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            HStack {
+                Text(currentMediaPath.isEmpty ? "(none)" : currentMediaPath)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !currentMediaPath.isEmpty {
+                    Button {
+                        _ = viewModel.document.setMediaFilePath("")
+                        currentMediaPath = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Button {
+                pickingMediaFile = true
+            } label: {
+                Label("Choose Audio File…", systemImage: "music.note.list")
+            }
+            .buttonStyle(.bordered)
+            Text("Swapping the audio file does not re-run song / artist auto-tagging. Use the Metadata tab to update text fields if needed.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
         }
         .onAppear {
             seqType = viewModel.document.sequenceType() ?? "Animation"
+            currentMediaPath = viewModel.document.currentMediaFilePath() ?? ""
+        }
+        .fileImporter(isPresented: $pickingMediaFile,
+                      allowedContentTypes: [.audio]) { result in
+            if case .success(let url) = result {
+                pickedMediaURL = url
+            }
+        }
+        .mediaRelocationPrompt(
+            picked: $pickedMediaURL,
+            subdirectory: ""
+        ) { storedPath in
+            _ = viewModel.document.setMediaFilePath(storedPath)
+            currentMediaPath = storedPath
         }
     }
 
@@ -208,67 +264,6 @@ private struct MetadataTab: View {
                 .onChange(of: text.wrappedValue) { _, new in
                     _ = viewModel.document.setHeaderInfo(new, forKey: key)
                 }
-        }
-    }
-}
-
-// MARK: - Media tab (swap audio)
-
-private struct MediaTab: View {
-    @Environment(SequencerViewModel.self) var viewModel
-
-    @State private var currentPath: String = ""
-    @State private var pickingMediaFile = false
-    @State private var pickedMediaURL: URL? = nil
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Current Media File")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            HStack {
-                Text(currentPath.isEmpty ? "(none)" : currentPath)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-                    .truncationMode(.middle)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if !currentPath.isEmpty {
-                    Button {
-                        _ = viewModel.document.setMediaFilePath("")
-                        currentPath = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            Button {
-                pickingMediaFile = true
-            } label: {
-                Label("Choose Media File…", systemImage: "music.note.list")
-            }
-            .buttonStyle(.bordered)
-            Text("Swapping the media file does not re-run song / artist auto-tagging. Use the Metadata tab to update text fields if needed.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
-        .onAppear {
-            currentPath = viewModel.document.currentMediaFilePath() ?? ""
-        }
-        .fileImporter(isPresented: $pickingMediaFile,
-                      allowedContentTypes: [.audio]) { result in
-            if case .success(let url) = result {
-                pickedMediaURL = url
-            }
-        }
-        .mediaRelocationPrompt(
-            picked: $pickedMediaURL,
-            subdirectory: ""
-        ) { storedPath in
-            _ = viewModel.document.setMediaFilePath(storedPath)
-            currentPath = storedPath
         }
     }
 }

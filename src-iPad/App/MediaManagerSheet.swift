@@ -62,8 +62,24 @@ struct MediaInventoryItem: Identifiable {
 }
 
 struct MediaManagerSheet: View {
+    var body: some View {
+        NavigationStack {
+            MediaManagerContent(showsDoneButton: true)
+                .navigationTitle("Media")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+struct MediaManagerContent: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SequencerViewModel.self) private var viewModel
+
+    /// `true` when presented as a standalone sheet (shows a Done
+    /// button in the cancellation slot). `false` when embedded in
+    /// another sheet (e.g. SequenceSettingsSheet's Media tab) that
+    /// already provides its own dismiss.
+    var showsDoneButton: Bool = true
 
     @State private var items: [MediaInventoryItem] = []
     @State private var didLoad = false
@@ -83,8 +99,7 @@ struct MediaManagerSheet: View {
     ]
 
     var body: some View {
-        NavigationStack {
-            Group {
+        Group {
                 if didLoad && items.isEmpty {
                     ContentUnavailableView(
                         "No Media in this Sequence",
@@ -154,11 +169,11 @@ struct MediaManagerSheet: View {
                     }
                 }
             }
-            .navigationTitle("Media")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                if showsDoneButton {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { dismiss() }
+                    }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
@@ -174,7 +189,6 @@ struct MediaManagerSheet: View {
                     }
                 }
             }
-        }
         .onAppear { reload() }
         .sheet(item: $renameTarget) { target in
             MediaRenameSheet(item: target) { newName in

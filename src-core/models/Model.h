@@ -167,9 +167,9 @@ public:
     [[nodiscard]] virtual FaceStateData const& GetStateInfo() const { return stateInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetStateInfoNodes() const { return stateInfoNodes; };
 
-    virtual void SetFaceInfo(FaceStateData const& info) { faceInfo = info; };
+    virtual void SetFaceInfo(FaceStateData const& info) { faceInfo = info; UpdateFaceInfoNodes(); };
     virtual void SetFaceInfoNodes(FaceStateNodes const& nodes) { faceInfoNodes = nodes; };
-    virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; };
+    virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; UpdateStateInfoNodes(); };
     virtual void SetStateInfoNodes(FaceStateNodes const& nodes) { stateInfoNodes = nodes; };
 
     // Add face with data structure-based method

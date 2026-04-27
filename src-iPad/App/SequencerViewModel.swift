@@ -611,16 +611,14 @@ class SequencerViewModel {
                 self.startBackgroundRender()
                 self.startDirtyPolling()
                 self.scheduleBrokenMediaScan()
-                // Record the user-meaningful path in recents. For
-                // Files-provider opens that went through the
-                // sandbox round-trip, the sandbox path is ephemeral
-                // (wiped on close) so record the original URL path
-                // instead — re-opening from recents will only work
-                // if a persistent bookmark was minted for that URL,
-                // but at worst the user gets a "can't open" and
-                // re-taps from Files.
-                let recordPath = originalURL?.path ?? path
-                RecentSequences.record(path: recordPath)
+                // Packaged sequences are deliberately NOT added to
+                // recents. They're typically one-shot vendor /
+                // downloaded `.xsqz` files outside the user's show
+                // folder, the sandbox copy is wiped on close, and
+                // the original Files-provider URL's bookmark is not
+                // reliably reusable cold. Cluttering "Recent" with
+                // entries that can't be re-opened is worse than
+                // making the user re-tap from Files.
                 self.startAutosaveTimer()
             }
         }
