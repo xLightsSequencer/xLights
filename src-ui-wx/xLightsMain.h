@@ -1720,6 +1720,7 @@ public:
      OpenSequence(passed_filename, nullptr);
     }
     void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
+    int ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();

@@ -685,6 +685,25 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     note->Wrap(kWrapWidth);
                     topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
+                    // If any flagged file is an animated GIF, mention that those
+                    // are handled by switching the owning Video effect to a
+                    // Pictures effect (which already plays GIFs natively) — no
+                    // ffmpeg transcode needed for those.
+                    bool anyGif = false;
+                    for (const auto& issue : issues) {
+                        if (issue.isAnimatedGif() && issue.canConvert()) {
+                            anyGif = true;
+                            break;
+                        }
+                    }
+                    if (anyGif) {
+                        auto* gifNote = new wxStaticText(&dlg, wxID_ANY,
+                            "Animated GIFs above will be converted from Video effects to Pictures effects "
+                            "(which natively play GIF animation) — no file conversion is performed for those.");
+                        gifNote->Wrap(kWrapWidth);
+                        topSizer->Add(gifNote, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+                    }
+
                     wxCheckBox* suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
                         wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
                     topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -751,10 +770,18 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
 {
     // Gather the video issues. Audio ones aren't handled here — users will
-    // see the warning but need to re-encode audio separately.
+    // see the warning but need to re-encode audio separately. Animated GIFs
+    // are split out: ffmpeg-transcoding a GIF to mp4/mov produces poor
+    // results, so we instead rewrite the owning Video effect into a
+    // Pictures effect (which plays animated GIFs natively).
+    std::vector<MediaCompatibilityIssue> gifIssues;
     std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
     for (const auto& issue : issues) {
         if (!issue.isVideo || !issue.canConvert()) continue;
+        if (issue.isAnimatedGif()) {
+            gifIssues.push_back(issue);
+            continue;
+        }
         std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
         if (target == issue.filePath) {
             // Source is already .mov (e.g. qtrle codec) — append _converted
@@ -765,7 +792,21 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
         }
         jobs.emplace_back(issue.filePath, target);
     }
-    if (jobs.empty()) return;
+
+    // Convert GIF effects first — instant, no progress dialog needed.
+    int gifsConverted = ConvertGifVideoEffectsToPictures(gifIssues);
+
+    if (jobs.empty()) {
+        if (gifsConverted > 0) {
+            wxMessageBox(wxString::Format(
+                            "Converted %d animated GIF Video effect(s) to Pictures effects.\n"
+                            "Remember to save the sequence to persist the changes.",
+                            gifsConverted),
+                         "GIF effect conversion results",
+                         wxOK | wxICON_INFORMATION, this);
+        }
+        return;
+    }
 
     // Progress dialog spans the whole batch; per-file we weight the progress
     // bar by frame counts we don't know up front, so just advance one tick
@@ -906,16 +947,166 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
 
     wxString msg = wxString::Format("Converted %zu of %zu file(s). %d video effect(s) updated.",
                                     completed.size(), jobs.size(), rewritten);
+    if (gifsConverted > 0) {
+        msg += wxString::Format("\n%d animated GIF Video effect(s) converted to Pictures effects.",
+                                gifsConverted);
+    }
     if (!failures.empty()) {
         msg += "\n\nFailures:\n";
         for (const auto& f : failures) msg += "  " + f + "\n";
     }
-    if (!completed.empty()) {
+    if (!completed.empty() || gifsConverted > 0) {
         msg += "\nRemember to save the sequence to persist the updated file references.";
     }
     wxMessageBox(msg, "Video conversion results",
                  wxOK | (failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
                  this);
+}
+
+int xLightsFrame::ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues)
+{
+    // ffmpeg can transcode an animated GIF into mp4/mov, but the result is
+    // typically poor (palette / dithering / fps metadata get mangled). The
+    // PicturesEffect already plays animated GIFs natively, so for GIF-backed
+    // Video effects we swap the effect type to Pictures and map the
+    // parameters across. Mirrors bravado67/xlights-gif-converter's mapping.
+    if (gifIssues.empty()) return 0;
+
+    // Match by both the resolved (absolute) path and any case-insensitive
+    // .gif filename — different effects may store the same GIF as different
+    // path shapes (relative, absolute, bare basename) and they all need to
+    // be caught.
+    std::set<std::string> gifResolved;
+    for (const auto& issue : gifIssues) {
+        gifResolved.insert(issue.filePath);
+    }
+
+    int rewritten = 0;
+    // Track which cache keys to move from the video cache to the image cache.
+    // Both the user-stored path and the FixFile-resolved path need to be
+    // evicted because either could have been the registration key.
+    std::set<std::string> staleVideoKeys;
+    std::set<std::string> newImageKeys;
+
+    auto rewriteEffectLayers = [&](Element* elem) {
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); ++layer) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            for (int k = 0; k < el->GetEffectCount(); ++k) {
+                Effect* ef = el->GetEffect(k);
+                if (ef->GetEffectName() != "Video") continue;
+                SettingsMap& sm = ef->GetSettings();
+                const std::string stored = sm["E_FILEPICKERCTRL_Video_Filename"];
+                if (stored.empty()) continue;
+
+                // Cheap extension check first to skip non-GIF Video effects.
+                std::string lower = stored;
+                std::transform(lower.begin(), lower.end(), lower.begin(),
+                               [](unsigned char c) { return std::tolower(c); });
+                if (lower.size() < 4 || lower.substr(lower.size() - 4) != ".gif") continue;
+
+                // Only convert effects whose source file actually appears in
+                // the issues list — keeps us from clobbering GIF effects that
+                // resolve to a path the compatibility check didn't flag.
+                std::string resolved = FileUtils::FixFile("", stored);
+                if (gifResolved.find(resolved) == gifResolved.end() &&
+                    gifResolved.find(stored) == gifResolved.end()) {
+                    continue;
+                }
+
+                // Capture the few Video settings that translate cleanly to
+                // the Pictures effect before we wipe E_ keys. Pictures
+                // FrameRateAdj is 0..200 with no negative/reverse support,
+                // so clamp non-positive Video_Speed values to 1.0.
+                std::string videoSpeed = sm["E_TEXTCTRL_Video_Speed"];
+                {
+                    char* endp = nullptr;
+                    const char* s = videoSpeed.c_str();
+                    double sp = std::strtod(s, &endp);
+                    if (endp == s || sp <= 0.0) videoSpeed = "1.0";
+                }
+
+                // Drop all E_* (Video-effect-specific) settings; preserve
+                // B_* / T_* / X_* / palette which are layer-level and apply
+                // to the Pictures effect equally.
+                std::vector<std::string> toErase;
+                for (const auto& it : sm) {
+                    if (it.first.size() > 2 && it.first[0] == 'E' && it.first[1] == '_') {
+                        toErase.push_back(it.first);
+                    }
+                }
+                for (const auto& key : toErase) sm.erase(key);
+
+                // Pictures-effect defaults that play a centered, looping GIF
+                // at the same speed as the original Video effect.
+                sm["E_TEXTCTRL_Pictures_Filename"] = stored;
+                sm["E_TEXTCTRL_Pictures_FrameRateAdj"] = videoSpeed;
+                sm["E_TEXTCTRL_Pictures_Speed"] = "1.0";
+                sm["E_CHECKBOX_LoopGIF"] = "1";
+                sm["E_CHECKBOX_SuppressGIFBackground"] = "1";
+                sm["E_CHECKBOX_Pictures_PixelOffsets"] = "0";
+                sm["E_CHECKBOX_Pictures_Shimmer"] = "0";
+                sm["E_CHECKBOX_Pictures_TransparentBlack"] = "0";
+                sm["E_CHECKBOX_Pictures_WrapX"] = "0";
+                sm["E_TEXTCTRL_Pictures_TransparentBlack"] = "0";
+                sm["E_CHOICE_Pictures_Direction"] = "none";
+                sm["E_CHOICE_Scaling"] = "Scale To Fit";
+                sm["E_SLIDER_PicturesXC"] = "0";
+                sm["E_SLIDER_PicturesYC"] = "0";
+                sm["E_SLIDER_Pictures_StartScale"] = "100";
+                sm["E_SLIDER_Pictures_EndScale"] = "100";
+
+                ef->SetEffectName("Pictures");
+                ef->IncrementChangeCount();
+                ++rewritten;
+
+                staleVideoKeys.insert(stored);
+                staleVideoKeys.insert(resolved);
+                newImageKeys.insert(stored);
+            }
+        }
+    };
+
+    for (size_t e = 0; e < _sequenceElements.GetElementCount(); ++e) {
+        Element* elem = _sequenceElements.GetElement(e);
+        if (elem == nullptr) continue;
+        rewriteEffectLayers(elem);
+        if (elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(elem);
+            for (int j = 0; j < me->GetStrandCount(); ++j) {
+                StrandElement* se = me->GetStrand(j);
+                rewriteEffectLayers(se);
+            }
+            for (int j = 0; j < me->GetSubModelAndStrandCount(); ++j) {
+                Element* sme = me->GetSubModel(j);
+                if (sme->GetType() == ElementType::ELEMENT_TYPE_SUBMODEL) {
+                    rewriteEffectLayers(sme);
+                }
+            }
+        }
+    }
+
+    if (rewritten > 0) {
+        spdlog::info("Converted {} animated GIF Video effect(s) to Pictures effects", rewritten);
+
+        // Move the GIF entries from the SequenceMedia video cache to the image
+        // cache so the Sequence Settings → Media tab shows them under the
+        // right type and the renderer's lookup hits the multi-frame
+        // ImageCacheEntry path that PicturesEffect uses for animated GIFs.
+        auto& seqMedia = _sequenceElements.GetSequenceMedia();
+        for (const auto& key : staleVideoKeys) {
+            seqMedia.RemoveMedia(key);
+        }
+        for (const auto& key : newImageKeys) {
+            seqMedia.GetImage(key);
+        }
+
+        // The grid still shows the old "Video" colour/label until it
+        // re-paints; force a refresh so the user sees the change immediately.
+        if (mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+            mainSequencer->PanelEffectGrid->ForceRefresh();
+        }
+    }
+    return rewritten;
 }
 
 void xLightsFrame::AddToMRU(const std::string& filename)

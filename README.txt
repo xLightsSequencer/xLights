@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
+    -enh (dkulp)                Media-compatibility "Convert Now" now special-cases animated GIFs that were used as
+                                Video effects and turns them into normal Pictures effects that properly handle animated GIFs
     -bug (dkulp)                Replaced throwing std::stoi calls in OutputManager / xxxSerialOutput / HinksPix with
                                 non-throwing std::strtol so corrupt config or controller responses no longer crash.
     -bug (dkulp)                State / Faces / Shockwave / VUMeter / Lyric / MatrixModel: added div-by-zero and
