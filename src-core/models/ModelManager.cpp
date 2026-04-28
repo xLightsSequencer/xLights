@@ -1429,20 +1429,16 @@ Model* ModelManager::CreateDefaultModel(const std::string& type, const std::stri
     return model;
 }
 
-Model* ModelManager::CreateModel(pugi::xml_node node, int previewW, int previewH, bool importing) const
+Model* ModelManager::CreateModel(pugi::xml_node node, int previewW, int previewH) const
 {
     if (std::string_view(node.name()) == "modelGroup") {
         XmlDeserializingModelFactory factory;
-        return factory.Deserialize(node, const_cast<ModelManager&>(*this), importing);
+        return factory.Deserialize(node, const_cast<ModelManager&>(*this), false);
     }
 
     Model* model;
     XmlSerializer serializer;
-    // importing=true tells the deserializer to also pull the optional
-    // <dimensions> child (real-world width/height/depth + units) and
-    // run ApplyDimensions, so models brought in via "Import Models from
-    // Previews" land at the source show's physical sizes.
-    model = serializer.DeserializeModel(node, const_cast<ModelManager&>(*this), importing);
+    model = serializer.DeserializeModel(node, const_cast<ModelManager&>(*this), false);
 
     if (model != nullptr) {
         model->GetModelScreenLocation().previewW = previewW;
@@ -1478,9 +1474,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
     }
 }
 
-Model* ModelManager::createAndAddModel(pugi::xml_node node, int previewW, int previewH, bool importing)
+Model* ModelManager::createAndAddModel(pugi::xml_node node, int previewW, int previewH)
 {
-    Model* model = CreateModel(node, previewW, previewH, importing);
+    Model* model = CreateModel(node, previewW, previewH);
     AddModel(model);
     return model;
 }

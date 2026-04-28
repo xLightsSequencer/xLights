@@ -79,14 +79,14 @@ class ModelManager : public ObjectManager
         unsigned int size() const;
 
         //Make sure the Model is deleted when done with
-        Model *CreateModel(pugi::xml_node node, int previewW = 0, int previewH = 0, bool importing = false) const;
+        Model *CreateModel(pugi::xml_node node, int previewW = 0, int previewH = 0) const;
         Model *CreateDefaultModel(const std::string &type, const std::string &startChannel = "1") const;
         RenderContext* GetRenderContext() const { return _renderContext; }
         UICallbacks* GetUICallbacks() const override;
         OutputModelManager* GetOutputModelManager() const override;
         bool IsLowDefinitionRender() const;
         bool IsValidControllerModelChain(Model* m, std::string& tip) const;
-        Model *createAndAddModel(pugi::xml_node node, int previewW, int previewH, bool importing = false);
+        Model *createAndAddModel(pugi::xml_node node, int previewW, int previewH);
         std::string GetModelsOnChannels(uint32_t start, uint32_t end, int perLine) const;
         std::vector<std::string> GetGroupsContainingModel(const Model* model) const;
         std::vector<std::string> GetGroupsContainingModelOrSubmodel(const Model* model) const;

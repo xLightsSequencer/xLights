@@ -62,6 +62,7 @@
 #include "models/CustomModel.h"
 #include "XmlSerializer/FileSerializingVisitor.h"
 #include "XmlSerializer/StringSerializingVisitor.h"
+#include "XmlSerializer/XmlNodeKeys.h"
 #include "XmlSerializer/XmlSerializer.h"
 #include "model/WiringDialog.h"
 #include "model/ModelDimmingCurveDialog.h"
@@ -8916,9 +8917,30 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
+// Helper for ImportModelsFromPreview: if the source XML carries the
+// portability hint <dimensions units= width= height= depth=/> and the
+// destination show has a Ruler set, re-apply those real-world sizes to
+// the freshly created model so it lands at the source's physical
+// dimensions instead of the destination's interpretation of the raw
+// scale factors. We do this here rather than passing importing=true to
+// the deserializer because that flag also forces SetLayoutGroup(
+// "Unassigned") and re-runs GenerateModelName, which would clobber the
+// LayoutGroup attribute and unique-name the caller already set.
+static void ApplyImportedDimensions(Model* model, pugi::xml_node srcNode)
+{
+    if (model == nullptr || RulerObject::GetRuler() == nullptr) return;
+    pugi::xml_node dimNode = srcNode.child(XmlNodeKeys::DimNodeName);
+    if (!dimNode) return;
+    std::string units = dimNode.attribute(XmlNodeKeys::DimUnitsAttribute).as_string("mm");
+    float width  = dimNode.attribute(XmlNodeKeys::DimWidthAttribute).as_float(0);
+    float height = dimNode.attribute(XmlNodeKeys::DimHeightAttribute).as_float(0);
+    float depth  = dimNode.attribute(XmlNodeKeys::DimDepthAttribute).as_float(0);
+    model->ApplyDimensions(units, width, height, depth);
+}
+
 void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups)
 {
-    
+
 
     //add models first
     for (auto const& it2 : models)
@@ -8933,11 +8955,13 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelNode().remove_attribute("LayoutGroup");
             it2->GetModelNode().append_attribute("name") = newName;
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
-            // importing=true so the deserializer applies the optional
-            // <dimensions> child node from the source RGBEffects file
-            // (real-world width/height/depth in mm/inches). Without
-            // this flag the imported models land with default sizes.
-            xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight(), true);
+            Model* importedModel = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+            // Apply the source show's <dimensions> hint manually rather
+            // than passing importing=true to the deserializer — that
+            // flag also forces SetLayoutGroup("Unassigned") and re-runs
+            // GenerateModelName, both of which would clobber the work
+            // we just did above (newName + LayoutGroup attribute).
+            ApplyImportedDimensions(importedModel, it2->GetModelNode());
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
@@ -8964,7 +8988,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             if (model == nullptr) {//if group doesnt exist, create it
                 it2->GetModelNode().remove_attribute("LayoutGroup");
                 it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
-                model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight(), true);
+                model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
                 spdlog::debug("Imported model group '{}'.", (const char*)name.c_str());
             }
 

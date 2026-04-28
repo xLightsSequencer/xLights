@@ -160,10 +160,14 @@ struct XmlSerializer {
         docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
 
         XmlSerializingVisitor visitor{ docNode, includeGroups };
+        // The visitor's WriteOtherElements now emits <dimensions>
+        // directly inside the <model> node for every save path, so the
+        // separate XmlSerialize::AddDimensions call that .xmodel export
+        // used to make is no longer needed (and would produce a
+        // duplicate sibling <dimensions> child).
         model->Accept(visitor);
         if (includeGroups) {
             XmlSerialize::SerializeModelGroupsForModel(model, docNode);
-            XmlSerialize::AddDimensions(docNode, model);
         }
 
         return doc;
