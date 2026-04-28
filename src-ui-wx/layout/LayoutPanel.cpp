@@ -8933,7 +8933,11 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelNode().remove_attribute("LayoutGroup");
             it2->GetModelNode().append_attribute("name") = newName;
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
-            xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+            // importing=true so the deserializer applies the optional
+            // <dimensions> child node from the source RGBEffects file
+            // (real-world width/height/depth in mm/inches). Without
+            // this flag the imported models land with default sizes.
+            xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight(), true);
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
@@ -8960,7 +8964,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             if (model == nullptr) {//if group doesnt exist, create it
                 it2->GetModelNode().remove_attribute("LayoutGroup");
                 it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
-                model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+                model = xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight(), true);
                 spdlog::debug("Imported model group '{}'.", (const char*)name.c_str());
             }
 

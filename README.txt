@@ -14,6 +14,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (MrPierreB)            Add node animation playback to SubModels dialog.
     -enh (dkulp)                Media-compatibility "Convert Now" now special-cases animated GIFs that were used as
                                 Video effects and turns them into normal Pictures effects that properly handle animated GIFs
+    -bug (Neil)                 Import Models from RGBEffects: real-world dimensions now persist on save (xlights_rgbeffects.xml
+                                gains a <dimensions> child for every model when a Ruler is set) and are honoured on import,
+                                so models brought in from another show land at their original physical size (#6250)
     -bug (dkulp)                Replaced throwing std::stoi calls in OutputManager / xxxSerialOutput / HinksPix with
                                 non-throwing std::strtol so corrupt config or controller responses no longer crash.
     -bug (dkulp)                State / Faces / Shockwave / VUMeter / Lyric / MatrixModel: added div-by-zero and

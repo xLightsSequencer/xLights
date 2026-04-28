@@ -543,6 +543,14 @@ void BaseSerializingVisitor::WriteOtherElements(const Model* m) {
     WriteDimmingCurve(m);
     WriteAliases(m->GetAliases());
     WriteSubmodels(m);
+    // Persist real-world dimensions to xlights_rgbeffects.xml so a model's
+    // physical size (when a Ruler is set) survives a save/load and can be
+    // carried over by Import Models from RGBEffects. WriteDimensionsElement
+    // no-ops when no Ruler is set, so this is safe for shows that never
+    // configured a Ruler.
+    if (m != nullptr) {
+        WriteDimensionsElement(*m);
+    }
 }
 
 void BaseSerializingVisitor::WriteDimensionsElement(const Model& model) {
