@@ -21,6 +21,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (dkulp)             Render engine cleanup: removed the main-thread effect render queue and all the
                                 wx CallAfter / drain plumbing that supported it. No effect now needs main-thread
                                 dispatch.
+    -enh (charlie)              Audio Stems panel: collapsible row of per-stem mini-waveforms below the main
+                                waveform with import/rename/recolor/reorder, S (solo) button per row, aubio-based
+                                onset → timing track generation, and unified storage with upstream alternate audio
+                                tracks (stems are visible to VU Meter and Value Curve bindings, alt tracks added via
+                                Sequence Settings show in the panel, HTDemucs stems persist to disk as alt tracks).
 
 2026.07  April 28, 2026
     -enh (MrPierreB)            Add node animation playback to SubModels dialog.

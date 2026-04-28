@@ -297,6 +297,20 @@ void SequenceFile::SetAltTrackShortname(int idx, const std::string& name)
     }
 }
 
+void SequenceFile::MoveAltTrack(int from, int to)
+{
+    if (from < 0 || from >= (int)alt_tracks.size()) return;
+    if (to < 0 || to >= (int)alt_tracks.size()) return;
+    if (from == to) return;
+    AlternateAudioTrack t = std::move(alt_tracks[from]);
+    alt_tracks.erase(alt_tracks.begin() + from);
+    alt_tracks.insert(alt_tracks.begin() + to, std::move(t));
+    ValueCurve::ClearAltAudio();
+    for (int i = 0; i < (int)alt_tracks.size(); i++) {
+        ValueCurve::SetAltAudio(GetAltTrackDisplayName(i), alt_tracks[i].audio);
+    }
+}
+
 std::string SequenceFile::GetAltTrackDisplayName(int idx) const
 {
     if (idx < 0 || idx >= (int)alt_tracks.size()) return "";

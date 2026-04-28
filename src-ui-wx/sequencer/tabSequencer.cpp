@@ -91,6 +91,7 @@ void xLightsFrame::CreateSequencer()
 
     spdlog::debug("                Set timeline.");
     mainSequencer->PanelWaveForm->SetTimeline(mainSequencer->PanelTimeLine);
+    mainSequencer->PanelStems->SetTimeline(mainSequencer->PanelTimeLine);
     mainSequencer->PanelTimeLine->SetSequenceElements(&_sequenceElements);
     mainSequencer->PanelTimeLine->SyncTagsFrom(_sequenceElements);
 
@@ -920,6 +921,18 @@ void xLightsFrame::LoadSequencer(SequenceFile& xml_file, pugi::xml_document& doc
 
     spdlog::debug("Loading the audio data");
     LoadAudioData(xml_file);
+
+    spdlog::debug("Loading audio stems");
+    {
+        // SequenceFile::alt_tracks is the source of truth for stem audio data.
+        // The <Stems> UI overlay (panel visibility, row colors) is not yet
+        // round-tripped through master's pugi-based xsq writer, so we always
+        // rebuild the panel from alt_tracks on open.
+        mainSequencer->PanelStems->SetShowDirectory(GetShowDirectory());
+        mainSequencer->PanelStems->SetTimeFrequency(xml_file.GetFrequency());
+        mainSequencer->PanelStems->ClearRowsUiOnly();
+        mainSequencer->PanelStems->RefreshFromAltTracks();
+    }
 
     spdlog::debug("Preparing views");
     _sequenceElements.PrepareViews(xml_file);
@@ -2795,6 +2808,7 @@ bool xLightsFrame::TimerRgbSeq(long msec)
             if (mainSequencer->PanelTimeLine->SetPlayMarkerMS(current_play_time)) {
                 if (NeedToRenderFrame(mainSequencer->PanelWaveForm, OutputTimer, didRender)) {
                     mainSequencer->PanelWaveForm->UpdatePlayMarker();
+                    mainSequencer->PanelStems->UpdatePlayMarker();
                     mainSequencer->PanelWaveForm->CheckNeedToScroll();
                     mainSequencer->PanelEffectGrid->ForceRefresh();
                 }
@@ -3451,6 +3465,15 @@ void xLightsFrame::ShowHideHousePreview(wxCommandEvent& event)
         m_mgr->GetPane("HousePreview").Show();
     }
     m_mgr->Update();
+    UpdateViewMenu();
+}
+
+void xLightsFrame::OnMenuItemToggleStemsPanel(wxCommandEvent& event)
+{
+    InitSequencer();
+    StemsPanel* stems = mainSequencer->GetStemsPanel();
+    stems->SetUserVisible(!stems->IsUserVisible());
+    mainSequencer->Layout();
     UpdateViewMenu();
 }
 

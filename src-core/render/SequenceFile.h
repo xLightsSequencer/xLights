@@ -129,6 +129,7 @@ public:
     void RemoveAltTrack(int idx);
     void SetAltTrackPath(const std::string& ShowDir, int idx, const std::string& path);
     void SetAltTrackShortname(int idx, const std::string& name);
+    void MoveAltTrack(int from, int to);
     std::string GetAltTrackDisplayName(int idx) const;
     AudioManager* GetAltTrackMedia(int idx) const
     {

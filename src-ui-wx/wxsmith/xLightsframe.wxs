@@ -1475,6 +1475,11 @@
 						<handler function="OnMenuItemFindDataSelected" entry="EVT_MENU" />
 						<checkable>1</checkable>
 					</object>
+					<object class="wxMenuItem" name="ID_MENU_TOGGLE_STEMS_PANEL" variable="MenuItemStemsPanel" member="yes">
+						<label>Audio Stems</label>
+						<handler function="OnMenuItemToggleStemsPanel" entry="EVT_MENU" />
+						<checkable>1</checkable>
+					</object>
 					<object class="separator" />
 					<object class="wxMenu" name="ID_MENUITEM3" variable="MenuItem1" member="yes">
 						<label>Suppress Dock</label>

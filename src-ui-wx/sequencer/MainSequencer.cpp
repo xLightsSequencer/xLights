@@ -19,6 +19,7 @@
 #include <wx/artprov.h>
 
 #include "MainSequencer.h"
+#include "StemsPanel.h"
 #include "render/SequenceElements.h"
 #include "xLightsMain.h"
 #include "xLightsApp.h"
@@ -239,15 +240,21 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     spdlog::debug("                Creating main sequencer");
 
     //(*Initialize(MainSequencer)
-    wxFlexGridSizer* FlexGridSizer1;
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer4;
     wxStaticText* StaticText1;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxWANTS_CHARS, _T("wxID_ANY"));
-    FlexGridSizer1 = new wxFlexGridSizer(3, 3, 0, 0);
-    FlexGridSizer1->AddGrowableCol(1);
-    FlexGridSizer1->AddGrowableRow(1);
+
+    // Create stems panel first (hidden coordinator that creates sub-panels)
+    PanelStems = new StemsPanel(this, wxID_ANY);
+
+    // 5-row grid: timeline/waveform | stems | resize handle | effects grid | scrollbar
+    _mainSizer = new wxFlexGridSizer(5, 3, 0, 0);
+    _mainSizer->AddGrowableCol(1);
+    _mainSizer->AddGrowableRow(3); // effects grid row
+
+    // Row 0: view choice area | timeline + waveform | spacer
     FlexGridSizer2 = new wxFlexGridSizer(0, 1, 0, 0);
     FlexGridSizer2->AddGrowableCol(0);
     ViewLabel = new wxStaticText(this, wxID_ANY, _("View:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
@@ -256,10 +263,9 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     ViewChoice = new wxChoice(this, ID_CHOICE_VIEW_CHOICE, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_VIEW_CHOICE"));
     FlexGridSizer2->Add(ViewChoice, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 0);
     FlexGridSizer2->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 0, wxEXPAND, 0);
+    _mainSizer->Add(FlexGridSizer2, 0, wxEXPAND, 0);
     FlexGridSizer4 = new wxFlexGridSizer(2, 0, 0, 0);
     FlexGridSizer4->AddGrowableCol(0);
-    FlexGridSizer4->AddGrowableRow(1);
     PanelTimeLine = new TimeLine(this, ID_PANEL1, wxDefaultPosition, wxDLG_UNIT(this,wxSize(-1,15)), wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     PanelTimeLine->SetMinSize(wxDLG_UNIT(this,wxSize(-1,15)));
     PanelTimeLine->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,15)));
@@ -268,24 +274,39 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     PanelWaveForm->SetMinSize(wxDLG_UNIT(this,wxSize(-1,40)));
     PanelWaveForm->SetMaxSize(wxDLG_UNIT(this,wxSize(-1,40)));
     FlexGridSizer4->Add(PanelWaveForm, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
-    FlexGridSizer1->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+    _mainSizer->Add(FlexGridSizer4, 1, wxALL|wxEXPAND, 0);
+    _mainSizer->Add(-1,-1,1, wxALL|wxEXPAND, 5);
+
+    // Row 1: stem headers | stem waveforms | spacer (hidden when no stems)
+    _mainSizer->Add(PanelStems->GetStemHeadersPanel(), 0, wxEXPAND, 0);
+    _mainSizer->Add(PanelStems->GetStemWaveformsPanel(), 1, wxEXPAND, 0);
+    _mainSizer->Add(0, 0, 0, 0, 0);
+
+    // Row 2: resize handle spanning col 0+1 (hidden when stems hidden)
+    _mainSizer->Add(0, 0, 0, 0, 0); // empty col 0
+    _mainSizer->Add(PanelStems->GetResizeHandle(), 1, wxEXPAND, 0);
+    _mainSizer->Add(0, 0, 0, 0, 0); // empty col 2
+
+    // Row 3: row headings | effects grid | vertical scrollbar
     PanelRowHeadings = new RowHeading(this, ID_PANEL6, wxDefaultPosition, wxDLG_UNIT(this,wxSize(90,-1)), wxTAB_TRAVERSAL, _T("ID_PANEL6"));
     PanelRowHeadings->SetMinSize(wxDLG_UNIT(this,wxSize(90,-1)));
     PanelRowHeadings->SetMaxSize(wxDLG_UNIT(this,wxSize(90,-1)));
-    FlexGridSizer1->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
+    PanelStems->SetHeaderWidth(PanelRowHeadings->GetMinSize().GetWidth());
+    _mainSizer->Add(PanelRowHeadings, 1, wxALL|wxEXPAND, 0);
     PanelEffectGrid = new EffectsGrid(this, ID_PANEL2, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL|wxFULL_REPAINT_ON_RESIZE, _T("ID_PANEL2"));
-    FlexGridSizer1->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
+    _mainSizer->Add(PanelEffectGrid, 1, wxALL|wxEXPAND, 0);
     ScrollBarEffectsVertical = new wxScrollBar(this, ID_SCROLLBAR_EFFECTS_VERTICAL, wxDefaultPosition, wxDefaultSize, wxSB_VERTICAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECTS_VERTICAL"));
     ScrollBarEffectsVertical->SetScrollbar(0, 1, 10, 1);
-    FlexGridSizer1->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
+    _mainSizer->Add(ScrollBarEffectsVertical, 1, wxALL|wxEXPAND, 0);
+
+    // Row 4: suspend render checkbox | horizontal scrollbar | empty
     CheckBox_SuspendRender = new wxCheckBox(this, ID_CHECKBOX1, _("Suspend Render"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     CheckBox_SuspendRender->SetValue(false);
-    FlexGridSizer1->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 0);
+    _mainSizer->Add(CheckBox_SuspendRender, 1, wxALL|wxEXPAND, 0);
     ScrollBarEffectsHorizontal = new wxScrollBar(this, ID_SCROLLBAR_EFFECT_GRID_HORZ, wxDefaultPosition, wxDefaultSize, wxSB_HORIZONTAL|wxALWAYS_SHOW_SB, wxDefaultValidator, _T("ID_SCROLLBAR_EFFECT_GRID_HORZ"));
     ScrollBarEffectsHorizontal->SetScrollbar(0, 1, 100, 1);
-    FlexGridSizer1->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
-    SetSizer(FlexGridSizer1);
+    _mainSizer->Add(ScrollBarEffectsHorizontal, 1, wxALL|wxEXPAND, 0);
+    SetSizer(_mainSizer);
 
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_TOP|wxEVT_SCROLL_BOTTOM|wxEVT_SCROLL_LINEUP|wxEVT_SCROLL_LINEDOWN|wxEVT_SCROLL_PAGEUP|wxEVT_SCROLL_PAGEDOWN|wxEVT_SCROLL_THUMBTRACK|wxEVT_SCROLL_THUMBRELEASE|wxEVT_SCROLL_CHANGED, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
     Connect(ID_SCROLLBAR_EFFECTS_VERTICAL, wxEVT_SCROLL_TOP, (wxObjectEventFunction)&MainSequencer::OnScrollBarEffectsVerticalScrollChanged);
@@ -2068,10 +2089,13 @@ void MainSequencer::TimelineChanged( wxCommandEvent& event)
     TimelineChangeArguments *tla = (TimelineChangeArguments*)(event.GetClientData());
     PanelWaveForm->SetZoomLevel(tla->ZoomLevel);
     PanelWaveForm->SetStartPixelOffset(tla->StartPixelOffset);
+    PanelStems->SetZoomLevel(tla->ZoomLevel);
+    PanelStems->SetStartPixelOffset(tla->StartPixelOffset);
     UpdateTimeDisplay(tla->CurrentTimeMS, {});
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
     PanelWaveForm->render();
+    PanelStems->ForceRedraw();
     PanelEffectGrid->SetStartPixelOffset(tla->StartPixelOffset);
     PanelEffectGrid->Draw();
     UpdateEffectGridHorizontalScrollBar();
@@ -2082,12 +2106,15 @@ void MainSequencer::UpdateEffectGridHorizontalScrollBar()
 {
     PanelWaveForm->SetZoomLevel(PanelTimeLine->GetZoomLevel());
     PanelWaveForm->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
+    PanelStems->SetZoomLevel(PanelTimeLine->GetZoomLevel());
+    PanelStems->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
     UpdateTimeDisplay(PanelTimeLine->GetCurrentPlayMarkerMS(), {});
 
     //printf("%d\n", PanelTimeLine->GetStartPixelOffset());
     PanelTimeLine->Refresh();
     PanelTimeLine->Update();
     PanelWaveForm->render();
+    PanelStems->ForceRedraw();
     PanelEffectGrid->SetStartPixelOffset(PanelTimeLine->GetStartPixelOffset());
     PanelEffectGrid->Draw();
 
