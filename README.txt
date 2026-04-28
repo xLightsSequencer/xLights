@@ -94,7 +94,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)             Picture effect auto-sets scaling to "Scale To Fit" when appropriate
     -enh (derwin12)             Add Speed as a Warp effect type (#4596)
     -enh (derwin12)             Add more variability to Lines Effect. Now using float values (#4532)
-    -enh (AGFazio)              Inclulde Line Count in Submodel dialog (#5359)
+    -enh (AGFazio)              Include Line Count in Submodel dialog (#5359)
     -enh (dkulp)                Render: RenderProgressInfo now self-signals completion via an atomic flag
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
