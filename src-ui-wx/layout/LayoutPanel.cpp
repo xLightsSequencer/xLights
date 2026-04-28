@@ -8916,9 +8916,36 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
-void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups)
+void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit)
 {
-    
+    float scaleFactor = 1.0f;
+    if (srcPerUnit > 0.0f && RulerObject::GetRuler() != nullptr) {
+        // srcPerUnit is already in metres/pixel (normalised in GetSourceRulerPerUnit).
+        // Convert destination perUnit to metres/pixel using the destination ruler's units.
+        float dstPerUnit_native = RulerObject::Measure(1.0f);  // dest native-units/pixel
+        int   dstUnits          = RulerObject::GetUnits();
+        float dstPerUnit_m      = RulerObject::Convert(dstUnits, std::string("m"), dstPerUnit_native);
+        if (dstPerUnit_m > 0.0f) {
+            scaleFactor = srcPerUnit / dstPerUnit_m;
+            spdlog::debug("ImportModelsFromPreview: ruler scale factor={:.6f} (src={:.6f} m/px, dst={:.6f} m/px)",
+                          scaleFactor, srcPerUnit, dstPerUnit_m);
+        }
+    }
+
+    auto scaleNodeAttr = [scaleFactor](pugi::xml_node node, const char* attrName) {
+        if (scaleFactor == 1.0f) return;
+        auto attr = node.attribute(attrName);
+        if (attr) attr.set_value(attr.as_float() * scaleFactor);
+    };
+
+    auto scaleModelNode = [&scaleNodeAttr](pugi::xml_node node) {
+        scaleNodeAttr(node, "ScaleX");
+        scaleNodeAttr(node, "ScaleY");
+        scaleNodeAttr(node, "ScaleZ");
+        scaleNodeAttr(node, "X2");
+        scaleNodeAttr(node, "Y2");
+        scaleNodeAttr(node, "Z2");
+    };
 
     //add models first
     for (auto const& it2 : models)
@@ -8933,6 +8960,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelNode().remove_attribute("LayoutGroup");
             it2->GetModelNode().append_attribute("name") = newName;
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
+            scaleModelNode(it2->GetModelNode());
             xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
@@ -8999,7 +9027,8 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         wxString lg = ChoiceLayoutGroups->GetStringSelection();
         if (lg == "All Models") lg = "Default";
 
-        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups());
+        float srcPerUnit = dlg.GetSourceRulerPerUnit();
+        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups(), srcPerUnit);
 
         for (const auto& it : dlg.GetPreviews())
         {
@@ -9020,7 +9049,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->LayoutGroups.emplace(it.ToStdString(), std::move(grp));
                 AddPreviewChoice(it.ToStdString());
             }
-            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups());
+            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |

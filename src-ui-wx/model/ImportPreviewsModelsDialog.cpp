@@ -10,6 +10,10 @@
 
 #include "ImportPreviewsModelsDialog.h"
 
+#include <cmath>
+#include <spdlog/spdlog.h>
+#include "models/RulerObject.h"
+
 //(*InternalHeaders(ImportPreviewsModelsDialog)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -432,6 +436,37 @@ void ImportPreviewsModelsDialog::ValidateWindow()
         }
     }
     Button_Ok->Disable();
+}
+
+float ImportPreviewsModelsDialog::GetSourceRulerPerUnit() const
+{
+    pugi::xml_node root = _doc.document_element();
+    pugi::xml_node viewObjects = root.child("view_objects");
+    if (!viewObjects) return 0.0f;
+
+    for (pugi::xml_node obj = viewObjects.first_child(); obj; obj = obj.next_sibling()) {
+        if (std::string_view(obj.attribute("DisplayAs").as_string()) == "Ruler") {
+            // X2/Y2/Z2 are offsets from WorldPos (see TwoPointScreenLocation::PrepareToDraw),
+            // so the ruler pixel length is just their magnitude — no need to read WorldPos.
+            float x2 = obj.attribute("X2").as_float(0);
+            float y2 = obj.attribute("Y2").as_float(0);
+            float z2 = obj.attribute("Z2").as_float(0);
+            float realLength = obj.attribute("Length").as_float(1);
+            int   srcUnits   = obj.attribute("Units").as_int(RULER_UNITS_M);
+            float pixelLength = std::sqrt(x2*x2 + y2*y2 + z2*z2);
+            static const char* kUnitNames[] = {"m","cm","mm","yds","ft","in"};
+            const char* srcUnitName = (srcUnits >= 0 && srcUnits <= 5) ? kUnitNames[srcUnits] : "?";
+            if (pixelLength > 0 && realLength > 0) {
+                float realLength_m = RulerObject::Convert(srcUnits, std::string("m"), realLength);
+                float srcPerUnit_m = realLength_m / pixelLength;
+                spdlog::debug("ImportPreviewsModelsDialog: source ruler {:.4f}{} over {:.2f}px => {:.6f} m/px",
+                              realLength, srcUnitName, pixelLength, srcPerUnit_m);
+                return srcPerUnit_m;
+            }
+            break;
+        }
+    }
+    return 0.0f;
 }
 
 int ImportPreviewsModelsDialog::PreviewItemComparator::Compare(wxTreeListCtrl *treelist, unsigned col, wxTreeListItem first, wxTreeListItem second) {

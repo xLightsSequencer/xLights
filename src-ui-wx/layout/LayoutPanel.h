@@ -627,7 +627,7 @@ class LayoutPanel: public wxPanel
         void DisplayAddDmxPopup();
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
-        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
+        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
         int GetColumnIndex(const std::string& name) const;
         wxSearchCtrl* ModelFilterCtrl = nullptr;
         wxString _filterString;
