@@ -1558,8 +1558,13 @@ void VendorModelDialog::OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event)
 
 void VendorModelDialog::ValidateWindow()
 {
-    wxTreeItemId current = GetFocusedItem();
-    if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !current.IsOk())
+    // Search just needs non-empty text and a populated tree. Don't gate on
+    // GetFocusedItem() — on Windows the native wxTreeCtrl returns invalid
+    // whenever focus is anywhere outside the tree (e.g. while the user is
+    // typing in the search box itself), which would leave the button
+    // permanently disabled and make the search feature appear broken.
+    bool hasItems = TreeCtrl_Navigator->GetCount() > 0;
+    if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !hasItems)
     {
         Button_Search->Disable();
     }
@@ -1963,6 +1968,22 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 	}
 
 	wxTreeItemId current = GetFocusedItem();
+	// On Windows the native wxTreeCtrl returns invalid from GetFocusedItem()
+	// whenever keyboard focus is outside the tree — which is exactly the
+	// case when the user has just typed in the search text box and clicked
+	// the Search button. Fall back to the first selected item, then to the
+	// root's first child, so the user can always kick off a search from
+	// the top of the tree.
+	if (!current.IsOk()) {
+		wxArrayTreeItemIds selections;
+		if (TreeCtrl_Navigator->GetSelections(selections) > 0) {
+			current = selections[0];
+		}
+	}
+	if (!current.IsOk()) {
+		wxTreeItemIdValue cookie;
+		current = TreeCtrl_Navigator->GetFirstChild(TreeCtrl_Navigator->GetRootItem(), cookie);
+	}
 	wxTreeItemId start = current;
 	if (current.IsOk())
 	{
@@ -2021,6 +2042,14 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 
 			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
 			{
+				// Search is for stepping through matches one at a time,
+				// not for building a multi-selection. With wxTR_MULTIPLE
+				// (added in #6073) SelectItem() *adds* to the selection
+				// set rather than replacing it, so each Search click was
+				// silently piling up selected items. UnselectAll first,
+				// then select only the current match, so each step shows
+				// exactly the one match the user just navigated to.
+				TreeCtrl_Navigator->UnselectAll();
 				TreeCtrl_Navigator->SelectItem(current);
 				TreeCtrl_Navigator->EnsureVisible(current);
 				if (current == start)
