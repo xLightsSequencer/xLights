@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.07  April ??, 2026
+    -enh (MrPierreB)            Add node animation playback to SubModels dialog.
     -enh (dkulp)                Media-compatibility "Convert Now" now special-cases animated GIFs that were used as
                                 Video effects and turns them into normal Pictures effects that properly handle animated GIFs
     -bug (dkulp)                Replaced throwing std::stoi calls in OutputManager / xxxSerialOutput / HinksPix with
@@ -78,7 +79,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 read as "loud" even when their peaks plateau.
     -enh (dkulp)                Shape effect: Effect panel now organises its 27 properties into Shape / Size / Motion /
                                 Triggers tabs instead of a flat scroll, matching the grouped layout other large effects use.
-    -enh (PB)                   Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
+    -enh (MrPierreB)            Value curve Exponential, Logarithmic, and Parabolic types now support Start/End.
     -enh (scott)                Add "Show Names" and "Show Start Channel" checkboxes to Layout tab to display model names
                                 and controller/port or start channel in the layout preview
     -enh (derwin12)             Add timing track trigger for Shockwave effect
@@ -93,7 +94,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)             Picture effect auto-sets scaling to "Scale To Fit" when appropriate
     -enh (derwin12)             Add Speed as a Warp effect type (#4596)
     -enh (derwin12)             Add more variability to Lines Effect. Now using float values (#4532)
-    -enh (AGFazio)              Inclulde Node Count in Submodel dialog (#5359)
+    -enh (AGFazio)              Inclulde Line Count in Submodel dialog (#5359)
     -enh (dkulp)                Render: RenderProgressInfo now self-signals completion via an atomic flag
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
