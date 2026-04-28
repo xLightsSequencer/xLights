@@ -1971,13 +1971,27 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 		return;
 	}
 
-	wxTreeItemId current = GetFocusedItem();
-	// On Windows the native wxTreeCtrl returns invalid from GetFocusedItem()
-	// whenever keyboard focus is outside the tree — which is exactly the
-	// case when the user has just typed in the search text box and clicked
-	// the Search button. Fall back to the first selected item, then to the
-	// root's first child, so the user can always kick off a search from
-	// the top of the tree.
+	// If the user is still searching for the same string, resume from
+	// the last hit so repeated Search clicks step through matches. We
+	// cache this ourselves rather than relying on the tree's
+	// focused-item / selection state, because:
+	//   - On Windows native wxTreeCtrl, GetFocusedItem() returns invalid
+	//     once focus moves to the Search button.
+	//   - GetSelections() after a programmatic SelectItem can behave
+	//     differently across platforms / wxTR_MULTIPLE.
+	// If the search text changed since the last hit, or we don't have a
+	// remembered hit yet, fall through to GetFocusedItem -> selection ->
+	// root's first child.
+	wxString currentText = TextCtrl_Search->GetValue();
+	wxTreeItemId current;
+	if (_lastSearchHit.IsOk() && currentText == _lastSearchText)
+	{
+		current = _lastSearchHit;
+	}
+	if (!current.IsOk())
+	{
+		current = GetFocusedItem();
+	}
 	if (!current.IsOk())
 	{
 		wxArrayTreeItemIds selections;
@@ -2059,6 +2073,11 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				TreeCtrl_Navigator->UnselectAll();
 				TreeCtrl_Navigator->SelectItem(current);
 				TreeCtrl_Navigator->EnsureVisible(current);
+				// Remember this hit so the next Search click reliably
+				// advances to the next match (see comment above on the
+				// _lastSearchHit cache).
+				_lastSearchHit = current;
+				_lastSearchText = currentText;
 				if (current == start)
 				{
 					wxBell();

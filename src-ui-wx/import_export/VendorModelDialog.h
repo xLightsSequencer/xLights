@@ -78,6 +78,15 @@ class VendorModelDialog: public wxDialog
     void DownloadSelectedModels();
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;
 
+    // Tracks the last item the Search button navigated to. Used so
+    // repeated clicks on Search reliably advance to the next match
+    // regardless of platform-specific tree-focus / selection quirks
+    // (Windows native wxTreeCtrl loses focus to the Search button,
+    // and programmatic SelectItem doesn't always show up the way
+    // we'd expect via GetFocusedItem / GetSelections on the next call).
+    wxTreeItemId _lastSearchHit;
+    wxString _lastSearchText;
+
 	public:
 
 		VendorModelDialog(wxWindow* parent, const std::string& showFolder, wxWindowID id=wxID_ANY, const wxPoint& pos=wxDefaultPosition,const wxSize& size=wxDefaultSize);
