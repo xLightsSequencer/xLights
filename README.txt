@@ -15,7 +15,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 while typing on Windows (GetFocusedItem() returns invalid when keyboard focus is in the
                                 search box), and stepping through matches added each one to the multi-selection instead
                                 of replacing it. Search button now only requires non-empty text + populated tree, and
-                                each step UnselectAll's before SelectItem so only the current match is highlighted.
+                                each step calls UnselectAll before SelectItem so only the current match is highlighted.
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
                                 render on background threads on Linux (previously forced to the main thread because

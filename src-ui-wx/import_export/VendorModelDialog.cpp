@@ -1563,7 +1563,11 @@ void VendorModelDialog::ValidateWindow()
     // whenever focus is anywhere outside the tree (e.g. while the user is
     // typing in the search box itself), which would leave the button
     // permanently disabled and make the search feature appear broken.
-    bool hasItems = TreeCtrl_Navigator->GetCount() > 0;
+    // Match the click-handler's guard (root must have at least one child)
+    // rather than GetCount() > 0, which is true even with just the hidden
+    // root present and no children to search.
+    wxTreeItemId rootItem = TreeCtrl_Navigator->GetRootItem();
+    bool hasItems = rootItem.IsOk() && TreeCtrl_Navigator->GetChildrenCount(rootItem) > 0;
     if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !hasItems)
     {
         Button_Search->Disable();
@@ -1974,13 +1978,16 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 	// the Search button. Fall back to the first selected item, then to the
 	// root's first child, so the user can always kick off a search from
 	// the top of the tree.
-	if (!current.IsOk()) {
+	if (!current.IsOk())
+	{
 		wxArrayTreeItemIds selections;
-		if (TreeCtrl_Navigator->GetSelections(selections) > 0) {
+		if (TreeCtrl_Navigator->GetSelections(selections) > 0)
+		{
 			current = selections[0];
 		}
 	}
-	if (!current.IsOk()) {
+	if (!current.IsOk())
+	{
 		wxTreeItemIdValue cookie;
 		current = TreeCtrl_Navigator->GetFirstChild(TreeCtrl_Navigator->GetRootItem(), cookie);
 	}
