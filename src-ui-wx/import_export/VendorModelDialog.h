@@ -62,8 +62,8 @@ class VendorModelDialog: public wxDialog
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
-    void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories);
-    void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId);
+    void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories, const std::string& pathSoFar = "");
+    void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId, const std::string& pathSoFar = "");
     void ValidateWindow();
     void PopulateVendorPanel(MVendor* vendor);
     void PopulateModelPanel(MModel* vendor);
@@ -77,6 +77,34 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] std::vector<MModelWiring*> GetSelectedWirings();
     void DownloadSelectedModels();
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;
+
+    // ----- Catalog filter (experimental) -----
+    // Two live-filter inputs that narrow the tree to model nodes whose
+    // names contain BOTH filter strings (case-insensitive). Categories
+    // and vendors with no surviving model leaves are pruned by the
+    // existing DeleteEmptyCategories pass. Lives outside wxSmith so
+    // the .wxs file does not need to know about it.
+    class wxSearchCtrl* TextCtrl_Filter1 = nullptr;
+    class wxSearchCtrl* TextCtrl_Filter2 = nullptr;
+    wxString _filter1;  // already lower-cased
+    wxString _filter2;  // already lower-cased
+    wxTimer* _filterDebounceTimer = nullptr;
+    static constexpr int kCatalogFilterDebounceMs = 200;
+    void OnCatalogFilterText(wxCommandEvent& event);
+    void OnCatalogFilterCancel(wxCommandEvent& event);
+    void OnCatalogFilterDebounce(wxTimerEvent& event);
+    bool CatalogFilterMatches(const std::string& name) const;
+    // Same as CatalogFilterMatches but also considers the ancestor path
+    // (vendor / category / subcategory). Lets the user filter on
+    // hierarchy text — typing "halloween" or "boscoyo" includes every
+    // descendant of the matching node.
+    bool CatalogFilterMatchesPath(const std::string& pathSoFar,
+                                  const std::string& leafName) const;
+    void RebuildTreeUI();
+    // Bottom-up prune that drops Category and Vendor nodes whose
+    // descendants were filtered away. Returns true if the node itself
+    // was deleted. Models and wirings (leaves) are never deleted here.
+    bool PruneEmptyBranches(wxTreeItemId parent);
 
 	public:
 
