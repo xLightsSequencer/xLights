@@ -1337,8 +1337,8 @@ void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<
             ? it->_name
             : pathSoFar + " / " + it->_name;
         AddHierachy(tid, vendor, it->_categories, nextPath);
-        TreeCtrl_Navigator->Expand(tid);
         AddModels(tid, vendor, it->_id, nextPath);
+        TreeCtrl_Navigator->Expand(tid);
     }
 }
 
