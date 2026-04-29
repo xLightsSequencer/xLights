@@ -9363,6 +9363,9 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         } else if (type == "FPP_CONNECT") {
             wxCommandEvent e;
             OnButtonFPPConnectClick(e);
+        } else if (type == "COMMAND_PALETTE") {
+            wxCommandEvent e;
+            OnCommandPalette(e);
         } else {
             return false;
         }
@@ -9403,8 +9406,46 @@ void xLightsFrame::OnChar(wxKeyEvent& event)
     OnCharHook(event);
 }
 
+void xLightsFrame::OnCommandPalette(wxCommandEvent& event)
+{
+    CommandPaletteDialog dlg(this, GetMenuBar(), &GetEffectManager());
+    if (dlg.ShowModal() == wxID_OK) {
+        if (dlg.IsEffectSelected()) {
+            wxString effectName = dlg.GetSelectedEffectName();
+
+            if (effectName != GetEffectsPanel()->EffectChoicebook->GetChoiceCtrl()->GetStringSelection()) {
+                ResetPanelDefaultSettings(effectName.ToStdString(), nullptr, true);
+            }
+
+            std::string palette;
+            std::string effectSettings = GetEffectTextFromWindows(palette);
+
+            Effect* ef = mainSequencer->PanelEffectGrid->Paste(
+                effectName + "\t" + effectSettings + "\t\n",
+                xlights_version_string);
+            if (ef != nullptr) {
+                mainSequencer->SelectEffect(ef);
+            }
+        } else {
+            int cmdId = dlg.GetSelectedCommandId();
+            if (cmdId != wxID_NONE) {
+                wxCommandEvent menuEvent(wxEVT_MENU, cmdId);
+                menuEvent.SetEventObject(this);
+                GetEventHandler()->ProcessEvent(menuEvent);
+            }
+        }
+    }
+}
+
 void xLightsFrame::OnCharHook(wxKeyEvent& event)
 {
+    if (event.GetKeyCode() == 'K' && (event.ControlDown() || event.CmdDown()) && event.ShiftDown() && !event.AltDown()) {
+        wxCommandEvent e;
+        OnCommandPalette(e);
+        event.StopPropagation();
+        return;
+    }
+
     switch (Notebook1->GetSelection()) {
     case SETUPTAB:
         break;
