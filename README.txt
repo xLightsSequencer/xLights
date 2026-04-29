@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -bug (Neil)                 3D layout: clicking a different model now switches the selection directly instead of
+                                requiring the user to first click empty space (or hit Esc) to deselect. Cmd / Ctrl-click
+                                still adds to the selection for multi-select. 2D path was already correct; this brings
+                                3D into parity.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
                                 short API calls was also killing the large-file download before it could complete.
     -bug (dkulp)                Backup: switch the per-file copy from wxCopyFile to std::filesystem::copy_file so

@@ -3693,6 +3693,90 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 selectedBaseObject->GetBaseObjectScreenLocation().CheckIfOverHandles3D(ray_origin, ray_direction, m_over_handle, modelPreview->GetCameraZoomForHandles(), modelPreview->GetHandleScale());
             }
+            // If the click isn't on the current selection's handles, hit-test
+            // the rest of the scene. If the click landed on a *different*
+            // model (or object), switch selection to it directly instead of
+            // forcing the user to first click empty space / Esc / double-
+            // click to deselect. Mirrors what the 2D path already does via
+            // SelectSingleModel + UnSelectAllModelsInTree.
+            //
+            // We do the hit-test here instead of relying on
+            // highlightedBaseObject because OnPreviewMouseMove3D
+            // intentionally does NOT update highlightedBaseObject while a
+            // selection is latched (to keep visual noise down — see the
+            // comment near "require control to be active" in that handler),
+            // so highlightedBaseObject == selectedBaseObject in this state
+            // and we have no other way to know what the cursor is over.
+            if (m_over_handle == -1) {
+                glm::vec3 ray_origin;
+                glm::vec3 ray_direction;
+                GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
+                BaseObject* hit = nullptr;
+                float bestDistance = std::numeric_limits<float>::max();
+                float intersection_distance = bestDistance;
+                if (editing_models) {
+                    for (const auto& it : modelPreview->GetModels()) {
+                        if (it == selectedBaseObject) continue;
+                        if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < bestDistance) {
+                                bestDistance = intersection_distance;
+                                hit = it;
+                            }
+                        }
+                    }
+                } else {
+                    for (const auto& it : xlights->AllObjects) {
+                        ViewObject* view_object = it.second;
+                        if (view_object == selectedBaseObject) continue;
+                        if (view_object->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < bestDistance) {
+                                bestDistance = intersection_distance;
+                                hit = view_object;
+                            }
+                        }
+                    }
+                }
+                if (hit != nullptr) {
+                    // Cmd (Mac) / Ctrl (Win/Linux) preserves the existing
+                    // selection so the user can build a multi-selection by
+                    // clicking additional models. Plain click drops the
+                    // previous selection so the tree doesn't end up
+                    // multi-selected — mirrors what the 2D path does via
+                    // UnSelectAllModelsInTree before SelectSingleModel.
+                    const bool addToSelection = event.CmdDown() || event.ControlDown();
+                    if (editing_models) {
+                        if (!addToSelection) {
+                            UnSelectAllModelsInTree();
+                        } else {
+                            // Keep the already-latched model in the tree
+                            // selection set; mark it as a group member so
+                            // the visual treatment matches a multi-select.
+                            if (selectedBaseObject != nullptr) {
+                                selectedBaseObject->GroupSelected(true);
+                                selectedBaseObject->Selected(false);
+                            }
+                        }
+                        SelectBaseObjectInTree(hit);
+                    } else {
+                        if (!addToSelection) {
+                            UnSelectAllModels();
+                        } else if (selectedBaseObject != nullptr) {
+                            selectedBaseObject->GroupSelected(true);
+                            selectedBaseObject->Selected(false);
+                        }
+                        SelectBaseObject(hit);
+                    }
+                    highlightedBaseObject = hit;
+                    selectionLatched = true;
+                    if (selectedBaseObject != nullptr) {
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    }
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
+                    m_last_mouse_x = event.GetX();
+                    m_last_mouse_y = event.GetY();
+                    return;
+                }
+            }
             if (m_over_handle != -1) {
                 if ((m_over_handle & HANDLE_AXIS) > 0) {
                     // an axis was selected
