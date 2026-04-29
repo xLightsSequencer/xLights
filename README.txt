@@ -11,11 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
-    -enh (Neil)                 Vendor model catalog: add two live-filter inputs above the tree. Filters are
-                                hierarchy-aware (vendor / category / sub-category / model), so typing "halloween"
-                                or a vendor name surfaces the whole sub-tree, and the second box AND-narrows
-                                further. Empty categories and vendors are pruned bottom-up; surviving branches
-                                auto-expand while filters are active. Debounced 200ms so fast typing doesn't thrash.
+    -enh (Neil)                 Vendor model catalog: add a live-filter input above the tree with whitespace-
+                                tokenized AND-narrowing. Filter is hierarchy-aware (vendor / category / sub-category
+                                / model), so typing "halloween" or a vendor name surfaces the whole sub-tree, and
+                                "tree EFL" is two AND-narrowed terms — both must appear in the path. Empty
+                                categories and vendors are pruned bottom-up; surviving branches auto-expand while
+                                a filter is active. Debounced 200ms so fast typing doesn't thrash.
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
                                 render on background threads on Linux (previously forced to the main thread because
