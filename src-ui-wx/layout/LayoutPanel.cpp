@@ -33,6 +33,7 @@
 #include <pugixml.hpp>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <spdlog/fmt/fmt.h>
 #include <regex>
 #include <sstream>
@@ -3730,6 +3731,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         } else if (selectedBaseObject != nullptr) {
                             selectedBaseObject->GroupSelected(true);
                             selectedBaseObject->Selected(false);
+                            selectedBaseObject->SelectHandle(-1);
+                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
                             selectedBaseObject = hit;
                         }
                         SelectBaseObjectInTree(hit);
@@ -3739,6 +3742,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         } else if (selectedBaseObject != nullptr) {
                             selectedBaseObject->GroupSelected(true);
                             selectedBaseObject->Selected(false);
+                            selectedBaseObject->SelectHandle(-1);
+                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
                         }
                         SelectBaseObject(hit);
                     }
