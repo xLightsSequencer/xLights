@@ -669,6 +669,8 @@ public:
     void OnMenuItem_SilentVolSelected(wxCommandEvent& event);
     void OnMenuItem_TODSelected(wxCommandEvent& event);
     void OnMenuItem_RemapCustomSelected(wxCommandEvent& event);
+    void OnMenuItem_EffectSymbolsSelected(wxCommandEvent& event);
+    void OnMenuItem_ConvertSymbolsSelected(wxCommandEvent& event);
     void OnMenuItemRestoreBackupSelected(wxCommandEvent& event);
     void OnMenuItem_SuppressDock(wxCommandEvent& event);
     void OnButton_ChangeBaseShowDirClick(wxCommandEvent& event);
@@ -856,6 +858,8 @@ public:
     static const wxWindowID ID_MENUITEM_EFFECT_PRESETS;
     static const wxWindowID ID_MENUITEM_SELECT_EFFECT;
     static const wxWindowID ID_MENUITEM_SEARCH_EFFECTS;
+    static const wxWindowID ID_MNU_EFFECTSYMBOLS;
+    static const wxWindowID ID_MNU_CONVERTSYMBOLS;
     static const wxWindowID ID_MENUITEM_VIDEOPREVIEW;
     static const wxWindowID ID_MNU_JUKEBOX;
     static const wxWindowID ID_MNU_FINDDATA;
@@ -1043,6 +1047,8 @@ public:
     wxMenuItem* MenuItem_QuietVol;
     wxMenuItem* MenuItem_REDO;
     wxMenuItem* MenuItem_RemapCustom;
+    wxMenuItem* MenuItem_EffectSymbols;
+    wxMenuItem* MenuItem_ConvertSymbols;
     wxMenuItem* MenuItem_SD_HP;
     wxMenuItem* MenuItem_SD_MP;
     wxMenuItem* MenuItem_ShowACRamps;

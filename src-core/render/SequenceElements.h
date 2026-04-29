@@ -12,6 +12,7 @@
 
 #include "EffectLayer.h"
 #include "Element.h"
+#include "EffectSymbolManager.h"
 #include "SequenceMedia.h"
 #include "SongStructureManager.h"
 namespace pugi { class xml_node; class xml_document; }
@@ -198,6 +199,9 @@ public:
 
     UndoManager& get_undo_mgr() { return undo_mgr; }
 
+    EffectSymbolManager& GetEffectSymbolManager() { return _effectSymbolManager; }
+    const EffectSymbolManager& GetEffectSymbolManager() const { return _effectSymbolManager; }
+
     void AddRenderDependency(const std::string &layer, const std::string &model);
     bool GetElementsToRender(std::vector<Element *> &models);
 
@@ -271,5 +275,6 @@ private:
     std::vector<std::string> mColorPalettes;
     SequenceMedia mSequenceMedia;
     SongStructureManager mSongStructure;
+    EffectSymbolManager _effectSymbolManager;
 };
 

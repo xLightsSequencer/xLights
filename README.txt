@@ -10,9 +10,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-
 2026.11  June ??, 2026
     -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
+    -enh (charlie)              Effect Symbols: define a reusable effect (name, color, settings, palette) once and
+                                link any number of effects to it. Editing a linked effect updates the symbol and
+                                propagates to every other linked effect. Symbols round-trip through .xsq and have a
+                                "Convert All Symbols to Effects" escape hatch for compatibility export.
     -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
                                 command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
     -enh (charlie)              Song Structure Regions: divide the sequencer timeline into named, colored sections

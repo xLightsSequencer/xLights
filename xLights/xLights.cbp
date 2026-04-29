@@ -1236,6 +1236,12 @@
 		<Unit filename="../src-ui-wx/sequencer/DragEffectBitmapButton.h" />
 		<Unit filename="../src-core/render/Effect.cpp" />
 		<Unit filename="../src-core/render/Effect.h" />
+		<Unit filename="../src-core/render/EffectSymbol.cpp" />
+		<Unit filename="../src-core/render/EffectSymbol.h" />
+		<Unit filename="../src-core/render/EffectSymbolManager.cpp" />
+		<Unit filename="../src-core/render/EffectSymbolManager.h" />
+		<Unit filename="../src-ui-wx/EffectSymbolDialog.cpp" />
+		<Unit filename="../src-ui-wx/EffectSymbolDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectDropTarget.h" />
 		<Unit filename="../src-core/render/EffectLayer.cpp" />

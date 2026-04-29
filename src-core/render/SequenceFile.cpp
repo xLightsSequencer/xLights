@@ -1313,6 +1313,9 @@ static void WriteEffectsPugi(EffectLayer* layer,
         }
         effect_node.append_attribute("startTime") = effect->GetStartTimeMS();
         effect_node.append_attribute("endTime") = effect->GetEndTimeMS();
+        if (effect->IsLinkedToSymbol()) {
+            effect_node.append_attribute("linkedSymbol") = effect->GetLinkedSymbolId().c_str();
+        }
         std::string palette = effect->GetPaletteAsString();
         if (!palette.empty()) {
             size = colorPalettes.size();
@@ -1390,6 +1393,14 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
         layer_node.append_attribute("data") = layer->GetDataSource();
         layer_node.append_attribute("source") = layer->GetSource();
         layer_node.append_attribute("name") = layer->GetName();
+    }
+
+    // EffectSymbols must be written before ElementEffects: LoadSequencerFile
+    // walks document order and resolves linkedSymbol references against the
+    // symbol manager during LoadEffects, so the symbols have to be parsed
+    // first. This ordering is guaranteed here by the writer.
+    if (seq_elements.GetEffectSymbolManager().GetSymbolCount() > 0) {
+        seq_elements.GetEffectSymbolManager().SaveToXml(root);
     }
 
     // DisplayElements and ElementEffects
