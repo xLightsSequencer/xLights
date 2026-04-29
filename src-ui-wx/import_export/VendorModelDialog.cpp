@@ -1972,48 +1972,33 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 {
 	// cant search if tree is empty
-	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem()) == 0)
+	if (TreeCtrl_Navigator->GetChildrenCount(TreeCtrl_Navigator->GetRootItem(), false) == 0)
 	{
 		wxBell();
 		return;
 	}
 
-	// If the user is still searching for the same string, resume from
-	// the last hit so repeated Search clicks step through matches. We
-	// cache this ourselves rather than relying on the tree's
-	// focused-item / selection state, because:
-	//   - On Windows native wxTreeCtrl, GetFocusedItem() returns invalid
-	//     once focus moves to the Search button.
-	//   - GetSelections() after a programmatic SelectItem can behave
-	//     differently across platforms / wxTR_MULTIPLE.
-	// If the search text changed since the last hit, or we don't have a
-	// remembered hit yet, fall through to GetFocusedItem -> selection ->
-	// root's first child.
-	wxString currentText = TextCtrl_Search->GetValue();
-	// Lower-case the needle once outside the loop. The traversal below
-	// can visit hundreds of items per click, and the previous code
-	// re-lowered TextCtrl_Search->GetValue() inside the comparison on
-	// every iteration.
+	// Resume from cached hit when the same query is still active AND
+	// the user hasn't manually picked a different node since.
+	wxString currentText = TextCtrl_Search->GetValue().Trim(true).Trim(false);
 	const wxString needle = currentText.Lower();
-	wxTreeItemId current;
-	if (_lastSearchHit.IsOk() && currentText == _lastSearchText)
-	{
-		current = _lastSearchHit;
-	}
-	if (!current.IsOk())
-	{
-		current = GetFocusedItem();
-	}
-	if (!current.IsOk())
-	{
+
+	wxTreeItemId userPick = GetFocusedItem();
+	if (!userPick.IsOk()) {
 		wxArrayTreeItemIds selections;
-		if (TreeCtrl_Navigator->GetSelections(selections) > 0)
-		{
-			current = selections[0];
+		if (TreeCtrl_Navigator->GetSelections(selections) > 0) {
+			userPick = selections[0];
 		}
 	}
-	if (!current.IsOk())
-	{
+
+	wxTreeItemId current;
+	const bool sameQuery = _lastSearchHit.IsOk() && currentText == _lastSearchText;
+	const bool userMovedSelection = userPick.IsOk() && userPick != _lastSearchHit;
+	if (sameQuery && !userMovedSelection) {
+		current = _lastSearchHit;
+	} else if (userPick.IsOk()) {
+		current = userPick;
+	} else {
 		wxTreeItemIdValue cookie;
 		current = TreeCtrl_Navigator->GetFirstChild(TreeCtrl_Navigator->GetRootItem(), cookie);
 	}
