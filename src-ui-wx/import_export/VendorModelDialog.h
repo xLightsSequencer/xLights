@@ -91,6 +91,7 @@ class VendorModelDialog: public wxDialog
     class wxSearchCtrl* TextCtrl_Filter = nullptr;
     std::vector<wxString> _filterTokens;  // already lower-cased
     wxTimer* _filterDebounceTimer = nullptr;
+    bool _initialBuild = true;
     static constexpr int kCatalogFilterDebounceMs = 200;
     void OnCatalogFilterText(wxCommandEvent& event);
     void OnCatalogFilterCancel(wxCommandEvent& event);

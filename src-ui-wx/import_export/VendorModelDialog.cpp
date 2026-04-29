@@ -1128,9 +1128,13 @@ void VendorModelDialog::RebuildTreeUI()
         }
     }
 
-    if (first.IsOk() && first != root)
+    // Only scroll to first vendor on the initial build, not on every
+    // filter rebuild — otherwise typing in the filter keeps yanking
+    // the user back to the top of the tree.
+    if (_initialBuild && first.IsOk() && first != root)
     {
         TreeCtrl_Navigator->EnsureVisible(first);
+        _initialBuild = false;
     }
 
     // Two passes:
