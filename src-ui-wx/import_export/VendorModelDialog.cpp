@@ -947,6 +947,11 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
         _filterDebounceTimer = new wxTimer(this);
         Bind(wxEVT_TIMER, &VendorModelDialog::OnCatalogFilterDebounce,
              this, _filterDebounceTimer->GetId());
+
+        if (TextCtrl_Search != nullptr) TextCtrl_Search->Hide();
+        if (Button_Search != nullptr) Button_Search->Hide();
+        if (FlexGridSizer9 != nullptr) FlexGridSizer2->Hide(FlexGridSizer9, true);
+
         Panel3->Layout();
     }
 
