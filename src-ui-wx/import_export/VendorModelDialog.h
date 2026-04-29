@@ -80,27 +80,27 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;
 
     // ----- Catalog filter (experimental) -----
-    // Two live-filter inputs that narrow the tree to model nodes whose
-    // ancestor path (vendor / category / sub-category / model name)
-    // contains BOTH filter strings (case-insensitive). Categories and
-    // un-suppressed vendors with no surviving descendants are pruned
-    // bottom-up by PruneEmptyBranches. Lives outside wxSmith so the
-    // .wxs file does not need to know about it.
-    class wxSearchCtrl* TextCtrl_Filter1 = nullptr;
-    class wxSearchCtrl* TextCtrl_Filter2 = nullptr;
-    wxString _filter1;  // already lower-cased
-    wxString _filter2;  // already lower-cased
+    // Single live-filter input that narrows the tree to model nodes
+    // whose ancestor path (vendor / category / sub-category / model
+    // name) contains EVERY whitespace-separated token from the input
+    // (case-insensitive). e.g. "tree EFL" is two AND-narrowed terms,
+    // matching only items whose path contains both 'tree' and 'efl'.
+    // Categories and un-suppressed vendors with no surviving
+    // descendants are pruned bottom-up by PruneEmptyBranches. Lives
+    // outside wxSmith so the .wxs file does not need to know about it.
+    class wxSearchCtrl* TextCtrl_Filter = nullptr;
+    std::vector<wxString> _filterTokens;  // already lower-cased
     wxTimer* _filterDebounceTimer = nullptr;
     static constexpr int kCatalogFilterDebounceMs = 200;
     void OnCatalogFilterText(wxCommandEvent& event);
     void OnCatalogFilterCancel(wxCommandEvent& event);
     void OnCatalogFilterDebounce(wxTimerEvent& event);
-    // Returns true if pathSoFar + leafName satisfies BOTH filter
-    // inputs (case-insensitive substring match). pathSoFar is the
-    // ancestor breadcrumb "vendor / category / subcategory" so users
-    // can filter on hierarchy text — typing "halloween" or "boscoyo"
-    // includes every descendant of the matching node. Empty filters
-    // match anything.
+    // Returns true if pathSoFar + leafName contains every token in the
+    // current filter (case-insensitive substring match). pathSoFar is
+    // the ancestor breadcrumb "vendor / category / subcategory" so the
+    // user can filter on hierarchy text — typing "halloween" includes
+    // every descendant of the matching node. Empty filter matches
+    // anything.
     bool CatalogFilterMatchesPath(const std::string& pathSoFar,
                                   const std::string& leafName) const;
     void RebuildTreeUI();

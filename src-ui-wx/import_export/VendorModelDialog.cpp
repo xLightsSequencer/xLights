@@ -22,6 +22,7 @@
 #include <wx/progdlg.h>
 #include <wx/srchctrl.h>
 #include <wx/timer.h>
+#include <wx/tokenzr.h>
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/dir.h>
 #include <wx/wfstream.h>
@@ -920,40 +921,28 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     Connect(wxEVT_SIZE, (wxObjectEventFunction)&VendorModelDialog::OnResize);
     //*)
 
-    // Experimental catalog filter inputs. Two live-filter boxes that
-    // narrow the tree to models matching BOTH terms. Inserted at the
-    // top of Panel3's sizer so they sit above the tree.
+    // Experimental catalog filter input. Single live-filter box that
+    // tokenizes the typed text on whitespace — each token AND-narrows
+    // the tree (e.g. "tree EFL" only shows items whose ancestor path
+    // contains both "tree" and "efl"). Inserted at the top of Panel3's
+    // sizer so it sits above the tree.
     {
-        auto filterRow = new wxFlexGridSizer(0, 2, 0, 0);
-        filterRow->AddGrowableCol(0);
-        filterRow->AddGrowableCol(1);
-        TextCtrl_Filter1 = new wxSearchCtrl(Panel3, wxID_ANY, wxEmptyString,
-                                            wxDefaultPosition, wxDefaultSize,
-                                            wxTE_PROCESS_ENTER);
-        TextCtrl_Filter1->SetDescriptiveText(_("Filter catalog..."));
-        TextCtrl_Filter1->ShowCancelButton(true);
-        filterRow->Add(TextCtrl_Filter1, 1, wxALL | wxEXPAND, 5);
-        TextCtrl_Filter2 = new wxSearchCtrl(Panel3, wxID_ANY, wxEmptyString,
-                                            wxDefaultPosition, wxDefaultSize,
-                                            wxTE_PROCESS_ENTER);
-        TextCtrl_Filter2->SetDescriptiveText(_("...and also..."));
-        TextCtrl_Filter2->ShowCancelButton(true);
-        filterRow->Add(TextCtrl_Filter2, 1, wxALL | wxEXPAND, 5);
+        TextCtrl_Filter = new wxSearchCtrl(Panel3, wxID_ANY, wxEmptyString,
+                                           wxDefaultPosition, wxDefaultSize,
+                                           wxTE_PROCESS_ENTER);
+        TextCtrl_Filter->SetDescriptiveText(_("Filter catalog (space-separated terms)..."));
+        TextCtrl_Filter->ShowCancelButton(true);
         // Insert at top of Panel3's vertical sizer. Panel3 uses
         // FlexGridSizer2 with row 0 marked growable for the tree;
         // after insertion the indices shift so the tree is at row 1.
         // Move the growable-row marker accordingly so the tree keeps
         // its vertical fill instead of the filter row absorbing it.
-        FlexGridSizer2->Insert(0, filterRow, 0, wxEXPAND, 0);
+        FlexGridSizer2->Insert(0, TextCtrl_Filter, 0, wxALL | wxEXPAND, 5);
         FlexGridSizer2->RemoveGrowableRow(0);
         FlexGridSizer2->AddGrowableRow(1);
-        TextCtrl_Filter1->Bind(wxEVT_TEXT,
+        TextCtrl_Filter->Bind(wxEVT_TEXT,
             &VendorModelDialog::OnCatalogFilterText, this);
-        TextCtrl_Filter1->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
-            &VendorModelDialog::OnCatalogFilterCancel, this);
-        TextCtrl_Filter2->Bind(wxEVT_TEXT,
-            &VendorModelDialog::OnCatalogFilterText, this);
-        TextCtrl_Filter2->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
+        TextCtrl_Filter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
             &VendorModelDialog::OnCatalogFilterCancel, this);
         _filterDebounceTimer = new wxTimer(this);
         Bind(wxEVT_TIMER, &VendorModelDialog::OnCatalogFilterDebounce,
@@ -1165,8 +1154,8 @@ void VendorModelDialog::RebuildTreeUI()
     // When a filter is active the user almost always wants to see every
     // surviving leaf without having to re-expand each vendor on every
     // keystroke. ExpandAll the tree while filtering; leave the original
-    // collapsed-vendor state alone when both filters are clear.
-    if (!_filter1.IsEmpty() || !_filter2.IsEmpty()) {
+    // collapsed-vendor state alone when the filter is clear.
+    if (!_filterTokens.empty()) {
         TreeCtrl_Navigator->ExpandAll();
     }
 
@@ -1229,52 +1218,52 @@ bool VendorModelDialog::PruneEmptyBranches(wxTreeItemId parent)
 bool VendorModelDialog::CatalogFilterMatchesPath(const std::string& pathSoFar,
                                                  const std::string& leafName) const
 {
-    if (_filter1.IsEmpty() && _filter2.IsEmpty()) {
+    if (_filterTokens.empty()) {
         return true;
     }
     // Build a single haystack: "vendor / category / sub / leaf" lower-cased.
-    // Substring match against each filter so any term anywhere in the
-    // path counts.
+    // Every token must be present somewhere in the haystack (AND-narrow).
     wxString haystack = wxString::FromUTF8(pathSoFar);
     if (!haystack.IsEmpty()) {
         haystack += " / ";
     }
     haystack += wxString::FromUTF8(leafName);
     haystack.MakeLower();
-    if (!_filter1.IsEmpty() && haystack.Find(_filter1) == wxNOT_FOUND) {
-        return false;
-    }
-    if (!_filter2.IsEmpty() && haystack.Find(_filter2) == wxNOT_FOUND) {
-        return false;
+    for (const auto& token : _filterTokens) {
+        if (haystack.Find(token) == wxNOT_FOUND) {
+            return false;
+        }
     }
     return true;
 }
 
 void VendorModelDialog::OnCatalogFilterText(wxCommandEvent& /*event*/)
 {
-    // Capture the filter text immediately so cached values stay in sync,
-    // but debounce the expensive RebuildTreeUI rebuild so fast typing
-    // doesn't repeatedly rebuild the entire vendor catalog.
-    if (TextCtrl_Filter1 != nullptr) {
-        _filter1 = TextCtrl_Filter1->GetValue().Lower();
-    }
-    if (TextCtrl_Filter2 != nullptr) {
-        _filter2 = TextCtrl_Filter2->GetValue().Lower();
+    // Capture and tokenize the filter text immediately so cached values
+    // stay in sync, but debounce the expensive RebuildTreeUI rebuild so
+    // fast typing doesn't repeatedly rebuild the entire vendor catalog.
+    _filterTokens.clear();
+    if (TextCtrl_Filter != nullptr) {
+        wxString text = TextCtrl_Filter->GetValue().Lower();
+        wxStringTokenizer tk(text, " \t");
+        while (tk.HasMoreTokens()) {
+            wxString tok = tk.GetNextToken();
+            if (!tok.IsEmpty()) {
+                _filterTokens.push_back(tok);
+            }
+        }
     }
     if (_filterDebounceTimer != nullptr) {
         _filterDebounceTimer->Start(kCatalogFilterDebounceMs, wxTIMER_ONE_SHOT);
     }
 }
 
-void VendorModelDialog::OnCatalogFilterCancel(wxCommandEvent& event)
+void VendorModelDialog::OnCatalogFilterCancel(wxCommandEvent& /*event*/)
 {
-    if (event.GetEventObject() == TextCtrl_Filter1) {
-        TextCtrl_Filter1->ChangeValue(wxEmptyString);
-        _filter1.Clear();
-    } else if (event.GetEventObject() == TextCtrl_Filter2) {
-        TextCtrl_Filter2->ChangeValue(wxEmptyString);
-        _filter2.Clear();
+    if (TextCtrl_Filter != nullptr) {
+        TextCtrl_Filter->ChangeValue(wxEmptyString);
     }
+    _filterTokens.clear();
     if (_filterDebounceTimer != nullptr) {
         _filterDebounceTimer->Stop();
     }
