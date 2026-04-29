@@ -3747,17 +3747,31 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (editing_models) {
                         if (!addToSelection) {
                             UnSelectAllModelsInTree();
-                        } else {
-                            // Keep the already-latched model in the tree
-                            // selection set; mark it as a group member so
-                            // the visual treatment matches a multi-select.
-                            if (selectedBaseObject != nullptr) {
-                                selectedBaseObject->GroupSelected(true);
-                                selectedBaseObject->Selected(false);
-                            }
+                        } else if (selectedBaseObject != nullptr) {
+                            // Demote the previously-latched model to a
+                            // group member, then promote the new hit to
+                            // be the active selection BEFORE adding it
+                            // to the tree. SelectBaseObjectInTree fires
+                            // HandleSelectionChanged, which captures the
+                            // CURRENT selectedBaseObject as
+                            // lastSelectedBaseObject and uses that to
+                            // decide which tree row gets to be primary.
+                            // Without this swap, lastSelectedBaseObject
+                            // would still be the OLD model, so the old
+                            // model would re-win primary and we'd end
+                            // up with selectedBaseObject != hit (the
+                            // SetActiveHandle below would then run on
+                            // the wrong model).
+                            selectedBaseObject->GroupSelected(true);
+                            selectedBaseObject->Selected(false);
+                            selectedBaseObject = hit;
                         }
                         SelectBaseObjectInTree(hit);
                     } else {
+                        // ViewObject path: SelectBaseObject -> SelectViewObject
+                        // sets selectedBaseObject directly, no tree
+                        // selection-changed event roundtrip, so the
+                        // primary-pick race above doesn't apply.
                         if (!addToSelection) {
                             UnSelectAllModels();
                         } else if (selectedBaseObject != nullptr) {
@@ -3768,9 +3782,15 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     }
                     highlightedBaseObject = hit;
                     selectionLatched = true;
-                    if (selectedBaseObject != nullptr) {
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    // Defensive: verify selectedBaseObject actually
+                    // ended up as hit before manipulating handles. If
+                    // some future tree handler picks differently, set
+                    // the handle on hit anyway and don't poke whatever
+                    // ended up in selectedBaseObject.
+                    if (selectedBaseObject != hit) {
+                        selectedBaseObject = hit;
                     }
+                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
                     m_last_mouse_x = event.GetX();
                     m_last_mouse_y = event.GetY();
