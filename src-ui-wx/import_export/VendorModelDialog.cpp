@@ -1472,7 +1472,10 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     // Because this code triggers a web download this function can be re-entered and this is not good
     busy = true;
 
-    wxTreeItemId startid = GetFocusedItem();
+    wxTreeItemId startid = event.GetItem();
+    if (!startid.IsOk()) {
+        startid = GetFocusedItem();
+    }
 
     SetCursor(wxCURSOR_WAIT);
 
