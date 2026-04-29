@@ -1567,7 +1567,11 @@ void VendorModelDialog::ValidateWindow()
     // rather than GetCount() > 0, which is true even with just the hidden
     // root present and no children to search.
     wxTreeItemId rootItem = TreeCtrl_Navigator->GetRootItem();
-    bool hasItems = rootItem.IsOk() && TreeCtrl_Navigator->GetChildrenCount(rootItem) > 0;
+    // Pass recursive=false: we only need to know if the root has any
+    // direct children, not walk the entire tree. ValidateWindow runs on
+    // every search-text keystroke so the O(1) check matters on big
+    // catalogs.
+    bool hasItems = rootItem.IsOk() && TreeCtrl_Navigator->GetChildrenCount(rootItem, false) > 0;
     if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !hasItems)
     {
         Button_Search->Disable();
@@ -1983,6 +1987,11 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 	// remembered hit yet, fall through to GetFocusedItem -> selection ->
 	// root's first child.
 	wxString currentText = TextCtrl_Search->GetValue();
+	// Lower-case the needle once outside the loop. The traversal below
+	// can visit hundreds of items per click, and the previous code
+	// re-lowered TextCtrl_Search->GetValue() inside the comparison on
+	// every iteration.
+	const wxString needle = currentText.Lower();
 	wxTreeItemId current;
 	if (_lastSearchHit.IsOk() && currentText == _lastSearchText)
 	{
@@ -2061,7 +2070,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				}
 			}
 
-			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
+			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(needle))
 			{
 				// Search is for stepping through matches one at a time,
 				// not for building a multi-selection. With wxTR_MULTIPLE
