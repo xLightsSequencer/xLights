@@ -1111,11 +1111,22 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 void VendorModelDialog::RebuildTreeUI()
 {
     if (_treeRebuilding) return;
-    _treeRebuilding = true;
+    struct RebuildScope {
+        bool& flag;
+        wxTreeCtrl* tree;
+        explicit RebuildScope(bool& f, wxTreeCtrl* t) : flag(f), tree(t) {
+            flag = true;
+            tree->Disable();
+            tree->Freeze();
+        }
+        ~RebuildScope() {
+            tree->Thaw();
+            tree->Enable();
+            flag = false;
+        }
+    } guard(_treeRebuilding, TreeCtrl_Navigator);
 
-    TreeCtrl_Navigator->Freeze();
     TreeCtrl_Navigator->UnselectAll();
-
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
     wxTreeItemId first = root;
