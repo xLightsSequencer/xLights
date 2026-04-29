@@ -864,9 +864,14 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     bool group = false;
     // if this is a submodel find the parent so we can find the face definition there
     if (model_info->GetDisplayAs() == DisplayAsType::SubModel) {
-        model_info = dynamic_cast<const SubModel*>(model_info)->GetParent();
+        auto* subModel = dynamic_cast<const SubModel*>(model_info);
+        if (subModel == nullptr) return;
+        model_info = subModel->GetParent();
+        if (model_info == nullptr) return;
     } else if (model_info->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        model_info = dynamic_cast<const ModelGroup*>(model_info)->GetFirstModel();
+        auto* modelGroup = dynamic_cast<const ModelGroup*>(model_info);
+        if (modelGroup == nullptr) return;
+        model_info = modelGroup->GetFirstModel();
         group = true;
         if (model_info == nullptr) {
             return;

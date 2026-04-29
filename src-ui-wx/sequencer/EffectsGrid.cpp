@@ -5880,13 +5880,18 @@ void EffectsGrid::ResizeMoveMultipleEffectsMS(int time, bool offset) {
     int toLeft, toRight;
     GetRangeOfMovementForSelectedEffects(toLeft, toRight);
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
-        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetStartTimeMS();
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
+        deltaTime = time - eff->GetStartTimeMS();
     } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE) {
-        deltaTime = time - mEffectLayer->GetEffect(mResizeEffectIndex)->GetEndTimeMS();
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
+        deltaTime = time - eff->GetEndTimeMS();
     } else if (mResizingMode == EFFECT_RESIZE_MOVE) {
         EFFECT_SCREEN_MODE mode;
         int x1, x2, x3, x4;
-        Effect* eff = mEffectLayer->GetEffect(mResizeEffectIndex);
+        Effect* eff = mEffectLayer ? mEffectLayer->GetEffect(mResizeEffectIndex) : nullptr;
+        if (eff == nullptr) return;
         mTimeline->GetPositionsFromTimeRange(eff->GetStartTimeMS(),
                                              eff->GetEndTimeMS(), mode, x1, x2, x3, x4);
         int midpoint = mTimeline->GetTimeMSfromPosition((x1 + x2) / 2) + mTimeline->GetStartTimeMS();

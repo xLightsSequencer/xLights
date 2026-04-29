@@ -1824,13 +1824,17 @@ void FPPConnectDialog::DisplayDateModified(const wxString& filePath, wxTreeListI
 void FPPConnectDialog::DisplayPixelCount(const wxString& filePath, wxTreeListItem &item) const
 {
     if (FileExists(filePath)) {
-        auto fsf = FSEQFile::openFSEQFile(filePath);
-        wxString channelInfo = "";
-        if (fsf != nullptr) {
-            auto ch = fsf->getChannelCount();
-            channelInfo = wxString::Format("%llu", ch);
-            delete fsf;
+        try {
+            auto fsf = FSEQFile::openFSEQFile(filePath);
+            wxString channelInfo = "";
+            if (fsf != nullptr) {
+                auto ch = fsf->getChannelCount();
+                channelInfo = wxString::Format("%llu", ch);
+                delete fsf;
+            }
+            CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
+        } catch (...) {
+            spdlog::warn("DisplayPixelCount: exception reading FSEQ file: {}", ToUTF8(filePath));
         }
-        CheckListBox_Sequences->SetItemText(item, 3, channelInfo);
     }
 }
