@@ -1301,6 +1301,9 @@ void VendorModelDialog::OnCatalogFilterCancel(wxCommandEvent& /*event*/)
 void VendorModelDialog::OnCatalogFilterDebounce(wxTimerEvent& /*event*/)
 {
     RebuildTreeUI();
+    if (TextCtrl_Filter != nullptr) {
+        TextCtrl_Filter->SetFocus();
+    }
 }
 
 bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
