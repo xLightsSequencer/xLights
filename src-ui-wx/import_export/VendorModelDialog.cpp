@@ -1366,6 +1366,9 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
                 wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
                 TreeCtrl_Navigator->SetItemTextColour(id, it->GetColour());
             }
+            if (!_filterTokens.empty()) {
+                TreeCtrl_Navigator->Expand(tid);
+            }
         }
         else
         {
