@@ -7980,7 +7980,14 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     (int)pos.z == nz &&
                                     std::abs(static_cast<float>(nx) - pos.x) < itHalf)
                                 {
-                                    nx = static_cast<int>(pos.x + itHalf + PASTE_PADDING);
+                                    // Move our centre clear of BOTH halves: past the old
+                                    // model's right edge by approximately one full width
+                                    // (old half + ours, assuming similar size since we
+                                    // already filtered by matching DisplayAs above) plus
+                                    // a padding gap. The previous formula only added
+                                    // half + padding, which left our left half sliding
+                                    // back into the old model's body.
+                                    nx = static_cast<int>(pos.x + itWidth + PASTE_PADDING);
                                     SetXmlNodeAttribute(nd, "WorldPosX",
                                                         fmt::format("{:6.4f}", (float)nx));
                                     moved = true;
