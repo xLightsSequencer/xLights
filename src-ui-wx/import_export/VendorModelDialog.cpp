@@ -1110,9 +1110,8 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 // whenever a filter input changes (debounced).
 void VendorModelDialog::RebuildTreeUI()
 {
-    static bool rebuilding = false;
-    if (rebuilding) return;
-    rebuilding = true;
+    if (_treeRebuilding) return;
+    _treeRebuilding = true;
 
     TreeCtrl_Navigator->Freeze();
     TreeCtrl_Navigator->UnselectAll();
@@ -1160,16 +1159,19 @@ void VendorModelDialog::RebuildTreeUI()
     }
     PruneEmptyBranches(root);
 
-    // When a filter is active the user almost always wants to see every
-    // surviving leaf without having to re-expand each vendor on every
-    // keystroke. ExpandAll the tree while filtering; leave the original
-    // collapsed-vendor state alone when the filter is clear.
     if (!_filterTokens.empty()) {
-        TreeCtrl_Navigator->ExpandAll();
+        wxTreeItemIdValue cookie;
+        for (auto vendor = TreeCtrl_Navigator->GetFirstChild(root, cookie);
+             vendor.IsOk();
+             vendor = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
+            if (TreeCtrl_Navigator->GetChildrenCount(vendor, false) > 0) {
+                TreeCtrl_Navigator->Expand(vendor);
+            }
+        }
     }
 
     TreeCtrl_Navigator->Thaw();
-    rebuilding = false;
+    _treeRebuilding = false;
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
@@ -1667,12 +1669,11 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
     static bool busy = false;
 
-    if (busy)
+    if (busy || _treeRebuilding)
     {
         return;
     }
 
-    // Because this code triggers a web download this function can be re-entered and this is not good
     busy = true;
 
     wxTreeItemId startid = GetFocusedItem();
