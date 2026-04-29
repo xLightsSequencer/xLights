@@ -7904,23 +7904,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 
                 if (nd)
                 {
-                    // Clear any existing selection ONLY after we've confirmed the
-                    // clipboard has valid paste data - otherwise a failed paste
-                    // (empty clipboard, bad XML) would wipe the user's selection
-                    // for nothing. See Copilot review on PR #6192.
-                    //
-                    // UnSelectAllModels() clears the per-Model Selected() flags
-                    // and our own tracking vectors. It does NOT clear the
-                    // wxTreeListCtrl widget's native selection though - on a
-                    // multi-select tree (wxTL_MULTIPLE) the old row lingers and
-                    // the post-reload SelectBaseObject->SelectModelInTree adds
-                    // the new row to it instead of replacing it. Hence we also
-                    // need UnSelectAllModelsInTree() to call
-                    // TreeListViewModels->UnselectAll() so only the new copy
-                    // ends up highlighted.
-                    UnSelectAllModels();
-                    UnSelectAllModelsInTree();
-
                     auto nda = DisplayAsTypeFromString(nd.attribute("DisplayAs").as_string());
                     auto nx = (int)nd.attribute("WorldPosX").as_double();
                     auto ny = (int)nd.attribute("WorldPosY").as_double();
@@ -7962,31 +7945,25 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     {
                         bool moved = true;
                         int loopGuard = 0;
-                        while (moved && loopGuard++ < PASTE_LOOP_MAX)
+                        bool hitCap = false;
+                        while (moved)
                         {
+                            if (loopGuard >= PASTE_LOOP_MAX) { hitCap = true; break; }
+                            ++loopGuard;
                             moved = false;
                             for (const auto& it : xlights->AllModels)
                             {
                                 if (nda != it.second->GetDisplayAs()) continue;
 
                                 auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
-                                float itWidth = std::max(it.second->GetRestorableMWidth(), PASTE_MIN_OFFSET);
+                                float itWidth = it.second->GetRestorableMWidth();
+                                if (itWidth <= 0) itWidth = PASTE_MIN_OFFSET;
                                 float itHalf = itWidth * 0.5f;
 
-                                // Centre-distance overlap along X, exact match along Y/Z.
-                                // The paste is being offset along X only (historical
-                                // behaviour) so Y/Z still use the integer centre match.
                                 if ((int)pos.y == ny &&
                                     (int)pos.z == nz &&
                                     std::abs(static_cast<float>(nx) - pos.x) < itHalf)
                                 {
-                                    // Move our centre clear of BOTH halves: past the old
-                                    // model's right edge by approximately one full width
-                                    // (old half + ours, assuming similar size since we
-                                    // already filtered by matching DisplayAs above) plus
-                                    // a padding gap. The previous formula only added
-                                    // half + padding, which left our left half sliding
-                                    // back into the old model's body.
                                     nx = static_cast<int>(pos.x + itWidth + PASTE_PADDING);
                                     SetXmlNodeAttribute(nd, "WorldPosX",
                                                         fmt::format("{:6.4f}", (float)nx));
@@ -7995,12 +7972,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                 }
                             }
                         }
-                        // Surface the pathological case in the log rather than
-                        // silently pasting a potentially still-overlapping copy.
-                        // PASTE_LOOP_MAX is a very high ceiling (500 collisions
-                        // in a row) so hitting it likely indicates a bug in the
-                        // position math or a genuinely saturated layout.
-                        if (loopGuard >= PASTE_LOOP_MAX) {
+                        if (hitCap) {
                             spdlog::warn("LayoutPanel::DoPaste: collision-avoidance "
                                          "loop hit the {}-iteration safety cap; the "
                                          "pasted copy may still visually overlap an "
@@ -8014,6 +7986,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (!editing_models)//dont paste model in View Object mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
 
@@ -8041,6 +8016,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (editing_models)//dont paste view objects in model editing mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
 						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
