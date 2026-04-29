@@ -1116,12 +1116,10 @@ void VendorModelDialog::RebuildTreeUI()
         wxTreeCtrl* tree;
         explicit RebuildScope(bool& f, wxTreeCtrl* t) : flag(f), tree(t) {
             flag = true;
-            tree->Disable();
             tree->Freeze();
         }
         ~RebuildScope() {
             tree->Thaw();
-            tree->Enable();
             flag = false;
         }
     } guard(_treeRebuilding, TreeCtrl_Navigator);
@@ -1641,6 +1639,7 @@ void VendorModelDialog::OnNotebookPanelsPageChanged(wxNotebookEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 {
+    if (_treeRebuilding) return;
     wxTreeItemId startid = event.GetItem();
 
     SetCursor(wxCURSOR_WAIT);
