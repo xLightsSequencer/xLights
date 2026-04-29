@@ -28,6 +28,7 @@
 
 #include <pugixml.hpp>
 #include <wx/filename.h>
+#include <wx/timer.h>
 #include <list>
 #include <string>
 #include <vector>
@@ -80,10 +81,11 @@ class VendorModelDialog: public wxDialog
 
     // ----- Catalog filter (experimental) -----
     // Two live-filter inputs that narrow the tree to model nodes whose
-    // names contain BOTH filter strings (case-insensitive). Categories
-    // and vendors with no surviving model leaves are pruned by the
-    // existing DeleteEmptyCategories pass. Lives outside wxSmith so
-    // the .wxs file does not need to know about it.
+    // ancestor path (vendor / category / sub-category / model name)
+    // contains BOTH filter strings (case-insensitive). Categories and
+    // un-suppressed vendors with no surviving descendants are pruned
+    // bottom-up by PruneEmptyBranches. Lives outside wxSmith so the
+    // .wxs file does not need to know about it.
     class wxSearchCtrl* TextCtrl_Filter1 = nullptr;
     class wxSearchCtrl* TextCtrl_Filter2 = nullptr;
     wxString _filter1;  // already lower-cased
@@ -93,11 +95,12 @@ class VendorModelDialog: public wxDialog
     void OnCatalogFilterText(wxCommandEvent& event);
     void OnCatalogFilterCancel(wxCommandEvent& event);
     void OnCatalogFilterDebounce(wxTimerEvent& event);
-    bool CatalogFilterMatches(const std::string& name) const;
-    // Same as CatalogFilterMatches but also considers the ancestor path
-    // (vendor / category / subcategory). Lets the user filter on
-    // hierarchy text — typing "halloween" or "boscoyo" includes every
-    // descendant of the matching node.
+    // Returns true if pathSoFar + leafName satisfies BOTH filter
+    // inputs (case-insensitive substring match). pathSoFar is the
+    // ancestor breadcrumb "vendor / category / subcategory" so users
+    // can filter on hierarchy text — typing "halloween" or "boscoyo"
+    // includes every descendant of the matching node. Empty filters
+    // match anything.
     bool CatalogFilterMatchesPath(const std::string& pathSoFar,
                                   const std::string& leafName) const;
     void RebuildTreeUI();

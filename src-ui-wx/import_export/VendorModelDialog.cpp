@@ -1205,15 +1205,25 @@ bool VendorModelDialog::PruneEmptyBranches(wxTreeItemId parent)
     if ((type == "Category" || type == "Vendor") &&
         TreeCtrl_Navigator->GetChildrenCount(parent) == 0)
     {
+        // Suppressed vendors intentionally have no children (we skipped
+        // AddHierachy for them). Pruning them would hide them from the
+        // tree and prevent the user from un-suppressing via the
+        // "Don't download this vendors list of models" checkbox panel,
+        // so leave them in place. Empty Vendor nodes that aren't
+        // suppressed only happen under an active filter (no descendant
+        // matched), and pruning those is the desired behaviour.
+        if (type == "Vendor") {
+            auto* vd = static_cast<MVendorTreeItemData*>(tid);
+            if (vd->GetVendor() != nullptr &&
+                IsVendorSuppressed(vd->GetVendor()->_name))
+            {
+                return false;
+            }
+        }
         TreeCtrl_Navigator->Delete(parent);
         return true;
     }
     return false;
-}
-
-bool VendorModelDialog::CatalogFilterMatches(const std::string& name) const
-{
-    return CatalogFilterMatchesPath("", name);
 }
 
 bool VendorModelDialog::CatalogFilterMatchesPath(const std::string& pathSoFar,
