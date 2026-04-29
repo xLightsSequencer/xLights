@@ -1110,7 +1110,12 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 // whenever a filter input changes (debounced).
 void VendorModelDialog::RebuildTreeUI()
 {
+    static bool rebuilding = false;
+    if (rebuilding) return;
+    rebuilding = true;
+
     TreeCtrl_Navigator->Freeze();
+    TreeCtrl_Navigator->UnselectAll();
 
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
@@ -1164,6 +1169,7 @@ void VendorModelDialog::RebuildTreeUI()
     }
 
     TreeCtrl_Navigator->Thaw();
+    rebuilding = false;
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
