@@ -839,9 +839,13 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
     spdlog::info("Scanning folder for sequences for FPP upload: {}", ToUTF8(dir));
 
     wxDir directory;
-    directory.Open(dir);
+    if (!directory.Open(dir)) {
+        spdlog::warn("LoadSequencesFromFolder: could not open directory: {}", ToUTF8(dir));
+        return;
+    }
 
     wxArrayString files;
+    try {
     GetAllFilesInDir(dir, files, "*.x*");
 
     for (auto &filename : files) {
@@ -955,6 +959,9 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
             }
             fcont = directory.GetNext(&file);
         }
+    }
+    } catch (...) {
+        spdlog::warn("LoadSequencesFromFolder: exception scanning folder: {}", ToUTF8(dir));
     }
 }
 
