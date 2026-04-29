@@ -118,35 +118,35 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs;..\include\microsoft.ml.onnxruntime.directml.1.19.2\runtimes\win-x64\native</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs;..\include\microsoft.ml.onnxruntime.directml.1.19.2\runtimes\win-x64\native</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
+    <IncludePath>..\dependencies\aubio\src;$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)src-core;$(SolutionDir)src-ui-wx;$(SolutionDir)src-core\render;$(SolutionDir)src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
@@ -918,6 +918,32 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\sequencer\MainSequencer.cpp" />
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\StemsPanel.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\StemWaveform.cpp" />
+    <ClCompile Include="..\src-ui-wx\StemOnsetDialog.cpp" />
+    <ClCompile Include="..\src-core\utils\WavWriter.cpp" />
+    <ClCompile Include="..\dependencies\aubio\src\cvec.c" />
+    <ClCompile Include="..\dependencies\aubio\src\fmat.c" />
+    <ClCompile Include="..\dependencies\aubio\src\fvec.c" />
+    <ClCompile Include="..\dependencies\aubio\src\lvec.c" />
+    <ClCompile Include="..\dependencies\aubio\src\mathutils.c" />
+    <ClCompile Include="..\dependencies\aubio\src\musicutils.c" />
+    <ClCompile Include="..\dependencies\aubio\src\vecutils.c" />
+    <ClCompile Include="..\dependencies\aubio\src\onset\onset.c" />
+    <ClCompile Include="..\dependencies\aubio\src\onset\peakpicker.c" />
+    <ClCompile Include="..\dependencies\aubio\src\spectral\awhitening.c" />
+    <ClCompile Include="..\dependencies\aubio\src\spectral\fft.c">
+      <ObjectFileName>$(IntDir)aubio_fft.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\ooura_fft8g.c" />
+    <ClCompile Include="..\dependencies\aubio\src\spectral\phasevoc.c" />
+    <ClCompile Include="..\dependencies\aubio\src\spectral\specdesc.c" />
+    <ClCompile Include="..\dependencies\aubio\src\spectral\statistics.c" />
+    <ClCompile Include="..\dependencies\aubio\src\temporal\biquad.c" />
+    <ClCompile Include="..\dependencies\aubio\src\temporal\filter.c" />
+    <ClCompile Include="..\dependencies\aubio\src\utils\hist.c" />
+    <ClCompile Include="..\dependencies\aubio\src\utils\log.c" />
+    <ClCompile Include="..\dependencies\aubio\src\utils\scale.c" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
@@ -1491,6 +1517,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\sequencer\MainSequencer.h" />
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\StemsPanel.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\StemWaveform.h" />
+    <ClInclude Include="..\src-ui-wx\StemOnsetDialog.h" />
+    <ClInclude Include="..\src-core\utils\WavWriter.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />

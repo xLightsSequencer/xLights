@@ -336,6 +336,7 @@ const wxWindowID xLightsFrame::ID_MENUITEM_SEARCH_EFFECTS = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_VIDEOPREVIEW = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_JUKEBOX = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_FINDDATA = wxNewId();
+const wxWindowID xLightsFrame::ID_MENU_TOGGLE_STEMS_PANEL = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SUPPRESSDOCK_HP = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_SUPPRESSDOCK_MP = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM3 = wxNewId();
@@ -1204,6 +1205,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuItem18->Append(MenuItemJukebox);
     MenuItemFindData = new wxMenuItem(MenuItem18, ID_MNU_FINDDATA, _("Find Effect Data"), wxEmptyString, wxITEM_CHECK);
     MenuItem18->Append(MenuItemFindData);
+    MenuItemStemsPanel = new wxMenuItem(MenuItem18, ID_MENU_TOGGLE_STEMS_PANEL, _("Audio Stems"), wxEmptyString, wxITEM_CHECK);
+    MenuItem18->Append(MenuItemStemsPanel);
     MenuItem18->AppendSeparator();
     MenuItem1 = new wxMenu();
     MenuItem_SD_HP = new wxMenuItem(MenuItem1, ID_MNU_SUPPRESSDOCK_HP, _("House Preview"), wxEmptyString, wxITEM_CHECK);
@@ -1433,6 +1436,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MENUITEM_VIDEOPREVIEW, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemShowHideVideoPreview);
     Connect(ID_MNU_JUKEBOX, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_JukeboxSelected);
     Connect(ID_MNU_FINDDATA, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemFindDataSelected);
+    Connect(ID_MENU_TOGGLE_STEMS_PANEL, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemToggleStemsPanel);
     Connect(ID_MNU_SUPPRESSDOCK_HP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_SuppressDock);
     Connect(ID_MNU_SUPPRESSDOCK_MP, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_SuppressDock);
     Connect(ID_MENUITEM_WINDOWS_PERSPECTIVE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::ShowHidePerspectivesWindow);
@@ -4129,6 +4133,7 @@ void xLightsFrame::UpdateSequenceLength()
         mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
         mainSequencer->PanelTimeLine->RaiseChangeTimeline();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
+        mainSequencer->PanelStems->UpdatePlayMarker();
     }
 }
 
@@ -10252,6 +10257,10 @@ void xLightsFrame::UpdateViewMenu()
                 (*pane).second->Check(m_mgr->GetPane(info[x].name).IsShown());
             }
         }
+    }
+
+    if (mainSequencer != nullptr && mainSequencer->GetStemsPanel() != nullptr) {
+        MenuItemStemsPanel->Check(mainSequencer->GetStemsPanel()->IsUserVisible());
     }
 }
 

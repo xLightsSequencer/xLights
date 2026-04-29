@@ -30,6 +30,9 @@
 #include "xLightsApp.h"
 #include "xLightsMain.h"
 #include "MainSequencer.h"
+#include "StemsPanel.h"
+#include "utils/WavWriter.h"
+#include "utils/ExternalHooks.h"
 #include "sequencer/NoteRangeDialog.h"
 #include "media/OnsetDetector.h"
 #include "media/PitchDetector.h"
@@ -258,7 +261,25 @@ void Waveform::rightClick(wxMouseEvent& event)
             mnuWave.AppendSeparator();
         }
 
-        mnuWave.AppendRadioItem(ID_WAVE_MNU_RAW, "Raw waveform")->Check(_type == AUDIOSAMPLETYPE::RAW);
+        // Effective type: when the active alt track is one of the auto-named
+        // stem tracks (Drums/Bass/Vocals/Other), report it as STEM_* so the
+        // radio group highlights the right entry even though `_type` is RAW.
+        AUDIOSAMPLETYPE effectiveType = _type;
+        if (_type == AUDIOSAMPLETYPE::RAW && _activeAudioTrackIndex > 0) {
+            if (auto* frame = xLightsApp::GetFrame()) {
+                if (auto* sf = frame->CurrentSeqXmlFile) {
+                    int altIdx = _activeAudioTrackIndex - 1;
+                    if (altIdx < sf->GetAltTrackCount()) {
+                        std::string n = sf->GetAltTrackDisplayName(altIdx);
+                        if      (n == "Drums")  effectiveType = AUDIOSAMPLETYPE::STEM_DRUMS;
+                        else if (n == "Bass")   effectiveType = AUDIOSAMPLETYPE::STEM_BASS;
+                        else if (n == "Vocals") effectiveType = AUDIOSAMPLETYPE::STEM_VOCALS;
+                        else if (n == "Other")  effectiveType = AUDIOSAMPLETYPE::STEM_OTHER;
+                    }
+                }
+            }
+        }
+        mnuWave.AppendRadioItem(ID_WAVE_MNU_RAW, "Raw waveform")->Check(effectiveType == AUDIOSAMPLETYPE::RAW);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_BASS, "Bass waveform")->Check(_type == AUDIOSAMPLETYPE::BASS);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_TREBLE, "Treble waveform")->Check(_type == AUDIOSAMPLETYPE::TREBLE);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_ALTO, "Alto waveform")->Check(_type == AUDIOSAMPLETYPE::ALTO);
@@ -274,23 +295,23 @@ void Waveform::rightClick(wxMouseEvent& event)
         // MLMultiArray I/O the model uses isn't available before.
         if (__builtin_available(macOS 12.0, *)) {
             mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_DRUMS, "Stem — Drums")
-                ->Check(_type == AUDIOSAMPLETYPE::STEM_DRUMS);
+                ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_DRUMS);
             mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_BASS, "Stem — Bass")
-                ->Check(_type == AUDIOSAMPLETYPE::STEM_BASS);
+                ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_BASS);
             mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_OTHER, "Stem — Other")
-                ->Check(_type == AUDIOSAMPLETYPE::STEM_OTHER);
+                ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_OTHER);
             mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_VOCALS, "Stem — Vocals (ML)")
-                ->Check(_type == AUDIOSAMPLETYPE::STEM_VOCALS);
+                ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_VOCALS);
         }
 #elif defined(HAVE_OPENVINO) || defined(HAVE_ORT)
         mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_DRUMS, "Stem — Drums")
-            ->Check(_type == AUDIOSAMPLETYPE::STEM_DRUMS);
+            ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_DRUMS);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_BASS, "Stem — Bass")
-            ->Check(_type == AUDIOSAMPLETYPE::STEM_BASS);
+            ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_BASS);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_OTHER, "Stem — Other")
-            ->Check(_type == AUDIOSAMPLETYPE::STEM_OTHER);
+            ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_OTHER);
         mnuWave.AppendRadioItem(ID_WAVE_MNU_STEM_VOCALS, "Stem — Vocals (ML)")
-            ->Check(_type == AUDIOSAMPLETYPE::STEM_VOCALS);
+            ->Check(effectiveType == AUDIOSAMPLETYPE::STEM_VOCALS);
 #endif
 #ifdef __APPLE__
         // Keep the classify entry inside the same radio group so its
@@ -359,6 +380,25 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         RenderCommandEvent rcEvent("", mTimeline->GetSelectedPositionStartMS(), mTimeline->GetSelectedPositionEndMS(), true, false);
         wxPostEvent(mParent, rcEvent);
     } else if (id == ID_WAVE_MNU_RAW) {
+        // If we're currently playing one of the auto-named stem alt tracks
+        // (Drums/Bass/Vocals/Other), "Raw waveform" should mean "raw main
+        // audio" — not "raw drums". Switch back to Main first.
+        if (_activeAudioTrackIndex > 0) {
+            if (auto* frame = xLightsApp::GetFrame()) {
+                if (auto* sf = frame->CurrentSeqXmlFile) {
+                    int altIdx = _activeAudioTrackIndex - 1;
+                    if (altIdx < sf->GetAltTrackCount()) {
+                        std::string n = sf->GetAltTrackDisplayName(altIdx);
+                        if (n == "Drums" || n == "Bass" || n == "Vocals" || n == "Other") {
+                            SetActiveAudioTrack(0);
+                            ForceRedraw();
+                            Refresh();
+                            return;
+                        }
+                    }
+                }
+            }
+        }
         _type = AUDIOSAMPLETYPE::RAW;
     } else if (id == ID_WAVE_MNU_BASS) {
         _type = AUDIOSAMPLETYPE::BASS;
@@ -429,20 +469,51 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         ForceRedraw();
         Refresh();
         return;
-#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT) 
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
     } else if (id == ID_WAVE_MNU_STEM_DRUMS ||
                id == ID_WAVE_MNU_STEM_BASS ||
                id == ID_WAVE_MNU_STEM_OTHER ||
                id == ID_WAVE_MNU_STEM_VOCALS) {
         if (_media == nullptr) return;
-        if (!_media->HasStemData()) {
+        const char* stemName =
+            id == ID_WAVE_MNU_STEM_DRUMS  ? "Drums" :
+            id == ID_WAVE_MNU_STEM_BASS   ? "Bass" :
+            id == ID_WAVE_MNU_STEM_OTHER  ? "Other" :
+                                             "Vocals";
+        // Fast path: if PersistStemsAsAltTracks already produced a matching
+        // alt track on a previous run (or in a previous session — alt_tracks
+        // round-trip through the .xsq XML), just switch to it. Skipping
+        // PrepareStemData here is the whole reason we persist: HTDemucs takes
+        // tens of seconds and we already have the answer on disk.
+        auto findStemAlt = [stemName]() -> int {
+            auto* frame = xLightsApp::GetFrame();
+            if (frame == nullptr || frame->CurrentSeqXmlFile == nullptr) return -1;
+            auto* sf = frame->CurrentSeqXmlFile;
+            for (int i = 0; i < sf->GetAltTrackCount(); i++) {
+                if (sf->GetAltTrackDisplayName(i) == stemName) return i;
+            }
+            return -1;
+        };
+
+        int altIdx = findStemAlt();
+        if (altIdx < 0) {
+            // No persisted stem yet — run HTDemucs (which writes the WAVs and
+            // AddAltTracks them via PersistStemsAsAltTracks) and look again.
             if (!PrepareStemData()) {
-                // User cancelled or error — bail without switching.
                 ForceRedraw();
                 Refresh();
                 return;
             }
+            altIdx = findStemAlt();
         }
+        if (altIdx >= 0) {
+            SetActiveAudioTrack(altIdx + 1);
+            ForceRedraw();
+            Refresh();
+            return;
+        }
+        // Last-resort fallback — persistence failed. Use the in-memory STEM_*
+        // visualization on the main media.
         AUDIOSAMPLETYPE stem =
             id == ID_WAVE_MNU_STEM_DRUMS  ? AUDIOSAMPLETYPE::STEM_DRUMS :
             id == ID_WAVE_MNU_STEM_BASS   ? AUDIOSAMPLETYPE::STEM_BASS :
@@ -451,7 +522,6 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         _type = stem;
         views.clear();
         mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
-        // Fall through to the shared SwitchTo / rebuild path below.
 #endif // __APPLE__ || HAVE_OPENVINO || HAVE_ORT
 #ifdef __APPLE__
     } else if (id == ID_WAVE_MNU_CLASSIFY) {
@@ -517,15 +587,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         EnsureAudioTrackIds();
         for (int i = 0; i < 32; i++) {
             if (id == _audioTrackIdPool[i]) {
-                _activeAudioTrackIndex = i;
-                auto* frame = xLightsApp::GetFrame();
-                if (frame != nullptr && frame->CurrentSeqXmlFile != nullptr) {
-                    wxString err;
-                    AudioManager* newMedia = (i == 0)
-                        ? frame->CurrentSeqXmlFile->GetMedia()
-                        : frame->CurrentSeqXmlFile->GetAltTrackMedia(i - 1);
-                    OpenfileMedia(newMedia, err);
-                }
+                SetActiveAudioTrack(i);
                 return;
             }
         }
@@ -651,6 +713,10 @@ void Waveform::mouseWheelMoved(wxMouseEvent& event)
     }
 }
 
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+static void PersistStemsAsAltTracks(const StemOutput& stems);
+#endif
+
 #if defined(HAVE_OPENVINO) || defined(HAVE_ORT)
 // Non-Apple PrepareStemData:
 //    ONNX Runtime or OpenVINO
@@ -744,9 +810,10 @@ bool Waveform::PrepareStemData()
         stems.bassL,  stems.bassR,
         stems.otherL, stems.otherR,
         stems.vocalsL, stems.vocalsR);
+    PersistStemsAsAltTracks(stems);
     return true;
 }
-#endif // HAVE_OPENVINO  || HAVE_ORT 
+#endif // HAVE_OPENVINO  || HAVE_ORT
 
 #ifdef __APPLE__
 // A8 first-run helper: make sure the HTDemucs model is present
@@ -957,9 +1024,119 @@ bool Waveform::PrepareStemData()
         stems.bassL,  stems.bassR,
         stems.otherL, stems.otherR,
         stems.vocalsL, stems.vocalsR);
+    PersistStemsAsAltTracks(stems);
     return true;
 }
 #endif
+
+#if defined(__APPLE__) || defined(HAVE_OPENVINO) || defined(HAVE_ORT)
+// Persist the four HTDemucs output buffers as wav files in
+// <showdir>/audio-stems/<sequence-name>/, register each via SequenceFile::
+// AddAltTrack, and refresh the stems panel. Stems whose shortname is already
+// an alt track are skipped — re-running stem separation on the same sequence
+// just refreshes the buffers in-memory, it doesn't pile up duplicates.
+static void PersistStemsAsAltTracks(const StemOutput& stems)
+{
+    if (stems.sampleRate <= 0) return;
+    auto* frame = xLightsApp::GetFrame();
+    if (frame == nullptr || frame->CurrentSeqXmlFile == nullptr) return;
+    SequenceFile* sf = frame->CurrentSeqXmlFile;
+
+    std::string showDir = frame->GetShowDirectory();
+    if (showDir.empty()) return;
+
+    std::string seqName = sf->GetName();
+    if (seqName.empty()) seqName = "sequence";
+
+    std::filesystem::path dir = std::filesystem::path(showDir) / "audio-stems" / seqName;
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    if (ec) {
+        spdlog::warn("PersistStemsAsAltTracks: couldn't create {}: {}",
+                     dir.string(), ec.message());
+        return;
+    }
+    ObtainAccessToURL(dir.string(), true);
+
+    struct OneStem {
+        const char* name;
+        const std::vector<float>* L;
+        const std::vector<float>* R;
+    };
+    const OneStem all[] = {
+        { "Drums",  &stems.drumsL,  &stems.drumsR  },
+        { "Bass",   &stems.bassL,   &stems.bassR   },
+        { "Vocals", &stems.vocalsL, &stems.vocalsR },
+        { "Other",  &stems.otherL,  &stems.otherR  },
+    };
+
+    auto altTrackHasName = [sf](const std::string& name) {
+        for (int i = 0; i < sf->GetAltTrackCount(); i++) {
+            if (sf->GetAltTrackDisplayName(i) == name) return true;
+        }
+        return false;
+    };
+
+    for (const OneStem& s : all) {
+        if (s.L->empty() || s.L->size() != s.R->size()) continue;
+        if (altTrackHasName(s.name)) continue;
+
+        std::filesystem::path wavPath = dir / (std::string(s.name) + ".wav");
+        if (!xlights::wav::WriteStereoFloatWav(wavPath.string(), *s.L, *s.R,
+                                               static_cast<uint32_t>(stems.sampleRate))) {
+            spdlog::error("PersistStemsAsAltTracks: failed to write {}", wavPath.string());
+            continue;
+        }
+        sf->AddAltTrack(showDir, wavPath.string(), s.name);
+    }
+
+    if (auto* ms = frame->GetMainSequencer()) {
+        if (auto* sp = ms->GetStemsPanel()) sp->RefreshFromAltTracks();
+    }
+}
+#endif
+
+bool Waveform::SetActiveAudioTrack(int idx)
+{
+    auto* frame = xLightsApp::GetFrame();
+    if (frame == nullptr || frame->CurrentSeqXmlFile == nullptr) return false;
+    if (idx < 0) return false;
+    if (idx > 0 && idx - 1 >= frame->CurrentSeqXmlFile->GetAltTrackCount()) return false;
+
+    // Capture the old audio's playback state before we swap. If the user is
+    // mid-playback we want to keep going on the new track from the same
+    // position rather than forcing a stop+replay.
+    AudioManager* oldMedia = _media;
+    bool wasPlaying = (oldMedia != nullptr && oldMedia->IsPlaying());
+    long playPosMS = (oldMedia != nullptr) ? oldMedia->Tell() : -1;
+    if (oldMedia != nullptr) oldMedia->Pause();
+
+    _activeAudioTrackIndex = idx;
+    AudioManager* newMedia = (idx == 0)
+        ? frame->CurrentSeqXmlFile->GetMedia()
+        : frame->CurrentSeqXmlFile->GetAltTrackMedia(idx - 1);
+    wxString err;
+    OpenfileMedia(newMedia, err);
+    // Force the waveform to repaint with the new media. Without this, the
+    // canvas stays stale until the next external trigger (e.g. play button).
+    ForceRedraw();
+    Refresh();
+    // Let the stems panel repaint its solo indicators.
+    if (auto* ms = frame->GetMainSequencer()) {
+        if (auto* sp = ms->GetStemsPanel()) {
+            if (auto* hdr = sp->GetStemHeadersPanel()) hdr->Refresh();
+        }
+    }
+
+    // Resume on the new track at the same position so a live solo toggle
+    // doesn't drop the user out of the song. Skip the seek/play if there
+    // was no prior position (initial load) or the new track failed to open.
+    if (newMedia != nullptr && wasPlaying && playPosMS >= 0) {
+        newMedia->Seek(playPosMS);
+        newMedia->Play();
+    }
+    return true;
+}
 
 // Open Media file and return elapsed time in milliseconds
 int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
@@ -971,12 +1148,13 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     views.clear();
     ResetAnalysisState();
 	if (_media != nullptr) {
-        _media->SwitchTo(_type);
-		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
-		mCurrentWaveView = 0;
+        // Defer SwitchTo and view creation to first render — avoids blocking
+        // on audio data load (which runs on a background thread).
+        _pendingMediaInit = true;
+		mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
 		return media->LengthMS();
     } else {
+        _pendingMediaInit = false;
         mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
         SetZoomLevel(GetZoomLevel());
 	    return 0;
@@ -1005,13 +1183,73 @@ void Waveform::render()
         SetZoomLevel(mZoomLevel);
     }
 
+    // Deferred waveform init — complete once audio data has finished loading
+    if (_pendingMediaInit && _media != nullptr) {
+        if (_media->IsDataLoaded()) {
+            _media->SwitchTo(_type);
+            float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+            views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
+            mCurrentWaveView = 0;
+            _pendingMediaInit = false;
+            _shimmerPhase = 0.0f;
+        }
+    }
+
     xlGraphicsContext *ctx = PrepareContextForDrawing();
     if (ctx == nullptr) {
         return;
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if (mCurrentWaveView >= 0) {
+    if (_pendingMediaInit) {
+        // Draw loading shimmer while audio is being decoded
+        float w = (float)mWindowWidth;
+        float h = (float)mWindowHeight;
+
+        // Shimmer band sweeps left to right
+        float bandWidth = w * 0.25f;
+        float bandCenter = _shimmerPhase * (w + bandWidth) - bandWidth * 0.5f;
+
+        xlColor bgColor(30, 30, 35);
+        xlColor shimmerColor(55, 55, 65);
+
+        auto* vca = ctx->createVertexColorAccumulator();
+        vca->PreAlloc(12);
+
+        // Left section (bg)
+        float leftEdge = std::max(0.0f, bandCenter - bandWidth * 0.5f);
+        if (leftEdge > 0) {
+            vca->AddVertex(0, 0, bgColor); vca->AddVertex(leftEdge, 0, bgColor); vca->AddVertex(0, h, bgColor);
+            vca->AddVertex(leftEdge, 0, bgColor); vca->AddVertex(leftEdge, h, bgColor); vca->AddVertex(0, h, bgColor);
+        }
+
+        // Shimmer band (gradient: bg → shimmer → bg)
+        float sl = std::max(0.0f, bandCenter - bandWidth * 0.5f);
+        float sm = std::min(w, std::max(0.0f, bandCenter));
+        float sr = std::min(w, bandCenter + bandWidth * 0.5f);
+
+        // Left fade-in
+        vca->AddVertex(sl, 0, bgColor); vca->AddVertex(sm, 0, shimmerColor); vca->AddVertex(sl, h, bgColor);
+        vca->AddVertex(sm, 0, shimmerColor); vca->AddVertex(sm, h, shimmerColor); vca->AddVertex(sl, h, bgColor);
+        // Right fade-out
+        vca->AddVertex(sm, 0, shimmerColor); vca->AddVertex(sr, 0, bgColor); vca->AddVertex(sm, h, shimmerColor);
+        vca->AddVertex(sr, 0, bgColor); vca->AddVertex(sr, h, bgColor); vca->AddVertex(sm, h, shimmerColor);
+
+        // Right section (bg)
+        float rightEdge = std::min(w, bandCenter + bandWidth * 0.5f);
+        if (rightEdge < w) {
+            vca->AddVertex(rightEdge, 0, bgColor); vca->AddVertex(w, 0, bgColor); vca->AddVertex(rightEdge, h, bgColor);
+            vca->AddVertex(w, 0, bgColor); vca->AddVertex(w, h, bgColor); vca->AddVertex(rightEdge, h, bgColor);
+        }
+
+        vca->Finalize(false, false);
+        ctx->drawTriangles(vca);
+        delete vca;
+
+        _shimmerPhase += 0.02f;
+        if (_shimmerPhase > 1.0f) _shimmerPhase = 0.0f;
+        CallAfter([this]() { Refresh(); });
+    } else if (mCurrentWaveView >= 0) {
 		DrawWaveView(ctx, views[mCurrentWaveView]);
 	}
 
@@ -1384,6 +1622,9 @@ void Waveform::SetZoomLevel(int level)
     mZoomLevel = level;
 
     if (!mIsInitialized) return;
+
+    // Don't create views while media init is deferred — will be done on first render
+    if (_pendingMediaInit) return;
 
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     for (size_t i = 0; i < views.size(); i++) {

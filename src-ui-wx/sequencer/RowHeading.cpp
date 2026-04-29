@@ -311,6 +311,11 @@ void RowHeading::SetWidth(int w)
     if (w < _minRowHeadingWidth) w = _minRowHeadingWidth;
     if (minSize.GetWidth() != w) {
         SetMinSize(wxSize(w, -1));
+        // Propagate width to stems header panel
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+        if (ms && ms->GetStemsPanel()) {
+            ms->GetStemsPanel()->SetHeaderWidth(w);
+        }
         GetParent()->Layout();
     }
 }

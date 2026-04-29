@@ -1217,6 +1217,8 @@ bool xLightsFrame::CloseSequence()
     if (mainSequencer != nullptr) {
         if (mainSequencer->PanelWaveForm != nullptr)
             mainSequencer->PanelWaveForm->CloseMedia();
+        if (mainSequencer->GetStemsPanel() != nullptr)
+            mainSequencer->GetStemsPanel()->ClearRowsUiOnly();
         if (mainSequencer->ViewChoice != nullptr) {
             mainSequencer->ViewChoice->Clear();
             mainSequencer->ViewChoice->Show();

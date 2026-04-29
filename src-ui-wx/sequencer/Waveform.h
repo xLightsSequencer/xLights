@@ -80,6 +80,11 @@ class Waveform : public GRAPHICS_BASE_CLASS
 #endif
 
         int GetActiveAudioTrackIndex() const { return _activeAudioTrackIndex; }
+        // Switch playback to a track: 0 = main, 1..N = alt track index + 1.
+        // Returns true when the index is valid and the switch is initiated;
+        // the actual media open is async (see deferred-init path in render()),
+        // so true does not guarantee the new track has finished loading.
+        bool SetActiveAudioTrack(int idx);
 
         Waveform(wxPanel* parent, wxWindowID id, const wxPoint &pos=wxDefaultPosition,
                 const wxSize &size=wxDefaultSize,long style=0, const wxString &name=wxPanelNameStr);
@@ -117,6 +122,8 @@ class Waveform : public GRAPHICS_BASE_CLASS
         bool m_dragging;
         DRAG_MODE m_drag_mode;
 		AudioManager* _media;
+        bool _pendingMediaInit = false;
+        float _shimmerPhase = 0.0f;
         AUDIOSAMPLETYPE _type = AUDIOSAMPLETYPE::RAW;
         int _lowNote = -1;
         int _highNote = -1;

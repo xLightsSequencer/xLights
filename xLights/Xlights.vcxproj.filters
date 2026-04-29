@@ -694,6 +694,78 @@
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\StemsPanel.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\sequencer\StemWaveform.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\StemOnsetDialog.cpp">
+      <Filter>sequencer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\utils\WavWriter.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\cvec.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\fmat.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\fvec.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\lvec.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\mathutils.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\musicutils.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\vecutils.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\onset\onset.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\onset\peakpicker.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\awhitening.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\fft.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\ooura_fft8g.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\phasevoc.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\specdesc.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\spectral\statistics.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\temporal\biquad.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\temporal\filter.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\utils\hist.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\utils\log.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dependencies\aubio\src\utils\scale.c">
+      <Filter>aubio</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -2038,6 +2110,18 @@
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h">
       <Filter>sequencer</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-ui-wx\sequencer\StemsPanel.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\sequencer\StemWaveform.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\StemOnsetDialog.h">
+      <Filter>sequencer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\WavWriter.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceElements.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -2830,6 +2914,9 @@
     </Filter>
     <Filter Include="utils">
       <UniqueIdentifier>{c1416434-1c5e-4d35-9335-0e5286dca853}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="aubio">
+      <UniqueIdentifier>{7a8b6c5d-4e3f-2a1b-9c8d-7e6f5a4b3c2d}</UniqueIdentifier>
     </Filter>
     <Filter Include="graphics\opengl\GL">
       <UniqueIdentifier>{6ee588bc-dc96-462e-b373-e36fbb8a27e0}</UniqueIdentifier>

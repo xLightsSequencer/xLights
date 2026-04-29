@@ -18,6 +18,7 @@
 #include "RowHeading.h"
 #include "EffectsGrid.h"
 #include "Waveform.h"
+#include "StemsPanel.h"
 #include "app-shell/KeyBindings.h"
 
 #if __has_include("osxUtils/TouchBars.h")
@@ -91,6 +92,8 @@ class MainSequencer: public wxPanel
         void SetShowAlternateTimingMark(bool b);
         int GetActiveAudioTrackIndex() const { return PanelWaveForm ? PanelWaveForm->GetActiveAudioTrackIndex() : 0; }
 
+        StemsPanel* GetStemsPanel() { return PanelStems; }
+
         void TouchButtonEvent(wxCommandEvent &event);
         void ToggleHousePreview();
         void ToggleModelPreview();
@@ -101,6 +104,7 @@ class MainSequencer: public wxPanel
     RowHeading* PanelRowHeadings;
     TimeLine* PanelTimeLine;
     Waveform* PanelWaveForm;
+    StemsPanel* PanelStems;
     wxCheckBox* CheckBox_SuspendRender;
     wxChoice* ViewChoice;
     wxStaticText* ViewLabel;
@@ -159,6 +163,7 @@ class MainSequencer: public wxPanel
         void RestorePosition();
 
         wxWindow *mParent;
+        wxFlexGridSizer* _mainSizer = nullptr;
         SequenceElements* mSequenceElements;
         wxSearchCtrl* _seqFilterCtrl = nullptr;
 

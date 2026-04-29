@@ -534,6 +534,7 @@ public:
     void OnNotebook1PageChanged1(wxAuiNotebookEvent& event);
     void ShowHideModelPreview(wxCommandEvent& event);
     void ShowHideHousePreview(wxCommandEvent& event);
+    void OnMenuItemToggleStemsPanel(wxCommandEvent& event);
     void OnAuiToolBarItemPlayButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemPauseButtonClick(wxCommandEvent& event);
     void OnAuiToolBarItemStopClick(wxCommandEvent& event);
@@ -860,6 +861,7 @@ public:
     static const wxWindowID ID_MENUITEM_VIDEOPREVIEW;
     static const wxWindowID ID_MNU_JUKEBOX;
     static const wxWindowID ID_MNU_FINDDATA;
+    static const wxWindowID ID_MENU_TOGGLE_STEMS_PANEL;
     static const wxWindowID ID_MNU_SUPPRESSDOCK_HP;
     static const wxWindowID ID_MNU_SUPPRESSDOCK_MP;
     static const wxWindowID ID_MENUITEM3;
@@ -1008,6 +1010,7 @@ public:
     wxMenuItem* MenuItemUserDict;
     wxMenuItem* MenuItemValueCurves;
     wxMenuItem* MenuItemVideoPreview;
+    wxMenuItem* MenuItemStemsPanel;
     wxMenuItem* MenuItemViewSaveAsPerspective;
     wxMenuItem* MenuItemViewSavePerspective;
     wxMenuItem* MenuItem_ACLIghts;
