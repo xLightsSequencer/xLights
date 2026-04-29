@@ -1302,7 +1302,13 @@ void VendorModelDialog::OnCatalogFilterDebounce(wxTimerEvent& /*event*/)
 {
     RebuildTreeUI();
     if (TextCtrl_Filter != nullptr) {
+        // Windows native wxSearchCtrl::SetFocus() selects all text, so the
+        // next keystroke would replace what the user already typed. Restore
+        // focus then move the caret to the end with no selection.
         TextCtrl_Filter->SetFocus();
+        long pos = TextCtrl_Filter->GetLastPosition();
+        TextCtrl_Filter->SetSelection(pos, pos);
+        TextCtrl_Filter->SetInsertionPointEnd();
     }
 }
 
