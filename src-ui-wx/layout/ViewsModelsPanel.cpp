@@ -945,14 +945,19 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
 
     MarkViewsChanged();
 
+    // Stop any pending debounce regardless of whether the filter
+    // currently looks empty. The user could have typed into the box,
+    // backspaced to empty, then immediately added items — that leaves
+    // a pending one-shot timer that would fire after our PopulateModels
+    // call below and re-rebuild the list, clobbering the selection /
+    // highlight we're about to set. Always stop first.
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+    }
     // Clear the Available filter so the user sees the full list again
     // after moving items to the right (filter served its purpose, reset
-    // state). Also stop any pending debounce so the upcoming
-    // PopulateModels call doesn't get re-run a moment later.
+    // state).
     if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.IsEmpty()) {
-        if (_filterDebounceTimer != nullptr) {
-            _filterDebounceTimer->Stop();
-        }
         TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
         _nonModelFilter.Clear();
     }
