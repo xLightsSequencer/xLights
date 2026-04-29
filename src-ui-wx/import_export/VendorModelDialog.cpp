@@ -1302,13 +1302,18 @@ void VendorModelDialog::OnCatalogFilterDebounce(wxTimerEvent& /*event*/)
 {
     RebuildTreeUI();
     if (TextCtrl_Filter != nullptr) {
-        // Windows native wxSearchCtrl::SetFocus() selects all text, so the
-        // next keystroke would replace what the user already typed. Restore
-        // focus then move the caret to the end with no selection.
-        TextCtrl_Filter->SetFocus();
-        long pos = TextCtrl_Filter->GetLastPosition();
-        TextCtrl_Filter->SetSelection(pos, pos);
-        TextCtrl_Filter->SetInsertionPointEnd();
+        // Windows fires WM_SETFOCUS asynchronously and selects all text in
+        // the underlying edit control AFTER SetFocus() returns, so we must
+        // defer the caret-to-end fix via CallAfter — otherwise our
+        // SetSelection runs first and Windows immediately overwrites it,
+        // causing the next keystroke to replace what the user already typed.
+        wxSearchCtrl* ctrl = TextCtrl_Filter;
+        ctrl->SetFocus();
+        CallAfter([ctrl]() {
+            long pos = ctrl->GetLastPosition();
+            ctrl->SetSelection(pos, pos);
+            ctrl->SetInsertionPointEnd();
+        });
     }
 }
 
