@@ -1199,13 +1199,20 @@ void VendorModelDialog::RebuildTreeUI()
     PruneEmptyBranches(root);
     spdlog::info("VMD::RTUI step 9: PruneEmptyBranches done");
 
-    // Per-vendor Expand under filter caused a permanent UI hang on
-    // Windows native wxTreeCtrl: each vendor has many already-expanded
-    // categories so the visible-item count explodes the moment the
-    // vendor opens, and the Win32 TreeView_Expand call never returns
-    // (confirmed via per-step spdlog tracing — log stopped at
-    // "expand[0] children=8"). Leave matched vendors collapsed; users
-    // click to drill in, same as the unfiltered tree.
+    // Under filter, categories were left collapsed by AddHierachy so
+    // expanding the vendor here only reveals first-level categories,
+    // not every grandchild. Without that adjustment the visible-item
+    // count exploded and Win32 TreeView_Expand hung.
+    if (!_filterTokens.empty()) {
+        wxTreeItemIdValue cookie;
+        for (auto vendor = TreeCtrl_Navigator->GetFirstChild(root, cookie);
+             vendor.IsOk();
+             vendor = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
+            if (TreeCtrl_Navigator->GetChildrenCount(vendor, false) > 0) {
+                TreeCtrl_Navigator->Expand(vendor);
+            }
+        }
+    }
 
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
     spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
@@ -1373,19 +1380,20 @@ bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
 
 void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories, const std::string& pathSoFar)
 {
-    int cIdx = 0;
     for (const auto& it : categories)
     {
-        spdlog::info("VMD::AddHierachy '{}' cat[{}]='{}'", pathSoFar, cIdx, it->_name);
         wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, it->_name, -1, -1, new MCategoryTreeItemData(it));
         std::string nextPath = pathSoFar.empty()
             ? it->_name
             : pathSoFar + " / " + it->_name;
         AddHierachy(tid, vendor, it->_categories, nextPath);
         AddModels(tid, vendor, it->_id, nextPath);
-        spdlog::info("VMD::AddHierachy '{}' cat[{}]='{}' Expand", pathSoFar, cIdx, it->_name);
-        TreeCtrl_Navigator->Expand(tid);
-        cIdx++;
+        // Under an active filter, leave categories collapsed so the
+        // vendor Expand below doesn't trigger a Win32 TreeView hang
+        // from the resulting visible-item explosion.
+        if (_filterTokens.empty()) {
+            TreeCtrl_Navigator->Expand(tid);
+        }
     }
 }
 
