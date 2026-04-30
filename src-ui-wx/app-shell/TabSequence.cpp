@@ -1964,6 +1964,10 @@ void xLightsFrame::ColourChanged(wxCommandEvent& event)
 // Song Structure Region Export
 // ============================================================================
 
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+
 namespace {
 
 using StringIntMap_local = std::unordered_map<std::string, int>;
@@ -2146,7 +2150,7 @@ std::string xLightsFrame::DoExportSongRegion(int startMS, int endMS, const std::
     AddXmlChild(head, "artist", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
     AddXmlChild(head, "album", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
     AddXmlChild(head, "MusicURL", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::URL));
-    AddXmlChild(head, "comment", wxString::Format("Exported from song region: %s", regionLabel));
+    AddXmlChild(head, "comment", wxString::Format("Exported from song region: %s", wxString::FromUTF8(regionLabel)));
     AddXmlChild(head, "sequenceTiming", CurrentSeqXmlFile->GetSequenceTiming());
     AddXmlChild(head, "sequenceType", CurrentSeqXmlFile->GetSequenceType());
 
@@ -2338,7 +2342,7 @@ void xLightsFrame::ExportSongRegion(int startMS, int endMS, const std::string& r
     if (!err.empty()) {
         DisplayError(err, this);
     } else {
-        SetStatusText(wxString::Format("Exported song region '%s' to %s", regionLabel.c_str(), outputPath));
+        SetStatusText(wxString::Format("Exported song region '%s' to %s", wxString::FromUTF8(regionLabel), outputPath));
     }
 }
 
@@ -2397,7 +2401,7 @@ void xLightsFrame::ExportAllSongRegions() {
 
         wxString outputPath = outputDir + wxFileName::GetPathSeparator() + safeName + ".xsq";
 
-        progress.Update(exported, wxString::Format("Exporting: %s", region.name));
+        progress.Update(exported, wxString::Format("Exporting: %s", wxString::FromUTF8(region.name)));
         if (progress.WasCancelled()) {
             break;
         }

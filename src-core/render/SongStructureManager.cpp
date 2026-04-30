@@ -108,6 +108,10 @@ void SongStructureManager::AddBoundary(int timeMS, int sequenceEndMS)
     auto& nextId = ActiveNextId();
 
     if (regions.empty()) {
+        // Reject boundaries that would create a zero/negative-length region
+        if (timeMS <= 0 || timeMS >= sequenceEndMS) {
+            return;
+        }
         SongStructureRegion r1(nextId++, 0, timeMS, "Region 1", GetPaletteColor(0));
         SongStructureRegion r2(nextId++, timeMS, sequenceEndMS, "Region 2", GetPaletteColor(1));
         regions.push_back(r1);

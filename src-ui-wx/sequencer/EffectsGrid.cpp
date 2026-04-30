@@ -7779,6 +7779,10 @@ void EffectsGrid::FillRegionFromTimingMarks() {
         }
     }
 
+    if (effectsCreated == 0) {
+        mSequenceElements->get_undo_mgr().CancelLastStep();
+    }
+
     spdlog::debug("FillRegionFromTimingMarks: Created {} effects in region '{}'",
         effectsCreated, region->name);
 

@@ -254,7 +254,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
 
         // Compute boundary hit tolerance in MS
         int toleranceMS = 0;
-        if (mEndTimeMS > mStartTimeMS) {
+        if (mEndTimeMS > mStartTimeMS && GetSize().x > 0) {
             float msPerPixel = (float)(mEndTimeMS - mStartTimeMS) / (float)GetSize().x;
             toleranceMS = (int)(6.0f * msPerPixel);
         }
@@ -267,7 +267,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
 
         int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
         if (regionIdx >= 0) {
-            wxString editLabel = wxString::Format("Edit Region \"%s\"...", ssm.GetRegion(regionIdx).name);
+            wxString editLabel = wxString::Format("Edit Region \"%s\"...", wxString::FromUTF8(ssm.GetRegion(regionIdx).name));
             mnuLayer.Append(ID_SONG_EDIT_REGION, editLabel);
             mnuLayer.Connect(ID_SONG_EDIT_REGION, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
 
@@ -280,7 +280,7 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
                     int mins = target.startTimeMS / 60000;
                     int secs = (target.startTimeMS % 60000) / 1000;
                     wxString timeStr = mins > 0 ? wxString::Format("%d:%02d", mins, secs) : wxString::Format("0:%02d", secs);
-                    wxString label = wxString::Format("%s (%s)", target.name, timeStr);
+                    wxString label = wxString::Format("%s (%s)", wxString::FromUTF8(target.name), timeStr);
                     copySubmenu->Append(ID_SONG_COPY_EFFECTS_BASE + (int)i, label);
                 }
                 mnuLayer.AppendSubMenu(copySubmenu, "Copy Effects to Region");
@@ -1718,7 +1718,7 @@ void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
             RaiseSequenceChange();
         }
     } else if (id == ID_SONG_VIEW_DELETE) {
-        if (wxMessageBox(wxString::Format("Delete view \"%s\"?", ssm.GetActiveViewName()),
+        if (wxMessageBox(wxString::Format("Delete view \"%s\"?", wxString::FromUTF8(ssm.GetActiveViewName())),
                           "Delete Song Structure View", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
             ssm.DeleteView(ssm.GetActiveViewIndex());
             RaiseSequenceChange();
