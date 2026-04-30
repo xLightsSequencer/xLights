@@ -1184,8 +1184,7 @@ void VendorModelDialog::RebuildTreeUI()
         }
     }
 
-    TreeCtrl_Navigator->Thaw();
-    _treeRebuilding = false;
+    // RebuildScope's destructor handles Thaw() and resets _treeRebuilding.
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
