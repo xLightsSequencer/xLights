@@ -827,7 +827,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     TextCtrl_Search->SetDescriptiveText("Search models...");
     TextCtrl_Search->ShowCancelButton(true);
     FlexGridSizer9->Add(TextCtrl_Search, 1, wxALL|wxEXPAND, 5);
-    Button_Search = new wxButton(Panel3, ID_BUTTON4, _("Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
+    Button_Search = new wxButton(Panel3, ID_BUTTON4, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
     FlexGridSizer9->Add(Button_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
@@ -1472,7 +1472,6 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     // User manually selected a different item — clear the search bold/cursor.
     if (_lastSearchItem.IsOk() && startid != _lastSearchItem) {
         TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
-        TreeCtrl_Navigator->SetItemBackgroundColour(_lastSearchItem, wxNullColour);
         _lastSearchItem = wxTreeItemId();
     }
     UpdatePanelForItem(startid);
@@ -1941,7 +1940,6 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 {
 	if (_lastSearchItem.IsOk()) {
 		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
-		TreeCtrl_Navigator->SetItemBackgroundColour(_lastSearchItem, wxNullColour);
 	}
 	_lastSearchItem = wxTreeItemId();
 	ValidateWindow();
@@ -1951,7 +1949,6 @@ void VendorModelDialog::OnSearchCancelClick(wxCommandEvent& event)
 {
 	if (_lastSearchItem.IsOk()) {
 		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
-		TreeCtrl_Navigator->SetItemBackgroundColour(_lastSearchItem, wxNullColour);
 	}
 	_lastSearchItem = wxTreeItemId();
 	TextCtrl_Search->SetValue("");
@@ -2037,17 +2034,34 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 
 			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
 			{
-				// Bold the found item for visual feedback without touching the
-				// selection — SelectItem on wxTR_MULTIPLE clears all other selections
-				// on Windows, which would wipe out the user's Ctrl+click choices.
+				// Snapshot the user's manual (Ctrl+click) selections.
+				// Capture the prior search item BEFORE _lastSearchItem
+				// is overwritten so we can filter it out of the re-add
+				// loop — otherwise successive Search presses pile every
+				// prior find onto the selection.
+				wxArrayTreeItemIds priorSels;
+				TreeCtrl_Navigator->GetSelections(priorSels);
+				wxTreeItemId oldSearchItem = _lastSearchItem;
 				if (_lastSearchItem.IsOk()) {
 					TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
-					TreeCtrl_Navigator->SetItemBackgroundColour(_lastSearchItem, wxNullColour);
+					TreeCtrl_Navigator->UnselectItem(_lastSearchItem);
 				}
 				_lastSearchItem = current;
 				TreeCtrl_Navigator->SetItemBold(current, true);
-				TreeCtrl_Navigator->SetItemBackgroundColour(current, wxColour(255, 235, 130));
 				TreeCtrl_Navigator->EnsureVisible(current);
+				// On Windows native wxTR_MULTIPLE, SelectItem replaces
+				// the entire selection — re-add the user's Ctrl+click
+				// items so they survive the search.
+				TreeCtrl_Navigator->SelectItem(current, true);
+				for (size_t i = 0; i < priorSels.GetCount(); ++i) {
+					if (priorSels[i] != current && priorSels[i] != oldSearchItem) {
+						TreeCtrl_Navigator->SelectItem(priorSels[i], true);
+					}
+				}
+				// Give the tree keyboard focus so the selection renders
+				// with the system focused-selection colours (blue/white)
+				// instead of the muted unfocused colours.
+				TreeCtrl_Navigator->SetFocus();
 				UpdatePanelForItem(current);
 				if (current == start)
 				{
