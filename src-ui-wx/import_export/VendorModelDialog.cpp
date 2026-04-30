@@ -1123,14 +1123,7 @@ void VendorModelDialog::RebuildTreeUI()
         }
         ~RebuildScope() {
             tree->Thaw();
-            // Don't clear flag here — programmatic Expand() and
-            // selection changes during the rebuild queue SEL_CHANGED
-            // events that fire AFTER this destructor runs. Clearing
-            // synchronously lets those stale events through, each one
-            // calling PopulateModelPanel (slow image load) and
-            // appearing as a Windows spinning-wheel hang on large
-            // filters like "EFL". Defer the clear so the queued events
-            // see the flag still set and bail.
+            flag = false;
         }
     } guard(_treeRebuilding, TreeCtrl_Navigator);
 
@@ -1195,9 +1188,6 @@ void VendorModelDialog::RebuildTreeUI()
         }
     }
 
-    // Defer clearing _treeRebuilding so SEL_CHANGED events queued by
-    // the Expand calls above still see the flag set when they fire.
-    CallAfter([this]() { _treeRebuilding = false; });
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
@@ -1716,8 +1706,17 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     if (busy) return;
     busy = true;
     wxTreeItemId startid = event.GetItem();
+    // Drop events whose item refers to a tree node deleted by a prior
+    // filter rebuild — GetItemData returns null for those on Windows
+    // and PopulateModelPanel would otherwise dereference a stale ptr.
+    if (startid.IsOk() && TreeCtrl_Navigator->GetItemData(startid) == nullptr) {
+        startid = wxTreeItemId();
+    }
     if (!startid.IsOk()) {
         startid = GetFocusedItem();
+        if (startid.IsOk() && TreeCtrl_Navigator->GetItemData(startid) == nullptr) {
+            startid = wxTreeItemId();
+        }
     }
     // User manually selected a different item — clear the search bold/cursor.
     // Guard against _lastSearchItem pointing at a deleted item from a prior
