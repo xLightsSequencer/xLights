@@ -101,6 +101,7 @@ class VendorModelDialog: public wxDialog
 		wxButton* Button_InsertModel;
 		wxButton* Button_Next;
 		wxButton* Button_Prior;
+		wxButton* Button_Search;
 		wxCheckBox* CheckBox_DontDownload;
 		wxHyperlinkCtrl* HyperlinkCtrl_Facebook;
 		wxHyperlinkCtrl* HyperlinkCtrl_ModelWebLink;
@@ -141,6 +142,7 @@ class VendorModelDialog: public wxDialog
 		static const wxWindowID ID_STATICBITMAP2;
 		static const wxWindowID ID_ANIMATIONCTRL1;
 		static const wxWindowID ID_BUTTON3;
+		static const wxWindowID ID_BUTTON4;
 		static const wxWindowID ID_PANEL5;
 		static const wxWindowID ID_TEXTCTRL2;
 		static const wxWindowID ID_STATICTEXT7;

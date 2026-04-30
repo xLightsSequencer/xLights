@@ -47,8 +47,12 @@
 									<cols>2</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">
-										<object class="wxTextCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Search" member="yes">
+										<object class="wxSearchCtrl" name="ID_TEXTCTRL3" variable="TextCtrl_Search" member="yes">
+											<hint>Search models...</hint>
+											<style>wxTE_PROCESS_ENTER</style>
 											<handler function="OnTextCtrl_SearchText" entry="EVT_TEXT" />
+											<handler function="OnButton_SearchClick" entry="EVT_SEARCHCTRL_SEARCH_BTN" />
+											<handler function="OnSearchCancelClick" entry="EVT_SEARCHCTRL_CANCEL_BTN" />
 										</object>
 										<flag>wxALL|wxEXPAND</flag>
 										<border>5</border>
@@ -56,7 +60,7 @@
 									</object>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON4" variable="Button_Search" member="yes">
-											<label>Search</label>
+											<label>Next</label>
 											<handler function="OnButton_SearchClick" entry="EVT_BUTTON" />
 										</object>
 										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
