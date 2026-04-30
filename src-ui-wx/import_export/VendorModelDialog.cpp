@@ -1735,6 +1735,11 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 
 void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
 {
+    // Skip while the filter is rebuilding the tree — PopulateModelPanel
+    // calls model->DownloadImages() synchronously, which on Windows
+    // blocks the UI thread on network/disk for many seconds when a
+    // filter like "EFL" matches lots of models.
+    if (_treeRebuilding) return;
     static bool busy = false;
     if (busy) return;
     busy = true;
