@@ -908,6 +908,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorItemActivated);
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged);
     TextCtrl_Search->Bind(wxEVT_TEXT, &VendorModelDialog::OnTextCtrl_SearchText, this);
+    TextCtrl_Search->Bind(wxEVT_TEXT_ENTER, &VendorModelDialog::OnButton_SearchClick, this);
     TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &VendorModelDialog::OnButton_SearchClick, this);
     TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &VendorModelDialog::OnSearchCancelClick, this);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnCheckBox_DontDownloadClick);
