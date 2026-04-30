@@ -1120,6 +1120,12 @@ void VendorModelDialog::RebuildTreeUI()
         }
     } guard(_treeRebuilding, TreeCtrl_Navigator);
 
+    // The tree about to be deleted may contain _lastSearchItem (from
+    // master's F3 search). Drop it now — leaving a stale wxTreeItemId
+    // around makes SetItemBold on the next selection-change hang on
+    // Windows.
+    _lastSearchItem = wxTreeItemId();
+
     TreeCtrl_Navigator->UnselectAll();
     TreeCtrl_Navigator->DeleteAllItems();
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
@@ -1690,16 +1696,25 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
     if (_treeRebuilding) return;
+    static bool busy = false;
+    if (busy) return;
+    busy = true;
     wxTreeItemId startid = event.GetItem();
     if (!startid.IsOk()) {
         startid = GetFocusedItem();
     }
     // User manually selected a different item — clear the search bold/cursor.
+    // Guard against _lastSearchItem pointing at a deleted item from a prior
+    // tree generation (filter rebuilds delete the entire tree).
     if (_lastSearchItem.IsOk() && startid != _lastSearchItem) {
-        TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+        wxTreeItemData* lastData = TreeCtrl_Navigator->GetItemData(_lastSearchItem);
+        if (lastData != nullptr) {
+            TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+        }
         _lastSearchItem = wxTreeItemId();
     }
     UpdatePanelForItem(startid);
+    busy = false;
 }
 
 void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
