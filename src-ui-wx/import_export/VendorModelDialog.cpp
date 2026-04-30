@@ -1138,12 +1138,18 @@ void VendorModelDialog::RebuildTreeUI()
     // Windows.
     _lastSearchItem = wxTreeItemId();
 
+    spdlog::info("VMD::RTUI step 1: UnselectAll");
     TreeCtrl_Navigator->UnselectAll();
+    spdlog::info("VMD::RTUI step 2: DeleteAllItems");
     TreeCtrl_Navigator->DeleteAllItems();
+    spdlog::info("VMD::RTUI step 3: AddRoot");
     wxTreeItemId root = TreeCtrl_Navigator->AddRoot("Vendors");
     wxTreeItemId first = root;
+    spdlog::info("VMD::RTUI step 4: vendor loop start");
+    int vIdx = 0;
     for (const auto& it : _vendors)
     {
+        spdlog::info("VMD::RTUI vendor[{}] '{}' begin", vIdx, it->_name);
         wxTreeItemId v = TreeCtrl_Navigator->AppendItem(root, it->_name, -1, -1, new MVendorTreeItemData(it));
         if (first == root)
         {
@@ -1153,7 +1159,10 @@ void VendorModelDialog::RebuildTreeUI()
         {
             AddHierachy(v, it, it->_categories, it->_name);
         }
+        spdlog::info("VMD::RTUI vendor[{}] '{}' end", vIdx, it->_name);
+        vIdx++;
     }
+    spdlog::info("VMD::RTUI step 5: vendor loop done");
 
     // Only scroll to first vendor on the initial build, not on every
     // filter rebuild — otherwise typing in the filter keeps yanking
@@ -1175,22 +1184,36 @@ void VendorModelDialog::RebuildTreeUI()
     // 2) PruneEmptyBranches walks the tree bottom-up and also drops
     //    empty Vendor nodes, so the final tree shows only branches that
     //    actually have at least one matching model leaf.
+    spdlog::info("VMD::RTUI step 6: DeleteEmptyCategories pass start");
     wxTreeItemIdValue cookie;
+    int dec = 0;
     for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
     {
+        spdlog::info("VMD::RTUI DEC vendor {} begin", dec);
         UNUSED(DeleteEmptyCategories(l1));
+        spdlog::info("VMD::RTUI DEC vendor {} end", dec);
+        dec++;
     }
+    spdlog::info("VMD::RTUI step 7: DeleteEmptyCategories pass done");
+    spdlog::info("VMD::RTUI step 8: PruneEmptyBranches start");
     PruneEmptyBranches(root);
+    spdlog::info("VMD::RTUI step 9: PruneEmptyBranches done");
 
     if (!_filterTokens.empty()) {
+        spdlog::info("VMD::RTUI step 10: vendor expand start");
         wxTreeItemIdValue cookie;
+        int eIdx = 0;
         for (auto vendor = TreeCtrl_Navigator->GetFirstChild(root, cookie);
              vendor.IsOk();
              vendor = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
-            if (TreeCtrl_Navigator->GetChildrenCount(vendor, false) > 0) {
+            int nc = TreeCtrl_Navigator->GetChildrenCount(vendor, false);
+            spdlog::info("VMD::RTUI expand[{}] children={}", eIdx, nc);
+            if (nc > 0) {
                 TreeCtrl_Navigator->Expand(vendor);
             }
+            eIdx++;
         }
+        spdlog::info("VMD::RTUI step 11: vendor expand done");
     }
 
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
@@ -1359,17 +1382,19 @@ bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
 
 void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories, const std::string& pathSoFar)
 {
+    int cIdx = 0;
     for (const auto& it : categories)
     {
+        spdlog::info("VMD::AddHierachy '{}' cat[{}]='{}'", pathSoFar, cIdx, it->_name);
         wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, it->_name, -1, -1, new MCategoryTreeItemData(it));
-        // Extend the breadcrumb path so descendant filter checks can
-        // see the category names above them.
         std::string nextPath = pathSoFar.empty()
             ? it->_name
             : pathSoFar + " / " + it->_name;
         AddHierachy(tid, vendor, it->_categories, nextPath);
         AddModels(tid, vendor, it->_id, nextPath);
+        spdlog::info("VMD::AddHierachy '{}' cat[{}]='{}' Expand", pathSoFar, cIdx, it->_name);
         TreeCtrl_Navigator->Expand(tid);
+        cIdx++;
     }
 }
 
