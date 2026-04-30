@@ -1113,7 +1113,12 @@ bool VendorModelDialog::LoadTree(wxProgressDialog* prog, int low, int high)
 // whenever a filter input changes (debounced).
 void VendorModelDialog::RebuildTreeUI()
 {
-    if (_treeRebuilding) return;
+    spdlog::info("VMD::RebuildTreeUI ENTER tokens={} rebuilding={} vendors={}",
+                 _filterTokens.size(), _treeRebuilding, _vendors.size());
+    if (_treeRebuilding) {
+        spdlog::warn("VMD::RebuildTreeUI BAILED at entry guard");
+        return;
+    }
     struct RebuildScope {
         bool& flag;
         wxTreeCtrl* tree;
@@ -1188,6 +1193,9 @@ void VendorModelDialog::RebuildTreeUI()
         }
     }
 
+    int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
+    spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
+                 rootKids, _filterTokens.size());
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
@@ -1269,12 +1277,11 @@ bool VendorModelDialog::CatalogFilterMatchesPath(const std::string& pathSoFar,
 
 void VendorModelDialog::OnCatalogFilterText(wxCommandEvent& /*event*/)
 {
-    // Capture and tokenize the filter text immediately so cached values
-    // stay in sync, but debounce the expensive RebuildTreeUI rebuild so
-    // fast typing doesn't repeatedly rebuild the entire vendor catalog.
     _filterTokens.clear();
     if (TextCtrl_Filter != nullptr) {
         wxString text = TextCtrl_Filter->GetValue().Lower();
+        spdlog::info("VMD::OnCatalogFilterText fired text='{}' rebuilding={}",
+                     text.ToStdString(), _treeRebuilding);
         wxStringTokenizer tk(text, " \t");
         while (tk.HasMoreTokens()) {
             wxString tok = tk.GetNextToken();
@@ -1282,9 +1289,13 @@ void VendorModelDialog::OnCatalogFilterText(wxCommandEvent& /*event*/)
                 _filterTokens.push_back(tok);
             }
         }
+        spdlog::info("VMD::OnCatalogFilterText tokens.size={}", _filterTokens.size());
     }
     if (_filterDebounceTimer != nullptr) {
         _filterDebounceTimer->Start(kCatalogFilterDebounceMs, wxTIMER_ONE_SHOT);
+        spdlog::info("VMD::OnCatalogFilterText timer started ({}ms)", kCatalogFilterDebounceMs);
+    } else {
+        spdlog::warn("VMD::OnCatalogFilterText timer is null!");
     }
 }
 
@@ -1302,7 +1313,11 @@ void VendorModelDialog::OnCatalogFilterCancel(wxCommandEvent& /*event*/)
 
 void VendorModelDialog::OnCatalogFilterDebounce(wxTimerEvent& /*event*/)
 {
+    spdlog::info("VMD::OnCatalogFilterDebounce fired tokens={} rebuilding={}",
+                 _filterTokens.size(), _treeRebuilding);
     RebuildTreeUI();
+    spdlog::info("VMD::OnCatalogFilterDebounce after RebuildTreeUI rebuilding={}",
+                 _treeRebuilding);
     if (TextCtrl_Filter != nullptr) {
         // Windows fires WM_SETFOCUS asynchronously and selects all text in
         // the underlying edit control AFTER SetFocus() returns, so we must
