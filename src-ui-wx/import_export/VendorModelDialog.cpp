@@ -1199,20 +1199,10 @@ void VendorModelDialog::RebuildTreeUI()
     PruneEmptyBranches(root);
     spdlog::info("VMD::RTUI step 9: PruneEmptyBranches done");
 
-    // Under filter, categories were left collapsed by AddHierachy so
-    // expanding the vendor here only reveals first-level categories,
-    // not every grandchild. Without that adjustment the visible-item
-    // count exploded and Win32 TreeView_Expand hung.
-    if (!_filterTokens.empty()) {
-        wxTreeItemIdValue cookie;
-        for (auto vendor = TreeCtrl_Navigator->GetFirstChild(root, cookie);
-             vendor.IsOk();
-             vendor = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
-            if (TreeCtrl_Navigator->GetChildrenCount(vendor, false) > 0) {
-                TreeCtrl_Navigator->Expand(vendor);
-            }
-        }
-    }
+    // Per-vendor auto-expand removed: even with collapsed categories
+    // it hung on Windows for some vendors (EFL Designs). Tree shows
+    // the matched vendors, user clicks to drill in — same UX as the
+    // unfiltered tree.
 
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
     spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
@@ -1428,9 +1418,10 @@ void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string c
                 wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
                 TreeCtrl_Navigator->SetItemTextColour(id, it->GetColour());
             }
-            if (!_filterTokens.empty()) {
-                TreeCtrl_Navigator->Expand(tid);
-            }
+            // Multi-wiring auto-expand under filter removed: cumulative
+            // Expand calls during AddModels could chain into a Windows
+            // hang when a vendor like EFL Designs has many multi-wiring
+            // models. Users click to expand individual nodes.
         }
         else
         {
