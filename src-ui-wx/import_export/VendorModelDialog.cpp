@@ -1199,22 +1199,13 @@ void VendorModelDialog::RebuildTreeUI()
     PruneEmptyBranches(root);
     spdlog::info("VMD::RTUI step 9: PruneEmptyBranches done");
 
-    if (!_filterTokens.empty()) {
-        spdlog::info("VMD::RTUI step 10: vendor expand start");
-        wxTreeItemIdValue cookie;
-        int eIdx = 0;
-        for (auto vendor = TreeCtrl_Navigator->GetFirstChild(root, cookie);
-             vendor.IsOk();
-             vendor = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
-            int nc = TreeCtrl_Navigator->GetChildrenCount(vendor, false);
-            spdlog::info("VMD::RTUI expand[{}] children={}", eIdx, nc);
-            if (nc > 0) {
-                TreeCtrl_Navigator->Expand(vendor);
-            }
-            eIdx++;
-        }
-        spdlog::info("VMD::RTUI step 11: vendor expand done");
-    }
+    // Per-vendor Expand under filter caused a permanent UI hang on
+    // Windows native wxTreeCtrl: each vendor has many already-expanded
+    // categories so the visible-item count explodes the moment the
+    // vendor opens, and the Win32 TreeView_Expand call never returns
+    // (confirmed via per-step spdlog tracing — log stopped at
+    // "expand[0] children=8"). Leave matched vendors collapsed; users
+    // click to drill in, same as the unfiltered tree.
 
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
     spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
