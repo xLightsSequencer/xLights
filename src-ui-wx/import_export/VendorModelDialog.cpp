@@ -1751,17 +1751,15 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     if (busy) return;
     busy = true;
     wxTreeItemId startid = event.GetItem();
-    // Drop events whose item refers to a tree node deleted by a prior
-    // filter rebuild — GetItemData returns null for those on Windows
-    // and PopulateModelPanel would otherwise dereference a stale ptr.
+    // Drop events whose item refers to a node deleted by a prior
+    // rebuild. GetItemData returns null for those on Windows. We
+    // intentionally do NOT fall back to GetFocusedItem here: a stale
+    // event firing after a filter rebuild would otherwise pick up a
+    // freshly-built item and run PopulateModelPanel on it, which calls
+    // synchronous DownloadImages and freezes the UI for many seconds
+    // when GitHub rate-limits us.
     if (startid.IsOk() && TreeCtrl_Navigator->GetItemData(startid) == nullptr) {
         startid = wxTreeItemId();
-    }
-    if (!startid.IsOk()) {
-        startid = GetFocusedItem();
-        if (startid.IsOk() && TreeCtrl_Navigator->GetItemData(startid) == nullptr) {
-            startid = wxTreeItemId();
-        }
     }
     // User manually selected a different item — clear the search bold/cursor.
     // Guard against _lastSearchItem pointing at a deleted item from a prior
