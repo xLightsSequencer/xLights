@@ -1217,6 +1217,12 @@ void VendorModelDialog::RebuildTreeUI()
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
     spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
                  rootKids, _filterTokens.size());
+    // Windows native wxTreeCtrl sometimes leaves the prior frame on
+    // screen after Thaw if many items were added/removed during the
+    // freeze. Force an explicit invalidation so the user actually
+    // sees the filtered tree.
+    TreeCtrl_Navigator->Refresh();
+    TreeCtrl_Navigator->Update();
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
