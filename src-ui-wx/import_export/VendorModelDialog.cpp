@@ -945,6 +945,13 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
         Bind(wxEVT_TIMER, &VendorModelDialog::OnCatalogFilterDebounce,
              this, _filterDebounceTimer->GetId());
 
+        // Master's #6267 added a wxSearchCtrl at the bottom of Panel3
+        // (TextCtrl_Search). Our top filter supersedes it; hide so
+        // the user only sees one search box.
+        if (TextCtrl_Search != nullptr) {
+            TextCtrl_Search->Hide();
+        }
+
         Panel3->Layout();
     }
 
@@ -1116,7 +1123,14 @@ void VendorModelDialog::RebuildTreeUI()
         }
         ~RebuildScope() {
             tree->Thaw();
-            flag = false;
+            // Don't clear flag here — programmatic Expand() and
+            // selection changes during the rebuild queue SEL_CHANGED
+            // events that fire AFTER this destructor runs. Clearing
+            // synchronously lets those stale events through, each one
+            // calling PopulateModelPanel (slow image load) and
+            // appearing as a Windows spinning-wheel hang on large
+            // filters like "EFL". Defer the clear so the queued events
+            // see the flag still set and bail.
         }
     } guard(_treeRebuilding, TreeCtrl_Navigator);
 
@@ -1181,7 +1195,9 @@ void VendorModelDialog::RebuildTreeUI()
         }
     }
 
-    // RebuildScope's destructor handles Thaw() and resets _treeRebuilding.
+    // Defer clearing _treeRebuilding so SEL_CHANGED events queued by
+    // the Expand calls above still see the flag set when they fire.
+    CallAfter([this]() { _treeRebuilding = false; });
 }
 
 // Bottom-up walk: recurse into each child first, then if THIS node has
