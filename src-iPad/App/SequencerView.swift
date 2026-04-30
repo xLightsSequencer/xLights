@@ -236,6 +236,11 @@ struct SequencerView: View {
             SequenceSettingsSheet()
                 .environment(viewModel)
         }
+        .sheet(isPresented: Bindable(viewModel).showingImportEffects) {
+            ImportEffectsView(viewModel: viewModel) {
+                viewModel.showingImportEffects = false
+            }
+        }
         // F-4 menu routing — one-shot tokens bumped by the
         // WindowGroup's `.commands` block. Save As and Close involve
         // file-exporter / dirty-prompt flows that live here on the

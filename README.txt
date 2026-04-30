@@ -22,6 +22,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 render on background threads on Linux (previously forced to the main thread because
                                 the wx/Pango stack isn't off-thread safe), parallelizing rendering of sequences
                                 with heavy text/emoji content.
+    -bug (dkulp)                Circles effect: GPU (Metal) path was clearing non-circle pixels to (0,0,0,0), wiping
+                                the buffer's pre-existing contents. Now leaves background pixels untouched, matching
+                                the CPU and ISPC paths.
     -change (dkulp)             Windows shader effect: GL work now runs on a dedicated worker thread inside
                                 GLContextManager instead of being dispatched to the wx UI thread.
     -change (dkulp)             Render engine cleanup: removed the main-thread effect render queue and all the
@@ -92,6 +95,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
+    -enh (Neil)                 Edit Display Elements: add a filter box above the Available list so large shows can
+                                quickly find a model/timing/group to add. Filter clears automatically when items are
+                                moved into the view.
     -bug (dkulp)                Replaced throwing std::stoi calls in OutputManager / xxxSerialOutput / HinksPix with
                                 non-throwing std::strtol so corrupt config or controller responses no longer crash.
     -bug (dkulp)                State / Faces / Shockwave / VUMeter / Lyric / MatrixModel: added div-by-zero and

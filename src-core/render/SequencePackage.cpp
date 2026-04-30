@@ -128,11 +128,15 @@ void SequencePackage::InitDefaultImportOptions()
     _importOptions.SetDir(MediaTargetDir::FACES_DIR, (std::filesystem::path(showFolder) / SUBFLD_FACES).string(), true);
 
     std::filesystem::path targetXsq(_seqXmlFileName);
+    std::string targetExt = targetXsq.extension().string();
+    for (auto& c : targetExt) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    bool isSavedSeq = (targetExt == ".xsq" || targetExt == ".xml");
+
     std::string targetDir = targetXsq.parent_path().string();
 
     std::string mediaBaseFolder;
 
-    if (targetDir != showFolder) {
+    if (isSavedSeq && targetDir != showFolder) {
         // target xsq is not at the root of show folder, assume user manages show folder
         // with a subfolder per sequence as Gil noted
         mediaBaseFolder = targetDir;

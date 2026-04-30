@@ -1,9 +1,19 @@
 # Phase I — Import Effects (iPad)
 
-**Status: I-1 landed (core extraction + desktop refactor).** Both
-desktop and iPad-lib debug builds green. Include policy strict-mode
-clean. Manual import regression on a vendor sequence still
-outstanding before merge. I-2 (iPad UI) is the next major work.
+**Status: I-1 landed; I-2 v1.1 + timing-tracks + alias polish
+landed.** Tools menu → Import Effects… opens a SwiftUI sheet that
+loads `.xsq` (loose) or `.xsqz` (vendor package — extracts to
+temp dir via `SequencePackage::Extract`), builds the full model /
+submodel / strand / node tree on both source and destination
+sides, supports tap-to-map and Auto Map at every level (model,
+submodel, strand, node) with alias-driven matching that now
+strips punctuation on aliases too, surfaces source timing tracks
+in a popover with per-track toggles + "already exists" hints,
+and applies imports through the core `EffectMapper` family.
+Both desktop and iPad-lib debug builds green; include policy
+clean. Remaining in I-2: model-blending toggle (niche),
+LSItemContentTypes registration. Manual end-to-end regression on
+a real vendor sequence is the next checkpoint.
 
 ## Why this matters
 
@@ -187,6 +197,100 @@ What's NOT done (deliberately):
   This needs a human eyeball.
 
 ### I-2 — iPad import UI for `.xsq` / `.xsqz`
+
+**v1 landed 2026-04-29:**
+
+- `src-core/import_export/BasicImportMappingNode.h` — wx-free
+  concrete tree node (POD-style with public fields matching
+  `xLightsImportModelNode`'s shape, plus `unique_ptr` children).
+- `src-iPad/Bridge/XLImportSession.{h,mm}` — complete bridge API:
+  load source `.xsq` (via core `SequenceFile::Open` +
+  `SequenceElements::LoadSequencerFile`, no wx), build flat
+  destination tree from active sequence's models, mutating
+  ops (`setMapping`, `runAutoMap`, `runAutoMapSelectedTargets`,
+  `saveMapHints`, `applyImport`). Snapshot accessors (`availableSources`,
+  `destinationRows`) hand SwiftUI immutable rows.
+- `src-iPad/App/ImportEffectsView.swift` — two-pane sheet with
+  source / destination scroll lists, tap-to-select highlighting,
+  Map / Unmap / Auto Map / Save Hints… buttons, erase / lock
+  toggles. File picker first; mapping panes appear once a `.xsq`
+  is loaded.
+- Tools menu added in `XLightsCommands.swift` — `CommandMenu("Tools")`
+  with "Import Effects…" as the first entry. Placeholder for the
+  long list of desktop Tools entries (Test Lights, Convert,
+  Package Sequence, etc.) that will land over time.
+- `showingImportEffects` flag on `SequencerViewModel`; sheet wired
+  in `SequencerView.swift` next to the existing Sequence Settings
+  sheet.
+- `iPad-Bridging-Header.h` updated to expose
+  `XLImportSession.h` to Swift.
+- Apply path uses core `EffectMapper::MapXLightsEffects(Element*, ...)`
+  for each mapped destination. Embedded images flow through the
+  existing `SequenceMedia::AddEmbeddedImage` path inside
+  `MapXLightsEffects`. After apply, `iPadRenderContext::MarkRgbEffectsChanged`
+  is called and the SwiftUI view triggers `viewModel.reloadRows()`.
+
+**v1.1 landed 2026-04-29:**
+
+- `.xsqz` (and `.zip` / `.piz`) package extraction in
+  `loadSourceSequenceAtPath:`. Mirrors desktop: build a
+  `SequencePackage`, call `Extract()` if `IsPkg()`, then point
+  `SequenceFile` at the inner `.xsq` returned by `GetXsqFile()`.
+  The session holds the package in `unique_ptr<SequencePackage>`
+  so the temp extraction dir stays valid through apply.
+- Hierarchical destination tree — `buildDestinationTree` now
+  recurses into `Model::GetNumSubModels/GetNumStrands/GetStrandLength`
+  with each submodel pulling its own aliases, and per-strand
+  nodes generated under each strand row.
+- Hierarchical source available list — `rebuildAvailableSources`
+  emits slash-delimited names ("Model/Strand/Node") matching the
+  desktop's `AddChannel` pass, plus `_sourceElementMap` /
+  `_sourceLayerMap` for apply-time resolution.
+- Apply path descends into both levels of children — calls
+  `MapXLightsEffects(SubModelElement*, ...)` per strand/submodel
+  mapping and `MapXLightsStrandEffects(NodeLayer*, ...)` per
+  node mapping. `ModelElement::GetSubModel(int)` indexed by
+  child position keeps source and target aligned.
+- SwiftUI `DestinationRowView` — recursive disclosure-style row
+  with chevron toggles, indent-by-depth, expansion state in a
+  `Set<Int>` keyed by nodeID. Tap-to-select highlights at any
+  depth; Map / Unmap / Auto Map operate against the selected row.
+- UTType filter accepts `.xsq` / `.xsqz` / `.zip` so vendor
+  packages show up in the Files picker.
+
+**Also landed 2026-04-29 (post-v1.1):**
+
+- Timing-track import. Bridge surfaces a `XLImportTimingTrack`
+  list (name + alreadyExists + selected). SwiftUI hangs a
+  "Timing (N/M)" popover button on the toolbar showing per-
+  track toggles; default selection is `!alreadyExists`. Apply
+  copies each selected timing element via the desktop's
+  reuse-empty-then-add-with-suffix pattern, and flows each
+  layer through `MapXLightsEffects` so settings/media fixups
+  run consistently. Apply also unblocks when no model
+  mappings exist but timing tracks are selected.
+- Alias punctuation-strip polish in `MatchAggressive`. Aliases
+  with spaces/punctuation (e.g. `"Mega Tree (Vendor)"`) now
+  match a punctuation-free vendor candidate
+  (`"megatreevendor"`) without the user having to maintain a
+  duplicate stripped alias. Applies on both desktop and iPad.
+
+**Still pending in I-2:**
+
+- Model-blending toggle. Niche; deferred.
+- `.xsq` / `.xsqz` UTType registration in the iPad app's
+  `LSItemContentTypes` so the file picker auto-recognises the
+  types instead of falling back to extension matching. Needs
+  Info.plist edit.
+- Apply still runs with hardcoded `convertRender=false`. Per
+  earlier conversation this is deferred until vendor practice
+  is confirmed.
+- Time-adjust spinbox is **not** an `.xsq → .xsq` v1 item — the
+  desktop hides it in this flow too, only showing it on HLS /
+  SuperStar / Vixen imports. Will surface naturally with those
+  format ports.
+
+**Original plan items (still relevant):**
 
 - Add a new top-level **Tools** menu to the iPad menu bar
   (Phase F-4 wired `.commands`). Desktop's Tools menu is large

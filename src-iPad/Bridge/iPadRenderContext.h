@@ -32,8 +32,10 @@
 #include "utils/xlImage.h"
 
 #include <list>
+#include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -97,6 +99,17 @@ public:
     bool IsSequenceLoaded() const override { return _sequenceFile && _sequenceFile->IsOpen(); }
     AudioManager* GetCurrentMediaManager() const override;
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES type) const override;
+
+    // B43: alt audio track switching for the *waveform display*. Does
+    // NOT change playback — playback still plays the main sequence
+    // track via GetCurrentMediaManager. -1 = main, 0..N-1 = alt index.
+    // GetWaveformMedia falls back to the main track when the requested
+    // alt index is out of range or its AudioManager hasn't loaded.
+    int GetWaveformTrackIndex() const { return _waveformTrackIndex; }
+    void SetWaveformTrackIndex(int idx);
+    AudioManager* GetWaveformMedia() const;
+    int GetAltTrackCount() const;
+    std::string GetAltTrackDisplayName(int idx) const;
 
     Model* GetModel(const std::string& name) const override;
     EffectManager& GetEffectManager() override { return _effectManager; }
@@ -276,6 +289,23 @@ public:
     // viewpoint edits are a rare user action.
     bool SaveViewpoints();
 
+    // Mark a model as having dirty in-memory <stateInfo> so the next
+    // SaveModelStates() call rewrites its on-disk entry. DMX state
+    // saves are the current caller; future model-edit flows can
+    // tag the same path.
+    void MarkModelStateDirty(const std::string& modelName) {
+        if (!modelName.empty()) _dirtyStateModels.insert(modelName);
+    }
+
+    // For each model in `_dirtyStateModels`, locate its `<model>` node
+    // in xlights_rgbeffects.xml, drop the existing `<stateInfo>` children,
+    // and rewrite them from the live `Model::GetStateInfo()` map via
+    // `Model::WriteStateInfo`. One disk round-trip per call. Clears
+    // the dirty set on success. Returns false on read/write failure;
+    // missing model nodes are skipped with a warning but don't fail
+    // the save.
+    bool SaveModelStates();
+
     // Model pixel data for a given frame — returns (x, y, r, g, b) tuples
     struct PixelData {
         float x, y;
@@ -283,6 +313,23 @@ public:
     };
     std::vector<PixelData> GetModelPixels(const std::string& modelName, int frameMS);
     std::vector<PixelData> GetAllModelPixels(int frameMS);
+
+    // Per-state effect bracket colours, sourced from the show folder's
+    // <colors> palette in xlights_rgbeffects.xml. Falls back to desktop
+    // defaults (xLights_color[] in ColorManager.h) when a key is absent —
+    // so a fresh show with no palette customisations gets the same look
+    // as desktop xLights, and a customised palette round-trips between
+    // the two clients.
+    enum class EffectBracketState {
+        Default = 0,
+        Selected,
+        Locked,
+        Disabled,
+    };
+    struct PaletteColor {
+        uint8_t r = 0, g = 0, b = 0;
+    };
+    PaletteColor GetEffectBracketColor(EffectBracketState state) const;
 
 private:
     std::string _showDir;
@@ -323,6 +370,20 @@ private:
     std::unique_ptr<PhonemeDictionary> _phonemeDict;
 
     ViewpointMgr _viewpointMgr;
+
+    // Models whose in-memory <stateInfo> map has diverged from the
+    // on-disk xlights_rgbeffects.xml. SaveModelStates() reads + drains
+    // this set.
+    std::set<std::string> _dirtyStateModels;
+
+    // Cache of the show folder's <colors> palette so per-frame bracket
+    // queries don't re-scan XML. Populated on every LoadShowFolder.
+    // Empty entries fall through to ColorManager defaults at lookup
+    // time (see GetEffectBracketColor).
+    std::map<std::string, PaletteColor> _palette;
+
+    // B43: -1 = main sequence audio, 0..N-1 = alt track index.
+    int _waveformTrackIndex = -1;
 
     // Preset model scaffolding — lazily built on first preview render.
     Model* _presetModel = nullptr;

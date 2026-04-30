@@ -53,7 +53,7 @@ struct WindowingModeProbe: UIViewRepresentable {
                 onLayout(true)
                 return
             }
-            let sceneSize = scene.coordinateSpace.bounds.size
+            let sceneSize = scene.effectiveGeometry.coordinateSpace.bounds.size
             let screenSize = scene.screen.bounds.size
             let tol: CGFloat = 1
             let full = abs(sceneSize.width - screenSize.width) < tol

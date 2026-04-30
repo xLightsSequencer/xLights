@@ -84,6 +84,7 @@
 - (void)dealloc {
     delete _bgTexture;
     _bgTexture = nullptr;
+    [super dealloc];
 }
 
 /// Load an image file into an xlImage using ImageIO (CGImageSource). The
@@ -113,7 +114,7 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
     std::unique_ptr<uint8_t[]> rgba(new uint8_t[(size_t)w * h * 4]());
     CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
     CGContextRef ctx = CGBitmapContextCreate(rgba.get(), w, h, 8, w * 4, cs,
-                                             kCGImageAlphaPremultipliedLast
+                                             (uint32_t)kCGImageAlphaPremultipliedLast
                                              | kCGBitmapByteOrder32Big);
     CGColorSpaceRelease(cs);
     if (!ctx) {

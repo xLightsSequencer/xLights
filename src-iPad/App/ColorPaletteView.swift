@@ -133,7 +133,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return (true, true) }
         let dict = viewModel.document.colorCurveModeSupport(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) as? [String: NSNumber] ?? [:]
+            at: Int32(sel.effectIndex)) ?? [:]
         let linear = dict["linear"]?.boolValue ?? true
         let radial = dict["radial"]?.boolValue ?? true
         return (linear, radial)

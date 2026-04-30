@@ -306,6 +306,15 @@ struct ModelRowHeader: View {
     /// window (desktop uses a frame selection).
     var hasLoopRegion: Bool = false
     var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
+    /// B55 — convert effects on the row's element to "Per Model"
+    /// buffer styles. The closure decides scope (true = all layers
+    /// of the model, false = just this row's layer); the outer view
+    /// owns the menu copy.
+    var onConvertToPerModel: ((_ allLayers: Bool) -> Void)?
+    /// B56 — coalesce identical node / strand effects up the
+    /// hierarchy. Only meaningful on ModelElement rows; outer view
+    /// gates visibility.
+    var onPromoteNodeEffects: (() -> Void)?
     /// B48 — delete every empty layer on this row's element.
     /// Shown only on the element's primary row (`layerIndex == 0`)
     /// and only when there's > 1 layer to begin with.
@@ -505,6 +514,31 @@ struct ModelRowHeader: View {
                         Label("Export Model (Loop Range) as FSEQ…",
                                systemImage: "arrow.up.doc")
                     }
+                }
+            }
+            // B55 — model-scope variant on the model heading; layer-
+            // scope variant on per-layer / submodel rows. Mirrors
+            // desktop's two RowHeading entries.
+            if let fire = onConvertToPerModel, !isNodeRow {
+                if !isSubLayer {
+                    Button { fire(true) } label: {
+                        Label("Convert Effects to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                } else {
+                    Button { fire(false) } label: {
+                        Label("Convert Effects on Layer to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                }
+            }
+            // B56 — only the model heading itself; promotion walks
+            // strands+nodes so it doesn't make sense on submodel /
+            // node rows.
+            if let fire = onPromoteNodeEffects, !isSubLayer, !isNodeRow {
+                Button { fire() } label: {
+                    Label("Promote Node Effects",
+                           systemImage: "arrow.up.to.line.compact")
                 }
             }
             if !isSubLayer && !isNodeRow, let fire = onToggleRenderDisabled {

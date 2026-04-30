@@ -54,10 +54,9 @@ struct XLSequencerCommands: Commands {
         }
 
         // Edit menu — Undo / Redo replace the system defaults;
-        // Pasteboard group gets Copy / Paste / Duplicate / Delete
-        // (Cut and Find intentionally omitted until B53 / B97 land,
-        // since disabled-but-bound shortcuts still swallow key
-        // events).
+        // Pasteboard group gets Copy / Paste / Duplicate / Delete.
+        // (Cut intentionally omitted; disabled-but-bound shortcuts
+        // still swallow key events.)
         CommandGroup(replacing: .undoRedo) {
             Button("Undo") { viewModel.undo() }
                 .keyboardShortcut("z", modifiers: [.command])
@@ -66,6 +65,17 @@ struct XLSequencerCommands: Commands {
             Button("Redo") { viewModel.redo() }
                 .keyboardShortcut("z", modifiers: [.command, .shift])
                 .disabled(!viewModel.undoManager.canRedo)
+        }
+        // B97 — Find / Replace popover trigger. Lives in its own
+        // CommandGroup (not .pasteboard) so ⌘F is grouped with
+        // navigation rather than the cut/paste cluster.
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Button("Find / Replace…") {
+                viewModel.findReplacePresented = true
+            }
+            .keyboardShortcut("f", modifiers: [.command])
+            .disabled(!viewModel.isSequenceLoaded)
         }
         CommandGroup(replacing: .pasteboard) {
             Button("Copy") { viewModel.copySelectedEffect() }
@@ -225,6 +235,19 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingDisplayElements = true
             }
             .keyboardShortcut("d", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
+        }
+
+        // Tools menu — placeholder for the long list of desktop Tools
+        // entries that will land on iPad over time. v1 has just Import
+        // Effects, but the menu is here so future items (Test Lights,
+        // Convert, Package Sequence, Color Manager, Effects Settings
+        // Search, Generate Custom Model, …) can drop in without menu
+        // reshuffling.
+        CommandMenu("Tools") {
+            Button("Import Effects…") {
+                viewModel.showingImportEffects = true
+            }
             .disabled(!viewModel.isSequenceLoaded)
         }
 

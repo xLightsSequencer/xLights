@@ -645,6 +645,14 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     wxTreeItemId itemID = TreeCtrl1->GetSelection();
     wxTreeItemId parentID;
     MyTreeItemData *parentData;
+
+	if (!itemID.IsOk())
+    {
+        DisplayError(_("A group cannot be added at the currently selected location"), this);
+        ValidateWindow();
+        return;
+    }
+	
     wxString name;
     if (!PromptForName(this, name, true, true)) return;
 

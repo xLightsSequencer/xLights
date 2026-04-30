@@ -71,18 +71,25 @@ bool MatchNorm(const std::string& target, const std::string& candidate,
 bool MatchAggressive(const std::string& target, const std::string& candidate,
                      const std::string&, const std::string&,
                      const std::list<std::string>& aliases) {
-    if (StripPunctuation(Lower(Trim(target))) == StripPunctuation(candidate)) {
+    std::string strippedCandidate = StripPunctuation(candidate);
+    if (StripPunctuation(Lower(Trim(target))) == strippedCandidate) {
         return true;
     }
+    // OldName alias prefix — the rename history form. Plain string compare
+    // (no punctuation strip) so users with renames don't get over-matched.
     for (const auto& it : aliases) {
         if (Lower(Trim(it)) == "oldname:" + candidate) {
             return true;
         }
     }
+    // Plain alias match — try both punctuation-stripped and exact, so an
+    // alias "Mega Tree (Vendor)" can match a vendor candidate
+    // "megatreevendor" without the user needing to maintain a punctuation-
+    // free duplicate alias.
     for (const auto& it : aliases) {
-        if (Lower(Trim(it)) == candidate) {
-            return true;
-        }
+        std::string aliasNorm = Lower(Trim(it));
+        if (aliasNorm == candidate) return true;
+        if (StripPunctuation(aliasNorm) == strippedCandidate) return true;
     }
     return false;
 }

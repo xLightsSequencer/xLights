@@ -87,7 +87,7 @@ struct MediaRelocationPromptModifier: ViewModifier {
     }
 
     private var mediaFolders: [String] {
-        (viewModel.document.mediaFolderPaths() as? [String]) ?? []
+        viewModel.document.mediaFolderPaths() ?? []
     }
 
     private func displayName(for path: String) -> String {

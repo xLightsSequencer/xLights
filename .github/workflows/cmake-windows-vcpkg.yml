@@ -1,16 +1,12 @@
 name: Windows CMake + vcpkg
 
 # Builds xLights with CMake + vcpkg (XLIGHTS_USE_VCPKG=ON).
-# All vcpkg-compiled binaries are cached via the GitHub Actions cache
-# provider so subsequent runs skip recompilation of unchanged packages.
-#
-# FFmpeg is installed with a CI-safe feature set (no CUDA/OpenCL/QSV):
-# those GPU-acceleration features require external SDKs not present on
-# standard GitHub-hosted runners. Add a CUDA install step and expand
-# the feature list if a GPU-enabled runner is available.
+# Uses manifest mode with ci_scripts/vcpkg.json (CI-safe FFmpeg features — no CUDA/OpenCL/QSV).
+# cmake runs `vcpkg install` during configure; the installed tree is cached in
+# actions/cache so subsequent runs skip compilation entirely on a cache hit.
+# sccache caches compiled xLights object files across runs.
 
 on:
-
   workflow_dispatch:
 
 concurrency:
@@ -23,11 +19,9 @@ jobs:
     runs-on: windows-latest
 
     env:
-      # GitHub Actions cache backend for vcpkg binary caching.
-      # ACTIONS_CACHE_URL and ACTIONS_RUNTIME_TOKEN are exported below.
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
       VCPKG_DEFAULT_TRIPLET: x64-windows
       BUILD_DIR: cmake_vs_vcpkg
+      SCCACHE_GHA_ENABLED: "true"
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
@@ -48,18 +42,34 @@ jobs:
         with:
           version: 1.30.0
 
-      # ── vcpkg binary cache ─────────────────────────────────────────────────
-      # The x-gha provider needs these two vars from the runner environment.
-      - name: Export GHA cache tokens for vcpkg
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL',
-              process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN',
-              process.env.ACTIONS_RUNTIME_TOKEN || '');
+      # ── sccache ───────────────────────────────────────────────────────────
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
 
-      # ── vcpkg bootstrap ────────────────────────────────────────────────────
+      - name: Configure sccache
+        shell: bash
+        run: |
+          if ! sccache --zero-stats; then
+            echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+            echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+            sccache --stop-server 2>/dev/null || true
+          fi
+
+      - name: Create sccache cl.bat shim
+        shell: pwsh
+        run: |
+          $dir = "${{ runner.temp }}\sccache-wrapper"
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          @'
+          @echo off
+          sccache.exe cl.exe %* 2>&1
+          set RC=%ERRORLEVEL%
+          if not "%RC%"=="0" echo cl.bat FAILED (rc=%RC%) args: %* 1>&2
+          exit /b %RC%
+          '@ | Set-Content -Encoding Ascii "$dir\cl.bat"
+          "SCCACHE_WRAPPER_DIR=$dir" | Out-File $env:GITHUB_ENV -Append
+
+      # ── vcpkg bootstrap ───────────────────────────────────────────────────
       - name: Bootstrap vcpkg
         shell: pwsh
         run: |
@@ -70,32 +80,18 @@ jobs:
           & "$vcpkg\bootstrap-vcpkg.bat" -disableMetrics
           "VCPKG_ROOT=$vcpkg" | Out-File $env:GITHUB_ENV -Append
 
-      # ── Install packages ───────────────────────────────────────────────────
-      # Explicit package list rather than manifest mode so we can control
-      # FFmpeg features. Vulkan is available on the runner (VulkanSDK is
-      # pre-installed); CUDA/OpenCL/QSV are excluded — add them if the
-      # runner is upgraded to a GPU-enabled image.
-      - name: Install vcpkg packages
-        shell: pwsh
-        run: |
-          $packages = @(
-            "ffmpeg[core,avcodec,avdevice,avfilter,avformat,swresample,swscale,gpl,x264,x265,vulkan]:x64-windows",
-            "sdl2:x64-windows",
-            "zstd:x64-windows",
-            "curl[core]:x64-windows",
-            "zlib:x64-windows",
-            "hidapi:x64-windows",
-            "libxlsxwriter:x64-windows",
-            "libwebp:x64-windows"
-          )
-          # --classic forces classic mode so individual package arguments
-          # are accepted even though a vcpkg.json exists in the repo root.
-          & "$env:VCPKG_ROOT\vcpkg.exe" install @packages `
-            --classic `
-            --no-print-usage `
-            --triplet x64-windows
+      # ── vcpkg package cache ───────────────────────────────────────────────
+      # Cache the installed tree inside the build directory.
+      # cmake runs vcpkg install during configure (manifest mode); if the cache
+      # hits, vcpkg finds packages already present and skips compilation.
+      # Key on ci_scripts/vcpkg.json — any feature change busts the cache.
+      - name: Cache vcpkg installed packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_DIR }}\vcpkg_installed
+          key: vcpkg-x64-windows-${{ hashFiles('ci_scripts/vcpkg.json') }}
 
-      # ── wxWidgets ──────────────────────────────────────────────────────────
+      # ── wxWidgets ─────────────────────────────────────────────────────────
       - name: Get wxWidgets HEAD SHA
         id: wx-sha
         shell: bash
@@ -124,7 +120,11 @@ jobs:
         working-directory: ${{ github.workspace }}\wxWidgets
         run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
-      # ── Configure ──────────────────────────────────────────────────────────
+      # ── Configure ─────────────────────────────────────────────────────────
+      # VCPKG_MANIFEST_DIR points cmake at ci_scripts/vcpkg.json (CI-safe features).
+      # cmake runs vcpkg install into %BUILD_DIR%\vcpkg_installed\ — which is
+      # exactly where _VCPKG_INSTALLED_DIR resolves, so find_path/find_library
+      # in CMakeLists.txt find the headers and libs without extra hints.
       - name: Configure CMake
         shell: cmd
         run: |
@@ -132,16 +132,25 @@ jobs:
             -G "Visual Studio 17 2022" -A x64 ^
             -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=x64-windows ^
-            -DVCPKG_MANIFEST_INSTALL=OFF ^
+            -DVCPKG_MANIFEST_DIR=%CD%\ci_scripts ^
             -DXLIGHTS_USE_VCPKG=ON ^
             -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
 
-      # ── Build ──────────────────────────────────────────────────────────────
+      # ── Build ─────────────────────────────────────────────────────────────
       - name: Build
         shell: cmd
-        run: cmake --build %BUILD_DIR% --config Release --parallel 8
+        run: |
+          cmake --build %BUILD_DIR% --config Release --parallel 8 ^
+            -- ^
+            /p:CLToolExe=cl.bat ^
+            /p:CLToolPath=%SCCACHE_WRAPPER_DIR% ^
+            /p:TrackFileAccess=false ^
+            /p:UseMultiToolTask=true
 
-      # ── Upload artifact ────────────────────────────────────────────────────
+      - name: sccache stats
+        run: sccache --show-stats
+
+      # ── Upload artifact ───────────────────────────────────────────────────
       - name: Upload xLights exe
         uses: actions/upload-artifact@v4
         with:

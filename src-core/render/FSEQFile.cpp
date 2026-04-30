@@ -283,6 +283,14 @@ FSEQFile* FSEQFile::openFSEQFile(const std::string& fn) {
         seqVersionMinor = V1ESEQ_MINOR_VERSION;
     }
 
+    // Validate offset is large enough to hold the initial header we already read.
+    // A value of 0 or less than initialReadLen means the file is corrupt.
+    if (seqChanDataOffset < (uint64_t)initialReadLen) {
+        LogErr(VB_SEQUENCE, "Error pre-reading FSEQ file (%s) header, channel data offset %llu too small\n", fn.c_str(), (unsigned long long)seqChanDataOffset);
+        fclose(seqFile);
+        return nullptr;
+    }
+
     // Read the full header size (beginning at 0 and ending at seqChanDataOffset)
     std::vector<uint8_t> header(seqChanDataOffset);
     fseeko(seqFile, 0L, SEEK_SET);

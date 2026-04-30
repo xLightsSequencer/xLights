@@ -70,7 +70,7 @@ struct HousePreviewView: View {
     }
 
     private func refreshLayoutGroups() {
-        layoutGroups = (viewModel.document.layoutGroups() as? [String]) ?? ["Default"]
+        layoutGroups = viewModel.document.layoutGroups() ?? ["Default"]
         activeLayoutGroup = viewModel.document.activeLayoutGroup() ?? "Default"
         // Adopt desktop's last-used 3D/2D preference from
         // `<settings><LayoutMode3D>` on each show-folder load. Users

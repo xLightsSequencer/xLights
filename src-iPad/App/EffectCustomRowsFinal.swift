@@ -113,11 +113,11 @@ struct RotoZoomPresetRowView: View {
     private func setRampVC(_ id: String,
                             p1: Double, p2: Double,
                             min: Double, max: Double, divisor: Int) {
-        guard let vc = XLValueCurve(serialised: "",
-                                      forId: id,
-                                      min: min,
-                                      max: max,
-                                      divisor: Double(divisor)) else { return }
+        let vc = XLValueCurve(serialised: "",
+                               forId: id,
+                               min: min,
+                               max: max,
+                               divisor: Double(divisor))
         vc.type = "Ramp"
         vc.parameter1 = p1
         vc.parameter2 = p2
@@ -133,11 +133,11 @@ struct RotoZoomPresetRowView: View {
                             p1: Double, p2: Double, p3: Double, p4: Double,
                             min: Double, max: Double, divisor: Int,
                             wrap: Bool = true) {
-        guard let vc = XLValueCurve(serialised: "",
-                                      forId: id,
-                                      min: min,
-                                      max: max,
-                                      divisor: Double(divisor)) else { return }
+        let vc = XLValueCurve(serialised: "",
+                               forId: id,
+                               min: min,
+                               max: max,
+                               divisor: Double(divisor))
         vc.type = "Sine"
         vc.parameter1 = p1
         vc.parameter2 = p2
@@ -736,7 +736,7 @@ struct DMXButtonsRowView: View {
         guard let sel = viewModel.selectedEffect else { return [] }
         let arr = viewModel.document.states(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) as? [String] ?? []
+            at: Int32(sel.effectIndex)) ?? []
         return arr.sorted()
     }
 

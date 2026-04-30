@@ -307,6 +307,9 @@ struct SequencerGridV2View: View {
     /// A9 chord-preview sheet trigger + stashed result.
     @State private var chordPreviewPresented: Bool = false
     @State private var chordPreview: (key: String, chords: [(Int, Int, String)])? = nil
+    /// B97 Find / Replace replace-text buffer (sheet trigger lives
+    /// on the view model so the Edit menu can flip it via ⌘F).
+    @State private var findReplaceText: String = ""
 
     /// A8 stem-model install-location picker sheet trigger.
     private var iOS15Available: Bool {
@@ -740,6 +743,15 @@ struct SequencerGridV2View: View {
                                                                markIndex: markIdx)
                     }
                 }
+                // B84 per-mark: only the phrase layer with a labelled
+                // mark can be broken down into words.
+                if viewModel.canBreakdownPhrase(rowIndex: target.rowIndex,
+                                                 markIndex: markIdx) {
+                    Button("Breakdown This Phrase") {
+                        _ = viewModel.breakdownPhrase(rowIndex: target.rowIndex,
+                                                        markIndex: markIdx)
+                    }
+                }
                 Button("Delete Mark", role: .destructive) {
                     _ = viewModel.deleteTimingMark(rowIndex: target.rowIndex,
                                                     markIndex: markIdx)
@@ -949,6 +961,33 @@ struct SequencerGridV2View: View {
                     Text("View as Spectrogram")
                 }
             }
+            // B43 alt-track switch — only surfaced when the sequence
+            // declares at least one alternate audio track. Selection
+            // is purely cosmetic (waveform-only); playback stays on
+            // the main track.
+            if viewModel.altAudioTrackNames.count > 0 {
+                Button {
+                    viewModel.setActiveWaveformTrack(-1)
+                } label: {
+                    if viewModel.activeWaveformTrack == -1 {
+                        Label("Main Audio", systemImage: "checkmark")
+                    } else {
+                        Text("Main Audio")
+                    }
+                }
+                ForEach(Array(viewModel.altAudioTrackNames.enumerated()),
+                         id: \.offset) { idx, name in
+                    Button {
+                        viewModel.setActiveWaveformTrack(idx)
+                    } label: {
+                        if viewModel.activeWaveformTrack == idx {
+                            Label(name, systemImage: "checkmark")
+                        } else {
+                            Text(name)
+                        }
+                    }
+                }
+            }
             // A7 sound classification — stacks on top of the filter
             // pick too. First tap kicks off classification (or re-
             // presents the picker if already done); tapping again
@@ -1083,6 +1122,14 @@ struct SequencerGridV2View: View {
         .sheet(isPresented: Bindable(viewModel).showingDisplayElements) {
             DisplayElementsSheet()
                 .environment(viewModel)
+        }
+        // B97 Find / Replace inspector sheet. ⌘F shortcut wires up
+        // through the Edit menu in `XLightsCommands` too.
+        .sheet(isPresented: Bindable(viewModel).findReplacePresented) {
+            FindReplaceSheet(replaceText: $findReplaceText,
+                              onDone: { viewModel.findReplacePresented = false })
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
         }
         // B70 rename-timing-mark alert.
         .alert("Rename Mark",
@@ -1452,6 +1499,7 @@ struct SequencerGridV2View: View {
                 get: { timeline.hScrollOffsetPx },
                 set: { timeline.hScrollOffsetPx = $0 }),
             onSeek: { ms in viewModel.seekTo(ms: ms) },
+            onScrubSeek: { ms in viewModel.scrubSeekTo(ms: ms) },
             onPinchZoom: pinchZoomAction,
             onUserInteraction: { timeline.noteUserInteraction() },
             loopStartMS: viewModel.loopStartMS,
@@ -1711,6 +1759,13 @@ struct SequencerGridV2View: View {
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
+                    },
+                    onConvertToPerModel: { allLayers in
+                        viewModel.convertEffectsToPerModel(rowIndex: row.id,
+                                                            allLayers: allLayers)
+                    },
+                    onPromoteNodeEffects: {
+                        viewModel.promoteNodeEffects(rowIndex: row.id)
                     },
                     unusedLayerCount: Int(viewModel.document.unusedLayerCount(atRow: Int32(row.id))),
                     onDeleteUnusedLayers: {

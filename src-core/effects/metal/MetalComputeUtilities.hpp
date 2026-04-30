@@ -108,7 +108,8 @@ public:
     id<MTLDevice> device;
     id<MTLLibrary> library;
     id<MTLCommandQueue> commandQueue;
-
+    NSUInteger maxTextureSize = 16384;
+    NSUInteger metalBufferSizeThreshold = 2048;
 
     id<MTLComputePipelineState> xrotateFunction;
     id<MTLComputePipelineState> yrotateFunction;

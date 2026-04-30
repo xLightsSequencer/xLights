@@ -359,6 +359,7 @@
         delete kv.second;
     }
     _fontTextures.clear();
+    [super dealloc];
 }
 
 - (void)purgeTextureCaches {
@@ -539,7 +540,7 @@ static bool _isAsciiPrintable(NSString* text) {
             NSForegroundColorAttributeName: [UIColor
                 colorWithRed:red green:green blue:blue alpha:alpha],
         };
-        CGFloat scale = [UIScreen mainScreen].scale;
+        CGFloat scale = UITraitCollection.currentTraitCollection.displayScale;
         if (scale <= 0) scale = 2.0;
         int pxW = (int)ceil(size.width * scale);
         int pxH = (int)ceil(size.height * scale);
@@ -548,7 +549,7 @@ static bool _isAsciiPrintable(NSString* text) {
         CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
         CGContextRef cgCtx = CGBitmapContextCreate(
             rgba.get(), pxW, pxH, 8, pxW * 4, cs,
-            kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+            (uint32_t)kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
         CGColorSpaceRelease(cs);
         if (!cgCtx) return;
         UIGraphicsPushContext(cgCtx);

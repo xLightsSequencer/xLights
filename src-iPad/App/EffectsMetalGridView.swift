@@ -96,6 +96,18 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.stateLookup = stateLookup
         ctx.fadeProvider = fadeProvider
         ctx.iconProvider = iconProvider
+        // B25: refresh the bracket palette from the document's
+        // ColorManager-fed cache. Cheap — four C++ map lookups
+        // behind ObjC dispatch.
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0
+        document.bracketColor(forState: .default, outR: &r, outG: &g, outB: &b)
+        ctx.bracketDefault = (r, g, b)
+        document.bracketColor(forState: .selected, outR: &r, outG: &g, outB: &b)
+        ctx.bracketSelected = (r, g, b)
+        document.bracketColor(forState: .locked, outR: &r, outG: &g, outB: &b)
+        ctx.bracketLocked = (r, g, b)
+        document.bracketColor(forState: .disabled, outR: &r, outG: &g, outB: &b)
+        ctx.bracketDisabled = (r, g, b)
         ctx.onUpdateScrollX = { newX in scrollOffsetX = newX }
         ctx.onUpdateScrollY = { newY in scrollOffsetY = newY }
         ctx.onUserInteraction = onUserInteraction
@@ -136,6 +148,14 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var stateLookup = EffectStateLookup()
         var fadeProvider: (Int, Int) -> (Float, Float) = { _, _ in (0, 0) }
         var iconProvider: (String, Int) -> Data? = { _, _ in nil }
+        // B25: per-state bracket colours sourced from the show folder's
+        // <colors> palette via XLSequenceDocument. Cached once per
+        // updateUIView pass — dirt cheap (4 bridge calls) and picks
+        // up palette edits on the next SwiftUI refresh.
+        var bracketDefault:  (CGFloat, CGFloat, CGFloat) = (0.75, 0.75, 0.75)
+        var bracketSelected: (CGFloat, CGFloat, CGFloat) = (0.80, 0.40, 1.00)
+        var bracketLocked:   (CGFloat, CGFloat, CGFloat) = (0.78, 0.00, 0.00)
+        var bracketDisabled: (CGFloat, CGFloat, CGFloat) = (0.78, 0.78, 0.00)
         var onUpdateScrollX: (CGFloat) -> Void = { _ in }
         var onUpdateScrollY: (CGFloat) -> Void = { _ in }
         var onUserInteraction: (() -> Void)?
@@ -497,11 +517,13 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 }
                 let locked = c.stateLookup.isLocked(row.id, eIdx)
                 let disabled = c.stateLookup.isDisabled(row.id, eIdx)
+                // B25: ColorManager-sourced bracket palette so user-
+                // customised desktop colours show up here too.
                 let col: (CGFloat, CGFloat, CGFloat)
-                if disabled      { col = (0.45, 0.45, 0.45) }
-                else if isSel    { col = (1.00, 0.85, 0.25) }
-                else if locked   { col = (0.65, 0.80, 1.00) }
-                else             { col = (0.85, 0.85, 0.85) }
+                if disabled      { col = c.bracketDisabled }
+                else if isSel    { col = c.bracketSelected }
+                else if locked   { col = c.bracketLocked }
+                else             { col = c.bracketDefault }
                 let fadeIn: Float
                 let fadeOut: Float
                 if isDragged, let d = c.activeDrag {
@@ -535,7 +557,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 vis.append(Visible(
                     rowId: d.srcRowId, effectIndex: d.effectIndex, name: effect.name,
                     x1: x1, x2: x2, top: top, bottom: bottom,
-                    stroke: (1, 0.85, 0.25),
+                    stroke: c.bracketSelected,
                     disabled: false, locked: false,
                     fadeInSec: d.liveFadeInSec, fadeOutSec: d.liveFadeOutSec))
             }
@@ -620,7 +642,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         bridge.flushLineBatch()
 
         // Icons + name labels.
-        let screenScale = UIScreen.main.scale
+        let screenScale = UITraitCollection.current.displayScale
         for e in vis {
             let width = e.x2 - e.x1
             guard width > minIconWidth else { continue }

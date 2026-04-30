@@ -19,6 +19,13 @@ set(XL_LIB  ${CMAKE_SOURCE_DIR}/lib)
 
 if(MSVC)
     add_compile_options("/utf-8")
+    # /MP — compile multiple source files in parallel within a single project.
+    # The old .vcxproj had this; without it cmake builds are significantly slower.
+    # Omit when a compiler launcher (sccache/ccache) is active because those
+    # tools manage their own parallelism and /MP conflicts with them.
+    if(NOT CMAKE_CXX_COMPILER_LAUNCHER)
+        add_compile_options("/MP")
+    endif()
     # Pin the runtime library so every .obj in the build uses the same CRT.
     # Visual Studio is a multi-config generator: CMAKE_BUILD_TYPE is empty at
     # configure time, so use a generator expression to pick MD vs MDd per config.
@@ -106,11 +113,39 @@ endif()
 find_package(OpenGL REQUIRED)
 
 # ─── FFmpeg ─────────────────────────────────────────────────────────────────
+# vcpkg's FFmpeg port does not ship FFMPEGConfig.cmake so find_package(FFMPEG)
+# in config mode fails. Use find_path / find_library for both paths — the vcpkg
+# toolchain adds installed/ to CMAKE_PREFIX_PATH so the vcpkg-installed headers
+# and libs are found automatically without extra hints.
 if(XLIGHTS_USE_VCPKG)
-    # vcpkg FFmpeg uses variables, not imported targets.
-    find_package(FFMPEG REQUIRED)
-    set(FFMPEG_INCLUDE_DIR "${FFMPEG_INCLUDE_DIRS}")
-    set(FFMPEG_LIBS ${FFMPEG_LIBRARIES})
+    # _VCPKG_INSTALLED_DIR is set by vcpkg.cmake to the installed/ root.
+    # Build an explicit hint so find_path/find_library don't depend on
+    # CMAKE_PREFIX_PATH propagation order.
+    if(DEFINED _VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_vcpkg_triplet_dir "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    elseif(DEFINED ENV{VCPKG_ROOT} AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_vcpkg_triplet_dir "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}")
+    else()
+        set(_vcpkg_triplet_dir "")
+    endif()
+
+    find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
+        HINTS "${_vcpkg_triplet_dir}/include"
+        NO_DEFAULT_PATH)
+    if(NOT FFMPEG_INCLUDE_DIR)
+        message(FATAL_ERROR "FFmpeg headers not found in '${_vcpkg_triplet_dir}/include'."
+                            " Run: vcpkg install ffmpeg[avcodec,avformat,avfilter,avutil,swscale,swresample]")
+    endif()
+    foreach(_ff avcodec avformat avutil avfilter swscale swresample)
+        string(TOUPPER ${_ff} _FF_UPPER)
+        find_library(${_FF_UPPER}_LIB NAMES ${_ff}
+            HINTS "${_vcpkg_triplet_dir}/lib"
+            NO_DEFAULT_PATH)
+        if(NOT ${_FF_UPPER}_LIB)
+            message(FATAL_ERROR "FFmpeg lib '${_ff}' not found in '${_vcpkg_triplet_dir}/lib'.")
+        endif()
+        list(APPEND FFMPEG_LIBS ${${_FF_UPPER}_LIB})
+    endforeach()
 else()
     find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
         HINTS ${XL_INC}/ffmpeg-6/include
@@ -223,6 +258,7 @@ file(GLOB_RECURSE SRC_CORE
     src-core/cad/*.cpp
     src-core/controllers/*.cpp
     src-core/discovery/*.cpp
+    src-core/import_export/*.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
     src-core/graphics/xlGraphicsAccumulators.cpp

@@ -20,6 +20,7 @@
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
+#include <wx/srchctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -60,6 +61,7 @@ class VendorModelDialog: public wxDialog
 	int _modelHeightMM = -1;
 	int _modelDepthMM = -1;
     std::vector<DownloadedModelInfo> _downloadedModels;
+    wxTreeItemId _lastSearchItem;
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
@@ -78,6 +80,7 @@ class VendorModelDialog: public wxDialog
     [[nodiscard]] std::vector<MModelWiring*> GetSelectedWirings();
     void DownloadSelectedModels();
     [[nodiscard]] wxTreeItemId GetFocusedItem() const;
+    void UpdatePanelForItem(wxTreeItemId item);
 
     // ----- Catalog filter (experimental) -----
     // Single live-filter input that narrows the tree to model nodes
@@ -131,7 +134,6 @@ class VendorModelDialog: public wxDialog
 		wxButton* Button_InsertModel;
 		wxButton* Button_Next;
 		wxButton* Button_Prior;
-		wxButton* Button_Search;
 		wxCheckBox* CheckBox_DontDownload;
 		wxHyperlinkCtrl* HyperlinkCtrl_Facebook;
 		wxHyperlinkCtrl* HyperlinkCtrl_ModelWebLink;
@@ -142,6 +144,7 @@ class VendorModelDialog: public wxDialog
 		wxPanel* Panel3;
 		wxPanel* PanelVendor;
 		wxPanel* Panel_Item;
+		wxSearchCtrl* TextCtrl_Search;
 		wxSplitterWindow* SplitterWindow1;
 		wxStaticBitmap* StaticBitmap_ModelImage;
 		wxStaticBitmap* StaticBitmap_VendorImage;
@@ -149,7 +152,6 @@ class VendorModelDialog: public wxDialog
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
 		wxTextCtrl* TextCtrl_ModelDetails;
-		wxTextCtrl* TextCtrl_Search;
 		wxTextCtrl* TextCtrl_VendorDetails;
 		wxTreeCtrl* TreeCtrl_Navigator;
 		//*)
@@ -159,7 +161,6 @@ class VendorModelDialog: public wxDialog
 		//(*Identifiers(VendorModelDialog)
 		static const wxWindowID ID_TREECTRL1;
 		static const wxWindowID ID_TEXTCTRL3;
-		static const wxWindowID ID_BUTTON4;
 		static const wxWindowID ID_PANEL3;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_STATICBITMAP1;
@@ -202,6 +203,7 @@ class VendorModelDialog: public wxDialog
 		void OnCheckBox_DontDownloadClick(wxCommandEvent& event);
 		void OnTextCtrl_SearchText(wxCommandEvent& event);
 		void OnButton_SearchClick(wxCommandEvent& event);
+		void OnSearchCancelClick(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

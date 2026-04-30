@@ -761,7 +761,6 @@ private:
 //(*IdInit(VendorModelDialog)
 const wxWindowID VendorModelDialog::ID_TREECTRL1 = wxNewId();
 const wxWindowID VendorModelDialog::ID_TEXTCTRL3 = wxNewId();
-const wxWindowID VendorModelDialog::ID_BUTTON4 = wxNewId();
 const wxWindowID VendorModelDialog::ID_PANEL3 = wxNewId();
 const wxWindowID VendorModelDialog::ID_CHECKBOX1 = wxNewId();
 const wxWindowID VendorModelDialog::ID_STATICBITMAP1 = wxNewId();
@@ -805,7 +804,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     wxFlexGridSizer* FlexGridSizer6;
     wxFlexGridSizer* FlexGridSizer7;
     wxFlexGridSizer* FlexGridSizer8;
-    wxFlexGridSizer* FlexGridSizer9;
+
 
     Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX, _T("id"));
     SetClientSize(wxSize(800,600));
@@ -823,13 +822,10 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     FlexGridSizer2->AddGrowableRow(0);
     TreeCtrl_Navigator = new wxTreeCtrl(Panel3, ID_TREECTRL1, wxDefaultPosition, wxSize(200,-1), wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL, wxDefaultValidator, _T("ID_TREECTRL1"));
     FlexGridSizer2->Add(TreeCtrl_Navigator, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer9 = new wxFlexGridSizer(0, 2, 0, 0);
-    FlexGridSizer9->AddGrowableCol(0);
-    TextCtrl_Search = new wxTextCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL3"));
-    FlexGridSizer9->Add(TextCtrl_Search, 1, wxALL|wxEXPAND, 5);
-    Button_Search = new wxButton(Panel3, ID_BUTTON4, _("Search"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON4"));
-    FlexGridSizer9->Add(Button_Search, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    FlexGridSizer2->Add(FlexGridSizer9, 1, wxALL|wxEXPAND, 5);
+    TextCtrl_Search = new wxSearchCtrl(Panel3, ID_TEXTCTRL3, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    TextCtrl_Search->SetDescriptiveText("Search models...");
+    TextCtrl_Search->ShowCancelButton(true);
+    FlexGridSizer2->Add(TextCtrl_Search, 0, wxALL|wxEXPAND, 5);
     Panel3->SetSizer(FlexGridSizer2);
     Panel1 = new wxPanel(SplitterWindow1, ID_PANEL1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL1"));
     FlexGridSizer3 = new wxFlexGridSizer(0, 1, 0, 0);
@@ -907,8 +903,9 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
 
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_ITEM_ACTIVATED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorItemActivated);
     Connect(ID_TREECTRL1, wxEVT_COMMAND_TREE_SEL_CHANGED, (wxObjectEventFunction)&VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged);
-    Connect(ID_TEXTCTRL3, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&VendorModelDialog::OnTextCtrl_SearchText);
-    Connect(ID_BUTTON4, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnButton_SearchClick);
+    TextCtrl_Search->Bind(wxEVT_TEXT, &VendorModelDialog::OnTextCtrl_SearchText, this);
+    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &VendorModelDialog::OnButton_SearchClick, this);
+    TextCtrl_Search->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &VendorModelDialog::OnSearchCancelClick, this);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&VendorModelDialog::OnCheckBox_DontDownloadClick);
     Connect(ID_HYPERLINKCTRL4, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_FacebookClick);
     Connect(ID_HYPERLINKCTRL2, wxEVT_COMMAND_HYPERLINK, (wxObjectEventFunction)&VendorModelDialog::OnHyperlinkCtrl_WebsiteClick);
@@ -948,10 +945,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
         Bind(wxEVT_TIMER, &VendorModelDialog::OnCatalogFilterDebounce,
              this, _filterDebounceTimer->GetId());
 
-        if (TextCtrl_Search != nullptr) TextCtrl_Search->Hide();
-        if (Button_Search != nullptr) Button_Search->Hide();
-        if (FlexGridSizer9 != nullptr) FlexGridSizer2->Hide(FlexGridSizer9, true);
-
         Panel3->Layout();
     }
 
@@ -963,8 +956,6 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     HyperlinkCtrl_Facebook->SetNormalColour(CyanOrBlue());
     HyperlinkCtrl_Website->SetNormalColour(CyanOrBlue());
     HyperlinkCtrl_ModelWebLink->SetNormalColour(CyanOrBlue());
-    Button_Search->SetDefault();
-
     ValidateWindow();
 }
 
@@ -1698,22 +1689,30 @@ void VendorModelDialog::OnTreeCtrl_NavigatorItemActivated(wxTreeEvent& event)
 
 void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
 {
-    static bool busy = false;
-
-    if (busy || _treeRebuilding)
-    {
-        return;
+    if (_treeRebuilding) return;
+    wxTreeItemId startid = event.GetItem();
+    if (!startid.IsOk()) {
+        startid = GetFocusedItem();
     }
+    // User manually selected a different item — clear the search bold/cursor.
+    if (_lastSearchItem.IsOk() && startid != _lastSearchItem) {
+        TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+        _lastSearchItem = wxTreeItemId();
+    }
+    UpdatePanelForItem(startid);
+}
 
+void VendorModelDialog::UpdatePanelForItem(wxTreeItemId item)
+{
+    static bool busy = false;
+    if (busy) return;
     busy = true;
-
-    wxTreeItemId startid = GetFocusedItem();
 
     SetCursor(wxCURSOR_WAIT);
 
-    if (startid.IsOk())
+    if (item.IsOk())
     {
-        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(startid);
+        wxTreeItemData* tid = TreeCtrl_Navigator->GetItemData(item);
 
         if (tid != nullptr)
         {
@@ -1726,14 +1725,12 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MVendorTreeItemData*)tid)->GetVendor());
                 PopulateModelPanel((MModel*)nullptr);
-                TreeCtrl_Navigator->SetFocus();
             }
             else if (type == "Model")
             {
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
-                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MModelTreeItemData*)tid)->GetModel());
                 PopulateVendorPanel(((MModelTreeItemData*)tid)->GetModel()->_vendor);
             }
@@ -1742,7 +1739,6 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->GetPage(0)->Hide();
                 NotebookPanels->GetPage(1)->Show();
                 NotebookPanels->SetSelection(1);
-                TreeCtrl_Navigator->SetFocus();
                 PopulateModelPanel(((MWiringTreeItemData*)tid)->GetWiring());
                 PopulateVendorPanel(((MWiringTreeItemData*)tid)->GetWiring()->_model->_vendor);
             }
@@ -1753,7 +1749,6 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
                 NotebookPanels->SetSelection(0);
                 PopulateVendorPanel(((MCategoryTreeItemData*)tid)->GetCategory()->GetVendor());
                 PopulateModelPanel((MModel*)nullptr);
-                TreeCtrl_Navigator->SetFocus();
             }
         }
         else
@@ -1769,16 +1764,8 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     }
 
     ValidateWindow();
-
     SetCursor(wxCURSOR_DEFAULT);
-
     busy = false;
-
-    if (startid != GetFocusedItem())
-    {
-        // selection changed while we were processing so lets try again
-        wxPostEvent(this, event);
-    }
 }
 
 void VendorModelDialog::OnHyperlinkCtrl_WebsiteClick(wxCommandEvent& event)
@@ -1793,15 +1780,6 @@ void VendorModelDialog::OnHyperlinkCtrl_FacebookClick(wxCommandEvent& event)
 
 void VendorModelDialog::ValidateWindow()
 {
-    wxTreeItemId current = GetFocusedItem();
-    if (TextCtrl_Search->GetValue().Trim(true).Trim(false) == "" || !current.IsOk())
-    {
-        Button_Search->Disable();
-    }
-    else
-    {
-        Button_Search->Enable();
-    }
 
     // Check multi-select for Insert button state and label
     auto wirings = GetSelectedWirings();
@@ -2185,6 +2163,21 @@ void VendorModelDialog::SuppressVendor(const std::string& vendor, bool suppress)
 
 void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 {
+	if (_lastSearchItem.IsOk()) {
+		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+	}
+	_lastSearchItem = wxTreeItemId();
+	ValidateWindow();
+}
+
+void VendorModelDialog::OnSearchCancelClick(wxCommandEvent& event)
+{
+	if (_lastSearchItem.IsOk()) {
+		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+	}
+	_lastSearchItem = wxTreeItemId();
+	TextCtrl_Search->SetValue("");
+	TreeCtrl_Navigator->SetFocus();
 	ValidateWindow();
 }
 
@@ -2197,7 +2190,17 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 		return;
 	}
 
-	wxTreeItemId current = GetFocusedItem();
+	// Prefer the item we last landed on, so repeated presses advance through results.
+	// GetSelection() is undefined for wxTR_MULTIPLE trees; GetFocusedItem() loses its
+	// value when the tree doesn't have application focus (Windows). A member variable
+	// is the only reliable way to track the search cursor.
+	wxTreeItemId current = _lastSearchItem;
+	if (!current.IsOk()) {
+		current = GetFocusedItem();
+	}
+	if (!current.IsOk()) {
+		current = TreeCtrl_Navigator->GetRootItem();
+	}
 	wxTreeItemId start = current;
 	if (current.IsOk())
 	{
@@ -2256,8 +2259,16 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 
 			if (current != TreeCtrl_Navigator->GetRootItem() && TreeCtrl_Navigator->GetItemText(current).Lower().Contains(TextCtrl_Search->GetValue().Lower()))
 			{
-				TreeCtrl_Navigator->SelectItem(current);
+				// Bold the found item for visual feedback without touching the
+				// selection — SelectItem on wxTR_MULTIPLE clears all other selections
+				// on Windows, which would wipe out the user's Ctrl+click choices.
+				if (_lastSearchItem.IsOk()) {
+					TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+				}
+				_lastSearchItem = current;
+				TreeCtrl_Navigator->SetItemBold(current, true);
 				TreeCtrl_Navigator->EnsureVisible(current);
+				UpdatePanelForItem(current);
 				if (current == start)
 				{
 					wxBell();

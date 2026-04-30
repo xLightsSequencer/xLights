@@ -66,9 +66,11 @@ static FFmpegAudioDecoder __audioDecoder;
 
 #define PCMFUDGE 32768
 
+#if !TARGET_OS_IPHONE
 static void ProgressFunction(int p) {
     // placeholder for polyphonic transcription progress
 }
+#endif
 
 // Audio Manager Functions
 

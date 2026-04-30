@@ -45,7 +45,7 @@ MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
 }
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 2048) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         return false;
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {
@@ -354,7 +354,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
 bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
     PixelBufferClass::LayerInfo *li = pixelBuffer->layers[layer];
     int ms = li->BufferHt * li->BufferWi;
-    if (ms < 1024) {
+    if (ms < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         li->maskSize = 0; // start with empty mask
         return false;
     }
@@ -841,12 +841,14 @@ void MetalRenderBufferComputeData::waitForCompletion() {
     }
 }
 bool MetalRenderBufferComputeData::blur(int radius) {
-    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2)) || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 1024)) {
+    if ((renderBuffer->BufferHt < (radius * 2))
+        || (renderBuffer->BufferWi < (radius * 2))
+        || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
-    if (renderBuffer->BufferHt > 16384 || renderBuffer->BufferWi > 16384) {
-        // max size of Textures on macOS
+    if ((NSUInteger)renderBuffer->BufferHt > MetalComputeUtilities::INSTANCE.maxTextureSize
+        || (NSUInteger)renderBuffer->BufferWi > MetalComputeUtilities::INSTANCE.maxTextureSize) {
         return false;
     }
     @autoreleasepool {
@@ -1030,7 +1032,17 @@ MetalComputeUtilities::MetalComputeUtilities() {
         device = nil;
         return;
     }
-    
+
+    if ([device supportsFamily:MTLGPUFamilyApple10]) {
+        maxTextureSize = 32768; // A19/M5 and later (per Metal Feature Set Tables, Feb 2026)
+    } else if ([device supportsFamily:MTLGPUFamilyApple3] || [device supportsFamily:MTLGPUFamilyMac2]) {
+        maxTextureSize = 16384; // A9/M1 through A18/M4
+    } else if ([device supportsFamily:MTLGPUFamilyApple2]) {
+        maxTextureSize = 8192;  // A8
+    } else {
+        maxTextureSize = 4096;  // A7
+    }
+
     NSError *libraryError = NULL;
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
     if (!libraryFile) {

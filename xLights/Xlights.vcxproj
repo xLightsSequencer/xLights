@@ -1270,6 +1270,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\media\xLightsVamp.h" />
     <ClInclude Include="..\src-core\effects\BufferStyles.h" />
     <ClInclude Include="..\src-core\import_export\AutoMapper.h" />
+    <ClInclude Include="..\src-core\import_export\BasicImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\EffectMapper.h" />
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />

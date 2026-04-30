@@ -89,7 +89,7 @@ MetalShockwaveEffect::~MetalShockwaveEffect() {
 
 void MetalShockwaveEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData * rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || ((buffer.BufferWi * buffer.BufferHt) < 1024)) {
+    if (rbcd == nullptr || ((buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         ShockwaveEffect::Render(effect, SettingsMap, buffer);
         return;
     }

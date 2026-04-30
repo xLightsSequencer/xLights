@@ -111,7 +111,8 @@ void MetalKaleidoscopeEffect::Render(Effect *effect, const SettingsMap &Settings
     }
 
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || !data->canRenderType(type) || (buffer.BufferWi * buffer.BufferHt) < 2048) {
+    if (rbcd == nullptr || !data->canRenderType(type)
+        || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         KaleidoscopeEffect::Render(effect, SettingsMap, buffer);
         return;
     }

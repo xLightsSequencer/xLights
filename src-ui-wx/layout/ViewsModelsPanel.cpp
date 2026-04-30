@@ -18,6 +18,8 @@
 #include <pugixml.hpp>
 #include <wx/artprov.h>
 #include <wx/dnd.h>
+#include <wx/srchctrl.h>
+#include <wx/timer.h>
 
 #include "model-16.xpm"
 #include "timing-16.xpm"
@@ -252,7 +254,36 @@ ViewsModelsPanel::ViewsModelsPanel(xLightsFrame *frame, wxWindow* parent, wxWind
     _gridBagSizer = GridBagSizer1;
     _viewButtonsSizer = FlexGridSizer8;
 
-    
+    // Insert a filter control above the "Available" (non-models) list.
+    // The wxSmith block put ListCtrlNonModels at (1, 0) span(3, 1).
+    // Detach it, build a vertical box sizer holding [filter, listctrl],
+    // and put the whole sizer back at the original GB position. We need
+    // to wrap them in a sizer (not put the filter in its own GB row)
+    // because row 1 of the GridBagSizer is stretched by ListCtrlViews
+    // on the right, which would leave a tall gap between the filter
+    // and the list.
+    GridBagSizer1->Detach(ListCtrlNonModels);
+    TextCtrl_NonModelsFilter = new wxSearchCtrl(this, wxID_ANY, wxEmptyString,
+                                                wxDefaultPosition, wxDefaultSize,
+                                                wxTE_PROCESS_ENTER);
+    TextCtrl_NonModelsFilter->SetDescriptiveText(_("Filter models..."));
+    TextCtrl_NonModelsFilter->ShowCancelButton(true);
+    auto* nonModelsSizer = new wxBoxSizer(wxVERTICAL);
+    nonModelsSizer->Add(TextCtrl_NonModelsFilter, 0, wxBOTTOM | wxEXPAND, 2);
+    nonModelsSizer->Add(ListCtrlNonModels, 1, wxEXPAND, 0);
+    GridBagSizer1->Add(nonModelsSizer, wxGBPosition(1, 0), wxGBSpan(3, 1),
+                       wxALL | wxEXPAND, 2);
+    TextCtrl_NonModelsFilter->Bind(wxEVT_TEXT,
+        &ViewsModelsPanel::OnNonModelsFilterText, this);
+    TextCtrl_NonModelsFilter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN,
+        &ViewsModelsPanel::OnNonModelsFilterCancel, this);
+
+    // Debounce keystrokes so PopulateModels (full rebuild of both lists)
+    // doesn't run on every character on large shows.
+    _filterDebounceTimer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &ViewsModelsPanel::OnFilterDebounceTimer, this,
+         _filterDebounceTimer->GetId());
+
     GridBagSizer1->AddGrowableCol(0, 2);
     GridBagSizer1->AddGrowableCol(2, 1);
     GridBagSizer1->AddGrowableRow(3);
@@ -350,6 +381,12 @@ void ViewsModelsPanel::SetEffectSequenceMode(bool effectSeq)
         // Expand ListCtrlModels to cover the right side
         _gridBagSizer->SetItemPosition(ListCtrlModels, wxGBPosition(0, 2));
         _gridBagSizer->SetItemSpan(ListCtrlModels, wxGBSpan(4, 1));
+        // Row 1 is shared with the [filter + ListCtrlNonModels] box sizer
+        // on the left (col 0). Making row 1 growable lets the right-side
+        // ListCtrlModels (rows 0-3) get a fair vertical share. The filter
+        // itself does NOT stretch because inside the box sizer it sits at
+        // proportion 0; the listctrl below it (proportion 1) absorbs all
+        // row growth.
         _gridBagSizer->AddGrowableRow(1);
         _gridBagSizer->RemoveGrowableCol(2);
         _gridBagSizer->AddGrowableCol(2, 2);
@@ -388,6 +425,12 @@ ViewsModelsPanel::~ViewsModelsPanel()
 {
     //(*Destroy(ViewsModelsPanel)
     //*)
+
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+        delete _filterDebounceTimer;
+        _filterDebounceTimer = nullptr;
+    }
 
     //for (int i = 0; i < ListCtrlNonModels->GetItemCount(); ++i)
     //{
@@ -531,10 +574,14 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
             }
         }
 
-        // Add model groups not already in the sequence elements list
+        // Add model groups not already in the sequence elements list.
+        // Check the Available filter BEFORE allocating the ModelElement -
+        // AddModelToNotList drops filtered items without inserting, so an
+        // up-front allocation would leak per keystroke on a filtered list.
         for (const auto& it : _xlFrame->AllModels) {
             if (it.second->GetDisplayAs() == DisplayAsType::ModelGroup) {
-                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                if (!_sequenceElements->ElementExists(it.first, 0) &&
+                    !IsFilteredOutOfNonModels(it.first)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
                 }
@@ -544,7 +591,8 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
         // Add regular models not already in the sequence elements list
         for (const auto& it : _xlFrame->AllModels) {
             if (it.second->GetDisplayAs() != DisplayAsType::ModelGroup) {
-                if (!_sequenceElements->ElementExists(it.first, 0)) {
+                if (!_sequenceElements->ElementExists(it.first, 0) &&
+                    !IsFilteredOutOfNonModels(it.first)) {
                     ModelElement* me = new ModelElement(it.first);
                     if (me != nullptr) AddModelToNotList(me);
                 }
@@ -556,13 +604,20 @@ void ViewsModelsPanel::PopulateModels(const std::string& selectModels)
                 if (topM + visibileM - 1 < ListCtrlModels->GetItemCount()) {
                     ListCtrlModels->EnsureVisible(topM + visibileM - 1);
                 }
-                ListCtrlModels->EnsureVisible(topM);
+                if (topM >= 0 && topM < ListCtrlModels->GetItemCount()) {
+                    ListCtrlModels->EnsureVisible(topM);
+                }
             }
             if (ListCtrlNonModels->GetItemCount() > 0) {
                 if (topN + visibileN - 1 < ListCtrlNonModels->GetItemCount()) {
                     ListCtrlNonModels->EnsureVisible(topN + visibileN - 1);
                 }
-                ListCtrlNonModels->EnsureVisible(topN);
+                // Filtering can shrink the non-models list below topN, so
+                // clamp before calling EnsureVisible to avoid the wx
+                // generic listctrl assert.
+                if (topN >= 0 && topN < ListCtrlNonModels->GetItemCount()) {
+                    ListCtrlNonModels->EnsureVisible(topN);
+                }
             }
         }
 
@@ -889,6 +944,23 @@ void ViewsModelsPanel::AddSelectedModels(int pos)
     }
 
     MarkViewsChanged();
+
+    // Stop any pending debounce regardless of whether the filter
+    // currently looks empty. The user could have typed into the box,
+    // backspaced to empty, then immediately added items — that leaves
+    // a pending one-shot timer that would fire after our PopulateModels
+    // call below and re-rebuild the list, clobbering the selection /
+    // highlight we're about to set. Always stop first.
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+    }
+    // Clear the Available filter so the user sees the full list again
+    // after moving items to the right (filter served its purpose, reset
+    // state).
+    if (TextCtrl_NonModelsFilter != nullptr && !_nonModelFilter.IsEmpty()) {
+        TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
+        _nonModelFilter.Clear();
+    }
     PopulateModels(wxJoin(addedModels, ',').ToStdString());
 
     // Update Grid
@@ -1438,9 +1510,25 @@ void ViewsModelsPanel::OnLeftUp(wxMouseEvent& event)
 
 #pragma region Non Models
 
+bool ViewsModelsPanel::IsFilteredOutOfNonModels(const std::string& name) const
+{
+    if (_nonModelFilter.IsEmpty()) {
+        return false;
+    }
+    // Case-insensitive substring match. _nonModelFilter is already
+    // lower-cased and held as wxString so we stay encoding-consistent
+    // (avoids std::string round-trips through ToStdString/FromUTF8 that
+    // can break non-ASCII names on non-UTF-8 wx builds).
+    wxString lname = wxString::FromUTF8(name).Lower();
+    return lname.Find(_nonModelFilter) == wxNOT_FOUND;
+}
+
 void ViewsModelsPanel::AddTimingToNotList(Element* timing)
 {
     if (timing != nullptr) {
+        if (IsFilteredOutOfNonModels(timing->GetName())) {
+            return;
+        }
         wxListItem li;
         li.SetId(_numNonModels);
         li.SetText(_(""));
@@ -1455,6 +1543,9 @@ void ViewsModelsPanel::AddTimingToNotList(Element* timing)
 void ViewsModelsPanel::AddModelToNotList(Element* model)
 {
     if (model != nullptr) {
+        if (IsFilteredOutOfNonModels(model->GetName())) {
+            return;
+        }
         wxListItem li;
         li.SetId(_numNonModels);
         li.SetText(_(""));
@@ -1469,6 +1560,35 @@ void ViewsModelsPanel::AddModelToNotList(Element* model)
 
         _numNonModels++;
     }
+}
+
+void ViewsModelsPanel::OnNonModelsFilterText(wxCommandEvent& /*event*/)
+{
+    // Capture the current text immediately so the cached filter stays
+    // in sync with what the user sees, but debounce the expensive
+    // PopulateModels rebuild — restart the one-shot timer on each
+    // keystroke and only rebuild after the user pauses for ~150 ms.
+    _nonModelFilter = TextCtrl_NonModelsFilter->GetValue().Lower();
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Start(kFilterDebounceMs, wxTIMER_ONE_SHOT);
+    }
+}
+
+void ViewsModelsPanel::OnNonModelsFilterCancel(wxCommandEvent& /*event*/)
+{
+    // Explicit cancel — rebuild immediately so the user sees the full
+    // list without waiting for the debounce window.
+    if (_filterDebounceTimer != nullptr) {
+        _filterDebounceTimer->Stop();
+    }
+    TextCtrl_NonModelsFilter->ChangeValue(wxEmptyString);
+    _nonModelFilter.Clear();
+    PopulateModels();
+}
+
+void ViewsModelsPanel::OnFilterDebounceTimer(wxTimerEvent& /*event*/)
+{
+    PopulateModels();
 }
 
 void ViewsModelsPanel::OnListCtrlNonModelsItemSelect(wxListEvent& event)

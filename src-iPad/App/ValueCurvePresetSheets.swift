@@ -84,7 +84,7 @@ struct ValueCurveLoadPresetSheet: View {
     }
 
     private func reload() {
-        let raw = (viewModel.document.savedValueCurves() as? [[String: String]]) ?? []
+        let raw = viewModel.document.savedValueCurves() ?? []
         entries = raw.compactMap { d in
             guard let f = d["filename"], let s = d["serialised"] else { return nil }
             return Entry(filename: f, serialised: s)
@@ -107,7 +107,7 @@ struct VCPresetThumbnail: View {
     let serialised: String
 
     var body: some View {
-        let core = XLValueCurve(serialised: serialised)!
+        let core = XLValueCurve(serialised: serialised)
         Canvas { ctx, size in
             let w = Int(size.width)
             let h = Int(size.height)

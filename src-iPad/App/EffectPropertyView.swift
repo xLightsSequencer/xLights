@@ -207,6 +207,12 @@ struct EffectPropertyView: View {
             MovingHeadFixtureRowView()
         case "MHIpadInfo":
             MovingHeadInfoRowView()
+        case "MHColorRow":
+            MovingHeadColorRowView()
+        case "MHDimmerRow":
+            MovingHeadDimmerRowView()
+        case "MHPathRow":
+            MovingHeadPathRowView()
         case "Sketch_BackgroundRow":
             SketchBackgroundRowView()
         case "Video_DurationRow":

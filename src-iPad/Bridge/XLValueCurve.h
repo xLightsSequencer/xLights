@@ -2,6 +2,8 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 // ObjC bridge over src-core/render/ValueCurve. Wraps a C++ ValueCurve
 // instance and exposes every field the editor needs to Swift. All
 // serialisation routes through ValueCurve::Serialise / ::Deserialise so
@@ -95,3 +97,5 @@
 - (void)reloadFromSerialised:(nonnull NSString*)serialised;
 
 @end
+
+NS_ASSUME_NONNULL_END

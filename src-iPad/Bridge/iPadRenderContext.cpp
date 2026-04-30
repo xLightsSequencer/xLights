@@ -73,11 +73,26 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir) {
 bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
                                        const std::list<std::string>& mediaFolders) {
     _showDir = showDir;
-    _mediaFolders = mediaFolders;
+    _mediaFolders.clear();
 
-    ObtainAccessToURL(showDir, false);
-    for (const auto& folder : _mediaFolders) {
-        ObtainAccessToURL(folder, false);
+    if (!ObtainAccessToURL(showDir, false)) {
+        // Stale security-scoped bookmark for the show folder itself —
+        // every subsequent file open will fail. Log loudly and continue;
+        // the caller will see the load report empty models / settings
+        // and surface a re-pick prompt.
+        spdlog::warn("iPadRenderContext: ObtainAccessToURL failed for show folder '{}' — bookmark likely stale", showDir);
+    }
+    for (const auto& folder : mediaFolders) {
+        if (ObtainAccessToURL(folder, false)) {
+            _mediaFolders.push_back(folder);
+        } else {
+            // Drop the folder entirely so FileUtils doesn't try to
+            // resolve assets through a path it can't actually read.
+            // Without this drop, FixFile silently returns broken paths
+            // and the user sees missing-media warnings with no clue
+            // that the bookmark went stale.
+            spdlog::warn("iPadRenderContext: ObtainAccessToURL failed for media folder '{}' — dropping from search list", folder);
+        }
     }
 
     // Wire the show dir + media folders into FileUtils::FixFile so that
@@ -251,13 +266,67 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         spdlog::error("iPadRenderContext: Failed to load {}: {}", rgbPath, result.description());
     }
 
+    // Load the user-customised <colors> palette so brackets / labels /
+    // gridlines pick up the same look the user configured on desktop.
+    // Re-uses the doc loaded above when possible, falls through to a
+    // separate parse if loading failed.
+    _palette.clear();
+    auto loadPaletteFrom = [this](const pugi::xml_node& root) {
+        auto colorsNode = root.child("colors");
+        if (!colorsNode) return;
+        for (auto c = colorsNode.first_child(); c; c = c.next_sibling()) {
+            PaletteColor pc;
+            pc.r = (uint8_t)std::clamp(c.attribute("Red").as_int(0), 0, 255);
+            pc.g = (uint8_t)std::clamp(c.attribute("Green").as_int(0), 0, 255);
+            pc.b = (uint8_t)std::clamp(c.attribute("Blue").as_int(0), 0, 255);
+            _palette[c.name()] = pc;
+        }
+    };
+    if (result) {
+        auto root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) loadPaletteFrom(root);
+    }
+
     return true;
+}
+
+iPadRenderContext::PaletteColor
+iPadRenderContext::GetEffectBracketColor(EffectBracketState state) const {
+    // Defaults mirror ColorManager::xLights_color[] in
+    // src-ui-wx/color/ColorManager.h. Names match the strings desktop
+    // writes into <colors> so a user's customised palette overrides
+    // the default.
+    const char* key = nullptr;
+    PaletteColor fallback;
+    switch (state) {
+        case EffectBracketState::Default:
+            key = "EffectDefault";
+            fallback = {192, 192, 192};
+            break;
+        case EffectBracketState::Selected:
+            key = "EffectSelected";
+            fallback = {204, 102, 255};
+            break;
+        case EffectBracketState::Locked:
+            key = "LockedEffect";
+            fallback = {200, 0, 0};
+            break;
+        case EffectBracketState::Disabled:
+            key = "DisabledEffect";
+            fallback = {200, 200, 0};
+            break;
+    }
+    auto it = _palette.find(key);
+    return it == _palette.end() ? fallback : it->second;
 }
 
 bool iPadRenderContext::SaveViewpoints() {
     if (_showDir.empty()) return false;
     std::string rgbPath = _showDir + "/xlights_rgbeffects.xml";
-    ObtainAccessToURL(rgbPath, true);
+    if (!ObtainAccessToURL(rgbPath, true)) {
+        spdlog::warn("iPadRenderContext::SaveViewpoints: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
+    }
 
     pugi::xml_document doc;
     auto result = doc.load_file(rgbPath.c_str());
@@ -287,6 +356,74 @@ bool iPadRenderContext::SaveViewpoints() {
                       rgbPath);
         return false;
     }
+    return true;
+}
+
+bool iPadRenderContext::SaveModelStates() {
+    if (_dirtyStateModels.empty()) return true;
+    if (_showDir.empty()) return false;
+
+    std::string rgbPath = _showDir + "/xlights_rgbeffects.xml";
+    if (!ObtainAccessToURL(rgbPath, true)) {
+        spdlog::warn("iPadRenderContext::SaveModelStates: ObtainAccessToURL failed for '{}' — write will likely fail", rgbPath);
+    }
+
+    pugi::xml_document doc;
+    auto result = doc.load_file(rgbPath.c_str());
+    if (!result) {
+        spdlog::error("iPadRenderContext::SaveModelStates: load failed: {}",
+                      result.description());
+        return false;
+    }
+    auto root = doc.child("xrgb");
+    if (!root) root = doc.child("xlights");
+    if (!root) {
+        spdlog::error("iPadRenderContext::SaveModelStates: no root element");
+        return false;
+    }
+    auto modelsNode = root.child("models");
+    if (!modelsNode) {
+        spdlog::error("iPadRenderContext::SaveModelStates: no <models> element");
+        return false;
+    }
+
+    for (const auto& modelName : _dirtyStateModels) {
+        Model* m = _modelManager ? _modelManager->GetModel(modelName) : nullptr;
+        if (!m) {
+            spdlog::warn("iPadRenderContext::SaveModelStates: model '{}' not in manager — skipping",
+                         modelName);
+            continue;
+        }
+        // Find the matching <model> child by Name attribute.
+        pugi::xml_node modelNode;
+        for (auto n = modelsNode.first_child(); n; n = n.next_sibling()) {
+            if (std::string_view(n.name()) != "model") continue;
+            if (modelName == n.attribute("name").as_string()) {
+                modelNode = n;
+                break;
+            }
+        }
+        if (!modelNode) {
+            spdlog::warn("iPadRenderContext::SaveModelStates: <model name='{}'> not found in xml — skipping",
+                         modelName);
+            continue;
+        }
+        // Drop existing <stateInfo> children, then rewrite from the live map.
+        // WriteStateInfo prepends, so the on-disk order ends up reversed
+        // relative to the in-memory map iteration order — same behaviour
+        // desktop has, so this matches the canonical file layout.
+        while (auto existing = modelNode.child("stateInfo")) {
+            modelNode.remove_child(existing);
+        }
+        Model::WriteStateInfo(modelNode, m->GetStateInfo());
+    }
+
+    if (!doc.save_file(rgbPath.c_str(), "  ")) {
+        spdlog::error("iPadRenderContext::SaveModelStates: write failed for {}",
+                      rgbPath);
+        return false;
+    }
+    _dirtyStateModels.clear();
     return true;
 }
 
@@ -394,7 +531,9 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
 bool iPadRenderContext::OpenSequence(const std::string& path) {
     CloseSequence();
 
-    ObtainAccessToURL(path, false);
+    if (!ObtainAccessToURL(path, false)) {
+        spdlog::warn("iPadRenderContext::OpenSequence: ObtainAccessToURL failed for '{}' — bookmark likely stale", path);
+    }
 
     _sequenceFile = std::make_unique<SequenceFile>(path);
     _sequenceDoc = _sequenceFile->Open(_showDir, false, path);
@@ -606,6 +745,33 @@ std::string iPadRenderContext::CopyToMediaFolder(const std::string& file,
 
 AudioManager* iPadRenderContext::GetCurrentMediaManager() const {
     return _sequenceFile ? _sequenceFile->GetMedia() : nullptr;
+}
+
+void iPadRenderContext::SetWaveformTrackIndex(int idx) {
+    if (!_sequenceFile) {
+        _waveformTrackIndex = -1;
+        return;
+    }
+    if (idx < -1) idx = -1;
+    if (idx >= _sequenceFile->GetAltTrackCount()) idx = -1;
+    _waveformTrackIndex = idx;
+}
+
+AudioManager* iPadRenderContext::GetWaveformMedia() const {
+    if (!_sequenceFile) return nullptr;
+    if (_waveformTrackIndex < 0) return _sequenceFile->GetMedia();
+    AudioManager* alt = _sequenceFile->GetAltTrackMedia(_waveformTrackIndex);
+    return alt ? alt : _sequenceFile->GetMedia();
+}
+
+int iPadRenderContext::GetAltTrackCount() const {
+    return _sequenceFile ? _sequenceFile->GetAltTrackCount() : 0;
+}
+
+std::string iPadRenderContext::GetAltTrackDisplayName(int idx) const {
+    if (!_sequenceFile) return "";
+    if (idx < 0 || idx >= _sequenceFile->GetAltTrackCount()) return "";
+    return _sequenceFile->GetAltTrackDisplayName(idx);
 }
 
 const std::string& iPadRenderContext::GetHeaderInfo(HEADER_INFO_TYPES type) const {

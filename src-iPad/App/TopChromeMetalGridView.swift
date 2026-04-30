@@ -14,6 +14,11 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     let peaks: [Float]
     @Binding var scrollOffsetX: CGFloat
     let onSeek: (Int) -> Void
+    /// B40: optional scrub-flavoured seek used while the user is
+    /// actively dragging the playhead from the ruler. Falls back to
+    /// `onSeek` when nil. The view model wires this to a path that
+    /// also fires brief audio bursts so the drag is audible.
+    var onScrubSeek: ((Int) -> Void)?
     let onPinchZoom: (CGFloat, CGFloat) -> Void
     var onUserInteraction: (() -> Void)?
     // B32 loop-region inputs + callbacks. When `hasLoop`, the region
@@ -67,6 +72,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         c.peaks = peaks
         c.scrollOffsetX = scrollOffsetX
         c.onSeek = onSeek
+        c.onScrubSeek = onScrubSeek
         c.onPinchZoom = onPinchZoom
         c.onUpdateScrollX = { scrollOffsetX = $0 }
         c.onUserInteraction = onUserInteraction
@@ -97,6 +103,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         var peaks: [Float] = []
         var scrollOffsetX: CGFloat = 0
         var onSeek: (Int) -> Void = { _ in }
+        var onScrubSeek: ((Int) -> Void)?
         var onPinchZoom: (CGFloat, CGFloat) -> Void = { _, _ in }
         var onUpdateScrollX: (CGFloat) -> Void = { _ in }
         var onUserInteraction: (() -> Void)?
@@ -604,7 +611,7 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
             if c.scrubbingFromRuler {
                 let ms = max(0, min(c.durationMS,
                                      Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
-                c.onSeek(ms)
+                (c.onScrubSeek ?? c.onSeek)(ms)
             } else {
                 c.panStartScrollX = c.scrollOffsetX
             }
@@ -614,7 +621,7 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
             if c.scrubbingFromRuler, c.pixelsPerMS > 0 {
                 let ms = max(0, min(c.durationMS,
                                      Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
-                c.onSeek(ms)
+                (c.onScrubSeek ?? c.onSeek)(ms)
             } else {
                 let t = g.translation(in: self)
                 c.onUpdateScrollX(max(0, c.panStartScrollX - t.x))

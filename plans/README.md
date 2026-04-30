@@ -12,7 +12,7 @@ questions) and links here for the details.
 | [phase-f-window-system.md](phase-f-window-system.md) | F — Window system + Display Elements | ✓ complete |
 | [phase-g-document.md](phase-g-document.md) | G — Document / iCloud polish | ✓ complete |
 | [phase-h-app-store.md](phase-h-app-store.md) | H — App Store readiness | H-0 through H-3 ✓ complete; H-4 / H-5 (TestFlight external group + submission metadata) remaining |
-| [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects (iPad) | I-1 (core extraction + desktop refactor) landed; manual import regression outstanding before merge. I-2 iPad UI is the next major work. |
+| [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects (iPad) | I-1 + I-2 v1.1 + timing-tracks + alias punctuation-strip polish landed. Tools menu, `.xsq` + `.xsqz` source picker, full submodel/strand/node tree, Auto Map at every level, timing-track import popover, apply via core `EffectMapper` family. Pending: model-blending toggle, LSItemContentTypes registration, manual import regression on a vendor sequence. |
 | [followups.md](followups.md) | Cross-phase small items | In progress |
 | [future-effect-presets.md](future-effect-presets.md) | Deferred — G12 effect presets | Not first-pass |
 | [future-pictures-frame-editor.md](future-pictures-frame-editor.md) | Deferred — G6 Pictures / GIF frame-timing editor | Desktop needs redesign too |

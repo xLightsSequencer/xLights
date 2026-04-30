@@ -363,7 +363,7 @@ struct MediaManagerContent: View {
     }
 
     private func reload() {
-        let raw = (viewModel.document.mediaInventoryInSequence() as? [[String: Any]]) ?? []
+        let raw = viewModel.document.mediaInventoryInSequence() ?? []
         items = raw.compactMap { d in
             guard let path = d["path"] as? String,
                   let type = d["type"] as? String else { return nil }

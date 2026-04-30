@@ -14,13 +14,25 @@ All original P0s closed, plus 20+ P1s landed across the 2026-04-20
 and 2026-04-21 sessions. What remains is a short tail of P1 polish
 + a long tail of P2 nice-to-haves.
 
-**Current counts:** 0 × P0, **0 × P1**, ~39 × P2, 0 × Verify,
-1 × Deferred, 1 × Removed. (B26 ColorCurve gradient confirmed
+**Current counts:** 0 × P0, **0 × P1**, ~26 × P2, 0 × Verify,
+3 × Deferred, 1 × Removed. (B26 ColorCurve gradient confirmed
 landed via BM-6 device verify; B64 layer-count `[N]` indicator
 confirmed already shipping in `RowHeaderViews.swift:352`. B34
 tags + B35 tag menu + B49 export model + B94 scrollbars + B15
-randomise/reset + B19 presets stub landed 2026-04-22.) **All
-P1 gaps closed** — remaining work is P2 polish only.
+randomise/reset + B19 presets stub landed 2026-04-22. Second
+2026-04-28 batch added B25 (ColorManager bracket palette), B40
+(audio scrub during ruler drag), B43 (alt-track waveform
+switch), B84-per-mark (single-phrase breakdown). Third
+2026-04-28 batch added B55 (Convert Effects to Per Model), B56
+Promote (Promote Node Effects), B97 (Find / Replace panel).
+Fourth 2026-04-28 batch closed B23 + B60 as already-covered
+elsewhere (multi-effect clipboard / F-6 Display Elements editor)
+and deferred B24 (Find Possible Source Effects — needs new
+diagnostic panel + per-element channel resolution bridge).
+B56's Convert-To-Effect deferred (needs core helper lift).
+B7 + B23 + B27 + B60 closed 2026-04-28 as no-desktop-counterpart
+/ already covered after grep audit.) **All P1 gaps closed** —
+remaining work is P2 polish only.
 
 ### What landed since the 2026-04-20 gap audit
 
@@ -297,9 +309,15 @@ feature.
 ### 1.2 Editing — positional
 
 - ~~**Gap B6** — Nudge by timing mark. **✓ landed 2026-04-22.**~~
-- **Gap B7 — Edge-unlink indicator + unlink command.** Desktop
-  tags an effect edge that's been "unlinked" from its neighbour
-  so paste / align won't re-butt them. **P2.**
+- ~~**Gap B7** — Edge-unlink indicator + unlink command. **✓ closed —
+  no desktop counterpart.** Searched `Effect`, `EffectLayer`,
+  `EffectsGrid`, the grid menu IDs, and serialisation: there's no
+  per-edge "unlinked" tag on desktop. The Effect class exposes
+  `mProtected` / `mLocked` / `isRenderDisabled` but those are
+  whole-effect state, not per-edge. Snap-to-neighbour during
+  drag is implicit and has no per-edge override. If a future
+  workflow needs this, it's a new feature for both clients —
+  not a parity gap.~~
 
 ### 1.3 Editing — range / bulk
 
@@ -324,11 +342,24 @@ feature.
 - ~~**Gap B22** — Reset effect (single-effect variant of B15).
   **✓ already covered** — B15's "Reset to Defaults" entry handles
   single-select.~~
-- **Gap B23 — Duplicate across models.** Desktop's `Copy Settings
-  To N Models`. **P2.**
-- **Gap B24 — Find Possible Source Effects.** Node-level search
-  for effects that could have produced the data in the selected
-  effect. Rare. **P2.**
+- ~~**Gap B23** — Duplicate across models. **✓ closed — no desktop
+  counterpart, equivalent already covered.** Audit found desktop
+  has `DuplicateSelectedEffects` (duplicates across *time* in the
+  same row, not across models) and `CopyModelEffects` (whole-row
+  copy/paste); neither is "Copy Settings To N Models" as the
+  followup described. The iPad's existing multi-effect clipboard
+  (B98) + paste-replace (B100) already covers the user-facing
+  workflow: copy the effect, multi-select destination rows, paste.~~
+- **Gap B24 — Find Possible Source Effects.** Audited 2026-04-28:
+  desktop's implementation in `EffectsGrid::FindEffectsForData`
+  (~80 lines) walks every element + strand + node + submodel +
+  data layer and uses `Model::ContainsChannel` + `FindChannel` to
+  resolve the channel range. Results are presented in a dedicated
+  `FindDataPanel` (separate wx panel under `src-ui-wx/diagnostics/`).
+  Porting needs a new SwiftUI panel + bridge for channel resolution
+  per element / strand / node / submodel — substantially bigger
+  than other P2 polish items. **Deferred — P2.** Diagnostic-only;
+  most users never invoke it.
 
 ### 1.6 Visual polish
 
@@ -337,9 +368,17 @@ feature.
   desktop sources from `ColorManager::COLOR_EFFECT_DEFAULT /
   _SELECTED / _LOCKED / _DISABLED` so user-customised palettes
   round-trip. Route iPad through the existing bridge. **P2.**
-- **Gap B27 — Node-level colour-channel stripes.** Desktop paints
-  thin per-channel stripes on node-level effects for multi-channel
-  models (RGBW etc.). **P2.**
+- ~~**Gap B27** — Node-level colour-channel stripes. **✓ already
+  covered.** Misread of desktop behaviour: there's no separate
+  "per-channel stripes" path — desktop's per-node colour handling
+  for ChannelBlock and Single Color string-type models lives in
+  `EffectsGrid::DrawEffectBackground` via `colorMask`
+  (`EffectsGrid.cpp:6587–6603`). iPad mirrors this exact code at
+  `XLSequenceDocument.mm:3850–3872`, so the effect background
+  already paints with the node mask for these model types. The
+  unrelated `mGridNodeValues` per-frame node-value preview is a
+  separate user toggle (not B27) — could land later if anyone
+  asks.~~
 - ~~**Gap B28** — Previous-selection indicator. **✓ landed
   2026-04-22**.~~
 - ~~**Gap B29** — Text fade / size-stepping. **✓ landed
@@ -351,8 +390,17 @@ feature.
 
 - ~~**Gap B38** — Zoom-level presets. **✓ landed 2026-04-22** as
   an 8-stop Zoom-To… submenu.~~
-- **Gap B40 — Audio scrub** (play a short window of audio as the
-  marker is dragged during B39 drag-to-scrub). **P2.**
+- ~~**Gap B40** — Audio scrub. **✓ landed 2026-04-28.** New
+  `audioPlaySegmentFromMS:lengthMS:` bridge calls
+  `AudioManager::Play(pos, len)` for a short ~50 ms window and
+  refuses to fire when normal playback is active. View model's
+  new `scrubSeekTo(ms:)` runs that play burst on each ruler-drag
+  tick (throttled to 50 ms) plus a regular `audioSeek` so the
+  playback engine's cursor stays aligned for the next tick or the
+  drag-end commit. `TopChromeMetalGridView` now exposes an
+  optional `onScrubSeek` callback wired from `SequencerGridV2View`
+  so non-scrub seeks (rewind / shortcuts) still go through the
+  silent `seekTo(ms:)` path.~~
 
 ---
 
@@ -360,8 +408,18 @@ feature.
 
 - ~~**Gap B42** — Double-height waveform. **✓ landed 2026-04-22**
   as a View-menu toggle.~~
-- **Gap B43 — Audio track switching** (alt audio tracks, e.g.
-  clean vocal stem). **P2.**
+- ~~**Gap B43** — Audio track switching. **✓ landed 2026-04-28.**
+  iPadRenderContext caches a `_waveformTrackIndex` (-1 = main,
+  0..N-1 = alt) and exposes `GetWaveformMedia` which the bridge's
+  `waveformDataFromMS:…` now uses instead of
+  `GetCurrentMediaManager`. New bridge methods `altTrackCount`,
+  `altTrackDisplayName(at:)`, `activeWaveformTrack`,
+  `setActiveWaveformTrack:`. View model's `reloadAltTracks()` runs
+  on every sequence open; `setActiveWaveformTrack(_:)` switches +
+  reloads the waveform peaks. Waveform long-press menu surfaces
+  "Main Audio" + each alt track when `altTrackCount > 0`.
+  Playback is unaffected (deliberately) — only the displayed
+  waveform changes.~~
 
 ---
 
@@ -380,10 +438,22 @@ feature.
   landed 2026-04-22** as a single `.eseq` export path (whole
   sequence + loop-range variants). Extra formats (LCB / Vixen /
   HLS / MP4 / GIF / Minleon) can roll in as a polish item.~~
-- **Gap B55 — Convert Effects to 'Per Model'.** Scope-change
-  operation collapsing per-strand effects to a single model-level
-  layer. **P2.**
-- **Gap B56 — Promote Node Effects / Convert To Effect.** **P2.**
+- ~~**Gap B55** — Convert Effects to 'Per Model'. **✓ landed
+  2026-04-28.** New `convertEffectsToPerModelOnRow:acrossAllLayers:`
+  bridge calls the existing core `EffectLayer::ConvertEffectsToPerModel`
+  (already wx-free); model-scope variant on the model heading +
+  layer-scope variant on per-layer rows mirror desktop's two
+  RowHeading entries. Triggers a model re-render on success.~~
+- **Gap B56 — Promote Node Effects / Convert To Effect.**
+  Promote: ✓ landed 2026-04-28 — `promoteNodeEffectsOnRow:` ports
+  the `xLightsFrame::DoPromoteEffects` algorithm (pure structural
+  walk, no SequenceData), surfaced as "Promote Node Effects" on
+  the model heading. Convert To Effect: deferred — desktop's
+  `DoConvertDataRowToEffects` walks rendered SequenceData to
+  detect colour ramps via `RampLenColor` / `isOnLineColor` helpers
+  that currently live in `tabSequencer.cpp`. Porting needs those
+  helpers lifted to core first, plus per-strand `SingleLineModel`
+  construction. **Deferred — P2.**
 
 ### 4.3 Global row operations
 
@@ -394,7 +464,16 @@ feature.
 
 ### 4.4 Drag / resize
 
-- **Gap B60 — Drag row to reorder.** **P2.**
+- ~~**Gap B60** — Drag row to reorder. **✓ already covered.**
+  Audited 2026-04-28: desktop's `RowHeading` doesn't actually
+  reorder via heading-drag — the `mouseLeftDown` handler covers
+  select / collapse-expand / timing-active toggle and a column-
+  resize drag on the right edge, but reordering goes through the
+  separate Display Elements / ViewsModelsPanel dialogs. iPad's
+  Phase F-6 Display Elements sheet already exposes `.onMove`-based
+  reordering for the active view's members (`DisplayElementsSheet.swift:479`),
+  so the user-facing capability exists. A direct row-heading drag
+  on the sequencer would be iPad-only polish; not a parity gap.~~
 
 ### 4.5 Icons / visual
 
@@ -425,8 +504,17 @@ feature.
 
 ### 5.2 Per-mark / misc
 
-- **Gap B84 (per-mark variant).** Single-mark "Breakdown Phrase"
-  context-menu entry (row-level landed). **P2.**
+- ~~**Gap B84 (per-mark variant)** — single-mark "Breakdown
+  Phrase". **✓ landed 2026-04-28.** New
+  `breakdownPhraseAtRow:atIndex:` bridge method tokenises just the
+  target phrase, wipes any existing words/phonemes inside its
+  `[startMS, endMS]` window via `EffectLayer::GetAllEffectsByTime`
+  + `DeleteEffect`, then writes fresh per-word marks. Reuses the
+  same delimiter set + interval math as the row-level path so the
+  two yield identical word boundaries on the same input. New
+  "Breakdown This Phrase" entry on the timing-mark long-press
+  menu, gated by `canBreakdownPhrase(rowIndex:markIndex:)` (must
+  be a labelled mark on the phrase layer).~~
 - ~~**Gap B90** — Add / Remove "-shimmer" suffix. **✓ landed
   2026-04-22** on the timing-mark long-press menu.~~
 - ~~**Gap B91** — Divide Timings (Halve). **✓ landed 2026-04-22**
@@ -447,8 +535,16 @@ feature.
 
 ## 7. Find / Replace
 
-- **Gap B97 — Find / Replace panel.** Bottom sheet or inspector-
-  style overlay; cmd+F shortcut. **P2.**
+- ~~**Gap B97** — Find / Replace panel. **✓ landed 2026-04-28.**
+  New `FindReplaceSheet` (bottom-sheet via `.presentationDetents`)
+  bound to view-model state (`findText`, `findCaseSensitive`,
+  `findResults`, `currentFindIndex`, `findReplacePresented`).
+  Search runs against timing-mark labels only — matches desktop's
+  `EffectsGrid::Find` / `FindNext` / `Replace` restriction (and is
+  the only place mark labels live anyway). Buttons: Previous / Next
+  (wrap), Replace Current, Replace All. ⌘F shortcut wired through
+  `XLightsCommands` (CommandGroup after .pasteboard). Replace path
+  routes through the existing `setTimingMarkLabel` bridge.~~
 
 ---
 
@@ -542,7 +638,7 @@ feedback.
 |---|---|---|---|
 | B3 | Tab / Shift+Tab navigation | Selection | ✓ landed |
 | B6 | Nudge by timing mark | Editing | ✓ landed |
-| B7 | Edge-unlink indicator + command | Editing | P2 |
+| B7 | Edge-unlink indicator + command | Editing | ✓ no desktop counterpart |
 | B13 | Extend effect to next / previous | Editing | ✓ landed |
 | B15 | Randomize / Reset-to-default on selection | Editing | ✓ landed |
 | B16 | Drag-from-palette with preview ghost | Create | Deferred |
@@ -551,26 +647,27 @@ feedback.
 | B19 | Effect presets menu entry | Ctx menu | ✓ landed |
 | B20 | Description / tooltip field | Ctx menu | ✓ landed |
 | B22 | Reset effect to defaults | Ctx menu | ✓ landed |
-| B23 | Duplicate across models | Ctx menu | P2 |
-| B24 | Find possible source effects | Ctx menu | P2 |
-| B25 | Bracket colours sourced from `ColorManager` | Visual | P2 |
+| B23 | Duplicate across models | Ctx menu | ✓ no desktop counterpart |
+| B24 | Find possible source effects | Ctx menu | Deferred |
+| B25 | Bracket colours sourced from `ColorManager` | Visual | ✓ landed |
 | B26 | ColorCurve gradient preview in effect bar | Visual | ✓ landed |
-| B27 | Node-level channel stripes | Visual | P2 |
+| B27 | Node-level channel stripes | Visual | ✓ already covered |
 | B28 | Reference / previous-selection indicator | Visual | ✓ landed |
 | B29 | Text fade / size stepping | Visual | ✓ landed |
 | B34 | Tags (0-9 numbered markers) | Timeline | ✓ landed |
 | B35 | Tag context menu | Timeline | ✓ landed |
 | B38 | Desktop zoom-level presets | Timeline | ✓ landed |
-| B40 | Audio scrub | Timeline | P2 |
+| B40 | Audio scrub | Timeline | ✓ landed |
 | B42 | Double-height waveform | Waveform | ✓ landed |
-| B43 | Audio-track switch (alt tracks) | Waveform | P2 |
+| B43 | Audio-track switch (alt tracks) | Waveform | ✓ landed |
 | B47 | Insert Multiple Layers Below | Row heading | ✓ landed |
 | B48 | Delete Unused Layers | Row heading | ✓ landed |
 | B49 | Export model / Render-and-Export | Row heading | ✓ landed |
-| B55 | Convert Effects to 'Per Model' | Row heading | P2 |
-| B56 | Promote Node / Convert To Effect | Row heading | P2 |
+| B55 | Convert Effects to 'Per Model' | Row heading | ✓ landed |
+| B56 | Promote Node Effects | Row heading | ✓ landed |
+| B56 | Convert To Effect (data → effects) | Row heading | Deferred |
 | B58 | Toggle Strands / Nodes / Models | Row heading | ✓ landed |
-| B60 | Drag row to reorder | Row heading | P2 |
+| B60 | Drag row to reorder | Row heading | ✓ already covered |
 | B63 | Element-type icon glyphs | Row heading | ✓ landed |
 | B64 | Layer-count [N] indicator | Row heading | ✓ landed |
 | B66 | Muted row visual state | Row heading | ✓ landed |
@@ -579,18 +676,21 @@ feedback.
 | B81 | Hide All / Show All Timing | Timing | ✓ landed |
 | B82 | Add Timing Tracks to All Views | Timing | ✓ landed |
 | B83 | Create Timing From Effects | Timing | ✓ landed |
-| B84 (per-mark) | Single-mark phrase breakdown | Timing | P2 |
+| B84 (per-mark) | Single-mark phrase breakdown | Timing | ✓ landed |
 | B86 | Breakdown Phoneme | Timing | Removed |
 | B90 | Add / Remove "-shimmer" suffix | Timing | ✓ landed |
 | B91 | Divide Timings (Halve) | Timing | ✓ landed |
 | B92 | Double-tap timing mark → loop-play region | Timing | ✓ landed |
 | B94 | Visible scrollbars | Scroll | ✓ landed |
 | B96 | Scroll momentum | Scroll | ✓ landed |
-| B97 | Find / Replace | Find | P2 |
+| B97 | Find / Replace | Find | ✓ landed |
 | B99 | System pasteboard (UIPasteboard) integration | Clipboard | ✓ landed |
 | B100 | Paste-replacing-existing with confirmation | Clipboard | ✓ landed |
 
-Counts (2026-04-22, post-batch-10): **0 × P0**, **0 × P1**,
-**14 × P2**, **0 × Verify**, **1 × Deferred**, **1 × Removed**.
+Counts (2026-04-28, post-batch-4): **0 × P0**, **0 × P1**,
+**2 × P2** (B77 MIDI import, B79 AI Speech 2 Lyrics), **0 × Verify**,
+**3 × Deferred** (B16 drag-from-palette ghost, B24 find-source-effects,
+B56 convert-data-to-effects), **6 × Closed without code (already
+covered or no desktop counterpart)**.
 Phase B P0 + P1 gap audit is now complete — remaining work is
 P2 polish only.

@@ -259,7 +259,8 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
 {
     int mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
-        Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
+        auto* rowInfo = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        Element* e = rowInfo ? rowInfo->element : nullptr;
         if (e != nullptr) {
             wxString layers;
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING && e->GetEffectLayerCount() > 1) {
@@ -2070,6 +2071,7 @@ void RowHeading::BreakdownTimingWords(TimingElement* element)
 bool RowHeading::HitTestCollapseExpand(int row, int x, bool* IsCollapsed)
 {
     Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(row);
+    if (rowInfo == nullptr || rowInfo->element == nullptr) return false;
     if (rowInfo->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
         int indentX = rowInfo->nestDepth * FromDIP(8);
         if (x >= indentX && x < indentX + DEFAULT_ROW_HEADING_MARGIN) {

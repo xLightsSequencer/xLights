@@ -86,7 +86,7 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
         // so the output matches xlImage's RGBA-interleaved layout directly.
         std::unique_ptr<uint8_t[]> rgba(new uint8_t[(size_t)w * h * 4]());
         CGContextRef ctx = CGBitmapContextCreate(rgba.get(), w, h, 8, w * 4, cs,
-                                                   kCGImageAlphaPremultipliedLast
+                                                   (uint32_t)kCGImageAlphaPremultipliedLast
                                                    | kCGBitmapByteOrder32Big);
         if (ctx) {
             CGContextSetBlendMode(ctx, kCGBlendModeCopy);

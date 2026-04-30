@@ -151,37 +151,79 @@ struct PreviewPaneView: UIViewRepresentable {
 
         // MARK: - Overlay button notifications
 
+        /// Apply a per-bridge mutation if `objectName` (extracted from
+        /// the notification's `object`) matches this pane's preview
+        /// name. Refreshes the MTKView afterwards. `@MainActor` because
+        /// every observer pins itself to `queue: .main` and the body
+        /// touches main-actor state (`bridge`, `mtkView`).
+        @MainActor
+        private func applyToBridge(objectName: String?,
+                                    previewName: String,
+                                    block: (XLMetalBridge) -> Void) {
+            guard let bridge, objectName == previewName else { return }
+            block(bridge)
+            mtkView?.setNeedsDisplay()
+        }
+
         /// Register for zoom/reset notifications scoped to this preview's
         /// name. The overlay buttons in HousePreviewView post with the
         /// preview name as `object` so each pane picks up only its own.
+        ///
+        /// `Notification` isn't Sendable, so each observer extracts the
+        /// Sendable bits (`object` as String, `userInfo` strings)
+        /// before crossing into `MainActor.assumeIsolated` — Swift 6
+        /// strict concurrency flags moving the whole notification
+        /// across the boundary even though the assume-isolated body
+        /// runs synchronously on the same thread.
         func registerNotifications(previewName: String) {
             let center = NotificationCenter.default
             let step: Float = 1.5
-            let apply: (Notification, (XLMetalBridge) -> Void) -> Void = { [weak self] note, block in
-                guard let self,
-                      let bridge = self.bridge,
-                      (note.object as? String) == previewName else { return }
-                block(bridge)
-                self.mtkView?.setNeedsDisplay()
-            }
             notificationObservers.append(center.addObserver(
                 forName: .previewZoomIn, object: nil, queue: .main
-            ) { note in apply(note) { b in
-                let z = min(max(b.cameraZoom() * step, 0.1), 50.0)
-                b.setCameraZoom(z)
-            }})
+            ) { [weak self] note in
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    self?.applyToBridge(objectName: objectName,
+                                         previewName: previewName) { b in
+                        let z = min(max(b.cameraZoom() * step, 0.1), 50.0)
+                        b.setCameraZoom(z)
+                    }
+                }
+            })
             notificationObservers.append(center.addObserver(
                 forName: .previewZoomOut, object: nil, queue: .main
-            ) { note in apply(note) { b in
-                let z = min(max(b.cameraZoom() / step, 0.1), 50.0)
-                b.setCameraZoom(z)
-            }})
+            ) { [weak self] note in
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    self?.applyToBridge(objectName: objectName,
+                                         previewName: previewName) { b in
+                        let z = min(max(b.cameraZoom() / step, 0.1), 50.0)
+                        b.setCameraZoom(z)
+                    }
+                }
+            })
             notificationObservers.append(center.addObserver(
                 forName: .previewZoomReset, object: nil, queue: .main
-            ) { note in apply(note) { b in b.setCameraZoom(1.0) }})
+            ) { [weak self] note in
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    self?.applyToBridge(objectName: objectName,
+                                         previewName: previewName) { b in
+                        b.setCameraZoom(1.0)
+                    }
+                }
+            })
             notificationObservers.append(center.addObserver(
                 forName: .previewResetCamera, object: nil, queue: .main
-            ) { note in apply(note) { b in b.resetCamera() }})
+            ) { [weak self] note in
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    self?.applyToBridge(objectName: objectName,
+                                         previewName: previewName) { b in
+                        b.resetCamera()
+                    }
+                }
+            })
 
             // Fit-all / fit-model — both resolve model bounds through
             // the document's render context, so we have to pull the
@@ -190,23 +232,29 @@ struct PreviewPaneView: UIViewRepresentable {
             notificationObservers.append(center.addObserver(
                 forName: .previewFitAll, object: nil, queue: .main
             ) { [weak self] note in
-                guard let self,
-                      let bridge = self.bridge,
-                      let viewModel = self.viewModel,
-                      (note.object as? String) == previewName else { return }
-                _ = bridge.fitAllModels(for: viewModel.document)
-                self.mtkView?.setNeedsDisplay()
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    guard let self,
+                          let bridge = self.bridge,
+                          let viewModel = self.viewModel,
+                          objectName == previewName else { return }
+                    _ = bridge.fitAllModels(for: viewModel.document)
+                    self.mtkView?.setNeedsDisplay()
+                }
             })
             notificationObservers.append(center.addObserver(
                 forName: .previewFitModel, object: nil, queue: .main
             ) { [weak self] note in
-                guard let self,
-                      let bridge = self.bridge,
-                      let viewModel = self.viewModel,
-                      (note.object as? String) == previewName else { return }
-                let name = note.userInfo?["name"] as? String ?? ""
-                _ = bridge.fitModelNamed(name, for: viewModel.document)
-                self.mtkView?.setNeedsDisplay()
+                let objectName = note.object as? String
+                let modelName = note.userInfo?["name"] as? String ?? ""
+                MainActor.assumeIsolated {
+                    guard let self,
+                          let bridge = self.bridge,
+                          let viewModel = self.viewModel,
+                          objectName == previewName else { return }
+                    _ = bridge.fitModelNamed(modelName, for: viewModel.document)
+                    self.mtkView?.setNeedsDisplay()
+                }
             })
 
             // Image export — capture the current MTKView contents and push
@@ -215,9 +263,11 @@ struct PreviewPaneView: UIViewRepresentable {
             notificationObservers.append(center.addObserver(
                 forName: .previewSaveImage, object: nil, queue: .main
             ) { [weak self] note in
-                guard let self,
-                      (note.object as? String) == previewName else { return }
-                self.captureAndShare()
+                let objectName = note.object as? String
+                MainActor.assumeIsolated {
+                    guard let self, objectName == previewName else { return }
+                    self.captureAndShare()
+                }
             })
 
             // Layout-group change — every pane drops its cached
@@ -229,9 +279,11 @@ struct PreviewPaneView: UIViewRepresentable {
                 forName: Notification.Name("XLLayoutGroupChanged"),
                 object: nil, queue: .main
             ) { [weak self] _ in
-                guard let self else { return }
-                self.bridge?.invalidateBackgroundCache()
-                self.mtkView?.setNeedsDisplay()
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.bridge?.invalidateBackgroundCache()
+                    self.mtkView?.setNeedsDisplay()
+                }
             })
 
             // Viewpoint commands — scoped to this pane by previewName
@@ -242,15 +294,13 @@ struct PreviewPaneView: UIViewRepresentable {
             notificationObservers.append(center.addObserver(
                 forName: .previewViewpointCommand, object: nil, queue: .main
             ) { [weak self] note in
-                guard let self,
-                      (note.object as? String) == previewName else { return }
-                // Pull the primitive values out of the non-Sendable
-                // userInfo here on the main queue before handing them
-                // to the handler, so the closure's captured state
-                // stays Sendable under Swift 6 strict concurrency.
+                let objectName = note.object as? String
                 let action = (note.userInfo?["action"] as? String) ?? ""
                 let name = note.userInfo?["name"] as? String
-                self.handleViewpointCommand(action: action, name: name)
+                MainActor.assumeIsolated {
+                    guard let self, objectName == previewName else { return }
+                    self.handleViewpointCommand(action: action, name: name)
+                }
             })
         }
 
@@ -278,7 +328,7 @@ struct PreviewPaneView: UIViewRepresentable {
             }
             // Broadcast the current (possibly updated) list back to the
             // overlay for this pane so its menu reflects the latest.
-            let names = (bridge.viewpointNames(for: doc) as? [String]) ?? []
+            let names = bridge.viewpointNames(for: doc) ?? []
             NotificationCenter.default.post(name: .previewViewpointListChanged,
                                             object: self.previewNameForNotifications,
                                             userInfo: ["names": names])

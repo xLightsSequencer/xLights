@@ -211,6 +211,7 @@
 		<Unit filename="../src-core/effects/BufferStyles.h" />
 		<Unit filename="../src-core/import_export/AutoMapper.cpp" />
 		<Unit filename="../src-core/import_export/AutoMapper.h" />
+		<Unit filename="../src-core/import_export/BasicImportMappingNode.h" />
 		<Unit filename="../src-core/import_export/EffectMapper.cpp" />
 		<Unit filename="../src-core/import_export/EffectMapper.h" />
 		<Unit filename="../src-core/import_export/ImportMappingNode.h" />
