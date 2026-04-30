@@ -123,6 +123,7 @@ public:
     void PlayLoopedEffect(Effect* eff, bool loop);
 
     void DeleteSelectedEffects();
+    void FillRegionFromTimingMarks();
     void SetEffectsDescription();
     void ResetEffect();
     void SetEffectsTiming();
@@ -244,6 +245,7 @@ private:
 
     void DrawTimingEffects(int row);
     void DrawEffects(xlGraphicsContext *ctx);
+    void DrawSongStructureOverlays(xlGraphicsContext *ctx);
     void DrawPlayMarker(xlGraphicsContext *ctx) const;
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset, bool control);
@@ -413,6 +415,7 @@ private:
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;
+    static const long ID_GRID_MNU_FILL_REGION;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;

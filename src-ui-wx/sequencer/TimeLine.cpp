@@ -10,17 +10,169 @@
 
 #include <wx/wx.h>
 #include <wx/brush.h>
+#include <wx/textdlg.h>
+#include <wx/colordlg.h>
+#include <wx/dcbuffer.h>
 
 #include "TimeLine.h"
 #include "Waveform.h"
+#include "MainSequencer.h"
+#include "EffectsGrid.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "render/RenderUtils.h"
+#include "render/Effect.h"
+#include "render/EffectLayer.h"
+#include "render/Element.h"
+#include "render/UndoManager.h"
 #include "xLightsMain.h"
 #include "shared/utils/wxUtilities.h"
 #include <log.h>
 
+#include <functional>
+
+// ---------------------------------------------------------------
+// SongRegionEditDialog - Combined name + color swatch dialog
+// ---------------------------------------------------------------
+
+class ColorSwatchPanel : public wxPanel
+{
+public:
+    ColorSwatchPanel(wxWindow* parent, uint32_t colorARGB, int index, std::function<void(int)> onSelect)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(28, 28), wxFULL_REPAINT_ON_RESIZE)
+        , _colorARGB(colorARGB)
+        , _index(index)
+        , _onSelect(std::move(onSelect))
+    {
+        SetMinSize(wxSize(28, 28));
+        SetMaxSize(wxSize(28, 28));
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        SetCursor(wxCursor(wxCURSOR_HAND));
+
+        Bind(wxEVT_PAINT, &ColorSwatchPanel::OnPaint, this);
+        Bind(wxEVT_LEFT_UP, &ColorSwatchPanel::OnClick, this);
+    }
+
+    void SetSelected(bool sel) { _selected = sel; Refresh(); }
+    bool IsSelected() const { return _selected; }
+    uint32_t GetColorARGB() const { return _colorARGB; }
+
+private:
+    void OnPaint(wxPaintEvent& event)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        wxSize sz = GetClientSize();
+
+        uint8_t r = (_colorARGB >> 16) & 0xFF;
+        uint8_t g = (_colorARGB >> 8) & 0xFF;
+        uint8_t b = _colorARGB & 0xFF;
+
+        dc.SetBrush(wxBrush(wxColour(r, g, b)));
+        if (_selected) {
+            dc.SetPen(wxPen(wxColour(255, 255, 255), 2));
+        } else {
+            dc.SetPen(wxPen(wxColour(80, 80, 80), 1));
+        }
+        dc.DrawRoundedRectangle(1, 1, sz.x - 2, sz.y - 2, 4);
+    }
+
+    void OnClick(wxMouseEvent& event)
+    {
+        if (_onSelect) _onSelect(_index);
+    }
+
+    uint32_t _colorARGB;
+    int _index;
+    bool _selected = false;
+    std::function<void(int)> _onSelect;
+};
+
+class SongRegionEditDialog : public wxDialog
+{
+public:
+    SongRegionEditDialog(wxWindow* parent, const wxString& name, uint32_t currentColorARGB)
+        : wxDialog(parent, wxID_ANY, "Edit Region", wxDefaultPosition, wxDefaultSize,
+                   wxDEFAULT_DIALOG_STYLE)
+        , _selectedColorARGB(currentColorARGB)
+    {
+        wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+        // Name input
+        wxStaticText* nameLabel = new wxStaticText(this, wxID_ANY, "Region Name:");
+        mainSizer->Add(nameLabel, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+
+        _nameCtrl = new wxTextCtrl(this, wxID_ANY, name, wxDefaultPosition, wxSize(280, -1));
+        mainSizer->Add(_nameCtrl, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+        // Color swatches
+        wxStaticText* colorLabel = new wxStaticText(this, wxID_ANY, "Color:");
+        mainSizer->Add(colorLabel, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+
+        wxBoxSizer* swatchSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        for (int i = 0; i < SongStructureManager::PALETTE_SIZE; i++) {
+            uint32_t paletteColor = SongStructureManager::GetPaletteColor(i);
+            ColorSwatchPanel* swatch = new ColorSwatchPanel(this, paletteColor, i,
+                [this](int idx) { SelectSwatch(idx); });
+            _swatches.push_back(swatch);
+            swatchSizer->Add(swatch, 0, wxRIGHT, 4);
+
+            // Pre-select if matching current color (compare RGB only, ignore alpha)
+            if ((paletteColor & 0x00FFFFFF) == (currentColorARGB & 0x00FFFFFF)) {
+                swatch->SetSelected(true);
+                _selectedSwatchIndex = i;
+            }
+        }
+
+        mainSizer->Add(swatchSizer, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+
+        // OK / Cancel buttons
+        wxSizer* btnSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+        mainSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxALL, 12);
+
+        SetSizerAndFit(mainSizer);
+        CentreOnParent();
+
+        _nameCtrl->SetFocus();
+        _nameCtrl->SelectAll();
+    }
+
+    wxString GetRegionName() const { return _nameCtrl->GetValue(); }
+    uint32_t GetSelectedColorARGB() const { return _selectedColorARGB; }
+
+private:
+    void SelectSwatch(int index)
+    {
+        for (size_t i = 0; i < _swatches.size(); i++) {
+            _swatches[i]->SetSelected((int)i == index);
+        }
+        _selectedSwatchIndex = index;
+        _selectedColorARGB = _swatches[index]->GetColorARGB();
+    }
+
+    wxTextCtrl* _nameCtrl;
+    std::vector<ColorSwatchPanel*> _swatches;
+    int _selectedSwatchIndex = -1;
+    uint32_t _selectedColorARGB;
+};
+
 const long TimeLine::ID_ZOOMSEL = wxNewId();
 const long TimeLine::ID_RESETZOOM = wxNewId();
+const long TimeLine::ID_SONG_ADD_BOUNDARY = wxNewId();
+const long TimeLine::ID_SONG_DELETE_BOUNDARY = wxNewId();
+const long TimeLine::ID_SONG_EDIT_REGION = wxNewId();
+const long TimeLine::ID_SONG_CLEAR_STRUCTURE = wxNewId();
+const long TimeLine::ID_SONG_COPY_EFFECTS_BASE = wxNewId();
+namespace { struct _ReserveCopyIDs { _ReserveCopyIDs() { for (int i = 0; i < 49; i++) wxNewId(); } } _reserveCopyIDs; }
+const long TimeLine::ID_SONG_APPLY_PALETTE = wxNewId();
+const long TimeLine::ID_SONG_EXPORT_REGION = wxNewId();
+const long TimeLine::ID_SONG_EXPORT_ALL_REGIONS = wxNewId();
+const long TimeLine::ID_SONG_VIEW_BASE = wxNewId();
+namespace { struct _ReserveViewIDs { _ReserveViewIDs() { for (int i = 0; i < 49; i++) wxNewId(); } } _reserveViewIDs; }
+const long TimeLine::ID_SONG_VIEW_NEW = wxNewId();
+const long TimeLine::ID_SONG_VIEW_DUPLICATE = wxNewId();
+const long TimeLine::ID_SONG_VIEW_RENAME = wxNewId();
+const long TimeLine::ID_SONG_VIEW_DELETE = wxNewId();
 
 wxDEFINE_EVENT(EVT_TIME_LINE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEQUENCE_CHANGED, wxCommandEvent);
@@ -45,6 +197,8 @@ static const int marker_size = 8;
 void TimeLine::OnLostMouseCapture(wxMouseCaptureLostEvent& event)
 {
     m_dragging = false;
+    mDraggingBoundary = false;
+    mDragBoundaryTimeMS = -1;
 }
 
 void TimeLine::mouseRightDown(wxMouseEvent& event)
@@ -88,6 +242,108 @@ void TimeLine::mouseRightDown(wxMouseEvent& event)
 
         mnuLayer.AppendSubMenu(mnuDelete, "Delete");
         mnuDelete->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnPopup, nullptr, this);
+    }
+
+    // Song structure menu items
+    if (_sequenceElements != nullptr) {
+        mnuLayer.AppendSeparator();
+        SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+
+        mnuLayer.Append(ID_SONG_ADD_BOUNDARY, "Add Song Structure Boundary Here");
+        mnuLayer.Connect(ID_SONG_ADD_BOUNDARY, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+
+        // Compute boundary hit tolerance in MS
+        int toleranceMS = 0;
+        if (mEndTimeMS > mStartTimeMS) {
+            float msPerPixel = (float)(mEndTimeMS - mStartTimeMS) / (float)GetSize().x;
+            toleranceMS = (int)(6.0f * msPerPixel);
+        }
+        int nearBoundary = ssm.FindNearestBoundary(_rightClickPosition, toleranceMS);
+
+        if (nearBoundary >= 0) {
+            mnuLayer.Append(ID_SONG_DELETE_BOUNDARY, "Delete Song Structure Boundary");
+            mnuLayer.Connect(ID_SONG_DELETE_BOUNDARY, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+        }
+
+        int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
+        if (regionIdx >= 0) {
+            wxString editLabel = wxString::Format("Edit Region \"%s\"...", ssm.GetRegion(regionIdx).name);
+            mnuLayer.Append(ID_SONG_EDIT_REGION, editLabel);
+            mnuLayer.Connect(ID_SONG_EDIT_REGION, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+
+            // "Copy Effects to Region >" submenu
+            if (ssm.GetRegionCount() > 1) {
+                wxMenu* copySubmenu = new wxMenu();
+                for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+                    if ((int)i == regionIdx) continue;
+                    const SongStructureRegion& target = ssm.GetRegion(i);
+                    int mins = target.startTimeMS / 60000;
+                    int secs = (target.startTimeMS % 60000) / 1000;
+                    wxString timeStr = mins > 0 ? wxString::Format("%d:%02d", mins, secs) : wxString::Format("0:%02d", secs);
+                    wxString label = wxString::Format("%s (%s)", target.name, timeStr);
+                    copySubmenu->Append(ID_SONG_COPY_EFFECTS_BASE + (int)i, label);
+                }
+                mnuLayer.AppendSubMenu(copySubmenu, "Copy Effects to Region");
+                copySubmenu->Connect(wxEVT_COMMAND_MENU_SELECTED,
+                    (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+            }
+
+            // "Apply Selected Effect Palette to Region"
+            MainSequencer* msCheck = dynamic_cast<MainSequencer*>(GetParent());
+            bool hasSelection = (msCheck && msCheck->PanelEffectGrid &&
+                                 msCheck->PanelEffectGrid->GetSelectedEffect() != nullptr);
+            wxMenuItem* paletteItem = mnuLayer.Append(ID_SONG_APPLY_PALETTE,
+                "Apply Selected Effect Palette to Region");
+            paletteItem->Enable(hasSelection);
+            mnuLayer.Connect(ID_SONG_APPLY_PALETTE, wxEVT_COMMAND_MENU_SELECTED,
+                (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+
+            // "Export Song Region as New Sequence"
+            mnuLayer.Append(ID_SONG_EXPORT_REGION, "Export Song Region as New Sequence");
+            mnuLayer.Connect(ID_SONG_EXPORT_REGION, wxEVT_COMMAND_MENU_SELECTED,
+                (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+        }
+
+        if (ssm.HasRegions()) {
+            mnuLayer.Append(ID_SONG_EXPORT_ALL_REGIONS, "Export All Song Regions as Sequences");
+            mnuLayer.Connect(ID_SONG_EXPORT_ALL_REGIONS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+            mnuLayer.AppendSeparator();
+            mnuLayer.Append(ID_SONG_CLEAR_STRUCTURE, "Clear Song Structure");
+            mnuLayer.Connect(ID_SONG_CLEAR_STRUCTURE, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+        }
+
+        // Song Structure Views submenu
+        if (ssm.GetViewCount() > 0 || ssm.HasRegions()) {
+            wxMenu* viewSubmenu = new wxMenu();
+
+            for (size_t i = 0; i < ssm.GetViewCount(); i++) {
+                wxMenuItem* item = viewSubmenu->AppendRadioItem(
+                    ID_SONG_VIEW_BASE + (int)i, ssm.GetViewName(i));
+                if ((int)i == ssm.GetActiveViewIndex()) {
+                    item->Check(true);
+                }
+            }
+
+            if (ssm.GetViewCount() > 0) {
+                viewSubmenu->AppendSeparator();
+            }
+
+            viewSubmenu->Append(ID_SONG_VIEW_NEW, "New View...");
+            viewSubmenu->Append(ID_SONG_VIEW_DUPLICATE, "Duplicate Current View...");
+
+            if (ssm.GetViewCount() > 0) {
+                viewSubmenu->Append(ID_SONG_VIEW_RENAME, "Rename Current View...");
+                wxMenuItem* delItem = viewSubmenu->Append(ID_SONG_VIEW_DELETE, "Delete Current View");
+                if (ssm.GetViewCount() <= 1) {
+                    delItem->Enable(false);
+                }
+            }
+
+            viewSubmenu->Connect(wxEVT_COMMAND_MENU_SELECTED,
+                (wxObjectEventFunction)&TimeLine::OnSongStructurePopup, nullptr, this);
+
+            mnuLayer.AppendSubMenu(viewSubmenu, "Song Structure Views");
+        }
     }
 
     PopupMenu(&mnuLayer);
@@ -260,6 +516,33 @@ int TimeLine::GetTagPosition(int tag)
 
 void TimeLine::mouseLeftDown( wxMouseEvent& event)
 {
+    // Check for song structure boundary interaction
+    if (_sequenceElements != nullptr) {
+        SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+
+        // Option+click adds a boundary
+        if (event.AltDown()) {
+            int clickTimeMS = GetAbsoluteTimeMSfromPosition(event.GetX());
+            ssm.AddBoundary(clickTimeMS, mSequenceEndMarkerMS);
+            RaiseSequenceChange();
+            Refresh(false);
+            return;
+        }
+
+        // Check for boundary drag
+        int boundaryTime = HitTestBoundary(event.GetX());
+        if (boundaryTime >= 0) {
+            mDraggingBoundary = true;
+            mDragBoundaryTimeMS = boundaryTime;
+            if (!m_dragging) {
+                CaptureMouse();
+                m_dragging = true;
+            }
+            SetFocus();
+            return;
+        }
+    }
+
     mCurrentPlayMarkerStart = GetPositionFromSelection(event.GetX());
     mCurrentPlayMarkerStartMS = GetAbsoluteTimeMSfromPosition(mCurrentPlayMarkerStart);
     mCurrentPlayMarkerEnd = -1;
@@ -275,6 +558,35 @@ void TimeLine::mouseLeftDown( wxMouseEvent& event)
 
 void TimeLine::mouseMoved( wxMouseEvent& event)
 {
+    if (mDraggingBoundary && _sequenceElements != nullptr) {
+        int newTimeMS = GetAbsoluteTimeMSfromPosition(event.GetX());
+        newTimeMS = RoundToMultipleOfPeriod(newTimeMS, mFrequency);
+        SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+        ssm.MoveBoundary(mDragBoundaryTimeMS, newTimeMS);
+        // Update the drag reference to the new boundary position
+        int nearBoundary = ssm.FindNearestBoundary(newTimeMS, 1000);
+        if (nearBoundary >= 0) {
+            mDragBoundaryTimeMS = nearBoundary;
+        }
+        Refresh(false);
+        // Also refresh the effects grid so region overlays update
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+        if (ms && ms->PanelEffectGrid) {
+            ms->PanelEffectGrid->Refresh(false);
+        }
+        return;
+    }
+
+    // Update cursor for boundary hover
+    if (!m_dragging && _sequenceElements != nullptr) {
+        int boundaryTime = HitTestBoundary(event.GetX());
+        if (boundaryTime >= 0) {
+            SetCursor(wxCursor(wxCURSOR_SIZEWE));
+        } else {
+            SetCursor(wxNullCursor);
+        }
+    }
+
     if( m_dragging ) {
         mCurrentPlayMarkerEndMS = GetAbsoluteTimeMSfromPosition(event.GetX());
         if (mCurrentPlayMarkerEndMS < mStartTimeMS ) {
@@ -287,6 +599,18 @@ void TimeLine::mouseMoved( wxMouseEvent& event)
 
 void TimeLine::mouseLeftUp( wxMouseEvent& event)
 {
+    if (mDraggingBoundary) {
+        mDraggingBoundary = false;
+        mDragBoundaryTimeMS = -1;
+        if (m_dragging) {
+            ReleaseMouse();
+            m_dragging = false;
+        }
+        RaiseSequenceChange();
+        Refresh(false);
+        return;
+    }
+
     triggerPlay();
     if(m_dragging)
     {
@@ -1062,6 +1386,10 @@ void TimeLine::render( wxDC& dc ) {
     dc.SetBrush(brush_past_end);
     dc.DrawRectangle(mSequenceEndMarker, 0, mEndPos, h);
 
+    // Draw song structure regions
+    DrawSongStructureRegions(dc, w, h);
+    DrawSongStructureBoundaries(dc, w, h);
+
     for (int i = 0; i < 10; ++i)
     {
         if (_tagPositions[i] < mStartTimeMS || _tagPositions[i] > mEndTimeMS)
@@ -1185,5 +1513,345 @@ TimelineChangeArguments::~TimelineChangeArguments()
 void TimeLine::RecalcEndTime()
 {
     mEndTimeMS = GetMaxViewableTimeMS();
+}
+
+void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
+{
+    if (_sequenceElements == nullptr) return;
+    const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    if (!ssm.HasRegions()) return;
+
+    wxFont f = dc.GetFont();
+    f.SetPointSize(8.0);
+    dc.SetFont(f);
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+
+        int x1 = GetPositionFromTimeMS(region.startTimeMS);
+        int x2 = GetPositionFromTimeMS(region.endTimeMS);
+
+        if (x2 < 0 || x1 > w) continue;
+        x1 = std::max(0, x1);
+        x2 = std::min(w, x2);
+
+        uint8_t r = (region.colorARGB >> 16) & 0xFF;
+        uint8_t g = (region.colorARGB >> 8) & 0xFF;
+        uint8_t b = region.colorARGB & 0xFF;
+
+        // Draw transparent colored band spanning full height of timeline
+        wxColour bandColor(r, g, b, 50);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(bandColor));
+        dc.DrawRectangle(x1, 0, x2 - x1, h);
+
+        // Draw region name centered
+        if (x2 - x1 > 30) {
+            wxString name = region.name;
+            wxSize textSize = dc.GetTextExtent(name);
+            while (name.length() > 1 && textSize.GetWidth() > (x2 - x1 - 8)) {
+                name = name.Left(name.length() - 1);
+                textSize = dc.GetTextExtent(name);
+            }
+            if (textSize.GetWidth() <= (x2 - x1 - 8)) {
+                int textX = x1 + ((x2 - x1) - textSize.GetWidth()) / 2;
+                int textY = (h - textSize.GetHeight()) / 2;
+                dc.SetTextForeground(wxColour(200, 200, 200));
+                dc.DrawText(name, textX, textY);
+            }
+        }
+    }
+}
+
+void TimeLine::DrawSongStructureBoundaries(wxDC& dc, int w, int h)
+{
+    if (_sequenceElements == nullptr) return;
+    const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    if (ssm.GetRegionCount() < 2) return;
+
+    dc.SetPen(wxPen(wxColour(255, 255, 255, 120), 1));
+    for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
+        int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
+        int xPos = GetPositionFromTimeMS(boundaryTimeMS);
+        if (xPos >= 0 && xPos <= w) {
+            dc.DrawLine(xPos, 0, xPos, h);
+            // Draw small handle diamond at center
+            int cy = h / 2;
+            wxPoint diamond[4];
+            diamond[0] = wxPoint(xPos, cy - 4);
+            diamond[1] = wxPoint(xPos + 3, cy);
+            diamond[2] = wxPoint(xPos, cy + 4);
+            diamond[3] = wxPoint(xPos - 3, cy);
+            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.DrawPolygon(4, diamond);
+        }
+    }
+}
+
+int TimeLine::HitTestBoundary(int x)
+{
+    if (_sequenceElements == nullptr) return -1;
+    const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    if (ssm.GetRegionCount() < 2) return -1;
+
+    int clickTimeMS = GetAbsoluteTimeMSfromPosition(x);
+
+    // 6 pixel hit-test tolerance
+    float msPerPixel = 1.0f;
+    if (mEndTimeMS > mStartTimeMS && GetSize().x > 0) {
+        msPerPixel = (float)(mEndTimeMS - mStartTimeMS) / (float)GetSize().x;
+    }
+    int toleranceMS = (int)(6.0f * msPerPixel);
+
+    return ssm.FindNearestBoundary(clickTimeMS, toleranceMS);
+}
+
+void TimeLine::OnSongStructurePopup(wxCommandEvent& event)
+{
+    if (_sequenceElements == nullptr) return;
+    SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+
+    int id = event.GetId();
+
+    MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+
+    if (id == ID_SONG_ADD_BOUNDARY) {
+        ssm.AddBoundary(_rightClickPosition, mSequenceEndMarkerMS);
+        RaiseSequenceChange();
+        Refresh(false);
+        if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+    } else if (id == ID_SONG_DELETE_BOUNDARY) {
+        float msPerPixel = 1.0f;
+        if (mEndTimeMS > mStartTimeMS && GetSize().x > 0) {
+            msPerPixel = (float)(mEndTimeMS - mStartTimeMS) / (float)GetSize().x;
+        }
+        int toleranceMS = (int)(6.0f * msPerPixel);
+        int boundary = ssm.FindNearestBoundary(_rightClickPosition, toleranceMS);
+        if (boundary >= 0) {
+            ssm.DeleteBoundary(boundary);
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    } else if (id == ID_SONG_EDIT_REGION) {
+        int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
+        if (regionIdx >= 0) {
+            SongStructureRegion& region = ssm.GetRegion(regionIdx);
+
+            SongRegionEditDialog dlg(this, region.name, region.colorARGB);
+            if (dlg.ShowModal() == wxID_OK) {
+                wxString newName = dlg.GetRegionName();
+                if (!newName.empty()) {
+                    ssm.SetRegionName(regionIdx, newName.ToStdString());
+                }
+                uint32_t newColor = dlg.GetSelectedColorARGB();
+                // Preserve original alpha, use RGB from selection
+                uint8_t a = (region.colorARGB >> 24) & 0xFF;
+                newColor = ((uint32_t)a << 24) | (newColor & 0x00FFFFFF);
+                ssm.SetRegionColor(regionIdx, newColor);
+            }
+
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    } else if (id == ID_SONG_CLEAR_STRUCTURE) {
+        if (wxMessageBox("Are you sure you want to clear all song structure regions?",
+                          "Clear Song Structure", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+            ssm.Clear();
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    } else if (id >= ID_SONG_COPY_EFFECTS_BASE &&
+               id < ID_SONG_COPY_EFFECTS_BASE + (int)ssm.GetRegionCount()) {
+        int sourceRegionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
+        int targetRegionIdx = id - ID_SONG_COPY_EFFECTS_BASE;
+        if (sourceRegionIdx >= 0 && targetRegionIdx >= 0 &&
+            targetRegionIdx < (int)ssm.GetRegionCount() &&
+            sourceRegionIdx != targetRegionIdx) {
+            CopyEffectsToRegion(sourceRegionIdx, targetRegionIdx);
+        }
+    } else if (id == ID_SONG_APPLY_PALETTE) {
+        int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
+        if (regionIdx >= 0) {
+            ApplyPaletteToRegion(regionIdx);
+        }
+    } else if (id == ID_SONG_EXPORT_REGION) {
+        int regionIdx = ssm.GetRegionIndexAtTime(_rightClickPosition);
+        if (regionIdx >= 0) {
+            const SongStructureRegion& region = ssm.GetRegion(regionIdx);
+            xLightsFrame::GetFrame()->ExportSongRegion(region.startTimeMS, region.endTimeMS, region.name);
+        }
+    } else if (id == ID_SONG_EXPORT_ALL_REGIONS) {
+        xLightsFrame::GetFrame()->ExportAllSongRegions();
+    } else if (id >= ID_SONG_VIEW_BASE && id < ID_SONG_VIEW_BASE + (int)ssm.GetViewCount()) {
+        ssm.SetActiveView(id - ID_SONG_VIEW_BASE);
+        RaiseSequenceChange();
+        Refresh(false);
+        if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+    } else if (id == ID_SONG_VIEW_NEW) {
+        wxString name = wxGetTextFromUser("Enter name for new view:", "New Song Structure View", "", this);
+        if (!name.empty()) {
+            int idx = ssm.AddView(name.ToStdString());
+            ssm.SetActiveView(idx);
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    } else if (id == ID_SONG_VIEW_DUPLICATE) {
+        wxString defaultName = ssm.GetActiveViewName() + " (copy)";
+        wxString name = wxGetTextFromUser("Enter name for duplicated view:",
+            "Duplicate Song Structure View", defaultName, this);
+        if (!name.empty()) {
+            int idx = ssm.DuplicateView(ssm.GetActiveViewIndex(), name.ToStdString());
+            ssm.SetActiveView(idx);
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    } else if (id == ID_SONG_VIEW_RENAME) {
+        wxString name = wxGetTextFromUser("Enter new name for current view:",
+            "Rename Song Structure View", ssm.GetActiveViewName(), this);
+        if (!name.empty()) {
+            ssm.RenameView(ssm.GetActiveViewIndex(), name.ToStdString());
+            RaiseSequenceChange();
+        }
+    } else if (id == ID_SONG_VIEW_DELETE) {
+        if (wxMessageBox(wxString::Format("Delete view \"%s\"?", ssm.GetActiveViewName()),
+                          "Delete Song Structure View", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+            ssm.DeleteView(ssm.GetActiveViewIndex());
+            RaiseSequenceChange();
+            Refresh(false);
+            if (ms && ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+        }
+    }
+}
+
+void TimeLine::CopyEffectsToRegion(int sourceRegionIdx, int targetRegionIdx)
+{
+    if (_sequenceElements == nullptr) return;
+
+    SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    const SongStructureRegion& sourceRegion = ssm.GetRegion(sourceRegionIdx);
+    const SongStructureRegion& targetRegion = ssm.GetRegion(targetRegionIdx);
+
+    int timeOffset = targetRegion.startTimeMS - sourceRegion.startTimeMS;
+
+    UndoManager& undoMgr = _sequenceElements->get_undo_mgr();
+    undoMgr.CreateUndoStep();
+
+    int effectsCopied = 0;
+
+    for (size_t i = 0; i < _sequenceElements->GetElementCount(); i++) {
+        Element* elem = _sequenceElements->GetElement(i);
+        if (elem == nullptr) continue;
+        if (elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); layer++) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            if (el == nullptr) continue;
+
+            std::vector<Effect*> sourceEffects = el->GetAllEffectsByTime(
+                sourceRegion.startTimeMS, sourceRegion.endTimeMS);
+
+            for (Effect* eff : sourceEffects) {
+                int newStartMS = eff->GetStartTimeMS() + timeOffset;
+                int newEndMS = eff->GetEndTimeMS() + timeOffset;
+
+                newStartMS = RoundToMultipleOfPeriod(newStartMS, mFrequency);
+                newEndMS = RoundToMultipleOfPeriod(newEndMS, mFrequency);
+
+                if (newStartMS < 0 || newStartMS >= newEndMS) continue;
+
+                if (el->GetRangeIsClearMS(newStartMS, newEndMS)) {
+                    Effect* newEff = el->AddEffect(0,
+                        eff->GetEffectName(),
+                        eff->GetSettingsAsString(),
+                        eff->GetPaletteAsString(),
+                        newStartMS,
+                        newEndMS,
+                        EFFECT_NOT_SELECTED,
+                        false);
+
+                    if (newEff != nullptr) {
+                        undoMgr.CaptureAddedEffect(
+                            elem->GetName(),
+                            el->GetIndex(),
+                            newEff->GetID());
+                        effectsCopied++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (effectsCopied == 0) {
+        undoMgr.CancelLastStep();
+    }
+
+    MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+    if (ms && ms->PanelEffectGrid) {
+        ms->PanelEffectGrid->sendRenderDirtyEvent();
+        ms->PanelEffectGrid->Refresh(false);
+    }
+    RaiseSequenceChange();
+    Refresh(false);
+}
+
+void TimeLine::ApplyPaletteToRegion(int regionIdx)
+{
+    if (_sequenceElements == nullptr) return;
+
+    MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+    if (ms == nullptr || ms->PanelEffectGrid == nullptr) return;
+
+    Effect* selectedEffect = ms->PanelEffectGrid->GetSelectedEffect();
+    if (selectedEffect == nullptr) return;
+
+    SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    const SongStructureRegion& region = ssm.GetRegion(regionIdx);
+
+    std::string paletteString = selectedEffect->GetPaletteAsString();
+
+    UndoManager& undoMgr = _sequenceElements->get_undo_mgr();
+    undoMgr.CreateUndoStep();
+
+    int effectsModified = 0;
+
+    for (size_t i = 0; i < _sequenceElements->GetElementCount(); i++) {
+        Element* elem = _sequenceElements->GetElement(i);
+        if (elem == nullptr) continue;
+        if (elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); layer++) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            if (el == nullptr) continue;
+
+            std::vector<Effect*> regionEffects = el->GetAllEffectsByTime(
+                region.startTimeMS, region.endTimeMS);
+
+            for (Effect* eff : regionEffects) {
+                undoMgr.CaptureModifiedEffect(
+                    elem->GetName(),
+                    el->GetIndex(),
+                    eff);
+
+                eff->SetPalette(paletteString);
+                effectsModified++;
+            }
+        }
+    }
+
+    if (effectsModified == 0) {
+        undoMgr.CancelLastStep();
+    }
+
+    if (ms->PanelEffectGrid) {
+        ms->PanelEffectGrid->sendRenderDirtyEvent();
+        ms->PanelEffectGrid->Refresh(false);
+    }
+    RaiseSequenceChange();
+    Refresh(false);
 }
 

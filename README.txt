@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -enh (charlie)              Song Structure Regions: divide the sequencer timeline into named, colored sections
+                                (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
+                                a translucent overlay on timeline + effects grid, and per-region bulk actions —
+                                Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
+                                Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
                                 render on background threads on Linux (previously forced to the main thread because

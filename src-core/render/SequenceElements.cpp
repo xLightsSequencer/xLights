@@ -86,6 +86,7 @@ void SequenceElements::Clear() {
     mChangeCount = 0;
     mMasterViewChangeCount++;
     mSequenceMedia.Clear();
+    mSongStructure.Clear();
     mColorPalettes.clear();
     mCurrentView = 0;
     supportsModelBlending = true;
@@ -772,6 +773,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             }
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
+        } else if (ename == "SongStructure") {
+            mSongStructure.LoadFromXml(e);
         } else if (ename == "Jukebox") {
             LoadJukeboxButtons(e, xml_file.GetJukeboxButtons());
         } else if (ename == "ElementEffects") {

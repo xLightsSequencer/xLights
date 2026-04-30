@@ -30,6 +30,7 @@
 #include "render/PixelBuffer.h"
 #include "RowHeading.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "TimeLine.h"
 #include "sequencer/AutoLabelDialog.h"
 #include "shared/utils/BitmapCache.h"
@@ -121,6 +122,7 @@ const long EffectsGrid::ID_GRID_MNU_CLOSE_GAP = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FILL_REGION = wxNewId();
 
 int findDataEffect::GetStrand() const {
     if (nl != nullptr) {
@@ -389,6 +391,15 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
         if (mSelectedEffect == nullptr) {
             menu_duplicate->Enable(false);
+        }
+
+        wxMenuItem* menu_fillRegion = mnuLayer.Append(ID_GRID_MNU_FILL_REGION, "Fill Region from Timing Marks");
+        {
+            bool canFillRegion = mSelectedEffect != nullptr
+                && GetActiveTimingElement() != nullptr
+                && mSequenceElements != nullptr
+                && mSequenceElements->GetSongStructureManager().HasRegions();
+            menu_fillRegion->Enable(canFillRegion);
         }
 
         // Undo
@@ -1095,6 +1106,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
     } else if (id == ID_GRID_MNU_DUPLICATE_EFFECT) {
         spdlog::debug("OnGridPopup - DUPLICATE_EFFECT");
         DuplicateSelectedEffects();
+    } else if (id == ID_GRID_MNU_FILL_REGION) {
+        spdlog::debug("OnGridPopup - FILL_REGION");
+        FillRegionFromTimingMarks();
     } else if (id == ID_GRID_MNU_PRESETS) {
         spdlog::debug("OnGridPopup - PRESETS");
 
@@ -7155,6 +7169,7 @@ void EffectsGrid::Draw() {
 
         DrawLines(ctx);
         DrawEffects(ctx);
+        DrawSongStructureOverlays(ctx);
         DrawPlayMarker(ctx);
 
         bool has_timing_effects = (mSequenceElements->GetNumberOfActiveTimingEffects() > 0);
@@ -7613,4 +7628,160 @@ void EffectsGrid::DuplicateSelectedEffects() {
             }
         }
     }
+}
+
+void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
+    if (mSequenceElements == nullptr || mTimeline == nullptr) return;
+    const SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    if (!ssm.HasRegions()) return;
+
+    int width = getWidth();
+
+    ctx->enableBlending();
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+
+        int x1 = mTimeline->GetPositionFromTimeMS(region.startTimeMS);
+        int x2 = mTimeline->GetPositionFromTimeMS(region.endTimeMS);
+
+        if (x2 < 0 || x1 > width) continue;
+        x1 = std::max(0, x1);
+        x2 = std::min(width, x2);
+        if (x2 <= x1) continue;
+
+        uint8_t r = (region.colorARGB >> 16) & 0xFF;
+        uint8_t g = (region.colorARGB >> 8) & 0xFF;
+        uint8_t b = region.colorARGB & 0xFF;
+
+        xlColor overlayColor(r, g, b, 18);
+
+        xlVertexAccumulator* va = ctx->createVertexAccumulator();
+        va->AddRectAsTriangles(x1, 0, x2, mWindowHeight);
+        ctx->drawTriangles(va, overlayColor);
+        delete va;
+    }
+
+    if (ssm.GetRegionCount() >= 2) {
+        for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
+            int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
+            int xPos = mTimeline->GetPositionFromTimeMS(boundaryTimeMS);
+            if (xPos >= 0 && xPos <= width) {
+                xlVertexAccumulator* va = ctx->createVertexAccumulator();
+                va->AddVertex(xPos, 0);
+                va->AddVertex(xPos, mWindowHeight);
+                xlColor lineColor(255, 255, 255, 40);
+                ctx->drawLines(va, lineColor);
+                delete va;
+            }
+        }
+    }
+
+    ctx->disableBlending();
+}
+
+void EffectsGrid::FillRegionFromTimingMarks() {
+    Effect* sourceEffect = mSelectedEffect;
+    if (sourceEffect == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No source effect");
+        return;
+    }
+
+    EffectLayer* el = sourceEffect->GetParentEffectLayer();
+    if (el == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No parent effect layer");
+        return;
+    }
+
+    SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    const SongStructureRegion* region = ssm.GetRegionAtTime(sourceEffect->GetStartTimeMS());
+    if (region == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No song structure region at time {}", sourceEffect->GetStartTimeMS());
+        return;
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Region '{}' [{}-{} ms]",
+        region->name, region->startTimeMS, region->endTimeMS);
+
+    Element* timingElement = GetActiveTimingElement();
+    if (timingElement == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No active timing element");
+        return;
+    }
+
+    TimingElement* te = dynamic_cast<TimingElement*>(timingElement);
+    if (te == nullptr) {
+        return;
+    }
+
+    EffectLayer* timingLayer = nullptr;
+    for (int i = te->GetEffectLayerCount() - 1; i >= 0; i--) {
+        EffectLayer* tl = te->GetEffectLayer(i);
+        if (tl != nullptr && tl->GetEffectCount() > 0) {
+            timingLayer = tl;
+            break;
+        }
+    }
+
+    if (timingLayer == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No timing layer with marks found");
+        return;
+    }
+
+    std::string effectName = xlights->GetEffectManager().GetEffectName(sourceEffect->GetEffectIndex());
+    std::string settings = sourceEffect->GetSettingsAsString();
+    std::string palette = sourceEffect->GetPaletteAsString();
+    long sourceStart = sourceEffect->GetStartTimeMS();
+    long sourceEnd = sourceEffect->GetEndTimeMS();
+    long sourceDuration = sourceEnd - sourceStart;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    int effectsCreated = 0;
+
+    for (int i = 0; i < timingLayer->GetEffectCount(); i++) {
+        Effect* timingMark = timingLayer->GetEffect(i);
+        long markStart = timingMark->GetStartTimeMS();
+        long markEnd = timingMark->GetEndTimeMS();
+
+        if (markEnd <= region->startTimeMS || markStart >= region->endTimeMS) {
+            continue;
+        }
+
+        if (markStart < region->startTimeMS) {
+            markStart = region->startTimeMS;
+        }
+
+        // Skip the timing mark that overlaps with the source effect
+        if (markStart < sourceEnd && markEnd > sourceStart) {
+            continue;
+        }
+
+        long newStart = mTimeline->RoundToMultipleOfPeriod(markStart, mSequenceElements->GetFrequency());
+        long newEnd = mTimeline->RoundToMultipleOfPeriod(newStart + sourceDuration, mSequenceElements->GetFrequency());
+
+        if (newEnd > region->endTimeMS) {
+            newEnd = mTimeline->RoundToMultipleOfPeriod(region->endTimeMS, mSequenceElements->GetFrequency());
+        }
+
+        if (newEnd <= newStart) continue;
+
+        if (el->HasEffectsInTimeRange(newStart, newEnd)) {
+            continue;
+        }
+
+        Effect* newEffect = el->AddEffect(0, effectName, settings, palette,
+            newStart, newEnd, EFFECT_NOT_SELECTED, false);
+        if (newEffect != nullptr) {
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(
+                el->GetParentElement()->GetName(), el->GetIndex(), newEffect->GetID());
+            effectsCreated++;
+        }
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Created {} effects in region '{}'",
+        effectsCreated, region->name);
+
+    sendRenderDirtyEvent();
+    ForceRefresh();
 }

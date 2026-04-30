@@ -13,6 +13,7 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceMedia.h"
+#include "SongStructureManager.h"
 namespace pugi { class xml_node; class xml_document; }
 #include <array>
 #include <vector>
@@ -209,6 +210,10 @@ public:
     // Media cache management
     SequenceMedia& GetSequenceMedia() { return mSequenceMedia; }
     const SequenceMedia& GetSequenceMedia() const { return mSequenceMedia; }
+
+    // Song structure regions
+    SongStructureManager& GetSongStructureManager() { return mSongStructure; }
+    const SongStructureManager& GetSongStructureManager() const { return mSongStructure; }
 protected:
 private:
     int LoadEffects(EffectLayer *layer,
@@ -261,5 +266,6 @@ private:
     
     std::vector<std::string> mColorPalettes;
     SequenceMedia mSequenceMedia;
+    SongStructureManager mSongStructure;
 };
 

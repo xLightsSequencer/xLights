@@ -1373,6 +1373,11 @@ bool SequenceFile::BuildDocument(pugi::xml_document& doc, SequenceElements& seq_
     // SequenceMedia
     seq_elements.GetSequenceMedia().SaveToXml(root);
 
+    // SongStructure regions (only if any view has regions)
+    if (seq_elements.GetSongStructureManager().AnyViewHasRegions()) {
+        seq_elements.GetSongStructureManager().SaveToXml(root);
+    }
+
     // DataLayers
     auto data_layer = root.append_child("DataLayers");
     for (int i = 0; i < mDataLayers.GetNumLayers(); ++i) {

@@ -919,6 +919,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
@@ -1493,6 +1494,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />

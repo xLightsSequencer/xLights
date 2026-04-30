@@ -24,6 +24,7 @@
 #include "EffectsGrid.h"
 #include "color/ColorManager.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "media/AudioManager.h"
 #include "media/OnsetDetector.h"
 #include "media/TempoDetector.h"
@@ -225,6 +226,7 @@ const long RowHeading::ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_ONSETS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_TEMPO = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_CHORDS = wxNewId();
+const long RowHeading::ID_ROW_MNU_CREATE_SONG_REGIONS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
@@ -616,6 +618,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
+                    mnuLayer.Append(ID_ROW_MNU_CREATE_SONG_REGIONS, "Create Song Regions from Timing Track");
                     TimingElement *te = dynamic_cast<TimingElement*>(element);
                     if (te->GetSubType() == "") {
                         mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
@@ -1562,6 +1565,69 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (te != nullptr) {
             te->RemoveEffectLayer(2);
             te->RemoveEffectLayer(1);
+        }
+    } else if (id == ID_ROW_MNU_CREATE_SONG_REGIONS) {
+        TimingElement* te = dynamic_cast<TimingElement*>(element);
+        if (te != nullptr && mSequenceElements != nullptr) {
+            EffectLayer* el = te->GetEffectLayer(0);
+            if (el != nullptr && el->GetEffectCount() > 0) {
+                SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+
+                if (ssm.HasRegions()) {
+                    int result = wxMessageBox(
+                        "This will replace existing song structure regions. Continue?",
+                        "Create Song Regions", wxYES_NO | wxICON_QUESTION, this);
+                    if (result != wxYES) {
+                        return;
+                    }
+                    ssm.Clear();
+                }
+
+                int viewIdx = ssm.AddView("Default");
+                ssm.SetActiveView(viewIdx);
+
+                int seqEndMS = mSequenceElements->GetSequenceEnd();
+                int regionId = 1;
+                int colorIdx = 0;
+                int lastEndMS = 0;
+
+                std::vector<SongStructureRegion> regions;
+
+                for (int k = 0; k < el->GetEffectCount(); ++k) {
+                    Effect* eff = el->GetEffect(k);
+                    int markStart = eff->GetStartTimeMS();
+                    int markEnd = eff->GetEndTimeMS();
+
+                    std::string label = eff->GetEffectName();
+                    if (label.empty()) {
+                        label = wxString::Format("Region %d", k + 1).ToStdString();
+                    }
+
+                    if (markStart > lastEndMS) {
+                        regions.emplace_back(regionId++, lastEndMS, markStart, "", 0x40808080);
+                    }
+
+                    uint32_t color = SongStructureManager::GetPaletteColor(colorIdx % SongStructureManager::PALETTE_SIZE);
+                    regions.emplace_back(regionId++, markStart, markEnd, label, color);
+                    colorIdx++;
+
+                    lastEndMS = markEnd;
+                }
+
+                if (lastEndMS < seqEndMS) {
+                    regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
+                }
+
+                ssm.SetRegions(regions);
+
+                wxCommandEvent eventSequenceChanged(EVT_SEQUENCE_CHANGED);
+                wxPostEvent(GetParent(), eventSequenceChanged);
+                MainSequencer* ms = dynamic_cast<MainSequencer*>(GetParent());
+                if (ms != nullptr) {
+                    ms->PanelTimeLine->Refresh(false);
+                    if (ms->PanelEffectGrid) ms->PanelEffectGrid->Refresh(false);
+                }
+            }
         }
     } else if (id == ID_ROW_MNU_EXPORT_MODEL) {
         wxCommandEvent playEvent(EVT_EXPORT_MODEL);
