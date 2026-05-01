@@ -24,6 +24,7 @@
 #include "render/RenderEngine.h"
 #include "render/FSEQFile.h"
 #include "utils/UtilFunctions.h"
+#include "utils/string_utils.h"
 #include "lyrics/PhonemeDictionary.h"
 #include "lyrics/LyricBreakdown.h"
 #include "render/SequenceViewManager.h"
@@ -519,6 +520,27 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (!sf) return @"";
     const std::string& v = sf->GetMediaFile();
     return [NSString stringWithUTF8String:v.c_str()];
+}
+
+- (NSString*)audioTitle {
+    if (!_context) return @"";
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return @"";
+    return [NSString stringWithUTF8String:am->Title().c_str()];
+}
+
+- (NSString*)audioArtist {
+    if (!_context) return @"";
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return @"";
+    return [NSString stringWithUTF8String:am->Artist().c_str()];
+}
+
+- (NSString*)audioAlbum {
+    if (!_context) return @"";
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return @"";
+    return [NSString stringWithUTF8String:am->Album().c_str()];
 }
 
 - (BOOL)setMediaFilePath:(NSString*)path {
@@ -1522,6 +1544,154 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     std::string n([name UTF8String]);
     TimingElement* e = _context->AddTimingElement(n, "");
     return e != nullptr;
+}
+
+- (NSString*)addFixedIntervalTimingTrackNamed:(NSString*)name
+                                    intervalMS:(int)intervalMS {
+    if (!_context || !_context->IsSequenceLoaded()) return @"";
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return @"";
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) n = "Timing";
+
+    if (intervalMS > 0) {
+        sf->AddFixedTimingSection(n, intervalMS, _context.get());
+    } else {
+        // Empty timing track — same path the existing
+        // -addTimingTrackNamed: takes, but routed through
+        // SequenceFile so the fixed/non-fixed bookkeeping stays
+        // consistent.
+        _context->AddTimingElement(n, "");
+    }
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:n.c_str()];
+}
+
+- (NSString*)addMetronomeTimingTrackNamed:(NSString*)name
+                                intervalMS:(int)intervalMS
+                                      tags:(NSArray<NSString*>*)tags
+                             minIntervalMS:(int)minIntervalMS
+                                 randomize:(BOOL)randomize {
+    if (!_context || !_context->IsSequenceLoaded()) return @"";
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf || intervalMS <= 0) return @"";
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) n = "Metronome";
+
+    std::vector<std::string> tagVec;
+    if (tags) {
+        tagVec.reserve(tags.count);
+        for (NSString* t in tags) {
+            tagVec.emplace_back([t UTF8String]);
+        }
+    }
+    sf->AddMetronomeLabelTimingSection(n, intervalMS, tagVec, _context.get(),
+                                        minIntervalMS, randomize ? true : false);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:n.c_str()];
+}
+
+- (NSString*)addFPPTimingTrackNamed:(NSString*)name
+                              subType:(NSString*)subType {
+    if (!_context || !_context->IsSequenceLoaded()) return @"";
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return @"";
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) return @"";
+    std::string st = subType ? std::string([subType UTF8String]) : std::string();
+    if (st != "FPP Commands" && st != "FPP Effects") return @"";
+
+    sf->AddNewTimingSection(n, _context.get(), st);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:n.c_str()];
+}
+
+- (NSString*)addLyricTimingTrackNamed:(NSString*)name
+                                 words:(NSArray<NSString*>*)words
+                              startMS:(NSArray<NSNumber*>*)startMS
+                                endMS:(NSArray<NSNumber*>*)endMS {
+    if (!_context || !_context->IsSequenceLoaded()) return @"";
+    if (words == nil || words.count == 0) return @"";
+    if (startMS == nil || endMS == nil) return @"";
+    if (words.count != startMS.count || words.count != endMS.count) return @"";
+
+    std::string trackName = (name && name.length > 0)
+        ? std::string([name UTF8String])
+        : std::string("AutoGen");
+    TimingElement* element = _context->AddTimingElement(trackName, "");
+    if (!element) return @"";
+
+    EffectLayer* layer = element->GetEffectLayer(0);
+    if (!layer) return @"";
+
+    auto& se = _context->GetSequenceElements();
+    double freq = se.GetFrequency();
+    if (freq <= 0) freq = 50.0; // safe default
+
+    auto roundPair = [&](int sms, int ems) {
+        int s = RoundToMultipleOfPeriod(sms, freq);
+        int e = RoundToMultipleOfPeriod(ems, freq);
+        if (s == e) {
+            e = RoundToMultipleOfPeriod((int)(s + 1000.0 / freq), freq);
+        }
+        return std::make_pair(s, e);
+    };
+
+    int previousEnd = -1;
+    for (NSUInteger i = 0; i < words.count; ++i) {
+        NSString* w = words[i];
+        if (w == nil || w.length == 0) continue;
+
+        std::string raw([w UTF8String]);
+        // Match desktop GenerateAILyrics: trim whitespace, skip
+        // entries that contain nothing but whitespace.
+        std::string trimmed = Trim(raw);
+        if (trimmed.empty()) continue;
+        bool hasText = std::any_of(trimmed.begin(), trimmed.end(),
+                                    [](unsigned char ch) { return !std::isspace(ch); });
+        if (!hasText) continue;
+
+        auto [s, e] = roundPair([startMS[i] intValue], [endMS[i] intValue]);
+        if (e <= s) continue;
+        // Avoid overlapping the previous mark — the recognizer
+        // sometimes produces back-to-back segments whose rounded
+        // boundaries collide. Bias the new mark forward so they sit
+        // adjacent rather than overlapping.
+        if (s < previousEnd) {
+            s = previousEnd;
+            if (e <= s) continue;
+        }
+        layer->AddEffect(0, trimmed, "", "", s, e, EFFECT_NOT_SELECTED, false);
+        previousEnd = e;
+    }
+
+    se.IncrementChangeCount(nullptr);
+    return [NSString stringWithUTF8String:trackName.c_str()];
+}
+
+- (BOOL)hasVocalsStems {
+    if (!_context) return NO;
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return NO;
+    return am->HasStemData() ? YES : NO;
+}
+
+- (NSString*)writeVocalsStemsToTempWav {
+    if (!_context) return nil;
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return nil;
+    std::string p = am->WriteVocalsStemToTempWav();
+    if (p.empty()) return nil;
+    return [NSString stringWithUTF8String:p.c_str()];
+}
+
+- (NSString*)sequenceAudioFilePath {
+    if (!_context || !_context->IsSequenceLoaded()) return nil;
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return nil;
+    const std::string& fn = am->FileName();
+    if (fn.empty()) return nil;
+    return [NSString stringWithUTF8String:fn.c_str()];
 }
 
 - (int)addTimingMarkAtRow:(int)rowIndex

@@ -833,7 +833,7 @@ std::string SanDevices::GenerateOutputURLV5(SanDevicesOutput* outputData) {
     const int controlPort = EncodeControllerPortV5(outputData->group, outputData->output);
 
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const std::string request = fmt::format("/%c?A=%d%s&Z=%c&G=%d%s%s&B=%i%s&I=%i&J=%i&D=%c",
+    const std::string request = fmt::format("/{:c}?A={}{}&Z={:c}&G={}{}{}&B={}{}&I={}&J={}&D={:c}",
         controlPort + 'J',
         outputData->pixels,
         colorOrder,
@@ -853,7 +853,7 @@ std::string SanDevices::GenerateProtocolURLV5(SanDevicesProtocol* protocolData) 
 
     //K?E=A&K=A
     //http://192.168.1.206/K?A=50&E=A&Z=A&G=1&H=0&B=1&I=0&J=0&D=A
-    const std::string request = fmt::format("/%c?E=%c&K=%c",
+    const std::string request = fmt::format("/{:c}?E={:c}&K={:c}",
         protocolData->getGroup() + 'J',
         protocolData->getProtocol(),
         protocolData->getTiming());
@@ -909,7 +909,7 @@ std::string SanDevices::GenerateOutputURLV4(SanDevicesOutputV4* outputData) {
 
     //e682 v4
     //http://192.168.1.206/4?A=2&B=B&C=100&D=1&E=0&F=A&G=1&L=0&M=0&N=0&O=0&P=0
-    const std::string request = fmt::format("/%d?%sB=%c&C=%d&D=%i&E=%i&F=%c&G=%d%s&L=%i%s",
+    const std::string request = fmt::format("/{}?{}B={:c}&C={}&D={}&E={}&F={:c}&G={}{}&L={}{}",
         outputData->group + 3,
         output,
         outputData->protocol,
@@ -1275,7 +1275,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
                 ui->ShowMessage(fmt::format("Attempt to upload a universe of size {} to SanDevices controller, but only a size of 510/512 is supported", it->GetChannels()), "Error");
                 return false;
             }
-            requestUnvSize += fmt::format("%c=%c", output, EncodeUniverseSize(it->GetChannels()));
+            requestUnvSize += fmt::format("{:c}={:c}", output, EncodeUniverseSize(it->GetChannels()));
         }
         else {
             if (it->GetChannels() != 510) {
@@ -1283,7 +1283,7 @@ bool SanDevices::SetInputUniverses(Controller* controller, UICallbacks* ui) {
                 return false;
             }
         }
-        request += fmt::format("%c=%i", output++, it->GetUniverse());
+        request += fmt::format("{:c}={}", output++, it->GetUniverse());
     }
 
     if (0 == t) { //multicast

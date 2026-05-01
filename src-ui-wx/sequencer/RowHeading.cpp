@@ -606,11 +606,6 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
-                    // A2/A4/A9: audio-analysis generators live inside
-                    // the "Add Timing Track" dialog's timing-type
-                    // picker (alongside VAMP plugins), not here —
-                    // keep this row-popup focused on operations on
-                    // the existing timing track.
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     if ( xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
                         SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
@@ -1044,7 +1039,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (vampMedia != nullptr) {
             plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
 
-            // A2/A4/A9: the built-in detectors produce timing tracks
+            // The built-in detectors produce timing tracks
             // directly from audio analysis. Listed after the FPP
             // options (which end the default list) but before VAMP
             // plugins so the dialog reads as: built-in → xLights
@@ -1053,6 +1048,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Choice_New_Fixed_Timing->Append("Audio Onsets");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Tempo");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Chords");
+                // AI lyric transcription. Reuses the existing
+                // EVT_AI_LYRICS handler in tabSequencer.cpp; only
+                // offered when at least one SPEECH2TEXT service is
+                // configured (Apple Intelligence on Apple Silicon
+                // covers this without an API key).
+                if (xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
+                    dialog.Choice_New_Fixed_Timing->Append("AI Lyrics from Audio");
+                }
             }
 
             if (plugins.size() == 0) {
@@ -1086,6 +1089,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Destroy();
                 wxCommandEvent evt(wxEVT_MENU, detectorId);
                 OnLayerPopup(evt);
+                return;
+            } else if (selected_timing == "AI Lyrics from Audio") {
+                // Reuse the EVT_AI_LYRICS handler that powers the
+                // row-context-menu "AI Speech 2 Lyrics" entry.
+                dialog.Destroy();
+                wxCommandEvent aiEvt(EVT_AI_LYRICS);
+                wxPostEvent(GetParent(), aiEvt);
                 return;
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {

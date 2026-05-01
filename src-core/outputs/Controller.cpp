@@ -47,7 +47,10 @@ const std::vector<ControllerNameVendorMap> __controllerNameMap =
     ControllerNameVendorMap("AlphaPix", "AlphaPix 16", "Holiday Coro", "AlphaPix 16"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix 4", "Holiday Coro", "AlphaPix 4"),
     ControllerNameVendorMap("AlphaPix", "AlphaPix Flex", "Holiday Coro", "AlphaPix Flex"),
-    ControllerNameVendorMap("", "ESPixelStick", "ESPixelStick", ""),
+
+    ControllerNameVendorMap("ESPixelStick", "ESPixelStick",         "ESPixelStick", "ESPixelStick"),
+    ControllerNameVendorMap("ESPixelStick", "ESPixelStick-ESP8266", "ESPixelStick", "ESPixelStick-4.x"),
+    ControllerNameVendorMap("ESPixelStick", "ESPixelStick-ESP32",   "ESPixelStick", "ESPixelStick-4.x"),
 
     ControllerNameVendorMap("Falcon", "F16v2", "Falcon", "F16V2R", "Two Expansion Boards"),
     ControllerNameVendorMap("Falcon", "F16v3", "Falcon", "F16V3", "Two Expansion Boards"),

@@ -254,6 +254,25 @@ struct ContentView: View {
             CheckSequenceSheet()
                 .environment(viewModel)
         }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAIServices },
+            set: { viewModel.showingAIServices = $0 }
+        )) {
+            AIServicesSettingsSheet()
+        }
+        // Unified Add Timing Track sheet. Driven by
+        // viewModel.showingAddTimingTrack so all call sites
+        // (Display Elements sheet, Settings → Timings tab, the
+        // row-heading long-press menus, the empty-space long-press
+        // below the last row) flip the same flag and present the
+        // same sheet.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAddTimingTrack },
+            set: { viewModel.showingAddTimingTrack = $0 }
+        )) {
+            AddTimingTrackSheet()
+                .environment(viewModel)
+        }
         // Phase A re-prompt UX. When a persisted security-scoped
         // bookmark goes stale (iCloud eviction, iOS aging out the
         // bookmark) `SequencerViewModel` queues an
@@ -586,7 +605,7 @@ struct ContentView: View {
     /// Run once per open: compare `.xbkp` mtime vs. `.xsq` and
     /// surface the recovery alert when the backup is newer.
     private func checkAutosaveRecovery() {
-        let path = viewModel.document.currentSequencePath() ?? ""
+        let path = viewModel.document.currentSequencePath()
         guard !path.isEmpty, path != lastCheckedSequencePath else { return }
         lastCheckedSequencePath = path
         let (has, when) = viewModel.hasRecoverableBackup()

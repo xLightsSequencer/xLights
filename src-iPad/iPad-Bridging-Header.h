@@ -8,3 +8,5 @@
 #import "Bridge/XLImportSession.h"
 #import "Bridge/XLLogPackager.h"
 #import "Bridge/XLDiagnosticSession.h"
+#import "Bridge/XLAIServices.h"
+#import "Bridge/XLAIImageSession.h"

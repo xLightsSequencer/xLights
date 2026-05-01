@@ -736,7 +736,7 @@ struct DMXButtonsRowView: View {
         guard let sel = viewModel.selectedEffect else { return [] }
         let arr = viewModel.document.states(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? []
+            at: Int32(sel.effectIndex))
         return arr.sorted()
     }
 

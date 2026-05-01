@@ -397,6 +397,10 @@ public:
     std::vector<std::string> GetImagePaths() const;
     void RemoveUnusedImages();
 
+    std::vector<std::pair<std::string, std::string>> GetImageRelocations() const;
+    void RecordRelocation(const std::string& from, const std::string& to);
+    void ClearRelocations();
+
     // === Type-specific retrieval (create-on-first-access, resolve via FileUtils::FixFile) ===
     std::shared_ptr<TextMediaCacheEntry> GetTextFile(const std::string& filepath);
     std::shared_ptr<SVGMediaCacheEntry> GetSVG(const std::string& filepath);
@@ -450,6 +454,8 @@ public:
 private:
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+
+    std::vector<std::pair<std::string, std::string>> _pendingRelocations;
 
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;

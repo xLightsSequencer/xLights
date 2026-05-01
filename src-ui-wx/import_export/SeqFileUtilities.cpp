@@ -254,6 +254,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp)
 {
     FileUtils::ClearNonExistentFiles();
+    _sequenceElements.GetSequenceMedia().ClearRelocations();
 
     bool loaded_fseq = false;
     wxString filename;

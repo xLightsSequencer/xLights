@@ -953,6 +953,24 @@ std::vector<std::string> SequenceMedia::GetImagePaths() const
     return paths;
 }
 
+std::vector<std::pair<std::string, std::string>> SequenceMedia::GetImageRelocations() const
+{
+    std::scoped_lock lock(_cacheMutex);
+    return _pendingRelocations;
+}
+
+void SequenceMedia::RecordRelocation(const std::string& from, const std::string& to)
+{
+    std::scoped_lock lock(_cacheMutex);
+    _pendingRelocations.emplace_back(from, to);
+}
+
+void SequenceMedia::ClearRelocations()
+{
+    std::scoped_lock lock(_cacheMutex);
+    _pendingRelocations.clear();
+}
+
 void SequenceMedia::RemoveUnusedImages()
 {
 

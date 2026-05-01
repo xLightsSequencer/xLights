@@ -765,6 +765,8 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
             reopenContext();
         }
 
+        if (_codecContext == nullptr) return;
+
         if (timestampMS < _lengthMS) {
             _atEnd = false;
         } else {
@@ -796,6 +798,7 @@ void FFmpegVideoReader::Seek(int timestampMS, bool readFrame)
 }
 
 bool FFmpegVideoReader::readFrame(int timestampMS) {
+    if (_codecContext == nullptr) return false;
     int rc = 0;
     if ((rc = avcodec_receive_frame(_codecContext, _srcFrame)) == 0) {
         if (_srcFrame->pts == (int64_t)0x8000000000000000LL) {
@@ -1037,6 +1040,12 @@ VideoFrame* FFmpegVideoReader::GetNextFrame(int timestampMS, int gracetime)
                         av_strerror(ret, errbuf, sizeof(errbuf));
                         spdlog::warn("VideoReader: Hardware video decoding failed for {} (error: {}). Reverting to software decoding.", (const char*)_filename.c_str(), errbuf);
                         reopenContext(false);
+                        if (_codecContext == nullptr) {
+                            spdlog::error("VideoReader: Failed to reopen context for {} after HW decode error; aborting render.", (const char*)_filename.c_str());
+                            _valid = false;
+                            av_packet_unref(_packet);
+                            return nullptr;
+                        }
                         Seek(timestampMS, false);
                         currenttime = GetPos();
                         ret = 0;

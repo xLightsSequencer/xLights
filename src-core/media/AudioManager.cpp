@@ -15,6 +15,7 @@
 #include "../utils/AppCallbacks.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -1636,6 +1637,77 @@ void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vect
             ++it;
         }
     }
+}
+
+std::string AudioManager::WriteVocalsStemToTempWav() const {
+    // Snapshot the stem buffers under the audio lock so a concurrent
+    // SetStemData() can't yank them out from under us mid-write.
+    std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+    if (_stemVocalsL.empty() || _stemVocalsR.empty()) return {};
+    if (_stemVocalsL.size() != _stemVocalsR.size()) return {};
+
+    const auto frames = (uint32_t)_stemVocalsL.size();
+    const auto sr = (uint32_t)(_rate > 0 ? _rate : 44100);
+
+    // Build a unique temp path. Use the audio file's basename (when
+    // available) so multiple concurrent xLights instances can't race
+    // each other's vocal exports for different sequences.
+    std::error_code ec;
+    auto tmpDir = std::filesystem::temp_directory_path(ec);
+    if (ec) tmpDir = std::filesystem::path("/tmp");
+    std::string stem = std::filesystem::path(_audio_file).stem().string();
+    if (stem.empty()) stem = "audio";
+    auto tsNS = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string filename = "xlights_vocals_" + stem + "_" + std::to_string(tsNS) + ".wav";
+    std::filesystem::path outPath = tmpDir / filename;
+
+    // Stereo float32 WAV, RIFF + fmt(IEEE float, 3) + data.
+    // Header layout (44 bytes):
+    //   "RIFF" <fileSize-8> "WAVE"
+    //   "fmt " 16 (3 PCM_FLOAT) (2 channels) <sr> <byteRate> <blockAlign> <bitsPerSample=32>
+    //   "data" <dataSize>
+    const uint16_t channels      = 2;
+    const uint16_t bitsPerSample = 32;
+    const uint16_t blockAlign    = channels * (bitsPerSample / 8);
+    const uint32_t byteRate      = sr * blockAlign;
+    const uint32_t dataSize      = frames * blockAlign;
+    const uint32_t fileSize      = 36 + dataSize;
+
+    std::ofstream f(outPath, std::ios::binary);
+    if (!f) return {};
+
+    auto write_u32 = [&](uint32_t v) { f.write(reinterpret_cast<const char*>(&v), 4); };
+    auto write_u16 = [&](uint16_t v) { f.write(reinterpret_cast<const char*>(&v), 2); };
+
+    f.write("RIFF", 4);   write_u32(fileSize);  f.write("WAVE", 4);
+    f.write("fmt ", 4);   write_u32(16);
+    write_u16(3);                  // WAVE_FORMAT_IEEE_FLOAT
+    write_u16(channels);
+    write_u32(sr);
+    write_u32(byteRate);
+    write_u16(blockAlign);
+    write_u16(bitsPerSample);
+    f.write("data", 4);   write_u32(dataSize);
+
+    // Interleave L/R samples. The stem buffers are full-track-length
+    // mono arrays; iterate once writing a stereo sample per frame.
+    // Buffered std::ofstream handles the millions-of-writes pattern
+    // fine on modern OSes; switching to a contiguous std::vector
+    // staging buffer + one write() didn't measurably help in
+    // benchmarks here.
+    for (uint32_t i = 0; i < frames; ++i) {
+        float l = _stemVocalsL[i];
+        float r = _stemVocalsR[i];
+        f.write(reinterpret_cast<const char*>(&l), sizeof(float));
+        f.write(reinterpret_cast<const char*>(&r), sizeof(float));
+    }
+    if (!f.good()) {
+        f.close();
+        std::filesystem::remove(outPath, ec);
+        return {};
+    }
+    return outPath.string();
 }
 
 void AudioManager::SetClassifyGate(const std::string& className,

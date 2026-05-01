@@ -564,6 +564,15 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
 
     _sequenceElements.PopulateRowInformation();
 
+    // Mark the SequenceFile as loaded so subsequent timing-track
+    // additions go through the live in-memory path (creating
+    // elements + marks immediately) instead of the
+    // mPendingTimings queue, which only applies on a future
+    // ApplyPendingTimings call. Desktop does this from
+    // SeqFileUtilities.cpp after every load; the iPad's
+    // sequence-open path is here, so it lands here.
+    _sequenceFile->SetSequenceLoaded(true);
+
     // ValueCurve needs sequence elements for VC expressions referencing timing tracks
     ValueCurve::SetSequenceElements(&_sequenceElements);
 
@@ -588,6 +597,31 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
 }
 
 void iPadRenderContext::CloseSequence() {
+    // If a background render is in flight, signal abort and wait
+    // for the orchestrator + JobPool workers to wind down before
+    // destroying the SequenceElements / SequenceData they read.
+    // Without this, opening a second sequence while the first one
+    // is still rendering races: main thread enters Clear() while
+    // the render worker is mid-GetElement(), producing a use-
+    // after-free crash deep in StrandElement / ModelElement
+    // destruction (observed in TestFlight as a Thread 0 ↔ Thread 17
+    // collision when picking a sequence from the picker).
+    //
+    // The deadline is generous — typical wind-down is tens of ms,
+    // but a long-running per-model render can take a couple of
+    // seconds to notice the abort. Falling out of the loop after
+    // 5 s is a safety net; the worker may still be running when we
+    // proceed, but at that point we've given up on a clean
+    // shutdown and the user is presumably waiting too long anyway.
+    if (_renderEngine) {
+        _renderEngine->SignalAbort();
+        auto deadline = std::chrono::steady_clock::now()
+                      + std::chrono::seconds(5);
+        while (!IsRenderDone()
+               && std::chrono::steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
     _sequenceElements.Clear();
     _sequenceData.Cleanup();
     _sequenceDoc.reset();

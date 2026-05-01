@@ -378,7 +378,7 @@ struct PreviewPaneView: UIViewRepresentable {
             }
             // Broadcast the current (possibly updated) list back to the
             // overlay for this pane so its menu reflects the latest.
-            let names = bridge.viewpointNames(for: doc) ?? []
+            let names = bridge.viewpointNames(for: doc)
             NotificationCenter.default.post(name: .previewViewpointListChanged,
                                             object: self.previewNameForNotifications,
                                             userInfo: ["names": names])

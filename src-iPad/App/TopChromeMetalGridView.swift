@@ -94,7 +94,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     final class Coordinator {
-        let bridge = XLGridMetalBridge(name: "TopChromeGrid")!
+        let bridge = XLGridMetalBridge(name: "TopChromeGrid")
         var durationMS: Int = 0
         var pixelsPerMS: CGFloat = 0.1
         var rulerHeight: CGFloat = 24

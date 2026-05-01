@@ -29,11 +29,21 @@ struct EffectFilenameBlockView: View {
 
     @State private var presentingPicker = false
     @State private var presentingMediaSheet = false
+    @State private var presentingAIImageSheet = false
     @State private var pendingPick: URL?
     /// Populated after a video commit fails AVFoundation's decode
     /// check. Non-nil → the "Video may not play on iPad" alert is
     /// visible. Drives a dialog with a Transcode-on-Desktop hint.
     @State private var videoCompatIssue: String? = nil
+
+    /// AI image generation only makes sense for the Pictures effect's
+    /// `Images/` flow — Video and Shader effects don't have an
+    /// equivalent service. Gated on a configured + enabled IMAGES
+    /// service so the button hides cleanly when no provider is set up.
+    private var canShowAIButton: Bool {
+        subdirectory == "Images"
+            && XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityImages)
+    }
 
     private var currentPath: String {
         viewModel.settingValue(forKey: settingKey, defaultValue: "")
@@ -70,6 +80,16 @@ struct EffectFilenameBlockView: View {
                 Button("Select…") { presentingMediaSheet = true }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                if canShowAIButton {
+                    Button {
+                        presentingAIImageSheet = true
+                    } label: {
+                        Label("AI", systemImage: "wand.and.stars")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
                 if !currentPath.isEmpty {
                     Button(action: { viewModel.setSettingValue("", forKey: settingKey) }) {
                         Image(systemName: "xmark.circle.fill")
@@ -110,6 +130,12 @@ struct EffectFilenameBlockView: View {
                     viewModel.setSettingValue("", forKey: settingKey)
                 }
             )
+            .environment(viewModel)
+        }
+        .sheet(isPresented: $presentingAIImageSheet) {
+            AIImageGenerationSheet { storedPath in
+                viewModel.setSettingValue(storedPath, forKey: settingKey)
+            }
             .environment(viewModel)
         }
         .alert("Video May Not Play on iPad",

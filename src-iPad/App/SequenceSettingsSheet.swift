@@ -107,9 +107,9 @@ private struct InfoTab: View {
         VStack(alignment: .leading, spacing: 10) {
             SettingsRow(label: "Filename", value: displayFilename)
             SettingsRow(label: "File Version",
-                        value: viewModel.document.sequenceFileVersion() ?? "")
+                        value: viewModel.document.sequenceFileVersion())
             SettingsRow(label: "App Version",
-                        value: viewModel.document.currentAppVersion() ?? "")
+                        value: viewModel.document.currentAppVersion())
             SettingsRow(label: "Duration",
                         value: formatDuration(viewModel.sequenceDurationMS))
             SettingsRow(label: "Frame Interval",
@@ -134,7 +134,7 @@ private struct InfoTab: View {
                 guard !new.isEmpty else { return }
                 if viewModel.document.sequenceType() != new {
                     _ = viewModel.document.setSequenceType(new)
-                    currentMediaPath = viewModel.document.currentMediaFilePath() ?? ""
+                    currentMediaPath = viewModel.document.currentMediaFilePath()
                 }
             }
             Text("Changing from Musical clears the attached audio file.")
@@ -173,8 +173,8 @@ private struct InfoTab: View {
                 .foregroundStyle(.secondary)
         }
         .onAppear {
-            seqType = viewModel.document.sequenceType() ?? "Animation"
-            currentMediaPath = viewModel.document.currentMediaFilePath() ?? ""
+            seqType = viewModel.document.sequenceType()
+            currentMediaPath = viewModel.document.currentMediaFilePath()
         }
         .fileImporter(isPresented: $pickingMediaFile,
                       allowedContentTypes: [.audio]) { result in
@@ -192,7 +192,7 @@ private struct InfoTab: View {
     }
 
     private var displayFilename: String {
-        let p = viewModel.document.currentSequencePath() ?? ""
+        let p = viewModel.document.currentSequencePath()
         if p.isEmpty { return "(unsaved)" }
         return (p as NSString).lastPathComponent
     }
@@ -249,14 +249,14 @@ private struct MetadataTab: View {
     }
 
     private func load() {
-        song    = viewModel.document.headerInfo(forKey: "song") ?? ""
-        artist  = viewModel.document.headerInfo(forKey: "artist") ?? ""
-        album   = viewModel.document.headerInfo(forKey: "album") ?? ""
-        author  = viewModel.document.headerInfo(forKey: "author") ?? ""
-        email   = viewModel.document.headerInfo(forKey: "email") ?? ""
-        website = viewModel.document.headerInfo(forKey: "website") ?? ""
-        url     = viewModel.document.headerInfo(forKey: "url") ?? ""
-        comment = viewModel.document.headerInfo(forKey: "comment") ?? ""
+        song    = viewModel.document.headerInfo(forKey: "song")
+        artist  = viewModel.document.headerInfo(forKey: "artist")
+        album   = viewModel.document.headerInfo(forKey: "album")
+        author  = viewModel.document.headerInfo(forKey: "author")
+        email   = viewModel.document.headerInfo(forKey: "email")
+        website = viewModel.document.headerInfo(forKey: "website")
+        url     = viewModel.document.headerInfo(forKey: "url")
+        comment = viewModel.document.headerInfo(forKey: "comment")
     }
 
     @ViewBuilder
@@ -299,6 +299,15 @@ private struct TimingsTab: View {
     @State private var importFormat: ImportFormat = .xtiming
     @State private var exportTarget: TimingRow?
     @State private var exportDoc: XTimingFile?
+
+    // Settings is itself presented as a sheet, so the app-level
+    // `.sheet(isPresented: viewModel.showingAddTimingTrack)` can't
+    // open on top of it (iOS only allows one sheet per ancestor
+    // chain — flipping the global flag from inside this sheet logs
+    // "Currently, only presenting a single sheet is supported"). A
+    // local @State + a local `.sheet` attached to this view's body
+    // stacks the new sheet correctly.
+    @State private var showingAddTimingTrackLocal = false
 
     private enum ImportFormat: String, CaseIterable, Identifiable {
         case xtiming, lor, papagayo
@@ -358,20 +367,33 @@ private struct TimingsTab: View {
                 exportDoc = nil
                 exportTarget = nil
             }
+            // Local sheet — stacked on top of the Settings sheet
+            // when the user taps "+ Add Timing Track…".
+            .sheet(isPresented: $showingAddTimingTrackLocal) {
+                AddTimingTrackSheet()
+                    .environment(viewModel)
+            }
     }
 
     @ViewBuilder
     private var list: some View {
         List {
-            Section("Tracks") {
+            Section {
+                Button {
+                    showingAddTimingTrackLocal = true
+                } label: {
+                    Label("Add Timing Track…", systemImage: "plus.circle.fill")
+                }
                 if timingRows.isEmpty {
-                    Text("No timing tracks. Use the Import button to add one.")
+                    Text("No timing tracks. Add one above, or use the Import button below.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(timingRows) { tr in
                         timingRow(tr)
                     }
                 }
+            } header: {
+                Text("Tracks")
             }
             Section {
                 Picker("Format", selection: $importFormat) {
@@ -637,8 +659,8 @@ private struct AudioTracksTab: View {
 
     @ViewBuilder
     private func trackRow(_ idx: Int) -> some View {
-        let displayName = viewModel.document.altTrackDisplayName(at: idx) ?? ""
-        let path = viewModel.document.altTrackPath(at: idx) ?? ""
+        let displayName = viewModel.document.altTrackDisplayName(at: idx)
+        let path = viewModel.document.altTrackPath(at: idx)
         HStack {
             VStack(alignment: .leading) {
                 Text(displayName)
@@ -653,7 +675,7 @@ private struct AudioTracksTab: View {
             Spacer()
             Menu {
                 Button {
-                    renameText = viewModel.document.altTrackShortname(at: idx) ?? ""
+                    renameText = viewModel.document.altTrackShortname(at: idx)
                     renameTarget = idx
                 } label: { Label("Rename…", systemImage: "pencil") }
                 Button {
@@ -729,7 +751,7 @@ private struct AltTrackDeleteAlertModifier: ViewModifier {
             }
             Button("Cancel", role: .cancel) { target = nil }
         } message: { idx in
-            Text("Remove \"\(viewModel.document.altTrackDisplayName(at: idx) ?? "")\"? The audio file on disk is not deleted.")
+            Text("Remove \"\(viewModel.document.altTrackDisplayName(at: idx))\"? The audio file on disk is not deleted.")
         }
     }
 }

@@ -7,6 +7,13 @@
 #include "ai/gemini.h"
 #include "ai/ollama.h"
 #include "ai/GenericClient.h"
+// AppleIntelligence (on-device FoundationModels palettes + ImagePlayground
+// images + SFSpeechRecognizer lyrics) is gated to Apple Silicon — the
+// FoundationModels API requires Apple Silicon, and SFSpeech's on-device
+// path also wants it. Intel Macs and non-Apple platforms skip entirely.
+#if defined(__APPLE__) && defined(__arm64__)
+#include "ai/AppleIntelligence.h"
+#endif
 
 #include "utils/string_utils.h"
 
@@ -41,12 +48,26 @@ static ServiceManager::ServicePtr makeBuiltin(aiBase* p) {
 ServiceManager::ServiceManager(IServiceSettingsStore* store, const std::string& pluginDir)
     : m_store(store)
 {
+#if defined(__APPLE__) && defined(__arm64__)
+    // AppleIntelligence's enabled capabilities depend on the OS
+    // version (FoundationModels on macOS 26 / iOS 26, ImagePlayground
+    // on macOS 15.4 / iOS 18.4, SFSpeech everywhere). Skip
+    // registration entirely if the running OS supports none of them
+    // so the service doesn't show up as an empty entry in settings.
+    {
+        auto appleIntel = std::make_unique<AppleIntelligence>(this);
+        if (!appleIntel->GetTypes().empty()) {
+            m_services.push_back(makeBuiltin(appleIntel.release()));
+        }
+    }
+#endif
+
     m_services.push_back(makeBuiltin(new chatGPT(this)));
     m_services.push_back(makeBuiltin(new claude(this)));
     m_services.push_back(makeBuiltin(new ollama(this)));
     m_services.push_back(makeBuiltin(new gemini(this)));
     m_services.push_back(makeBuiltin(new GenericClient(this)));
-
+    
     if (!pluginDir.empty()) {
         loadPlugins(pluginDir);
     }

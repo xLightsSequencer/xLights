@@ -554,7 +554,7 @@ struct ModelRowHeader: View {
             if !isNodeRow {
                 if onRenameLayer != nil {
                     Button {
-                        renameLayerText = document.rowLayerName(at: Int32(row.id)) ?? ""
+                        renameLayerText = document.rowLayerName(at: Int32(row.id))
                         showRenameLayer = true
                     } label: { Label("Rename Layer", systemImage: "pencil") }
                 }

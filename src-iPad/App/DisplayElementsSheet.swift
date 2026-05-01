@@ -45,6 +45,14 @@ struct DisplayElementsSheet: View {
     }
     @State private var confirmRemove: RemoveTarget? = nil
 
+    // Local "Add Timing Track" sheet state. iOS only allows one
+    // sheet per ancestor chain at a time — flipping
+    // `viewModel.showingAddTimingTrack` from inside this sheet would
+    // log "Currently, only presenting a single sheet is supported"
+    // because the app-level sheet can't open on top of us. A local
+    // @State + .sheet on this body stacks the new sheet correctly.
+    @State private var showingAddTimingTrackLocal = false
+
     var body: some View {
         NavigationStack {
             NavigationSplitView {
@@ -124,6 +132,13 @@ struct DisplayElementsSheet: View {
             Button("Cancel", role: .cancel) { confirmRemove = nil }
         } message: {
             Text(removeConfirmationMessage)
+        }
+        // Local "Add Timing Track" sheet — stacked on top of this
+        // sheet so iOS doesn't reject it the way the app-level
+        // viewModel.showingAddTimingTrack sheet would.
+        .sheet(isPresented: $showingAddTimingTrackLocal) {
+            AddTimingTrackSheet()
+                .environment(viewModel)
         }
     }
 
@@ -273,7 +288,7 @@ struct DisplayElementsSheet: View {
                                 .font(.headline)
                             Spacer()
                             Button {
-                                textAlert = (.newTimingTrack, "")
+                                showingAddTimingTrackLocal = true
                             } label: {
                                 Label("Add Timing Track…",
                                       systemImage: "plus.rectangle")

@@ -335,6 +335,17 @@ class SequencerViewModel {
     // level (gated on `isSequenceLoaded` because it walks the
     // currently-loaded SequenceElements via the bridge).
     var showingCheckSequence = false
+    // Tools → AI Services. Sheet at ContentView level so the user
+    // can configure API keys / models even before opening a sequence.
+    var showingAIServices = false
+    // Unified Add Timing Track sheet — replaces the per-call-site
+    // confirmationDialogs that used to live in DisplayElementsSheet
+    // and the view-selection menu. Any call site that wants to add
+    // a timing track flips this; the sheet (presented at
+    // ContentView level) handles all the option branches: Empty,
+    // fixed interval, metronome, FPP, audio analysis (Onsets /
+    // Tempo / Chords), and AI Lyrics.
+    var showingAddTimingTrack = false
 
     /// Run Check Sequence on a background queue and report progress
     /// while it walks. The bridge's `SequenceChecker` calls back from
@@ -348,8 +359,7 @@ class SequencerViewModel {
         let doc = document
         return await Task.detached(priority: .userInitiated) {
             return doc.runSequenceCheck { percent, step in
-                let stepText = step ?? ""
-                Task { @MainActor in progress(Int(percent), stepText) }
+                Task { @MainActor in progress(Int(percent), step) }
             }
         }.value
     }
@@ -969,7 +979,7 @@ class SequencerViewModel {
                 // showFolderPath so any UI that displays the
                 // current show folder shows something sensible
                 // during the package session.
-                self.showFolderPath = self.document.showFolderPath() ?? ""
+                self.showFolderPath = self.document.showFolderPath()
                 self.isShowFolderLoaded = true
                 self.isSequenceLoaded = true
                 self.isDirty = false
@@ -1009,7 +1019,7 @@ class SequencerViewModel {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
             guard let self, self.isSequenceLoaded else { return }
             DispatchQueue.global(qos: .utility).async {
-                let inv = doc.mediaInventoryInSequence() ?? []
+                let inv = doc.mediaInventoryInSequence()
                 let broken = inv.reduce(0) { acc, dict -> Int in
                     let b = (dict["isBroken"] as? NSNumber)?.boolValue ?? false
                     return acc + (b ? 1 : 0)
@@ -1033,7 +1043,7 @@ class SequencerViewModel {
         // before writing so the XML snapshot is stable.
         if isPlaying { pause() }
         if isScrubbing { stopScrub() }
-        let path = document.currentSequencePath() ?? ""
+        let path = document.currentSequencePath()
         let ok = coordinatedWrite(at: path) {
             document.saveSequence()
         }
@@ -1050,7 +1060,7 @@ class SequencerViewModel {
             // caller knows.
             if let originalURL = packageOriginalURL,
                document.isPackagedSequence() {
-                let sandboxPkgPath = document.packagePath() ?? ""
+                let sandboxPkgPath = document.packagePath()
                 if sandboxPkgPath.isEmpty { return false }
                 let sandboxURL = URL(fileURLWithPath: sandboxPkgPath)
                 if !copySandboxBackToOriginal(sandboxURL: sandboxURL,
@@ -1260,7 +1270,7 @@ class SequencerViewModel {
     /// Path of the `.xbkp` that sits alongside the current
     /// sequence. Empty when no sequence is open.
     var autosaveBackupPath: String {
-        let p = document.currentSequencePath() ?? ""
+        let p = document.currentSequencePath()
         if p.isEmpty { return "" }
         return (p as NSString).deletingPathExtension + ".xbkp"
     }
@@ -1270,7 +1280,7 @@ class SequencerViewModel {
     /// seconds. Used by the open-time recovery sheet to decide
     /// whether the user needs to be offered the backup.
     func hasRecoverableBackup() -> (has: Bool, when: Date?) {
-        let xsqPath = document.currentSequencePath() ?? ""
+        let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return (false, nil) }
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
         let fm = FileManager.default
@@ -1293,7 +1303,7 @@ class SequencerViewModel {
     /// recovery flow renames `foo.xbkp` → `foo.xsq` to claim the
     /// backup; we do the same through FileManager.
     func applyAutosaveBackup() -> Bool {
-        let xsqPath = document.currentSequencePath() ?? ""
+        let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return false }
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
         let fm = FileManager.default
@@ -1321,7 +1331,7 @@ class SequencerViewModel {
     /// time the sequence opens. Called from the "Discard
     /// Recovery" button and from the close-with-save path.
     func suppressAutosaveBackup() {
-        let xsqPath = document.currentSequencePath() ?? ""
+        let xsqPath = document.currentSequencePath()
         if xsqPath.isEmpty { return }
         let bkpPath = (xsqPath as NSString).deletingPathExtension + ".xbkp"
         let fm = FileManager.default
@@ -1942,7 +1952,7 @@ class SequencerViewModel {
     /// grid row. Tapping the same row again clears the selection. Non-model
     /// rows (e.g. timings) are ignored.
     func selectPreviewModel(rowIndex: Int) {
-        let name = document.rowModelName(at: Int32(rowIndex)) ?? ""
+        let name = document.rowModelName(at: Int32(rowIndex))
         if name.isEmpty { return }
         if previewModelName == name {
             previewModelName = nil
@@ -1955,7 +1965,7 @@ class SequencerViewModel {
     /// selection should drive the preview and repeated selections on the
     /// same row must not deselect.
     func setPreviewModel(rowIndex: Int) {
-        let name = document.rowModelName(at: Int32(rowIndex)) ?? ""
+        let name = document.rowModelName(at: Int32(rowIndex))
         if name.isEmpty { return }
         previewModelName = name
     }
@@ -2015,12 +2025,10 @@ class SequencerViewModel {
         // Merge settings map (E_/B_/T_) and palette map (C_) into a single
         // observed dictionary so the SwiftUI controls re-render on change.
         var merged: [String: String] = [:]
-        if let settings = document.effectSettings(forRow: Int32(rowIndex), at: Int32(effectIndex)) {
-            for (k, v) in settings { merged[k] = v }
-        }
-        if let palette = document.effectPalette(forRow: Int32(rowIndex), at: Int32(effectIndex)) {
-            for (k, v) in palette { merged[k] = v }
-        }
+        let settings = document.effectSettings(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        for (k, v) in settings { merged[k] = v }
+        let palette = document.effectPalette(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        for (k, v) in palette { merged[k] = v }
         selectedEffectSettings = merged
 
         // Load (and cache) the effect-specific metadata.
@@ -2048,14 +2056,12 @@ class SequencerViewModel {
     func refreshSelectedEffectSettings() {
         guard let sel = selectedEffect else { return }
         var merged: [String: String] = [:]
-        if let settings = document.effectSettings(forRow: Int32(sel.rowIndex),
-                                                  at: Int32(sel.effectIndex)) {
-            for (k, v) in settings { merged[k] = v }
-        }
-        if let palette = document.effectPalette(forRow: Int32(sel.rowIndex),
-                                                at: Int32(sel.effectIndex)) {
-            for (k, v) in palette { merged[k] = v }
-        }
+        let settings = document.effectSettings(forRow: Int32(sel.rowIndex),
+                                                at: Int32(sel.effectIndex))
+        for (k, v) in settings { merged[k] = v }
+        let palette = document.effectPalette(forRow: Int32(sel.rowIndex),
+                                              at: Int32(sel.effectIndex))
+        for (k, v) in palette { merged[k] = v }
         selectedEffectSettings = merged
         renderEffectAndTrack(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
     }
@@ -2098,14 +2104,12 @@ class SequencerViewModel {
         // renders current values. Identical to the single-select
         // path except scrub is skipped.
         var merged: [String: String] = [:]
-        if let settings = document.effectSettings(forRow: Int32(anchor.rowIndex),
-                                                   at: Int32(anchor.effectIndex)) {
-            for (k, v) in settings { merged[k] = v }
-        }
-        if let palette = document.effectPalette(forRow: Int32(anchor.rowIndex),
-                                                 at: Int32(anchor.effectIndex)) {
-            for (k, v) in palette { merged[k] = v }
-        }
+        let settings = document.effectSettings(forRow: Int32(anchor.rowIndex),
+                                                at: Int32(anchor.effectIndex))
+        for (k, v) in settings { merged[k] = v }
+        let palette = document.effectPalette(forRow: Int32(anchor.rowIndex),
+                                              at: Int32(anchor.effectIndex))
+        for (k, v) in palette { merged[k] = v }
         selectedEffectSettings = merged
         selectedEffectMetadata = loadEffectMetadata(anchor.name)
         if bufferMetadata == nil { bufferMetadata = loadSharedMetadata("Buffer") }
@@ -2125,14 +2129,14 @@ class SequencerViewModel {
 
     private func loadEffectMetadata(_ effectName: String) -> EffectMetadata? {
         if let cached = metadataCache[effectName] { return cached }
-        let json = document.metadataJson(forEffectNamed: effectName) ?? ""
+        let json = document.metadataJson(forEffectNamed: effectName)
         guard let md = parseEffectMetadata(json) else { return nil }
         metadataCache[effectName] = md
         return md
     }
 
     private func loadSharedMetadata(_ name: String) -> EffectMetadata? {
-        let json = document.sharedMetadataJsonNamed(name) ?? ""
+        let json = document.sharedMetadataJsonNamed(name)
         return parseEffectMetadata(json)
     }
 
@@ -2158,14 +2162,14 @@ class SequencerViewModel {
     func dynamicOptions(source: String, propertyId: String) -> [String] {
         switch source {
         case "timingTracks":
-            return document.timingTrackNames() ?? []
+            return document.timingTrackNames()
         case "lyricTimingTracks":
-            return document.lyricTimingTrackNames() ?? []
+            return document.lyricTimingTrackNames()
         case "cameras":
             // PerPreviewCamera: "2D" plus every 3D camera defined in
             // the show's ViewpointMgr. Populated by Phase D-3's
             // ViewpointMgr bridging at show-load time.
-            return document.perPreviewCameraNames() ?? []
+            return document.perPreviewCameraNames()
         default:
             break
         }
@@ -2175,15 +2179,15 @@ class SequencerViewModel {
         let idx = Int32(sel.effectIndex)
         switch source {
         case "states":
-            return document.states(forRow: row, at: idx) ?? []
+            return document.states(forRow: row, at: idx)
         case "faces":
-            return document.faces(forRow: row, at: idx) ?? []
+            return document.faces(forRow: row, at: idx)
         case "modelNodeNames":
-            return document.modelNodeNames(forRow: row, at: idx) ?? []
+            return document.modelNodeNames(forRow: row, at: idx)
         case "effect":
             return document.effectSettingOptions(forRow: row,
                                                   at: idx,
-                                                  settingId: propertyId) ?? []
+                                                  settingId: propertyId)
         default:
             return []
         }
@@ -2207,7 +2211,7 @@ class SequencerViewModel {
         // wasn't set yet — the bridge treats "" as "remove").
         let prev = document.effectSettingValue(forKey: key,
                                                 inRow: Int32(sel.rowIndex),
-                                                at: Int32(sel.effectIndex)) ?? ""
+                                                at: Int32(sel.effectIndex))
         guard prev != value else { return }
 
         let shouldSuppress = (suppressIfDefault != nil && value == suppressIfDefault!)
@@ -2297,7 +2301,7 @@ class SequencerViewModel {
             let existing = document.effectSettingValue(
                 forKey: key,
                 inRow: Int32(target.rowIndex),
-                at: Int32(target.effectIndex)) ?? ""
+                at: Int32(target.effectIndex))
             return !existing.isEmpty
         }
         return false
@@ -2330,7 +2334,7 @@ class SequencerViewModel {
             }
             let prev = document.effectSettingValue(forKey: key,
                                                     inRow: Int32(sel.rowIndex),
-                                                    at: Int32(sel.effectIndex)) ?? ""
+                                                    at: Int32(sel.effectIndex))
             if prev == value { continue }
 
             let changed = document.setEffectSettingValue(
@@ -2368,16 +2372,14 @@ class SequencerViewModel {
               selectedEffects.count > 1 else { return }
 
         var anchorValues: [(String, String)] = []
-        if let settings = document.effectSettings(
+        let settings = document.effectSettings(
             forRow: Int32(anchor.rowIndex),
-            at: Int32(anchor.effectIndex)) {
-            for (k, v) in settings { anchorValues.append((k, v)) }
-        }
-        if let palette = document.effectPalette(
+            at: Int32(anchor.effectIndex))
+        for (k, v) in settings { anchorValues.append((k, v)) }
+        let palette = document.effectPalette(
             forRow: Int32(anchor.rowIndex),
-            at: Int32(anchor.effectIndex)) {
-            for (k, v) in palette { anchorValues.append((k, v)) }
-        }
+            at: Int32(anchor.effectIndex))
+        for (k, v) in palette { anchorValues.append((k, v)) }
 
         struct Prev {
             let rowIndex: Int
@@ -2398,7 +2400,7 @@ class SequencerViewModel {
                 }
                 let prev = document.effectSettingValue(forKey: key,
                                                         inRow: Int32(sel.rowIndex),
-                                                        at: Int32(sel.effectIndex)) ?? ""
+                                                        at: Int32(sel.effectIndex))
                 if prev == value { continue }
                 let changed = document.setEffectSettingValue(
                     value, forKey: key,
@@ -2444,7 +2446,7 @@ class SequencerViewModel {
         for (r, i, k, v) in entries {
             let curr = document.effectSettingValue(forKey: k,
                                                     inRow: Int32(r),
-                                                    at: Int32(i)) ?? ""
+                                                    at: Int32(i))
             if curr == v { continue }
             if document.setEffectSettingValue(v, forKey: k,
                                                inRow: Int32(r), at: Int32(i)) {
@@ -2476,7 +2478,7 @@ class SequencerViewModel {
                                     key: String, value: String) {
         let prev = document.effectSettingValue(forKey: key,
                                                 inRow: Int32(rowIndex),
-                                                at: Int32(effectIndex)) ?? ""
+                                                at: Int32(effectIndex))
         guard prev != value else { return }
         let changed = document.setEffectSettingValue(value,
                                                       forKey: key,
@@ -2609,7 +2611,7 @@ class SequencerViewModel {
     /// at `(row, idx)`. Empty string when no description is set.
     func effectDescription(rowIndex: Int, effectIndex: Int) -> String {
         return document.effectDescription(forRow: Int32(rowIndex),
-                                           atIndex: Int32(effectIndex)) ?? ""
+                                           atIndex: Int32(effectIndex))
     }
 
     /// B20: update an effect's description. Empty string clears.
@@ -2656,9 +2658,9 @@ class SequencerViewModel {
         guard let sel = selectedEffect else { return false }
         let row = Int32(sel.rowIndex)
         let idx = Int32(sel.effectIndex)
-        let effectName = document.effectName(forRow: row, at: idx) ?? sel.name
-        let settings = document.effectSettingsString(forRow: row, at: idx) ?? ""
-        let palette = document.effectPaletteString(forRow: row, at: idx) ?? ""
+        let effectName = document.effectName(forRow: row, at: idx)
+        let settings = document.effectSettingsString(forRow: row, at: idx)
+        let palette = document.effectPaletteString(forRow: row, at: idx)
         let preset = EffectPreset(id: UUID(), name: trimmed,
                                     effectName: effectName,
                                     settings: settings, palette: palette)
@@ -2689,7 +2691,7 @@ class SequencerViewModel {
         for sel in targets {
             let row = Int32(sel.rowIndex)
             let idx = Int32(sel.effectIndex)
-            let currentName = document.effectName(forRow: row, at: idx) ?? ""
+            let currentName = document.effectName(forRow: row, at: idx)
             if currentName == preset.effectName {
                 applySettingsTransform(selection: sel) { _, _ in
                     Self.parseSettingsString(preset.settings)
@@ -2795,9 +2797,9 @@ class SequencerViewModel {
     ) {
         let row = Int32(sel.rowIndex)
         let idx = Int32(sel.effectIndex)
-        let beforeSettings = document.effectSettingsString(forRow: row, at: idx) ?? ""
-        let beforePalette  = document.effectPaletteString(forRow: row, at: idx) ?? ""
-        let effectName = document.effectName(forRow: row, at: idx) ?? sel.name
+        let beforeSettings = document.effectSettingsString(forRow: row, at: idx)
+        let beforePalette  = document.effectPaletteString(forRow: row, at: idx)
+        let effectName = document.effectName(forRow: row, at: idx)
 
         let parsed = Self.parseSettingsString(beforeSettings)
         let newPairs = transform(parsed, effectName)
@@ -2922,6 +2924,177 @@ class SequencerViewModel {
         let n = Int(document.addAllTimingTracksToAllViews())
         if n > 0 { reloadRows() }
         return n
+    }
+
+    /// AI-driven lyric timing track. Fires off SFSpeech (or whichever
+    /// service is configured) on a background queue, prefers the
+    /// HTDemucs vocals stem when it's been computed, and on success
+    /// creates a populated timing track named "AutoGen" (uniquified
+    /// by the bridge if there's a collision).
+    ///
+    /// `serviceName` picks which SPEECH2TEXT-capable service to use.
+    /// Pass `nil` to auto-select the first available one (the
+    /// caller's UI is responsible for prompting when multiple are
+    /// configured — we don't want a silent default to surprise
+    /// users).
+    ///
+    /// Always calls `completion` on the main queue with `nil` on
+    /// success or an error string on failure. The view-model side
+    /// handles the row reload + undo registration so the sheet just
+    /// surfaces UI state.
+    func generateAILyricTrack(name: String = "AutoGen",
+                                serviceName: String?,
+                                completion: @escaping @Sendable @MainActor (String?) -> Void) {
+        let speechServices = XLAIServices.shared().allServices()
+            .filter { $0.available && $0.capabilities.contains(XLAICapabilitySpeech2Text) }
+        let service: XLAIServiceInfo?
+        if let name = serviceName, !name.isEmpty {
+            service = speechServices.first(where: { $0.name == name })
+        } else {
+            service = speechServices.first
+        }
+        guard let service = service else {
+            completion("No speech-to-text AI service is configured. Open Tools → AI Services… and enable one.")
+            return
+        }
+
+        let doc = self.document
+
+        // Use whichever audio track the user currently has selected
+        // in the waveform display. -1 = main sequence audio;
+        // 0..altTrackCount-1 = an attached alt track. That lets the
+        // user point the recogniser at a Moises-generated vocals
+        // stem, an HTDemucs export, or whatever else they've added
+        // under Settings → Audio Tracks. Beats us second-guessing
+        // which track is cleanest.
+        let active = doc.activeWaveformTrack()
+        let altPath: String = active >= 0 ? doc.altTrackPath(at: Int(active)) : ""
+        let audioPath: String = !altPath.isEmpty
+            ? altPath
+            : (doc.sequenceAudioFilePath() ?? "")
+        guard !audioPath.isEmpty else {
+            completion("No audio file is loaded for this sequence.")
+            return
+        }
+
+        XLAIServices.shared().generateLyricTrack(audioPath: audioPath,
+                                                   forService: service.name) { words, starts, ends, error in
+
+            // The bridge marshals this completion to the main
+            // queue, but Swift's type system sees it as a non-
+            // isolated @Sendable closure. Hop explicitly to
+            // MainActor so reloadRows / registerUndo / setActionName
+            // / completion can safely touch MainActor state.
+            Task { @MainActor in
+                if let error = error {
+                    completion(error)
+                    return
+                }
+                guard let words = words, let starts = starts, let ends = ends, !words.isEmpty else {
+                    completion("Recognizer returned no words. Try again with the vocals stem (Tools → Stem Separation) or a clearer audio source.")
+                    return
+                }
+
+                let trackName = doc.addLyricTimingTrack(named: name,
+                                                         words: words,
+                                                         startMS: starts,
+                                                         endMS: ends)
+                if trackName.isEmpty {
+                    completion("Couldn't create the lyric timing track.")
+                    return
+                }
+
+                self.reloadRows()
+                self.undoManager.registerUndo(withTarget: self) { vm in
+                    // Find and delete the freshly-added track on undo.
+                    let tIdx = (vm.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
+                    for i in tIdx {
+                        if i < vm.rows.count, vm.rows[i].timing?.elementName == trackName {
+                            _ = vm.document.deleteTimingTrack(at: Int32(i))
+                            vm.reloadRows()
+                            return
+                        }
+                    }
+                }
+                self.undoManager.setActionName("Generate AI Lyrics")
+                completion(nil)
+            }
+        }
+    }
+
+    /// Fixed-interval timing track (Empty when intervalMS == 0,
+    /// otherwise marks every `intervalMS` from 0 to sequence end).
+    /// Reloads rows + registers undo. Returns the actual track name
+    /// the bridge committed (may be uniquified on name collision)
+    /// or nil if nothing was added.
+    @discardableResult
+    func addFixedIntervalTimingTrack(name: String, intervalMS: Int) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let actual = document.addFixedIntervalTimingTrack(named: trimmed,
+                                                            intervalMS: Int32(intervalMS))
+        guard !actual.isEmpty else { return nil }
+        reloadRows()
+        registerUndoForAddedTimingTrack(name: actual,
+                                         actionName: intervalMS > 0 ? "Add Fixed Timing Track" : "Add Timing Track")
+        return actual
+    }
+
+    /// Metronome timing track. Marks are placed every `intervalMS`
+    /// (or randomised in `[minIntervalMS, intervalMS]` when
+    /// `minIntervalMS > 0`); each gets a label cycled from `tags`
+    /// (or "1"–"10" when tags is empty), randomised when `randomize`
+    /// is true.
+    @discardableResult
+    func addMetronomeTimingTrack(name: String,
+                                  intervalMS: Int,
+                                  tags: [String] = [],
+                                  minIntervalMS: Int = -1,
+                                  randomize: Bool = false) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, intervalMS > 0 else { return nil }
+        let actual = document.addMetronomeTimingTrack(named: trimmed,
+                                                        intervalMS: Int32(intervalMS),
+                                                        tags: tags,
+                                                        minIntervalMS: Int32(minIntervalMS),
+                                                        randomize: randomize)
+        guard !actual.isEmpty else { return nil }
+        reloadRows()
+        registerUndoForAddedTimingTrack(name: actual, actionName: "Add Metronome")
+        return actual
+    }
+
+    /// FPP Commands / FPP Effects timing track. `subType` must be
+    /// "FPP Commands" or "FPP Effects" — anything else is rejected
+    /// by the bridge.
+    @discardableResult
+    func addFPPTimingTrack(name: String, subType: String) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let actual = document.addFPPTimingTrack(named: trimmed, subType: subType)
+        guard !actual.isEmpty else { return nil }
+        reloadRows()
+        registerUndoForAddedTimingTrack(name: actual, actionName: "Add FPP Timing")
+        return actual
+    }
+
+    /// Shared undo registration for the "added a timing track named
+    /// X" pattern. The undo action looks the track up by name and
+    /// deletes it. Names are uniquified by the bridge on creation
+    /// so this reverses reliably even with multiple tracks of the
+    /// same base name.
+    private func registerUndoForAddedTimingTrack(name: String, actionName: String) {
+        undoManager.registerUndo(withTarget: self) { vm in
+            let tIdx = (vm.document.timingRowIndices() as [NSNumber]).map { $0.intValue }
+            for i in tIdx {
+                if i < vm.rows.count, vm.rows[i].timing?.elementName == name {
+                    _ = vm.document.deleteTimingTrack(at: Int32(i))
+                    vm.reloadRows()
+                    return
+                }
+            }
+        }
+        undoManager.setActionName(actionName)
     }
 
     /// B73: add a new variable timing track. On success the new track
@@ -3650,9 +3823,9 @@ class SequencerViewModel {
         guard marker > sel.startTimeMS, marker < sel.endTimeMS else { return }
         let rowIndex = sel.rowIndex
         let effectIndex = sel.effectIndex
-        let name = document.effectName(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? sel.name
-        let settings = document.effectSettingsString(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? ""
-        let palette = document.effectPaletteString(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? ""
+        let name = document.effectName(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        let settings = document.effectSettingsString(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        let palette = document.effectPaletteString(forRow: Int32(rowIndex), at: Int32(effectIndex))
         let origStart = sel.startTimeMS
         let origEnd = sel.endTimeMS
         undoManager.beginUndoGrouping()
@@ -4096,7 +4269,7 @@ class SequencerViewModel {
     @discardableResult
     func renameLayer(rowIndex: Int, name: String) -> Bool {
         guard rowIndex >= 0, rowIndex < rows.count else { return false }
-        let origName = document.rowLayerName(at: Int32(rowIndex)) ?? ""
+        let origName = document.rowLayerName(at: Int32(rowIndex))
         if !document.renameLayer(atRow: Int32(rowIndex), name: name) { return false }
         reloadRows()
         undoManager.registerUndo(withTarget: self) { vm in
@@ -4316,9 +4489,9 @@ class SequencerViewModel {
     func deleteEffect(rowIndex: Int, effectIndex: Int) {
         guard rowIndex < rows.count, effectIndex < rows[rowIndex].effects.count else { return }
         let prev = rows[rowIndex].effects[effectIndex]
-        let name = document.effectName(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? prev.name
-        let settings = document.effectSettingsString(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? ""
-        let palette = document.effectPaletteString(forRow: Int32(rowIndex), at: Int32(effectIndex)) ?? ""
+        let name = document.effectName(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        let settings = document.effectSettingsString(forRow: Int32(rowIndex), at: Int32(effectIndex))
+        let palette = document.effectPaletteString(forRow: Int32(rowIndex), at: Int32(effectIndex))
         let startMS = prev.startTimeMS
         let endMS = prev.endTimeMS
 
@@ -4369,12 +4542,12 @@ class SequencerViewModel {
         }
         let palette: String = {
             let pal = document.effectPaletteString(forRow: Int32(sel.rowIndex),
-                                                    at: Int32(sel.effectIndex)) ?? ""
+                                                    at: Int32(sel.effectIndex))
             return pal.isEmpty ? Self.defaultPaletteString : pal
         }()
         let settings: String = (sel.name == name)
             ? (document.effectSettingsString(forRow: Int32(sel.rowIndex),
-                                              at: Int32(sel.effectIndex)) ?? "")
+                                              at: Int32(sel.effectIndex)))
             : ""
         return (settings, palette)
     }
@@ -4583,11 +4756,11 @@ class SequencerViewModel {
         // and so the add-side preserves settings/palette/name/range.
         let prev = rows[srcRowIndex].effects[effectIndex]
         let name = document.effectName(forRow: Int32(srcRowIndex),
-                                        at: Int32(effectIndex)) ?? prev.name
+                                        at: Int32(effectIndex))
         let settings = document.effectSettingsString(
-            forRow: Int32(srcRowIndex), at: Int32(effectIndex)) ?? ""
+            forRow: Int32(srcRowIndex), at: Int32(effectIndex))
         let palette = document.effectPaletteString(
-            forRow: Int32(srcRowIndex), at: Int32(effectIndex)) ?? ""
+            forRow: Int32(srcRowIndex), at: Int32(effectIndex))
         let oldStart = prev.startTimeMS
         let oldEnd = prev.endTimeMS
 
@@ -4850,9 +5023,9 @@ class SequencerViewModel {
 
     func copySelectedEffect() {
         guard let sel = selectedEffect else { return }
-        let name = document.effectName(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex)) ?? sel.name
-        let settings = document.effectSettingsString(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex)) ?? ""
-        let palette = document.effectPaletteString(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex)) ?? ""
+        let name = document.effectName(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex))
+        let settings = document.effectSettingsString(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex))
+        let palette = document.effectPaletteString(forRow: Int32(sel.rowIndex), at: Int32(sel.effectIndex))
         clipboardEntries = [ClipboardEntry(
             rowOffset: 0, startOffsetMS: 0,
             endOffsetMS: sel.endTimeMS - sel.startTimeMS,
@@ -4876,11 +5049,11 @@ class SequencerViewModel {
         var entries: [ClipboardEntry] = []
         for sel in selectedEffects {
             let name = document.effectName(forRow: Int32(sel.rowIndex),
-                                             at: Int32(sel.effectIndex)) ?? sel.name
+                                             at: Int32(sel.effectIndex))
             let settings = document.effectSettingsString(forRow: Int32(sel.rowIndex),
-                                                           at: Int32(sel.effectIndex)) ?? ""
+                                                           at: Int32(sel.effectIndex))
             let palette = document.effectPaletteString(forRow: Int32(sel.rowIndex),
-                                                         at: Int32(sel.effectIndex)) ?? ""
+                                                         at: Int32(sel.effectIndex))
             entries.append(ClipboardEntry(
                 rowOffset: sel.rowIndex - anchor.rowIndex,
                 startOffsetMS: sel.startTimeMS - anchor.startTimeMS,
@@ -5098,9 +5271,7 @@ class SequencerViewModel {
     }
 
     func loadAvailableEffects() {
-        if let names = document.availableEffectNames() {
-            availableEffects = names.filter { !$0.isEmpty }
-        }
+        availableEffects = document.availableEffectNames().filter { !$0.isEmpty }
     }
 
     // MARK: - Waveform
@@ -5590,13 +5761,13 @@ class SequencerViewModel {
 
         for i in 0..<count {
             let idx = Int32(i)
-            let rawDisplayName = document.rowDisplayName(at: idx) ?? ""
+            let rawDisplayName = document.rowDisplayName(at: idx)
             let layerIndex = Int(document.rowLayerIndex(at: idx))
             let isCollapsed = document.rowIsCollapsed(at: idx)
 
-            let effectNames = document.effectNames(forRow: idx) ?? []
-            let effectStarts = document.effectStartTimes(forRow: idx) ?? []
-            let effectEnds = document.effectEndTimes(forRow: idx) ?? []
+            let effectNames = document.effectNames(forRow: idx)
+            let effectStarts = document.effectStartTimes(forRow: idx)
+            let effectEnds = document.effectEndTimes(forRow: idx)
 
             var effects: [EffectInfo] = []
             for j in 0..<effectNames.count {
@@ -5609,8 +5780,8 @@ class SequencerViewModel {
             let timingInfo: TimingRowInfo?
             let displayName: String
             if timingIdxSet.contains(i) {
-                let elementName = document.timingRowElementName(at: idx) ?? ""
-                let layerName = document.rowLayerName(at: idx) ?? ""
+                let elementName = document.timingRowElementName(at: idx)
+                let layerName = document.rowLayerName(at: idx)
                 timingInfo = TimingRowInfo(
                     colorIndex: Int(document.timingRowColorIndex(at: idx)),
                     elementName: elementName,

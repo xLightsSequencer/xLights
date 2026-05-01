@@ -8,8 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
+#include <filesystem>
 #include <map>
+#include <system_error>
+#include <thread>
 
+#include <wx/progdlg.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
@@ -3633,7 +3638,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
     std::map<int, std::vector<float>> res;
 
     spdlog::debug("Processing audacity file " + file);
-    spdlog::debug("Interval %d.", intervalMS);
+    spdlog::debug("Interval {}.", intervalMS);
     spdlog::debug("Start,End,midinote");
 
     wxTextFile f(file);
@@ -4396,8 +4401,77 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
 
 void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
     if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-        auto service = GetAIService(aiType::SPEECH2TEXT);
-        auto lyrics = service->GenerateLyricTrack(CurrentSeqXmlFile->GetMedia()->FileName());
+        auto services = GetAIServices(aiType::SPEECH2TEXT);
+        if (services.empty()) {
+            wxMessageBox("No speech-to-text AI service is configured. Configure one under Preferences → Services.",
+                         "Error", wxICON_ERROR);
+            return;
+        }
+
+        // Same pattern as PicturesPanel's AI image flow: use the
+        // single registered service when there's only one, prompt
+        // when there are multiple.
+        aiBase* service = services[0];
+        if (services.size() > 1) {
+            wxArrayString choices;
+            for (auto* s : services) {
+                choices.push_back(s->GetLLMName());
+            }
+            wxSingleChoiceDialog pick(this, "Choose Speech-to-Text Service",
+                                       "Generate Lyrics from Audio", choices);
+            if (pick.ShowModal() == wxID_CANCEL) return;
+            service = services[pick.GetSelection()];
+        }
+
+        // Use whichever audio track the user currently has selected
+        // in the waveform — main media when the picker is on
+        // "Original" (track 0), otherwise the corresponding alt
+        // track. Lets the user point the recogniser at a Moises-
+        // generated vocals stem, an HTDemucs export, or any other
+        // track they've attached under the audio-track manager,
+        // without us having to second-guess which one is cleanest.
+        AudioManager* media = CurrentSeqXmlFile->GetMedia();
+        if (GetMainSequencer() != nullptr) {
+            int trackIdx = GetMainSequencer()->GetActiveAudioTrackIndex();
+            if (trackIdx > 0) {
+                int altTrackIdx = trackIdx - 1;
+                if (altTrackIdx < CurrentSeqXmlFile->GetAltTrackCount()) {
+                    AudioManager* alt = CurrentSeqXmlFile->GetAltTrackMedia(altTrackIdx);
+                    if (alt != nullptr) {
+                        media = alt;
+                    }
+                }
+            }
+        }
+        std::string audioPath = media->FileName();
+
+        // Run the recognition on a worker thread so the main thread
+        // stays free to service the OS speech-permission prompt and
+        // the recognizer's main-thread callbacks. Pumping wxYield in
+        // the wait loop is what lets those callbacks reach the
+        // framework — blocking main directly here deadlocks against
+        // SFSpeechRecognizer's prompt UI.
+        wxProgressDialog dlg("Generating Lyrics",
+                              "Transcribing audio with on-device speech recognition. This can take a minute…",
+                              100, this,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        dlg.Show();
+        dlg.Pulse();
+
+        aiBase::AILyricTrack lyrics;
+        std::atomic<bool> recognitionDone{false};
+        std::thread worker([&]() {
+            lyrics = service->GenerateLyricTrack(audioPath);
+            recognitionDone = true;
+        });
+
+        while (!recognitionDone) {
+            wxYield();
+            wxMilliSleep(50);
+            dlg.Pulse();
+        }
+        worker.join();
+
         if (!lyrics.error.empty()) {
             wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);
             return;

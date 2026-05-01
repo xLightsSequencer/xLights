@@ -43,4 +43,6 @@ public:
     [[nodiscard]] AIColorPalette GenerateColorPalette(const std::string &prompt) const override;
 
     [[nodiscard]] AIImageGenerator *createAIImageGenerator() const override;
+
+    [[nodiscard]] AILyricTrack GenerateLyricTrack(const std::string& audioPath) const override;
 };

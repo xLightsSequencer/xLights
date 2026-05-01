@@ -675,6 +675,13 @@ void MetalRenderBufferComputeData::bufferResized() {
                     indexes[extraIdx++] = pidx;
                 }
             }
+        } else if (n->Coords.empty()) {
+            // Node with zero coords — treat the same as a node whose
+            // single coord is out-of-bounds (sentinel -1). Without
+            // this guard the `else if` below dereferences Coords[0]
+            // on an empty vector. Observed in a TestFlight crash
+            // when adding an effect to a row mid-state-update.
+            indexes[idx] = -1;
         } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= renderBuffer->BufferHt ||
                    n->Coords[0].bufX < 0 || n->Coords[0].bufX >= renderBuffer->BufferWi ) {
             indexes[idx] = -1;
