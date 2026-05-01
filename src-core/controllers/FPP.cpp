@@ -3338,13 +3338,7 @@ static void CreateController(Discovery &discovery, DiscoveredData *inst) {
             inst->controller->SetProtocol(OUTPUT_DDP);
         }
         dynamic_cast<DDPOutput*>(inst->controller->GetOutputs().front())->SetKeepChannelNumber(false);
-        if (inst->majorVersion <= 3) {
-            inst->pixelControllerType = inst->platformModel;
-        } else if (inst->typeId == 0xC2) {
-            inst->pixelControllerType = "ESP8266";
-        } else if (inst->typeId == 0xC3) {
-            inst->pixelControllerType = "ESP32";
-        }
+        inst->pixelControllerType = inst->platformModel;
         SetControllerType(inst);
     } else if (inst->typeId >= 0xA0 && inst->typeId <= 0xAF) {
         //Experience Lights
@@ -3786,26 +3780,24 @@ static void ProcessFPPSysinfo(Discovery &discovery, const std::string &ip, const
 
 static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) {
     if (buffer[0] == 'F' && buffer[1] == 'P' && buffer[2] == 'P' && buffer[3] == 'D' && buffer[4] == 0x04) {
-        char ip[64];
-        snprintf(ip, sizeof(ip), "%d.%d.%d.%d", (int)buffer[15], (int)buffer[16], (int)buffer[17], (int)buffer[18]);
-        //printf("Ping %s\n", ip);
-        if (strcmp(ip, "0.0.0.0")) {
+        std::string ipStr = std::to_string((uint8_t)buffer[15]) + "." + std::to_string((uint8_t)buffer[16]) + "." + std::to_string((uint8_t)buffer[17]) + "." + std::to_string((uint8_t)buffer[18]);
+        // printf("Ping %s\n", ip);
+        if (ipStr != "0.0.0.0") {
             //
             //spdlog::info("FPP Discovery - Received Ping response from {}", ip);
-            AddTraceMessage("Received UDP result " + std::string(ip));
+            AddTraceMessage("Received UDP result " + ipStr);
 
             //we found a system!!!
             std::string hostname = (char *)&buffer[19];
-            std::string ipStr = ip;
-            DiscoveredData *inst = discovery.FindByIp(ip, hostname, false);
+            DiscoveredData* inst = discovery.FindByIp(ipStr, hostname, false);
 
             //int platform = buffer[9];
             //printf("%d: %s  %s     %d\n", found ? 1 : 0, hostname.c_str(), ipStr.c_str(), platform);
             if (!inst) {
-                inst = discovery.FindByIp(ip, hostname, true);
+                inst = discovery.FindByIp(ipStr, hostname, true);
 
                 if (buffer[9] < 0x80) {
-                    std::string ipAddr = ip;
+                    std::string ipAddr = ipStr;
                     discovery.AddCurl(ipAddr, "/api/fppd/multiSyncSystems", [&discovery] (int rc, const std::string &buffer, const std::string &err) {
                         if (rc == 200) {
                             ProcessFPPSystems(discovery, buffer);
@@ -3833,7 +3825,7 @@ static void ProcessFPPPingPacket(Discovery &discovery, uint8_t *buffer,int len) 
                 inst->platform = (char *)&buffer[125];
             }
             if (inst->ip.empty()) {
-                inst->ip = ip;
+                inst->ip = ipStr;
             }
             if (inst->version.empty()) {
                 inst->version = (char *)&buffer[84];
