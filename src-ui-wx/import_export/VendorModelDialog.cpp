@@ -1471,7 +1471,10 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
         startid = GetFocusedItem();
     }
     // User manually selected a different item — clear the search bold/cursor.
-    if (_lastSearchItem.IsOk() && startid != _lastSearchItem) {
+    // The _searchInProgress guard prevents the re-add loop in OnButton_SearchClick
+    // (which fires SEL_CHANGED for each prior selection it restores) from clearing
+    // _lastSearchItem we just set.
+    if (!_searchInProgress && _lastSearchItem.IsOk() && startid != _lastSearchItem) {
         TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
         _lastSearchItem = wxTreeItemId();
     }
@@ -2043,6 +2046,10 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 				wxArrayTreeItemIds priorSels;
 				TreeCtrl_Navigator->GetSelections(priorSels);
 				wxTreeItemId oldSearchItem = _lastSearchItem;
+				// Suppress the SEL_CHANGED handler's _lastSearchItem
+				// clearing while we re-add prior selections — each
+				// SelectItem call below fires the handler.
+				_searchInProgress = true;
 				if (_lastSearchItem.IsOk()) {
 					TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
 					TreeCtrl_Navigator->UnselectItem(_lastSearchItem);
@@ -2059,6 +2066,7 @@ void VendorModelDialog::OnButton_SearchClick(wxCommandEvent& event)
 						TreeCtrl_Navigator->SelectItem(priorSels[i], true);
 					}
 				}
+				_searchInProgress = false;
 				// Give the tree keyboard focus so the selection renders
 				// with the system focused-selection colours (blue/white)
 				// instead of the muted unfocused colours.

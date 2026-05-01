@@ -61,6 +61,7 @@ class VendorModelDialog: public wxDialog
 	int _modelDepthMM = -1;
     std::vector<DownloadedModelInfo> _downloadedModels;
     wxTreeItemId _lastSearchItem;
+    bool _searchInProgress = false;
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);

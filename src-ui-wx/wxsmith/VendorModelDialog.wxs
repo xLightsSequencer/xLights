@@ -34,7 +34,7 @@
 										<item2>&lt;none&gt;</item2>
 									</items_text>
 									<size>200,-1</size>
-									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_SINGLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
+									<style>wxTR_FULL_ROW_HIGHLIGHT|wxTR_HIDE_ROOT|wxTR_ROW_LINES|wxTR_MULTIPLE|wxTR_DEFAULT_STYLE|wxVSCROLL|wxHSCROLL</style>
 									<handler function="OnTreeCtrl_NavigatorItemActivated" entry="EVT_TREE_ITEM_ACTIVATED" />
 									<handler function="OnTreeCtrl_NavigatorSelectionChanged" entry="EVT_TREE_SEL_CHANGED" />
 								</object>
