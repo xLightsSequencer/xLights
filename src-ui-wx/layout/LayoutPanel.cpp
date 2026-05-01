@@ -6698,14 +6698,11 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
     // If a filter is active and the target model is hidden by it
     // (e.g. user clicked a model in the preview that doesn't match
     // the typed filter), clear the filter so the tree shows all
-    // models and the selection has somewhere to land.
+    // models and the selection has somewhere to land. Reuse the
+    // cancel-button handler so the clear path stays in one place.
     if (modelToSelect != nullptr && !_filterString.IsEmpty() && !ModelMatchesFilter(modelToSelect)) {
-        if (ModelFilterCtrl != nullptr) {
-            ModelFilterCtrl->ChangeValue("");
-        }
-        _filterString = "";
-        _filterRegexValid = false;
-        UpdateModelList(true);
+        wxCommandEvent dummy;
+        OnModelFilterCancelBtn(dummy);
     }
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
