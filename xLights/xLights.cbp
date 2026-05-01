@@ -378,6 +378,8 @@
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.h" />
+		<Unit filename="../src-ui-wx/LRCLIBSearchDialog.cpp" />
+		<Unit filename="../src-ui-wx/LRCLIBSearchDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricsDialog.cpp" />

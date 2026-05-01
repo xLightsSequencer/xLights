@@ -133,6 +133,7 @@
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
+    <ClCompile Include="..\src-ui-wx\LRCLIBSearchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFile.cpp">
       <Filter>render</Filter>
@@ -1468,6 +1469,7 @@
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
+    <ClInclude Include="..\src-ui-wx\LRCLIBSearchDialog.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
       <Filter>render</Filter>
