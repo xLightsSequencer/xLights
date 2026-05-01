@@ -260,6 +260,7 @@ file(GLOB_RECURSE SRC_CORE
     src-core/ai/*.cpp
     src-core/cad/*.cpp
     src-core/controllers/*.cpp
+	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
     src-core/import_export/*.cpp
     src-core/graphics/GLContextManager.cpp
