@@ -474,10 +474,11 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
         _housePreview->setModelPixels(mn, pixels);
     }
 
-    // ── One-dot-per-model view for the model preview widget ────────────────
-    // Using worldPos (centre of each model in layout space) avoids the issues
-    // with 1-D strand models whose per-node y is always 0.5 (single row), and
-    // avoids the node-count explosion that made nodeR clamp to 1.5 px.
+    // ── Per-node positions for the model preview widget ────────────────────
+    // Show each member model in its actual physical shape (tree, star, matrix,
+    // custom, strand) by collecting all their nodes' global positions, normalised
+    // to the group's bounding box.  PreviewWidget's density-based nodeR ensures
+    // dots are visible regardless of total node count.
     if (updateModelPreview) {
         QList<QPointF> positions;
         QList<QColor>  colors;
@@ -486,19 +487,24 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
             auto mit = seq.models.find(mn);
             if (mit == seq.models.end()) continue;
             const QtModelInfo& mi = *mit;
+            if (mi.globalPositions.isEmpty()) continue;
 
-            // Centre of the model in group-normalised coordinates.
-            const double nx = qBound(0.0, (mi.worldPosX - gi.minX) / rangeX, 1.0);
-            const double ny = qBound(0.0, (mi.worldPosY - gi.minY) / rangeY, 1.0);
+            for (int i = 0; i < mi.globalPositions.size(); ++i) {
+                const QPointF& gp = mi.globalPositions[i];
 
-            // Sample the group buffer at this position (y-flipped).
-            const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
-            const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
-                                  gi.bufferH - 1);
-            const int bi = by * gi.bufferW + bx;
+                // Normalise to [0,1] within group bounding box (Y: 0=top of group).
+                const double nx = qBound(0.0, (gp.x() - gi.minX) / rangeX, 1.0);
+                const double ny = qBound(0.0, (gp.y() - gi.minY) / rangeY, 1.0);
 
-            positions.append({nx, ny});
-            colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
+                // Sample group buffer (y-flipped: xLights y=0 is at the bottom).
+                const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
+                const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
+                                      gi.bufferH - 1);
+                const int bi = by * gi.bufferW + bx;
+
+                positions.append({nx, ny});
+                colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
+            }
         }
 
         if (!positions.isEmpty()) {
