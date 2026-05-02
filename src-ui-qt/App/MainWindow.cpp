@@ -318,18 +318,22 @@ void MainWindow::renderAllLayers() {
         return;
     }
 
+    // Always show the raw effect buffer in the buffer widget.
+    _effectPanel->setBufferPixels(bufW, bufH, composite);
+
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    if (seq.isGroup(_currentModel)) {
+        // Groups: distribute pixels to member models and show their physical
+        // layout in the model preview (house-layout view of the group's members).
+        distributeGroupToMembers(_currentModel, composite, /*updateModelPreview=*/true);
+        return;
+    }
+
+    // Individual models: show the effect buffer in the model preview.
     QtEffectRenderer::Result result;
     result.w = bufW; result.h = bufH; result.pixels = composite;
-    _effectPanel->setBufferPixels(bufW, bufH, composite);
     _preview->setResult(result, mi.nodePositions);
-
-    // Update the house preview.  For groups, distribute rendered pixels
-    // to each member model so the full show layout reflects the group effect.
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    if (seq.isGroup(_currentModel))
-        distributeGroupToMembers(_currentModel, composite);
-    else
-        _housePreview->setModelPixels(_currentModel, composite);
+    _housePreview->setModelPixels(_currentModel, composite);
 }
 
 void MainWindow::renderAllModels() {
@@ -384,7 +388,7 @@ void MainWindow::renderAllModels() {
 
         if (!composite.isEmpty()) {
             if (seq.isGroup(mn))
-                distributeGroupToMembers(mn, composite);
+                distributeGroupToMembers(mn, composite, /*updateModelPreview=*/false);
             else
                 _housePreview->setModelPixels(mn, composite);
             if (_renderDetailDlg)
@@ -417,17 +421,29 @@ void MainWindow::renderAllModels() {
 // After a group effect renders at (gi.bufferW × gi.bufferH), map each member
 // model's nodes to the corresponding group-buffer pixel using the node's global
 // position within the group bounding box.
+//
+// Coordinate conventions:
+//   • globalPositions: layout space, Y increases downward (screen convention).
+//   • Group bounding box (minX/Y .. maxX/Y): same layout space.
+//   • ny = (gp.y - minY) / rangeY: 0=top of group, 1=bottom.
+//   • xLights render buffer: y=0 is the BOTTOM row of the effect.
+//     So to map ny→buffer_y: by = (bufH-1) - int(ny*(bufH-1)).
 
 void MainWindow::distributeGroupToMembers(const QString& groupName,
-                                          const QList<QColor>& groupPixels) {
+                                          const QList<QColor>& groupPixels,
+                                          bool updateModelPreview) {
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
     auto git = seq.groups.find(groupName);
     if (git == seq.groups.end()) return;
 
-    const QtModelGroupInfo& gi    = *git;
+    const QtModelGroupInfo& gi     = *git;
     const double            rangeX = gi.maxX - gi.minX;
     const double            rangeY = gi.maxY - gi.minY;
     if (rangeX <= 0 || rangeY <= 0) return;
+
+    // Accumulate all nodes across member models for the unified model preview.
+    QList<QPointF> allPositions;
+    QList<QColor>  allColors;
 
     for (const QString& mn : gi.modelNames) {
         const QtModelInfo& mi = seq.modelInfo(mn);
@@ -437,17 +453,37 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
         QList<QColor> pixels(nc, Qt::black);
         for (int i = 0; i < nc; ++i) {
             const QPointF& gp = mi.globalPositions[i];
-            // Normalise to [0,1] within the group bounding box.
-            double nx = (gp.x() - gi.minX) / rangeX;
-            double ny = (gp.y() - gi.minY) / rangeY;
-            // Map to group buffer pixel (y=0 is top in screen coords).
-            const int bx = qBound(0, int(nx * gi.bufferW), gi.bufferW - 1);
-            const int by = qBound(0, int(ny * gi.bufferH), gi.bufferH - 1);
+
+            // Normalise to [0,1] within the group bounding box (screen Y: 0=top).
+            const double nx = qBound(0.0, (gp.x() - gi.minX) / rangeX, 1.0);
+            const double ny = qBound(0.0, (gp.y() - gi.minY) / rangeY, 1.0);
+
+            // xLights render buffer has y=0 at the BOTTOM; flip so the top of
+            // the physical group layout maps to the top of the rendered effect.
+            const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
+            const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
+                                  gi.bufferH - 1);
             const int bi = by * gi.bufferW + bx;
             if (bi < groupPixels.size())
                 pixels[i] = groupPixels[bi];
+
+            if (updateModelPreview) {
+                allPositions.append({nx, ny});
+                allColors.append(pixels[i]);
+            }
         }
         _housePreview->setModelPixels(mn, pixels);
+    }
+
+    // When requested, push a unified "house layout" view of the group into
+    // the model preview widget so it shows all members at their physical positions
+    // rather than a raw 2-D grid of the effect buffer.
+    if (updateModelPreview && !allPositions.isEmpty()) {
+        QtEffectRenderer::Result groupView;
+        groupView.w = allColors.size();
+        groupView.h = 1;
+        groupView.pixels = allColors;
+        _preview->setResult(groupView, allPositions);
     }
 }
 

@@ -55,9 +55,11 @@ private:
     void renderAllModels();
 
     // After rendering a group effect, distribute pixels to each member model's
-    // nodes based on their global positions within the group bounding box.
+    // nodes based on their global positions within the group bounding box,
+    // and update both the house preview and the model preview widget.
     void distributeGroupToMembers(const QString& groupName,
-                                  const QList<QColor>& groupPixels);
+                                  const QList<QColor>& groupPixels,
+                                  bool updateModelPreview = false);
 
     // Fast house preview update during playback: renders kHouseModelsPerTick
     // models per call using the software renderer, cycling through all models.
