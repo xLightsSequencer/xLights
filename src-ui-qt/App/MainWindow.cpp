@@ -323,8 +323,13 @@ void MainWindow::renderAllLayers() {
     _effectPanel->setBufferPixels(bufW, bufH, composite);
     _preview->setResult(result, mi.nodePositions);
 
-    // Also update the house preview for the selected model.
-    _housePreview->setModelPixels(_currentModel, composite);
+    // Update the house preview.  For groups, distribute rendered pixels
+    // to each member model so the full show layout reflects the group effect.
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    if (seq.isGroup(_currentModel))
+        distributeGroupToMembers(_currentModel, composite);
+    else
+        _housePreview->setModelPixels(_currentModel, composite);
 }
 
 void MainWindow::renderAllModels() {
@@ -378,12 +383,15 @@ void MainWindow::renderAllModels() {
         const QList<QColor> composite = renderModelLayers(mn);
 
         if (!composite.isEmpty()) {
-            _housePreview->setModelPixels(mn, composite);
+            if (seq.isGroup(mn))
+                distributeGroupToMembers(mn, composite);
+            else
+                _housePreview->setModelPixels(mn, composite);
             if (_renderDetailDlg)
                 _renderDetailDlg->setModelStatus(i, RenderDetailDialog::Done);
             ++rendered;
         } else {
-            if (n > 0)
+            if (n > 0 && !seq.isGroup(mn))
                 _housePreview->setModelPixels(mn, QList<QColor>(n, Qt::black));
             if (_renderDetailDlg)
                 _renderDetailDlg->setModelStatus(i, RenderDetailDialog::NoEffects);
@@ -403,6 +411,44 @@ void MainWindow::renderAllModels() {
     _renderAllInProgress = false;
     statusBar()->showMessage(
         QString("House render — %1 / %2 models had active effects").arg(rendered).arg(total), 4000);
+}
+
+// ── Group pixel distribution ──────────────────────────────────────────────────
+// After a group effect renders at (gi.bufferW × gi.bufferH), map each member
+// model's nodes to the corresponding group-buffer pixel using the node's global
+// position within the group bounding box.
+
+void MainWindow::distributeGroupToMembers(const QString& groupName,
+                                          const QList<QColor>& groupPixels) {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    auto git = seq.groups.find(groupName);
+    if (git == seq.groups.end()) return;
+
+    const QtModelGroupInfo& gi    = *git;
+    const double            rangeX = gi.maxX - gi.minX;
+    const double            rangeY = gi.maxY - gi.minY;
+    if (rangeX <= 0 || rangeY <= 0) return;
+
+    for (const QString& mn : gi.modelNames) {
+        const QtModelInfo& mi = seq.modelInfo(mn);
+        const int nc = mi.globalPositions.size();
+        if (nc == 0) continue;
+
+        QList<QColor> pixels(nc, Qt::black);
+        for (int i = 0; i < nc; ++i) {
+            const QPointF& gp = mi.globalPositions[i];
+            // Normalise to [0,1] within the group bounding box.
+            double nx = (gp.x() - gi.minX) / rangeX;
+            double ny = (gp.y() - gi.minY) / rangeY;
+            // Map to group buffer pixel (y=0 is top in screen coords).
+            const int bx = qBound(0, int(nx * gi.bufferW), gi.bufferW - 1);
+            const int by = qBound(0, int(ny * gi.bufferH), gi.bufferH - 1);
+            const int bi = by * gi.bufferW + bx;
+            if (bi < groupPixels.size())
+                pixels[i] = groupPixels[bi];
+        }
+        _housePreview->setModelPixels(mn, pixels);
+    }
 }
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
@@ -511,6 +557,17 @@ void MainWindow::onBlockSelected(int row, int block) {
     const SequencerRow& seqRow = _sequencer->model()->row(row);
     const EffectBlock&  blk    = seqRow.blocks.at(block);
     _currentModel = seqRow.modelName;  // used by renderAllLayers for dim/position lookup
+
+    // If this is a group, highlight its member models in the house preview.
+    {
+        const QtSequenceInfo& sq = QtXLightsApp::instance().currentSequence();
+        if (sq.isGroup(_currentModel)) {
+            const QtModelGroupInfo& gi = sq.groups[_currentModel];
+            _housePreview->setGroupHighlight(_currentModel, gi.modelNames);
+        } else {
+            _housePreview->setGroupHighlight({}, {});   // clear group highlight
+        }
+    }
 
     // Show effect panel pre-populated with the block's xsq settings.
     _effectPanel->showEffect(blk.effectName, blk.settings);

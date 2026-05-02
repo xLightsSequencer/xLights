@@ -711,6 +711,57 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         info.models[mi.name] = mi;
     }
 
+    // ── Model groups ──────────────────────────────────────────────────────────
+    // <modelGroup> elements in xlights_rgbeffects.xml define named collections
+    // of models.  Groups appear in sequence ElementEffects as type="model", so
+    // the sequence parser already loads their effects; we just need the membership
+    // and buffer dimensions so we can render and distribute pixels correctly.
+    for (auto g : modelsList.children("modelGroup")) {
+        const char* nameStr = g.attribute("name").as_string("");
+        if (!nameStr || nameStr[0] == '\0') continue;
+
+        QtModelGroupInfo gi;
+        gi.name   = QString::fromUtf8(nameStr);
+        gi.layout = QString::fromUtf8(g.attribute("layout").as_string("minimalGrid"));
+
+        const QString modelsAttr = QString::fromUtf8(g.attribute("models").as_string(""));
+        for (const QString& mn : modelsAttr.split(',', Qt::SkipEmptyParts))
+            gi.modelNames.append(mn.trimmed());
+
+        if (gi.modelNames.isEmpty()) continue;
+
+        // Compute the bounding box of all member models in global layout space.
+        gi.minX = gi.minY =  1e9;
+        gi.maxX = gi.maxY = -1e9;
+        for (const QString& mn : gi.modelNames) {
+            auto it = info.models.find(mn);
+            if (it == info.models.end()) continue;
+            const QtModelInfo& m = *it;
+            const double hw = m.bufferW * m.scaleX * 0.5;
+            const double hh = m.bufferH * m.scaleY * 0.5;
+            gi.minX = qMin(gi.minX, m.worldPosX - hw);
+            gi.maxX = qMax(gi.maxX, m.worldPosX + hw);
+            gi.minY = qMin(gi.minY, m.worldPosY - hh);
+            gi.maxY = qMax(gi.maxY, m.worldPosY + hh);
+        }
+        if (gi.maxX <= gi.minX || gi.maxY <= gi.minY) continue;
+
+        // Scale the bounding box to a buffer capped at 256 pixels in the
+        // largest dimension, keeping the aspect ratio.
+        const double rangeX = gi.maxX - gi.minX;
+        const double rangeY = gi.maxY - gi.minY;
+        const double maxPx  = 256.0;
+        if (rangeX >= rangeY) {
+            gi.bufferW = int(maxPx);
+            gi.bufferH = qMax(1, int(maxPx * rangeY / rangeX));
+        } else {
+            gi.bufferH = int(maxPx);
+            gi.bufferW = qMax(1, int(maxPx * rangeX / rangeY));
+        }
+
+        info.groups[gi.name] = gi;
+    }
+
     // ── Controller records ────────────────────────────────────────────────────
     for (const auto* c : outputManager.GetControllers()) {
         if (!c) continue;

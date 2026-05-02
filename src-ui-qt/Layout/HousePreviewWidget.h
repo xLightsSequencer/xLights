@@ -24,6 +24,10 @@ public:
     // Clear all model pixel colors (set to dim placeholder).
     void clearPixels();
 
+    // Highlight the member models of a group (draws a coloured outline around them).
+    // Pass an empty name to clear the highlight.
+    void setGroupHighlight(const QString& groupName, const QStringList& memberModels);
+
 signals:
     // Emitted when the user clicks a model node in the layout.
     void modelClicked(const QString& modelName);
@@ -50,5 +54,9 @@ private:
     // Recompute bounding box from all model extents.
     void    recomputeBounds();
 
-    float _nodeR = 3.0f;   // node dot radius in pixels
+    float       _nodeR = 3.0f;   // node dot radius in pixels
+
+    // Group highlight state
+    QString     _highlightGroup;
+    QStringList _highlightMembers;
 };

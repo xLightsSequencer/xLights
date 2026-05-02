@@ -71,6 +71,24 @@ struct QtSequenceElement {
     QList<QtSequenceLayer> layers;
 };
 
+// A model group: a named collection of models that can have effects applied
+// to them collectively.  The group buffer is computed from the bounding box
+// of all member models' global positions.
+struct QtModelGroupInfo {
+    QString     name;
+    QStringList modelNames;    // member model names (ordered as in the show file)
+    QString     layout;        // e.g. "minimalGrid", "Default", "Per Model Default"
+
+    // Group render buffer dimensions (bounding-box scaled to ≤256 pixels).
+    int    bufferW = 100;
+    int    bufferH = 100;
+
+    // Bounding box of member models in global layout units.
+    double minX = 0, minY = 0, maxX = 1, maxY = 1;
+
+    bool isValid() const { return !name.isEmpty() && !modelNames.isEmpty(); }
+};
+
 struct QtSequenceInfo {
     QString title;
     QString mediaFile;
@@ -78,6 +96,7 @@ struct QtSequenceInfo {
     int     durationMs    = 0;
     QList<QtSequenceElement> elements;
     QMap<QString, QtModelInfo>      models;      // keyed by model name
+    QMap<QString, QtModelGroupInfo> groups;      // keyed by group name
     QList<QtControllerInfo>         controllers; // from xlights_networks.xml
 
     int fps() const { return frameMs > 0 ? 1000 / frameMs : 20; }
@@ -85,10 +104,32 @@ struct QtSequenceInfo {
 
     bool isValid() const { return durationMs > 0; }
 
-    // Returns model info for the given name, or a 100×1 default if unknown.
+    // True if the name is a model group rather than an individual model.
+    bool isGroup(const QString& name) const { return groups.contains(name); }
+
+    // Returns model info for the given name.
+    // For groups: returns a synthetic QtModelInfo with group buffer dimensions.
+    // For unknown names: returns the 100×1 default.
     QtModelInfo modelInfo(const QString& name) const {
-        auto it = models.find(name);
-        if (it != models.end()) return *it;
+        auto mit = models.find(name);
+        if (mit != models.end()) return *mit;
+
+        auto git = groups.find(name);
+        if (git != groups.end()) {
+            QtModelInfo g;
+            g.name    = name;
+            g.type    = "Group";
+            g.bufferW = git->bufferW;
+            g.bufferH = git->bufferH;
+            g.nodeCount = g.bufferW * g.bufferH;
+            // Place the group at the centre of its bounding box.
+            g.worldPosX = (git->minX + git->maxX) * 0.5;
+            g.worldPosY = (git->minY + git->maxY) * 0.5;
+            g.scaleX = (git->maxX - git->minX) / qMax(1, g.bufferW);
+            g.scaleY = (git->maxY - git->minY) / qMax(1, g.bufferH);
+            return g;
+        }
+
         QtModelInfo def; def.name = name; return def;
     }
 };

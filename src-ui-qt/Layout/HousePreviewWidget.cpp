@@ -48,6 +48,13 @@ void HousePreviewWidget::clearPixels() {
     update();
 }
 
+void HousePreviewWidget::setGroupHighlight(const QString& groupName,
+                                            const QStringList& memberModels) {
+    _highlightGroup   = groupName;
+    _highlightMembers = memberModels;
+    update();
+}
+
 // ── Bounds ────────────────────────────────────────────────────────────────────
 
 void HousePreviewWidget::recomputeBounds() {
@@ -114,32 +121,79 @@ void HousePreviewWidget::paintEvent(QPaintEvent*) {
     for (const auto& d : _models) {
         const int N = d.info.globalPositions.size();
         double cx = 0, cy = 0;
+        const bool inGroup = !_highlightGroup.isEmpty()
+                             && _highlightMembers.contains(d.info.name);
 
         for (int i = 0; i < N; ++i) {
             const QPointF& gp = d.info.globalPositions[i];
             const QPointF  wp = toWidget(gp.x(), gp.y());
             cx += wp.x(); cy += wp.y();
 
-            const QColor col = (i < d.pixels.size()) ? d.pixels[i] : QColor(40, 40, 40);
+            QColor col = (i < d.pixels.size()) ? d.pixels[i] : QColor(40, 40, 40);
+            // Dim non-member models when a group is highlighted.
+            if (!_highlightGroup.isEmpty() && !inGroup) {
+                col = col.darker(200);
+            }
             p.setBrush(col);
             p.drawEllipse(QRectF(wp.x() - _nodeR, wp.y() - _nodeR,
                                  _nodeR * 2.f, _nodeR * 2.f));
         }
 
-        // Draw model name label at centroid when nodes are large enough to read.
+        // Draw model name label at centroid.
         if (N > 0 && _nodeR >= 2.0f) {
             cx /= N; cy /= N;
             QFont labelFont;
             labelFont.setPointSizeF(qBound(6.0, double(_nodeR) * 2.5, 11.0));
             p.setFont(labelFont);
-            p.setPen(QColor(220, 220, 220, 180));
+            // Group members get a brighter label; non-members are dimmed.
+            const QColor labelColor = inGroup
+                ? QColor(255, 220, 80, 230)
+                : QColor(200, 200, 200, 160);
+            p.setPen(labelColor);
             const QString label = d.info.name;
             QFontMetrics fm(labelFont);
             QRectF lr(cx - fm.horizontalAdvance(label) / 2.0 - 2, cy - fm.height() - 2,
                       fm.horizontalAdvance(label) + 4, fm.height() + 2);
-            p.fillRect(lr, QColor(0, 0, 0, 100));
+            p.fillRect(lr, QColor(0, 0, 0, inGroup ? 140 : 80));
             p.drawText(lr, Qt::AlignCenter, label);
             p.setPen(Qt::NoPen);
+        }
+    }
+
+    // Draw a coloured outline around all member models of the highlighted group.
+    if (!_highlightGroup.isEmpty() && !_highlightMembers.isEmpty()) {
+        // Compute widget-space bounding rect of all member models' nodes.
+        double minX =  1e9, minY =  1e9, maxX = -1e9, maxY = -1e9;
+        for (const auto& d : _models) {
+            if (!_highlightMembers.contains(d.info.name)) continue;
+            for (const QPointF& gp : d.info.globalPositions) {
+                const QPointF wp = toWidget(gp.x(), gp.y());
+                minX = qMin(minX, wp.x()); maxX = qMax(maxX, wp.x());
+                minY = qMin(minY, wp.y()); maxY = qMax(maxY, wp.y());
+            }
+        }
+        if (maxX > minX && maxY > minY) {
+            const float pad = _nodeR + 4.f;
+            QRectF outline(minX - pad, minY - pad,
+                           maxX - minX + pad * 2, maxY - minY + pad * 2);
+            p.setBrush(Qt::NoBrush);
+            p.setPen(QPen(QColor(255, 200, 60, 200), 2.0, Qt::DashLine));
+            p.drawRoundedRect(outline, 6, 6);
+
+            // Label the group name above the outline.
+            QFont gf;
+            gf.setPointSizeF(qBound(7.0, double(_nodeR) * 3.0, 12.0));
+            gf.setBold(true);
+            p.setFont(gf);
+            p.setPen(QColor(255, 200, 60, 220));
+            QFontMetrics gfm(gf);
+            const QString gLabel = _highlightGroup;
+            QRectF glr(outline.x(),
+                       outline.y() - gfm.height() - 4,
+                       gfm.horizontalAdvance(gLabel) + 8,
+                       gfm.height() + 4);
+            p.fillRect(glr, QColor(0, 0, 0, 160));
+            p.drawText(glr, Qt::AlignCenter, gLabel);
         }
     }
 }
