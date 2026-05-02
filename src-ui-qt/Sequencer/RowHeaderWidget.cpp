@@ -4,11 +4,13 @@
 #include <QPainter>
 #include <QPainterPath>
 
-static constexpr int kHeaderW = 160;
+static constexpr int kHeaderW = 180;
 
 RowHeaderWidget::RowHeaderWidget(SequencerModel* model, QWidget* parent)
     : QWidget(parent), _model(model) {
     setFixedWidth(kHeaderW);
+    // Use a dark background that won't be overridden by the system palette.
+    setAutoFillBackground(false);
     connect(model, &SequencerModel::modelChanged,    this, QOverload<>::of(&QWidget::update));
     connect(model, &SequencerModel::geometryChanged, this, QOverload<>::of(&QWidget::update));
 }
@@ -20,74 +22,99 @@ QSize RowHeaderWidget::sizeHint() const { return {kHeaderW, _model->gridHeight()
 void RowHeaderWidget::paintEvent(QPaintEvent*) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true);
-    p.fillRect(rect(), QColor(0x2a, 0x2a, 0x2a));
+
+    // Solid dark background — paint the whole widget first to avoid any
+    // light-gray system background showing through gaps between rows.
+    p.fillRect(rect(), QColor(0x1c, 0x1c, 0x1c));
 
     const int rh = _model->rowHeight();
 
     for (int r = 0; r < _model->rowCount(); ++r) {
         if (!_model->isRowVisible(r)) continue;
-        int y = _model->yAt(r) - _yOff;
+        const int y = _model->yAt(r) - _yOff;
         if (y + rh < 0 || y > height()) continue;
 
         const SequencerRow& row     = _model->row(r);
         const bool          sel     = (r == _model->selectedRow());
         const bool          isLayer = row.isLayerRow();
 
-        QRect cell(0, y, kHeaderW - 1, rh - 1);
+        const QRect cell(0, y, width(), rh);
 
-        QColor bg = sel ? QColor(0x40, 0x40, 0x60)
-                        : isLayer ? QColor(0x26, 0x26, 0x30)
-                                  : QColor(0x32, 0x32, 0x32);
+        // ── Background ────────────────────────────────────────────────────
+        QColor bg;
+        if (sel)
+            bg = QColor(0x3a, 0x3a, 0x5a);
+        else if (isLayer)
+            bg = QColor(0x22, 0x22, 0x28);
+        else
+            bg = QColor(0x2c, 0x2c, 0x2c);
         p.fillRect(cell, bg);
 
+        // ── Accent stripe (model rows) / indent bar (layer rows) ──────────
         if (!isLayer) {
-            uint h = qHash(row.modelName);
-            QColor accent = QColor::fromHsv(int((h * 137u) % 360), 120, 160);
-            p.fillRect(QRect(0, y, 3, rh - 1), accent);
+            const uint  h      = qHash(row.modelName);
+            const QColor accent = QColor::fromHsv(int((h * 137u) % 360), 150, 200);
+            p.fillRect(QRect(0, y, 4, rh), accent);
         } else {
-            p.fillRect(QRect(0, y, 1, rh - 1), QColor(0x44, 0x44, 0x55));
+            // Subtle left indent line
+            p.fillRect(QRect(4, y, 1, rh), QColor(0x44, 0x44, 0x60));
         }
 
-        p.setPen(QColor(isLayer ? 0x3a : 0x44, isLayer ? 0x3a : 0x44, 0x44));
-        p.drawRect(cell);
+        // ── Bottom separator ──────────────────────────────────────────────
+        p.fillRect(QRect(0, y + rh - 1, width(), 1),
+                   isLayer ? QColor(0x2a, 0x2a, 0x2a) : QColor(0x18, 0x18, 0x18));
 
-        // Collapse triangle for multi-layer model rows
+        // ── Collapse triangle (multi-layer model rows only) ───────────────
+        int textIndent = isLayer ? 20 : 8;
         if (!isLayer && row.layerCount > 1) {
-            const int cx = 12, cy2 = y + rh / 2;
-            const int sz = 4;
+            textIndent = 24;
+            const int cx  = 14;
+            const int cy2 = y + rh / 2;
+            const int sz  = 4;
             QPainterPath tri;
             if (row.collapsed) {
-                // Right-pointing ▶
                 tri.moveTo(cx - sz, cy2 - sz);
                 tri.lineTo(cx + sz, cy2);
                 tri.lineTo(cx - sz, cy2 + sz);
             } else {
-                // Down-pointing ▼
                 tri.moveTo(cx - sz, cy2 - sz + 1);
                 tri.lineTo(cx + sz, cy2 - sz + 1);
                 tri.lineTo(cx,      cy2 + sz - 1);
             }
             tri.closeSubpath();
-            p.setBrush(QColor(0xaa, 0xaa, 0xbb));
+            p.setBrush(QColor(0xcc, 0xcc, 0xdd));
             p.setPen(Qt::NoPen);
             p.drawPath(tri);
         }
 
-        QFont f("Segoe UI", isLayer ? 8 : 9);
+        // ── Label ─────────────────────────────────────────────────────────
+        QFont f;
+        f.setFamily("Segoe UI");
+        if (!isLayer) {
+            f.setPointSize(9);
+            f.setBold(true);
+            p.setPen(QColor(0xee, 0xee, 0xee));   // near-white, high contrast
+        } else {
+            f.setPointSize(8);
+            f.setBold(false);
+            p.setPen(QColor(0xbb, 0xbb, 0xcc));   // light lavender-gray, readable
+        }
         p.setFont(f);
-        p.setPen(isLayer ? QColor(0x99, 0x99, 0xbb) : Qt::white);
-        int indent = (!isLayer && row.layerCount > 1) ? 22 : (isLayer ? 16 : 8);
-        p.drawText(cell.adjusted(indent, 0, -4, 0),
-                   Qt::AlignVCenter | Qt::AlignLeft, row.name);
+        const QRect textRect = cell.adjusted(textIndent, 0, -6, 0);
+        p.drawText(textRect, Qt::AlignVCenter | Qt::AlignLeft,
+                   p.fontMetrics().elidedText(row.name, Qt::ElideRight, textRect.width()));
 
-        // Layer count badge
+        // ── Layer count badge ─────────────────────────────────────────────
         if (!isLayer && row.layerCount > 1) {
-            QString badge = row.collapsed
+            const QString badge = row.collapsed
                 ? QString("(%1L)").arg(row.layerCount)
-                : QString::number(row.layerCount) + "L";
-            p.setFont(QFont("Segoe UI", 7));
-            p.setPen(QColor(0x77, 0x77, 0x99));
-            p.drawText(cell.adjusted(0, 0, -5, 0),
+                : QString("%1L").arg(row.layerCount);
+            QFont bf;
+            bf.setFamily("Segoe UI");
+            bf.setPointSize(7);
+            p.setFont(bf);
+            p.setPen(QColor(0x88, 0x88, 0xaa));
+            p.drawText(cell.adjusted(0, 0, -6, 0),
                        Qt::AlignVCenter | Qt::AlignRight, badge);
         }
     }

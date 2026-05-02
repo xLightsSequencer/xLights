@@ -82,6 +82,8 @@ private:
     int                 _houseQueueIdx = 0;  // position in the cycling queue
     static constexpr int kHouseModelsPerTick = 5;  // models rendered per playback tick
 
+    bool                _renderAllInProgress = false;  // re-entrancy guard for renderAllModels
+
     ModelInfoWindow*      _modelInfoWin      = nullptr;
     ControllerInfoWindow* _controllerInfoWin = nullptr;
 };

@@ -328,8 +328,12 @@ void MainWindow::renderAllLayers() {
 }
 
 void MainWindow::renderAllModels() {
+    // Guard against re-entrant calls (possible because we process all events below).
+    if (_renderAllInProgress) return;
+    _renderAllInProgress = true;
+
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    if (!seq.isValid()) return;
+    if (!seq.isValid()) { _renderAllInProgress = false; return; }
 
     // Use ALL models from the show file (seq.models), not just the subset that
     // have sequencer rows.  Models with no active blocks at the current frame
@@ -341,9 +345,13 @@ void MainWindow::renderAllModels() {
     const int total = modelNames.size();
     if (total == 0) return;
 
-    // Initialise the detail dialog (updates whether or not it's visible).
-    if (_renderDetailDlg)
+    // Initialise and auto-show the detail dialog so the user can see progress
+    // without needing to double-click during the render.
+    if (_renderDetailDlg) {
         _renderDetailDlg->beginRender(modelNames);
+        _renderDetailDlg->show();
+        _renderDetailDlg->raise();
+    }
 
     // Force the status-bar progress bar to appear and repaint before the
     // first blocking renderNow() call (Windows batches repaints without this).
@@ -354,7 +362,9 @@ void MainWindow::renderAllModels() {
     _renderProgress->show();
     _renderProgress->repaint();
     statusBar()->repaint();
-    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+    // Allow ALL events so the user can interact with the dialog during the render.
+    // The _renderAllInProgress guard prevents re-entrant renderAllModels() calls.
+    QApplication::processEvents();
 
     int rendered = 0;
     for (int i = 0; i < total; ++i) {
@@ -382,13 +392,15 @@ void MainWindow::renderAllModels() {
         _renderProgress->setValue(i + 1);
         statusBar()->showMessage(
             QString("Rendering %1  (%2/%3)").arg(mn).arg(i + 1).arg(total), 0);
-        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        // Allow all events so the detail dialog updates and stays interactive.
+        QApplication::processEvents();
     }
 
     if (_renderDetailDlg)
         _renderDetailDlg->endRender(rendered, total);
 
     _renderProgress->hide();
+    _renderAllInProgress = false;
     statusBar()->showMessage(
         QString("House render — %1 / %2 models had active effects").arg(rendered).arg(total), 4000);
 }
