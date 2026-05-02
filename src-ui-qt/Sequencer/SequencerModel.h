@@ -22,6 +22,7 @@ struct SequencerRow {
     int                layerIndex = 0;   // 0-based layer within the model
     int                layerCount = 1;   // total layers this model has
     QList<EffectBlock> blocks;
+    bool               collapsed  = false;  // true when this model's layers are hidden
 
     bool isLayerRow()  const { return layerIndex > 0; }
     bool isModelRow()  const { return layerIndex == 0; }
@@ -43,13 +44,25 @@ public:
     const SequencerRow& row(int r) const { return _rows.at(r); }
     SequencerRow&       row(int r)       { return _rows[r]; }
 
+    // Toggle collapsed state of a model's layer rows.  r must be a model row (layerIndex==0).
+    void toggleCollapse(int r);
+
+    // True if this row index should be visible (not hidden by a collapsed model row).
+    bool isRowVisible(int r) const;
+
+    // Map a visual row index (skipping hidden rows) to a data row index.
+    int  visualToData(int visualRow) const;
+
+    // Number of visible rows (for scrollbar sizing).
+    int  visibleRowCount() const;
+
     // ── View geometry ────────────────────────────────────────────────────
     double pixelsPerFrame() const { return _pxPerFrame; }
     void   setPixelsPerFrame(double v);
 
-    int rowHeight()  const { return _rowHeight; }
-    int gridWidth()  const { return int(_totalFrames * _pxPerFrame); }
-    int gridHeight() const { return _rows.size() * _rowHeight; }
+    int rowHeight()    const { return _rowHeight; }
+    int gridWidth()    const { return int(_totalFrames * _pxPerFrame); }
+    int gridHeight()   const { return visibleRowCount() * _rowHeight; }
 
     // ── Playhead ─────────────────────────────────────────────────────────────
     int  playheadFrame() const { return _playheadFrame; }

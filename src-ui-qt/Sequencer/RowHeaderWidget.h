@@ -9,8 +9,12 @@ public:
     void setScrollOffset(int yOffset);
     QSize sizeHint() const override;
 
+signals:
+    void collapseToggled(int dataRow);
+
 protected:
     void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent* ev) override;
 
 private:
     SequencerModel* _model;

@@ -18,12 +18,55 @@ int SequencerModel::frameAt(int x) const {
 int SequencerModel::xAt(int frame) const {
     return int(frame * _pxPerFrame);
 }
+
+// y coordinate helpers work in VISUAL space (visible rows only).
 int SequencerModel::rowAt(int y) const {
-    int r = y / _rowHeight;
-    return (r >= 0 && r < _rows.size()) ? r : -1;
+    int vis = y / _rowHeight;
+    return visualToData(vis);
 }
-int SequencerModel::yAt(int row) const {
-    return row * _rowHeight;
+int SequencerModel::yAt(int dataRow) const {
+    // Convert data row index to visual y coordinate.
+    int vis = 0;
+    for (int r = 0; r < dataRow && r < _rows.size(); ++r)
+        if (isRowVisible(r)) ++vis;
+    return vis * _rowHeight;
+}
+
+// ── Collapse / visibility ──────────────────────────────────────────────────────
+
+void SequencerModel::toggleCollapse(int r) {
+    if (r < 0 || r >= _rows.size() || !_rows[r].isModelRow()) return;
+    _rows[r].collapsed = !_rows[r].collapsed;
+    emit geometryChanged();
+}
+
+bool SequencerModel::isRowVisible(int r) const {
+    if (r < 0 || r >= _rows.size()) return false;
+    if (_rows[r].isModelRow()) return true;
+    // Layer rows: visible only when the model row is NOT collapsed.
+    // Walk back to find the parent model row.
+    for (int p = r - 1; p >= 0; --p) {
+        if (_rows[p].isModelRow() && _rows[p].modelName == _rows[r].modelName)
+            return !_rows[p].collapsed;
+    }
+    return true;
+}
+
+int SequencerModel::visibleRowCount() const {
+    int v = 0;
+    for (int r = 0; r < _rows.size(); ++r)
+        if (isRowVisible(r)) ++v;
+    return v;
+}
+
+int SequencerModel::visualToData(int visualRow) const {
+    int vis = 0;
+    for (int r = 0; r < _rows.size(); ++r) {
+        if (!isRowVisible(r)) continue;
+        if (vis == visualRow) return r;
+        ++vis;
+    }
+    return -1;
 }
 
 // ── Hit-test ──────────────────────────────────────────────────────────────────

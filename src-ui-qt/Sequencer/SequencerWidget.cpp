@@ -54,6 +54,8 @@ SequencerWidget::SequencerWidget(QWidget* parent) : QWidget(parent) {
     connect(_grid, &SequencerGridCanvas::blockSelected,
             this,  &SequencerWidget::blockSelected);
 
+    // Collapse triangle click → grid resize is handled by geometryChanged signal above.
+
     // Resize grid canvas when model geometry changes
     connect(_model, &SequencerModel::geometryChanged, this, [this]() {
         _grid->resize(_model->gridWidth(), _model->gridHeight());

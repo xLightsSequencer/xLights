@@ -67,6 +67,7 @@ void SequencerGridCanvas::paintEvent(QPaintEvent*) {
 
     // Row backgrounds + grid lines
     for (int r = 0; r < total; ++r) {
+        if (!_model->isRowVisible(r)) continue;
         int y = _model->yAt(r);
         if (y + rh < 0 || y > height()) continue;
         const SequencerRow& row = _model->row(r);
@@ -93,6 +94,7 @@ void SequencerGridCanvas::paintEvent(QPaintEvent*) {
 
     // Effect blocks — dimmed originals while dragging
     for (int r = 0; r < total; ++r) {
+        if (!_model->isRowVisible(r)) continue;
         int y = _model->yAt(r);
         for (int b = 0; b < _model->row(r).blocks.size(); ++b) {
             const EffectBlock& blk = _model->row(r).blocks[b];
