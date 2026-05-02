@@ -12,9 +12,12 @@ class ModelInfoWindow;
 class PlaybackController;
 class PreviewWidget;
 class QColor;
+class QEvent;
+class QObject;
 class QProgressBar;
 class QtRenderBridge;
 class QSplitter;
+class RenderDetailDialog;
 class SequencerWidget;
 class TransportToolBar;
 
@@ -27,6 +30,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent*) override;
+    bool eventFilter(QObject* watched, QEvent* ev) override;
 
 private slots:
     void onEffectSelected(const QString& name);
@@ -71,6 +75,7 @@ private:
     QString             _currentModel;
     int                 _lastRenderedFrame = -1;
     QProgressBar*       _renderProgress    = nullptr;
+    RenderDetailDialog* _renderDetailDlg   = nullptr;
 
     // House preview real-time cycling state
     QStringList         _houseQueue;         // all model names from the sequence

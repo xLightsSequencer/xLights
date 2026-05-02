@@ -9,6 +9,7 @@
 #include "../Bridge/QtRenderBridge.h"
 #include "../Bridge/QtSequenceDoc.h"   // QtModelInfo, QtSequenceInfo
 #include "ExportDialog.h"
+#include "RenderDetailDialog.h"
 #include "../Effects/EffectPanelWidget.h"
 #include "../Effects/EffectToolBar.h"
 #include "../Bridge/SubBufferUtil.h"
@@ -20,6 +21,7 @@
 #include <QAction>
 #include <QDir>
 #include <QApplication>
+#include <QEvent>
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMenuBar>
@@ -339,38 +341,56 @@ void MainWindow::renderAllModels() {
     const int total = modelNames.size();
     if (total == 0) return;
 
-    // Force the progress bar to appear and paint before the first (slow) render.
+    // Initialise the detail dialog (updates whether or not it's visible).
+    if (_renderDetailDlg)
+        _renderDetailDlg->beginRender(modelNames);
+
+    // Force the status-bar progress bar to appear and repaint before the
+    // first blocking renderNow() call (Windows batches repaints without this).
     _renderProgress->setRange(0, total);
     _renderProgress->setValue(0);
-    _renderProgress->setFormat(QString("House render: %v / %1 models").arg(total));
+    _renderProgress->setFormat("%v / %m models");
     _renderProgress->setTextVisible(true);
     _renderProgress->show();
     _renderProgress->repaint();
     statusBar()->repaint();
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
+    int rendered = 0;
     for (int i = 0; i < total; ++i) {
-        const QString&    mn        = modelNames[i];
-        const QtModelInfo mi        = seq.modelInfo(mn);
-        const int         n         = mi.bufferW * mi.bufferH;
+        const QString&    mn = modelNames[i];
+        const QtModelInfo mi = seq.modelInfo(mn);
+        const int         n  = mi.bufferW * mi.bufferH;
+
+        if (_renderDetailDlg)
+            _renderDetailDlg->setModelStatus(i, RenderDetailDialog::Rendering);
+
         const QList<QColor> composite = renderModelLayers(mn);
 
         if (!composite.isEmpty()) {
             _housePreview->setModelPixels(mn, composite);
-        } else if (n > 0) {
-            // No active effects at this frame — paint the model as off.
-            _housePreview->setModelPixels(mn, QList<QColor>(n, Qt::black));
+            if (_renderDetailDlg)
+                _renderDetailDlg->setModelStatus(i, RenderDetailDialog::Done);
+            ++rendered;
+        } else {
+            if (n > 0)
+                _housePreview->setModelPixels(mn, QList<QColor>(n, Qt::black));
+            if (_renderDetailDlg)
+                _renderDetailDlg->setModelStatus(i, RenderDetailDialog::NoEffects);
         }
 
         _renderProgress->setValue(i + 1);
         statusBar()->showMessage(
-            QString("Rendering %1  (%2/%3)…").arg(mn).arg(i + 1).arg(total), 0);
+            QString("Rendering %1  (%2/%3)").arg(mn).arg(i + 1).arg(total), 0);
         QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
+    if (_renderDetailDlg)
+        _renderDetailDlg->endRender(rendered, total);
+
     _renderProgress->hide();
     statusBar()->showMessage(
-        QString("House render complete — %1 models").arg(total), 3000);
+        QString("House render — %1 / %2 models had active effects").arg(rendered).arg(total), 4000);
 }
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
@@ -629,12 +649,29 @@ void MainWindow::setupStatusBar() {
 
     _renderProgress = new QProgressBar(this);
     _renderProgress->setRange(0, 100);
-    _renderProgress->setFixedWidth(160);
+    _renderProgress->setFixedWidth(200);
     _renderProgress->setFixedHeight(16);
     _renderProgress->setTextVisible(true);
     _renderProgress->setFormat("Rendering… %p%");
+    _renderProgress->setToolTip("Double-click for detailed model progress");
     _renderProgress->hide();
+    _renderProgress->installEventFilter(this);
     statusBar()->addPermanentWidget(_renderProgress);
+
+    // Create the detail dialog once; it stays hidden until the user double-clicks.
+    _renderDetailDlg = new RenderDetailDialog(this);
+}
+
+bool MainWindow::eventFilter(QObject* watched, QEvent* ev) {
+    if (watched == _renderProgress && ev->type() == QEvent::MouseButtonDblClick) {
+        if (_renderDetailDlg) {
+            _renderDetailDlg->show();
+            _renderDetailDlg->raise();
+            _renderDetailDlg->activateWindow();
+        }
+        return true;
+    }
+    return QMainWindow::eventFilter(watched, ev);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
