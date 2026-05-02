@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QtMath>
+#include <cmath>
 
 PreviewWidget::PreviewWidget(QWidget* parent) : QWidget(parent) {
     setMinimumHeight(160);
@@ -68,9 +69,11 @@ void PreviewWidget::paintEvent(QPaintEvent*) {
         int sqX  = canvas.x() + (canvas.width()  - side) / 2;
         int sqY  = canvas.y() + (canvas.height() - side) / 2;
 
-        float cellW = float(side) / qMax(1, _bufW);
-        float cellH = float(side) / qMax(1, _bufH);
-        float nodeR = qBound(1.5f, qMin(cellW, cellH) * 0.42f, 10.0f);
+        // Node radius: use spatial density so sparse group views (few dots)
+        // get large visible circles and dense model views get small ones.
+        // density = nodes per (side²) pixels of canvas area.
+        const float density = float(N) / float(qMax(1, side * side));
+        const float nodeR   = qBound(2.0f, 0.6f / std::sqrt(qMax(1e-6f, density)), 12.0f);
 
         for (int i = 0; i < N; ++i) {
             const QPointF& np = _nodePositions[i];

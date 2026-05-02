@@ -441,12 +441,16 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
     const double            rangeY = gi.maxY - gi.minY;
     if (rangeX <= 0 || rangeY <= 0) return;
 
-    // Accumulate all nodes across member models for the unified model preview.
-    QList<QPointF> allPositions;
-    QList<QColor>  allColors;
+    // ── Per-node distribution for house preview ────────────────────────────
+    // For each member model, sample the group buffer at each node's global
+    // position and update the house preview accordingly.
+    // Model-preview is handled separately below (one dot per model).
 
     for (const QString& mn : gi.modelNames) {
-        const QtModelInfo& mi = seq.modelInfo(mn);
+        // Only process models we know about (skip sub-model paths like "X/Y").
+        auto mit = seq.models.find(mn);
+        if (mit == seq.models.end()) continue;
+        const QtModelInfo& mi = *mit;
         const int nc = mi.globalPositions.size();
         if (nc == 0) continue;
 
@@ -458,7 +462,7 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
             const double nx = qBound(0.0, (gp.x() - gi.minX) / rangeX, 1.0);
             const double ny = qBound(0.0, (gp.y() - gi.minY) / rangeY, 1.0);
 
-            // xLights render buffer has y=0 at the BOTTOM; flip so the top of
+            // xLights render buffer has y=0 at the BOTTOM; flip so top of
             // the physical group layout maps to the top of the rendered effect.
             const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
             const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
@@ -466,24 +470,44 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
             const int bi = by * gi.bufferW + bx;
             if (bi < groupPixels.size())
                 pixels[i] = groupPixels[bi];
-
-            if (updateModelPreview) {
-                allPositions.append({nx, ny});
-                allColors.append(pixels[i]);
-            }
         }
         _housePreview->setModelPixels(mn, pixels);
     }
 
-    // When requested, push a unified "house layout" view of the group into
-    // the model preview widget so it shows all members at their physical positions
-    // rather than a raw 2-D grid of the effect buffer.
-    if (updateModelPreview && !allPositions.isEmpty()) {
-        QtEffectRenderer::Result groupView;
-        groupView.w = allColors.size();
-        groupView.h = 1;
-        groupView.pixels = allColors;
-        _preview->setResult(groupView, allPositions);
+    // ── One-dot-per-model view for the model preview widget ────────────────
+    // Using worldPos (centre of each model in layout space) avoids the issues
+    // with 1-D strand models whose per-node y is always 0.5 (single row), and
+    // avoids the node-count explosion that made nodeR clamp to 1.5 px.
+    if (updateModelPreview) {
+        QList<QPointF> positions;
+        QList<QColor>  colors;
+
+        for (const QString& mn : gi.modelNames) {
+            auto mit = seq.models.find(mn);
+            if (mit == seq.models.end()) continue;
+            const QtModelInfo& mi = *mit;
+
+            // Centre of the model in group-normalised coordinates.
+            const double nx = qBound(0.0, (mi.worldPosX - gi.minX) / rangeX, 1.0);
+            const double ny = qBound(0.0, (mi.worldPosY - gi.minY) / rangeY, 1.0);
+
+            // Sample the group buffer at this position (y-flipped).
+            const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
+            const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
+                                  gi.bufferH - 1);
+            const int bi = by * gi.bufferW + bx;
+
+            positions.append({nx, ny});
+            colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
+        }
+
+        if (!positions.isEmpty()) {
+            QtEffectRenderer::Result gv;
+            gv.w = colors.size();
+            gv.h = 1;
+            gv.pixels = colors;
+            _preview->setResult(gv, positions);
+        }
     }
 }
 
