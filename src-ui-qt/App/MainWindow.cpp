@@ -141,17 +141,26 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
     // Playback → playhead + live preview update (only when frame changes)
     connect(_playback, &PlaybackController::positionChanged, this, [this](int ms) {
-        int fps      = qMax(1, _sequencer->model()->fps());
-        int curFrame = ms * fps / 1000;
+        const int fps      = qMax(1, _sequencer->model()->fps());
+        const int curFrame = ms * fps / 1000;
         _sequencer->setPlayhead(curFrame);
 
-        // Refresh preview at current frame if a model is selected.
-        if (!_currentModel.isEmpty() && _playback->isPlaying()) {
-            if (curFrame != _lastRenderedFrame) {
-                _lastRenderedFrame = curFrame;
+        if (_playback->isPlaying() && curFrame != _lastRenderedFrame) {
+            _lastRenderedFrame = curFrame;
+
+            // Selected model: full src-core composite render every frame.
+            if (!_currentModel.isEmpty())
                 renderAllLayers();
-            }
+
+            // House preview: software-renderer batch, cycling through all models.
+            tickHousePreview(curFrame);
         }
+    });
+
+    // On stop/pause: do one accurate src-core house render at the stopped frame.
+    connect(_playback, &PlaybackController::playingChanged, this, [this](bool playing) {
+        if (!playing && QtXLightsApp::instance().currentSequence().isValid())
+            renderAllModels();
     });
 
     // Model change → keep duration in sync
@@ -368,6 +377,82 @@ void MainWindow::populateEffectBar() {
         0);
 }
 
+// ── Real-time house preview ───────────────────────────────────────────────────
+
+QList<QColor> MainWindow::parsePaletteQuick(const QString& rawPalette) {
+    QList<QColor> colors;
+    if (rawPalette.isEmpty()) return colors;
+    QMap<QString, QString> vals;
+    for (const QString& part : rawPalette.split(',', Qt::SkipEmptyParts)) {
+        const int eq = part.indexOf('=');
+        if (eq <= 0) continue;
+        vals[part.left(eq).trimmed()] = part.mid(eq + 1).trimmed();
+    }
+    for (int i = 1; i <= 8; ++i) {
+        if (vals.value(QString("C_CHECKBOX_Palette%1").arg(i)) == "1") {
+            QColor c(vals.value(QString("C_BUTTON_Palette%1").arg(i)));
+            if (c.isValid()) colors.append(c);
+        }
+    }
+    return colors;
+}
+
+void MainWindow::tickHousePreview(int curFrame) {
+    if (_houseQueue.isEmpty()) return;
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    if (!seq.isValid()) return;
+
+    // Render kHouseModelsPerTick models per tick using the fast software renderer.
+    // Cycling ensures every model is refreshed within a full queue pass.
+    for (int i = 0; i < kHouseModelsPerTick; ++i) {
+        if (_houseQueueIdx >= _houseQueue.size())
+            _houseQueueIdx = 0;
+
+        const QString  mn = _houseQueue[_houseQueueIdx++];
+        const QtModelInfo mi = seq.modelInfo(mn);
+        const int n = mi.bufferW * mi.bufferH;
+        if (n == 0) continue;
+
+        // Composite all active layers for this model using the software renderer.
+        QList<QColor> composite(n, Qt::black);
+        bool anyPixels = false;
+
+        for (int r = 0; r < _sequencer->model()->rowCount(); ++r) {
+            const SequencerRow& row = _sequencer->model()->row(r);
+            if (row.modelName != mn) continue;
+            for (const EffectBlock& blk : row.blocks) {
+                if (curFrame < blk.startFrame || curFrame >= blk.endFrame) continue;
+
+                const double progress = blk.endFrame > blk.startFrame
+                    ? double(curFrame - blk.startFrame) / double(blk.endFrame - blk.startFrame)
+                    : 0.5;
+
+                QtEffectRenderer::Request req;
+                req.effectName = blk.effectName;
+                req.bufferW    = mi.bufferW;
+                req.bufferH    = mi.bufferH;
+                req.progress   = qBound(0.0, progress, 1.0);
+                req.palette    = parsePaletteQuick(blk.palette);
+
+                const QtEffectRenderer::Result res = QtEffectRenderer::render(req);
+                if (res.isValid()) {
+                    for (int j = 0; j < n && j < res.pixels.size(); ++j) {
+                        const QColor& px = res.pixels[j];
+                        if (px.red() || px.green() || px.blue()) {
+                            composite[j] = px;
+                            anyPixels = true;
+                        }
+                    }
+                }
+                break;  // one active block per layer row
+            }
+        }
+
+        if (anyPixels)
+            _housePreview->setModelPixels(mn, composite);
+    }
+}
+
 void MainWindow::onEffectSelected(const QString& name) {
     if (name.isEmpty()) return;
     _effectPanel->showEffect(name);
@@ -431,6 +516,15 @@ void MainWindow::setupMenuBar() {
             _modelInfoWin->refresh();
             _controllerInfoWin->refresh();
             _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
+
+            // Build the cycling queue for real-time house preview.
+            _houseQueue.clear();
+            _houseQueueIdx = 0;
+            for (int r = 0; r < _sequencer->model()->rowCount(); ++r) {
+                const SequencerRow& row = _sequencer->model()->row(r);
+                if (row.isModelRow() && !_houseQueue.contains(row.modelName))
+                    _houseQueue.append(row.modelName);
+            }
 
             // Resolve and load audio — try show folder first, then xsq directory.
             QString audioPath;

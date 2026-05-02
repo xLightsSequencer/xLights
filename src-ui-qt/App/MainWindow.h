@@ -47,8 +47,15 @@ private:
     // Returns empty list if model has no active blocks at the current frame.
     QList<QColor> renderModelLayers(const QString& modelName);
 
-    // Render ALL models in the sequence and update the house preview.
+    // Render ALL models in the sequence and update the house preview (full, accurate).
     void renderAllModels();
+
+    // Fast house preview update during playback: renders kHouseModelsPerTick
+    // models per call using the software renderer, cycling through all models.
+    void tickHousePreview(int curFrame);
+
+    // Parse palette colours from a raw "C_BUTTON_Palette1=#rrggbb,..." string.
+    static QList<QColor> parsePaletteQuick(const QString& rawPalette);
 
     PlaybackController*  _playback      = nullptr;
     TransportToolBar*    _transport     = nullptr;
@@ -64,6 +71,11 @@ private:
     QString             _currentModel;
     int                 _lastRenderedFrame = -1;
     QProgressBar*       _renderProgress    = nullptr;
+
+    // House preview real-time cycling state
+    QStringList         _houseQueue;         // all model names from the sequence
+    int                 _houseQueueIdx = 0;  // position in the cycling queue
+    static constexpr int kHouseModelsPerTick = 5;  // models rendered per playback tick
 
     ModelInfoWindow*      _modelInfoWin      = nullptr;
     ControllerInfoWindow* _controllerInfoWin = nullptr;
