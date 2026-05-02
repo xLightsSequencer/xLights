@@ -474,45 +474,70 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
         _housePreview->setModelPixels(mn, pixels);
     }
 
-    // ── Per-node positions for the model preview widget ────────────────────
-    // Show each member model in its actual physical shape (tree, star, matrix,
-    // custom, strand) by collecting all their nodes' global positions, normalised
-    // to the group's bounding box.  PreviewWidget's density-based nodeR ensures
-    // dots are visible regardless of total node count.
+    // ── Shape-preserving per-model view for the model preview widget ──────
+    // Trees are physically narrow in layout space (~20 units wide) relative to
+    // the group span (~900 units), so normalising globalPositions directly
+    // compresses each tree to a sub-pixel sliver.  Instead:
+    //   • each model is placed at its worldPos centre in group-normalised space
+    //   • its local nodePositions shape (triangle/star/grid/custom) is scaled
+    //     so every model occupies a minimum visible fraction of the preview
+    //   • colours are sampled from the group buffer at the PHYSICAL position
+    //     so left-to-right effects still colour trees correctly
     if (updateModelPreview) {
-        QList<QPointF> positions;
-        QList<QColor>  colors;
+        // Count valid members to compute per-model display scale.
+        int nValid = 0;
+        for (const QString& mn : gi.modelNames)
+            if (seq.models.contains(mn)) ++nValid;
 
-        for (const QString& mn : gi.modelNames) {
-            auto mit = seq.models.find(mn);
-            if (mit == seq.models.end()) continue;
-            const QtModelInfo& mi = *mit;
-            if (mi.globalPositions.isEmpty()) continue;
+        if (nValid > 0) {
+            QList<QPointF> positions;
+            QList<QColor>  colors;
 
-            for (int i = 0; i < mi.globalPositions.size(); ++i) {
-                const QPointF& gp = mi.globalPositions[i];
+            // Scale each model's local shape so it fills ~0.8/√N of the preview.
+            const double dispScale = qBound(0.05, 0.8 / std::sqrt(double(nValid)), 0.9);
 
-                // Normalise to [0,1] within group bounding box (Y: 0=top of group).
-                const double nx = qBound(0.0, (gp.x() - gi.minX) / rangeX, 1.0);
-                const double ny = qBound(0.0, (gp.y() - gi.minY) / rangeY, 1.0);
+            for (const QString& mn : gi.modelNames) {
+                auto mit = seq.models.find(mn);
+                if (mit == seq.models.end()) continue;
+                const QtModelInfo& mi = *mit;
+                if (mi.nodePositions.isEmpty()) continue;
 
-                // Sample group buffer (y-flipped: xLights y=0 is at the bottom).
-                const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
-                const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
-                                      gi.bufferH - 1);
-                const int bi = by * gi.bufferW + bx;
+                // Model centre in group-normalised coordinates (0=left/top, 1=right/bottom).
+                const double cx = qBound(0.0, (mi.worldPosX - gi.minX) / rangeX, 1.0);
+                const double cy = qBound(0.0, (mi.worldPosY - gi.minY) / rangeY, 1.0);
 
-                positions.append({nx, ny});
-                colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
+                const int nc = mi.nodePositions.size();
+                for (int i = 0; i < nc; ++i) {
+                    const QPointF& lp = mi.nodePositions[i];
+
+                    // Display position: model shape centred at (cx, cy), scaled.
+                    const double nx = qBound(0.0, cx + (lp.x() - 0.5) * dispScale, 1.0);
+                    const double ny = qBound(0.0, cy + (lp.y() - 0.5) * dispScale, 1.0);
+
+                    // Physical position for colour sampling — use globalPositions when
+                    // available, otherwise fall back to the world-centre of the model.
+                    double physNx = cx, physNy = cy;
+                    if (i < mi.globalPositions.size()) {
+                        physNx = qBound(0.0, (mi.globalPositions[i].x() - gi.minX) / rangeX, 1.0);
+                        physNy = qBound(0.0, (mi.globalPositions[i].y() - gi.minY) / rangeY, 1.0);
+                    }
+                    const int bx = qBound(0, int(physNx * (gi.bufferW - 1)), gi.bufferW - 1);
+                    const int by = qBound(0, (gi.bufferH - 1) - int(physNy * (gi.bufferH - 1)),
+                                          gi.bufferH - 1);
+                    const int bi = by * gi.bufferW + bx;
+
+                    positions.append({nx, ny});
+                    colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
+                }
             }
-        }
 
-        if (!positions.isEmpty()) {
-            QtEffectRenderer::Result gv;
-            gv.w = colors.size();
-            gv.h = 1;
-            gv.pixels = colors;
-            _preview->setResult(gv, positions);
+            if (!positions.isEmpty()) {
+                QtEffectRenderer::Result gv;
+                gv.w = colors.size();
+                gv.h = 1;
+                gv.pixels = colors;
+                _preview->setResult(gv, positions);
+            }
         }
     }
 }

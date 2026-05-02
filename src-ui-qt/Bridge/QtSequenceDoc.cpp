@@ -488,6 +488,26 @@ static bool coreNodePositions(pugi::xml_node modelXml,
     out.nodeCount     = bufW * bufH;
     out.nodePositions = positions;
 
+    // Compute world-space globalPositions directly from raw screenX/Y.
+    // sxArr[i]/syArr[i] are in local model space (centred near 0).
+    // Physical world position = worldPos + localPos × scale.
+    // Y convention: local screenY increases upward (xLights) → negate for
+    // layout canvas where Y increases downward.  Top-down (Tree 360) uses
+    // screenZ as the second axis and needs no flip.
+    out.globalPositions.clear();
+    out.globalPositions.reserve(bufW * bufH);
+    for (int i = 0; i < bufW * bufH; ++i) {
+        if (used[i]) {
+            const double wx = out.worldPosX + double(sxArr[i]) * out.scaleX;
+            const double wy = topDown
+                ? out.worldPosY + double(syArr[i]) * out.scaleY   // Z → canvas Y, no flip
+                : out.worldPosY - double(syArr[i]) * out.scaleY;  // screenY up → canvas Y down
+            out.globalPositions.append({wx, wy});
+        } else {
+            out.globalPositions.append({out.worldPosX, out.worldPosY});
+        }
+    }
+
     delete model;
     return true;
 }
@@ -668,35 +688,26 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         mi.scaleX    = m.attribute("ScaleX").as_double(1.0);
         mi.scaleY    = m.attribute("ScaleY").as_double(1.0);
 
-        // Shaped models (trees, stars): use mathematical positions — they give
-        // the correct visual arrangement (circular, triangular, star outline).
-        // src-core's "2D" camera returns buffer-grid coordinates for these types
-        // rather than the physical node layout we want to display.
-        //
-        // Flat models (matrices, single lines, custom): try src-core first for
-        // exact physical positions, fall back to maths on any failure.
-        const bool useMathOnly = t.startsWith("Tree") || t == "Star";
-
+        // Try src-core first for all model types.  coreNodePositions() returns
+        // exact screenX/Y positions from InitRenderBufferNodes and computes
+        // correct world-space globalPositions (worldPos + screenXY × scale).
+        // The math fallback is used only when core fails.
         bool coreOk = false;
-        if (!useMathOnly) {
-            try {
-                coreOk = coreNodePositions(m, mm, mi);
-            } catch (...) {
-                coreOk = false;
-            }
+        try {
+            coreOk = coreNodePositions(m, mm, mi);
+        } catch (...) {
+            coreOk = false;
         }
 
         if (!coreOk) {
+            // Math fallback: compute positions from buffer dimensions and model type.
+            // globalPositions use bufferW/H × scaleX/Y as the physical extent —
+            // this is an approximation; for shaped models (trees, stars) the core
+            // path above gives the accurate physical positions.
             mi.nodeCount     = mi.bufferW * mi.bufferH;
             mi.nodePositions = computeNodePositions(t, mi.parm1, mi.parm2,
                                                     mi.bufferW, mi.bufferH,
                                                     mi.layerSizes);
-        }
-
-        // Compute global layout positions from local normalized positions + world transform.
-        // nodePositions are in [0,1]×[0,1] screen space (y=0 is top).
-        // Global: center model at (worldPosX, worldPosY), scale each pixel by scaleX/Y.
-        {
             const double w = mi.bufferW * mi.scaleX;
             const double h = mi.bufferH * mi.scaleY;
             mi.globalPositions.reserve(mi.nodePositions.size());
@@ -707,6 +718,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
                 });
             }
         }
+        // else: coreNodePositions() already set nodePositions and globalPositions.
 
         info.models[mi.name] = mi;
     }
