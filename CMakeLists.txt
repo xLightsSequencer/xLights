@@ -792,3 +792,269 @@ endif()
 include(GNUInstallDirs)
 install(TARGETS xLights DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/xLights)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# xLights Qt — Phase 2+3: effect metadata + generic JSON-driven effect panel
+# Enable with: cmake -DXLIGHTS_BUILD_QT=ON
+# ═══════════════════════════════════════════════════════════════════════════════
+option(XLIGHTS_BUILD_QT "Build the Qt6 UI target (xLights-Qt)" OFF)
+
+if(XLIGHTS_BUILD_QT)
+    find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Gui Network Multimedia)
+
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+
+    # ── nlohmann/json ─────────────────────────────────────────────────────
+    find_package(nlohmann_json CONFIG QUIET)
+    if(NOT nlohmann_json_FOUND)
+        include(FetchContent)
+        FetchContent_Declare(nlohmann_json_qt
+            URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+            URL_HASH SHA256=d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+        FetchContent_MakeAvailable(nlohmann_json_qt)
+        set(XL_QT_JSON_TARGET nlohmann_json::nlohmann_json)
+    else()
+        set(XL_QT_JSON_TARGET nlohmann_json::nlohmann_json)
+    endif()
+
+    # ── spdlog ────────────────────────────────────────────────────────────
+    find_package(spdlog CONFIG QUIET)
+    if(NOT spdlog_FOUND)
+        find_path(SPDLOG_INCLUDE_DIR spdlog/spdlog.h
+            HINTS ${CMAKE_SOURCE_DIR}/dependencies/spdlog/include
+                  ${CMAKE_SOURCE_DIR}/include)
+        if(SPDLOG_INCLUDE_DIR)
+            add_library(spdlog_qt INTERFACE)
+            target_include_directories(spdlog_qt INTERFACE ${SPDLOG_INCLUDE_DIR})
+            set(XL_QT_SPDLOG_TARGET spdlog_qt)
+        else()
+            message(WARNING "xLights-Qt: spdlog not found — logging will be absent")
+            set(XL_QT_SPDLOG_TARGET "")
+        endif()
+    else()
+        set(XL_QT_SPDLOG_TARGET spdlog::spdlog)
+    endif()
+
+    # ── Sources ───────────────────────────────────────────────────────────
+    set(XL_QT_SOURCES
+        src-ui-qt/App/main.cpp
+        src-ui-qt/App/MainWindow.cpp
+        src-ui-qt/App/QtXLightsApp.cpp
+        src-ui-qt/Graphics/RhiCanvas.cpp
+        src-ui-qt/Effects/EffectPanelWidget.cpp
+        src-ui-qt/Effects/EffectControlBuilder.cpp
+        src-ui-qt/Effects/controls/SliderSpinRow.cpp
+        src-ui-qt/Effects/controls/CheckRow.cpp
+        src-ui-qt/Effects/controls/ComboRow.cpp
+        src-ui-qt/Effects/controls/TextRow.cpp
+        src-ui-qt/Effects/controls/FilePickerRow.cpp
+        src-ui-qt/Sequencer/SequencerModel.cpp
+        src-ui-qt/Sequencer/SequencerController.cpp
+        src-ui-qt/Sequencer/SequencerGridCanvas.cpp
+        src-ui-qt/Sequencer/RowHeaderWidget.cpp
+        src-ui-qt/Sequencer/TimingRulerCanvas.cpp
+        src-ui-qt/Sequencer/SequencerWidget.cpp
+        src-ui-qt/Bridge/QtSequenceDoc.cpp
+        src-ui-qt/Bridge/QtEffectRenderer.cpp
+        src-ui-qt/Bridge/QtRenderBridge.cpp
+        src-ui-qt/Bridge/QtRenderContext.cpp
+        src-ui-qt/Bridge/QtTextDrawingContext.cpp
+    )
+    # /EHa makes catch(...) capture Windows SEH exceptions (access violations)
+    # so QtRenderBridge can fall back to the software renderer on a src-core crash.
+    if(MSVC)
+        # /EHa: catch(...) also catches Windows SEH (access violations) so
+        # src-core model init/render crashes fall back gracefully.
+        set_source_files_properties(
+            src-ui-qt/Bridge/QtRenderBridge.cpp
+            src-ui-qt/Bridge/QtSequenceDoc.cpp
+            PROPERTIES COMPILE_OPTIONS "/EHa")
+    endif()
+    list(APPEND XL_QT_SOURCES
+        src-ui-qt/Bridge/FseqWriter.cpp
+        src-ui-qt/App/ExportDialog.cpp
+        $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_SOURCE_DIR}/src-ui-qt/App/xLightsQt.rc>
+        src-ui-qt/App/PlaybackController.cpp
+        src-ui-qt/App/TransportToolBar.cpp
+        src-ui-qt/Effects/EffectToolBar.cpp
+        src-ui-qt/Effects/PaletteWidget.cpp
+        src-ui-qt/Effects/BufferWidget.cpp
+        src-ui-qt/Effects/controls/ColorSwatchButton.cpp
+        src-ui-qt/Preview/PreviewWidget.cpp
+        src-ui-qt/Effects/SubBufferWidget.cpp
+        src-ui-qt/Info/ModelInfoWindow.cpp
+        src-ui-qt/Info/ControllerInfoWindow.cpp
+    )
+
+    # ── pugixml — compile from vendored source (same as wx build) ─────────
+    list(APPEND XL_QT_SOURCES
+        ${CMAKE_SOURCE_DIR}/dependencies/pugixml/src/pugixml.cpp)
+    set(XL_QT_PUGIXML_TARGET "")   # no lib target needed; source compiled in
+
+    qt_add_executable(xLights-Qt ${XL_QT_SOURCES})
+
+    # ── src-core + effects (compiled separately here) ──────────────────────────
+    # Exclude files that depend on the wx canvas OpenGL layer or are truly
+    # optional (video transcoder, stem separation).
+    # AudioManager IS included (effects reference it); its deps come from
+    # md5 and vamp SDK sources appended below.
+    set(XL_QT_CORE ${SRC_CORE} ${SRC_EFFECTS})
+    list(REMOVE_ITEM XL_QT_CORE
+        # OpenGL extension func-pointers defined in wx canvas — stubbed in QtOpenGLStubs.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/effects/OpenGLShaders.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/graphics/GLContextManager.cpp
+        # ShaderEffect IS included: it calls HasShaderSupport() first (returns false), so safe
+        # Qt RHI replaces raw OpenGL; video transcoder not needed for preview
+        ${CMAKE_SOURCE_DIR}/src-core/media/VideoTranscoder.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/media/StemSeparator.cpp
+    )
+    # AudioManager deps not in SRC_CORE/SRC_EFFECTS: md5, VAMP host SDK, midifile
+    set(XL_QT_AUDIO_DEPS
+        ${CMAKE_SOURCE_DIR}/dependencies/md5/md5.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/FFT.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/Files.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginBufferingAdapter.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginChannelAdapter.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginHostAdapter.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginInputDomainAdapter.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginLoader.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginSummarisingAdapter.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/PluginWrapper.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/RealTime.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/acsymbols.c
+        ${CMAKE_SOURCE_DIR}/dependencies/vamp-hostsdk/host-c.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/Binasc.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiEvent.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiEventList.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiFile.cpp
+        ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiMessage.cpp
+    )
+    # GL extension function pointer stubs compiled WITHOUT Qt include paths so
+    # <GL/glext.h> doesn't conflict with Qt's own OpenGL abstractions.
+    # GL extension function pointer stubs compiled as a plain (non-Qt) object
+    # library so that <GL/glext.h> doesn't conflict with Qt's GL headers.
+    # MSVC finds GL/gl.h via its own Windows SDK system include path.
+    add_library(_xlights_qt_gl_stubs OBJECT
+        src-ui-qt/Bridge/QtGLPointerDefs.cpp)
+    target_include_directories(_xlights_qt_gl_stubs PRIVATE
+        ${CMAKE_SOURCE_DIR}/dependencies)   # provides GL/glext.h
+    target_sources(xLights-Qt PRIVATE $<TARGET_OBJECTS:_xlights_qt_gl_stubs>)
+
+    # minizip — SequencePackage uses unz* functions; same sources as main target
+    set(XL_QT_MINIZIP
+        ${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/ioapi.c
+        ${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/unzip.c
+        ${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/zip.c
+        $<$<BOOL:${WIN32}>:${CMAKE_SOURCE_DIR}/dependencies/libxlsxwriter/third_party/minizip/iowin32.c>
+    )
+    target_sources(xLights-Qt PRIVATE
+        ${XL_QT_CORE} ${XL_QT_AUDIO_DEPS} ${XL_QT_MINIZIP} ${LUA_SRC}
+        src-ui-qt/Bridge/QtOpenGLStubs.cpp)
+    if(ISPC_OBJECTS)
+        target_sources(xLights-Qt PRIVATE ${ISPC_OBJECTS})
+    endif()
+
+    target_include_directories(xLights-Qt PRIVATE
+        src-ui-qt
+        ${CMAKE_SOURCE_DIR}/dependencies/pugixml/src
+        # ── src-core include paths (mirror xLights target) ──────────────────
+        ${CMAKE_SOURCE_DIR}/src-core
+        ${CMAKE_SOURCE_DIR}/src-core/render
+        ${CMAKE_SOURCE_DIR}/src-core/utils
+        ${XL_DEPS}
+        ${XL_DEPS}/spdlog/include
+        ${XL_DEPS}/lua/src
+        ${XL_DEPS}/midifile/include
+        ${XL_DEPS}/liquidfun/liquidfun/Box2D
+        ${XL_DEPS}/libxlsxwriter/include
+        ${XL_DEPS}/pybind11/include
+        ${XL_INC}
+        ${XL_INC}/zlib
+        ${XL_INC}/sol2-3.5.0
+        ${FFMPEG_INCLUDE_DIR}
+        ${SDL2_INC}
+        ${ZSTD_INC}
+        ${CURL_INC}
+    )
+
+    target_link_libraries(xLights-Qt PRIVATE
+        Qt6::Widgets
+        Qt6::Gui
+        Qt6::GuiPrivate
+        Qt6::Network
+        Qt6::Multimedia
+        ${XL_QT_JSON_TARGET}
+        ${XL_QT_SPDLOG_TARGET}
+        ${XL_QT_PUGIXML_TARGET}
+        # ── src-core deps ────────────────────────────────────────────────────
+        ${FFMPEG_LIBS}
+        ${SDL2_LINK_TARGET}
+        ${ZSTD_LINK_TARGET}
+        ${ZLIB_LINK_TARGET}
+    )
+    if(CURL_LINK_TARGET)
+        target_link_libraries(xLights-Qt PRIVATE ${CURL_LINK_TARGET})
+    endif()
+    if(WebP_FOUND AND TARGET WebP::webp)
+        target_link_libraries(xLights-Qt PRIVATE WebP::webp)
+        if(TARGET WebP::webpdemux)
+            target_link_libraries(xLights-Qt PRIVATE WebP::webpdemux)
+        endif()
+    elseif(WEBP_LIB)
+        target_link_libraries(xLights-Qt PRIVATE ${WEBP_LIB})
+        if(WEBPDEMUX_LIB)
+            target_link_libraries(xLights-Qt PRIVATE ${WEBPDEMUX_LIB})
+        endif()
+    endif()
+    if(XLSXWRITER_LIB)
+        target_link_libraries(xLights-Qt PRIVATE ${XLSXWRITER_LIB})
+    endif()
+    if(WIN32 AND LIQUIDFUN_LIB_RELEASE)
+        target_link_libraries(xLights-Qt PRIVATE
+            optimized ${LIQUIDFUN_LIB_RELEASE} debug ${LIQUIDFUN_LIB_DEBUG})
+    elseif(LIQUIDFUN_LIB)
+        target_link_libraries(xLights-Qt PRIVATE ${LIQUIDFUN_LIB})
+    endif()
+    if(WIN32)
+        if(FFMPEG_LIBRARY_DIRS)
+            target_link_directories(xLights-Qt PRIVATE ${FFMPEG_LIBRARY_DIRS})
+        endif()
+        target_link_libraries(xLights-Qt PRIVATE
+            ws2_32 winmm comctl32 rpcrt4 mfuuid propsys wmcodecdspuuid iphlpapi
+            opengl32 glu32)
+        if(NOT XLIGHTS_USE_VCPKG)
+            target_link_directories(xLights-Qt PRIVATE
+                ${XL_LIB}/windows64 ${XL_DEPS}/lua/src)
+        endif()
+        target_link_options(xLights-Qt PRIVATE
+            $<$<CONFIG:Release>:/NODEFAULTLIB:LIBCMT>
+            $<$<CONFIG:Debug>:/NODEFAULTLIB:LIBCMTD>)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(xLights-Qt PRIVATE dl pthread)
+    endif()
+
+    set_target_properties(xLights-Qt PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin-qt"
+        WIN32_EXECUTABLE TRUE
+    )
+
+    if(APPLE)
+        set_target_properties(xLights-Qt PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME "xLights Qt"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "0.1.0"
+        )
+    endif()
+
+    # Copy effectmetadata next to the exe so QtXLightsApp finds it at runtime.
+    add_custom_command(TARGET xLights-Qt POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_SOURCE_DIR}/resources/effectmetadata"
+            "$<TARGET_FILE_DIR:xLights-Qt>/effectmetadata"
+        COMMENT "Copying effectmetadata to bin-qt")
+
+    message(STATUS "xLights-Qt target enabled — output: bin-qt/")
+endif()
