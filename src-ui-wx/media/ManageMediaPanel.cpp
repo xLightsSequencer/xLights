@@ -1647,6 +1647,7 @@ void ManageMediaPanel::OnBulkFindImages()
     // Scan broken images and try to find matches in the selected directory
     int found = 0;
     int notFound = 0;
+    std::string lastFixedPath;
     for (const auto& oldPath : brokenPaths) {
         // Extract just the filename from the broken path
         wxFileName fnOld(oldPath);
@@ -1780,6 +1781,7 @@ void ManageMediaPanel::OnBulkFindImages()
             _sequenceMedia->GetImage(finalPath);
         }
 
+        lastFixedPath = finalPath;
         ++found;
     }
 
@@ -1788,7 +1790,7 @@ void ManageMediaPanel::OnBulkFindImages()
                                   "Not found: %d image(s)", found, notFound),
                  "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
 
-    Populate();
+    Populate(lastFixedPath);
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)
