@@ -618,11 +618,13 @@ void xLightsFrame::CheckForValidModels()
                             } else {
                                 dialog.ChoiceModels->SetStringSelection(mapto);
                                 dialog.RadioButtonRename->SetValue(true);
+                                dialog.CheckBoxAddAlias->Enable(true);
                             }
                         }
                         else {
                             dialog.ChoiceModels->Hide();
                             dialog.RadioButtonRename->Hide();
+                            dialog.CheckBoxAddAlias->Hide();
                             dialog.Layout();
                         }
                         dialog.Fit();
@@ -663,6 +665,11 @@ void xLightsFrame::CheckForValidModels()
                             ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                             Remove(AllNames, newName);
                             Remove(ModelNames, newName);
+                            if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr) {
+                                AllModels[newName]->AddAlias("oldname:" + name);
+                                UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch: added alias 'oldname:{}' to '{}'", (const char*)name.c_str(), (const char*)newName.c_str());
+                            }
                         }
                         else {
                             spdlog::error("Sequence Element Mismatch: rename '{}' to '{}' tried to rename to blank.", (const char*)name.c_str(), (const char*)newName.c_str());

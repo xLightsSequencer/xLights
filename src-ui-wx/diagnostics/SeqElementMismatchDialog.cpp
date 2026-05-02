@@ -12,6 +12,7 @@
 
 //(*InternalHeaders(SeqElementMismatchDialog)
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/intl.h>
 #include <wx/string.h>
 //*)
@@ -22,6 +23,7 @@ const long SeqElementMismatchDialog::ID_RADIOBUTTON2 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON1 = wxNewId();
 const long SeqElementMismatchDialog::ID_RADIOBUTTON3 = wxNewId();
 const long SeqElementMismatchDialog::ID_CHOICE1 = wxNewId();
+const long SeqElementMismatchDialog::ID_CHECKBOX1 = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(SeqElementMismatchDialog,wxDialog)
@@ -55,6 +57,10 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     FlexGridSizer1->Add(RadioButtonRename, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ChoiceModels = new wxChoice(this, ID_CHOICE1, wxDefaultPosition, wxDefaultSize, 0, 0, wxCB_SORT, wxDefaultValidator, _T("ID_CHOICE1"));
     FlexGridSizer1->Add(ChoiceModels, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    CheckBoxAddAlias = new wxCheckBox(this, ID_CHECKBOX1, _("Also add alias to model (auto-remap future sequences)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
+    CheckBoxAddAlias->SetValue(true);
+    CheckBoxAddAlias->Enable(false);
+    FlexGridSizer1->Add(CheckBoxAddAlias, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     StdDialogButtonSizer1 = new wxStdDialogButtonSizer();
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_OK, wxEmptyString));
     StdDialogButtonSizer1->AddButton(new wxButton(this, wxID_CANCEL, wxEmptyString));
@@ -65,6 +71,9 @@ SeqElementMismatchDialog::SeqElementMismatchDialog(wxWindow* parent,wxWindowID i
     FlexGridSizer1->SetSizeHints(this);
 
     Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnChoiceModelsSelect);
+    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnRadioButtonSelect);
+    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnRadioButtonSelect);
+    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&SeqElementMismatchDialog::OnRadioButtonSelect);
     //*)
     SetEscapeId(wxID_CANCEL);
 }
@@ -85,4 +94,10 @@ void SeqElementMismatchDialog::SetMessage(const wxString& message)
 void SeqElementMismatchDialog::OnChoiceModelsSelect(wxCommandEvent& event)
 {
     RadioButtonRename->SetValue(true);
+    CheckBoxAddAlias->Enable(true);
+}
+
+void SeqElementMismatchDialog::OnRadioButtonSelect(wxCommandEvent& event)
+{
+    CheckBoxAddAlias->Enable(RadioButtonRename->GetValue());
 }
