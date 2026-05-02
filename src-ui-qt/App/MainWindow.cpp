@@ -301,6 +301,7 @@ void MainWindow::renderAllLayers() {
     _renderProgress->setValue(0);
     _renderProgress->setFormat("Rendering…");
     _renderProgress->show();
+    _renderProgress->repaint();
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
     const QList<QColor> composite = renderModelLayers(_currentModel);
@@ -328,33 +329,48 @@ void MainWindow::renderAllModels() {
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
     if (!seq.isValid()) return;
 
-    // Collect unique model names that have at least one row in the sequencer.
+    // Use ALL models from the show file (seq.models), not just the subset that
+    // have sequencer rows.  Models with no active blocks at the current frame
+    // are explicitly set to black so the house preview reflects the full show.
     QStringList modelNames;
-    for (int r = 0; r < _sequencer->model()->rowCount(); ++r) {
-        const QString& mn = _sequencer->model()->row(r).modelName;
-        if (!modelNames.contains(mn))
-            modelNames.append(mn);
-    }
+    for (auto it = seq.models.cbegin(); it != seq.models.cend(); ++it)
+        modelNames.append(it.key());
 
     const int total = modelNames.size();
+    if (total == 0) return;
+
+    // Force the progress bar to appear and paint before the first (slow) render.
     _renderProgress->setRange(0, total);
     _renderProgress->setValue(0);
-    _renderProgress->setFormat("Rendering house… %v/%m");
+    _renderProgress->setFormat(QString("House render: %v / %1 models").arg(total));
+    _renderProgress->setTextVisible(true);
     _renderProgress->show();
+    _renderProgress->repaint();
+    statusBar()->repaint();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-    _housePreview->clearPixels();
-
-    for (int mi = 0; mi < total; ++mi) {
-        const QString& mn = modelNames[mi];
+    for (int i = 0; i < total; ++i) {
+        const QString&    mn        = modelNames[i];
+        const QtModelInfo mi        = seq.modelInfo(mn);
+        const int         n         = mi.bufferW * mi.bufferH;
         const QList<QColor> composite = renderModelLayers(mn);
-        if (!composite.isEmpty())
-            _housePreview->setModelPixels(mn, composite);
 
-        _renderProgress->setValue(mi + 1);
+        if (!composite.isEmpty()) {
+            _housePreview->setModelPixels(mn, composite);
+        } else if (n > 0) {
+            // No active effects at this frame — paint the model as off.
+            _housePreview->setModelPixels(mn, QList<QColor>(n, Qt::black));
+        }
+
+        _renderProgress->setValue(i + 1);
+        statusBar()->showMessage(
+            QString("Rendering %1  (%2/%3)…").arg(mn).arg(i + 1).arg(total), 0);
         QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 
     _renderProgress->hide();
+    statusBar()->showMessage(
+        QString("House render complete — %1 models").arg(total), 3000);
 }
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
@@ -518,13 +534,13 @@ void MainWindow::setupMenuBar() {
             _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
 
             // Build the cycling queue for real-time house preview.
+            // Use all models from the show file so the house preview includes
+            // models that have no effects in this sequence.
             _houseQueue.clear();
             _houseQueueIdx = 0;
-            for (int r = 0; r < _sequencer->model()->rowCount(); ++r) {
-                const SequencerRow& row = _sequencer->model()->row(r);
-                if (row.isModelRow() && !_houseQueue.contains(row.modelName))
-                    _houseQueue.append(row.modelName);
-            }
+            const QtSequenceInfo& loadedSeq = QtXLightsApp::instance().currentSequence();
+            for (auto it = loadedSeq.models.cbegin(); it != loadedSeq.models.cend(); ++it)
+                _houseQueue.append(it.key());
 
             // Resolve and load audio — try show folder first, then xsq directory.
             QString audioPath;
