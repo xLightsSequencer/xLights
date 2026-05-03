@@ -737,19 +737,31 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
 
         if (gi.modelNames.isEmpty()) continue;
 
-        // Compute the bounding box of all member models in global layout space.
+        // Compute the bounding box from actual globalPositions of each member model.
+        // This correctly handles shaped models (trees, stars) whose physical extent
+        // differs from bufferW × scaleX.
         gi.minX = gi.minY =  1e9;
         gi.maxX = gi.maxY = -1e9;
         for (const QString& mn : gi.modelNames) {
             auto it = info.models.find(mn);
             if (it == info.models.end()) continue;
             const QtModelInfo& m = *it;
-            const double hw = m.bufferW * m.scaleX * 0.5;
-            const double hh = m.bufferH * m.scaleY * 0.5;
-            gi.minX = qMin(gi.minX, m.worldPosX - hw);
-            gi.maxX = qMax(gi.maxX, m.worldPosX + hw);
-            gi.minY = qMin(gi.minY, m.worldPosY - hh);
-            gi.maxY = qMax(gi.maxY, m.worldPosY + hh);
+            if (!m.globalPositions.isEmpty()) {
+                for (const QPointF& gp : m.globalPositions) {
+                    if (gp.x() < gi.minX) gi.minX = gp.x();
+                    if (gp.x() > gi.maxX) gi.maxX = gp.x();
+                    if (gp.y() < gi.minY) gi.minY = gp.y();
+                    if (gp.y() > gi.maxY) gi.maxY = gp.y();
+                }
+            } else {
+                // No node positions — fall back to worldPos ± bufferW×scaleX estimate.
+                const double hw = m.bufferW * m.scaleX * 0.5;
+                const double hh = m.bufferH * m.scaleY * 0.5;
+                gi.minX = qMin(gi.minX, m.worldPosX - hw);
+                gi.maxX = qMax(gi.maxX, m.worldPosX + hw);
+                gi.minY = qMin(gi.minY, m.worldPosY - hh);
+                gi.maxY = qMax(gi.maxY, m.worldPosY + hh);
+            }
         }
         if (gi.maxX <= gi.minX || gi.maxY <= gi.minY) continue;
 
