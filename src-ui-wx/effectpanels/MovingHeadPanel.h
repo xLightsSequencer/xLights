@@ -342,6 +342,7 @@ private:
     wxImage m_bgImage;
     unsigned char m_bitmapAlpha = 0x30;
     int m_pathIndexToDelete = -1;
+    bool m_minSizeSet = false;
 };
 
 #endif
