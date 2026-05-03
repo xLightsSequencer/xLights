@@ -820,6 +820,12 @@ void xLightsFrame::CheckForValidModels()
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
                                     Model* sm = m->GetSubModel(z);
                                     if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
+                                        // Only silently remap if the target row has no effects;
+                                        // if it does, fall through to the manual dialog to avoid silent data loss.
+                                        SubModelElement* existingTarget = el->GetSubModel(sm->GetName(), false);
+                                        if (existingTarget != nullptr && existingTarget->HasEffects()) {
+                                            break;
+                                        }
                                         spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
                                             sme->GetName(), sm->GetName());
                                         int priorCnt = el->GetSubModelAndStrandCount();

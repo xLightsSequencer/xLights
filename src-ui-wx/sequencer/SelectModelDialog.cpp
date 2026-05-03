@@ -14,6 +14,8 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+// Custom dialog replacing the inline wxSingleChoiceDialog in HandleChoices() so that
+// an "also add alias" checkbox can be offered — wxSingleChoiceDialog has no extension point for that.
 SelectModelDialog::SelectModelDialog(wxWindow* parent, const std::vector<std::string>& modelNames)
     : wxDialog(parent, wxID_ANY, "Select Model")
 {
