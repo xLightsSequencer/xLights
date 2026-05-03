@@ -27,6 +27,12 @@ struct QtModelInfo {
     double worldPosX = 0.0, worldPosY = 0.0;
     double scaleX    = 1.0, scaleY    = 1.0;
 
+    // Physical extent in world space derived from the core's screenX/Y range.
+    // Populated by coreNodePositions(); 0 when the math fallback was used.
+    // Used to compute globalPositions with the correct physical width/height
+    // (replaces bufferW × scaleX which is wrong for shaped models like trees).
+    double screenRangeX = 0.0, screenRangeY = 0.0;
+
     // For Star models with a "LayerSizes" attribute (concentric rings):
     // each entry is the node count in that ring, innermost first.
     // Empty for single-layer stars.
