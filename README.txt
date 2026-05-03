@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
     -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
                                 MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but
                                 releasing only once, leaking a reference per render-buffer resize.

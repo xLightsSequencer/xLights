@@ -91,7 +91,8 @@ LRCLIBSearchDialog::LRCLIBSearchDialog(wxWindow* parent, const wxString& songTit
     m_resultsList->InsertColumn(0, "Track", wxLIST_FORMAT_LEFT, 200);
     m_resultsList->InsertColumn(1, "Artist", wxLIST_FORMAT_LEFT, 160);
     m_resultsList->InsertColumn(2, "Album", wxLIST_FORMAT_LEFT, 150);
-    m_resultsList->InsertColumn(3, "Synced", wxLIST_FORMAT_CENTER, 60);
+    m_resultsList->InsertColumn(3, "Duration", wxLIST_FORMAT_RIGHT, 70);
+    m_resultsList->InsertColumn(4, "Synced", wxLIST_FORMAT_CENTER, 60);
     mainSizer->Add(m_resultsList, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
 
     // Preview
@@ -294,7 +295,13 @@ void LRCLIBSearchDialog::DoSearch()
             long idx = m_resultsList->InsertItem(i, wxString(m_results[i].trackName));
             m_resultsList->SetItem(idx, 1, wxString(m_results[i].artistName));
             m_resultsList->SetItem(idx, 2, wxString(m_results[i].albumName));
-            m_resultsList->SetItem(idx, 3, m_results[i].syncedLyrics.empty() ? "No" : "Yes");
+            wxString durationStr;
+            if (m_results[i].duration > 0.0) {
+                int totalSecs = (int)m_results[i].duration;
+                durationStr = wxString::Format("%d:%02d", totalSecs / 60, totalSecs % 60);
+            }
+            m_resultsList->SetItem(idx, 3, durationStr);
+            m_resultsList->SetItem(idx, 4, m_results[i].syncedLyrics.empty() ? "No" : "Yes");
         }
 
         m_statusText->SetLabel(wxString::Format("%zu results found (%d with synced lyrics).",
