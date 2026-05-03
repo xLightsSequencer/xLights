@@ -34,8 +34,10 @@ SelectModelDialog::SelectModelDialog(wxWindow* parent, const std::vector<std::st
     CheckBoxAddAlias->SetValue(true);
     sizer->Add(CheckBoxAddAlias, 0, wxALL | wxALIGN_LEFT, 5);
 
+    wxButton* okBtn = new wxButton(this, wxID_OK);
+    okBtn->Enable(false);
     wxStdDialogButtonSizer* buttons = new wxStdDialogButtonSizer();
-    buttons->AddButton(new wxButton(this, wxID_OK));
+    buttons->AddButton(okBtn);
     buttons->AddButton(new wxButton(this, wxID_CANCEL));
     buttons->Realize();
     sizer->Add(buttons, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 5);
@@ -46,8 +48,12 @@ SelectModelDialog::SelectModelDialog(wxWindow* parent, const std::vector<std::st
     SetEscapeId(wxID_CANCEL);
     Centre();
 
+    ListBoxModels->Bind(wxEVT_LISTBOX, [okBtn](wxCommandEvent&) {
+        okBtn->Enable(true);
+    });
     ListBoxModels->Bind(wxEVT_LISTBOX_DCLICK, [this](wxCommandEvent&) {
-        EndModal(wxID_OK);
+        if (ListBoxModels->GetSelection() != wxNOT_FOUND)
+            EndModal(wxID_OK);
     });
 }
 

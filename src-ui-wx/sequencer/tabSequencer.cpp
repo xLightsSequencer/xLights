@@ -822,6 +822,11 @@ void xLightsFrame::CheckForValidModels()
                                     if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
                                         spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
                                             sme->GetName(), sm->GetName());
+                                        int priorCnt = el->GetSubModelAndStrandCount();
+                                        me->RemoveSubModel(sm->GetName());
+                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                            --x1;
+                                        }
                                         sme->SetName(sm->GetName());
                                         submodelRenameAlias = true;
                                         break;
