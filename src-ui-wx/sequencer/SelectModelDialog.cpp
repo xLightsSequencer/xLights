@@ -30,7 +30,7 @@ SelectModelDialog::SelectModelDialog(wxWindow* parent, const std::vector<std::st
     ListBoxModels = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(300, 200), choices, wxLB_SINGLE | wxLB_SORT);
     sizer->Add(ListBoxModels, 0, wxALL | wxEXPAND, 5);
 
-    CheckBoxAddAlias = new wxCheckBox(this, wxID_ANY, "Also add alias to model (auto-remap future sequences)");
+    CheckBoxAddAlias = new wxCheckBox(this, wxID_ANY, "Also add alias to selected item (auto-remap future sequences)");
     CheckBoxAddAlias->SetValue(true);
     sizer->Add(CheckBoxAddAlias, 0, wxALL | wxALIGN_LEFT, 5);
 
