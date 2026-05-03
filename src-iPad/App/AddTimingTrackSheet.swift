@@ -28,6 +28,7 @@ struct AddTimingTrackSheet: View {
         case fppCommands, fppEffects
         case audioOnsets, audioTempo, audioChords
         case aiLyrics
+        case lrclib
         var id: String { rawValue }
     }
 
@@ -47,6 +48,14 @@ struct AddTimingTrackSheet: View {
     // AI Lyrics service picker (only matters when multiple SPEECH2TEXT
     // services are configured).
     @State private var aiLyricsServiceName: String = ""
+
+    // LRCLIB search state.
+    @State private var lrclibQuery: String = ""
+    @State private var lrclibResults: [LRCLIBResult] = []
+    @State private var lrclibSelectedID: Int? = nil
+    @State private var lrclibStatus: String = "Enter a search query to find lyrics."
+    @State private var lrclibSearching: Bool = false
+    @State private var lrclibQuerySeeded: Bool = false
 
     // Async-flow state.
     @State private var working: Bool = false
@@ -122,6 +131,7 @@ struct AddTimingTrackSheet: View {
                 if canOfferAILyrics {
                     Text("AI Lyrics from Audio").tag(TimingType.aiLyrics)
                 }
+                Text("Search Lyrics Online (LRCLIB)").tag(TimingType.lrclib)
             }
             .pickerStyle(.menu)
 
@@ -152,6 +162,8 @@ struct AddTimingTrackSheet: View {
             metronomeParamsSection
         case .aiLyrics:
             aiLyricsParamsSection
+        case .lrclib:
+            lrclibParamsSection
         default:
             EmptyView()
         }
@@ -232,6 +244,74 @@ struct AddTimingTrackSheet: View {
     }
 
     @ViewBuilder
+    private var lrclibParamsSection: some View {
+        Section("Search") {
+            HStack {
+                TextField("Song or artist", text: $lrclibQuery)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+                    .onSubmit { runLRCLIBSearch() }
+                Button("Search") { runLRCLIBSearch() }
+                    .buttonStyle(.bordered)
+                    .disabled(lrclibSearching ||
+                              lrclibQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            Text(lrclibStatus)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        if !lrclibResults.isEmpty {
+            Section("Results") {
+                ForEach(lrclibResults) { result in
+                    Button {
+                        lrclibSelectedID = result.id
+                    } label: {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: lrclibSelectedID == result.id
+                                  ? "largecircle.fill.circle"
+                                  : "circle")
+                                .foregroundStyle(.tint)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(result.trackName)
+                                    .font(.body)
+                                Text(result.artistName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                if !result.albumName.isEmpty {
+                                    Text(result.albumName)
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            Spacer()
+                            Text(result.hasSynced ? "Synced" : "Plain")
+                                .font(.caption2)
+                                .foregroundStyle(result.hasSynced ? .green : .orange)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        if let selected = currentLRCLIBResult {
+            Section("Preview") {
+                ScrollView {
+                    Text(previewText(for: selected))
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .textSelection(.enabled)
+                }
+                .frame(maxHeight: 180)
+            }
+        }
+        Section {
+            Text("Caution: All timings/labels on this track will be replaced.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
     private var progressOverlay: some View {
         ZStack {
             Color.black.opacity(0.4).ignoresSafeArea()
@@ -279,6 +359,10 @@ struct AddTimingTrackSheet: View {
             return !availableSpeechServices().isEmpty
         case .audioOnsets, .audioTempo, .audioChords:
             return hasMedia
+        case .lrclib:
+            // Need a selected result that actually has lyrics.
+            guard let selected = currentLRCLIBResult else { return false }
+            return selected.hasAnyLyrics
         default:
             return true
         }
@@ -293,10 +377,25 @@ struct AddTimingTrackSheet: View {
         let knownDefaults: Set<String> = [
             "Timing", "25ms", "50ms", "100ms", "Metronome",
             "FPP Commands", "FPP Effects",
-            "Onsets", "Tempo", "Chords", "AutoGen"
+            "Onsets", "Tempo", "Chords", "AutoGen", "Lyrics"
         ]
         if knownDefaults.contains(trackName) {
             trackName = defaultNameForType(type)
+        }
+        // First time the user picks LRCLIB, seed the search box from
+        // the sequence's audio metadata. Don't re-seed if they've
+        // already typed something — preserves edits on tab toggle.
+        if type == .lrclib, !lrclibQuerySeeded {
+            lrclibQuerySeeded = true
+            let title = viewModel.document.audioTitle()
+            let artist = viewModel.document.audioArtist()
+            if !artist.isEmpty, !title.isEmpty {
+                lrclibQuery = "\(artist) - \(title)"
+            } else if !title.isEmpty {
+                lrclibQuery = title
+            } else if !artist.isEmpty {
+                lrclibQuery = artist
+            }
         }
     }
 
@@ -313,6 +412,7 @@ struct AddTimingTrackSheet: View {
         case .audioTempo:   return "Tempo"
         case .audioChords:  return "Chords"
         case .aiLyrics:     return "AutoGen"
+        case .lrclib:       return "Lyrics"
         }
     }
 
@@ -329,6 +429,7 @@ struct AddTimingTrackSheet: View {
         case .audioTempo:   return "Detect the audio's tempo and create marks on each beat."
         case .audioChords:  return "Detect chord changes in the audio and label each segment with its chord name."
         case .aiLyrics:     return "Transcribe vocals into a populated timing track using on-device speech recognition."
+        case .lrclib:       return "Search lrclib.net for synced lyrics and import them as phrase-per-line timing marks."
         }
     }
 
@@ -361,6 +462,8 @@ struct AddTimingTrackSheet: View {
             commitAudioChords(name: name)
         case .aiLyrics:
             commitAILyrics(name: name)
+        case .lrclib:
+            commitLRCLIB(name: name)
         }
     }
 
@@ -482,5 +585,124 @@ struct AddTimingTrackSheet: View {
                 dismiss()
             }
         }
+    }
+
+    // MARK: - LRCLIB
+
+    private var currentLRCLIBResult: LRCLIBResult? {
+        guard let id = lrclibSelectedID else { return nil }
+        return lrclibResults.first(where: { $0.id == id })
+    }
+
+    private func previewText(for result: LRCLIBResult) -> String {
+        if let s = result.syncedLyrics, !s.isEmpty { return s }
+        if let p = result.plainLyrics, !p.isEmpty { return p }
+        if result.instrumental == true { return "(Instrumental)" }
+        return ""
+    }
+
+    private func runLRCLIBSearch() {
+        let q = lrclibQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else {
+            lrclibStatus = "Please enter a search query."
+            return
+        }
+        lrclibSearching = true
+        lrclibStatus = "Searching…"
+        lrclibResults = []
+        lrclibSelectedID = nil
+
+        Task { @MainActor in
+            do {
+                let results = try await LRCLIBClient.search(query: q)
+                lrclibResults = results
+                let synced = results.reduce(0) { $0 + ($1.hasSynced ? 1 : 0) }
+                if results.isEmpty {
+                    lrclibStatus = "No results."
+                } else {
+                    lrclibStatus = "\(results.count) result\(results.count == 1 ? "" : "s") (\(synced) with synced lyrics). Tap one to preview."
+                }
+                // Auto-select the first synced-lyrics result so the
+                // common "search → Add" path doesn't require a tap.
+                if let first = results.first(where: { $0.hasSynced }) ?? results.first(where: { $0.hasAnyLyrics }) {
+                    lrclibSelectedID = first.id
+                }
+            } catch {
+                lrclibStatus = error.localizedDescription
+            }
+            lrclibSearching = false
+        }
+    }
+
+    /// Build (start, end, text) entries for an LRCLIB result. Synced
+    /// lyrics drive timing from the LRC timestamps; plain lyrics fall
+    /// back to even distribution across the sequence duration.
+    private func buildLRCLIBPhrases(for result: LRCLIBResult,
+                                     sequenceDurationMS: Int) -> [(start: Int, end: Int, text: String)] {
+        if result.hasSynced, let synced = result.syncedLyrics {
+            let lines = XLLyricsImport.parseLRC(synced)
+            // Drop bare timestamps (text-empty entries between words).
+            let filtered = lines.filter { !$0.text.isEmpty }
+            var out: [(start: Int, end: Int, text: String)] = []
+            for (i, line) in filtered.enumerated() {
+                let start = max(0, Int(line.timeMS))
+                let end: Int
+                if i + 1 < filtered.count {
+                    end = max(start + 1, Int(filtered[i + 1].timeMS))
+                } else {
+                    end = max(start + 1, sequenceDurationMS)
+                }
+                if start >= sequenceDurationMS { break }
+                if let cleaned = XLLyricsImport.sanitizePhraseText(line.text), !cleaned.isEmpty {
+                    out.append((start: start, end: min(end, sequenceDurationMS), text: cleaned))
+                }
+            }
+            return out
+        }
+        // Plain lyrics fallback — distribute non-empty lines evenly.
+        guard let plain = result.plainLyrics, !plain.isEmpty else { return [] }
+        let raw = plain.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
+        var phrases: [String] = []
+        for line in raw {
+            if let cleaned = XLLyricsImport.sanitizePhraseText(line), !cleaned.isEmpty {
+                phrases.append(cleaned)
+            }
+        }
+        guard !phrases.isEmpty, sequenceDurationMS > 0 else { return [] }
+        let interval = sequenceDurationMS / phrases.count
+        var out: [(start: Int, end: Int, text: String)] = []
+        var t = 0
+        for (i, phrase) in phrases.enumerated() {
+            let end = (i == phrases.count - 1) ? sequenceDurationMS : (t + interval)
+            out.append((start: t, end: end, text: phrase))
+            t = end
+        }
+        return out
+    }
+
+    private func commitLRCLIB(name: String) {
+        guard let result = currentLRCLIBResult else {
+            errorMessage = "Pick a search result first."
+            return
+        }
+        let duration = viewModel.sequenceDurationMS
+        let phrases = buildLRCLIBPhrases(for: result, sequenceDurationMS: duration)
+        if phrases.isEmpty {
+            errorMessage = "The selected result didn't yield any lyric lines."
+            return
+        }
+        let words = phrases.map { $0.text }
+        let starts = phrases.map { NSNumber(value: $0.start) }
+        let ends = phrases.map { NSNumber(value: $0.end) }
+        let createdName = viewModel.document.addLyricTimingTrack(named: name,
+                                                                   words: words,
+                                                                   startMS: starts,
+                                                                   endMS: ends)
+        if createdName.isEmpty {
+            errorMessage = "Couldn't create the lyric timing track."
+            return
+        }
+        viewModel.reloadRows()
+        dismiss()
     }
 }

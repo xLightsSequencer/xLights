@@ -892,6 +892,10 @@ bool iPadRenderContext::AbortRender(int /*maxTimeMs*/) {
     return true;
 }
 
+bool iPadRenderContext::WasRenderAborted() const {
+    return _renderEngine && _renderEngine->GetAbortedRenderJobs() > 0;
+}
+
 void iPadRenderContext::RenderEffectForModel(const std::string& model,
                                               int startms, int endms, bool clear) {
     if (_renderEngine && _sequenceData.IsValidData()) {

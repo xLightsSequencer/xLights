@@ -17,18 +17,41 @@ Source: §2.13 of the 2026-04-23 gap analysis (Phase J).
   [`phase-b-grid-parity.md`](phase-b-grid-parity.md) — it's
   effectively the speech-recognition slice of this surface.
 
+## Already shipped (verified 2026-05-02)
+
+- **A-1** — Generate timing track from audio onsets.
+  `XLSequenceDocument.detectOnsets(sensitivity:)` →
+  `SequencerViewModel.generateTimingTrackFromOnsets(name:)` →
+  `AddTimingTrackSheet.commitAudioOnsets`. Wired into the unified
+  Add Timing Track sheet alongside metronome / FPP / tempo.
+- **A-2** — Generate timing track from beats / tempo.
+  `XLSequenceDocument.detectTempo` → `SequencerViewModel.detectTempo`
+  → `AddTimingTrackSheet.commitAudioTempo`. Same sheet entry.
+- **A-3** — Onset markers overlaid on waveform.
+  `TopChromeMetalGridView` draws marks when `showOnsets` is true;
+  cached `onsetTimesMS` populated from `detectOnsets`.
+- **A-8** — Incompatible-video warning at sequence load. Done as
+  part of the TestFlight-quality sweep; see iPad-xLights-Plan.md.
+- **A-9** — Spectrogram view. `SequencerGridV2View` exposes a
+  toggle (`toggleShowSpectrogram`) on the waveform context menu.
+- **A-10** — Pitch-contour view. `SequencerGridV2View.toggleShowPitchContour`.
+- **A-11** — Show-onsets toggle.
+  `SequencerGridV2View.toggleShowOnsets`.
+
 ## Gap (still open)
 
-| # | Item | Severity | Effort |
-|---|---|---|---|
-| A-1 | Generate timing track from audio onsets — UI on top of the existing onset-detection engine | P1 | M |
-| A-2 | Generate timing track from beats / tempo | P1 | M |
-| A-3 | Onset markers overlaid on waveform | P1 | S |
-| A-8 | Incompatible-video warning at sequence load (also in [`followups.md`](followups.md)) | P1 | S |
-| A-9 | Spectrogram view (waveform context menu toggle) | P2 | M |
-| A-10 | Pitch-contour view | P2 | M |
-| A-11 | Show-onsets toggle (View menu / waveform context menu) | P2 | S |
-| A-12 | Music Generator (procedural) — gap analysis flagged from B79 reference; verify whether this is a real desktop feature before planning | — | — |
+_None._ All P1/P2 audio-authoring items have shipped on iPad. The
+remaining "hard misses" below are blocked on infrastructure, not
+priority.
+
+## Phantom items
+
+- **A-12** "Music Generator (procedural)" — confirmed 2026-05-02
+  not a real desktop feature. Searched `src-ui-wx/` + `src-core/`
+  for `Music Generator` / `MusicGen` / `GenerateMusic` /
+  `MusicMaker` / `ProceduralTiming` — no matches. The 2026-04-23
+  gap analysis flagged it speculatively from a B79 cross-reference
+  ("likely doesn't exist on desktop") and that caveat was correct.
 
 ## Hard misses (no iOS path)
 
@@ -37,20 +60,19 @@ Source: §2.13 of the 2026-04-23 gap analysis (Phase J).
   doesn't cover user-installed VAMP plugins.
 - **A-13** VAMPPluginDialog. Same blocker.
 
-## Why deferred
+## Tracking — desktop work in flight
 
-- The four standard waveform filters cover most real authoring
-  workflows. Onset-driven timing-mark generation is a power-user
-  tool and the desktop equivalent is also tucked behind a Tools
-  menu.
-- A-1 and A-2 are the highest-value pieces — they replace 5–10
-  minutes of manual mark-tapping with a single button. But
-  they're not blocking any current tester use-case.
+- **A-14 Stem separation via ONNX Runtime / OpenVINO**
+  (desktop, started 2026-04-26, `0ccb37b25`). Desktop is
+  experimenting with ONNX-runtime-based stem separation as a
+  replacement for the existing HTDemucs path. iOS has both
+  CoreML and ONNX Runtime available. Wait until the desktop
+  side stabilises before committing to an iPad bridge — the
+  model-format choice (ONNX vs CoreML conversion) drives the
+  iPad work materially.
 
 ## When to come back
 
-- After Phase H ships and the analytics show whether testers are
-  using onset-based timing on desktop and asking for it on iPad.
-- A-3 / A-11 (the toggle-only items) are easy wins that could be
-  pulled into a small polish PR alongside an MVP+ batch (see
-  [`followups.md`](followups.md) "TestFlight quality").
+- Only if the iOS audio analysis story changes — e.g. a CoreML-
+  based VAMP-equivalent that would unblock A-7 / A-13 — or if a
+  new desktop authoring feature lands and needs a port.

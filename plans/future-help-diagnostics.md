@@ -8,16 +8,26 @@ currently has the menu shell only.
 Source: §2.16 of the 2026-04-23 gap analysis (Phase P + parts
 of pre-TestFlight Phase I).
 
-## Pre-MVP (in [`followups.md`](followups.md))
+## Already shipped (verified 2026-05-02)
 
-The TestFlight-quality items (H-1 About, H-2 Help menu URLs,
-H-3 log export, H-4 crash telemetry, T-1 Check Sequence) are
-tracked in [`followups.md`](followups.md) under "TestFlight
-quality" — they're small enough to pull in without a phase
-commitment, and the gap analysis flagged H-3 as **P0 for
-TestFlight**.
+The TestFlight-quality items below all landed during the pre-
+submission sweep — see the iPad-xLights-Plan.md "Could pull into
+MVP" section for the implementation summary.
 
-## Gap (still open after the followups land)
+- **H-1 About** — `AboutSheet.swift` (icon, version, build, GPL
+  text, Privacy + EULA links).
+- **H-2 Help menu URLs** — seven external links in the Help
+  group routed through `XLOpenURL`.
+- **H-3 log export** — Tools → Package Logs zips
+  `xLights.log` siblings, MetricKit JSON, threads + device-info
+  sidecars; logs moved from `Documents/` to `Library/Logs/`.
+- **H-4 crash telemetry** — `XLDiagnosticUploader.swift` posts
+  staged zips to `crashUpload/index.php`; MetricKit subscription
+  via shared `XLMetricKit`.
+- **T-1 Check Sequence** — Tools → Check Sequence runs the
+  shared `src-core/diagnostics/SequenceChecker`.
+
+## Gap (still open)
 
 | # | Item | Severity | Effort |
 |---|---|---|---|

@@ -127,13 +127,63 @@ SwiftUI row reload.
 
 ### I-4 — SuperStar (`.sup`)
 
-- Hoist `.sup` parsing from `SuperStarImportDialog.cpp` to
-  `src-core/import_export/SuperStarImporter.{h,cpp}`. The
-  parser builds a list of available source elements; the
-  mapping UI is the same one already built in I-1/I-2.
-- Add `.sup` to the iPad source picker's UTType filter.
-- SuperStar-specific options (the desktop dialog has a few:
-  resize, blend mode) — port if straightforward; defer if not.
+`.sup` is structurally nothing like `.xsq` — there's no source/dest
+tree, no per-row mapping, no Auto Map. The user picks **one** target
+model and the parser fans every morph / image / flowy (Spiral,
+Shockwave, Fan) / scene / textAction / imageAction in the file out as
+effects on that model's layers, with a small set of global knobs
+(image-resize mode, ±timing offset, layer blend, X/Y size and
+offset). The desktop dialog (`SuperStarImportDialog`) is just those
+knobs; all parsing lives in `xLightsFrame::ImportSuperStar`.
+
+iPad therefore needs a separate, much simpler import sheet — not the
+`.xsq` channel-mapper.
+
+- ✓ **Core hoist (done).** `xLightsFrame::ImportSuperStar(Element*,
+  pugi::xml_document&, …)` body (~730 lines, all SuperStar-only
+  helpers — `CalcPercentage`, `ImageInfo`, `ScaleImage`,
+  `CreateSceneImage`, `IsPartOfModel`, `FindOpenLayer`,
+  `ChannelBlend`, the in-stream XML preprocessor) lifted to
+  `src-core/import_export/SuperStarImporter.{h,cpp}`. wx-free; uses
+  `xlImage` instead of `wxImage`. Public surface:
+  `SuperStar::Options` struct + `SuperStar::Importer` class with a
+  `PrefixPromptCallback` so the wx side can keep using
+  `wxTextEntryDialog` and the iPad side can pre-fill from the file
+  basename. The desktop wrapper (`xLightsFrame::ImportSuperStar`)
+  is now a ~30-line shim that builds Options, wires the prompt
+  callback, and calls `Importer::Run()`. Covers every SuperStar
+  element type the desktop importer covers (verified by porting
+  faithfully, no logic rewrites).
+- ✓ **iPad bridge (done).** `XLSuperStarImport.{h,mm}` in
+  `src-iPad/Bridge/`. Two class methods on `XLSuperStarImport`:
+  `+availableTargetModelNamesForDocument:` (lists every
+  `Element` + `SubModelElement` in the active sequence) and
+  `+applyImportFromPath:targetModelName:options:document:error:`.
+  The apply method reads the file, runs `SuperStar::PreprocessXmlBuffer`,
+  parses with pugixml, applies the timing offset, resolves the
+  target name to an `Element*` (model or submodel), reads
+  `GetBufferSize` for "Default"/"2D"/"None", calls
+  `SuperStar::Importer::Run`, then `MarkRgbEffectsChanged`. Options
+  flow through an `XLSuperStarImportOptions` ObjC class. No prompt
+  callback — `imageGroupPrefix` is pre-resolved from the file
+  basename. No session state.
+- ✓ **iPad SwiftUI sheet (done).** `SuperStarImportView.swift` is
+  a single `Form` with: file-name display, target-model `Picker`,
+  4 `EditableNumberField`s (X/Y size, X/Y offset), Image Resize
+  picker, Layer Blend picker, timing-adjust field, and an
+  optional Image Group `TextField` (defaults to file stem).
+  Import button calls the bridge and on success invokes
+  `viewModel.reloadRows()` + the parent's `onApplied` closure.
+- ✓ **Wire-up (done).** `ImportEffectsView` now branches on
+  `url.pathExtension` after the file picker: `.sup` switches the
+  sheet body to `SuperStarImportView` (different toolbar /
+  navigation title); `.xsq`/`.xsqz` keeps the existing channel-
+  mapping flow. `.sup` added to the picker's UTType list and
+  declared as `org.xlights.superstar` in
+  `UTImportedTypeDeclarations`.
+
+Verified: desktop `xLights` Debug + `xLights-iPadLib` Debug both
+build clean against the new files.
 
 ### I-5 — LMS / LAS
 

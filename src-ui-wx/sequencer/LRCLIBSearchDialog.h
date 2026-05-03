@@ -17,6 +17,8 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 
+#include "lyrics/LRCParser.h"
+
 #include <string>
 #include <vector>
 #include <utility>
@@ -32,8 +34,11 @@ struct LRCLIBResult {
     std::string syncedLyrics;
 };
 
-// Parses LRC format synced lyrics into (milliseconds, text) pairs
-std::vector<std::pair<int, std::string>> ParseLRC(const std::string& syncedLyrics);
+// LRC format → (millisecond, text) pairs. Wraps the wx-free core
+// helper so existing call sites continue to compile.
+inline std::vector<std::pair<int, std::string>> ParseLRC(const std::string& syncedLyrics) {
+    return lrc::ParseLRC(syncedLyrics);
+}
 
 class LRCLIBSearchDialog : public wxDialog
 {

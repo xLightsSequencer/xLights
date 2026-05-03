@@ -13,6 +13,7 @@ struct FolderConfigView: View {
     @State private var fseqEnabled: Bool
     @State private var fseqFolderPath: String?
     @State private var pickerMode: PickerMode?
+    @State private var recentFolders: [RecentShowFolders.Entry] = []
 
     enum PickerMode: Identifiable {
         case showFolder
@@ -51,6 +52,35 @@ struct FolderConfigView: View {
                     }
                     Button(showFolderPath == nil ? "Choose Show Folder…" : "Change Show Folder…") {
                         pickerMode = .showFolder
+                    }
+                }
+
+                if !recentsToShow.isEmpty {
+                    Section {
+                        ForEach(recentsToShow) { entry in
+                            Button {
+                                showFolderPath = entry.path
+                            } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.displayName)
+                                        .foregroundStyle(.primary)
+                                    Text(entry.path)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                            }
+                        }
+                        .onDelete { indexSet in
+                            for idx in indexSet {
+                                RecentShowFolders.remove(path: recentsToShow[idx].path)
+                            }
+                            recentFolders = RecentShowFolders.load()
+                        }
+                    } header: {
+                        Text("Recent Show Folders")
+                    } footer: {
+                        Text("Tap to switch — remember to press Done to confirm.")
                     }
                 }
 
@@ -126,6 +156,9 @@ struct FolderConfigView: View {
                     .disabled(showFolderPath == nil)
                 }
             }
+            .onAppear {
+                recentFolders = RecentShowFolders.load()
+            }
             .sheet(item: $pickerMode) { mode in
                 ShowFolderPicker { url in
                     let path = url.path
@@ -148,6 +181,13 @@ struct FolderConfigView: View {
 
     private func displayName(_ path: String) -> String {
         (path as NSString).lastPathComponent
+    }
+
+    /// Recents minus whatever is currently selected — no point listing
+    /// the show folder we're already on.
+    private var recentsToShow: [RecentShowFolders.Entry] {
+        guard let current = showFolderPath else { return recentFolders }
+        return recentFolders.filter { $0.path != current }
     }
 
     private func apply() {

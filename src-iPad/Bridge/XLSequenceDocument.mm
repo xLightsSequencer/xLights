@@ -3584,6 +3584,10 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
     return _context->IsRenderDone() ? YES : NO;
 }
 
+- (BOOL)wasRenderAborted {
+    return _context && _context->WasRenderAborted() ? YES : NO;
+}
+
 - (float)renderProgressFraction {
     if (!_context) return 1.0f;
     return _context->GetRenderProgressFraction();

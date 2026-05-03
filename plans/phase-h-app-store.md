@@ -105,6 +105,6 @@ Store Connect metadata.
   external testers are exercising).
 - Final metadata review pass, then submit for App Review.
 - Have an answer ready for "how do testers verify controller
-  output" — the sACN multicast entitlement is still pending
-  Apple approval (see `iPad-xLights-Plan.md` Controller output
-  caveat); ArtNet / DDP / sACN unicast all work today.
+  output" — sACN multicast was approved 2026-05-01 and the
+  entitlement is wired; ArtNet, DDP, and sACN unicast / multicast
+  all work today.
