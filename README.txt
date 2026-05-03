@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
+                                renaming a missing submodel during sequence load. When checked, subsequent
+                                sequences with the same old submodel name are auto-remapped without prompting.
     -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
     -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
                                 MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but

@@ -45,6 +45,7 @@
 #include "MidiFile.h"
 #include "import_export/MusicXML.h"
 #include "diagnostics/SeqElementMismatchDialog.h"
+#include "sequencer/SelectModelDialog.h"
 #include "media/SequenceVideoPanel.h"
 #include "sequencer/RenderCommandEvent.h"
 #include "xLightsVersion.h"
@@ -413,16 +414,16 @@ static void HandleChoices(xLightsFrame *frame,
                 switch (dlg.GetSelection()) {
                 case 0: {
                     // Rename Model
-                    wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
-                        "Select Model", ToArrayString(ModelNames));
+                    SelectModelDialog namedlg(frame, ModelNames);
                     if (namedlg.ShowModal() == wxID_OK) {
-                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                        std::string newName = namedlg.GetSelectedModel();
+                        std::string oldName = element->GetName();
 
                         spdlog::debug("Sequence Element Mismatch 2: rename '{}' to '{}'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
-                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                            SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        if (sme != nullptr) {
                             sme->GetModelElement()->RemoveSubModel(newName);
                         }
                         else {
@@ -432,6 +433,20 @@ static void HandleChoices(xLightsFrame *frame,
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
+
+                        if (namedlg.ShouldAddAlias()) {
+                            Model* target = nullptr;
+                            if (sme != nullptr) {
+                                target = frame->AllModels[sme->GetModelElement()->GetName() + "/" + newName];
+                            } else {
+                                target = frame->AllModels[newName];
+                            }
+                            if (target != nullptr) {
+                                target->AddAlias("oldname:" + oldName);
+                                frame->UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
+                            }
+                        }
                     }
                     else {
                         ok = false;
@@ -800,27 +815,41 @@ void xLightsFrame::CheckForValidModels()
                             if (sme != nullptr &&
                                 dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
-                                std::vector<std::string> AllSMNames;
-                                std::vector<std::string> ModelSMNames;
+                                // Check for an oldname alias match — auto-remap silently without prompting
+                                bool submodelRenameAlias = false;
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
-                                    AllSMNames.push_back(m->GetSubModel(z)->GetName());
-                                    ModelSMNames.push_back(m->GetSubModel(z)->GetName());
-                                }
-                                if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
-                                    int priorCnt = el->GetSubModelAndStrandCount();
-                                    if (ringBell && _renderMode) {
-                                        ringBell = false; 
-                                        if (IsRenderBell()) {
-                                            wxBell();
-                                        }
+                                    Model* sm = m->GetSubModel(z);
+                                    if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
+                                        spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
+                                            sme->GetName(), sm->GetName());
+                                        sme->SetName(sm->GetName());
+                                        submodelRenameAlias = true;
+                                        break;
                                     }
-                                    HandleChoices(this, AllSMNames, ModelSMNames, sme,
-                                        "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                        + "How should we handle this?",
-                                        toMap, ignore, mapall);
-                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
-                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
-                                        --x1;
+                                }
+                                if (!submodelRenameAlias) {
+                                    std::vector<std::string> AllSMNames;
+                                    std::vector<std::string> ModelSMNames;
+                                    for (int z = 0; z < m->GetNumSubModels(); z++) {
+                                        AllSMNames.push_back(m->GetSubModel(z)->GetName());
+                                        ModelSMNames.push_back(m->GetSubModel(z)->GetName());
+                                    }
+                                    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                        int priorCnt = el->GetSubModelAndStrandCount();
+                                        if (ringBell && _renderMode) {
+                                            ringBell = false;
+                                            if (IsRenderBell()) {
+                                                wxBell();
+                                            }
+                                        }
+                                        HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                            "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                            + "How should we handle this?",
+                                            toMap, ignore, mapall);
+                                        // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                            --x1;
+                                        }
                                     }
                                 }
                             }
