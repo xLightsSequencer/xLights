@@ -30,6 +30,7 @@
 #include "../import_export/VsaImportDialog.h"
 #include "effects/BufferStyles.h"
 #include "import_export/EffectMapper.h"
+#include "import_export/SuperStarImporter.h"
 #include "sequencer/BufferPanel.h"
 #include "FileConverter.h"
 #include "../import_export/xLightsImportChannelMapDialog.h"
@@ -57,64 +58,6 @@
 
 #include <log.h>
 
-static bool CalcPercentage(std::string& value, double base, bool reverse, int offset)
-{
-    int val = wxAtoi(value);
-    val -= offset;
-    val %= (int)base;
-    if (val < 0)
-        return false;
-    double half_width = 1.0 / base * 50.0;
-    double percent = (double)val / base * 100.0 + half_width;
-    if (reverse) {
-        percent = 100.0 - percent;
-    }
-    value = wxString::Format(wxT("%i"), (int)percent);
-    return true;
-}
-
-static bool CalcBoundedPercentage(std::string& value, int base, bool reverse, int offset)
-{
-    int val = wxAtoi(value);
-    val -= offset;
-    val %= (int)base;
-    if (val < 0)
-        return false;
-    if (val == 0) {
-        value = reverse ? "99.9" : "0.0";
-    } else if (val == (base - 1)) {
-        value = reverse ? "0.0" : "99.9";
-    } else {
-        return CalcPercentage(value, base, reverse, offset);
-    }
-    return true;
-}
-
-static int CalcUnBoundedPercentage(int val, int base)
-{
-    double half_width = 50.0 / base;
-    double percent = (double)val / base * 100.0 + half_width;
-
-    return percent;
-}
-
-static xlColor GetColor(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
-{
-    double red = atof(sRed.c_str());
-    red = red / 100.0 * 255.0;
-    double green = atof(sGreen.c_str());
-    green = green / 100.0 * 255.0;
-    double blue = atof(sBlue.c_str());
-    blue = blue / 100.0 * 255.0;
-    xlColor color(red, green, blue);
-    return color;
-}
-
-static wxString GetColorString(const std::string& sRed, const std::string& sGreen, const std::string& sBlue)
-{
-    return wxString(std::string(GetColor(sRed, sGreen, sBlue)));
-}
-
 static xlColor GetColor(const std::string& rgb)
 {
     int i = wxAtoi(rgb);
@@ -124,112 +67,6 @@ static xlColor GetColor(const std::string& rgb)
     cl.blue = ((i >> 16) & 0xff);
     return cl;
 }
-
-static EffectLayer* FindOpenLayer(Element* model, int layer_index, int startTimeMS, int endTimeMS, std::vector<bool>& reserved)
-{
-    int index = layer_index - 1;
-
-    EffectLayer* layer = model->GetEffectLayer(index);
-    if (layer != nullptr && layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
-        return layer;
-    }
-
-    // need to search for open layer
-    for (size_t i = 0; i < model->GetEffectLayerCount(); ++i) {
-        if (i >= reserved.size() || !reserved[i]) {
-            layer = model->GetEffectLayer(i);
-            if (layer->GetRangeIsClearMS(startTimeMS, endTimeMS)) {
-                return layer;
-            }
-        }
-    }
-
-    // empty layer not found so create a new one
-    layer = model->AddEffectLayer();
-    if (model->GetEffectLayerCount() > reserved.size()) {
-        reserved.resize(model->GetEffectLayerCount(), false);
-    }
-    return layer;
-}
-
-#define MAXBUFSIZE 4096
-class FixXMLInputStream : public wxInputStream
-{
-public:
-    FixXMLInputStream(wxInputStream& in) :
-        wxInputStream(), bin(in)
-    {
-    }
-    void fillBuf()
-    {
-        int pos = bufLen;
-        int sz = MAXBUFSIZE - bufLen;
-        bin.Read(&buf[pos], sz);
-        size_t ret = bin.LastRead();
-        bufLen += ret;
-
-        bool needToClose = false;
-        for (size_t x = 7; x < bufLen; ++x) {
-            if (buf[x - 7] == '<' && buf[x - 6] == 'p' && buf[x - 5] == 'i' && buf[x - 4] == 'x' && buf[x - 3] == 'e' && buf[x - 2] == 'l' && buf[x - 1] == 's' && buf[x] == '=') {
-                buf[x - 2] = ' ';
-            } else if (buf[x - 7] == '<' && buf[x - 6] == 't' && buf[x - 5] == 'i' && buf[x - 4] == 'm' && buf[x - 3] == 'i' && buf[x - 2] == 'n' && buf[x - 1] == 'g' && buf[x] == ' ') {
-                needToClose = true;
-            } else if (x > 6 &&
-                       buf[x - 6] == '<' && buf[x - 5] == 'g' && buf[x - 4] == 'r' && buf[x - 3] == 'o' && buf[x - 2] == 'u' && buf[x - 1] == 'p' && buf[x] == ' ') {
-                needToClose = true;
-            } else if (x > 12 &&
-                       buf[x - 12] == '<' && buf[x - 11] == 'i' && buf[x - 10] == 'm' && buf[x - 9] == 'a' && buf[x - 8] == 'g' && buf[x - 7] == 'e' && buf[x - 6] == 'A' && buf[x - 5] == 'c' && buf[x - 4] == 't' && buf[x - 3] == 'i' && buf[x - 2] == 'o' && buf[x - 1] == 'n' && buf[x] == ' ') {
-                needToClose = true;
-            } else if (x > 11 &&
-                       buf[x - 11] == '<' && buf[x - 10] == 't' && buf[x - 9] == 'e' && buf[x - 8] == 'x' && buf[x - 7] == 't' && buf[x - 6] == 'A' && buf[x - 5] == 'c' && buf[x - 4] == 't' && buf[x - 3] == 'i' && buf[x - 2] == 'o' && buf[x - 1] == 'n' && buf[x] == ' ') {
-                needToClose = true;
-            } else if (x > 14 &&
-                       buf[x - 14] == '<' && buf[x - 13] == 'c' && buf[x - 12] == 'o' && buf[x - 11] == 'n' && buf[x - 10] == 'f' && buf[x - 9] == 'i' && buf[x - 8] == 'g' && buf[x - 7] == 'u' && buf[x - 6] == 'r' && buf[x - 5] == 'a' && buf[x - 4] == 't' && buf[x - 3] == 'i' && buf[x - 2] == 'o' && buf[x - 1] == 'n' && buf[x] == ' ') {
-                needToClose = true;
-            } else if (x > 15 &&
-                       buf[x - 15] == '<' && buf[x - 14] == '/' && buf[x - 13] == 'c' && buf[x - 12] == 'o' && buf[x - 11] == 'n' && buf[x - 10] == 'f' && buf[x - 9] == 'i' && buf[x - 8] == 'g' && buf[x - 7] == 'u' && buf[x - 6] == 'r' && buf[x - 5] == 'a' && buf[x - 4] == 't' && buf[x - 3] == 'i' && buf[x - 2] == 'o' && buf[x - 1] == 'n' && buf[x] == '>') {
-                for (size_t y = x - 15; y <= x; ++y) {
-                    buf[y] = ' ';
-                }
-            } else if (buf[x - 1] == '>' && needToClose) {
-                if (buf[x - 2] != '/') {
-                    buf[x - 1] = '/';
-                    buf[x] = '>';
-                }
-                needToClose = false;
-            }
-        }
-    }
-
-    virtual size_t OnSysRead(void* buffer, size_t bufsize)
-    {
-        unsigned char* b = (unsigned char*)buffer;
-        if (bufsize > 1024) {
-            bufsize = 1024;
-        }
-
-        if (bufLen < 2000) {
-            fillBuf();
-        }
-
-        if (bufLen) {
-            size_t ret = std::min(bufsize, bufLen);
-            memcpy(b, buf, ret);
-            for (size_t x = ret; x < bufLen; ++x) {
-                buf[x - ret] = buf[x];
-            }
-            bufLen -= ret;
-            buf[bufLen] = 0;
-            return ret;
-        }
-        return 0;
-    }
-
-private:
-    wxBufferedInputStream bin;
-    unsigned char buf[MAXBUFSIZE];
-    size_t bufLen = 0;
-};
 
 void xLightsFrame::OnMenuItemImportEffects(wxCommandEvent& event)
 {
@@ -1255,32 +1092,6 @@ void xLightsFrame::ImportS5(const wxFileName& filename)
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
 
-void AdjustAllTimings(pugi::xml_node node, int offset)
-{
-    if (auto attr = node.attribute("startCentisecond")) {
-        attr.set_value(attr.as_int() + offset);
-    }
-    if (auto attr = node.attribute("endCentisecond")) {
-        attr.set_value(attr.as_int() + offset);
-    }
-    std::string nodeName = node.name();
-    if (nodeName == "flowy") {
-        if (auto attr = node.attribute("startTime")) {
-            attr.set_value(attr.as_int() + offset);
-        }
-        if (auto attr = node.attribute("endTime")) {
-            attr.set_value(attr.as_int() + offset);
-        }
-    } else if (nodeName == "state1" || nodeName == "state2") {
-        if (auto attr = node.attribute("time")) {
-            attr.set_value(attr.as_int() + offset);
-        }
-    }
-    for (pugi::xml_node chan = node.first_child(); chan; chan = chan.next_sibling()) {
-        AdjustAllTimings(chan, offset);
-    }
-}
-
 void xLightsFrame::ImportSuperStar(const wxFileName& filename)
 {
     SuperStarImportDialog dlg(this);
@@ -1310,75 +1121,94 @@ void xLightsFrame::ImportSuperStar(const wxFileName& filename)
         return;
     }
 
-    wxStopWatch sw; // start a stopwatch timer
-    bool model_found = false;
+    wxStopWatch sw;
 
-    // read v3 xml file into temporary document
-    wxFileName xml_file(filename);
-    wxString xml_doc = xml_file.GetFullPath();
-    wxFileInputStream fin(xml_doc);
-    FixXMLInputStream bufIn(fin);
-
-    // Read the fixed-up stream into a buffer for pugixml
+    // Read the file into a buffer and run the SuperStar XML preprocessor
+    // (replaces the legacy FixXMLInputStream wrapper).
+    wxFileInputStream fin(filename.GetFullPath());
+    if (!fin.IsOk()) {
+        DisplayError("Could not open SuperStar file.", this);
+        return;
+    }
     std::vector<char> xmlBuffer;
     {
         char chunk[4096];
-        while (!bufIn.Eof()) {
-            bufIn.Read(chunk, sizeof(chunk));
-            size_t bytesRead = bufIn.LastRead();
+        while (!fin.Eof()) {
+            fin.Read(chunk, sizeof(chunk));
+            size_t bytesRead = fin.LastRead();
             if (bytesRead == 0) break;
             xmlBuffer.insert(xmlBuffer.end(), chunk, chunk + bytesRead);
         }
     }
+    SuperStar::PreprocessXmlBuffer(xmlBuffer);
 
     pugi::xml_document input_xml;
     if (!input_xml.load_buffer(xmlBuffer.data(), xmlBuffer.size())) {
-        DisplayError("Problem loading superstar file.");
+        DisplayError("Problem loading superstar file.", this);
         return;
     }
 
-    if (dlg.TimeAdjSpinCtrl->GetValue() != 0) {
-        int offset = dlg.TimeAdjSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.document_element(), offset / 10);
-    }
-
+    // Resolve the picked model name (top-level model OR submodel/strand).
     Element* model = nullptr;
-
     for (size_t i = 0; i < _sequenceElements.GetElementCount(); i++) {
-        if (_sequenceElements.GetElement(i)->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-            model = _sequenceElements.GetElement(i);
-            if (model->GetName() == model_name) {
-                model_found = true;
+        Element* candidate = _sequenceElements.GetElement(i);
+        if (candidate->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        if (candidate->GetName() == model_name) {
+            model = candidate;
+            break;
+        }
+        ModelElement* modelEl = dynamic_cast<ModelElement*>(candidate);
+        if (modelEl == nullptr) continue;
+        for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
+            if (modelEl->GetSubModel(x)->GetFullName() == model_name) {
+                model = modelEl->GetSubModel(x);
                 break;
-            } else {
-                ModelElement* modelEl = dynamic_cast<ModelElement*>(_sequenceElements.GetElement(i));
-                for (int x = 0; x < modelEl->GetSubModelAndStrandCount(); x++) {
-                    std::string name = modelEl->GetSubModel(x)->GetFullName();
-                    if (name == model_name) {
-                        model = modelEl->GetSubModel(x);
-                        model_found = true;
-                    }
-                }
-                if (model_found) {
-                    break;
-                }
             }
         }
+        if (model != nullptr) break;
     }
-    if (model != nullptr && model_found) {
-        int x_size = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
-        int y_size = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
-        int x_offset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
-        int y_offset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
-        wxString blend = dlg.Choice_LayerBlend->GetStringSelection();
-        Model* cls = GetModel(model->GetFullName());
-        int bw, bh;
+    if (model == nullptr) {
+        DisplayError(wxString::Format("Target model '%s' not found.", model_name).ToStdString(), this);
+        return;
+    }
+
+    Model* cls = GetModel(model->GetFullName());
+    int bw = 1, bh = 1;
+    if (cls != nullptr) {
         cls->GetBufferSize("Default", "2D", "None", bw, bh, 0);
-        wxSize modelSize(bw, bh);
-        ImportSuperStar(model, input_xml, x_size, y_size, x_offset, y_offset, dlg.ImageResizeChoice->GetSelection(), modelSize, blend,
-                        filename.GetName());
     }
-    float elapsedTime = sw.Time() / 1000.0; // msec => sec
+
+    SuperStar::Options opt;
+    opt.xSize = wxAtoi(dlg.TextCtrl_SS_X_Size->GetValue());
+    opt.ySize = wxAtoi(dlg.TextCtrl_SS_Y_Size->GetValue());
+    opt.xOffset = wxAtoi(dlg.TextCtrl_SS_X_Offset->GetValue());
+    opt.yOffset = wxAtoi(dlg.TextCtrl_SS_Y_Offset->GetValue());
+    opt.imageResize = static_cast<SuperStar::ImageResize>(dlg.ImageResizeChoice->GetSelection());
+    opt.layerBlend = dlg.Choice_LayerBlend->GetStringSelection().ToStdString();
+    opt.timingOffsetMs = dlg.TimeAdjSpinCtrl->GetValue();
+    opt.frameTimeMs = _seqData.FrameTime();
+    opt.modelWidth = bw;
+    opt.modelHeight = bh;
+    opt.defaultGroupName = filename.GetName().ToStdString();
+
+    SuperStar::Importer importer(model, &_sequenceElements.GetSequenceMedia(), opt);
+    importer.SetPrefixPromptCallback([this, defGroup = filename.GetName()](std::string& prefix) -> bool {
+        wxString defaultPrompt = defGroup.IsEmpty() ? wxString("SuperStar") : defGroup;
+        wxTextEntryDialog d(this,
+            "Enter a group name / prefix for embedded images:",
+            "Embedded Image Group", defaultPrompt);
+        if (d.ShowModal() == wxID_CANCEL) return false;
+        prefix = d.GetValue().ToStdString();
+        return true;
+    });
+
+    std::string err;
+    bool ok = importer.Run(input_xml, &err);
+    if (!ok && !err.empty()) {
+        DisplayError(err, this);
+    }
+
+    float elapsedTime = sw.Time() / 1000.0;
     SetStatusText(wxString::Format("'%s' imported in %4.3f sec.", filename.GetPath(), elapsedTime));
 }
 
@@ -1898,7 +1728,7 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.document_element(), offset / 10);
+        SuperStar::AdjustAllTimings(input_xml.document_element(), offset / 10);
     }
 
     for (size_t tt = 0; tt < dlg.TimingTrackListBox->GetCount(); ++tt) {
@@ -3448,7 +3278,7 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
 
     if (dlg.TimeAdjustSpinCtrl->GetValue() != 0) {
         int offset = dlg.TimeAdjustSpinCtrl->GetValue();
-        AdjustAllTimings(input_xml.document_element(), offset / 10);
+        SuperStar::AdjustAllTimings(input_xml.document_element(), offset / 10);
     }
 
     for (size_t i = 0; i < dlg._dataModel->GetChildCount(); ++i) {
@@ -3707,931 +3537,6 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
 
     spdlog::debug("    Importing Vixen 3 effects done.");
 
-    return true;
-}
-
-unsigned char ChannelBlend(unsigned char c1, unsigned char c2, double ratio)
-{
-    return c1 + floor(ratio * (c2 - c1) + 0.5);
-}
-
-class ImageInfo
-{
-public:
-    int xOffset;
-    int yOffset;
-    int width;
-    int height;
-    double scaleY;
-    double scaleX;
-    std::string imageName;
-
-    void Set(int x, int y, int w, int h, const std::string& n)
-    {
-        xOffset = x;
-        yOffset = y;
-        width = w;
-        height = h;
-        imageName = n;
-        scaleX = 1.0;
-        scaleY = 1.0;
-    }
-};
-
-void ScaleImage(wxImage& img, int type,
-                const wxSize& modelSize,
-                int numCol, int numRow,
-                ImageInfo& imgInfo,
-                bool reverse)
-{
-    bool scale = false;
-
-    imgInfo.xOffset = imgInfo.xOffset + (imgInfo.width - numCol) / 2;
-    if (reverse) {
-        imgInfo.yOffset = imgInfo.yOffset + (imgInfo.height + 0.5) / 2 - numRow / 2;
-    } else {
-        imgInfo.yOffset = numRow - imgInfo.yOffset - (numRow + imgInfo.height) / 2;
-    }
-
-    switch (type) {
-    case 0: // NONE
-        return;
-    case 1: // Exact width
-        if (numCol == imgInfo.width) {
-            imgInfo.width = modelSize.GetWidth();
-            imgInfo.scaleX = ((double)modelSize.GetWidth()) / ((double)numCol);
-            imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
-            scale = true;
-        }
-        break;
-    case 2: // Exact height
-        if (numRow == imgInfo.height) {
-            imgInfo.height = modelSize.GetHeight();
-            imgInfo.scaleY = ((double)modelSize.GetHeight()) / ((double)numRow);
-            imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
-            scale = true;
-        }
-        break;
-    case 3: // Exact width or height
-        if (numCol == imgInfo.width) {
-            imgInfo.width = modelSize.GetWidth();
-            imgInfo.scaleX = ((double)modelSize.GetWidth()) / ((double)numCol);
-            imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
-            scale = true;
-        }
-        if (numRow == imgInfo.height) {
-            imgInfo.height = modelSize.GetHeight();
-            imgInfo.scaleY = ((double)modelSize.GetHeight()) / ((double)numRow);
-            imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
-            scale = true;
-        }
-        break;
-    case 4: // everything
-        imgInfo.scaleX = ((double)modelSize.GetWidth()) / ((double)numCol);
-        imgInfo.scaleY = ((double)modelSize.GetHeight()) / ((double)numRow);
-        int newW = round((double)imgInfo.width * imgInfo.scaleX);
-        int newH = round((double)imgInfo.height * imgInfo.scaleY);
-        if (newH != imgInfo.height || newW != imgInfo.width) {
-            scale = true;
-            imgInfo.height = newH;
-            imgInfo.width = newW;
-            imgInfo.yOffset = round((double)imgInfo.yOffset * imgInfo.scaleY);
-            imgInfo.xOffset = round((double)imgInfo.xOffset * imgInfo.scaleX);
-        }
-        break;
-    }
-    if (scale) {
-        img.Rescale(imgInfo.width, imgInfo.height);
-    }
-}
-
-wxString CreateSceneImage(const std::string& imagePfx, const std::string& postFix,
-                          pugi::xml_node element, int numCols,
-                          int numRows, bool reverse, bool rotate, const xlColor& color, int y_offset,
-                          int resizeType, const wxSize& modelSize,
-                          SequenceMedia* media)
-{
-    wxImage i;
-    i.Create(numCols, numRows);
-    i.InitAlpha();
-    for (int x = 0; x < numCols; x++) {
-        for (int y = 0; y < numRows; y++) {
-            i.SetAlpha(x, y, wxALPHA_TRANSPARENT);
-        }
-    }
-    for (pugi::xml_node e = element.first_child(); e; e = e.next_sibling()) {
-        if (std::string_view(e.name()) == "element") {
-            int x = e.attribute("ribbonIndex").as_int();
-            int y = e.attribute("pixelIndex").as_int() - y_offset;
-            if (rotate) {
-                std::swap(x, y);
-            }
-            if (rotate ^ reverse) {
-                y = numRows - y;
-            }
-            if (x < numCols && y >= 0 && y < numRows) {
-                i.SetRGB(x, y, color.Red(), color.Green(), color.Blue());
-                i.SetAlpha(x, y, wxALPHA_OPAQUE);
-            }
-        }
-    }
-    std::string name = imagePfx + "/s" + element.attribute("savedIndex").as_string() + postFix + ".png";
-    ImageInfo im;
-    im.Set(0, 0, numCols, numRows, name);
-    ScaleImage(i, resizeType, modelSize, numCols, numRows, im, false);
-    if (media) {
-        media->AddEmbeddedImage(name, wxImageToXlImage(i));
-    }
-    return name;
-}
-
-bool IsPartOfModel(pugi::xml_node element, int num_rows, int num_columns, bool& isFull, wxRect& rect, bool reverse)
-{
-    if (!element)
-        return false;
-
-    std::vector<std::vector<bool>> data(num_columns, std::vector<bool>(num_rows));
-    int maxCol = -1;
-    int maxRow = -1;
-    int minCol = 9999999;
-    int minRow = 9999999;
-    isFull = true;
-    for (pugi::xml_node e = element.first_child(); e; e = e.next_sibling()) {
-        if (std::string_view(e.name()) == "element") {
-            int x = e.attribute("ribbonIndex").as_int();
-            int y = e.attribute("pixelIndex").as_int();
-            if (reverse) {
-                std::swap(x, y);
-            }
-            if (x < num_columns && y < num_rows) {
-                data[x][y] = true;
-                if (x > maxCol)
-                    maxCol = x;
-                if (x < minCol)
-                    minCol = x;
-                if (y > maxRow)
-                    maxRow = y;
-                if (y < minRow)
-                    minRow = y;
-            } else {
-                return false;
-            }
-        }
-    }
-    isFull = minCol == 0 && minRow == 0 && maxRow == (num_rows - 1) && maxCol == (num_columns - 1);
-    bool isRect = true;
-    for (int x = minCol; x <= maxCol; x++) {
-        for (int y = minRow; y <= maxRow; y++) {
-            if (!data[x][y]) {
-                isFull = false;
-                isRect = false;
-            }
-        }
-    }
-    if (isRect) {
-        rect.x = minCol;
-        rect.y = minRow;
-        rect.width = maxCol;
-        rect.height = maxRow;
-    } else {
-        rect.x = -1;
-        rect.y = -1;
-    }
-    return true;
-}
-
-bool xLightsFrame::ImportSuperStar(Element* model, pugi::xml_document& input_xml, int x_size, int y_size,
-                                   int x_offset, int y_offset,
-                                   int imageResizeType, const wxSize& modelSize, const wxString& layerBlend,
-                                   const wxString& defaultGroupName)
-{
-    double num_rows = 1.0;
-    double num_columns = 1.0;
-    bool reverse_rows = false;
-    bool reverse_xy = false;
-    bool layout_defined = false;
-    pugi::xml_node input_root = input_xml.document_element();
-    EffectLayer* layer = model->AddEffectLayer();
-    std::map<int, ImageInfo> imageInfo;
-    std::string imagePfx;
-    std::vector<bool> reserved;
-    SequenceMedia& seqMedia = _sequenceElements.GetSequenceMedia();
-
-    // Helper: prompt once for the group/prefix name, return false to cancel
-    auto promptForPrefix = [&]() -> bool {
-        if (!imagePfx.empty()) return true;
-        wxString defGroup = defaultGroupName.empty() ? "SuperStar" : defaultGroupName;
-        wxTextEntryDialog dlg(this,
-            "Enter a group name / prefix for embedded images:",
-            "Embedded Image Group", defGroup);
-        if (dlg.ShowModal() == wxID_CANCEL) return false;
-        wxString val = dlg.GetValue().Trim().Trim(false);
-        if (val.empty()) val = defGroup;
-        imagePfx = val.ToStdString();
-        return true;
-    };
-    std::string blend_string = "";
-    if (layerBlend != "Normal") {
-        blend_string = ",T_CHOICE_LayerMethod=" + layerBlend + ",";
-    }
-    for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling()) {
-        std::string ename = e.name();
-        if ("imageActions" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("imageAction" == std::string_view(element.name())) {
-                    int layer_index = element.attribute("layer").as_int();
-                    if (layer_index > 0)
-                        layer_index--;
-                    if (layer_index >= (int)reserved.size()) {
-                        reserved.resize(layer_index + 1, false);
-                    }
-                    reserved[layer_index] = true;
-                }
-            }
-        } else if ("scenes" == ename || "images" == ename) {
-            for (pugi::xml_node element = e.first_child(); element && ("" == imagePfx); element = element.next_sibling()) {
-                std::string elemname = element.name();
-                if ("image" == elemname || "scene" == elemname) {
-                    if (!promptForPrefix()) return false;
-                }
-            }
-        } else if (ename == "layouts") {
-            pugi::xml_node element = e.first_child();
-            std::string attr;
-            attr = element.attribute("visualizationMode").as_string();
-            if (attr == "false") {
-                num_columns = element.attribute("nbrOfRibbons").as_double();
-                num_rows = 50.0;
-                attr = element.attribute("ribbonLength").as_string();
-                if (attr == "half") {
-                    num_rows /= 2.0;
-                    num_columns *= 2.0;
-                }
-            } else {
-                num_rows = (double)y_size;
-                num_columns = (double)x_size;
-            }
-            attr = element.attribute("ribbonOrientation").as_string();
-            if (attr == "horizontal") {
-                reverse_xy = true;
-                std::swap(num_columns, num_rows);
-            } else {
-                reverse_rows = true;
-            }
-            layout_defined = true;
-        }
-    }
-    for (pugi::xml_node e = input_root.first_child(); e; e = e.next_sibling()) {
-        std::string ename = e.name();
-        if (ename == "morphs") {
-            if (!layout_defined) {
-                DisplayError("The layouts section was not found in the SuperStar file!", this);
-                return false;
-            }
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                wxString name_attr;
-                wxString acceleration;
-                wxString state1_time, state2_time, ramp_time_ext;
-                name_attr = element.attribute("name").as_string();
-                acceleration = element.attribute("acceleration").as_string();
-                std::string attr = element.attribute("layer").as_string();
-                double layer_val = atof(attr.c_str());
-                int layer_index = (int)layer_val;
-                pugi::xml_node state1 = element.first_child();
-                pugi::xml_node state2 = state1.next_sibling();
-                pugi::xml_node ramp = state2.next_sibling();
-                state1_time = state1.attribute("time").as_string();
-                state2_time = state2.attribute("time").as_string();
-                ramp_time_ext = ramp.attribute("timeExt").as_string();
-                int start_time = wxAtoi(state1_time) * 10;
-                int end_time = wxAtoi(state2_time) * 10;
-                int ramp_time = wxAtoi(ramp_time_ext) * 10;
-                end_time += ramp_time;
-                double head_duration = (1.0 - (double)ramp_time / ((double)end_time - (double)start_time)) * 100.0;
-                std::string settings = "E_CHECKBOX_Morph_End_Link=0,E_CHECKBOX_Morph_Start_Link=0,E_CHECKBOX_ShowHeadAtStart=0,E_NOTEBOOK_Morph=Start,E_SLIDER_MorphAccel=0,E_SLIDER_Morph_Repeat_Count=0,E_SLIDER_Morph_Repeat_Skip=1,E_SLIDER_Morph_Stagger=0";
-                settings += acceleration + ",";
-                wxString duration = wxString::Format("E_SLIDER_MorphDuration=%d,", (int)head_duration);
-                settings += duration;
-                attr = state2.attribute("trailLen").as_string();
-                settings += "E_SLIDER_MorphEndLength=" + attr + ",";
-                attr = state1.attribute("trailLen").as_string();
-                settings += "E_SLIDER_MorphStartLength=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state2.attribute("x1").as_string();
-                else
-                    attr = state2.attribute("y1").as_string();
-                if (!CalcPercentage(attr, num_columns, false, x_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_End_X1=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state2.attribute("x2").as_string();
-                else
-                    attr = state2.attribute("y2").as_string();
-                if (!CalcPercentage(attr, num_columns, false, x_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_End_X2=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state2.attribute("y1").as_string();
-                else
-                    attr = state2.attribute("x1").as_string();
-                if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_End_Y1=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state2.attribute("y2").as_string();
-                else
-                    attr = state2.attribute("x2").as_string();
-                if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_End_Y2=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state1.attribute("x1").as_string();
-                else
-                    attr = state1.attribute("y1").as_string();
-                if (!CalcPercentage(attr, num_columns, false, x_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_Start_X1=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state1.attribute("x2").as_string();
-                else
-                    attr = state1.attribute("y2").as_string();
-                if (!CalcPercentage(attr, num_columns, false, x_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_Start_X2=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state1.attribute("y1").as_string();
-                else
-                    attr = state1.attribute("x1").as_string();
-                if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_Start_Y1=" + attr + ",";
-                if (!reverse_xy)
-                    attr = state1.attribute("y2").as_string();
-                else
-                    attr = state1.attribute("x2").as_string();
-                if (!CalcPercentage(attr, num_rows, reverse_rows, y_offset))
-                    continue;
-                settings += "E_SLIDER_Morph_Start_Y2=" + attr + ",";
-                std::string sRed = state1.attribute("red").as_string();
-                std::string sGreen = state1.attribute("green").as_string();
-                std::string sBlue = state1.attribute("blue").as_string();
-                std::string color = GetColorString(sRed, sGreen, sBlue).ToStdString();
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
-                sRed = state2.attribute("red").as_string();
-                sGreen = state2.attribute("green").as_string();
-                sBlue = state2.attribute("blue").as_string();
-                color = GetColorString(sRed, sGreen, sBlue);
-                palette += "C_BUTTON_Palette2=" + color + ",";
-                sRed = ramp.attribute("red1").as_string();
-                sGreen = ramp.attribute("green1").as_string();
-                sBlue = ramp.attribute("blue1").as_string();
-                color = GetColorString(sRed, sGreen, sBlue);
-                palette += "C_BUTTON_Palette3=" + color + ",";
-                sRed = ramp.attribute("red2").as_string();
-                sGreen = ramp.attribute("green2").as_string();
-                sBlue = ramp.attribute("blue2").as_string();
-                color = GetColorString(sRed, sGreen, sBlue);
-                palette += "C_BUTTON_Palette4=" + color + ",";
-                palette += "C_BUTTON_Palette5=#FFFFFF,C_BUTTON_Palette6=#000000,C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1,";
-                settings += blend_string;
-                while ((int)model->GetEffectLayerCount() < layer_index) {
-                    model->AddEffectLayer();
-                }
-                layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                layer->AddEffect(0, "Morph", settings, palette, start_time, end_time, false, false);
-            }
-        } else if ("images" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("image" == std::string_view(element.name())) {
-                    for (pugi::xml_node i = element.first_child(); i; i = i.next_sibling()) {
-                        if ("pixe" == std::string_view(i.name())) {
-                            wxString data = i.attribute("s").as_string();
-                            int w = element.attribute("width").as_int();
-                            int h = element.attribute("height").as_int();
-
-                            int idx = element.attribute("savedIndex").as_int();
-                            int xOffset = element.attribute("xOffset").as_int();
-                            int yOffset = element.attribute("yOffset").as_int();
-
-                            unsigned char* bytes = (unsigned char*)malloc(w * h * 3);
-                            unsigned char* alpha = (unsigned char*)malloc(w * h);
-                            int cnt = 0;
-                            int p = 0;
-                            wxStringTokenizer tokenizer(data, ",");
-                            while (tokenizer.HasMoreTokens()) {
-                                unsigned int ii = wxAtoi(tokenizer.GetNextToken());
-                                unsigned int v = (ii >> 16) & 0xff;
-                                v *= 255;
-                                v /= 100;
-                                bytes[cnt] = v;
-                                v = (ii >> 8) & 0xff;
-                                v *= 255;
-                                v /= 100;
-                                bytes[cnt + 1] = v;
-                                v = ii & 0xff;
-                                v *= 255;
-                                v /= 100;
-                                bytes[cnt + 2] = v;
-
-                                alpha[p] = wxALPHA_OPAQUE;
-                                if (ii == 0) {
-                                    alpha[p] = wxALPHA_TRANSPARENT;
-                                }
-                                p++;
-                                cnt += 3;
-                            }
-
-                            wxImage image(w, h, bytes, alpha);
-                            if (!promptForPrefix()) return false;
-                            std::string fname = imagePfx + "/" + wxString::Format("%d.png", idx).ToStdString();
-                            if (reverse_xy) {
-                                image = image.Rotate90(false);
-                                imageInfo[idx].Set(yOffset, xOffset, h, w, fname);
-                            } else {
-                                imageInfo[idx].Set(xOffset, yOffset, w, h, fname);
-                            }
-                            ScaleImage(image, imageResizeType, modelSize, num_columns, num_rows, imageInfo[idx], reverse_xy);
-                            seqMedia.AddEmbeddedImage(fname, wxImageToXlImage(image));
-                        }
-                    }
-                }
-            }
-        } else if ("flowys" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("flowy" == std::string_view(element.name())) {
-                    std::string centerX, centerY;
-                    int startms = element.attribute("startTime").as_int() * 10;
-                    int endms = element.attribute("endTime").as_int() * 10;
-                    wxString type = element.attribute("flowyType").as_string();
-                    wxString color_string = element.attribute("Colors").as_string();
-                    std::string color;
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",";
-                    int cnt = 1;
-                    wxStringTokenizer tokenizer(color_string, " ");
-                    while (tokenizer.HasMoreTokens() && cnt <= 6) {
-                        wxStringTokenizer tokenizer2(tokenizer.GetNextToken(), ",");
-                        std::string sRed = tokenizer2.GetNextToken().ToStdString();
-                        std::string sGreen = tokenizer2.GetNextToken().ToStdString();
-                        std::string sBlue = tokenizer2.GetNextToken().ToStdString();
-                        color = GetColorString(sRed, sGreen, sBlue);
-                        if (cnt > 1) {
-                            palette += ",";
-                        }
-                        palette += "C_BUTTON_Palette" + wxString::Format("%d", cnt) + "=" + color;
-                        palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", cnt) + "=1";
-                        cnt++;
-                    }
-                    while (cnt <= 6) {
-                        if (cnt > 1) {
-                            palette += ",";
-                        }
-                        palette += "C_BUTTON_Palette" + wxString::Format("%d", cnt) + "=#000000";
-                        palette += ",C_CHECKBOX_Palette" + wxString::Format("%d", cnt) + "=0";
-                        cnt++;
-                    }
-
-                    int layer_index = element.attribute("layer").as_int();
-                    int acceleration = element.attribute("acceleration").as_int();
-                    if (!reverse_xy)
-                        centerX = element.attribute("centerX").as_string();
-                    else
-                        centerX = element.attribute("centerY").as_string();
-                    if (!CalcPercentage(centerX, num_columns, false, x_offset))
-                        continue;
-                    if (!reverse_xy)
-                        centerY = element.attribute("centerY").as_string();
-                    else
-                        centerY = element.attribute("centerX").as_string();
-                    if (!CalcPercentage(centerY, num_rows, reverse_rows, y_offset))
-                        continue;
-                    int startAngle = element.attribute("startAngle").as_int();
-                    int endAngle = element.attribute("endAngle").as_int();
-                    if (reverse_xy) {
-                        startAngle -= 90;
-                        endAngle -= 90;
-                        if (startAngle < 0) {
-                            startAngle += 360;
-                        }
-                        if (endAngle < 0) {
-                            endAngle += 360;
-                        }
-                    }
-                    int revolutions = std::abs(endAngle - startAngle);
-                    if (revolutions == 0)
-                        revolutions = 3; // algorithm needs non-zero value until we figure out better way to draw effect
-                    int startRadius = element.attribute("startRadius").as_int();
-                    int endRadius = element.attribute("endRadius").as_int();
-                    if (type == "Spiral") {
-                        int tailms = element.attribute("tailTimeLength").as_int() * 10;
-                        endms += tailms;
-                        double duration = (1.0 - (double)tailms / ((double)endms - (double)startms)) * 100.0;
-                        int startWidth = element.attribute("startDotSize").as_int();
-                        int endWidth = element.attribute("endDotSize").as_int();
-                        std::string settings = "E_CHECKBOX_Galaxy_Reverse=" + wxString::Format("%d", endAngle < startAngle).ToStdString() + ",E_CHECKBOX_Galaxy_Blend_Edges=1" + ",E_CHECKBOX_Galaxy_Inward=1" + ",E_NOTEBOOK_Galaxy=Start,E_SLIDER_Galaxy_Accel=" + wxString::Format("%d", acceleration).ToStdString() + ",E_SLIDER_Galaxy_CenterX=" + centerX + ",E_SLIDER_Galaxy_CenterY=" + centerY + ",E_SLIDER_Galaxy_Duration=" + wxString::Format("%d", (int)duration).ToStdString() + ",E_SLIDER_Galaxy_End_Radius=" + wxString::Format("%d", endRadius).ToStdString() + ",E_SLIDER_Galaxy_End_Width=" + wxString::Format("%d", endWidth).ToStdString() + ",E_SLIDER_Galaxy_Revolutions=" + wxString::Format("%d", revolutions).ToStdString() + ",E_SLIDER_Galaxy_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString() + ",E_SLIDER_Galaxy_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString() + ",E_SLIDER_Galaxy_Start_Width=" + wxString::Format("%d", startWidth).ToStdString() + blend_string;
-
-                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
-                        layer->AddEffect(0, "Galaxy", settings, palette, startms, endms, false, false);
-                    } else if (type == "Shockwave") {
-                        int startWidth = element.attribute("headWidth").as_int();
-                        int endWidth = element.attribute("tailWidth").as_int();
-                        std::string settings = "E_CHECKBOX_Shockwave_Blend_Edges=1,E_NOTEBOOK_Shockwave=Position,E_SLIDER_Shockwave_Accel=" + wxString::Format("%d", acceleration).ToStdString() + ",E_SLIDER_Shockwave_CenterX=" + centerX + ",E_SLIDER_Shockwave_CenterY=" + centerY + ",E_SLIDER_Shockwave_End_Radius=" + wxString::Format("%d", endRadius).ToStdString() + ",E_SLIDER_Shockwave_End_Width=" + wxString::Format("%d", endWidth).ToStdString() + ",E_SLIDER_Shockwave_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString() + ",E_SLIDER_Shockwave_Start_Width=" + wxString::Format("%d", startWidth).ToStdString() + blend_string;
-                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
-                        layer->AddEffect(0, "Shockwave", settings, palette, startms, endms, false, false);
-                    } else if (type == "Fan") {
-                        int revolutionsPerSecond = element.attribute("revolutionsPerSecond").as_int();
-                        int blades = element.attribute("blades").as_int();
-                        int blade_width = element.attribute("width").as_int();
-                        int elementAngle = element.attribute("elementAngle").as_int();
-                        int elementStepAngle = element.attribute("elementStepAngle").as_int();
-                        int numElements = elementAngle / elementStepAngle;
-                        numElements = std::max(1, numElements);
-                        numElements = std::min(numElements, 4);
-                        blades = std::max(1, blades);
-                        blades = std::min(blades, 16);
-                        int tailms = int(double(endms - startms) * (blade_width * 2.0) / 100.0) + 35;
-                        endms += tailms;
-                        int duration = 100 - int(tailms * 100.0 / (endms - startms));
-                        std::string settings = "E_CHECKBOX_Fan_Reverse=" + wxString::Format("%d", startAngle > endAngle).ToStdString() + ",E_CHECKBOX_Fan_Blend_Edges=1" + ",E_NOTEBOOK_Fan=Position,E_SLIDER_Fan_Accel=" + wxString::Format("%d", acceleration).ToStdString() + ",E_SLIDER_Fan_Blade_Angle=" + wxString::Format("%d", elementAngle).ToStdString() + ",E_SLIDER_Fan_Blade_Width=" + wxString::Format("%d", blade_width).ToStdString() + ",E_SLIDER_Fan_CenterX=" + centerX + ",E_SLIDER_Fan_CenterY=" + centerY + ",E_SLIDER_Fan_Duration=" + wxString::Format("%d", duration).ToStdString() + ",E_SLIDER_Fan_Element_Width=" + wxString::Format("%d", 100).ToStdString() + ",E_SLIDER_Fan_Num_Blades=" + wxString::Format("%d", blades).ToStdString() + ",E_SLIDER_Fan_Num_Elements=" + wxString::Format("%d", numElements).ToStdString() + ",E_SLIDER_Fan_End_Radius=" + wxString::Format("%d", endRadius).ToStdString() + ",E_SLIDER_Fan_Revolutions=" + wxString::Format("%d", (int)((double)revolutionsPerSecond * ((double)(endms - startms) / 1000.0) * 3.6)).ToStdString() + ",E_SLIDER_Fan_Start_Angle=" + wxString::Format("%d", startAngle).ToStdString() + ",E_SLIDER_Fan_Start_Radius=" + wxString::Format("%d", startRadius).ToStdString() + blend_string;
-                        layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
-                        layer->AddEffect(0, "Fan", settings, palette, startms, endms, false, false);
-                    }
-                }
-            }
-        } else if ("scenes" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("scene" == std::string_view(element.name())) {
-                    wxString startms = wxString(element.attribute("startCentisecond").as_string()) + "0";
-                    wxString endms = wxString(element.attribute("endCentisecond").as_string()) + "0";
-                    wxString type = element.attribute("type").as_string();
-                    int layer_index = element.attribute("layer").as_int();
-                    xlColor startc = GetColor(element.attribute("red1").as_string(),
-                                              element.attribute("green1").as_string(),
-                                              element.attribute("blue1").as_string());
-                    xlColor endc = GetColor(element.attribute("red2").as_string(),
-                                            element.attribute("green2").as_string(),
-                                            element.attribute("blue2").as_string());
-                    while ((int)model->GetEffectLayerCount() < layer_index) {
-                        model->AddEffectLayer();
-                    }
-
-                    int start_time = wxAtoi(startms);
-                    int end_time = wxAtoi(endms);
-                    layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                    if (!promptForPrefix()) return false;
-
-                    std::string ru = "0.0";
-                    std::string rd = "0.0";
-                    std::string imageName;
-                    bool isFull = false;
-                    wxRect rect;
-
-                    bool isPartOfModel = IsPartOfModel(element, num_rows, num_columns, isFull, rect, reverse_xy);
-
-                    if (isPartOfModel && isFull) {
-                        // Every pixel in the model is specified, we can use a color wash or on instead of images
-                        std::string palette = "C_BUTTON_Palette1=" + (std::string)startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc + ",C_CHECKBOX_Palette2=1,";
-
-                        std::string settings = blend_string;
-                        if (startc == endc) {
-                            layer->AddEffect(0, "On", settings, palette, start_time, end_time, false, false);
-                        } else if (startc == xlBLACK) {
-                            std::string palette1 = "C_BUTTON_Palette1=" + (std::string)endc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)startc +
-                                                   ",C_CHECKBOX_Palette2=1";
-                            settings += ",E_TEXTCTRL_Eff_On_Start=0";
-                            layer->AddEffect(0, "On", settings, palette1, start_time, end_time, false, false);
-                        } else if (endc == xlBLACK) {
-                            settings += ",E_TEXTCTRL_Eff_On_End=0";
-                            layer->AddEffect(0, "On", "E_TEXTCTRL_Eff_On_End=0", palette, start_time, end_time, false, false);
-                        } else {
-                            layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
-                        }
-                    } else if (isPartOfModel && rect.x != -1) {
-                        // forms a simple rectangle, we can use a ColorWash affect for this with a partial rectangle
-                        std::string palette = "C_BUTTON_Palette1=" + (std::string)startc + ",C_CHECKBOX_Palette1=1,C_BUTTON_Palette2=" + (std::string)endc + ",C_CHECKBOX_Palette2=1";
-
-                        std::string settings = "B_CUSTOM_SubBuffer=";
-                        std::string val = wxString::Format("%d", rect.x).ToStdString();
-                        if (!CalcBoundedPercentage(val, num_columns, false, x_offset))
-                            continue;
-                        settings += val;
-                        settings += "x";
-                        val = wxString::Format("%d", rect.y);
-                        if (!CalcBoundedPercentage(val, num_rows, reverse_rows ^ reverse_xy, y_offset))
-                            continue;
-                        settings += val;
-                        settings += "x";
-                        val = wxString::Format("%d", rect.width);
-                        if (!CalcBoundedPercentage(val, num_columns, false, x_offset))
-                            continue;
-                        settings += val;
-                        settings += "x";
-                        val = wxString::Format("%d", rect.height);
-                        if (!CalcBoundedPercentage(val, num_rows, reverse_rows ^ reverse_xy, y_offset))
-                            continue;
-                        settings += val;
-                        settings += blend_string;
-
-                        layer->AddEffect(0, "Color Wash", settings, palette, start_time, end_time, false, false);
-                    } else if (isPartOfModel) {
-                        if (startc == xlBLACK || endc == xlBLACK || endc == startc) {
-                            imageName = CreateSceneImage(imagePfx, "", element, num_columns, num_rows, false, reverse_xy,
-                                                         (startc == xlBLACK) ? endc : startc, y_offset,
-                                                         imageResizeType, modelSize, &seqMedia);
-                            wxString ramp = wxString::Format("%lf", (double)(end_time - start_time) / 1000.0);
-                            if (endc == xlBLACK) {
-                                rd = ramp;
-                            }
-                            if (startc == xlBLACK) {
-                                ru = ramp;
-                            }
-                        } else {
-                            // Colour-changing scene: build one animated entry with one frame per sequence frame
-                            int time = wxAtoi(endms) - wxAtoi(startms);
-                            int ft = _seqData.FrameTime();
-                            int numFrames = time / ft;
-                            std::string animName = imagePfx + "/s" + element.attribute("savedIndex").as_string() + ".png";
-                            std::vector<xlImage> animFrames;
-                            animFrames.reserve(numFrames);
-                            for (int x = 0; x < numFrames; x++) {
-                                double ratio = (double)x / numFrames;
-                                xlColor color;
-                                color.Set(ChannelBlend(startc.Red(), endc.Red(), ratio),
-                                          ChannelBlend(startc.Green(), endc.Green(), ratio),
-                                          ChannelBlend(startc.Blue(), endc.Blue(), ratio));
-                                // Build the frame image (reuse CreateSceneImage logic inline)
-                                wxImage img(num_columns, num_rows);
-                                img.InitAlpha();
-                                for (int cx = 0; cx < num_columns; cx++)
-                                    for (int cy = 0; cy < num_rows; cy++)
-                                        img.SetAlpha(cx, cy, wxALPHA_TRANSPARENT);
-                                for (pugi::xml_node e2 = element.first_child(); e2; e2 = e2.next_sibling()) {
-                                    if (std::string_view(e2.name()) == "element") {
-                                        int px = e2.attribute("ribbonIndex").as_int();
-                                        int py = e2.attribute("pixelIndex").as_int() - y_offset;
-                                        if (reverse_xy) std::swap(px, py);
-                                        if (px < num_columns && py >= 0 && py < num_rows) {
-                                            img.SetRGB(px, py, color.Red(), color.Green(), color.Blue());
-                                            img.SetAlpha(px, py, wxALPHA_OPAQUE);
-                                        }
-                                    }
-                                }
-                                ImageInfo im;
-                                im.Set(0, 0, num_columns, num_rows, animName);
-                                ScaleImage(img, imageResizeType, modelSize, num_columns, num_rows, im, reverse_xy);
-                                animFrames.push_back(wxImageToXlImage(img));
-                            }
-                            seqMedia.AddEmbeddedImage(animName, animFrames, ft);
-                            imageName = animName;
-                        }
-
-                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
-                                               "E_SLIDER_PicturesXC=0"
-                                               ",E_SLIDER_PicturesYC=0"
-                                               ",E_CHOICE_Scaling=Scale To Fit"
-                                               ",E_SLIDER_Pictures_StartScale=100"
-                                               ",E_SLIDER_Pictures_EndScale=100"
-                                               ",E_CHECKBOX_Pictures_PixelOffsets=1"
-                                               ",E_TEXTCTRL_Pictures_Speed=1.0"
-                                               ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0"
-                                               ",E_TEXTCTRL_Pictures_Filename=" +
-                                               imageName;
-                        if (type == "shimmer") {
-                            settings += ",E_CHECKBOX_Pictures_Shimmer=1";
-                        }
-                        settings += blend_string;
-                        if (ru != "0.0") {
-                            settings += ",T_TEXTCTRL_Fadein=" + ru;
-                        }
-                        if (rd != "0.0") {
-                            settings += ",T_TEXTCTRL_Fadeout=" + rd;
-                        }
-                        layer->AddEffect(0, "Pictures", settings, "", start_time, end_time, false, false);
-                    }
-                }
-            }
-        } else if ("textActions" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("textAction" == std::string_view(element.name())) {
-                    wxString startms = wxString(element.attribute("startCentisecond").as_string()) + "0";
-                    wxString endms = wxString(element.attribute("endCentisecond").as_string()) + "0";
-                    std::string text = element.attribute("text").as_string();
-                    wxString fontName = element.attribute("fontName").as_string();
-                    int fontSize = element.attribute("fontCapsHeight").as_int(6);
-                    int fontCellWidth = element.attribute("fontCellWidth").as_int(6);
-                    int fontCellHeight = element.attribute("fontCellHeight").as_int(6);
-                    wxString colorType = element.attribute("colorType").as_string("chooseColor");
-                    int fCI = element.attribute("firstColorIndex").as_int(0);
-                    wxString mask = element.attribute("maskType").as_string();
-                    bool use_xl_font = true;
-                    wxString xl_font_name = wxString::Format("%d-%dx%d %s", fontSize, fontCellWidth, fontCellHeight, fontName);
-                    xl_font_name.Replace('_', ' ');
-                    xlFont* xl_font = FontManager::get_font(xl_font_name.ToStdString());
-                    if (xl_font == nullptr) {
-                        xl_font_name = "Use OS Fonts";
-                        use_xl_font = false;
-                    }
-
-                    // SuperStar fonts are not as wide as they are listed.  This gets us closer to reality.
-                    fontCellWidth = (fontCellWidth * 2) / 3;
-                    if (!use_xl_font) {
-                        fontSize += 4;
-                    }
-
-                    int rotation = element.attribute("rotation").as_int(90);
-                    if (reverse_xy) {
-                        rotation -= 90;
-                    }
-                    // int direction = element.attribute("direction").as_int(0);
-                    int xStart = element.attribute("xStart").as_int(0);
-                    int yStart = element.attribute("yStart").as_int(0);
-                    int xEnd = element.attribute("xEnd").as_int(0);
-                    int yEnd = element.attribute("yEnd").as_int(0);
-                    if (reverse_xy) {
-                        std::swap(xStart, yStart);
-                        std::swap(xEnd, yEnd);
-                    }
-
-                    xlColor color = GetColor(element.attribute("red").as_string(),
-                                             element.attribute("green").as_string(),
-                                             element.attribute("blue").as_string());
-
-                    int layer_index = element.attribute("layer").as_int();
-                    while ((int)model->GetEffectLayerCount() < layer_index) {
-                        model->AddEffectLayer();
-                    }
-                    int start_time = wxAtoi(startms);
-                    int end_time = wxAtoi(endms);
-                    layer = FindOpenLayer(model, layer_index, start_time, end_time, reserved);
-                    int lorWidth = text.size() * fontCellWidth;
-                    int lorHeight = fontSize;
-
-                    if (use_xl_font) {
-                        lorWidth = FontManager::get_length(xl_font, text) - 2;
-                    }
-
-                    std::string font = "arial " + wxString::Format("%s%d", (fontName.Contains("Bold") ? "bold " : ""), fontSize).ToStdString();
-                    std::string eff = "normal";
-
-                    if (use_xl_font) {
-                        if (rotation == 90) {
-                            eff = "rotate down 90";
-                            lorHeight = lorWidth;
-                            lorWidth = fontSize - 2;
-                        } else if (rotation == -90 || rotation == 270) {
-                            eff = "rotate up 90";
-                            lorHeight = lorWidth - 2;
-                            lorWidth = fontSize - 2;
-                        }
-                        if (fontName.Contains("Vertical")) {
-                            lorHeight += 4;
-                        }
-                    } else {
-                        if (fontName.Contains("Vertical")) {
-                            eff = "vert text down";
-                            lorWidth = fontCellWidth;
-                            lorHeight = text.size() * fontSize;
-                        } else if (rotation == 90) {
-                            eff = "rotate down 90";
-                            lorWidth = fontSize;
-                            lorHeight = text.size() * fontCellWidth;
-                        } else if (rotation == 270 || rotation == -90) {
-                            eff = "rotate up 90";
-                            lorWidth = fontSize;
-                            lorHeight = text.size() * fontCellWidth;
-                        }
-                    }
-
-                    // calculate everything off the LOR center
-                    xStart += round((double)lorWidth / 2.0);
-                    xEnd += round((double)lorWidth / 2.0);
-                    yStart += round((double)lorHeight / 2.0);
-                    yEnd += round((double)lorHeight / 2.0);
-
-                    yStart = -yStart + num_rows;
-                    yEnd = -yEnd + num_rows;
-
-                    xStart = CalcUnBoundedPercentage(xStart, num_columns) - 50;
-                    xEnd = CalcUnBoundedPercentage(xEnd, num_columns) - 50;
-                    yStart = CalcUnBoundedPercentage(yStart, num_rows) - 50;
-                    yEnd = CalcUnBoundedPercentage(yEnd, num_rows) - 50;
-
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)color + ",C_CHECKBOX_Palette1=1" + ",C_CHECKBOX_Palette2=0,C_CHECKBOX_Palette3=0,C_CHECKBOX_Palette4=0,C_CHECKBOX_Palette5=0" + ",C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
-                    if (use_xl_font) {
-                        if (colorType == "rainbow") {
-                            const wxString colors[] = { wxT("#FF0000"), wxT("#FF8000"), wxT("#FFFF00"), wxT("#00FF00"), wxT("#0000FF"), wxT("#8000FF") };
-                            palette = "C_BUTTON_Palette1=" + std::string(colors[fCI].mb_str());
-                            palette += ",C_BUTTON_Palette2=" + std::string(colors[(fCI + 1) % 6].mb_str());
-                            palette += ",C_BUTTON_Palette3=" + std::string(colors[(fCI + 2) % 6].mb_str());
-                            palette += ",C_BUTTON_Palette4=" + std::string(colors[(fCI + 3) % 6].mb_str());
-                            palette += ",C_BUTTON_Palette5=" + std::string(colors[(fCI + 4) % 6].mb_str());
-                            palette += ",C_BUTTON_Palette6=" + std::string(colors[(fCI + 5) % 6].mb_str());
-                            palette += ",C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=1";
-                            palette += ",C_CHECKBOX_Palette5=1,C_CHECKBOX_Palette6=1,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
-                        } else if (colorType == "redGreenBlue") {
-                            const wxString colors[] = { wxT("#FF0000"), wxT("#00FF00"), wxT("#0000FF") };
-                            palette = "C_BUTTON_Palette1=" + std::string(colors[fCI].mb_str());
-                            palette += ",C_BUTTON_Palette2=" + std::string(colors[(fCI + 1) % 3].mb_str());
-                            palette += ",C_BUTTON_Palette3=" + std::string(colors[(fCI + 2) % 3].mb_str());
-                            palette += ",C_CHECKBOX_Palette1=1,C_CHECKBOX_Palette2=1,C_CHECKBOX_Palette3=1,C_CHECKBOX_Palette4=0";
-                            palette += ",C_CHECKBOX_Palette5=0,C_CHECKBOX_Palette6=0,C_CHECKBOX_Palette7=0,C_CHECKBOX_Palette8=0";
-                        }
-                    }
-                    std::string settings =
-                        "E_CHECKBOX_TextToCenter=0,E_TEXTCTRL_Text=" + text + ",E_TEXTCTRL_Text_Speed=26," + "E_CHOICE_Text_Count=none," + "E_CHOICE_Text_Dir=vector,E_CHECKBOX_Text_PixelOffsets=0," + "E_CHOICE_Text_Effect=" + eff + "," + "E_FONTPICKER_Text_Font=" + font + "," + "E_CHOICE_Text_Font=" + xl_font_name.ToStdString() + "," + "E_SLIDER_Text_XStart=" + wxString::Format("%d", xStart).ToStdString() + "," + "E_SLIDER_Text_YStart=" + wxString::Format("%d", yStart).ToStdString() + "," + "E_SLIDER_Text_XEnd=" + wxString::Format("%d", xEnd).ToStdString() + "," + "E_SLIDER_Text_YEnd=" + wxString::Format("%d", yEnd).ToStdString();
-                    if (mask == "positiveMask") {
-                        if (blend_string != "") {
-                            settings += blend_string;
-                        }
-                    } else if (mask == "negativeMask") {
-                        settings += ",T_CHOICE_LayerMethod=1 is Mask";
-                    } else {
-                        settings += blend_string;
-                    }
-
-                    layer->AddEffect(0, "Text", settings, palette, start_time, end_time, false, false);
-                }
-            }
-
-        } else if ("imageActions" == ename) {
-            for (pugi::xml_node element = e.first_child(); element; element = element.next_sibling()) {
-                if ("imageAction" == std::string_view(element.name())) {
-                    //<imageAction name="Image Action 14" colorType="nativeColor" maskType="normal" rotation="0" direction="8"
-                    //  stopAtEdge="0" layer="3" xStart="-1" yStart="0" xEnd="0" yEnd="0" startCentisecond="115" endCentisecond="145"
-                    //  preRampTime="0" rampTime="0" fadeToBright="0" fadeFromBright="0" imageIndex="5" savedIndex="0">
-
-                    wxString name = element.attribute("name").as_string();
-                    int idx = element.attribute("imageIndex").as_int();
-                    int startms = element.attribute("startCentisecond").as_int() * 10;
-                    int endms = element.attribute("endCentisecond").as_int() * 10;
-                    int layer_index = element.attribute("layer").as_int();
-                    int rampDownTime = element.attribute("rampTime").as_int() * 10;
-                    int rampUpTime = element.attribute("preRampTime").as_int() * 10;
-                    while ((int)model->GetEffectLayerCount() <= layer_index) {
-                        model->AddEffectLayer();
-                    }
-                    std::string rampUpTimeString = "0";
-                    if (rampUpTime) {
-                        double fadeIn = rampUpTime;
-                        fadeIn /= 1000; // FadeIn is in seconds
-                        rampUpTimeString = wxString::Format("%lf", fadeIn);
-                    }
-                    std::string rampDownTimeString = "0";
-                    if (rampDownTime) {
-                        double fade = rampDownTime;
-                        fade /= 1000; // FadeIn is in seconds
-                        rampDownTimeString = wxString::Format("%lf", fade);
-                    }
-
-                    int startx = element.attribute("xStart").as_int();
-                    int starty = element.attribute("yStart").as_int();
-                    int endx = element.attribute("xEnd").as_int();
-                    int endy = element.attribute("yEnd").as_int();
-                    if (reverse_xy) {
-                        std::swap(startx, starty);
-                        std::swap(endx, endy);
-                        starty = -starty;
-                        endy = -endy;
-                    }
-                    ImageInfo& imgInfo = imageInfo[idx];
-                    int x = imgInfo.xOffset;
-                    int y = imgInfo.yOffset;
-
-                    layer = FindOpenLayer(model, layer_index, startms, endms, reserved);
-                    if (endy == starty && endx == startx) {
-                        x += round((double)startx * imgInfo.scaleX);
-                        y -= round((double)starty * imgInfo.scaleY);
-                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=none,"
-                                               "E_SLIDER_PicturesXC=" +
-                                               wxString::Format("%d", x).ToStdString() + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y).ToStdString() + ",E_CHOICE_Scaling=No Scaling" + ",X_Effect_Description=" + name + ",E_SLIDER_Pictures_StartScale=100" + ",E_SLIDER_Pictures_EndScale=100" + ",E_CHECKBOX_Pictures_PixelOffsets=1" + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName + ",E_TEXTCTRL_Pictures_Speed=1.0" + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0";
-
-                        if ("0" != rampUpTimeString) {
-                            settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
-                        }
-                        if ("0" != rampDownTimeString) {
-                            settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
-                        }
-                        settings += blend_string;
-
-                        layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
-                    } else {
-                        std::string settings = "E_CHECKBOX_Pictures_WrapX=0,E_CHOICE_Pictures_Direction=vector,"
-                                               "E_SLIDER_PicturesXC=" +
-                                               wxString::Format("%d", x + (int)round((double)startx * imgInfo.scaleX)).ToStdString() + ",E_SLIDER_PicturesYC=" + wxString::Format("%d", y - (int)round((double)starty * imgInfo.scaleY)).ToStdString() + ",E_SLIDER_PicturesEndXC=" + wxString::Format("%d", x + (int)round((double)endx * imgInfo.scaleX)).ToStdString() + ",E_SLIDER_PicturesEndYC=" + wxString::Format("%d", y - (int)round((double)endy * imgInfo.scaleY)).ToStdString() + ",E_CHOICE_Scaling=No Scaling" + ",X_Effect_Description=" + name + ",E_SLIDER_Pictures_StartScale=100" + ",E_SLIDER_Pictures_EndScale=100" + ",E_TEXTCTRL_Pictures_Speed=1.0" + ",E_TEXTCTRL_Pictures_FrameRateAdj=1.0" + ",E_CHECKBOX_Pictures_PixelOffsets=1" + ",E_TEXTCTRL_Pictures_Filename=" + imgInfo.imageName;
-
-                        if ("0" != rampUpTimeString) {
-                            settings += ",T_TEXTCTRL_Fadein=" + rampUpTimeString;
-                        }
-                        if ("0" != rampDownTimeString) {
-                            settings += ",T_TEXTCTRL_Fadeout=" + rampDownTimeString;
-                        }
-                        settings += blend_string;
-
-                        layer->AddEffect(0, "Pictures", settings, "", startms, endms, false, false);
-                    }
-                }
-            }
-        }
-    }
     return true;
 }
 

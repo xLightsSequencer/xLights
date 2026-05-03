@@ -128,6 +128,12 @@ public:
     SequenceData& GetSequenceData() { return _sequenceData; }
     bool IsRenderDone();
 
+    // True when the most recent render had at least one job aborted
+    // (via SignalAbort — typically from HandleMemoryWarning or an
+    // explicit AbortRender). Counter resets at every Render() start
+    // (`_abortedRenderJobs = 0` in RenderEngine::Render).
+    bool WasRenderAborted() const;
+
     // Coarse fraction (0..1) of the in-flight Render() call's frame work
     // that has completed. Walks every active RenderProgressInfo's per-row
     // job and sums each `IRenderJobStatus::GetCurrentFrame()` against the

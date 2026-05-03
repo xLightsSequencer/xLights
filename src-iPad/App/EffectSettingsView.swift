@@ -557,7 +557,8 @@ struct EffectMetadataPanel: View {
                             Divider().padding(.vertical, 2)
                         }
                         EffectPropertyView(property: prop,
-                                           metadataPrefix: metadata.settingKeyPrefix)
+                                           metadataPrefix: metadata.settingKeyPrefix,
+                                           ruleDisabled: !isPropertyEnabledByRules(prop))
                     }
                 case .group(let group):
                     groupView(group: group)
@@ -580,7 +581,8 @@ struct EffectMetadataPanel: View {
                     settingKey: group.settingKey,
                     metadataPrefix: metadata.settingKeyPrefix,
                     propsById: propsById,
-                    isVisible: isPropertyVisible
+                    isVisible: isPropertyVisible,
+                    isEnabled: isPropertyEnabledByRules
                 )
             }
         case "section":
@@ -598,7 +600,8 @@ struct EffectMetadataPanel: View {
                             Divider().padding(.vertical, 2)
                         }
                         EffectPropertyView(property: prop,
-                                           metadataPrefix: metadata.settingKeyPrefix)
+                                           metadataPrefix: metadata.settingKeyPrefix,
+                                           ruleDisabled: !isPropertyEnabledByRules(prop))
                     }
                 }
             }
@@ -657,6 +660,29 @@ struct EffectMetadataPanel: View {
             let conditionMet = evaluateCondition(rule.when)
             if hides && conditionMet { return false }
             if shows && !conditionMet { return false }
+        }
+        return true
+    }
+
+    /// Visibility-rule "enable / disable" semantics — controls stay
+    /// visible but lose interactivity (greyed out) when their gating
+    /// condition isn't met. Mirrors desktop's
+    /// `JsonEffectPanel::ApplyVisibilityRules` setEnabled path
+    /// (`JsonEffectPanel.cpp:1758-1773`). Returns false when at least
+    /// one rule's enable/disable clause forces this prop disabled.
+    /// `show`/`hide` are handled separately via `isPropertyVisible`.
+    private func isPropertyEnabledByRules(_ prop: PropertyMetadata) -> Bool {
+        guard let rules = metadata.visibilityRules else { return true }
+        for rule in rules {
+            let disables = rule.disable?.contains(prop.id) ?? false
+            let enables = rule.enable?.contains(prop.id) ?? false
+            if !disables && !enables { continue }
+
+            let conditionMet = evaluateCondition(rule.when)
+            // disable when condition met → grey out.
+            if disables && conditionMet { return false }
+            // enable when condition met → grey out when condition is NOT met.
+            if enables && !conditionMet { return false }
         }
         return true
     }

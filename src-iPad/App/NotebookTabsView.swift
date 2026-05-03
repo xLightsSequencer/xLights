@@ -26,6 +26,10 @@ struct NotebookTabsView: View {
     let metadataPrefix: String
     let propsById: [String: PropertyMetadata]
     let isVisible: (PropertyMetadata) -> Bool
+    /// Returns false when a JSON visibility-rule `enable`/`disable`
+    /// clause greys this prop out. Defaults to "always enabled" so
+    /// existing callers don't need to update if they don't care.
+    var isEnabled: (PropertyMetadata) -> Bool = { _ in true }
 
     /// Local fallback selection for groups without a settingKey.
     @State private var localSelection: String = ""
@@ -100,7 +104,8 @@ struct NotebookTabsView: View {
                                 Divider().padding(.vertical, 2)
                             }
                             EffectPropertyView(property: prop,
-                                               metadataPrefix: metadataPrefix)
+                                               metadataPrefix: metadataPrefix,
+                                               ruleDisabled: !isEnabled(prop))
                         }
                     }
                 }

@@ -970,6 +970,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)renderAll;
 - (BOOL)isRenderDone;
 
+// YES if the most recent render had at least one job aborted before
+// completion (typically because of a memory-pressure signal — see
+// HandleMemoryWarning). Counter resets at every render start, so this
+// reflects only the latest pass. Callers about to persist
+// `SequenceData` (fseq write, batch render) should consult it: an
+// aborted render leaves the data buffer partly stale.
+- (BOOL)wasRenderAborted;
+
 // Coarse render-progress fraction (0..1) for the in-flight render of the
 // currently-loaded sequence. Aggregates per-row job frame counters against
 // the sequence's frame range. Returns 1.0 when no render is active.

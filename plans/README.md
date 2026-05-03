@@ -11,9 +11,9 @@ for the details.
 | File | Phase | What's left |
 |---|---|---|
 | [phase-h-app-store.md](phase-h-app-store.md) | H — App Store readiness | H-5: screenshots, App Store Connect metadata, submission |
-| [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects | I-3 vendor-sequence regression + Auto Map UX polish, I-4 (`.sup`), I-5 (`.lms`/`.las`) |
-| [phase-b-grid-parity.md](phase-b-grid-parity.md) | B — Effects grid parity | 2 P2 named (B77 MIDI, B79 AI Speech 2 Lyrics) + 3 deferred |
-| [followups.md](followups.md) | Cross-phase | Small items left over from A / C / E / H plus a "TestFlight quality" bundle (log export, About, Help menu, crash telemetry, Check Sequence, …) |
+| [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects | I-3 vendor-sequence regression + Auto Map UX polish, I-5 (`.lms`/`.las`) |
+| [phase-b-grid-parity.md](phase-b-grid-parity.md) | B — Effects grid parity | 1 P2 named (B77 MIDI) + 3 deferred (B91 LRCLIB landed 2026-05-02) |
+| [followups.md](followups.md) | Cross-phase | Small items left over from C / E (Data Layers tab, MH waypoint authoring, shader uniform grouping) |
 
 ## Residual sub-plans (phase complete)
 
@@ -29,22 +29,25 @@ prose is in git history.
 ## Future / post-MVP
 
 No commitment — captured so we don't lose the design context. Most
-items here trace back to the 2026-04-23 gap analysis.
+items here trace back to the 2026-04-23 gap analysis. "Status"
+column reflects current iPad coverage (verified 2026-05-02);
+files marked **shipped** or **partial** keep around residual
+notes / cross-references rather than open work.
 
-| File | Topic | Severity / scale |
+| File | Topic | Status |
 |---|---|---|
-| [future-controllers-tab.md](future-controllers-tab.md) | Controllers tab — discovery, list, edit, upload (Phase R / R-pro) | P1 / XL+ — biggest single near-feature gap |
-| [future-audio-authoring.md](future-audio-authoring.md) | Onset / tempo → timing tracks, spectrogram, pitch contour (Phase J) | P1 / M each |
-| [future-aux-panels.md](future-aux-panels.md) | Search / Find / EffectTree / Jukebox / SequenceVideo / bulk-edit (Phase L) | P1 (Search, EffectTree) / others P2 |
-| [future-preferences.md](future-preferences.md) | Preferences (10 panels, 96 options) + ColorManager + backup (Phase M) | P2 / L overall |
-| [future-help-diagnostics.md](future-help-diagnostics.md) | Tip-of-Day, in-app log viewer, Package Show, RestoreBackup (Phase P) | P2 / M |
-| [future-imports-exports.md](future-imports-exports.md) | Vixen 3, Papagayo, Audacity, MIDI, etc. + 14-format export + Convert dialog (Phase N) | P2 / L |
-| [future-effect-presets.md](future-effect-presets.md) | Disk-persistent effect presets (G12) + EffectTree pairing | P1 / M |
-| [future-pictures-frame-editor.md](future-pictures-frame-editor.md) | Pictures / GIF frame-timing editor + Effect Assist panels (EA-1..3) | P2 / XL each |
-| [future-ai-palette-generate.md](future-ai-palette-generate.md) | AI palette generation (AI-1) | P2 / S |
-| [future-ai-image-generate.md](future-ai-image-generate.md) | AI image generation (AI-2..AI-5) | P2 / M each |
-| [future-layout-editing.md](future-layout-editing.md) | Layout panel — model placement, world layout (Phase S / S-pro) | P2 / XXL — multi-year |
-| [future-custom-models.md](future-custom-models.md) | Custom model + Face/State + DMX deep + Wiring (Phases T/U/V/W) | P2 / XXL |
+| [future-controllers-tab.md](future-controllers-tab.md) | Controllers tab — discovery, list, edit, upload (Phase R / R-pro) | open — biggest single near-feature gap, P1 / XL+ |
+| [future-aux-panels.md](future-aux-panels.md) | Search / Find / EffectTree / Jukebox / SequenceVideo (Phase L) | partial — Buffer / ValueCurves / Blending shipped; AP-1 SearchPanel + AP-4 EffectTreeDialog still open |
+| [future-preferences.md](future-preferences.md) | Preferences (10 panels, 96 options) + ColorManager + backup (Phase M) | open — P2 / L overall |
+| [future-help-diagnostics.md](future-help-diagnostics.md) | TipOfDay, in-app log viewer, Package Show, RestoreBackup (Phase P) | partial — About / Help menu / log export / crash telemetry / Check Sequence shipped pre-MVP; P2 polish remains |
+| [future-imports-exports.md](future-imports-exports.md) | Vixen 3, Papagayo, Audacity, MIDI, 14-format export, Convert dialog (Phase N) | partial — `.xsq`/`.xsqz`/`.sup`/`.xtiming` + AutoLabel + simple BatchRender shipped; rest open |
+| [future-effect-presets.md](future-effect-presets.md) | Disk-persistent effect presets (G12) + EffectTree pairing | partial — in-session presets shipped; disk persistence + tree UI open |
+| [future-pictures-frame-editor.md](future-pictures-frame-editor.md) | Pictures / GIF frame-timing editor + Effect Assist panels (EA-1..3) | partial — EA-1 path editing shipped via `SketchPathEditorRowView`; EA-2 / EA-3 + G6 frame editor open |
+| [future-audio-authoring.md](future-audio-authoring.md) | Onset / tempo → timing tracks, spectrogram, pitch contour (Phase J) | shipped — A-1..A-3, A-9..A-11 all on iPad; A-7/A-13 VAMP-blocked |
+| [future-ai-palette-generate.md](future-ai-palette-generate.md) | AI palette generation (AI-1) | shipped |
+| [future-ai-image-generate.md](future-ai-image-generate.md) | AI image generation (AI-2..AI-5) | shipped |
+| [future-layout-editing.md](future-layout-editing.md) | Layout panel — model placement, world layout (Phase S / S-pro) | open — P2 / XXL, multi-year |
+| [future-custom-models.md](future-custom-models.md) | Custom model + Face/State + DMX deep + Wiring (Phases T/U/V/W) | open — P2 / XXL |
 
 ## Hard misses (no realistic iOS path)
 

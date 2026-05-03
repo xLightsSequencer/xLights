@@ -37,14 +37,18 @@ desktop ships and iPad doesn't:
 - **EA-1 SketchAssistPanel** (XL) — XY canvas, Bezier handles,
   pen mode, SVG import, path management list, grid toggle,
   background image overlay. Used by the Sketch effect.
+  **Partially shipped** — `SketchPathEditorRowView.swift` covers
+  endpoint drag, curve reshaping, and path-list management on
+  iPad (G4). Cubic / quadratic creation, path closing, SVG
+  import / export remain desktop-only.
 - **EA-2 PicturesAssistPanel** (XL) — multi-frame canvas,
   pencil/eraser/eyedropper/select/copy paint tools, palette
   manager (8-color swatches), color picker, image load / save /
   resize, pixel selection, multi-format support
-  (PNG/BMP/JPG/GIF/WEBP). This file.
+  (PNG/BMP/JPG/GIF/WEBP). This file. Still open.
 - **EA-3 MorphAssistPanel** (M) — 4-corner quadrilateral editor,
   start/end linking, region drag. Smallest of the three; could
-  be pulled in independently.
+  be pulled in independently. Still open.
 
-Each is a separate XL effort. EA-3 Morph is the only one likely
-to fit into a small follow-up rather than a phase commitment.
+EA-3 Morph is the only one likely to fit into a small follow-up
+rather than a phase commitment.

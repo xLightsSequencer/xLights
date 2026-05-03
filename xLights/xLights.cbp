@@ -217,6 +217,8 @@
 		<Unit filename="../src-core/import_export/ImportMappingNode.h" />
 		<Unit filename="../src-core/import_export/MapHintsIO.cpp" />
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
@@ -442,6 +444,8 @@
 		<Unit filename="../src-ui-wx/model/PathGenerationDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.h" />
+		<Unit filename="../src-core/lyrics/LRCParser.cpp" />
+		<Unit filename="../src-core/lyrics/LRCParser.h" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.cpp" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.h" />
 		<Unit filename="../src-core/render/IRenderJobStatus.h" />

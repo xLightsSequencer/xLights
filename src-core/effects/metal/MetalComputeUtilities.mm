@@ -62,9 +62,9 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
             sparkleBuffer = nil;
         }
         if (sparkleBuffer == nil) {
-            sparkleBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
+            sparkleBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
                                              length:pixelBuffer->sparklesVector.size() * sizeof(uint16_t)
-                                            options:MTLResourceStorageModeShared] retain];
+                                            options:MTLResourceStorageModeShared];
             std::string name = pixelBuffer->GetModelName() + "SparkleBuffer";
             setLabel(sparkleBuffer, name);
             pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.contents);
@@ -72,7 +72,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
     }
     if (tmpBufferBlend == nil) {
         int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
-        tmpBufferBlend = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        tmpBufferBlend = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
         setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
     }
     MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
@@ -365,7 +365,7 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
                 [bd->maskBuffer release];
             }
             li->maskMaxSize = ms;
-            bd->maskBuffer= [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared] retain];
+            bd->maskBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared];
             std::string name = li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer);
             setLabel(bd->maskBuffer, name);
             li->mask = static_cast<uint8_t*>(bd->maskBuffer.contents);
@@ -615,7 +615,7 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getBlendBuffer() {
     if (blendBuffer == nil) {
         int len = renderBuffer->GetNodeCount() * sizeof(uint32_t);
-        blendBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        blendBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
         setLabel(blendBuffer, renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
     }
     return blendBuffer;
@@ -628,7 +628,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
-        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate] retain];
+        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate];
         std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
         setLabel(newBuffer, name);
         pixelBufferCopy = newBuffer;
@@ -653,7 +653,7 @@ void MetalRenderBufferComputeData::bufferResized() {
         if (indexBuffer != nil) {
             [indexBuffer release];
         }
-        indexBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared] retain];
+        indexBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared];
         std::string name = renderBuffer->GetModelName() + "IndexBuffer";
         setLabel(indexBuffer, name);
         indexes = static_cast<int32_t*>(indexBuffer.contents);
@@ -695,6 +695,12 @@ void MetalRenderBufferComputeData::bufferResized() {
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
+        int bufferSize = renderBuffer->GetPixelCount() * 4;
+        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
+        std::string name = renderBuffer->GetModelName() + "PixelBuffer";
+        setLabel(newBuffer, name);
+        // copy from the old buffer (which renderBuffer->pixels points into) before releasing it
+        memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
         if (pixelBuffer) {
             [pixelBuffer release];
         }
@@ -702,11 +708,6 @@ id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
             [pixelBufferCopy release];
             pixelBufferCopy = nil;
         }
-        int bufferSize = renderBuffer->GetPixelCount() * 4;
-        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
-        std::string name = renderBuffer->GetModelName() + "PixelBuffer";
-        setLabel(newBuffer, name);
-        memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
         renderBuffer->pixels = static_cast<xlColor*>(pixelBuffer.contents);
@@ -756,7 +757,7 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
             d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
             d.storageMode = MTLStorageModePrivate;
             // Create the texture from the device by using the descriptor
-            pixelTexture = [[MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d] retain];
+            pixelTexture = [MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d];
             
             std::string name = renderBuffer->GetModelName() + "PixelTexture";
             NSString* mn = [NSString stringWithUTF8String:name.c_str()];
@@ -1022,7 +1023,10 @@ MetalComputeUtilities::MetalComputeUtilities() {
     enabled = false;
     device = nil;
     dissolveBuffer = nil;
-    
+
+    // Static-init time has no thread autorelease pool, so autoreleased
+    // NSStrings/NSURLs created below would leak permanently.
+    @autoreleasepool {
 #if !TARGET_OS_IPHONE
     NSArray *devices = MTLCopyAllDevices();
     for (id d in devices) {
@@ -1142,11 +1146,12 @@ MetalComputeUtilities::MetalComputeUtilities() {
     blendFunctions[MixTypes::Mix_LeftRight] = new BlendFunctionInfo("LeftRightFunction",0, true);
     
     int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
-    dissolveBuffer = [[device newBufferWithBytes:DissolveTransitonPattern
-                                          length:bufferSize
-                                         options:MTLResourceStorageModeShared] retain];
+    dissolveBuffer = [device newBufferWithBytes:DissolveTransitonPattern
+                                         length:bufferSize
+                                        options:MTLResourceStorageModeShared];
 
     [dissolveBuffer setLabel:@"DissolveTransitonPattern"];
+    } // @autoreleasepool
 }
 MetalComputeUtilities::~MetalComputeUtilities() {
     @autoreleasepool {

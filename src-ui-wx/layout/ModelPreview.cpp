@@ -1219,25 +1219,17 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 }
 
 double ModelPreview::calcPixelSize(double i) {
-    return translateToBacking(i * currentPixelScaleFactor);
+    double d = translateToBacking(i * currentPixelScaleFactor);
+    if (d < 1.0)
+        d = 1.0;
+    return d;
 }
 
 double ModelPreview::getViewScale() const {
-    static constexpr double kBaseScale = 0.6;
-    if (allowSelected) {
-        if (!is3d) {
-            // 2D zoom increases when zooming in. Cap circles at kBaseScale when zoomed in;
-            // shrink proportionally when zoomed out (zoom < 1).
-            return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
-        } else {
-            // 3D zoom increases when zooming out (camera moves further away). Keep circles
-            // at kBaseScale when zoomed in (zoom <= 1); shrink proportionally when zoomed out.
-            float z = camera3d->GetZoom();
-            return z > 1.0f ? kBaseScale / z : kBaseScale;
-        }
-    }
-    // Non-layout previews (house preview, model preview): shrink with zoom-out, cap when zoomed in.
-    return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
+    // Return 1.0 so GL_POINTS pixel sizes match the pre-zoom-scaling baseline.
+    // DrawModelNames uses this for font scaling and gets natural world-space text
+    // that grows proportionally as you zoom in, which is correct for a zoomable canvas.
+    return 1.0;
 }
 
 double ModelPreview::getBackingScaleFactor() const {

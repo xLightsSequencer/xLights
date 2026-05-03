@@ -9,13 +9,19 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 
 ## Already shipped
 
+- IO-7 SuperStar `.sup` import (Phase I-4, 2026-05-02).
 - IO-11 `.xsq` / `.xsqz` import (Phase I-2, 2026-04-29).
 - IO-17 `.xtiming` round-trip (Phase B-74).
 - IO-22 AutoLabelDialog (Phase B-89).
+- EX-3 BatchRenderDialog — simplified iPad version landed
+  (`BatchRenderSheet.swift` + `BatchRenderRunner.swift`). Desktop's
+  feature-parity version (recursive-search columns, last-render-
+  date metadata, FPP playlist integration) still open as the
+  EX-3 row below.
+- EX-10 Whole-sequence `.fseq` emission alongside save.
 
 ## In flight (Phase I)
 
-- IO-7 SuperStar `.sup` — see `phase-i-import-effects.md` I-4.
 - IO-1 LOR `.lms` / `.las` (timing) — see I-5.
 - IO-2 LOR `.lms` (full sequence) — see I-5.
 
@@ -48,9 +54,8 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 |---|---|---|---|
 | EX-1 | **SeqExportDialog** — 14 format picker: LOR `.lms`/`.las`, LOR Clipboard `.lcb` (v3), LOR S5 Clipboard, Vixen `.vix`, Vixen Routine `.vir`, LSP, HLS `.hlsnc`, xLights/FPP `.fseq`, Compressed `.mp4`, Uncompressed `.mp4`, Uncompressed `.avi`, Lossless `.mov`, Minleon NEC `.bin`, GIF `.gif` | P2 | L |
 | EX-2 | ExportModelSelect — model picker for per-model export | P2 | S |
-| EX-3 | **BatchRenderDialog** — recursive search + sequence checklist + last-render-date columns + Force HD + FPP Playlist integration | P2 | M (iPad has a simpler version already; this is the desktop-feature-parity version) |
+| EX-3 | **BatchRenderDialog** — desktop's feature-parity version: recursive search + sequence checklist + last-render-date columns + Force HD + FPP Playlist integration. (iPad's simpler `BatchRenderSheet` already covers the basic case.) | P2 | M |
 | EX-9 | TabConvert::Write*ModelFile — Falcon Pi `.bin`, MP4/AVI/MOV (FFmpeg block on iOS), GIF (FFmpeg), Minleon NEC `.bin` | P2 | L–XL (FFmpeg block) |
-| EX-10 | Whole-sequence `.fseq` emission alongside save | ✓ landed | — |
 
 ## Convert dialog
 

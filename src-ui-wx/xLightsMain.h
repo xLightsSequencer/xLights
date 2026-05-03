@@ -496,10 +496,6 @@ public:
 
     EffectManager &GetEffectManager() override { return effectManager; }
 
-    bool ImportSuperStar(Element *el, pugi::xml_document &doc, int x_size, int y_size,
-                         int x_offset, int y_offset,
-                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
-                         const wxString& defaultGroupName = {});
     bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);

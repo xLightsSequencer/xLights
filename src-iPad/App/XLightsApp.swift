@@ -223,6 +223,11 @@ struct ContentView: View {
                     count: viewModel.brokenMediaCount,
                     onReview: { showMediaManager = true })
             }
+            if let msg = viewModel.fseqWriteSkippedMessage {
+                FseqSkippedBanner(message: msg) {
+                    viewModel.fseqWriteSkippedMessage = nil
+                }
+            }
             Group {
                 if !viewModel.isShowFolderLoaded {
                     ShowFolderSetupView(showFolderConfig: $showFolderConfig)
@@ -659,6 +664,36 @@ struct MemoryWarningBanner: View {
         .padding(.vertical, 6)
         .foregroundStyle(.white)
         .background(Color.orange)
+    }
+}
+
+/// Banner shown after `saveSequence` skipped its fseq companion
+/// because the render had been aborted (memory pressure or an
+/// explicit cancel) before completing. The `.xsq` save itself still
+/// succeeded — the message just nudges the user to re-render +
+/// re-save once memory recovers so the fseq lands on disk.
+struct FseqSkippedBanner: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text(message)
+                .font(.caption)
+            Spacer()
+            Button {
+                onDismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.semibold))
+            }
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.orange.opacity(0.9))
     }
 }
 

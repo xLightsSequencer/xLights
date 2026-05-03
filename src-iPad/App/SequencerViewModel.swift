@@ -593,6 +593,13 @@ class SequencerViewModel {
     /// True when available memory is below the low-memory threshold.
     /// Drives the low-memory banner in the UI.
     var memoryWarning = false
+
+    /// Non-nil when the most recent save skipped the fseq companion
+    /// because the in-flight render had been aborted (typically by
+    /// memory pressure — `_renderEngine->SignalAbort()` runs from
+    /// `HandleMemoryWarning`). Drives a tap-to-dismiss banner the
+    /// user can clear once they re-render and re-save.
+    var fseqWriteSkippedMessage: String?
     private static let memoryWarningThresholdMB: Int64 = 256
     private static let memoryRecoveredThresholdMB: Int64 = 384  // hysteresis
     private var memoryPressureSource: DispatchSourceMemoryPressure?
@@ -736,6 +743,9 @@ class SequencerViewModel {
         isShowFolderLoaded = document.loadShowFolder(path, mediaFolders: mediaFolders)
         if isShowFolderLoaded {
             scanForSequenceFiles(at: path)
+            // L-1b: record successful loads so the folder picker can
+            // surface them as one-tap MRU entries on the next visit.
+            RecentShowFolders.record(path: path)
         }
     }
 
@@ -1076,10 +1086,27 @@ class SequencerViewModel {
             // on user-initiated saves — autosave goes through
             // writeAutosaveBackup which doesn't touch the fseq.
             if let fseqPath = FolderConfig.fseqPath(forXsq: path) {
-                _ = XLSequenceDocument.obtainAccess(toPath: fseqPath,
-                                                    enforceWritable: true)
-                if !document.writeFseq(toPath: fseqPath) {
-                    print("saveSequence: fseq write to \(fseqPath) failed; .xsq save still succeeded.")
+                if document.wasRenderAborted() {
+                    // The most recent render was aborted before
+                    // completion (almost always memory pressure —
+                    // see iPadRenderContext::HandleMemoryWarning).
+                    // SequenceData is partly stale, so a fseq written
+                    // from it would play back wrong. Skip the fseq
+                    // write; surface a banner so the user knows to
+                    // re-render and re-save once memory recovers.
+                    print("saveSequence: skipping fseq write — render was aborted before completing")
+                    fseqWriteSkippedMessage =
+                        "FSEQ not written — the render was interrupted (likely low memory). Re-render and save again to regenerate it."
+                } else {
+                    _ = XLSequenceDocument.obtainAccess(toPath: fseqPath,
+                                                        enforceWritable: true)
+                    if !document.writeFseq(toPath: fseqPath) {
+                        print("saveSequence: fseq write to \(fseqPath) failed; .xsq save still succeeded.")
+                    } else {
+                        // Success path — clear any stale banner from
+                        // a prior aborted save.
+                        fseqWriteSkippedMessage = nil
+                    }
                 }
             }
             // Tier 1 memory mitigation — post-save is a safe

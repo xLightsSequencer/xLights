@@ -17,8 +17,19 @@ struct ImportEffectsView: View {
     let viewModel: SequencerViewModel
     let onDismiss: () -> Void
 
+    // Branch on the picked file's extension. `.xsq`/`.xsqz` use the
+    // existing channel-mapping flow; `.sup` swaps in the SuperStar
+    // single-target-model form (Phase I-4). The two flows share the
+    // same outer sheet so the user-facing entry point stays "Tools →
+    // Import Effects" regardless of file format.
+    private enum Mode { case xsq, superstar }
+
+    @State private var mode: Mode = .xsq
     @State private var session: XLImportSession?
     @State private var sourcePath: String?
+    // `.sup` only — held so the SuperStar form can re-acquire the
+    // document picker's security scope around the file read.
+    @State private var superStarURL: URL?
     @State private var availableSources: [XLImportAvailableSource] = []
     @State private var destinationRows: [XLImportMappingRow] = []
     @State private var timingTracks: [XLImportTimingTrack] = []
@@ -37,21 +48,28 @@ struct ImportEffectsView: View {
             VStack(spacing: 0) {
                 if sourcePath == nil {
                     sourcePicker
+                } else if mode == .superstar, let url = superStarURL {
+                    SuperStarImportView(viewModel: viewModel,
+                                        sourceURL: url,
+                                        onCancel: { onDismiss() },
+                                        onApplied: { onDismiss() })
                 } else {
                     mappingPanes
                     Divider()
                     optionsBar
                 }
             }
-            .navigationTitle("Import Effects")
+            .navigationTitle(mode == .superstar ? "Import SuperStar" : "Import Effects")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { onDismiss() }
-                }
-                if sourcePath != nil {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Apply") { applyImport() }
-                            .disabled(mappedCount == 0 && selectedTimingCount == 0)
+                if mode != .superstar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { onDismiss() }
+                    }
+                    if sourcePath != nil {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Apply") { applyImport() }
+                                .disabled(mappedCount == 0 && selectedTimingCount == 0)
+                        }
                     }
                 }
             }
@@ -97,7 +115,7 @@ struct ImportEffectsView: View {
             Text("Pick a sequence to import effects from.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Text(".xsq sequences and .xsqz vendor packages are supported.")
+            Text(".xsq / .xsqz xLights sequences and .sup SuperStar files are supported.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -235,11 +253,25 @@ struct ImportEffectsView: View {
     // MARK: - Actions
 
     private func loadSource(url: URL) {
-        guard let session else { return }
+        let ext = url.pathExtension.lowercased()
+        if ext == "sup" {
+            // SuperStar — switch the sheet's body to the single-model
+            // form. We deliberately do NOT acquire / release the
+            // security scope here: the SuperStar form re-acquires it
+            // itself around the actual file read so the scope is held
+            // for the lifetime of one read instead of the lifetime of
+            // this function.
+            mode = .superstar
+            superStarURL = url
+            sourcePath = url.path
+            return
+        }
         let started = url.startAccessingSecurityScopedResource()
         defer { if started { url.stopAccessingSecurityScopedResource() } }
+        guard let session else { return }
         do {
             try session.loadSourceSequence(atPath: url.path)
+            mode = .xsq
             sourcePath = url.path
             refreshSnapshots()
         } catch {
@@ -363,6 +395,7 @@ struct ImportEffectsView: View {
         if let xsqz = UTType(filenameExtension: "xsqz") { types.append(xsqz) }
         if let zip = UTType(filenameExtension: "zip") { types.append(zip) }
         types.append(.xml)  // legacy .xml sequences
+        if let sup = UTType(filenameExtension: "sup") { types.append(sup) }
         return types
     }()
 }

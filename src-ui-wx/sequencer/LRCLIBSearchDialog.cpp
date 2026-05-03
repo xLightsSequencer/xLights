@@ -36,70 +36,9 @@ BEGIN_EVENT_TABLE(LRCLIBSearchDialog, wxDialog)
     EVT_BUTTON(LRCLIBSearchDialog::ID_CANCEL_BUTTON, LRCLIBSearchDialog::OnCancelClick)
 END_EVENT_TABLE()
 
-std::vector<std::pair<int, std::string>> ParseLRC(const std::string& syncedLyrics)
-{
-    std::vector<std::pair<int, std::string>> result;
-    std::istringstream stream(syncedLyrics);
-    std::string line;
-
-    while (std::getline(stream, line)) {
-        if (line.empty() || line[0] != '[')
-            continue;
-
-        size_t closeBracket = line.find(']');
-        if (closeBracket == std::string::npos || closeBracket < 5)
-            continue;
-
-        std::string timestamp = line.substr(1, closeBracket - 1);
-
-        // Skip metadata tags like [ti:], [ar:], [al:], [by:]
-        if (timestamp.find(':') != std::string::npos) {
-            size_t colonPos = timestamp.find(':');
-            std::string beforeColon = timestamp.substr(0, colonPos);
-            bool isMetadata = false;
-            for (char c : beforeColon) {
-                if (!std::isdigit(c)) {
-                    isMetadata = true;
-                    break;
-                }
-            }
-            if (isMetadata)
-                continue;
-        }
-
-        std::string text = (closeBracket + 1 < line.size()) ? line.substr(closeBracket + 1) : "";
-        // Trim leading space
-        if (!text.empty() && text[0] == ' ')
-            text = text.substr(1);
-
-        // Parse mm:ss.xx or mm:ss.xxx
-        size_t colonPos = timestamp.find(':');
-        size_t dotPos = timestamp.find('.');
-        if (colonPos == std::string::npos)
-            continue;
-
-        try {
-            int minutes = std::stoi(timestamp.substr(0, colonPos));
-            int seconds = std::stoi(timestamp.substr(colonPos + 1, (dotPos != std::string::npos ? dotPos : timestamp.size()) - colonPos - 1));
-            int ms = 0;
-            if (dotPos != std::string::npos) {
-                std::string frac = timestamp.substr(dotPos + 1);
-                int fracVal = std::stoi(frac);
-                if (frac.size() == 2)
-                    ms = fracVal * 10; // centiseconds to ms
-                else if (frac.size() == 3)
-                    ms = fracVal; // already ms
-                else if (frac.size() == 1)
-                    ms = fracVal * 100;
-            }
-            int totalMs = minutes * 60000 + seconds * 1000 + ms;
-            result.push_back({totalMs, text});
-        } catch (std::exception&) {
-            continue;
-        }
-    }
-    return result;
-}
+// ParseLRC is implemented in src-core/lyrics/LRCParser.cpp; the header
+// of this dialog re-exports it via an inline wrapper for source
+// compatibility with the original RowHeading.cpp call sites.
 
 static std::string UrlEncode(const wxString& str)
 {

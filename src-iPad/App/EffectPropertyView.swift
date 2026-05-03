@@ -7,6 +7,13 @@ struct EffectPropertyView: View {
     @Environment(SequencerViewModel.self) var viewModel
     let property: PropertyMetadata
     let metadataPrefix: String      // "E_", "B_", "C_", "T_"
+    /// True when the JSON visibility-rule engine resolved an
+    /// `enable`/`disable` clause against this property and the
+    /// gating condition is not satisfied. Greys out the control while
+    /// keeping it on screen — mirrors desktop's `setEnabled` path
+    /// in `JsonEffectPanel::ApplyVisibilityRules`. Defaults to false
+    /// for the (rare) call sites that don't yet plumb a state through.
+    var ruleDisabled: Bool = false
 
     private var settingKey: String { property.settingKey(prefix: metadataPrefix) }
     private var defaultValueString: String { property.defaultAsString() }
@@ -52,6 +59,11 @@ struct EffectPropertyView: View {
             return false
         }
     }
+
+    /// Final disabled state — OR of the visibility-rule clause and
+    /// the hardcoded runtime checks. All controlType branches
+    /// (slider, choice, checkbox, …) read this single field.
+    private var effectiveDisabled: Bool { runtimeDisabled || ruleDisabled }
 
     private func transitionAdjustDisabled(isIn: Bool) -> Bool {
         if fadeIsZero(isIn: isIn) { return true }
@@ -262,13 +274,15 @@ struct EffectPropertyView: View {
             && viewModel.settingValue(forKey: vcKey, defaultValue: "")
                 .hasPrefix("Active=TRUE")
 
-        // `runtimeDisabled` flips on when a sibling property's value
-        // makes this one meaningless (e.g. fade==0 disables Adjust /
-        // Reverse on a Blending transition). The slider still renders
-        // so the user sees the setting exists + its current value —
-        // just dimmed + non-editable. Separate from vcActive because
-        // they have different triggers + different meanings.
-        let disabled = vcActive || runtimeDisabled
+        // `effectiveDisabled` flips on when a sibling property's
+        // value makes this one meaningless (e.g. fade==0 disables
+        // Adjust / Reverse on a Blending transition) OR when a JSON
+        // visibility-rule `enable`/`disable` clause gates this prop
+        // off. The slider still renders so the user sees the setting
+        // exists + its current value — just dimmed + non-editable.
+        // Separate from vcActive because they have different triggers
+        // + different meanings.
+        let disabled = vcActive || effectiveDisabled
 
         return VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
@@ -289,7 +303,7 @@ struct EffectPropertyView: View {
                 .disabled(disabled)
                 if property.valueCurve == true {
                     ValueCurveButton(property: property, prefix: metadataPrefix)
-                        .disabled(runtimeDisabled)
+                        .disabled(effectiveDisabled)
                 }
             }
             Slider(value: sliderBinding, in: minVal...maxVal, step: 1)
@@ -313,11 +327,11 @@ struct EffectPropertyView: View {
         return Toggle(isOn: binding) {
             Text(label.isEmpty ? property.label : label)
                 .font(.caption)
-                .foregroundStyle(runtimeDisabled ? .tertiary : .primary)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
         }
         .toggleStyle(.switch)
-        .disabled(runtimeDisabled)
-        .opacity(runtimeDisabled ? 0.5 : 1.0)
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -351,6 +365,7 @@ struct EffectPropertyView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             Picker(property.label, selection: binding) {
                 ForEach(options, id: \.self) { opt in
                     Text(opt).tag(opt)
@@ -359,6 +374,8 @@ struct EffectPropertyView: View {
             .pickerStyle(.menu)
             .labelsHidden()
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -380,6 +397,7 @@ struct EffectPropertyView: View {
         return HStack {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             Spacer()
             EditableNumberField(
                 storedInt: stored,
@@ -391,6 +409,8 @@ struct EffectPropertyView: View {
             Stepper("", value: binding, in: minVal...maxVal)
                 .labelsHidden()
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
@@ -405,10 +425,13 @@ struct EffectPropertyView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text(property.label)
                 .font(.caption)
+                .foregroundStyle(effectiveDisabled ? .tertiary : .primary)
             TextField("", text: binding)
                 .textFieldStyle(.roundedBorder)
                 .font(.caption2)
         }
+        .disabled(effectiveDisabled)
+        .opacity(effectiveDisabled ? 0.5 : 1.0)
         .padding(.vertical, 2)
         .propertyContextMenu(property: property, prefix: metadataPrefix)
     }
