@@ -96,47 +96,54 @@ struct AVFoundationVideoReaderImpl {
     bool openReader(CMTime startTime) {
         closeReader();
 
-        NSError* error = nil;
-        reader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
-        if (!reader || error) {
-            spdlog::error("AVFoundationVideoReader: Failed to create AVAssetReader: {}",
-                         error ? [[error localizedDescription] UTF8String] : "unknown error");
-            return false;
-        }
+        // [AVAssetReader addOutput:] starts internal KVO observers that
+        // autorelease NSStrings via -[NSString initWithFormat:]. Drain
+        // those locally instead of letting them pile up on the render
+        // thread's job-scoped pool, which only flushes when the whole
+        // render finishes.
+        @autoreleasepool {
+            NSError* error = nil;
+            reader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
+            if (!reader || error) {
+                spdlog::error("AVFoundationVideoReader: Failed to create AVAssetReader: {}",
+                             error ? [[error localizedDescription] UTF8String] : "unknown error");
+                return false;
+            }
 
-        // Request BGRA output — native format for Apple GPUs, minimal conversion overhead
-        NSDictionary* outputSettings = @{
-            (NSString*)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
-        };
-        trackOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack
-                                                       outputSettings:outputSettings];
-        trackOutput.alwaysCopiesSampleData = NO;
+            // Request BGRA output — native format for Apple GPUs, minimal conversion overhead
+            NSDictionary* outputSettings = @{
+                (NSString*)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
+            };
+            trackOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack
+                                                           outputSettings:outputSettings];
+            trackOutput.alwaysCopiesSampleData = NO;
 
-        if (![reader canAddOutput:trackOutput]) {
-            spdlog::error("AVFoundationVideoReader: Cannot add track output to reader");
-            reader = nil;
-            trackOutput = nil;
-            return false;
-        }
-        [reader addOutput:trackOutput];
+            if (![reader canAddOutput:trackOutput]) {
+                spdlog::error("AVFoundationVideoReader: Cannot add track output to reader");
+                reader = nil;
+                trackOutput = nil;
+                return false;
+            }
+            [reader addOutput:trackOutput];
 
-        // Set time range from startTime to end
-        CMTime duration = asset.duration;
-        CMTime rangeStart = startTime;
-        CMTime rangeEnd = CMTimeSubtract(duration, startTime);
-        if (CMTimeCompare(rangeEnd, kCMTimeZero) <= 0) {
-            rangeEnd = kCMTimeZero;
-        }
-        reader.timeRange = CMTimeRangeMake(rangeStart, rangeEnd);
+            // Set time range from startTime to end
+            CMTime duration = asset.duration;
+            CMTime rangeStart = startTime;
+            CMTime rangeEnd = CMTimeSubtract(duration, startTime);
+            if (CMTimeCompare(rangeEnd, kCMTimeZero) <= 0) {
+                rangeEnd = kCMTimeZero;
+            }
+            reader.timeRange = CMTimeRangeMake(rangeStart, rangeEnd);
 
-        if (![reader startReading]) {
-            spdlog::error("AVFoundationVideoReader: Failed to start reading: {}",
-                         reader.error ? [[reader.error localizedDescription] UTF8String] : "unknown");
-            reader = nil;
-            trackOutput = nil;
-            return false;
+            if (![reader startReading]) {
+                spdlog::error("AVFoundationVideoReader: Failed to start reading: {}",
+                             reader.error ? [[reader.error localizedDescription] UTF8String] : "unknown");
+                reader = nil;
+                trackOutput = nil;
+                return false;
+            }
+            return true;
         }
-        return true;
     }
 
     bool ensureTransferSession() {
@@ -423,7 +430,10 @@ AVFoundationVideoReader::AVFoundationVideoReader(const std::string& filename, in
         _impl->outputFormat = bgr ? VideoPixelFormat::BGR24 : VideoPixelFormat::RGB24;
     }
 
-    {
+    // [AVURLAsset URLAssetWithURL:] internally autoreleases NSArrays/NSStrings
+    // via AVCMNotificationDispatcher when registering FigAsset notification
+    // listeners. Drain locally so they don't accumulate on the render-job pool.
+    @autoreleasepool {
         // Open the asset — use AVURLAsset for explicit control over loading
         NSURL* url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filename.c_str()]];
         AVURLAsset* urlAsset = [AVURLAsset URLAssetWithURL:url options:nil];
