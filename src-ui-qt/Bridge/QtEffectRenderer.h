@@ -11,10 +11,11 @@ namespace QtEffectRenderer {
 
 struct Request {
     QString       effectName;
+    QString       modelName;    // show-file model/group name; empty = use stub
     QVariantMap   settings;     // UI panel key→value map (used by software renderer)
     QList<QColor> palette;
-    int           bufferW  = 100;   // pixels wide
-    int           bufferH  = 1;     // pixels tall (1 = strand, >1 = matrix)
+    int           bufferW  = 100;   // pixels wide (used when model not found)
+    int           bufferH  = 1;     // pixels tall  (used when model not found)
     double        progress = 0.0;   // 0..1 within the effect's duration
 
     // Raw xsq settings/palette strings for src-core rendering.

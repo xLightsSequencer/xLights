@@ -26,17 +26,17 @@
 #include "models/Node.h"
 
 //added hash_map, queue, vector: -DJ
-#ifdef _MSC_VER
-#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
-#include <hash_map>
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#define strcasecmp _stricmp
-#define strncasecmp _strnicmp
-#else
+//#ifdef _MSC_VER
+//#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
+//#include <hash_map>
+//#define snprintf _snprintf
+//#define vsnprintf _vsnprintf
+//#define strcasecmp _stricmp
+//#define strncasecmp _strnicmp
+//#else
 #include <unordered_map>
 #define hash_map  unordered_map //c++ 2011
-#endif
+//#endif
 #include <queue> //priority_queue
 #include <deque>
 #include <vector>
@@ -389,6 +389,7 @@ public:
 
     int GetNodeCount() const { return Nodes.size();}
     const std::vector<NodeBaseClassPtr>& GetNodes() const { return Nodes; }
+    void SetNodes(std::vector<NodeBaseClassPtr>&& nodes) { Nodes = std::move(nodes); }
     void SetNodePixel(int nodeNum, const xlColor &color, bool dmx_ignore = false);
 
     void CopyPixel(int srcx, int srcy, int destx, int desty);

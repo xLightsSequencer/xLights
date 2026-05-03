@@ -10,6 +10,7 @@
 #include "../../src-core/effects/RenderableEffect.h"
 #include "../../src-core/effects/EffectManager.h"
 #include "../../src-core/models/ModelManager.h"
+#include "../../src-core/models/Model.h"
 #include "../../src-core/render/Effect.h"
 #include "../../src-core/render/EffectLayer.h"
 #include "../../src-core/render/Element.h"
@@ -18,6 +19,7 @@
 #include "../../src-core/utils/UtilClasses.h"
 #include "../../src-core/utils/Color.h"
 
+#include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 
 // ── File-scope statics (cleaned up on first exception) ───────────────────────
@@ -44,9 +46,26 @@ void QtRenderBridge::setMetadataDir(const QString& dir) {
 
 void QtRenderBridge::setShowFolder(const QString& showFolder) {
     _showFolder = showFolder;
-    // If the render context already exists, reload outputs immediately.
-    if (s_ctx && !showFolder.isEmpty())
-        s_ctx->outputManager().Load(showFolder.toStdString());
+    if (!s_ctx || showFolder.isEmpty()) return;
+
+    // Reload outputs.
+    s_ctx->outputManager().Load(showFolder.toStdString());
+
+    // Load all models (including groups) from xlights_rgbeffects.xml so that
+    // renderCore() can use the real model topology (InitRenderBufferNodes).
+    // This matches what the wx version does with ModelManager::LoadModels().
+    try {
+        const std::string rgbFile = showFolder.toStdString() + "/xlights_rgbeffects.xml";
+        pugi::xml_document doc;
+        if (doc.load_file(rgbFile.c_str())) {
+            auto root = doc.first_child();
+            auto modelsNode = root.child("models");
+            if (modelsNode && s_mm)
+                s_mm->LoadModels(modelsNode, 1920, 1080);
+        }
+    } catch (...) {
+        spdlog::warn("QtRenderBridge: failed to load show models");
+    }
 }
 
 void QtRenderBridge::request(const QtEffectRenderer::Request& req) {
@@ -132,27 +151,54 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
         }
 
         // ── 2. Buffer parameters from B_* settings ───────────────────────
-        // B_CHOICE_BufferStyle  : "Default" | "Single Line" | "Per Model Strand" …
-        // B_CHOICE_BufferTransform : "None" | "Rotate CW 90" | "Flip Horizontal" …
         const std::string bufStyle     = settings.Get("CHOICE_BufferStyle",    "Default");
         const std::string bufTransform = settings.Get("CHOICE_BufferTransform","None");
 
-        // Derive effective buffer dimensions from the buffer style.
-        // "Default" (and variants) keep the model dimensions supplied by the caller.
-        // "Single Line" collapses the full buffer to a 1-D strip.
+        // ── 3. Look up the real model from the show file ─────────────────
+        // Matches wx behaviour: use model->InitRenderBufferNodes() to get the
+        // correct buffer dimensions AND node topology for all model types,
+        // including group models (minimalGrid layout) and shaped models (trees,
+        // stars, custom).  Falls back to the stub/caller-supplied dims when the
+        // model is not found.
         int bufW = req.bufferW;
         int bufH = req.bufferH;
-        if (bufStyle == "Single Line") {
+        std::vector<NodeBaseClassPtr> realNodes;
+
+        if (!req.modelName.isEmpty() && s_mm) {
+            Model* realModel = nullptr;
+            try { realModel = s_mm->GetModel(req.modelName.toStdString()); }
+            catch (...) { realModel = nullptr; }
+
+            if (realModel) {
+                try {
+                    realModel->InitRenderBufferNodes(
+                        bufStyle, "2D", bufTransform,
+                        realNodes, bufW, bufH, 0);
+                } catch (...) {
+                    realNodes.clear();
+                    bufW = req.bufferW;
+                    bufH = req.bufferH;
+                }
+            }
+        }
+
+        // "Single Line" fallback when InitRenderBufferNodes wasn't called.
+        if (realNodes.empty() && bufStyle == "Single Line") {
             bufW = req.bufferW * req.bufferH;
             bufH = 1;
         }
-        // "Per Model Strand" and other multi-strand styles need model topology
-        // data we don't have at this level — leave at default dimensions for now.
 
-        // ── 3. Model stub + RenderBuffer with correct dims + transform ───
+        // ── 4. RenderBuffer ──────────────────────────────────────────────
         QtModelStub model(*s_mm, req.effectName.toStdString(), bufW, bufH);
         RenderBuffer buffer(nullptr, nullptr, &model);
         buffer.InitBuffer(bufH, bufW, bufTransform);
+
+        // Give the buffer the real node topology so effects that walk
+        // buffer.Nodes (Spiral, SingleStrand, per-node colour, etc.) behave
+        // correctly.  For groups this maps every member model's nodes to their
+        // correct minimalGrid buffer positions — same as the wx version.
+        if (!realNodes.empty())
+            buffer.SetNodes(std::move(realNodes));
 
         // ── 4. Palette ───────────────────────────────────────────────────
         xlColorVector      pal;

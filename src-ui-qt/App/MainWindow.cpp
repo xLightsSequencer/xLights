@@ -183,6 +183,7 @@ void MainWindow::triggerRender(const QString& effectName, double progress,
                                const QString& rawSettings, const QString& rawPalette) {
     QtEffectRenderer::Request req;
     req.effectName  = effectName;
+    req.modelName   = _currentModel;   // lets renderCore() use the real model topology
     req.settings    = _effectPanel->currentSettings();
     req.palette     = _effectPanel->palette();
     req.progress    = progress;
@@ -254,6 +255,7 @@ QList<QColor> MainWindow::renderModelLayers(const QString& modelName) {
 
         QtEffectRenderer::Request req;
         req.effectName  = blk.effectName;
+        req.modelName   = modelName;   // real model for InitRenderBufferNodes
         req.settings    = _effectPanel->currentSettings();
         req.palette     = _effectPanel->palette();
         req.progress    = qBound(0.0, progress, 1.0);
@@ -614,6 +616,7 @@ void MainWindow::tickHousePreview(int curFrame) {
 
                 QtEffectRenderer::Request req;
                 req.effectName = blk.effectName;
+                req.modelName  = mn;
                 req.bufferW    = mi.bufferW;
                 req.bufferH    = mi.bufferH;
                 req.progress   = qBound(0.0, progress, 1.0);
