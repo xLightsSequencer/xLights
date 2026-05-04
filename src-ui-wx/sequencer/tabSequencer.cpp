@@ -820,21 +820,14 @@ void xLightsFrame::CheckForValidModels()
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
                                     Model* sm = m->GetSubModel(z);
                                     if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
-                                        // Only silently remap if the target row has no effects;
-                                        // if it does, fall through to the manual dialog to avoid silent data loss.
-                                        SubModelElement* existingTarget = el->GetSubModel(sm->GetName(), false);
-                                        if (existingTarget != nullptr && existingTarget->HasEffects()) {
-                                            break;
+                                        // Only silently remap if the target name doesn't already exist in
+                                        // the sequence — never delete an existing row or its effects.
+                                        if (el->GetSubModel(sm->GetName(), false) == nullptr) {
+                                            spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
+                                                sme->GetName(), sm->GetName());
+                                            sme->SetName(sm->GetName());
+                                            submodelRenameAlias = true;
                                         }
-                                        spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
-                                            sme->GetName(), sm->GetName());
-                                        int priorCnt = el->GetSubModelAndStrandCount();
-                                        el->RemoveSubModel(sm->GetName());
-                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
-                                            --x1;
-                                        }
-                                        sme->SetName(sm->GetName());
-                                        submodelRenameAlias = true;
                                         break;
                                     }
                                 }
