@@ -324,11 +324,15 @@ MainSequencer::MainSequencer(wxWindow* parent, bool smallWaveform, wxWindowID id
     _seqFilterCtrl->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, &MainSequencer::OnSeqFilterCancel, this);
     _seqFilterCtrl->Bind(wxEVT_SEARCHCTRL_SEARCH_BTN, &MainSequencer::OnSeqFilterEnter, this);
     _seqFilterCtrl->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
-        if (e.GetKeyCode() == WXK_ESCAPE) { ShowSeqFilterPanel(false); }
-        else { e.Skip(); }
+        if (e.GetKeyCode() == WXK_ESCAPE) {
+            _seqFilterCtrl->ChangeValue("");
+            ApplySeqFilter("");
+            if (PanelEffectGrid != nullptr) PanelEffectGrid->SetFocus();
+        } else {
+            e.Skip();
+        }
     });
     FlexGridSizer2->Add(_seqFilterCtrl, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 2);
-    _seqFilterCtrl->Hide();
 
     spdlog::debug("                Create time display control");
     timeDisplay = new TimeDisplayControl(this, wxID_ANY);
@@ -846,7 +850,10 @@ bool MainSequencer::HandleSequencerKeyBinding(wxKeyEvent& event)
                 xLightsApp::GetFrame()->OnMenuItemSelectEffectSelected(e);
             }
             else if (type == "FILTER_SEQUENCER") {
-                ShowSeqFilterPanel(!_seqFilterCtrl->IsShown());
+                if (_seqFilterCtrl != nullptr) {
+                    _seqFilterCtrl->SetFocus();
+                    _seqFilterCtrl->SelectAll();
+                }
             }
             else if (type == "PERSPECTIVES_TOGGLE") {
                 wxCommandEvent e;
@@ -2259,21 +2266,10 @@ void MainSequencer::OnCheckBox_SuspendRenderClick(wxCommandEvent& event)
     ToggleRender(CheckBox_SuspendRender->IsChecked());
 }
 
-void MainSequencer::ShowSeqFilterPanel(bool show)
+void MainSequencer::ReApplyCurrentSeqFilter()
 {
     if (_seqFilterCtrl == nullptr) return;
-    if (show) {
-        _seqFilterCtrl->Show();
-        GetSizer()->Layout();
-        _seqFilterCtrl->SetFocus();
-        _seqFilterCtrl->SelectAll();
-    } else {
-        _seqFilterCtrl->Hide();
-        _seqFilterCtrl->SetValue("");
-        GetSizer()->Layout();
-        ApplySeqFilter("");
-        PanelEffectGrid->SetFocus();
-    }
+    ApplySeqFilter(_seqFilterCtrl->GetValue());
 }
 
 void MainSequencer::ApplySeqFilter(const wxString& filter)
@@ -2320,10 +2316,13 @@ void MainSequencer::OnSeqFilterText(wxCommandEvent& event)
 
 void MainSequencer::OnSeqFilterEnter(wxCommandEvent& event)
 {
-    ShowSeqFilterPanel(false);
+    if (PanelEffectGrid != nullptr) {
+        PanelEffectGrid->SetFocus();
+    }
 }
 
 void MainSequencer::OnSeqFilterCancel(wxCommandEvent& event)
 {
-    ShowSeqFilterPanel(false);
+    _seqFilterCtrl->ChangeValue("");
+    ApplySeqFilter("");
 }

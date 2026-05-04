@@ -35,6 +35,7 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include "models/ModelGroup.h"
+#include "sequencer/MainSequencer.h"
 
 #include <log.h>
 
@@ -1255,6 +1256,9 @@ void ViewsModelsPanel::SelectView(const std::string& view)
     }
 
     _xlFrame->DoForceSequencerRefresh();
+    if (auto* ms = _xlFrame->GetMainSequencer()) {
+        ms->ReApplyCurrentSeqFilter();
+    }
     ValidateWindow();
 }
 
