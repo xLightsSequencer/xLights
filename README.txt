@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -bug (MrPierreB)            Fix house-preview video export producing dark/washed-out colors on Windows
+                                and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
+                                the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
     -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
                                 renaming a missing submodel during sequence load. When checked, subsequent
                                 sequences with the same old submodel name are auto-remapped without prompting.

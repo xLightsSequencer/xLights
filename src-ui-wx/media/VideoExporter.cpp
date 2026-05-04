@@ -170,6 +170,17 @@ void GenericVideoExporter::initialize()
         if (videoCodec == nullptr) {
             videoCodec = ::avcodec_find_encoder(best);
         }
+#elif defined(_WIN32)
+        {
+            // Prefer GPU encoders: NVENC (NVIDIA) → AMF (AMD) → QSV (Intel) → software
+            const char* nvenc = (best == AV_CODEC_ID_H265) ? "hevc_nvenc" : "h264_nvenc";
+            const char* amf   = (best == AV_CODEC_ID_H265) ? "hevc_amf"   : "h264_amf";
+            const char* qsv   = (best == AV_CODEC_ID_H265) ? "hevc_qsv"   : "h264_qsv";
+            videoCodec = ::avcodec_find_encoder_by_name(nvenc);
+            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(amf);
+            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(qsv);
+            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder(best);
+        }
 #else
         videoCodec = ::avcodec_find_encoder(best);
 #endif
@@ -181,6 +192,16 @@ void GenericVideoExporter::initialize()
             videoCodec = ::avcodec_find_encoder_by_name(hwName2);
             if (videoCodec == nullptr) {
                 videoCodec = ::avcodec_find_encoder(best);
+            }
+#elif defined(_WIN32)
+            {
+                const char* nvenc = (best == AV_CODEC_ID_H265) ? "hevc_nvenc" : "h264_nvenc";
+                const char* amf   = (best == AV_CODEC_ID_H265) ? "hevc_amf"   : "h264_amf";
+                const char* qsv   = (best == AV_CODEC_ID_H265) ? "hevc_qsv"   : "h264_qsv";
+                videoCodec = ::avcodec_find_encoder_by_name(nvenc);
+                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(amf);
+                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(qsv);
+                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder(best);
             }
 #else
             videoCodec = ::avcodec_find_encoder(best);
@@ -273,6 +294,13 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         _videoCodecContext->rc_max_rate = _outParams.videoBitrate * 1000;
     }
 
+    if (codec->id == AV_CODEC_ID_H264 || codec->id == AV_CODEC_ID_H265) {
+        _videoCodecContext->color_range     = AVCOL_RANGE_JPEG;
+        _videoCodecContext->color_primaries = AVCOL_PRI_BT709;
+        _videoCodecContext->color_trc       = AVCOL_TRC_BT709;
+        _videoCodecContext->colorspace      = AVCOL_SPC_BT709;
+    }
+
     if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
 #if defined(__APPLE__)
         // Set up a VideoToolbox hardware frames context so the encoder can
@@ -322,8 +350,37 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
         ::av_opt_set_int(_videoCodecContext->priv_data, "prio_speed", 1, AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set_int(_videoCodecContext->priv_data, "frames_before", 0, AV_OPT_SEARCH_CHILDREN);
     } else {
+#ifdef _WIN32
+        std::string codecName = codec->name ? codec->name : "";
+        bool isNvenc = (codecName.find("nvenc") != std::string::npos);
+        bool isAmf   = (codecName.find("_amf")  != std::string::npos);
+        bool isQsv   = (codecName.find("_qsv")  != std::string::npos);
+        if (isNvenc) {
+            if (_outParams.videoBitrate == 0) {
+                ::av_opt_set(_videoCodecContext->priv_data, "rc", "vbr", 0);
+                ::av_opt_set(_videoCodecContext->priv_data, "cq", "18", 0);
+            }
+            if (::av_opt_set(_videoCodecContext->priv_data, "preset", "p4", 0) != 0)
+                ::av_opt_set(_videoCodecContext->priv_data, "preset", "medium", 0);
+        } else if (isAmf) {
+            ::av_opt_set(_videoCodecContext->priv_data, "quality", "quality", 0);
+            if (_outParams.videoBitrate == 0) {
+                ::av_opt_set(_videoCodecContext->priv_data, "rc", "cqp", 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_i", 18, 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_p", 18, 0);
+            }
+        } else if (isQsv) {
+            ::av_opt_set(_videoCodecContext->priv_data, "preset", "medium", 0);
+            if (_outParams.videoBitrate == 0)
+                ::av_opt_set_int(_videoCodecContext->priv_data, "global_quality", 18, 0);
+        } else {
+            ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
+            ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
+        }
+#else
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
         ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
+#endif
     }
     if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER) {
         _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -359,12 +416,32 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
             return initializeVideo(codec);
         }
     }
+#ifdef _WIN32
+    if (status != 0) {
+        std::string codecName = codec->name ? codec->name : "";
+        bool isHw = (codecName.find("nvenc") != std::string::npos ||
+                     codecName.find("_amf")  != std::string::npos ||
+                     codecName.find("_qsv")  != std::string::npos);
+        if (isHw) {
+            spdlog::warn("VideoExporter - Windows HW encoder '{}' failed ({}), falling back to software",
+                         codecName, status);
+            ::avcodec_free_context(&_videoCodecContext);
+            _videoCodecContext = nullptr;
+            const char* swName = (codec->id == AV_CODEC_ID_H265) ? "libx265" : "libx264";
+            const AVCodec* swCodec = ::avcodec_find_encoder_by_name(swName);
+            if (swCodec == nullptr)
+                swCodec = ::avcodec_find_encoder(codec->id);
+            if (swCodec != nullptr)
+                return initializeVideo(swCodec);
+        }
+    }
+#endif
     if (status != 0) {
         if (_videoCodecContext) {
             ::avcodec_free_context(&_videoCodecContext);
             _videoCodecContext = nullptr;
         }
-        
+
         spdlog::info("VideoExporter - Error opening video codec context: {}", status);
         return false;
     }
@@ -461,6 +538,13 @@ void GenericVideoExporter::initializeFrames()
         if (_swsContext == nullptr) {
             throw std::runtime_error("VideoExporter - Error initializing color-converter");
         }
+        // Output full-range BT.709 YUV (Y: 0-255) to match the source sRGB pixels.
+        // Without this, sws_scale squeezes Y to 16-235 (studio swing) and the
+        // exported video looks dark on players that treat it as full range.
+        ::sws_setColorspaceDetails(_swsContext,
+            ::sws_getCoefficients(SWS_CS_ITU709), 1,
+            ::sws_getCoefficients(SWS_CS_ITU709), 1,
+            0, 1 << 16, 1 << 16);
     }
     if (_audioCodecContext != nullptr) {
         _audioFrame = ::av_frame_alloc();
