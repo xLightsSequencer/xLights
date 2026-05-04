@@ -208,6 +208,9 @@ public:
     }
 
     bool Init(const char * vs, const char * fs) {
+        if (glCreateShader == nullptr) {
+            return false;
+        }
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         if (VertexShaderID != 0) {
             GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
