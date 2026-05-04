@@ -160,6 +160,16 @@ void GenericVideoExporter::initialize()
         enum AVCodecID best = _outParams.videoCodec.find("H.264") != std::string::npos ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265;
         // Note: H.264 High/High10 profiles support up to 4096x2304 (Level 5.2),
         // so we no longer force HEVC for height > 1080. The user's codec choice wins.
+#ifdef _WIN32
+        // Prefer GPU encoders: NVENC (NVIDIA) → AMF (AMD) → QSV (Intel) → software
+        auto findWindowsEncoder = [](AVCodecID id) -> const AVCodec* {
+            const AVCodec* c = ::avcodec_find_encoder_by_name((id == AV_CODEC_ID_H265) ? "hevc_nvenc" : "h264_nvenc");
+            if (c == nullptr) c = ::avcodec_find_encoder_by_name((id == AV_CODEC_ID_H265) ? "hevc_amf" : "h264_amf");
+            if (c == nullptr) c = ::avcodec_find_encoder_by_name((id == AV_CODEC_ID_H265) ? "hevc_qsv" : "h264_qsv");
+            if (c == nullptr) c = ::avcodec_find_encoder(id);
+            return c;
+        };
+#endif
 #if defined(__APPLE__)
         // Prefer the Apple hardware encoder on macOS. avcodec_find_encoder()
         // returns whichever encoder FFmpeg registered first for the codec ID,
@@ -171,16 +181,7 @@ void GenericVideoExporter::initialize()
             videoCodec = ::avcodec_find_encoder(best);
         }
 #elif defined(_WIN32)
-        {
-            // Prefer GPU encoders: NVENC (NVIDIA) → AMF (AMD) → QSV (Intel) → software
-            const char* nvenc = (best == AV_CODEC_ID_H265) ? "hevc_nvenc" : "h264_nvenc";
-            const char* amf   = (best == AV_CODEC_ID_H265) ? "hevc_amf"   : "h264_amf";
-            const char* qsv   = (best == AV_CODEC_ID_H265) ? "hevc_qsv"   : "h264_qsv";
-            videoCodec = ::avcodec_find_encoder_by_name(nvenc);
-            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(amf);
-            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(qsv);
-            if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder(best);
-        }
+        videoCodec = findWindowsEncoder(best);
 #else
         videoCodec = ::avcodec_find_encoder(best);
 #endif
@@ -194,15 +195,7 @@ void GenericVideoExporter::initialize()
                 videoCodec = ::avcodec_find_encoder(best);
             }
 #elif defined(_WIN32)
-            {
-                const char* nvenc = (best == AV_CODEC_ID_H265) ? "hevc_nvenc" : "h264_nvenc";
-                const char* amf   = (best == AV_CODEC_ID_H265) ? "hevc_amf"   : "h264_amf";
-                const char* qsv   = (best == AV_CODEC_ID_H265) ? "hevc_qsv"   : "h264_qsv";
-                videoCodec = ::avcodec_find_encoder_by_name(nvenc);
-                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(amf);
-                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder_by_name(qsv);
-                if (videoCodec == nullptr) videoCodec = ::avcodec_find_encoder(best);
-            }
+            videoCodec = findWindowsEncoder(best);
 #else
             videoCodec = ::avcodec_find_encoder(best);
 #endif
@@ -542,10 +535,12 @@ void GenericVideoExporter::initializeFrames()
         // Output full-range BT.709 YUV (Y: 0-255) to match the source sRGB pixels.
         // Without this, sws_scale squeezes Y to 16-235 (studio swing) and the
         // exported video looks dark on players that treat it as full range.
-        ::sws_setColorspaceDetails(_swsContext,
-            ::sws_getCoefficients(SWS_CS_ITU709), 1,
-            ::sws_getCoefficients(SWS_CS_ITU709), 1,
-            0, 1 << 16, 1 << 16);
+        if (::sws_setColorspaceDetails(_swsContext,
+                ::sws_getCoefficients(SWS_CS_ITU709), 1,
+                ::sws_getCoefficients(SWS_CS_ITU709), 1,
+                0, 1 << 16, 1 << 16) < 0) {
+            spdlog::warn("VideoExporter - sws_setColorspaceDetails failed; export may have limited-range color");
+        }
     }
     if (_audioCodecContext != nullptr) {
         _audioFrame = ::av_frame_alloc();
