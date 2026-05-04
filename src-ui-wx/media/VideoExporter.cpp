@@ -429,10 +429,11 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
             _videoCodecContext = nullptr;
             const char* swName = (codec->id == AV_CODEC_ID_H265) ? "libx265" : "libx264";
             const AVCodec* swCodec = ::avcodec_find_encoder_by_name(swName);
-            if (swCodec == nullptr)
-                swCodec = ::avcodec_find_encoder(codec->id);
-            if (swCodec != nullptr)
+            if (swCodec != nullptr && swCodec != codec) {
                 return initializeVideo(swCodec);
+            }
+            spdlog::error("VideoExporter - No software fallback encoder available after '{}' failed", codecName);
+            return false;
         }
     }
 #endif
