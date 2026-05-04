@@ -561,18 +561,17 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
         }
     }
     if (!m_minSizeSet) {
-        m_minSizeSet = true;
         wxWindow* p = GetParent();
         while (p && !p->GetName().IsSameAs("Effect"))
             p = p->GetParent();
-        if (p && p->GetParent()) {
-            wxWindow* auiPaneWnd = p->GetParent();
-            wxAuiManager* mgr = wxAuiManager::GetManager(auiPaneWnd);
+        if (p) {
+            wxAuiManager* mgr = wxAuiManager::GetManager(p);
             if (mgr) {
-                wxAuiPaneInfo& pane = mgr->GetPane(auiPaneWnd);
+                wxAuiPaneInfo& pane = mgr->GetPane(p);
                 if (pane.IsOk()) {
                     pane.MinSize(wxSize(350, -1));
                     mgr->Update();
+                    m_minSizeSet = true;
                 }
             }
         }
