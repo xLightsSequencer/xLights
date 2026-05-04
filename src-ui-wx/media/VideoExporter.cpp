@@ -416,16 +416,28 @@ bool GenericVideoExporter::initializeVideo(const AVCodec* codec)
                      codecName.find("_amf")  != std::string::npos ||
                      codecName.find("_qsv")  != std::string::npos);
         if (isHw) {
-            spdlog::warn("VideoExporter - Windows HW encoder '{}' failed ({}), falling back to software",
+            spdlog::warn("VideoExporter - Windows HW encoder '{}' failed ({}), trying lower-priority encoders",
                          codecName, status);
             ::avcodec_free_context(&_videoCodecContext);
             _videoCodecContext = nullptr;
-            const char* swName = (codec->id == AV_CODEC_ID_H265) ? "libx265" : "libx264";
-            const AVCodec* swCodec = ::avcodec_find_encoder_by_name(swName);
-            if (swCodec != nullptr && swCodec != codec) {
-                return initializeVideo(swCodec);
+            bool isH265 = (codec->id == AV_CODEC_ID_H265);
+            const char* const candidates[] = {
+                isH265 ? "hevc_nvenc" : "h264_nvenc",
+                isH265 ? "hevc_amf"   : "h264_amf",
+                isH265 ? "hevc_qsv"   : "h264_qsv",
+                isH265 ? "libx265"    : "libx264",
+            };
+            bool foundFailed = false;
+            for (const char* name : candidates) {
+                if (codecName == name) { foundFailed = true; continue; }
+                if (!foundFailed) continue;
+                const AVCodec* next = ::avcodec_find_encoder_by_name(name);
+                if (next != nullptr) {
+                    spdlog::info("VideoExporter - Retrying with encoder '{}'", name);
+                    return initializeVideo(next);
+                }
             }
-            spdlog::error("VideoExporter - No software fallback encoder available after '{}' failed", codecName);
+            spdlog::error("VideoExporter - No fallback encoder available after '{}' failed", codecName);
             return false;
         }
     }
