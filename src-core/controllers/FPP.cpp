@@ -1164,7 +1164,10 @@ bool FPP::PrepareUploadSequence(FSEQFile *file,
     sequences[baseName].media = mediaBaseName;
     sequences[baseName].duration = ((float)(file->getStepTime() * file->getNumFrames())) / 1000.0f;
 
-    tempFileName = (std::filesystem::temp_directory_path() / baseName).string();
+    std::string safeIP = ipAddress;
+    std::replace(safeIP.begin(), safeIP.end(), '.', '_');
+    std::replace(safeIP.begin(), safeIP.end(), ':', '_');
+    tempFileName = (std::filesystem::temp_directory_path() / (safeIP + "_" + baseName)).string();
     TempFileManager::GetTempFileManager().AddTempFile(tempFileName);
     std::string fileName = tempFileName;
 
