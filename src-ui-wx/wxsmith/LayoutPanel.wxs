@@ -36,6 +36,10 @@
 														<label>Models</label>
 													</object>
 													<object class="notebookpage">
+														<object class="wxPanel" name="ID_PANEL_Controllers" variable="PanelControllers" member="yes" />
+														<label>Controllers</label>
+													</object>
+													<object class="notebookpage">
 														<object class="wxPanel" name="ID_PANEL_Objects" variable="PanelObjects" member="yes" />
 														<label>3D Objects</label>
 													</object>

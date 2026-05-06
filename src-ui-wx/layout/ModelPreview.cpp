@@ -602,6 +602,40 @@ void ModelPreview::RenderModels(const std::vector<Model*>& models, bool isModelS
                 color = ColorManager::instance()->GetColorPtr(ColorManager::COLOR_MODEL_DEFAULT);
             }
 
+            // Port highlight: color only the nodes belonging to the selected port.
+            // String-index variant (multi-string model split across ports):
+            auto psh = _portStringHighlight.find(m);
+            const bool hasPortStringHighlight = (psh != _portStringHighlight.end() && psh->second >= 0);
+            // Channel-range variant (shadow model whose main model spans the full range):
+            auto pch = _portChannelHighlight.find(m);
+            const bool hasPortChannelHighlight = (pch != _portChannelHighlight.end());
+
+            if (hasPortStringHighlight || hasPortChannelHighlight) {
+                static const xlColor highlightColor = xlYELLOW;
+                static const xlColor dimColor(30, 30, 30);
+                const size_t nodeCount = m->GetNodeCount();
+                if (hasPortChannelHighlight) {
+                    const uint32_t firstChan = pch->second.first;
+                    const uint32_t lastChan  = pch->second.second;
+                    for (size_t n = 0; n < nodeCount; ++n) {
+                        const int32_t nodeChan = m->NodeStartChannel(n);
+                        if (nodeChan >= (int32_t)firstChan && nodeChan <= (int32_t)lastChan)
+                            m->SetNodeColor(n, highlightColor);
+                        else
+                            m->SetNodeColor(n, dimColor);
+                    }
+                } else {
+                    const int highlightStr = psh->second;
+                    for (size_t n = 0; n < nodeCount; ++n) {
+                        if (m->GetNodePhysicalStringIndex(n) == highlightStr)
+                            m->SetNodeColor(n, highlightColor);
+                        else
+                            m->SetNodeColor(n, dimColor);
+                    }
+                }
+                color = nullptr; // read per-node colors in DisplayModelOnWindow
+            }
+
             if (m->GetDisplayAs() == DisplayAsType::SubModel && !m->GroupSelected() && !m->Selected()) {
                 // we dont display submodels if they are not selected
             } else {

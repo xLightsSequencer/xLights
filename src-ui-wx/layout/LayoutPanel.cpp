@@ -75,6 +75,8 @@
 #include "layout/ViewsModelsPanel.h"
 #include "outputs/OutputManager.h"
 #include "outputs/Output.h"
+#include "outputs/Controller.h"
+#include "controllers/ControllerUploadData.h"
 #include "cad/ModelToCAD.h"
 #include "layout/LORPreview.h"
 #include "model/ModelFaceDialog.h"
@@ -462,6 +464,8 @@ const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
 const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
 const long LayoutPanel::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
+const wxWindowID LayoutPanel::ID_PANEL_Controllers = wxNewId();
+const long LayoutPanel::ID_TREECTRL_CONTROLLERS = wxNewId();
 
 #define CHNUMWIDTH "10000000000000"
 
@@ -601,8 +605,10 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
 	Notebook_Objects = new wxNotebook(FirstPanel, ID_NOTEBOOK_OBJECTS, wxDefaultPosition, wxDefaultSize, 0, _T("ID_NOTEBOOK_OBJECTS"));
 	Notebook_Objects->SetMinSize(wxDLG_UNIT(FirstPanel,wxSize(-1,100)));
 	PanelModels = new wxPanel(Notebook_Objects, ID_PANEL4, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL4"));
+	PanelControllers = new wxPanel(Notebook_Objects, ID_PANEL_Controllers, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Controllers"));
 	PanelObjects = new wxPanel(Notebook_Objects, ID_PANEL_Objects, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("ID_PANEL_Objects"));
 	Notebook_Objects->AddPage(PanelModels, _("Models"), false);
+	Notebook_Objects->AddPage(PanelControllers, _("Controllers"), false);
 	Notebook_Objects->AddPage(PanelObjects, _("3D Objects"), false);
 	FlexGridSizer4->Add(Notebook_Objects, 1, wxALL|wxEXPAND, 1);
 	FirstPanel->SetSizer(FlexGridSizer4);
@@ -746,6 +752,17 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     comparator.SetFrame(xlights);
     TreeListViewModels->SetItemComparator(&comparator);
 
+    // Controllers tab
+    {
+        wxBoxSizer* sizerCtrl = new wxBoxSizer(wxVERTICAL);
+        TreeCtrlControllers = new wxTreeCtrl(PanelControllers, ID_TREECTRL_CONTROLLERS,
+            wxDefaultPosition, wxDefaultSize,
+            wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT | wxTR_HIDE_ROOT | wxTR_SINGLE | wxBORDER_NONE);
+        sizerCtrl->Add(TreeCtrlControllers, 1, wxEXPAND);
+        PanelControllers->SetSizer(sizerCtrl);
+        TreeCtrlControllers->Bind(wxEVT_TREE_SEL_CHANGED, &LayoutPanel::OnControllerTreeSelectionChanged, this);
+    }
+
     ModelSplitter->ReplaceWindow(SecondPanel, propertyEditor);
     SecondPanel->Destroy();
 
@@ -846,7 +863,7 @@ LayoutPanel::LayoutPanel(wxWindow* parent, xLightsFrame *xl, wxPanel* sequencer)
     ModelGroupWindow = sw;
 
     if( !is_3d ) {
-        Notebook_Objects->RemovePage(1);
+        Notebook_Objects->RemovePage(Notebook_Objects->GetPageCount() - 1);
     }
 
     if (sp != -1) {
@@ -1153,12 +1170,12 @@ int LayoutPanel::GetColumnIndex(const std::string& name) const
 
 void LayoutPanel::SaveModelsListColumns()
 {
-    wxString colOrder;
-    for (size_t i = 0; i < TreeListViewModels->GetColumnCount(); i++) {
+    wxString colOrder = "";
+    for (int i = 1; i < (int)TreeListViewModels->GetColumnCount(); i++) {
         for (int j = 0; j < (int)TreeListViewModels->GetColumnCount(); j++) {
             auto col = TreeListViewModels->GetDataView()->GetColumn(j);
             auto p = TreeListViewModels->GetDataView()->GetColumnPosition(col);
-            if (p == (int)i && col->GetTitle() != MODELCOLNAME) {
+            if (p == i && col->GetTitle() != MODELCOLNAME) {
                 if (col->IsSortKey()) {
                     if (col->IsSortOrderAscending()) {
                         colOrder += "U";
@@ -1776,7 +1793,6 @@ void LayoutPanel::RenameModelInTree(Model *model, const std::string& new_name)
 int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expanded,
                                 std::list<wxTreeListItem> &toExpand,
                                 int nativeOrder, bool fullName) {
-    
 
     if (model == nullptr) {
         spdlog::critical("LayoutPanel::AddModelToTree model is null ... this is going to crash.");
@@ -1911,6 +1927,9 @@ void LayoutPanel::UpdateModelList(bool full_refresh, std::vector<Model*> &models
             }
         }
 
+    }
+    if (Notebook_Objects->GetSelection() == 1) {
+        BuildControllerTree();
     }
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UpdateModelList");
 
@@ -2867,6 +2886,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
         }
     }
 
+    modelPreview->ClearPortStringHighlights();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::UnselectAllModels");
 
     if (!updatingProperty && addBkgProps) {
@@ -6715,6 +6735,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
             }
         }
     }
+
 }
 
 // Unselect a Model in the tree, currently only unselects top level model if found
@@ -7135,7 +7156,7 @@ void LayoutPanel::OnAddObjectPopup(wxCommandEvent& event)
     }
 
     if( object_created ) {
-        Notebook_Objects->ChangeSelection(1);
+        Notebook_Objects->ChangeSelection(2);
         editing_models = false;
         SelectViewObject(vobj, true);
         //SetupPropGrid(vobj);
@@ -9609,7 +9630,7 @@ void LayoutPanel::OnItemContextMenu(wxTreeListEvent& event)
                     mnuContext.AppendSeparator();
                 }
             }
-            else 
+            else
             if (selectedTreeModels.size() > 1) {
                 auto parent = TreeListViewModels->GetItemParent(selectedTreeModels[0]);
                 bool allSameParent = true;
@@ -9823,9 +9844,184 @@ void LayoutPanel::OnSelectionChanged(wxTreeListEvent& event)
     }
 }
 
+namespace {
+class ControllerTreeData : public wxTreeItemData {
+public:
+    std::string controllerName;
+    explicit ControllerTreeData(const std::string& name) : controllerName(name) {}
+};
+
+class ControllerPortTreeData : public wxTreeItemData {
+public:
+    std::string controllerName;
+    std::string portType;
+    int portNumber = 0;
+    ControllerPortTreeData(const std::string& c, const std::string& t, int p)
+        : controllerName(c), portType(t), portNumber(p) {}
+};
+
+static std::string GetPortModelNamesStr(UDControllerPort* port) {
+    std::string result;
+    std::set<Model*> seen;
+    for (auto* pm : port->GetModels()) {
+        Model* m = pm->GetModel();
+        if (m && seen.insert(m).second) {
+            if (!result.empty()) result += ", ";
+            result += m->name;
+        }
+    }
+    return result;
+}
+} // namespace
+
+void LayoutPanel::BuildControllerTree() {
+    TreeCtrlControllers->DeleteAllItems();
+    wxTreeItemId root = TreeCtrlControllers->AddRoot("Controllers");
+
+    for (Controller* ctrl : xlights->GetOutputManager()->GetControllers()) {
+        UDController udc(ctrl, xlights->GetOutputManager(), &xlights->AllModels, false);
+
+        wxString ctrlLabel = ctrl->GetName();
+        {
+            std::string vmv;
+            if (!ctrl->GetVendor().empty()) vmv += ctrl->GetVendor();
+            if (!ctrl->GetModel().empty()) { if (!vmv.empty()) vmv += " "; vmv += ctrl->GetModel(); }
+            if (!ctrl->GetVariant().empty()) { if (!vmv.empty()) vmv += " "; vmv += ctrl->GetVariant(); }
+            if (!vmv.empty()) ctrlLabel += " (" + vmv + ")";
+        }
+        wxTreeItemId ctrlItem = TreeCtrlControllers->AppendItem(root, ctrlLabel,
+            -1, -1, new ControllerTreeData(ctrl->GetName()));
+
+        auto addPorts = [&](const std::string& portTypeLabel, int maxPort,
+                            bool (UDController::*hasPort)(int) const,
+                            UDControllerPort* (UDController::*getPort)(int)) {
+            for (int p = 1; p <= maxPort; p++) {
+                if (!(udc.*hasPort)(p)) continue;
+                UDControllerPort* port = (udc.*getPort)(p);
+                if (!port) continue;
+                std::string models = GetPortModelNamesStr(port);
+                wxString label = wxString::Format("%s %d: %s", portTypeLabel, p, models);
+                TreeCtrlControllers->AppendItem(ctrlItem, label, -1, -1,
+                    new ControllerPortTreeData(ctrl->GetName(), portTypeLabel, p));
+            }
+        };
+
+        addPorts("Port", udc.GetMaxPixelPort(),
+                 &UDController::HasPixelPort, &UDController::GetControllerPixelPort);
+        addPorts("Serial Port", udc.GetMaxSerialPort(),
+                 &UDController::HasSerialPort, &UDController::GetControllerSerialPort);
+        addPorts("PWM Port", udc.GetMaxPWMPort(),
+                 &UDController::HasPWMPort, &UDController::GetControllerPWMPort);
+        addPorts("Virtual Matrix", udc.GetMaxVirtualMatrixPort(),
+                 &UDController::HasVirtualMatrixPort, &UDController::GetControllerVirtualMatrixPort);
+        addPorts("LED Panel", udc.GetMaxLEDPanelMatrixPort(),
+                 &UDController::HasLEDPanelMatrixPort, &UDController::GetControllerLEDPanelMatrixPort);
+    }
+}
+
+void LayoutPanel::OnControllerTreeSelectionChanged(wxTreeEvent& event) {
+    UnSelectAllModels(false);
+
+    wxTreeItemId selected = TreeCtrlControllers->GetSelection();
+    if (!selected.IsOk() || selected == TreeCtrlControllers->GetRootItem()) {
+        ShowPropGrid(true);
+        propertyEditor->Freeze();
+        clearPropGrid();
+        propertyEditor->Thaw();
+        return;
+    }
+
+    wxTreeItemData* data = TreeCtrlControllers->GetItemData(selected);
+    std::vector<Model*> modelsToSelect;
+
+    if (auto* ctrlData = dynamic_cast<ControllerTreeData*>(data)) {
+        std::set<Model*> seen;
+        for (const auto& [name, model] : xlights->AllModels) {
+            if (model->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+            if (model->GetControllerName() != ctrlData->controllerName) continue;
+            const std::string& shadowFor = model->GetShadowModelFor();
+            if (!shadowFor.empty()) {
+                // Shadow model — select the main model instead
+                Model* mainModel = xlights->AllModels[shadowFor];
+                if (mainModel && seen.insert(mainModel).second)
+                    modelsToSelect.push_back(mainModel);
+            } else {
+                if (seen.insert(model).second)
+                    modelsToSelect.push_back(model);
+            }
+        }
+    } else if (auto* portData = dynamic_cast<ControllerPortTreeData*>(data)) {
+        Controller* ctrl = nullptr;
+        for (Controller* c : xlights->GetOutputManager()->GetControllers()) {
+            if (c->GetName() == portData->controllerName) { ctrl = c; break; }
+        }
+        if (ctrl) {
+            UDController udc(ctrl, xlights->GetOutputManager(), &xlights->AllModels, false);
+            UDControllerPort* port = nullptr;
+            if (portData->portType == "Port") port = udc.GetControllerPixelPort(portData->portNumber);
+            else if (portData->portType == "Serial Port") port = udc.GetControllerSerialPort(portData->portNumber);
+            else if (portData->portType == "PWM Port") port = udc.GetControllerPWMPort(portData->portNumber);
+            else if (portData->portType == "Virtual Matrix") port = udc.GetControllerVirtualMatrixPort(portData->portNumber);
+            else if (portData->portType == "LED Panel") port = udc.GetControllerLEDPanelMatrixPort(portData->portNumber);
+
+            if (port) {
+                std::map<Model*, int> modelString;
+                for (auto* pm : port->GetModels()) {
+                    Model* portModel = pm->GetModel();
+                    if (!portModel) continue;
+
+                    const std::string& shadowFor = portModel->GetShadowModelFor();
+                    if (!shadowFor.empty()) {
+                        // Shadow model: highlight the matching channel range on the main model
+                        Model* mainModel = xlights->AllModels[shadowFor];
+                        if (mainModel) {
+                            if (modelString.find(mainModel) == modelString.end()) {
+                                modelString[mainModel] = -2; // sentinel: channel-range highlight
+                                modelsToSelect.push_back(mainModel);
+                            }
+                            modelPreview->SetPortChannelHighlight(mainModel,
+                                portModel->GetFirstChannel(),
+                                portModel->GetLastChannel());
+                        }
+                    } else {
+                        if (modelString.find(portModel) == modelString.end()) {
+                            modelString[portModel] = pm->GetString();
+                            modelsToSelect.push_back(portModel);
+                        } else {
+                            // model spans multiple entries on this port — don't partial-highlight
+                            modelString[portModel] = -1;
+                        }
+                    }
+                }
+                for (auto& [m, s] : modelString) {
+                    if (s >= 0) // multi-string case only; shadow (-2) and no-highlight (-1) skip
+                        modelPreview->SetPortStringHighlight(m, s);
+                }
+            }
+        }
+    }
+
+    ShowPropGrid(true);
+    propertyEditor->Freeze();
+    clearPropGrid();
+    if (modelsToSelect.empty()) {
+        propertyEditor->Thaw();
+        return;
+    }
+
+    bool isPrimary = true;
+    for (Model* m : modelsToSelect) {
+        SetTreeModelSelected(m, isPrimary);
+        isPrimary = false;
+    }
+    propertyEditor->Thaw();
+
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+        "LayoutPanel::OnControllerTreeSelectionChanged");
+}
+
 void LayoutPanel::HandleSelectionChanged() {
 
-    
 
     // Even when Tree is Frozen which happens during full refresh this event is still fired on DeleteItem()/DeleteItems()
     // and randomly causes crash when model is nullptr, so bail when Frozen.  Also make sure tooltip is empty and property
@@ -10095,7 +10291,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
         if (m == nullptr) {
             UnSelectAllModels();
         }
-        Notebook_Objects->RemovePage(1);
+        Notebook_Objects->RemovePage(Notebook_Objects->GetPageCount() - 1);
     }
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
@@ -10259,15 +10455,16 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
 
 void LayoutPanel::OnNotebook_ObjectsPageChanged(wxNotebookEvent& event)
 {
+    int page = Notebook_Objects->GetSelection();
 #ifdef __WXOSX__
     UnSelectAllModels();
 #else
     UnSelectAllModelsInTree();
 #endif
-    if (Notebook_Objects->GetPageText(Notebook_Objects->GetSelection()) == "Models") {
-        editing_models = true;
-    } else {
-        editing_models = false;
+    editing_models = (page == 0);
+
+    if (page == 1) {
+        BuildControllerTree();
     }
 }
 

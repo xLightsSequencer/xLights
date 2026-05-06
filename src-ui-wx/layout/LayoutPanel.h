@@ -124,6 +124,7 @@ class LayoutPanel: public wxPanel
 		wxNotebook* Notebook_Objects;
 		wxPanel* FirstPanel;
 		wxPanel* LeftPanel;
+		wxPanel* PanelControllers;
 		wxPanel* PanelModels;
 		wxPanel* PanelObjects;
 		wxPanel* PreviewGLPanel;
@@ -147,6 +148,7 @@ class LayoutPanel: public wxPanel
         void UpdateLayoutSplitter();
         int LeftPanelMinWidth() const; // 18% of splitter width, floor kMinPaneWidth
 		wxTreeListCtrl* TreeListViewModels = nullptr;
+        wxTreeCtrl* TreeCtrlControllers = nullptr;
         wxDataViewModel* TreeListMiewInternalModel = nullptr;
         bool ctrlFPressed = false;
         bool ctrlshiftFPressed = false;
@@ -155,6 +157,7 @@ class LayoutPanel: public wxPanel
 
 		//(*Identifiers(LayoutPanel)
 		static const wxWindowID ID_PANEL4;
+		static const wxWindowID ID_PANEL_Controllers;
 		static const wxWindowID ID_PANEL_Objects;
 		static const wxWindowID ID_NOTEBOOK_OBJECTS;
 		static const wxWindowID ID_PANEL3;
@@ -175,6 +178,7 @@ class LayoutPanel: public wxPanel
 		//*)
 
         static const long ID_TREELISTVIEW_MODELS;
+        static const long ID_TREECTRL_CONTROLLERS;
         static const long ID_TEXTCTRL_MODEL_FILTER;
         static const long ID_PREVIEW_REPLACEMODEL;
         static const long ID_PREVIEW_RESET;
@@ -314,6 +318,8 @@ class LayoutPanel: public wxPanel
         void OnPropertyGridContextMenu(wxCommandEvent& event);
         void OnModelFilterTextChanged(wxCommandEvent& event);
         void OnModelFilterCancelBtn(wxCommandEvent& event);
+        void BuildControllerTree();
+        void OnControllerTreeSelectionChanged(wxTreeEvent& event);
         void DockAll();
         void ResetToDefaults();
         void HideFloatingPanes();
