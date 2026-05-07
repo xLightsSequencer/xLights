@@ -9851,12 +9851,25 @@ public:
     explicit ControllerTreeData(const std::string& name) : controllerName(name) {}
 };
 
+enum class ControllerPortType { Pixel, Serial, PWM, VirtualMatrix, LEDPanel };
+
+static const char* PortTypeName(ControllerPortType t) {
+    switch (t) {
+        case ControllerPortType::Pixel:         return "Port";
+        case ControllerPortType::Serial:        return "Serial Port";
+        case ControllerPortType::PWM:           return "PWM Port";
+        case ControllerPortType::VirtualMatrix: return "Virtual Matrix";
+        case ControllerPortType::LEDPanel:      return "LED Panel";
+    }
+    return "Port";
+}
+
 class ControllerPortTreeData : public wxTreeItemData {
 public:
     std::string controllerName;
-    std::string portType;
+    ControllerPortType portType;
     int portNumber = 0;
-    ControllerPortTreeData(const std::string& c, const std::string& t, int p)
+    ControllerPortTreeData(const std::string& c, ControllerPortType t, int p)
         : controllerName(c), portType(t), portNumber(p) {}
 };
 
@@ -9892,7 +9905,7 @@ void LayoutPanel::BuildControllerTree() {
         wxTreeItemId ctrlItem = TreeCtrlControllers->AppendItem(root, ctrlLabel,
             -1, -1, new ControllerTreeData(ctrl->GetName()));
 
-        auto addPorts = [&](const std::string& portTypeLabel, int maxPort,
+        auto addPorts = [&](ControllerPortType portTypeEnum, int maxPort,
                             bool (UDController::*hasPort)(int) const,
                             UDControllerPort* (UDController::*getPort)(int)) {
             for (int p = 1; p <= maxPort; p++) {
@@ -9900,21 +9913,21 @@ void LayoutPanel::BuildControllerTree() {
                 UDControllerPort* port = (udc.*getPort)(p);
                 if (!port) continue;
                 std::string models = GetPortModelNamesStr(port);
-                wxString label = wxString::Format("%s %d: %s", portTypeLabel, p, models);
+                wxString label = wxString::Format("%s %d: %s", PortTypeName(portTypeEnum), p, models.c_str());
                 TreeCtrlControllers->AppendItem(ctrlItem, label, -1, -1,
-                    new ControllerPortTreeData(ctrl->GetName(), portTypeLabel, p));
+                    new ControllerPortTreeData(ctrl->GetName(), portTypeEnum, p));
             }
         };
 
-        addPorts("Port", udc.GetMaxPixelPort(),
+        addPorts(ControllerPortType::Pixel, udc.GetMaxPixelPort(),
                  &UDController::HasPixelPort, &UDController::GetControllerPixelPort);
-        addPorts("Serial Port", udc.GetMaxSerialPort(),
+        addPorts(ControllerPortType::Serial, udc.GetMaxSerialPort(),
                  &UDController::HasSerialPort, &UDController::GetControllerSerialPort);
-        addPorts("PWM Port", udc.GetMaxPWMPort(),
+        addPorts(ControllerPortType::PWM, udc.GetMaxPWMPort(),
                  &UDController::HasPWMPort, &UDController::GetControllerPWMPort);
-        addPorts("Virtual Matrix", udc.GetMaxVirtualMatrixPort(),
+        addPorts(ControllerPortType::VirtualMatrix, udc.GetMaxVirtualMatrixPort(),
                  &UDController::HasVirtualMatrixPort, &UDController::GetControllerVirtualMatrixPort);
-        addPorts("LED Panel", udc.GetMaxLEDPanelMatrixPort(),
+        addPorts(ControllerPortType::LEDPanel, udc.GetMaxLEDPanelMatrixPort(),
                  &UDController::HasLEDPanelMatrixPort, &UDController::GetControllerLEDPanelMatrixPort);
     }
 }
@@ -9958,11 +9971,11 @@ void LayoutPanel::OnControllerTreeSelectionChanged(wxTreeEvent& event) {
         if (ctrl) {
             UDController udc(ctrl, xlights->GetOutputManager(), &xlights->AllModels, false);
             UDControllerPort* port = nullptr;
-            if (portData->portType == "Port") port = udc.GetControllerPixelPort(portData->portNumber);
-            else if (portData->portType == "Serial Port") port = udc.GetControllerSerialPort(portData->portNumber);
-            else if (portData->portType == "PWM Port") port = udc.GetControllerPWMPort(portData->portNumber);
-            else if (portData->portType == "Virtual Matrix") port = udc.GetControllerVirtualMatrixPort(portData->portNumber);
-            else if (portData->portType == "LED Panel") port = udc.GetControllerLEDPanelMatrixPort(portData->portNumber);
+            if (portData->portType == ControllerPortType::Pixel) port = udc.GetControllerPixelPort(portData->portNumber);
+            else if (portData->portType == ControllerPortType::Serial) port = udc.GetControllerSerialPort(portData->portNumber);
+            else if (portData->portType == ControllerPortType::PWM) port = udc.GetControllerPWMPort(portData->portNumber);
+            else if (portData->portType == ControllerPortType::VirtualMatrix) port = udc.GetControllerVirtualMatrixPort(portData->portNumber);
+            else if (portData->portType == ControllerPortType::LEDPanel) port = udc.GetControllerLEDPanelMatrixPort(portData->portNumber);
 
             if (port) {
                 std::map<Model*, int> modelString;
@@ -10013,6 +10026,9 @@ void LayoutPanel::OnControllerTreeSelectionChanged(wxTreeEvent& event) {
     for (Model* m : modelsToSelect) {
         SetTreeModelSelected(m, isPrimary);
         isPrimary = false;
+    }
+    if (selectedBaseObject != nullptr) {
+        SetupPropGrid(selectedBaseObject);
     }
     propertyEditor->Thaw();
 
