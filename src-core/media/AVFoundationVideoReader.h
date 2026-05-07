@@ -38,6 +38,7 @@ public:
     int GetPos() override;
     std::string GetFilename() const override;
     int GetPixelChannels() const override;
+    bool Resize(int width, int height) override;
 
     void SetScaleAlgorithm(VideoScaleAlgorithm algorithm) override;
 

@@ -289,7 +289,7 @@ struct SequencerView: View {
         if viewModel.isDirty {
             _ = viewModel.saveSequence()
         }
-        let path = viewModel.document.currentSequencePath() ?? ""
+        let path = viewModel.document.currentSequencePath()
         if path.isEmpty {
             saveAsError = "Cannot Save As — the sequence hasn't been saved yet. Use the New wizard to establish a first location."
             return

@@ -56,6 +56,9 @@ document lifecycle:
   per-file warnings collected to `outWarnings` (desktop
   surfaces them via `DisplayWarning`), atomic rename. Desktop
   `PackageSequence` now delegates entirely to `Pack()`.
+  Font bundling for Text-effect packages added 2026-04-26
+  (`a8f9087bb`) — flows automatically to iPad since both
+  clients call the same `Pack()`.
 - **Preferences rename** — "Exclude Presets" (a no-op) renamed
   to "Exclude Videos", which addresses the legitimate
   copyright concern that motivated the original name.

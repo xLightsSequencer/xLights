@@ -4,19 +4,26 @@ Scope: the sequencer canvas the user spends 90 % of their time in —
 the **effects grid**, **timeline ruler**, **waveform**, **row
 headings**, and the **timing tracks** strip between them.
 
-## Status (2026-04-30)
+## Status (2026-05-02)
 
 All P0 and P1 gaps are closed. Phase B and B-Metal closed out the
 rebuild and the Metal render pipeline; the multi-select / align /
 split / playhead-follow / timing-mark editing / lyric breakdown /
 loop-region / waveform-filter / row-heading-expansion / clipboard /
 keyboard-editing / scrollbar / find-replace / `.xtiming` I/O work all
-landed in the 2026-04-20 → 2026-04-28 sessions. What remains is a
-short tail of P2 polish plus two named open items (B77 MIDI import,
-B79 AI Speech 2 Lyrics).
+landed in the 2026-04-20 → 2026-04-28 sessions. B79 (AI Speech 2
+Lyrics) shipped via `XLAIServices.generateLyricTrack` + the unified
+Add Timing Track sheet. What remains is a short tail of P2 polish
+plus one named open item (B77 MIDI import).
 
-**Current counts:** 0 × P0, 0 × P1, **2 × P2 named**, **3 × Deferred**,
+**Current counts:** 0 × P0, 0 × P1, **1 × P2 named**, **3 × Deferred**,
 1 × Removed.
+
+B91 LRCLIB synced-lyrics import shipped 2026-05-02 (parser hoisted
+to `src-core/lyrics/LRCParser.{h,cpp}`; iPad bridge in
+`src-iPad/Bridge/XLLyricsImport.{h,mm}`; SwiftUI tab in
+`AddTimingTrackSheet`). Both clients now go through the same
+`lrc::ParseLRC` + `lrc::SanitizePhraseText`.
 
 ---
 
@@ -27,7 +34,6 @@ B79 AI Speech 2 Lyrics).
 | # | Gap | What's needed |
 |---|---|---|
 | **B77** | Import Notes (MIDI) | New iOS-side MIDI parser (or AVFoundation `MIDIFile`) + `XLSequenceDocument` bridge that converts note-on events into timing marks on a chosen track. Acceptance: pick a `.mid` from `.fileImporter`, choose target timing track, marks appear at note-on times with note-name labels. |
-| **B79** | AI Speech 2 Lyrics | Bridge to a speech-to-text path (Apple `SFSpeechRecognizer` is the obvious iOS-native fit) that emits per-word timestamps and writes them as a Phrases/Words breakdown on a new timing track. Acceptance: invoke from timing-track menu, select audio range, words land as a labelled breakdown ready for phoneme expansion via existing B85. |
 
 ### Deferred — substantial new work, not parity gaps in practice
 
@@ -41,7 +47,7 @@ B79 AI Speech 2 Lyrics).
 
 - **B59 — Edit Display Elements.** Phase F.
 - **B19 full-storage impl.** Phase C / G12 (`EffectPresetManager`-backed disk store). Session-only stub already shipped.
-- **B86 — Breakdown Phoneme.** Removed; not a real desktop feature (phonemes already fall out of the Word breakdown).
+- **B86 — Breakdown Phoneme.** Not a real desktop feature — `RowHeading.cpp` only has `BreakdownPhrases` (B84) and `BreakdownWords` (B85) menu items. B85 is the deepest breakdown desktop offers and is fully shipped on iPad (`breakdownWordsAtRow`, backed by the phoneme dictionary lazy-loaded by `iPadRenderContext` from the bundled `dictionaries/` resource folder). The Phrases→Words→Phonemes chain works end-to-end.
 
 ---
 

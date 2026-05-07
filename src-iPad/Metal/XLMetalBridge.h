@@ -9,9 +9,11 @@
 // ObjC bridge for xlStandaloneMetalCanvas + iPadModelPreview.
 // Owns the C++ canvas and preview, drives model rendering.
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface XLMetalBridge : NSObject
 
-- (instancetype)initWithName:(NSString*)name;
+- (instancetype)initWithName:( NSString* )name;
 - (void)attachLayer:(CAMetalLayer*)layer;
 - (void)setDrawableSize:(CGSize)size scale:(CGFloat)scale;
 
@@ -93,3 +95,5 @@
 - (BOOL)hasRenderedSuccessfully;
 
 @end
+
+NS_ASSUME_NONNULL_END

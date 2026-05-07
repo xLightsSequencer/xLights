@@ -257,6 +257,12 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            Button("AI Services…") {
+                viewModel.showingAIServices = true
+            }
+
+            Divider()
+
             // Package Logs — bundles xLights logs, MetricKit
             // diagnostics, the active show folder XML, the open
             // sequence, and a device-info sidecar into a single

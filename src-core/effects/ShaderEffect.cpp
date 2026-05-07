@@ -474,9 +474,10 @@ public:
         if (contextHandle) {
             auto& mgr = GLContextManager::Instance();
             mgr.ExecuteOnGLThread([&]() {
-                mgr.MakeCurrent(contextHandle);
-                DestroyResources();
-                mgr.DoneCurrent(contextHandle);
+                if (mgr.MakeCurrent(contextHandle)) {
+                    DestroyResources();
+                    mgr.DoneCurrent(contextHandle);
+                }
                 mgr.ReleaseContext(contextHandle);
                 contextHandle = nullptr;
             });
@@ -568,7 +569,11 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
         cache->contextHandle = mgr.AcquireContext();
         if (!cache->contextHandle) return false;
     }
-    mgr.MakeCurrent(cache->contextHandle);
+    if (!mgr.MakeCurrent(cache->contextHandle)) {
+        mgr.ReleaseContext(cache->contextHandle);
+        cache->contextHandle = nullptr;
+        return false;
+    }
     return true;
 }
 

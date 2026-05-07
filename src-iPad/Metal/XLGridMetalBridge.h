@@ -21,6 +21,8 @@
 // (0,0) at top-left — matches the Core Graphics convention the
 // current Swift-side drawing code uses, so porting is mechanical.
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface XLGridMetalBridge : NSObject
 
 - (instancetype)initWithName:(NSString*)name;
@@ -155,3 +157,5 @@
                a:(CGFloat)a;
 
 @end
+
+NS_ASSUME_NONNULL_END

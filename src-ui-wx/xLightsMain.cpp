@@ -146,9 +146,6 @@
 #include "ai/chatGPT.h"
 #include "ai/AIImageDialog.h"
 #include "ai/WxServiceSettingsStore.h"
-#ifdef __WXOSX__
-#include "ai/AppleIntelligence.h"
-#endif
 #include "models/DMX/DmxMovingHeadComm.h"
 #include "color/ColorPanel.h"
 
@@ -2006,16 +2003,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     {
         wxFileName exePath(wxStandardPaths::Get().GetExecutablePath());
         std::string pluginDir = (exePath.GetPath() + wxFILE_SEP_PATH + "ai_plugins").ToStdString();
+        // ServiceManager registers all built-in services (chatGPT,
+        // Claude, Ollama, Gemini, GenericClient, plus AppleIntelligence
+        // on Apple Silicon) and loads any plugin DLLs in `pluginDir`.
         _serviceManager = std::make_unique<ServiceManager>(_serviceSettingsStore.get(), pluginDir);
     }
-#if defined(__WXOSX__) && defined(__arm64__)
-    {
-        auto appleIntel = std::make_unique<AppleIntelligence>(_serviceManager.get());
-        if (!appleIntel->GetTypes().empty()) {
-            _serviceManager->addService(std::move(appleIntel));
-        }
-    }
-#endif
 
     starttime = wxDateTime::UNow();
     ResetEffectsXml();
@@ -5392,13 +5384,24 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FileUtils::FixFile("", it);
+        ObtainAccessToURL(f);
         if (!FileExists(f, false)) {
             missing += it + "\n";
         }
     }
 
-    if (missing != "" && (_promptBatchRenderIssues || (!_renderMode && !_checkSequenceMode))) {
-        wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+    std::string relocated;
+    for (const auto& [orig, resolved] : _sequenceElements.GetSequenceMedia().GetImageRelocations()) {
+        relocated += orig + " -> " + resolved + "\n";
+    }
+
+    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+        if (missing != "") {
+            wxMessageBox("Sequence references files which cannot be found:\nShow Folder: " + showDirectory + "\n\n" + missing + "\n Use Tools/Check Sequence for more details.", "Missing assets");
+        }
+        if (relocated != "") {
+            wxMessageBox("Sequence references files which have been moved. Paths will be updated on save:\nShow Folder: " + showDirectory + "\n\n" + relocated, "Relocated assets");
+        }
     }
 }
 

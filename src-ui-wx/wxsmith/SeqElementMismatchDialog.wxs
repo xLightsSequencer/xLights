@@ -59,6 +59,17 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
+				<object class="wxCheckBox" name="ID_CHECKBOX1" variable="CheckBoxAddAlias" member="yes">
+					<label>Also add alias to model (auto-remap future sequences)</label>
+					<checked>1</checked>
+					<enabled>0</enabled>
+					<handler function="OnRadioButtonSelect" entry="EVT_RADIOBUTTON" />
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
 				<object class="wxStdDialogButtonSizer" variable="StdDialogButtonSizer1" member="no">
 					<object class="button">
 						<object class="wxButton" name="wxID_OK">

@@ -240,7 +240,7 @@ struct MediaPickerSheet: View {
     // MARK: - Loading + grouping
 
     private func loadEntries() {
-        let all = viewModel.document.mediaPathsInSequence() ?? []
+        let all = viewModel.document.mediaPathsInSequence()
         let filtered: [Entry] = all.compactMap { dict in
             guard let path = dict["path"], let type = dict["type"] else {
                 return nil
@@ -286,7 +286,7 @@ struct MediaPickerSheet: View {
         let doc = viewModel.document
 
         for entry in entries {
-            let rel = doc.makeRelativePath(entry.path) ?? entry.path
+            let rel = doc.makeRelativePath(entry.path)
             // Parent-dir extraction that handles both absolute
             // ("/a/b/c.png" → "/a/b") and relative
             // ("Images/BeepBeep/c.png" → "Images/BeepBeep") paths.

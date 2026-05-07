@@ -90,7 +90,7 @@ struct PaletteLoadSheet: View {
     }
 
     private func reload() {
-        let raw = viewModel.document.savedPalettes() ?? []
+        let raw = viewModel.document.savedPalettes()
         entries = raw.compactMap { d in
             guard let f = d["filename"], let p = d["palette"] else { return nil }
             return Entry(filename: f, palette: p)

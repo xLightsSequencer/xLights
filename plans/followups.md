@@ -9,6 +9,26 @@ phase home; catalogued here so they don't fall off.
   authoring. Lowest priority — deferred until someone actually
   uses them on iPad.
 
+- **Add-alias on missing-model prompt** (desktop landed
+  2026-05-01, `e1b90a0fd`). Desktop's `SeqElementMismatchDialog`
+  now offers an "Add as alias" checkbox so users can resolve a
+  missing-model load by aliasing the requested name to an
+  existing model. iPad currently silently drops missing models on
+  load — the access-reprompt sheet pattern (`AccessRepromptSheet`)
+  is the right shape to copy: add a `MissingModelAliasSheet` that
+  presents missing names with an alias-target picker, persist via
+  `Model::AddAlias()` through a new bridge. P2.
+
+## Phase F — Window system polish
+
+- **Display Elements filter** (desktop landed 2026-04-28,
+  `188387c7e`). Desktop's Edit Display Elements sheet now has a
+  search filter above the Available list — large shows with
+  hundreds of models / groups / timings make scroll-and-eye
+  picking tedious. iPad's `DisplayElementsSheet` should mirror
+  with a `.searchable`-driven filter on the Available column;
+  clear automatically when items are moved into the view. S effort.
+
 ## Phase C — Effect Settings Inspector polish
 
 - **G3+ — Moving Head full waypoint path authoring.** Path tab
@@ -23,25 +43,35 @@ phase home; catalogued here so they don't fall off.
   `ShaderConfig::GetDynamicPropertiesJson()` so grouping carries
   across. Deferred until a real shader pack trips the issue. P2.
 
-## Phase H — App Store
+- ~~**Shockwave Timing-Track field verification**~~. Verified +
+  fixed 2026-05-02. The new `Shockwave_TimingTrack` choice and
+  its `dynamicOptions: "timingTracks"` populate correctly through
+  the existing `EffectPropertyView` choice path. The change ALSO
+  introduced `enable`/`disable` clauses in `visibilityRules`
+  (`Filter`, `Regex`, `Duration` fields grey out when no timing
+  track is selected) — iPad's rule engine previously honoured
+  only `show`/`hide`, silently ignoring `enable`/`disable`. Added
+  `EffectSettingsView.isPropertyEnabledByRules` mirroring the
+  existing `isPropertyVisible`, plus a `ruleDisabled` param on
+  `EffectPropertyView` (combined with `runtimeDisabled` into a
+  single `effectiveDisabled`). Applied across slider / choice /
+  checkbox / spin / text branches via `.disabled(...)` +
+  `.opacity(0.5)`. 16 metadata files use `enable`/`disable` (Bars,
+  Pictures, Fire, Faces, Fireworks, Liquid, Morph, Meteors,
+  Sketch, Shockwave, SingleStrand, Tendril, Video, Circles,
+  Guitar, plus the schema) — all benefit from this single fix.
 
-- **sACN multicast entitlement.** `com.apple.developer.networking.multicast`
-  request submitted to Apple 2026-04-28. Once approved, add the key
-  to `macOS/Assets/xLights-iPad/xLights-iPad.entitlements` so iPad
-  testers can join `239.255.x.x` for sACN multicast output. Until
-  then the toggle's "couldn't reach" alert text steers users to
-  ArtNet, DDP, or sACN unicast.
+## Phase E / G — Media handling
 
-## TestFlight quality (pre-submission)
-
-These are not engineering blockers but are the "any TestFlight
-report will need this" items the gap analysis (2026-04-23) flagged.
-Each is a near-trivial addition that materially improves the
-tester loop. Pull into MVP if there's bandwidth before H-5 wraps.
-
-- **Recent Show Folders list** (L-1b). Recent Sequences is
-  scoped per show folder (2026-04-30 refactor — flipping shows
-  swaps the picker's recent list cleanly), but the folder-config
-  sheet itself only remembers the *current* show folder. Add a
-  "Recent Show Folders" section so users can flip between shows
-  without re-picking from Files every time.
+- **Animated GIF → Pictures effect migration** (desktop landed
+  2026-04-27, `6e9e50211`). Desktop now auto-detects animated
+  GIFs sitting in Video effects on sequence load and converts
+  them to Pictures effects (PicturesEffect plays GIF frames
+  natively). The detection helper `MediaCompatibilityIssue::isAnimatedGif()`
+  already lives in `src-core/`; the migration logic itself is in
+  `src-ui-wx/import_export/SeqFileUtilities.cpp` (~200 lines). To
+  bring this to iPad: lift the migration into core (so both
+  clients call the same path) and either run it on sequence load
+  or surface as a one-tap "Convert to Pictures" action in the
+  Media Manager when an `isAnimatedGif` entry shows up in the
+  broken / unsupported list. M effort.

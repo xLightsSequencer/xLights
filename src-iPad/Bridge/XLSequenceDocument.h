@@ -8,6 +8,8 @@
 
 @class XLCheckSequenceIssue;
 
+NS_ASSUME_NONNULL_BEGIN
+
 @interface XLSequenceDocument : NSObject
 
 // Show folder
@@ -28,16 +30,16 @@
 // Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
 // to the basename on collision. Returns the destination absolute path
 // on success, nil on failure (no show folder loaded, copy error).
-- (NSString*)moveFileToShowFolder:(NSString*)sourcePath
-                        subdirectory:(NSString*)subdirectory;
+- (nullable NSString*)moveFileToShowFolder:(NSString*)sourcePath
+                                 subdirectory:(NSString*)subdirectory;
 
 // Copy `sourcePath` into `<mediaFolderPath>/<subdirectory>`.
 // `mediaFolderPath` must already be in `mediaFolderPaths`; unknown
 // paths are rejected so the "media always lives in a configured root"
 // invariant isn't broken.
-- (NSString*)copyFileToMediaFolder:(NSString*)sourcePath
-                       mediaFolderPath:(NSString*)mediaFolderPath
-                        subdirectory:(NSString*)subdirectory;
+- (nullable NSString*)copyFileToMediaFolder:(NSString*)sourcePath
+                                mediaFolderPath:(NSString*)mediaFolderPath
+                                 subdirectory:(NSString*)subdirectory;
 
 // True iff `path` is under the show folder or any configured media
 // folder. Used to decide whether a picked file needs copying.
@@ -175,6 +177,13 @@
 // desktop behaviour).
 - (NSString*)currentMediaFilePath;
 - (BOOL)setMediaFilePath:(NSString*)path;
+
+// ID3-style tags from the loaded audio track. Empty strings when
+// no media is loaded or the file has no metadata. Used to
+// pre-populate the AI palette generator's "Song" mode.
+- (NSString*)audioTitle;
+- (NSString*)audioArtist;
+- (NSString*)audioAlbum;
 
 // Sequence type (see `newSequenceAtPath:…`): "Media" /
 // "Animation" / "Effect". Writes flow through
@@ -447,6 +456,72 @@
 // collides with an existing track.
 - (BOOL)addTimingTrackNamed:(NSString*)name;
 
+// Fixed-interval timing track. `intervalMS = 0` creates an empty
+// track (no marks); any positive value creates a fixed-interval
+// track with marks at multiples of `intervalMS` from 0 to the
+// sequence end. Mirrors the desktop's
+// `SequenceFile::AddFixedTimingSection(name, intervalMS, ctx)`.
+//
+// Returns the (possibly uniquified) track name on success or empty
+// string on failure (no sequence loaded, etc).
+- (NSString*)addFixedIntervalTimingTrackNamed:(NSString*)name
+                                    intervalMS:(int)intervalMS
+    NS_SWIFT_NAME(addFixedIntervalTimingTrack(named:intervalMS:));
+
+// Metronome with tags. Each generated mark gets one of `tags` as
+// its label, cycled in order (or randomised when `randomize` is
+// true and tags has 2+ entries). Empty `tags` defaults to "1"–"10".
+// `minIntervalMS = -1` means "fixed interval"; positive means
+// "random interval between minIntervalMS and intervalMS per mark"
+// (matches the desktop's "random metronome" behaviour). Wraps
+// `SequenceFile::AddMetronomeLabelTimingSection`.
+- (NSString*)addMetronomeTimingTrackNamed:(NSString*)name
+                                intervalMS:(int)intervalMS
+                                      tags:(NSArray<NSString*>*)tags
+                             minIntervalMS:(int)minIntervalMS
+                                 randomize:(BOOL)randomize
+    NS_SWIFT_NAME(addMetronomeTimingTrack(named:intervalMS:tags:minIntervalMS:randomize:));
+
+// FPP Commands / FPP Effects timing track. `subType` should be
+// "FPP Commands" or "FPP Effects" — those are the only values the
+// renderer/exporter recognises. Wraps
+// `SequenceFile::AddNewTimingSection(name, ctx, subType)`.
+- (NSString*)addFPPTimingTrackNamed:(NSString*)name
+                              subType:(NSString*)subType
+    NS_SWIFT_NAME(addFPPTimingTrack(named:subType:));
+
+// AI-lyrics flow: create a new timing track and bulk-populate it with
+// word entries from `aiBase::GenerateLyricTrack`'s output. Times are
+// rounded to the sequence's frame interval; whitespace-only words are
+// skipped. Returns the final, possibly-uniquified track name on
+// success or an empty string on failure (no sequence loaded, no words).
+//
+// `words` / `startMS` / `endMS` are parallel arrays — element i forms
+// a single word entry. Mismatched lengths return empty.
+- (NSString*)addLyricTimingTrackNamed:(NSString*)name
+                                 words:(NSArray<NSString*>*)words
+                              startMS:(NSArray<NSNumber*>*)startMS
+                                endMS:(NSArray<NSNumber*>*)endMS
+    NS_SWIFT_NAME(addLyricTimingTrack(named:words:startMS:endMS:));
+
+// True when the loaded audio's HTDemucs vocals stem has been
+// computed and is ready to be written out via the helper below.
+// Used by the AI-lyrics flow to prefer the isolated vocals over the
+// full mix for speech recognition.
+- (BOOL)hasVocalsStems;
+
+// Write the cached vocals stems to a temporary stereo float32 WAV
+// and return its absolute path (or nil on failure / no stems).
+// Caller owns the file — delete after use.
+- (nullable NSString*)writeVocalsStemsToTempWav
+    NS_SWIFT_NAME(writeVocalsStemsToTempWav());
+
+// Audio-file path for the sequence's currently-loaded audio, or nil
+// if no audio is loaded. Used as the AI-lyrics fallback when no
+// vocals stems are cached.
+- (nullable NSString*)sequenceAudioFilePath
+    NS_SWIFT_NAME(sequenceAudioFilePath());
+
 // B67 / B69: timing-mark primitives. Marks are stored as `Effect`
 // entries on the timing row's `EffectLayer`; these wrap the existing
 // `addEffectToRow:...` / `deleteEffectInRow:atIndex:` but add a
@@ -667,8 +742,8 @@
 // auto-generate `PAL001.xpalette` (incrementing to avoid collisions).
 // Returns the on-disk filename on success, nil on failure (no
 // show folder, unwritable, invalid input).
-- (NSString*)savePaletteString:(NSString*)paletteString
-                        asName:(NSString*)name;
+- (nullable NSString*)savePaletteString:(NSString*)paletteString
+                                  asName:(nullable NSString*)name;
 
 // Remove a previously-saved palette file. `filename` is the
 // basename returned by `savedPalettes`. Only removes files under
@@ -709,8 +784,8 @@
 // `.xvc` under `<showFolder>/valuecurves/<name>.xvc`. Name is
 // sanitised to alphanumerics; pass nil / empty to auto-generate
 // `VC001.xvc`. Returns the on-disk filename, or nil on failure.
-- (NSString*)saveValueCurveSerialised:(NSString*)serialised
-                                asName:(NSString*)name;
+- (nullable NSString*)saveValueCurveSerialised:(NSString*)serialised
+                                         asName:(nullable NSString*)name;
 
 // Delete a saved value curve by basename. Only removes files
 // under `<showFolder>/valuecurves/`; bundled presets are read-
@@ -895,6 +970,14 @@
 - (void)renderAll;
 - (BOOL)isRenderDone;
 
+// YES if the most recent render had at least one job aborted before
+// completion (typically because of a memory-pressure signal — see
+// HandleMemoryWarning). Counter resets at every render start, so this
+// reflects only the latest pass. Callers about to persist
+// `SequenceData` (fseq write, batch render) should consult it: an
+// aborted render leaves the data buffer partly stale.
+- (BOOL)wasRenderAborted;
+
 // Coarse render-progress fraction (0..1) for the in-flight render of the
 // currently-loaded sequence. Aggregates per-row job frame counters against
 // the sequence's frame range. Returns 1.0 when no render is active.
@@ -915,7 +998,7 @@
 // House preview pixel data at a given time
 // Returns NSData containing packed float x, y and uint8 r, g, b per pixel
 - (int)pixelCountAtMS:(int)frameMS;
-- (NSData*)pixelDataAtMS:(int)frameMS;
+- (nullable NSData*)pixelDataAtMS:(int)frameMS;
 
 // Audio playback
 - (BOOL)hasAudio;
@@ -950,7 +1033,7 @@
 // Returns per-bucket float triples `{min, max, rms}` for the given
 // time range. `peaks[i*3+0]` = bucket min (<=0), `peaks[i*3+1]` = max
 // (>=0), `peaks[i*3+2]` = RMS (>=0, used by A10 RMS overlay).
-- (NSData*)waveformDataFromMS:(long)startMS
+- (nullable NSData*)waveformDataFromMS:(long)startMS
                          toMS:(long)endMS
                    numSamples:(int)numSamples;
 
@@ -961,7 +1044,7 @@
 // `lowNote:highNote:` overload). If `GetFilteredAudioData` returns
 // null (unfiltered source), the method falls back to the raw waveform
 // rather than returning an empty buffer.
-- (NSData*)waveformDataFromMS:(long)startMS
+- (nullable NSData*)waveformDataFromMS:(long)startMS
                          toMS:(long)endMS
                    numSamples:(int)numSamples
                    filterType:(int)filterType
@@ -971,7 +1054,7 @@
 // numbers (0–127) and are only consulted for filterType=5 (CUSTOM);
 // other filter types use their hardcoded ranges. Callers that don't
 // need the custom band should use the 4-argument overload.
-- (NSData*)waveformDataFromMS:(long)startMS
+- (nullable NSData*)waveformDataFromMS:(long)startMS
                          toMS:(long)endMS
                    numSamples:(int)numSamples
                    filterType:(int)filterType
@@ -1025,7 +1108,7 @@
 // `[NSNumber]` floats in [0, 1], one per `timeStepSeconds` (also
 // reported). Blocks — typical 3–4 minute tracks take a few seconds
 // on Apple Silicon.
-- (NSDictionary*)classifySound
+- (nullable NSDictionary*)classifySound
     NS_SWIFT_NAME(classifySound());
 // Time-step (seconds) for the last `classifySound` call. Set by the
 // call above; 0 if classification has never been run on this track.
@@ -1045,7 +1128,7 @@
 // FFT-based autocorrelation. Returns a flat Float array laid out as
 // (timeMS, frequency, confidence) triples (3 entries per sample).
 // Unvoiced frames have frequency=0 but still carry a confidence.
-- (NSData*)detectPitchContour
+- (nullable NSData*)detectPitchContour
     NS_SWIFT_NAME(detectPitchContour());
 
 // Route the currently-picked waveform filter into the audio engine
@@ -1089,7 +1172,7 @@
 // `HTDemucs_SourceSeparation_F32.mlpackage` (including nested-from-
 // zip layouts which get lifted to the canonical path). Returns the
 // absolute path, or nil if not present.
-- (NSString*)findInstalledStemModelPath
+- (nullable NSString*)findInstalledStemModelPath
     NS_SWIFT_NAME(findInstalledStemModelPath());
 
 // First-run installer. Downloads the model zip to
@@ -1099,7 +1182,7 @@
 // path (nil on failure / cancel).
 - (void)installStemModelToRoot:(NSString*)root
                         progress:(void(^)(int pct))progress
-                      completion:(void(^)(NSString* installedPath))completion
+                      completion:(void(^)(NSString* _Nullable installedPath))completion
     NS_SWIFT_NAME(installStemModel(toRoot:progress:completion:));
 
 // Asynchronous stem separation. Dispatches CoreML inference to a
@@ -1116,7 +1199,7 @@
 // Renders the cached spectrogram at [startMS, endMS] into an
 // `outWidth × outHeight` BGRA buffer (length = w*h*4). Returns nil
 // if the spectrogram hasn't been computed yet.
-- (NSData*)spectrogramBGRAForRangeMS:(long)startMS
+- (nullable NSData*)spectrogramBGRAForRangeMS:(long)startMS
                                 toMS:(long)endMS
                                width:(int)outWidth
                               height:(int)outHeight
@@ -1212,8 +1295,8 @@
 // `sourcePath` must be an on-disk absolute path the caller has
 // already obtained security-scoped access to. Returns the
 // target show-relative path on success, nil on failure.
-- (NSString*)replaceMissingMediaAtPath:(NSString*)storedPath
-                        fromSourcePath:(NSString*)sourcePath;
+- (nullable NSString*)replaceMissingMediaAtPath:(NSString*)storedPath
+                                  fromSourcePath:(NSString*)sourcePath;
 
 // Rename a cache entry (G30 — C5). Works for both embedded
 // entries (cache-key swap only) and external files (also moves
@@ -1248,7 +1331,7 @@
 // in a warning alert pointing the user at Handbrake / ffmpeg
 // on desktop. Desktop keeps its in-app convert flow via
 // `VideoTranscoder`; that path is not exposed to iPad.
-- (NSString*)videoCompatibilityIssueForPath:(NSString*)path;
+- (nullable NSString*)videoCompatibilityIssueForPath:(NSString*)path;
 
 // Walk the loaded sequence and surface authoring issues. Goes
 // through `src-core/diagnostics/SequenceChecker` so the iPad
@@ -1289,9 +1372,9 @@
 // frame exists. Returns nil if the path / index is invalid or PNG
 // encoding fails. `mediaType` disambiguates the cache lookup (see
 // above).
-- (NSData*)thumbnailPNGForPath:(NSString*)path
-                     mediaType:(NSString*)mediaType
-                    frameIndex:(int)frameIndex;
+- (nullable NSData*)thumbnailPNGForPath:(NSString*)path
+                              mediaType:(NSString*)mediaType
+                             frameIndex:(int)frameIndex;
 
 // Duration of the frame at `frameIndex` in milliseconds. Driven by the
 // underlying format: animated-GIF / WebP frame delays, video frame
@@ -1317,9 +1400,9 @@
 // RenderableEffect's compiled-in XPM data. `desiredSize` is rounded
 // up to the nearest {16,24,32,48,64} bucket. Returns nil if the effect
 // name is unknown or the XPM couldn't be parsed.
-- (NSData*)iconBGRAForEffectNamed:(NSString*)effectName
-                      desiredSize:(int)desiredSize
-                        outputSize:(int*)outputSize;
+- (nullable NSData*)iconBGRAForEffectNamed:(NSString*)effectName
+                               desiredSize:(int)desiredSize
+                                outputSize:(int*)outputSize;
 
 // MARK: - Moving Head fixture plumbing (G3 — C7)
 //
@@ -1453,3 +1536,5 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
     NS_SWIFT_NAME(bracketColor(forState:outR:outG:outB:));
 
 @end
+
+NS_ASSUME_NONNULL_END

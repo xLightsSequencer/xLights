@@ -6695,6 +6695,10 @@ Model* LayoutPanel::GetModelFromTreeItem(wxTreeListItem treeItem) {
 
 // Select a Model in the tree, currently only selects top level model if found
 void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
+    if (modelToSelect != nullptr && !_filterString.IsEmpty() && !ModelMatchesFilter(modelToSelect)) {
+        wxCommandEvent dummy;
+        OnModelFilterCancelBtn(dummy);
+    }
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
           item = TreeListViewModels->GetNextSibling(item) )
@@ -7696,7 +7700,9 @@ void LayoutPanel::DeleteSelectedModels()
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                           OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                                          OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "LayoutPanel::DeleteSelectedModels");
+                                                          OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                          OutputModelManager::WORK_CALCULATE_START_CHANNELS |
+                                                          OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::DeleteSelectedModels");
         }
     } else {
         wxBell();

@@ -566,6 +566,11 @@ static bool AccumulateModelBounds(Model* m, float& minX, float& minY,
 }
 
 - (void)drawModelsForDocument:(XLSequenceDocument*)doc atMS:(int)frameMS pointSize:(float)pointSize {
+    // Reset any stale banner from the previous frame; each path below
+    // (early return, info-banner, or successful draw) sets the correct
+    // state for this frame.
+    [self clearErrorReason];
+
     if (_canvas->getMetalLayer() == nil) {
         [self setErrorReasonInternal:@"No Metal layer attached"];
         return;
@@ -713,19 +718,13 @@ static bool AccumulateModelBounds(Model* m, float& minX, float& minY,
         }
     }
 
-    // Finish and present
+    // Finish and present. `_errorReason` reflects this frame's state:
+    // nil for a normal successful draw, set to an info banner for
+    // "No model selected" / "No models in active preview" (which are
+    // technically successful clear-to-background draws — SwiftUI
+    // surfaces them as informational rather than failure).
     _preview->EndDrawing(true);
-
-    // Clear the diagnostic banner once a frame has actually rendered.
-    // Note: a "No model selected" / "No models in active preview"
-    // state is technically a successful draw (clear-to-background),
-    // so we keep `_errorReason` set in those branches but still flip
-    // `_hasRenderedSuccessfully` — the SwiftUI overlay treats these
-    // as informational rather than failure.
     _hasRenderedSuccessfully = YES;
-    if (!_errorReason || _errorReason.length == 0) {
-        [self clearErrorReason];
-    }
 }
 
 // Lazy-load + enqueue the 2D background draw. No-op when no path is

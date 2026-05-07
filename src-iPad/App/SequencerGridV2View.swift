@@ -109,7 +109,7 @@ private struct TransitionPickerDialog: ViewModifier {
             let current = viewModel.document.effectSettingValue(
                 forKey: typeKey,
                 inRow: Int32(tgt.rowIndex),
-                at: Int32(tgt.effectIndex)) ?? ""
+                at: Int32(tgt.effectIndex))
             let display = current.isEmpty ? "Fade" : current
             Text(tgt.isIn
                  ? "In transition (current: \(display))"
@@ -267,10 +267,10 @@ struct SequencerGridV2View: View {
     }
     @State private var timingMarkMenuTarget: TimingMarkMenuTarget?
 
-    /// B73 add-timing-track alert state.
-    @State private var showAddTimingTrackAlert: Bool = false
-    @State private var newTimingTrackName: String = ""
-
+    /// Empty-area long-press menu (model-band filler space below
+    /// the last row). Drives a confirmationDialog with "Add Timing
+    /// Track…" / "Edit Display Elements…" entries.
+    @State private var emptyAreaMenuPresented: Bool = false
 
     /// B70 rename-timing-mark alert state.
     @State private var renameMarkTarget: TimingMarkMenuTarget?
@@ -301,12 +301,6 @@ struct SequencerGridV2View: View {
     @State private var customBandSheetPresented: Bool = false
     /// A7 sound-class picker sheet trigger.
     @State private var classifyPickerPresented: Bool = false
-    /// A4 tempo-preview sheet trigger + stashed result.
-    @State private var tempoPreviewPresented: Bool = false
-    @State private var tempoPreview: (bpm: Float, confidence: Float, beats: [Int])? = nil
-    /// A9 chord-preview sheet trigger + stashed result.
-    @State private var chordPreviewPresented: Bool = false
-    @State private var chordPreview: (key: String, chords: [(Int, Int, String)])? = nil
     /// B97 Find / Replace replace-text buffer (sheet trigger lives
     /// on the view model so the Edit menu can flip it via ⌘F).
     @State private var findReplaceText: String = ""
@@ -458,19 +452,9 @@ struct SequencerGridV2View: View {
 
                     // Row 3 — fills remaining space
                     HStack(alignment: .top, spacing: 0) {
-                        SyncedScrollView(
-                            targetHOffset: nil,
-                            targetVOffset: rowsScroll.vScrollOffsetPx,
-                            contentWidth: metrics.rowHeaderWidth,
-                            contentHeight: modelAreaH,
-                            showsIndicators: false,
-                            onScroll: { newOffset in
-                                rowsScroll.vScrollOffsetPx = newOffset.y
-                            }
-                        ) {
-                            modelHeaders(modelRows)
-                        }
-                        .frame(width: metrics.rowHeaderWidth)
+                        modelRowHeaderColumn(modelRows: modelRows,
+                                              modelAreaH: modelAreaH,
+                                              availableModelBandH: availableGridH - timingBandH)
                         rowHeaderResizeHandle(height: nil)
                         modelEffectsMetalView(modelRows: modelRows)
                             .overlay(alignment: .trailing) {
@@ -764,22 +748,6 @@ struct SequencerGridV2View: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
-        // B73 add-timing-track alert. A simple text-field prompt
-        // sufficient for the initial cut; NewTimingDialog's fixed /
-        // lyric / variable choice can land later.
-        .alert("Add Timing Track",
-               isPresented: $showAddTimingTrackAlert) {
-            TextField("Name", text: $newTimingTrackName)
-            Button("Add") {
-                _ = viewModel.addTimingTrack(name: newTimingTrackName)
-                newTimingTrackName = ""
-            }
-            Button("Cancel", role: .cancel) {
-                newTimingTrackName = ""
-            }
-        } message: {
-            Text("Name for the new variable timing track.")
-        }
         // B21 edit-timing alert. Two fields (start, end) in seconds
         // with 3 decimal places; parses with `strtod` per repo rule
         // (no throwing std::stod). Calls `moveEffect` on commit.
@@ -1014,25 +982,6 @@ struct SequencerGridV2View: View {
             Button("Cancel", role: .cancel) {}
         }
         // A9 chord-detection preview sheet.
-        .sheet(isPresented: $chordPreviewPresented) {
-            if let cp = chordPreview {
-                ChordPreviewSheet(
-                    key: cp.key,
-                    chords: cp.chords,
-                    onCommit: {
-                        _ = viewModel.generateChordTimingTrack()
-                        chordPreviewPresented = false
-                        chordPreview = nil
-                    },
-                    onCancel: {
-                        chordPreviewPresented = false
-                        chordPreview = nil
-                    })
-            } else {
-                Text("No chords detected.")
-                    .padding()
-            }
-        }
         // A8 stem install-location picker (first run).
         .sheet(isPresented: stemsInstallPickerBinding) {
             StemInstallSheet(
@@ -1045,27 +994,6 @@ struct SequencerGridV2View: View {
             StemProgressSheet(
                 phase: viewModel.stemsPhase,
                 pct: viewModel.stemsProgressPct)
-        }
-        // A4 tempo-detection preview sheet.
-        .sheet(isPresented: $tempoPreviewPresented) {
-            if let tp = tempoPreview {
-                TempoPreviewSheet(
-                    bpm: tp.bpm,
-                    confidence: tp.confidence,
-                    beatCount: tp.beats.count,
-                    onCommit: {
-                        _ = viewModel.generateTempoTimingTrack()
-                        tempoPreviewPresented = false
-                        tempoPreview = nil
-                    },
-                    onCancel: {
-                        tempoPreviewPresented = false
-                        tempoPreview = nil
-                    })
-            } else {
-                Text("No tempo detected.")
-                    .padding()
-            }
         }
         // A7 class picker sheet.
         .sheet(isPresented: $classifyPickerPresented) {
@@ -1322,13 +1250,13 @@ struct SequencerGridV2View: View {
                             }
                         }
                     }
-                    // B73 entry-point lives here (rather than only on
-                    // timing-row headers) so users with zero timing
-                    // tracks still have a path to add one.
+                    // Add Timing Track + Audio Onsets / Tempo / Chords
+                    // / AI Lyrics now all live in the unified
+                    // AddTimingTrackSheet (presented at app level).
+                    // Just one entry point here that flips the flag.
                     Divider()
                     Button {
-                        newTimingTrackName = ""
-                        showAddTimingTrackAlert = true
+                        viewModel.showingAddTimingTrack = true
                     } label: {
                         Label("Add Timing Track…", systemImage: "plus.rectangle")
                     }
@@ -1338,32 +1266,15 @@ struct SequencerGridV2View: View {
                         Label("Import Timing Track…",
                                systemImage: "square.and.arrow.down")
                     }
-                    // A2: derive a timing track from the audio's
-                    // percussive onsets. Disabled when there's no
-                    // loaded audio.
-                    Button {
-                        _ = viewModel.generateTimingTrackFromOnsets()
-                    } label: {
-                        Label("Generate Timing Track from Onsets",
-                               systemImage: "waveform.badge.plus")
-                    }
-                    .disabled(!viewModel.hasAudio || viewModel.isComputingOnsets)
-                    // A4: detect tempo and drop a beat-aligned fixed
-                    // timing track. Confirmation in a preview sheet
-                    // lets the user back out if the BPM is wrong.
-                    Button {
-                        tempoPreview = viewModel.detectTempo()
-                        tempoPreviewPresented = tempoPreview != nil
-                    } label: {
-                        Label("Detect Tempo…",
-                               systemImage: "metronome")
-                    }
-                    .disabled(!viewModel.hasAudio)
                     // B83: derive a timing track from the selected
                     // effect's owning model. One mark per
                     // distinct effect range across the model's rows.
                     // Gated on a selection since we need a model to
-                    // source from.
+                    // source from. Stays here (rather than moving to
+                    // the unified sheet) because it's bound to the
+                    // current effect selection — surfacing it from a
+                    // sheet that doesn't know which effect is
+                    // selected would be more confusing than useful.
                     Button {
                         if let sel = viewModel.selectedEffect {
                             _ = viewModel.createTimingTrackFromEffects(
@@ -1374,16 +1285,6 @@ struct SequencerGridV2View: View {
                                systemImage: "waveform.path.badge.plus")
                     }
                     .disabled(viewModel.selectedEffect == nil)
-                    // A9: detect chord progression; preview sheet
-                    // shows key + chord count before committing.
-                    Button {
-                        chordPreview = viewModel.detectChords()
-                        chordPreviewPresented = chordPreview != nil
-                    } label: {
-                        Label("Detect Chords…",
-                               systemImage: "pianokeys")
-                    }
-                    .disabled(!viewModel.hasAudio)
                     // B37: re-fit the whole sequence into the viewport.
                     Divider()
                     Button {
@@ -1723,6 +1624,64 @@ struct SequencerGridV2View: View {
 
     // MARK: - Row 3: model area
 
+    /// Row-headers column for the model band. The scroll view is
+    /// constrained to the natural row-content height (or the full
+    /// model band's height if rows overflow); any leftover vertical
+    /// space below is occupied by an invisible Color.clear that
+    /// hosts the empty-area long-press menu. Doing it as a sibling
+    /// of the scroll view (instead of inside its content) sidesteps
+    /// the pan recogniser eating the long-press, and gives the
+    /// empty area visible pixels to register the gesture in (a
+    /// Color.clear inside the scroll view would be sized to zero by
+    /// the bounded contentHeight).
+    @ViewBuilder
+    private func modelRowHeaderColumn(modelRows: [SequencerViewModel.RowInfo],
+                                        modelAreaH: CGFloat,
+                                        availableModelBandH: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            SyncedScrollView(
+                targetHOffset: nil,
+                targetVOffset: rowsScroll.vScrollOffsetPx,
+                contentWidth: metrics.rowHeaderWidth,
+                contentHeight: modelAreaH,
+                showsIndicators: false,
+                onScroll: { newOffset in
+                    rowsScroll.vScrollOffsetPx = newOffset.y
+                }
+            ) {
+                modelHeaders(modelRows)
+            }
+            .frame(width: metrics.rowHeaderWidth,
+                   height: min(modelAreaH, max(0, availableModelBandH)))
+            if modelAreaH < availableModelBandH {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(width: metrics.rowHeaderWidth)
+                    .frame(maxHeight: .infinity)
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        emptyAreaMenuPresented = true
+                    }
+            }
+        }
+        .frame(width: metrics.rowHeaderWidth)
+        .confirmationDialog("",
+                             isPresented: $emptyAreaMenuPresented,
+                             titleVisibility: .hidden) {
+            Button {
+                viewModel.showingAddTimingTrack = true
+            } label: {
+                Label("Add Timing Track…", systemImage: "plus.rectangle")
+            }
+            Button {
+                viewModel.showingDisplayElements = true
+            } label: {
+                Label("Edit Display Elements…",
+                       systemImage: "rectangle.stack.badge.plus")
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
     private func modelHeaders(_ rows: [SequencerViewModel.RowInfo]) -> some View {
         let selectedRowId = viewModel.selectedEffect?.rowIndex
         return VStack(spacing: 0) {
@@ -1778,7 +1737,6 @@ struct SequencerGridV2View: View {
                     isSelected: row.id == selectedRowId
                 )
             }
-            Spacer(minLength: 0)
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }

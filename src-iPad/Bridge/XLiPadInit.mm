@@ -9,6 +9,7 @@
  **************************************************************/
 
 #import "XLiPadInit.h"
+#import "XLAIServices.h"
 
 #import <Metal/Metal.h>
 #import <ImageIO/ImageIO.h>
@@ -246,6 +247,13 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
 
     spdlog::info("GLContextManager initialized with ANGLE Metal backend, device registry ID: {}",
                  glParams.metalDeviceRegistryID);
+
+    // Construct the AI ServiceManager + iPad settings store. Built-in
+    // services (chatGPT, claude, ollama, gemini, GenericClient) are
+    // registered immediately and load any persisted settings/secrets
+    // from NSUserDefaults + Keychain. AI plugin loading is intentionally
+    // skipped on iOS — App Store policy forbids dynamic libraries.
+    (void)[XLAIServices shared];
 }
 
 @end

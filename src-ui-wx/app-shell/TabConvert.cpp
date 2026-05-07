@@ -880,6 +880,9 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 
     while (!renderComplete) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+        wxSafeYield(nullptr, true);
+#endif
         UpdateRenderStatus();
     }
 
@@ -1347,6 +1350,9 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset)
                        0, frames - 1, nullptr, true, [](bool) {});
                 while (!_renderEngine->IsRenderDone()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#ifdef _WIN32
+                    wxSafeYield(nullptr, true);
+#endif
                     UpdateRenderStatus();
                 }
                 _presetRendering = false;

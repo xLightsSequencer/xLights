@@ -84,7 +84,7 @@ struct ValueCurveLoadPresetSheet: View {
     }
 
     private func reload() {
-        let raw = viewModel.document.savedValueCurves() ?? []
+        let raw = viewModel.document.savedValueCurves()
         entries = raw.compactMap { d in
             guard let f = d["filename"], let s = d["serialised"] else { return nil }
             return Entry(filename: f, serialised: s)

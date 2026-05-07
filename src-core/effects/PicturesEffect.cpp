@@ -167,21 +167,35 @@ void PicturesEffect::adjustSettings(const std::string &version, Effect *effect, 
     std::string file = settings["E_TEXTCTRL_Pictures_Filename"];
     auto &media = effect->GetParentEffectLayer()->GetParentElement()->GetSequenceElements()->GetSequenceMedia();
     if (!file.empty() && !media.HasImage(file)) {
-        // Only run FileUtils::FixFile for absolute paths — relative paths are intentionally
-        // stored as-is and will be resolved by SequenceMedia::GetImage() via FileUtils::FixFile.
         if (!std::filesystem::path(file).is_absolute()) {
-            // relative path: just let GetImage() resolve it below
+            std::string fixed = FileUtils::FixFile("", file);
+            if (fixed != file) {
+                std::string rel = FileUtils::MakeRelativeFile(fixed);
+                std::string newPath = rel.empty() ? fixed : rel;
+                auto normalize = [](std::string s) {
+                    std::replace(s.begin(), s.end(), '\\', '/');
+                    return s;
+                };
+                if (normalize(newPath) != normalize(file)) {
+                    settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
+                    media.RecordRelocation(file, newPath);
+                }
+            }
         } else if (!FileExists(file, false)) {
             std::string fixed = FileUtils::FixFile("", file);
             // If the resolved path is inside a show/media directory, store as
             // relative so the sequence is portable across machines.
             std::string rel = FileUtils::MakeRelativeFile(fixed);
-            settings["E_TEXTCTRL_Pictures_Filename"] = rel.empty() ? fixed : rel;
+            std::string newPath = rel.empty() ? fixed : rel;
+            settings["E_TEXTCTRL_Pictures_Filename"] = newPath;
+            if (newPath != file)
+                media.RecordRelocation(file, newPath);
         } else {
             // File exists at its absolute path — still prefer relative storage
             std::string rel = FileUtils::MakeRelativeFile(file);
-            if (!rel.empty())
+            if (!rel.empty()) {
                 settings["E_TEXTCTRL_Pictures_Filename"] = rel;
+            }
         }
         std::string NewPictureName = settings["E_TEXTCTRL_Pictures_Filename"];
         std::string suffix = "";
@@ -342,14 +356,7 @@ std::list<std::string> PicturesEffect::GetFileReferences(Model* model, const Set
     std::list<std::string> res;
     std::string file = SettingsMap["E_TEXTCTRL_Pictures_Filename"];
     if (!file.empty()) {
-        // Relative paths must be resolved to absolute so callers can locate the file.
-        if (!std::filesystem::path(file).is_absolute()) {
-            std::string resolved = FileUtils::FixFile("", file);
-            if (!resolved.empty() && FileExists(resolved))
-                res.push_back(resolved);
-        } else if (FileExists(file)) {
-            res.push_back(file);
-        }
+        res.push_back(FileUtils::FixFile("", file));
     }
     return res;
 }

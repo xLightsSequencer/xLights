@@ -204,11 +204,12 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     return (ContextHandle)handle;
 }
 
-void GLContextManager::MakeCurrent(ContextHandle ctx) {
+bool GLContextManager::MakeCurrent(ContextHandle ctx) {
     auto* entry = (PlatformState::PoolEntry*)ctx;
     if (entry && _platform) {
-        eglMakeCurrent(_platform->display, entry->surface, entry->surface, entry->context);
+        return eglMakeCurrent(_platform->display, entry->surface, entry->surface, entry->context) == EGL_TRUE;
     }
+    return false;
 }
 
 void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
@@ -442,8 +443,8 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     return (ContextHandle)ctx;
 }
 
-void GLContextManager::MakeCurrent(ContextHandle ctx) {
-    CGLSetCurrentContext((CGLContextObj)ctx);
+bool GLContextManager::MakeCurrent(ContextHandle ctx) {
+    return CGLSetCurrentContext((CGLContextObj)ctx) == kCGLNoError;
 }
 
 void GLContextManager::DoneCurrent(ContextHandle /*ctx*/) {
@@ -670,7 +671,13 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
         WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
         0
     };
-    HGLRC ctx = _platform->wglCreateContextAttribsARB(hdc, _platform->sharedContext, attribs33);
+    // Do NOT share with the UI context (_platform->sharedContext).  NVIDIA
+    // drivers enforce a one-current-per-share-group restriction: if the main
+    // thread has the wx canvas context current (during UI repaints), any
+    // wglMakeCurrent on a sharing worker context fails with driver error 2004.
+    // Shader effects use only their own FBOs/textures, so no cross-context
+    // sharing is required.
+    HGLRC ctx = _platform->wglCreateContextAttribsARB(hdc, nullptr, attribs33);
     if (!ctx) {
         // Fallback to 3.1
         int attribs31[] = {
@@ -679,7 +686,7 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0
         };
-        ctx = _platform->wglCreateContextAttribsARB(hdc, _platform->sharedContext, attribs31);
+        ctx = _platform->wglCreateContextAttribsARB(hdc, nullptr, attribs31);
     }
 
     if (ctx) {
@@ -701,15 +708,33 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     return (ContextHandle)info;
 }
 
-void GLContextManager::MakeCurrent(ContextHandle ctx) {
+bool GLContextManager::MakeCurrent(ContextHandle ctx) {
     auto* info = (PlatformState::WinGLContextInfo*)ctx;
-    if (info) {
-        for (int x = 0; x < 10; ++x) {
-            if (wglMakeCurrent(info->hdc, info->context)) return;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    if (!info) return false;
+    for (int x = 0; x < 10; ++x) {
+        if (wglMakeCurrent(info->hdc, info->context)) return true;
+        DWORD gle = GetLastError();
+        if (gle == ERROR_INVALID_HANDLE) {
+            // Dummy window was destroyed (e.g. after Shutdown/reinit).
+            // Caller should release this handle and acquire a fresh one.
+            spdlog::error("GLContextManager: wglMakeCurrent invalid handle - "
+                          "hwnd_valid={} dc_type={} hglrc={:p}",
+                          (int)IsWindow(info->hwnd),
+                          (int)GetObjectType(info->hdc),
+                          (void*)info->context);
+            return false;
         }
-        spdlog::error("GLContextManager: wglMakeCurrent failed after retries");
+        if (gle == 2004) {
+            // NVIDIA driver-specific: GPU busy (typically CUDA/NVDEC contention).
+            // No point retrying in a tight loop — caller will skip this frame
+            // and return the context to the pool for the next frame.
+            spdlog::warn("GLContextManager: wglMakeCurrent GPU busy (GLE=2004), skipping frame");
+            return false;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    spdlog::error("GLContextManager: wglMakeCurrent failed after retries (GLE={})", GetLastError());
+    return false;
 }
 
 void GLContextManager::DoneCurrent(ContextHandle ctx) {
@@ -753,6 +778,12 @@ void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
                     _platform->taskQueue.pop();
                 }
                 task();
+                // Pump any pending messages for dummy windows owned by this
+                // thread.  WGL drivers sometimes post internal messages; if
+                // the queue fills up wglMakeCurrent can fail on NVIDIA.
+                MSG msg;
+                while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE | PM_NOYIELD))
+                    DispatchMessageA(&msg);
             }
         });
     });
@@ -1108,13 +1139,13 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
     return (ContextHandle)(new PlatformState::PoolEntry(entry));
 }
 
-void GLContextManager::MakeCurrent(ContextHandle ctx) {
+bool GLContextManager::MakeCurrent(ContextHandle ctx) {
     auto* entry = (PlatformState::PoolEntry*)ctx;
-    if (!entry || !_platform) return;
+    if (!entry || !_platform) return false;
     if (_platform->useEGL) {
-        eglMakeCurrent(_platform->eglDisplay, entry->eglSurface, entry->eglSurface, entry->eglContext);
+        return eglMakeCurrent(_platform->eglDisplay, entry->eglSurface, entry->eglSurface, entry->eglContext) == EGL_TRUE;
     } else {
-        glXMakeCurrent(_platform->xDisplay, entry->glxPbuffer, entry->glxContext);
+        return glXMakeCurrent(_platform->xDisplay, entry->glxPbuffer, entry->glxContext) == True;
     }
 }
 

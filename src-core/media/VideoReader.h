@@ -33,6 +33,10 @@ public:
     int GetPos();
     std::string GetFilename() const;
     int GetPixelChannels() const;
+    // Returns true if the underlying reader was able to retarget output to the
+    // requested size in place. False means the caller should delete and reconstruct
+    // the VideoReader with the new dimensions.
+    bool Resize(int width, int height);
     static void SetHardwareAcceleratedVideo(bool accel);
     static void SetHardwareRenderType(int type);
     static bool IsHardwareAcceleratedVideo();

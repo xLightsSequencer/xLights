@@ -8,16 +8,20 @@ lives in git history.
 
 ---
 
-## Where we are (2026-04-30)
+## Where we are (2026-05-02)
 
 The iPad app builds, ships through Xcode Cloud, runs on TestFlight
 external testers, and exercises the full desktop rendering / effect /
 sequence pipeline through the same `src-core/` it shares with the
 Mac. Phases A, B-Metal, C, D, E, F, G are complete. Phase B P0+P1
-parity work is done (only 2 named P2s + 3 deferred remain). Phase H
-is one organizational push (H-5) from submission. Phase I shipped
-the headline `.xsq`/`.xsqz` import flow on 2026-04-29; format
-expansions (`.sup`, `.lms`/`.las`) are the remaining feature gap.
+parity work is done (1 named P2 — B77 MIDI import — plus 3 deferred
+remain; B79 AI Speech 2 Lyrics shipped via
+`XLAIServices.generateLyricTrack`, B91 LRCLIB synced-lyrics import
+shipped 2026-05-02 alongside the desktop release). Phase H is one
+organizational push (H-5) from submission. Phase I shipped
+`.xsq`/`.xsqz` 2026-04-29 and SuperStar `.sup` 2026-05-02; the
+`.lms`/`.las` format slot is the remaining feature gap. Multicast
+sACN was approved 2026-05-01 and is wired into the entitlements.
 
 ### Code layout
 
@@ -71,7 +75,7 @@ variants in `libdbg-ios/`.
 | Phase | Title | Status | Sub-plan |
 |---|---|---|---|
 | A | Core-path hardening | ✓ complete | — |
-| B | Effects grid parity | ✓ P0 + P1 closed; 2 P2 + 3 deferred remain | [`phase-b-grid-parity.md`](plans/phase-b-grid-parity.md) |
+| B | Effects grid parity | ✓ P0 + P1 closed; 1 P2 (B77 MIDI) + 3 deferred remain | [`phase-b-grid-parity.md`](plans/phase-b-grid-parity.md) |
 | B-Metal | Grid render pipeline (CG → Metal) | ✓ complete | — |
 | C | Effect settings inspector | ✓ complete | 3 small follow-ups in [`followups.md`](plans/followups.md) |
 | D | Model Preview + preview polish | ✓ complete | [`phase-d-preview.md`](plans/phase-d-preview.md) (residual) |
@@ -79,7 +83,7 @@ variants in `libdbg-ios/`.
 | F | Window system + Display Elements | ✓ complete 2026-04-21 | [`phase-f-window-system.md`](plans/phase-f-window-system.md) (residual) |
 | G | Document / iCloud polish | ✓ complete 2026-04-22 | [`phase-g-document.md`](plans/phase-g-document.md) (residual) |
 | H | App Store readiness | H-0..H-4 ✓; **H-5 metadata + screenshots remaining** | [`phase-h-app-store.md`](plans/phase-h-app-store.md) |
-| I | Import Effects | I-1 + I-2 (`.xsq`/`.xsqz`) ✓ 2026-04-29; **I-3 vendor regression, I-4 `.sup`, I-5 `.lms`/`.las` remaining** | [`phase-i-import-effects.md`](plans/phase-i-import-effects.md) |
+| I | Import Effects | I-1 + I-2 (`.xsq`/`.xsqz`) ✓ 2026-04-29; I-4 (`.sup`) ✓ 2026-05-02; **I-3 vendor regression, I-5 `.lms`/`.las` remaining** | [`phase-i-import-effects.md`](plans/phase-i-import-effects.md) |
 
 ---
 
@@ -101,124 +105,50 @@ In priority order:
    (scroll-to-first-unmapped, "X of Y mapped" counter). Bug-fix
    anything the regression turns up.
 
-3. **Phase B P2 — B77 (MIDI Import Notes) and B79 (AI Speech 2
-   Lyrics).** Each needs a new bridge surface (MIDI parser /
-   `SFSpeechRecognizer`). Both are P2 — desktop has them, iPad
-   doesn't, but neither is on the critical authoring path.
+3. **Phase B P2 — B77 (MIDI Import Notes).** Needs a new bridge
+   surface (AVFoundation `MIDIFile` parser → timing marks). P2
+   feature — desktop has it, iPad doesn't, but it's not on the
+   critical authoring path.
 
 The 3 deferred Phase B items (B16 drag-from-palette ghost, B24 Find
 Possible Source Effects, B56 Convert-to-Effect) are explicitly
 parked — substantial new work, not blocking submission.
 
 The follow-ups in [`followups.md`](plans/followups.md) (Data Layers
-tab, MH waypoint authoring, shader uniform grouping, video compat
-badge, sACN multicast entitlement) are quality-of-life and unblock
-independently.
+tab, MH waypoint authoring, shader uniform grouping) are
+quality-of-life and unblock independently.
 
 ## Could pull into MVP during testing
 
-If H-5 prep + I-3 testing leaves spare cycles, these are the high-
-ROI items that would **measurably improve** what testers experience.
-Detailed in [`plans/followups.md`](plans/followups.md) "TestFlight
-quality" section unless noted otherwise.
+If H-5 prep + I-3 testing leaves spare cycles, these are the
+remaining feature-additions worth a tester sprint.
 
-**P0 / P1 — TestFlight loop quality** (gap-analysis flagged):
+**TestFlight loop quality (shipped pre-MVP).** Log export +
+crash telemetry / MetricKit + auto-upload to `crashUpload/index.php`,
+About / Help menu, Check Sequence runner (shared core via
+`src-core/diagnostics/SequenceChecker`), incompatible-video
+warning, ObtainAccessToURL re-prompt sheet, Recent Show Folders
+list, SuperStar `.sup` import — all landed. Implementation prose
+in git history.
 
-- ✓ **Log export** — Tools → Package Logs zips `xLights.log` +
-  rotated siblings, MetricKit JSON, show-folder XML, the open
-  sequence, threads + device-info sidecars, and hands the result
-  to `UIActivityViewController`. Logs moved from `Documents/` to
-  `Library/Logs/` so they no longer eat iCloud quota; one-time
-  migration in `XLiPadInit` brings legacy logs across.
-- ✓ **Crash telemetry** — `XLMetricKit` (shared with desktop, in
-  `macOS/src-apple-core/osxUtils/`) subscribes at launch and writes
-  metric / diagnostic payloads to `Library/Logs/Diagnostics/`. iPad
-  ships them via Package Logs; desktop folds them into the next
-  `wxDebugReportCompress` zip under `MetricKit/`. Hang / CPU /
-  disk-write diagnostics are the headline win — they don't trigger
-  the wx signal-handler-based crash path on Mac and have no
-  equivalent on iPad today.
-- ✓ **Auto-upload of crash zips** — `XLDiagnosticUploader.swift`
-  posts staged zips from `Library/Logs/PendingUpload/` to the same
-  `crashUpload/index.php` endpoint the desktop app uses, so iPad
-  reports land in the existing triage bin. Triggered three ways:
-  (a) MetricKit notification → stage + upload, (b) prior-session
-  sentinel left behind by a crash → stage + upload at next launch,
-  (c) every `scenePhase = .active`. Auto-upload uses a smaller
-  payload than user-initiated Package Logs (no show folder XML, no
-  open sequence) to keep size + PII small. Opt-in toggle in iOS
-  Settings → xLights → "Send Crash Reports" (default on).
-  `PrivacyInfo.xcprivacy` updated with `CrashData /
-  PerformanceData / OtherDiagnosticData` entries.
-- ✓ **About + Help menu** — `Help` group in the menu bar with
-  About xLights… (sheet showing icon, version, build, GPL legal
-  text from the shared `XLIGHTS_LICENSE`, Privacy Policy + EULA
-  links) plus seven external link entries (Manual, Tutorial
-  Videos, Release Notes, Forum, Facebook, Issue Tracker,
-  xLights.org), each routed through `XLOpenURL` to the system
-  browser to match desktop's `wxLaunchDefaultBrowser` behaviour.
-- ✓ **Check Sequence runner** — Tools → Check Sequence runs the
-  full desktop check suite via the shared
-  `src-core/diagnostics/SequenceChecker` (~1175 lines, wx-free
-  port of the bulk of `xLightsFrame::CheckSequence`). Covers
-  controllers (inactive, IP collisions, ZCPP/managed checks,
-  duplicate universes, model controller-connection validation),
-  models (start-channel chain loops, overlaps, missing matrix
-  faces, single-line orientation, model-group consistency,
-  submodel sanity), and the per-effect / per-element walk
-  (transitions, Per-Model + sub-buffer combos, old value curves,
-  canvas mode, video codec, render-disabled summaries, faces /
-  states / viewpoints summaries). `CheckSequenceReport` was
-  also lifted to core with a structured `ReportIssue` carrying
-  optional `(modelName, effectName, startTimeMS, layerIndex)` so
-  both clients can offer tap-to-jump — iPad's sheet uses it now;
-  desktop's HTML report ignores it (the data is there for a
-  future in-app results panel). Desktop's
-  `xLightsFrame::CheckSequence` collapsed from ~2k lines to a
-  ~180-line wrapper that keeps only the wx-only chunks (network
-  socket probe, OS / preferences, HTML output, OpenGL core-
-  profile shader guard, BadDriveAccess) and delegates the rest
-  through `DesktopCheckCallbacks`.
-- ✓ **Incompatible-video warning at sequence load** —
-  `mediaInventoryInSequence` now runs the AVFoundation probe via
-  `MediaCompatibility::CheckVideoFile` on every video entry whose
-  file exists, rolling codec-incompatible videos (VP9, AV1,
-  ProRes-RAW, …) into `isBroken` alongside missing files. The
-  red "X media files have issues" banner across the top fires for
-  both. Media Manager inventory chip says "Missing" or
-  "Unsupported" depending on the failure mode.
-- ✓ **Re-prompt on failed `ObtainAccessToURL`** —
-  `SequencerViewModel.loadShowFolder` pre-checks every show /
-  media folder path with `XLSequenceDocument.obtainAccess(toPath:)`
-  before calling into C++. Stale paths queue an
-  `AccessRepromptRequest`; the `AccessRepromptSheet` presents a
-  `UIDocumentPickerViewController` so the user re-grants access,
-  and the C++ load only runs once the queue drains. Folders that
-  still can't be accessed are dropped (matches the prior silent-drop
-  behaviour, but now the user actually sees what happened).
+`XLMetricKit` filters MetricKit `MXDiskWriteExceptionDiagnostic`
+payloads on iPad — the `MAP_SHARED` SequenceData backing tmpfile
+guarantees the kernel writes back every dirtied sequence page, so
+iOS's writesCaused metric is structural noise, not signal. Crash /
+hang / CPU / app-launch diagnostics still flow through.
 
-**P2 — feature additions worth a tester sprint**:
+**Remaining feature additions:**
 
-- **I-4 SuperStar `.sup` import.** Same UI as I-2; just hoist the
-  parser from `SuperStarImportDialog.cpp` to
-  `src-core/import_export/SuperStarImporter.{h,cpp}`. Vendor
-  relevance ≈ `.xsq` for a meaningful slice of users.
 - **B77 MIDI import.** Concrete user request; iOS-native via
-  AVFoundation `MIDIFile`.
-- **Audio onset → timing track** (A-1, P1, M). Replaces 5–10 minutes
-  of manual mark-tapping with one button.
+  AVFoundation `MIDIFile`. New bridge surface needed.
 - **Live-output controller list (read-only)** (gap-analysis O-3,
   P1, M). Even just *seeing* what's configured (without setup UI)
   is a tester clarity win.
-- **Recent Show Folders list** (L-1b). Recent Sequences exists;
-  Recent Show Folders does not.
-- **Video compat badge in Media Manager.** Per-effect probe
-  already exists; one-day fix, big diagnostic clarity win.
 
 Items **not** worth pulling in even with spare cycles:
 
 - I-5 (`.lms`/`.las`) — distant third format, low vendor traffic
-  today. Land after I-4 stabilises.
+  today. Reconsider once I-4 has TestFlight mileage.
 - MH full waypoint authoring — Sketch-style drag UI is a real
   design exercise, not a quick port.
 - Shader uniform grouping (G2-c) — only matters for shader packs
@@ -258,11 +188,12 @@ testers must configure controllers in desktop xLights and copy the
 show folder over) or "couldn't reach configured controllers"
 (network / multicast issue).
 
-**sACN multicast caveat.** iOS gates `239.255.x.x` joins behind
-`com.apple.developer.networking.multicast`, which Apple approves
-manually. Entitlement request submitted 2026-04-28; tracked in
-[`followups.md`](plans/followups.md). Until approved, ArtNet, DDP,
-and sACN unicast all work today.
+**sACN multicast.** Apple-issued
+`com.apple.developer.networking.multicast` entitlement assigned
+to the team account 2026-05-01; key added to
+`macOS/Assets/xLights-iPad/xLights-iPad.entitlements`. iPads on
+the same network as the controllers can now join `239.255.x.x`
+for sACN multicast output alongside ArtNet, DDP, and sACN unicast.
 
 ## Deferred / explicitly out of MVP
 

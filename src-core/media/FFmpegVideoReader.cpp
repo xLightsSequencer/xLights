@@ -593,12 +593,10 @@ FFmpegVideoReader::~FFmpegVideoReader()
         _swsCtx = nullptr;
     }
     if (_srcFrame != nullptr) {
-        av_free(_srcFrame);
-        _srcFrame = nullptr;
+        av_frame_free(&_srcFrame);
     }
     if (_srcFrame2 != nullptr) {
-        av_free(_srcFrame2);
-        _srcFrame2 = nullptr;
+        av_frame_free(&_srcFrame2);
     }
     if (_dstFrame != nullptr) {
         if (_dstFrame->data[0] != nullptr) {
@@ -685,6 +683,7 @@ bool FFmpegVideoReader::initCudaScaleFilter()
         if (!par) goto fail;
         par->hw_frames_ctx = av_buffer_ref(_srcFrame->hw_frames_ctx);
         ret = av_buffersrc_parameters_set(_cudaBufferSrcCtx, par);
+        av_buffer_unref(&par->hw_frames_ctx);
         av_free(par);
         if (ret < 0) {
             spdlog::warn("VideoReader: scale_cuda init: av_buffersrc_parameters_set failed ({})", ret);

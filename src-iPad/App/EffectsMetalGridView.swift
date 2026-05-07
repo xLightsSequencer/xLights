@@ -249,7 +249,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
 
         init(document: XLSequenceDocument) {
             self.document = document
-            self.bridge = XLGridMetalBridge(name: "ModelEffectsGrid")!
+            self.bridge = XLGridMetalBridge(name: "ModelEffectsGrid")
         }
     }
 }

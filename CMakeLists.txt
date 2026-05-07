@@ -745,10 +745,27 @@ endif()
 # ─── Windows post-build: copy DLLs and resources to output dir ──────────────
 # Mirrors the PostBuildEvent in xLights/Xlights.vcxproj.
 if(WIN32)
+    # Use safe_copy_dlls.cmake so the copy is a no-op when the build output
+    # directory is the same as the source bin/ directory (happens on CI when
+    # Ninja builds directly into bin/).  Plain `copy` fails with "cannot copy
+    # file onto itself" in that case.
+    set(_SAFE_COPY "${CMAKE_SOURCE_DIR}/cmake/safe_copy_dlls.cmake")
     add_custom_command(TARGET xLights POST_BUILD
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin64\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.cfg\" \"$<TARGET_FILE_DIR:xLights>\\\""
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin64"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.cfg"
+            -P "${_SAFE_COPY}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/dictionaries"
             "$<TARGET_FILE_DIR:xLights>/dictionaries"

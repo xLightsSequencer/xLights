@@ -89,6 +89,15 @@ final class BatchRenderRunner {
     /// Returns true if we wrote a fresh fseq for this sequence; false on
     /// open / write failure. Logs but doesn't propagate errors — the loop
     /// continues to the next entry on failure.
+    ///
+    /// Memory-pressure handling: the iOS dispatch source can fire
+    /// `SignalAbort` mid-render, which makes `isRenderDone()` flip to
+    /// true with `SequenceData` in a partially-populated state. Writing
+    /// that to fseq produces invalid playback. We watch for that case
+    /// via `wasRenderAborted` and retry the render once after a brief
+    /// delay (gives the pressure source time to clear and the cache
+    /// purge to take effect). A second abort is a hard fail: we skip
+    /// the fseq write rather than persist garbage.
     private func renderOne(entry: SequenceEntry) async -> Bool {
         _ = XLSequenceDocument.obtainAccess(toPath: entry.fullPath,
                                              enforceWritable: true)
@@ -97,34 +106,66 @@ final class BatchRenderRunner {
             return false
         }
 
-        // `renderAll()` is non-blocking — it builds the render tree and
-        // queues the per-row jobs onto the JobPool, then returns. The
-        // actual frame work runs on the pool's background workers. So
-        // we call it synchronously on the main thread (cheap, just
-        // setup) and then poll isRenderDone for the queued jobs to
-        // finish. Spawning a worker thread to call renderAll() is a
-        // race: if the poll fires before the thread enters Render(),
-        // the RenderProgressInfo list is empty and isRenderDone()
-        // reports `true` — we'd write the un-rendered SequenceData and
-        // produce an empty fseq.
-        document.renderAll()
+        var attempt = 0
+        let maxAttempts = 2
+        while attempt < maxAttempts {
+            attempt += 1
+            if cancelRequested { break }
 
-        // Poll the bridge's render-done flag. 250ms matches
-        // SequencerViewModel.beginFreshRender's cadence — fast enough that
-        // a quick render doesn't sit idle, slow enough not to thrash the
-        // main runloop. Cancel checks ride the same wakeup. Progress
-        // fraction is updated each tick so the sheet's per-sequence bar
-        // moves as workers chew through frames.
-        while !document.isRenderDone() {
-            if cancelRequested {
-                _ = document.abortRenderAndWait(5.0)
-                document.closeSequence()
-                return false
+            // `renderAll()` is non-blocking — it builds the render tree and
+            // queues the per-row jobs onto the JobPool, then returns. The
+            // actual frame work runs on the pool's background workers. So
+            // we call it synchronously on the main thread (cheap, just
+            // setup) and then poll isRenderDone for the queued jobs to
+            // finish. Spawning a worker thread to call renderAll() is a
+            // race: if the poll fires before the thread enters Render(),
+            // the RenderProgressInfo list is empty and isRenderDone()
+            // reports `true` — we'd write the un-rendered SequenceData and
+            // produce an empty fseq.
+            currentSequenceProgress = 0.0
+            document.renderAll()
+
+            // Poll the bridge's render-done flag. 250ms matches
+            // SequencerViewModel.beginFreshRender's cadence — fast enough that
+            // a quick render doesn't sit idle, slow enough not to thrash the
+            // main runloop. Cancel checks ride the same wakeup. Progress
+            // fraction is updated each tick so the sheet's per-sequence bar
+            // moves as workers chew through frames.
+            while !document.isRenderDone() {
+                if cancelRequested {
+                    _ = document.abortRenderAndWait(5.0)
+                    document.closeSequence()
+                    return false
+                }
+                currentSequenceProgress = Double(document.renderProgressFraction())
+                try? await Task.sleep(nanoseconds: 250_000_000)
             }
-            currentSequenceProgress = Double(document.renderProgressFraction())
-            try? await Task.sleep(nanoseconds: 250_000_000)
+
+            if !document.wasRenderAborted() {
+                currentSequenceProgress = 1.0
+                break
+            }
+
+            // Render aborted before completing — almost always memory
+            // pressure. Don't persist the partial buffer. If we have
+            // attempts left, give the system ~500ms for the pressure
+            // source to clear (and `HandleMemoryWarning` has already
+            // purged caches) then retry.
+            print("BatchRender: render aborted for \(entry.fullPath) on attempt \(attempt)/\(maxAttempts); \(attempt < maxAttempts ? "retrying" : "giving up")")
+            if attempt < maxAttempts {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+            }
         }
-        currentSequenceProgress = 1.0
+
+        // After the retry loop: if the last attempt is still aborted,
+        // skip the fseq write. The .xsq itself isn't being written here,
+        // so the user's source is untouched.
+        if document.wasRenderAborted() {
+            print("BatchRender: skipping fseq write for \(entry.fullPath) — render aborted twice")
+            _ = document.abortRenderAndWait(5.0)
+            document.closeSequence()
+            return false
+        }
 
         let fseqPath = batchRenderFseqPath(forXsq: entry.fullPath)
         _ = XLSequenceDocument.obtainAccess(toPath: fseqPath,

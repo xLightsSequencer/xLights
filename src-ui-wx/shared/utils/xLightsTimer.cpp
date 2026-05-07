@@ -273,7 +273,7 @@ void xlTimerThread::Reset(int interval, bool oneshot, const std::string& name)
         spdlog::debug("    released");
     }
 
-    spdlog::debug("    Reset took %ldms", sw.Time());
+    spdlog::debug("    Reset took {}ms", sw.Time());
 }
 
 void xlTimerThread::Suspend()

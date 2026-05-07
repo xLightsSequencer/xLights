@@ -204,27 +204,54 @@ wxArrayString BatchRenderDialog::GetFileList() const
     return lst;
 }
 
-void BatchRenderDialog::GetSeqList(const wxString& folder)
+namespace {
+class SeqFileTraverser : public wxDirTraverser {
+public:
+    SeqFileTraverser(const wxString& root, wxArrayString& out, wxProgressDialog* prgs)
+        : m_root(root), m_out(out), m_prgs(prgs) {}
+
+    wxDirTraverseResult OnFile(const wxString& path) override {
+        wxString lower = path.Lower();
+        if (!lower.EndsWith(".xsq") && !lower.EndsWith(".xml"))
+            return wxDIR_CONTINUE;
+        if (path.Contains("\\._") || path.Contains("/._"))
+            return wxDIR_CONTINUE;
+        wxString name = path.Mid(m_root.length());
+        if (!name.IsEmpty() && (name[0] == '/' || name[0] == '\\'))
+            name = name.Mid(1);
+        if (!name.Contains("xlights_"))
+            m_out.push_back(name);
+        return wxDIR_CONTINUE;
+    }
+
+    wxDirTraverseResult OnDir(const wxString& path) override {
+        wxString upper = path.Upper();
+        if (upper.Contains("\\BACKUP") || upper.Contains("/BACKUP") ||
+            upper.Contains("\\._") || upper.Contains("/._"))
+            return wxDIR_IGNORE;
+        if (m_prgs)
+            m_prgs->Pulse(wxFileName(path).GetFullName());
+        return wxDIR_CONTINUE;
+    }
+
+private:
+    wxString m_root;
+    wxArrayString& m_out;
+    wxProgressDialog* m_prgs;
+};
+} // namespace
+
+void BatchRenderDialog::GetSeqList(const wxString& folder, wxProgressDialog* prgs)
 {
     wxArrayString files;
-    GetAllFilesInDir(folder, files, "*.x*", wxDIR_FILES | wxDIR_DIRS);
-    for (size_t i = 0; i < files.size(); /* no increment here */) {
-        if (files[i].StartsWith("Backup/") || files[i].StartsWith("Backup\\") || files[i].Contains("\\Backup\\") || files[i].Contains("/Backup/") || files[i].Contains("\\._") || files[i].Contains("/._")) {
-            files.RemoveAt(i);
-        } else {
-            ++i; // Only increment if no removal
-        }
+    wxDir dir(folder);
+    if (dir.IsOpened()) {
+        SeqFileTraverser traverser(folder, files, prgs);
+        dir.Traverse(traverser, wxEmptyString, wxDIR_FILES | wxDIR_DIRS);
     }
     files.Sort();
-    for (size_t x = 0; x < files.size(); x++) {
-        wxString name = files[x];
-        name = name.SubString(folder.length(), files[x].size());
-        if (name[0] == '/' || name[0] == '\\') {
-            name = name.SubString(1, name.size());
-        }
-        if (!name.Contains("xlights_") && (name.Lower().EndsWith("xsq")|| name.Lower().EndsWith("xml"))) {
-            allFiles.push_back(name);
-        }
+    for (const auto& name : files) {
+        allFiles.push_back(name);
     }
 }
 
@@ -265,7 +292,7 @@ bool BatchRenderDialog::Prepare(const wxString &showDir)
     prgs.Pulse("Searching for Folder");
     GetFolderList(showDir);
     prgs.Pulse("Searching for Sequences");
-    GetSeqList(showDir);
+    GetSeqList(showDir, &prgs);
 
     auto* config = GetXLightsConfig();
     if (config != nullptr) {

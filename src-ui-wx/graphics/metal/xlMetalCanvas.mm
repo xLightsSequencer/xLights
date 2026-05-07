@@ -64,9 +64,13 @@ public:
             // which are the prerequisites for memoryless. Saves the
             // full MSAA surface size × triple buffering on every M-series
             // Mac. Intel Macs aren't TBDR, so fall back to Private there.
-            msaaDesc.storageMode = supportsMemoryless()
-                ? MTLStorageModeMemoryless
-                : MTLStorageModePrivate;
+            if (@available(macOS 11.0, *)) {
+                msaaDesc.storageMode = supportsMemoryless()
+                    ? MTLStorageModeMemoryless
+                    : MTLStorageModePrivate;
+            } else {
+                msaaDesc.storageMode = MTLStorageModePrivate;
+            }
             msaaDesc.textureType = MTLTextureType2DMultisample;
             msaaDesc.sampleCount = canvas->getMSAASampleCount();
             msaaTexture = [canvas->getMTLDevice() newTextureWithDescriptor:msaaDesc];

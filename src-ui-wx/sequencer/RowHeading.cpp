@@ -39,8 +39,11 @@
 #include <log.h>
 #include "shared/utils/wxUtilities.h"
 #include "sequencer/LyricsDialog.h"
+#include "LRCLIBSearchDialog.h"
 #include "lyrics/LyricBreakdown.h"
 #include "TimeLine.h"
+
+#include <sstream>
 
 #define ICON_SPACE FromDIP(25)
 
@@ -213,6 +216,7 @@ const long RowHeading::ID_ROW_MNU_EXPORT_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_UNFIX_TIMING_TRACK = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_NOTES = wxNewId();
 const long RowHeading::ID_ROW_MNU_IMPORT_LYRICS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SEARCH_LYRICS_ONLINE = wxNewId();
 const long RowHeading::ID_ROW_MNU_AI_LYRICS = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES = wxNewId();
 const long RowHeading::ID_ROW_MNU_BREAKDOWN_TIMING_WORDS = wxNewId();
@@ -602,11 +606,6 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     mnuLayer.Append(ID_ROW_MNU_ADD_TIMING_TRACK_ALL_VIEWS, "Add Timing Tracks to All Views");
                     mnuLayer.Append(ID_ROW_MNU_SELECT_TIMING_EFFECTS, "Select Timing Marks");
                     mnuLayer.Append(ID_ROW_MNU_GENERATE_SUBDIVIDED_TRACKS, "Generate Subdivided Timing Tracks");
-                    // A2/A4/A9: audio-analysis generators live inside
-                    // the "Add Timing Track" dialog's timing-type
-                    // picker (alongside VAMP plugins), not here —
-                    // keep this row-popup focused on operations on
-                    // the existing timing track.
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_NOTES, "Import Notes");
                     if ( xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
                         SequenceFile* xml_file = xLightsApp::GetFrame()->CurrentSeqXmlFile;
@@ -616,6 +615,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     }
                     mnuLayer.AppendSeparator();
                     mnuLayer.Append(ID_ROW_MNU_IMPORT_LYRICS, "Import Lyrics");
+                    mnuLayer.Append(ID_ROW_MNU_SEARCH_LYRICS_ONLINE, "Search for Lyrics Online...");
                     TimingElement *te = dynamic_cast<TimingElement*>(element);
                     if (te->GetSubType() == "") {
                         mnuLayer.Append(ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES, "Breakdown Phrases");
@@ -736,6 +736,122 @@ static void ImportLyrics(SequenceElements* seqElements, TimingElement* element, 
                 seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
                 start_time = end_time;
             }
+        }
+    }
+}
+
+static void ImportSyncedLyrics(SequenceElements* seqElements, TimingElement* element, wxWindow* parent)
+{
+    wxString songTitle;
+    wxString artistName;
+    if (xLightsFrame::CurrentSeqXmlFile) {
+        songTitle = xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::SONG);
+        artistName = xLightsFrame::CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST);
+    }
+
+    LRCLIBSearchDialog dlg(parent, songTitle, artistName);
+
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    int sequenceEndMS = seqElements->GetSequenceEnd();
+
+    seqElements->get_undo_mgr().CreateUndoStep();
+
+    element->SetFixedTiming(0);
+    int num_layers = element->GetEffectLayerCount();
+    for (int k = num_layers - 1; k >= 0; k--) {
+        element->RemoveEffectLayer(k);
+    }
+    EffectLayer* phrase_layer = element->AddEffectLayer();
+
+    if (dlg.HasSyncedLyrics()) {
+        auto lines = ParseLRC(dlg.GetSelectedSyncedLyrics());
+
+        std::vector<std::pair<int, std::string>> filtered;
+        for (const auto& line : lines) {
+            if (!line.second.empty()) {
+                filtered.push_back(line);
+            }
+        }
+
+        if (filtered.empty()) {
+            DisplayError("No synced lyrics lines found.");
+            return;
+        }
+
+        for (size_t i = 0; i < filtered.size(); i++) {
+            int startMS = TimeLine::RoundToMultipleOfPeriod(filtered[i].first, seqElements->GetFrequency());
+
+            int endMS;
+            if (i + 1 < filtered.size()) {
+                endMS = TimeLine::RoundToMultipleOfPeriod(filtered[i + 1].first, seqElements->GetFrequency());
+            } else {
+                endMS = sequenceEndMS;
+            }
+
+            if (startMS >= sequenceEndMS)
+                break;
+            if (endMS > sequenceEndMS)
+                endMS = sequenceEndMS;
+            if (endMS <= startMS)
+                continue;
+
+            wxString text(filtered[i].second);
+            text.Replace(wxT("’"), "'", true);
+            text.Replace(wxT("Ș"), "'", true);
+            text.Replace(wxT("“"), "\"", true);
+            text.Replace(wxT("”"), "\"", true);
+            text.Replace(wxT("\""), "", true);
+            text.Replace(wxT("<"), "", true);
+            text.Replace(wxT(">"), "", true);
+
+            if (!text.Trim().IsEmpty()) {
+                std::string s = text.ToStdString();
+                PhonemeDictionary::InsertSpacesAfterPunctuation(s);
+                Effect* ef = phrase_layer->AddEffect(0, s, "", "",
+                    startMS, endMS, EFFECT_NOT_SELECTED, false);
+                seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+            }
+        }
+    } else {
+        std::string plainLyrics = dlg.GetSelectedPlainLyrics();
+        std::istringstream stream(plainLyrics);
+        std::string line;
+        std::vector<std::string> phrases;
+        while (std::getline(stream, line)) {
+            wxString wl(line);
+            wl = wl.Trim().Trim(false);
+            wl.Replace(wxT("’"), "'", true);
+            wl.Replace(wxT("Ș"), "'", true);
+            wl.Replace(wxT("“"), "\"", true);
+            wl.Replace(wxT("”"), "\"", true);
+            wl.Replace(wxT("\""), "", true);
+            wl.Replace(wxT("<"), "", true);
+            wl.Replace(wxT(">"), "", true);
+            if (!wl.Trim().IsEmpty()) {
+                phrases.push_back(wl.ToStdString());
+            }
+        }
+
+        if (phrases.empty()) {
+            DisplayError("No lyrics lines found.");
+            return;
+        }
+
+        int interval_ms = sequenceEndMS / phrases.size();
+        int start_time = 0;
+        for (size_t i = 0; i < phrases.size(); i++) {
+            int end_time = TimeLine::RoundToMultipleOfPeriod(start_time + interval_ms, seqElements->GetFrequency());
+            if (i == phrases.size() - 1 || end_time > sequenceEndMS)
+                end_time = sequenceEndMS;
+
+            std::string s = phrases[i];
+            PhonemeDictionary::InsertSpacesAfterPunctuation(s);
+            Effect* ef = phrase_layer->AddEffect(0, s, "", "",
+                start_time, end_time, EFFECT_NOT_SELECTED, false);
+            seqElements->get_undo_mgr().CaptureAddedEffect(element->GetName(), phrase_layer->GetIndex(), ef->GetID());
+            start_time = end_time;
         }
     }
 }
@@ -923,7 +1039,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         if (vampMedia != nullptr) {
             plugins = vampMedia->GetVamp()->GetAvailablePlugins(vampMedia);
 
-            // A2/A4/A9: the built-in detectors produce timing tracks
+            // The built-in detectors produce timing tracks
             // directly from audio analysis. Listed after the FPP
             // options (which end the default list) but before VAMP
             // plugins so the dialog reads as: built-in → xLights
@@ -932,6 +1048,14 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Choice_New_Fixed_Timing->Append("Audio Onsets");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Tempo");
                 dialog.Choice_New_Fixed_Timing->Append("Audio Chords");
+                // AI lyric transcription. Reuses the existing
+                // EVT_AI_LYRICS handler in tabSequencer.cpp; only
+                // offered when at least one SPEECH2TEXT service is
+                // configured (Apple Intelligence on Apple Silicon
+                // covers this without an API key).
+                if (xLightsApp::GetFrame()->GetAIService(aiType::SPEECH2TEXT) != nullptr) {
+                    dialog.Choice_New_Fixed_Timing->Append("AI Lyrics from Audio");
+                }
             }
 
             if (plugins.size() == 0) {
@@ -965,6 +1089,13 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 dialog.Destroy();
                 wxCommandEvent evt(wxEVT_MENU, detectorId);
                 OnLayerPopup(evt);
+                return;
+            } else if (selected_timing == "AI Lyrics from Audio") {
+                // Reuse the EVT_AI_LYRICS handler that powers the
+                // row-context-menu "AI Speech 2 Lyrics" entry.
+                dialog.Destroy();
+                wxCommandEvent aiEvt(EVT_AI_LYRICS);
+                wxPostEvent(GetParent(), aiEvt);
                 return;
             } else {
                 if (std::find(plugins.begin(), plugins.end(), selected_timing) != plugins.end()) {
@@ -1523,6 +1654,8 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         wxPostEvent(GetParent(), aiLyricsEvent);
     } else if (id == ID_ROW_MNU_IMPORT_LYRICS) {
         ImportLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
+    } else if (id == ID_ROW_MNU_SEARCH_LYRICS_ONLINE) {
+        ImportSyncedLyrics(mSequenceElements, dynamic_cast<TimingElement*>(element), GetParent());
     } else if (id == ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES) {
         int result = wxOK;
         if (element->GetEffectLayerCount() > 1) {

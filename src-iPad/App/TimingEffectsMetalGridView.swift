@@ -58,7 +58,7 @@ struct TimingEffectsMetalGridView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     final class Coordinator {
-        let bridge = XLGridMetalBridge(name: "TimingEffectsGrid")!
+        let bridge = XLGridMetalBridge(name: "TimingEffectsGrid")
         var rows: [SequencerViewModel.RowInfo] = []
         var rowHeight: CGFloat = 24
         var pixelsPerMS: CGFloat = 0.1

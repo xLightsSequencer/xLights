@@ -217,6 +217,8 @@
 		<Unit filename="../src-core/import_export/ImportMappingNode.h" />
 		<Unit filename="../src-core/import_export/MapHintsIO.cpp" />
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
+		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
@@ -378,6 +380,8 @@
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LorConvertDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/LRCLIBSearchDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/LRCLIBSearchDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/LyricUserDictDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/LyricsDialog.cpp" />
@@ -440,6 +444,8 @@
 		<Unit filename="../src-ui-wx/model/PathGenerationDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/PerspectivesPanel.h" />
+		<Unit filename="../src-core/lyrics/LRCParser.cpp" />
+		<Unit filename="../src-core/lyrics/LRCParser.h" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.cpp" />
 		<Unit filename="../src-core/lyrics/PhonemeDictionary.h" />
 		<Unit filename="../src-core/render/IRenderJobStatus.h" />
@@ -487,6 +493,8 @@
 		<Unit filename="../src-ui-wx/sequencer/SelectPanel.h" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.h" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/SeqExportDialog.cpp" />

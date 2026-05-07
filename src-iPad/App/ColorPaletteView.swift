@@ -17,6 +17,7 @@ struct ColorPaletteView: View {
     @State private var showingLoadSheet = false
     @State private var showingImportSheet = false
     @State private var showingSaveAsSheet = false
+    @State private var showingAISheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -71,6 +72,10 @@ struct ColorPaletteView: View {
                     currentPaletteString(), asName: name)
             }
         }
+        .sheet(isPresented: $showingAISheet) {
+            AIPaletteGenerationSheet()
+                .environment(viewModel)
+        }
     }
 
     // MARK: - Palette menu (save / load / import / export)
@@ -94,6 +99,13 @@ struct ColorPaletteView: View {
             Label("Load Saved Palette…", systemImage: "folder")
         }
         Divider()
+        if XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityColorPalettes) {
+            Button {
+                showingAISheet = true
+            } label: {
+                Label("AI Generate Palette…", systemImage: "wand.and.stars")
+            }
+        }
         Button {
             showingImportSheet = true
         } label: {
@@ -110,7 +122,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.currentPaletteString(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? ""
+            at: Int32(sel.effectIndex))
     }
 
     private func applyPalette(_ paletteString: String) {
@@ -133,7 +145,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return (true, true) }
         let dict = viewModel.document.colorCurveModeSupport(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? [:]
+            at: Int32(sel.effectIndex))
         let linear = dict["linear"]?.boolValue ?? true
         let radial = dict["radial"]?.boolValue ?? true
         return (linear, radial)

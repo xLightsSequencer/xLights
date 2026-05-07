@@ -13,6 +13,9 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
 #include <ranges>
 #include <utility>
 
@@ -76,10 +79,14 @@ public:
     }
     int getInt(const int &def) const {
         if (curType != INT) {
-            try {
-                valHolder.it = stoi(*this);
-            } catch ( ... ) {
+            const char* s = this->c_str();
+            char* end = nullptr;
+            errno = 0;
+            long v = std::strtol(s, &end, 10);
+            if (end == s || errno == ERANGE || v > INT_MAX || v < INT_MIN) {
                 valHolder.it = def;
+            } else {
+                valHolder.it = static_cast<int>(v);
             }
             curType = INT;
         }
@@ -87,21 +94,29 @@ public:
     }
     float getFloat(const float &def) const {
         if (curType != FLOAT) {
-            try {
-                valHolder.ft = stof(*this);
-            } catch ( ... ) {
+            const char* s = this->c_str();
+            char* end = nullptr;
+            errno = 0;
+            float v = std::strtof(s, &end);
+            if (end == s || errno == ERANGE) {
                 valHolder.ft = def;
+            } else {
+                valHolder.ft = v;
             }
             curType = FLOAT;
         }
         return valHolder.ft;
     }
     double getDouble(const double &def) const {
-        if (curType != FLOAT) {
-            try {
-                valHolder.dt = stod(*this);
-            } catch ( ... ) {
+        if (curType != DOUBLE) {
+            const char* s = this->c_str();
+            char* end = nullptr;
+            errno = 0;
+            double v = std::strtod(s, &end);
+            if (end == s || errno == ERANGE) {
                 valHolder.dt = def;
+            } else {
+                valHolder.dt = v;
             }
             curType = DOUBLE;
         }

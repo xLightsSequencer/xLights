@@ -48,11 +48,21 @@ final class XLDiagnosticUploader {
     private var didSubscribeToMetricKit = false
 
     nonisolated static var isOptedIn: Bool {
+        // Debug builds never upload. Stopping the debugger, killing
+        // the app from Xcode, and other normal dev interactions all
+        // synthesise crash-like signals; uploading those would
+        // pollute the triage bin. The session sentinel still clears
+        // and re-arms in bootstrap() so a debug run can't leave a
+        // stale breadcrumb that a later release-build run picks up.
+        #if DEBUG
+        return false
+        #else
         let defaults = UserDefaults.standard
         if defaults.object(forKey: optInDefaultsKey) == nil {
             return true
         }
         return defaults.bool(forKey: optInDefaultsKey)
+        #endif
     }
 
     private init() {
@@ -119,6 +129,9 @@ final class XLDiagnosticUploader {
     }
 
     nonisolated private func stagePendingUploadAsync() {
+        // Same opt-out as kickoff(): skip the zip build entirely in
+        // debug builds and when the user has disabled crash reports.
+        guard Self.isOptedIn else { return }
         workQueue.async {
             do {
                 _ = try XLLogPackager.stagePendingUpload()

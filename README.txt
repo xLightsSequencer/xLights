@@ -11,6 +11,37 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -bug (dkulp)                Fix House Preview / Model Preview floating panes coming up gray after a perspective
+                                load (would only render once manually docked and re-floated). The fix runs the same
+                                dock+refloat cycle automatically right after perspective load, preserving the saved
+                                float position.
+    -bug (dkulp)                Fix status bar stuck showing "Batch Rendering ... ## sequences left to render"
+                                after cancelling a batch render or batch check-sequence with Escape. Also
+                                resets _renderMode / _checkSequenceMode state that was being left dirty.
+    -bug (MrPierreB)            Fix house-preview video export producing dark/washed-out colors on Windows
+                                and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
+                                the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
+    -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
+                                renaming a missing submodel during sequence load. When checked, subsequent
+                                sequences with the same old submodel name are auto-remapped without prompting.
+    -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
+    -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
+                                MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but
+                                releasing only once, leaking a reference per render-buffer resize.
+    -bug (dkulp)                Fix scrambled rendering of interlaced animated GIFs (Pictures effect, etc.).
+    -enh (charlie)              Right-click a timing track → "Search for Lyrics Online..." searches LRCLIB by song
+                                title/artist (auto-filled from sequence header) and imports the chosen result's
+                                synced .lrc lyrics as a phrase-per-line timing track.
+    -bug (dkulp)                macOS: process the unselect-effect / choicebook-page-change events
+                                synchronously before starting an effect-button drag, instead of posting them
+                                async. Posted events were firing inside DoDragDrop's nested event loop,
+                                racing with AppKit's NSCoreDragManager and producing a null deref inside
+                                NSCoreDragProcessSourceDrag. Suspected cause of the AppKit drag crash.
+    -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
+                                has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
+                                as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
+    -enh (dkulp)                macoS: Hook up Apple "Speech Recognizer" to Apple Intelligence to create timing tracks.
+                                Really only usable for very clean voice tracks and "Announcement" kind of things.
     -enh (dkulp)                macOS: MetricKit collector subscribes at launch (macOS 12+) and writes hang / CPU /
                                 disk-write / crash diagnostics + daily metrics as JSON into a Diagnostics/ folder
                                 next to xLights_spdlog.log. Whatever has accumulated since the last submission is
