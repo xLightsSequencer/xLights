@@ -34,7 +34,6 @@ fi
 
 CORE_DIRS=(
     "src-core/ai"
-    "src-core/common"
     "src-core/diagnostics"
     "src-core/discovery"
     "src-core/graphics"
@@ -49,6 +48,13 @@ CORE_DIRS=(
     "src-core/media"
     "src-core/XmlSerializer"
 )
+
+# `src-apple-core/` is the Apple-framework-isolated peer to `src-core/`. Code
+# there exposes a pure C++ bridge that `src-core/` can call into; the
+# dependency is one-way. Anything in `src-apple-core/` that includes a
+# `src-core/` package header would re-introduce the licensing entanglement
+# this split is meant to prevent.
+APPLE_CORE_DIR="macOS/src-apple-core"
 
 if [[ ! -f "$ALLOWLIST_FILE" ]]; then
     echo "Allowlist file '$ALLOWLIST_FILE' not found." >&2
@@ -100,6 +106,38 @@ while IFS= read -r entry; do
     fi
 done < <(rg -n --no-heading --color never '^\s*#include\s*(<wx/[^>]+>|"[^"]+")' "${CORE_DIRS[@]}" -g '*.{h,cpp}')
 
+# Reverse direction: `src-apple-core/` must not include anything from
+# `src-core/`. Detect by checking whether the literal include path resolves
+# to a real file under `src-core/<include_path>`. wx is also forbidden from
+# the bridge layer.
+if [[ -d "$APPLE_CORE_DIR" ]]; then
+    while IFS= read -r entry; do
+        file_path="${entry%%:*}"
+        rest="${entry#*:}"
+        line_num="${rest%%:*}"
+        line_text="${rest#*:}"
+
+        include_path="$(printf '%s' "$line_text" | sed -E 's/^[[:space:]]*#(include|import)[[:space:]]*[<"]([^">]+)[">].*/\2/')"
+
+        violating_target=""
+        if [[ "$include_path" == wx/* ]]; then
+            violating_target="$include_path"
+        elif [[ -f "src-core/${include_path}" ]]; then
+            violating_target="src-core/${include_path}"
+        else
+            continue
+        fi
+
+        key="$file_path|$include_path"
+        if grep -Fxq "$key" "$ALLOWLIST_FILE"; then
+            ALLOWED_COUNT=$((ALLOWED_COUNT + 1))
+            VIOLATIONS+=("ALLOWLISTED: ${file_path}:${line_num} -> ${violating_target}")
+        else
+            BLOCKING+=("${file_path}:${line_num} -> ${violating_target}")
+        fi
+    done < <(rg -n --no-heading --color never '^\s*#(include|import)\s*(<wx/[^>]+>|"[^"]+")' "${APPLE_CORE_DIR}" -g '*.{h,hpp,cpp,mm,m}')
+fi
+
 # Detect stale allowlist entries (entries that no longer match any source violation)
 STALE=()
 while IFS= read -r line; do
@@ -108,7 +146,7 @@ while IFS= read -r line; do
     al_include="${line#*|}"
     if [[ ! -f "$al_file" ]]; then
         STALE+=("$line  (file does not exist)")
-    elif ! rg -q "^\\s*#include\\s*[<\"]${al_include}[>\"]" "$al_file" 2>/dev/null; then
+    elif ! rg -q "^\\s*#(include|import)\\s*[<\"]${al_include}[>\"]" "$al_file" 2>/dev/null; then
         STALE+=("$line  (include not found in file)")
     fi
 done < "$ALLOWLIST_FILE"
