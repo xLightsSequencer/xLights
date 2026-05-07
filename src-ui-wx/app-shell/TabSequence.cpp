@@ -1313,9 +1313,10 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
     }
 
     if (wxGetKeyState(WXK_ESCAPE)) {
-        spdlog::debug("Batch render cancelled.");
+        spdlog::debug("Batch check sequence cancelled.");
+        _checkSequenceMode = false;
         EnableSequenceControls(true);
-        printf("Batch render cancelled.\n");
+        printf("Batch check sequence cancelled.\n");
 
         auto* config = GetXLightsConfig();
         if (config != nullptr) {
@@ -1334,6 +1335,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Check Sequence Cancelled."));
         }
         return;
     }
@@ -1407,6 +1409,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     if (wxGetKeyState(WXK_ESCAPE))
     {
         spdlog::debug("Batch render cancelled.");
+        _lowDefinitionRender = _saveLowDefinitionRender;
+        _renderMode = false;
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
@@ -1427,6 +1431,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Render Cancelled."));
         }
         return;
     }

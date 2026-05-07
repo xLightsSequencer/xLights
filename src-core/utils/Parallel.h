@@ -69,7 +69,9 @@ void parallel_for(std::list<T> &list, std::function<void(T&, int)>& f, int minSt
                         std::atomic_int &idx,
                         int m)
             : Job(), doneCount(dc), func(f), lock(l), index(idx), iterator(it), max(m) {}
-        void Process() {
+        bool DeleteWhenComplete() override { return true; }
+        bool SetThreadName() override { return false; }
+        void Process() override {
             try {
                 while (true) {
                     lock.lock();

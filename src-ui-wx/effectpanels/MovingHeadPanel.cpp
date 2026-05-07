@@ -27,6 +27,7 @@
 #include "models/ModelGroup.h"
 #include "../xLightsApp.h"
 #include "shared/utils/wxUtilities.h"
+#include <wx/aui/aui.h>
 #include <wx/settings.h>
 #include <wx/stdpaths.h>
 
@@ -548,7 +549,6 @@ void MovingHeadPanel::SetEffectTimeRange(int startTimeMs, int endTimeMs)
 
 void MovingHeadPanel::OnResize(wxSizeEvent& event)
 {
-    // If this window is not fully initialized, dismiss this event
     if ( !IsShownOnScreen() )
         return;
 
@@ -557,10 +557,25 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
         if( old_sz.GetWidth() > 270 ) {
             wxSize new_size = old_sz;
             new_size.SetHeight(new_size.GetWidth());
-            m_sketchCanvasPanel->SetMinSize(new_size);
+            m_sketchCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, new_size.GetHeight()));
         }
     }
-    FlexGridSizer_Main->SetSizeHints(this);
+    if (!m_minSizeSet) {
+        wxWindow* p = GetParent();
+        while (p && !p->GetName().IsSameAs("Effect"))
+            p = p->GetParent();
+        if (p) {
+            wxAuiManager* mgr = wxAuiManager::GetManager(p);
+            if (mgr) {
+                wxAuiPaneInfo& pane = mgr->GetPane(p);
+                if (pane.IsOk()) {
+                    pane.MinSize(wxSize(350, -1));
+                    mgr->Update();
+                    m_minSizeSet = true;
+                }
+            }
+        }
+    }
     Layout();
     event.Skip();
 }

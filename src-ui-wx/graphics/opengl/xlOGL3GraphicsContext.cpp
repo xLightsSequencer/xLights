@@ -208,6 +208,11 @@ public:
     }
 
     bool Init(const char * vs, const char * fs) {
+#ifndef __APPLE__
+        if (glCreateShader == nullptr) {
+            return false;
+        }
+#endif
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         if (VertexShaderID != 0) {
             GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);

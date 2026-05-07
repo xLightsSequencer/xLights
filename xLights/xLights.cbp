@@ -493,6 +493,8 @@
 		<Unit filename="../src-ui-wx/sequencer/SelectPanel.h" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/SelectTimingsDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/SelectModelDialog.h" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp" />
 		<Unit filename="../src-ui-wx/diagnostics/SeqElementMismatchDialog.h" />
 		<Unit filename="../src-ui-wx/import_export/SeqExportDialog.cpp" />

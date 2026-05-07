@@ -45,6 +45,7 @@
 #include "MidiFile.h"
 #include "import_export/MusicXML.h"
 #include "diagnostics/SeqElementMismatchDialog.h"
+#include "sequencer/SelectModelDialog.h"
 #include "media/SequenceVideoPanel.h"
 #include "sequencer/RenderCommandEvent.h"
 #include "xLightsVersion.h"
@@ -413,16 +414,16 @@ static void HandleChoices(xLightsFrame *frame,
                 switch (dlg.GetSelection()) {
                 case 0: {
                     // Rename Model
-                    wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
-                        "Select Model", ToArrayString(ModelNames));
+                    SelectModelDialog namedlg(frame, ModelNames);
                     if (namedlg.ShowModal() == wxID_OK) {
-                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                        std::string newName = namedlg.GetSelectedModel();
+                        std::string oldName = element->GetName();
 
                         spdlog::debug("Sequence Element Mismatch 2: rename '{}' to '{}'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
-                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                            SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        if (sme != nullptr) {
                             sme->GetModelElement()->RemoveSubModel(newName);
                         }
                         else {
@@ -432,6 +433,20 @@ static void HandleChoices(xLightsFrame *frame,
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
+
+                        if (namedlg.ShouldAddAlias()) {
+                            Model* target = nullptr;
+                            if (sme != nullptr) {
+                                target = frame->AllModels[sme->GetModelElement()->GetName() + "/" + newName];
+                            } else {
+                                target = frame->AllModels[newName];
+                            }
+                            if (target != nullptr) {
+                                target->AddAlias("oldname:" + oldName);
+                                frame->UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
+                            }
+                        }
                     }
                     else {
                         ok = false;
@@ -800,27 +815,45 @@ void xLightsFrame::CheckForValidModels()
                             if (sme != nullptr &&
                                 dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
-                                std::vector<std::string> AllSMNames;
-                                std::vector<std::string> ModelSMNames;
+                                // Check for an oldname alias match — auto-remap silently without prompting
+                                bool submodelRenameAlias = false;
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
-                                    AllSMNames.push_back(m->GetSubModel(z)->GetName());
-                                    ModelSMNames.push_back(m->GetSubModel(z)->GetName());
-                                }
-                                if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
-                                    int priorCnt = el->GetSubModelAndStrandCount();
-                                    if (ringBell && _renderMode) {
-                                        ringBell = false; 
-                                        if (IsRenderBell()) {
-                                            wxBell();
+                                    Model* sm = m->GetSubModel(z);
+                                    if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
+                                        // Only silently remap if the target name doesn't already exist in
+                                        // the sequence — never delete an existing row or its effects.
+                                        if (el->GetSubModel(sm->GetName(), false) == nullptr) {
+                                            spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
+                                                sme->GetName(), sm->GetName());
+                                            sme->SetName(sm->GetName());
+                                            submodelRenameAlias = true;
                                         }
+                                        break;
                                     }
-                                    HandleChoices(this, AllSMNames, ModelSMNames, sme,
-                                        "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                        + "How should we handle this?",
-                                        toMap, ignore, mapall);
-                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
-                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
-                                        --x1;
+                                }
+                                if (!submodelRenameAlias) {
+                                    std::vector<std::string> AllSMNames;
+                                    std::vector<std::string> ModelSMNames;
+                                    for (int z = 0; z < m->GetNumSubModels(); z++) {
+                                        AllSMNames.push_back(m->GetSubModel(z)->GetName());
+                                        ModelSMNames.push_back(m->GetSubModel(z)->GetName());
+                                    }
+                                    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                        int priorCnt = el->GetSubModelAndStrandCount();
+                                        if (ringBell && _renderMode) {
+                                            ringBell = false;
+                                            if (IsRenderBell()) {
+                                                wxBell();
+                                            }
+                                        }
+                                        HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                            "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                            + "How should we handle this?",
+                                            toMap, ignore, mapall);
+                                        // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                            --x1;
+                                        }
                                     }
                                 }
                             }
@@ -3237,6 +3270,42 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         _modelPreviewPanel->Refresh(false);
         _housePreviewPanel->Refresh(false);
         m_mgr->Update();
+    }
+
+    // After a perspective load creates a floating House Preview / Model Preview
+    // frame, the embedded Metal canvas comes up gray until the user manually
+    // docks and re-floats the pane. The exact root cause is in MTKView /
+    // CAMetalLayer state set up during AUI's initial reparent, but the user
+    // workaround is reliable, so apply it programmatically: dock the pane and
+    // re-float it at the same position. The original perspective string is
+    // untouched — only the live layout cycles.
+    {
+        std::vector<std::string> recoverNames;
+        std::vector<wxPoint> recoverPos;
+        std::vector<wxSize> recoverSize;
+        wxAuiPaneInfoArray& panes = m_mgr->GetAllPanes();
+        for (size_t x = 0; x < panes.size(); ++x) {
+            if (!panes[x].IsFloating() || !panes[x].IsShown() || panes[x].frame == nullptr) continue;
+            std::string name = panes[x].name.ToStdString();
+            if (name != "HousePreview" && name != "ModelPreview") continue;
+            recoverNames.push_back(name);
+            recoverPos.push_back(panes[x].frame->GetPosition());
+            recoverSize.push_back(panes[x].frame->GetSize());
+        }
+        if (!recoverNames.empty()) {
+            for (const auto& nm : recoverNames) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(nm);
+                if (pane.IsOk()) pane.Dock();
+            }
+            m_mgr->Update();
+            for (size_t i = 0; i < recoverNames.size(); ++i) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(recoverNames[i]);
+                if (pane.IsOk()) {
+                    pane.Float().FloatingPosition(recoverPos[i]).FloatingSize(recoverSize[i]);
+                }
+            }
+            m_mgr->Update();
+        }
     }
 
     if (m_mgr->GetPane("EffectPresets").IsShown() && !_effectPresetsInitialized && EffectTreeDlg != nullptr) {

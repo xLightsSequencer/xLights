@@ -25,12 +25,12 @@ class ControllerCaps
     #pragma region Member Variables
     std::string _vendor;
     std::string _model;
-    pugi::xml_document _configDoc;
     pugi::xml_node _config;
     #pragma endregion
 
     #pragma region Static Variables
     static std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> __controllers;
+    static std::vector<pugi::xml_document> __sourceDocs;
     #pragma endregion
 
     bool SupportsPixelPortCommonSettings() const;
@@ -38,7 +38,7 @@ class ControllerCaps
 public:
 
     #pragma region Constructors and Destructors
-    ControllerCaps(const std::string& v, const std::string& m, pugi::xml_node n) : _vendor(v), _model(m) { _configDoc.reset(); _config = _configDoc.append_copy(n); }
+    ControllerCaps(const std::string& v, const std::string& m, pugi::xml_node n) : _vendor(v), _model(m), _config(n) {}
     virtual ~ControllerCaps() {}
     #pragma endregion Constructors and Destructors
 

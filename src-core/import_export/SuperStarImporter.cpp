@@ -40,10 +40,6 @@ inline int ToInt(const std::string& s) {
     return static_cast<int>(std::strtol(s.c_str(), nullptr, 10));
 }
 
-inline int ToInt(const char* s) {
-    return static_cast<int>(std::strtol(s ? s : "", nullptr, 10));
-}
-
 inline double ToDouble(const std::string& s) {
     return std::strtod(s.c_str(), nullptr);
 }

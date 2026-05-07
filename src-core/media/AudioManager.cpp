@@ -874,14 +874,14 @@ int AudioManager::OpenMediaFile() {
     _metaData = info.metadata;
     SetLoadedData(_trackSize);
 
-    // Register with audio output for playback
-    if (_pcmdata != nullptr) {
-        auto* out = __audioManager.GetOutput(_device);
-        if (out != nullptr) {
-            _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
-        }
-    }
-
+    // Defer registering with the audio output until Play() is actually called.
+    // Eager registration here forces AVAudioEngine setup (mixer node, IO unit,
+    // audio unit render resources) for every AudioManager — even ones that are
+    // only loaded for decoding (e.g. batch render), which never play. Each
+    // AVAudioEngine instance accumulates dispatch queues / audio-unit pool
+    // blocks that Apple's audio framework retains process-wide. Play(),
+    // Play(posms,lenms), and AudioDeviceChanged() already handle the
+    // HasAudio/AddAudio lazy-add path, so this is safe.
     return 0;
 }
 

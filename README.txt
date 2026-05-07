@@ -12,6 +12,19 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
     -enh (cybercop23)           Add controllers to layout screen as a way to select models on controller or ports
+    -bug (dkulp)                Fix House Preview / Model Preview floating panes coming up gray after a perspective
+                                load (would only render once manually docked and re-floated). The fix runs the same
+                                dock+refloat cycle automatically right after perspective load, preserving the saved
+                                float position.
+    -bug (dkulp)                Fix status bar stuck showing "Batch Rendering ... ## sequences left to render"
+                                after cancelling a batch render or batch check-sequence with Escape. Also
+                                resets _renderMode / _checkSequenceMode state that was being left dirty.
+    -bug (MrPierreB)            Fix house-preview video export producing dark/washed-out colors on Windows
+                                and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
+                                the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
+    -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
+                                renaming a missing submodel during sequence load. When checked, subsequent
+                                sequences with the same old submodel name are auto-remapped without prompting.
     -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
     -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
                                 MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but

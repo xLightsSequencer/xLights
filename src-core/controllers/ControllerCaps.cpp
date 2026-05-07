@@ -23,6 +23,9 @@
 
 #pragma region Static Functions
 std::map<std::string, std::map<std::string, std::list<ControllerCaps*>>> ControllerCaps::__controllers;
+// Owns the loaded .xcontroller xml_documents — ControllerCaps instances hold
+// xml_node references into these, so the docs must outlive every cap.
+std::vector<pugi::xml_document> ControllerCaps::__sourceDocs;
 
 inline ControllerCaps *FindVariant(std::list<ControllerCaps*> &variants, const std::string &var) {
 
@@ -80,12 +83,12 @@ void ControllerCaps::LoadControllers() {
                 files.push_back(entry.path().string());
             }
         }
-        std::vector<pugi::xml_document> docs;
-        docs.resize(files.size());
+        __sourceDocs.clear();
+        __sourceDocs.resize(files.size());
         int count = 0;
         for (const auto& filename : files) {
             if (FileExists(filename)) {
-                pugi::xml_parse_result result = docs[count].load_file(filename.c_str());
+                pugi::xml_parse_result result = __sourceDocs[count].load_file(filename.c_str());
                 if (!result) {
                     assert(false);
                     spdlog::error("Problem loading " + filename);
@@ -94,7 +97,7 @@ void ControllerCaps::LoadControllers() {
             }
         }
         std::map<std::string, pugi::xml_node> abstracts;
-        for (auto &doc : docs) {
+        for (auto &doc : __sourceDocs) {
             pugi::xml_node root = doc.document_element();
             if (root) {
                 for (pugi::xml_node n = root; n; n = n.next_sibling()) {
@@ -110,7 +113,7 @@ void ControllerCaps::LoadControllers() {
                 }
             }
         }
-        for (auto &doc : docs) {
+        for (auto &doc : __sourceDocs) {
             pugi::xml_node root = doc.document_element();
             if (root) {
                 for (pugi::xml_node n = root; n; n = n.next_sibling()) {
@@ -162,6 +165,7 @@ void ControllerCaps::UnloadControllers() {
         }
     }
     __controllers.clear();
+    __sourceDocs.clear();
 }
 
 std::list<std::string> ControllerCaps::GetVendors(const std::string& type) {

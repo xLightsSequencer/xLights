@@ -131,6 +131,12 @@ warning, ObtainAccessToURL re-prompt sheet, Recent Show Folders
 list, SuperStar `.sup` import — all landed. Implementation prose
 in git history.
 
+`XLMetricKit` filters MetricKit `MXDiskWriteExceptionDiagnostic`
+payloads on iPad — the `MAP_SHARED` SequenceData backing tmpfile
+guarantees the kernel writes back every dirtied sequence page, so
+iOS's writesCaused metric is structural noise, not signal. Crash /
+hang / CPU / app-launch diagnostics still flow through.
+
 **Remaining feature additions:**
 
 - **B77 MIDI import.** Concrete user request; iOS-native via

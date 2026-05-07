@@ -180,33 +180,35 @@ void xlCrashHandler::HandleAssertFailure(wxChar const* file, int line, wxChar co
     HandleCrash(false, assertMsg.ToStdString());
 }
 
-void xlCrashHandler::HandleUnhandledException()
+std::string xlCrashHandler::DescribeCurrentException()
 {
-    // we're called from an exception handler so we can re-throw the exception to recover its type
-    std::string msg;
-
+    // Caller must be inside a catch handler; rethrow to recover the type.
     try
     {
         throw;
     }
     catch (char const* eMsg)
     {
-        msg = std::string(eMsg);
+        return std::string("C-string exception: \"") + (eMsg ? eMsg : "(null)") + "\".";
     }
     catch (std::exception& e)
     {
-        msg = "Standard STD exception of type \"";
+        std::string msg = "Standard STD exception of type \"";
         msg += typeid(e).name();
         msg += "\" with message \"";
         msg += e.what();
         msg += "\".";
+        return msg;
     }
     catch (...)
     {
-        msg = "An unknown exception occurred.";
+        return "An unknown exception occurred.";
     }
+}
 
-    HandleCrash(true, msg);
+void xlCrashHandler::HandleUnhandledException()
+{
+    HandleCrash(true, DescribeCurrentException());
     wxAbort();
 }
 

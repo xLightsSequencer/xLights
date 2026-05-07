@@ -535,6 +535,8 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     indexBuffer = nil;
     indexes = nullptr;
     indexesSize = 0;
+    cachedBlurKernel = nil;
+    cachedBlurRadius = 0;
 }
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
@@ -560,6 +562,9 @@ MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
         }
         if (blendBuffer != nil) {
             [blendBuffer release];
+        }
+        if (cachedBlurKernel != nil) {
+            [cachedBlurKernel release];
         }
     }
 }
@@ -873,11 +878,22 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         */
         //tent blur is closest to what is implemented on the C++/CPU side
         float r = (radius - 1) * 2 - 1;
-        MPSImageTent *gblur = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
-                                                     kernelWidth:r
-                                                    kernelHeight:r];
-        [gblur setEdgeMode:MPSImageEdgeModeClamp];
-        [gblur setLabel:@"Blur"];
+        // Reuse the cached kernel when the radius hasn't changed since the
+        // last frame — alloc/init of MPSImageTent triggers driver-side metallib
+        // parsing whose internal hash-table entries leak per-instance.
+        if (cachedBlurKernel != nil && cachedBlurRadius != radius) {
+            [cachedBlurKernel release];
+            cachedBlurKernel = nil;
+        }
+        if (cachedBlurKernel == nil) {
+            cachedBlurKernel = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
+                                                        kernelWidth:r
+                                                       kernelHeight:r];
+            [(MPSImageTent*)cachedBlurKernel setEdgeMode:MPSImageEdgeModeClamp];
+            [(MPSImageTent*)cachedBlurKernel setLabel:@"Blur"];
+            cachedBlurRadius = radius;
+        }
+        MPSImageTent *gblur = (MPSImageTent*)cachedBlurKernel;
 
         MPSCopyAllocator myAllocator = ^id <MTLTexture>( MPSKernel * __nonnull filter,
                                                         __nonnull id <MTLCommandBuffer> cmdBuf,
@@ -897,7 +913,6 @@ bool MetalRenderBufferComputeData::blur(int radius) {
                                 inPlaceTexture:&pixelTexture
                          fallbackCopyAllocator:myAllocator];
         [commandBuffer popDebugGroup];
-        [gblur release];
         return ok;
     }
 }

@@ -821,6 +821,10 @@ public:
     {
         wxASSERT(IsSingleChannel());
 
+        if (image == nullptr || !image->IsOk() || GetWidth() != image->GetWidth() || GetHeight() != image->GetHeight()) {
+            return;
+        }
+
         // assumes image is already black and white
         uint8_t incr = HasAlpha() ? 4 : 3;
 #ifdef CUSTOM_MODEL_GENERATOR_PARALLEL

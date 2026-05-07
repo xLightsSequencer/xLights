@@ -55,11 +55,10 @@ void MovingHeadDimmerPanel::OnSize(wxSizeEvent& event){
     wxSize old_sz = GetSize();
     if( old_sz.GetHeight() != old_sz.GetWidth()/2 ) {
         old_sz.SetHeight(old_sz.GetWidth()/2);
-        SetMinSize(old_sz);
+        SetMinSize(wxSize(wxDefaultCoord, old_sz.GetHeight()));
         SetSize(old_sz);
     }
     Refresh();
-    //skip the event.
     event.Skip();
 }
 
