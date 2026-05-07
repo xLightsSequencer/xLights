@@ -11,12 +11,19 @@
  **************************************************************/
 
 // AVAudioEngine-based audio output for Apple platforms (macOS + iPad).
-// Replaces SDL2 for audio playback on Apple.
+// Replaces SDL2 for audio playback on Apple. The actual AVAudioEngine
+// machinery lives behind `AppleAudioOutputBridge` in
+// `macOS/src-apple-core/media/AVAudioEngineOutputBridge.{h,mm}`; this
+// class is a thin `IAudioOutput` shell that holds an opaque bridge
+// handle.
 
 #include "IAudioOutput.h"
 
-// Opaque pointer to the ObjC++ implementation
-struct AVAudioEngineOutputImpl;
+namespace AppleAudioOutputBridge {
+    struct OutputHandle;
+}
+
+// The manager is pure C++ — its impl just owns a map of output shells.
 struct AVAudioEngineManagerImpl;
 
 class AVAudioEngineOutput : public IAudioOutput {
@@ -48,7 +55,7 @@ public:
     void SetGlobalVolume(int volume);
 
 private:
-    AVAudioEngineOutputImpl* _impl;
+    AppleAudioOutputBridge::OutputHandle* _bridge;
 };
 
 class AVAudioEngineManager : public IAudioOutputManager {

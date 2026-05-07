@@ -11,11 +11,13 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
-#include <sstream> 
+#include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <exception>
+#include <typeinfo>
 
 #include <map>
 
@@ -31,6 +33,7 @@
 
 #include "utils/ExternalHooks.h"
 #include <log.h>
+#include <spdlog/fmt/std.h>
 #include "string_utils.h"
 
 #include "../utils/TraceLog.h"
@@ -42,6 +45,28 @@ std::string Job::GetStatus() {
 }
 const std::string Job::GetName() const {
     return xlEMPTY_STRING;
+}
+
+// Re-throws the in-flight exception so we can identify its type and message.
+// Always called from inside a catch handler.
+static std::string DescribeCurrentException() {
+    try {
+        auto eptr = std::current_exception();
+        if (!eptr) {
+            return "no active exception";
+        }
+        std::rethrow_exception(eptr);
+    } catch (const std::exception& e) {
+        return fmt::format("{}: {}", typeid(e), e.what());
+    } catch (const std::string& s) {
+        return fmt::format("std::string: {}", s);
+    } catch (const char* s) {
+        return fmt::format("const char*: {}", s ? s : "(null)");
+    } catch (int v) {
+        return fmt::format("int: {}", v);
+    } catch (...) {
+        return "non-std exception type";
+    }
 }
 
 
@@ -85,7 +110,7 @@ static void startFunc(JobPoolWorker *jpw) {
     try
     {
         AppCallbacks::SetupThreadCrashHandler();
-        
+
 #ifdef LINUX
         XInitThreads();
 #endif
@@ -94,6 +119,9 @@ static void startFunc(JobPoolWorker *jpw) {
     }
     catch (...)
     {
+        std::string desc = DescribeCurrentException();
+        auto logger = spdlog::get("job") ? spdlog::get("job") : spdlog::default_logger();
+        logger->error("JobPoolWorker startFunc unhandled exception: [{}]", desc);
         AppCallbacks::HandleUnhandledException();
     }
 }
@@ -273,8 +301,12 @@ void JobPoolWorker::Entry()
         throw;
 #endif // HAVE_ABI_FORCEDUNWIND
     } catch ( ... ) {
+        std::string desc = DescribeCurrentException();
+        Job *jobAtThrow = currentJob;
+        std::string jobName = jobAtThrow ? jobAtThrow->GetName() : std::string("<none>");
         currentJob = nullptr;
-        m_logger->error("JobPoolWorker::Entry exiting due to unknown exception. {}", oss.str());
+        m_logger->error("JobPoolWorker::Entry exiting due to unhandled exception. tid={} job=\"{}\" exception=[{}]",
+                        oss.str(), jobName, desc);
         --(pool->numThreads);
         status = STOPPED;
         pool->RemoveWorker(this);

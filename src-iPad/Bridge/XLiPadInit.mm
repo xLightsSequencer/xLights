@@ -14,6 +14,8 @@
 #import <Metal/Metal.h>
 #import <ImageIO/ImageIO.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
+#import <sys/utsname.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -24,6 +26,7 @@
 #include "render/SequenceMedia.h"
 #include "utils/FileUtils.h"
 #include "utils/xlImage.h"
+#include "xLightsVersion.h"
 
 // Forward declaration — implemented in CoreGraphicsTextDrawingContext.mm
 void RegisterCoreGraphicsTextDrawingContext();
@@ -142,6 +145,38 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
     return result;
 }
 
+static void LogMachineConfig() {
+    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+    NSString* shortVer = info[@"CFBundleShortVersionString"] ?: @"?";
+    NSString* buildVer = info[@"CFBundleVersion"] ?: @"?";
+    spdlog::info("Version: {} (build {})", [shortVer UTF8String], [buildVer UTF8String]);
+    spdlog::info("Build Date: {}", xlights_build_date);
+
+    UIDevice* dev = [UIDevice currentDevice];
+    struct utsname u;
+    uname(&u);
+    spdlog::info("Machine configuration:");
+    spdlog::info("  OS: {} {}", [dev.systemName UTF8String], [dev.systemVersion UTF8String]);
+    spdlog::info("  Device model: {}", u.machine);
+    spdlog::info("  Device name: {}", [dev.name UTF8String]);
+    spdlog::info("  CPU Arch: {}", u.machine);
+
+    NSProcessInfo* proc = [NSProcessInfo processInfo];
+    long long memBytes = (long long)proc.physicalMemory;
+    spdlog::info("  Total memory: {} MB", memBytes / (1024 * 1024));
+    spdlog::info("  Active processors: {}", (unsigned long)proc.activeProcessorCount);
+    spdlog::info("  Thermal state: {}", (long)proc.thermalState);
+
+    NSError* err = nil;
+    NSDictionary* fsAttrs = [[NSFileManager defaultManager]
+        attributesOfFileSystemForPath:NSHomeDirectory() error:&err];
+    if (!err && fsAttrs) {
+        long long freeBytes = [fsAttrs[NSFileSystemFreeSize] longLongValue];
+        spdlog::info("  Free disk: {} MB", freeBytes / (1024 * 1024));
+    }
+    spdlog::info("  Locale: {}", [[NSLocale currentLocale].localeIdentifier UTF8String]);
+}
+
 } // namespace
 
 @implementation XLiPadInit
@@ -208,6 +243,7 @@ static AnimatedImageData DecodeAnimatedImageIO(const uint8_t* data,
         spdlog::register_logger(work_logger);
 
         spdlog::info("xLights iPad initialized, log at {}", logPath);
+        LogMachineConfig();
     } catch (const spdlog::spdlog_ex& ex) {
         NSLog(@"spdlog init failed: %s", ex.what());
     }

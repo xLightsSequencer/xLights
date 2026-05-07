@@ -30,17 +30,15 @@ extern "C" {
 #include <log.h>
 
 #ifdef __APPLE__
-extern void InitVideoToolboxAcceleration();
-extern bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled);
-extern void CleanupVideoToolbox(AVCodecContext *s, void * cache);
-extern bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm);
-extern bool IsVideoToolboxAcceleratedFrame(AVFrame *frame);
+#include "media/VideoToolboxBridge.h"
 #else
-extern void InitVideoToolboxAcceleration() {}
-static inline bool SetupVideoToolboxAcceleration(AVCodecContext *s, bool enabled) { return false; }
-static inline void CleanupVideoToolbox(AVCodecContext *s, void * cache) {}
-static inline bool VideoToolboxScaleImage(AVCodecContext *codecContext, AVFrame *frame, AVFrame *dstFrame, void *& cache, int scaleAlgorithm) { return false; }
-static inline bool IsVideoToolboxAcceleratedFrame(AVFrame *frame) { return false; }
+namespace AppleVideoToolboxBridge {
+inline void InitVideoToolboxAcceleration() {}
+inline bool SetupVideoToolboxAcceleration(AVCodecContext*, bool) { return false; }
+inline void CleanupVideoToolbox(AVCodecContext*, void*) {}
+inline bool VideoToolboxScaleImage(AVCodecContext*, AVFrame*, AVFrame*, void*&, int) { return false; }
+inline bool IsVideoToolboxAcceleratedFrame(AVFrame*) { return false; }
+} // namespace AppleVideoToolboxBridge
 #endif
 
 #ifdef _WIN32
@@ -89,7 +87,7 @@ void FFmpegVideoReader::SetHardwareRenderType(int type)
 }
 
 void FFmpegVideoReader::InitHWAcceleration() {
-    InitVideoToolboxAcceleration();
+    AppleVideoToolboxBridge::InitVideoToolboxAcceleration();
 }
 
 void FFmpegVideoReader::SetScaleAlgorithm(VideoScaleAlgorithm algorithm) {
@@ -354,7 +352,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
 #endif
 
     if (_codecContext != nullptr) {
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
@@ -488,7 +486,7 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
             spdlog::debug("Software decoding enabled for codec '{}'", decoderToUse->long_name);
         }
     }
-    _videoToolboxAccelerated = SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
+    _videoToolboxAccelerated = AppleVideoToolboxBridge::SetupVideoToolboxAcceleration(_codecContext, HW_ACCELERATION_ENABLED && allowHWDecoder);
 
     AVDictionary *opts = nullptr;
     if (usingCuvid) {
@@ -616,7 +614,7 @@ FFmpegVideoReader::~FFmpegVideoReader()
         if (_keyFrameCount != _codecContext->keyint_min) {
             spdlog::debug("Key frame count was adjusted from {} to {}.", _codecContext->keyint_min, _keyFrameCount);
         }
-        CleanupVideoToolbox(_codecContext, hwDecoderCache);
+        AppleVideoToolboxBridge::CleanupVideoToolbox(_codecContext, hwDecoderCache);
         hwDecoderCache = nullptr;
         avcodec_free_context(&_codecContext);
         _codecContext = nullptr;
@@ -828,12 +826,12 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
             // difference is imperceptible.  User-specified algorithms are still honoured.
             int scaleAlgorithm = (_scaleAlgorithm == VideoScaleAlgorithm::Default)
                                  ? SWS_FAST_BILINEAR : VideoScaleAlgorithmToSWS(_scaleAlgorithm);
-            if (IsVideoToolboxAcceleratedFrame(_srcFrame)) {
+            if (AppleVideoToolboxBridge::IsVideoToolboxAcceleratedFrame(_srcFrame)) {
                 if (_wantsHWType) {
                     hardwareScaled = true;
                     std::swap(_dstFrame2, _srcFrame);
                 } else {
-                    hardwareScaled = VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
+                    hardwareScaled = AppleVideoToolboxBridge::VideoToolboxScaleImage(_codecContext, _srcFrame, _dstFrame2, hwDecoderCache, scaleAlgorithm);
                 }
             }
 

@@ -10,17 +10,23 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-// AVFoundation-based video reader for Apple platforms (macOS 13+ / iPadOS 26+).
-// Uses AVAssetReader for decoding and VTPixelTransferSession for hardware-accelerated scaling.
-// No FFmpeg dependency.
+// AVFoundation-based video reader for Apple platforms (macOS 13+ /
+// iPadOS 26+). Uses AVAssetReader for decoding and
+// VTPixelTransferSession for hardware-accelerated scaling. The actual
+// AVFoundation / VideoToolbox calls live behind
+// `AppleAVFoundationVideoBridge` in
+// `macOS/src-apple-core/media/AVFoundationVideoBridge.{h,mm}`; this
+// class is a thin `VideoReaderImpl` shell holding an opaque bridge
+// handle.
 
 #ifdef __APPLE__
 
 #include "VideoReaderImpl.h"
 #include <string>
 
-// Opaque pointer to ObjC implementation
-struct AVFoundationVideoReaderImpl;
+namespace AppleAVFoundationVideoBridge {
+    struct VideoReaderHandle;
+}
 
 class AVFoundationVideoReader : public VideoReaderImpl {
 public:
@@ -45,7 +51,9 @@ public:
     static long GetVideoLengthStatic(const std::string& filename);
 
 private:
-    AVFoundationVideoReaderImpl* _impl;
+    AppleAVFoundationVideoBridge::VideoReaderHandle* _bridge;
+    std::string _filename;
+    VideoFrame _frameOut;  // populated from bridge::FrameView on each GetNextFrame
 };
 
 #endif // __APPLE__

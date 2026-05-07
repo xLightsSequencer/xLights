@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
+    -enh (dkulp)                When a JobPool worker thread dies from an unhandled C++ exception, the log now
+                                records the exception type, what() message, and the in-flight job name instead
+                                of just "unknown exception". Helps diagnose render-thread crashes.
     -bug (dkulp)                Fix House Preview / Model Preview floating panes coming up gray after a perspective
                                 load (would only render once manually docked and re-floated). The fix runs the same
                                 dock+refloat cycle automatically right after perspective load, preserving the saved
@@ -22,8 +25,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
                                 the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
     -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
-                                renaming a missing submodel during sequence load. When checked, subsequent
-                                sequences with the same old submodel name are auto-remapped without prompting.
+                                renaming a missing submodel during sequence load.
     -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
     -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
                                 MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but
@@ -40,6 +42,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
                                 has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
                                 as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
+    -enh (derwin12)			    Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
     -enh (dkulp)                macoS: Hook up Apple "Speech Recognizer" to Apple Intelligence to create timing tracks.
                                 Really only usable for very clean voice tracks and "Announcement" kind of things.
     -enh (dkulp)                macOS: MetricKit collector subscribes at launch (macOS 12+) and writes hang / CPU /
@@ -62,12 +65,21 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 exponential 500-1000 to 20000 particles/sec) with a sub-frame accumulator so low
                                 slider values emit occasionally instead of jumping straight from 0 to a constant
                                 stream.
+	-enh (derwin12)				Add duration to lrclib lyric results
+	-enh (derwin12)				Add option to add alias when opening a sequence and missing models were found
+	-enh (derwin12)				Provide option to select which groups to import to when importing from layout
     -enh (dkulp)                Liquid effect: added an Enabled checkbox for particle source 1 (defaults to on)
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
                                 render on background threads on Linux (previously forced to the main thread because
                                 the wx/Pango stack isn't off-thread safe), parallelizing rendering of sequences
                                 with heavy text/emoji content.
+    -bug (derwin12)			    Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
+	-bug (derwin12)				Some WMA music files were hard crashing. (#6306)
+	-bug (derwin12) 			Restored the missing assets alert (#6276)
+	-bug (derwin12)				Fix in the lua script for batch rendering
+	-bug (derwin12)				Imported sequences placed media in inocrrect folder if sequence was not previously saved
+	-bug (derwin12)				Fix download model search (#6252)
     -bug (dkulp)                Circles effect: GPU (Metal) path was clearing non-circle pixels to (0,0,0,0), wiping
                                 the buffer's pre-existing contents. Now leaves background pixels untouched, matching
                                 the CPU and ISPC paths.

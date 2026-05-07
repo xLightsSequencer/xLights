@@ -3080,7 +3080,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             std::vector<std::pair<float, int>> keys;
             keys.reserve(NodeCount);
             for (int n = 0; n < (int)NodeCount; ++n) {
-                if (Nodes[n]->Coords.empty()) {
+                if (!Nodes[n] || Nodes[n]->Coords.empty()) {
                     continue;
                 }
                 const auto& c = Nodes[n]->Coords[0];

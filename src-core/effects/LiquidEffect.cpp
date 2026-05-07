@@ -471,13 +471,13 @@ bool LiquidEffect::LostForever(int x, int y, int w, int h, float gravityX, float
     }
 
     // gravity down and off the bottom of the screen
-    if (gravityY > -0.0001f) {
+    if (gravityY < 0.0001f) {
         if (y < -1)
             return true;
     }
 
     // gravity up and off the top of the screen
-    if (gravityY < 0.0001f) {
+    if (gravityY > -0.0001f) {
         if (y > h + 1)
             return true;
     }
