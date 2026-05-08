@@ -110,7 +110,7 @@ void AudioManager::Seek(long pos) const {
     // must do the same lazy-add, otherwise a Seek() before the first Play()
     // silently no-ops on _sdlid == -1 and the play position is wrong.
     if (!out->HasAudio(_sdlid)) {
-        const_cast<AudioManager*>(this)->_sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+        _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
     }
 
     out->Seek(_sdlid, pos);
