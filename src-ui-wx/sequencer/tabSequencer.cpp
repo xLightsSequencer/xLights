@@ -4499,13 +4499,18 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
             service = services[pick.GetSelection()];
         }
 
-        // Use whichever audio track the user currently has selected
-        // in the waveform — main media when the picker is on
-        // "Original" (track 0), otherwise the corresponding alt
-        // track. Lets the user point the recogniser at a Moises-
-        // generated vocals stem, an HTDemucs export, or any other
-        // track they've attached under the audio-track manager,
-        // without us having to second-guess which one is cleanest.
+        // Use whichever audio the user currently has selected in the
+        // waveform. That's a combination of two things: which track
+        // (main or one of the alt tracks attached under the audio-
+        // track manager) and which filter/stem (RAW, STEM_VOCALS, a
+        // band-passed filter, etc.). The track picks the AudioManager;
+        // the filter is reflected in that AudioManager's playback
+        // buffers (SwitchTo overwrites _data[0]/_data[1] each time the
+        // user changes filter/stem). WriteCurrentToTempWav serializes
+        // those buffers to a temp WAV so the recogniser sees exactly
+        // what the user is hearing — including HTDemucs-isolated
+        // vocals, which are dramatically cleaner for speech-to-text
+        // than the full mix.
         AudioManager* media = CurrentSeqXmlFile->GetMedia();
         if (GetMainSequencer() != nullptr) {
             int trackIdx = GetMainSequencer()->GetActiveAudioTrackIndex();
@@ -4519,7 +4524,18 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
                 }
             }
         }
-        std::string audioPath = media->FileName();
+        std::string tempAudioPath = media->WriteCurrentToTempWav();
+        // Fall back to the original file if we couldn't materialise the
+        // current selection (e.g. audio not yet fully loaded). Note
+        // that the fallback path is owned by the AudioManager and
+        // must NOT be deleted on cleanup.
+        std::string audioPath = tempAudioPath.empty() ? media->FileName() : tempAudioPath;
+        auto cleanupTemp = [&]() {
+            if (!tempAudioPath.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(tempAudioPath, ec);
+            }
+        };
 
         // Run the recognition on a worker thread so the main thread
         // stays free to service the OS speech-permission prompt and
@@ -4547,6 +4563,8 @@ void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
             dlg.Pulse();
         }
         worker.join();
+
+        cleanupTemp();
 
         if (!lyrics.error.empty()) {
             wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);

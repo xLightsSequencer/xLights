@@ -473,13 +473,13 @@ void BlendingPanel::ValidateWindow() {
     double fadeOut = 0.0;
     if (_fadeinCombo) {
         wxString v = _fadeinCombo->GetValue();
-        v.ToCDouble(&fadeIn);
-        if (fadeIn < 0) { _fadeinCombo->SetValue("0.00"); fadeIn = 0; }
+        bool ok = v.ToCDouble(&fadeIn);
+        if (!ok || fadeIn < 0) { _fadeinCombo->SetValue("0.00"); fadeIn = 0; }
     }
     if (_fadeoutCombo) {
         wxString v = _fadeoutCombo->GetValue();
-        v.ToCDouble(&fadeOut);
-        if (fadeOut < 0) { _fadeoutCombo->SetValue("0.00"); fadeOut = 0; }
+        bool ok = v.ToCDouble(&fadeOut);
+        if (!ok || fadeOut < 0) { _fadeoutCombo->SetValue("0.00"); fadeOut = 0; }
     }
 
     // Compound enable/disable: transition adjust / reverse are only active

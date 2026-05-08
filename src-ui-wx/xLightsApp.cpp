@@ -161,7 +161,7 @@ void InitialiseLogging(bool fromMain)
 
         // wxStandardPaths::Get().Get()
 
-        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 10, 10);
+        auto rotating_file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilePath, 1024 * 1024 * 20, 10);
 
         auto file_logger = std::make_shared<spdlog::logger>("xLights", rotating_file_sink);
 

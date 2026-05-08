@@ -954,16 +954,40 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     av_log_set_callback(my_av_log_callback);
 #endif
 
-    // AVCodecID vc = !EndsWith(filename, ".avi") ? (compressed ? AVCodecID::AV_CODEC_ID_H264 : AVCodecID::AV_CODEC_ID_HEVC) : AVCodecID::AV_CODEC_ID_RAWVIDEO;
-    // Lossless RGB MOV uses rawvideo+rgb24 in a mov container. Modern macOS
-    // AVFoundation has dropped its decoders for the legacy QuickTime codecs
-    // (qtrle, png, etc.) so they aren't viable replacements for raw AVI even
-    // though ffmpeg can still produce them — uncompressed RGB in a mov box is
-    // the only bit-exact format VideoToolbox still ships a decoder for.
-    AVCodecID vc = (isAvi || isMov) ? AVCodecID::AV_CODEC_ID_RAWVIDEO : AVCodecID::AV_CODEC_ID_H264;
-    const AVCodec* codec = ::avcodec_find_encoder(vc);
+    // .avi → rawvideo: bit-exact uncompressed RGB. AVI is not playable by
+    //                  AVFoundation (no AVI demuxer), so this path is for
+    //                  external tooling only — never for files xLights itself
+    //                  consumes on macOS/iPad.
+    // .mov →  rawvideo when width is a multiple of 8 (i.e. row stride is
+    //                  8-byte aligned for rgb24); preserves bit-exactness
+    //                  and AVFoundation reads it natively. For widths
+    //                  whose stride isn't 8-aligned (e.g. 50-pixel-wide
+    //                  matrices) AVFoundation accepts the container but
+    //                  AVAssetReader silently decodes zero frames, so we
+    //                  fall back to ProRes 4444 — visually-lossless and
+    //                  decoded by AVFoundation at any width.
+    // else  → H.264 in mp4: standard compressed export.
+    const AVCodec* codec = nullptr;
+    AVCodecID vc;
+    if (isMov) {
+        bool strideAligned = (width % 8) == 0;
+        if (strideAligned) {
+            vc = AVCodecID::AV_CODEC_ID_RAWVIDEO;
+            codec = ::avcodec_find_encoder(vc);
+        } else {
+            vc = AVCodecID::AV_CODEC_ID_PRORES;
+            codec = ::avcodec_find_encoder_by_name("prores_ks");
+            if (!codec) codec = ::avcodec_find_encoder(vc);
+        }
+    } else if (isAvi) {
+        vc = AVCodecID::AV_CODEC_ID_RAWVIDEO;
+        codec = ::avcodec_find_encoder(vc);
+    } else {
+        vc = AVCodecID::AV_CODEC_ID_H264;
+        codec = ::avcodec_find_encoder(vc);
+    }
     if (codec == nullptr) {
-        // h264/rawvideo not working, stick with original guess (likely mpeg4)
+        // primary codec not available — fall back to the container's default
         vc = av_guess_format(nullptr, filename, nullptr)->video_codec;
         codec = ::avcodec_find_encoder(vc);
     }
@@ -1040,9 +1064,12 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
     } else if (codecContext->codec_id == AV_CODEC_ID_RAWVIDEO) {
-        // For .mov we use RGB24 (matches the source, makes sws_scale a true
-        // pass-through, and pairs with the 'raw ' tag in the MOV sample
-        // description). For .avi we keep the legacy BGR24 layout.
+        // For .mov we use RGB24 + 'raw ' codec_tag + pasp/fiel atoms. That's the
+        // exact stsd shape AVFoundation's QuickTime decoder accepts, and the
+        // codec selection above only picks rawvideo for .mov when width%8==0
+        // (so the row stride is 8-byte aligned, which AVFoundation also
+        // requires). For .avi we keep the legacy BGR24 layout for tools that
+        // expect it.
         codecContext->pix_fmt = isMov ? AV_PIX_FMT_RGB24 : AV_PIX_FMT_BGR24;
         if (isMov) {
             // AVFoundation/QuickTime require pasp + fiel atoms in the mov stsd;
@@ -1056,6 +1083,17 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         codecContext->max_b_frames = 0;
         ::av_opt_set(codecContext, "qp", "0", AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set(codecContext, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    } else if (codecContext->codec_id == AV_CODEC_ID_PRORES) {
+        // ProRes 4444 (profile 4): 10-bit YUVA 4:4:4:4, all-intra. Visually
+        // lossless for 8-bit RGB sources (max diff ~2/255 from RGB→YUV
+        // rounding) and decoded natively by AVFoundation on macOS / iPadOS.
+        codecContext->pix_fmt = AV_PIX_FMT_YUVA444P10LE;
+        codecContext->sample_aspect_ratio = AVRational{ 1, 1 };
+        codecContext->field_order = AV_FIELD_PROGRESSIVE;
+        codecContext->gop_size = 1;
+        codecContext->has_b_frames = 0;
+        codecContext->max_b_frames = 0;
+        ::av_opt_set_int(codecContext, "profile", 4, AV_OPT_SEARCH_CHILDREN);
     } else if (codecContext->codec_id == AV_CODEC_ID_MPEG1VIDEO) {
         /* Needed to avoid using macroblocks in which some coeffs overflow.
          * This does not happen with normal video, it just happens here as
@@ -1088,6 +1126,8 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
         // video_st->codecpar->codec_tag = MKTAG('r','a','w',' ');
     } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
         video_st->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
+    } else if (AV_CODEC_ID_PRORES == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('a', 'p', '4', 'h'); // ProRes 4444
     }
     AVRational r = { (int)den, (int)num };
     video_st->avg_frame_rate = r;

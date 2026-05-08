@@ -57,10 +57,14 @@ struct XLightsApp: App {
         XLDiagnosticUploader.shared.bootstrap()
         let vm = SequencerViewModel()
         vm.startMemoryMonitoring()
-        // Attempt to restore the previously-selected show folder + media
-        // folders via their persistent security-scoped bookmarks.
-        vm.restorePersistedShowFolder()
         _viewModel = State(initialValue: vm)
+        // restorePersistedShowFolder is deliberately NOT called here.
+        // It triggers ObtainAccessToURL + xlights_rgbeffects.xml parse +
+        // model construction + per-model FileExists, all synchronous. When
+        // the show folder lives in iCloud Drive that chain can wall-clock
+        // past iOS's 20-second launch watchdog (0x8BADF00D), killing the
+        // app before the first frame ever draws. The restore now runs from
+        // ContentView's `.task` modifier so launch completes first.
     }
 
     var body: some Scene {
@@ -201,6 +205,10 @@ struct ContentView: View {
     /// presentations etc.).
     @State private var didRestoreDetachedScenes: Bool = false
 
+    /// Guards the deferred show-folder restore so it runs once even
+    /// across `.task` re-invocations (sheet present/dismiss cycles).
+    @State private var didKickoffShowFolderRestore: Bool = false
+
     /// G-3 — sequence URL handed to us by the system (Files /
     /// AirDrop / share sheet) before the show folder finished
     /// loading. Replayed via the
@@ -304,6 +312,20 @@ struct ContentView: View {
             // last main-close, honouring the user's working layout
             // without relying on iPadOS's broken auto-restoration.
             restoreDetachedScenesIfNeeded()
+        }
+        // Show-folder restore is deferred to here (instead of running
+        // synchronously in `XLightsApp.init`) so the first frame draws
+        // before we touch potentially-slow iCloud paths. iOS gives an
+        // app 20 wall-clock seconds to launch; an iCloud-backed show
+        // folder with a large rgbeffects.xml + many model background
+        // images can blow that budget on `ObtainAccessToURL` /
+        // `FileExists` alone, triggering 0x8BADF00D and a SIGKILL.
+        // Running here means the user can still see the launch UI
+        // (and our setup affordance) even if the restore stalls.
+        .task {
+            guard !didKickoffShowFolderRestore else { return }
+            didKickoffShowFolderRestore = true
+            viewModel.restorePersistedShowFolder()
         }
         // G-3 — handle "Open in xLights" from Files / share sheets /
         // AirDrop. The system delivers a `file://` URL to the
@@ -734,17 +756,37 @@ struct MissingMediaBanner: View {
 struct ShowFolderSetupView: View {
     @Binding var showFolderConfig: Bool
 
+    /// True when a show-folder path is persisted in `FolderConfig`
+    /// but the deferred restore hasn't reported back yet. We show a
+    /// "Loading…" affordance instead of the configure prompt so the
+    /// user understands the app is materializing their iCloud-backed
+    /// folder, not waiting on them to pick one.
+    private var isRestoring: Bool {
+        FolderConfig.showFolder != nil
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             Text("xLights")
                 .font(.largeTitle)
-            Text("Select your show folder to get started")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Button("Configure Folders…") {
-                showFolderConfig = true
+            if isRestoring {
+                ProgressView()
+                Text("Loading show folder…")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Text("Large iCloud-backed folders may take a few moments.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else {
+                Text("Select your show folder to get started")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Button("Configure Folders…") {
+                    showFolderConfig = true
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 }

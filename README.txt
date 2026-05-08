@@ -12,48 +12,47 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.08  May ??, 2026
     -enh (cybercop23)           Add controllers to layout screen as a way to select models on controller or ports
+2026.09  May ??, 2026
+    -bug (cjd)                  Fix audio not playing on first Play after opening a sequence (had to Stop and Play again
+                                to get audio). AudioManager::Seek() now lazy-adds the audio stream, matching Play()'s
+                                behavior after the deferred-AddAudio change.
+    -bug (dkulp)                Generate AI Lyrics now feeds the recogniser whatever waveform the user has currently
+                                selected (RAW, an isolated HTDemucs vocals stem, a band-passed filter, etc.) instead
+                                of always sending the original mix. Previously the in-place stem selection was
+                                ignored and the recogniser saw the full mix unless an alt-track file was attached.
+    -bug (dkulp)                Video transcode: when a chosen encoder (e.g. libx265 with its 16x16 minimum) refuses
+                                to open for the source dimensions, fall through to the next candidate (libx264, etc.)
+                                instead of returning a "Could not open encoder" failure. Fixes transcoding very small
+                                videos on Windows where libx265 was previously the only HEVC option tried.
+    -bug (dkulp)                Video transcode + Export Model Video (.mov): root-cause is that AVFoundation's
+                                QuickTime rawvideo decoder requires the row stride to be a multiple of 8 bytes
+                                (so for rgb24, width must be a multiple of 8). Wider matrix sizes (128x96 etc.)
+                                always met this; narrow models (50x24 etc.) silently failed to decode on
+                                macOS sequence reopen and on iPad (no FFmpeg fallback). Now: when width is
+                                8-aligned, .mov stays rawvideo (bit-exact, what TuneToMatrix.mov-style files
+                                always did); otherwise we route through ProRes 4444 (visually-lossless,
+                                AVFoundation-decodable). The "Uncompressed" .avi export is unchanged.
+    -enh (dkulp)                MediaCompatibility check now flags rawvideo .mov files with non-8-aligned row
+                                stride so the on-load "convert incompatible video" dialog catches them and
+                                converts to ProRes 4444 instead of letting them silently fail at playback.
+                                Also catches the broader silent-failure pattern (AVAssetReader producing zero
+                                samples after a successful startReading).
+    -enh (dkulp)                AVFoundationVideoReader detects rawvideo .mov with non-8-aligned stride at
+                                construction and invalidates the reader so VideoReader.cpp's existing FFmpeg
+                                fallback handles those files on desktop. iPad has no fallback so the file is
+                                surfaced as unreadable rather than silently producing black frames.
+
+2026.08  May 7, 2026
     -enh (dkulp)                When a JobPool worker thread dies from an unhandled C++ exception, the log now
                                 records the exception type, what() message, and the in-flight job name instead
                                 of just "unknown exception". Helps diagnose render-thread crashes.
-    -bug (dkulp)                Fix House Preview / Model Preview floating panes coming up gray after a perspective
-                                load (would only render once manually docked and re-floated). The fix runs the same
-                                dock+refloat cycle automatically right after perspective load, preserving the saved
-                                float position.
-    -bug (dkulp)                Fix status bar stuck showing "Batch Rendering ... ## sequences left to render"
-                                after cancelling a batch render or batch check-sequence with Escape. Also
-                                resets _renderMode / _checkSequenceMode state that was being left dirty.
-    -bug (MrPierreB)            Fix house-preview video export producing dark/washed-out colors on Windows
-                                and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
-                                the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
     -enh (agfazio)              Add "Also add alias to model" checkbox to the Select Model dialog shown when
-                                renaming a missing submodel during sequence load. When checked, subsequent
-                                sequences with the same old submodel name are auto-remapped without prompting.
-    -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
-    -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
-                                MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but
-                                releasing only once, leaking a reference per render-buffer resize.
-    -bug (dkulp)                Fix scrambled rendering of interlaced animated GIFs (Pictures effect, etc.).
+                                renaming a missing submodel during sequence load.
     -enh (charlie)              Right-click a timing track → "Search for Lyrics Online..." searches LRCLIB by song
                                 title/artist (auto-filled from sequence header) and imports the chosen result's
                                 synced .lrc lyrics as a phrase-per-line timing track.
-    -bug (dkulp)                macOS: process the unselect-effect / choicebook-page-change events
-                                synchronously before starting an effect-button drag, instead of posting them
-                                async. Posted events were firing inside DoDragDrop's nested event loop,
-                                racing with AppKit's NSCoreDragManager and producing a null deref inside
-                                NSCoreDragProcessSourceDrag. Suspected cause of the AppKit drag crash.
-    -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
-                                has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
-                                as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
     -enh (dkulp)                macoS: Hook up Apple "Speech Recognizer" to Apple Intelligence to create timing tracks.
                                 Really only usable for very clean voice tracks and "Announcement" kind of things.
-    -enh (dkulp)                macOS: MetricKit collector subscribes at launch (macOS 12+) and writes hang / CPU /
-                                disk-write / crash diagnostics + daily metrics as JSON into a Diagnostics/ folder
-                                next to xLights_spdlog.log. Whatever has accumulated since the last submission is
-                                folded into the next debug-report zip under a MetricKit/ subfolder, giving us
-                                visibility into non-crashing failure modes (main-thread hangs, runaway CPU) that the
-                                existing signal-handler-based crash reports don't capture. The MetricKit subscriber
-                                also posts an XLMetricKitDidReceivePayloads NSNotification — desktop ignores it;
-                                the iPad app uses it to drive auto-upload of crash bundles.
     -enh (dkulp)                Liquid effect: velocity slider rescaled to allow full use of range instead of just
                                 values between 0 and 6 providing visual changes
     -enh (dkulp)                Liquid effect: now frame-rate independent. Sequences imported between different
@@ -66,15 +65,39 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 exponential 500-1000 to 20000 particles/sec) with a sub-frame accumulator so low
                                 slider values emit occasionally instead of jumping straight from 0 to a constant
                                 stream.
-	-enh (derwin12)				Add duration to lrclib lyric results
-	-enh (derwin12)				Add option to add alias when opening a sequence and missing models were found
-	-enh (derwin12)				Provide option to select which groups to import to when importing from layout
+    -enh (derwin12)             Add duration to lrclib lyric results
+    -enh (derwin12)             Add option to add alias when opening a sequence and missing models were found
+    -enh (derwin12)             Provide option to select which groups to import to when importing from layout
     -enh (dkulp)                Liquid effect: added an Enabled checkbox for particle source 1 (defaults to on)
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
                                 render on background threads on Linux (previously forced to the main thread because
                                 the wx/Pango stack isn't off-thread safe), parallelizing rendering of sequences
                                 with heavy text/emoji content.
+    -bug (dkulp)                Fix House Preview / Model Preview floating panes coming up gray after a perspective
+                                load (would only render once manually docked and re-floated). The fix runs the same
+                                dock+refloat cycle automatically right after perspective load, preserving the saved
+                                float position.
+    -bug (dkulp)                Fix status bar stuck showing "Batch Rendering ... ## sequences left to render"
+                                after cancelling a batch render or batch check-sequence with Escape.
+    -bug (MrPierreB)            Fix house-preview video export producing dark/washed-out colors on Windows
+                                and when uploaded to YouTube. Also fixes Windows GPU encoder selection to prefer
+                                the correct hardware encoder (NVIDIA, AMD, or Intel) for faster exports.
+    -bug (agfazio)              Fix channel numbers not recalculating after deleting a model from the layout.
+    -bug (dkulp)                macOS: fix Metal compute-render buffer leak. MetalComputeUtilities was double-retaining
+                                MTLBuffer/MTLTexture objects allocated via newBufferWith*/newTextureWithDescriptor: but
+                                releasing only once, leaking a reference per render-buffer resize.
+    -bug (dkulp)                Fix scrambled rendering of interlaced animated GIFs (Pictures effect, etc.).
+    -bug (dkulp)                macOS: process the unselect-effect / choicebook-page-change events
+                                synchronously before starting an effect-button drag, instead of posting them
+                                async. Posted events were firing inside DoDragDrop's nested event loop,
+                                racing with AppKit's NSCoreDragManager and producing a null deref inside
+                                NSCoreDragProcessSourceDrag. Suspected cause of the AppKit drag crash.
+    -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
+                                has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
+                                as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
+    -bug (derwin12)			    Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
+    -bug (derwin12)			    Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
 	-bug (derwin12)				Some WMA music files were hard crashing. (#6306)
 	-bug (derwin12) 			Restored the missing assets alert (#6276)
 	-bug (derwin12)				Fix in the lua script for batch rendering

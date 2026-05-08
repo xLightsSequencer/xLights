@@ -34,9 +34,10 @@ RulerObject::~RulerObject()
 }
 
 void RulerObject::InitModel() {
-    auto start = screenLocation.GetPoint1();
-    auto end = screenLocation.GetPoint2();
-    screenLocation.SetRenderSize(std::abs(start.x - end.x), std::abs(start.y - end.y), std::abs(start.z - end.z));
+    float dx = screenLocation.GetX2();
+    float dy = screenLocation.GetY2();
+    float dz = screenLocation.GetZ2();
+    screenLocation.SetRenderSize(std::abs(dx), std::abs(dy), std::abs(dz));
 }
 
 
@@ -384,14 +385,14 @@ float RulerObject::ConvertDimension(const std::string& units, float measure)
 
 float RulerObject::GetPerUnit() const
 {
-    auto p1 = static_cast<TwoPointScreenLocation>(screenLocation).GetPoint1();
-    auto p2 = static_cast<TwoPointScreenLocation>(screenLocation).GetPoint2();
+    // Compute distance directly from stored x2/y2/z2 offsets so this works
+    // in 2D mode where Draw()/PrepareToDraw() is never called on view objects
+    // and the cached origin/point2 members are stale (zeroed from construction).
+    float dx = screenLocation.GetX2();
+    float dy = screenLocation.GetY2();
+    float dz = screenLocation.GetZ2();
 
-    float den = std::sqrt(
-        (p2.x - p1.x) * (p2.x - p1.x) +
-        (p2.y - p1.y) * (p2.y - p1.y) +
-        (p2.z - p1.z) * (p2.z - p1.z)
-    );
+    float den = std::sqrt(dx * dx + dy * dy + dz * dz);
 
     if (den == 0) return 1;
     if (_realLength == 0) return 1;

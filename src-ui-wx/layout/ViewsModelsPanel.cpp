@@ -1329,20 +1329,40 @@ void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
     _mainViewsChoice->Append(viewName);
 }
 
+static bool IsValidViewName(const std::string& name)
+{
+    return std::all_of(name.begin(), name.end(), [](unsigned char c) {
+        return std::isalnum(c) || c == ' ' || c == '_' || c == '-';
+    });
+}
+
+static std::string PromptForViewName(wxWindow* parent, const wxString& initial = wxEmptyString)
+{
+    std::string name;
+    int result = wxID_OK;
+    do {
+        wxTextEntryDialog dialog(parent, _("Enter Name for View"), _("Create View"), initial);
+        result = dialog.ShowModal();
+        if (result != wxID_OK) return "";
+        name = dialog.GetValue().Trim().ToStdString();
+        if (!name.empty() && !IsValidViewName(name)) {
+            wxMessageBox(_("View name may only contain letters, numbers, spaces, underscores, and hyphens."),
+                         _("Invalid Name"), wxOK | wxICON_WARNING, parent);
+            name = "";
+        }
+    } while (name.empty());
+    return name;
+}
+
 void ViewsModelsPanel::OnButton_AddViewClick(wxCommandEvent& event)
 {
     if (_seqData == nullptr || _seqData->NumFrames() == 0) return;
 
-    std::string viewName = "";
-    int DlgResult = wxID_OK;
-
+    std::string viewName;
     do {
-        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"));
-        DlgResult = dialog.ShowModal();
-        viewName = dialog.GetValue().Trim().ToStdString();
-    } while (DlgResult == wxID_OK && (viewName == "" || _sequenceViewManager->GetView(viewName) != nullptr));
-
-    if (DlgResult != wxID_OK) return;
+        viewName = PromptForViewName(this);
+        if (viewName.empty()) return;
+    } while (_sequenceViewManager->GetView(viewName) != nullptr);
 
     _sequenceViewManager->AddView(viewName);
     AddViewToList(viewName, true);
@@ -1373,16 +1393,11 @@ void ViewsModelsPanel::OnButtonCloneClick(wxCommandEvent& event)
 
     std::string oldName = _sequenceElements->GetViewName(itemIndex);
 
-    std::string newName = "Copy Of " + oldName;
-    int DlgResult = wxID_OK;
-
+    std::string newName;
     do {
-        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"), newName);
-        DlgResult = dialog.ShowModal();
-        newName = dialog.GetValue().Trim().ToStdString();
-    } while (DlgResult == wxID_OK && (newName == "" || _sequenceViewManager->GetView(newName) != nullptr));
-
-    if (DlgResult != wxID_OK) return;
+        newName = PromptForViewName(this, "Copy Of " + oldName);
+        if (newName.empty()) return;
+    } while (_sequenceViewManager->GetView(newName) != nullptr);
 
     SequenceView* view = _sequenceViewManager->AddView(newName);
     if (itemIndex == MASTER_VIEW) {
@@ -1430,16 +1445,13 @@ void ViewsModelsPanel::RenameView(int itemIndex)
 {
     std::string oldName = _sequenceElements->GetViewName(itemIndex);
 
-    std::string newName = oldName;
-    int DlgResult = wxID_OK;
-
+    std::string newName;
     do {
-        wxTextEntryDialog dialog(this, _("Enter Name for View"), _("Create View"), newName);
-        DlgResult = dialog.ShowModal();
-        newName = dialog.GetValue().Trim().ToStdString();
-    } while (DlgResult == wxID_OK && (newName == "" || _sequenceViewManager->GetView(newName) != nullptr));
+        newName = PromptForViewName(this, oldName);
+        if (newName.empty()) return;
+    } while (_sequenceViewManager->GetView(newName) != nullptr);
 
-    if (DlgResult != wxID_OK || oldName == newName) return;
+    if (newName == oldName) return;
 
     _sequenceViewManager->RenameView(oldName, newName);
 

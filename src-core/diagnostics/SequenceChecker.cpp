@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <map>
 #include <set>
@@ -1287,6 +1288,79 @@ void SequenceChecker::CheckEffect(Effect* ef, CheckSequenceReport& report,
                         CheckSequenceReport::ReportIssue::WARNING, msg, "timing",
                         modelName, ef->GetEffectName(), ef->GetStartTimeMS(), layerIndex));
     }
+
+    auto looksNumericEnough = [](const std::string& v) -> bool {
+        bool hasNumericChar = false;
+        for (char c : v) {
+            unsigned char uc = static_cast<unsigned char>(c);
+            if (std::isdigit(uc) || c == '.' || c == '-' || c == '+' || c == '`') {
+                hasNumericChar = true;
+            } else {
+                return false;
+            }
+        }
+        return hasNumericChar;
+    };
+
+    auto isValidNum = [](const std::string& v) -> bool {
+        if (v.empty()) return true;
+        size_t i = 0;
+        if (v[i] == '+' || v[i] == '-') ++i;
+        if (i == v.size()) return false;
+        bool hasDigit = false, hasDot = false;
+        while (i < v.size()) {
+            unsigned char c = static_cast<unsigned char>(v[i]);
+            if (std::isdigit(c)) {
+                hasDigit = true;
+            } else if (v[i] == '.' && !hasDot) {
+                hasDot = true;
+            } else if ((v[i] == 'e' || v[i] == 'E') && hasDigit) {
+                ++i;
+                if (i < v.size() && (v[i] == '+' || v[i] == '-')) ++i;
+                if (i == v.size() || !std::isdigit(static_cast<unsigned char>(v[i]))) return false;
+                while (i < v.size() && std::isdigit(static_cast<unsigned char>(v[i]))) ++i;
+                return i == v.size();
+            } else {
+                return false;
+            }
+            ++i;
+        }
+        return hasDigit;
+    };
+
+    auto checkMapForCorruptNumbers = [&](const SettingsMap& map) {
+        for (const auto& kv : map) {
+            const std::string& key = kv.first;
+            const std::string& val = kv.second;
+            if (val.empty()) continue;
+            if (key.find("_VALUECURVE_") != std::string::npos) continue;
+
+            bool checkAsNumeric = false;
+            if (key.find("_SLIDER_") != std::string::npos ||
+                key.find("_SPINCTRL_") != std::string::npos) {
+                checkAsNumeric = true;
+            } else if (key == "T_TEXTCTRL_Fadein" || key == "T_TEXTCTRL_Fadeout") {
+                checkAsNumeric = true;
+            } else if (key.find("_TEXTCTRL_") != std::string::npos) {
+                // Validate only when the stored value looks like it was meant
+                // to be a number (no letters, slashes, '#', etc.)
+                checkAsNumeric = looksNumericEnough(val);
+            }
+            if (!checkAsNumeric) continue;
+
+            if (!isValidNum(val)) {
+                std::string msg = fmt::format(
+                    "    ERR: Effect has invalid numeric value '{}' for setting '{}'. Effect: {}, Model: {}, Start {}",
+                    val, key, ef->GetEffectName(), modelName, FORMATTIME(ef->GetStartTimeMS()));
+                RecordIssue(report, "sequence",
+                            CheckSequenceReport::ReportIssue::ForEffect(
+                                CheckSequenceReport::ReportIssue::CRITICAL, msg, "corruptsettings",
+                                modelName, ef->GetEffectName(), ef->GetStartTimeMS(), layerIndex));
+            }
+        }
+    };
+    checkMapForCorruptNumbers(ef->GetSettings());
+    checkMapForCorruptNumbers(ef->GetPaletteMap());
 
     if (ef->GetEffectIndex() >= 0) {
         RenderableEffect* re = em.GetEffect(ef->GetEffectIndex());

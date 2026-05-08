@@ -2645,6 +2645,46 @@ std::string CheckSequenceReport::RenderSequenceIssues(const std::vector<ReportIs
 
     html += RenderSectionEnd();
 
+    html += RenderSectionStart("Corrupt Numeric Settings", " mt-4");
+
+    bool hasCorruptSettings = false;
+    std::map<std::string, std::vector<std::tuple<std::string, std::string, std::string, std::string>>> corruptByModel;
+
+    for (const auto& issue : issues) {
+        if (issue.category == "corruptsettings") {
+            hasCorruptSettings = true;
+            corruptByModel[issue.modelName].push_back(
+                std::make_tuple(issue.effectName, issue.message, issue.modelName,
+                                issue.startTimeMS >= 0 ? std::to_string(issue.startTimeMS) : ""));
+        }
+    }
+
+    if (hasCorruptSettings) {
+        for (const auto& model : corruptByModel) {
+            html += R"(
+               <div class="theme-error rounded p-3 error-item filterable-item">
+                   <div class="flex flex-col">
+                       <h4 class="font-medium mb-2 group-heading">)" +
+                    EscapeHTML(model.first) + R"(:</h4>
+                       <ul class="list-disc pl-8 space-y-1">)";
+
+            for (const auto& entry : model.second) {
+                html += R"(
+                           <li class="filterable-item" data-default-display="list-item">)" +
+                        CleanMessage(std::get<1>(entry)) + R"(</li>)";
+            }
+
+            html += R"(
+                       </ul>
+                   </div>
+               </div>)";
+        }
+    } else {
+        html += RenderNoIssuesFound("corrupt numeric setting issues");
+    }
+
+    html += RenderSectionEnd();
+
 
     bool hasModelFaces = false;
     std::map<std::string, std::vector<std::string>> facesByModel;
