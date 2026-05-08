@@ -187,16 +187,23 @@ bool SpawnNewXLightsInstance(const wxString& fileToOpen) {
     std::string sArgs = "--args";
     std::string sFile(fileToOpen.ToUTF8().data());
 
+    long pid = 0;
     if (fileToOpen.IsEmpty()) {
         char* argv[] = { sOpen.data(), sN.data(), sA.data(), sBundle.data(), nullptr };
         spdlog::info("Spawning new xLights instance: open -n -a '{}'", sBundle);
-        wxExecute(argv, wxEXEC_ASYNC);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
     } else {
         char* argv[] = { sOpen.data(), sN.data(), sA.data(), sBundle.data(),
                          sArgs.data(), sFile.data(), nullptr };
         spdlog::info("Spawning new xLights instance: open -n -a '{}' --args '{}'",
                      sBundle, sFile);
-        wxExecute(argv, wxEXEC_ASYNC);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
+    }
+    // wxExecute async returns 0 on launch failure; non-zero is the child PID.
+    if (pid == 0) {
+        spdlog::warn("wxExecute failed to launch new xLights instance for '{}'",
+                     sFile.empty() ? sBundle : sFile);
+        return false;
     }
     return true;
 }
