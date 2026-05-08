@@ -16,6 +16,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 does. Now spawns a new xLights process for the package via `open -n`, leaving the
                                 current sequence untouched. The pre-existing File menu "Open New xLights Instance"
                                 also now uses the running bundle path so Debug builds spawn Debug builds.
+    -bug (cjd)                  Fix audio not playing on first Play after opening a sequence (had to Stop and Play again
+                                to get audio). AudioManager::Seek() now lazy-adds the audio stream, matching Play()'s
+                                behavior after the deferred-AddAudio change.
     -bug (dkulp)                Generate AI Lyrics now feeds the recogniser whatever waveform the user has currently
                                 selected (RAW, an isolated HTDemucs vocals stem, a band-passed filter, etc.) instead
                                 of always sending the original mix. Previously the in-place stem selection was

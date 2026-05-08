@@ -123,7 +123,7 @@ class AudioManager {
     std::vector<float> _stemBassL, _stemBassR;
     std::vector<float> _stemOtherL, _stemOtherR;
     std::vector<float> _stemVocalsL, _stemVocalsR;
-    int _sdlid = 0;
+    mutable int _sdlid = 0;
     bool _ok = false;
     std::string _hash;
     std::future<void> _prepFrameData;
