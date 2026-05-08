@@ -5429,10 +5429,11 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
-    wxString bundlePath = exePath.BeforeLast('/').BeforeLast('/').BeforeLast('/');
-    wxString cmd = wxString::Format("/usr/bin/open -n -a \"%s\"", bundlePath);
-    wxExecute(cmd, wxEXEC_ASYNC);
+    if (!SpawnNewXLightsInstance(wxEmptyString)) {
+        wxMessageBox(_("Could not locate the xLights application bundle. "
+                       "A new instance can only be launched when xLights is run from a .app bundle."),
+                     _("Open New xLights Instance"), wxOK | wxICON_WARNING, this);
+    }
 #endif
 }
 
@@ -5447,14 +5448,16 @@ void xLightsFrame::OnMenuItem_File_NewXLightsInstanceFromFile(wxCommandEvent& ev
         return;
     }
     wxString filePath = fd.GetPath();
-    ObtainAccessToURL(filePath);
-
-    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
-    wxString bundlePath = exePath.BeforeLast('/').BeforeLast('/').BeforeLast('/');
-    wxString cmd = wxString::Format("/usr/bin/open -n -a \"%s\" --args \"%s\"",
-                                    bundlePath, filePath);
-    spdlog::info("Spawning new xLights instance with file: {}", cmd.ToStdString());
-    wxExecute(cmd, wxEXEC_ASYNC);
+    if (!ObtainAccessToURL(filePath)) {
+        wxMessageBox(wxString::Format(_("Could not obtain access to the selected file:\n%s"), filePath),
+                     _("Open New xLights Instance From File"), wxOK | wxICON_ERROR, this);
+        return;
+    }
+    if (!SpawnNewXLightsInstance(filePath)) {
+        wxMessageBox(_("Could not locate the xLights application bundle. "
+                       "A new instance can only be launched when xLights is run from a .app bundle."),
+                     _("Open New xLights Instance From File"), wxOK | wxICON_WARNING, this);
+    }
 #endif
 }
 
