@@ -100,8 +100,20 @@ void AudioManager::Seek(long pos) const {
         return;
     }
 
-    if (__audioManager.GetOutput(_device) != nullptr)
-        __audioManager.GetOutput(_device)->Seek(_sdlid, pos);
+    auto* out = __audioManager.GetOutput(_device);
+    if (out == nullptr) {
+        return;
+    }
+
+    // Lazy-add: OpenMediaFile() defers AddAudio until first Play() to avoid
+    // spinning up AVAudioEngine for AudioManagers that only decode. Seek()
+    // must do the same lazy-add, otherwise a Seek() before the first Play()
+    // silently no-ops on _sdlid == -1 and the play position is wrong.
+    if (!out->HasAudio(_sdlid)) {
+        const_cast<AudioManager*>(this)->_sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
+    out->Seek(_sdlid, pos);
 }
 
 void AudioManager::Pause() {
