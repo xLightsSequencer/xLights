@@ -453,8 +453,24 @@ void xLightsApp::MacOpenFiles(const wxArrayString &fileNames) {
     if (__frame) {
         xLightsFrame* frame = __frame;
         frame->CallAfter([showDir, fileName, frame] {
-            
+
             if (fileName.EndsWith("xsqz") || fileName.EndsWith("zip")) {
+
+                // If a sequence is already loaded in this instance, spawn a separate
+                // xLights process for the package instead of replacing the current
+                // show. Matches the Windows behavior where double-clicking an xsqz
+                // launches a fresh instance with the package as its show folder.
+                if (frame->IsSequenceLoaded()) {
+                    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+                    // strip /Contents/MacOS/xLights to get the .app bundle path
+                    wxString bundlePath = exePath.BeforeLast('/').BeforeLast('/').BeforeLast('/');
+                    wxString cmd = wxString::Format("/usr/bin/open -n -a \"%s\" --args \"%s\"",
+                                                   bundlePath, fileName);
+                    spdlog::info("xsqz: sequence already loaded; spawning new instance: {}",
+                                 cmd.ToStdString());
+                    wxExecute(cmd, wxEXEC_ASYNC);
+                    return;
+                }
 
                 SequencePackage xsqPkg(std::filesystem::path(fileName.ToStdString()),
                                        __frame->GetShowDirectory(), __frame->GetSeqXmlFileName().ToStdString(), &__frame->AllModels);

@@ -2205,6 +2205,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
 
     Connect(newInstId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstance);
 
+    const long newInstFromFileId = wxNewId();
+    wxMenuItem* newInstFromFile = new wxMenuItem(MenuFile, newInstFromFileId, _("Open New xLights Instance From File..."), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(newInstFromFile);
+
+    Connect(newInstFromFileId, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstanceFromFile);
+
     bool gpuRendering = true;
     config->Read("xLightsGPURendering", &gpuRendering, true);
     GPURenderUtils::SetEnabled(gpuRendering);
@@ -5423,7 +5429,32 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    system("open -n /Applications/xLights.app");
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxString bundlePath = exePath.BeforeLast('/').BeforeLast('/').BeforeLast('/');
+    wxString cmd = wxString::Format("/usr/bin/open -n -a \"%s\"", bundlePath);
+    wxExecute(cmd, wxEXEC_ASYNC);
+#endif
+}
+
+void xLightsFrame::OnMenuItem_File_NewXLightsInstanceFromFile(wxCommandEvent& event)
+{
+#ifdef __WXOSX__
+    wxFileDialog fd(this, _("Select sequence package or sequence to open in a new xLights instance"),
+                    CurrentDir, wxEmptyString,
+                    "Sequence files (*.xsqz;*.zip;*.xsq)|*.xsqz;*.zip;*.xsq|All files (*.*)|*.*",
+                    wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (fd.ShowModal() != wxID_OK) {
+        return;
+    }
+    wxString filePath = fd.GetPath();
+    ObtainAccessToURL(filePath);
+
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    wxString bundlePath = exePath.BeforeLast('/').BeforeLast('/').BeforeLast('/');
+    wxString cmd = wxString::Format("/usr/bin/open -n -a \"%s\" --args \"%s\"",
+                                    bundlePath, filePath);
+    spdlog::info("Spawning new xLights instance with file: {}", cmd.ToStdString());
+    wxExecute(cmd, wxEXEC_ASYNC);
 #endif
 }
 

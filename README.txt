@@ -11,6 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -bug (Neil)                 macOS: opening a .xsqz package while a sequence was already loaded replaced the
+                                current show folder in-place instead of launching a separate instance like Windows
+                                does. Now spawns a new xLights process for the package via `open -n`, leaving the
+                                current sequence untouched. Also adds File menu entries "Open New xLights Instance"
+                                (now uses the running bundle path) and "Open New xLights Instance From File..." for
+                                explicit second-instance launches.
 
 2026.08  May 7, 2026
     -enh (dkulp)                When a JobPool worker thread dies from an unhandled C++ exception, the log now
