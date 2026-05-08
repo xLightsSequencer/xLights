@@ -252,15 +252,17 @@ public:
                       const std::vector<float>& vocalsL, const std::vector<float>& vocalsR);
     bool HasStemData() const { return !_stemDrumsL.empty(); }
 
-    // Write the cached vocals stem (the L/R buffers populated by
-    // SetStemData) to a temporary stereo float32 WAV file. Returns
-    // the absolute path on success, an empty string if no vocals
-    // are cached or the write failed. The caller owns the file —
-    // delete when done. Used by the speech-to-lyrics pipeline so
-    // SFSpeechRecognizer sees an isolated vocals signal instead of
-    // the full mix (which gets the recognizer hopelessly confused
-    // by drums + bass + backing instruments).
-    std::string WriteVocalsStemToTempWav() const;
+    // Write the currently selected audio (whatever AUDIOSAMPLETYPE
+    // the most recent SwitchTo landed on — RAW, STEM_VOCALS, a
+    // band-passed filter, etc.) to a temporary stereo float32 WAV
+    // file. Returns the absolute path on success, an empty string
+    // if no audio is loaded or the write failed. The caller owns the
+    // file — delete when done. Used by the speech-to-lyrics pipeline
+    // so the recognizer sees whatever the user has currently picked
+    // in the waveform (e.g. an isolated vocals stem instead of the
+    // full mix, which gets the recognizer hopelessly confused by
+    // drums + bass + backing instruments).
+    std::string WriteCurrentToTempWav() const;
 
     // A7: provide the per-second confidence curve that
     // `AUDIOSAMPLETYPE::CLASSIFIED` should gate the raw signal by.

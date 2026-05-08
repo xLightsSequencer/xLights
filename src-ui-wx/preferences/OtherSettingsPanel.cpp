@@ -245,6 +245,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+
+    TransferDataToWindow();
 }
 
 OtherSettingsPanel::~OtherSettingsPanel()

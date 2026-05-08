@@ -1676,11 +1676,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return am->HasStemData() ? YES : NO;
 }
 
-- (NSString*)writeVocalsStemsToTempWav {
+- (NSString*)writeCurrentToTempWav {
     if (!_context) return nil;
     AudioManager* am = _context->GetCurrentMediaManager();
     if (!am) return nil;
-    std::string p = am->WriteVocalsStemToTempWav();
+    std::string p = am->WriteCurrentToTempWav();
     if (p.empty()) return nil;
     return [NSString stringWithUTF8String:p.c_str()];
 }

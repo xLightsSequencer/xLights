@@ -50,6 +50,7 @@ public:
 
     // --- Write helpers --------------------------------------------------
     void Write(const std::string& key, const std::string& val);
+    void Write(const std::string& key, const char* val) { Write(key, std::string(val ? val : "")); }
 #if __has_include(<wx/string.h>)
     void Write(const std::string& key, const wxString&    val);
 #endif

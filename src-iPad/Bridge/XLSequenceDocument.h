@@ -505,20 +505,22 @@ NS_ASSUME_NONNULL_BEGIN
     NS_SWIFT_NAME(addLyricTimingTrack(named:words:startMS:endMS:));
 
 // True when the loaded audio's HTDemucs vocals stem has been
-// computed and is ready to be written out via the helper below.
-// Used by the AI-lyrics flow to prefer the isolated vocals over the
-// full mix for speech recognition.
+// computed. The AI-lyrics flow can use this to decide whether to
+// offer "use isolated vocals" as a UI affordance, but doesn't need
+// it as a precondition — `writeCurrentToTempWav` always writes
+// whatever the user has currently selected on the waveform.
 - (BOOL)hasVocalsStems;
 
-// Write the cached vocals stems to a temporary stereo float32 WAV
-// and return its absolute path (or nil on failure / no stems).
-// Caller owns the file — delete after use.
-- (nullable NSString*)writeVocalsStemsToTempWav
-    NS_SWIFT_NAME(writeVocalsStemsToTempWav());
+// Write whatever audio the user currently has selected on the
+// waveform (RAW, STEM_VOCALS, a band-passed filter, etc.) to a
+// temporary stereo float32 WAV and return its absolute path (or nil
+// on failure / no audio loaded). Caller owns the file — delete
+// after use.
+- (nullable NSString*)writeCurrentToTempWav
+    NS_SWIFT_NAME(writeCurrentToTempWav());
 
 // Audio-file path for the sequence's currently-loaded audio, or nil
-// if no audio is loaded. Used as the AI-lyrics fallback when no
-// vocals stems are cached.
+// if no audio is loaded.
 - (nullable NSString*)sequenceAudioFilePath
     NS_SWIFT_NAME(sequenceAudioFilePath());
 

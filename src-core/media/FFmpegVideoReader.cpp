@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <list>
+#include <mutex>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -46,7 +47,7 @@ inline bool IsVideoToolboxAcceleratedFrame(AVFrame*) { return false; }
 #include <VersionHelpers.h>
 #endif
 
-static enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
+static thread_local enum AVPixelFormat __hw_pix_fmt = ::AVPixelFormat::AV_PIX_FMT_NONE;
 static enum AVPixelFormat get_hw_format(AVCodecContext* ctx, const enum AVPixelFormat* pix_fmts)
 {
     const enum AVPixelFormat* p;
@@ -442,7 +443,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
         _codecContext->thread_count = 1;
     } else {
         _codecContext->thread_type = FF_THREAD_SLICE;
-        _codecContext->thread_count = 0;
+        // Cap at 4: with many concurrent VideoReaders (one per model), thread_count=0
+        // (auto = all CPU cores) multiplies into hundreds of FFmpeg threads and
+        // exhausts OS thread/memory limits during batch render.
+        _codecContext->thread_count = 4;
         if (!allowHWDecoder) {
             _abandonHardwareDecode = true;
             if (_hw_device_ctx) {
@@ -467,6 +471,10 @@ void FFmpegVideoReader::reopenContext(bool allowHWDecoder) {
     _codecContext->hwaccel_context = nullptr;
     {
         if (IsHardwareAcceleratedVideo() && type != AV_HWDEVICE_TYPE_NONE) {
+            // Serialize HW device creation: concurrent CUDA/NVDEC init from many
+            // render threads exhausts driver session limits and corrupts shared state.
+            static std::mutex s_hwDeviceCreateMutex;
+            std::lock_guard<std::mutex> hwLock(s_hwDeviceCreateMutex);
             const char* opt = nullptr;
             if (av_hwdevice_ctx_create(&_hw_device_ctx, type, opt, nullptr, 0) < 0) {
                 spdlog::warn("VideoReader: Failed to create HW device '{}' for {} - falling back to software decode.", av_hwdevice_get_type_name(type), _filename.c_str());
