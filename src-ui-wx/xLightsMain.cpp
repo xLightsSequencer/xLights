@@ -5423,7 +5423,11 @@ void xLightsFrame::OnMenuItem_Help_DownloadSelected(wxCommandEvent& event)
 void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event)
 {
 #ifdef __WXOSX__
-    system("open -n /Applications/xLights.app");
+    if (!SpawnNewXLightsInstance(wxEmptyString)) {
+        wxMessageBox(_("Could not locate the xLights application bundle. "
+                       "A new instance can only be launched when xLights is run from a .app bundle."),
+                     _("Open New xLights Instance"), wxOK | wxICON_WARNING, this);
+    }
 #endif
 }
 
