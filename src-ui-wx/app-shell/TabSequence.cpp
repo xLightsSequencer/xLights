@@ -489,8 +489,6 @@ void xLightsFrame::LoadEffectsFile()
         _housePreviewPanel->GetModelPreview()->RestoreDefaultCameraPosition();
     }
 
-    // If saved in 2D mode but 3D content exists, restore LayoutMode3D so the show reopens
-    // in 3D. Gridlines is excluded — it's the default view object and not a 3D indicator.
     if (GetXmlSetting("LayoutMode3D", "0") == "0") {
         bool has3dContent = (viewpoint_mgr.GetNum3DCameras() > 0 || viewpoint_mgr.GetDefaultCamera3D() != nullptr);
         if (!has3dContent && viewObjectsNode) {

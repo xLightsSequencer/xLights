@@ -229,11 +229,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
     PreviewWindows.clear();
 
-    // Check to see if any show directory files need to be saved.
-    // Must happen BEFORE clearing viewpoints so that a "Yes" answer saves them.
     CheckUnsavedChanges();
-
-    // Clear viewpoints for the outgoing show — LoadEffectsFile will repopulate them.
     viewpoint_mgr.Clear();
 
     // Force re-initialization of Effect Presets panel when show directory changes.

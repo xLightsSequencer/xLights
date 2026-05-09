@@ -10101,8 +10101,11 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 
     auto* config = GetXLightsConfig();
     config->Write("LayoutMode3D", is_3d);
-    xlights->SetXmlSetting("LayoutMode3D", is_3d ? "1" : "0");
-    xlights->UnsavedRgbEffectsChanges = true;
+    wxString group = ChoiceLayoutGroups->GetStringSelection();
+    if (group == "Default" || group == "All Models" || group == "Unassigned" || group.empty()) {
+        xlights->SetXmlSetting("LayoutMode3D", is_3d ? "1" : "0");
+        xlights->UnsavedRgbEffectsChanges = true;
+    }
     Refresh();
 }
 
