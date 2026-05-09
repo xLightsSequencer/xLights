@@ -10101,11 +10101,15 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
 
     auto* config = GetXLightsConfig();
     config->Write("LayoutMode3D", is_3d);
-    wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
-    wxString nv = is_3d ? "1" : "0";
-    if (s != nv) {
-        xlights->SetXmlSetting("LayoutMode3D", nv);
-        xlights->UnsavedRgbEffectsChanges = true;
+    // Only write "1" to the XML setting — never "0". Once a layout has been used in 3D
+    // the file should always reopen in 3D. Switching to 2D is a session-only view change;
+    // the current mode is tracked by the machine-level config above.
+    if (is_3d) {
+        wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
+        if (s != "1") {
+            xlights->SetXmlSetting("LayoutMode3D", "1");
+            xlights->UnsavedRgbEffectsChanges = true;
+        }
     }
     Refresh();
 }

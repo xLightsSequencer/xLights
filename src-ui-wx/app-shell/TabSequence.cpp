@@ -489,6 +489,27 @@ void xLightsFrame::LoadEffectsFile()
         _housePreviewPanel->GetModelPreview()->RestoreDefaultCameraPosition();
     }
 
+    // If the file was saved while in 2D mode but the layout has 3D content, restore
+    // LayoutMode3D to "1" so the show reopens in 3D and 3D viewpoints remain accessible.
+    // Indicators of a 3D layout: any model with non-zero WorldPosZ/RotateX/RotateY,
+    // any 3D view objects present, or named/default 3D cameras in the viewpoint manager.
+    if (GetXmlSetting("LayoutMode3D", "0") == "0") {
+        bool has3dContent = (viewpoint_mgr.GetNum3DCameras() > 0 || viewpoint_mgr.GetDefaultCamera3D() != nullptr);
+        if (!has3dContent && viewObjectsNode) {
+            has3dContent = viewObjectsNode.first_child() != nullptr;
+        }
+        if (!has3dContent && modelsNode) {
+            for (pugi::xml_node n = modelsNode.first_child(); n && !has3dContent; n = n.next_sibling()) {
+                has3dContent = (n.attribute("WorldPosZ").as_float(0.0f) != 0.0f ||
+                                n.attribute("RotateX").as_float(0.0f) != 0.0f ||
+                                n.attribute("RotateY").as_float(0.0f) != 0.0f);
+            }
+        }
+        if (has3dContent) {
+            SetXmlSetting("LayoutMode3D", "1");
+        }
+    }
+
     if (!modelGroupsNode) {
         modelGroupsNode = root.append_child("modelGroups");
     }
