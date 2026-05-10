@@ -1397,6 +1397,10 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
         if( editing_models ) {
             xlights->AbortRender();
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
+            if (selectedModel == nullptr) {
+                spdlog::warn("LayoutPanel::OnPropertyGridChanging: selectedBaseObject is not a Model; ignoring property change.");
+                return;
+            }
             if ("ModelName" == name) {
                 std::string safename = Model::SafeModelName(event.GetValue().GetString().ToStdString());
                 // refuse clashing names or names with unsafe characters
@@ -1435,7 +1439,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 int segment = _propertyAdapter->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
@@ -1448,7 +1452,7 @@ void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemCollapsed(propertyEditor, event);
             }
         }
@@ -1459,7 +1463,7 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemExpanded(propertyEditor, event);
             }
         }
@@ -3184,7 +3188,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
                 spdlog::warn("LayoutPanel:SelectBaseObject Unable to select model '{}'.", (const char*)name.c_str());
             }
         }
-        if (m != selectedBaseObject)
+        if (m != nullptr && m != selectedBaseObject)
         {
             SelectModelInTree(m);
         }
