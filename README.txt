@@ -11,6 +11,11 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (Neil)                 Add File menu "Open New xLights Instance From File..." (macOS + Windows). Picks an
+                                .xsqz / .zip / .xsq via a file dialog and launches a new xLights process to open it.
+                                Lets users open zipped sequence packages without renaming .zip to .xsqz first or
+                                relying on OS file associations. The new instance handles the file via the existing
+                                argv launch path so behavior matches Finder / Explorer double-click.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
                                 short API calls was also killing the large-file download before it could complete.
     -bug (dkulp)                Backup: switch the per-file copy from wxCopyFile to std::filesystem::copy_file so

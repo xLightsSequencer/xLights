@@ -47,9 +47,11 @@ public:
     uint64_t _nextIdleTime = 0;
 };
 
-#ifdef __WXOSX__
-// Spawn a new xLights process via `/usr/bin/open -n -a <bundle> [--args <file>]`.
-// Pass an empty fileToOpen to launch a blank sibling instance. Returns false if
-// the running app's .app bundle cannot be resolved (unbundled / dev runs).
+#if defined(__WXOSX__) || defined(__WXMSW__)
+// Spawn a new xLights process. Pass an empty fileToOpen to launch a blank
+// sibling instance, or a path to a sequence/.xsq/.xsqz/.zip to have the new
+// instance open it via the launch-time argv path. Returns false if the spawn
+// could not be initiated (e.g. macOS .app bundle cannot be resolved, or
+// wxExecute failed). Linux is not currently supported.
 bool SpawnNewXLightsInstance(const wxString& fileToOpen);
 #endif

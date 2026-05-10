@@ -543,6 +543,7 @@ public:
     void OnMenuItem_File_Close_SequenceSelected(wxCommandEvent& event);
     void OnMenuItem_File_Export_VideoSelected(wxCommandEvent& event);
     void OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event);
+    void OnMenuItem_File_NewXLightsInstanceFromFile(wxCommandEvent& event);
     void OnAuiToolBarFirstFrameClick(wxCommandEvent& event);
     void OnAuiToolBarLastFrameClick(wxCommandEvent& event);
     void OnAuiToolBarItemReplaySectionClick(wxCommandEvent& event);

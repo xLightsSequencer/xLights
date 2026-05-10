@@ -209,6 +209,39 @@ bool SpawnNewXLightsInstance(const wxString& fileToOpen) {
 }
 #endif
 
+#ifdef __WXMSW__
+// Spawn a new xLights.exe process, optionally passing a file path as the first
+// argv. xLights has no single-instance checker so simply re-running the same
+// executable produces an independent process. Uses the argv form of wxExecute
+// to avoid shell quoting issues for paths with spaces or other special chars.
+bool SpawnNewXLightsInstance(const wxString& fileToOpen) {
+    wxString exePath = wxStandardPaths::Get().GetExecutablePath();
+    if (exePath.IsEmpty()) {
+        spdlog::warn("Cannot resolve xLights executable path; new instance not spawned");
+        return false;
+    }
+    std::string sExe(exePath.ToUTF8().data());
+    std::string sFile(fileToOpen.ToUTF8().data());
+
+    long pid = 0;
+    if (fileToOpen.IsEmpty()) {
+        char* argv[] = { sExe.data(), nullptr };
+        spdlog::info("Spawning new xLights instance: '{}'", sExe);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
+    } else {
+        char* argv[] = { sExe.data(), sFile.data(), nullptr };
+        spdlog::info("Spawning new xLights instance: '{}' '{}'", sExe, sFile);
+        pid = wxExecute(argv, wxEXEC_ASYNC);
+    }
+    if (pid == 0) {
+        spdlog::warn("wxExecute failed to launch new xLights instance for '{}'",
+                     sFile.empty() ? sExe : sFile);
+        return false;
+    }
+    return true;
+}
+#endif
+
 void InitialiseLogging(bool fromMain)
 {
     static bool loggingInitialised = false;

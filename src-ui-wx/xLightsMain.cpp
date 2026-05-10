@@ -2216,6 +2216,23 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     VideoReader::SetHardwareAcceleratedVideo(_hwVideoAccleration);
     VideoReader::SetHardwareRenderType(_hwVideoRenderer);
 #endif
+
+#if defined(__WXOSX__) || defined(__WXMSW__)
+    // Open New xLights Instance From File... — lets users open a packaged
+    // sequence (.xsqz / .zip) without having to rename the file or rely on
+    // OS file associations. The chosen file is passed as argv to a new
+    // xLights process so the existing argv launch path handles extraction.
+#ifdef __WXMSW__
+    MenuFile->AppendSeparator();
+#endif
+    const long newInstFromFileId = wxNewId();
+    wxMenuItem* newInstFromFile = new wxMenuItem(MenuFile, newInstFromFileId,
+        _("Open New xLights Instance From File..."), wxEmptyString, wxITEM_NORMAL);
+    MenuFile->Append(newInstFromFile);
+    Connect(newInstFromFileId, wxEVT_COMMAND_MENU_SELECTED,
+            (wxObjectEventFunction)&xLightsFrame::OnMenuItem_File_NewXLightsInstanceFromFile);
+#endif
+
 #ifdef __WXMSW__
     // make sure Direct2DRenderer is created on the main thread before the other threads need it
     wxGraphicsRenderer::GetDirect2DRenderer();
@@ -5435,6 +5452,29 @@ void xLightsFrame::OnMenuItem_File_NewXLightsInstance(wxCommandEvent& event)
         wxMessageBox(_("Could not locate the xLights application bundle. "
                        "A new instance can only be launched when xLights is run from a .app bundle."),
                      _("Open New xLights Instance"), wxOK | wxICON_WARNING, this);
+    }
+#endif
+}
+
+void xLightsFrame::OnMenuItem_File_NewXLightsInstanceFromFile(wxCommandEvent& event)
+{
+#if defined(__WXOSX__) || defined(__WXMSW__)
+    wxFileDialog fd(this, _("Select sequence package or sequence to open in a new xLights instance"),
+                    CurrentDir, wxEmptyString,
+                    "Sequence files (*.xsqz;*.zip;*.xsq)|*.xsqz;*.zip;*.xsq|All files (*.*)|*.*",
+                    wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (fd.ShowModal() != wxID_OK) {
+        return;
+    }
+    wxString filePath = fd.GetPath();
+    if (!ObtainAccessToURL(filePath)) {
+        wxMessageBox(wxString::Format(_("Could not obtain access to the selected file:\n%s"), filePath),
+                     _("Open New xLights Instance From File"), wxOK | wxICON_ERROR, this);
+        return;
+    }
+    if (!SpawnNewXLightsInstance(filePath)) {
+        wxMessageBox(_("Could not launch a new xLights instance for the selected file."),
+                     _("Open New xLights Instance From File"), wxOK | wxICON_WARNING, this);
     }
 #endif
 }
