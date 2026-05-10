@@ -1476,6 +1476,11 @@ void VendorModelDialog::OnTreeCtrl_NavigatorSelectionChanged(wxTreeEvent& event)
     // _lastSearchItem we just set.
     if (!_searchInProgress && _lastSearchItem.IsOk() && startid != _lastSearchItem) {
         TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+        // Also drop the search-driven selection on the prior search item.
+        // No-op if the user already deselected it; only stomps a manual
+        // Ctrl-click selection in the contrived case where the user
+        // explicitly multi-selected the same row the search had highlighted.
+        TreeCtrl_Navigator->UnselectItem(_lastSearchItem);
         _lastSearchItem = wxTreeItemId();
     }
     UpdatePanelForItem(startid);
@@ -1944,6 +1949,7 @@ void VendorModelDialog::OnTextCtrl_SearchText(wxCommandEvent& event)
 {
 	if (_lastSearchItem.IsOk()) {
 		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+		TreeCtrl_Navigator->UnselectItem(_lastSearchItem);
 	}
 	_lastSearchItem = wxTreeItemId();
 	ValidateWindow();
@@ -1953,6 +1959,7 @@ void VendorModelDialog::OnSearchCancelClick(wxCommandEvent& event)
 {
 	if (_lastSearchItem.IsOk()) {
 		TreeCtrl_Navigator->SetItemBold(_lastSearchItem, false);
+		TreeCtrl_Navigator->UnselectItem(_lastSearchItem);
 	}
 	_lastSearchItem = wxTreeItemId();
 	TextCtrl_Search->SetValue("");
