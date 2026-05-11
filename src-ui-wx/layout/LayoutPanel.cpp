@@ -1698,10 +1698,10 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
     TreeListViewModels->SetColumnWidth(0, wxCOL_WIDTH_AUTOSIZE);
     {
         int w = TreeListViewModels->GetColumnWidth(0);
-        if (w <= 20) {
-            w = TreeListViewModels->GetSize().GetWidth() / 3;
+        if (w < 20) {
+            w = TreeListViewModels->GetClientSize().GetWidth() / 3;
         }
-        if (w <= 20) {
+        if (w < 20) {
             w = 150;
         }
         TreeListViewModels->SetColumnWidth(0, w);
@@ -1709,10 +1709,10 @@ void LayoutPanel::ThawTreeListView(const std::list<wxTreeListItem> &toExpand) {
     TreeListViewModels->SetColumnWidth(3, wxCOL_WIDTH_AUTOSIZE);
     {
         int w = TreeListViewModels->GetColumnWidth(3);
-        if (w <= 20) {
+        if (w < 20) {
             w = TreeListViewModels->WidthFor(CONTCONNCOLNAME);
         }
-        if (w <= 20) {
+        if (w < 20) {
             w = 100;
         }
         TreeListViewModels->SetColumnWidth(3, w);
