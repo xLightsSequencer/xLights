@@ -427,6 +427,12 @@ void WiringDialog::RenderNodes(wxBitmap& bitmap, std::map<int, std::map<int, std
     RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.labelOutline);
     RenderText("Rotation: " + std::to_string(_rotation), dc, AdjustX(0, printer) + _start.x, 35 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
 
+    int totalNodes = 0;
+    for (const auto& itp : points) {
+        totalNodes += (int)itp.second.size();
+    }
+    RenderText("Total Nodes: " + std::to_string(totalNodes), dc, AdjustX(0, printer) + _start.x, 50 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
+
     dc.SetPen(*wxBLACK_PEN);
 }
 
@@ -560,6 +566,12 @@ void WiringDialog::RenderMultiLight(wxBitmap& bitmap, std::map<int, std::map<int
 
     RenderText("Model: " + _modelname, dc, AdjustX(0, printer) + _start.x, 20 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
     RenderText("Rotation: " + std::to_string(_rotation), dc, AdjustX(0, printer) + _start.x, 40 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
+
+    int totalNodes = 0;
+    for (const auto& itp : points) {
+        totalNodes += (int)itp.second.size();
+    }
+    RenderText("Total Nodes: " + std::to_string(totalNodes), dc, AdjustX(0, printer) + _start.x, 55 + fontSize + 4 * printScale + _start.y, _selectedTheme.messageFill, _selectedTheme.messageOutline);
 }
 
 std::map<int, std::list<wxRealPoint>> WiringDialog::ExtractPoints(wxGrid* grid, bool reverse)

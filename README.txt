@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
+                                Rotation so you can see the model's pixel count at a glance without counting.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
                                 short API calls was also killing the large-file download before it could complete.
     -bug (dkulp)                Backup: switch the per-file copy from wxCopyFile to std::filesystem::copy_file so
