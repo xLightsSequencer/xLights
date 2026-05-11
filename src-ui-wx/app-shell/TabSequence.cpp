@@ -81,6 +81,10 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 
 std::string xLightsFrame::BuildEffectsXml()
 {
+    if (layoutPanel->Is3d() && GetXmlSetting("LayoutMode3D", "") != "1") {
+        SetXmlSetting("LayoutMode3D", "1");
+    }
+
     XmlSerializer serializer;
     StringSerializingVisitor visitor;
     visitor.WriteOpenTag("xrgb");
@@ -247,6 +251,7 @@ void xLightsFrame::LoadEffectsFile()
     pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
     pugi::xml_node perspectivesNode = root.child("perspectives");
     pugi::xml_node settingsNode = root.child("settings");
+    _xmlSettings.clear();
     if (settingsNode) {
         for (pugi::xml_node s = settingsNode.first_child(); s; s = s.next_sibling()) {
             _xmlSettings[s.name()] = s.attribute("value").as_string();
