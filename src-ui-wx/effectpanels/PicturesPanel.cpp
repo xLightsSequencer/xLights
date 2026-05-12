@@ -27,6 +27,7 @@
 #include "shared/controls/BulkEditControls.h"
 #include "shared/utils/wxUtilities.h"
 #include "media/ManageMediaPanel.h"
+#include "sequencer/MainSequencer.h"
 #include "render/SequenceMedia.h"
 #include "render/SequenceElements.h"
 #include "utils/xlImage.h"
@@ -242,6 +243,10 @@ void PicturesPanel::OnSelectClick(wxCommandEvent& /*event*/) {
 
     UpdatePreviewBitmap(selected);
     FireChangeEvent();
+
+    if (xl->GetMainSequencer() && xl->GetMainSequencer()->GetSelectedEffectCount("Pictures") > 1) {
+        xl->GetMainSequencer()->ApplyEffectSettingToSelected("Pictures", "E_TEXTCTRL_Pictures_Filename", selected, nullptr, "");
+    }
 }
 
 void PicturesPanel::OnAIGenerateClick(wxCommandEvent& /*event*/) {
