@@ -1226,10 +1226,16 @@ double ModelPreview::calcPixelSize(double i) {
 }
 
 double ModelPreview::getViewScale() const {
-    // Return 1.0 so GL_POINTS pixel sizes match the pre-zoom-scaling baseline.
-    // DrawModelNames uses this for font scaling and gets natural world-space text
-    // that grows proportionally as you zoom in, which is correct for a zoomable canvas.
-    return 1.0;
+    double base = 1.0 / std::max(translateToBacking(2.0 * currentPixelScaleFactor), 1.0);
+    if (allowSelected) {
+        if (!is3d) {
+            return std::min(base, base * (double)camera2d->GetZoom());
+        } else {
+            float z = camera3d->GetZoom();
+            return z > 1.0f ? base / z : base;
+        }
+    }
+    return std::min(base, base * (double)camera2d->GetZoom());
 }
 
 double ModelPreview::getBackingScaleFactor() const {

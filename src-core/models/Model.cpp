@@ -3049,13 +3049,6 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
         cache->vica->SetColorCount(_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE ? NodeCount * 2 : NodeCount);
 
         float modelPixelSize = pixelSize;
-        // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles.
-        // Use getBackingScaleFactor() rather than calcPixelSize() to avoid double-applying the
-        // view-matrix scale (scale2d) that is already applied by the camera transform.
-        // The factor of 2 converts from modelPixelSize (diameter in local coords) to a radius
-        // that, after ApplyModelViewMatrices (×scalex) and the ViewMatrix (×zoom×scale2d), equals
-        // half the GL_POINTS diameter: backingScale × pixelSize × zoom × scale2d / 2.
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
@@ -3064,7 +3057,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
             float length = std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
-            modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
+            modelPixelSize = (float)preview->calcPixelSize(pixelSize) / std::abs(length);
         }
 
         int nodeRenderOrder = NodeRenderOrder();
