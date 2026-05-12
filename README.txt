@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (cybercop23)           Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
+                                Same node-index transaltion on Face effect if using Face effect on a SubModel.
     -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
                                 Rotation so you can see the model's pixel count at a glance without counting.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
