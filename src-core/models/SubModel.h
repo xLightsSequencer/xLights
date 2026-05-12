@@ -64,6 +64,8 @@ public:
 
     [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
     [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
+    [[nodiscard]] FaceStateData const& GetStateInfo() const override { return parent->stateInfo; };
+    [[nodiscard]] FaceStateNodes const& GetStateInfoNodes() const override { return parent->stateInfoNodes; };
 
     std::string GetSubModelLayout() const { return _layout; }
     std::string GetSubModelType() const { return _type; }
@@ -84,8 +86,8 @@ public:
     [[nodiscard]] bool IsRanges() const { return _isRanges; }
     [[nodiscard]] bool IsVertical() const { return _vert; }
     [[nodiscard]] bool IsXYBufferStyle();
+    [[nodiscard]] const std::map<int, int>& GetNodeIndexMap() const { return _nodeIndexMap; }
 
-    
     virtual void Setup() override;
 
 private:
