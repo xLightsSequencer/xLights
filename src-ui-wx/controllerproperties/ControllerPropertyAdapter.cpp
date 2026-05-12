@@ -13,6 +13,7 @@
 #include "OutputPropertyAdapters.h"
 
 #include <wx/settings.h>
+#include <wx/msgdlg.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
@@ -324,6 +325,15 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Monitor");
         return true;
     } else if (name == "AutoSize") {
+        if (event.GetValue().GetBool() && _controller.GetOutputCount() > 0 && _controller.GetProtocol() == OUTPUT_E131) {
+            int universeSize = _controller.GetFirstOutput()->GetChannels();
+            if (universeSize != 170 && universeSize != 510 && universeSize != 512) {
+                wxMessageBox(
+                    wxString::Format("The current Universe Size is %d.\n\nFor Auto Size to work correctly, you may need to update the Universe Size to a common value such as 510 or 512.", universeSize),
+                    "Universe Size Warning",
+                    wxOK | wxICON_WARNING);
+            }
+        }
         _controller.SetAutoSize(event.GetValue().GetBool(), outputModelManager);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize");
