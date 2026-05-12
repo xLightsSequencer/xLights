@@ -84,7 +84,10 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
         if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
             m = ((ModelGroup*)cls)->GetFirstModel();
         } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
-            m = static_cast<SubModel*>(cls)->GetParent();
+            SubModel* sm = dynamic_cast<SubModel*>(cls);
+            if (sm != nullptr) {
+                m = sm->GetParent();
+            }
         }
 
         if (m != nullptr) {
