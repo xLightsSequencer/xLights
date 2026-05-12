@@ -101,6 +101,7 @@
 #include "OpenGLShaders.h"
 #include "UtilFunctions.h"
 #include "utils/ExternalHooks.h"
+#include "utils/AppCallbacks.h"
 #include "../utils/FileUtils.h"
 #include <nlohmann/json.hpp>
 
@@ -459,6 +460,7 @@ public:
 
     static std::map<std::string, ShaderInfo*> shaderMap;
     static std::set<std::string> failedShaders;
+    static std::set<std::string> warnedShaders;
     static std::mutex shaderMapMutex;
 
     ShaderRenderCache() { _shaderConfig = nullptr; }
@@ -553,6 +555,7 @@ public:
 };
 std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderMap;
 std::set<std::string> ShaderRenderCache::failedShaders;
+std::set<std::string> ShaderRenderCache::warnedShaders;
 std::mutex ShaderRenderCache::shaderMapMutex;
 
 ShaderEffect::ShaderEffect(int i) : RenderableEffect(i, "Shader", shader_16_xpm, shader_24_xpm, shader_32_xpm, shader_48_xpm, shader_64_xpm)
@@ -660,9 +663,23 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         buffer.needToInit = false;
         _timeMS = SettingsMap.GetInt("TEXTCTRL_Shader_LeadIn", 0) * buffer.frameTimeInMs;
         if (contextSet) {
-            cache->InitialiseShaderConfig(SettingsMap.Get("0FILEPICKERCTRL_IFS", ""), GetSequenceElements(buffer));
+            const std::string shaderFile = SettingsMap.Get("0FILEPICKERCTRL_IFS", "");
+            cache->InitialiseShaderConfig(shaderFile, GetSequenceElements(buffer));
             if (_shaderConfig != nullptr) {
                 programId = programIdForShaderCode(_shaderConfig, cache);
+                if (programId == 0u) {
+                    std::unique_lock<std::mutex> lock(ShaderRenderCache::shaderMapMutex);
+                    if (ShaderRenderCache::warnedShaders.emplace(shaderFile).second) {
+                        lock.unlock();
+                        DisplayWarning("Shader effect failed to compile: " + shaderFile + "\nThis effect will render as solid yellow. Check xLights logs for details.");
+                    }
+                }
+            } else {
+                std::unique_lock<std::mutex> lock(ShaderRenderCache::shaderMapMutex);
+                if (ShaderRenderCache::warnedShaders.emplace(shaderFile).second) {
+                    lock.unlock();
+                    DisplayWarning("Shader effect failed to load: " + shaderFile + "\nThis effect will render as solid red. Check the shader file and xLights logs for details.");
+                }
             }
         } else {
             spdlog::warn("Could not create/set OpenGL Context for ShaderEffect.  ShaderEffect disabled.");
