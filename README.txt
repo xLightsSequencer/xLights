@@ -13,6 +13,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.09  May ??, 2026
     -enh (cybercop23)           Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                 Same node-index translation on Face effect if using Face effect on a SubModel.
+    -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
+                                Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
+                                bundled libswift_Concurrency.dylib. With the old order, the back-deployed
+                                Swift 5.7 Concurrency runtime was loaded instead of the system Swift 6.x one,
+                                and FoundationModels (which uses Swift 6 isolation/executor ABI) nil-dereffed
+                                inside respond(). The Apple Intelligence bridge also now gates on
+                                SystemLanguageModel availability and surfaces a clear reason (not enabled /
+                                model not ready / device not eligible) instead of an empty result.
     -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
                                 Rotation so you can see the model's pixel count at a glance without counting.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
