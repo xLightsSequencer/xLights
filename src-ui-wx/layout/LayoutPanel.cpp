@@ -449,8 +449,6 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
-const long LayoutPanel::ID_PREVIEW_DELETEALLVIEWPOINTS3D = wxNewId();
-const long LayoutPanel::ID_PREVIEW_REVERT_TO_2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORT_MODELS_FROM_LORS5 = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
@@ -5982,8 +5980,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             {
                 mnuViewPoint->Append(ID_PREVIEW_CAMERA_DELETE_BASE + i, xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
-            mnuViewPoint->AppendSeparator();
-            mnuViewPoint->Append(ID_PREVIEW_DELETEALLVIEWPOINTS3D, "Delete All");
             mnu.Append(ID_PREVIEW_DELETEVIEWPOINT3D, "Delete ViewPoint", mnuViewPoint, "");
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
@@ -6006,15 +6002,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.Append(ID_PREVIEW_DELETEVIEWPOINT2D, "Delete ViewPoint", mnuViewPoint, "");
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
-    }
-
-    bool has3dState = is_3d
-        || xlights->GetXmlSetting("LayoutMode3D", "0") == "1"
-        || xlights->viewpoint_mgr.GetNum3DCameras() > 0
-        || xlights->viewpoint_mgr.GetDefaultCamera3D() != nullptr;
-    if (has3dState) {
-        mnu.AppendSeparator();
-        mnu.Append(ID_PREVIEW_REVERT_TO_2D, "Revert to 2D Layout");
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
@@ -6353,53 +6340,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
-        }
-    } else if (event.GetId() == ID_PREVIEW_REVERT_TO_2D) {
-        if (wxMessageBox("Reset to 2D layout? This will remove all 3D Viewpoints and reset all model positions. This cannot be undone. Are you sure?",
-                         "Revert to 2D Layout", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
-            while (xlights->viewpoint_mgr.GetNum3DCameras() > 0)
-                xlights->viewpoint_mgr.DeleteCamera3D(0);
-            xlights->viewpoint_mgr.ClearDefault3DCamera();
-
-            for (auto& [name, model] : xlights->AllModels) {
-                if (model->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
-                model->GetModelScreenLocation().SetWorldPos_Z(0.0f);
-                model->GetModelScreenLocation().SetRotateX(0.0f);
-                model->GetModelScreenLocation().SetRotateY(0.0f);
-            }
-
-            std::vector<std::string> toDelete;
-            for (const auto& [name, obj] : xlights->AllObjects) {
-                if (obj->GetDisplayAs() != DisplayAsType::Gridlines)
-                    toDelete.push_back(name);
-            }
-            for (const auto& name : toDelete)
-                xlights->AllObjects.Delete(name);
-
-            xlights->SetXmlSetting("LayoutMode3D", "0");
-            GetXLightsConfig()->Write("LayoutMode3D", false);
-
-            if (is_3d) {
-                is_3d = false;
-                CheckBox_3D->SetValue(false);
-                modelPreview->Set3D(false);
-                editing_models = true;
-                if (dynamic_cast<Model*>(selectedBaseObject) == nullptr)
-                    UnSelectAllModels();
-                Notebook_Objects->RemovePage(1);
-                obj_button->Enable(false);
-            }
-
-            SetDirtyHiLight(true);
-            xlights->GetOutputModelManager()->AddASAPWork(
-                OutputModelManager::WORK_VISUAL_CHANGE | OutputModelManager::WORK_RELOAD_OBJECTLIST,
-                "LayoutPanel::RevertTo2D");
-        }
-    } else if (event.GetId() == ID_PREVIEW_DELETEALLVIEWPOINTS3D) {
-        if (wxMessageBox("Are you sure you want to delete all 3D viewpoints?\n\nThis action cannot be undone.", "Confirm Delete All Viewpoints", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
-            while (xlights->viewpoint_mgr.GetNum3DCameras() > 0)
-                xlights->viewpoint_mgr.DeleteCamera3D(0);
-            SetDirtyHiLight(true);
         }
     } else if (is_3d) {
         long loadIdx = event.GetId() - ID_PREVIEW_CAMERA_LOAD_BASE;
@@ -10566,7 +10506,14 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     }
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
-    GetXLightsConfig()->Write("LayoutMode3D", is_3d);
+    auto* config = GetXLightsConfig();
+    config->Write("LayoutMode3D", is_3d);
+    wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
+    wxString nv = is_3d ? "1" : "0";
+    if (s != nv) {
+        xlights->SetXmlSetting("LayoutMode3D", nv);
+        xlights->UnsavedRgbEffectsChanges = true;
+    }
     Refresh();
 }
 

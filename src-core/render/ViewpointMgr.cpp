@@ -166,8 +166,6 @@ void ViewpointMgr::Clear()
 {
     previewCameras2d.clear();
     previewCameras3d.clear();
-    _defaultCamera2D.reset();
-    _defaultCamera3D.reset();
 }
 
 void ViewpointMgr::AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d )

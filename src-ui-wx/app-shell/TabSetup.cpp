@@ -229,8 +229,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
     PreviewWindows.clear();
 
-    CheckUnsavedChanges();
+    // remove any 3d viewpoints
     viewpoint_mgr.Clear();
+
+    // Check to see if any show directory files need to be saved
+    CheckUnsavedChanges();
 
     // Force re-initialization of Effect Presets panel when show directory changes.
     // If the panel is already visible, reload it immediately; otherwise defer until next show.

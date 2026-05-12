@@ -99,7 +99,6 @@ public:
     void SetDefaultCamera3D(PreviewCamera* current_camera) {
         _defaultCamera3D = std::make_unique<PreviewCamera>(*current_camera);
     }
-    void ClearDefault3DCamera() { _defaultCamera3D.reset(); }
     void AddCamera( std::string name, PreviewCamera* current_camera, bool is_3d );
     int GetNum2DCameras() const { return static_cast<int>(previewCameras2d.size()); }
     int GetNum3DCameras() const { return static_cast<int>(previewCameras3d.size()); }
