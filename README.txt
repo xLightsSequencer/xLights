@@ -12,7 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
     -enh (cybercop23)           Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
-                                Same node-index translation on Face effect if using Face effect on a SubModel.
+                                Same node-index translation on Faces effect if using Faces effect on a SubModel.
     -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
                                 Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
                                 bundled libswift_Concurrency.dylib. With the old order, the back-deployed
