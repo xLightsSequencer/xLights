@@ -3584,18 +3584,18 @@ static float LassoClipDepth(IModelPreview* preview, const ModelScreenLocation& l
     return c.w; // clip-space W = view-space depth; positive = in front of camera
 }
 
-// Find the depth cutoff for a 3D lasso.  Candidates must already be sorted by depth
-// (ascending).  Scans for the first gap between consecutive depths that exceeds 40 % of
+// Find the depth cutoff for a 3D lasso.  sorted_depths must be sorted ascending.
+// Scans for the first gap between consecutive depths that exceeds 40 % of
 // the nearest model's depth — that gap marks the foreground/background boundary.
-static float Lasso3DDepthCutoff(const std::vector<std::pair<Model*, float>>& sorted)
+static float Lasso3DDepthCutoff(const std::vector<float>& sorted_depths)
 {
-    if (sorted.empty()) return 0.0f;
-    const float gap_threshold = sorted.front().second * 0.4f;
-    for (size_t i = 1; i < sorted.size(); ++i) {
-        if (sorted[i].second - sorted[i - 1].second > gap_threshold)
-            return sorted[i - 1].second;
+    if (sorted_depths.empty()) return 0.0f;
+    const float gap_threshold = sorted_depths.front() * 0.4f;
+    for (size_t i = 1; i < sorted_depths.size(); ++i) {
+        if (sorted_depths[i] - sorted_depths[i - 1] > gap_threshold)
+            return sorted_depths[i - 1];
     }
-    return sorted.back().second; // no gap: accept all candidates
+    return sorted_depths.back(); // no gap: accept all candidates
 }
 
 void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
@@ -3612,7 +3612,10 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
                 }
             }
             std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
-            const float cutoff = Lasso3DDepthCutoff(candidates);
+            std::vector<float> depths;
+            depths.reserve(candidates.size());
+            for (const auto& [m, d] : candidates) depths.push_back(d);
+            const float cutoff = Lasso3DDepthCutoff(depths);
             int count = 0;
             for (auto& [m, d] : candidates) {
                 if (d <= cutoff) { SelectModelInTree(m); ++count; }
@@ -3667,17 +3670,10 @@ void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
                 }
             }
             std::sort(sorted_candidates.begin(), sorted_candidates.end());
-            // Compute depth cutoff using the same gap-detection as SelectAllInBoundingRect
-            float cutoff = sorted_candidates.empty() ? 0.0f : sorted_candidates.back().first;
-            if (sorted_candidates.size() >= 2) {
-                const float gap_threshold = sorted_candidates.front().first * 0.4f;
-                for (size_t i = 1; i < sorted_candidates.size(); ++i) {
-                    if (sorted_candidates[i].first - sorted_candidates[i - 1].first > gap_threshold) {
-                        cutoff = sorted_candidates[i - 1].first;
-                        break;
-                    }
-                }
-            }
+            std::vector<float> sc_depths;
+            sc_depths.reserve(sorted_candidates.size());
+            for (const auto& [d, idx] : sorted_candidates) sc_depths.push_back(d);
+            const float cutoff = Lasso3DDepthCutoff(sc_depths);
             for (size_t i = 0; i < models.size(); i++) {
                 const float d = depths[i];
                 if (d > 0.0f && d <= cutoff) {
