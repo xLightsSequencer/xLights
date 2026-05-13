@@ -7116,6 +7116,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
 
                 PlatformHandleSelectionChanged();
                 TreeListViewModels->EnsureVisible(item);
+                TreeListViewModels->GetView()->SetFocus();
                 break;
             }
         }
@@ -10545,8 +10546,11 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown())) {
         // Let Control + A through
-        // Just a regular key ... If current focus is a control then we need to not process this
+        // Just a regular key ... If current focus is an input control then we need to not process this.
+        // Exclude the model tree view: it is not a text input, so layout bindings should still fire
+        // when a model was selected from the layout canvas (which programmatically moves focus there).
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
+            event.GetEventObject() != TreeListViewModels->GetView() &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL)) {
             return false;
         }
