@@ -11,16 +11,17 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
-    -enh (Neil)                 Play toolbar: add an inline Volume slider (0-100) and a Speed dropdown (1/4x .. 4x)
-                                next to Play/Stop so users no longer have to drill into the Audio menu's discrete
-                                radio presets to change playback volume or speed during a session. Both controls
-                                are bidirectionally synced with the existing Audio menu items (slider snaps to /
-                                unchecks the Loud / Medium / Quiet / Very Quiet / Silent radio as appropriate;
-                                dropdown reflects the current playback rate). Volume still persists across launches
-                                via xLightsPlayVolume; speed still resets to 1.0x each launch. Pure wxWidgets
-                                (wxSlider + wxChoice), no platform-specific code — same UI on Windows / macOS /
-                                Linux. Bumped TOOLBAR_SAVE_VERSION so cached toolbar perspectives don't clip the
-                                new controls.
+    -enh (Neil)                 Add a dockable Audio Tool Bar (alongside Play / Edit / View / Windows) with a
+                                Volume slider (0-100) and Speed -/+ buttons walking the existing 8 preset speeds
+                                (1/4x .. 4x) with a current-value label between them. Both controls bidirectionally
+                                synced with the Audio menu's radio items: slider snaps to / unchecks the Loud /
+                                Medium / Quiet / Very Quiet / Silent radio at 100/66/33/10/0; speed buttons step
+                                through and update the radio. Speed buttons each fire a single direct event so the
+                                dispatch path matches the menu bar (no popup that would block the playback timer on
+                                macOS). Volume still persists across launches via xLightsPlayVolume; speed still
+                                resets to 1.0x each launch. Pure wxWidgets (wxAuiToolBar + wxSlider + wxButton +
+                                wxStaticText), no platform-specific code — same UI on Windows / macOS / Linux.
+                                Bumped TOOLBAR_SAVE_VERSION so the new toolbar pane is visible on existing installs.
     -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
                                 Rotation so you can see the model's pixel count at a glance without counting.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for

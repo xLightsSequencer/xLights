@@ -720,7 +720,7 @@ public:
     static const wxWindowID ID_AUITOOLBAR_REPLAY_SECTION;
     static const wxWindowID ID_CHECKBOX_LIGHT_OUTPUT;
     static const wxWindowID ID_AUITOOLBAR_VOLUME_SLIDER;
-    static const wxWindowID ID_AUITOOLBAR_SPEED_BUTTON;
+    static const wxWindowID ID_AUITOOLBAR_SPEED_LABEL;
     static const wxWindowID ID_AUITOOLBAR_SPEED_DOWN;
     static const wxWindowID ID_AUITOOLBAR_SPEED_UP;
     static const wxWindowID ID_AUITOOLBAR_PLAY;

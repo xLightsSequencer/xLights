@@ -190,7 +190,7 @@ const wxWindowID xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
 const wxWindowID xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_VOLUME_SLIDER = wxNewId();
-const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_BUTTON = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_LABEL = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_DOWN = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_UP = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
@@ -810,12 +810,12 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     // no modal popup is ever shown and macOS doesn't pause the playback
     // timer / restart audio while changing speed.
     _playSpeedDownButton = new wxButton(AudioToolBar, ID_AUITOOLBAR_SPEED_DOWN,
-                                        _("–"),
+                                        _("-"),
                                         wxDefaultPosition, wxSize(32, -1));
     _playSpeedDownButton->SetToolTip(_("Slower"));
     AudioToolBar->AddControl(_playSpeedDownButton);
 
-    _playSpeedLabel = new wxStaticText(AudioToolBar, ID_AUITOOLBAR_SPEED_BUTTON,
+    _playSpeedLabel = new wxStaticText(AudioToolBar, ID_AUITOOLBAR_SPEED_LABEL,
                                        _("1.0x"),
                                        wxDefaultPosition, wxSize(46, -1),
                                        wxALIGN_CENTRE_HORIZONTAL);
