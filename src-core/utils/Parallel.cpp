@@ -58,14 +58,14 @@ class ParallelJob : public Job {
     std::atomic_int &iteration;
     const int calcSteps;
     const int blockSize;
-    ParallelJobPool* _pool;
+    ParallelJobPool& _pool;
 public:
     ParallelJob(int m, std::function<void(int)>& f,
                 std::atomic_int &dc,
                 std::atomic_int &it,
                 int cs,
                 int bs,
-                ParallelJobPool* pool = &ParallelJobPool::POOL)
+                ParallelJobPool& pool = ParallelJobPool::POOL)
         : max(m), func(f), doneCount(dc), iteration(it), calcSteps(cs), blockSize(bs), _pool(pool) {}
     virtual ~ParallelJob() {};
     virtual void Process() override {
@@ -89,7 +89,7 @@ public:
         }
         int newDoneCount = ++doneCount;
         if (newDoneCount >= calcSteps) {
-            _pool->poolSignal.notify_all();
+            _pool.poolSignal.notify_all();
         }
     };
     virtual bool DeleteWhenComplete() override { return true; };
@@ -113,10 +113,10 @@ void parallel_for(int min, int max, std::function<void(int)>&& func, int minStep
         if (blockSize < 1) blockSize = 1;
         std::list<Job*> jobs;
         for (int x = 0; x < calcSteps-1; x++) {
-            jobs.push_back(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, pool));
+            jobs.push_back(new ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool));
         }
         pool->PushJobs(jobs);
-        ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, pool).Process();
+        ParallelJob(max, f, doneCount, iteration, calcSteps, blockSize, *pool).Process();
         std::unique_lock<std::mutex> lock(pool->poolLock);
         while (doneCount < calcSteps) {
             pool->poolSignal.wait_for(lock, std::chrono::nanoseconds(1000000));
