@@ -33,6 +33,7 @@
 #include <pugixml.hpp>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <spdlog/fmt/fmt.h>
 #include <regex>
 #include <sstream>
@@ -3577,19 +3578,58 @@ Model* LayoutPanel::SelectSingleModel(int x, int y)
     return nullptr;
 }
 
+static float LassoClipDepth(IModelPreview* preview, const ModelScreenLocation& loc)
+{
+    glm::vec4 c = preview->GetProjViewMatrix() * glm::vec4(loc.GetWorldPosition(), 1.0f);
+    return c.w; // clip-space W = view-space depth; positive = in front of camera
+}
+
+// Find the depth cutoff for a 3D lasso.  Candidates must already be sorted by depth
+// (ascending).  Scans for the first gap between consecutive depths that exceeds 40 % of
+// the nearest model's depth — that gap marks the foreground/background boundary.
+static float Lasso3DDepthCutoff(const std::vector<std::pair<Model*, float>>& sorted)
+{
+    if (sorted.empty()) return 0.0f;
+    const float gap_threshold = sorted.front().second * 0.4f;
+    for (size_t i = 1; i < sorted.size(); ++i) {
+        if (sorted[i].second - sorted[i - 1].second > gap_threshold)
+            return sorted[i - 1].second;
+    }
+    return sorted.back().second; // no gap: accept all candidates
+}
+
 void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
-        int count = 0;
-        for (const auto& it : modelPreview->GetModels()) {
-            if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
-                if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
-                    SelectModelInTree(it);
-                    count++;
+        if (is_3d) {
+            std::vector<std::pair<Model*, float>> candidates;
+            for (const auto& it : modelPreview->GetModels()) {
+                if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
+                    if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                        float d = LassoClipDepth(modelPreview, it->GetBaseObjectScreenLocation());
+                        if (d > 0.0f) candidates.emplace_back(it, d);
+                    }
                 }
             }
+            std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+            const float cutoff = Lasso3DDepthCutoff(candidates);
+            int count = 0;
+            for (auto& [m, d] : candidates) {
+                if (d <= cutoff) { SelectModelInTree(m); ++count; }
+            }
+            if (count > 1) showBackgroundProperties();
+        } else {
+            int count = 0;
+            for (const auto& it : modelPreview->GetModels()) {
+                if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
+                    if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                        SelectModelInTree(it);
+                        count++;
+                    }
+                }
+            }
+            if (count > 1) showBackgroundProperties();
         }
-        if (count > 1) showBackgroundProperties();
     }
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
@@ -3612,12 +3652,48 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-            if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
-                modelPreview->GetModels()[i]->Highlighted(true);
-            } else if (!modelPreview->GetModels()[i]->Selected() &&
-                !modelPreview->GetModels()[i]->GroupSelected()) {
-                modelPreview->GetModels()[i]->Highlighted(false);
+        if (is_3d) {
+            const auto& models = modelPreview->GetModels();
+            // Collect (depth, index) pairs for candidates that pass 2D containment
+            std::vector<std::pair<float, size_t>> sorted_candidates;
+            std::vector<float> depths(models.size(), -1.0f);
+            for (size_t i = 0; i < models.size(); i++) {
+                if (models[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                    float d = LassoClipDepth(modelPreview, models[i]->GetBaseObjectScreenLocation());
+                    if (d > 0.0f) {
+                        depths[i] = d;
+                        sorted_candidates.emplace_back(d, i);
+                    }
+                }
+            }
+            std::sort(sorted_candidates.begin(), sorted_candidates.end());
+            // Compute depth cutoff using the same gap-detection as SelectAllInBoundingRect
+            float cutoff = sorted_candidates.empty() ? 0.0f : sorted_candidates.back().first;
+            if (sorted_candidates.size() >= 2) {
+                const float gap_threshold = sorted_candidates.front().first * 0.4f;
+                for (size_t i = 1; i < sorted_candidates.size(); ++i) {
+                    if (sorted_candidates[i].first - sorted_candidates[i - 1].first > gap_threshold) {
+                        cutoff = sorted_candidates[i - 1].first;
+                        break;
+                    }
+                }
+            }
+            for (size_t i = 0; i < models.size(); i++) {
+                const float d = depths[i];
+                if (d > 0.0f && d <= cutoff) {
+                    models[i]->Highlighted(true);
+                } else if (!models[i]->Selected() && !models[i]->GroupSelected()) {
+                    models[i]->Highlighted(false);
+                }
+            }
+        } else {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                    modelPreview->GetModels()[i]->Highlighted(true);
+                } else if (!modelPreview->GetModels()[i]->Selected() &&
+                    !modelPreview->GetModels()[i]->GroupSelected()) {
+                    modelPreview->GetModels()[i]->Highlighted(false);
+                }
             }
         }
     }

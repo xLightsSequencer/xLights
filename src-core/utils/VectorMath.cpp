@@ -14,6 +14,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif
+#include <algorithm>
 
 void VectorMath::ScreenPosToWorldRay(
     int mouseX, int mouseY,             // Mouse position, in pixels, from bottom-left corner of the window
@@ -201,16 +202,40 @@ bool VectorMath::TestVolumeOBBIntersection(
     glm::mat4 ModelMatrix        // Transformation applied to the mesh (which will thus be also applied to its bounding box)
 ) {
     glm::mat4 MVP = ProjViewMatrix * ModelMatrix;
-    glm::vec4 clipSpacePos = MVP * glm::vec4(aabb_min, 1.0);
-    if (clipSpacePos.w == 0.0f) return false;
-    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos.x / clipSpacePos.w, clipSpacePos.y / clipSpacePos.w, clipSpacePos.z / clipSpacePos.w);
-    glm::vec2 min_pos(((ndcSpacePos.x + 1.0) / 2.0) * screenWidth, ((1.0 - ndcSpacePos.y) / 2.0) * screenHeight);
-    clipSpacePos = MVP * glm::vec4(aabb_max, 1.0);
-    if (clipSpacePos.w == 0.0f) return false;
-    ndcSpacePos = glm::vec3(clipSpacePos.x / clipSpacePos.w, clipSpacePos.y / clipSpacePos.w, clipSpacePos.z / clipSpacePos.w);
-    glm::vec2 max_pos(((ndcSpacePos.x + 1.0) / 2.0) * screenWidth, ((1.0 - ndcSpacePos.y) / 2.0) * screenHeight);
 
-    return (min_pos.x >= mouseX1 && max_pos.x <= mouseX2 && min_pos.y >= mouseY1 && max_pos.y <= mouseY2);
+    // All 8 corners of the AABB — projecting only aabb_min and aabb_max is wrong
+    // because perspective projection does not preserve which world-space corner maps
+    // to the screen-space extremes.
+    const glm::vec3 corners[8] = {
+        {aabb_min.x, aabb_min.y, aabb_min.z},
+        {aabb_max.x, aabb_min.y, aabb_min.z},
+        {aabb_min.x, aabb_max.y, aabb_min.z},
+        {aabb_max.x, aabb_max.y, aabb_min.z},
+        {aabb_min.x, aabb_min.y, aabb_max.z},
+        {aabb_max.x, aabb_min.y, aabb_max.z},
+        {aabb_min.x, aabb_max.y, aabb_max.z},
+        {aabb_max.x, aabb_max.y, aabb_max.z},
+    };
+
+    float scr_min_x = 0.0f, scr_min_y = 0.0f, scr_max_x = 0.0f, scr_max_y = 0.0f;
+    for (int i = 0; i < 8; ++i) {
+        glm::vec4 clipSpacePos = MVP * glm::vec4(corners[i], 1.0f);
+        if (clipSpacePos.w <= 0.0f) return false;  // corner behind camera — can't be fully contained
+        float invW = 1.0f / clipSpacePos.w;
+        float sx = ((clipSpacePos.x * invW + 1.0f) / 2.0f) * screenWidth;
+        float sy = ((1.0f - clipSpacePos.y * invW) / 2.0f) * screenHeight;
+        if (i == 0) {
+            scr_min_x = scr_max_x = sx;
+            scr_min_y = scr_max_y = sy;
+        } else {
+            scr_min_x = std::min(scr_min_x, sx);
+            scr_min_y = std::min(scr_min_y, sy);
+            scr_max_x = std::max(scr_max_x, sx);
+            scr_max_y = std::max(scr_max_y, sy);
+        }
+    }
+
+    return (scr_min_x >= mouseX1 && scr_max_x <= mouseX2 && scr_min_y >= mouseY1 && scr_max_y <= mouseY2);
 }
 
 glm::vec2 VectorMath::GetScreenCoord(
