@@ -7379,6 +7379,16 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     PurgeDownloadCache();
 }
 
+// NOTE: also added by PR #6352. The second-to-merge PR will drop this
+// duplicate during rebase.
+void xLightsFrame::SetPlayVolumeTo(int vol)
+{
+    if (vol < 0) vol = 0;
+    if (vol > 100) vol = 100;
+    playVolume = vol;
+    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+}
+
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
 {
     playVolume = 100;

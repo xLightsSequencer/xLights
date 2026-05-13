@@ -18,6 +18,9 @@
 #include <wx/stattext.h>
 //*)
 
+#include <wx/button.h>
+#include <wx/timer.h>
+
 class xLightsFrame;
 class ModelPreview;
 class Model;
@@ -92,6 +95,22 @@ class HousePreviewPanel: public wxPanel
         xLightsFrame* _xLights;
         bool _showToolbar;
         ModelPreview* _modelPreview;
+
+        // Persistent volume + speed controls living in their own panel
+        // (_mediaPanel) added as a third row below the existing transport
+        // bar (Panel1). Reliable across 2D / 3D / fullscreen views (unlike
+        // a hover overlay on the GL / Metal canvas, which mouse-enter
+        // events miss when the canvas is grabbing input for 3D rotate /
+        // drag).
+        wxPanel*    _mediaPanel = nullptr;
+        wxSlider*   _hoverVolumeSlider = nullptr;
+        wxButton*   _hoverSpeedDown = nullptr;
+        wxStaticText* _hoverSpeedLabel = nullptr;
+        wxButton*   _hoverSpeedUp = nullptr;
+
+        void OnHoverVolumeSlider(wxCommandEvent& event);
+        void OnHoverSpeedDown(wxCommandEvent& event);
+        void OnHoverSpeedUp(wxCommandEvent& event);
 
         void ValidateWindow(const wxSize& size);
 };

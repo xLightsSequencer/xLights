@@ -11,6 +11,13 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (Neil)                 House Preview: add an always-visible row below the existing transport bar with a
+                                volume slider (0-100) and speed -/+ buttons (walks the 8 preset speeds 1/4x .. 4x
+                                with a current-value label between them). Persistent, reliable in 2D and 3D views,
+                                no popup or hover-overlay needed. Speed buttons go through SetPlaySpeedTo() — the
+                                same path the Audio menu uses. Pure wxWidgets, no platform-specific code.
+                                Alternative direction to PR #6352 (which adds a dockable Audio toolbar at the top);
+                                maintainers can pick whichever placement they prefer.
     -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
                                 Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
                                 bundled libswift_Concurrency.dylib. With the old order, the back-deployed

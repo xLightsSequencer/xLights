@@ -21,6 +21,7 @@
 #include "render/SequenceFile.h"
 #include "UtilFunctions.h"
 #include "sequencer/MainSequencer.h"
+#include "media/AudioManager.h"
 
 //(*IdInit(HousePreviewPanel)
 const long HousePreviewPanel::ID_BITMAPBUTTON1 = wxNewId();
@@ -100,6 +101,51 @@ HousePreviewPanel::HousePreviewPanel(wxWindow* parent, xLightsFrame* frame,
 
     _modelPreview = new ModelPreview(this, _xLights, allowSelected, style, allowPreviewChange);
     ModelPreviewSizer->Add(_modelPreview, 1, wxALL | wxEXPAND, 0);
+
+    // Volume + speed controls in their own dedicated panel below the
+    // existing transport bar (Panel1). Sibling of Panel1, not a child of
+    // it — leaves the wxsmith-managed Panel1 layout untouched and makes
+    // it trivial to show/hide independently. Placed here rather than as
+    // a hover overlay on the preview canvas because EVT_ENTER_WINDOW on
+    // a GL / Metal canvas isn't reliable when the canvas is grabbing
+    // mouse events for 3D rotate / drag.
+    _mediaPanel = new wxPanel(this, wxID_ANY);
+    auto* mediaRow = new wxBoxSizer(wxHORIZONTAL);
+    auto* volLabel = new wxStaticText(_mediaPanel, wxID_ANY, _("Vol:"));
+    mediaRow->Add(volLabel, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 6);
+    _hoverVolumeSlider = new wxSlider(_mediaPanel, wxID_ANY, 100, 0, 100,
+                                      wxDefaultPosition, wxSize(140, -1),
+                                      wxSL_HORIZONTAL);
+    mediaRow->Add(_hoverVolumeSlider, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 12);
+    _hoverSpeedDown = new wxButton(_mediaPanel, wxID_ANY, _("-"),
+                                   wxDefaultPosition, wxSize(28, -1));
+    _hoverSpeedDown->SetToolTip(_("Slower"));
+    mediaRow->Add(_hoverSpeedDown, 0, wxALIGN_CENTER_VERTICAL, 0);
+    _hoverSpeedLabel = new wxStaticText(_mediaPanel, wxID_ANY, _("1.0x"),
+                                        wxDefaultPosition, wxSize(46, -1),
+                                        wxALIGN_CENTRE_HORIZONTAL);
+    mediaRow->Add(_hoverSpeedLabel, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 4);
+    _hoverSpeedUp = new wxButton(_mediaPanel, wxID_ANY, _("+"),
+                                 wxDefaultPosition, wxSize(28, -1));
+    _hoverSpeedUp->SetToolTip(_("Faster"));
+    mediaRow->Add(_hoverSpeedUp, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    _mediaPanel->SetSizer(mediaRow);
+    _mediaPanel->Fit();
+
+    // Add the new panel as a third row in HousePreviewPanel's main sizer,
+    // below Panel1 (the existing Play/Pause/Stop/scrubber row). Let the
+    // outer Fit()/Layout() at the bottom of the constructor pick this
+    // up naturally — calling Layout() here would force an early relayout
+    // before the rest of the wxsmith-generated init has finished.
+    FlexGridSizer1->Add(_mediaPanel, 1, wxALL | wxEXPAND, 2);
+
+    _hoverVolumeSlider->Bind(wxEVT_SLIDER, &HousePreviewPanel::OnHoverVolumeSlider, this);
+    _hoverSpeedDown->Bind(wxEVT_BUTTON, &HousePreviewPanel::OnHoverSpeedDown, this);
+    _hoverSpeedUp->Bind(wxEVT_BUTTON, &HousePreviewPanel::OnHoverSpeedUp, this);
+    if (_xLights != nullptr) {
+        _hoverVolumeSlider->SetValue(_xLights->GetPlayVolume());
+        _hoverSpeedLabel->SetLabel(wxString::Format("%.2fx", _xLights->GetPlaySpeed()));
+    }
 
     ValidateWindow(GetSize());
 
@@ -182,6 +228,39 @@ void HousePreviewPanel::OnEndButtonClick(wxCommandEvent& event)
 void HousePreviewPanel::OnResize(wxSizeEvent& event)
 {
     ValidateWindow(event.GetSize());
+    event.Skip();
+}
+
+void HousePreviewPanel::OnHoverVolumeSlider(wxCommandEvent& /*event*/)
+{
+    if (_xLights == nullptr || _hoverVolumeSlider == nullptr) return;
+    _xLights->SetPlayVolumeTo(_hoverVolumeSlider->GetValue());
+}
+
+void HousePreviewPanel::OnHoverSpeedDown(wxCommandEvent& /*event*/)
+{
+    if (_xLights == nullptr) return;
+    static const float kSpeeds[8] = { 0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f };
+    double cur = _xLights->GetPlaySpeed();
+    int idx = 3;
+    for (int i = 0; i < 8; ++i) if (cur == kSpeeds[i]) { idx = i; break; }
+    if (idx > 0) {
+        _xLights->SetPlaySpeedTo(kSpeeds[idx - 1]);
+        _hoverSpeedLabel->SetLabel(wxString::Format("%.2fx", (double)kSpeeds[idx - 1]));
+    }
+}
+
+void HousePreviewPanel::OnHoverSpeedUp(wxCommandEvent& /*event*/)
+{
+    if (_xLights == nullptr) return;
+    static const float kSpeeds[8] = { 0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f };
+    double cur = _xLights->GetPlaySpeed();
+    int idx = 3;
+    for (int i = 0; i < 8; ++i) if (cur == kSpeeds[i]) { idx = i; break; }
+    if (idx < 7) {
+        _xLights->SetPlaySpeedTo(kSpeeds[idx + 1]);
+        _hoverSpeedLabel->SetLabel(wxString::Format("%.2fx", (double)kSpeeds[idx + 1]));
+    }
 }
 
 void HousePreviewPanel::ValidateWindow(const wxSize& size)

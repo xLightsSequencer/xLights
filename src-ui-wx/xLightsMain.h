@@ -505,6 +505,10 @@ public:
     bool IsRenderSuspended() const { return _suspendRender; }
     void SetPlaySpeedTo(float speed);
     float GetPlaySpeed();
+    // NOTE: also added by PR #6352. The second-to-merge PR will drop
+    // this duplicate during rebase.
+    void SetPlayVolumeTo(int vol);
+    int GetPlayVolume() const { return playVolume; }
 
     //(*Handlers(xLightsFrame)
     void OnQuit(wxCommandEvent& event);
