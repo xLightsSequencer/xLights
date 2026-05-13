@@ -11,6 +11,16 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (Neil)                 Play toolbar: add an inline Volume slider (0-100) and a Speed dropdown (1/4x .. 4x)
+                                next to Play/Stop so users no longer have to drill into the Audio menu's discrete
+                                radio presets to change playback volume or speed during a session. Both controls
+                                are bidirectionally synced with the existing Audio menu items (slider snaps to /
+                                unchecks the Loud / Medium / Quiet / Very Quiet / Silent radio as appropriate;
+                                dropdown reflects the current playback rate). Volume still persists across launches
+                                via xLightsPlayVolume; speed still resets to 1.0x each launch. Pure wxWidgets
+                                (wxSlider + wxChoice), no platform-specific code — same UI on Windows / macOS /
+                                Linux. Bumped TOOLBAR_SAVE_VERSION so cached toolbar perspectives don't clip the
+                                new controls.
     -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
                                 Rotation so you can see the model's pixel count at a glance without counting.
     -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for

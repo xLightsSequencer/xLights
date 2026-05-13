@@ -620,6 +620,14 @@ public:
     void OnMenuItem_MedVolSelected(wxCommandEvent& event);
     void OnMenuItem_QuietVolSelected(wxCommandEvent& event);
     void OnMenuItem_VQuietVolSelected(wxCommandEvent& event);
+    void OnAuiToolBarVolumeSliderChange(wxCommandEvent& event);
+    void OnAuiToolBarSpeedDownClick(wxCommandEvent& event);
+    void OnAuiToolBarSpeedUpClick(wxCommandEvent& event);
+    // Single entry point for changing playback volume programmatically
+    // or from the toolbar. Updates playVolume, AudioManager, the matching
+    // Audio menu radio (if vol == one of the preset values), and the
+    // toolbar slider. Volume is 0-100.
+    void SetPlayVolumeTo(int vol);
     void TogglePresetsPanel();
     void ShowPresetsPanel();
     uint64_t BadDriveAccess(const std::list<std::string>& files, std::list<std::pair<std::string, uint64_t>>& slow, uint64_t thresholdUS);
@@ -711,6 +719,10 @@ public:
     static const wxWindowID ID_AUITOOLBAR_LAST_FRAME;
     static const wxWindowID ID_AUITOOLBAR_REPLAY_SECTION;
     static const wxWindowID ID_CHECKBOX_LIGHT_OUTPUT;
+    static const wxWindowID ID_AUITOOLBAR_VOLUME_SLIDER;
+    static const wxWindowID ID_AUITOOLBAR_SPEED_BUTTON;
+    static const wxWindowID ID_AUITOOLBAR_SPEED_DOWN;
+    static const wxWindowID ID_AUITOOLBAR_SPEED_UP;
     static const wxWindowID ID_AUITOOLBAR_PLAY;
     static const wxWindowID ID_AUITOOLBARITEM2;
     static const wxWindowID ID_AUITOOLBARITEM5;
@@ -723,6 +735,7 @@ public:
     static const wxWindowID ID_AUITOOLBARITEM9;
     static const wxWindowID ID_AUITOOLBARITEM10;
     static const wxWindowID ID_AUIWINDOWTOOLBAR;
+    static const wxWindowID ID_AUITOOLBAR_AUDIO;
     static const wxWindowID ID_PASTE_BY_TIME;
     static const wxWindowID ID_PASTE_BY_CELL;
     static const wxWindowID ID_AUITOOLBAR_EDIT;
@@ -1082,6 +1095,7 @@ public:
     xlAuiToolBar* EffectsToolBar;
     xlAuiToolBar* MainToolBar;
     xlAuiToolBar* PlayToolBar;
+    xlAuiToolBar* AudioToolBar;
     xlAuiToolBar* ViewToolBar;
     xlAuiToolBar* WindowMgmtToolbar;
     //*)
@@ -1779,6 +1793,18 @@ private:
     double playSpeed;
     int playVolume;
     bool playAnimation;
+
+    // Toolbar mirrors of the Audio menu's Volume / Speed radio groups.
+    // Created in OnInit alongside PlayToolBar; updated bidirectionally
+    // with the menu via SetPlayVolumeTo / SetPlaySpeedTo. The Speed
+    // button pops up a wxMenu that re-uses the existing Audio menu's
+    // radio IDs so selecting from it goes through the exact same event
+    // path as picking from the menu bar (avoids the wxChoice native
+    // dropdown blocking the playback timer on macOS).
+    wxSlider* _playVolumeSlider = nullptr;
+    wxStaticText* _playSpeedLabel = nullptr;
+    wxButton* _playSpeedDownButton = nullptr;
+    wxButton* _playSpeedUpButton = nullptr;
 
     std::string selectedEffectName;
     std::string selectedEffectString;

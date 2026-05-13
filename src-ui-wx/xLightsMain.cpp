@@ -171,7 +171,7 @@
 #include <wx/string.h>
 //*)
 
-#define TOOLBAR_SAVE_VERSION "0003:"
+#define TOOLBAR_SAVE_VERSION "0005:"
 #define MAXBACKUPFILE_MB 30
 
 //(*IdInit(xLightsFrame)
@@ -189,6 +189,10 @@ const wxWindowID xLightsFrame::ID_AUITOOLBAR_FIRST_FRAME = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_LAST_FRAME = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_REPLAY_SECTION = wxNewId();
 const wxWindowID xLightsFrame::ID_CHECKBOX_LIGHT_OUTPUT = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_VOLUME_SLIDER = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_BUTTON = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_DOWN = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_SPEED_UP = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_PLAY = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM2 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM5 = wxNewId();
@@ -201,6 +205,7 @@ const wxWindowID xLightsFrame::ID_AUITOOLBARITEM8 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM9 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBARITEM10 = wxNewId();
 const wxWindowID xLightsFrame::ID_AUIWINDOWTOOLBAR = wxNewId();
+const wxWindowID xLightsFrame::ID_AUITOOLBAR_AUDIO = wxNewId();
 const wxWindowID xLightsFrame::ID_PASTE_BY_TIME = wxNewId();
 const wxWindowID xLightsFrame::ID_PASTE_BY_CELL = wxNewId();
 const wxWindowID xLightsFrame::ID_AUITOOLBAR_EDIT = wxNewId();
@@ -783,6 +788,48 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     PlayToolBar->AddTool(ID_CHECKBOX_LIGHT_OUTPUT, _("Output To Lights"), GetToolbarBitmapBundle("xlART_OUTPUT_LIGHTS"), wxNullBitmap, wxITEM_CHECK, _("Output To Lights"), wxEmptyString, NULL);
     PlayToolBar->Realize();
     MainAuiManager->AddPane(PlayToolBar, wxAuiPaneInfo().Name(_T("Play Tool Bar")).ToolbarPane().Caption(_("Play Tool Bar")).CloseButton(false).Layer(10).Position(11).Top().Gripper());
+
+    // Dedicated Audio toolbar — independently dockable / floatable like
+    // the other toolbars. Holds a volume slider and a speed picker so
+    // users can adjust playback without drilling into the Audio menu's
+    // discrete radio presets. Both controls are bidirectionally synced
+    // with the Audio menu items.
+    AudioToolBar = new xlAuiToolBar(this, ID_AUITOOLBAR_AUDIO, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+    AudioToolBar->AddLabel(wxID_ANY, _("Vol:"));
+    _playVolumeSlider = new wxSlider(AudioToolBar, ID_AUITOOLBAR_VOLUME_SLIDER,
+                                     100, 0, 100,
+                                     wxDefaultPosition, wxSize(90, -1),
+                                     wxSL_HORIZONTAL);
+    _playVolumeSlider->SetToolTip(_("Playback volume (0-100)"));
+    AudioToolBar->AddControl(_playVolumeSlider);
+
+    AudioToolBar->AddSeparator();
+    // Speed control: a pair of small buttons that step through the
+    // existing 8 preset speeds. Each click is a single event that
+    // dispatches via the same path as the Audio menu's radio items, so
+    // no modal popup is ever shown and macOS doesn't pause the playback
+    // timer / restart audio while changing speed.
+    _playSpeedDownButton = new wxButton(AudioToolBar, ID_AUITOOLBAR_SPEED_DOWN,
+                                        _("–"),
+                                        wxDefaultPosition, wxSize(32, -1));
+    _playSpeedDownButton->SetToolTip(_("Slower"));
+    AudioToolBar->AddControl(_playSpeedDownButton);
+
+    _playSpeedLabel = new wxStaticText(AudioToolBar, ID_AUITOOLBAR_SPEED_BUTTON,
+                                       _("1.0x"),
+                                       wxDefaultPosition, wxSize(46, -1),
+                                       wxALIGN_CENTRE_HORIZONTAL);
+    _playSpeedLabel->SetToolTip(_("Current playback speed"));
+    AudioToolBar->AddControl(_playSpeedLabel);
+
+    _playSpeedUpButton = new wxButton(AudioToolBar, ID_AUITOOLBAR_SPEED_UP,
+                                      _("+"),
+                                      wxDefaultPosition, wxSize(32, -1));
+    _playSpeedUpButton->SetToolTip(_("Faster"));
+    AudioToolBar->AddControl(_playSpeedUpButton);
+
+    AudioToolBar->Realize();
+    MainAuiManager->AddPane(AudioToolBar, wxAuiPaneInfo().Name(_T("Audio Tool Bar")).ToolbarPane().Caption(_("Audio Tool Bar")).CloseButton(false).Layer(10).Row(1).Position(0).Top().Gripper().Show(true));
     WindowMgmtToolbar = new xlAuiToolBar(this, ID_AUIWINDOWTOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM2, _("Effect Settings"), GetToolbarBitmapBundle("xlART_EFFECTSETTINGS"), wxNullBitmap, wxITEM_CHECK, _("Effect Settings"), wxEmptyString, NULL);
     WindowMgmtToolbar->AddTool(ID_AUITOOLBARITEM5, _("Effect Colors"), GetToolbarBitmapBundle("xlART_COLORS"), wxNullBitmap, wxITEM_CHECK, _("Effect Colors"), wxEmptyString, NULL);
@@ -1301,6 +1348,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_AUITOOLBAR_LAST_FRAME, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarLastFrameClick);
     Connect(ID_AUITOOLBAR_REPLAY_SECTION, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarItemReplaySectionClick);
     Connect(ID_CHECKBOX_LIGHT_OUTPUT, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::OnCheckBoxLightOutputClick);
+    Connect(ID_AUITOOLBAR_VOLUME_SLIDER, wxEVT_SLIDER, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarVolumeSliderChange);
+    Connect(ID_AUITOOLBAR_SPEED_DOWN, wxEVT_BUTTON, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarSpeedDownClick);
+    Connect(ID_AUITOOLBAR_SPEED_UP, wxEVT_BUTTON, (wxObjectEventFunction)&xLightsFrame::OnAuiToolBarSpeedUpClick);
     Connect(ID_AUITOOLBARITEM2, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideEffectSettingsWindow);
     Connect(ID_AUITOOLBARITEM5, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideColorWindow);
     Connect(ID_AUITOOLBARITEM7, wxEVT_COMMAND_TOOL_CLICKED, (wxObjectEventFunction)&xLightsFrame::ShowHideBufferSettingsWindow);
@@ -1696,13 +1746,11 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     spdlog::debug("Disable Key Accelerations: {}.", _disableKeyAcceleration ? "Y": "N");
 
     config->Read("xLightsTimelineZooming", &_timelineZooming, 0);
-    config->Read("xLightsPlayVolume", &playVolume, 100);
-    MenuItem_LoudVol->Check(playVolume == 100);
-    MenuItem_MedVol->Check(playVolume == 66);
-    MenuItem_QuietVol->Check(playVolume == 33);
-    MenuItem_VQuietVol->Check(playVolume == 10);
-    MenuItem_SilentVol->Check(playVolume == 0);
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    int initialVolume = 100;
+    config->Read("xLightsPlayVolume", &initialVolume, 100);
+    // SetPlayVolumeTo applies to AudioManager AND syncs the menu radios
+    // AND the toolbar slider in one place.
+    SetPlayVolumeTo(initialVolume);
 
     wxString randomEffects = "";
     config->Read("xLightsRandomEffects", &randomEffects);
@@ -3949,22 +3997,34 @@ void xLightsFrame::SetPlaySpeedTo(float speed)
         }
     }
 
+    wxString speedLabel;
     if (speed == 1.0) {
         AudioMenu->Check(ID_PLAY_FULL, true);
+        speedLabel = "1.0x";
     } else if (speed == 1.5) {
         AudioMenu->Check(ID_MNU_1POINT5SPEED, true);
+        speedLabel = "1.5x";
     } else if (speed == 2) {
         AudioMenu->Check(ID_MN_2SPEED, true);
+        speedLabel = "2x";
     } else if (speed == 3) {
         AudioMenu->Check(ID_MNU_3SPEED, true);
+        speedLabel = "3x";
     } else if (speed == 4) {
         AudioMenu->Check(ID_MNU_4SPEED, true);
+        speedLabel = "4x";
     } else if (speed == 0.75) {
         AudioMenu->Check(ID_PLAY_3_4, true);
+        speedLabel = "3/4x";
     } else if (speed == 0.5) {
         AudioMenu->Check(ID_PLAY_1_2, true);
+        speedLabel = "1/2x";
     } else if (speed == 0.25) {
         AudioMenu->Check(ID_PLAY_1_4, true);
+        speedLabel = "1/4x";
+    }
+    if (_playSpeedLabel != nullptr && !speedLabel.IsEmpty()) {
+        _playSpeedLabel->SetLabel(speedLabel);
     }
 }
 
@@ -7372,28 +7432,82 @@ void xLightsFrame::OnMenuItem_PurgeVendorCacheSelected(wxCommandEvent& event)
     PurgeDownloadCache();
 }
 
+void xLightsFrame::SetPlayVolumeTo(int vol)
+{
+    if (vol < 0) vol = 0;
+    if (vol > 100) vol = 100;
+    playVolume = vol;
+    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+
+    // Mirror to the toolbar slider (no-op if already at this value).
+    if (_playVolumeSlider != nullptr && _playVolumeSlider->GetValue() != playVolume) {
+        _playVolumeSlider->SetValue(playVolume);
+    }
+    // Mirror to the Audio menu radio group. Uncheck all if the volume
+    // doesn't match a preset; check the matching item if it does.
+    if (MenuItem_LoudVol != nullptr) MenuItem_LoudVol->Check(playVolume == 100);
+    if (MenuItem_MedVol != nullptr) MenuItem_MedVol->Check(playVolume == 66);
+    if (MenuItem_QuietVol != nullptr) MenuItem_QuietVol->Check(playVolume == 33);
+    if (MenuItem_VQuietVol != nullptr) MenuItem_VQuietVol->Check(playVolume == 10);
+    if (MenuItem_SilentVol != nullptr) MenuItem_SilentVol->Check(playVolume == 0);
+}
+
 void xLightsFrame::OnMenuItem_LoudVolSelected(wxCommandEvent& event)
 {
-    playVolume = 100;
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    SetPlayVolumeTo(100);
 }
 
 void xLightsFrame::OnMenuItem_MedVolSelected(wxCommandEvent& event)
 {
-    playVolume = 66;
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    SetPlayVolumeTo(66);
 }
 
 void xLightsFrame::OnMenuItem_QuietVolSelected(wxCommandEvent& event)
 {
-    playVolume = 33;
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    SetPlayVolumeTo(33);
 }
 
 void xLightsFrame::OnMenuItem_VQuietVolSelected(wxCommandEvent& event)
 {
-    playVolume = 10;
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    SetPlayVolumeTo(10);
+}
+
+void xLightsFrame::OnAuiToolBarVolumeSliderChange(wxCommandEvent& event)
+{
+    if (_playVolumeSlider != nullptr) {
+        SetPlayVolumeTo(_playVolumeSlider->GetValue());
+    }
+}
+
+// Single click on +/- steps through the 8 preset speeds. The actual
+// rate change goes through SetPlaySpeedTo → AudioManager::SetPlaybackRate
+// in a single synchronous event, the same path the Audio menu uses — no
+// popup, nothing blocks the playback timer.
+static const float kPresetSpeeds[8] = {
+    0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f
+};
+
+static int CurrentSpeedIndex(double current) {
+    for (int i = 0; i < 8; ++i) {
+        if (current == kPresetSpeeds[i]) return i;
+    }
+    return 3; // default to 1.0x if current isn't a preset
+}
+
+void xLightsFrame::OnAuiToolBarSpeedDownClick(wxCommandEvent& event)
+{
+    int idx = CurrentSpeedIndex(playSpeed);
+    if (idx > 0) {
+        SetPlaySpeedTo(kPresetSpeeds[idx - 1]);
+    }
+}
+
+void xLightsFrame::OnAuiToolBarSpeedUpClick(wxCommandEvent& event)
+{
+    int idx = CurrentSpeedIndex(playSpeed);
+    if (idx < 7) {
+        SetPlaySpeedTo(kPresetSpeeds[idx + 1]);
+    }
 }
 
 void xLightsFrame::ShowPresetsPanel()
@@ -8714,8 +8828,7 @@ void xLightsFrame::OnMenuItemSearchEffectsSelected(wxCommandEvent& event)
 
 void xLightsFrame::OnMenuItem_SilentVolSelected(wxCommandEvent& event)
 {
-    playVolume = 0;
-    AudioManager::GetAudioManager()->SetGlobalVolume(playVolume);
+    SetPlayVolumeTo(0);
 }
 
 void xLightsFrame::OnMenuItem_TODSelected(wxCommandEvent& event)
