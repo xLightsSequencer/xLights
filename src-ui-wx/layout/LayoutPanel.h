@@ -455,7 +455,7 @@ class LayoutPanel: public wxPanel
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
         void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
-        void SelectModelInTree(Model* modelToSelect);
+        void SelectModelInTree(Model* modelToSelect, bool preserveFilter = false);
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
