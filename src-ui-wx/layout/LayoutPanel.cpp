@@ -124,9 +124,12 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 #include <set>
 
 // Layout sizing constants
-static constexpr int kPaneMinHeight      = 400; // minimum height for ModelList / ModelSettings panes
-static constexpr int kListHeightFallback = 200; // fallback half-height used when container is hidden
-static constexpr int kMinPaneWidth       = 150; // absolute floor for left-panel sash drag (px)
+static constexpr int kPaneMinHeight        = 50;  // absolute floor: prevents panes from being fully hidden
+static constexpr int kFloatingFrameMinHeight = 200; // minimum height for floating panel windows
+static constexpr int kListHeightFallback   = 200; // fallback half-height used when container is hidden
+static constexpr int kMinPaneWidth         = 150; // absolute floor for left-panel sash drag (px)
+// Vertical sash minimum is enforced dynamically in LayoutAuiManager::OnMotion as 10% of
+// container height (floor kPaneMinHeight), so it scales with screen resolution.
 
 static inline handles::Modifier ModsFromEvent(const wxKeyboardState& event) {
     handles::Modifier mods = handles::Modifier::None;
@@ -157,7 +160,7 @@ public:
             wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT |
             wxCLIP_CHILDREN | wxCLOSE_BOX);
         // Prevent floating panels from being resized smaller than a usable area.
-        frame->SetMinClientSize(wxSize(300, kPaneMinHeight));
+        frame->SetMinClientSize(wxSize(300, kFloatingFrameMinHeight));
         return frame;
     }
 
@@ -266,10 +269,11 @@ public:
                 }
                 if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() && centerVisible) {
                     // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
-                    // Enforce new_size >= kPaneMinHeight and (containerH - new_size) >= kPaneMinHeight.
+                    // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-                    int minY = kPaneMinHeight + m_horizResizeActionOffsetY + m_horizResizeDockY;
-                    int maxY = (containerH - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
+                    int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
                     event.m_y = std::clamp(event.m_y, minY, maxY);
                 }
