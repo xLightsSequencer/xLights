@@ -4479,7 +4479,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     FinalizeModel();
 }
 
-static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr)
+static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr, std::vector<Model*>* additionalModelObjects = nullptr)
 {
     pugi::xml_document doc;
     bool docLoaded = false;
@@ -4718,6 +4718,24 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
             // point rather than auto-assigning it, leaving it stuck at channel 1.
             model->SetControllerName(NO_CONTROLLER, true);
+
+            // For multi-model xmodel files (<models> root with multiple children), load
+            // each additional sibling into additionalModelObjects so FinalizeModel can
+            // place them alongside the primary model.
+            if (additionalModelObjects != nullptr && std::string_view(root.name()) == "models") {
+                for (pugi::xml_node child = root.first_child().next_sibling(); child; child = child.next_sibling()) {
+                    bool extraCancelled = false;
+                    xlights->GetOutputModelManager()->DisableASAPWork(true);
+                    Model* extraModel = xlights->AllModels.CreateDefaultModel("Custom", "1");
+                    xlights->GetOutputModelManager()->DisableASAPWork(false);
+                    if (extraModel == nullptr) continue;
+                    extraModel->SetStartChannel("1");
+                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    if (extraCancelled || extraModel == nullptr) continue;
+                    extraModel->SetControllerName(NO_CONTROLLER, true);
+                    additionalModelObjects->push_back(extraModel);
+                }
+            }
         }
 
         if (!cancelled)
@@ -4769,6 +4787,7 @@ void LayoutPanel::FinalizeModel()
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         std::vector<DownloadedModelInfo> additionalModels;
+        std::vector<Model*> additionalModelObjects;
         glm::vec3 firstModelPos(0.0f);
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
@@ -4792,7 +4811,7 @@ void LayoutPanel::FinalizeModel()
             int heightmm = -1;
             int depthmm = -1;
 
-            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels);
+            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -4931,6 +4950,28 @@ void LayoutPanel::FinalizeModel()
                 xlights->AllModels.AddModel(extraModel);
 
                 // Advance past this model's own width so the next one sits beside it
+                float thisWidth = std::max(extraModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+                currentX += thisWidth + BATCH_PLACEMENT_PADDING;
+            }
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
+        }
+
+        // Place additional models loaded from a multi-model xmodel file
+        if (!additionalModelObjects.empty()) {
+            constexpr float BATCH_PLACEMENT_PADDING = 20.0f;
+            constexpr float BATCH_PLACEMENT_MIN_OFFSET = 50.0f;
+
+            float previousWidth = std::max(_newModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+            float currentX = firstModelPos.x + previousWidth + BATCH_PLACEMENT_PADDING;
+
+            for (Model* extraModel : additionalModelObjects) {
+                if (extraModel == nullptr) continue;
+                std::string uniqueName = xlights->AllModels.GenerateModelName(extraModel->name);
+                extraModel->name = uniqueName;
+                extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
+                extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+                xlights->AllModels.AddModel(extraModel);
+
                 float thisWidth = std::max(extraModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
                 currentX += thisWidth + BATCH_PLACEMENT_PADDING;
             }
@@ -6362,15 +6403,29 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
                                                       OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
-        const Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr)
+        std::vector<const Model*> selectedModels;
+        for (const auto& m : modelPreview->GetModels()) {
+            if (m->Selected() || m->GroupSelected()) {
+                const Model* md = dynamic_cast<const Model*>(m);
+                if (md != nullptr)
+                    selectedModels.push_back(md);
+            }
+        }
+        if (selectedModels.empty()) {
+            const Model* md = dynamic_cast<const Model*>(selectedBaseObject);
+            if (md != nullptr)
+                selectedModels.push_back(md);
+        }
+        if (selectedModels.empty())
             return;
         XmlSerializer serializer;
-        wxString name = md->GetName();
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
-            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            pugi::xml_document doc = selectedModels.size() == 1
+                ? serializer.SerializeModel(selectedModels[0], true)
+                : serializer.SerializeModels(selectedModels, true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -8995,15 +9050,29 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                                                       OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
-        const Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr)
+        std::vector<const Model*> selectedModels;
+        for (const auto& m : modelPreview->GetModels()) {
+            if (m->Selected() || m->GroupSelected()) {
+                const Model* md = dynamic_cast<const Model*>(m);
+                if (md != nullptr)
+                    selectedModels.push_back(md);
+            }
+        }
+        if (selectedModels.empty()) {
+            const Model* md = dynamic_cast<const Model*>(selectedBaseObject);
+            if (md != nullptr)
+                selectedModels.push_back(md);
+        }
+        if (selectedModels.empty())
             return;
         XmlSerializer serializer;
-        wxString name = md->GetName();
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
-            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            pugi::xml_document doc = selectedModels.size() == 1
+                ? serializer.SerializeModel(selectedModels[0], true)
+                : serializer.SerializeModels(selectedModels, true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {

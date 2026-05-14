@@ -439,10 +439,15 @@ std::string GetModelAttributesAsJSON(pugi::xml_node modelNode) {
 void SerializeModelGroupsForModel(const Model* model, pugi::xml_node docNode) {
     if (model == nullptr) return;
 
-    // Find the "model" node within docNode
-    pugi::xml_node modelNode = docNode.child("model");
-
-    // If no model node found, return early
+    // Find this model's node within docNode by matching the name attribute,
+    // since docNode may contain multiple model children in a multi-model export.
+    pugi::xml_node modelNode;
+    for (pugi::xml_node child : docNode.children()) {
+        if (std::string_view(child.attribute("name").as_string("")) == model->GetName()) {
+            modelNode = child;
+            break;
+        }
+    }
     if (!modelNode) return;
 
     const ModelManager& mgr = model->GetModelManager();
