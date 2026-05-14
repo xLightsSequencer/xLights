@@ -190,6 +190,7 @@ const long RowHeading::ID_ROW_MNU_CUT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL_TO_MODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERENABLE_MODEL = wxNewId();
@@ -484,9 +485,21 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
                     if (element->GetEffectLayerCount() > 1) {
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER, "Delete Layer");
-
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
-                        mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
+                    }
+                    {
+                        bool canDeleteUnused = element->GetEffectLayerCount() > 1;
+                        if (!canDeleteUnused) {
+                            ModelElement* checkMe = dynamic_cast<ModelElement*>(element);
+                            if (checkMe != nullptr) {
+                                for (int s = 0; s < checkMe->GetSubModelCount() && !canDeleteUnused; ++s) {
+                                    if (checkMe->GetSubModel(s)->GetEffectLayerCount() > 1)
+                                        canDeleteUnused = true;
+                                }
+                            }
+                        }
+                        if (canDeleteUnused)
+                            mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
                     }
                     mnuLayer.Append(ID_ROW_MNU_SETLAYERNAME, "Edit Layer Name");
                     mnuLayer.AppendSeparator();
@@ -569,6 +582,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS, "Copy Effects incl SubModels");
+                modelMenu->Append(ID_ROW_MNU_COPY_MODEL_TO_MODELS, "Copy Layers/SubModels to Models");
                 wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
                 wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
                 if (!mCanPaste) {
@@ -973,18 +987,21 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS) {
         spdlog::debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
-        for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
-            if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
-                // dont delete this layer
-            } else {
-                if (element->GetEffectLayerCount() == 1) {
-                    // last layer ... dont delete it
-                } else {
+        auto deleteUnusedLayers = [&](Element* elem) {
+            for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+                if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
                     xLightsApp::GetFrame()->AbortRender();
-                    element->RemoveEffectLayer(i);
+                    elem->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
                 }
+            }
+        };
+        deleteUnusedLayers(element);
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (me != nullptr) {
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                deleteUnusedLayers(me->GetSubModel(s));
             }
         }
         if (deleted) {
@@ -1779,6 +1796,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetString("AllInclSub");
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_COPY_MODEL_TO_MODELS) {
+        wxCommandEvent evt(EVT_COPY_MODEL_EFFECTS_TO_MODELS);
+        evt.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
@@ -1930,8 +1951,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_PASTE_MODEL) {
-        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
-        pasteRowEvent.SetString("All");
+        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS);
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {

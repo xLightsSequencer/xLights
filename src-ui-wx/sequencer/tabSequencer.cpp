@@ -1717,9 +1717,19 @@ void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
+void xLightsFrame::CopyModelEffectsToModels(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CopyModelEffectsToModels(event.GetInt());
+}
+
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
+}
+
+void xLightsFrame::PasteModelEffectsWithSubModelLayers(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->PasteModelEffectsWithSubModelLayers(event.GetInt());
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
