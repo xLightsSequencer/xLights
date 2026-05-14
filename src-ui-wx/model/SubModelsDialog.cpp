@@ -3508,13 +3508,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
                 }
             }
         } else {
-            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-                if (*it == stNode) {
-                    oldNodeArrray.erase(it);
-                    // Note that this only erases once, in case it somehow got added multiple times...
-                    break;
-                }
-            }
+            oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), stNode), oldNodeArrray.end());
         }
     }
 
