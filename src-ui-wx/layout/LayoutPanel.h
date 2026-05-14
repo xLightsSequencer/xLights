@@ -35,6 +35,7 @@ class wxStaticText;
 
 #include "models/handles/Handles.h"
 #include "models/handles/DragSession.h"
+#include "models/handles/SpaceMouseSession.h"
 
 #include "setup/ControllerConnectionDialog.h"
 #include "shared/utils/xlPropertyGrid.h"
@@ -455,7 +456,7 @@ class LayoutPanel: public wxPanel
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
         void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
-        void SelectModelInTree(Model* modelToSelect);
+        void SelectModelInTree(Model* modelToSelect, bool preserveFilter = false);
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
@@ -527,6 +528,14 @@ class LayoutPanel: public wxPanel
         // new-API drag is in progress; legacy `MoveHandle3D` path
         // is bypassed in mouse-move/up when this is set.
         std::unique_ptr<handles::DragSession> m_dragSession;
+
+        // SpaceMouse 6-DOF session. Held across consecutive
+        // EVT_MOTION3D frames so per-frame Apply() calls accumulate
+        // on the same handle. Reset whenever selection changes or
+        // SpaceMouse goes idle (we'll drop it when no events arrive
+        // for one frame — see OnPreviewMotion3D).
+        std::unique_ptr<handles::SpaceMouseSession> m_spaceMouseSession;
+        BaseObject* m_spaceMouseTarget = nullptr;
 
         void clearPropGrid();
         bool stringPropsVisible = false;

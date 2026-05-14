@@ -177,65 +177,79 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
 }
 
 
-int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (_locked) return 0;
+namespace {
+// SpaceMouse session for TerrainScreenLocation. Vertex handles
+// drive the elevation brush; anything else delegates to the
+// BoxedScreenLocation session for whole-model translate/rotate.
+class TerrainSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    TerrainSpaceMouseSession(TerrainScreenLocation* loc,
+                             std::optional<handles::Id> id)
+        : _loc(loc), _id(id),
+          _boxedInner(loc->BoxedScreenLocation::BeginSpaceMouseSession(id)) {}
 
-    if (handle != CENTER_HANDLE) {
-        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc || _loc->IsLocked()) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value() && _id->role == handles::Role::Vertex) {
+            _loc->ApplySpaceMouseElevation(_id->index, scale, mov);
+            // Legacy code returned 1 (no NEEDS_INIT) for terrain
+            // elevation; preserve that — the model regenerates its
+            // mesh from mPos[] each draw, no Setup() rebuild needed.
+            return handles::SpaceMouseResult::Dirty;
+        }
+        if (_boxedInner) {
+            return _boxedInner->Apply(scale, rot, mov);
+        }
+        return handles::SpaceMouseResult::Unchanged;
+    }
 
-                float newz = (mPos[point] - mov.z*scale);
-                mPos[point] = newz;
-                if (tool_size > 1) {
-                    int row = point / num_points_wide;
-                    int col = point % num_points_wide;
-                    int start_row = row - tool_size + 1;
-                    int end_row = row + tool_size - 1;
-                    int start_col = col - tool_size + 1;
-                    int end_col = col + tool_size - 1;
-                    if (start_row < 0) start_row = 0;
-                    if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
-                    if (start_col < 0) start_col = 0;
-                    if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
-                    for (int j = start_row; j <= end_row; ++j) {
-                        for (int i = start_col; i <= end_col; ++i) {
-                            int abs_point = j * num_points_wide + i;
-                            mPos[abs_point] = newz;
-                        }
-                    }
-                }
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    TerrainScreenLocation*                       _loc;
+    std::optional<handles::Id>                   _id;
+    std::unique_ptr<handles::SpaceMouseSession>  _boxedInner;
+};
+} // namespace
+
+void TerrainScreenLocation::ApplySpaceMouseElevation(int point,
+                                                      float scale,
+                                                      const glm::vec3& mov) {
+    if (axis_tool != MSLTOOL::TOOL_ELEVATE) return;
+    if (point < 0 || point >= (int)mPos.size()) return;
+
+    const float newz = mPos[point] - mov.z * scale;
+    mPos[point] = newz;
+    if (tool_size > 1) {
+        const int row = point / num_points_wide;
+        const int col = point % num_points_wide;
+        int start_row = row - tool_size + 1;
+        int end_row   = row + tool_size - 1;
+        int start_col = col - tool_size + 1;
+        int end_col   = col + tool_size - 1;
+        if (start_row < 0) start_row = 0;
+        if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
+        if (start_col < 0) start_col = 0;
+        if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
+        for (int j = start_row; j <= end_row; ++j) {
+            for (int i = start_col; i <= end_col; ++i) {
+                const int abs_point = j * num_points_wide + i;
+                mPos[abs_point] = newz;
             }
         }
-    } else {
-        BoxedScreenLocation::MoveHandle3D(scale, handle, rot, mov);
     }
-    return 1;
+}
+
+std::unique_ptr<handles::SpaceMouseSession>
+TerrainScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<TerrainSpaceMouseSession>(this, id);
 }
 
 
-
-namespace {
-// Legacy Terrain int → descriptor Id. 0 = CentreCycle; 1..N = Vertex(idx=N-1).
-std::optional<handles::Id> TerrainLegacyToId(int h) {
-    if (h == NO_HANDLE) return std::nullopt;
-    handles::Id id;
-    if (h == CENTER_HANDLE) {
-        id.role = handles::Role::CentreCycle;
-    } else {
-        id.role = handles::Role::Vertex;
-        id.index = h - 1;
-    }
-    return id;
-}
-}
-
-void TerrainScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = TerrainLegacyToId(handle);
-    highlighted_handle.reset();
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
 
 void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
 {

@@ -693,6 +693,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
     <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
@@ -1285,6 +1286,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
     <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />

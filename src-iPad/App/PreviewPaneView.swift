@@ -90,6 +90,14 @@ struct PreviewPaneView: UIViewRepresentable {
         context.coordinator.mtkView = view
         context.coordinator.previewNameForNotifications = previewName
         context.coordinator.registerNotifications(previewName: previewName)
+        // Phase J-2 (touch UX) — register the bridge so the
+        // floating inline action bar (which lives outside this
+        // UIViewRepresentable's view tree) can reach it without
+        // an explicit injection. The registry holds a weak ref,
+        // so no explicit teardown is needed when the bridge dies.
+        if let bridge = context.coordinator.bridge {
+            XLightsBridgeBox.register(bridge, forPreviewName: previewName)
+        }
 
         // Gestures — pinch to zoom, single-finger drag to orbit (3D) or pan
         // (2D), two-finger drag to pan, two-finger rotate to roll (3D), and
@@ -143,6 +151,41 @@ struct PreviewPaneView: UIViewRepresentable {
         singleTap.require(toFail: dblTap)
         view.addGestureRecognizer(singleTap)
 
+        // Phase J-2 (touch UX) — Pencil hover + trackpad pointer
+        // hover. Cursor-equivalent for handle highlight; reads the
+        // hover location and asks the bridge to update
+        // `highlighted_handle` so DrawAxisTool tints the matched
+        // axis. LayoutEditor pane only — the handler bails on
+        // others. Available on iPadOS 13.4+ (works for trackpad)
+        // and gets full Pencil hover on M2+ iPads.
+        let hover = UIHoverGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleHover(_:)))
+        view.addGestureRecognizer(hover)
+
+        // Phase J-2 (touch UX) — long-press → contextual menu.
+        // LayoutEditor pane only. Hit-tests for vertex / segment /
+        // curve-control handles and posts a notification with the
+        // hit info so the SwiftUI editor view can present the
+        // matching menu (Delete Point / Add Point / Define Curve /
+        // Remove Curve).
+        let longPress = UILongPressGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.45
+        view.addGestureRecognizer(longPress)
+
+        // Phase J-3 (touch UX) — Pencil 2 / Pencil Pro hardware
+        // gestures. Double-tap cycles the axis tool on the
+        // selected model (Move → Scale → Rotate); Pro-only squeeze
+        // triggers layout-undo. Both LayoutEditor-only — the
+        // coordinator gates by `previewNameForNotifications`
+        // before acting. Pencil 1 has neither — nothing breaks,
+        // delegate just never fires.
+        let pencil = UIPencilInteraction()
+        pencil.delegate = context.coordinator
+        view.addInteraction(pencil)
+
         return view
     }
 
@@ -170,9 +213,30 @@ struct PreviewPaneView: UIViewRepresentable {
             // the push so the ring appears immediately.
             if previewName == "LayoutEditor" {
                 let newSel = viewModel.layoutEditorSelectedModel ?? ""
+                // J-4 (multi-select) — the extras set is the secondary
+                // selection: every model in the selection except the
+                // primary. Tracked separately so a sidebar pick / tap
+                // doesn't redraw N rings on each update unless the set
+                // changed. Encoded as a stable string for cheap diff.
+                let primary = viewModel.layoutEditorSelectedModel
+                let extras = viewModel.layoutEditorSelection
+                    .filter { $0 != primary }
+                let extrasKey = extras.sorted().joined(separator: "\n")
                 if context.coordinator.lastPushedSelection != newSel {
+                    // Clear any lingering hover highlight on the
+                    // previously-selected model — without this, the
+                    // old model's last-hovered handle stays yellow
+                    // until the user re-hovers there. `clearHovered`
+                    // reads `_selectedModelName` which still holds
+                    // the old value at this point.
+                    _ = bridge.clearHoveredHandle(for: viewModel.document)
                     bridge.setSelectedModel(viewModel.layoutEditorSelectedModel)
                     context.coordinator.lastPushedSelection = newSel
+                    uiView.setNeedsDisplay()
+                }
+                if context.coordinator.lastPushedExtras != extrasKey {
+                    bridge.setExtraSelectedModels(Array(extras))
+                    context.coordinator.lastPushedExtras = extrasKey
                     uiView.setNeedsDisplay()
                 }
                 // Grid + canvas-bbox overlays. Bridge holds the last-
@@ -189,6 +253,12 @@ struct PreviewPaneView: UIViewRepresentable {
                     bridge.setSnapToGrid(settings.snapToGrid)
                     // No repaint needed — snap only affects future
                     // moves, not current rendered state.
+                }
+                if bridge.uniformModifier() != settings.uniformModifier {
+                    bridge.setUniformModifier(settings.uniformModifier)
+                }
+                if bridge.lockAxis() != settings.lockAxis {
+                    bridge.setLockAxis(settings.lockAxis)
                 }
                 if bridge.showFirstPixel() != settings.showFirstPixel {
                     bridge.setShowFirstPixel(settings.showFirstPixel)
@@ -212,7 +282,7 @@ struct PreviewPaneView: UIViewRepresentable {
         }
     }
 
-    class Coordinator: NSObject, MTKViewDelegate, UIGestureRecognizerDelegate {
+    class Coordinator: NSObject, MTKViewDelegate, UIGestureRecognizerDelegate, UIPencilInteractionDelegate {
         var bridge: XLMetalBridge?
         var viewModel: SequencerViewModel?
         var settings: PreviewSettings?
@@ -222,6 +292,9 @@ struct PreviewPaneView: UIViewRepresentable {
         /// so updateUIView can detect Δ vs. the live view-model
         /// state and repaint exactly when the selection changes.
         var lastPushedSelection: String = ""
+        // J-4 (multi-select) — sorted-newline-joined extras keys.
+        // Empty when the secondary selection is empty.
+        var lastPushedExtras: String = ""
         /// J-2 — true while a one-finger pan started on the
         /// LayoutEditor's selected model and is dragging the model
         /// rather than the camera. Set in .began, cleared in .ended.
@@ -231,6 +304,15 @@ struct PreviewPaneView: UIViewRepresentable {
         /// (0..3 corners), -1 when not dragging a handle.
         /// Mutually exclusive with `draggingLayoutModel`.
         var draggingLayoutHandle: Int = -1
+        /// J-2 UX — pinch-on-model = uniform scale of the selected
+        /// model. Mutually exclusive with camera-zoom pinch.
+        var pinchingLayoutModel: Bool = false
+        var pinchScaleModelName: String? = nil
+        /// J-2 UX — two-finger twist on model = rotate Z of the
+        /// selected model. Mutually exclusive with camera-rotate
+        /// twist.
+        var twistingLayoutModel: Bool = false
+        var twistRotateModelName: String? = nil
         // nonisolated(unsafe): touched from the nonisolated deinit. Real use is
         // main-thread-only (set/invalidated from display-link lifecycle calls).
         nonisolated(unsafe) var displayLink: CADisplayLink?
@@ -517,11 +599,39 @@ struct PreviewPaneView: UIViewRepresentable {
             guard let bridge else { return }
             switch recognizer.state {
             case .began:
-                pinchStartZoom = bridge.cameraZoom()
-                panStartX = bridge.cameraPanX()
-                panStartY = bridge.cameraPanY()
-                pinchStartCentroid = recognizer.location(in: mtkView)
+                // J-2 UX — pinch on the LayoutEditor's selected model body
+                // = uniform scale. Pinch elsewhere stays camera zoom.
+                pinchingLayoutModel = false
+                if previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let sel = viewModel.layoutEditorSelectedModel,
+                   !sel.isEmpty {
+                    let centroid = recognizer.location(in: view)
+                    let hit = bridge.pickModel(atScreenPoint: centroid,
+                                                viewSize: view.bounds.size,
+                                                for: viewModel.document)
+                    if hit == sel,
+                       bridge.beginPinchScale(forModel: sel,
+                                              for: viewModel.document) {
+                        pinchingLayoutModel = true
+                        pinchScaleModelName = sel
+                        viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                    }
+                }
+                if !pinchingLayoutModel {
+                    pinchStartZoom = bridge.cameraZoom()
+                    panStartX = bridge.cameraPanX()
+                    panStartY = bridge.cameraPanY()
+                    pinchStartCentroid = recognizer.location(in: mtkView)
+                }
             case .changed:
+                if pinchingLayoutModel, let viewModel {
+                    _ = bridge.applyPinchScaleFactor(recognizer.scale,
+                                                     for: viewModel.document)
+                    mtkView?.setNeedsDisplay()
+                    return
+                }
                 let z = pinchStartZoom * Float(recognizer.scale)
                 bridge.setCameraZoom(min(max(z, 0.1), 50.0))
 
@@ -531,6 +641,18 @@ struct PreviewPaneView: UIViewRepresentable {
                 bridge.setCameraPanX(panStartX + dx, panY: panStartY - dy)
 
                 mtkView?.setNeedsDisplay()
+            case .ended, .cancelled, .failed:
+                if pinchingLayoutModel {
+                    bridge.endPinchScale()
+                    if let name = pinchScaleModelName {
+                        NotificationCenter.default.post(
+                            name: .layoutEditorModelMoved,
+                            object: previewNameForNotifications,
+                            userInfo: ["model": name])
+                    }
+                    pinchingLayoutModel = false
+                    pinchScaleModelName = nil
+                }
             default:
                 break
             }
@@ -540,6 +662,64 @@ struct PreviewPaneView: UIViewRepresentable {
             guard let bridge else { return }
             switch recognizer.state {
             case .began:
+                // J-3 (touch UX) — Add Model drag-to-size. If the
+                // user picked a type from the Add menu, the next
+                // drag creates the model at touch-down and sizes
+                // it via the descriptor `BeginCreate` session as
+                // the finger moves. Mirrors desktop's click-drag-
+                // release flow.
+                if previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let pendingType = viewModel.layoutPendingNewModelType {
+                    let touch = recognizer.location(in: view)
+                    if let newName = bridge.createModel(
+                        ofType: pendingType,
+                        atScreenPoint: touch,
+                        viewSize: view.bounds.size,
+                        for: viewModel.document) {
+                        viewModel.layoutPendingNewModelType = nil
+                        viewModel.layoutSelectSingle(newName)
+                        // Polyline-style models enter mid-create
+                        // mode after this drag; the .ended branch
+                        // keeps the in-progress flag set so the
+                        // next tap appends a vertex rather than
+                        // creating a fresh model.
+                        if bridge.modelUsesPolyPointLocation(newName,
+                                                              for: viewModel.document) {
+                            viewModel.layoutPolylineInProgress = newName
+                        }
+                        layoutDragModelName = newName
+                        // Sentinel: any non-negative value routes
+                        // .changed through `dragHandle`, which
+                        // forwards to whichever `_dragSession`
+                        // the bridge has open — including the
+                        // creation session.
+                        draggingLayoutHandle = 0
+                        draggingLayoutModel = false
+                        return
+                    }
+                }
+                // J-3 (touch UX) — polyline mid-creation drag.
+                // Each follow-on touch appends a vertex; pan
+                // continues to size that new segment. Same
+                // sentinel scheme as the fresh-create path so
+                // .changed routes through `dragHandle`.
+                if previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let polyName = viewModel.layoutPolylineInProgress {
+                    let touch = recognizer.location(in: view)
+                    if bridge.appendVertex(toPolyline: polyName,
+                                            atScreenPoint: touch,
+                                            viewSize: view.bounds.size,
+                                            for: viewModel.document) {
+                        layoutDragModelName = polyName
+                        draggingLayoutHandle = 0
+                        draggingLayoutModel = false
+                        return
+                    }
+                }
                 // J-2 — on the LayoutEditor pane, a one-finger drag
                 // whose origin lands on a resize handle resizes the
                 // selected model. If it lands on the model's body
@@ -572,15 +752,32 @@ struct PreviewPaneView: UIViewRepresentable {
                         layoutDragModelName = sel
                         viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
                         recognizer.setTranslation(.zero, in: view)
-                    } else if !bridge.is3D() {
+                    } else {
                         let hit = bridge.pickModel(atScreenPoint: touch,
                                                    viewSize: viewSize,
                                                    for: viewModel.document)
                         if hit == sel {
-                            draggingLayoutModel = true
-                            layoutDragModelName = sel
-                            viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
-                            recognizer.setTranslation(.zero, in: view)
+                            if bridge.is3D() {
+                                // 3D body-drag: latch a plane-anchor
+                                // through the model's centre Z so
+                                // subsequent .changed updates can
+                                // compute an absolute-touch-to-world
+                                // delta. Falls through to orbit if
+                                // the camera is parallel to the plane.
+                                if bridge.beginBodyDrag3D(forModel: sel,
+                                                          atScreenPoint: touch,
+                                                          viewSize: viewSize,
+                                                          for: viewModel.document) {
+                                    draggingLayoutModel = true
+                                    layoutDragModelName = sel
+                                    viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                                }
+                            } else {
+                                draggingLayoutModel = true
+                                layoutDragModelName = sel
+                                viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                                recognizer.setTranslation(.zero, in: view)
+                            }
                         }
                     }
                 }
@@ -613,15 +810,24 @@ struct PreviewPaneView: UIViewRepresentable {
                    let view = mtkView,
                    let viewModel,
                    let name = layoutDragModelName {
-                    let t = recognizer.translation(in: view)
-                    bridge.moveModel(name,
-                                     byDeltaDX: t.x,
-                                     dY: t.y,
-                                     viewSize: view.bounds.size,
-                                     for: viewModel.document)
-                    // Reset so the next .changed reports an
-                    // incremental delta rather than a cumulative one.
-                    recognizer.setTranslation(.zero, in: view)
+                    if bridge.is3D() {
+                        // 3D path uses the absolute touch point — the
+                        // bridge tracks the latched plane anchor.
+                        let touch = recognizer.location(in: view)
+                        bridge.dragBody3D(toScreenPoint: touch,
+                                          viewSize: view.bounds.size,
+                                          for: viewModel.document)
+                    } else {
+                        let t = recognizer.translation(in: view)
+                        bridge.moveModel(name,
+                                         byDeltaDX: t.x,
+                                         dY: t.y,
+                                         viewSize: view.bounds.size,
+                                         for: viewModel.document)
+                        // Reset so the next .changed reports an
+                        // incremental delta rather than a cumulative one.
+                        recognizer.setTranslation(.zero, in: view)
+                    }
                     mtkView?.setNeedsDisplay()
                     return
                 }
@@ -656,6 +862,9 @@ struct PreviewPaneView: UIViewRepresentable {
                     // switch hits stale axis state on the next drag).
                     bridge.endHandleDrag(for: viewModel.document)
                 }
+                if draggingLayoutModel && bridge.is3D() {
+                    bridge.endBodyDrag3D()
+                }
                 draggingLayoutModel = false
                 draggingLayoutHandle = -1
                 layoutDragModelName = nil
@@ -666,19 +875,58 @@ struct PreviewPaneView: UIViewRepresentable {
 
         @objc func handleRotate(_ recognizer: UIRotationGestureRecognizer) {
             guard let bridge else { return }
-            // Only meaningful in 3D (angleZ has no visible effect in ortho 2D).
             // UIRotationGestureRecognizer's sign is opposite of what feels right
             // for a "grab the house and turn it" gesture — rotating fingers
             // clockwise returns a positive rotation, but the camera yaw needs
             // to move counter-clockwise to make the scene follow the fingers.
             switch recognizer.state {
             case .began:
-                orbitStartAngleX = bridge.cameraAngleY()
+                // J-2 UX — twist on the LayoutEditor's selected model body
+                // = rotate Z. Twist elsewhere stays camera-yaw.
+                twistingLayoutModel = false
+                if previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let sel = viewModel.layoutEditorSelectedModel,
+                   !sel.isEmpty {
+                    let centroid = recognizer.location(in: view)
+                    let hit = bridge.pickModel(atScreenPoint: centroid,
+                                                viewSize: view.bounds.size,
+                                                for: viewModel.document)
+                    if hit == sel,
+                       bridge.beginTwistRotate(forModel: sel,
+                                                for: viewModel.document) {
+                        twistingLayoutModel = true
+                        twistRotateModelName = sel
+                        viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                    }
+                }
+                if !twistingLayoutModel {
+                    orbitStartAngleX = bridge.cameraAngleY()
+                }
             case .changed:
+                if twistingLayoutModel, let viewModel {
+                    _ = bridge.applyTwistRotationRadians(recognizer.rotation,
+                                                          for: viewModel.document)
+                    mtkView?.setNeedsDisplay()
+                    return
+                }
                 let delta = -Float(recognizer.rotation) * 180.0 / .pi
                 bridge.setCameraAngleX(bridge.cameraAngleX(),
                                        angleY: orbitStartAngleX + delta)
                 mtkView?.setNeedsDisplay()
+            case .ended, .cancelled, .failed:
+                if twistingLayoutModel {
+                    bridge.endTwistRotate()
+                    if let name = twistRotateModelName {
+                        NotificationCenter.default.post(
+                            name: .layoutEditorModelMoved,
+                            object: previewNameForNotifications,
+                            userInfo: ["model": name])
+                    }
+                    twistingLayoutModel = false
+                    twistRotateModelName = nil
+                }
             default:
                 break
             }
@@ -687,6 +935,110 @@ struct PreviewPaneView: UIViewRepresentable {
         @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
             bridge?.resetCamera()
             mtkView?.setNeedsDisplay()
+        }
+
+        /// Phase J-2 (touch UX) — long-press on a handle posts a
+        /// `.layoutEditorContextMenu` notification with the hit
+        /// info. The LayoutEditorView observes this and presents a
+        /// `.confirmationDialog` whose items match the hit type.
+        @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
+            guard recognizer.state == .began,
+                  previewNameForNotifications == "LayoutEditor",
+                  let viewModel,
+                  let bridge,
+                  let view = mtkView else { return }
+            let point = recognizer.location(in: view)
+            guard let info = bridge.inspectHandle(
+                atScreenPoint: point,
+                viewSize: view.bounds.size,
+                for: viewModel.document
+            ) else { return }
+            NotificationCenter.default.post(
+                name: .layoutEditorContextMenu,
+                object: previewNameForNotifications,
+                userInfo: info)
+        }
+
+        // MARK: - Pencil interactions (J-3)
+
+        /// Phase J-3 (touch UX) — Pencil 2 / Pencil Pro double-tap
+        /// on the barrel. Cycles the axis tool on the selected
+        /// model so the user can swap between Move / Scale /
+        /// Rotate without going to the toolbar. Fires once on
+        /// `.ended` so a rapid double-tap doesn't double-advance.
+        /// Only acts when the editor pane has focus + a model is
+        /// selected. iOS hands us the user's preferred action via
+        /// `tap.action` (Switch Eraser / Show Palette / etc.); we
+        /// override entirely since we don't have eraser semantics.
+        func pencilInteraction(_ interaction: UIPencilInteraction,
+                                didReceiveTap tap: UIPencilInteraction.Tap) {
+            // Tap events are atomic (no phase) — fire once per
+            // double-tap. Just gate by pane + selection.
+            guard previewNameForNotifications == "LayoutEditor",
+                  let viewModel,
+                  let bridge,
+                  let view = mtkView else { return }
+            if bridge.cycleAxisToolForSelectedModel(for: viewModel.document),
+               let sel = viewModel.layoutEditorSelectedModel {
+                // Sync the SwiftUI toolbar's highlighted tool with
+                // the new bridge-side axis_tool. The toolbar reads
+                // from `settings.axisTool` (not the bridge), so
+                // without this push the gizmo cycles but the
+                // toolbar pill stays stale.
+                let next = viewModel.document.axisTool(forModel: sel)
+                if next != "none" {
+                    settings?.axisTool = next
+                }
+                // Repaint + property-panel refresh via the standard
+                // mutation notification.
+                NotificationCenter.default.post(
+                    name: .layoutEditorModelMoved,
+                    object: previewNameForNotifications,
+                    userInfo: ["model": sel])
+                view.setNeedsDisplay()
+            }
+        }
+
+        /// Phase J-3 (touch UX) — Pencil Pro squeeze on the barrel.
+        /// Maps to layout-undo; LayoutEditorView listens for the
+        /// notification and routes through its `performUndo()`.
+        /// Fires once on `.ended` so a quick squeeze undoes one
+        /// step, not the whole stack.
+        func pencilInteraction(_ interaction: UIPencilInteraction,
+                                didReceiveSqueeze squeeze: UIPencilInteraction.Squeeze) {
+            guard squeeze.phase == .ended else { return }
+            guard previewNameForNotifications == "LayoutEditor" else { return }
+            NotificationCenter.default.post(
+                name: .layoutEditorPencilUndo,
+                object: previewNameForNotifications)
+        }
+
+        /// Phase J-2 (touch UX) — Pencil / trackpad hover.
+        /// `UIHoverGestureRecognizer` fires for both Pencil hover
+        /// (M2+ iPads, Pencil 2 / Pencil Pro) and trackpad pointer
+        /// movement on any iPad. The bridge does a quick hit-test
+        /// and updates `highlighted_handle` on the selected model
+        /// so `DrawAxisTool` tints the matched axis yellow — the
+        /// touch equivalent of desktop's mouse-hover affordance.
+        @objc func handleHover(_ recognizer: UIHoverGestureRecognizer) {
+            guard previewNameForNotifications == "LayoutEditor",
+                  let viewModel,
+                  let bridge,
+                  let view = mtkView else { return }
+            switch recognizer.state {
+            case .began, .changed:
+                let point = recognizer.location(in: view)
+                let size = view.bounds.size
+                let changed = bridge.setHoveredHandleAtScreenPoint(
+                    point, viewSize: size, for: viewModel.document)
+                if changed { view.setNeedsDisplay() }
+            case .ended, .cancelled, .failed:
+                if bridge.clearHoveredHandle(for: viewModel.document) {
+                    view.setNeedsDisplay()
+                }
+            default:
+                break
+            }
         }
 
         /// Phase J-2 — single-tap selects the topmost model under the
@@ -701,6 +1053,79 @@ struct PreviewPaneView: UIViewRepresentable {
                   let view = mtkView else { return }
             let point = recognizer.location(in: view)
             let size = view.bounds.size
+            // J-3 (touch UX) — polyline mid-creation. Each follow-
+            // on tap appends a vertex to the in-progress polyline.
+            // Checked before the fresh-model branch so the second-
+            // through-Nth tap routes here instead of starting a
+            // new model.
+            if let polyName = viewModel.layoutPolylineInProgress {
+                if bridge.appendVertex(toPolyline: polyName,
+                                        atScreenPoint: point,
+                                        viewSize: size,
+                                        for: viewModel.document) {
+                    // Tap-only: commit the BeginExtend session so
+                    // the new vertex stays put. The next tap opens
+                    // a fresh AddHandle + BeginExtend cycle.
+                    bridge.endHandleDrag(for: viewModel.document)
+                    NotificationCenter.default.post(
+                        name: .layoutEditorModelMoved,
+                        object: previewNameForNotifications,
+                        userInfo: ["model": polyName])
+                    view.setNeedsDisplay()
+                }
+                return
+            }
+            // J-4 (import) — pending .xmodel import. The user
+            // already picked a file via the importer sheet; this
+            // tap drops it at the touch point. Run before the
+            // creation-mode branch so a stray creation flag
+            // doesn't intercept.
+            if let importPath = viewModel.layoutPendingImportPath {
+                if let newName = bridge.importXmodel(fromPath: importPath,
+                                                      atScreenPoint: point,
+                                                      viewSize: size,
+                                                      for: viewModel.document) {
+                    viewModel.layoutPendingImportPath = nil
+                    viewModel.layoutSelectSingle(newName)
+                    NotificationCenter.default.post(
+                        name: .layoutEditorModelMoved,
+                        object: previewNameForNotifications,
+                        userInfo: ["model": newName])
+                    view.setNeedsDisplay()
+                }
+                return
+            }
+            // J-3 (touch UX) — Add Model. Tap-without-drag: the
+            // user picked a type but didn't drag, so commit the
+            // model at its `CreateDefaultModel` geometry. The
+            // pan handler's drag-to-size path takes over when
+            // there IS movement; this branch only fires when the
+            // gesture never qualified as a pan.
+            if let type = viewModel.layoutPendingNewModelType {
+                if let newName = bridge.createModel(ofType: type,
+                                                     atScreenPoint: point,
+                                                     viewSize: size,
+                                                     for: viewModel.document) {
+                    viewModel.layoutPendingNewModelType = nil
+                    viewModel.layoutSelectSingle(newName)
+                    // Polyline-style models stay in "append vertex"
+                    // mode until the user taps Done. Single-vertex
+                    // models commit the BeginCreate session here.
+                    if bridge.modelUsesPolyPointLocation(newName,
+                                                         for: viewModel.document) {
+                        viewModel.layoutPolylineInProgress = newName
+                        bridge.endHandleDrag(for: viewModel.document)
+                    } else {
+                        bridge.endHandleDrag(for: viewModel.document)
+                    }
+                    NotificationCenter.default.post(
+                        name: .layoutEditorModelMoved,
+                        object: previewNameForNotifications,
+                        userInfo: ["model": newName])
+                    view.setNeedsDisplay()
+                }
+                return
+            }
             // 3D-only: tapping the active centre handle cycles
             // translate / scale / rotate (mirrors desktop
             // LayoutPanel.cpp:3725). Try this first so the tap is
@@ -708,6 +1133,14 @@ struct PreviewPaneView: UIViewRepresentable {
             if bridge.handleCenterHandleTap(atScreenPoint: point,
                                              viewSize: size,
                                              for: viewModel.document) {
+                // Sync the SwiftUI toolbar's highlighted tool with
+                // the bridge-side axis_tool we just advanced.
+                if let sel = viewModel.layoutEditorSelectedModel {
+                    let next = viewModel.document.axisTool(forModel: sel)
+                    if next != "none" {
+                        settings?.axisTool = next
+                    }
+                }
                 view.setNeedsDisplay()
                 return
             }
@@ -717,7 +1150,41 @@ struct PreviewPaneView: UIViewRepresentable {
             let hit = bridge.pickModel(atScreenPoint: point,
                                        viewSize: size,
                                        for: viewModel.document)
-            viewModel.layoutEditorSelectedModel = hit
+            if viewModel.layoutEditMode {
+                // J-4 (multi-select) — toggle membership. Tap on
+                // empty space is treated as a no-op so the user
+                // doesn't accidentally wipe a selection by missing
+                // a model with a finger. They use the toolbar's
+                // Clear / Done to leave edit mode entirely.
+                if let name = hit, !name.isEmpty {
+                    if viewModel.layoutEditorSelection.contains(name) {
+                        viewModel.layoutEditorSelection.remove(name)
+                        // If the primary just got dropped, promote
+                        // whatever's still in the set to the
+                        // primary slot so the gizmo / action bar
+                        // re-anchor cleanly.
+                        if viewModel.layoutEditorSelectedModel == name {
+                            viewModel.layoutEditorSelectedModel =
+                                viewModel.layoutEditorSelection.first
+                        }
+                    } else {
+                        viewModel.layoutEditorSelection.insert(name)
+                        // Most-recently-tapped becomes the primary
+                        // — matches Adobe / Figma "last-clicked is
+                        // the key model" convention. Align/match
+                        // ops use this as the leader.
+                        viewModel.layoutEditorSelectedModel = name
+                    }
+                }
+            } else {
+                // Single-select: replace selection wholesale.
+                viewModel.layoutEditorSelectedModel = hit
+                if let name = hit, !name.isEmpty {
+                    viewModel.layoutEditorSelection = [name]
+                } else {
+                    viewModel.layoutEditorSelection.removeAll()
+                }
+            }
         }
 
         // MARK: - Display link

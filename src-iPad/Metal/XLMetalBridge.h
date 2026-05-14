@@ -84,6 +84,13 @@ NS_ASSUME_NONNULL_BEGIN
 // the selection so the ring appears on the next frame.
 - (void)setSelectedModel:(nullable NSString*)name;
 
+// Phase J-4 (multi-select) — secondary selection set. The
+// "primary" model is still driven by `setSelectedModel:` (it owns
+// the gizmo, the action bar anchor, drag origin); these are the
+// rest of the selection, drawn with the selection ring but
+// without handles. Pass an empty array (or nil) to clear.
+- (void)setExtraSelectedModels:(nullable NSArray<NSString*>*)names;
+
 // Phase J-2 — Layout Editor in-canvas overlays. Per-bridge state
 // (not persisted to rgbeffects.xml in J-2). Initial values for
 // the LayoutEditor pane are seeded from iPadRenderContext's
@@ -102,6 +109,28 @@ NS_ASSUME_NONNULL_BEGIN
 // Default: NO. Per-session — not persisted to rgbeffects.xml.
 - (void)setSnapToGrid:(BOOL)snap;
 - (BOOL)snapToGrid;
+
+// Phase J-2 (touch UX) — persistent modifier state for handle
+// drags. Replaces held-key modifiers in the desktop UI; the
+// SwiftUI toolbar drives these, the bridge consults them on
+// every drag Update().
+//
+// `uniformModifier` — ORs `handles::Modifier::Shift` into the
+// drag modifier so existing session classes (which already
+// interpret Shift as "uniform scale" / "aspect lock") need no
+// change.
+//
+// `lockAxis` — pre-filters the drag's world ray onto an axis-
+// aligned line through the active handle's saved position, so
+// the underlying session sees a constrained cursor. 0=Free,
+// 1=X, 2=Y, 3=Z; values match `ModelScreenLocation::MSLAXIS`
+// for the X/Y/Z cases.
+//
+// Per-session — not persisted to rgbeffects.xml.
+- (void)setUniformModifier:(BOOL)uniform;
+- (BOOL)uniformModifier;
+- (void)setLockAxis:(NSInteger)axis;  // 0=Free, 1=X, 2=Y, 3=Z
+- (NSInteger)lockAxis;
 
 // Phase J-2 — first-pixel highlight (`highlightFirst` arg to
 // `DisplayModelOnWindow`). When YES, the first node of every
@@ -139,6 +168,150 @@ NS_ASSUME_NONNULL_BEGIN
               dY:(CGFloat)dy
         viewSize:(CGSize)viewSize
      forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-2 (touch UX) — 3D body-drag (move-the-whole-model in
+// 3D). Per-frame deltas don't map cleanly to world space when the
+// camera can rotate; the drag is anchored to a plane through the
+// model's start-of-drag centre Z, and the world point under the
+// finger is recomputed each frame. The model translates so the
+// finger stays on the same point of the underlying plane.
+//
+// Call on .began with the model name + touch screen point. The
+// bridge latches the plane Z + the anchor world XY where the
+// touch ray hit the plane. Returns NO if the model is locked, the
+// view isn't in 3D, or the touch ray misses the plane.
+- (BOOL)beginBodyDrag3DForModel:(NSString*)name
+                   atScreenPoint:(CGPoint)point
+                        viewSize:(CGSize)viewSize
+                     forDocument:(XLSequenceDocument*)doc;
+// Call on .changed with the touch screen point. Returns YES when
+// the model moved (model marked dirty); NO when not active or
+// when the ray missed the plane. Lock Axis / Snap toolbar state
+// is honoured.
+- (BOOL)dragBody3DToScreenPoint:(CGPoint)point
+                        viewSize:(CGSize)viewSize
+                     forDocument:(XLSequenceDocument*)doc;
+// Call on .ended / .cancelled / .failed to clear the anchor.
+- (void)endBodyDrag3D;
+
+// Phase J-2 (touch UX) — hover-driven handle highlight, the
+// cursor-equivalent for Apple Pencil hover (M2 iPad+) and
+// trackpad pointers. Hit-tests under the hovered point against
+// the selected model's handles and calls `MouseOverHandle` so
+// `DrawAxisTool` colours the matched axis yellow. No-op if no
+// model is selected. Returns YES when the highlight state
+// actually changed (caller can use this to gate `setNeedsDisplay`
+// and avoid per-event repaints when the pointer is stationary).
+- (BOOL)setHoveredHandleAtScreenPoint:(CGPoint)point
+                              viewSize:(CGSize)viewSize
+                           forDocument:(XLSequenceDocument*)doc;
+- (BOOL)clearHoveredHandleForDocument:(XLSequenceDocument*)doc;
+
+// Phase J-2 (touch UX) — long-press / contextual-menu support.
+// Hit-tests under the press for vertex / segment / curve-control
+// handles on the selected model and returns a description the
+// SwiftUI menu can read to decide which items to show. Returns
+// nil for empty / model-body / non-actionable hits.
+//
+// Keys in the returned dictionary:
+//   "type"          — NSString: "vertex" | "segment" | "curve_control"
+//   "modelName"     — NSString
+//   "vertexIndex"   — NSNumber (Int), 0-based, only for "vertex"
+//   "segmentIndex"  — NSNumber (Int), 0-based, present for
+//                     "segment" and "curve_control"
+//   "hasCurve"      — NSNumber (Bool), only for "segment"
+- (nullable NSDictionary*)inspectHandleAtScreenPoint:(CGPoint)point
+                                            viewSize:(CGSize)viewSize
+                                         forDocument:(XLSequenceDocument*)doc;
+
+// Vertex / curve actions for the long-press menu live on
+// `XLSequenceDocument` — they only need ModelManager access,
+// not camera state, and SwiftUI reaches the document directly.
+
+// Phase J-2 (touch UX) — project the top-centre of a model's
+// bounding box to screen coords. The inline action bar anchors
+// there. Returns NSValue wrapping CGPoint in UIKit (top-left
+// origin) coordinates, or nil when the model is off-screen /
+// behind the camera / unfound. Reads live camera state, so
+// callers should re-query on every relevant change (pan, zoom,
+// orbit, mode flip, drag-update).
+- (nullable NSValue*)screenAnchorPointForModel:(NSString*)modelName
+                                    forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-3 (touch UX) — create a new model of the given type
+// at the touch point. Unprojects the touch to world coords (XY
+// plane at z=0 in both 2D and 3D), calls
+// `ModelManager::CreateDefaultModel` for the type, places at
+// the unprojected world XY, sets layout group to the active
+// group, adds to ModelManager. Returns the new model's
+// generated name (e.g. "Arches-1") or nil on failure.
+//
+// Used by the SwiftUI Add-Model flow. The caller is expected to
+// follow up by setting the selection and pushing a notification
+// so the side panel refreshes.
+- (nullable NSString*)createModelOfType:(NSString*)type
+                           atScreenPoint:(CGPoint)point
+                                viewSize:(CGSize)viewSize
+                             forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-4 — import an .xmodel file at the touch point. Loads
+// the XML, runs it through `Model::CreateDefaultModelFromSavedModelNode`
+// so DMX / matrix / star / arch / etc. all deserialize through
+// the same path desktop uses, then positions the model at the
+// projected touch point via `InitializeLocation`. Returns the
+// final model name on success (the importer may uniquify it if
+// the show already has a model by that name), nil on failure.
+- (nullable NSString*)importXmodelFromPath:(NSString*)path
+                              atScreenPoint:(CGPoint)point
+                                   viewSize:(CGSize)viewSize
+                                forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-3 (touch UX) — multi-vertex polyline create. Returns
+// YES if `name` is a PolyPoint-style model (Poly Line / MultiPoint).
+// Used by the SwiftUI gesture layer to decide whether the next tap
+// should append a vertex or place a fresh model.
+- (BOOL)modelUsesPolyPointLocation:(NSString*)name
+                       forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-3 (touch UX) — append a new vertex to an in-progress
+// polyline create. Commits any open drag session, calls
+// `AddHandle` to push a new vertex at the projected touch point,
+// then opens a `BeginExtend` session on that vertex so a follow-on
+// drag (via `dragHandle:toScreenPoint:`) sizes the new segment.
+// Returns NO if `name` is missing, not a PolyPoint model, locked,
+// or the projection fails.
+- (BOOL)appendVertexToPolyline:(NSString*)name
+                  atScreenPoint:(CGPoint)point
+                       viewSize:(CGSize)viewSize
+                    forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-2 (touch UX) — batched name + anchor query for every
+// model in the active layout group. Used by the SwiftUI label
+// overlay to draw model-name text on the canvas. One bridge call
+// per frame instead of one per model (saves 50–500 allocations
+// per refresh on dense shows). Off-screen / behind-camera models
+// are omitted. Returns array of NSDictionary { "name": NSString,
+// "anchor": NSValue (CGPoint) }.
+- (NSArray<NSDictionary*>*)modelLabelAnchorsForDocument:(XLSequenceDocument*)doc;
+
+// Phase J-2 (touch UX) — pinch-on-model = uniform scale.
+// Triggered when the user pinches with both fingers on the
+// selected model's body (caller decides; the bridge just runs
+// the math). `factor` is `UIPinchGestureRecognizer.scale` —
+// cumulative from gesture start, so the resulting scale is
+// `savedScale * factor`. Honours `IsLocked()`. Returns NO if
+// the model is locked or not found.
+- (BOOL)beginPinchScaleForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc;
+- (BOOL)applyPinchScaleFactor:(CGFloat)factor forDocument:(XLSequenceDocument*)doc;
+- (void)endPinchScale;
+
+// Phase J-2 (touch UX) — two-finger twist on model = rotate Z.
+// `radians` is `UIRotationGestureRecognizer.rotation` —
+// cumulative from gesture start, so resulting rotation is
+// `savedRotateZ + degrees(radians)`. Honours `IsLocked()`.
+- (BOOL)beginTwistRotateForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc;
+- (BOOL)applyTwistRotationRadians:(CGFloat)radians forDocument:(XLSequenceDocument*)doc;
+- (void)endTwistRotate;
 
 // Phase J-2 — resize handles. The bridge draws 4 corner handles
 // around the selected model when the LayoutEditor selection ring
@@ -179,6 +352,46 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)handleCenterHandleTapAtScreenPoint:(CGPoint)point
                                   viewSize:(CGSize)viewSize
                                forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-3 (touch UX) — Pencil double-tap. Advance the axis tool
+// (Translate → Scale → Rotate → …) on the selected model without
+// needing a position. Returns YES if a tool change happened
+// (caller should repaint); NO if no model is selected / model is
+// locked / 2D.
+- (BOOL)cycleAxisToolForSelectedModelForDocument:(XLSequenceDocument*)doc;
+
+// Phase J-4 (multi-select) — bulk alignment. For each entry in
+// `names`, shift its centre so the named edge / centre matches
+// the leader's. Edges: @"left", @"right", @"top", @"bottom",
+// @"centerH" (X-centre), @"centerV" (Y-centre), @"front",
+// @"back", @"centerD" (Z-centre). Models in `names` that aren't
+// editable (locked / fromBase) are skipped; the leader is never
+// modified. Returns YES if at least one model moved. Caller
+// should mark layout dirty + repaint.
+- (BOOL)alignModels:(NSArray<NSString*>*)names
+            toLeader:(NSString*)leader
+                  by:(NSString*)edge
+         forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-4 (multi-select) — equal-spacing distribution along an
+// axis. Sorts the selection by centre along the chosen axis,
+// keeps the two extreme models in place, and re-spaces the
+// middle ones evenly between them. Needs at least 3 entries.
+// `axis`: @"horizontal" (X), @"vertical" (Y), @"depth" (Z).
+// Returns YES if anything moved.
+- (BOOL)distributeModels:(NSArray<NSString*>*)names
+                     axis:(NSString*)axis
+              forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-4 (multi-select) — match the leader's dimensions.
+// `dim`: @"width", @"height", @"depth", or @"all". Editable
+// non-leader entries are resized; TwoPoint / PolyPoint subclasses
+// honour the setter natively (rescales their points). Returns
+// YES if at least one model resized.
+- (BOOL)matchSizeOfModels:(NSArray<NSString*>*)names
+                  toLeader:(NSString*)leader
+                 dimension:(NSString*)dim
+               forDocument:(XLSequenceDocument*)doc;
 
 // Diagnostic surface for the SwiftUI preview pane. `errorReason`
 // returns the most recent silent-fail reason (no Metal layer, 0×0

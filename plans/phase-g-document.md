@@ -79,3 +79,24 @@ document lifecycle:
   sequencer with no show-folder configuration; close flips
   `isShowFolderLoaded` back to false so the user returns to
   the setup prompt.
+
+## Post-completion hardening
+
+- **Show-folder load detached from main actor (2026-05-14).**
+  Crash triage of 2026.08 surfaced 27+ `0x8BADF00D` watchdog
+  kills across two builds, all bottoming out in
+  `MeshObject::checkAccessToFile → FileExists` (iCloud
+  download) or `ObtainAccessToURL` (security-scoped bookmark
+  resolution) — both reached via the synchronous chain
+  `FolderConfigView.apply()` → `SequencerViewModel.loadShowFolder`
+  → `iPadRenderContext::LoadShowFolder`, and again on launch
+  via `restorePersistedShowFolder()`. `loadShowFolder` now
+  runs the obtainAccess pre-flight, the C++ load, and the
+  recursive `.xsq` scan on `Task.detached`, hopping back to
+  `@MainActor` only to apply `isShowFolderLoaded` and the
+  resulting `sequenceFiles` array. Callers that previously
+  relied on `restorePersistedShowFolder()` returning the
+  load result synchronously must instead observe
+  `viewModel.isShowFolderLoaded` (the existing `.onChange`
+  call sites already do this; only the return-value semantics
+  changed).

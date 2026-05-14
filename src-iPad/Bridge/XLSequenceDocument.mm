@@ -2737,6 +2737,109 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return _context->SaveLayoutChanges() ? YES : NO;
 }
 
+- (NSString*)axisToolForModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0) return @"none";
+    Model* m = _context->GetModelManager()[modelName.UTF8String];
+    if (!m) return @"none";
+    switch (m->GetModelScreenLocation().GetAxisTool()) {
+        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: return @"translate";
+        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     return @"scale";
+        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    return @"rotate";
+        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  return @"xy_trans";
+        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   return @"elevate";
+        default:                                            return @"none";
+    }
+}
+
+- (BOOL)setAxisTool:(NSString*)tool forModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0 || !tool) return NO;
+    Model* m = _context->GetModelManager()[modelName.UTF8String];
+    if (!m) return NO;
+    ModelScreenLocation::MSLTOOL mslTool;
+    if      ([tool isEqualToString:@"translate"]) mslTool = ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE;
+    else if ([tool isEqualToString:@"scale"])     mslTool = ModelScreenLocation::MSLTOOL::TOOL_SCALE;
+    else if ([tool isEqualToString:@"rotate"])    mslTool = ModelScreenLocation::MSLTOOL::TOOL_ROTATE;
+    else if ([tool isEqualToString:@"xy_trans"])  mslTool = ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS;
+    else if ([tool isEqualToString:@"elevate"])   mslTool = ModelScreenLocation::MSLTOOL::TOOL_ELEVATE;
+    else                                          return NO;
+    m->GetModelScreenLocation().SetAxisTool(mslTool);
+    return YES;
+}
+
+- (BOOL)deleteVertexAtIndex:(NSInteger)vertexIndex forModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0) return NO;
+    Model* m = _context->GetModelManager()[modelName.UTF8String];
+    if (!m) return NO;
+    if (m->GetModelScreenLocation().IsLocked()) return NO;
+    if (m->GetNumHandles() <= 2) return NO;  // can't drop below a segment
+    _context->PushLayoutUndoSnapshotForModel(modelName.UTF8String);
+    // PolyPoint vertex int convention is 1-based.
+    m->DeleteHandle(static_cast<int>(vertexIndex) + 1);
+    m->GetModelScreenLocation().SelectSegment(-1);
+    m->Reinitialize();
+    _context->MarkLayoutModelDirty(modelName.UTF8String);
+    return YES;
+}
+
+- (BOOL)insertVertexInSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0) return NO;
+    Model* m = _context->GetModelManager()[modelName.UTF8String];
+    if (!m) return NO;
+    if (m->GetModelScreenLocation().IsLocked()) return NO;
+    _context->PushLayoutUndoSnapshotForModel(modelName.UTF8String);
+    // PolyPointScreenLocation::InsertHandle's zoom / scale params
+    // aren't actually consulted — placeholder values are fine.
+    m->InsertHandle(static_cast<int>(segmentIndex), 1.0f, 1);
+    m->Reinitialize();
+    _context->MarkLayoutModelDirty(modelName.UTF8String);
+    return YES;
+}
+
+- (NSArray<NSString*>*)availableModelTypesForCreation {
+    // Curated for first-cut iPad Add-Model. Each name matches a
+    // case in `ModelManager::CreateDefaultModel`. Strings here are
+    // the literal type tags the factory expects; SwiftUI shows
+    // friendlier labels.
+    return @[
+        @"Arches",
+        @"Candy Canes",
+        @"Channel Block",
+        @"Circle",
+        @"Cube",
+        @"Custom",
+        @"Icicles",
+        @"Image",
+        @"Matrix",
+        @"MultiPoint",
+        @"Poly Line",
+        @"Single Line",
+        @"Sphere",
+        @"Spinner",
+        @"Star",
+        @"Tree",
+        @"Window Frame",
+        @"Wreath",
+    ];
+}
+
+- (BOOL)deleteModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0) return NO;
+    return _context->GetModelManager().Delete(modelName.UTF8String) ? YES : NO;
+}
+
+- (BOOL)setCurve:(BOOL)create onSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName {
+    if (!_context || !modelName || modelName.length == 0) return NO;
+    Model* m = _context->GetModelManager()[modelName.UTF8String];
+    if (!m) return NO;
+    if (m->GetModelScreenLocation().IsLocked()) return NO;
+    if (!m->SupportsCurves()) return NO;
+    _context->PushLayoutUndoSnapshotForModel(modelName.UTF8String);
+    m->SetCurve(static_cast<int>(segmentIndex), create ? true : false);
+    m->Reinitialize();
+    _context->MarkLayoutModelDirty(modelName.UTF8String);
+    return YES;
+}
+
 - (BOOL)hasUnsavedLayoutChanges {
     if (!_context) return NO;
     return _context->HasDirtyLayoutModels() ? YES : NO;

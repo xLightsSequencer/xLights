@@ -36,10 +36,17 @@
 #include "CachedFileDownloader.h"
 
 class wxProgressDialog;
-class MVendor;
-class MModel;
-class MModelWiring;
-class MVendorCategory;
+
+// R-VendorCatalog (2026-05-13): data classes moved to
+// `src-core/import_export/VendorCatalog.h`. Alias the legacy
+// `M*` names so the dialog's existing call sites compile
+// unchanged; both clients (this dialog + iPad sheet) parse the
+// same XML through that shared core.
+#include "import_export/VendorCatalog.h"
+using MVendor = vendor_catalog::Vendor;
+using MModel = vendor_catalog::Model;
+using MModelWiring = vendor_catalog::ModelWiring;
+using MVendorCategory = vendor_catalog::Category;
 
 struct DownloadedModelInfo {
     std::string modelFile;
@@ -70,7 +77,7 @@ class VendorModelDialog: public wxDialog
     void PopulateVendorPanel(MVendor* vendor);
     void PopulateModelPanel(MModel* vendor);
     void PopulateModelPanel(MModelWiring* vendor);
-    void LoadModelImage(std::list<wxFileName> imageFiles, int image);
+    void LoadModelImage(const std::list<std::string>& imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
     [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);

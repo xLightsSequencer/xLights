@@ -29,7 +29,11 @@ public:
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
     virtual void DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const override;
 
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+    // SpaceMouse Shear-handle handler (public so the session class
+    // in the .cpp can call it; called only for Shear-role ids).
+    void ApplySpaceMouseShearHandle(float scale, const glm::vec3& rot, const glm::vec3& mov);
     virtual float GetVScaleFactor() const override;
 
     void SetYShear( float shear_ ) { shear = shear_; }
@@ -51,10 +55,9 @@ public:
     virtual float GetRealWidth() const override;
     virtual float GetRealHeight() const override;
 
-    virtual int GetDefaultHandle() const override { return END_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
 
-    virtual void SetActiveHandle(int handle) override;
+    // ThreePoint inherits TwoPoint's SetActiveHandleToCentre override.
     virtual void AdvanceAxisTool() override;
     virtual void SetAxisTool(MSLTOOL mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;

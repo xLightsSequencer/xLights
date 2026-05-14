@@ -1219,33 +1219,25 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 }
 
 double ModelPreview::calcPixelSize(double i) {
-    double d = translateToBacking(i * currentPixelScaleFactor);
-    if (d < 1.0)
+    double d = mapLogicalToAbsolute(i * currentPixelScaleFactor);
+    if (d < 1.0) {
         d = 1.0;
+    }
     return d;
 }
 
 double ModelPreview::getViewScale() const {
-    double base = 1.0 / std::max(translateToBacking(2.0 * currentPixelScaleFactor), 1.0);
-    if (allowSelected) {
-        if (!is3d) {
-            return std::min(base, base * (double)camera2d->GetZoom());
-        } else {
-            float z = camera3d->GetZoom();
-            return z > 1.0f ? base / z : base;
-        }
-    }
-    return std::min(base, base * (double)camera2d->GetZoom());
+    // Return 1.0 so GL_POINTS pixel sizes match the pre-zoom-scaling baseline.
+    // DrawModelNames uses this for font scaling and gets natural world-space text
+    // that grows proportionally as you zoom in, which is correct for a zoomable canvas.
+    return 1.0;
 }
 
 double ModelPreview::getBackingScaleFactor() const {
-#ifdef __APPLE__
-    // Metal Window are always 1:1 for drawing, the translateToBacking is to map
-    // mouse/window coords (which may not be 1:1), but that's not applicable here
-    return 1.0;
-#else
+    if (!drawingUsingLogicalSize()) {
+        return 1.0;
+    }
     return translateToBacking(1.0);
-#endif
 }
 
 bool ModelPreview::GetActive() const

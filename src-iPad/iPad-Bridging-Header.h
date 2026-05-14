@@ -12,3 +12,4 @@
 #import "Bridge/XLDiagnosticSession.h"
 #import "Bridge/XLAIServices.h"
 #import "Bridge/XLAIImageSession.h"
+#import "Bridge/XLVendorCatalog.h"

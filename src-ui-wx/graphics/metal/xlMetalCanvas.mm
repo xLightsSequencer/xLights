@@ -307,16 +307,6 @@ xlGraphicsContext * xlMetalCanvas::PrepareContextForDrawing() {
     if (view == nil || [view window] == nil) {
         return nullptr;
     }
-    CAMetalLayer *layer = (CAMetalLayer *)[view layer];
-    if (layer != nil) {
-        int drawW = (int)round(layer.drawableSize.width);
-        int drawH = (int)round(layer.drawableSize.height);
-        if (drawW > 0 && drawH > 0 && (drawW != mWindowWidth || drawH != mWindowHeight)) {
-            mWindowWidth = drawW;
-            mWindowHeight = drawH;
-            mWindowResized = true;
-        }
-    }
     xlMetalGraphicsContext *ret = new xlMetalGraphicsContext(this, captureBuffer == nullptr || !captureBuffer->captureNext ? nil : captureBuffer->target, !firstDraw);
     if (!ret->isValid()) {
         delete ret;

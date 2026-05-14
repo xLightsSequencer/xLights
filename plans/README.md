@@ -13,7 +13,8 @@ for the details.
 | [phase-h-app-store.md](phase-h-app-store.md) | H — App Store readiness | H-5: screenshots, App Store Connect metadata, submission |
 | [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects | I-3 vendor-sequence regression + Auto Map UX polish, I-5 (`.lms`/`.las`) |
 | [phase-j-layout-editor.md](phase-j-layout-editor.md) | J — Layout Editor | J-0 ✓; J-1 common-properties ✓ + J-2 select/ring/drag/grid+bbox/undo ✓ 2026-05-08; handles/labels/3D + J-3..J-4 ahead |
-| [handle-system-refactor.md](handle-system-refactor.md) | Handle / gizmo redesign | R-1 → R-5 ✓ 2026-05-09. New DragSession API owns every user-driven mutation across Boxed / TwoPoint / ThreePoint / PolyPoint / MultiPoint / Terrain + multi-select. Rendering (DrawHandles), new-model creation, SpaceMouse, hover/click-to-select intentionally on legacy |
+| [phase-j-touch-ux.md](phase-j-touch-ux.md) | J — Touch + Pencil UX design | Interaction-layer design for the iPad layout editor — toolbar tool selection, persistent modifier toggles, Pencil hover/barrel-tap/double-tap, gesture vocabulary, descriptor-pipeline mapping |
+| [handle-system-refactor.md](handle-system-refactor.md) | Handle / gizmo redesign | R-1 → R-10 ✓ 2026-05-11. Descriptor pipeline (`GetHandles` / `DragSession`) owns every user-driven mutation + drawing across Boxed / TwoPoint / ThreePoint / PolyPoint / MultiPoint / Terrain + multi-select on both desktop + iPad. R-9 SpaceMouse + R-10b constant-deletion deferred |
 | [phase-b-grid-parity.md](phase-b-grid-parity.md) | B — Effects grid parity | 1 P2 named (B77 MIDI) + 3 deferred (B91 LRCLIB landed 2026-05-02) |
 | [followups.md](followups.md) | Cross-phase | Small items left over from C / E (Data Layers tab, MH waypoint authoring, shader uniform grouping) |
 

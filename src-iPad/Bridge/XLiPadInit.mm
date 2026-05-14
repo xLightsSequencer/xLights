@@ -24,6 +24,7 @@
 #include "osxUtils/MetalDeviceManager.h"
 #include "osxUtils/XLMetricKit.h"
 #include "render/SequenceMedia.h"
+#include "utils/CachedFileDownloader.h"
 #include "utils/FileUtils.h"
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
@@ -290,6 +291,87 @@ static void LogMachineConfig() {
     // from NSUserDefaults + Keychain. AI plugin loading is intentionally
     // skipped on iOS — App Store policy forbids dynamic libraries.
     (void)[XLAIServices shared];
+
+    // Phase J-4 (vendor catalog) — install an NSURLSession-based
+    // URL fetcher into the shared CachedFileDownloader. The
+    // bundled libcurl/Secure-Transport combo on iOS fails the TLS
+    // handshake on several vendor catalog servers (efl-designs,
+    // buildalightshow, twinkle-forge, mattosdesigns,
+    // ledpixelshow, …) — same servers browsers handle fine and
+    // that desktop's curl handles fine. NSURLSession uses Apple's
+    // current network stack and works.
+    CachedFileDownloader::SetURLFetcher([](const std::string& url,
+                                            const std::string& filename) -> bool {
+        @autoreleasepool {
+            NSURL* nsUrl = [NSURL URLWithString:[NSString stringWithUTF8String:url.c_str()]];
+            if (!nsUrl) return false;
+            __block NSData* responseData = nil;
+            __block NSInteger statusCode = 0;
+            __block NSError* networkError = nil;
+            dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+            // Use a per-request session so iOS doesn't keep
+            // sockets warm and trip the same coalescing issues
+            // the curl path hit. The catalog only fetches ~30
+            // small files per session — connection setup cost
+            // is irrelevant.
+            NSURLSessionConfiguration* cfg = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+            cfg.timeoutIntervalForRequest = 30;
+            cfg.timeoutIntervalForResource = 60;
+            NSURLSession* session = [NSURLSession sessionWithConfiguration:cfg];
+            NSURLRequest* req = [NSURLRequest requestWithURL:nsUrl];
+            NSURLSessionDataTask* task =
+                [session dataTaskWithRequest:req
+                              completionHandler:^(NSData* data, NSURLResponse* resp, NSError* err) {
+                    // Force a copy. NSURLSession can hand back
+                    // an OS_dispatch_data toll-free bridged
+                    // NSData whose `writeToFile:atomically:`
+                    // crashes for reasons that aren't worth
+                    // debugging — copying coalesces it into a
+                    // plain NSData that writes cleanly.
+                    // Also makes the lifetime obvious — we own
+                    // a strong NSData that lives until the
+                    // outer std::function returns.
+                    responseData = data ? [[NSData alloc] initWithData:data] : nil;
+                    networkError = err;
+                    if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
+                        statusCode = [(NSHTTPURLResponse*)resp statusCode];
+                    }
+                    dispatch_semaphore_signal(sem);
+                }];
+            [task resume];
+            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+            [session finishTasksAndInvalidate];
+            if (networkError) {
+                // Snapshot the description into std::string BEFORE
+                // letting the autoreleasepool drain — passing
+                // `.UTF8String` directly into spdlog hands it a
+                // pointer that's only valid for the current
+                // autorelease scope and can be reaped before
+                // spdlog's format machinery copies it (crashed
+                // intermittently when ATS rejected cleartext
+                // URLs).
+                std::string desc = networkError.localizedDescription
+                    ? std::string(networkError.localizedDescription.UTF8String)
+                    : std::string("unknown error");
+                auto curl_logger = spdlog::get("curl");
+                if (curl_logger) {
+                    curl_logger->error("URLSession fetch '{}' failed: {}", url, desc);
+                }
+                return false;
+            }
+            if (statusCode >= 400) {
+                auto curl_logger = spdlog::get("curl");
+                if (curl_logger) {
+                    curl_logger->error("URLSession fetch '{}' returned HTTP {}",
+                                       url, (long)statusCode);
+                }
+                return false;
+            }
+            if (!responseData) return false;
+            return [responseData writeToFile:[NSString stringWithUTF8String:filename.c_str()]
+                                  atomically:YES] ? true : false;
+        }
+    });
 }
 
 @end

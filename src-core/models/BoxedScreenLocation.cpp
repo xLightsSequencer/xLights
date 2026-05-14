@@ -473,24 +473,47 @@ bool BoxedScreenLocation::Scale(const glm::vec3& factor) {
 // `Boxed*Session` descriptor sessions.
 
 
-int BoxedScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == CENTER_HANDLE) {
-        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
-        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
-        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
-        return MODEL_UPDATE_RGBEFFECTS;
-    } else {
-        float change_x = mov.x * scale;
-        float change_y = -mov.z * scale;
-        float change_z = mov.y * scale;
-        scalex = saved_scale.x * change_x;
-        scaley = saved_scale.y * change_y;
-        scalez = saved_scale.z * change_z;
-        return MODEL_UPDATE_RGBEFFECTS;
+namespace {
+// SpaceMouse session for BoxedScreenLocation. Rotates + translates
+// the whole model, mirroring the desktop's pre-R-9 CENTER_HANDLE
+// branch. The legacy code also had a per-axis "scale gizmo" branch
+// driven by `saved_scale * delta`, but `saved_scale` was never
+// captured at gesture start (it's only seeded from `AdjustRenderSize`)
+// so the runtime math produced 0-or-junk scales. Dropped in R-9 —
+// no callers were exercising it via SpaceMouse, and a scale-via-
+// SpaceMouse story can be designed cleanly later if needed.
+class BoxedSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    BoxedSpaceMouseSession(BoxedScreenLocation* loc, std::optional<handles::Id> id)
+        : _loc(loc), _id(id) {}
+
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rotations,
+                                     const glm::vec3& translations) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        constexpr float rscale = 10.0f; // 10° per unit at max speed
+        _loc->Rotate(ModelScreenLocation::MSLAXIS::X_AXIS,  rotations.x * rscale);
+        _loc->Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rotations.z * rscale);
+        _loc->Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS,  rotations.y * rscale);
+        _loc->AddOffset(translations.x * scale,
+                         -translations.z * scale,
+                         translations.y * scale);
+        return handles::SpaceMouseResult::Dirty;
     }
-    return MODEL_UNCHANGED;
+
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    BoxedScreenLocation*       _loc;
+    std::optional<handles::Id> _id;
+};
+} // namespace
+
+std::unique_ptr<handles::SpaceMouseSession>
+BoxedScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<BoxedSpaceMouseSession>(this, id);
 }
         
 

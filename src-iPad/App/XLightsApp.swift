@@ -325,13 +325,13 @@ struct ContentView: View {
         }
         // Show-folder restore is deferred to here (instead of running
         // synchronously in `XLightsApp.init`) so the first frame draws
-        // before we touch potentially-slow iCloud paths. iOS gives an
-        // app 20 wall-clock seconds to launch; an iCloud-backed show
-        // folder with a large rgbeffects.xml + many model background
-        // images can blow that budget on `ObtainAccessToURL` /
-        // `FileExists` alone, triggering 0x8BADF00D and a SIGKILL.
-        // Running here means the user can still see the launch UI
-        // (and our setup affordance) even if the restore stalls.
+        // before we touch potentially-slow iCloud paths. The heavy work
+        // inside `restorePersistedShowFolder` (obtainAccess pre-flight,
+        // the C++ load, the recursive .xsq scan) now detaches onto a
+        // background task so this `.task` returns quickly even with a
+        // fully-evicted iCloud show folder — the launch UI stays
+        // responsive and `isShowFolderLoaded` flips when the background
+        // load completes.
         .task {
             guard !didKickoffShowFolderRestore else { return }
             didKickoffShowFolderRestore = true

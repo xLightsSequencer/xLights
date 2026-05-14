@@ -3,15 +3,23 @@
 **Status:** J-0 ✓ 2026-05-07; J-1 common-properties surface ✓
 2026-05-08; J-2 substantially complete 2026-05-08 — tap-to-select
 (2D + 3D), selection rendering via `ScreenLocation::DrawHandles`,
-drag-to-move (2D), per-type handle drag (2D + 3D) via
-`MoveHandle` / `MoveHandle3D`, grid + bounding-box overlays,
-snap-to-grid, keyboard nudge, layout undo. Pending: 3D body-drag
-(camera-aware delta math), text labels, rubber-band multi-select,
-per-type properties (J-3). Promoted from
-[`future-layout-editing.md`](future-layout-editing.md) on 2026-05-07
-after the iPad app entered App Store review. Phase S of the gap
-analysis is the engineering reference; this file is the iPad-side
-sub-plan.
+drag-to-move (2D), per-type handle drag (2D + 3D) via the
+descriptor pipeline (`GetHandles` / `BeginDrag` / `DragSession`,
+see [`handle-system-refactor.md`](handle-system-refactor.md)),
+grid + bounding-box overlays, snap-to-grid, keyboard nudge,
+layout undo. Pending: 3D body-drag (camera-aware delta math),
+text labels, rubber-band multi-select, per-type properties (J-3).
+Promoted from [`future-layout-editing.md`](future-layout-editing.md)
+on 2026-05-07 after the iPad app entered App Store review. Phase S
+of the gap analysis is the engineering reference; this file is
+the iPad-side sub-plan.
+
+**Interaction design** for the touch + Pencil UX layer lives in
+[`phase-j-touch-ux.md`](phase-j-touch-ux.md) — toolbar-driven
+tool selection, persistent modifier toggles (replacing
+Shift/Ctrl), Pencil hover as cursor-equivalent, barrel-tap /
+double-tap mappings, and what changes vs stays the same in the
+descriptor pipeline.
 
 ## Why this matters
 

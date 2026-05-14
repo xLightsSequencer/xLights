@@ -195,12 +195,6 @@ float ThreePointScreenLocation::GetMWidth() const
     return TwoPointScreenLocation::GetMWidth();
 }
 
-void ThreePointScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = ThreePointLegacyToId(handle);
-    highlighted_handle.reset();
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
 
 void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 {
@@ -338,28 +332,63 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
 
 
 
-int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == SHEAR_HANDLE) {
-        //we'll handle move, ignore rotations
-        if (supportsAngle) {
-            angle -= mov.x*10.0f;
-            height += -mov.z;
-        } else if (supportsShear) {
-            shear -= mov.x*10.0f;
-            height += -mov.z;
-        } else {
-            height += -mov.z;
+namespace {
+// SpaceMouse session for ThreePointScreenLocation. Adds a Shear
+// handle on top of TwoPoint's CENTER / START / END behavior:
+// dragging Shear adjusts angle / shear / height (subclass-defined
+// — Arch / Window Frame each set their `supports*` flags).
+class ThreePointSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    ThreePointSpaceMouseSession(ThreePointScreenLocation* loc,
+                                std::optional<handles::Id> id)
+        : _loc(loc), _id(id),
+          _twoPointInner(loc->TwoPointScreenLocation::BeginSpaceMouseSession(id)) {}
+
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value() && _id->role == handles::Role::Shear) {
+            _loc->ApplySpaceMouseShearHandle(scale, rot, mov);
+            return handles::SpaceMouseResult::NeedsInit;
         }
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            } else {
-                height = 0.01f;
-            }
+        if (_twoPointInner) {
+            return _twoPointInner->Apply(scale, rot, mov);
         }
-        return MODEL_NEEDS_INIT;
+        return handles::SpaceMouseResult::Unchanged;
     }
-    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    ThreePointScreenLocation*                       _loc;
+    std::optional<handles::Id>                      _id;
+    std::unique_ptr<handles::SpaceMouseSession>     _twoPointInner;
+};
+} // namespace
+
+void ThreePointScreenLocation::ApplySpaceMouseShearHandle(float /*scale*/,
+                                                           const glm::vec3& /*rot*/,
+                                                           const glm::vec3& mov) {
+    if (supportsAngle) {
+        angle -= mov.x * 10.0f;
+        height += -mov.z;
+    } else if (supportsShear) {
+        shear -= mov.x * 10.0f;
+        height += -mov.z;
+    } else {
+        height += -mov.z;
+    }
+    if (std::abs(height) < 0.01f) {
+        height = (height < 0.0f) ? -0.01f : 0.01f;
+    }
+}
+
+std::unique_ptr<handles::SpaceMouseSession>
+ThreePointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<ThreePointSpaceMouseSession>(this, id);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandleHeight) {

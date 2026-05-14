@@ -80,14 +80,21 @@ std::optional<Hit> HitTest(
             const glm::vec2 dvec = *projected - screenPoint;
             distSq = dvec.x * dvec.x + dvec.y * dvec.y;
         }
-        if (distSq > opts.handleTolerance * opts.handleTolerance) continue;
+        bool isAxis = (d.id.role == Role::AxisArrow ||
+                       d.id.role == Role::AxisCube  ||
+                       d.id.role == Role::AxisRing);
+        // Axis handles get their own (typically tighter) tolerance
+        // so they don't swallow body-drag taps when their head
+        // projects near the model surface. Falls back to the
+        // general handleTolerance when axisHandleTolerance is 0.
+        const float effectiveTol = (isAxis && opts.axisHandleTolerance > 0.0f)
+            ? opts.axisHandleTolerance
+            : opts.handleTolerance;
+        if (distSq > effectiveTol * effectiveTol) continue;
 
         // Prefer axis-style handles when configured. They typically
         // overlap with the body of the model in screen space, so
         // without this preference body-pick would frequently win.
-        bool isAxis = (d.id.role == Role::AxisArrow ||
-                       d.id.role == Role::AxisCube  ||
-                       d.id.role == Role::AxisRing);
         bool isSegment = (d.id.role == Role::Segment);
         if (opts.preferAxisHandles) {
             if (isAxis && !bestIsAxis) {

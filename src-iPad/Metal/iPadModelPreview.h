@@ -81,7 +81,7 @@ public:
     /// prefixes ("XLMetalBridge[ModelPreview]: …").
     const std::string& GetName() const { return _name; }
 
-    double calcPixelSize(double i) override { return i * 2.0; }
+    double calcPixelSize(double i) override { return i; }
 
     // Camera access — callers drive zoom/pan/rotate via the active camera's
     // PreviewCamera setters (see ViewpointMgr.h).

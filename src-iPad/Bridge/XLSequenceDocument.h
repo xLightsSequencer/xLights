@@ -893,6 +893,42 @@ NS_ASSUME_NONNULL_BEGIN
 // commit / lose-focus / scene-close, not per-keystroke.
 - (BOOL)saveLayoutChanges;
 
+// Phase J-2 (touch UX) — read / write the `axis_tool` member on
+// the named model's screen location. Drives which descriptor
+// handles `GetHandles` emits (translate arrows / rotate rings /
+// scale cubes / etc.). Returns "translate" / "rotate" / "scale" /
+// "xy_trans" / "elevate" / "none". Not part of the layout
+// dirty / undo path — tool selection is a UI mode, not model
+// state to be persisted.
+- (NSString*)axisToolForModel:(NSString*)modelName;
+- (BOOL)setAxisTool:(NSString*)tool forModel:(NSString*)modelName;
+
+// Phase J-2 (touch UX) — vertex / curve operations on PolyLine /
+// MultiPoint / Custom models. Mirror the desktop right-click
+// menu entries (Delete Point / Add Point / Define Curve / Remove
+// Curve). All push a layout-undo snapshot internally and mark the
+// model dirty on success. Vertex / segment indices are 0-based;
+// the bridge handles the legacy 1-based int conversion.
+- (BOOL)deleteVertexAtIndex:(NSInteger)vertexIndex forModel:(NSString*)modelName;
+- (BOOL)insertVertexInSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName;
+- (BOOL)setCurve:(BOOL)create onSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName;
+
+// Phase J-3 (touch UX) — model creation. The curated subset of
+// model types the iPad's Add-Model picker exposes. Desktop's
+// `ModelManager::CreateDefaultModel` accepts more types
+// (DmxMovingHead, Spinner, etc.); J-3 lifts more in once the per-
+// type property pages land.
+- (NSArray<NSString*>*)availableModelTypesForCreation;
+
+// Phase J-3 (touch UX) — delete a model from the active layout.
+// Used both by Add-Model cancel ("the user tapped + then changed
+// their mind") and by the inline action bar's future Delete
+// affordance. Does NOT participate in the existing layout undo
+// system (which only captures property changes); the action bar
+// confirmation flow is the only safety net. Returns NO if the
+// model isn't present.
+- (BOOL)deleteModel:(NSString*)modelName;
+
 // YES iff at least one layout-property edit is staged in memory
 // and not yet persisted. The Layout Editor uses this to gate a
 // "Save" button + warn-on-close.

@@ -15,6 +15,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 layers when pasting multi-layer effects so the paste does not bleed into
                                 subsequent models or groups. Also adds "Copy Layers/SubModels to Models" option
                                 to copy effects to multiple models at once.
+    -bug (dkulp)                Stem Separator crash: guard the CoreML inference call with @try/@catch and reject
+                                outputs whose strides have fewer dimensions than the shape.
+    -bug (cybercop23)           Fix 3D shift+drag lasso selecting models outside the selection box, especially
+                                when zoomed in. The OBB containment test was projecting only 2 of the 8 AABB
+                                corners to screen space; now all 8 corners are projected and the true
+                                screen-space bounds are used. Added depth filtering so far-background models
+                                that happen to project within the lasso are no longer selected.
     -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
                                 Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
                                 bundled libswift_Concurrency.dylib. With the old order, the back-deployed

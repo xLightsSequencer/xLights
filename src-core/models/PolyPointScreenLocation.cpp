@@ -365,14 +365,6 @@ void PolyPointScreenLocation::SetSelectedHandle(int h) {
     selected_handle = id;
 }
 
-void PolyPointScreenLocation::SetActiveHandle(int handle)
-{
-    SetSelectedHandle(handle);
-    active_handle = selected_handle;  // same Id mapping
-    highlighted_handle.reset();
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
-
 void PolyPointScreenLocation::SetActiveHandle(const std::optional<handles::Id>& id)
 {
     // Axis-gizmo roles are modifiers on the body handle — see the
@@ -771,45 +763,95 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
 }
 
 
-int PolyPointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == CENTER_HANDLE) {
-        constexpr float rscale = 10; //10 degrees per full 1.0 aka: max speed
-        Rotate(ModelScreenLocation::MSLAXIS::X_AXIS, rot.x * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
-        Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS, rot.y * rscale);
-        AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
-        return MODEL_UPDATE_RGBEFFECTS;
-    } else {
-        if (handle & HANDLE_CP0) {
-            int seg = handle & HANDLE_MASK;
-            if (seg < (int)mPos.size()) {
-                mPos[seg].cp0.x += mov.x * scale;
-                mPos[seg].cp0.y -= mov.z * scale;
-                mPos[seg].cp0.z += mov.y * scale;
-                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp0(mPos[seg].cp0.x, mPos[seg].cp0.y, mPos[seg].cp0.z);
-                FixCurveHandles();
+namespace {
+// SpaceMouse session for PolyPointScreenLocation. Handle dispatch:
+//   - CentreCycle / no id   → rotate + translate whole model
+//   - CurveControl(seg, ix) → move that curve control point
+//   - Vertex(idx)           → move that vertex
+class PolyPointSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    PolyPointSpaceMouseSession(PolyPointScreenLocation* loc,
+                               std::optional<handles::Id> id)
+        : _loc(loc), _id(id) {}
+
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value()) {
+            if (_id->role == handles::Role::CurveControl) {
+                _loc->ApplySpaceMouseCurveCp(_id->segment, _id->index, scale, mov);
+                return handles::SpaceMouseResult::NeedsInit;
             }
-        } else if (handle & HANDLE_CP1) {
-            int seg = handle & HANDLE_MASK;
-            if (seg < (int)mPos.size()) {
-                mPos[seg].cp1.x += mov.x * scale;
-                mPos[seg].cp1.y -= mov.z * scale;
-                mPos[seg].cp1.z += mov.y * scale;
-                if (mPos[seg].curve != nullptr) mPos[seg].curve->set_cp1(mPos[seg].cp1.x, mPos[seg].cp1.y, mPos[seg].cp1.z);
-                FixCurveHandles();
-            }
-        } else {
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
-                mPos[point].x += mov.x * scale;
-                mPos[point].y -= mov.z * scale;
-                mPos[point].z += mov.y * scale;
-                FixCurveHandles();
+            if (_id->role == handles::Role::Vertex) {
+                _loc->ApplySpaceMouseVertex(_id->index, scale, mov);
+                return handles::SpaceMouseResult::NeedsInit;
             }
         }
-        return MODEL_NEEDS_INIT;
+        _loc->ApplySpaceMouseCenter(scale, rot, mov);
+        return handles::SpaceMouseResult::Dirty;
     }
-    return MODEL_UNCHANGED;
+
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    PolyPointScreenLocation*    _loc;
+    std::optional<handles::Id>  _id;
+};
+} // namespace
+
+void PolyPointScreenLocation::ApplySpaceMouseCenter(float scale,
+                                                     const glm::vec3& rot,
+                                                     const glm::vec3& mov) {
+    constexpr float rscale = 10.0f;
+    Rotate(ModelScreenLocation::MSLAXIS::X_AXIS,  rot.x * rscale);
+    Rotate(ModelScreenLocation::MSLAXIS::Y_AXIS, -rot.z * rscale);
+    Rotate(ModelScreenLocation::MSLAXIS::Z_AXIS,  rot.y * rscale);
+    AddOffset(mov.x * scale, -mov.z * scale, mov.y * scale);
+}
+
+void PolyPointScreenLocation::ApplySpaceMouseCurveCp(int segment,
+                                                      int cpIndex,
+                                                      float scale,
+                                                      const glm::vec3& mov) {
+    if (segment < 0 || segment >= (int)mPos.size()) return;
+    if (cpIndex == 0) {
+        mPos[segment].cp0.x += mov.x * scale;
+        mPos[segment].cp0.y -= mov.z * scale;
+        mPos[segment].cp0.z += mov.y * scale;
+        if (mPos[segment].curve != nullptr) {
+            mPos[segment].curve->set_cp0(mPos[segment].cp0.x,
+                                          mPos[segment].cp0.y,
+                                          mPos[segment].cp0.z);
+        }
+    } else {
+        mPos[segment].cp1.x += mov.x * scale;
+        mPos[segment].cp1.y -= mov.z * scale;
+        mPos[segment].cp1.z += mov.y * scale;
+        if (mPos[segment].curve != nullptr) {
+            mPos[segment].curve->set_cp1(mPos[segment].cp1.x,
+                                          mPos[segment].cp1.y,
+                                          mPos[segment].cp1.z);
+        }
+    }
+    FixCurveHandles();
+}
+
+void PolyPointScreenLocation::ApplySpaceMouseVertex(int vertexIndex,
+                                                     float scale,
+                                                     const glm::vec3& mov) {
+    if (vertexIndex < 0 || vertexIndex >= (int)mPos.size()) return;
+    mPos[vertexIndex].x += mov.x * scale;
+    mPos[vertexIndex].y -= mov.z * scale;
+    mPos[vertexIndex].z += mov.y * scale;
+    FixCurveHandles();
+}
+
+std::unique_ptr<handles::SpaceMouseSession>
+PolyPointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<PolyPointSpaceMouseSession>(this, id);
 }
 
 
@@ -1863,10 +1905,15 @@ private:
     bool                     _changed = false;
 };
 
-// Placement gesture for newly-created or extended PolyPoint
-// vertices: the chosen vertex follows the cursor in the XY
-// ground plane. 2D reads ray.origin directly; 3D intersects the
-// ray with the XY plane through the saved active-handle position.
+// Placement gesture for newly-created, extended, or moved
+// PolyPoint vertices. 2D reads ray.origin directly. 3D picks the
+// plane to project onto from `loc->GetActivePlane()` (XY / XZ /
+// YZ) and anchors that plane through the vertex's current world
+// position — so dragging a vertex from a top-down view moves it
+// in X+Z (Y stays), from a side view in Y+Z (X stays), and from
+// the front in X+Y (Z stays). The caller is expected to seed
+// `active_plane` via `GetBestIntersection` (or `FindPlaneIntersection`)
+// based on the current camera angles before opening the session.
 class PolyPointCreationSession : public handles::DragSession {
 public:
     PolyPointCreationSession(PolyPointScreenLocation* loc,
@@ -1880,12 +1927,34 @@ public:
           _is3D(mode == handles::ViewMode::ThreeD),
           _savedLocal(loc->GetPoint(vertexIndex)) {
         if (_is3D) {
-            // Plane through active handle world pos in XY (z = saved active pos z).
-            // For creation, the vertex was just added at worldPos, so use that.
-            _planePoint  = glm::vec3(0.0f, 0.0f, loc->GetWorldPosition().z);
-            _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+            // Anchor the plane through the vertex's current world
+            // position so the unprojected intersect snaps to where
+            // the user clicked, not to a far-away Z=0 / Y=0 spot.
+            const auto wp = loc->GetWorldPosition();
+            const auto sm = loc->GetScaleMatrix();
+            const glm::vec3 vp = loc->GetPoint(vertexIndex);
+            const glm::vec3 anchor(wp.x + vp.x * sm.x,
+                                    wp.y + vp.y * sm.y,
+                                    wp.z + vp.z * sm.z);
+            _plane = loc->GetActivePlane();
+            switch (_plane) {
+                case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+                    _planeNormal = glm::vec3(0.0f, 1.0f, 0.0f);
+                    _planePoint  = glm::vec3(0.0f, anchor.y, 0.0f);
+                    break;
+                case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+                    _planeNormal = glm::vec3(1.0f, 0.0f, 0.0f);
+                    _planePoint  = glm::vec3(anchor.x, 0.0f, 0.0f);
+                    break;
+                case ModelScreenLocation::MSLPLANE::XY_PLANE:
+                default:
+                    _plane       = ModelScreenLocation::MSLPLANE::XY_PLANE;
+                    _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+                    _planePoint  = glm::vec3(0.0f, 0.0f, anchor.z);
+                    break;
+            }
             if (!Intersect(clickRay, _savedIntersect)) {
-                _savedIntersect = loc->GetWorldPosition();
+                _savedIntersect = anchor;
             }
         }
         _handleId.role  = handles::Role::Vertex;
@@ -1904,18 +1973,34 @@ public:
         const auto sm = _loc->GetScaleMatrix();
         const float sx = SafeScale(sm.x);
         const float sy = SafeScale(sm.y);
-        float newx, newy;
+        const float sz = SafeScale(sm.z);
         if (_is3D) {
             glm::vec3 cur(0.0f);
             if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
-            const glm::vec3 dragDelta = cur - _savedIntersect;
-            newx = (_savedIntersect.x + dragDelta.x - wp.x) / sx;
-            newy = (_savedIntersect.y + dragDelta.y - wp.y) / sy;
+            // The two in-plane axes move with the cursor; the
+            // perpendicular axis keeps its saved local value so
+            // the vertex stays on the chosen plane.
+            const float lx = (cur.x - wp.x) / sx;
+            const float ly = (cur.y - wp.y) / sy;
+            const float lz = (cur.z - wp.z) / sz;
+            float nx = _savedLocal.x;
+            float ny = _savedLocal.y;
+            float nz = _savedLocal.z;
+            switch (_plane) {
+                case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+                    nx = lx; nz = lz; break;          // Y locked
+                case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+                    ny = ly; nz = lz; break;          // X locked
+                case ModelScreenLocation::MSLPLANE::XY_PLANE:
+                default:
+                    nx = lx; ny = ly; break;          // Z locked
+            }
+            _loc->SetPoint(_vertexIndex, nx, ny, nz);
         } else {
-            newx = (ray.origin.x - wp.x) / sx;
-            newy = (ray.origin.y - wp.y) / sy;
+            const float newx = (ray.origin.x - wp.x) / sx;
+            const float newy = (ray.origin.y - wp.y) / sy;
+            _loc->SetPoint(_vertexIndex, newx, newy, 0.0f);
         }
-        _loc->SetPoint(_vertexIndex, newx, newy, 0.0f);
         _loc->FixCurveHandlesPublic();
         _changed = true;
         return handles::UpdateResult::NeedsInit;
@@ -1942,16 +2027,17 @@ private:
             ray.origin, ray.direction, _planePoint, _planeNormal, out);
     }
 
-    PolyPointScreenLocation* _loc;
-    std::string              _modelName;
-    handles::Id              _handleId;
-    int                      _vertexIndex;
-    bool                     _is3D;
-    glm::vec3                _savedLocal;
-    glm::vec3                _savedIntersect{0.0f};
-    glm::vec3                _planePoint    {0.0f};
-    glm::vec3                _planeNormal   {0.0f, 0.0f, 1.0f};
-    bool                     _changed = false;
+    PolyPointScreenLocation*       _loc;
+    std::string                    _modelName;
+    handles::Id                    _handleId;
+    int                            _vertexIndex;
+    bool                           _is3D;
+    glm::vec3                      _savedLocal;
+    glm::vec3                      _savedIntersect{0.0f};
+    glm::vec3                      _planePoint    {0.0f};
+    glm::vec3                      _planeNormal   {0.0f, 0.0f, 1.0f};
+    ModelScreenLocation::MSLPLANE  _plane = ModelScreenLocation::MSLPLANE::XY_PLANE;
+    bool                           _changed = false;
 };
 
 // Single-axis translate of the entire PolyPoint via worldPos.

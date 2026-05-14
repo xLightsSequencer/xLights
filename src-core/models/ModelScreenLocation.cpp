@@ -162,25 +162,6 @@ CursorType GetResizeCursor(int cornerIndex, int PreviewRotation) {
 
 }
 
-glm::vec3 ModelScreenLocation::GetHandlePosition(int handle) const
-{
-    if (handle == NO_HANDLE) return glm::vec3(0, 0, 0);
-    // descriptors are the source of truth. Sub-handle world
-    // positions live in the descriptor list regardless of which tool
-    // is active (only axis-gizmo descriptors are tool-gated), so
-    // Tool::Translate is a safe lookup choice. ViewParams default is
-    // fine for sub-handles since their worldPos doesn't scale with
-    // the camera-zoom-driven axis arrow length.
-    const handles::ViewMode mode = draw_3d ? handles::ViewMode::ThreeD
-                                            : handles::ViewMode::TwoD;
-    const auto descs = GetHandles(mode, handles::Tool::Translate);
-    for (const auto& d : descs) {
-        if (HandleIdToLegacyHandle(d.id) == handle) return d.worldPos;
-    }
-    spdlog::warn("GetHandlePosition({}) — no matching descriptor; returning origin", handle);
-    return glm::vec3(0, 0, 0);
-}
-
 glm::vec3 ModelScreenLocation::GetHandlePositionById(const std::optional<handles::Id>& id) const
 {
     if (!id) return glm::vec3(0, 0, 0);
@@ -214,8 +195,6 @@ void ModelScreenLocation::AdjustRenderSize(float NewWi, float NewHt, float NewDp
         RenderWi = NewWi;
         RenderDp = NewDp;
         scalex = scaley = scalez = 1.0f;
-        saved_scale = glm::vec3(scalex, scaley, scalez);
-        saved_size = glm::vec3(RenderWi, RenderHt, RenderWi);
     }
     else {
         RenderHt = NewHt;
@@ -249,21 +228,6 @@ void ModelScreenLocation::SetActiveAxis(MSLAXIS axis)
     }
 }
 
-void ModelScreenLocation::SetActiveHandle(int handle)
-{
-    // Base impl: only handles -1 (clear) and 0 (CentreCycle).
-    // Subclasses override for their specific legacy int meanings.
-    if (handle == NO_HANDLE) {
-        active_handle.reset();
-    } else if (handle == CENTER_HANDLE) {
-        handles::Id id;
-        id.role = handles::Role::CentreCycle;
-        active_handle = id;
-    } else {
-        active_handle.reset();
-    }
-    highlighted_handle.reset();
-}
 
 void ModelScreenLocation::MouseOverHandle(std::optional<handles::Id> handle)
 {

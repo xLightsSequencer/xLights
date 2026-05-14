@@ -13,6 +13,7 @@
 #include "utils/ExternalHooks.h"
 
 #include <log.h>
+#include <mutex>
 
 #include <filesystem>
 #include <fstream>
@@ -91,10 +92,40 @@ bool FileCacheItem::operator==(const std::string& url) const
     return _url == url;
 }
 
+namespace {
+// Mutex-guarded slot for the platform-supplied URL fetcher hook.
+std::mutex& url_fetcher_mutex() {
+    static std::mutex m;
+    return m;
+}
+CachedFileDownloader::URLFetcher& url_fetcher_slot() {
+    static CachedFileDownloader::URLFetcher f;
+    return f;
+}
+} // namespace
+
+void CachedFileDownloader::SetURLFetcher(URLFetcher fetcher) {
+    std::lock_guard<std::mutex> l(url_fetcher_mutex());
+    url_fetcher_slot() = std::move(fetcher);
+}
+
+CachedFileDownloader::URLFetcher CachedFileDownloader::GetURLFetcher() {
+    std::lock_guard<std::mutex> l(url_fetcher_mutex());
+    return url_fetcher_slot();
+}
+
 // A major constraint of this function is that it does not support https
 bool FileCacheItem::DownloadURL(const std::string& url, const std::string& filename, std::function<bool(int)> progressCallback, int low, int high, bool keepProgress)
 {
     spdlog::debug("Making request to '{}' -> {}.", url, filename);
+    // Platform override (iPad: NSURLSession). The override skips
+    // the curl progress callback because iPad consumers don't
+    // surface per-file progress for catalog fetches; the
+    // catalog-wide progress is reported via VendorCatalog's
+    // `Load` callback.
+    if (auto fetcher = CachedFileDownloader::GetURLFetcher()) {
+        return fetcher(url, filename);
+    }
     std::function<bool(int)> progress;
     if (progressCallback != nullptr) {
         progress = [progressCallback, low, high, keepProgress](int pos) {

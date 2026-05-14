@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Phase J-0 / J-1 — Layout Editor screen. Opens via Tools → Edit
 /// Layout… in its own `WindowGroup("layout-editor")` scene. The
@@ -50,6 +51,57 @@ struct LayoutEditorView: View {
     @State private var showLayoutGrid: Bool = false
     @State private var showLayoutBoundingBox: Bool = false
     @State private var overlaysInitialized: Bool = false
+    /// Phase J-2 (touch UX) — long-press contextual menu target.
+    /// Set by the `.layoutEditorContextMenu` notification; cleared
+    /// when the user picks an item or dismisses. The
+    /// `.confirmationDialog` shows the appropriate item set.
+    @State private var contextMenuTarget: LayoutContextMenuTarget? = nil
+    /// Phase J-3 (touch UX) — cached list of model-type strings
+    /// the Add-Model picker shows. Read from the bridge at
+    /// refresh time so changes to the curated list don't require
+    /// a rebuild.
+    @State private var availableModelTypes: [String] = []
+    /// J-3 (touch UX) — drives the Add-Model sheet. Using a sheet
+    /// instead of an inline Menu avoids whatever launch-time issue
+    /// the SwiftUI Menu in the canvas overlay triggers.
+    @State private var addModelSheetVisible: Bool = false
+    /// J-3 (touch UX) — pending delete confirmation. Set when the
+    /// user taps the trash icon in the inline action bar; cleared
+    /// after the alert resolves either way.
+    @State private var pendingDeleteModelName: String? = nil
+    /// J-4 (import) — drives the .xmodel file picker.
+    @State private var importerVisible: Bool = false
+    /// J-4 (import) — set when a fresh import fails (file unreadable,
+    /// XML parse failure, unknown model type). Surfaced as an alert.
+    @State private var importErrorMessage: String? = nil
+    /// J-4 (download) — drives the vendor catalog browser sheet.
+    @State private var downloadBrowserVisible: Bool = false
+
+    /// J-4 (import) — UTTypes the .fileImporter accepts. Declared
+    /// as a static so the SwiftUI type-checker can resolve the
+    /// `[UTType]` literal in reasonable time (the `?? .data` chain
+    /// inline tripped its budget).
+    private static let importableModelTypes: [UTType] = {
+        ["xmodel", "gdtf", "lff", "lpf"].compactMap {
+            UTType(filenameExtension: $0)
+        }
+    }()
+
+    /// J-4 (import) — `.fileImporter` completion. Stashes the
+    /// picked path for the next canvas-tap to consume.
+    private func handleImportPick(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            let granted = url.startAccessingSecurityScopedResource()
+            let path = url.path
+            _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+            if granted { url.stopAccessingSecurityScopedResource() }
+            viewModel.layoutPendingImportPath = path
+        case .failure(let err):
+            importErrorMessage = err.localizedDescription
+        }
+    }
 
     var body: some View {
         @Bindable var vm = viewModel
@@ -60,52 +112,44 @@ struct LayoutEditorView: View {
             canvas
         }
         .navigationTitle("Edit Layout")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    ForEach(layoutGroups, id: \.self) { name in
-                        Button {
-                            activeLayoutGroup = name
-                        } label: {
-                            HStack {
-                                Text(name)
-                                if name == activeLayoutGroup {
-                                    Spacer()
-                                    Image(systemName: "checkmark")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "square.stack.3d.up")
-                        Text(activeLayoutGroup).lineLimit(1)
-                    }
-                }
-                .disabled(layoutGroups.count <= 1)
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    performUndo()
-                } label: {
-                    Label("Undo", systemImage: "arrow.uturn.backward")
-                }
-                .disabled(!canUndo)
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingSaveConfirm = true
-                } label: {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-                .disabled(!hasUnsavedChanges)
+        // NavigationSplitView in this scene hides its column chrome,
+        // so `.toolbar`'s `.primaryAction` slots never render.
+        // Layout-group switcher / Undo / Save / Add Model / Select
+        // all live in the canvas overlay (top-left + top-right) so
+        // they're actually reachable.
+        .onAppear { refresh() }
+        .onDisappear {
+            // Drop any half-started Add-Model so the editor opens
+            // fresh next time rather than re-entering creation mode
+            // on a stale type.
+            viewModel.layoutPendingNewModelType = nil
+            viewModel.layoutPolylineInProgress = nil
+            viewModel.layoutPendingImportPath = nil
+            // J-4 (multi-select) — exit edit mode and collapse to
+            // the primary so the next open starts in a known
+            // single-select state.
+            viewModel.layoutEditMode = false
+            if let primary = viewModel.layoutEditorSelectedModel {
+                viewModel.layoutEditorSelection = [primary]
+            } else {
+                viewModel.layoutEditorSelection.removeAll()
             }
         }
-        .onAppear { refresh() }
         .onChange(of: viewModel.isShowFolderLoaded) { _, _ in refresh() }
         .onChange(of: activeLayoutGroup) { _, newValue in
             viewModel.document.setActiveLayoutGroup(newValue)
             refreshModelList()
+        }
+        .onChange(of: viewModel.layoutEditorSelectedModel) { _, newSelection in
+            // Seed the toolbar tool from the newly-selected
+            // model's axis_tool so switching models doesn't leak
+            // the previous selection's mode.
+            if let name = newSelection, !name.isEmpty {
+                let current = viewModel.document.axisTool(forModel: name)
+                if current != "none" {
+                    settings.axisTool = current
+                }
+            }
         }
         .focusable()
         // J-2 — keyboard nudge for the selected model. Arrow keys
@@ -115,6 +159,11 @@ struct LayoutEditorView: View {
         .onKeyPress(.downArrow,  phases: .down) { keyPress in nudge(0,  -1, keyPress) }
         .onKeyPress(.leftArrow,  phases: .down) { keyPress in nudge(-1,  0, keyPress) }
         .onKeyPress(.rightArrow, phases: .down) { keyPress in nudge(+1,  0, keyPress) }
+        // J-3 (touch UX) — Esc/Return end mid-polyline creation
+        // (mirrors desktop's polyline create commit hot-keys).
+        // Also drops fresh-model placement mode if armed.
+        .onKeyPress(.escape, phases: .down) { _ in endCreationModes() }
+        .onKeyPress(.return, phases: .down) { _ in endCreationModes() }
         .onReceive(NotificationCenter.default.publisher(for: .layoutEditorModelMoved)) { note in
             // Drag-to-move on the canvas (or a keyboard nudge / undo)
             // mutates the bridge directly; refresh the summary +
@@ -122,10 +171,91 @@ struct LayoutEditorView: View {
             // and the Save button enables. Convention: object =
             // previewName ("LayoutEditor"), userInfo["model"] = name.
             let movedName = note.userInfo?["model"] as? String
+            // Add Model creates a model the side panel hasn't seen
+            // yet — refresh the model list so the new name appears.
+            if let name = movedName, !modelNames.contains(name) {
+                refreshModelList()
+            }
             guard movedName == viewModel.layoutEditorSelectedModel else { return }
             summaryToken &+= 1
             hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
             canUndo = viewModel.document.canUndoLayoutChange()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .layoutEditorContextMenu)) { note in
+            // Long-press on a handle. The bridge has already done the
+            // hit-test and packaged the result. Translate to our
+            // typed target and let the confirmationDialog open.
+            guard let info = note.userInfo,
+                  let type = info["type"] as? String,
+                  let modelName = info["modelName"] as? String else { return }
+            switch type {
+            case "vertex":
+                if let idx = (info["vertexIndex"] as? NSNumber)?.intValue {
+                    contextMenuTarget = .vertex(modelName: modelName, vertexIndex: idx)
+                }
+            case "segment":
+                if let idx = (info["segmentIndex"] as? NSNumber)?.intValue {
+                    let curve = (info["hasCurve"] as? NSNumber)?.boolValue ?? false
+                    contextMenuTarget = .segment(modelName: modelName,
+                                                  segmentIndex: idx,
+                                                  hasCurve: curve)
+                }
+            case "curve_control":
+                if let idx = (info["segmentIndex"] as? NSNumber)?.intValue {
+                    contextMenuTarget = .curveControl(modelName: modelName,
+                                                       segmentIndex: idx)
+                }
+            default:
+                break
+            }
+        }
+        // J-3 (touch UX) — Pencil Pro squeeze maps to layout undo.
+        // Posted by PreviewPaneView's UIPencilInteraction; same
+        // entry point as the toolbar's Undo button so undo state /
+        // dirty markers / canvas repaint stay consistent.
+        .onReceive(NotificationCenter.default.publisher(for: .layoutEditorPencilUndo)) { _ in
+            if canUndo { performUndo() }
+        }
+        .confirmationDialog(contextMenuTarget?.title ?? "",
+                            isPresented: Binding(
+                                get: { contextMenuTarget != nil },
+                                set: { if !$0 { contextMenuTarget = nil } }),
+                            titleVisibility: .visible) {
+            contextMenuButtons
+        }
+        .sheet(isPresented: $addModelSheetVisible) {
+            AddModelSheet(types: availableModelTypes,
+                           labelFor: modelTypeLabel) { type in
+                viewModel.layoutPendingNewModelType = type
+                addModelSheetVisible = false
+            }
+        }
+        // J-4 (download) — vendor catalog browser. On download
+        // we reuse the same `layoutPendingImportPath` path Import
+        // uses, so the user gets the familiar "tap canvas to
+        // place" banner regardless of where the file came from.
+        .sheet(isPresented: $downloadBrowserVisible) {
+            VendorBrowserSheet(onDownloaded: { path in
+                viewModel.layoutPendingImportPath = path
+                downloadBrowserVisible = false
+            })
+        }
+        // J-4 (import) — .xmodel file picker. iPadOS's
+        // `.fileImporter` is the SwiftUI-native wrapping of
+        // UIDocumentPickerViewController; the resulting URL has
+        // security-scoped access already, so we call
+        // `ObtainAccessToURL` to persist the bookmark and stash
+        // the path for the next canvas-tap placement.
+        .fileImporter(isPresented: $importerVisible,
+                      allowedContentTypes: Self.importableModelTypes,
+                      allowsMultipleSelection: false,
+                      onCompletion: handleImportPick)
+        .alert("Import failed",
+               isPresented: Binding(get: { importErrorMessage != nil },
+                                    set: { if !$0 { importErrorMessage = nil } })) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importErrorMessage ?? "")
         }
         .alert("Save failed",
                isPresented: Binding(get: { saveErrorMessage != nil },
@@ -133,6 +263,22 @@ struct LayoutEditorView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(saveErrorMessage ?? "")
+        }
+        // J-3 (touch UX) — delete-model confirmation. Triggered by
+        // the trash icon in the inline action bar. The delete is
+        // an in-memory mutation through the bridge; user must still
+        // hit Save to persist (matches every other layout edit).
+        .alert("Delete \(pendingDeleteModelName ?? "")?",
+               isPresented: Binding(get: { pendingDeleteModelName != nil },
+                                    set: { if !$0 { pendingDeleteModelName = nil } })) {
+            Button("Delete", role: .destructive) {
+                if let name = pendingDeleteModelName {
+                    deleteModel(name: name)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Removes this model from the current layout. Save the layout to make the change permanent; Undo or Discard will roll it back.")
         }
         // Confirm-before-save. xlights_rgbeffects.xml is the show's
         // master layout file; an unintended save during testing is
@@ -215,7 +361,7 @@ struct LayoutEditorView: View {
     private var bindingSelection: Binding<String?> {
         Binding(
             get: { viewModel.layoutEditorSelectedModel },
-            set: { viewModel.layoutEditorSelectedModel = $0 }
+            set: { viewModel.layoutSelectSingle($0) }
         )
     }
 
@@ -239,7 +385,143 @@ struct LayoutEditorView: View {
                             status: PreviewStatus())
                 .background(Color.black)
 
+            // J-4 — top-left overlay: document-state actions.
+            // NavigationSplitView's primary-action toolbar items
+            // never paint in this scene (the column chrome is
+            // hidden), so the layout-group switcher / Undo / Save
+            // would otherwise be unreachable. Same story for the
+            // top-right "+", which has always been canvas-overlay.
+            VStack {
+                HStack(spacing: 6) {
+                    if layoutGroups.count > 1 {
+                        Menu {
+                            ForEach(layoutGroups, id: \.self) { name in
+                                Button {
+                                    activeLayoutGroup = name
+                                } label: {
+                                    HStack {
+                                        Text(name)
+                                        if name == activeLayoutGroup {
+                                            Spacer()
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "square.stack.3d.up")
+                                Text(activeLayoutGroup)
+                                    .lineLimit(1)
+                                    .frame(maxWidth: 140)
+                                Image(systemName: "chevron.down")
+                                    .font(.caption2)
+                            }
+                            .font(.caption)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.regularMaterial, in: Capsule())
+                    }
+
+                    Button {
+                        performUndo()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(!canUndo)
+
+                    Button {
+                        showingSaveConfirm = true
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "square.and.arrow.down")
+                            if hasUnsavedChanges {
+                                // Unsaved-changes dot.
+                                Circle()
+                                    .fill(.orange)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 3, y: -3)
+                            }
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(!hasUnsavedChanges)
+
+                    Spacer()
+                }
+                .padding(8)
+                Spacer()
+            }
+
             VStack(alignment: .trailing, spacing: 4) {
+                // J-3 (touch UX) — Add Model.
+                Button {
+                    addModelSheetVisible = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!viewModel.isShowFolderLoaded || availableModelTypes.isEmpty)
+
+                // J-4 (import) — Import .xmodel. Opens the iPadOS
+                // file picker (iCloud Drive, Files, AirDrop receive
+                // folder, etc.). Picked file flips the editor into
+                // placement mode; the next canvas tap drops the
+                // imported model at the touch point.
+                Button {
+                    importerVisible = true
+                } label: {
+                    Image(systemName: "square.and.arrow.down.on.square")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!viewModel.isShowFolderLoaded)
+
+                // J-4 (download) — Download from vendor catalog.
+                // Sheet fetches xlights.org's vendor list +
+                // inventories through the shared core catalog
+                // code, then lets the user pick a wiring. On
+                // download, the local xmodel path flips us into
+                // the same placement flow as Import.
+                Button {
+                    downloadBrowserVisible = true
+                } label: {
+                    Image(systemName: "icloud.and.arrow.down")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!viewModel.isShowFolderLoaded)
+
+                // J-4 (multi-select) — Photos-style Select toggle.
+                Button {
+                    let entering = !viewModel.layoutEditMode
+                    viewModel.layoutEditMode = entering
+                    if !entering, let primary = viewModel.layoutEditorSelectedModel {
+                        viewModel.layoutEditorSelection = [primary]
+                    } else if entering, viewModel.layoutEditorSelection.isEmpty,
+                              let seed = viewModel.layoutEditorSelectedModel {
+                        viewModel.layoutEditorSelection = [seed]
+                    }
+                } label: {
+                    Image(systemName: viewModel.layoutEditMode
+                                       ? "checkmark.circle.fill"
+                                       : "checkmark.circle")
+                        .font(.title3)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(viewModel.layoutEditMode ? .accentColor : .secondary)
+                .disabled(!viewModel.isShowFolderLoaded)
+
                 Button {
                     controlsVisible.toggle()
                 } label: {
@@ -257,8 +539,220 @@ struct LayoutEditorView: View {
                                                 viewModel.layoutEditorSelectedModel)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(8)
+
+            // J-3 (touch UX) — creation-mode banner. Visible while
+            // `layoutPendingNewModelType` is set (first-vertex tap)
+            // OR `layoutPolylineInProgress` is set (mid-polyline
+            // appending). The polyline branch swaps Cancel for Done
+            // so the user can stop adding vertices.
+            if let pendingType = viewModel.layoutPendingNewModelType {
+                VStack {
+                    HStack(spacing: 12) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Tap canvas to place \(Text(modelTypeLabel(pendingType)).fontWeight(.semibold))")
+                            .foregroundStyle(.white)
+                        Button("Cancel") {
+                            viewModel.layoutPendingNewModelType = nil
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(radius: 3, y: 2)
+                    .padding(.top, 12)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(true)
+            } else if let polyName = viewModel.layoutPolylineInProgress {
+                VStack {
+                    HStack(spacing: 12) {
+                        Image(systemName: "scribble.variable")
+                            .foregroundStyle(.green)
+                        Text("Tap to add vertex to \(Text(polyName).fontWeight(.semibold))")
+                            .foregroundStyle(.white)
+                        Button("Done") {
+                            viewModel.layoutPolylineInProgress = nil
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(radius: 3, y: 2)
+                    .padding(.top, 12)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(true)
+            } else if let importPath = viewModel.layoutPendingImportPath {
+                // J-4 (import) — pending-import banner. The file
+                // was picked; the next canvas tap drops the model
+                // at the touch point.
+                let fileName = (importPath as NSString).lastPathComponent
+                VStack {
+                    HStack(spacing: 12) {
+                        Image(systemName: "square.and.arrow.down.on.square.fill")
+                            .foregroundStyle(.green)
+                        Text("Tap canvas to place \(Text(fileName).fontWeight(.semibold))")
+                            .foregroundStyle(.white)
+                        Button("Cancel") {
+                            viewModel.layoutPendingImportPath = nil
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .shadow(radius: 3, y: 2)
+                    .padding(.top, 12)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(true)
+            }
+
+            // J-2 UX — model-name labels overlay. Off by default;
+            // user enables via the canvas controls. Renders one
+            // small Text per visible model at its projected centre;
+            // refreshes each animation frame.
+            if settings.showModelLabels {
+                ModelLabelsOverlay()
+                    .allowsHitTesting(false)
+            }
+
+            // Inline action bar floating above the selected model
+            // — see plans/phase-j-touch-ux.md. Anchored to the
+            // model's top-centre in screen coords; re-queries
+            // every animation frame so it tracks pan / zoom /
+            // orbit / drag without observer wiring. Hidden in
+            // multi-select mode (the multi-select bar takes over
+            // since the inline bar's per-model actions don't make
+            // sense across a set).
+            if viewModel.layoutEditorSelection.count < 2,
+               let selected = viewModel.layoutEditorSelectedModel,
+               !selected.isEmpty {
+                InlineModelActionBar(modelName: selected,
+                                      summaryToken: summaryToken,
+                                      onPropertyChange: {
+                                          summaryToken &+= 1
+                                          hasUnsavedChanges =
+                                              viewModel.document.hasUnsavedLayoutChanges()
+                                      },
+                                      onRequestDelete: {
+                                          pendingDeleteModelName = selected
+                                      })
+                    .allowsHitTesting(true)
+            }
+
+            // J-4 (multi-select) — operations bar. Visible
+            // whenever 2+ models are selected. Hosts Align ▾,
+            // Distribute ▾, Match Size ▾, and a Clear action.
+            // Top-centered like the creation banner so it doesn't
+            // fight the bottom tool toolbar.
+            if viewModel.layoutEditorSelection.count >= 2 {
+                VStack {
+                    MultiSelectActionBar(
+                        selection: viewModel.layoutEditorSelection,
+                        leader: viewModel.layoutEditorSelectedModel,
+                        onAlign: { edge in performAlign(by: edge) },
+                        onDistribute: { axis in performDistribute(axis: axis) },
+                        onMatchSize: { dim in performMatchSize(dimension: dim) },
+                        onClear: {
+                            viewModel.layoutEditorSelection.removeAll()
+                            viewModel.layoutEditorSelectedModel = nil
+                        })
+                        .padding(.top, 12)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(true)
+            }
+
+            // Bottom tool toolbar — see plans/phase-j-touch-ux.md.
+            // Replaces desktop's CentreCycle (tap centre sphere to
+            // advance axis tool) with a persistent picker. Visible
+            // only when a model is selected.
+            if let selected = viewModel.layoutEditorSelectedModel,
+               !selected.isEmpty {
+                VStack {
+                    Spacer()
+                    LayoutEditorToolToolbar(settings: settings,
+                                             selectedModelName: selected,
+                                             onToolChange: { tool in
+                                                 syncToolToBridge(tool: tool, modelName: selected)
+                                             })
+                    .padding(.bottom, 12)
+                }
+            }
         }
+    }
+
+    /// Phase J-2 (touch UX) — buttons shown in the long-press
+    /// `.confirmationDialog`. The menu's content depends on what
+    /// the user long-pressed on (vertex / segment / curve control).
+    @ViewBuilder
+    private var contextMenuButtons: some View {
+        switch contextMenuTarget {
+        case .vertex(let name, let idx):
+            Button("Delete Point", role: .destructive) {
+                _ = viewModel.document.deleteVertex(at: idx, forModel: name)
+                postLayoutMutation(modelName: name)
+            }
+            Button("Cancel", role: .cancel) { }
+        case .segment(let name, let idx, let hasCurve):
+            Button("Add Point") {
+                _ = viewModel.document.insertVertex(inSegment: idx, forModel: name)
+                postLayoutMutation(modelName: name)
+            }
+            if hasCurve {
+                Button("Remove Curve", role: .destructive) {
+                    _ = viewModel.document.setCurve(false, onSegment: idx, forModel: name)
+                    postLayoutMutation(modelName: name)
+                }
+            } else {
+                Button("Define Curve") {
+                    _ = viewModel.document.setCurve(true, onSegment: idx, forModel: name)
+                    postLayoutMutation(modelName: name)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        case .curveControl(let name, let idx):
+            Button("Remove Curve", role: .destructive) {
+                _ = viewModel.document.setCurve(false, onSegment: idx, forModel: name)
+                postLayoutMutation(modelName: name)
+            }
+            Button("Cancel", role: .cancel) { }
+        case nil:
+            EmptyView()
+        }
+    }
+
+    private func postLayoutMutation(modelName: String) {
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor",
+                                         userInfo: ["model": modelName])
+    }
+
+    /// Push toolbar tool selection through to the document. The
+    /// settings update happens in the Toolbar's binding; this
+    /// follow-up call writes to the screen location's `axis_tool`
+    /// so `GetHandles` emits the matching descriptor set on the
+    /// next draw. Repaint is triggered by the
+    /// `.layoutEditorModelMoved` notification (covers refresh of
+    /// the canvas overlay so the new gizmo appears immediately).
+    private func syncToolToBridge(tool: String, modelName: String) {
+        _ = viewModel.document.setAxisTool(tool, forModel: modelName)
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor",
+                                         userInfo: ["model": modelName])
     }
 
     // MARK: - Refresh
@@ -270,6 +764,7 @@ struct LayoutEditorView: View {
             settings.is3D = viewModel.document.layoutMode3D()
         }
         displayState = viewModel.document.layoutDisplayState()
+        availableModelTypes = viewModel.document.availableModelTypesForCreation()
         // Seed overlay toggles from the show's saved rgbeffects.xml
         // values on first refresh after the editor opens. Subsequent
         // refreshes don't clobber whatever the user has toggled
@@ -284,13 +779,27 @@ struct LayoutEditorView: View {
         refreshModelList()
     }
 
+    /// Friendlier labels for the Add-Model picker. Falls back to
+    /// the raw type string when no mapping is defined — keeps the
+    /// menu functional even as the curated set grows.
+    private func modelTypeLabel(_ type: String) -> String {
+        switch type {
+        case "Poly Line":   return "Poly Line"
+        case "Single Line": return "Single Line"
+        case "Window Frame":return "Window Frame"
+        case "Candy Canes": return "Candy Canes"
+        case "Channel Block": return "Channel Block"
+        default:            return type
+        }
+    }
+
     private func refreshModelList() {
         modelNames = viewModel.document.modelsInActiveLayoutGroup()
         // If the previously-selected model isn't in the new list,
         // clear selection so the side panel doesn't show stale data.
         if let sel = viewModel.layoutEditorSelectedModel,
            !modelNames.contains(sel) {
-            viewModel.layoutEditorSelectedModel = nil
+            viewModel.layoutSelectSingle(nil)
         }
     }
 
@@ -372,6 +881,121 @@ struct LayoutEditorView: View {
             NotificationCenter.default.post(name: .layoutEditorModelMoved,
                                             object: "LayoutEditor",
                                             userInfo: ["model": sel])
+        }
+    }
+
+    /// J-3 (touch UX) — exit fresh-model placement and / or mid-
+    /// polyline create. Returns `.handled` if either mode was
+    /// active so the keypress is consumed (otherwise Esc/Return
+    /// would fall through to focused controls / sidebar).
+    private func endCreationModes() -> KeyPress.Result {
+        var consumed = false
+        if viewModel.layoutPendingNewModelType != nil {
+            viewModel.layoutPendingNewModelType = nil
+            consumed = true
+        }
+        if viewModel.layoutPolylineInProgress != nil {
+            viewModel.layoutPolylineInProgress = nil
+            consumed = true
+        }
+        if viewModel.layoutPendingImportPath != nil {
+            viewModel.layoutPendingImportPath = nil
+            consumed = true
+        }
+        return consumed ? .handled : .ignored
+    }
+
+    /// J-3 (touch UX) — delete the named model from the bridge,
+    /// clear selection so the action bar/toolbar go away, then
+    /// refresh the sidebar list and dirty/undo state. Repaint the
+    /// canvas via the standard layout-mutation notification so the
+    /// model disappears immediately. Persisting requires Save —
+    /// matches every other layout edit.
+    private func deleteModel(name: String) {
+        guard viewModel.document.deleteModel(name) else { return }
+        if viewModel.layoutEditorSelectedModel == name {
+            viewModel.layoutSelectSingle(nil)
+        }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        canUndo = viewModel.document.canUndoLayoutChange()
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                        object: "LayoutEditor",
+                                        userInfo: ["model": name])
+    }
+
+    // MARK: - J-4 multi-select operations
+
+    /// Align all selected models' named edge / centre to the
+    /// primary (leader). Pushes an undo snapshot per moved model
+    /// so the user can revert individual moves; bumps the summary
+    /// token + dirty state and repaints the canvas.
+    private func performAlign(by edge: String) {
+        guard let leader = viewModel.layoutEditorSelectedModel,
+              viewModel.layoutEditorSelection.count >= 2 else { return }
+        let names = Array(viewModel.layoutEditorSelection)
+        for n in names where n != leader {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let moved = bridge.alignModels(names,
+                                        toLeader: leader,
+                                        by: edge,
+                                        for: viewModel.document)
+        if moved {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: ["model": leader])
+        }
+    }
+
+    /// Distribute centres along the named axis. Snapshots every
+    /// candidate before mutating so single-step undo works.
+    private func performDistribute(axis: String) {
+        guard viewModel.layoutEditorSelection.count >= 3 else { return }
+        let names = Array(viewModel.layoutEditorSelection)
+        for n in names {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let moved = bridge.distributeModels(names,
+                                              axis: axis,
+                                              for: viewModel.document)
+        if moved {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: [:])
+        }
+    }
+
+    /// Resize the selection (except leader) so the named dimension
+    /// matches the leader. `dim` ∈ {"width","height","depth","all"}.
+    private func performMatchSize(dimension dim: String) {
+        guard let leader = viewModel.layoutEditorSelectedModel,
+              viewModel.layoutEditorSelection.count >= 2 else { return }
+        let names = Array(viewModel.layoutEditorSelection)
+        for n in names where n != leader {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let resized = bridge.matchSize(ofModels: names,
+                                         toLeader: leader,
+                                         dimension: dim,
+                                         for: viewModel.document)
+        if resized {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: ["model": leader])
         }
     }
 
@@ -637,6 +1261,456 @@ private struct LayoutEditorStringField: View {
 /// camera reset. Subset of `PreviewControlsOverlay` — the Layout
 /// Editor doesn't need viewpoints, save-image, or detach (no
 /// embedded counterpart to detach from).
+// Phase J-2 (touch UX) — floating action bar anchored above the
+// selected model. Queries the bridge each animation frame so it
+// tracks pan / zoom / orbit / drag. Hides when the model is off-
+// screen.
+//
+// First-cut actions: Lock toggle + a "deselect" affordance. Add
+// Duplicate / Delete once the bridge supports them.
+// Phase J-3 (touch UX) — model-type picker. A sheet (rather than
+// an inline Menu) so the list of 18 types is comfortable to
+// browse on touch and presents a familiar iOS modal model.
+// Cancel via swipe-down or tap outside; selection dismisses
+// automatically.
+private struct AddModelSheet: View {
+    let types: [String]
+    let labelFor: (String) -> String
+    let onSelect: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List(types, id: \.self) { type in
+                Button {
+                    onSelect(type)
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.rectangle.on.rectangle")
+                            .foregroundStyle(.secondary)
+                        Text(labelFor(type))
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Add Model")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+/// Phase J-4 (multi-select) — operations bar shown when 2+ models
+/// are selected. Hosts Align ▾, Distribute ▾, Match Size ▾, and
+/// Clear. Top-centered like the creation banner.
+private struct MultiSelectActionBar: View {
+    let selection: Set<String>
+    let leader: String?
+    let onAlign: (String) -> Void
+    let onDistribute: (String) -> Void
+    let onMatchSize: (String) -> Void
+    let onClear: () -> Void
+
+    private var canDistribute: Bool { selection.count >= 3 }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // Count + leader hint. Leader is shown so the user
+            // knows which model the align/match ops target.
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(selection.count) selected")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                if let leader = leader, !leader.isEmpty {
+                    Text("Leader: \(leader)")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.7))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 180, alignment: .leading)
+                }
+            }
+
+            Divider()
+                .frame(height: 24)
+                .background(.white.opacity(0.3))
+
+            Menu {
+                Button("Align Left")   { onAlign("left") }
+                Button("Align Right")  { onAlign("right") }
+                Button("Align Top")    { onAlign("top") }
+                Button("Align Bottom") { onAlign("bottom") }
+                Divider()
+                Button("Center Horizontal") { onAlign("centerH") }
+                Button("Center Vertical")   { onAlign("centerV") }
+                Button("Center Depth")      { onAlign("centerD") }
+            } label: {
+                Label("Align", systemImage: "align.horizontal.left")
+                    .font(.caption.weight(.medium))
+            }
+            .menuStyle(.borderlessButton)
+            .foregroundStyle(.white)
+
+            Menu {
+                Button("Distribute Horizontally") { onDistribute("horizontal") }
+                Button("Distribute Vertically")   { onDistribute("vertical") }
+                Button("Distribute Depth")        { onDistribute("depth") }
+            } label: {
+                Label("Distribute", systemImage: "rectangle.split.3x1")
+                    .font(.caption.weight(.medium))
+            }
+            .menuStyle(.borderlessButton)
+            .foregroundStyle(canDistribute ? .white : .white.opacity(0.4))
+            .disabled(!canDistribute)
+
+            Menu {
+                Button("Same Width")  { onMatchSize("width") }
+                Button("Same Height") { onMatchSize("height") }
+                Button("Same Depth")  { onMatchSize("depth") }
+                Divider()
+                Button("Match All")   { onMatchSize("all") }
+            } label: {
+                Label("Match Size", systemImage: "rectangle.expand.vertical")
+                    .font(.caption.weight(.medium))
+            }
+            .menuStyle(.borderlessButton)
+            .foregroundStyle(.white)
+
+            Divider()
+                .frame(height: 24)
+                .background(.white.opacity(0.3))
+
+            Button {
+                onClear()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(.black.opacity(0.55), in: Capsule())
+        .shadow(radius: 3, y: 2)
+    }
+}
+
+private struct InlineModelActionBar: View {
+    @Environment(SequencerViewModel.self) var viewModel
+    let modelName: String
+    let summaryToken: Int
+    let onPropertyChange: () -> Void
+    let onRequestDelete: () -> Void
+
+    var body: some View {
+        // `TimelineView(.animation)` refreshes its content every
+        // CADisplayLink tick — exactly when we want to recompute
+        // the screen anchor (matches Metal redraw cadence).
+        // GeometryReader gives us the canvas height for clamping
+        // the bottom-anchored bar above the viewport's lower edge.
+        GeometryReader { geo in
+            TimelineView(.animation) { _ in
+                anchoredBar(canvasHeight: geo.size.height)
+            }
+        }
+    }
+
+    private var locked: Bool {
+        guard let summary = viewModel.document.modelLayoutSummary(modelName) else {
+            return false
+        }
+        return (summary["locked"] as? NSNumber)?.boolValue ?? false
+    }
+
+    @ViewBuilder
+    private func anchoredBar(canvasHeight: CGFloat) -> some View {
+        if let value = XLightsBridgeBox.bridgeForLayoutEditor()?
+                                       .screenAnchorPoint(forModel: modelName,
+                                                          for: viewModel.document) {
+            let anchor = value.cgPointValue
+            HStack(spacing: 6) {
+                Button {
+                    let newLocked = !locked
+                    _ = viewModel.document.setLayoutModelProperty(
+                        modelName, key: "locked",
+                        value: NSNumber(value: newLocked))
+                    onPropertyChange()
+                } label: {
+                    Label(locked ? "Locked" : "Unlocked",
+                          systemImage: locked ? "lock.fill" : "lock.open")
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption2.weight(.medium))
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(locked ? .red.opacity(0.85) : .blue.opacity(0.85))
+                .controlSize(.mini)
+
+                Text(modelName)
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 140)
+
+                Button {
+                    // Fit Selected — reuses the existing notification
+                    // the canvas controls overlay uses for its own
+                    // viewfinder button. Quick "where is this model?"
+                    // affordance for users whose canvas is panned.
+                    NotificationCenter.default.post(name: .previewFitModel,
+                                                     object: "LayoutEditor",
+                                                     userInfo: ["name": modelName])
+                } label: {
+                    Image(systemName: "viewfinder")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+
+                Button(role: .destructive) {
+                    onRequestDelete()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+
+                Button {
+                    viewModel.layoutSelectSingle(nil)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.body)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(.regularMaterial, in: Capsule())
+            .shadow(radius: 2, y: 1)
+            // Position the bar BELOW the model's screen-bottom
+            // anchor with a small offset. Bottom-anchor avoids
+            // overlap with the gizmo handles (Y axis arrow, rotate
+            // ring, shear puck) which all live at or above the
+            // model's top edge. Reads the GeometryReader's height
+            // to clamp the bar above the canvas's bottom edge so
+            // it stays visible when the model is near the bottom.
+            .position(x: anchor.x,
+                       y: min(canvasHeight - 28, anchor.y + 30))
+            .transition(.opacity)
+        }
+    }
+}
+
+// Phase J-2 (touch UX) — model-name label overlay. Renders one
+// small Text view per on-screen model at its projected centre.
+// The bridge does a single batched query each frame returning
+// `[(name, anchor)]`; off-screen / behind-camera models are
+// filtered out at the bridge so SwiftUI never sees them.
+//
+// Cost: ~one bridge call + N Text views per frame. Cheap for
+// typical 10–50 model shows; verify with a 200+ model show if
+// needed.
+private struct ModelLabelsOverlay: View {
+    @Environment(SequencerViewModel.self) var viewModel
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { _ in
+            content
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if let bridge = XLightsBridgeBox.bridgeForLayoutEditor() {
+            let anchors = bridge.modelLabelAnchors(for: viewModel.document)
+            ForEach(0..<anchors.count, id: \.self) { i in
+                let entry = anchors[i]
+                if let name = entry["name"] as? String,
+                   let value = entry["anchor"] as? NSValue {
+                    let p = value.cgPointValue
+                    Text(name)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.black.opacity(0.45),
+                                    in: RoundedRectangle(cornerRadius: 3))
+                        .fixedSize()
+                        .position(x: p.x, y: p.y)
+                }
+            }
+        }
+    }
+}
+
+/// Bridge resolver. The XLMetalBridge instance is created inside
+/// PreviewPaneView's coordinator; it doesn't live on the view
+/// model. Maintain a tiny registry keyed by preview name so
+/// detached views (e.g. the inline action bar) can reach the
+/// active bridge without an explicit injection.
+@MainActor
+enum XLightsBridgeBox {
+    private static var byName: [String: WeakBridge] = [:]
+    private struct WeakBridge { weak var bridge: XLMetalBridge? }
+
+    static func register(_ bridge: XLMetalBridge, forPreviewName name: String) {
+        byName[name] = WeakBridge(bridge: bridge)
+    }
+    static func unregister(previewName name: String) {
+        byName.removeValue(forKey: name)
+    }
+    static func bridgeForLayoutEditor() -> XLMetalBridge? {
+        byName["LayoutEditor"]?.bridge
+    }
+}
+
+// Phase J-2 (touch UX) — typed target for the long-press
+// contextual menu. The `.confirmationDialog` switches on this to
+// decide which buttons to show. Mirrors the keys produced by
+// `XLMetalBridge.inspectHandleAtScreenPoint:`.
+private enum LayoutContextMenuTarget: Equatable {
+    case vertex(modelName: String, vertexIndex: Int)
+    case segment(modelName: String, segmentIndex: Int, hasCurve: Bool)
+    case curveControl(modelName: String, segmentIndex: Int)
+
+    var title: String {
+        switch self {
+        case .vertex(_, let i):            return "Point \(i + 1)"
+        case .segment(_, let i, _):        return "Segment \(i + 1)"
+        case .curveControl(_, let i):      return "Curve on Segment \(i + 1)"
+        }
+    }
+}
+
+// Phase J-2 (touch UX) — bottom-anchored tool toolbar.
+//
+// Replaces desktop's CentreCycle ("tap the orange centre sphere
+// to advance axis_tool") with a persistent picker so the active
+// tool is always visible + reachable in 44pt touch targets.
+// Plus persistent modifier toggles — Uniform / Lock Axis —
+// that replace held-key modifiers from the desktop UI.
+//
+// See `plans/phase-j-touch-ux.md` for the design rationale.
+private struct LayoutEditorToolToolbar: View {
+    @Bindable var settings: PreviewSettings
+    let selectedModelName: String
+    let onToolChange: (String) -> Void
+
+    var body: some View {
+        HStack(spacing: 16) {
+            toolPicker
+            Divider().frame(height: 28)
+            modifierToggles
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .shadow(radius: 2, y: 1)
+    }
+
+    private var toolPicker: some View {
+        // Radio-style. The third position (Scale) cycles through
+        // XY_TRANS / Elevate when those make sense for the model
+        // type, but the toolbar surface only exposes the three
+        // common tools — XY_TRANS / Elevate are still reachable
+        // via subclass auto-promotion in `SetActiveHandle`.
+        HStack(spacing: 4) {
+            toolButton(tool: "translate", label: "Move",  systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+            toolButton(tool: "rotate",    label: "Rotate", systemImage: "arrow.triangle.2.circlepath")
+            toolButton(tool: "scale",     label: "Scale",  systemImage: "arrow.up.left.and.arrow.down.right")
+        }
+    }
+
+    private func toolButton(tool: String, label: String, systemImage: String) -> some View {
+        let isActive = settings.axisTool == tool
+        return Button {
+            settings.axisTool = tool
+            // Free up axis-specific modifiers when leaving the
+            // mode that consumes them, so a stale Lock Axis from
+            // a previous tool doesn't haunt the next gesture.
+            if tool == "rotate" {
+                settings.lockAxis = 0
+            }
+            onToolChange(tool)
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: systemImage).font(.system(size: 18))
+                Text(label).font(.caption2)
+            }
+            .frame(minWidth: 44, minHeight: 36)
+            .padding(.horizontal, 4)
+        }
+        .buttonStyle(.plain)
+        .background(isActive ? Color.accentColor.opacity(0.25) : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 6))
+        .foregroundStyle(isActive ? Color.accentColor : Color.primary)
+    }
+
+    @ViewBuilder
+    private var modifierToggles: some View {
+        // Uniform — only meaningful in Scale mode (mirrors the
+        // desktop convention where Shift = aspect-lock during a
+        // resize). Hidden otherwise.
+        if settings.axisTool == "scale" {
+            Toggle(isOn: $settings.uniformModifier) {
+                Label("Uniform", systemImage: "lock.fill")
+                    .labelStyle(.titleAndIcon)
+                    .font(.caption2)
+            }
+            .toggleStyle(.button)
+            .controlSize(.small)
+        }
+
+        // Lock Axis — visible in Move + Scale (matches the desktop
+        // axis-arrow constrain-to-axis semantics). Hidden in
+        // Rotate where the axis is already implicit in the gizmo.
+        if settings.axisTool == "translate" || settings.axisTool == "scale" {
+            HStack(spacing: 2) {
+                Text("Axis:").font(.caption2).foregroundStyle(.secondary)
+                axisChip(label: "Free", value: 0)
+                axisChip(label: "X",    value: 1)
+                axisChip(label: "Y",    value: 2)
+                axisChip(label: "Z",    value: 3)
+            }
+        }
+
+        // Snap — visible in Move (only place where rounding-to-grid
+        // matters). Mirrors the existing canvas-controls Snap
+        // toggle so users have it without opening the gear menu.
+        if settings.axisTool == "translate" {
+            Toggle(isOn: $settings.snapToGrid) {
+                Label("Snap", systemImage: "square.grid.3x3")
+                    .labelStyle(.titleAndIcon)
+                    .font(.caption2)
+            }
+            .toggleStyle(.button)
+            .controlSize(.small)
+        }
+    }
+
+    private func axisChip(label: String, value: Int) -> some View {
+        let isActive = settings.lockAxis == value
+        return Button {
+            settings.lockAxis = value
+        } label: {
+            Text(label)
+                .font(.caption2.weight(.medium))
+                .frame(minWidth: 28, minHeight: 24)
+        }
+        .buttonStyle(.plain)
+        .background(isActive ? Color.accentColor.opacity(0.3) : Color.gray.opacity(0.15),
+                    in: RoundedRectangle(cornerRadius: 4))
+        .foregroundStyle(isActive ? Color.accentColor : Color.primary)
+    }
+}
+
 private struct LayoutEditorCanvasControls: View {
     let previewName: String
     @Bindable var settings: PreviewSettings
@@ -713,6 +1787,15 @@ private struct LayoutEditorCanvasControls: View {
             // outside the 2D-only block above.
             Toggle(isOn: $settings.showFirstPixel) {
                 Text("Pixel 1").font(.caption2)
+            }
+            .toggleStyle(.button)
+            .controlSize(.small)
+
+            // J-2 UX — model-name labels (SwiftUI overlay).
+            // Lives in 2D and 3D; bridge filters off-screen
+            // models from the per-frame label list.
+            Toggle(isOn: $settings.showModelLabels) {
+                Text("Labels").font(.caption2)
             }
             .toggleStyle(.button)
             .controlSize(.small)

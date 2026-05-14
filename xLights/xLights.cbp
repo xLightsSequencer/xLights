@@ -219,6 +219,8 @@
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
+		<Unit filename="../src-core/import_export/VendorCatalog.cpp" />
+		<Unit filename="../src-core/import_export/VendorCatalog.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />

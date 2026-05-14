@@ -164,10 +164,10 @@ int TerrainObjectPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* 
         bool edit = event.GetValue().GetBool();
         _terrain.SetEditTerrain(edit);
         if (edit) {
-            _terrain.GetObjectScreenLocation().SetActiveHandle(NO_HANDLE);
+            _terrain.GetObjectScreenLocation().SetActiveHandle(std::nullopt);
             _terrain.GetObjectScreenLocation().SetEdit(true);
         } else {
-            _terrain.GetObjectScreenLocation().SetActiveHandle(0);
+            _terrain.GetObjectScreenLocation().SetActiveHandleToCentre();
             _terrain.GetObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
             _terrain.GetObjectScreenLocation().SetEdit(false);
         }

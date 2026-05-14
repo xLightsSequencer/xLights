@@ -23,9 +23,14 @@ public:
     virtual void Init() override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
     
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+    // Elevation-tool handler — applies the SpaceMouse Z delta to
+    // mPos[point] and (when tool_size > 1) the surrounding terrain
+    // cells. Public so the session class in the .cpp can call it.
+    void ApplySpaceMouseElevation(int point, float scale, const glm::vec3& mov);
 
-    virtual void SetActiveHandle(int handle) override;
+    // R-10b: Terrain inherits the base CentreCycle SetActiveHandleToCentre.
     virtual void AdvanceAxisTool() override;
     virtual void SetAxisTool(MSLTOOL mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;

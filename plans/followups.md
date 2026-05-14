@@ -75,3 +75,29 @@ phase home; catalogued here so they don't fall off.
   or surface as a one-tap "Convert to Pictures" action in the
   Media Manager when an `isAnimatedGif` entry shows up in the
   broken / unsupported list. M effort.
+
+## Phase J — Layout editor
+
+- **Model download + import.** Desktop's Model menu offers
+  "Download Models" (curated catalog from xlights.org / share
+  community) and "Import Custom Model" (.xmodel files including
+  multi-model groups). Both are common entry points for new shows
+  — far less manual building. iPad needs both:
+  - **Download.** Reuse the existing desktop catalog endpoint
+    (`Model -> Download Models`). Bridge: list / fetch / install
+    methods on `XLSequenceDocument`. UI: a `.sheet`-based browser
+    triggered from the Add Model menu (or a separate "Download"
+    button next to it), search + category filter, install button
+    persists to the show's model directory and refreshes the
+    sidebar. Needs an authenticated `URLSession` for any
+    behind-login content.
+  - **Import .xmodel.** File picker (UIDocumentPickerViewController
+    wrapping the existing `Model::Import` core path) lets users
+    pull in `.xmodel` files from iCloud / Files / AirDrop. Bridge
+    + a sheet that previews the model before commit. `.xmodel`
+    multi-model groups need each entry placed individually with
+    layout-group assignment.
+  - Both need to register destination files via
+    `ObtainAccessToURL` so subsequent loads survive app restart.
+  - P1 — gates many new-user onboarding flows (downloading
+    Matt Brown / Steve Hopkins / etc. shared shows).

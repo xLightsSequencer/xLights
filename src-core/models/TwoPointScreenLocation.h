@@ -32,7 +32,13 @@ public:
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
     virtual void DrawBoundingBox(xlVertexColorAccumulator *vac, bool fromBase) const;
 
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+
+    // SpaceMouse per-handle helpers. Public so the session class
+    // in the .cpp can call them without needing friend status.
+    void ApplySpaceMouseStartHandle(float scale, const glm::vec3& rot, const glm::vec3& mov);
+    void ApplySpaceMouseEndHandle  (float scale, const glm::vec3& rot, const glm::vec3& mov);
 
     [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
         handles::ViewMode mode, handles::Tool tool,
@@ -93,10 +99,17 @@ public:
     void SetY2(float val) {y2 = val;}
     void SetZ2(float val) {z2 = val;}
 
-    virtual int GetDefaultHandle() const override { return END_HANDLE; }
     virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
 
-    virtual void SetActiveHandle(int handle) override;
+    void SetActiveHandleToCentre() override;
+    void SetActiveHandleToDefault() override {
+        // END_HANDLE = Endpoint(2), the legacy GetDefaultHandle()
+        // value for TwoPoint / ThreePoint.
+        handles::Id id;
+        id.role = handles::Role::Endpoint;
+        id.index = END_HANDLE;
+        SetActiveHandle(std::optional<handles::Id>(id));
+    }
     virtual void AdvanceAxisTool() override;
     virtual void SetAxisTool(MSLTOOL mode) override;
 
