@@ -96,6 +96,11 @@ public:
     UndoStep( UNDO_ACTIONS action, MovedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, ModifiedEffectInfo* effect_info );
     UndoStep( UNDO_ACTIONS action, LayerInfo* layer_info );
+    ~UndoStep();
+    UndoStep(const UndoStep&) = delete;
+    UndoStep& operator=(const UndoStep&) = delete;
+    UndoStep(UndoStep&&) = delete;
+    UndoStep& operator=(UndoStep&&) = delete;
 
     UNDO_ACTIONS undo_action;
     std::vector<DeletedEffectInfo*> deleted_effect_info;
@@ -136,6 +141,7 @@ class UndoManager
         void CaptureModifiedEffect( const std::string &element_name, int layer_index, Effect *ef);
 
         void CaptureAddedLayer( const std::string &element_name, int exclusive_layer_index, int layer_number );
+        void CaptureRemovedLayer( const std::string &element_name, int layer_number );
 
         // Memory-cap support (iPad memory-pressure mitigation).
         // When `maxSteps > 0`, every push onto `mUndoSteps` triggers a

@@ -11,9 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
-    -enh (cybercop23)           Add "Paste Effects with Layers" option on model context menu. When pasting
-                                multi-layer effects, automatically inserts the needed layers so the paste
-                                does not bleed into subsequent models or groups. Also copy to multiple models at once.
+    -enh (cybercop23)           Enhance "Paste Effects" on model context menu to automatically insert the needed
+                                layers when pasting multi-layer effects so the paste does not bleed into
+                                subsequent models or groups. Also adds "Copy Layers/SubModels to Models" option
+                                to copy effects to multiple models at once.
     -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
                                 Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
                                 bundled libswift_Concurrency.dylib. With the old order, the back-deployed

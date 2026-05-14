@@ -77,6 +77,15 @@ UndoStep::UndoStep( UNDO_ACTIONS action, LayerInfo* li )
     layer_info.push_back(li);
 }
 
+UndoStep::~UndoStep()
+{
+    for (auto* p : deleted_effect_info)  delete p;
+    for (auto* p : added_effect_info)    delete p;
+    for (auto* p : moved_effect_info)    delete p;
+    for (auto* p : modified_effect_info) delete p;
+    for (auto* p : layer_info)           delete p;
+}
+
 UndoManager::UndoManager(SequenceElements* parent)
 : mParentSequence(parent), mCaptureUndo(false)
 {
@@ -212,6 +221,14 @@ void UndoManager::CaptureAddedLayer( const std::string &element_name, int exclus
 {
     LayerInfo* li = new LayerInfo(element_name, exclusive_layer_index, layer_number);
     UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
+    mUndoSteps.push_back(action);
+    EnforceMaxSteps();
+}
+
+void UndoManager::CaptureRemovedLayer( const std::string &element_name, int layer_number )
+{
+    LayerInfo* li = new LayerInfo(element_name, -1, layer_number);
+    UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
     mUndoSteps.push_back(action);
     EnforceMaxSteps();
 }
@@ -370,6 +387,7 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
         {
             if (next_action->layer_info.empty()) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. DDD");
+                break;
             }
             Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
             if (element != nullptr) {
@@ -389,6 +407,7 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
         {
             if (next_action->layer_info.empty()) {
                 spdlog::critical("UndoManager::ProcessUndoStep about to access past end of array. This wont end well. EEE");
+                break;
             }
             Element* element = mParentSequence->GetElement(next_action->layer_info[0]->element_name);
             if (element != nullptr) {

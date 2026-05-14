@@ -7551,7 +7551,20 @@ void EffectsGrid::CopyModelEffectsToModels(int row_number) {
         return;
     std::string source_name = ri->element->GetModelName();
 
-    CopyModelEffects(row_number, true, true);
+    int base_source_row = row_number;
+    for (size_t r = 0; r < mSequenceElements->GetVisibleRowInformationSize(); ++r) {
+        Row_Information_Struct* tr = mSequenceElements->GetVisibleRowInformation(r);
+        if (tr && tr->element &&
+            tr->element->GetModelName() == source_name &&
+            tr->layerIndex == 0 &&
+            !tr->submodel &&
+            tr->strandIndex < 0) {
+            base_source_row = (int)r;
+            break;
+        }
+    }
+
+    CopyModelEffects(base_source_row, true, true);
 
     xLightsFrame* xlights = xLightsApp::GetFrame();
     wxArrayString choices;
@@ -7785,12 +7798,15 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
         me->SetCollapsed(false);
     me->ShowStrands(true);
 
-    // Delete unused layers from the model and all its submodels before pasting
-    // so we start from a clean state and don't re-use stale empty layers.
     xLightsApp::GetFrame()->AbortRender();
-    auto deleteUnusedLayers = [](Element* elem) {
+
+    auto& undo_mgr = mSequenceElements->get_undo_mgr();
+    undo_mgr.CreateUndoStep();
+
+    auto deleteUnusedLayers = [&undo_mgr](Element* elem) {
         for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
             if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
+                undo_mgr.CaptureRemovedLayer(elem->GetFullName(), i);
                 elem->RemoveEffectLayer(i);
                 --i;
             }
@@ -7816,9 +7832,9 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
         int answer = wxMessageBox(wxString::Format("'%s' already has effects.\nErase existing effects before pasting?", me->GetModelName().c_str()),
                                   "Erase Existing Effects", wxYES_NO | wxICON_QUESTION, (wxWindow*)mParent);
         if (answer == wxYES) {
-            auto eraseAllEffects = [](Element* elem) {
+            auto eraseAllEffects = [&undo_mgr](Element* elem) {
                 for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
-                    elem->GetEffectLayer(i)->DeleteAllEffects();
+                    elem->GetEffectLayer(i)->RemoveAllEffects(&undo_mgr);
                 }
             };
             eraseAllEffects(me);
@@ -7831,21 +7847,6 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
             }
         }
     }
-
-    bool needs_layers = false;
-    for (const auto& [ename, range] : element_ranges) {
-        if (range.min_row > range.max_row)
-            continue;
-        int layers_needed = range.max_row - range.min_row + 1;
-        Element* target_elem = ename.empty() ? static_cast<Element*>(me) : static_cast<Element*>(me->GetSubModel(ename, false));
-        if (target_elem != nullptr && (int)target_elem->GetEffectLayerCount() < layers_needed) {
-            needs_layers = true;
-            break;
-        }
-    }
-
-    if (needs_layers)
-        mSequenceElements->get_undo_mgr().CreateUndoStep();
 
     for (const auto& [ename, range] : element_ranges) {
         if (range.min_row > range.max_row)
