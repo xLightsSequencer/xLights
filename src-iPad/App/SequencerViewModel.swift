@@ -322,6 +322,37 @@ class SequencerViewModel {
     /// close and on "Done" / explicit exit.
     var layoutEditMode: Bool = false
 
+    /// Phase J-6 (sidebar canvas sync) — Group / ViewObject picks
+    /// in the sidebar. Independent of `layoutEditorSelectedModel`
+    /// so flipping tabs doesn't lose the model pick. The canvas
+    /// reads these via PreviewPaneView and tints / draws handles
+    /// accordingly.
+    var layoutEditorSelectedGroup: String? = nil
+    var layoutEditorSelectedObject: String? = nil
+
+    /// J-20.6 — active sidebar tab in the Layout Editor, mirrored
+    /// from `LayoutEditorView`'s `@State sidebarTab`. Lives on the
+    /// view model so the canvas / preview pane can gate picking
+    /// behaviour (e.g. don't fall through to view-object picks
+    /// when the user is on the Models tab — desktop only lets
+    /// you select objects from the Layout panel's object list).
+    /// String-typed to avoid pulling `LayoutSidebarTab` into the
+    /// view model module.
+    var layoutEditorActiveTab: String = "models"
+
+    /// J-13 — name of the Terrain view object currently in
+    /// heightmap edit mode. When non-nil, canvas taps modify
+    /// the terrain's PointData rather than selecting models.
+    var terrainEditTarget: String? = nil
+    /// J-13 — magnitude of the per-tap height change in world
+    /// units. Sign comes from `terrainEditRaise`.
+    var terrainEditDelta: Float = 1.0
+    /// J-13 — brush radius in screen points. 0 = single-point;
+    /// >0 applies a cosine falloff to neighbour grid points.
+    var terrainEditBrushPoints: CGFloat = 24.0
+    /// J-13 — true → tap-to-raise; false → tap-to-lower.
+    var terrainEditRaise: Bool = true
+
     /// Set both primary + selection set to a single model (or
     /// clear them both for nil/empty). All single-select call
     /// sites should use this to keep the two fields in sync —
@@ -3110,9 +3141,9 @@ class SequencerViewModel {
             // strict concurrency doesn't flag the closure capture
             // as a data-race risk. NSArray<NSNumber> isn't Sendable
             // under strict mode; [Int] / [String] are.
-            let safeWords: [String]? = (words as? [String])
-            let safeStarts: [Int]? = (starts as? [NSNumber])?.map { $0.intValue }
-            let safeEnds: [Int]? = (ends as? [NSNumber])?.map { $0.intValue }
+            let safeWords: [String]? = words
+            let safeStarts: [Int]? = starts?.map { $0.intValue }
+            let safeEnds: [Int]? = ends?.map { $0.intValue }
             let safeError: String? = error
 
             MainActor.assumeIsolated {

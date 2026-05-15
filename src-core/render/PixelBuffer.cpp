@@ -17,6 +17,7 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include <log.h>
+#include "utils/FloatChecks.h"
 #include "utils/xlPoint.h"
 #include <cassert>
 #include <cstdlib>
@@ -2664,7 +2665,9 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 }
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset) {
-    if (std::isinf(offset))
+    // xl::isinf: std::isinf may fold to `false` under -ffinite-math-only
+    // (Release -ffast-math); use the helper to keep the clamp working.
+    if (xl::isinf(offset))
         offset = 1.0;
 
     GPURenderUtils::RotoZoomSettings settings;

@@ -263,6 +263,17 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
 
+## Release Builds Use -ffast-math
+
+Release builds on macOS desktop **and iPad** are compiled with `-ffast-math` (`GCC_FAST_MATH = YES` plus an explicit `-ffast-math` in `OTHER_CFLAGS` on the project-level Release/Archive configs), at `-O3` with `LLVM_LTO=YES_THIN`. The `xLights-iPadLib` target inherits these via `$(inherited)`. This affects every `.cpp`/`.mm` file in `src-core/`, `src-ui-wx/`, and `src-iPad/`. Linux and Windows release builds may not set `-ffast-math` today, but write code that doesn't depend on it being absent.
+
+`-ffast-math` implies `-ffinite-math-only`, which licenses the optimizer to assume no operand is `inf`/`NaN`. Under `-O3` + LTO this breaks two patterns that look correct in source:
+
+- **`infinity()` as a "max-so-far" sentinel** — `float best = std::numeric_limits<float>::infinity()` gets folded to 0; the first `if (v < best)` comparison fails and the value is silently dropped. **Use `std::numeric_limits<float>::max()` (or `::lowest()` for `-inf`)** as the sentinel. The legacy idiom `1000000000.0f` already common in `LayoutPanel.cpp` is also fine. Same goes for `HUGE_VALF`, `INFINITY`, manual `1.0f/0.0f`.
+- **`std::isnan(x)` / `std::isinf(x)` / `std::isfinite(x)` as defensive guards** — these may be folded to constants (`false`/`false`/`true`) in Release, making the guard a no-op. **Use the portable `xl::isnan` / `xl::isinf` / `xl::isfinite` helpers in `src-core/utils/FloatChecks.h`** — they map to `__builtin_*` on clang/gcc (preserved under `-ffinite-math-only`) and to `std::*` on MSVC (which compiles with `/fp:precise`, not fast-math). Do **not** call `__builtin_isnan` etc. directly: MSVC doesn't have those builtins and the Windows build will fail.
+
+Don't write code that depends on `NaN` propagation, `-0.0` sign preservation, or `inf` arithmetic surviving — fast-math is allowed to reorder, fuse, or eliminate those. ISPC files (`*.ispc`) have their own compile flags and are not subject to this. Vendored third-party headers we've had to patch carry a `// xLights local patch:` comment marker — preserve those across upstream merges.
+
 ## Key Dependencies
 
 wxWidgets 3.3 (custom fork `xLightsSequencer/wxWidgets`), spdlog, nlohmann/json, FFmpeg, SDL2, Lua 5.4, libcurl, zstd, LiquidFun/Box2D, libxlsxwriter, nanosvg, ISPC (SIMD kernels).

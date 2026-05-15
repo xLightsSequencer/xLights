@@ -1403,6 +1403,17 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
+    // event.GetProperty() can be null when wxPropertyGrid fires CHANGING
+    // during a grid rebuild (the prior selected property has already been
+    // detached). GetPropertyName above survives that case because it falls
+    // back to a cached name string, but the dereferences below would
+    // segfault. Top of bucket for "BkgSizeWidth" changes during layout-
+    // group switch: 5 reports / 2 reporters as of 2026.07.
+    wxPGProperty* prop = event.GetProperty();
+    if (prop == nullptr) {
+        spdlog::warn("LayoutPanel::OnPropertyGridChanging: event has no property (rebuild in flight?); ignoring '{}'.", name);
+        return;
+    }
     // Same dangling-pointer guard as OnPropertyGridChange - see IsSelectedBaseObjectValid.
     if (selectedBaseObject != nullptr && !IsSelectedBaseObjectValid()) {
         spdlog::warn("LayoutPanel::OnPropertyGridChanging: selectedBaseObject was stale; clearing cached selection.");
@@ -1431,7 +1442,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 // ignore the submodel changes for now.
             //    int a = 0;
             } else {
-                CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                CreateUndoPoint("ModelProperty", selectedModel->name, name, prop->GetValue().GetString().ToStdString());
                 _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
             }
         } else {
@@ -1444,12 +1455,12 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                     event.Veto();
                 }
             } else {
-                CreateUndoPoint("ObjectProperty", selectedObject->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                CreateUndoPoint("ObjectProperty", selectedObject->name, name, prop->GetValue().GetString().ToStdString());
                 //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
             }
         }
     } else {
-        CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
+        CreateUndoPoint("Background", "", name, prop->GetValue().GetString().ToStdString());
     }
 }
 
@@ -4727,12 +4738,23 @@ void LayoutPanel::FinalizeModel()
     }
     if (m_polyline_active && m_polyline_create_handle > 1) {
         Model *m = _newModel;
-        if (m != nullptr)
+        // dynamic_cast below returns null when _newModel isn't a polyline,
+        // but m_polyline_active was true. That state invariant (polyline-
+        // active <=> _newModel is a polyline) can drift when an
+        // in-progress create gets interrupted — e.g. selectedButton swaps
+        // mid-gesture, an error path nulls _newModel, or _newModel is
+        // re-assigned to a different model type without resetting
+        // m_polyline_active. Top Windows crash bucket as of 2026.08: 20
+        // reports across 2 reporters all hit the unguarded
+        // plm->ClearPolyLineCreate() below. Fall through to the normal
+        // state cleanup at the bottom of the function so we don't leave
+        // the polyline flags set.
+        PolyLineModel* plm = dynamic_cast<PolyLineModel*>(m);
+        if (m != nullptr && plm != nullptr)
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Polyline deleting handle.");
             m->DeleteHandle(m_polyline_create_handle);
 
-            auto plm = dynamic_cast<PolyLineModel*>(m);
             plm->ClearPolyLineCreate(); // disable the auto-distribute node feature
             if (plm->GetNumHandles() < 2) {
                 // If we end up with less than 2 points then we destroy the polyline
@@ -4744,6 +4766,8 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
             }
+        } else if (m != nullptr) {
+            spdlog::warn("LayoutPanel::FinalizeModel: m_polyline_active true but _newModel is not a PolyLineModel (got '{}'); clearing polyline state.", m->GetName());
         }
     }
     m_moving_handle = false;

@@ -44,3 +44,17 @@ in the view matrix, correct `is_3d` flag to
   no-ops when the selected model isn't visible in the active
   layout group — not an error state, but worth knowing if a
   tester reports "Fit Selected does nothing".
+
+## Landed fixes
+
+- **2026-05-15 — fast-math infinity sentinel.** `XLMetalBridge.mm`
+  Fit All / Fit Selected bounding-box accumulation and 3D tap-to-
+  select (both Model and ViewObject) seeded `min/max/bestDist`
+  with `std::numeric_limits<float>::infinity()`. iPadLib Release
+  inherits `-ffast-math` + `-O3` + `LLVM_LTO=YES_THIN` from the
+  project-level config, and `-ffinite-math-only` folds the
+  sentinel to 0 — silently breaking Fit-All and 3D taps in
+  shipped builds. Swapped to `numeric_limits::max()`/`lowest()`.
+  Same root cause as the desktop `HitTest.cpp` fix; see
+  `feedback_fastmath_infinity_sentinel` for the pattern. No
+  TestFlight bug filed — caught by the post-mortem audit.

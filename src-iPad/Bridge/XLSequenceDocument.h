@@ -929,6 +929,332 @@ NS_ASSUME_NONNULL_BEGIN
 // model isn't present.
 - (BOOL)deleteModel:(NSString*)modelName;
 
+// J-18 — rename a model. Calls `ModelManager::Rename` which
+// updates the in-memory references (other groups containing
+// this model fix their member-list vectors). The new name is
+// sanitized via `Model::SafeModelName`. Returns NO if the new
+// name is empty after sanitize, collides with an existing
+// model/group, or `oldName` doesn't resolve. SubModels can't be
+// renamed via this path.
+- (BOOL)renameModel:(NSString*)oldName
+                 to:(NSString*)newName;
+
+// J-18 pass 2 — wholesale-replace this model's alias list with
+// `aliases`. Strings are trimmed + lowercased + de-duped on the
+// way through (matches `Model::SetAliases` semantics). The
+// model's own name is filtered out because `AddAlias` rejects
+// it. Marks the model dirty so the save path re-serializes the
+// `<model>` node — alias child elements come along automatically.
+// Returns NO if the model can't be resolved.
+- (BOOL)setModelAliases:(NSString*)modelName
+                aliases:(NSArray<NSString*>*)aliases;
+
+// J-18 pass 3 — wholesale-replace strand / node names for this
+// model. Both store as comma-delimited strings on the Model
+// (the delimiter is fixed, so any commas inside an entry are
+// stripped on the way through). Empty slots are preserved —
+// the desktop format relies on positional ordering so a missing
+// label at index N stays an empty string rather than dropping
+// the slot.
+- (BOOL)setStrandNames:(NSString*)modelName
+                 names:(NSArray<NSString*>*)names;
+- (BOOL)setNodeNames:(NSString*)modelName
+               names:(NSArray<NSString*>*)names;
+
+// J-18 pass 4 — remove a submodel by name from its parent.
+// Routes through Model::RemoveSubModel which deletes the
+// SubModel*; the next save re-serializes the parent without
+// the submodel's `<subModel>` child. Group / effect references
+// to the deleted submodel are NOT cleaned up — matches desktop
+// behaviour. Returns NO if either name doesn't resolve.
+- (BOOL)deleteSubModelNamed:(NSString*)submodelName
+                    onModel:(NSString*)parentName;
+
+// J-22 — rename a submodel on its parent model. Sanitizes via
+// Model::SafeModelName. Refuses collisions with an existing
+// submodel on the same parent. Returns NO on lookup / collide /
+// empty-name failures.
+- (BOOL)renameSubModelNamed:(NSString*)oldName
+                    onModel:(NSString*)parentName
+                         to:(NSString*)newName;
+
+// J-23.3 — Submodel detail accessor. Returns an array of dicts
+// (one per submodel) with all the editable fields:
+//   "name"        — NSString
+//   "isRanges"    — NSNumber bool (true = ranges/lines, false =
+//                   sub-buffer)
+//   "isVertical"  — NSNumber bool
+//   "bufferStyle" — NSString ("Default", "Keep XY", "Stacked",
+//                   "Stacked Right", "Stacked Left", "Stacked Up",
+//                   "Stacked Down", "Stacked Vertical Concatenate")
+//   "strands"     — NSArray<NSString*> (when isRanges)
+//   "subBuffer"   — NSString             (when !isRanges)
+- (NSArray<NSDictionary*>*)submodelDetailsForModel:(NSString*)parentName;
+
+// J-23.3 — Wholesale-replace all submodels on `parentName`. The
+// payload mirrors `submodelDetailsForModel:`. Internally calls
+// `RemoveAllSubModels` then re-creates each entry via
+// `new SubModel(...)` + `AddDefaultBuffer` / `AddRangeXY` /
+// `AddSubbuffer`. Mirrors desktop SubModelsDialog::Save.
+- (BOOL)replaceSubModelsOnModel:(NSString*)parentName
+                    withEntries:(NSArray<NSDictionary*>*)entries;
+
+// J-22 — add a new submodel to a parent. Type defaults to
+// "ranges" (the most common form on desktop); the bridge
+// creates a single placeholder "1-1" range so the new
+// submodel is immediately valid. Returns the sanitized name
+// on success, nil on failure (empty / colliding name or
+// parent lookup miss).
+- (nullable NSString*)addSubModelToModel:(NSString*)parentName
+                                    name:(NSString*)submodelName;
+
+// J-18 pass 6 — clear any dimming curve set on this model.
+// SetDimmingInfo({}) deletes the cached `modelDimmingCurve`
+// and empties the `<dimmingCurve>` XML child block on save.
+// Returns NO if the model doesn't resolve or there's
+// nothing to clear.
+- (BOOL)clearDimmingCurveOnModel:(NSString*)modelName;
+
+// J-22 — wholesale-replace a model's full face / state map.
+// Value is NSDictionary<NSString*, NSDictionary<NSString*,
+// NSString*>*>* mirroring the desktop's `FaceStateData`
+// (map<faceOrStateName, map<attrName, attrValue>>). Routes
+// through Model::SetFaceInfo / SetStateInfo, which also
+// recomputes the derived node-list map. Marks the model
+// dirty so save re-serializes the `<faceInfo>` / `<stateInfo>`
+// child block. Returns NO if the model doesn't resolve.
+- (BOOL)setFaceInfo:(NSString*)modelName
+            entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+- (BOOL)setStateInfo:(NSString*)modelName
+             entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+
+// J-22 — read the model's face / state map as a structured
+// NSDictionary suitable for SwiftUI consumption. Format mirrors
+// `setFaceInfo:`/`setStateInfo:`. Returns an empty dictionary
+// if the model has no face / state data.
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        faceInfoForModel:(NSString*)modelName;
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        stateInfoForModel:(NSString*)modelName;
+
+// J-23 — Custom-model grid data accessor / mutator. The editor
+// works on the 3D `_locations` vector directly: each cell holds
+// the 1-based pixel number that lights at that position, or 0
+// for empty. Dictionary returned by `customModelDataForModel:`
+// has these keys:
+//   "width"     — NSNumber (int)
+//   "height"    — NSNumber (int)
+//   "depth"     — NSNumber (int)
+//   "locations" — NSArray<NSArray<NSArray<NSNumber>>>
+//                 indexed as [depth][height][width]
+// `setCustomModelData:width:height:depth:locations:` wholesale-
+// replaces both the dimensions and the grid. Locations must be
+// rectangular and match the dimensions, else returns NO.
+- (NSDictionary*)customModelDataForModel:(NSString*)modelName;
+- (BOOL)setCustomModelData:(NSString*)modelName
+                     width:(int)w
+                    height:(int)h
+                     depth:(int)d
+                 locations:(NSArray<NSArray<NSArray<NSNumber*>*>*>*)locations;
+
+// J-22 — wholesale-set the dimming curve for a model. `entries`
+// mirrors desktop's `dimmingInfo` map<channel, map<attr,
+// value>>. Channel keys are "all", "red", "green", "blue",
+// "white". Empty dict clears (equivalent to
+// clearDimmingCurveOnModel:). Returns NO on lookup failure.
+- (BOOL)setDimmingInfo:(NSString*)modelName
+               entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        dimmingInfoForModel:(NSString*)modelName;
+
+// Phase J-5 (sidebar tabs) — ModelGroups visible in the active
+// layout group. Names only, in the same order as
+// `modelsInActiveLayoutGroup` (alphabetical by ModelManager map
+// iteration). Excludes regular Models; only entries whose
+// DisplayAs == ModelGroup land here.
+- (NSArray<NSString*>*)modelGroupsInActiveLayoutGroup;
+
+// Per-ModelGroup summary. Keys mirror `modelLayoutSummary` where
+// the underlying BaseObject exposes the same field, plus group-
+// specific entries. All keys NSString unless noted:
+//   "name"           — NSString (display name)
+//   "displayAs"      — NSString ("ModelGroup")
+//   "layoutGroup"    — NSString
+//   "modelCount"     — NSNumber (int, immediate child count)
+//   "models"         — NSArray<NSString*> (immediate child names,
+//                      in declared order)
+//   "defaultCamera"  — NSString
+//   "layout"         — NSString (group preview layout style)
+//   "gridSize"       — NSNumber (int)
+//   "centerX"/"centerY" — NSNumber (double, 2D group centre)
+//   "centerDefined"  — NSNumber (BOOL)
+//   "locked"         — NSNumber (BOOL)
+- (nullable NSDictionary<NSString*, id>*)modelGroupLayoutSummary:(NSString*)name;
+
+// Set a property on a ModelGroup. Supported keys (J-5 + J-9):
+// "layoutGroup", "locked", "defaultCamera", "layout", "gridSize"
+// (NSNumber int), "centerX"/"centerY" (NSNumber double),
+// "tagColor" (NSString hex), "members" (NSArray<NSString*> —
+// replaces the full member list, used for drag-to-reorder).
+// Returns NO for unknown groups, unknown keys, or no-op writes.
+// Mutations are staged + saved through the same path as models.
+- (BOOL)setLayoutModelGroupProperty:(NSString*)name
+                                key:(NSString*)key
+                              value:(id)value;
+
+// J-9 (group CRUD) — full submodel name list for `modelName`, in
+// declared order. Returns names in the canonical "Parent/Sub"
+// form (matches `ModelGroup::AddModel` membership conventions).
+// Empty array for unknown / non-Model targets, or models with
+// no submodels. Used by the Add Member sheet to surface
+// submodels for selection alongside top-level models.
+- (NSArray<NSString*>*)submodelsForModel:(NSString*)modelName;
+
+// Phase J-5 (sidebar tabs) — ViewObjects visible in the active
+// layout group. Names of every view object whose layout_group
+// matches the active group (or "All Previews"), in
+// ViewObjectManager iteration order.
+- (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup;
+
+// Per-ViewObject summary. Keys mirror `modelLayoutSummary` where
+// the underlying BaseObject exposes the same field. All keys
+// NSString unless noted:
+//   "name"           — NSString
+//   "displayAs"      — NSString (object type, e.g. "Mesh", "Image")
+//   "layoutGroup"    — NSString
+//   "centerX"/"Y"/"Z" — NSNumber (double)
+//   "width"/"height"/"depth" — NSNumber (double)
+//   "rotateX"/"Y"/"Z" — NSNumber (double, degrees)
+//   "locked"         — NSNumber (BOOL)
+// Editable in J-6 (view-object save patcher landed). Supported
+// keys via `setLayoutViewObjectProperty:`:
+//   "centerX"/"Y"/"Z", "rotateX"/"Y"/"Z", "locked", "layoutGroup",
+//   "width"/"height"/"depth".
+- (nullable NSDictionary<NSString*, id>*)viewObjectLayoutSummary:(NSString*)name;
+
+// J-6 — mutate a single property on a view object. Returns YES
+// iff the value changed. Marks the object dirty for save (the
+// patcher rewrites WorldPos/Scale/Rotate/Locked/LayoutGroup
+// attributes on the `<view_object>` XML element).
+- (BOOL)setLayoutViewObjectProperty:(NSString*)name
+                                key:(NSString*)key
+                              value:(id)value;
+
+// J-12 — view object lifecycle. Type strings accepted by
+// `ViewObjectManager::CreateAndAddObject`: "Gridlines",
+// "Image", "Mesh", "Terrain", "Ruler". Names are auto-generated
+// by the manager (e.g. "Gridlines-1"). Returns the generated
+// name on success, nil on failure (invalid type / Ruler when
+// one already exists).
+- (nullable NSString*)createViewObjectWithType:(NSString*)type;
+
+// Delete a view object. Returns NO if the name doesn't resolve.
+// Background pseudo-object is never deletable.
+- (BOOL)deleteViewObject:(NSString*)name;
+
+// J-17 — rename a view object. Calls `ViewObjectManager::Rename`
+// (which updates the manager map). Sanitizes via
+// `Model::SafeModelName` to match group rename semantics.
+// Returns NO on collision / empty / 2D Background pseudo-object.
+- (BOOL)renameViewObject:(NSString*)oldName
+                      to:(NSString*)newName;
+
+// J-17 — shallow-copy duplicate of a view object. Round-trips
+// through `XmlSerializer::SerializeObject` → `CreateObject`,
+// generates a unique name via `GenerateObjectName`, offsets
+// world position by (+50, +50, 0). Returns the new name on
+// success, nil for the background pseudo or other failure.
+- (nullable NSString*)duplicateViewObject:(NSString*)name;
+
+// J-12 — types accepted by `createViewObjectWithType:`. Ruler
+// is filtered out when one already exists in the show (it's a
+// singleton). Order matches desktop's Objects → Add menu.
+- (NSArray<NSString*>*)availableViewObjectTypes;
+
+// J-7 (group CRUD) — model group lifecycle. Each method returns
+// YES on success, NO on validation failures (unknown names,
+// duplicate names, attempts to add a model to its own ancestor
+// group, …) and marks the group dirty / created / deleted as
+// appropriate for the next `saveLayoutChanges`.
+
+// Append `modelName` to `groupName`'s member list. No-op if the
+// model is already a direct member. Does NOT recurse — adding a
+// group to a group adds the group as a member, not its
+// children. Returns NO for unknown group/model.
+- (BOOL)addModel:(NSString*)modelName
+         toGroup:(NSString*)groupName;
+
+// Remove `modelName` from `groupName`'s member list. No-op if
+// not a member.
+- (BOOL)removeModel:(NSString*)modelName
+          fromGroup:(NSString*)groupName;
+
+// Create a new ModelGroup in the active layout group with the
+// curated defaults (layout="minimalGrid", gridSize=400,
+// DefaultCamera="2D"). Initial member list is `initialMembers`
+// (may be empty). Returns NO if `groupName` collides with an
+// existing model / group.
+- (BOOL)createModelGroup:(NSString*)groupName
+                  members:(nullable NSArray<NSString*>*)initialMembers;
+
+// Delete a ModelGroup. Returns NO if `groupName` doesn't resolve
+// to a ModelGroup. Any reference to the group elsewhere (other
+// groups containing this one) is NOT cleaned up — Reset on the
+// next layout reload handles it (matches desktop behaviour).
+- (BOOL)deleteModelGroup:(NSString*)groupName;
+
+// J-16 — rename a ModelGroup. `ModelManager::Rename` updates
+// every in-memory reference (other groups containing this one
+// get their member lists fixed); the save patcher uses the
+// stored old name to locate the on-disk `<modelGroup>` element
+// and rewrites its `name` attribute. The new name is sanitized
+// via `Model::SafeModelName` (strips `, ~ ! ; < > " ' & : | @ /
+// \ \t \r \n` + surrounding whitespace) before being applied,
+// so passing a name with illegal characters won't fail —
+// callers see the sanitized name take effect. Returns NO if
+// the sanitized name is empty, equal to the old name, or
+// collides with an existing model/group.
+- (BOOL)renameModelGroup:(NSString*)oldName
+                      to:(NSString*)newName;
+
+// J-16 — preview of the sanitized form of `name`. Mirrors
+// `Model::SafeModelName` so the SwiftUI sheets can show the
+// user what their input will be reduced to before they submit
+// (matches the desktop convention of silently stripping).
+- (NSString*)sanitizedModelName:(NSString*)name;
+
+// Phase J-6 (per-type properties) — descriptors for a model's
+// type-specific surface (Tree branches, Matrix strings, Star
+// points, etc.). Empty array if the model's type is unsupported
+// in this build.
+//
+// Each entry is an NSDictionary with these keys:
+//   "key"     — NSString stable id (matches desktop wxprop names
+//                so the iPad and desktop XML stay in sync).
+//   "label"   — NSString display name.
+//   "kind"    — NSString one of "int" | "double" | "bool" |
+//                "enum" | "string".
+//   "value"   — NSNumber for int/double/bool/enum (enum carries
+//                its option index); NSString for "string".
+//   "min"/"max" — NSNumber (optional, for int/double).
+//   "step"    — NSNumber (optional, for double).
+//   "precision" — NSNumber (optional, decimal places for double).
+//   "options" — NSArray<NSString*> (for enum).
+//   "enabled" — NSNumber (BOOL, optional, defaults YES).
+//   "help"    — NSString (optional one-liner).
+//   "group"   — NSString (optional section header for grouping).
+- (NSArray<NSDictionary*>*)perTypePropertiesForModel:(NSString*)modelName;
+
+// Set a per-type property by `key` (one of the keys returned by
+// `perTypePropertiesForModel:`). `value` is NSNumber for
+// int/double/bool/enum (enum carries the index), NSString for
+// "string". Returns YES iff the value changed. Triggers
+// `Reinitialize()` on the model so geometry / node count updates
+// reflect immediately, and marks the model dirty for save.
+- (BOOL)setPerTypeProperty:(NSString*)key
+                   onModel:(NSString*)modelName
+                     value:(id)value;
+
 // YES iff at least one layout-property edit is staged in memory
 // and not yet persisted. The Layout Editor uses this to gate a
 // "Save" button + warn-on-close.
@@ -948,6 +1274,17 @@ NS_ASSUME_NONNULL_BEGIN
 // a time. The drag handler pushes once at gesture-began, so a
 // single drag is one undo entry.
 - (void)pushLayoutUndoSnapshotForModel:(NSString*)modelName;
+
+// J-17 — push a view-object snapshot onto the same unified
+// undo stack the model path uses. UndoLast dispatches by entry
+// kind so one button reverts whatever the user did last.
+- (void)pushLayoutUndoSnapshotForViewObject:(NSString*)objectName;
+
+// J-17 — push a terrain VO's heightmap data onto the undo
+// stack. Heightmap edits are destructive (each tap mutates
+// PointData in place), so the tap handler calls this BEFORE
+// applying the brush.
+- (void)pushTerrainHeightmapUndoSnapshot:(NSString*)terrainName;
 
 // Pop and restore the most recent undo entry. Returns YES if a
 // snapshot was applied (model still exists, dirty marked); NO if

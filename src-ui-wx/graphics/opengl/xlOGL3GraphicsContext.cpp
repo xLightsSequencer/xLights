@@ -209,7 +209,18 @@ public:
 
     bool Init(const char * vs, const char * fs) {
 #ifndef __APPLE__
-        if (glCreateShader == nullptr) {
+        // Bail if any required GL entry point didn't resolve. Top of stack
+        // for the Windows null-deref bucket (5 reports / 4 reporters on
+        // 2026.07) — wglGetProcAddress can leave a subset of these null if
+        // it's called before the GL context is fully current, and the old
+        // single-pointer guard let partial-loads through. The functions
+        // listed are the ones Init+CompileShader+CreateProgram below call.
+        if (glCreateShader == nullptr || glCreateProgram == nullptr ||
+            glCompileShader == nullptr || glAttachShader == nullptr ||
+            glLinkProgram == nullptr || glShaderSource == nullptr ||
+            glUseProgram == nullptr || glGetUniformLocation == nullptr ||
+            glDeleteShader == nullptr) {
+            OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "ShaderProgram::Init: GL entry points not loaded; skipping shader init.");
             return false;
         }
 #endif
@@ -357,8 +368,16 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
 
     bool valid = true;
 
-    LOG_GL_ERRORV(LoadGLFunctions());
-    
+    // Capture the return value (was being discarded by LOG_GL_ERRORV). On
+    // Windows, a partial wglGetProcAddress run can leave a subset of GL
+    // function pointers null; we don't want to attempt shader compilation
+    // in that state. The downstream ShaderProgram::Init re-checks specific
+    // pointers but this gives a single early-out + diagnostic.
+    if (!LoadGLFunctions()) {
+        OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "InitializeSharedContext: LoadGLFunctions failed; GL entry points missing.");
+        return false;
+    }
+
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
     

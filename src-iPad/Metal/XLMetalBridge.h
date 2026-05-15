@@ -91,6 +91,95 @@ NS_ASSUME_NONNULL_BEGIN
 // without handles. Pass an empty array (or nil) to clear.
 - (void)setExtraSelectedModels:(nullable NSArray<NSString*>*)names;
 
+// Phase J-6 (sidebar canvas sync) — ModelGroup selection. Groups
+// are NOT in `GetModelsForActivePreview` (their members are
+// expanded), so they ride a parallel slot. When set, every
+// member of the group renders in the "group selected" tint
+// (cyan) so the user sees what's in the group without trying to
+// draw a meaningful "group bounding box" (groups don't have a
+// natural geometric extent). Empty / nil clears.
+- (void)setSelectedGroup:(nullable NSString*)name;
+
+// Phase J-6 (sidebar canvas sync) — ViewObject selection. View
+// objects (Mesh / Image / Gridlines / Terrain / Ruler) aren't
+// Models, so they need their own selection slot. When set, the
+// matching view object renders with `allowSelected=true` so its
+// ScreenLocation handles appear. Empty / nil clears.
+- (void)setSelectedViewObject:(nullable NSString*)name;
+
+// J-13 — hit-test view objects under a touch point. Mirrors
+// `pickModelAtScreenPoint` but searches `ViewObjectManager`
+// rather than `ModelManager`. Returns the topmost (last-drawn)
+// hit; nil for no hit. 2D and 3D supported.
+- (nullable NSString*)pickViewObjectAtScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                       forDocument:(XLSequenceDocument*)doc;
+
+// J-13 — 2D drag-to-move for view objects. Same delta-based
+// math as `moveModel:byDeltaDX:dY:viewSize:forDocument:`. The
+// caller passes incremental UI-point deltas; the bridge converts
+// to world units via the active 2D camera zoom + virtual scale
+// and writes through to `SetHcenterPos / SetVcenterPos`.
+// Honors locked + isFromBase + snap-to-grid. Marks the VO
+// dirty for save.
+- (BOOL)moveViewObject:(NSString*)name
+              byDeltaDX:(CGFloat)dx
+                     dY:(CGFloat)dy
+               viewSize:(CGSize)viewSize
+            forDocument:(XLSequenceDocument*)doc;
+
+// J-14 — handle-based endpoint drag for two-point view objects
+// (Ruler). Mirrors `pickHandleAtScreenPoint:` but hit-tests the
+// SELECTED VO's screen-location handles via the descriptor
+// pipeline. Opens a `_dragSession` on the matching handle id;
+// the existing `dragHandle:toScreenPoint:` routes touch updates
+// through it. `endHandleDragForDocument:` commits + marks the VO
+// dirty rather than a model.
+//
+// Returns the handle index (>= 0) on a hit, -1 on miss. Use the
+// same `dragHandle:` and `endHandleDragForDocument:` methods as
+// the model handle path — they auto-detect the VO target via
+// the new `_dragSessionViewObjectName` slot.
+- (NSInteger)pickViewObjectHandleAtScreenPoint:(CGPoint)point
+                                       viewSize:(CGSize)viewSize
+                                    forDocument:(XLSequenceDocument*)doc;
+
+// J-15 — 3D body-drag for view objects. Same plane-anchor math
+// as `beginBodyDrag3DForModel:` but targets a VO's screen
+// location. The existing `dragBody3DToScreenPoint:` and
+// `endBodyDrag3D` auto-route via a target-is-VO flag latched at
+// .began; no parallel apply/end methods are needed.
+- (BOOL)beginBodyDrag3DForViewObject:(NSString*)name
+                        atScreenPoint:(CGPoint)point
+                             viewSize:(CGSize)viewSize
+                          forDocument:(XLSequenceDocument*)doc;
+
+// J-15 — pinch-to-scale on a view object. Latches the saved
+// scale matrix; subsequent `applyPinchScaleFactor:` calls
+// multiply the saved matrix by the cumulative factor.
+- (BOOL)beginPinchScaleForViewObject:(NSString*)name
+                           forDocument:(XLSequenceDocument*)doc;
+
+// J-15 — two-finger twist on a view object. Cumulative-radians
+// gesture; the saved rotation is captured at .began and the
+// applied rotation is `saved + degrees(radians)`.
+- (BOOL)beginTwistRotateForViewObject:(NSString*)name
+                            forDocument:(XLSequenceDocument*)doc;
+
+// J-13 — Terrain heightmap edit. Maps a touch point onto the
+// terrain's (u,v) grid, raises (delta > 0) or lowers
+// (delta < 0) the nearest grid point by `delta` world units.
+// `brushRadiusPoints` is in screen points; >0 applies a falloff
+// to neighbouring grid points within that radius for a more
+// natural deformation (0 = single-point edit). Returns YES if
+// any point changed; NO for misses or non-Terrain targets.
+- (BOOL)editTerrainHeight:(NSString*)terrainName
+              atScreenPoint:(CGPoint)point
+                  viewSize:(CGSize)viewSize
+                     delta:(float)delta
+        brushRadiusPoints:(CGFloat)brushRadiusPoints
+               forDocument:(XLSequenceDocument*)doc;
+
 // Phase J-2 — Layout Editor in-canvas overlays. Per-bridge state
 // (not persisted to rgbeffects.xml in J-2). Initial values for
 // the LayoutEditor pane are seeded from iPadRenderContext's
@@ -392,6 +481,26 @@ NS_ASSUME_NONNULL_BEGIN
                   toLeader:(NSString*)leader
                  dimension:(NSString*)dim
                forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-7 (multi-select) — flip the selection 180° about the
+// chosen world axis. `axis`: @"horizontal" (about Y_AXIS) or
+// @"vertical" (about X_AXIS). Mirrors desktop's
+// `FlipHorizontal` / `FlipVertical` semantics. Each model
+// flips in place (about its own origin); to flip an arrangement
+// as a single rigid body, the user composes flip + align.
+// Returns YES if at least one model changed.
+- (BOOL)flipModels:(NSArray<NSString*>*)names
+              axis:(NSString*)axis
+       forDocument:(XLSequenceDocument*)doc;
+
+// Phase J-7 (multi-select) — duplicate each named model. Each
+// copy is offset by (+50, +50, 0) world units from the source so
+// it doesn't overlap, gets a unique name via
+// `ModelManager::GenerateModelName`, clears controller mapping,
+// and unlocks. Returns the new names in source order — caller
+// updates the multi-selection to the new set if desired.
+- (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
+                           forDocument:(XLSequenceDocument*)doc;
 
 // Diagnostic surface for the SwiftUI preview pane. `errorReason`
 // returns the most recent silent-fail reason (no Metal layer, 0×0

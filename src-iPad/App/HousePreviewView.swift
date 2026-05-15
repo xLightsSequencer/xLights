@@ -125,6 +125,7 @@ struct HousePreviewView: View {
 struct DetachedHousePreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -147,12 +148,18 @@ struct DetachedHousePreviewRoot: View {
             // F-1 restoration guard — if no token is waiting, this
             // scene was auto-restored by iPadOS on launch rather
             // than opened by the user. Dismiss ourselves so the
-            // app comes back to its main window only.
+            // app comes back to its main window only. Also open
+            // the sequencer scene first: when iPadOS picks this
+            // aux session as the connecting one (last-quit with
+            // House Preview open), the main session has already
+            // been destroyed by the AppDelegate cleanup and
+            // dismissing here would leave zero scenes.
             if viewModel.pendingDetachTokens.remove("house-preview") != nil {
                 viewModel.housePreviewDetached = true
             } else {
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "house-preview")
                 }
             }
@@ -226,6 +233,7 @@ struct ModelPreviewView: View {
 struct DetachedModelPreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -244,8 +252,11 @@ struct DetachedModelPreviewRoot: View {
             if viewModel.pendingDetachTokens.remove("model-preview") != nil {
                 viewModel.modelPreviewDetached = true
             } else {
+                // See DetachedHousePreviewRoot for why we open the
+                // sequencer first.
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "model-preview")
                 }
             }

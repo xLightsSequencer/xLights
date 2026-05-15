@@ -18,6 +18,7 @@
 #include "../graphics/xlGraphicsContext.h"
 #include "../graphics/xlGraphicsAccumulators.h"
 #include "Shapes.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/VectorMath.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
@@ -111,17 +112,21 @@ void PolyPointScreenLocation::SetCurve(int seg_num, bool create)
 
 void PolyPointScreenLocation::Init()
 {
-    if (std::isnan(worldPos_x)) worldPos_x = 0.0;
-    if (std::isnan(worldPos_y)) worldPos_y = 0.0;
-    if (std::isnan(worldPos_z)) worldPos_z = 0.0;
+    // Use xl::isnan/isinf — desktop+iPad Release builds with -ffast-math
+    // license clang to assume operands are finite and may elide std::isnan
+    // entirely. The helper wraps __builtin_isnan on clang/gcc and std::isnan
+    // on MSVC. See `src-core/utils/FloatChecks.h`.
+    if (xl::isnan(worldPos_x)) worldPos_x = 0.0;
+    if (xl::isnan(worldPos_y)) worldPos_y = 0.0;
+    if (xl::isnan(worldPos_z)) worldPos_z = 0.0;
 
-    if (scalex <= 0 || std::isinf(scalex) || std::isnan(scalex)) {
+    if (scalex <= 0 || xl::isinf(scalex) || xl::isnan(scalex)) {
         scalex = 1.0f;
     }
-    if (scaley <= 0 || std::isinf(scaley) || std::isnan(scaley)) {
+    if (scaley <= 0 || xl::isinf(scaley) || xl::isnan(scaley)) {
         scaley = 1.0f;
     }
-    if (scalez <= 0 || std::isinf(scalez) || std::isnan(scalez)) {
+    if (scalez <= 0 || xl::isinf(scalez) || xl::isnan(scalez)) {
         scalez = 1.0f;
     }
 

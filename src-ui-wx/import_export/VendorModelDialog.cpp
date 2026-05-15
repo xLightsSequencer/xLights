@@ -47,9 +47,6 @@ using MVendorCategory = vendor_catalog::Category;
 static wxColour TreeItemColourForModel(const MModel* m) {
     return m->HasDownloadableXmodel() ? CyanOrBlue() : wxColour(255, 128, 0);
 }
-static wxColour TreeItemColourForWiring(const MModelWiring* w) {
-    return w->HasDownloadableXmodel() ? CyanOrBlue() : wxColour(255, 128, 0);
-}
 
 // Extract the host portion ("example.com") from a URL string.
 // Replaces `wxURI::GetServer()` for the link-formatting paths.

@@ -2206,6 +2206,9 @@
     <ClInclude Include="..\src-core\utils\ip_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\utils\FloatChecks.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\DuplicateDialog.h" />
     <ClInclude Include="..\src-core\models\DMX\DmxColorAbilityCMY.h">
       <Filter>Models\DMX</Filter>

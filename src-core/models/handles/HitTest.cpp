@@ -39,7 +39,12 @@ std::optional<Hit> HitTest(
     const HitTestOptions& opts) {
 
     std::optional<Hit> best;
-    float bestDistSq = std::numeric_limits<float>::infinity();
+    // -ffast-math (set on the desktop Release build) implies
+    // -ffinite-math-only, under which the optimizer is allowed to
+    // assume no operand is infinity. With -O3 + LTO that turns this
+    // sentinel into 0 and the first valid hit fails `distSq < bestDistSq`
+    // — silently dropping every non-axis click. Use a finite sentinel.
+    float bestDistSq = std::numeric_limits<float>::max();
     bool  bestIsAxis = false;
     bool  bestIsSegment = false;
 

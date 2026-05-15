@@ -377,6 +377,7 @@ struct DetachedInspectorRoot: View {
     let tab: InspectorTab
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -410,12 +411,16 @@ struct DetachedInspectorRoot: View {
         .navigationTitle("\(tab.label) — Inspector")
         .onAppear {
             // F-1 restoration guard (see HousePreviewView for detail).
+            // Also open the sequencer first when this scene was the
+            // auto-restored connecting session — otherwise we leave
+            // zero scenes alive and the app goes to a black screen.
             let token = "inspector-tab:\(tab.rawValue)"
             if viewModel.pendingDetachTokens.remove(token) != nil {
                 viewModel.detachedInspectorTabs.insert(tab.rawValue)
             } else {
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "inspector-tab", value: tab)
                 }
             }

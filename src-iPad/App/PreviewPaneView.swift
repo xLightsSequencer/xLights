@@ -239,6 +239,23 @@ struct PreviewPaneView: UIViewRepresentable {
                     context.coordinator.lastPushedExtras = extrasKey
                     uiView.setNeedsDisplay()
                 }
+                // J-6 — Group + ViewObject sidebar selection.
+                // Cyan tint on group members; handles on the
+                // picked view object. Bridge holds the
+                // last-pushed value but we still diff in Swift
+                // so we only setNeedsDisplay when needed.
+                let newGroup = viewModel.layoutEditorSelectedGroup ?? ""
+                if context.coordinator.lastPushedGroup != newGroup {
+                    bridge.setSelectedGroup(viewModel.layoutEditorSelectedGroup)
+                    context.coordinator.lastPushedGroup = newGroup
+                    uiView.setNeedsDisplay()
+                }
+                let newObject = viewModel.layoutEditorSelectedObject ?? ""
+                if context.coordinator.lastPushedObject != newObject {
+                    bridge.setSelectedViewObject(viewModel.layoutEditorSelectedObject)
+                    context.coordinator.lastPushedObject = newObject
+                    uiView.setNeedsDisplay()
+                }
                 // Grid + canvas-bbox overlays. Bridge holds the last-
                 // pushed value and repaints on change.
                 if bridge.showLayoutGrid() != settings.showLayoutGrid {
@@ -295,11 +312,22 @@ struct PreviewPaneView: UIViewRepresentable {
         // J-4 (multi-select) — sorted-newline-joined extras keys.
         // Empty when the secondary selection is empty.
         var lastPushedExtras: String = ""
+        // J-6 (sidebar canvas sync) — last group / view-object name
+        // pushed into the bridge. Diff'd against the live view-model
+        // value so picking in another tab doesn't repaint when
+        // nothing relevant changed.
+        var lastPushedGroup: String = ""
+        var lastPushedObject: String = ""
         /// J-2 — true while a one-finger pan started on the
         /// LayoutEditor's selected model and is dragging the model
         /// rather than the camera. Set in .began, cleared in .ended.
         var draggingLayoutModel: Bool = false
         var layoutDragModelName: String? = nil
+        /// J-13 — drag-to-move a selected view object. Mirrors
+        /// `draggingLayoutModel` but routes through
+        /// `bridge.moveViewObject` rather than `moveModel`.
+        var draggingLayoutViewObject: Bool = false
+        var layoutDragViewObjectName: String? = nil
         /// J-2 — index of the resize handle being dragged
         /// (0..3 corners), -1 when not dragging a handle.
         /// Mutually exclusive with `draggingLayoutModel`.
@@ -619,6 +647,26 @@ struct PreviewPaneView: UIViewRepresentable {
                         viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
                     }
                 }
+                // J-15 — pinch-to-scale on a selected view object.
+                if !pinchingLayoutModel,
+                   previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let voSel = viewModel.layoutEditorSelectedObject,
+                   !voSel.isEmpty,
+                   voSel != "2D Background" {
+                    let centroid = recognizer.location(in: view)
+                    let voHit = bridge.pickViewObject(atScreenPoint: centroid,
+                                                       viewSize: view.bounds.size,
+                                                       for: viewModel.document)
+                    if voHit == voSel,
+                       bridge.beginPinchScale(forViewObject: voSel,
+                                               for: viewModel.document) {
+                        viewModel.document.pushLayoutUndoSnapshot(forViewObject: voSel)
+                        pinchingLayoutModel = true
+                        pinchScaleModelName = voSel
+                    }
+                }
                 if !pinchingLayoutModel {
                     pinchStartZoom = bridge.cameraZoom()
                     panStartX = bridge.cameraPanX()
@@ -729,7 +777,60 @@ struct PreviewPaneView: UIViewRepresentable {
                 // camera-pan behaviour.
                 draggingLayoutModel = false
                 draggingLayoutHandle = -1
+                draggingLayoutViewObject = false
+                layoutDragViewObjectName = nil
+                // J-13 — drag-to-move a selected view object (2D
+                // only for now). Checked BEFORE the model path so
+                // a VO under the touch wins when the user has it
+                // selected. 3D body-drag for VOs is deferred.
                 if previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let voSel = viewModel.layoutEditorSelectedObject,
+                   !voSel.isEmpty,
+                   voSel != "2D Background" {
+                    let touch = recognizer.location(in: view)
+                    let viewSize = view.bounds.size
+                    // J-14 — handle drag first (endpoints of a
+                    // two-point ruler, corners of a boxed VO).
+                    let voHandle = bridge.pickViewObjectHandle(atScreenPoint: touch,
+                                                                viewSize: viewSize,
+                                                                for: viewModel.document)
+                    if voHandle >= 0 {
+                        // J-17 — undo snapshot before the edit.
+                        viewModel.document.pushLayoutUndoSnapshot(forViewObject: voSel)
+                        draggingLayoutHandle = voHandle
+                        layoutDragModelName = voSel
+                        recognizer.setTranslation(.zero, in: view)
+                    } else {
+                        // J-13 (2D) / J-15 (3D) — body drag.
+                        let voHit = bridge.pickViewObject(atScreenPoint: touch,
+                                                           viewSize: viewSize,
+                                                           for: viewModel.document)
+                        if voHit == voSel {
+                            if bridge.is3D() {
+                                // 3D path uses the plane-anchor
+                                // session; absolute-touch deltas
+                                // are computed each .changed.
+                                if bridge.beginBodyDrag3D(forViewObject: voSel,
+                                                          atScreenPoint: touch,
+                                                          viewSize: viewSize,
+                                                          for: viewModel.document) {
+                                    viewModel.document.pushLayoutUndoSnapshot(forViewObject: voSel)
+                                    draggingLayoutViewObject = true
+                                    layoutDragViewObjectName = voSel
+                                }
+                            } else {
+                                viewModel.document.pushLayoutUndoSnapshot(forViewObject: voSel)
+                                draggingLayoutViewObject = true
+                                layoutDragViewObjectName = voSel
+                                recognizer.setTranslation(.zero, in: view)
+                            }
+                        }
+                    }
+                }
+                if previewNameForNotifications == "LayoutEditor",
+                   !draggingLayoutViewObject,
                    let viewModel,
                    let view = mtkView,
                    let sel = viewModel.layoutEditorSelectedModel,
@@ -781,7 +882,7 @@ struct PreviewPaneView: UIViewRepresentable {
                         }
                     }
                 }
-                if !draggingLayoutModel && draggingLayoutHandle < 0 {
+                if !draggingLayoutModel && draggingLayoutHandle < 0 && !draggingLayoutViewObject {
                     if bridge.is3D() {
                         orbitStartAngleX = bridge.cameraAngleX()
                         orbitStartAngleY = bridge.cameraAngleY()
@@ -791,6 +892,33 @@ struct PreviewPaneView: UIViewRepresentable {
                     }
                 }
             case .changed:
+                // J-13/J-15 — view-object body drag. Runs before
+                // the model paths so a VO drag doesn't fall
+                // through to camera-pan.
+                if draggingLayoutViewObject,
+                   let view = mtkView,
+                   let viewModel,
+                   let name = layoutDragViewObjectName {
+                    if bridge.is3D() {
+                        // 3D — absolute-touch math, bridge tracks
+                        // the latched plane anchor (shared with
+                        // the model path via _bodyDrag3D state).
+                        let touch = recognizer.location(in: view)
+                        bridge.dragBody3D(toScreenPoint: touch,
+                                          viewSize: view.bounds.size,
+                                          for: viewModel.document)
+                    } else {
+                        let t = recognizer.translation(in: view)
+                        bridge.moveViewObject(name,
+                                              byDeltaDX: t.x,
+                                              dY: t.y,
+                                              viewSize: view.bounds.size,
+                                              for: viewModel.document)
+                        recognizer.setTranslation(.zero, in: view)
+                    }
+                    mtkView?.setNeedsDisplay()
+                    return
+                }
                 if draggingLayoutHandle >= 0,
                    let view = mtkView,
                    let viewModel {
@@ -855,6 +983,22 @@ struct PreviewPaneView: UIViewRepresentable {
                         object: previewNameForNotifications,
                         userInfo: ["model": name])
                 }
+                if draggingLayoutViewObject,
+                   let voName = layoutDragViewObjectName {
+                    NotificationCenter.default.post(
+                        name: .layoutEditorModelMoved,
+                        object: previewNameForNotifications,
+                        userInfo: ["model": voName])
+                }
+                // J-15 — VO 3D body-drag uses the shared
+                // `_bodyDrag3D…` state on the bridge, so we have
+                // to close it here too. End-method clears the
+                // target-is-VO flag.
+                if draggingLayoutViewObject && bridge.is3D() {
+                    bridge.endBodyDrag3D()
+                }
+                draggingLayoutViewObject = false
+                layoutDragViewObjectName = nil
                 if draggingLayoutHandle >= 0,
                    let viewModel {
                     // Clear active_axis on the model so the next pick
@@ -899,6 +1043,26 @@ struct PreviewPaneView: UIViewRepresentable {
                         twistingLayoutModel = true
                         twistRotateModelName = sel
                         viewModel.document.pushLayoutUndoSnapshot(forModel: sel)
+                    }
+                }
+                // J-15 — twist on a selected view object → rotate Z.
+                if !twistingLayoutModel,
+                   previewNameForNotifications == "LayoutEditor",
+                   let viewModel,
+                   let view = mtkView,
+                   let voSel = viewModel.layoutEditorSelectedObject,
+                   !voSel.isEmpty,
+                   voSel != "2D Background" {
+                    let centroid = recognizer.location(in: view)
+                    let voHit = bridge.pickViewObject(atScreenPoint: centroid,
+                                                       viewSize: view.bounds.size,
+                                                       for: viewModel.document)
+                    if voHit == voSel,
+                       bridge.beginTwistRotate(forViewObject: voSel,
+                                                for: viewModel.document) {
+                        viewModel.document.pushLayoutUndoSnapshot(forViewObject: voSel)
+                        twistingLayoutModel = true
+                        twistRotateModelName = voSel
                     }
                 }
                 if !twistingLayoutModel {
@@ -1144,12 +1308,58 @@ struct PreviewPaneView: UIViewRepresentable {
                 view.setNeedsDisplay()
                 return
             }
+            // J-13 — heightmap edit short-circuit. When the user
+            // has armed terrain edit mode for a specific terrain,
+            // taps on the canvas modify its heightmap rather than
+            // selecting models. The bridge returns NO if the touch
+            // misses the terrain footprint, in which case we fall
+            // through to normal pick.
+            if let terrainName = viewModel.terrainEditTarget {
+                let signed = viewModel.terrainEditRaise
+                    ? viewModel.terrainEditDelta
+                    : -viewModel.terrainEditDelta
+                // J-17 — snapshot PointData BEFORE the edit so
+                // each tap is independently undoable.
+                viewModel.document.pushTerrainHeightmapUndoSnapshot(terrainName)
+                let ok = bridge.editTerrainHeight(terrainName,
+                                                   atScreenPoint: point,
+                                                   viewSize: size,
+                                                   delta: signed,
+                                                   brushRadiusPoints: viewModel.terrainEditBrushPoints,
+                                                   for: viewModel.document)
+                if ok {
+                    NotificationCenter.default.post(
+                        name: .layoutEditorModelMoved,
+                        object: previewNameForNotifications,
+                        userInfo: ["model": terrainName])
+                    view.setNeedsDisplay()
+                    return
+                }
+                // Miss falls through so the user can still tap
+                // elsewhere to select a different object.
+            }
             // Bridge hit-test returns the model name (or nil for empty
             // space). Tap on empty space deselects so the side panel
             // collapses its property form back to the model list.
             let hit = bridge.pickModel(atScreenPoint: point,
                                        viewSize: size,
                                        for: viewModel.document)
+            // J-13 — when no model is under the touch, try view
+            // objects. Selecting one flips the sidebar to the
+            // Objects tab via the J-11 mutex.
+            // J-20.6 — but only when the user is NOT actively on
+            // the Models tab. Otherwise tapping empty space picks
+            // up things like the House mesh, which is on the
+            // Objects tab — the user expects an empty-space tap
+            // to simply deselect.
+            if hit == nil && viewModel.layoutEditorActiveTab != "models" {
+                if let voHit = bridge.pickViewObject(atScreenPoint: point,
+                                                       viewSize: size,
+                                                       for: viewModel.document) {
+                    viewModel.layoutEditorSelectedObject = voHit
+                    return
+                }
+            }
             if viewModel.layoutEditMode {
                 // J-4 (multi-select) — toggle membership. Tap on
                 // empty space is treated as a no-op so the user

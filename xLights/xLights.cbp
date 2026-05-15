@@ -1367,6 +1367,7 @@
 		<Unit filename="../src-core/utils/GitUtils.h" />
 		<Unit filename="../src-core/utils/CurlManager.cpp" />
 		<Unit filename="../src-core/utils/CurlManager.h" />
+		<Unit filename="../src-core/utils/FloatChecks.h" />
 		<Unit filename="../src-core/utils/ip_utils.cpp" />
 		<Unit filename="../src-core/utils/ip_utils.h" />
 		<Unit filename="../src-core/utils/nanosvg_xl.h" />

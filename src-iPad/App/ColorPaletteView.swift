@@ -243,17 +243,13 @@ struct ColorPaletteView: View {
         var s = hex.trimmingCharacters(in: .whitespaces)
         if s.hasPrefix("#") { s.removeFirst() }
         guard s.count == 6 || s.count == 8, let val = UInt64(s, radix: 16) else { return nil }
-        let r, g, b: Double
-        if s.count == 6 {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        } else {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        }
-        return Color(red: r, green: g, blue: b)
+        let r = Double((val >> 16) & 0xFF) / 255.0
+        let g = Double((val >> 8) & 0xFF) / 255.0
+        let b = Double(val & 0xFF) / 255.0
+        // sRGB-pinned so exact #RRGGBB hex the user types
+        // round-trips identically — see ColorPanelCustomRows.swift's
+        // top-level colorFromHex for the full rationale.
+        return Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
     }
 
     // Inline gradient thumbnail for palette slots holding a

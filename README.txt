@@ -15,6 +15,33 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 layers when pasting multi-layer effects so the paste does not bleed into
                                 subsequent models or groups. Also adds "Copy Layers/SubModels to Models" option
                                 to copy effects to multiple models at once.
+    -bug (dkulp)                Audit/fix for fast-math hazard elsewhere: TempoDetector (could
+                                pick wrong tempo when autocorrelation peak was negative), ChordDetector
+                                key/chord scoring (latent), mapbox earcut polygon triangulation for OBJ
+                                mesh import. Also switched std::isnan/isinf/isfinite guards in
+                                BoxedScreenLocation, PolyPointScreenLocation, Model::sort, PixelBuffer
+                                RotoZoom, and the polyline length helper to __builtin_* equivalents so
+                                -ffinite-math-only no longer elides them.
+    -bug (dkulp)                OpenGL (Windows): check the LoadGLFunctions return value before initializing
+                                shaders, and check every required GL entry point (not just glCreateShader)
+                                inside ShaderProgram::Init.
+    -bug (dkulp)                EffectsPanel::SetDefaultEffectValues: null-check effectManager and
+                                effectPanelManager before iterating.
+    -bug (dkulp)                LayoutPanel::FinalizeModel: null-check the dynamic_cast<PolyLineModel*> of
+                                _newModel before calling ClearPolyLineCreate/GetNumHandles. 
+    -bug (dkulp)                LayoutPanel: null-check event.GetProperty() in OnPropertyGridChanging.
+                                wxPropertyGrid can fire CHANGING with a null property during a grid rebuild
+                                (the prior selection was already detached); the three CreateUndoPoint call
+                                sites that dereferenced it crashed under that race. 5 reports / 2 reporters
+                                on 2026.07, triggered by editing the BkgSizeWidth/Height background-size
+                                spinners while the layout group was being switched.
+    -bug (dkulp)                Layout preview: guard Model::DisplayModelOnWindow / DisplayEffectOnWindow
+                                against null Nodes and empty Coords in the non-depth-sort node-order
+                                builder. Top Mac crash bucket (24 reports): rendering a freshly-created
+                                Tree/Sphere/Cube _newModel during 3D drag-to-place hit UB before geometry
+                                was populated.
+    -enh (dkulp)                macOS crash report: capture every thread's backtrace at the moment of
+                                the crash into a new `all-threads.txt` file.
     -bug (dkulp)                Stem Separator crash: guard the CoreML inference call with @try/@catch and reject
                                 outputs whose strides have fewer dimensions than the shape.
     -bug (cybercop23)           Fix 3D shift+drag lasso selecting models outside the selection box, especially

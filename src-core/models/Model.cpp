@@ -37,6 +37,7 @@
 #include "../outputs/IPOutput.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/ip_utils.h"
 #include "../utils/NodeUtils.h"
 #include "../render/RenderContext.h"
@@ -2440,7 +2441,11 @@ int Model::GetChanCountPerNode() const
 
 uint32_t Model::GetCoordCount(size_t nodenum) const
 {
-    return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+    // Null-check Nodes[nodenum]: the slot can exist (in-range index) but
+    // point to a not-yet-initialised node when a model is being placed in
+    // the layout — _newModel can hit DisplayModelOnWindow before its node
+    // geometry has been populated.
+    return (nodenum < Nodes.size() && Nodes[nodenum]) ? Nodes[nodenum]->Coords.size() : 0;
 }
 
 int Model::GetNodeStringNumber(size_t nodenum) const
@@ -3080,7 +3085,11 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 }
                 const auto& c = Nodes[n]->Coords[0];
                 float z = axis.x * c.screenX + axis.y * c.screenY + axis.z * c.screenZ;
-                if (!std::isfinite(z)) {
+                // xl::isfinite: std::isfinite folds to `true` under
+                // -ffinite-math-only (Release -ffast-math) — without this,
+                // NaN keys reach std::sort below and break strict weak
+                // ordering (UB; observed crashes). See FloatChecks.h.
+                if (!xl::isfinite(z)) {
                     z = 0.0f;
                 }
                 keys.emplace_back(z, n);
@@ -3096,6 +3105,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             }
             cache->viewSortAxis = currentSortAxis;
         } else {
+            // Mirror the depth-sort branch's guard: nodes with null entries
+            // or empty Coords contribute no geometry. Without this, a fresh
+            // _newModel (Tree/Sphere/Cube subclasses override NodeRenderOrder
+            // to 1) being rendered from the ASAP-work queue during a 3D
+            // LayoutPanel drag will dereference Nodes[n]->Coords[0].bufX
+            // below before the model's nodes have their coords populated.
+            // Top Mac crash bucket as of 2026.08, 24+ reports.
             int first = 0;
             int last = NodeCount;
             int buffFirst = -1;
@@ -3106,9 +3122,18 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (left) {
                     n = first;
                     first++;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        // Skip over a leading run of empty-coord nodes when
+                        // looking ahead to flip direction; otherwise the peek
+                        // at Nodes[first]->Coords[0] could trip the same UB.
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3117,8 +3142,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 } else {
                     last--;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    // Same look-ahead protection for the tail-walk direction.
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
@@ -3492,16 +3524,26 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             int buffFirst = -1;
             int buffLast = -1;
             bool left = true;
-            
+
             int nodeRenderOrder = NodeRenderOrder();
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
                     ++first;
+                    // Same guard as the DisplayModelOnWindow counterpart:
+                    // a freshly-created model may have null Nodes[n] or
+                    // empty Coords until placement completes; the
+                    // Nodes[n]->Coords[0].bufX peeks below would deref UB.
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3510,8 +3552,14 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 } else {
                     --last;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
