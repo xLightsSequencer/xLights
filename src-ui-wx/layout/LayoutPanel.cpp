@@ -4722,7 +4722,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // For multi-model xmodel files (<models> root with multiple children), load
             // each additional sibling into additionalModelObjects so FinalizeModel can
             // place them alongside the primary model.
-            if (additionalModelObjects != nullptr && std::string_view(root.name()) == "models") {
+            if (additionalModelObjects != nullptr && strcmp(root.name(), "models") == 0) {
                 for (pugi::xml_node child = root.first_child().next_sibling(); child; child = child.next_sibling()) {
                     bool extraCancelled = false;
                     xlights->GetOutputModelManager()->DisableASAPWork(true);

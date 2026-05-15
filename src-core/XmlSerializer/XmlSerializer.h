@@ -182,6 +182,7 @@ struct XmlSerializer {
             model->Accept(visitor);
             if (includeGroups) {
                 XmlSerialize::SerializeModelGroupsForModel(model, docNode);
+                XmlSerialize::AddDimensions(docNode, model);
             }
         }
 
