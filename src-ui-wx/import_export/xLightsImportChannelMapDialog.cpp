@@ -15,8 +15,11 @@
  //*)
 
 #include <wx/wfstream.h>
+#include <wx/scrolwin.h>
+#include <wx/wrapsizer.h>
 #include <wx/txtstrm.h>
 #include <wx/progdlg.h>
+#include <wx/dcbuffer.h>
 #include <wx/msgdlg.h>
 #include <wx/colordlg.h>
 #include <wx/regex.h>
@@ -182,6 +185,57 @@ public:
 
 //wxColourData ColorRenderer::_colorData;
 
+class TimingPillButton : public wxWindow {
+public:
+    wxString _label;
+    bool _selected = true;
+
+    TimingPillButton(wxWindow* parent, const wxString& label, bool selected)
+        : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        , _label(label), _selected(selected)
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        Bind(wxEVT_PAINT, &TimingPillButton::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, &TimingPillButton::OnClick, this);
+        wxSize ts = GetTextExtent(_label);
+        SetMinSize(wxSize(ts.x + 20, ts.y + 10));
+    }
+
+    bool IsSelected() const { return _selected; }
+    void SetSelected(bool sel) { _selected = sel; Refresh(); Update(); }
+
+private:
+    void OnPaint(wxPaintEvent&) {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+        dc.Clear();
+        wxRect rect = GetClientRect();
+        rect.Deflate(1, 1);
+        wxColour bg, fg;
+        if (_selected) {
+            bg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
+            fg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+        } else {
+            bg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+            fg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT);
+        }
+        dc.SetBrush(wxBrush(bg));
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.DrawRoundedRectangle(rect, rect.height / 2);
+        dc.SetTextForeground(fg);
+        dc.SetFont(GetFont());
+        dc.DrawLabel(_label, rect, wxALIGN_CENTER);
+    }
+
+    void OnClick(wxMouseEvent&) {
+        _selected = !_selected;
+        Refresh(); Update();
+        wxCommandEvent evt(wxEVT_BUTTON, GetId());
+        evt.SetEventObject(this);
+        ProcessWindowEvent(evt);
+    }
+};
+
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
 }
@@ -203,6 +257,14 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
     if (node->IsGroup()) {
         attr.SetColour(ColorManager::instance()->CyanOrBlueOverride());
         set = true;
+    }
+
+    if (col == 2 && node->_mapping.empty() && node->GetParent() == nullptr && node->HasMapping()) {
+        bool expanded = _ctrl && _ctrl->IsExpanded(wxDataViewItem(const_cast<xLightsImportModelNode*>(node)));
+        if (!expanded) {
+            attr.SetColour(wxColour(160, 160, 160));
+            set = true;
+        }
     }
 
     return set;
@@ -343,7 +405,12 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
             variant = wxVariant(node->_effectCount > 0 ? wxString::Format("%d", node->_effectCount) : "");
             break;
         case 2:
-            variant = wxVariant(node->_mapping);
+            if (node->_mapping.empty() && node->GetParent() == nullptr && node->HasMapping()) {
+                bool expanded = _ctrl && _ctrl->IsExpanded(item);
+                variant = wxVariant(expanded ? wxString("") : wxString("(submodel mapping)"));
+            } else {
+                variant = wxVariant(node->_mapping);
+            }
             break;
         case 3:
             variant = wxVariant(node->_mappingModelType);
@@ -421,26 +488,25 @@ bool xLightsImportTreeModel::IsContainer(const wxDataViewItem &item) const
 unsigned int xLightsImportTreeModel::GetChildren(const wxDataViewItem &parent,
     wxDataViewItemArray &array) const
 {
-    unsigned int count;
     xLightsImportModelNode *node = (xLightsImportModelNode*)parent.GetID();
     if (!node) {
-        count = m_children.size();
+        unsigned int count = m_children.size();
         for (unsigned int pos = 0; pos < count; ++pos) {
-            xLightsImportModelNode *child = m_children.Item(pos);
-            array.Add(wxDataViewItem((void*)child));
+            array.Add(wxDataViewItem((void*)m_children.Item(pos)));
         }
+        return count;
     } else {
         if (node->GetChildCount() == 0) {
             return 0;
         }
 
-        count = node->GetChildren().GetCount();
-        for (unsigned int pos = 0; pos < count; ++pos) {
+        for (unsigned int pos = 0; pos < node->GetChildren().GetCount(); ++pos) {
             xLightsImportModelNode *child = node->GetChildren().Item(pos);
+            if (_hideUnmapped && !child->HasMapping()) continue;
             array.Add(wxDataViewItem((void*)child));
         }
+        return array.size();
     }
-    return count;
 }
 
 wxDataViewItem xLightsImportTreeModel::GetNthItem(unsigned int n) const
@@ -952,8 +1018,12 @@ void xLightsImportChannelMapDialog::ShowAllMapped()
 
 void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
 {
+    bool checked = (event.GetId() == ID_MNU_SELECTALL);
     for (unsigned int i = 0; i < TimingTrackListBox->GetCount(); ++i) {
-        TimingTrackListBox->Check(i, event.GetId() == ID_MNU_SELECTALL);
+        TimingTrackListBox->Check(i, checked);
+    }
+    for (auto* btn : _timingPillButtons) {
+        static_cast<TimingPillButton*>(btn)->SetSelected(checked);
     }
 }
 
@@ -1003,12 +1073,61 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (timingTracks.empty() || !_allowTimingTrack) {
         Sizer1->Hide(TimingTrackPanel, true);
     } else {
-        for (const auto& it : timingTracks) {
-            int item = TimingTrackListBox->Append(it);
-            if (!timingTrackAlreadyExists[it]) {
-                TimingTrackListBox->Check(item, true);
-            }
+        // Replace the checklistbox with scrollable pill-style toggle buttons.
+        // TimingTrackListBox stays hidden and is kept in sync — callers in
+        // ImportEffects.cpp read it directly, so we must not remove it.
+        TimingTrackPanel->Detach(TimingTrackListBox);
+        TimingTrackListBox->Show(false);
+
+        wxScrolledWindow* pillScrollWin = new wxScrolledWindow(Panel1, wxID_ANY,
+            wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxBORDER_NONE);
+        pillScrollWin->SetBackgroundColour(Panel1->GetBackgroundColour());
+        pillScrollWin->SetScrollRate(0, 5);
+        // 0 flags: disable wxEXTEND_LAST_ON_EACH_LINE so pills keep their natural width
+        wxWrapSizer* pillSizer = new wxWrapSizer(wxHORIZONTAL, 0);
+        pillScrollWin->SetSizer(pillSizer);
+
+        for (int i = 0; i < (int)timingTracks.size(); ++i) {
+            bool checked = !timingTrackAlreadyExists[timingTracks[i]];
+            int item = TimingTrackListBox->Append(timingTracks[i]);
+            TimingTrackListBox->Check(item, checked);
+
+            auto* pill = new TimingPillButton(pillScrollWin, timingTracks[i], checked);
+            pillSizer->Add(pill, 0, wxALL, 3);
+            _timingPillButtons.push_back(pill);
+
+            int trackIdx = i;
+            pill->Bind(wxEVT_BUTTON, [this, trackIdx](wxCommandEvent&) {
+                TimingTrackListBox->Check(trackIdx,
+                    static_cast<TimingPillButton*>(_timingPillButtons[trackIdx])->IsSelected());
+            });
         }
+
+        // Fix height to exactly 2 rows based on actual pill height; scroll for more.
+        if (!_timingPillButtons.empty()) {
+            int pillH = static_cast<TimingPillButton*>(_timingPillButtons[0])->GetMinSize().GetHeight();
+            int twoRowH = (pillH + 6) * 2; // 6 = 3px top + 3px bottom padding per pill
+            pillScrollWin->SetMinSize(wxSize(-1, twoRowH));
+            pillScrollWin->SetMaxSize(wxSize(-1, twoRowH));
+        }
+
+        // On resize, re-wrap pills and update the scrollable virtual height.
+        pillScrollWin->Bind(wxEVT_SIZE, [pillScrollWin, pillSizer](wxSizeEvent& evt) {
+            evt.Skip();
+            int w = pillScrollWin->GetClientSize().GetWidth();
+            if (w > 0) {
+                pillSizer->InformFirstDirection(wxHORIZONTAL, w, -1);
+                wxSize minSz = pillSizer->CalcMin();
+                pillScrollWin->SetVirtualSize(w, minSz.GetHeight());
+            }
+            pillScrollWin->Layout();
+        });
+
+        TimingTrackPanel->Add(pillScrollWin, 1, wxEXPAND | wxALL, 3);
+
+        pillScrollWin->Bind(wxEVT_CONTEXT_MENU, [this](wxContextMenuEvent& evt) {
+            RightClickTimingTracks(evt);
+        });
     }
 
     if (!checkboxText.empty()) {
@@ -1019,9 +1138,43 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         Sizer1->Hide(FlexGridSizer_Blend_Mode, true);
     }
 
-    wxVector<wxBitmapBundle> images;
-    LayoutUtils::CreateImageList(images, m_iconIndexMap);
-    ListCtrl_Available->SetSmallImages(images);
+    {
+        wxSizer* findSizer = TextCtrl_FindTo->GetContainingSizer();
+        if (findSizer != nullptr) {
+            findSizer->Detach(TextCtrl_FindTo);
+            wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
+            findRowSizer->Add(TextCtrl_FindTo, 1, wxEXPAND | wxRIGHT, 5);
+            CheckBox_HideUnmapped = new wxCheckBox(Panel1, wxID_ANY, _("Hide Unmapped"));
+            findRowSizer->Add(CheckBox_HideUnmapped, 0, wxALIGN_CENTER_VERTICAL);
+            findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
+            findSizer->Layout();
+            Sizer1->Layout();
+            CheckBox_HideUnmapped->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+                if (_dataModel == nullptr) return;
+                _dataModel->SetHideUnmapped(CheckBox_HideUnmapped->IsChecked());
+                _dataModel->Cleared();
+            });
+        }
+    }
+
+    if (_sequenceDurationMS > 0) {
+        wxSizer* findSizer = TextCtrl_FindFrom->GetContainingSizer();
+        if (findSizer != nullptr) {
+            findSizer->Detach(TextCtrl_FindFrom);
+            wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
+            findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
+            CheckBox_ShowTimeline = new wxCheckBox(Panel2, wxID_ANY, _("Show Timeline"));
+            CheckBox_ShowTimeline->SetValue(true);
+            findRowSizer->Add(CheckBox_ShowTimeline, 0, wxALIGN_CENTER_VERTICAL);
+            findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
+            findSizer->Layout();
+            Sizer2->Layout();
+            CheckBox_ShowTimeline->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+                PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
+            });
+        }
+    }
+
     PopulateAvailable(false);
 
     _dataModel = new xLightsImportTreeModel();
@@ -1046,11 +1199,18 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping = new wxDataViewCtrl(Panel1, ID_TREELISTCTRL1, wxDefaultPosition, wxDefaultSize, wxDV_HORIZ_RULES | wxDV_VERT_RULES | wxDV_MULTIPLE, wxDefaultValidator);
     TreeListCtrl_Mapping->Freeze();
     TreeListCtrl_Mapping->AssociateModel(_dataModel);
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
+    _dataModel->SetCtrl(TreeListCtrl_Mapping);
+    TreeListCtrl_Mapping->Bind(wxEVT_DATAVIEW_ITEM_EXPANDED, [this](wxDataViewEvent& evt) {
+        _dataModel->ItemChanged(evt.GetItem());
+    });
+    TreeListCtrl_Mapping->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED, [this](wxDataViewEvent& evt) {
+        _dataModel->ItemChanged(evt.GetItem());
+    });
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model",new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT, wxALIGN_LEFT), 0, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
     TreeListCtrl_Mapping->GetColumn(0)->SetSortOrder(true);
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("# Effects", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL), 1, wxCOL_WIDTH_AUTOSIZE, wxALIGN_RIGHT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("# Effects", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_CENTER | wxALIGN_CENTER_VERTICAL), 1, 60, wxALIGN_RIGHT, wxDATAVIEW_COL_RESIZABLE));
     TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Map To", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 2, 150, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model Type", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 3, wxCOL_WIDTH_AUTOSIZE, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+    TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Model Type", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL), 3, 150, wxALIGN_LEFT, 0));
     if (_allowColorChoice) {
         TreeListCtrl_Mapping->AppendColumn(new wxDataViewColumn("Color", new ColorRenderer(), 4, 100, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
     }
@@ -1083,6 +1243,69 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     TreeListCtrl_Mapping->GetColumn(0)->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     TreeListCtrl_Mapping->Thaw();
     TreeListCtrl_Mapping->Refresh();
+
+    // Keep "Map To" (col 2) stretched to fill remaining width so no phantom
+    // gap column appears when column sum is less than the control width.
+    auto stretchMapToCol = [this]() {
+        if (TreeListCtrl_Mapping == nullptr || TreeListCtrl_Mapping->GetColumnCount() < 4) return;
+        int w = TreeListCtrl_Mapping->GetClientSize().GetWidth();
+        int fixed = TreeListCtrl_Mapping->GetColumn(0)->GetWidth()
+                  + TreeListCtrl_Mapping->GetColumn(1)->GetWidth()
+                  + TreeListCtrl_Mapping->GetColumn(3)->GetWidth();
+        if (_allowColorChoice && TreeListCtrl_Mapping->GetColumnCount() > 4)
+            fixed += TreeListCtrl_Mapping->GetColumn(4)->GetWidth();
+        int mapToW = w - fixed - 4;
+        if (mapToW > 60)
+            TreeListCtrl_Mapping->GetColumn(2)->SetWidth(mapToW);
+    };
+    TreeListCtrl_Mapping->Bind(wxEVT_SIZE, [stretchMapToCol](wxSizeEvent& evt) {
+        evt.Skip();
+        stretchMapToCol();
+    });
+    ListCtrl_Available->Bind(wxEVT_LIST_COL_BEGIN_DRAG, [this](wxListEvent& evt) {
+        if (_timelineCol >= 0 && evt.GetColumn() == _timelineCol)
+            evt.Veto();
+        else
+            evt.Skip();
+    });
+
+    // Defer sash positioning until the dialog is fully laid out so column
+    // widths and panel sizes reflect the actual rendered dimensions.
+    // Goal: give Map To and the Available name column equal visible width —
+    // Map To values are model names sourced from that column.
+    CallAfter([this, stretchMapToCol]() {
+        if (SplitterWindow1 == nullptr || ListCtrl_Available == nullptr ||
+            TreeListCtrl_Mapping == nullptr) return;
+        int totalW = SplitterWindow1->GetClientSize().GetWidth();
+        int sashW = SplitterWindow1->GetSashSize();
+        if (totalW <= 0) return;
+
+        // Fixed columns in the mapping tree (everything except Map To, col 2).
+        int mappingFixed = TreeListCtrl_Mapping->GetColumn(0)->GetWidth()
+                         + TreeListCtrl_Mapping->GetColumn(1)->GetWidth()
+                         + TreeListCtrl_Mapping->GetColumn(3)->GetWidth()
+                         + 20; // scrollbar + panel borders
+        if (_allowColorChoice && TreeListCtrl_Mapping->GetColumnCount() > 4)
+            mappingFixed += TreeListCtrl_Mapping->GetColumn(4)->GetWidth();
+
+        // Fixed columns in the Available list (everything except the name, col 1).
+        // Guard: only add col 2 as the effects column when it is NOT the timeline
+        // column — if effects were absent their column was deleted and timeline
+        // shifted to col 2, which the _timelineCol branch below already adds.
+        int availFixed = ListCtrl_Available->GetColumnWidth(0) + 20; // icon + scrollbar/borders
+        if (ListCtrl_Available->GetColumnCount() > 2 && _timelineCol != 2)
+            availFixed += ListCtrl_Available->GetColumnWidth(2);
+        if (_timelineCol >= 0 && _timelineCol < ListCtrl_Available->GetColumnCount())
+            availFixed += ListCtrl_Available->GetColumnWidth(_timelineCol);
+
+        // Symmetric: each "name" column gets half the remaining space.
+        int sharedW = (totalW - mappingFixed - availFixed - sashW) / 2;
+        sharedW = std::max(sharedW, 150);
+
+        SplitterWindow1->SetSashPosition(mappingFixed + sharedW);
+        stretchMapToCol();
+    });
+    stretchMapToCol();
 
     if (_dataModel->GetChildCount() == 0) {
         DisplayError("No models to import to. Add some models to the rows of the effects grid.");
@@ -1125,17 +1348,22 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     ListCtrl_Available->Freeze();
     ListCtrl_Available->ClearAll();
 
-    // load the available list
-    ListCtrl_Available->AppendColumn("Available");
-    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    if (ListCtrl_Available->GetColumnWidth(0) < 150) {
-        ListCtrl_Available->SetColumnWidth(0, 150);
-    }
+    // Col 0: narrow icon column (always present, fixed 20px, no header text).
+    // Col 1: "Available" name column.
+    // Col 2: "# Effects" (optional).
+    // Col 3: "Timeline"  (optional, when showTimeline=true).
+    // Keeping the icon in its own column avoids the wxListCtrl image-list size-
+    // normalisation issue: the icon list (16×16) and the timeline list (200×18)
+    // stay in separate code paths, never mixed in one SetSmallImages call.
+    ListCtrl_Available->AppendColumn("");          // col 0: icon
+    ListCtrl_Available->SetColumnWidth(0, 25);
+    ListCtrl_Available->AppendColumn("Available"); // col 1: name
 
     if (ccr) {
         int j{0};
         for (auto const& name : ccrNames) {
-            ListCtrl_Available->InsertItem(j, name);
+            ListCtrl_Available->InsertItem(j, "");    // col 0 (icon col)
+            ListCtrl_Available->SetItem(j, 1, name); // col 1 (name)
             ListCtrl_Available->SetItemData(j, j);
             ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             j++;
@@ -1143,47 +1371,116 @@ void xLightsImportChannelMapDialog::PopulateAvailable(bool ccr)
     } else {
         int j{0};
 
-        int colIndex = ListCtrl_Available->AppendColumn("# Effects");
+        bool showTimeline = _sequenceDurationMS > 0 &&
+                            CheckBox_ShowTimeline != nullptr &&
+                            CheckBox_ShowTimeline->GetValue();
+
+        const int TIMELINE_W = 200;
+        const int TIMELINE_H = 18;
+        const int ICON_W = 16;
+        int timelineColIdx = -1;
+        _channelImageMap.clear();
+
+        if (showTimeline) {
+            // Build a combined image list where ALL images are TIMELINE_W × TIMELINE_H
+            // (200×18).  The first N entries are padded icon images (icon drawn at the
+            // left edge, background filling the rest); the next M entries are timeline
+            // bitmaps.  Because every image in the list is the same size macOS will not
+            // normalise/scale them.  Col 0 is fixed at 20 px so only the leftmost 20 px
+            // of each 200 px padded-icon image is visible — which is exactly the icon.
+            std::map<int, int> tempIconMap;
+            wxVector<wxBitmapBundle> iconBundles;
+            LayoutUtils::CreateImageList(iconBundles, tempIconMap);
+            m_iconIndexMap = tempIconMap;
+
+            wxVector<wxBitmapBundle> images;
+            wxColour bgColor = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX);
+            for (size_t k = 0; k < iconBundles.size(); ++k) {
+                wxBitmap iconBmp = iconBundles[k].GetBitmap(wxSize(ICON_W, ICON_W));
+                wxBitmap padded(TIMELINE_W, TIMELINE_H);
+                {
+                    wxMemoryDC dc;
+                    dc.SelectObject(padded);
+                    dc.SetBackground(wxBrush(bgColor));
+                    dc.Clear();
+                    if (iconBmp.IsOk()) {
+                        dc.DrawBitmap(iconBmp, 0, (TIMELINE_H - ICON_W) / 2);
+                    }
+                    dc.SelectObject(wxNullBitmap);
+                }
+                images.push_back(wxBitmapBundle::FromBitmap(padded));
+            }
+            int iconCount = static_cast<int>(images.size());
+            int idx = 0;
+            for (auto const& m : importChannels) {
+                wxBitmap bmp = GenerateTimelineBitmap(TIMELINE_W, TIMELINE_H, m->effectIntervals, _sequenceDurationMS);
+                images.push_back(wxBitmapBundle::FromBitmap(bmp));
+                _channelImageMap[m.get()] = iconCount + idx++;
+            }
+            ListCtrl_Available->SetSmallImages(images);
+        } else {
+            wxVector<wxBitmapBundle> images;
+            LayoutUtils::CreateImageList(images, m_iconIndexMap);
+            ListCtrl_Available->SetSmallImages(images);
+            _timelineCol = -1;
+        }
+
+        int colIndex = ListCtrl_Available->AppendColumn("# Effects"); // col 2
         wxListItem column;
         column.SetId(colIndex);
         column.SetAlign(wxLIST_FORMAT_CENTER);
         ListCtrl_Available->SetColumn(colIndex, column);
 
+        if (showTimeline) {
+            timelineColIdx = ListCtrl_Available->AppendColumn("Timeline"); // col 3
+            _timelineCol = timelineColIdx;
+            ListCtrl_Available->SetColumnWidth(timelineColIdx, TIMELINE_W);
+        }
+
         bool countEnabled{false};
         for (auto const& m : importChannels) {
-            ListCtrl_Available->InsertItem(j, m->name);
+            ListCtrl_Available->InsertItem(j, "");       // col 0 (icon)
+            ListCtrl_Available->SetItem(j, 1, m->name); // col 1 (name)
             wxUIntPtr ptr = (wxUIntPtr)m.get();
             ListCtrl_Available->SetItemPtrData(j, ptr);
+            // Always set icon in col 0 (works for both showTimeline states).
+            // Fall back to SubModel icon for slashed names (Model/SubModel) that
+            // don't carry an explicit type from the source file.
             if (!m->type.empty()) {
                 ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::GetModelTreeIcon(m->type, LayoutUtils::GroupMode::Regular)]);
+            } else if (m->name.find('/') != std::string::npos) {
+                ListCtrl_Available->SetItemColumnImage(j, 0, m_iconIndexMap[LayoutUtils::Icon_SubModel]);
             } else {
                 ListCtrl_Available->SetItemColumnImage(j, 0, -1);
             }
             if (m->effectCount != 0) {
-                ListCtrl_Available->SetItem(j, 1, wxString::Format("%d", m->effectCount));
+                ListCtrl_Available->SetItem(j, 2, wxString::Format("%d", m->effectCount)); // col 2
                 countEnabled = true;
             }
-
-            // If importing from xsqPkg flag known groups by color like is currently done in mapped list
             if (m->type == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(j, ColorManager::instance()->CyanOrBlueOverride());
             }
             j++;
         }
         if (!countEnabled) {
-            ListCtrl_Available->DeleteColumn(1);
+            ListCtrl_Available->DeleteColumn(2); // delete # Effects (col 2)
+            if (_timelineCol > 2) _timelineCol--;
+        } else {
+            ListCtrl_Available->SetColumnWidth(colIndex, 60);
         }
     }
 
     _sortOrder = 1;
 
     ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-    ListCtrl_Available->ShowSortIndicator(0, true);
+    ListCtrl_Available->ShowSortIndicator(1, true); // name is col 1
+    RefreshTimelineColumnImages();
 
-    // Set Autosize Width after it is populated or it doesn't work
-    ListCtrl_Available->SetColumnWidth(0, wxLIST_AUTOSIZE);
-    if (ListCtrl_Available->GetColumnWidth(0) < 150) {
-        ListCtrl_Available->SetColumnWidth(0, 150);
+    // Auto-size the name column (col 1) after population
+    ListCtrl_Available->SetColumnWidth(0, 25); // keep icon col fixed
+    ListCtrl_Available->SetColumnWidth(1, wxLIST_AUTOSIZE);
+    if (ListCtrl_Available->GetColumnWidth(1) < 150) {
+        ListCtrl_Available->SetColumnWidth(1, 150);
     }
 
     ListCtrl_Available->Thaw();
@@ -1358,7 +1655,7 @@ void xLightsImportChannelMapDialog::OnItemActivated(wxDataViewEvent& event)
         TreeListCtrl_Mapping->Select(event.GetItem());
         if (mapped == "" && ListCtrl_Available->GetSelectedItemCount() > 0) {
             int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-            Map(event.GetItem(), ListCtrl_Available->GetItemText(itemIndex).ToStdString(), findModelType(ListCtrl_Available->GetItemText(itemIndex)));
+            Map(event.GetItem(), ListCtrl_Available->GetItemText(itemIndex, 1).ToStdString(), findModelType(ListCtrl_Available->GetItemText(itemIndex, 1)));
         } else {
             Unmap(event.GetItem());
         }
@@ -1453,6 +1750,14 @@ wxDataViewItem xLightsImportChannelMapDialog::FindItem(std::string const& model,
     }
 
     return wxDataViewItem(nullptr);
+}
+
+long xLightsImportChannelMapDialog::FindAvailableByName(const wxString& name) const
+{
+    for (long i = 0; i < ListCtrl_Available->GetItemCount(); ++i) {
+        if (ListCtrl_Available->GetItemText(i, 1) == name) return i;
+    }
+    return -1;
 }
 
 xLightsImportModelNode* xLightsImportChannelMapDialog::TreeContainsModel(std::string const& model, std::string const& strand, std::string const& node)
@@ -1618,13 +1923,16 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             if (auto const& idx{ std::find(timingTracks.begin(), timingTracks.end(), ttname) }; idx != timingTracks.end()) {
                 auto index = std::distance(timingTracks.begin(), idx);
                 TimingTrackListBox->Check(index, ttenabled);
+                if (index < (long)_timingPillButtons.size()) {
+                    static_cast<TimingPillButton*>(_timingPillButtons[index])->SetSelected(ttenabled);
+                }
             }
         }
     }
 
     auto SetMapping = [&](wxString const& mapping, wxDataViewItem item, wxColor const& color) {
         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
     };
@@ -1785,19 +2093,19 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
                     if (mni != nullptr) {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant( findModelType(mapping)), item, 3);
                     } else if (msi != nullptr) {
                         wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
                     } else {
                         wxDataViewItem item = FindItem(model.ToStdString());
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, ListCtrl_Available->FindItem(0, mapping) >= 0);
+                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
                         TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
                     }
@@ -2168,28 +2476,35 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect(wxListEvent& 
 void xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick(wxListEvent& event)
 {
     if (event.m_col == 0) {
+        return; // icon column — not sortable
+    }
+    if (_timelineCol >= 0 && event.m_col == _timelineCol) {
+        return;
+    }
+    if (event.m_col == 1) { // name column
         if (_sortOrder == 0) {
             _sortOrder = 1;
             ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-            ListCtrl_Available->ShowSortIndicator(0, true);
+            ListCtrl_Available->ShowSortIndicator(1, true);
          } else {
             _sortOrder = 0;
             ListCtrl_Available->SortItems(MyCompareFunctionDescName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-            ListCtrl_Available->ShowSortIndicator(0, false);
+            ListCtrl_Available->ShowSortIndicator(1, false);
         }
-    } else if (event.m_col == 1) {
+    } else if (event.m_col == 2) { // # effects column
         if (_sortOrder == 3) {
             _sortOrder = 4;
             ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
             ListCtrl_Available->SortItems(MyCompareFunctionAscEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-            ListCtrl_Available->ShowSortIndicator(1, true);
+            ListCtrl_Available->ShowSortIndicator(2, true);
         } else {
             _sortOrder = 3;
             ListCtrl_Available->SortItems(MyCompareFunctionAscName, (wxIntPtr)CheckBox_MapCCRStrand->GetValue()); // put it back in start order as otherwise this does not work
             ListCtrl_Available->SortItems(MyCompareFunctionDescEffects, (wxIntPtr)CheckBox_MapCCRStrand->GetValue());
-            ListCtrl_Available->ShowSortIndicator(1, false);
+            ListCtrl_Available->ShowSortIndicator(2, false);
         }
     }
+    RefreshTimelineColumnImages();
 }
 
 #pragma region Drag and Drop
@@ -2204,13 +2519,53 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag(wxListEvent& e
     if (ListCtrl_Available->GetSelectedItemCount() == 0) return;
 
     int itemIndex = ListCtrl_Available->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    wxString drag = "Map," + ListCtrl_Available->GetItemText(itemIndex, 0);
+    wxString drag = "Map," + ListCtrl_Available->GetItemText(itemIndex, 1);
 
     wxTextDataObject my_data(drag);
     MDDropSource dragSource(this);
     dragSource.SetData(my_data);
+
+    // Snapshot expanded state before the drag. On macOS, NSOutlineView spring-
+    // loads (auto-expands) container rows when hovered during a drag. We restore
+    // the snapshot after DoDragDrop returns so items don't unexpectedly pop open.
+    std::set<void*> expandedBefore;
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* model = _dataModel->GetNthChild(i);
+        if (model == nullptr) continue;
+        wxDataViewItem modelItem(model);
+        if (TreeListCtrl_Mapping->IsExpanded(modelItem)) {
+            expandedBefore.insert(static_cast<void*>(model));
+            for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
+                xLightsImportModelNode* strand = model->GetNthChild(j);
+                if (strand && TreeListCtrl_Mapping->IsExpanded(wxDataViewItem(strand)))
+                    expandedBefore.insert(static_cast<void*>(strand));
+            }
+        }
+    }
+
     dragSource.DoDragDrop(wxDrag_DefaultMove);
     SetCursor(wxCURSOR_ARROW);
+
+    // Collapse anything that was spring-expanded during the drag.
+    // EVT_MDDROP is posted (not yet processed) so this runs before HandleDropAvailable.
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+        xLightsImportModelNode* model = _dataModel->GetNthChild(i);
+        if (model == nullptr) continue;
+        wxDataViewItem modelItem(model);
+        if (!expandedBefore.count(static_cast<void*>(model))) {
+            if (TreeListCtrl_Mapping->IsExpanded(modelItem))
+                TreeListCtrl_Mapping->Collapse(modelItem);
+        } else {
+            for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
+                xLightsImportModelNode* strand = model->GetNthChild(j);
+                if (strand == nullptr) continue;
+                wxDataViewItem strandItem(strand);
+                if (!expandedBefore.count(static_cast<void*>(strand)) &&
+                    TreeListCtrl_Mapping->IsExpanded(strandItem))
+                    TreeListCtrl_Mapping->Collapse(strandItem);
+            }
+        }
+    }
 }
 void xLightsImportChannelMapDialog::OnDragPossible(wxDataViewEvent& event) {
     if (event.GetItem().IsOk()) {
@@ -2403,7 +2758,7 @@ std::string xLightsImportChannelMapDialog::findModelType(std::string modelName)
     }
 
     for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-        if (ListCtrl_Available->GetItemText(j, 0).Lower().ToStdString() == ::Lower(modelName)) {
+        if (ListCtrl_Available->GetItemText(j, 1).Lower().ToStdString() == ::Lower(modelName)) {
             wxListItem item;
             item.SetId(j);
             item.SetColumn(0);
@@ -2440,7 +2795,7 @@ void xLightsImportChannelMapDialog::BulkMapNodes(const std::string& fromModel, w
             bool fromExist = false;
             auto fromname = fromModel + "/" + sn + "/" + nn;
             for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-                if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
+                if (ListCtrl_Available->GetItemText(j, 1) == fromname) {
                     fromExist = true;
                 }
             }
@@ -2462,7 +2817,7 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
         bool fromExist = false;
         auto fromname = fromModel + "/" + sn;
         for (size_t j = 0; j < (size_t)ListCtrl_Available->GetItemCount(); ++j) {
-            if (ListCtrl_Available->GetItemText(j, 0) == fromname) {
+            if (ListCtrl_Available->GetItemText(j, 1) == fromname) {
                 fromExist = true;
             }
         }
@@ -2596,9 +2951,9 @@ void xLightsImportChannelMapDialog::MarkUsed()
     int items = ListCtrl_Available->GetItemCount();
     ListCtrl_Available->Freeze();
     for (int i = 0; i < items; ++i) {
-        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i).Lower().ToStdString())) {
+        if (!std::binary_search(used.begin(), used.end(), ListCtrl_Available->GetItemText(i, 1).Lower().ToStdString())) {
             // not used
-            ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i).ToStdString());
+            ImportChannel* im = GetImportChannel(ListCtrl_Available->GetItemText(i, 1).ToStdString());
             if (im != nullptr && im->type == "ModelGroup") {
                 ListCtrl_Available->SetItemTextColour(i, ColorManager::instance()->CyanOrBlueOverride());
             } else {
@@ -3253,13 +3608,13 @@ void xLightsImportChannelMapDialog::DoAutoMap(
     available.reserve(ListCtrl_Available->GetItemCount());
     for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
         AvailableSource src;
-        src.displayName = ListCtrl_Available->GetItemText(j).ToStdString();
-        src.canonicalName = ListCtrl_Available->GetItemText(j).Trim(true).Trim(false).Lower().ToStdString();
+        src.displayName = ListCtrl_Available->GetItemText(j, 1).ToStdString();
+        src.canonicalName = ListCtrl_Available->GetItemText(j, 1).Trim(true).Trim(false).Lower().ToStdString();
         // findModelType only meaningful for bare-model entries (no slash); for
         // strand/node entries the type is always overridden by AutoMapper to
         // "Strand" / "Node" / "SubModel" / "Unknown".
         if (src.canonicalName.find('/') == std::string::npos) {
-            src.modelType = findModelType(ListCtrl_Available->GetItemText(j));
+            src.modelType = findModelType(ListCtrl_Available->GetItemText(j, 1));
         }
         src.selected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
         available.push_back(std::move(src));
@@ -3288,6 +3643,60 @@ void xLightsImportChannelMapDialog::DoAutoMap(
                     extra1, extra2, mg, select, selectedTargets);
 }
 
+void xLightsImportChannelMapDialog::DoSubModelFallback(bool select)
+{
+    std::vector<AvailableSource> available;
+    available.reserve(ListCtrl_Available->GetItemCount());
+    for (int j = 0; j < ListCtrl_Available->GetItemCount(); ++j) {
+        AvailableSource src;
+        src.displayName = ListCtrl_Available->GetItemText(j, 1).ToStdString();
+        src.canonicalName = ListCtrl_Available->GetItemText(j, 1).Trim(true).Trim(false).Lower().ToStdString();
+        src.selected = ListCtrl_Available->GetItemState(j, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED;
+        available.push_back(std::move(src));
+    }
+
+    std::vector<ImportMappingNode*> roots;
+    roots.reserve(_dataModel->GetChildCount());
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+        roots.push_back(_dataModel->GetNthChild(i));
+    }
+
+    std::unordered_set<const ImportMappingNode*> selectedTargets;
+    if (select && TreeListCtrl_Mapping->GetSelectedItemsCount() != 0) {
+        wxDataViewItemArray targetSelectedItems;
+        TreeListCtrl_Mapping->GetSelections(targetSelectedItems);
+        for (const wxDataViewItem& it : targetSelectedItems) {
+            selectedTargets.insert(static_cast<xLightsImportModelNode*>(it.GetID()));
+        }
+    }
+
+    AutoMapper::RunSubModelFallback(roots, available, *xlights, select, selectedTargets);
+}
+
+void xLightsImportChannelMapDialog::NotifyMappingItemsChanged()
+{
+    // wxDataViewCtrl on macOS (NSOutlineView) caches item values and ignores
+    // plain Refresh() calls after bulk data changes. ValueChanged() forces
+    // NSOutlineView to re-query GetValue() for each item's columns.
+    for (unsigned int i = 0; i < _dataModel->GetChildCount(); ++i) {
+        auto* model = _dataModel->GetNthChild(i);
+        if (model == nullptr) continue;
+        wxDataViewItem modelItem(model);
+        _dataModel->ValueChanged(modelItem, 2);
+        for (unsigned int j = 0; j < model->GetChildCount(); ++j) {
+            auto* strand = model->GetNthChild(j);
+            if (strand == nullptr) continue;
+            wxDataViewItem strandItem(strand);
+            _dataModel->ValueChanged(strandItem, 2);
+            for (unsigned int k = 0; k < strand->GetChildCount(); ++k) {
+                auto* node = strand->GetNthChild(k);
+                if (node != nullptr)
+                    _dataModel->ValueChanged(wxDataViewItem(node), 2);
+            }
+        }
+    }
+}
+
 void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
 {
     if (_dataModel == nullptr) return;
@@ -3296,9 +3705,15 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     TreeListCtrl_Mapping->Freeze();
     DoAutoMap(norm, norm, norm, "", "", "B", false);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
+    DoSubModelFallback(false);
 
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
+    }
+    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
+        _dataModel->Cleared();
+    } else {
+        NotifyMappingItemsChanged();
     }
     TreeListCtrl_Mapping->Thaw();
     MarkUsed();
@@ -3309,14 +3724,21 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& eve
         return;
 
     _dirty = true;
+    TreeListCtrl_Mapping->Freeze();
     DoAutoMap(norm, norm, norm, "", "", "B", true);
     DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", true);
+    DoSubModelFallback(true);
 
     for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
         DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
     }
 
-    TreeListCtrl_Mapping->Refresh();
+    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
+        _dataModel->Cleared();
+    } else {
+        NotifyMappingItemsChanged();
+    }
+    TreeListCtrl_Mapping->Thaw();
     MarkUsed();
 }
 
@@ -3331,8 +3753,8 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEven
 
     for (const auto& mapTo : mapItems) {
         lastMapTo = mapTo;
-        std::string modelType = findModelType(ListCtrl_Available->GetItemText(event.GetItem()).ToStdString());
-        Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem()).ToStdString(), modelType);
+        std::string modelType = findModelType(ListCtrl_Available->GetItemText(event.GetItem(), 1).ToStdString());
+        Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem(), 1).ToStdString(), modelType);
     }
 
     wxDataViewItem nextMapTo = GetNextTreeItem(lastMapTo);
@@ -3560,9 +3982,51 @@ void xLightsImportChannelMapDialog::SortChannels()
     });
 }
 
-void xLightsImportChannelMapDialog::AddChannel(std::string const& name, int effectCount, bool isNode)
+void xLightsImportChannelMapDialog::AddChannel(std::string const& name, int effectCount, bool isNode,
+                                               std::vector<std::pair<int,int>> intervals)
 {
-    importChannels.emplace_back(new ImportChannel(name, effectCount, isNode));
+    auto ch = new ImportChannel(name, effectCount, isNode);
+    ch->effectIntervals = std::move(intervals);
+    importChannels.emplace_back(ch);
+}
+
+wxBitmap xLightsImportChannelMapDialog::GenerateTimelineBitmap(int width, int height,
+                                                               const std::vector<std::pair<int,int>>& intervals,
+                                                               int durationMS)
+{
+    wxBitmap bmp(width, height);
+    wxMemoryDC dc;
+    dc.SelectObject(bmp);
+    dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX)));
+    dc.Clear();
+    if (durationMS > 0 && !intervals.empty()) {
+        wxBrush hatchBrush(wxColour(70, 130, 180), wxBRUSHSTYLE_CROSSDIAG_HATCH);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(hatchBrush);
+        for (const auto& [start, end] : intervals) {
+            int x1 = static_cast<int>(static_cast<double>(start) / durationMS * width);
+            int x2 = static_cast<int>(static_cast<double>(end) / durationMS * width);
+            if (x2 <= x1) x2 = x1 + 1;
+            dc.DrawRectangle(x1, 1, x2 - x1, height - 2);
+        }
+    }
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
+void xLightsImportChannelMapDialog::RefreshTimelineColumnImages()
+{
+    if (_timelineCol < 0) return;
+    int count = ListCtrl_Available->GetItemCount();
+    for (int i = 0; i < count; ++i) {
+        wxUIntPtr data = ListCtrl_Available->GetItemData(i);
+        ImportChannel* ch = reinterpret_cast<ImportChannel*>(data);
+        if (ch == nullptr) continue;
+        auto it = _channelImageMap.find(ch);
+        if (it != _channelImageMap.end()) {
+            ListCtrl_Available->SetItemColumnImage(i, _timelineCol, it->second);
+        }
+    }
 }
 
 void xLightsImportChannelMapDialog::loadMapHintsFile(wxString const& filename) {
@@ -3614,7 +4078,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     {
         for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i)
         {
-            if (ListCtrl_Available->GetItemText(i).Lower().StartsWith(from))
+            if (ListCtrl_Available->GetItemText(i, 1).Lower().StartsWith(from))
             {
                 index = i;
                 break;
@@ -3626,7 +4090,7 @@ void xLightsImportChannelMapDialog::OnTextCtrl_FindFromText(wxCommandEvent& even
     if (index == -1)
     {
         for (size_t i = 0; i < (size_t)ListCtrl_Available->GetItemCount(); ++i) {
-            if (ListCtrl_Available->GetItemText(i).Lower().Contains(from)) {
+            if (ListCtrl_Available->GetItemText(i, 1).Lower().Contains(from)) {
                 index = i;
                 break;
             }

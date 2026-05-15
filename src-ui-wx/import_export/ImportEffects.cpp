@@ -197,7 +197,7 @@ void xLightsFrame::ImportXLights(const wxFileName& filename, std::string const& 
         Element* el = se.GetElement(e);
         elements.push_back(el);
     }
-    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile);
+    ImportXLights(se, elements, xsqPkg, supportsModelBlending, true, false, false, mapFile, xlf.GetSequenceDurationMS());
 
     SetStatusText(wxString::Format("'%s' imported.", filename.GetPath()));
 }
@@ -222,8 +222,31 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     ImportXLights(se, elements, xsqPkg, modelBlending, showModelBlending, allowAllModels, clearSrc);
 }
 
+static std::vector<std::pair<int,int>> BuildMergedIntervals(Element* el)
+{
+    std::vector<std::pair<int,int>> v;
+    for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
+        EffectLayer* layer = el->GetEffectLayer(l);
+        for (int e = 0; e < layer->GetEffectCount(); ++e) {
+            Effect* eff = layer->GetEffect(e);
+            v.emplace_back(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+        }
+    }
+    if (v.empty()) return {};
+    std::sort(v.begin(), v.end());
+    std::vector<std::pair<int,int>> out;
+    out.push_back(v[0]);
+    for (size_t i = 1; i < v.size(); ++i) {
+        if (v[i].first <= out.back().second)
+            out.back().second = std::max(out.back().second, v[i].second);
+        else
+            out.push_back(v[i]);
+    }
+    return out;
+}
+
 void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element*>& elements, SequencePackage& xsqPkg,
-                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile)
+                                 bool modelBlending, bool showModelBlending, bool allowAllModels, bool clearSrc, std::string const& mapFile, int sequenceDurationMS)
 {
     std::map<std::string, EffectLayer*> layerMap;
     std::map<std::string, Element*> elementMap;
@@ -235,6 +258,9 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
     }
 
     dlg.SetXsqPkg(&xsqPkg);
+    if (sequenceDurationMS > 0) {
+        dlg.SetSequenceDuration(sequenceDurationMS);
+    }
 
     std::vector<EffectLayer*> mapped;
     std::vector<std::string> timingTrackNames;
@@ -251,7 +277,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 hasEffects |= el->GetEffectLayer(l)->GetEffectCount() > 0;
             }
             if (hasEffects) {
-                dlg.AddChannel(el->GetName(), el->GetModelEffectCount());
+                dlg.AddChannel(el->GetName(), el->GetModelEffectCount(), false,
+                               sequenceDurationMS > 0 ? BuildMergedIntervals(el) : std::vector<std::pair<int,int>>{});
             }
             elementMap[el->GetName()] = el;
             int s = 0;
@@ -259,7 +286,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 SubModelElement* sme = el->GetSubModel(sm);
 
                 StrandElement* ste = dynamic_cast<StrandElement*>(sme);
-                std::string smName = sme->GetName();                
+                std::string smName = sme->GetName();
                 if (ste != nullptr) {
                     ++s;
                     if (smName == "") {
@@ -268,7 +295,8 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 }
                 if (sme->HasEffects()) {
                     elementMap[el->GetName() + "/" + smName] = sme;
-                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount());
+                    dlg.AddChannel(el->GetName() + "/" + smName, sme->GetEffectCount(), false,
+                                   sequenceDurationMS > 0 ? BuildMergedIntervals(sme) : std::vector<std::pair<int,int>>{});
                 }
                 if (ste != nullptr) {
                     for (int n = 0; n < ste->GetNodeLayerCount(); ++n) {
@@ -278,7 +306,15 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                             if (nodeName == "") {
                                 nodeName = wxString::Format("Node %d", (int)(n + 1));
                             }
-                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount(), true);
+                            std::vector<std::pair<int,int>> nodeIntervals;
+                            if (sequenceDurationMS > 0) {
+                                for (int e = 0; e < nl->GetEffectCount(); ++e) {
+                                    Effect* eff = nl->GetEffect(e);
+                                    nodeIntervals.emplace_back(eff->GetStartTimeMS(), eff->GetEndTimeMS());
+                                }
+                            }
+                            dlg.AddChannel(el->GetName() + "/" + smName + "/" + nodeName, nl->GetEffectCount(), true,
+                                           std::move(nodeIntervals));
                             layerMap[el->GetName() + "/" + smName + "/" + nodeName] = nl;
                         }
                     }

@@ -569,6 +569,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     AutoMapper::Run(roots, _availableSources, *rc,
                     AutoMapper::MatchAggressive, AutoMapper::MatchAggressive, AutoMapper::MatchAggressive,
                     "", "", "B", /*selectOnly=*/false, noSelection);
+    AutoMapper::RunSubModelFallback(roots, _availableSources, *rc, /*selectOnly=*/false, noSelection);
 
     // .xmaphint regex pass — pulls every hint file under
     // <showdir>/maphints/*.xmaphint and runs MatchRegex for each.
@@ -613,6 +614,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     AutoMapper::Run(roots, available, *rc,
                     AutoMapper::MatchAggressive, AutoMapper::MatchAggressive, AutoMapper::MatchAggressive,
                     "", "", "B", /*selectOnly=*/true, selectedTargets);
+    AutoMapper::RunSubModelFallback(roots, available, *rc, /*selectOnly=*/true, selectedTargets);
 }
 
 #pragma mark - Save hints
