@@ -114,6 +114,11 @@ private:
     void OnReloadMedia(const std::string& path);
     void OnReSelectImage(const std::string& oldPath);
     void OnBulkFindImages();
+    void OnReSelectShader(const std::string& oldPath);
+    void OnBulkFindShaders();
+    void ReSelectMediaByType(const std::string& oldPath, MediaType type);
+    void BulkFindMediaByType(MediaType type);
+    void UpdateEffectPaths(const std::string& oldPath, const std::string& newPath);
     void OnAddButtonClick(wxCommandEvent& event);
     void OnAIGenerateButtonClick(wxCommandEvent& event);
     void OnRenameButtonClick(wxCommandEvent& event);
