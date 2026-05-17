@@ -37,7 +37,7 @@ BulkEditColourPickerDialog::BulkEditColourPickerDialog(wxWindow* parent, const s
 	FlexGridSizer1 = new wxFlexGridSizer(0, 2, 0, 0);
 	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Color:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
 	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-	ColourPickerCtrl1 = new wxColourPickerCtrl(this, ID_COLOURPICKERCTRL1, wxColour(0,0,0), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_COLOURPICKERCTRL1"));
+	ColourPickerCtrl1 = new xlColourPickerButton(this, ID_COLOURPICKERCTRL1, wxColour(0,0,0), wxDefaultPosition, wxSize(64, 28));
 	FlexGridSizer1->Add(ColourPickerCtrl1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer1->Add(0,0,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	FlexGridSizer2 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -61,7 +61,7 @@ BulkEditColourPickerDialog::BulkEditColourPickerDialog(wxWindow* parent, const s
 
 	StaticText1->SetLabel(label);
 
-	ColourPickerCtrl1->SetColour(value);
+	ColourPickerCtrl1->SetColour(value);  // xlColourPickerButton::SetColour()
 }
 
 BulkEditColourPickerDialog::~BulkEditColourPickerDialog()
@@ -72,7 +72,7 @@ BulkEditColourPickerDialog::~BulkEditColourPickerDialog()
 
 wxColour BulkEditColourPickerDialog::GetValue() const
 {
-	return ColourPickerCtrl1->GetColour();
+	return ColourPickerCtrl1->GetColour();  // xlColourPickerButton::GetColour()
 }
 
 void BulkEditColourPickerDialog::OnButton_OkClick(wxCommandEvent& event)

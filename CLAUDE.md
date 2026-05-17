@@ -111,6 +111,16 @@ existing directories. Note that Windows/Linux builds intentionally
 do not compile `src-iPad/`, so new iPad files never need to land in
 the `.cbp` / `.vcxproj` files.
 
+The top-level **`CMakeLists.txt`** (used for the `cmake_vs/` cmake-based
+VS build) uses `file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
+SRC_CORE ...)` to discover source files automatically from the
+directories listed in the glob patterns (e.g., `src-ui-wx/color/*.cpp`,
+`src-core/effects/*.cpp`). New files added inside those directories
+**do not** need a manual CMakeLists.txt edit — they are picked up on
+the next cmake configure. Only files placed **outside** the existing
+glob patterns (e.g., a new top-level subdirectory) require a new
+`file(GLOB ...)` or explicit `list(APPEND ...)` line in CMakeLists.txt.
+
 ### Release Notes
 `README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single very brief summary line with no code to the current release section:
 - **Enhancements**: `    -enh (author)                Description of the enhancement`

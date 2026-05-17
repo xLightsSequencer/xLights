@@ -1564,6 +1564,10 @@
 		<Unit filename="../src-ui-wx/color/xlColorPickerFields.h" />
 		<Unit filename="../src-ui-wx/color/xlColourData.cpp" />
 		<Unit filename="../src-ui-wx/color/xlColourData.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.h" />
 		<Unit filename="../src-core/utils/xlImage.cpp" />
 		<Unit filename="../src-core/utils/xlImage.h" />
 		<Unit filename="../src-core/utils/Base64.h" />

@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
+    -enh (scott)                Add custom color picker dialog (opt-in via Preferences > Other > "Use custom
+                                color picker (experimental)") with HSV disc, brightness slider, CSS named color
+                                swatches, recent colors, hex entry, randomize, and system picker fallback.
     -bug (dkulp)                Shader effect (Windows): return the GL context to the pool every frame
                                 instead of pinning one per ShaderRenderCache.
     -enh (cybercop23)           Enhance "Paste Effects" on model context menu to automatically insert the needed

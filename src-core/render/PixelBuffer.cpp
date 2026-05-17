@@ -145,8 +145,8 @@ namespace {
             return fabs(Len2() - 1) < 1e-6;
         }
         Vec2D Rotate(const double& fAngle) const {
-            float cs = RenderBuffer::cos(fAngle);
-            float sn = RenderBuffer::sin(fAngle);
+            float const cs = RenderBuffer::cos(fAngle);
+            float const sn = RenderBuffer::sin(fAngle);
             return Vec2D(x * cs + y * sn, -x * sn + y * cs);
         }
         Vec2D RotateAbout(double angle, const Vec2D& pt) const {

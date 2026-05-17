@@ -1002,6 +1002,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourData.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
@@ -1593,6 +1595,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColourData.h" />
     <ClInclude Include="..\src-core\utils\xlImage.h" />
     <ClInclude Include="..\src-core\utils\Base64.h" />
