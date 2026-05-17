@@ -285,6 +285,23 @@ struct XLSequencerCommands: Commands {
                     }
                 }
             }
+
+            // EX-11 — Tools → Package Sequence. Builds a `.xsqz`
+            // of the current sequence + media for sharing (mirrors
+            // desktop). Disabled until a sequence is loaded since
+            // there's nothing to package otherwise.
+            Button("Package Sequence…") {
+                viewModel.showingPackageSequence = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // H-6 / T-2 — Tools → View Log. Live log viewer for
+            // troubleshooting without leaving the device.
+            Button("View Log…") {
+                viewModel.showingLogViewer = true
+            }
         }
 
         // Playback menu.

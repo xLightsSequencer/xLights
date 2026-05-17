@@ -283,6 +283,26 @@ struct ContentView: View {
         )) {
             AIServicesSettingsSheet()
         }
+        // EX-11 Tools → Package Sequence. Hosted here (not on the
+        // sequencer view) so the option sheet survives navigation
+        // and so the result hand-off to `XLPresentShareSheet`
+        // runs against the root scene's window scene.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingPackageSequence },
+            set: { viewModel.showingPackageSequence = $0 }
+        )) {
+            PackageSequenceSheet()
+                .environment(viewModel)
+        }
+        // H-6 / T-2 Tools → View Log. Same hosting rationale as
+        // Package Sequence; the viewer is independent of any
+        // particular open sequence.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingLogViewer },
+            set: { viewModel.showingLogViewer = $0 }
+        )) {
+            LogViewerSheet()
+        }
         // Unified Add Timing Track sheet. Driven by
         // viewModel.showingAddTimingTrack so all call sites
         // (Display Elements sheet, Settings → Timings tab, the

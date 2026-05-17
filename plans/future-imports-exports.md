@@ -24,6 +24,11 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
   date metadata, FPP playlist integration) still open as the
   EX-3 row below.
 - EX-10 Whole-sequence `.fseq` emission alongside save.
+- EX-11 **Package Sequence** (2026-05-17) — Tools → Package
+  Sequence builds a `.xsqz` of the current sequence + media for
+  sharing. Option sheet picks Include Audio / Include Videos;
+  result handed to the system share sheet. Bridge:
+  `XLSequencePackager` calls shared core `SequencePackage::Pack`.
 - LOR `.lms`/`.las` *timing-track* import — `XLSequenceDocument.importLorTiming:…` (note: full LOR sequence-with-effects import is still parked under Phase I-5).
 
 ## In flight (Phase I)
@@ -57,6 +62,7 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 | EX-2 | ExportModelSelect — model picker for per-model export | P2 | S |
 | EX-3 | **BatchRenderDialog** — desktop's feature-parity version: recursive search + sequence checklist + last-render-date columns + Force HD + FPP Playlist integration. (iPad's simpler `BatchRenderSheet` already covers the basic case.) | P2 | M |
 | EX-9 | TabConvert::Write*ModelFile — Falcon Pi `.bin`, MP4/AVI/MOV (FFmpeg block on iOS), GIF (FFmpeg), Minleon NEC `.bin` | P2 | L–XL (FFmpeg block) |
+| ~~EX-11~~ | ~~Package Sequence~~ — ✓ shipped 2026-05-17. Tools → Package Sequence opens a two-toggle option sheet (Include Audio / Include Videos, both default on); Pack runs `SequencePackage::Pack` on a utility queue and hands the resulting `.xsqz` to the system share sheet via `XLPresentShareSheet`. Non-fatal pack warnings (missing referenced media) surface in an alert with a confirm-then-share flow. Bridge: `src-iPad/Bridge/XLSequencePackager.{h,mm}`. | — | — |
 
 ## Convert dialog
 

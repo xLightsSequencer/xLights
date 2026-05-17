@@ -461,6 +461,14 @@ class SequencerViewModel {
     // fixed interval, metronome, FPP, audio analysis (Onsets /
     // Tempo / Chords), and AI Lyrics.
     var showingAddTimingTrack = false
+    // Tools → Package Sequence. Two-toggle option sheet (Include
+    // Audio / Include Videos) then `SequencePackage::Pack` on a
+    // background queue; result handed to the system share sheet.
+    var showingPackageSequence = false
+    // Tools → View Log. Reads the rotating spdlog file in
+    // Library/Logs/xLights.log; level + logger + text filters
+    // with optional follow-tail.
+    var showingLogViewer = false
 
     /// Run Check Sequence on a background queue and report progress
     /// while it walks. The bridge's `SequenceChecker` calls back from
@@ -636,6 +644,33 @@ class SequencerViewModel {
         return await Task.detached(priority: .utility) { () -> URL? in
             do {
                 return try XLLogPackager.packageLogs(for: doc)
+            } catch {
+                return nil
+            }
+        }.value
+    }
+
+    // EX-11 Package Sequence. Walks the in-memory sequence + media
+    // and emits a self-contained `.xsqz` for sharing with support
+    // or another user. Mirrors desktop's Tools → Package Sequence;
+    // `SequencePackage::Pack` is shared core.
+    struct PackageSequenceResult {
+        let url: URL
+        let warnings: [String]
+    }
+    func packageSequence(excludeAudio: Bool,
+                         excludeVideos: Bool) async -> PackageSequenceResult? {
+        let doc = document
+        return await Task.detached(priority: .utility) { () -> PackageSequenceResult? in
+            var warningsObj: NSArray? = nil
+            do {
+                let url = try XLSequencePackager.packageSequence(
+                    for: doc,
+                    excludeAudio: excludeAudio,
+                    excludeVideos: excludeVideos,
+                    warnings: &warningsObj)
+                let warnings = (warningsObj as? [String]) ?? []
+                return PackageSequenceResult(url: url, warnings: warnings)
             } catch {
                 return nil
             }
