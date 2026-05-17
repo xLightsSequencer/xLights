@@ -42,7 +42,7 @@ public:
     // locked or fromBase objects so callers can skip cleanly.
     virtual std::unique_ptr<handles::SpaceMouseSession>
     BeginSpaceMouseSession();
-    void SelectHandle(int handle);
+    void SelectHandle();
     void Lock(bool lock);
     bool IsLocked() const;
     virtual void AddASAPWork(uint32_t work, const std::string& from) = 0;

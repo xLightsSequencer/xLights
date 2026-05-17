@@ -43,7 +43,7 @@ public:
     void ApplySpaceMouseVertex(int vertexIndex, float scale, const glm::vec3& mov);
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
-    virtual void SelectHandle(int handle) override;
+    virtual void SelectHandle() override;
     virtual std::optional<handles::Id> GetSelectedHandleId() const override {
         return selected_handle;
     }
@@ -109,9 +109,10 @@ public:
 
     int GetNumPoints() const { return num_points; }
     void SetNumPoints(int points) { num_points = points; }
-    // Legacy int setter — used by callers that still speak `int`. -1
-    // clears; vertex-style indices are mapped to `Role::Vertex`.
-    void SetSelectedHandle(int h);
+    // Direct setter for the visual-selection highlight. nullopt
+    // clears. Used by the property panel (segment / vertex spin
+    // edits) and by AddHandle to anchor the newly-inserted vertex.
+    void SetSelectedHandle(const std::optional<handles::Id>& id) { selected_handle = id; }
     void SetSelectedSegment(int s) { selected_segment = s; }
     glm::vec3 GetPoint(int i) const { return glm::vec3(mPos[i].x, mPos[i].y, mPos[i].z); }
     void SetPoint(int i, float x, float y, float z) { mPos[i].x = x; mPos[i].y = y; mPos[i].z = z; }

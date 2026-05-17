@@ -4874,6 +4874,16 @@ static NSString* const kBackgroundPseudoObjectName = @"2D Background";
     // Default to the active layout group so the new object
     // immediately renders in the current preview.
     vo->SetLayoutGroup(_context->GetActiveLayoutGroup());
+    // Ruler is a TwoPoint object — without initial geometry both
+    // endpoints sit at world origin so the line is zero-length and
+    // invisible. Match desktop's Add Ruler defaults (100-unit
+    // horizontal line at y=100, centred on x=0).
+    if (t == "Ruler") {
+        auto& loc = vo->GetObjectScreenLocation();
+        loc.SetVcenterPos(100);
+        loc.SetLeft(-50);
+        loc.SetMWidth(100);
+    }
     _context->MarkViewObjectCreated(vo->GetName());
     return [NSString stringWithUTF8String:vo->GetName().c_str()];
 }
@@ -5130,6 +5140,8 @@ static NSString* const kBackgroundPseudoObjectName = @"2D Background";
         }
     } else if (k == "length") {
         double v = asDouble(&ok); if (!ok) return NO;
+        // Mirrors RulerObjectPropertyAdapter::OnPropertyGridChange.
+        if (v < 0.01) v = 0.01;
         if (auto* r = dynamic_cast<RulerObject*>(vo)) {
             if ((float)v != r->GetLength()) { r->SetLength((float)v); changed = YES; }
         }

@@ -531,14 +531,14 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
             wxASSERT(o != std::string::npos);
 
             // "REAL Segment N" — N is 1-based segment number; segment N
-            // joins point N-1 to point N. Skip the SetSelectedHandle→
-            // GetSelectedHandle round-trip (which previously lost
-            // information through the legacy int convention) and use
-            // the parsed index directly. SetSelectedHandle is still
-            // called for visual feedback (highlights the corresponding
-            // vertex in the layout view).
+            // joins point N-1 to point N. Set the visual-selection
+            // highlight on the corresponding vertex; the segment math
+            // below uses the parsed index directly.
             int h = wxAtoi(name.substr(12, o - 12)) - 1;
-            loc.SetSelectedHandle(h);
+            handles::Id selId;
+            selId.role = handles::Role::Vertex;
+            selId.index = h - 1;
+            loc.SetSelectedHandle(selId);
             wxASSERT(h + 1 < (int)loc.GetNumPoints());
             auto p1 = loc.GetPoint(h);
             auto p2 = loc.GetPoint(h + 1);
@@ -572,7 +572,10 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
     }
     else if (name.length() > 6) {
         int h = wxAtoi(name.substr(6, name.length() - 6)) - 1;
-        loc.SetSelectedHandle(h);
+        handles::Id selId;
+        selId.role = handles::Role::Vertex;
+        selId.index = h - 1;
+        loc.SetSelectedHandle(selId);
         loc.SetSelectedSegment(-1);
         auto worldPos = loc.GetWorldPosition();
         auto pt = loc.GetPoint(h);

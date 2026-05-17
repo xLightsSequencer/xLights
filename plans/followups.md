@@ -21,3 +21,16 @@ Small open items left over from phases that otherwise landed.
   `GLSL_GROUP:` comment conventions in
   `ShaderConfig::GetDynamicPropertiesJson()` so grouping carries
   across. Deferred until a real shader pack trips the issue. P2.
+
+## Handle / gizmo system
+
+- **R-8b leftover — descriptor-driven `DrawAxisTool` dispatch.**
+  `DrawAxisTool` and `DrawActiveAxisIndicator` still read
+  `axis_tool` / `active_axis` / `highlighted_handle` members
+  directly. Inline-position math in the per-subclass `DrawHandles`
+  is closed out (descriptors are now the source of truth for
+  Vertex / CurveControl / Shear / Terrain-vertex positions), but
+  the axis-gizmo helper itself hasn't been ported to a descriptor
+  stream. Gates on the first concrete consumer that wants to vary
+  per-axis styling (colour, locked state, hover) without touching
+  the model. Low priority.

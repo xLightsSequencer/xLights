@@ -11,10 +11,9 @@ up) keeps the overall situation; this file indexes the details.
 |---|---|---|
 | [phase-j-layout-editor.md](phase-j-layout-editor.md) | J — Layout Editor | Authenticated vendor downloads |
 | [phase-j-touch-ux.md](phase-j-touch-ux.md) | J — Touch + Pencil UX | Multi-select body drag, sidebar multi-select UI |
-| [handle-system-refactor.md](handle-system-refactor.md) | Handle / gizmo redesign | R-9 SpaceMouse 6-DOF, R-10b legacy-constant cleanup, R-8b DrawHandles polish |
 | [phase-b-grid-parity.md](phase-b-grid-parity.md) | B — Effects grid parity | B77 MIDI (deprioritized) + 3 deferred |
 | [phase-i-import-effects.md](phase-i-import-effects.md) | I — Import Effects | I-5 `.lms`/`.las` (parked) |
-| [followups.md](followups.md) | Cross-phase | Data Layers tab, MH waypoint authoring, shader uniform grouping |
+| [followups.md](followups.md) | Cross-phase | Data Layers tab, MH waypoint authoring, shader uniform grouping, descriptor-driven `DrawAxisTool` |
 
 ## Future / post-MVP
 
@@ -23,7 +22,7 @@ items here trace back to the 2026-04-23 gap analysis.
 
 | File | Topic |
 |---|---|
-| [future-controller-upload.md](future-controller-upload.md) | Controller upload + Pixel Test — **FPP Connect bumped to P1**, plus Bulk Upload, HinksPix, Pixel Test, drag-drop port mapping |
+| [future-controller-upload.md](future-controller-upload.md) | Controller upload + Pixel Test — **FPP Connect bumped to P1**; Bulk Upload / HinksPix / drag-drop port mapping parked at P4; Pixel Test still P2 |
 | [future-aux-panels.md](future-aux-panels.md) | Search / Find / EffectTree / Jukebox / SequenceVideo (AP-1 SearchPanel + AP-4 EffectTreeDialog highest value) |
 | [future-preferences.md](future-preferences.md) | Preferences (10 panels, 96 options) + ColorManager + backup |
 | [future-help-diagnostics.md](future-help-diagnostics.md) | Backup restore + remaining Tools utilities (Cleanup File Locations, Purge caches, Prepare Audio, Generate 2D Path, …) |
@@ -31,7 +30,7 @@ items here trace back to the 2026-04-23 gap analysis.
 | [future-effect-presets.md](future-effect-presets.md) | Disk-persistent effect presets (G12) + EffectTree pairing |
 | [future-pictures-frame-editor.md](future-pictures-frame-editor.md) | Pictures / GIF frame-timing editor + Effect Assist panels (EA-2/EA-3) |
 | [future-layout-editing.md](future-layout-editing.md) | Phase S-pro items (active S work moved to `phase-j-layout-editor.md`) |
-| [future-custom-models.md](future-custom-models.md) | WV-1 strand wiring diagram, O-10 drag-drop port authoring, VO-5 RulerObject, MA-15 MatrixFaceDownload, advanced VO polish |
+| [future-custom-models.md](future-custom-models.md) | WV-1 strand wiring diagram, O-10 drag-drop port authoring, MA-15 MatrixFaceDownload, advanced VO polish |
 
 The Layout-Editor Controllers tab itself (list management,
 right-click Activate/Inactivate, HTTP-scan-with-auth in Discover,

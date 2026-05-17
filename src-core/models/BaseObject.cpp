@@ -50,8 +50,8 @@ BaseObject::BeginSpaceMouseSession() {
     return loc.BeginSpaceMouseSession(loc.GetActiveHandleId());
 }
 
-void BaseObject::SelectHandle(int handle) {
-    GetBaseObjectScreenLocation().SelectHandle(handle);
+void BaseObject::SelectHandle() {
+    GetBaseObjectScreenLocation().SelectHandle();
 }
 
 void BaseObject::Lock(bool lock)

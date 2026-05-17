@@ -39,7 +39,7 @@ Visualize wiring view). What remains on top of that baseline:
 | O-3 | Controller list polish — drag-reorder + sort-by-6-fields + multi-select | P1 |
 | O-4 | Toolbar — FPP Connect entry + Delete All (Add Ethernet/Serial/Null + Discover shipped J-31; FPP Connect itself tracked in [`future-controller-upload.md`](future-controller-upload.md)) | P1 |
 | O-5 | Per-controller right-click — Activate / Activate xLights Only / Inactivate / Unlink / Upload Output / Sort submenu (swipe-to-delete shipped) | P1 |
-| O-7 | Discover sheet extras — HTTP scan (Falcon, Pixlite16, Twinkly) + DiscoveryAuthDialog credentials (Bonjour + broadcast + mismatch-resolution shipped J-31) | P1 |
+| O-7 | Discover sheet extras — HTTP scan (Falcon, Pixlite16, Twinkly) + DiscoveryAuthDialog credentials (Bonjour + broadcast + mismatch-resolution shipped J-31) | P4 |
 | O-8 | ControllerConnectionDialog (legacy add wizard) | P2 |
 | O-9 | IPEntryDialog (IP entry helper) | P2 |
 | O-13 | Output-to-Lights status / fault notifications when a controller drops | P2 |
@@ -57,9 +57,9 @@ or sibling `future-*.md` files:
   [`future-custom-models.md`](future-custom-models.md).
 - DXF / STL / VRML export.
 - ImportPreviewsModelsDialog.
-- ViewObject heavy editing — MeshObject advanced controls,
-  RulerObject. (Phase J covers ImageObject, GridlinesObject,
-  TerrainObject.)
+- ViewObject ergonomics on the sidebar list — multi-select +
+  drag-reorder (VO-6). Per-type editing for Image / Gridlines /
+  Mesh / Terrain / Ruler all shipped.
 - Controller upload + Pixel Test — lives in
   [`future-controller-upload.md`](future-controller-upload.md).
 - Drag-drop port mapping authoring (O-10) — lives alongside the

@@ -54,16 +54,16 @@ list editors. Outstanding:
 
 | # | Item | Severity | Effort |
 |---|---|---|---|
-| VO-1 | ImageObject editing — file + transparency + brightness controls on top of the read-only canvas | — | S |
-| VO-2 | GridlinesObject type-specific knobs (line spacing/color/axis-labels/point-to-front) — common properties shipped J-6 | — | M |
-| VO-3 | MeshObject — texture + brightness + mesh-only flag editing (common properties + OBJ round-trip shipped J-6) | — | L |
-| VO-5 | RulerObject — singleton; length + units (m/cm/mm/feet/yards/inches); 2-point line | P2 | M |
-| VO-6 | ViewObjectPanel — multi-select / drag-reorder / unlink-from-base (sidebar Objects tab + selection + property pane shipped) | — | L |
+| ~~VO-1~~ | ~~ImageObject editing — file + transparency + brightness~~ ✓ shipped. Bridge + property page expose Image file picker / Transparency / Brightness; matches desktop adapter (which only exposes those same three). Scale X/Y/Z is a bonus over desktop. | — | — |
+| ~~VO-2~~ | ~~GridlinesObject type-specific knobs (line spacing/color/axis-labels/point-to-front)~~ ✓ shipped. Bridge + property page wire Spacing / Width / Height / Color / Axis / Point-to-Front. The desktop adapter also surfaces a read-only "Real Spacing" string (real-world units) when a Ruler exists — minor cosmetic, not implemented on iPad. | — | — |
+| ~~VO-3~~ | ~~MeshObject — texture + brightness + mesh-only flag editing~~ ✓ shipped. Bridge + property page wire ObjFile / Brightness / MeshOnly / scaleX/Y/Z; matches desktop adapter's three properties. Note: desktop has no per-texture editing UI either — the "textures" travel with the OBJ + MTL file references. iPad lacks the desktop's space-in-material-filename auto-fix prompt; rare and non-blocking. | — | — |
+| ~~VO-5~~ | ~~RulerObject — singleton; length + units (m/cm/mm/feet/yards/inches); 2-point line~~ ✓ shipped 2026-05-17. Bridge exposes the descriptor (units / length / unitOptions / two-point endpoints) and the Add Object sheet conditionally lists "Ruler" while no ruler exists; SwiftUI property page has Units menu + Length field with explanatory caption. Initial geometry mirrors desktop's Add Ruler (100-unit horizontal line at y=100). Length clamp ≥ 0.01 matches desktop adapter. | — | — |
+| VO-6 | ViewObjectPanel — multi-select + drag-reorder on the sidebar Objects list. Single-select / swipe-delete / add / filter all shipped; the Controllers tab's `.onMove` + `handleReorder*` pattern can drop in for objects. (Original plan also listed "unlink-from-base", but that's a Controllers-Setup-tab feature on desktop, not a ViewObject one — dropped from scope.) | P3 | S |
 | WV-1 | **Wiring diagram view** — per-model strand wiring (J-32 shipped *controller* port-mapping Visualize, separate concept): strand-by-strand, Standard (1 px / node) vs MultiLight (RGB), color-coded by string, channel labels, Dark/Gray/Light themes, Front/Rear, 90° rotations, mouse-wheel zoom + pan | P2 | L |
 | WV-4 | PNG export (standard + large) | P2 | S |
 | WV-5 | DXF vector export | P3 | M |
 | WV-6 | Print | P3 | M |
-| O-10 | **ControllerModelDialog drag-drop authoring** — extends J-32's read-only Visualize: per-port String/DMX/Virtual Matrix, per-port protocol, per-port brightness/gamma/null pixels/colour order/group count, smart-remote A–F, auto-layout flag, bank visualisation, Print + XLSX export with smart-remote colour coding, right-click context menus, validation warnings. Also tracked in [`future-controller-upload.md`](future-controller-upload.md). | P2 | XL |
+| O-10 | **ControllerModelDialog drag-drop authoring** — extends J-32's read-only Visualize: per-port String/DMX/Virtual Matrix, per-port protocol, per-port brightness/gamma/null pixels/colour order/group count, smart-remote A–F, auto-layout flag, bank visualisation, Print + XLSX export with smart-remote colour coding, right-click context menus, validation warnings. Also tracked in [`future-controller-upload.md`](future-controller-upload.md). | P4 | XL |
 
 ## When to come back
 
@@ -72,4 +72,3 @@ list editors. Outstanding:
   for it.
 - MA-15 MatrixFaceDownload completes the J-22 face-authoring
   story; small-effort win once the catalog HTTP cache settles.
-- VO-5 RulerObject is the cheapest remaining VO win.

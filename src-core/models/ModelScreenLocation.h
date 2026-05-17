@@ -30,14 +30,6 @@
 #define MODEL_NEEDS_INIT      1
 #define MODEL_UPDATE_RGBEFFECTS 2
 
-// Lower 20 bits reserved to store handle positions and these
-// constants are modifiers to indicate special handles
-#define HANDLE_MASK    0x00FFFFF
-#define HANDLE_SEGMENT 0x1000000
-#define HANDLE_AXIS    0x0200000
-#define HANDLE_CP0     0x0400000
-#define HANDLE_CP1     0x0800000
-
 class IModelPreview;
 class PreviewCamera;
 
@@ -189,7 +181,10 @@ public:
     virtual bool Rotate(MSLAXIS axis, float factor) = 0;
     virtual bool Scale(const glm::vec3& factor) = 0;
 
-    virtual void SelectHandle(int handle) {}
+    // Clear any selected sub-handle (the visual highlight on a
+    // PolyPoint vertex / curve control point). Only PolyPoint
+    // tracks selected_handle; other screen locations no-op.
+    virtual void SelectHandle() {}
     // Id-returning accessor, mirrors GetActiveHandleId(). Only
     // PolyPoint stores a separate selected_handle; everywhere else
     // returns nullopt.

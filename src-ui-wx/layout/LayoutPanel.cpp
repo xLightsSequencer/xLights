@@ -2889,7 +2889,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 m->Selected(false);
                 m->Highlighted(false);
                 m->GroupSelected(false);
-                m->SelectHandle(-1);
+                m->SelectHandle();
                 m->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 
                 for (const auto& sm : m->GetSubModels()) {
@@ -2912,7 +2912,7 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             view_object->Selected(false);
             view_object->Highlighted(false);
             view_object->GroupSelected(false);
-            view_object->SelectHandle(-1);
+            view_object->SelectHandle();
             view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
         else {
@@ -3059,7 +3059,7 @@ void LayoutPanel::SelectAllModels()
             view_object->Selected(false);
             view_object->Highlighted(true);
             view_object->GroupSelected(true);
-            view_object->SelectHandle(-1);
+            view_object->SelectHandle();
             view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
     }
@@ -3253,7 +3253,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
                 view_object->Selected(false);
                 view_object->Highlighted(false);
                 view_object->GroupSelected(false);
-                view_object->SelectHandle(-1);
+                view_object->SelectHandle();
                 view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
             }
             SelectViewObject(v, highlight_tree);
@@ -3746,13 +3746,13 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         if (selectedBaseObject != nullptr) {
             selectedBaseObject->GroupSelected(true);
             selectedBaseObject->Selected(false);
-            selectedBaseObject->SelectHandle(-1);
+            selectedBaseObject->SelectHandle();
             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
 
         selectedBaseObject = clickedModel;
         highlightedBaseObject = selectedBaseObject;
-        selectedBaseObject->SelectHandle(-1);
+        selectedBaseObject->SelectHandle();
         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         mmWorkRequired = true;
     } else {
@@ -4132,12 +4132,12 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (selectedBaseObject != nullptr) {
                         selectedBaseObject->GroupSelected(true);
                         selectedBaseObject->Selected(false);
-                        selectedBaseObject->SelectHandle(-1);
+                        selectedBaseObject->SelectHandle();
                         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
                     }
                     selectedBaseObject = which_object;
                     highlightedBaseObject = selectedBaseObject;
-                    selectedBaseObject->SelectHandle(-1);
+                    selectedBaseObject->SelectHandle();
                     selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     mmWorkRequired = true;
                 } else if (which_object->Selected()) {
@@ -4146,7 +4146,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     } else {
                         which_object->Selected(false);
                         which_object->Highlighted(false);
-                        which_object->SelectHandle(-1);
+                        which_object->SelectHandle();
                         which_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
                         selectedBaseObject = nullptr;
 
@@ -4160,7 +4160,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         if (selectedBaseObject != nullptr) {
                             selectedBaseObject->GroupSelected(false);
                             selectedBaseObject->Selected(true);
-                            selectedBaseObject->SelectHandle(-1);
+                            selectedBaseObject->SelectHandle();
                             selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                             highlightedBaseObject = selectedBaseObject;
                         }
@@ -6467,7 +6467,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             const int legacyHandle = selectedId->index + 1;
             CreateUndoPoint("SingleModel", md->name, std::to_string(legacyHandle + 0x4000));
             md->DeleteHandle(legacyHandle);
-            md->SelectHandle(-1);
+            md->SelectHandle();
             md->GetModelScreenLocation().SelectSegment(-1);
             md->Reinitialize();
             // SetupPropGrid(md);
@@ -7314,7 +7314,7 @@ void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
     modelToUnSelect->Selected(false);
     modelToUnSelect->Highlighted(false);
     modelToUnSelect->GroupSelected(false);
-    modelToUnSelect->SelectHandle(-1);
+    modelToUnSelect->SelectHandle();
     modelToUnSelect->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
@@ -7473,7 +7473,7 @@ void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
         selectedBaseObject = model;
         highlightedBaseObject = model;
         selectedBaseObject->Highlighted(true);
-        selectedBaseObject->SelectHandle(-1);
+        selectedBaseObject->SelectHandle();
         selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         if (CheckBoxOverlap->GetValue() == true) {
             CheckModelForOverlaps(model);
@@ -7482,7 +7482,7 @@ void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
         model->Selected(false);
         model->GroupSelected(true);
         model->Highlighted(true);
-        model->SelectHandle(-1);
+        model->SelectHandle();
         model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
     }
 }
@@ -7498,7 +7498,7 @@ void LayoutPanel::SetTreeGroupModelsSelected(Model* model, bool isPrimary) {
     for (const auto& m : groupModels) {
         m->GroupSelected(true);
         m->Highlighted(true);
-        model->SelectHandle(-1);
+        model->SelectHandle();
         model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
     }
 }
@@ -7511,7 +7511,7 @@ void LayoutPanel::SetTreeSubModelSelected(Model* model, bool isPrimary) {
     }
     model->GroupSelected(true);
     model->Highlighted(true);
-    model->SelectHandle(-1);
+    model->SelectHandle();
     model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 }
 
@@ -9113,7 +9113,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             const int legacyHandle = selectedId->index + 1;
             CreateUndoPoint("SingleModel", md->name, std::to_string(legacyHandle + 0x4000));
             md->DeleteHandle(legacyHandle);
-            md->SelectHandle(-1);
+            md->SelectHandle();
             md->GetModelScreenLocation().SelectSegment(-1);
             md->Reinitialize();
             //SetupPropGrid(md);

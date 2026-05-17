@@ -346,30 +346,6 @@ bool PolyPointScreenLocation::HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_di
 }
 
 
-void PolyPointScreenLocation::SetSelectedHandle(int h) {
-    if (h == NO_HANDLE) {
-        selected_handle.reset();
-        return;
-    }
-    handles::Id id;
-    if (h == CENTER_HANDLE) {
-        id.role = handles::Role::CentreCycle;
-    } else if (h & HANDLE_CP0) {
-        id.role = handles::Role::CurveControl;
-        id.index = 0;
-        id.segment = h & HANDLE_MASK;
-    } else if (h & HANDLE_CP1) {
-        id.role = handles::Role::CurveControl;
-        id.index = 1;
-        id.segment = h & HANDLE_MASK;
-    } else {
-        // Vertex: int handle is 1-based, descriptor index is 0-based.
-        id.role = handles::Role::Vertex;
-        id.index = h - 1;
-    }
-    selected_handle = id;
-}
-
 void PolyPointScreenLocation::SetActiveHandle(const std::optional<handles::Id>& id)
 {
     // Axis-gizmo roles are modifiers on the body handle — see the
@@ -440,123 +416,107 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
             h3c = IsRole(highlighted_handle, handles::Role::CentreCycle) ? xlYELLOWTRANSLUCENT : xlORANGETRANSLUCENT;
         }
 
-        // Centroid — formula matches `GetHcenterPos/Vcenter/Dcenter`,
-        // so the drawn position is identical to what GetHandles()
-        // emits for the CentreCycle descriptor.
-        const float cx = (maxX + minX) * scalex / 2.0f + worldPos_x;
-        const float cy = (maxY + minY) * scaley / 2.0f + worldPos_y;
-        const float cz = (maxZ + minZ) * scalez / 2.0f + worldPos_z;
+        // Centroid sphere: drawn at the same point GetHandles() emits
+        // for the CentreCycle descriptor and that GetActiveSubHandleWorldPos
+        // returns when CentreCycle is active.
+        const glm::vec3 centerPos(GetHcenterPos(), GetVcenterPos(), GetDcenterPos());
         const float hw = GetRectHandleWidth(zoom, scale);
-        vac->AddSphereAsTriangles(cx, cy, cz, hw, h3c);
+        vac->AddSphereAsTriangles(centerPos.x, centerPos.y, centerPos.z, hw, h3c);
         int count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count - startVertex);
         });
         startVertex = count;
 
+        // Segment lines / bezier samples — uses mPos directly because
+        // GetHandles only carries segment endpoints, not the full curve
+        // sampling needed to render bezier arcs.
         for (int i = 0; i < num_points - 1; ++i) {
-            int x1_pos = mPos[i].x * scalex + worldPos_x;
-            int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
-            int y1_pos = mPos[i].y * scaley + worldPos_y;
-            int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-            int z1_pos = mPos[i].z * scalez + worldPos_z;
-            int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
-
-            if (i == selected_segment) {
-                count = vac->getCount();
-                if (count != startVertex) {
-                    program->addStep([=](xlGraphicsContext *ctx) {
-                        ctx->drawTriangles(vac, startVertex, count - startVertex);
-                    });
-                    startVertex = count;
-                }
-                
-                if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-                } else {
-                    // draw bezier curve
-                    x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
-                    for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
-                        x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
-                        y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
-                        z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
-                        vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
-                        vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
-                        x1_pos = x2_pos;
-                        y1_pos = y2_pos;
-                        z1_pos = z2_pos;
-                    }
-                    // draw control lines
-                    x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
-                    x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-                    x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
-                    y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
-                    z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
-                    x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlRED);
-                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlRED);
-                }
-                count = vac->getCount();
+            if (i != selected_segment) continue;
+            count = vac->getCount();
+            if (count != startVertex) {
                 program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawLines(vac, startVertex, count - startVertex);
+                    ctx->drawTriangles(vac, startVertex, count - startVertex);
                 });
                 startVertex = count;
             }
 
-            // add handle for start of this vector
-            float sx = mPos[i].x * scalex + worldPos_x - hw / 2;
-            float sy = mPos[i].y * scaley + worldPos_y - hw / 2;
-            float sz = mPos[i].z * scalez + worldPos_z - hw / 2;
-            vac->AddSphereAsTriangles(sx, sy, sz, hw, i == 0 ? h1c : (IsHandle(highlighted_handle, handles::Role::Vertex, i) ? xlYELLOW : h2c));
-
-            // add final handle
-            if (i == num_points - 2) {
-                sx = mPos[i + 1].x * scalex + worldPos_x - hw / 2;
-                sy = mPos[i + 1].y * scaley + worldPos_y - hw / 2;
-                sz = mPos[i + 1].z * scalez + worldPos_z - hw / 2;
-                vac->AddSphereAsTriangles(sx, sy, sz, hw, IsHandle(highlighted_handle, handles::Role::Vertex, i + 1) ? xlYELLOW : h2c);
+            if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+                const float x1_pos = mPos[i].x * scalex + worldPos_x;
+                const float y1_pos = mPos[i].y * scaley + worldPos_y;
+                const float z1_pos = mPos[i].z * scalez + worldPos_z;
+                const float x2_pos = mPos[i + 1].x * scalex + worldPos_x;
+                const float y2_pos = mPos[i + 1].y * scaley + worldPos_y;
+                const float z2_pos = mPos[i + 1].z * scalez + worldPos_z;
+                vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+            } else {
+                // bezier curve sample chain
+                float x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
+                float y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
+                float z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
+                for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
+                    const float x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
+                    const float y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
+                    const float z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
+                    vac->AddVertex(x1_pos, y1_pos, z1_pos, xlMAGENTA);
+                    vac->AddVertex(x2_pos, y2_pos, z2_pos, xlMAGENTA);
+                    x1_pos = x2_pos;
+                    y1_pos = y2_pos;
+                    z1_pos = z2_pos;
+                }
+                // control lines from each endpoint to its CP
+                const float p0x = mPos[i].curve->get_p0x() * scalex + worldPos_x;
+                const float p0y = mPos[i].curve->get_p0y() * scaley + worldPos_y;
+                const float p0z = mPos[i].curve->get_p0z() * scalez + worldPos_z;
+                const float cp0x = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
+                const float cp0y = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
+                const float cp0z = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
+                vac->AddVertex(p0x, p0y, p0z, xlRED);
+                vac->AddVertex(cp0x, cp0y, cp0z, xlRED);
+                const float p1x = mPos[i].curve->get_p1x() * scalex + worldPos_x;
+                const float p1y = mPos[i].curve->get_p1y() * scaley + worldPos_y;
+                const float p1z = mPos[i].curve->get_p1z() * scalez + worldPos_z;
+                const float cp1x = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
+                const float cp1y = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
+                const float cp1z = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
+                vac->AddVertex(p1x, p1y, p1z, xlRED);
+                vac->AddVertex(cp1x, cp1y, cp1z, xlRED);
             }
+            count = vac->getCount();
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawLines(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
         }
 
-        glm::vec3 cp_handle_pos[2];
-        if (selected_segment != -1) {
-            // add control point handles for selected segments
-            int i = selected_segment;
-            if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-                float cxx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
-                float cyy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-                float czz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
-                h2c = IsHandle(highlighted_handle, handles::Role::CurveControl, 0, i) ? xlYELLOW : xlRED;
-                vac->AddSphereAsTriangles(cxx, cyy, czz, hw, h2c);
-                mPos[i].cp0.x = mPos[i].curve->get_cp0x();
-                mPos[i].cp0.y = mPos[i].curve->get_cp0y();
-                mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-                cp_handle_pos[0].x = cxx;
-                cp_handle_pos[0].y = cyy;
-                cp_handle_pos[0].z = czz;
-                cxx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - hw / 2;
-                cyy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - hw / 2;
-                czz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - hw / 2;
-                h2c = IsHandle(highlighted_handle, handles::Role::CurveControl, 1, i) ? xlYELLOW : xlRED;
-                vac->AddSphereAsTriangles(cxx, cyy, czz, hw, h2c);
-                mPos[i].cp1.x = mPos[i].curve->get_cp1x();
-                mPos[i].cp1.y = mPos[i].curve->get_cp1y();
-                mPos[i].cp1.z = mPos[i].curve->get_cp1z();
-                cp_handle_pos[1].x = cxx;
-                cp_handle_pos[1].y = cyy;
-                cp_handle_pos[1].z = czz;
+        // Vertex + CurveControl spheres come from GetHandles(): the
+        // descriptor pipeline owns the position, draw matches hit-test
+        // exactly (no -hw/2 offset).
+        const auto descriptors = GetHandles(handles::ViewMode::ThreeD, handles::Tool::Translate);
+        for (const auto& d : descriptors) {
+            if (d.id.role == handles::Role::Vertex) {
+                xlColor c = (d.id.index == 0)
+                    ? h1c
+                    : (IsHandle(highlighted_handle, handles::Role::Vertex, d.id.index) ? xlYELLOW : h2c);
+                vac->AddSphereAsTriangles(d.worldPos.x, d.worldPos.y, d.worldPos.z, hw, c);
+            } else if (d.id.role == handles::Role::CurveControl && d.id.segment == selected_segment) {
+                xlColor c = IsHandle(highlighted_handle, handles::Role::CurveControl, d.id.index, d.id.segment)
+                    ? xlYELLOW : xlRED;
+                vac->AddSphereAsTriangles(d.worldPos.x, d.worldPos.y, d.worldPos.z, hw, c);
             }
+        }
+        // Keep the legacy cp0/cp1 cache in sync with the live curve;
+        // SpaceMouse curve-CP drag (ApplySpaceMouse* on mPos[seg].cp0/cp1)
+        // relies on it. The cache is otherwise unrelated to drawing.
+        if (selected_segment != -1 && mPos[selected_segment].has_curve && mPos[selected_segment].curve != nullptr) {
+            auto& mp = mPos[selected_segment];
+            mp.cp0.x = mp.curve->get_cp0x();
+            mp.cp0.y = mp.curve->get_cp0y();
+            mp.cp0.z = mp.curve->get_cp0z();
+            mp.cp1.x = mp.curve->get_cp1x();
+            mp.cp1.y = mp.curve->get_cp1y();
+            mp.cp1.z = mp.curve->get_cp1z();
         }
         count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
@@ -565,29 +525,10 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
         startVertex = count;
 
         if (!_locked) {
-            glm::vec3 active_handle_pos(0.0f);
-            if (IsHandle(active_handle, handles::Role::CurveControl, 0)) {
-                active_handle_pos = cp_handle_pos[0];
-            }
-            else if (IsHandle(active_handle, handles::Role::CurveControl, 1)) {
-                active_handle_pos = cp_handle_pos[1];
-            }
-            else if (IsRole(active_handle, handles::Role::CentreCycle)) {
-                active_handle_pos = glm::vec3(cx, cy, cz);
-            }
-            else if (IsRole(active_handle, handles::Role::Vertex)) {
-                // Vertex handle: descriptor index is 0-based. Position
-                // mirrors the draw offset (`- hw/2`) so the gizmo lines
-                // through the visible handle the same way the old cache
-                // did.
-                const int vIdx = active_handle->index;
-                if (vIdx >= 0 && vIdx < num_points) {
-                    active_handle_pos = glm::vec3(
-                        mPos[vIdx].x * scalex + worldPos_x - hw / 2,
-                        mPos[vIdx].y * scaley + worldPos_y - hw / 2,
-                        mPos[vIdx].z * scalez + worldPos_z - hw / 2);
-                }
-            }
+            // Gizmo position: GetActiveSubHandleWorldPos covers
+            // CentreCycle / Vertex / CurveControl in one place, matching
+            // the descriptors we just drew.
+            const glm::vec3 active_handle_pos = GetActiveSubHandleWorldPos();
             DrawAxisTool(active_handle_pos, program, zoom, scale);
             if (axis_tool == MSLTOOL::TOOL_XY_TRANS && active_axis != MSLAXIS::NO_AXIS) {
                 // XY_TRANS draws a planar cross (X + Y lines) rather than
@@ -660,102 +601,86 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
     vac->AddRectAsTriangles(x2, y2, x2 + hw, y2 + hw, handleColor);
 
 
+    // Segment lines / bezier samples — uses mPos directly because
+    // GetHandles only carries segment endpoints, not the full curve
+    // sampling needed to render bezier arcs.
     for (int i = 0; i < num_points - 1; ++i) {
-        int x1_pos = mPos[i].x * scalex + worldPos_x;
-        int x2_pos = mPos[i + 1].x * scalex + worldPos_x;
-        int y1_pos = mPos[i].y * scaley + worldPos_y;
-        int y2_pos = mPos[i + 1].y * scaley + worldPos_y;
-        [[maybe_unused]] int z1_pos = mPos[i].z * scalez + worldPos_z;
-        int z2_pos = mPos[i + 1].z * scalez + worldPos_z;
-
-        if (i == selected_segment) {
-            int count = vac->getCount();
-            if (count != startVertex) {
-                program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawTriangles(vac, startVertex, count - startVertex);
-                });
-                startVertex = count;
-            }
-            if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+        if (i != selected_segment) continue;
+        int count = vac->getCount();
+        if (count != startVertex) {
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawTriangles(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
+        }
+        if (!mPos[i].has_curve || mPos[i].curve == nullptr) {
+            const float x1_pos = mPos[i].x * scalex + worldPos_x;
+            const float y1_pos = mPos[i].y * scaley + worldPos_y;
+            const float x2_pos = mPos[i + 1].x * scalex + worldPos_x;
+            const float y2_pos = mPos[i + 1].y * scaley + worldPos_y;
+            vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
+            vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
+        } else {
+            // bezier curve sample chain
+            float x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
+            float y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
+            for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
+                const float x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
+                const float y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
                 vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
                 vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
-            } else {
-                // draw bezier curve
-                x1_pos = mPos[i].curve->get_px(0) * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_py(0) * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_pz(0) * scalez + worldPos_z;
-                for (int x = 1; x < mPos[i].curve->GetNumPoints(); ++x) {
-                    x2_pos = mPos[i].curve->get_px(x) * scalex + worldPos_x;
-                    y2_pos = mPos[i].curve->get_py(x) * scaley + worldPos_y;
-                    z2_pos = mPos[i].curve->get_pz(x) * scalez + worldPos_z;
-                    vac->AddVertex(x1_pos, y1_pos, xlMAGENTA);
-                    vac->AddVertex(x2_pos, y2_pos, xlMAGENTA);
-                    x1_pos = x2_pos;
-                    y1_pos = y2_pos;
-                    z1_pos = z2_pos;
-                }
-                // draw control lines
-                x1_pos = mPos[i].curve->get_p0x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p0y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p0z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp0z() * scalez + worldPos_z;
-                vac->AddVertex(x1_pos, y1_pos, xlRED);
-                vac->AddVertex(x2_pos, y2_pos, xlRED);
-                x1_pos = mPos[i].curve->get_p1x() * scalex + worldPos_x;
-                y1_pos = mPos[i].curve->get_p1y() * scaley + worldPos_y;
-                z1_pos = mPos[i].curve->get_p1z() * scalez + worldPos_z;
-                x2_pos = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
-                y2_pos = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
-                z2_pos = mPos[i].curve->get_cp1z() * scalez + worldPos_z;
-                vac->AddVertex(x1_pos, y1_pos, xlRED);
-                vac->AddVertex(x2_pos, y2_pos, xlRED);
+                x1_pos = x2_pos;
+                y1_pos = y2_pos;
             }
-            count = vac->getCount();
-            if (count != startVertex) {
-                program->addStep([=](xlGraphicsContext *ctx) {
-                    ctx->drawLines(vac, startVertex, count - startVertex);
-                });
-                startVertex = count;
-            }
+            // control lines from each endpoint to its CP
+            const float p0x = mPos[i].curve->get_p0x() * scalex + worldPos_x;
+            const float p0y = mPos[i].curve->get_p0y() * scaley + worldPos_y;
+            const float cp0x = mPos[i].curve->get_cp0x() * scalex + worldPos_x;
+            const float cp0y = mPos[i].curve->get_cp0y() * scaley + worldPos_y;
+            vac->AddVertex(p0x, p0y, xlRED);
+            vac->AddVertex(cp0x, cp0y, xlRED);
+            const float p1x = mPos[i].curve->get_p1x() * scalex + worldPos_x;
+            const float p1y = mPos[i].curve->get_p1y() * scaley + worldPos_y;
+            const float cp1x = mPos[i].curve->get_cp1x() * scalex + worldPos_x;
+            const float cp1y = mPos[i].curve->get_cp1y() * scaley + worldPos_y;
+            vac->AddVertex(p1x, p1y, xlRED);
+            vac->AddVertex(cp1x, cp1y, xlRED);
         }
-
-        // add handle for start of this vector
-        float sx = mPos[i].x * scalex + worldPos_x - hw / 2;
-        float sy = mPos[i].y * scaley + worldPos_y - hw / 2;
-        float sz = mPos[i].z * scalez + worldPos_z - hw / 2;
-        (void)sz;
-        vac->AddRectAsTriangles(sx, sy, sx + hw, sy + hw, IsHandle(selected_handle, handles::Role::Vertex, i) ? xlMAGENTATRANSLUCENT : (i == 0 ? xlGREENTRANSLUCENT : handleColor));
-
-        // add final handle
-        if (i == num_points - 2) {
-            sx = mPos[i + 1].x * scalex + worldPos_x - hw / 2;
-            sy = mPos[i + 1].y * scaley + worldPos_y - hw / 2;
-            sz = mPos[i + 1].z * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(sx, sy, sx + hw, sy + hw, IsHandle(selected_handle, handles::Role::Vertex, i + 1) ? xlMAGENTATRANSLUCENT : handleColor);
+        count = vac->getCount();
+        if (count != startVertex) {
+            program->addStep([=](xlGraphicsContext *ctx) {
+                ctx->drawLines(vac, startVertex, count - startVertex);
+            });
+            startVertex = count;
         }
     }
 
-    if (selected_segment != -1) {
-        // add control point handles for selected segments
-        int i = selected_segment;
-        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
-            float cx = mPos[i].curve->get_cp0x() * scalex + worldPos_x - hw / 2;
-            float cy = mPos[i].curve->get_cp0y() * scaley + worldPos_y - hw / 2;
-            [[maybe_unused]] float cz = mPos[i].curve->get_cp0z() * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
-            mPos[i].cp0.x = mPos[i].curve->get_cp0x();
-            mPos[i].cp0.y = mPos[i].curve->get_cp0y();
-            mPos[i].cp0.z = mPos[i].curve->get_cp0z();
-            cx = mPos[i].curve->get_cp1x() * scalex + worldPos_x - hw / 2;
-            cy = mPos[i].curve->get_cp1y() * scaley + worldPos_y - hw / 2;
-            cz = mPos[i].curve->get_cp1z() * scalez + worldPos_z - hw / 2;
-            vac->AddRectAsTriangles(cx, cy, cx + hw, cy + hw, xlREDTRANSLUCENT);
-            mPos[i].cp1.x = mPos[i].curve->get_cp1x();
-            mPos[i].cp1.y = mPos[i].curve->get_cp1y();
-            mPos[i].cp1.z = mPos[i].curve->get_cp1z();
+    // Vertex + CurveControl rects come from GetHandles(): the descriptor
+    // pipeline owns the position so draw and hit-test agree.
+    const auto descriptors = GetHandles(handles::ViewMode::TwoD, handles::Tool::Translate);
+    for (const auto& d : descriptors) {
+        if (d.id.role == handles::Role::Vertex) {
+            xlColor c = IsHandle(selected_handle, handles::Role::Vertex, d.id.index)
+                ? xlMAGENTATRANSLUCENT
+                : (d.id.index == 0 ? xlGREENTRANSLUCENT : handleColor);
+            vac->AddRectAsTriangles(d.worldPos.x - hw / 2, d.worldPos.y - hw / 2,
+                                     d.worldPos.x + hw / 2, d.worldPos.y + hw / 2, c);
+        } else if (d.id.role == handles::Role::CurveControl && d.id.segment == selected_segment) {
+            vac->AddRectAsTriangles(d.worldPos.x - hw / 2, d.worldPos.y - hw / 2,
+                                     d.worldPos.x + hw / 2, d.worldPos.y + hw / 2, xlREDTRANSLUCENT);
         }
+    }
+    if (selected_segment != -1 && mPos[selected_segment].has_curve && mPos[selected_segment].curve != nullptr) {
+        // Same cp0/cp1 cache sync as the 3D path — keeps SpaceMouse
+        // CP-drag (which mutates mPos[seg].cp0/cp1 directly) in lockstep
+        // with the live curve.
+        auto& mp = mPos[selected_segment];
+        mp.cp0.x = mp.curve->get_cp0x();
+        mp.cp0.y = mp.curve->get_cp0y();
+        mp.cp0.z = mp.curve->get_cp0z();
+        mp.cp1.x = mp.curve->get_cp1x();
+        mp.cp1.y = mp.curve->get_cp1y();
+        mp.cp1.z = mp.curve->get_cp1z();
     }
     int count = vac->getCount();
     if (count != startVertex) {
@@ -860,11 +785,8 @@ PolyPointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>
 }
 
 
-void PolyPointScreenLocation::SelectHandle(int handle) {
-    SetSelectedHandle(handle);
-    if( handle != -1 && handle < HANDLE_CP0) {
-        selected_segment = -1;
-    }
+void PolyPointScreenLocation::SelectHandle() {
+    selected_handle.reset();
 }
 
 void PolyPointScreenLocation::SelectSegment(int segment) {
@@ -939,7 +861,13 @@ void PolyPointScreenLocation::InsertHandle(int after_handle, float zoom, int sca
     mPos.insert(mPos.begin() + pos + 1, new_point);
     mPos[pos].length = new_point.length;
     num_points++;
-    SetSelectedHandle(after_handle + 1);
+    // Highlight the newly-inserted vertex. Legacy convention: int
+    // handle was 1-based, descriptor index is 0-based — so the new
+    // vertex's id.index equals after_handle.
+    handles::Id sel;
+    sel.role = handles::Role::Vertex;
+    sel.index = after_handle;
+    selected_handle = sel;
     selected_segment = -1;
     mSelectableHandles++;
     seg_aabb_min.resize(num_points - 1);

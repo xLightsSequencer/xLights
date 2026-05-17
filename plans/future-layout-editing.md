@@ -10,17 +10,16 @@ LA-12 bulk-edit (15+ ops), LA-13 ImportPreviewsModelsDialog,
 LA-15 DXF/STL/VRML export, VO-3 MeshObject, VO-4 TerrainObject,
 VO-5 RulerObject, VO-6 ViewObjectPanel.
 
-Most of these landed inside Phase J. What's left:
+Most of these landed inside Phase J (including VO-3 / VO-4 / VO-5,
+verified 2026-05-17). What's left:
 
 - **LA-13 ImportPreviewsModelsDialog** — copy model layout from
   another show.
 - **LA-15 DXF / STL / VRML export** — dumps the current layout
   to a CAD file.
-- **VO-3 MeshObject** advanced controls — texture + brightness +
-  mesh-only flag editing.
-- **VO-5 RulerObject** — singleton; length + units; 2-point line.
-- **VO-6 ViewObjectPanel** ergonomics — multi-select / drag-
-  reorder / unlink-from-base.
+- **VO-6 ViewObjectPanel ergonomics** — multi-select + drag-reorder
+  on the Objects sidebar list. Tracked in
+  [`future-custom-models.md`](future-custom-models.md).
 - **Bulk edit / wiring view extras** — per-model strand wiring
   diagram (WV-1) tracked in
   [`future-custom-models.md`](future-custom-models.md).

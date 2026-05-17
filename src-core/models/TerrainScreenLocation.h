@@ -46,6 +46,9 @@ public:
     [[nodiscard]] float GetGridHeight(int idx) const {
         return (idx >= 0 && idx < static_cast<int>(mPos.size())) ? mPos[idx] : 0.0f;
     }
+    // Source of truth for the world position of grid vertex `abs_point`.
+    // Shared by GetHandles (descriptors) and DrawHandles (sphere).
+    [[nodiscard]] glm::vec3 GetVertexWorldPosition(int abs_point) const;
     void SetGridHeight(int idx, float h) {
         if (idx >= 0 && idx < static_cast<int>(mPos.size())) mPos[idx] = h;
     }

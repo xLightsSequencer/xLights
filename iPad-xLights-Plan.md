@@ -66,17 +66,17 @@ variants in `libdbg-ios/`.
 - **FPP Connect (P1).** External testers keep asking for one-tap
   uploads from the iPad so they can iterate on the field rig
   without unwrapping a laptop. Tracked in
-  [`future-controller-upload.md`](plans/future-controller-upload.md)
-  along with the rest of the upload stack (Bulk Upload,
-  HinksPix, Pixel Test).
+  [`future-controller-upload.md`](plans/future-controller-upload.md);
+  the rest of the upload stack (Bulk Upload, HinksPix, drag-drop
+  port mapping) is parked at P4 there. Pixel Test stays P2.
 - **Authenticated vendor downloads.** `VendorBrowserSheet` /
   `XLVendorCatalog` / `CachedFileDownloader` use anonymous libcurl
   HTTP — there is no auth path for behind-login catalog content
   today. Open whenever the catalog starts gating models behind
   accounts.
 - **Layout Editor Controllers-tab polish.** Drag-reorder + sort
-  modes + right-click Activate/Inactivate/Unlink + HTTP-scan with
-  auth credentials + LED ping. See
+  modes + right-click Activate/Inactivate/Unlink + LED ping. The
+  Discover-sheet HTTP-scan-with-auth (O-7) is now P4. See
   [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md).
 - **Phase B-77 — MIDI Import Notes.** Deprioritized; low desktop use
   and no concrete iPad request open.
