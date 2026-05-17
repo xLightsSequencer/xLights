@@ -1,18 +1,44 @@
 # Phase J — Layout Editor (iPad)
 
-**Status:** J-0 ✓ 2026-05-07; J-1 common-properties surface ✓
-2026-05-08; J-2 substantially complete 2026-05-08 — tap-to-select
-(2D + 3D), selection rendering via `ScreenLocation::DrawHandles`,
-drag-to-move (2D), per-type handle drag (2D + 3D) via the
-descriptor pipeline (`GetHandles` / `BeginDrag` / `DragSession`,
-see [`handle-system-refactor.md`](handle-system-refactor.md)),
-grid + bounding-box overlays, snap-to-grid, keyboard nudge,
-layout undo. Pending: 3D body-drag (camera-aware delta math),
-text labels, rubber-band multi-select, per-type properties (J-3).
-Promoted from [`future-layout-editing.md`](future-layout-editing.md)
-on 2026-05-07 after the iPad app entered App Store review. Phase S
-of the gap analysis is the engineering reference; this file is
-the iPad-side sub-plan.
+**Status:** J-0 → J-32 ✓ 2026-05-07..16. The Layout Editor is a
+full-screen detachable window opened from Tools → Edit Layout…
+with: tap-to-select (2D + 3D), descriptor-pipeline-driven
+selection rendering, drag-to-move + per-type handle drag (2D + 3D),
+rubber-band multi-select, grid + bounding-box overlays,
+snap-to-grid, keyboard nudge, layout undo, per-type property pages
+for 26 model types (the 14 high-traffic types plus Circle,
+Spinner, Channel Block, Label, MultiPoint, and all 7 DMX
+variants), model-group CRUD with drag-to-reorder + an expandable
+AddMemberSheet, sidebar tabs for Models / Groups / Objects, a
+Controllers tab + Controllers Visualize wiring view (J-31 / J-32 —
+which closes the previously-tracked "live-output controller list"
+gap), a custom-model visual editor with SubModel geometry editing
+(J-23), Faces / States / Dimming Curve / SubModels editors
+(J-22), DMX deep authoring (J-30), and view-object editing
+including a terrain heightmap editor. Promoted from
+[`future-layout-editing.md`](future-layout-editing.md) on
+2026-05-07 after the iPad app entered App Store review (since
+shipped). Phase S of the gap analysis is the engineering
+reference; this file is the iPad-side sub-plan.
+
+**One small follow-up remains in this phase** (surfaced by the
+model-import audit on 2026-05-17):
+
+- **Authenticated vendor downloads.** `VendorBrowserSheet` /
+  `XLVendorCatalog` route through `CachedFileDownloader`'s
+  anonymous libcurl path (`src-iPad/App/VendorBrowserSheet.swift`
+  → `src-iPad/Bridge/XLVendorCatalog.mm:145` →
+  `src-core/utils/CachedFileDownloader`). No credential / cookie /
+  URLSessionConfiguration hookup exists. Opens whenever the
+  catalog starts gating models behind accounts.
+- ✓ **Layout-group selection on multi-model `.xmodel` placement.**
+  Shipped 2026-05-17 — multi-model imports now prompt for
+  destination group via `LayoutGroupPickerSheet`. Single-model
+  `.xmodel` placement is unchanged (still inherits the active
+  layout group). Bridge entry points:
+  `+xmodelFileIsMultiModel:` (peek) and the new
+  `targetLayoutGroup:` parameter on
+  `importXmodelFromPath:atScreenPoint:viewSize:forDocument:`.
 
 **Interaction design** for the touch + Pencil UX layer lives in
 [`phase-j-touch-ux.md`](phase-j-touch-ux.md) — toolbar-driven
@@ -1218,36 +1244,79 @@ mesh-import flow, DmxServo / DmxServo3D, DmxSkull,
 PositionZoneDialog, DMXEffect 48-channel grid, RemapDMX
 Channels.
 
-### J-3 — Per-type properties + model creation (~4–6 wk)
+### J-3 — Per-type properties + model creation ✓ 2026-05-15
 
-The long tail. Per-model property pages. (Model creation runs
-through the existing Models-sidebar "+" button — no dedicated
-Add-Model toolbar.)
+Shipped via a unified, metadata-driven
+`LayoutEditorTypePropertiesView`
+(`src-iPad/App/LayoutEditorView.swift:8108`) backed by
+`perTypePropertiesForModel:` and `setPerTypeProperty:onModel:value:`
+on `XLSequenceDocument` (`src-iPad/Bridge/XLSequenceDocument.mm:6534`).
+Property descriptors carry kind (int, double, bool, enum, string)
++ display label + visibility rules, so the same SwiftUI view
+renders every model type from the bridge's per-type descriptor
+list. No per-type Swift view classes; no "Edit on desktop"
+placeholders — every shipped model type has a real editor.
 
-**Per-type properties:**
+**Per-type properties — 26 model types covered:**
 
-- Port adapter logic for the high-traffic models first: Matrix,
-  Tree, Arch, Star, Custom, PolyLine, Single Line, Icicles,
-  Window Frame, Wreath, Candy Cane, Cube, Sphere, Image. ~14 of
-  the ~40 desktop adapters cover ~95% of shipping model usage.
-- Remaining adapters land opportunistically; missing per-type
-  page = read-only "Edit on desktop" placeholder.
-- DMX deep authoring (channel mapping, fixture definitions) stays
-  in [`future-custom-models.md`](future-custom-models.md) — this
-  phase only covers DMX position/dimension editing.
-- Face / State editing also stays in `future-custom-models.md`.
+The 14 originally-planned high-traffic types all landed:
+
+- Matrix, Tree, Arch, Star, Custom, PolyLine, Single Line,
+  Icicles, Window Frame, Wreath, Candy Cane, Cube, Sphere,
+  Image.
+
+Plus 12 additional types shipped opportunistically through the
+same descriptor pipeline:
+
+- Circle, Spinner, Channel Block, Label, MultiPoint, and the
+  seven DMX variants (Floodlight, Floodlight Area, Moving Head,
+  Moving Head Advanced, General, Skull, Servo, Servo 3D — DMX
+  position/dimension + channel mapping, with deep authoring in
+  J-30).
 
 **Model creation:**
 
-- The existing "+" button in the Models sidebar covers the create
-  flow well enough; no dedicated Add-Model toolbar planned.
+The Models-sidebar "+" button surfaces an `AddModelSheet`
+(`LayoutEditorView.swift:9688`) listing the 18 built-in model
+types (matching desktop's "Add Model" categories). Each option
+creates a blank instance of that type; the user then customizes
+through the per-type properties view.
 
-**Model groups:**
+Catalog-driven creation runs through the **Download** button on
+the Layout Editor canvas overlay
+(`LayoutEditorView.swift:1953..1982`) — `VendorBrowserSheet` browses
+the xlights.org vendor index through `XLVendorCatalog`, downloads
+`.xmodel` files via `CachedFileDownloader`, and flips the canvas
+into tap-to-place mode. The **Import** button on the same
+overlay accepts `.xmodel` / `.gdtf` / `.lff` / `.lpf` through
+`.fileImporter` (`LayoutEditorView.swift:233..237`), persists the
+file bookmark via `ObtainAccessToURL`
+(`LayoutEditorView.swift:409`), and routes through
+`XLMetalBridge.importXmodel`. Multi-model `<models>` `.xmodel`
+files are unpacked and placed in a grid pattern
+(`XLMetalBridge.mm:2363..2409`) matching desktop's PR #6365 batch
+placement.
 
-- Create / delete / rename model group.
-- Drag-to-add-to-group + remove. UI shape TBD; likely a sheet
-  with two columns (in-group / available) similar to
-  `DisplayElementsSheet`.
+**Model groups — all CRUD + membership editing shipped:**
+
+- `createModelGroup(_:members:)` ↔ "New Group" button
+  (`LayoutEditorView.swift:566`).
+- `deleteModelGroup(_:)` ↔ long-press delete with confirm
+  dialog (line 1078).
+- `renameModelGroup(_:to:)` ↔ pencil button in
+  `LayoutEditorGroupPropertiesView` (line 8254).
+- Drag-to-reorder members via a manual VStack with per-row drop
+  targets in `LayoutEditorGroupPropertiesView` (lines 8240..8328).
+- `AddMemberSheet` (lines 9806..9887) — expandable tree picker
+  with submodel expansion, searchable filter, multi-select
+  checkboxes, dimmed/hidden already-member rows; submodels lazy-
+  loaded via `submodelsForModel(_:)`.
+- Bridge wiring: `setLayoutModelGroupProperty(_:key:value:)`.
+
+**Open follow-up (see header):** authenticated vendor downloads
+is the only remaining item in this phase. The layout-group
+selection sheet for multi-model `.xmodel` imports shipped
+2026-05-17.
 
 ### J-23.8 — Fat-finger snap, Pencil hover, Bresenham distribute ✓ 2026-05-15
 

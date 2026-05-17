@@ -674,6 +674,37 @@ NS_ASSUME_NONNULL_BEGIN
 // view's model-name list. Returns NO if no such Element exists.
 - (BOOL)removeElementFromMasterView:(NSString*)name;
 
+// Sequence-load "missing model" reconciliation, mirroring desktop's
+// `xLightsFrame::CheckForValidModels` post-open pass. Names returned
+// here are ELEMENT_TYPE_MODEL elements whose `GetModelName()` doesn't
+// resolve in the current `ModelManager` AND that carry at least one
+// effect (no effects = silently drop, no user prompt needed). Names
+// that already match an "oldname:" alias on some existing model are
+// filtered out — they auto-remap and don't need user input.
+- (NSArray<NSString*>*)missingModelNamesWithEffects;
+
+// Rename a missing model-element to an existing model name. When
+// `addAlias` is YES, also call `Model::AddAlias("oldname:" +
+// originalName)` on the target so future sequences referencing the
+// old name auto-remap (mirrors desktop's new "Add as alias"
+// checkbox in `SeqElementMismatchDialog`). The alias add marks the
+// target model dirty so `saveLayoutChanges` persists it. Returns NO
+// if either name is empty, the original element isn't present, or
+// the target model can't be resolved.
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                 byRenameTo:(NSString*)existingName
+                   addAlias:(BOOL)addAlias
+    NS_SWIFT_NAME(resolveMissingModel(_:byRenameTo:addAlias:));
+
+// Delete a missing model-element from the sequence outright (the
+// other branch of desktop's mismatch dialog). Pass YES for
+// `delete_` to actually delete; NO is a no-op (keeps the symmetric
+// shape with the rename method). Returns NO if no such element
+// exists or the flag is NO.
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                   byDelete:(BOOL)delete_
+    NS_SWIFT_NAME(resolveMissingModel(_:byDelete:));
+
 // Global element visibility. Models drive `Element::SetVisible`; for
 // timings this toggles `TimingElement::SetMasterVisible` (visibility
 // in the Master View). Per-non-Master-view timing visibility is

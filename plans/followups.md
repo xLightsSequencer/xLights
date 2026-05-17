@@ -9,25 +9,19 @@ phase home; catalogued here so they don't fall off.
   authoring. Lowest priority — deferred until someone actually
   uses them on iPad.
 
-- **Add-alias on missing-model prompt** (desktop landed
-  2026-05-01, `e1b90a0fd`). Desktop's `SeqElementMismatchDialog`
-  now offers an "Add as alias" checkbox so users can resolve a
-  missing-model load by aliasing the requested name to an
-  existing model. iPad currently silently drops missing models on
-  load — the access-reprompt sheet pattern (`AccessRepromptSheet`)
-  is the right shape to copy: add a `MissingModelAliasSheet` that
-  presents missing names with an alias-target picker, persist via
-  `Model::AddAlias()` through a new bridge. P2.
+- ~~**Add-alias on missing-model prompt**~~ — shipped 2026-05-17.
+  Bridge (`missingModelNamesWithEffects` / `resolveMissingModel:…`)
+  + `MissingModelAliasSheet` mirror desktop's
+  `SeqElementMismatchDialog` "Add as alias" path; rename + delete
+  cover the iPad MVP, full Map-Models flow stays desktop-only.
 
 ## Phase F — Window system polish
 
-- **Display Elements filter** (desktop landed 2026-04-28,
-  `188387c7e`). Desktop's Edit Display Elements sheet now has a
-  search filter above the Available list — large shows with
-  hundreds of models / groups / timings make scroll-and-eye
-  picking tedious. iPad's `DisplayElementsSheet` should mirror
-  with a `.searchable`-driven filter on the Available column;
-  clear automatically when items are moved into the view. S effort.
+- ~~**Display Elements filter**~~ — done 2026-05-17. Added a
+  case-insensitive substring filter above the Available pane in
+  both Master and user-view detail of `DisplayElementsSheet`;
+  resets on add (per-row, "Add All") so cleared rows don't leave
+  stale needles in the field.
 
 ## Phase C — Effect Settings Inspector polish
 
@@ -63,41 +57,39 @@ phase home; catalogued here so they don't fall off.
 
 ## Phase E / G — Media handling
 
-- **Animated GIF → Pictures effect migration** (desktop landed
-  2026-04-27, `6e9e50211`). Desktop now auto-detects animated
-  GIFs sitting in Video effects on sequence load and converts
-  them to Pictures effects (PicturesEffect plays GIF frames
-  natively). The detection helper `MediaCompatibilityIssue::isAnimatedGif()`
-  already lives in `src-core/`; the migration logic itself is in
-  `src-ui-wx/import_export/SeqFileUtilities.cpp` (~200 lines). To
-  bring this to iPad: lift the migration into core (so both
-  clients call the same path) and either run it on sequence load
-  or surface as a one-tap "Convert to Pictures" action in the
-  Media Manager when an `isAnimatedGif` entry shows up in the
-  broken / unsupported list. M effort.
+- **Animated GIF → Pictures effect migration.** Shipped
+  2026-05-17: lifted from `src-ui-wx/import_export/SeqFileUtilities.cpp`
+  into `src-core/render/SeqMediaMigration.{h,cpp}`; desktop is now
+  a thin wrapper and iPad runs the same migration on sequence
+  open in `iPadRenderContext::OpenSequence`.
 
 ## Phase J — Layout editor
 
-- **Model download + import.** Desktop's Model menu offers
-  "Download Models" (curated catalog from xlights.org / share
-  community) and "Import Custom Model" (.xmodel files including
-  multi-model groups). Both are common entry points for new shows
-  — far less manual building. iPad needs both:
-  - **Download.** Reuse the existing desktop catalog endpoint
-    (`Model -> Download Models`). Bridge: list / fetch / install
-    methods on `XLSequenceDocument`. UI: a `.sheet`-based browser
-    triggered from the Add Model menu (or a separate "Download"
-    button next to it), search + category filter, install button
-    persists to the show's model directory and refreshes the
-    sidebar. Needs an authenticated `URLSession` for any
-    behind-login content.
-  - **Import .xmodel.** File picker (UIDocumentPickerViewController
-    wrapping the existing `Model::Import` core path) lets users
-    pull in `.xmodel` files from iCloud / Files / AirDrop. Bridge
-    + a sheet that previews the model before commit. `.xmodel`
-    multi-model groups need each entry placed individually with
-    layout-group assignment.
-  - Both need to register destination files via
-    `ObtainAccessToURL` so subsequent loads survive app restart.
-  - P1 — gates many new-user onboarding flows (downloading
-    Matt Brown / Steve Hopkins / etc. shared shows).
+- **Model download + import.** ✓ substantially shipped
+  2026-05-15..16 alongside J-23 / J-31 / J-32. The Layout Editor
+  canvas overlay has three buttons
+  (`src-iPad/App/LayoutEditorView.swift:1953..1982`):
+  - **+ (Add Model)** opens `AddModelSheet` with the 18 built-in
+    types.
+  - **Import (↓↑)** runs `.fileImporter` for `.xmodel` /
+    `.gdtf` / `.lff` / `.lpf`, persists the bookmark via
+    `ObtainAccessToURL` (line 409), and routes through
+    `XLMetalBridge.importXmodel`. Multi-model `<models>` files
+    are unpacked and placed in a grid
+    (`src-iPad/Metal/XLMetalBridge.mm:2363..2409`) — desktop
+    PR #6365 parity.
+  - **Download (cloud ↓)** opens `VendorBrowserSheet`
+    (`src-iPad/App/VendorBrowserSheet.swift`), which fetches the
+    xlights.org vendor index through `XLVendorCatalog` (shared
+    core `vendor_catalog::Catalog`), browses vendors → models →
+    wirings, downloads via `CachedFileDownloader`, and flips the
+    canvas into tap-to-place mode.
+
+  **Remaining gaps** (now tracked in
+  [`phase-j-layout-editor.md`](phase-j-layout-editor.md) header):
+
+  - Authenticated downloads. `CachedFileDownloader` is
+    anonymous-only; no auth path exists for behind-login content.
+  - Layout-group selection on multi-model `.xmodel` placement —
+    every model lands in `GetActiveLayoutGroup()` with no
+    prompt. A pre-placement sheet would close this.

@@ -11,14 +11,20 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 
 - IO-7 SuperStar `.sup` import (Phase I-4, 2026-05-02).
 - IO-11 `.xsq` / `.xsqz` import (Phase I-2, 2026-04-29).
+- IO-12 **Papagayo `.pgo`** lipsync import — `XLSequenceDocument.importPapagayoTiming:…` wraps the core `ProcessPapagayo` helper.
+- IO-13 **Audacity `.txt` label import** — wired via `XLSequenceDocument.importAudacityLabels:…` (core's `ProcessAudacityTimingFiles` exposed through the bridge).
 - IO-17 `.xtiming` round-trip (Phase B-74).
+- IO-20 SeqElementMismatchDialog — alias-prompt half shipped 2026-05-17 via `resolveMissingModel:byRenameTo:addAlias:` + `MissingModelAliasSheet`; full desktop Map-Models flow stays desktop-only (see EX-3 row below).
+- IO-21 **MetronomeLabelDialog** — `addMetronomeTimingTrack:…` (tags + randomization).
 - IO-22 AutoLabelDialog (Phase B-89).
+- IO-23 **LyricsDialog** text + timing entry — `XLSequenceDocument.importLyricsAtRow:…` (phrases with start/end times). Pairs with the `AddTimingTrackSheet` AI Lyrics tab.
 - EX-3 BatchRenderDialog — simplified iPad version landed
   (`BatchRenderSheet.swift` + `BatchRenderRunner.swift`). Desktop's
   feature-parity version (recursive-search columns, last-render-
   date metadata, FPP playlist integration) still open as the
   EX-3 row below.
 - EX-10 Whole-sequence `.fseq` emission alongside save.
+- LOR `.lms`/`.las` *timing-track* import — `XLSequenceDocument.importLorTiming:…` (note: full LOR sequence-with-effects import is still parked under Phase I-5).
 
 ## In flight (Phase I)
 
@@ -36,16 +42,11 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 | IO-8 | HLS `.hlsidata` | P3 | M |
 | IO-9 | LSP 2 `.msq` | P3 | M |
 | IO-10 | VSA `.vsa` | P3 | M |
-| IO-12 | **Papagayo `.pgo`** (lipsync) | P2 | S |
-| IO-13 | **Audacity `.txt` labels** | P2 | S |
 | IO-14 | **MIDI `.mid`** (NoteImportDialog) — duplicate of B77 in [`phase-b-grid-parity.md`](phase-b-grid-parity.md) | P2 | M |
 | IO-15 | Music XML `.xml` / `.mxl` | P3 | M |
 | IO-16 | Polyphonic Transcription `.txt` | P3 | S |
 | IO-18 | ImportPreviewsModelsDialog (model layout copy from another show) | P3 | M |
 | IO-19 | MediaImportOptionsDialog (folder mapping) | P3 | M |
-| IO-20 | SeqElementMismatchDialog (resolve missing models on import) | P2 | M |
-| IO-21 | MetronomeLabelDialog (auto metronome marks) | P3 | S |
-| IO-23 | **LyricsDialog** (text + timing for lipsync) | P2 | S |
 | IO-24 | LyricUserDictDialog (custom phoneme dict) | P3 | S |
 
 ## Exports (still open)
@@ -80,9 +81,6 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 - Per-model exports (EX-2 picker on top of EX-1) are simpler to
   port than the whole 14-format SeqExportDialog and would unlock
   the most common "export this one model for FPP" workflow.
-- IO-12 Papagayo and IO-13 Audacity are S-effort wins that
-  pair well with [`future-audio-authoring.md`](future-audio-authoring.md)
-  if/when that lands.
 
 ## When to come back
 

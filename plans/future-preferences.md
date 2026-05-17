@@ -9,9 +9,31 @@ Source: §2.17 + §2.21 of the 2026-04-23 gap analysis (Phase M).
 
 ## Status
 
-**Not started.** B25 ColorManager bracket-palette landed for the
-effects grid; the rest of the ColorManager (and every preference
-panel) is desktop-only.
+**Mostly not started.** The only preference panels with iPad
+counterparts today are **PR-9 Services** (AI keys / endpoints) and
+the small subset of **PR-8 SequenceFile** knobs that live in the
+per-sequence Render tab. Everything else — including the entire
+ColorManager (PR-3) and the full backup/restore stack (L-2..L-10)
+— is desktop-only. There is no top-level `SettingsView` /
+`PreferencesView` in the iPad app; settings live on individual
+context sheets.
+
+## Already shipped
+
+- **PR-9 Services** — `AIServicesSettingsSheet`
+  (`src-iPad/App/AIServicesSettingsSheet.swift`) lists registered
+  AI services with editable properties. Storage routes through
+  `XLiPadServiceSettingsStore` (`src-iPad/Bridge/`) — plain
+  settings in `NSUserDefaults`, secrets / API keys in the iOS
+  Keychain. AI-1 / AI-2..AI-5 (palette + image generators) ship
+  on top of this.
+- **PR-8 SequenceFile (partial)** — `SequenceSettingsSheet` Render
+  tab surfaces `AutoSaveInterval` and `DefaultBlending`. The full
+  panel surface (RenderOnSave, LowDef, SaveFSEQ, FSEQVersion,
+  RenderCache mode, RenderCacheDir, FSEQDir, MediaDirs, etc.)
+  is still missing.
+- **B25 ColorManager bracket palette** — small slice of PR-3,
+  scoped to the effects-grid bracket fill colours.
 
 ## Preference panels
 
@@ -24,8 +46,8 @@ panel) is desktop-only.
 | PR-5 | **Other** | 18 (Email, HardwareVideoDecode, HardwareVideoRender (7 backends), ShadersBgThreads, GPURendering, VideoCodec, Bitrate, ExcludeVideos, ExcludeAudio, PromptBatchIssues, PurgeDownloadCache, IgnoreVendorRecs, LinkControllerUpload, ModelRenamingAlias, MinimumTipLevel, RecycleTips, ControllerPingInterval, EnablePositionZones, ShowZoneIndicator) | wxConfig | P2 |
 | PR-6 | **Output** | 4 (UseFrameSync, ForceLocalIP, DuplicateFramesToSuppress, xFade/xSchedule mode) | wxConfig | P2 |
 | PR-7 | **RandomEffects** | dynamic — checkbox per installed effect (~80 toggles) | wxConfig | P3 |
-| PR-8 | **SequenceFile** | 14 (RenderOnSave, LowDef, SaveFSEQ, DefaultBlending, RenderCache mode, AutoSaveInterval, FSEQVersion (5 options), UseShowFolderRenderCache, RenderCacheDir, MaxRenderCacheSize, UseShowFolderFSEQ, FSEQDir, MediaDirs list, DefaultViewForNew) | per-show | P2 |
-| PR-9 | **Services** (AI keys / endpoints) | dynamic — per-service property grid + Test button | iOS Keychain | P2 |
+| PR-8 | **SequenceFile** (partial — AutoSaveInterval + DefaultBlending shipped via Render tab; remaining 12 keys open: RenderOnSave, LowDef, SaveFSEQ, RenderCache mode, FSEQVersion (5 options), UseShowFolderRenderCache, RenderCacheDir, MaxRenderCacheSize, UseShowFolderFSEQ, FSEQDir, MediaDirs list, DefaultViewForNew) | per-show | P2 |
+| ~~PR-9~~ | ~~Services (AI keys / endpoints)~~ — ✓ shipped (see "Already shipped" above) | — | — |
 | PR-10 | **ViewSettings** | 12 (EffectIconSize, ModelHandleSize, EffectAssistWindow, ShowPlayControlsOnPreview, AutoShowHousePreview, EnableBaseShowSettings, TimelineZooming, HidePresetPreviews, ZoomToCursor, DisableKeyAcceleration, GroupCenterCrosshairSize, ColorPaletteSize) | wxConfig | P2 |
 
 ## ColorManager (PR-3 in detail)

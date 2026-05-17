@@ -382,10 +382,26 @@ NS_ASSUME_NONNULL_BEGIN
 // element is the primary, the rest are the additionals. Caller
 // may uniquify since the show may already have models by those
 // names. nil on failure.
+//
+// `targetLayoutGroup` overrides the active-layout-group default
+// when non-nil/non-empty — used by the multi-model placement
+// flow to let the user pick a destination group before
+// committing the batch.
 - (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
                                         atScreenPoint:(CGPoint)point
                                              viewSize:(CGSize)viewSize
-                                          forDocument:(XLSequenceDocument*)doc;
+                                    targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                          forDocument:(XLSequenceDocument*)doc
+    NS_SWIFT_NAME(importXmodel(fromPath:atScreenPoint:viewSize:targetLayoutGroup:for:));
+
+// Phase J-4 (import) — peek at an .xmodel file to determine if
+// it contains multiple models (root `<models>` element). Returns
+// YES for multi-model files, NO for single-model files or on
+// parse failure. Used to gate the layout-group picker sheet so
+// single-model imports keep their zero-prompt UX. Class method —
+// the peek only opens the XML; no preview/canvas state required.
++ (BOOL)xmodelFileIsMultiModel:(NSString*)path
+    NS_SWIFT_NAME(xmodelFileIsMultiModel(path:));
 
 // Phase J-3 (touch UX) — multi-vertex polyline create. Returns
 // YES if `name` is a PolyPoint-style model (Poly Line / MultiPoint).

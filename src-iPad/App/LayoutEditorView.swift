@@ -99,6 +99,11 @@ struct LayoutEditorView: View {
     /// J-4 (import) — set when a fresh import fails (file unreadable,
     /// XML parse failure, unknown model type). Surfaced as an alert.
     @State private var importErrorMessage: String? = nil
+    /// J-4 (import) — file path of a multi-model `.xmodel` waiting on
+    /// the user to pick a destination layout group. Non-nil drives
+    /// the `LayoutGroupPickerSheet`; on confirm the path moves to
+    /// `viewModel.layoutPendingImportPath` along with the chosen group.
+    @State private var pendingMultiModelImportPath: String? = nil
     /// J-4 (download) — drives the vendor catalog browser sheet.
     @State private var downloadBrowserVisible: Bool = false
 
@@ -398,8 +403,12 @@ struct LayoutEditorView: View {
         }
     }
 
-    /// J-4 (import) — `.fileImporter` completion. Stashes the
-    /// picked path for the next canvas-tap to consume.
+    /// J-4 (import) — `.fileImporter` completion. For single-model
+    /// `.xmodel` files, stashes the picked path for the next canvas-
+    /// tap to consume. For multi-model `<models>` files we peek the
+    /// XML up-front and route through `LayoutGroupPickerSheet` so
+    /// the user picks a destination layout group before any models
+    /// land in the show.
     private func handleImportPick(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
@@ -408,7 +417,12 @@ struct LayoutEditorView: View {
             let path = url.path
             _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
             if granted { url.stopAccessingSecurityScopedResource() }
-            viewModel.layoutPendingImportPath = path
+            if XLMetalBridge.xmodelFileIsMultiModel(path: path) {
+                pendingMultiModelImportPath = path
+            } else {
+                viewModel.layoutPendingImportPath = path
+                viewModel.layoutPendingImportTargetGroup = nil
+            }
         case .failure(let err):
             importErrorMessage = err.localizedDescription
         }
@@ -439,6 +453,7 @@ struct LayoutEditorView: View {
             viewModel.layoutPendingNewModelType = nil
             viewModel.layoutPolylineInProgress = nil
             viewModel.layoutPendingImportPath = nil
+            viewModel.layoutPendingImportTargetGroup = nil
             // J-4 (multi-select) — exit edit mode and collapse to
             // the primary so the next open starts in a known
             // single-select state.
@@ -563,6 +578,19 @@ struct LayoutEditorView: View {
                 downloadBrowserVisible = false
             })
         }
+        // J-4 (import) — multi-model `.xmodel` destination picker.
+        // Presented after the file picker when the imported file's
+        // root is `<models>`; single-model imports skip this and
+        // go straight to placement.
+        .modifier(MultiModelImportPickerModifier(
+            pendingPath: $pendingMultiModelImportPath,
+            groups: layoutGroups,
+            activeGroup: activeLayoutGroup,
+            onConfirm: { path, group in
+                viewModel.layoutPendingImportPath = path
+                viewModel.layoutPendingImportTargetGroup = group
+                pendingMultiModelImportPath = nil
+            }))
         .modifier(GroupCrudModifiers(
             newGroupSheetVisible: $newGroupSheetVisible,
             addMemberSheetVisible: $addMemberSheetVisible,
@@ -2084,6 +2112,7 @@ struct LayoutEditorView: View {
                             .foregroundStyle(.white)
                         Button("Cancel") {
                             viewModel.layoutPendingImportPath = nil
+                            viewModel.layoutPendingImportTargetGroup = nil
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
@@ -2835,6 +2864,7 @@ struct LayoutEditorView: View {
         }
         if viewModel.layoutPendingImportPath != nil {
             viewModel.layoutPendingImportPath = nil
+            viewModel.layoutPendingImportTargetGroup = nil
             consumed = true
         }
         return consumed ? .handled : .ignored
@@ -5442,6 +5472,14 @@ private struct StartChannelEditorSheet: View {
 /// background image, grid lines, numbered points, and selection
 /// highlight in a single pass without spawning a UIView tree
 /// per cell — important for grids with thousands of cells.
+/// J-4 (import) — Identifiable wrapper so a path-keyed sheet
+/// re-presents whenever a new multi-model import is picked.
+private struct MultiModelImportPayload: Identifiable {
+    let id = UUID()
+    let path: String
+    init(path: String) { self.path = path }
+}
+
 private struct CustomModelPayload: Identifiable {
     let id = UUID()
     let modelName: String
@@ -7799,6 +7837,35 @@ private struct PerTypeFilePickers: ViewModifier {
                            allowedContentTypes: meshContentTypes,
                            allowsMultipleSelection: false,
                            onCompletion: onMeshPick)
+    }
+}
+
+/// J-4 (import) — modifier that hangs a `LayoutGroupPickerSheet`
+/// off the parent view, presented whenever `pendingPath` is non-nil.
+/// Pulled out of the main body to keep its type-check budget sane.
+private struct MultiModelImportPickerModifier: ViewModifier {
+    @Binding var pendingPath: String?
+    let groups: [String]
+    let activeGroup: String
+    let onConfirm: (String, String) -> Void
+
+    private var payloadBinding: Binding<MultiModelImportPayload?> {
+        Binding(
+            get: { pendingPath.map(MultiModelImportPayload.init) },
+            set: { newValue in if newValue == nil { pendingPath = nil } }
+        )
+    }
+
+    func body(content: Content) -> some View {
+        content.sheet(item: payloadBinding) { payload in
+            LayoutGroupPickerSheet(
+                groups: groups,
+                initialSelection: activeGroup,
+                fileName: (payload.path as NSString).lastPathComponent,
+                onConfirm: { group in onConfirm(payload.path, group) },
+                onCancel: { pendingPath = nil }
+            )
+        }
     }
 }
 

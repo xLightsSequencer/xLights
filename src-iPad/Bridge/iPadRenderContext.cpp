@@ -16,7 +16,9 @@
 #include "render/FSEQFile.h"
 #include "render/IRenderJobStatus.h"
 #include "render/RenderProgressInfo.h"
+#include "render/SeqMediaMigration.h"
 #include "render/SequenceMedia.h"
+#include "media/MediaCompatibility.h"
 #include "xLightsVersion.h"
 #include <map>
 #include "effects/ShaderEffect.h"
@@ -1333,6 +1335,30 @@ bool iPadRenderContext::OpenSequence(const std::string& path) {
     _sequenceElements.PrepareViews(*_sequenceFile);
 
     _sequenceElements.PopulateRowInformation();
+
+    {
+        std::vector<std::string> videoFiles = _sequenceElements.GetSequenceMedia().GetVideoFilePaths();
+        std::vector<MediaCompatibilityIssue> gifIssues;
+        for (const auto& vf : videoFiles) {
+            std::string resolved = FileUtils::FixFile(_showDir, vf);
+            std::string reason = MediaCompatibility::CheckVideoFile(resolved);
+            if (reason.empty()) continue;
+            MediaCompatibilityIssue issue;
+            issue.filePath = resolved;
+            issue.reason = reason;
+            issue.isVideo = true;
+            if (issue.isAnimatedGif() && issue.canConvert()) {
+                gifIssues.push_back(std::move(issue));
+            }
+        }
+        if (!gifIssues.empty()) {
+            int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
+            if (rewritten > 0) {
+                spdlog::info("iPadRenderContext: converted {} animated GIF Video effect(s) to Pictures effects on load of {}",
+                             rewritten, path);
+            }
+        }
+    }
 
     // Mark the SequenceFile as loaded so subsequent timing-track
     // additions go through the live in-memory path (creating

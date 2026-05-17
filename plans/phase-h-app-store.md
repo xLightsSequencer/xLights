@@ -1,7 +1,9 @@
 # Phase H — App Store readiness
 
-**Status: H-0 / H-1 / H-2 / H-3 / H-4 complete; H-5 remaining
-(organizational).**
+**Status: ✓ complete. App shipped to the App Store. File kept as
+a reference for the submission-prep checklist used by future
+platforms (e.g. iPhone variant) — the H-5 section below documents
+the metadata / submission steps that were executed.**
 
 Apple Developer team: Kulp Lights LLC. iPad ships as an
 additional platform on the existing `org.xlights` App Store

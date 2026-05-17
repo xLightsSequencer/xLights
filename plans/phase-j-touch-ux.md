@@ -446,8 +446,9 @@ during testing.
 | Pencil double-tap (Pencil 2 / Pro) | ✓ landed 2026-05-13 | `UIPencilInteractionDelegate.pencilInteraction(_:didReceiveTap:)` calls `cycleAxisToolForSelectedModelForDocument:` (no-position version of CentreCycle tap). Reads new axis_tool back from bridge and writes `settings.axisTool` so the toolbar pill updates. |
 | Pencil Pro squeeze | ✓ landed 2026-05-13 | `pencilInteraction(_:didReceiveSqueeze:)` (.ended phase) posts `.layoutEditorPencilUndo`; LayoutEditorView listens and routes through its existing `performUndo()` so dirty markers + canvas repaint stay correct. |
 | Long-press contextual menu | ✓ landed | `UILongPressGestureRecognizer` (0.45s) → `inspectHandleAtScreenPoint:` → `.layoutEditorContextMenu` notification → SwiftUI `.confirmationDialog`. Items per hit type: vertex → Delete Point; segment → Add Point / Define Curve / Remove Curve; curve_control → Remove Curve. Bridge methods on `XLSequenceDocument` (`deleteVertexAtIndex:`, `insertVertexInSegment:`, `setCurve:onSegment:`). |
-| Inline action bar above selected model | ✓ landed | Bridge: `screenAnchorPointForModel:` projects the model's top-centre to UIKit screen coords. SwiftUI `InlineModelActionBar` uses `TimelineView(.animation)` to re-query each animation frame so it tracks pan / zoom / orbit / drag without observer wiring. Actions: Lock/Unlock toggle, model name, Fit Selected (viewfinder), dismiss. Duplicate / Delete / Group need new bridge methods + confirmation flow — deferred. |
-| Rubber-band multi-select (two-finger marquee) | not started | Needs multi-selection state in the view model (currently single-select only). Foundational for J-4 (align / distribute). |
+| Inline action bar above selected model | ✓ landed | Bridge: `screenAnchorPointForModel:` projects the model's top-centre to UIKit screen coords. SwiftUI `InlineModelActionBar` uses `TimelineView(.animation)` to re-query each animation frame so it tracks pan / zoom / orbit / drag without observer wiring. Actions (single-select): Lock/Unlock, model name, Fit Selected, Duplicate, Delete, Clear (shipped 2026-05-14, J-7). |
+| Multi-select action bar | ✓ landed 2026-05-14..15 | `MultiSelectActionBar` surfaces when ≥2 models selected: Align ▾ (9), Distribute ▾ (3, ≥3 selected), Match Size ▾ (4), Flip ▾ (H/V), Duplicate, Group-from-selection, Clear. Routed through `XLMetalBridge.alignModels:` / `distributeModels:` / `matchSizeOfModels:` / `flipModels:` / `duplicateModels:`. Tracked in detail under J-4 / J-7 in `phase-j-layout-editor.md`. |
+| Rubber-band multi-select (two-finger marquee) | ✓ landed 2026-05-15 | Two-finger long-press (≥0.4s) + drag in `PreviewPaneView` draws a dashed overlay; release calls `pickModelsInRect:viewSize:forDocument:` which returns every model whose 2D screen bbox overlaps the rect (with the desktop 3D depth cutoff). Selection becomes a `Set<String>` (`SequencerViewModel.layoutEditorSelection`); `layoutEditorSelectedModel` remains the leader for align / match. Pinch / pan / rotate are gated off while the marquee is active to avoid recognizer races. Same idiom as the effects-grid marquee. |
 | Layout editor text overlays (model name labels) | ✓ landed | Toggled from canvas controls ("Labels"). Bridge `modelLabelAnchorsForDocument:` returns batched (name, screen-anchor) for every model in the active layout group (off-screen filtered out). SwiftUI overlay renders one small Text view per anchor, refreshes at 30fps via `TimelineView`. SwiftUI text instead of Metal text — much simpler than `CoreGraphicsTextDrawingContext`, scales fine to typical show sizes. |
 | Three-finger tap / swipe = undo | system handles | iOS routes three-finger gestures to the active `UndoManager` automatically; no wiring needed once layout undo plugs into the system manager (currently uses bridge-side `canUndoLayoutChange`). |
 
@@ -528,16 +529,25 @@ Shipped beyond the original design-doc table:
 
 Remaining concrete follow-ups:
 
-- **Rubber-band multi-select.** Two-finger drag in empty space →
-  marquee. Needs `Set<String>` on the view model (replacing the
-  current single-`String?` selection) and rendering the marquee
-  rectangle during drag. After it lands, the existing
-  multi-select drag math in `OnPreviewMouseMove3D` (descriptor
-  pipeline, dispatches by role) ports over almost verbatim.
-- **Action bar Duplicate / Group.** Bridge methods +
-  confirmation flow. Group needs a multi-select foundation
-  first.
+- **Multi-select body drag.** Currently a body drag on any
+  member of the selection moves only the touched model;
+  `beginBodyDrag3D` / `dragBody3D` in `XLMetalBridge.mm` take a
+  single model name. Desktop drags the whole selection by the
+  same delta. Needs the bridge to capture a per-selected-model
+  offset table at drag-begin and apply the delta to all of them
+  on each update + commit. Same per-model undo pattern as
+  align / distribute / match-size.
+- **Sidebar multi-select UI.** The Models roster list is still
+  single-`String?` bound (`modelListBinding`). Multi-select is
+  only reachable from canvas taps + marquee today. Adding an
+  `EditMode = .active` pass with checkmark rows would let users
+  build a selection from the roster (useful when the relevant
+  models are off-screen or visually overlap).
 
-Everything else from the design doc table is shipped. The next
-push beyond Phase J's UX layer is J-3 (per-type property pages)
-and J-4 (multi-select operations).
+The rest of the design-doc table is shipped (rubber-band
+multi-select, MultiSelectActionBar with align / distribute /
+match-size / flip / duplicate / group, single-select
+InlineModelActionBar with duplicate + delete). J-3 (per-type
+property pages) and J-4 (multi-select ops) both completed in the
+2026-05-14..15 push — see `phase-j-layout-editor.md` for the
+detailed close-outs.

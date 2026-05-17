@@ -313,6 +313,24 @@ struct ContentView: View {
                 onPicked: { url in viewModel.acceptReprompt(pickedURL: url) },
                 onCancel: { viewModel.cancelReprompt() })
         }
+        // Phase E follow-up — missing-model reconciliation. After
+        // `openSequence` succeeds, the bridge reports any model
+        // elements whose target model isn't in the show layout;
+        // surface the per-name prompt sheet here so the user can
+        // rename-with-alias (auto-remap future sequences) or delete
+        // each orphan. Swipe-down cancels without applying
+        // decisions.
+        .sheet(item: Binding(
+            get: { viewModel.missingModelPrompt },
+            set: { newValue in
+                if newValue == nil { viewModel.cancelMissingModelPrompt() }
+            })) { prompt in
+            MissingModelAliasSheet(
+                prompt: prompt,
+                availableModels: (viewModel.document.modelsAvailableInShowLayout() as [String]),
+                onCommit: { viewModel.applyMissingModelDecisions($0) },
+                onCancel: { viewModel.cancelMissingModelPrompt() })
+        }
         .onAppear {
             // Auto-open the dialog on first launch when nothing is configured.
             if !viewModel.isShowFolderLoaded && FolderConfig.showFolder == nil {

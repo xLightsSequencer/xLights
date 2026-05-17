@@ -2270,9 +2270,20 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return [NSString stringWithUTF8String:m->GetName().c_str()];
 }
 
++ (BOOL)xmodelFileIsMultiModel:(NSString*)path {
+    if (!path || path.length == 0) return NO;
+    pugi::xml_document xdoc;
+    pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
+    if (!parseRes) return NO;
+    pugi::xml_node root = xdoc.document_element();
+    if (!root) return NO;
+    return std::string_view(root.name()) == "models";
+}
+
 - (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
                                         atScreenPoint:(CGPoint)point
                                              viewSize:(CGSize)viewSize
+                                    targetLayoutGroup:(nullable NSString*)targetLayoutGroup
                                           forDocument:(XLSequenceDocument*)doc {
     if (!_preview || !doc || !path || path.length == 0) return nil;
     iPadRenderContext* rctx = ContextFromDoc(doc);
@@ -2343,7 +2354,12 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     std::vector<NodeBaseClassPtr> emptyNodes;
     loc.InitializeLocation(initHandle, px, py, emptyNodes, _preview.get());
 
-    std::string layoutGroup = rctx->GetActiveLayoutGroup();
+    std::string layoutGroup;
+    if (targetLayoutGroup && targetLayoutGroup.length > 0) {
+        layoutGroup = targetLayoutGroup.UTF8String;
+    } else {
+        layoutGroup = rctx->GetActiveLayoutGroup();
+    }
     if (layoutGroup.empty() || layoutGroup == "All Models") {
         layoutGroup = "Default";
     }

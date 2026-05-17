@@ -18,12 +18,22 @@ desktop-only.
 
 - **AP-9 BufferPanel** — Buffer tab in `EffectSettingsView.swift`
   with per-layer buffer-style controls.
+- **AP-11 ColoursPanel (partial)** — `ColorPanelCustomRows.swift`
+  ports the desktop ColorPanel compound-widget surface (e.g.
+  ChromaKeyRow, SparklesRow). The standalone ColourReplaceDialog
+  (BE-6 below) is still desktop-only.
 - **AP-12 ValueCurvesPanel** — `ValueCurveEditor.swift` +
   `ValueCurvePresetSheets.swift` + `XLValueCurve` bridge cover
   custom point editing + preset save/load.
 - **AP-13 BlendingPanel** — `BlendingPanelViews.swift`
   (LayerMorphRow, LayerMethodRow, Canvas, In/Out transitions)
   exposed via the Blending tab in `EffectSettingsView.swift`.
+- **Per-property "Apply to all selected" bulk-edit** —
+  `PropertyContextMenu.swift` + `SequencerViewModel.swift:2540`
+  fan a single property edit out to every selected effect.
+  Covers the common bulk-edit case (BE-1 / BE-2 / BE-4) without
+  dedicated bulk-edit sheets; the multi-row dialogs remain
+  desktop-only.
 
 ## Auxiliary panels (still open)
 
@@ -38,7 +48,7 @@ desktop-only.
 | AP-7 | PerspectivesPanel | — | Skip on iPad (single-window layout) |
 | AP-8 | SequenceVideoPanel — embedded reference video synced to playhead | P2 | M |
 | AP-10 | EffectAssist sub-panels | (= EA-* in `future-pictures-frame-editor.md` + future-sketch-assist work) | XL each |
-| AP-11 | ColoursPanel / ColourReplaceDialog / ColorPanel parity | P2 | M |
+| AP-11 | ColoursPanel / ColourReplaceDialog / ColorPanel parity — partial (compound-widget rows shipped, see "Already shipped"); ColourReplaceDialog still open | P2 | M |
 
 ## Bulk-edit dialogs
 

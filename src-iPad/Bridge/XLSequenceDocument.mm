@@ -2454,6 +2454,78 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (NSArray<NSString*>*)missingModelNamesWithEffects {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded() || !_context->HasModelManager()) return out;
+    auto& se = _context->GetSequenceElements();
+    auto& mm = _context->GetModelManager();
+    for (int i = 0; i < (int)se.GetElementCount(); i++) {
+        Element* el = se.GetElement(i);
+        if (!el || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        const std::string& name = el->GetModelName();
+        if (name.empty()) continue;
+        if (mm[name] != nullptr) continue;
+        if (el->GetEffectCount() <= 0) continue;
+        // Skip names that match an existing model's "oldname:" alias —
+        // CheckForValidModels auto-remaps those silently, no prompt
+        // needed. Match desktop's `IsAlias(name, /*oldnameOnly=*/true)`.
+        bool autoMapped = false;
+        for (auto it = mm.begin(); it != mm.end(); ++it) {
+            if (it->second && it->second->IsAlias(name, /*oldnameOnly=*/true)) {
+                autoMapped = true;
+                break;
+            }
+        }
+        if (autoMapped) continue;
+        [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
+}
+
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                 byRenameTo:(NSString*)existingName
+                   addAlias:(BOOL)addAlias {
+    if (!_context || !_context->IsSequenceLoaded() || !_context->HasModelManager()) return NO;
+    if (!originalName || originalName.length == 0) return NO;
+    if (!existingName || existingName.length == 0) return NO;
+    std::string oldStd = originalName.UTF8String;
+    std::string newStd = existingName.UTF8String;
+    auto& se = _context->GetSequenceElements();
+    auto& mm = _context->GetModelManager();
+    Model* target = mm[newStd];
+    if (target == nullptr) return NO;
+    Element* el = se.GetElement(oldStd);
+    if (!el || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) return NO;
+
+    _context->AbortRender(5000);
+    el->SetName(newStd);
+    static_cast<ModelElement*>(el)->Init(*target);
+    if (addAlias) {
+        target->AddAlias("oldname:" + oldStd);
+        _context->MarkLayoutModelDirty(newStd);
+    }
+    se.PopulateRowInformation();
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return YES;
+}
+
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                   byDelete:(BOOL)delete_ {
+    if (!delete_) return NO;
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    if (!originalName || originalName.length == 0) return NO;
+    std::string oldStd = originalName.UTF8String;
+    auto& se = _context->GetSequenceElements();
+    Element* el = se.GetElement(oldStd);
+    if (!el || el->GetType() != ElementType::ELEMENT_TYPE_MODEL) return NO;
+    _context->AbortRender(5000);
+    se.DeleteElement(oldStd);
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return YES;
+}
+
 - (BOOL)elementVisible:(NSString*)name {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (!name || name.length == 0) return NO;

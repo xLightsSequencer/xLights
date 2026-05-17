@@ -1416,9 +1416,11 @@ struct PreviewPaneView: UIViewRepresentable {
                 if let names = bridge.importXmodel(fromPath: importPath,
                                                     atScreenPoint: point,
                                                     viewSize: size,
+                                                    targetLayoutGroup: viewModel.layoutPendingImportTargetGroup,
                                                     for: viewModel.document),
                    let primary = names.first {
                     viewModel.layoutPendingImportPath = nil
+                    viewModel.layoutPendingImportTargetGroup = nil
                     if names.count == 1 {
                         viewModel.layoutSelectSingle(primary)
                     } else {

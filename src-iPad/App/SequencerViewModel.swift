@@ -84,6 +84,15 @@ class SequencerViewModel {
     @ObservationIgnored private var accessRepromptQueue: [AccessRepromptRequest] = []
     @ObservationIgnored private var afterAccessQueueEmpty: (() -> Void)?
 
+    /// Post-load "missing model" reconciliation prompt. Populated by
+    /// `performOpenSequence` after a successful open whenever the
+    /// bridge reports at least one model element referenced by the
+    /// sequence isn't in the show's `ModelManager`. Mirrors desktop's
+    /// `CheckForValidModels` per-name prompt loop. nil ⇒ no
+    /// outstanding prompt; flip back to nil after the user commits or
+    /// cancels so the sheet dismisses.
+    var missingModelPrompt: MissingModelPrompt?
+
     /// B97: Find / Replace state. Search is over timing-mark labels
     /// only (matches desktop's intentional restriction in
     /// `EffectsGrid::Find`). `findResults` caches `(rowIndex,
@@ -392,6 +401,13 @@ class SequencerViewModel {
     /// with the touch as the placement target. Cleared after a
     /// successful import or Cancel.
     var layoutPendingImportPath: String? = nil
+    /// Phase J-4 (import) — optional layout-group override applied
+    /// to the pending import. Multi-model `.xmodel` files prompt
+    /// the user for a destination group via `LayoutGroupPickerSheet`
+    /// and stash the choice here; the bridge picks it up when
+    /// placement commits. nil = use the active layout group
+    /// (single-model imports never set this).
+    var layoutPendingImportTargetGroup: String? = nil
     /// True when the standalone Layout Editor scene is open. The
     /// Tools menu entry disables itself on a second press so we
     /// don't fight `WindowGroup`'s "focus existing instance"
@@ -1053,7 +1069,54 @@ class SequencerViewModel {
             // recovery prompt (when the `.xbkp` is newer than the
             // `.xsq`) is presented by the UI shell after open.
             startAutosaveTimer()
+            checkMissingModelsAfterOpen()
         }
+    }
+
+    /// Mirrors desktop `CheckForValidModels` — after a sequence
+    /// loads, look for ELEMENT_TYPE_MODEL elements whose target
+    /// model isn't in the show's `ModelManager`. If any carry
+    /// effects, raise a prompt so the user can rename-with-alias or
+    /// delete each one. Models that auto-remap via an existing
+    /// "oldname:" alias are already filtered out by the bridge.
+    private func checkMissingModelsAfterOpen() {
+        let missing = document.missingModelNamesWithEffects() as [String]
+        if missing.isEmpty { return }
+        missingModelPrompt = MissingModelPrompt(originalNames: missing)
+    }
+
+    /// Apply each user decision from `MissingModelAliasSheet`. Renames
+    /// that opt into "add alias" also persist the alias to the show
+    /// layout via the bridge's `MarkLayoutModelDirty` plumbing; we
+    /// call `saveLayoutChanges` once at the end so the rgbeffects XML
+    /// is rewritten atomically.
+    func applyMissingModelDecisions(_ decisions: [(originalName: String, action: MissingModelDecision)]) {
+        var aliasAdded = false
+        for entry in decisions {
+            switch entry.action {
+            case .rename(let target, let addAlias):
+                _ = document.resolveMissingModel(entry.originalName,
+                                                byRenameTo: target,
+                                                addAlias: addAlias)
+                if addAlias { aliasAdded = true }
+            case .delete:
+                _ = document.resolveMissingModel(entry.originalName,
+                                                byDelete: true)
+            }
+        }
+        if aliasAdded {
+            _ = document.saveLayoutChanges()
+        }
+        missingModelPrompt = nil
+        reloadRows()
+    }
+
+    /// Dismiss the prompt without applying any decisions — the
+    /// sequence stays in its as-loaded state, so the affected rows
+    /// stay visible but with no resolvable model. Matches desktop's
+    /// behaviour when the user cancels the mismatch dialog.
+    func cancelMissingModelPrompt() {
+        missingModelPrompt = nil
     }
 
     /// Open an `.xsqz` / `.zip` / `.piz` sequence package. The bridge
@@ -1148,6 +1211,7 @@ class SequencerViewModel {
                 // entries that can't be re-opened is worse than
                 // making the user re-tap from Files.
                 self.startAutosaveTimer()
+                self.checkMissingModelsAfterOpen()
             }
         }
     }

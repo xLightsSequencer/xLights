@@ -31,7 +31,6 @@ MVP" section for the implementation summary.
 
 | # | Item | Severity | Effort |
 |---|---|---|---|
-| H-5 | **TipOfDay** — 50+ HTML / PNG tips in `TipOfDay/`. Per-tip difficulty filter (`MinimumTipLevel` pref). Carousel UI. | P2 | M |
 | H-6 | **In-app log viewer** — level filter, search, follow-tail toggle. Reads the spdlog rotate-files. | P2 | M |
 | H-7 | **Package Show for Support** — zips logs + show folder + autosaves into one file the user can attach to a forum post. Larger sibling of H-3 log export. | P2 | M |
 | H-10 | EmailDialog (crash-report email collection) | P3 | S |
@@ -51,18 +50,32 @@ MVP" section for the implementation summary.
 - **H-9 SplashDialog.** LaunchScreen handles it — landed in Phase
   H-1.
 
+## No plans to port
+
+- **H-5 TipOfDay** — 50+ HTML / PNG tips in `TipOfDay/`, per-tip
+  difficulty filter (`MinimumTipLevel` pref), carousel UI.
+  Desktop-only by design. The on-disk tip authoring pipeline
+  (HTML + companion PNGs in a sibling `TipOfDay/` folder)
+  doesn't map cleanly to an iOS bundle, the carousel UX
+  duplicates Apple's own "What's New" sheet, and the highest-
+  value tips are workflow-specific to desktop features the iPad
+  doesn't expose (controller setup, layout group editing in the
+  layout panel, AUI perspectives). Not worth porting; if we
+  want first-run guidance on iPad, build an Apple-style "What's
+  New" sheet against the iPad feature set instead.
+
 ## Why deferred
 
 - The followups bundle covers what TestFlight reviewers need.
   The items above are quality-of-life polish that mostly applies
   once the app is in front of long-term users.
-- TipOfDay (H-5) is the highest-engagement item — the desktop
-  gets meaningful daily click-through from it. Worth pulling
-  forward if the simple About/Help/log-export bundle ships
-  early.
+- H-6 in-app log viewer + H-7 Package Show for Support are the
+  highest-value remaining items — both surface when a tester
+  needs to debug an issue without a Mac handy.
 
 ## When to come back
 
-- After H-5 submission. Bundle TipOfDay + the in-app log
-  viewer + Package Show for Support as a small follow-up release
-  — they fit into a single 1–2 week sprint.
+- Bundle H-6 in-app log viewer + H-7 Package Show for Support
+  as a small follow-up release — they fit into a single 1–2
+  week sprint and are the natural next help/diagnostics
+  delivery.

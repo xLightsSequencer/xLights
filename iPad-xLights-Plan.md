@@ -8,20 +8,23 @@ lives in git history.
 
 ---
 
-## Where we are (2026-05-02)
+## Where we are (2026-05-17)
 
-The iPad app builds, ships through Xcode Cloud, runs on TestFlight
-external testers, and exercises the full desktop rendering / effect /
-sequence pipeline through the same `src-core/` it shares with the
-Mac. Phases A, B-Metal, C, D, E, F, G are complete. Phase B P0+P1
-parity work is done (1 named P2 — B77 MIDI import — plus 3 deferred
-remain; B79 AI Speech 2 Lyrics shipped via
-`XLAIServices.generateLyricTrack`, B91 LRCLIB synced-lyrics import
-shipped 2026-05-02 alongside the desktop release). Phase H is one
-organizational push (H-5) from submission. Phase I shipped
-`.xsq`/`.xsqz` 2026-04-29 and SuperStar `.sup` 2026-05-02; the
-`.lms`/`.las` format slot is the remaining feature gap. Multicast
-sACN was approved 2026-05-01 and is wired into the entitlements.
+The iPad app **shipped to the App Store** and exercises the full
+desktop rendering / effect / sequence pipeline through the same
+`src-core/` it shares with the Mac. Phases A, B-Metal, C, D, E, F,
+G, H are complete. Phase B P0+P1 parity work is done (1 named P2 —
+B77 MIDI import, explicitly deprioritized as low desktop use —
+plus 3 deferred remain). Phase I shipped `.xsq`/`.xsqz` 2026-04-29,
+SuperStar `.sup` 2026-05-02, and the vendor-sequence regression
+(I-3) closed; the `.lms`/`.las` format slot is the remaining
+parked feature. Phase J landed J-0 through J-32 over 2026-05-07
+through 2026-05-16, including per-type properties for 26 model
+types, model-group CRUD + membership editing, the Controllers tab
++ Visualize wiring view (which subsumed the "live-output controller
+list" gap), the custom-model visual editor, and the DMX deep
+authoring path. Multicast sACN was approved 2026-05-01 and is
+wired into the entitlements.
 
 ### Code layout
 
@@ -75,89 +78,55 @@ variants in `libdbg-ios/`.
 | Phase | Title | Status | Sub-plan |
 |---|---|---|---|
 | A | Core-path hardening | ✓ complete | — |
-| B | Effects grid parity | ✓ P0 + P1 closed; 1 P2 (B77 MIDI) + 3 deferred remain | [`phase-b-grid-parity.md`](plans/phase-b-grid-parity.md) |
+| B | Effects grid parity | ✓ P0 + P1 closed; B77 MIDI deprioritized + 3 deferred remain | [`phase-b-grid-parity.md`](plans/phase-b-grid-parity.md) |
 | B-Metal | Grid render pipeline (CG → Metal) | ✓ complete | — |
 | C | Effect settings inspector | ✓ complete | 3 small follow-ups in [`followups.md`](plans/followups.md) |
 | D | Model Preview + preview polish | ✓ complete | [`phase-d-preview.md`](plans/phase-d-preview.md) (residual) |
 | E | Sequence management | ✓ complete | 1 follow-up (Data Layers tab) in [`followups.md`](plans/followups.md) |
 | F | Window system + Display Elements | ✓ complete 2026-04-21 | [`phase-f-window-system.md`](plans/phase-f-window-system.md) (residual) |
 | G | Document / iCloud polish | ✓ complete 2026-04-22 | [`phase-g-document.md`](plans/phase-g-document.md) (residual) |
-| H | App Store readiness | H-0..H-4 ✓; submitted to App Store review 2026-05-07; H-5 metadata uploaded | [`phase-h-app-store.md`](plans/phase-h-app-store.md) |
-| I | Import Effects | I-1 + I-2 (`.xsq`/`.xsqz`) ✓ 2026-04-29; I-4 (`.sup`) ✓ 2026-05-02; **I-3 vendor regression, I-5 `.lms`/`.las` remaining** | [`phase-i-import-effects.md`](plans/phase-i-import-effects.md) |
-| J | Layout Editor | open — full Phase S scope, scoped 2026-05-07 (separate full-screen window via Tools → Edit Layout, model-focused, includes 3D gizmo) | [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md) |
+| H | App Store readiness | ✓ complete — shipped to App Store | [`phase-h-app-store.md`](plans/phase-h-app-store.md) (residual) |
+| I | Import Effects | ✓ MVP complete — `.xsq`/`.xsqz` ✓ 2026-04-29, `.sup` ✓ 2026-05-02, I-3 vendor regression ✓; I-5 `.lms`/`.las` parked | [`phase-i-import-effects.md`](plans/phase-i-import-effects.md) (residual) |
+| J | Layout Editor | ✓ J-0..J-32 complete (per-type props for 26 model types, group CRUD, Controllers tab + Visualize, custom-model editor, DMX deep authoring); 2 small import gaps remain | [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md) |
 
 ---
 
-## What's left for MVP
+## MVP shipped
 
-In priority order:
+The App Store submission landed and the headline phases (A–I plus
+the bulk of J) are complete. What was the MVP-blocking list:
 
-1. **Phase H-5 — App Store submission metadata.** Organizational, not
-   engineering. Screenshots (12.9"/13" + 11", landscape + portrait,
-   3-5 frames per orientation), description, keywords, support URL,
-   privacy policy URL, age rating, category, copyright, "What's
-   New". Pin a TestFlight build, submit. Detailed checklist in
-   [`phase-h-app-store.md`](plans/phase-h-app-store.md).
+- **Phase H — App Store submission.** Done; app is live.
+- **Phase I-3 — Vendor-sequence regression.** Done.
+- **Phase J — Layout editor.** J-0 → J-32 landed across
+  2026-05-07..16. The descriptor pipeline owns hover/click/drag/draw
+  on both clients; 26 model types have full per-type property
+  pages; model groups have CRUD + drag-reorder + an expandable
+  AddMemberSheet; the Controllers tab and Visualize wiring view
+  shipped (which closed the "live-output controller list" gap);
+  the custom-model visual editor, DMX deep authoring, and Faces /
+  States / Dimming Curve / SubModels editors all shipped.
 
-2. **Phase I-3 — Manual vendor-sequence regression of `.xsq`/`.xsqz`
-   import.** Load a real Holiday Coro / Wally Wally World pack with
-   user-supplied `.xmaphint` files, run Auto Map, count matched
-   models against desktop baseline. Tune Auto Map UX in response
-   (scroll-to-first-unmapped, "X of Y mapped" counter). Bug-fix
-   anything the regression turns up.
+## Remaining small work
 
-3. **Phase B P2 — B77 (MIDI Import Notes).** Needs a new bridge
-   surface (AVFoundation `MIDIFile` parser → timing marks). P2
-   feature — desktop has it, iPad doesn't, but it's not on the
-   critical authoring path.
-
-The 3 deferred Phase B items (B16 drag-from-palette ghost, B24 Find
-Possible Source Effects, B56 Convert-to-Effect) are explicitly
-parked — substantial new work, not blocking submission.
+- **Authenticated vendor downloads.** `VendorBrowserSheet` /
+  `XLVendorCatalog` / `CachedFileDownloader` use anonymous libcurl
+  HTTP — there is no auth path for behind-login catalog content
+  today. Open whenever the catalog starts gating models behind
+  accounts.
+- **Phase B-77 — MIDI Import Notes.** Deprioritized; the
+  feature sees little use on desktop and no concrete iPad request
+  is open.
+- **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
+  until a vendor request lands.
 
 The follow-ups in [`followups.md`](plans/followups.md) (Data Layers
-tab, MH waypoint authoring, shader uniform grouping) are
-quality-of-life and unblock independently.
+tab, MH waypoint authoring, shader uniform grouping, animated GIF →
+Pictures migration, Display Elements filter, add-alias on
+missing-model prompt) are quality-of-life and unblock independently.
 
-## Could pull into MVP during testing
-
-If H-5 prep + I-3 testing leaves spare cycles, these are the
-remaining feature-additions worth a tester sprint.
-
-**TestFlight loop quality (shipped pre-MVP).** Log export +
-crash telemetry / MetricKit + auto-upload to `crashUpload/index.php`,
-About / Help menu, Check Sequence runner (shared core via
-`src-core/diagnostics/SequenceChecker`), incompatible-video
-warning, ObtainAccessToURL re-prompt sheet, Recent Show Folders
-list, SuperStar `.sup` import — all landed. Implementation prose
-in git history.
-
-`XLMetricKit` filters MetricKit `MXDiskWriteExceptionDiagnostic`
-payloads on iPad — the `MAP_SHARED` SequenceData backing tmpfile
-guarantees the kernel writes back every dirtied sequence page, so
-iOS's writesCaused metric is structural noise, not signal. Crash /
-hang / CPU / app-launch diagnostics still flow through.
-
-**Remaining feature additions:**
-
-- **B77 MIDI import.** Concrete user request; iOS-native via
-  AVFoundation `MIDIFile`. New bridge surface needed.
-- **Live-output controller list (read-only)** (gap-analysis O-3,
-  P1, M). Even just *seeing* what's configured (without setup UI)
-  is a tester clarity win.
-
-Items **not** worth pulling in even with spare cycles:
-
-- I-5 (`.lms`/`.las`) — distant third format, low vendor traffic
-  today. Reconsider once I-4 has TestFlight mileage.
-- MH full waypoint authoring — Sketch-style drag UI is a real
-  design exercise, not a quick port.
-- Shader uniform grouping (G2-c) — only matters for shader packs
-  with 20+ uniforms, which are vanishingly rare.
-- Anything from [`plans/future-layout-editing.md`](plans/future-layout-editing.md),
-  [`plans/future-custom-models.md`](plans/future-custom-models.md),
-  or [`plans/future-controllers-tab.md`](plans/future-controllers-tab.md) —
-  all multi-month efforts.
+The 3 deferred Phase B items (B16 drag-from-palette ghost, B24 Find
+Possible Source Effects, B56 Convert-to-Effect) remain parked.
 
 **Catalogue of full post-MVP scope.** The 2026-04-23 gap analysis
 (in the sibling working tree at

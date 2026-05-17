@@ -1,18 +1,17 @@
 # Phase I — Import Effects (iPad)
 
-**Status:** I-1 (core extraction + desktop refactor) and I-2 (iPad
-UI for `.xsq` / `.xsqz`) ✓ landed 2026-04-29. Tools menu → Import
-Effects… opens a SwiftUI sheet that loads `.xsq` (loose) or
-`.xsqz` (vendor package via `SequencePackage::Extract`), builds
-the full model / submodel / strand / node tree on both source and
-destination sides, supports tap-to-map and Auto Map at every
-level (alias-driven matching with punctuation-stripped aliases),
-surfaces source timing tracks in a popover with per-track
-toggles + "already exists" hints, saves map-hints, and applies
-imports through the core `EffectMapper` family. Both desktop and
-iPad-lib debug builds green; include policy clean. Next: I-3 —
-Auto Map polish + manual end-to-end regression on a real vendor
-sequence.
+**Status:** I-1 / I-2 / I-3 / I-4 ✓ complete. Only I-5
+(`.lms`/`.las`) is parked, pending vendor request. Tools menu →
+Import Effects… opens a SwiftUI sheet that loads `.xsq` (loose)
+or `.xsqz` (vendor package via `SequencePackage::Extract`),
+builds the full model / submodel / strand / node tree on both
+source and destination sides, supports tap-to-map and Auto Map at
+every level (alias-driven matching with punctuation-stripped
+aliases), surfaces source timing tracks in a popover with
+per-track toggles + "already exists" hints, saves map-hints, and
+applies imports through the core `EffectMapper` family. SuperStar
+`.sup` import shipped 2026-05-02 (I-4). Vendor-sequence regression
+(I-3) ran clean.
 
 ## Why this matters
 
@@ -113,7 +112,7 @@ SwiftUI row reload.
   there's no runtime cost — clean up only if drift becomes
   annoying.
 
-### I-3 — Auto Map polish + UX testing
+### I-3 — Auto Map polish + UX testing ✓ complete
 
 - Verify alias-driven matching + maphints loading on real
   vendor sequences. Concretely: load a Holiday Coro / Wally

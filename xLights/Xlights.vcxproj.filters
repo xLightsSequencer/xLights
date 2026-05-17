@@ -702,6 +702,9 @@
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -2054,6 +2057,9 @@
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceElements.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
