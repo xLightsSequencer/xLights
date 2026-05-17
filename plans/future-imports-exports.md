@@ -1,45 +1,20 @@
 # Future — Additional Imports & Exports
 
 iPad Phase I-1/I-2 shipped `.xsq` / `.xsqz` import; I-4 (`.sup`)
-and I-5 (`.lms`/`.las`) are tracked in
-[`phase-i-import-effects.md`](phase-i-import-effects.md). This
-file catalogues the rest of the import/export surface.
+landed 2026-05-02; I-5 (`.lms`/`.las`) is tracked in
+[`phase-i-import-effects.md`](phase-i-import-effects.md).
+Papagayo / Audacity / Metronome / Lyrics / `.xtiming` / LOR-timing
+import + AutoLabel + BatchRender + Package Sequence all shipped.
+This file catalogues the rest.
 
 Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
-
-## Already shipped
-
-- IO-7 SuperStar `.sup` import (Phase I-4, 2026-05-02).
-- IO-11 `.xsq` / `.xsqz` import (Phase I-2, 2026-04-29).
-- IO-12 **Papagayo `.pgo`** lipsync import — `XLSequenceDocument.importPapagayoTiming:…` wraps the core `ProcessPapagayo` helper.
-- IO-13 **Audacity `.txt` label import** — wired via `XLSequenceDocument.importAudacityLabels:…` (core's `ProcessAudacityTimingFiles` exposed through the bridge).
-- IO-17 `.xtiming` round-trip (Phase B-74).
-- IO-20 SeqElementMismatchDialog — alias-prompt half shipped 2026-05-17 via `resolveMissingModel:byRenameTo:addAlias:` + `MissingModelAliasSheet`; full desktop Map-Models flow stays desktop-only (see EX-3 row below).
-- IO-21 **MetronomeLabelDialog** — `addMetronomeTimingTrack:…` (tags + randomization).
-- IO-22 AutoLabelDialog (Phase B-89).
-- IO-23 **LyricsDialog** text + timing entry — `XLSequenceDocument.importLyricsAtRow:…` (phrases with start/end times). Pairs with the `AddTimingTrackSheet` AI Lyrics tab.
-- EX-3 BatchRenderDialog — simplified iPad version landed
-  (`BatchRenderSheet.swift` + `BatchRenderRunner.swift`). Desktop's
-  feature-parity version (recursive-search columns, last-render-
-  date metadata, FPP playlist integration) still open as the
-  EX-3 row below.
-- EX-10 Whole-sequence `.fseq` emission alongside save.
-- EX-11 **Package Sequence** (2026-05-17) — Tools → Package
-  Sequence builds a `.xsqz` of the current sequence + media for
-  sharing. Option sheet picks Include Audio / Include Videos;
-  result handed to the system share sheet. Bridge:
-  `XLSequencePackager` calls shared core `SequencePackage::Pack`.
-- LOR `.lms`/`.las` *timing-track* import — `XLSequenceDocument.importLorTiming:…` (note: full LOR sequence-with-effects import is still parked under Phase I-5).
-
-## In flight (Phase I)
-
-- IO-1 LOR `.lms` / `.las` (timing) — see I-5.
-- IO-2 LOR `.lms` (full sequence) — see I-5.
 
 ## Imports (still open)
 
 | # | Format | Severity | Effort |
 |---|---|---|---|
+| IO-1 | LOR `.lms` / `.las` (timing) | (= I-5) | — |
+| IO-2 | LOR `.lms` (full sequence) | (= I-5) | — |
 | IO-3 | LOR S5 `.loredit` | P3 | M |
 | IO-4 | LOR Pixel Editor `.lpe` | P3 | M |
 | IO-5 | Vixen 2 `.vix` | P3 | M |
@@ -52,17 +27,22 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
 | IO-16 | Polyphonic Transcription `.txt` | P3 | S |
 | IO-18 | ImportPreviewsModelsDialog (model layout copy from another show) | P3 | M |
 | IO-19 | MediaImportOptionsDialog (folder mapping) | P3 | M |
+| IO-20 | SeqElementMismatchDialog — full desktop Map-Models flow (alias half shipped) | P3 | M |
 | IO-24 | LyricUserDictDialog (custom phoneme dict) | P3 | S |
 
 ## Exports (still open)
 
 | # | Item | Severity | Effort |
 |---|---|---|---|
-| EX-1 | **SeqExportDialog** — 14 format picker: LOR `.lms`/`.las`, LOR Clipboard `.lcb` (v3), LOR S5 Clipboard, Vixen `.vix`, Vixen Routine `.vir`, LSP, HLS `.hlsnc`, xLights/FPP `.fseq`, Compressed `.mp4`, Uncompressed `.mp4`, Uncompressed `.avi`, Lossless `.mov`, Minleon NEC `.bin`, GIF `.gif` | P2 | L |
+| EX-1 | **SeqExportDialog** — 14 format picker: LOR `.lms`/`.las`, LOR Clipboard `.lcb` (v3), LOR S5 Clipboard, Vixen `.vix`, Vixen Routine `.vir`, LSP, HLS `.hlsnc`, xLights/FPP `.fseq`, Compressed `.mp4`, Uncompressed `.mp4`, Uncompressed `.avi`, Lossless `.mov`, Minleon NEC `.bin`, GIF `.gif`. **Tools → Export Models / Export Effects** route per-model and per-sequence variants here; today they each write a `.xlsx` documentation spreadsheet. | P2 | L |
 | EX-2 | ExportModelSelect — model picker for per-model export | P2 | S |
 | EX-3 | **BatchRenderDialog** — desktop's feature-parity version: recursive search + sequence checklist + last-render-date columns + Force HD + FPP Playlist integration. (iPad's simpler `BatchRenderSheet` already covers the basic case.) | P2 | M |
 | EX-9 | TabConvert::Write*ModelFile — Falcon Pi `.bin`, MP4/AVI/MOV (FFmpeg block on iOS), GIF (FFmpeg), Minleon NEC `.bin` | P2 | L–XL (FFmpeg block) |
-| ~~EX-11~~ | ~~Package Sequence~~ — ✓ shipped 2026-05-17. Tools → Package Sequence opens a two-toggle option sheet (Include Audio / Include Videos, both default on); Pack runs `SequencePackage::Pack` on a utility queue and hands the resulting `.xsqz` to the system share sheet via `XLPresentShareSheet`. Non-fatal pack warnings (missing referenced media) surface in an alert with a confirm-then-share flow. Bridge: `src-iPad/Bridge/XLSequencePackager.{h,mm}`. | — | — |
+| EX-12 | **Export Models** spreadsheet — `.xlsx` of every model in the show with channel ranges, controller wiring, strings, smart-remote groupings. **Tools → Export Models** on desktop. | P3 | S |
+| EX-13 | **Export Effects** spreadsheet — `.xlsx` of every effect on every model in the current sequence. **Tools → Export Effects** on desktop. | P3 | S |
+| EX-14 | **Export Controller Connections** — dump of controller-to-model wiring graph. **Tools → Export Controller Connections** on desktop. | P3 | S |
+| EX-15 | **Download Sequences/Lyrics** — vendor-hosted sequence + lyric catalog browser, beyond the vendor-model catalog already shipped via `VendorBrowserSheet`. **Tools → Download Sequences/Lyrics** on desktop. | P3 | M |
+| EX-16 | **Generate Lyrics From Data** — `GenerateLyricsDialog`: reverse-engineer phoneme lyric tracks from rendered channel data on a chosen model. Different from B79 (AI Speech 2 Lyrics from audio); useful when an existing sequence already has mouth-shape effects baked in. **Tools → Generate Lyrics From Data** on desktop. | P3 | M |
 
 ## Convert dialog
 
@@ -79,20 +59,8 @@ Source: §2.8 + §2.9 of the 2026-04-23 gap analysis (Phase N).
   review risk. AVFoundation video writer would be a separate XL
   effort and only covers MP4/MOV without GIF.
 
-## Why deferred
-
-- Phase I-1/I-2 covers the most common vendor workflow (`.xsq`
-  / `.xsqz`); I-4/I-5 cover the next two formats (SuperStar +
-  LOR). Beyond that, formats trail off in user prevalence quickly.
-- Per-model exports (EX-2 picker on top of EX-1) are simpler to
-  port than the whole 14-format SeqExportDialog and would unlock
-  the most common "export this one model for FPP" workflow.
-
 ## When to come back
 
-- After Phase I-3/I-4/I-5 ship and we have a measurable signal
-  on whether `.xsq`/`.xsqz`/`.sup`/`.lms` cover ~95% of vendor
-  imports. If so, the rest can wait.
 - IO-6 Vixen 3 `.tim` is the biggest single P2 import; pull in
   if a tester or vendor flags it.
 - EX-2 ExportModelSelect + per-model `.fseq` export can ship as

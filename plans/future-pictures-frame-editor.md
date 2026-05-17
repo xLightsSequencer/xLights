@@ -1,4 +1,4 @@
-# Future — Pictures Frame / GIF Timing Editor
+# Future — Pictures Frame / GIF Timing Editor + Effect Assist panels
 
 Not in the first-pass Phase C scope — the desktop implementation is
 acknowledged to be rough and needs redesigning too. When the time
@@ -22,25 +22,19 @@ per-frame timing. iPad has the filename picker only — no frame UI.
 ## When we come back to this
 
 - Redesign the UX once, land it on both desktop and iPad as a
-  shared schema-driven custom row where possible (or matching
-  wxSmith / SwiftUI panels when a shared schema doesn't fit).
+  shared schema-driven custom row where possible.
 - Look at the underlying `AnimatedImageData` handling in
   `src-core/` to see whether the per-frame timing edit surface
   wants to live in core (which would naturally make the iPad
   side cheaper).
 
-## Cross-references (gap analysis 2026-04-23 §2.11)
+## Effect Assist sub-panels (gap analysis 2026-04-23 §2.11)
 
-PicturesAssistPanel is one of three Effect Assist sub-panels that
-desktop ships and iPad doesn't:
+EA-1 SketchAssistPanel: partially shipped — endpoint drag, curve
+reshaping, and path-list management on iPad via
+`SketchPathEditorRowView.swift`. Cubic / quadratic creation, path
+closing, SVG import / export remain desktop-only.
 
-- **EA-1 SketchAssistPanel** (XL) — XY canvas, Bezier handles,
-  pen mode, SVG import, path management list, grid toggle,
-  background image overlay. Used by the Sketch effect.
-  **Partially shipped** — `SketchPathEditorRowView.swift` covers
-  endpoint drag, curve reshaping, and path-list management on
-  iPad (G4). Cubic / quadratic creation, path closing, SVG
-  import / export remain desktop-only.
 - **EA-2 PicturesAssistPanel** (XL) — multi-frame canvas,
   pencil/eraser/eyedropper/select/copy paint tools, palette
   manager (8-color swatches), color picker, image load / save /
