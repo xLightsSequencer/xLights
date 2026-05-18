@@ -4331,6 +4331,62 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     return [NSString stringWithUTF8String:std_name.c_str()];
 }
 
+- (NSInteger)nodeCountForModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return 0;
+    Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return 0;
+    return (NSInteger)m->GetNodeCount();
+}
+
+- (BOOL)setSubmodelAliasesOnParent:(NSString*)parentName
+                          submodel:(NSString*)submodelName
+                           aliases:(NSArray<NSString*>*)aliases {
+    if (!_context || !_context->HasModelManager()) return NO;
+    if (!parentName || !submodelName) return NO;
+    Model* parent = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!parent) return NO;
+    Model* sub = parent->GetSubModel(std::string(submodelName.UTF8String));
+    if (!sub) return NO;
+    _context->AbortRender(5000);
+    std::list<std::string> clean;
+    std::set<std::string> seen;
+    const std::string selfName = sub->GetName();
+    std::string selfLower;
+    selfLower.reserve(selfName.size());
+    for (char c : selfName) selfLower.push_back(::tolower((unsigned char)c));
+    for (NSString* a in aliases) {
+        if (![a isKindOfClass:[NSString class]]) continue;
+        std::string s = a.UTF8String;
+        // trim
+        size_t start = s.find_first_not_of(" \t\r\n");
+        size_t end   = s.find_last_not_of(" \t\r\n");
+        s = (start == std::string::npos) ? std::string() : s.substr(start, end - start + 1);
+        if (s.empty()) continue;
+        for (auto& c : s) c = ::tolower((unsigned char)c);
+        if (s == selfLower) continue;
+        if (seen.insert(s).second) clean.push_back(s);
+    }
+    sub->SetAliases(clean);
+    parent->IncrementChangeCount();
+    _context->MarkLayoutModelDirty(std::string(parentName.UTF8String));
+    return YES;
+}
+
+- (NSArray<NSString*>*)submodelAliasesOnParent:(NSString*)parentName
+                                      submodel:(NSString*)submodelName {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager()) return out;
+    if (!parentName || !submodelName) return out;
+    Model* parent = _context->GetModelManager()[std::string(parentName.UTF8String)];
+    if (!parent) return out;
+    Model* sub = parent->GetSubModel(std::string(submodelName.UTF8String));
+    if (!sub) return out;
+    for (const auto& a : sub->GetAliases()) {
+        [out addObject:[NSString stringWithUTF8String:a.c_str()]];
+    }
+    return out;
+}
+
 - (BOOL)deleteSubModelNamed:(NSString*)submodelName
                     onModel:(NSString*)parentName {
     if (!_context || !_context->HasModelManager()) return NO;
@@ -12440,8 +12496,26 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     if (!_context || !name) return NO;
     auto& om = _context->GetOutputManager();
     if (!om.GetController(name.UTF8String)) return NO;
+    // Clear references from models that explicitly assign themselves
+    // to this controller (either via `_controllerName` or a
+    // "!<name>:<channel>" start channel) before tearing the
+    // controller down — leftover references would otherwise leave
+    // those models pointing at a missing controller, and the
+    // subsequent start-channel recalc can't resolve them.
+    if (_context->HasModelManager()) {
+        _context->GetModelManager().DeleteController(name.UTF8String);
+    }
     om.DeleteController(name.UTF8String);
-    [self recalcAndMarkControllersDirty];
+    // Rework + Recalc (rather than Recalc alone): Rework rewrites
+    // every remaining controller's "!Name:###" assignments so the
+    // channel range freed by the deleted controller collapses,
+    // and Recalc then refreshes each model's cached first channel
+    // off the updated strings. Without the Rework pass models on
+    // the remaining controllers keep stale channel numbers and the
+    // synthetic "1" we just stamped on the unassigned models
+    // doesn't get re-numbered into the "No Controller" tail.
+    [self reworkAndRecalcStartChannels];
+    _context->MarkControllersDirty();
     return YES;
 }
 
@@ -12478,29 +12552,6 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     if (!c || !c->IsFromBase()) return NO;
     c->SetFromBase(false);
     _context->MarkControllersDirty();
-    return YES;
-}
-
-- (BOOL)sortControllersBy:(NSString*)field {
-    if (!_context || !field) return NO;
-    auto& om = _context->GetOutputManager();
-    std::string f = [field UTF8String];
-    if (f == "name") {
-        om.SortControllersbyName();
-    } else if (f == "id") {
-        om.SortControllersbyID();
-    } else if (f == "ip") {
-        om.SortControllersbyIP();
-    } else if (f == "fppProxy") {
-        om.SortControllersbyFPPProxy();
-    } else if (f == "vendor") {
-        om.SortControllersbyModel();
-    } else if (f == "protocol") {
-        om.SortControllersbyProtocal();
-    } else {
-        return NO;
-    }
-    [self recalcAndMarkControllersDirty];
     return YES;
 }
 

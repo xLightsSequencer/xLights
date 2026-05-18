@@ -69,6 +69,7 @@ class ModelManager : public ObjectManager
         bool ModelHasNoDependencyOnNoController(Model* m, std::list<std::string>& visited) const;
 
         bool RenameController(const std::string& oldName, const std::string& newName);
+        bool DeleteController(const std::string& name);
 
         std::vector<std::string> GetLayoutGroupNames() const;
 

@@ -136,6 +136,9 @@
     NSString* _errorReason;
     BOOL _hasRenderedSuccessfully;
     std::set<std::string> _loggedReasons;
+    // J-30 — Submodel editor support. Skip the per-frame channel
+    // update so explicit `SetNodeColor` overrides stay visible.
+    BOOL _suppressChannelUpdate;
 }
 
 - (instancetype)initWithName:(NSString*)name {
@@ -2894,8 +2897,12 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         return;
     }
 
-    // Set channel data on all models for this frame
-    ctx->SetModelColors(frameMS);
+    // Set channel data on all models for this frame, unless the
+    // submodel-editor pane has asked us to keep its manual
+    // `SetNodeColor` overrides intact.
+    if (!_suppressChannelUpdate) {
+        ctx->SetModelColors(frameMS);
+    }
 
     // Set current frame time so models can query it
     _preview->SetCurrentFrameTime(frameMS);
@@ -3318,6 +3325,119 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                        /* smoothScale */ true,
                        brightness, alpha);
     });
+}
+
+// MARK: - J-30 Submodel editor support
+
+- (void)setSuppressChannelUpdate:(BOOL)suppress {
+    _suppressChannelUpdate = suppress;
+}
+- (BOOL)suppressChannelUpdate {
+    return _suppressChannelUpdate;
+}
+
+- (void)setSingleModelMode:(BOOL)single {
+    _isModelPreview = single;
+}
+- (BOOL)singleModelMode {
+    return _isModelPreview;
+}
+
+- (NSInteger)nodeNearPoint:(CGPoint)point
+                   onModel:(NSString*)modelName
+                  viewSize:(CGSize)viewSize
+               forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName) return 0;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return 0;
+    if (_preview->Is3D()) return 0;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return 0;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    std::string s = m->GetNodeNear(_preview.get(), p, false);
+    if (s.empty()) return 0;
+    char* endp = nullptr;
+    long v = std::strtol(s.c_str(), &endp, 10);
+    if (endp == s.c_str() || v <= 0) return 0;
+    return (NSInteger)v;
+}
+
+- (NSArray<NSNumber*>*)nodesInRect:(CGRect)rect
+                           onModel:(NSString*)modelName
+                          viewSize:(CGSize)viewSize
+                       forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSNumber*>* out = [NSMutableArray array];
+    if (!_preview || !doc || !modelName) return out;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return out;
+    if (_preview->Is3D()) return out;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return out;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint a{(int)std::round(CGRectGetMinX(rect) * scale),
+              (int)std::round(CGRectGetMinY(rect) * scale)};
+    xlPoint b{(int)std::round(CGRectGetMaxX(rect) * scale),
+              (int)std::round(CGRectGetMaxY(rect) * scale)};
+    std::vector<int> hits = m->GetNodesInBoundingBox(_preview.get(), a, b);
+    for (int n : hits) {
+        if (n > 0) [out addObject:@(n)];
+    }
+    return out;
+}
+
+- (BOOL)setSubmodelHighlightedNodes:(NSArray<NSNumber*>*)highlighted
+                            onModel:(NSString*)modelName
+                        forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !modelName) return NO;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return NO;
+    std::set<int> selected;
+    for (NSNumber* n in highlighted) {
+        if (![n isKindOfClass:[NSNumber class]]) continue;
+        int v = n.intValue;
+        if (v >= 1) selected.insert(v);
+    }
+    // High-contrast palette so the user can tell selected from
+    // unselected at a glance on a tablet from arm's length:
+    // saturated yellow for "in this row" (pops against the
+    // black canvas + ignores the small dot size), very dim grey
+    // for everything else (still visible so the user knows where
+    // the model extends but clearly de-emphasised).
+    const xlColor highlightColor(255, 232, 0);
+    const xlColor dimColor(28, 28, 32);
+    uint32_t nn = m->GetNodeCount();
+    for (uint32_t i = 0; i < nn; ++i) {
+        // SetNodeColor uses 0-based indices; `selected` is 1-based
+        // to match the desktop range strings + GetNodeNear output.
+        if (selected.count((int)(i + 1))) {
+            m->SetNodeColor(i, highlightColor);
+        } else {
+            m->SetNodeColor(i, dimColor);
+        }
+    }
+    m->IncrementChangeCount();
+    return YES;
+}
+
+- (BOOL)clearSubmodelHighlightsOnModel:(NSString*)modelName
+                           forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !modelName) return NO;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return NO;
+    const xlColor base(0, 0, 0);
+    uint32_t nn = m->GetNodeCount();
+    for (uint32_t i = 0; i < nn; ++i) {
+        m->SetNodeColor(i, base);
+    }
+    return YES;
 }
 
 @end

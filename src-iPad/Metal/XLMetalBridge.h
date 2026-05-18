@@ -550,6 +550,59 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc;
 
+// J-30 — Submodel editor support. Pick the node nearest `point`
+// on the named model. Returns the 1-based node index (>=1) or 0
+// for a miss. `point` is in UIKit view points relative to the
+// MTKView bounds; the bridge scales to window pixels internally.
+// Today: 2D-only. In 3D mode the method returns 0; the submodel
+// editor pane is 2D ortho so this matches the desktop dialog.
+- (NSInteger)nodeNearPoint:(CGPoint)point
+                   onModel:(NSString*)modelName
+                  viewSize:(CGSize)viewSize
+               forDocument:(XLSequenceDocument*)doc;
+
+// J-30 — Submodel editor support. Pick every node within `rect`
+// on the named model. Returns 1-based node indices in
+// ModelManager iteration order. Same 2D-only restriction as
+// `nodeNearPoint`.
+- (NSArray<NSNumber*>*)nodesInRect:(CGRect)rect
+                           onModel:(NSString*)modelName
+                          viewSize:(CGSize)viewSize
+                       forDocument:(XLSequenceDocument*)doc;
+
+// J-30 — Submodel editor support. Apply highlight colours to the
+// named model's nodes: nodes in `highlighted` (1-based) are
+// painted white, every other node is painted dark grey. Matches
+// desktop SubModelsDialog::SelectRow visual treatment. Caller
+// should `setNeedsDisplay` on the MTKView and have flipped
+// `setSuppressChannelUpdate:YES` so the next frame doesn't
+// repaint the channel-data colours over the overrides.
+- (BOOL)setSubmodelHighlightedNodes:(NSArray<NSNumber*>*)highlighted
+                            onModel:(NSString*)modelName
+                        forDocument:(XLSequenceDocument*)doc;
+
+// J-30 — Submodel editor support. Clear node colour overrides
+// on the named model (the next frame with SuppressChannelUpdate
+// off will repaint native pixel data).
+- (BOOL)clearSubmodelHighlightsOnModel:(NSString*)modelName
+                           forDocument:(XLSequenceDocument*)doc;
+
+// J-30 — Submodel editor support. When YES, drawModelsForDocument
+// skips the per-frame `ctx->SetModelColors(frameMS)` step so any
+// node colours set via `setSubmodelHighlightedNodes:` stay visible
+// across redraws. Per-bridge state — only meaningful on the
+// dedicated SubmodelEditor pane. Default: NO.
+- (void)setSuppressChannelUpdate:(BOOL)suppress;
+- (BOOL)suppressChannelUpdate;
+
+// J-30 — Force the bridge into single-model fit-to-window mode
+// (the path normally selected when the bridge is named
+// "ModelPreview"). Combined with `setPreviewModel:` this lets a
+// SubmodelEditor-named bridge draw the parent model centred and
+// fit-to-window instead of the full house layout. Default: NO.
+- (void)setSingleModelMode:(BOOL)single;
+- (BOOL)singleModelMode;
+
 // Diagnostic surface for the SwiftUI preview pane. `errorReason`
 // returns the most recent silent-fail reason (no Metal layer, 0×0
 // drawable, render context missing, StartDrawing failed, no models

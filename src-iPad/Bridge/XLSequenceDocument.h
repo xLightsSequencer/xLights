@@ -1039,6 +1039,27 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSString*)addSubModelToModel:(NSString*)parentName
                                     name:(NSString*)submodelName;
 
+// J-30 — Submodel editor support. Return the node count of the
+// named (parent) model. Used by the SwiftUI editor to validate
+// range numbers and animate playback through the full range.
+- (NSInteger)nodeCountForModel:(NSString*)modelName
+    NS_SWIFT_NAME(nodeCount(forModel:));
+
+// J-30 — Submodel editor support. Replace this model's alias
+// list with `aliases` (mirrors `setModelAliases:` semantics but
+// scoped to a SubModel). Strings are trimmed + lowercased +
+// de-duped on the way through.
+- (BOOL)setSubmodelAliasesOnParent:(NSString*)parentName
+                          submodel:(NSString*)submodelName
+                           aliases:(NSArray<NSString*>*)aliases
+    NS_SWIFT_NAME(setSubmodelAliases(onParent:submodel:aliases:));
+
+// J-30 — Submodel editor support. Read this submodel's alias
+// list. Returns an empty array for missing / no-alias submodels.
+- (NSArray<NSString*>*)submodelAliasesOnParent:(NSString*)parentName
+                                      submodel:(NSString*)submodelName
+    NS_SWIFT_NAME(submodelAliases(onParent:submodel:));
+
 // J-18 pass 6 — clear any dimming curve set on this model.
 // SetDimmingInfo({}) deletes the cached `modelDimmingCurve`
 // and empties the `<dimmingCurve>` XML child block on save.
@@ -2142,12 +2163,6 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // doesn't exist or isn't currently flagged.
 - (BOOL)unlinkControllerFromBase:(NSString*)name
     NS_SWIFT_NAME(unlinkControllerFromBase(_:));
-
-// Sort the controllers list. `field` is one of "name", "id",
-// "ip", "fppProxy", "vendor", "protocol". Returns NO on
-// unknown field. Marks `_controllersDirty` on success.
-- (BOOL)sortControllersBy:(NSString*)field
-    NS_SWIFT_NAME(sortControllersBy(_:));
 
 #pragma mark - Base Show Directory
 

@@ -184,6 +184,39 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
     return changed;
 }
 
+bool Model::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    if (_controllerName == name) {
+        // SetControllerName(NO_CONTROLLER) also clears the model
+        // chain + ctrl port + start channel. The start-channel
+        // clear sets it to "", which GetNumberFromChannelString
+        // can only resolve as "invalid → clamp to 1" with
+        // CouldComputeStartChannel=false, so reseat to "1"
+        // explicitly so the next RecalcStartChannels treats it as
+        // a valid starting point for re-numbering.
+        SetControllerName(NO_CONTROLLER, false);
+        SetStartChannel("1");
+        changed = true;
+    }
+
+    // Detach from a start channel that explicitly references the
+    // deleted controller ("!<name>:<channel>") so the model ends up
+    // fully unassigned rather than left pointing at a controller
+    // that no longer exists. Match by parsed controller token so we
+    // don't false-hit a longer name that shares the prefix.
+    std::string sc = Trim(ModelStartChannel);
+    if (StartsWith(sc, "!") && Contains(sc, ":")) {
+        std::string ref = Trim(BeforeFirst(AfterFirst(sc, '!'), ':'));
+        if (ref == name) {
+            SetStartChannel("1");
+            changed = true;
+        }
+    }
+    return changed;
+}
+
 
 void Model::Rename(std::string const& newName)
 {

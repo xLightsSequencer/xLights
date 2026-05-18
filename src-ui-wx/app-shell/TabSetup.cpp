@@ -2340,6 +2340,7 @@ void xLightsFrame::DeleteSelectedControllers() {
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
             waitForPingsToComplete();
             for (const auto& it : todel) {
+                AllModels.DeleteController(it);
                 _outputManager.DeleteController(it);
             }
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
@@ -2601,6 +2602,7 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         waitForPingsToComplete();
+        AllModels.DeleteController(name);
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");

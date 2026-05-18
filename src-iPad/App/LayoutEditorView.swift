@@ -710,6 +710,9 @@ struct LayoutEditorView: View {
             message: $pendingControllerActionAlert))
         .modifier(ControllerDeleteAlertModifier(
             pendingName: $pendingDeleteControllerName,
+            modelCount: { name in
+                viewModel.document.modelNames(forController: name).count
+            },
             onConfirm: { name in handleDeleteController(name) }))
         .modifier(ControllerDiscoveryModifier(
             running: $controllerDiscoveryRunning,
@@ -875,11 +878,21 @@ struct LayoutEditorView: View {
                             .truncationMode(.middle)
                             .tag(name)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
+                                // Don't mark this destructive: iOS 26's
+                                // SwiftUI pre-commits a row removal to
+                                // the underlying UICollectionView when a
+                                // destructive swipe button is tapped,
+                                // so an alert-gated delete that the user
+                                // then cancels leaves the view out of
+                                // sync with the data source and the
+                                // next swipe crashes with
+                                // NSInternalInconsistencyException.
+                                Button {
                                     pendingDeleteGroupName = name
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
+                                .tint(.red)
                             }
                     }
                 } header: {
@@ -931,11 +944,14 @@ struct LayoutEditorView: View {
                                 .truncationMode(.middle)
                                 .tag(name)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
+                                    // See groups list above for why
+                                    // this isn't `role: .destructive`.
+                                    Button {
                                         pendingDeleteObjectName = name
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
+                                    .tint(.red)
                                 }
                         }
                     }
@@ -984,26 +1000,40 @@ struct LayoutEditorView: View {
     private var controllersList: some View {
         List(selection: controllerListBinding) {
             Section {
-                ForEach(filteredControllerRows.indices, id: \.self) { i in
-                    let row = filteredControllerRows[i]
-                    let name = (row["name"] as? String) ?? "—"
-                    controllerRow(row: row, name: name)
-                        .tag(name)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                pendingDeleteControllerName = name
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                ForEach(filteredControllerNames, id: \.self) { name in
+                    if let row = filteredControllerRows.first(where: {
+                        ($0["name"] as? String) == name
+                    }) {
+                        controllerRow(row: row, name: name)
+                            .tag(name)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                // No `role: .destructive` — under iOS 26
+                                // SwiftUI treats a destructive swipe
+                                // button as "row about to disappear" and
+                                // pre-commits the deletion to the
+                                // collection view. When the confirmation
+                                // alert is cancelled the data array is
+                                // unchanged, leaving the collection view
+                                // expecting N-1 items while the source
+                                // still has N — the next swipe surfaces
+                                // the mismatch as
+                                // NSInternalInconsistencyException.
+                                Button {
+                                    pendingDeleteControllerName = name
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                .tint(.red)
                             }
-                        }
-                        // J-31.5 — disallow drag-reorder while a
-                        // filter is active. The filter masks the
-                        // real list order; reordering filtered
-                        // items would silently scramble the
-                        // hidden ones.
-                        .moveDisabled(!controllerFilter
-                            .trimmingCharacters(in: .whitespaces)
-                            .isEmpty)
+                            // J-31.5 — disallow drag-reorder while a
+                            // filter is active. The filter masks the
+                            // real list order; reordering filtered
+                            // items would silently scramble the
+                            // hidden ones.
+                            .moveDisabled(!controllerFilter
+                                .trimmingCharacters(in: .whitespaces)
+                                .isEmpty)
+                    }
                 }
                 .onMove { source, destination in
                     handleReorderControllers(source: source,
@@ -1364,15 +1394,6 @@ struct LayoutEditorView: View {
         ("Inactive",      "Inactivate",                "pause.circle"),
     ]
 
-    private static let controllerSortOptions: [(label: String, field: String)] = [
-        ("by Name",                "name"),
-        ("by ID",                  "id"),
-        ("by IP",                  "ip"),
-        ("by FPP Proxy",           "fppProxy"),
-        ("by Controller Model",    "vendor"),
-        ("by Controller Protocol", "protocol"),
-    ]
-
     @ViewBuilder
     private func controllerContextMenu(row: [String: Any], name: String, osf: Bool) -> some View {
         let ip = (row["ip"] as? String) ?? ""
@@ -1421,17 +1442,6 @@ struct LayoutEditorView: View {
             } label: {
                 Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
             }
-        }
-        Divider()
-        Menu {
-            ForEach(Self.controllerSortOptions, id: \.field) { entry in
-                Button(entry.label) {
-                    _ = viewModel.document.sortControllersBy(entry.field)
-                    refreshAfterControllerMutation()
-                }
-            }
-        } label: {
-            Label("Sort", systemImage: "arrow.up.arrow.down")
         }
         Divider()
         Button(role: .destructive) {
@@ -1891,6 +1901,15 @@ struct LayoutEditorView: View {
             }
             return false
         }
+    }
+
+    // Name-keyed view of `filteredControllerRows` used as stable
+    // ForEach identity. Using row indices as the identity makes
+    // SwiftUI's UICollectionView diff after a delete inconsistent
+    // (rows shift while the section count it expects doesn't),
+    // crashing with NSInternalInconsistencyException.
+    private var filteredControllerNames: [String] {
+        filteredControllerRows.compactMap { $0["name"] as? String }
     }
 
     private var currentFilterBinding: Binding<String> {
@@ -5061,6 +5080,7 @@ struct SubModelEntry: Identifiable, Equatable {
 }
 
 private struct SubModelListSheet: View {
+    @Environment(SequencerViewModel.self) var viewModel
     let modelName: String
     let initial: [String]
     let delete: (_ submodelName: String) -> Void
@@ -5071,7 +5091,11 @@ private struct SubModelListSheet: View {
 
     @State private var names: [String]
     @State private var entries: [SubModelEntry] = []
+    @State private var originalEntries: [SubModelEntry] = []
     @State private var newSubName: String = ""
+    @State private var generateSheetVisible: Bool = false
+    @State private var aliasesSheetTarget: String? = nil
+    @State private var confirmCancel: Bool = false
     @Environment(\.dismiss) private var dismiss
 
     init(modelName: String,
@@ -5091,6 +5115,72 @@ private struct SubModelListSheet: View {
         self._names = State(initialValue: initial)
     }
 
+    /// True iff anything has been added / deleted / renamed /
+    /// geometry-edited since the sheet opened. Drives the Cancel
+    /// confirmation prompt — we only ask "discard?" if there's
+    /// actually something to discard.
+    private var hasUnsavedSessionChanges: Bool {
+        guard entries.count == originalEntries.count else { return true }
+        for (a, b) in zip(entries, originalEntries) {
+            if a.name != b.name ||
+               a.isRanges != b.isRanges ||
+               a.isVertical != b.isVertical ||
+               a.bufferStyle != b.bufferStyle ||
+               a.strands != b.strands ||
+               a.subBuffer != b.subBuffer {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// Roll the C++ side back to the snapshot we took on
+    /// .onAppear. Routes through the wholesale-replace bridge,
+    /// which pushes its own undo snapshot, so the user can also
+    /// undo *the revert* if they cancel and then change their
+    /// mind.
+    private func revertAllChanges() {
+        _ = commitDetails(originalEntries)
+        entries = originalEntries
+        names = originalEntries.map { $0.name }
+    }
+
+    /// Append " Copy", " Copy 2", etc. until we find a free name.
+    private func uniqueCopyName(for base: String) -> String {
+        let existing = Set(entries.map { $0.name })
+        var candidate = "\(base) Copy"
+        var n = 2
+        while existing.contains(candidate) {
+            candidate = "\(base) Copy \(n)"
+            n += 1
+        }
+        return candidate
+    }
+
+    /// Duplicate `sub` with a fresh name. Mirrors desktop's
+    /// `OnButton_Sub_CopyClick` — creates a new submodel that
+    /// carries the source's geometry verbatim. We do this by
+    /// composing a new entries[] list and routing through the
+    /// wholesale-replace bridge so the C++ side rebuilds with
+    /// the duplicate already present.
+    private func copySubmodel(_ sub: String) {
+        guard let src = entries.first(where: { $0.name == sub }) else { return }
+        let newName = uniqueCopyName(for: src.name)
+        var dup = src
+        dup.id = UUID()
+        dup.name = newName
+        var newEntries = entries
+        if let idx = newEntries.firstIndex(where: { $0.name == sub }) {
+            newEntries.insert(dup, at: idx + 1)
+        } else {
+            newEntries.append(dup)
+        }
+        if commitDetails(newEntries) {
+            entries = loadDetails()
+            names = entries.map { $0.name }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -5104,6 +5194,11 @@ private struct SubModelListSheet: View {
                         Button("Add", action: addPressed)
                             .disabled(normalizedNewName.isEmpty ||
                                       names.contains(normalizedNewName))
+                    }
+                    Button {
+                        generateSheetVisible = true
+                    } label: {
+                        Label("Generate Slices…", systemImage: "wand.and.stars")
                     }
                 }
                 Section(footer: Text("Tap a submodel to edit its name + geometry (ranges, lines, sub-buffer). Swipe to delete.")
@@ -5127,6 +5222,20 @@ private struct SubModelListSheet: View {
                                         .foregroundStyle(.secondary)
                                 }
                             }
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                Button {
+                                    copySubmodel(sub)
+                                } label: {
+                                    Label("Copy", systemImage: "doc.on.doc")
+                                }
+                                .tint(.blue)
+                                Button {
+                                    aliasesSheetTarget = sub
+                                } label: {
+                                    Label("Aliases", systemImage: "tag")
+                                }
+                                .tint(.indigo)
+                            }
                         }
                         .onDelete { idx in
                             for i in idx {
@@ -5147,6 +5256,8 @@ private struct SubModelListSheet: View {
                             set: { entries[idx] = $0 }
                         ),
                         existingNames: Set(entries.filter { $0.name != sub }.map { $0.name }),
+                        parentModelName: modelName,
+                        document: viewModel.document,
                         onSave: {
                             let oldName = sub
                             let newName = entries[idx].name
@@ -5163,15 +5274,66 @@ private struct SubModelListSheet: View {
                 }
             }
             .navigationTitle("SubModels — \(modelName)")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", role: .destructive) {
+                        if hasUnsavedSessionChanges {
+                            confirmCancel = true
+                        } else {
+                            dismiss()
+                        }
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
             }
+            .confirmationDialog("Discard submodel changes?",
+                                 isPresented: $confirmCancel,
+                                 titleVisibility: .visible) {
+                Button("Discard", role: .destructive) {
+                    revertAllChanges()
+                    dismiss()
+                }
+                Button("Keep Editing", role: .cancel) {}
+            } message: {
+                Text("Add / delete / rename / range edits made in this sheet will be rolled back to the state when you opened it.")
+            }
         }
+        // iPad formSheet defaults to ~540pt wide — too narrow for
+        // the two-column landscape layout. minWidth nudges the
+        // sheet to expand horizontally; we intentionally avoid
+        // minHeight (which previously clipped the toolbar at the
+        // top). iPadOS honours the request when the screen has
+        // room; smaller devices keep the natural formSheet size.
+        .frame(minWidth: 980)
         .presentationDetents([.large])
+        .interactiveDismissDisabled(hasUnsavedSessionChanges)
         .onAppear {
             entries = loadDetails()
+            originalEntries = entries
+        }
+        .sheet(isPresented: $generateSheetVisible) {
+            GenerateSubmodelsSheet(
+                parentModel: modelName,
+                nodeCount: Int(viewModel.document.nodeCount(forModel: modelName)),
+                existingNames: Set(entries.map { $0.name }),
+                onGenerate: { generated in
+                    let merged = entries + generated
+                    if commitDetails(merged) {
+                        entries = loadDetails()
+                        names = entries.map { $0.name }
+                    }
+                })
+        }
+        .sheet(item: Binding<AliasesSheetTarget?>(
+                get: { aliasesSheetTarget.map(AliasesSheetTarget.init) },
+                set: { aliasesSheetTarget = $0?.name })) { target in
+            SubModelAliasesSheet(
+                parentModel: modelName,
+                submodelName: target.name,
+                document: viewModel.document)
         }
     }
 
@@ -5194,17 +5356,40 @@ private struct SubModelListSheet: View {
     }
 }
 
-/// J-23.3 — Per-submodel detail editor. Edits all fields
-/// (name / type / orientation / buffer style / ranges OR
-/// sub-buffer) of one submodel. Saving commits via the
-/// wholesale-replace bridge, since changing type / orientation
-/// / buffer style requires reconstructing the C++ SubModel.
+/// Per-submodel detail editor. Edits all fields (name / type /
+/// orientation / buffer style / ranges OR sub-buffer) of one
+/// submodel. Saving commits via the wholesale-replace bridge,
+/// since changing type / orientation / buffer style requires
+/// reconstructing the C++ SubModel.
+///
+/// Mirrors the desktop SubModelsDialog action surface: per-row
+/// Move Up / Move Down / Reverse Row / Sort Row / Delete plus
+/// section-level Reverse Nodes and Reverse Rows. Activates the
+/// row by tap; actions apply to the active row.
 private struct SubModelDetailEditor: View {
     @Binding var entry: SubModelEntry
     let existingNames: Set<String>
+    let parentModelName: String
+    let document: XLSequenceDocument
     let onSave: () -> Void
 
     @State private var newRange: String = ""
+    @State private var activeRow: Int = 0
+    @State private var isPlaying: Bool = false
+    @State private var playSpeed: Int = 3       // 1..10, nodes per tick
+    @State private var playTrail: Int = 4       // 1..20, fading-tail length
+    @State private var playPosition: Int = 0    // monotonic step counter
+    @State private var playTimer: Timer? = nil
+    @State private var animationHighlights: [Int]? = nil
+    /// Snapshot of the entry as it was when this detail view
+    /// appeared. Cancel restores the binding from this; Save
+    /// commits the live state. Saved on `.onAppear` rather than
+    /// `init` because SwiftUI re-builds the view on every state
+    /// change and we want the snapshot to track the user-visible
+    /// "open" moment.
+    @State private var entrySnapshot: SubModelEntry? = nil
+    @State private var confirmCancel: Bool = false
+    @Environment(\.dismiss) private var dismissDetail
 
     private static let bufferStyles = [
         "Default", "Keep XY", "Stacked", "Stacked Right",
@@ -5212,16 +5397,131 @@ private struct SubModelDetailEditor: View {
         "Stacked Vertical Concatenate",
     ]
 
-    var body: some View {
+    /// True iff anything has been edited on this detail screen
+    /// since it opened. Drives the Cancel-confirmation prompt
+    /// and also hides the system back-swipe gesture so a stray
+    /// edge swipe can't silently lose work.
+    private var hasDetailChanges: Bool {
+        guard let snap = entrySnapshot else { return false }
+        return entry.name != snap.name ||
+               entry.isRanges != snap.isRanges ||
+               entry.isVertical != snap.isVertical ||
+               entry.bufferStyle != snap.bufferStyle ||
+               entry.strands != snap.strands ||
+               entry.subBuffer != snap.subBuffer
+    }
+
+    /// Currently-highlighted nodes on the embedded preview —
+    /// the active row's expanded node set, or the playback
+    /// head + trail when an animation is running. Recomputed
+    /// on every strand-text / activeRow / animation change so
+    /// the preview tracks keystroke edits.
+    private var highlightedNodes: [Int] {
+        if let anim = animationHighlights { return anim }
+        guard entry.isRanges,
+              entry.strands.indices.contains(activeRow) else { return [] }
+        return SubModelRangeOps.expand(entry.strands[activeRow])
+    }
+
+    /// Flattened node sequence for animation. Walks each strand
+    /// in declaration order, expanding ranges. Used to drive
+    /// the play head + trail. Empty when there are no nodes.
+    private var animationNodeSequence: [Int] {
+        guard entry.isRanges else { return [] }
+        var out: [Int] = []
+        for s in entry.strands {
+            out.append(contentsOf: SubModelRangeOps.expand(s))
+        }
+        return out
+    }
+
+    /// Embedded model preview + the hint footer underneath it.
+    /// Used by both portrait (pinned top) and landscape (right
+    /// column) layouts.
+    @ViewBuilder
+    private var previewBlock: some View {
+        VStack(spacing: 4) {
+            SubmodelPreviewPane(
+                document: document,
+                parentModelName: parentModelName,
+                highlightedNodes: highlightedNodes,
+                onToggleNode: toggleNode,
+                onAddNodes: addNodes)
+                .background(Color.black)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            Text(entry.isRanges
+                 ? "Tap a node to toggle it into Line \(activeRow + 1). Two-finger long-press + drag to add a rectangle. Pinch / drag / double-tap to navigate."
+                 : "Drag the rectangle below to define the sub-buffer region.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// Compact Identity bar for portrait — the Name field +
+    /// inline collision warning. In landscape the Identity
+    /// section stays inside the scrollable Form (so its label
+    /// matches the rest of the controls).
+    @ViewBuilder
+    private var identityCompactBar: some View {
+        HStack(spacing: 8) {
+            Text("Name")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            TextField("Submodel name", text: $entry.name)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+                .font(.body)
+                .textFieldStyle(.roundedBorder)
+            if existingNames.contains(entry.name) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.red)
+                    .help("Name already used by another submodel")
+            }
+        }
+    }
+
+    /// Playback strip — pulled out of the actions section so it
+    /// can sit directly under the preview in both layouts.
+    @ViewBuilder
+    private var playControls: some View {
+        HStack(spacing: 12) {
+            Button {
+                isPlaying ? stopPlayback() : startPlayback()
+            } label: {
+                Label(isPlaying ? "Stop" : "Play",
+                      systemImage: isPlaying ? "stop.fill" : "play.fill")
+                    .labelStyle(.iconOnly)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(animationNodeSequence.isEmpty)
+            Stepper("Speed \(playSpeed)", value: $playSpeed, in: 1...10)
+                .font(.caption)
+            Stepper("Trail \(playTrail)", value: $playTrail, in: 1...20)
+                .font(.caption)
+        }
+    }
+
+    /// The scrollable side of the editor — everything that isn't
+    /// preview / play / portrait-identity. Carries Type, Ranges,
+    /// Actions, Sub-buffer. Identity appears here in landscape
+    /// (full Form section, passed `includeIdentity: true`) and is
+    /// hidden in portrait (where the compact bar above the preview
+    /// takes its place).
+    @ViewBuilder
+    private func editorForm(includeIdentity: Bool) -> some View {
         Form {
-            Section("Identity") {
-                TextField("Name", text: $entry.name)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled(true)
-                if existingNames.contains(entry.name) {
-                    Text("⚠ Name already used by another submodel")
-                        .font(.caption)
-                        .foregroundStyle(.red)
+            if includeIdentity {
+                Section("Identity") {
+                    TextField("Name", text: $entry.name)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                    if existingNames.contains(entry.name) {
+                        Text("⚠ Name already used by another submodel")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
                 }
             }
             Section("Type") {
@@ -5241,69 +5541,851 @@ private struct SubModelDetailEditor: View {
                 }
             }
             if entry.isRanges {
-                Section(footer: Text("One range per line, e.g. \"1-50\" or \"5,10-15,30\". Swipe to delete; tap Add to append. Range numbers refer to pixel indices on the parent model.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)) {
-                    HStack {
-                        TextField("e.g. 1-50", text: $newRange)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled(true)
-                            .submitLabel(.done)
-                            .onSubmit(addRange)
-                        Button("Add", action: addRange)
-                            .disabled(newRange.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
-                    if entry.strands.isEmpty {
-                        Text("No ranges yet.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(Array(entry.strands.enumerated()), id: \.offset) { idx, _ in
-                            HStack {
-                                Text("Line \(idx + 1)")
-                                    .frame(minWidth: 60, alignment: .leading)
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption.monospacedDigit())
-                                TextField("range",
-                                          text: Binding(
-                                            get: { entry.strands[idx] },
-                                            set: { entry.strands[idx] = $0 }
-                                          ))
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled(true)
-                                    .multilineTextAlignment(.trailing)
-                            }
-                        }
-                        .onDelete { idx in
-                            entry.strands.remove(atOffsets: idx)
-                        }
-                    }
-                }
+                rangesSection
+                actionsSection
             } else {
-                Section(footer: Text("Format: x1,y1,x2,y2 as percentages (0..100) of the parent model bounds.")
+                Section(footer: Text("Drag the rectangle's corners or body to define the sub-buffer region. Values are percentages (0..100) of the parent model's buffer bounds.")
                             .font(.caption2)
                             .foregroundStyle(.secondary)) {
+                    SubBufferRectEditor(subBuffer: $entry.subBuffer)
+                        .frame(height: 280)
                     TextField("e.g. 0,0,100,100", text: $entry.subBuffer)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
+                        .font(.body.monospaced())
+                }
+            }
+        }
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            // Wide enough for two columns (preview alongside form)?
+            // Use the actual sheet width — not device orientation —
+            // since iPad formSheets stay narrow regardless of how
+            // the device is held. 660pt fits a 300pt preview
+            // column plus a 360pt form column with room to spare;
+            // a 10" iPad's formSheet content area in landscape
+            // measures around 680–720pt after safe-area insets.
+            let twoColumn = geo.size.width >= 660
+            Group {
+                if twoColumn {
+                    HStack(spacing: 0) {
+                        editorForm(includeIdentity: true)
+                            .frame(maxWidth: .infinity)
+                        Divider()
+                        VStack(spacing: 8) {
+                            previewBlock
+                                .frame(height: min(340, geo.size.height * 0.55))
+                            playControls
+                            Spacer(minLength: 0)
+                        }
+                        .padding(12)
+                        .frame(width: min(360, geo.size.width * 0.45))
+                        .background(Color(uiColor: .secondarySystemBackground))
+                    }
+                } else {
+                    VStack(spacing: 0) {
+                        identityCompactBar
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(uiColor: .secondarySystemBackground))
+                        previewBlock
+                            .frame(height: min(260, geo.size.height * 0.35))
+                            .padding(.horizontal, 16)
+                            .padding(.top, 6)
+                        playControls
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                        editorForm(includeIdentity: false)
+                            .padding(.top, -8)
+                    }
                 }
             }
         }
         .navigationTitle(entry.name)
+        .navigationBarTitleDisplayMode(.inline)
+        // Always hide the implicit `<` back button — it would
+        // pop without the discard-changes confirmation, making
+        // it a "stealth cancel" that bypasses the safeguard
+        // Cancel button. Cancel is the only way back.
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", role: .destructive) {
+                    if hasDetailChanges {
+                        confirmCancel = true
+                    } else {
+                        dismissDetail()
+                    }
+                }
+            }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { onSave() }
-                    .disabled(entry.name.trimmingCharacters(in: .whitespaces).isEmpty ||
-                              existingNames.contains(entry.name))
+                Button("Save") {
+                    onSave()
+                    dismissDetail()
+                }
+                .disabled(entry.name.trimmingCharacters(in: .whitespaces).isEmpty ||
+                          existingNames.contains(entry.name))
+            }
+        }
+        .confirmationDialog("Discard changes to this submodel?",
+                             isPresented: $confirmCancel,
+                             titleVisibility: .visible) {
+            Button("Discard", role: .destructive) {
+                if let snap = entrySnapshot {
+                    entry = snap
+                }
+                dismissDetail()
+            }
+            Button("Keep Editing", role: .cancel) {}
+        } message: {
+            Text("Name / type / range edits made on this screen will be reverted.")
+        }
+        .onAppear {
+            clampActiveRow()
+            if entrySnapshot == nil { entrySnapshot = entry }
+        }
+        .onDisappear { stopPlayback() }
+        .onChange(of: entry.strands.count) { _, _ in clampActiveRow() }
+        .onChange(of: entry.isRanges) { _, newVal in
+            if !newVal { stopPlayback() }
+        }
+    }
+
+    private var rangesSection: some View {
+        Section(footer: Text("Tap a line to select it; the action bar below acts on the selection. One range per line, e.g. \"1-50\" or \"5,10-15,30\".")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)) {
+            HStack {
+                TextField("e.g. 1-50", text: $newRange)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+                    .submitLabel(.done)
+                    .onSubmit(addRange)
+                Button("Add Line", action: addRange)
+                    .disabled(newRange.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            if entry.strands.isEmpty {
+                Text("No lines yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(entry.strands.enumerated()), id: \.offset) { idx, _ in
+                    HStack {
+                        Image(systemName: idx == activeRow
+                              ? "largecircle.fill.circle"
+                              : "circle")
+                            .foregroundStyle(idx == activeRow
+                                              ? AnyShapeStyle(Color.accentColor)
+                                              : AnyShapeStyle(.secondary))
+                            .onTapGesture { activeRow = idx }
+                        Text("Line \(idx + 1)")
+                            .frame(minWidth: 56, alignment: .leading)
+                            .foregroundStyle(.secondary)
+                            .font(.caption.monospacedDigit())
+                        TextField("range",
+                                  text: Binding(
+                                    get: { entry.strands[idx] },
+                                    set: { entry.strands[idx] = $0 }
+                                  ))
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .multilineTextAlignment(.trailing)
+                            .onTapGesture { activeRow = idx }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { activeRow = idx }
+                }
+                .onDelete { idx in
+                    entry.strands.remove(atOffsets: idx)
+                }
+                .onMove { src, dst in
+                    entry.strands.move(fromOffsets: src, toOffset: dst)
+                }
             }
         }
     }
+
+    private var actionsSection: some View {
+        Section("Actions") {
+            // Per-row controls — operate on the active line.
+            HStack(spacing: 12) {
+                Button {
+                    moveActiveRow(by: -1)
+                } label: {
+                    Label("Up", systemImage: "arrow.up")
+                }
+                .disabled(activeRow <= 0 || entry.strands.isEmpty)
+                Button {
+                    moveActiveRow(by: 1)
+                } label: {
+                    Label("Down", systemImage: "arrow.down")
+                }
+                .disabled(activeRow >= entry.strands.count - 1)
+                Spacer()
+                Button(role: .destructive) {
+                    deleteActiveRow()
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                .disabled(entry.strands.isEmpty)
+            }
+            .buttonStyle(.bordered)
+            .labelStyle(.iconOnly)
+
+            HStack(spacing: 12) {
+                Button {
+                    reverseActiveRow()
+                } label: {
+                    Label("Reverse Line", systemImage: "arrow.left.and.right")
+                }
+                .disabled(entry.strands.isEmpty)
+                Button {
+                    sortActiveRow()
+                } label: {
+                    Label("Sort Line", systemImage: "arrow.up.arrow.down")
+                }
+                .disabled(entry.strands.isEmpty)
+            }
+            .buttonStyle(.bordered)
+
+            // Whole-submodel controls.
+            HStack(spacing: 12) {
+                Button {
+                    reverseAllNodes()
+                } label: {
+                    Label("Reverse Nodes", systemImage: "arrow.uturn.left")
+                }
+                .disabled(entry.strands.isEmpty)
+                Button {
+                    reverseRowOrder()
+                } label: {
+                    Label("Reverse Line Order", systemImage: "arrow.up.and.down.text.horizontal")
+                }
+                .disabled(entry.strands.count <= 1)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    // MARK: - Playback
+
+    /// Start the play timer. Ticks ~10 Hz; per-tick advance is
+    /// proportional to `playSpeed` (1 = 1 node every 200ms, 10 =
+    /// 5 nodes per tick). Highlights `head + trail` nodes with a
+    /// gradient via animationHighlights.
+    private func startPlayback() {
+        stopPlayback()
+        playPosition = 0
+        isPlaying = true
+        let tick = TimeInterval(0.1)
+        playTimer = Timer.scheduledTimer(withTimeInterval: tick, repeats: true) { _ in
+            Task { @MainActor in advancePlayback() }
+        }
+        // Render the first frame immediately so playback feels
+        // instant rather than waiting one tick.
+        advancePlayback()
+    }
+
+    private func stopPlayback() {
+        playTimer?.invalidate()
+        playTimer = nil
+        isPlaying = false
+        animationHighlights = nil
+    }
+
+    private func advancePlayback() {
+        guard isPlaying else { return }
+        let seq = animationNodeSequence
+        guard !seq.isEmpty else { stopPlayback(); return }
+        let step = max(1, playSpeed / 2 + 1)
+        playPosition = (playPosition + step) % (seq.count + playTrail)
+        var nodes: [Int] = []
+        let head = playPosition
+        for i in 0..<playTrail {
+            let pos = head - i
+            if pos >= 0 && pos < seq.count { nodes.append(seq[pos]) }
+        }
+        animationHighlights = nodes
+    }
+
+    // MARK: - Actions
 
     private func addRange() {
         let r = newRange.trimmingCharacters(in: .whitespaces)
         guard !r.isEmpty else { return }
         entry.strands.append(r)
+        activeRow = entry.strands.count - 1
         newRange = ""
+    }
+
+    private func deleteActiveRow() {
+        guard entry.strands.indices.contains(activeRow) else { return }
+        entry.strands.remove(at: activeRow)
+        clampActiveRow()
+    }
+
+    private func moveActiveRow(by delta: Int) {
+        let dst = activeRow + delta
+        guard entry.strands.indices.contains(activeRow),
+              entry.strands.indices.contains(dst) else { return }
+        entry.strands.swapAt(activeRow, dst)
+        activeRow = dst
+    }
+
+    private func reverseAllNodes() {
+        entry.strands = entry.strands.map { SubModelRangeOps.reverseRange($0) }
+    }
+
+    private func reverseRowOrder() {
+        entry.strands.reverse()
+        activeRow = entry.strands.count - 1 - activeRow
+    }
+
+    private func reverseActiveRow() {
+        guard entry.strands.indices.contains(activeRow) else { return }
+        entry.strands[activeRow] = SubModelRangeOps.reverseRange(entry.strands[activeRow])
+    }
+
+    private func sortActiveRow() {
+        guard entry.strands.indices.contains(activeRow) else { return }
+        entry.strands[activeRow] = SubModelRangeOps.sortRange(entry.strands[activeRow])
+    }
+
+    private func clampActiveRow() {
+        if entry.strands.isEmpty {
+            activeRow = 0
+        } else {
+            activeRow = max(0, min(activeRow, entry.strands.count - 1))
+        }
+    }
+
+    /// Tap-to-toggle on the embedded preview. Adds the node if
+    /// missing from the active row, removes it if present. Auto-
+    /// creates a first row if the submodel has none yet so the
+    /// gesture is never silently dropped.
+    private func toggleNode(_ n: Int) {
+        if entry.strands.isEmpty {
+            entry.strands.append("")
+            activeRow = 0
+        }
+        clampActiveRow()
+        var nodes = SubModelRangeOps.expand(entry.strands[activeRow])
+        if let idx = nodes.firstIndex(of: n) {
+            nodes.remove(at: idx)
+        } else {
+            nodes.append(n)
+        }
+        entry.strands[activeRow] = SubModelRangeOps.compressNodes(nodes)
+    }
+
+    /// Marquee-select on the embedded preview. Unions the
+    /// enclosed nodes into the active row; preserves existing
+    /// entries (the desktop semantics — drag selects ADD).
+    private func addNodes(_ ns: [Int]) {
+        guard !ns.isEmpty else { return }
+        if entry.strands.isEmpty {
+            entry.strands.append("")
+            activeRow = 0
+        }
+        clampActiveRow()
+        var nodes = Set(SubModelRangeOps.expand(entry.strands[activeRow]))
+        for n in ns where n >= 1 { nodes.insert(n) }
+        entry.strands[activeRow] = SubModelRangeOps.compressNodes(Array(nodes))
+    }
+}
+
+private struct AliasesSheetTarget: Identifiable {
+    let name: String
+    var id: String { name }
+}
+
+/// J-30 — auto-generate a batch of submodels by slicing the
+/// parent model's nodes into N approximately-equal chunks.
+/// Mirrors desktop SubModelGenerateDialog's "Nodes" mode (the
+/// most universally-applicable generator — works on any model
+/// type without buffer-dimension math). Other generators
+/// (Vertical / Horizontal Slices, Segments 2×, 3×) live in
+/// the desktop dialog because they need GetDefaultBufferWi/Ht;
+/// see iPad-xLights-Plan.md "Deferred" section.
+private struct GenerateSubmodelsSheet: View {
+    let parentModel: String
+    let nodeCount: Int
+    let existingNames: Set<String>
+    let onGenerate: ([SubModelEntry]) -> Void
+
+    @State private var baseName: String = "Slice"
+    @State private var count: Int = 4
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Parent") {
+                    LabeledContent("Model", value: parentModel)
+                    LabeledContent("Nodes", value: "\(nodeCount)")
+                }
+                Section(footer: Text("Splits the parent's nodes into N consecutive slices. Names are deduped against existing submodels.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)) {
+                    TextField("Base name", text: $baseName)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                    Stepper("Slices: \(count)", value: $count, in: 1...max(1, nodeCount))
+                }
+                Section("Preview") {
+                    ForEach(slicePreview(), id: \.0) { item in
+                        HStack {
+                            Text(item.0).font(.body.monospaced())
+                            Spacer()
+                            Text(item.1).font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Generate Slices")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Generate") {
+                        let entries = sliceEntries()
+                        onGenerate(entries)
+                        dismiss()
+                    }
+                    .disabled(baseName.trimmingCharacters(in: .whitespaces).isEmpty ||
+                              nodeCount < 1)
+                }
+            }
+        }
+    }
+
+    /// Compute the (start, end) 1-based node range for slice
+    /// index i out of `count`. Mirrors desktop's float division
+    /// — last slice gets any remainder so we cover all nodes.
+    private func sliceRange(_ i: Int) -> (Int, Int) {
+        guard count > 0, nodeCount > 0 else { return (1, 1) }
+        let per = Double(nodeCount) / Double(count)
+        let start: Int
+        let end: Int
+        if i == 0 { start = 1 } else { start = Int(per * Double(i)) + 1 }
+        if i == count - 1 { end = nodeCount } else { end = Int(per * Double(i + 1)) }
+        return (max(1, start), max(start, end))
+    }
+
+    private func slicePreview() -> [(String, String)] {
+        var out: [(String, String)] = []
+        for i in 0..<count {
+            let r = sliceRange(i)
+            let name = uniqueName(for: "\(baseName)-\(i + 1)",
+                                   taken: Set(existingNames).union(out.map { $0.0 }))
+            let range = r.0 == r.1 ? "\(r.0)" : "\(r.0)-\(r.1)"
+            out.append((name, range))
+        }
+        return out
+    }
+
+    private func sliceEntries() -> [SubModelEntry] {
+        slicePreview().map { (name, range) in
+            SubModelEntry(name: name,
+                          isRanges: true,
+                          isVertical: false,
+                          bufferStyle: "Default",
+                          strands: [range],
+                          subBuffer: "")
+        }
+    }
+
+    private func uniqueName(for base: String, taken: Set<String>) -> String {
+        if !taken.contains(base) { return base }
+        var n = 2
+        while true {
+            let candidate = "\(base) \(n)"
+            if !taken.contains(candidate) { return candidate }
+            n += 1
+        }
+    }
+}
+
+/// J-30 — Aliases editor for a single submodel. Mirrors
+/// desktop's EditSubmodelAliasesDialog: list + add / delete /
+/// move up / move down. Persists on Save.
+private struct SubModelAliasesSheet: View {
+    let parentModel: String
+    let submodelName: String
+    let document: XLSequenceDocument
+
+    @State private var aliases: [String] = []
+    @State private var newAlias: String = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Add") {
+                    HStack {
+                        TextField("New alias", text: $newAlias)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled(true)
+                            .submitLabel(.done)
+                            .onSubmit(addAlias)
+                        Button("Add", action: addAlias)
+                            .disabled(newAlias.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+                Section(footer: Text("Aliases are matched on sequence load so models renamed in this show can still resolve references from sequences cut against the old name.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)) {
+                    if aliases.isEmpty {
+                        Text("No aliases.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(aliases.enumerated()), id: \.offset) { idx, _ in
+                            Text(aliases[idx]).font(.body.monospaced())
+                        }
+                        .onDelete { aliases.remove(atOffsets: $0) }
+                        .onMove { src, dst in aliases.move(fromOffsets: src, toOffset: dst) }
+                    }
+                }
+            }
+            .navigationTitle("Aliases — \(submodelName)")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        _ = document.setSubmodelAliases(onParent: parentModel,
+                                                          submodel: submodelName,
+                                                          aliases: aliases)
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                aliases = document.submodelAliases(onParent: parentModel,
+                                                    submodel: submodelName)
+            }
+        }
+    }
+
+    private func addAlias() {
+        let a = newAlias.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !a.isEmpty, !aliases.contains(a) else { return }
+        aliases.append(a)
+        newAlias = ""
+    }
+}
+
+/// Visual sub-buffer rectangle editor. Renders a labelled 0..100
+/// box with a draggable rectangle inside — corners resize, body
+/// translates, double-tap resets to a sensible default.
+/// Serializes to the `x1,y1,x2,y2` string the C++ side expects.
+///
+/// Intentionally NOT layered over the embedded model preview —
+/// sub-buffer coordinates are in EFFECTS-BUFFER space, not world
+/// XY, so a percentage-on-canvas view matches user intent more
+/// closely than an overlay that drifts with camera zoom / pan.
+private struct SubBufferRectEditor: View {
+    @Binding var subBuffer: String
+    @State private var dragKind: DragKind? = nil
+    @State private var dragStart: SubBufferRect = .full
+    @State private var dragOrigin: CGPoint = .zero
+
+    private enum DragKind {
+        case corner(Int)   // 0=tl, 1=tr, 2=br, 3=bl
+        case body
+    }
+
+    private struct SubBufferRect: Equatable {
+        var x1: Double
+        var y1: Double
+        var x2: Double
+        var y2: Double
+        static let full = SubBufferRect(x1: 0, y1: 0, x2: 100, y2: 100)
+        var normalized: SubBufferRect {
+            SubBufferRect(x1: min(x1, x2), y1: min(y1, y2),
+                          x2: max(x1, x2), y2: max(y1, y2))
+        }
+        var serialized: String {
+            // Match desktop's "x1,y1,x2,y2" with up to 2 decimals
+            // trimmed (so "0,0,100,100" stays integer-shaped).
+            func f(_ d: Double) -> String {
+                if d.rounded() == d { return String(format: "%.0f", d) }
+                return String(format: "%.2f", d)
+            }
+            let n = normalized
+            return "\(f(n.x1)),\(f(n.y1)),\(f(n.x2)),\(f(n.y2))"
+        }
+        static func parse(_ s: String) -> SubBufferRect {
+            let parts = s.split(separator: ",").map { Double($0.trimmingCharacters(in: .whitespaces)) ?? -1 }
+            guard parts.count >= 4, parts.allSatisfy({ $0 >= 0 }) else { return .full }
+            var r = SubBufferRect(x1: parts[0], y1: parts[1],
+                                  x2: parts[2], y2: parts[3])
+            r.x1 = max(0, min(100, r.x1))
+            r.y1 = max(0, min(100, r.y1))
+            r.x2 = max(0, min(100, r.x2))
+            r.y2 = max(0, min(100, r.y2))
+            return r
+        }
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let box = boxRect(in: geo.size)
+            let rect = SubBufferRect.parse(subBuffer).normalized
+            let r = pixelRect(for: rect, in: box)
+            ZStack(alignment: .topLeading) {
+                // Backdrop with 25/50/75 % gridlines so the user
+                // can eyeball a sub-buffer that snaps to common
+                // matrix slices.
+                gridBackground(box: box)
+                Rectangle()
+                    .fill(Color.accentColor.opacity(0.20))
+                    .frame(width: r.width, height: r.height)
+                    .position(x: r.midX, y: r.midY)
+                    .gesture(bodyDrag(box: box))
+                Rectangle()
+                    .stroke(Color.accentColor, lineWidth: 1.5)
+                    .frame(width: r.width, height: r.height)
+                    .position(x: r.midX, y: r.midY)
+                    .allowsHitTesting(false)
+                ForEach(0..<4) { corner in
+                    let pt = cornerPoint(rect: r, corner: corner)
+                    Circle()
+                        .fill(Color.accentColor)
+                        .frame(width: 22, height: 22)
+                        .position(x: pt.x, y: pt.y)
+                        .gesture(cornerDrag(corner: corner, box: box))
+                }
+                Text(rect.serialized)
+                    .font(.caption2.monospaced())
+                    .padding(4)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 4))
+                    .padding(6)
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) {
+                subBuffer = SubBufferRect.full.serialized
+            }
+        }
+    }
+
+    // MARK: - Geometry
+
+    /// Inset the active box so the corner handles + gridline
+    /// labels never clip the GeometryReader's edges.
+    private func boxRect(in size: CGSize) -> CGRect {
+        let pad: CGFloat = 16
+        let side = min(size.width, size.height) - pad * 2
+        let originX = (size.width - side) / 2
+        let originY = (size.height - side) / 2
+        return CGRect(x: originX, y: originY, width: side, height: side)
+    }
+
+    private func pixelRect(for r: SubBufferRect, in box: CGRect) -> CGRect {
+        let xL = box.minX + box.width  * r.x1 / 100
+        let xR = box.minX + box.width  * r.x2 / 100
+        // Sub-buffer Y axis is bottom-up (0=bottom, 100=top),
+        // matching desktop's wxsmith SubBufferPanel convention.
+        let yT = box.minY + box.height * (1 - r.y2 / 100)
+        let yB = box.minY + box.height * (1 - r.y1 / 100)
+        return CGRect(x: xL, y: yT, width: xR - xL, height: yB - yT)
+    }
+
+    private func cornerPoint(rect: CGRect, corner: Int) -> CGPoint {
+        switch corner {
+        case 0: return CGPoint(x: rect.minX, y: rect.minY)
+        case 1: return CGPoint(x: rect.maxX, y: rect.minY)
+        case 2: return CGPoint(x: rect.maxX, y: rect.maxY)
+        default: return CGPoint(x: rect.minX, y: rect.maxY)
+        }
+    }
+
+    /// Convert a screen-space point to 0..100 percentages.
+    private func percent(at p: CGPoint, in box: CGRect) -> (x: Double, y: Double) {
+        let fx = max(0, min(1, (p.x - box.minX) / box.width))
+        let fy = max(0, min(1, (p.y - box.minY) / box.height))
+        return (Double(fx) * 100.0, (1.0 - Double(fy)) * 100.0)
+    }
+
+    // MARK: - Gestures
+
+    private func cornerDrag(corner: Int, box: CGRect) -> some Gesture {
+        DragGesture(minimumDistance: 1)
+            .onChanged { g in
+                let pct = percent(at: g.location, in: box)
+                var r = SubBufferRect.parse(subBuffer)
+                switch corner {
+                case 0: r.x1 = pct.x; r.y2 = pct.y
+                case 1: r.x2 = pct.x; r.y2 = pct.y
+                case 2: r.x2 = pct.x; r.y1 = pct.y
+                default: r.x1 = pct.x; r.y1 = pct.y
+                }
+                subBuffer = r.serialized
+            }
+    }
+
+    private func bodyDrag(box: CGRect) -> some Gesture {
+        DragGesture(minimumDistance: 2)
+            .onChanged { g in
+                if dragKind == nil {
+                    dragKind = .body
+                    dragStart = SubBufferRect.parse(subBuffer).normalized
+                    dragOrigin = g.startLocation
+                }
+                let dx = (g.location.x - dragOrigin.x) / box.width * 100
+                let dy = -(g.location.y - dragOrigin.y) / box.height * 100
+                var r = dragStart
+                let w = r.x2 - r.x1
+                let h = r.y2 - r.y1
+                r.x1 = max(0, min(100 - w, r.x1 + Double(dx)))
+                r.x2 = r.x1 + w
+                r.y1 = max(0, min(100 - h, r.y1 + Double(dy)))
+                r.y2 = r.y1 + h
+                subBuffer = r.serialized
+            }
+            .onEnded { _ in dragKind = nil }
+    }
+
+    @ViewBuilder
+    private func gridBackground(box: CGRect) -> some View {
+        Path { p in
+            // Outer box
+            p.addRect(box)
+            // 25/50/75 % gridlines
+            for f in [0.25, 0.5, 0.75] {
+                let x = box.minX + box.width * CGFloat(f)
+                let y = box.minY + box.height * CGFloat(f)
+                p.move(to: CGPoint(x: x, y: box.minY))
+                p.addLine(to: CGPoint(x: x, y: box.maxY))
+                p.move(to: CGPoint(x: box.minX, y: y))
+                p.addLine(to: CGPoint(x: box.maxX, y: y))
+            }
+        }
+        .stroke(Color.secondary.opacity(0.4), lineWidth: 0.5)
+    }
+}
+
+/// Pure-Swift helpers that mirror the desktop SubModelsDialog's
+/// node-range mutations. Kept here so the detail editor stays
+/// self-contained — the Reverse / Sort operations don't need a
+/// document round-trip, they're string-level rewrites of the
+/// strand text. Matches the semantics of `SubModelsDialog::ReverseRow`
+/// and the `NodeUtils::ExpandNodes` + `std::sort` + `CompressNodes`
+/// pipeline used by `OnButton_SortRowClick`.
+enum SubModelRangeOps {
+    /// Expand a strand string to its sorted, deduped node-number
+    /// set. "1-3,5,10-12" → [1,2,3,5,10,11,12]. Used to highlight
+    /// the active row's nodes on the embedded preview and to
+    /// support toggle / add-set operations.
+    static func expand(_ s: String) -> [Int] {
+        var seen = Set<Int>()
+        var out: [Int] = []
+        for tok in s.split(separator: ",", omittingEmptySubsequences: true) {
+            let t = tok.trimmingCharacters(in: .whitespaces)
+            if t.contains("-") {
+                let halves = t.split(separator: "-",
+                                      omittingEmptySubsequences: false)
+                if halves.count == 2,
+                   let a = Int(halves[0].trimmingCharacters(in: .whitespaces)),
+                   let b = Int(halves[1].trimmingCharacters(in: .whitespaces)) {
+                    let lo = min(a, b)
+                    let hi = max(a, b)
+                    for n in lo...hi where seen.insert(n).inserted {
+                        out.append(n)
+                    }
+                }
+            } else if let v = Int(t) {
+                if seen.insert(v).inserted { out.append(v) }
+            }
+        }
+        return out.sorted()
+    }
+
+    /// Compress a sorted, deduped node-number set back into a
+    /// range string. Exposed for callers that drive node sets
+    /// directly (preview tap-to-toggle, marquee select).
+    static func compressNodes(_ nodes: [Int]) -> String {
+        let sorted = Array(Set(nodes)).sorted()
+        return compress(sorted)
+    }
+
+    /// Reverse a single strand string. "1-5,10,12-14" → "14-12,10,5-1".
+    /// Tokens are reversed in order; range endpoints inside a token
+    /// are swapped (5-1 instead of 1-5). Non-numeric / malformed
+    /// tokens pass through untouched, matching desktop.
+    static func reverseRange(_ s: String) -> String {
+        let parts = s.split(separator: ",",
+                            omittingEmptySubsequences: false).map { String($0) }
+        let reversedParts: [String] = parts.reversed().map { tok in
+            let trimmed = tok.trimmingCharacters(in: .whitespaces)
+            if trimmed.contains("-") {
+                let halves = trimmed.split(separator: "-",
+                                            omittingEmptySubsequences: false)
+                if halves.count == 2 {
+                    return "\(halves[1])-\(halves[0])"
+                }
+            }
+            return trimmed
+        }
+        return reversedParts.joined(separator: ",")
+    }
+
+    /// Expand a strand string to individual node numbers, sort
+    /// numerically, then compress consecutive runs back into
+    /// ranges. Mirrors `NodeUtils::ExpandNodes` + sort +
+    /// `NodeUtils::CompressNodes`. Non-numeric tokens are dropped
+    /// (desktop's `wxAtoi` returns 0 for them, which then sort to
+    /// the front — we just skip them to keep output sane).
+    static func sortRange(_ s: String) -> String {
+        var nodes: [Int] = []
+        for tok in s.split(separator: ",", omittingEmptySubsequences: true) {
+            let t = tok.trimmingCharacters(in: .whitespaces)
+            if t.contains("-") {
+                let halves = t.split(separator: "-",
+                                      omittingEmptySubsequences: false)
+                if halves.count == 2,
+                   let a = Int(halves[0].trimmingCharacters(in: .whitespaces)),
+                   let b = Int(halves[1].trimmingCharacters(in: .whitespaces)) {
+                    let lo = min(a, b)
+                    let hi = max(a, b)
+                    nodes.append(contentsOf: lo...hi)
+                }
+            } else if let v = Int(t) {
+                nodes.append(v)
+            }
+        }
+        nodes.sort()
+        // Drop duplicates while preserving sort order.
+        var unique: [Int] = []
+        for n in nodes where unique.last != n {
+            unique.append(n)
+        }
+        return compress(unique)
+    }
+
+    private static func compress(_ nodes: [Int]) -> String {
+        guard !nodes.isEmpty else { return "" }
+        var out: [String] = []
+        var runStart = nodes[0]
+        var runEnd = nodes[0]
+        for n in nodes.dropFirst() {
+            if n == runEnd + 1 {
+                runEnd = n
+            } else {
+                out.append(runStart == runEnd ? "\(runStart)" : "\(runStart)-\(runEnd)")
+                runStart = n
+                runEnd = n
+            }
+        }
+        out.append(runStart == runEnd ? "\(runStart)" : "\(runStart)-\(runEnd)")
+        return out.joined(separator: ",")
     }
 }
 
@@ -7601,6 +8683,7 @@ private struct ControllerActionAlertModifier: ViewModifier {
 /// before clearing the binding.
 private struct ControllerDeleteAlertModifier: ViewModifier {
     @Binding var pendingName: String?
+    let modelCount: (_ name: String) -> Int
     let onConfirm: (_ name: String) -> Void
 
     func body(content: Content) -> some View {
@@ -7613,8 +8696,20 @@ private struct ControllerDeleteAlertModifier: ViewModifier {
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Removes this controller from the show's network configuration. Models assigned to it keep their controller name field but will need re-assignment to render. Undo isn't supported for controller deletion.")
+            Text(deleteMessage)
         }
+    }
+
+    private var deleteMessage: String {
+        let assigned = pendingName.map { modelCount($0) } ?? 0
+        let assignedLine: String
+        switch assigned {
+        case 0:  assignedLine = "No models are assigned to this controller."
+        case 1:  assignedLine = "1 model is assigned to this controller and will need re-assignment to render."
+        default: assignedLine = "\(assigned) models are assigned to this controller and will need re-assignment to render."
+        }
+        return assignedLine
+            + "\n\nRemoves this controller from the show's network configuration. Undo isn't supported for controller deletion."
     }
 }
 

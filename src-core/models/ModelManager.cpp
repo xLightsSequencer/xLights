@@ -1239,6 +1239,17 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
     return changed;
 }
 
+bool ModelManager::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    for (auto& it : *this) {
+        changed |= it.second->DeleteController(name);
+    }
+
+    return changed;
+}
+
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {

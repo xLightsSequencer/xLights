@@ -777,6 +777,7 @@ public:
     void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
     void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
     [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName);
+    [[nodiscard]] bool DeleteController(const std::string& name);
 
     [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
