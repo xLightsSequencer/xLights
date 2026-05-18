@@ -84,6 +84,19 @@ class SequencerViewModel {
     @ObservationIgnored private var accessRepromptQueue: [AccessRepromptRequest] = []
     @ObservationIgnored private var afterAccessQueueEmpty: (() -> Void)?
 
+    /// True while a `loadShowFolder` call is between its initial entry
+    /// and its terminal `applyLoadResult` / `queueStaleRepromptsThenReload`
+    /// resolution. Because the heavy work runs on `Task.detached` (cooperative
+    /// pool) and `iPadRenderContext::LoadShowFolder` rebuilds the
+    /// `ModelManager` / `ViewObjectManager` unique_ptrs in place, two
+    /// overlapping calls race on those owners and the in-flight call ends up
+    /// dereferencing a freed ViewObjectManager from inside
+    /// `LoadViewObjects`. We serialize at the VM layer: a second request
+    /// while a load is in flight is coalesced into `pendingLoadRequest`
+    /// (latest wins) and fired when the current load terminates.
+    @ObservationIgnored private var loadInFlight = false
+    @ObservationIgnored private var pendingLoadRequest: (path: String, mediaFolders: [String])?
+
     /// Post-load "missing model" reconciliation prompt. Populated by
     /// `performOpenSequence` after a successful open whenever the
     /// bridge reports at least one model element referenced by the
@@ -861,6 +874,12 @@ class SequencerViewModel {
     /// load runs, then we hop back to apply state. The method returns
     /// immediately; observers should watch `isShowFolderLoaded`.
     func loadShowFolder(path: String, mediaFolders: [String]) {
+        if loadInFlight {
+            print("loadShowFolder: deferring concurrent request for \(path) until current load completes")
+            pendingLoadRequest = (path, mediaFolders)
+            return
+        }
+        loadInFlight = true
         showFolderPath = path
         mediaFolderPaths = mediaFolders
 
@@ -897,6 +916,22 @@ class SequencerViewModel {
             // surface them as one-tap MRU entries on the next visit.
             RecentShowFolders.record(path: path)
         }
+        finishLoad()
+    }
+
+    /// Flip the in-flight guard off and fire any pending coalesced request.
+    /// Called at the terminal points of the load flow: a successful or
+    /// failed `applyLoadResult`, or `queueStaleRepromptsThenReload` (where
+    /// the C++ load never ran because we detected a stale bookmark before
+    /// touching `iPadRenderContext`). The re-prompt branch's eventual
+    /// re-call into `loadShowFolder` is a fresh request, so it's safe to
+    /// release the guard here.
+    private func finishLoad() {
+        loadInFlight = false
+        if let pending = pendingLoadRequest {
+            pendingLoadRequest = nil
+            loadShowFolder(path: pending.path, mediaFolders: pending.mediaFolders)
+        }
     }
 
     /// MainActor-side handler for the stale-bookmark branch: surfaces the
@@ -930,6 +965,11 @@ class SequencerViewModel {
             self.loadShowFolder(path: path, mediaFolders: surviving)
         }
         runNextAccessReprompt()
+        // The C++ side never ran on this branch (stale paths blocked the
+        // detached task before reaching `document.loadShowFolder`), so the
+        // guard can be released now. The re-prompt callback's eventual
+        // `loadShowFolder` re-entry will set it again.
+        finishLoad()
     }
 
     /// Attempt to load the persisted show folder at app startup.
