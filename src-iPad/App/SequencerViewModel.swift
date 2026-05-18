@@ -912,11 +912,31 @@ class SequencerViewModel {
         self.isShowFolderLoaded = loaded
         self.sequenceFiles = sequenceFiles
         if loaded {
-            // L-1b: record successful loads so the folder picker can
-            // surface them as one-tap MRU entries on the next visit.
+            // Record successful loads so the folder picker can surface them as MRU entries.
             RecentShowFolders.record(path: path)
+            maybeAutoUpdateFromBaseShowFolder()
         }
         finishLoad()
+    }
+
+    private func maybeAutoUpdateFromBaseShowFolder() {
+        guard document.autoUpdateFromBaseShowDirectory(),
+              document.baseShowDirectory() != nil else { return }
+        let result = document.updateFromBaseShowDirectory()
+        if let error = result["error"] as? String {
+            // No UI context to prompt from here — defer to FolderConfigView via FolderConfig so the user can recover on next open.
+            if result["needsReselect"] as? Bool ?? false {
+                FolderConfig.pendingBaseDirReselectMessage = error
+            }
+            print("auto base-folder update skipped: \(error)")
+            return
+        }
+        let changed = result["controllersChanged"] as? Bool ?? false
+                   || result["modelsChanged"] as? Bool ?? false
+                   || result["objectsChanged"] as? Bool ?? false
+        if changed {
+            _ = document.saveLayoutChanges()
+        }
     }
 
     /// Flip the in-flight guard off and fire any pending coalesced request.

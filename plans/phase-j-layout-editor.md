@@ -36,15 +36,15 @@ Visualize wiring view). What remains on top of that baseline:
 
 | # | Item | Severity |
 |---|---|---|
-| O-3 | Controller list polish — drag-reorder + sort-by-6-fields + multi-select | P1 |
+| O-3 | Controller list polish — sort-by-6-fields + multi-select (drag-reorder shipped) | P1 |
 | O-4 | Toolbar — FPP Connect entry + Delete All (Add Ethernet/Serial/Null + Discover shipped J-31; FPP Connect itself tracked in [`future-controller-upload.md`](future-controller-upload.md)) | P1 |
-| O-5 | Per-controller right-click — Activate / Activate xLights Only / Inactivate / Unlink / Upload Output / Sort submenu (swipe-to-delete shipped) | P1 |
+| O-5 | Per-controller menu — Activate / Activate xLights Only / Inactivate, Unlink from Base, and Sort submenu (by Name / ID / IP / FPP Proxy / Controller Model / Controller Protocol) shipped in `controllerContextMenu`; swipe-to-delete + Open + Upload + Visualize already there. **Remaining:** Upload Output is the action `pendingUploadConfirmName` already triggers — confirm the wording matches desktop. | P3 |
 | O-7 | Discover sheet extras — HTTP scan (Falcon, Pixlite16, Twinkly) + DiscoveryAuthDialog credentials (Bonjour + broadcast + mismatch-resolution shipped J-31) | P4 |
 | O-8 | ControllerConnectionDialog (legacy add wizard) | P2 |
-| O-9 | IPEntryDialog (IP entry helper) | P2 |
+| ~~O-9~~ | ~~IPEntryDialog (IP entry helper)~~ — desktop class is orphaned (`#include`d in `xLightsMain.cpp:83` but never instantiated; no call sites in git history). Skip until a concrete use case appears. | — |
 | O-13 | Output-to-Lights status / fault notifications when a controller drops | P2 |
 | O-16 | LED status column / async ping thread per controller | P2 |
-| O-2 | Show-folder section UI extras — Recent show folders list + base-directory toggle (path display + change already shipped via `FolderConfigView`) | P2 |
+| O-2 | Show-folder section UI extras — path display + change, Recent show folders, Base Show Folder (Change/Clear/Auto-Update/Update Now), in-flow Reselect prompt on stale bookmark (manual + auto-update-on-open via deferred `FolderConfig.pendingBaseDirReselectMessage`) all shipped via `FolderConfigView`. **Remaining:** Swift-side per-item Yes/No/All conflict-resolution sheet so the manual Update can promote locally-created clashes (currently silent, equivalent to desktop's `prompt=false`). Needs sync-from-bg-thread DispatchSemaphore + SwiftUI confirmationDialog wiring around a concrete `UICallbacks` subclass. | P3 |
 
 ---
 

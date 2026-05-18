@@ -162,16 +162,19 @@ struct ControllerVisualizeView: View {
 
     @ViewBuilder
     private var wiringList: some View {
-        List {
-            summarySection
-            ForEach(portSections) { section in
-                portSection(section)
+        VStack(spacing: 0) {
+            summaryStrip
+            Divider()
+            List {
+                ForEach(portSections) { section in
+                    portSection(section)
+                }
+                if !noConnectionEntries.isEmpty {
+                    noConnectionSection
+                }
             }
-            if !noConnectionEntries.isEmpty {
-                noConnectionSection
-            }
+            .listStyle(.insetGrouped)
         }
-        .listStyle(.insetGrouped)
     }
 
     @ViewBuilder
@@ -334,41 +337,63 @@ struct ControllerVisualizeView: View {
         }
     }
 
-    // MARK: - Summary header
+    // MARK: - Summary strip
 
     @ViewBuilder
-    private var summarySection: some View {
-        Section {
-            LabeledContent("IP") { Text(stringValue("ip")).textSelection(.enabled) }
-            if !stringValue("vendor").isEmpty {
-                LabeledContent("Vendor") { Text(stringValue("vendor")) }
-            }
-            if !stringValue("model").isEmpty {
-                LabeledContent("Model") { Text(stringValue("model")) }
-            }
-            if !stringValue("variant").isEmpty {
-                LabeledContent("Variant") { Text(stringValue("variant")) }
-            }
-            if let totals = wiring["totals"] as? [String: Any] {
-                LabeledContent("Total Models") {
-                    Text("\(totals["models"] as? Int ?? 0)")
+    private var summaryStrip: some View {
+        let vendor  = stringValue("vendor")
+        let model   = stringValue("model")
+        let variant = stringValue("variant")
+        let vm      = [vendor, model].filter { !$0.isEmpty }.joined(separator: " ")
+        let descriptor = variant.isEmpty
+            ? vm
+            : (vm.isEmpty ? variant : "\(vm) (\(variant))")
+        let ip = stringValue("ip")
+
+        let totalsLine: String? = {
+            guard let totals = wiring["totals"] as? [String: Any] else { return nil }
+            let m = totals["models"]   as? Int ?? 0
+            let c = totals["channels"] as? Int ?? 0
+            let mLabel = "\(m) model\(m == 1 ? "" : "s")"
+            let cLabel = "\(c.formatted(.number)) channels"
+            return "\(mLabel) · \(cLabel)"
+        }()
+
+        let isInvalid = (wiring["valid"] as? Bool == false)
+        let errorMsg = wiring["errorMessage"] as? String ?? ""
+
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                if !descriptor.isEmpty {
+                    Text(descriptor)
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
-                LabeledContent("Total Channels") {
-                    Text("\(totals["channels"] as? Int ?? 0)")
+                Spacer(minLength: 8)
+                if !ip.isEmpty {
+                    Text(ip)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
                 }
             }
-            if let valid = wiring["valid"] as? Bool, !valid,
-               let msg = wiring["errorMessage"] as? String, !msg.isEmpty {
-                Label {
-                    Text(msg).font(.callout)
-                } icon: {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                }
+            if let totalsLine {
+                Text(totalsLine)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
             }
-        } header: {
-            Text("Controller")
+            if isInvalid, !errorMsg.isEmpty {
+                Label(errorMsg, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                    .lineLimit(2)
+            }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemBackground))
     }
 
     // MARK: - Port sections

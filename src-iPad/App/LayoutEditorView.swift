@@ -1149,10 +1149,17 @@ struct LayoutEditorView: View {
         }
     }
 
-    /// J-31.5 — Reorder controllers via drag-and-drop. SwiftUI's
-    /// `onMove` semantic: `destination` is the index where the
-    /// moved item should land in the new array AS-IF the source
-    /// had already been removed. Translate to the bridge's
+    private func refreshAfterControllerMutation() {
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                        object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Reorder controllers via drag-and-drop. SwiftUI's `onMove`
+    /// semantic: `destination` is the index where the moved item
+    /// should land in the new array AS-IF the source had already
+    /// been removed. Translate to the bridge's
     /// `MoveController(toIndex:)` (final 0-indexed position of
     /// the moved controller).
     private func handleReorderControllers(source: IndexSet,
@@ -1339,18 +1346,39 @@ struct LayoutEditorView: View {
                     .truncationMode(.middle)
             }
         }
-        // J-31 — long-press context menu (Open / Upload /
-        // Visualize). The latter two are gated on OSF caps; Open
-        // is always available since plenty of non-OSF controllers
-        // also expose a web UI at the same IP.
+        // simultaneousGesture so single-tap selection still fires alongside the double-tap.
+        .simultaneousGesture(
+            TapGesture(count: 2).onEnded {
+                guard !ip.isEmpty, let url = URL(string: "http://\(ip)/") else { return }
+                UIApplication.shared.open(url)
+            }
+        )
         .contextMenu {
             controllerContextMenu(row: row, name: name, osf: osf)
         }
     }
 
+    private static let controllerActiveStates: [(state: String, title: String, icon: String)] = [
+        ("Active",        "Activate",                  "checkmark.circle"),
+        ("xLights Only",  "Activate in xLights Only",  "rectangle.dashed"),
+        ("Inactive",      "Inactivate",                "pause.circle"),
+    ]
+
+    private static let controllerSortOptions: [(label: String, field: String)] = [
+        ("by Name",                "name"),
+        ("by ID",                  "id"),
+        ("by IP",                  "ip"),
+        ("by FPP Proxy",           "fppProxy"),
+        ("by Controller Model",    "vendor"),
+        ("by Controller Protocol", "protocol"),
+    ]
+
     @ViewBuilder
     private func controllerContextMenu(row: [String: Any], name: String, osf: Bool) -> some View {
         let ip = (row["ip"] as? String) ?? ""
+        let active = (row["active"] as? String) ?? ""
+        let isFromBase = (row["isFromBase"] as? NSNumber)?.boolValue ?? false
+
         if !ip.isEmpty {
             Button {
                 if let url = URL(string: "http://\(ip)/") {
@@ -1371,6 +1399,39 @@ struct LayoutEditorView: View {
             } label: {
                 Label("Visualize", systemImage: "rectangle.connected.to.line.below")
             }
+        }
+        Divider()
+        // FromBase controllers must Unlink before activate/inactivate is meaningful — mirrors desktop's TabSetup gate.
+        if !isFromBase {
+            ForEach(Self.controllerActiveStates, id: \.state) { entry in
+                if active != entry.state {
+                    Button {
+                        _ = viewModel.document.setControllerActiveState(entry.state, onController: name)
+                        refreshAfterControllerMutation()
+                    } label: {
+                        Label(entry.title, systemImage: entry.icon)
+                    }
+                }
+            }
+        }
+        if isFromBase {
+            Button {
+                _ = viewModel.document.unlinkControllerFromBase(name)
+                refreshAfterControllerMutation()
+            } label: {
+                Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+            }
+        }
+        Divider()
+        Menu {
+            ForEach(Self.controllerSortOptions, id: \.field) { entry in
+                Button(entry.label) {
+                    _ = viewModel.document.sortControllersBy(entry.field)
+                    refreshAfterControllerMutation()
+                }
+            }
+        } label: {
+            Label("Sort", systemImage: "arrow.up.arrow.down")
         }
         Divider()
         Button(role: .destructive) {

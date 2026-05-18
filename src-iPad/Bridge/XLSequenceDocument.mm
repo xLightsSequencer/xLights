@@ -159,6 +159,7 @@
 - (std::string)joinIndexedNames:(NSArray<NSString*>*)names;
 - (void)recalcModelStartChannels;
 - (void)reworkAndRecalcStartChannels;
+- (void)recalcAndMarkControllersDirty;
 @end
 
 @implementation XLSequenceDocument {
@@ -11588,6 +11589,7 @@ static NSDictionary* BuildControllerSummary(const Controller* c) {
         @"autoLayout":   @(c->IsAutoLayout() ? YES : NO),
         @"autoSize":     @(c->IsAutoSize()   ? YES : NO),
         @"description":  desc,
+        @"isFromBase":   @(c->IsFromBase() ? YES : NO),
         @"caps.openSourceFirmware":     @(osf),
         @"caps.supportsUpload":         @(supportsUpload),
         @"caps.supportsInputOnlyUpload":@(supportsInputUpload),
@@ -12408,8 +12410,7 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     }
 
     if (changed) {
-        [self recalcModelStartChannels];
-        _context->MarkControllersDirty();
+        [self recalcAndMarkControllersDirty];
     }
     return changed;
 }
@@ -12431,8 +12432,7 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         return nil;
     }
     om.AddController(c, -1);
-    [self recalcModelStartChannels];
-    _context->MarkControllersDirty();
+    [self recalcAndMarkControllersDirty];
     return [NSString stringWithUTF8String:c->GetName().c_str()];
 }
 
@@ -12441,8 +12441,7 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     auto& om = _context->GetOutputManager();
     if (!om.GetController(name.UTF8String)) return NO;
     om.DeleteController(name.UTF8String);
-    [self recalcModelStartChannels];
-    _context->MarkControllersDirty();
+    [self recalcAndMarkControllersDirty];
     return YES;
 }
 
@@ -12454,9 +12453,155 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     auto controllers = om.GetControllers();
     if (destIndex < 0 || destIndex >= (int)controllers.size()) return NO;
     om.MoveController(c, destIndex);
-    [self recalcModelStartChannels];
+    [self recalcAndMarkControllersDirty];
+    return YES;
+}
+
+- (BOOL)setControllerActiveState:(NSString*)state
+                    onController:(NSString*)name {
+    if (!_context || !state || !name) return NO;
+    Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
+    if (!c) return NO;
+    // FromBase controllers must be unlinked before activate/inactivate is meaningful.
+    if (c->IsFromBase()) return NO;
+    std::string s = [state UTF8String];
+    if (s != "Active" && s != "xLights Only" && s != "Inactive") return NO;
+    c->SetActive(s);
+    c->PostSetActive();
+    [self recalcAndMarkControllersDirty];
+    return YES;
+}
+
+- (BOOL)unlinkControllerFromBase:(NSString*)name {
+    if (!_context || !name) return NO;
+    Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
+    if (!c || !c->IsFromBase()) return NO;
+    c->SetFromBase(false);
     _context->MarkControllersDirty();
     return YES;
+}
+
+- (BOOL)sortControllersBy:(NSString*)field {
+    if (!_context || !field) return NO;
+    auto& om = _context->GetOutputManager();
+    std::string f = [field UTF8String];
+    if (f == "name") {
+        om.SortControllersbyName();
+    } else if (f == "id") {
+        om.SortControllersbyID();
+    } else if (f == "ip") {
+        om.SortControllersbyIP();
+    } else if (f == "fppProxy") {
+        om.SortControllersbyFPPProxy();
+    } else if (f == "vendor") {
+        om.SortControllersbyModel();
+    } else if (f == "protocol") {
+        om.SortControllersbyProtocal();
+    } else {
+        return NO;
+    }
+    [self recalcAndMarkControllersDirty];
+    return YES;
+}
+
+#pragma mark - Base Show Directory
+
+- (nullable NSString*)baseShowDirectory {
+    if (!_context) return nil;
+    const std::string& p = _context->GetOutputManager().GetBaseShowDir();
+    if (p.empty()) return nil;
+    return [NSString stringWithUTF8String:p.c_str()];
+}
+
+- (void)setBaseShowDirectory:(nullable NSString*)path {
+    if (!_context) return;
+    std::string s = path ? std::string([path UTF8String]) : std::string();
+    auto& om = _context->GetOutputManager();
+    if (om.GetBaseShowDir() == s) return;
+    om.SetBaseShowDir(s);
+    // Clearing the path also clears the auto-update flag — matches desktop.
+    if (s.empty()) {
+        om.SetAutoUpdateFromBaseShowDir(false);
+    }
+    _context->MarkControllersDirty();
+}
+
+- (BOOL)autoUpdateFromBaseShowDirectory {
+    if (!_context) return NO;
+    return _context->GetOutputManager().IsAutoUpdateFromBaseShowDir() ? YES : NO;
+}
+
+- (void)setAutoUpdateFromBaseShowDirectory:(BOOL)enabled {
+    if (!_context) return;
+    auto& om = _context->GetOutputManager();
+    if (om.IsAutoUpdateFromBaseShowDir() == (bool)enabled) return;
+    om.SetAutoUpdateFromBaseShowDir(enabled);
+    _context->MarkControllersDirty();
+}
+
+- (NSDictionary*)updateFromBaseShowDirectory {
+    if (!_context) {
+        return @{ @"error": @"No show folder loaded.",
+                  @"controllersChanged": @NO,
+                  @"modelsChanged": @NO,
+                  @"objectsChanged": @NO };
+    }
+    auto& om = _context->GetOutputManager();
+    std::string baseDir = om.GetBaseShowDir();
+    if (baseDir.empty()) {
+        return @{ @"error": @"No base show folder configured.",
+                  @"controllersChanged": @NO,
+                  @"modelsChanged": @NO,
+                  @"objectsChanged": @NO };
+    }
+
+    // iPad sandbox: a live security-scoped bookmark is required for any folder we read; reload it before the merge.
+    if (!ObtainAccessToURL(baseDir, /*enforceWritable=*/false)) {
+        return @{ @"error": @"Cannot access the base show folder. Please reselect it.",
+                  @"needsReselect": @YES,
+                  @"controllersChanged": @NO,
+                  @"modelsChanged": @NO,
+                  @"objectsChanged": @NO };
+    }
+    // Bookmark can outlive the folder it points at.
+    std::error_code ec;
+    if (!std::filesystem::exists(baseDir, ec)) {
+        return @{ @"error": @"The base show folder no longer exists. Please reselect it.",
+                  @"needsReselect": @YES,
+                  @"controllersChanged": @NO,
+                  @"modelsChanged": @NO,
+                  @"objectsChanged": @NO };
+    }
+
+    // Shared across the three passes so Yes-to-All carries from controllers → models → objects.
+    bool acceptAll = false;
+    bool rejectAll = false;
+
+    BOOL controllersChanged = NO;
+    if (om.MergeFromBase(/*prompt=*/false, acceptAll, rejectAll, nullptr)) {
+        controllersChanged = YES;
+        [self recalcAndMarkControllersDirty];
+    }
+
+    BOOL modelsChanged = NO;
+    if (_context->HasModelManager()) {
+        if (_context->GetModelManager().MergeFromBase(baseDir, /*prompt=*/false,
+                                                       acceptAll, rejectAll)) {
+            modelsChanged = YES;
+        }
+    }
+
+    BOOL objectsChanged = NO;
+    if (_context->HasViewObjectManager()) {
+        if (_context->GetAllObjects().MergeFromBase(baseDir, /*prompt=*/false,
+                                                     acceptAll, rejectAll)) {
+            objectsChanged = YES;
+        }
+    }
+
+    return @{ @"controllersChanged": @(controllersChanged),
+              @"modelsChanged": @(modelsChanged),
+              @"objectsChanged": @(objectsChanged) };
 }
 
 // Desktop fires WORK_CALCULATE_START_CHANNELS via AddASAPWork
@@ -12469,6 +12614,16 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     if (_context && _context->HasModelManager()) {
         _context->GetModelManager().RecalcStartChannels();
     }
+}
+
+// Invariant: any public mutator that can shift a controller's
+// channel ranges must pair these two calls before returning. The
+// recalc walks the model graph; the dirty flag tells the iPad
+// save layer the networks file needs to be rewritten.
+- (void)recalcAndMarkControllersDirty {
+    if (!_context) return;
+    [self recalcModelStartChannels];
+    _context->MarkControllersDirty();
 }
 
 // `Model::SetControllerName` queues WORK_MODELS_REWORK_STARTCHANNELS
@@ -12798,8 +12953,7 @@ public:
             auto* eth = dynamic_cast<ControllerEthernet*>(c);
             if (!eth) return NO;
             eth->SetIP([discoveredIP UTF8String]);
-            [self recalcModelStartChannels];
-            _context->MarkControllersDirty();
+            [self recalcAndMarkControllersDirty];
             return YES;
         } else if ([action isEqualToString:@"add-new"]) {
             // Reconstruct a ControllerEthernet from the captured
@@ -12825,8 +12979,7 @@ public:
             newEth->EnsureUniqueId();
             newEth->EnsureUniqueName();
             om.AddController(newEth);
-            [self recalcModelStartChannels];
-            _context->MarkControllersDirty();
+            [self recalcAndMarkControllersDirty];
             return YES;
         }
         return NO;
@@ -12857,8 +13010,7 @@ public:
                 }
             }
         }
-        [self recalcModelStartChannels];
-        _context->MarkControllersDirty();
+        [self recalcAndMarkControllersDirty];
         return YES;
     }
     return NO;

@@ -2127,6 +2127,58 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // is out of range. Marks `_controllersDirty` on success.
 - (BOOL)moveController:(NSString*)name toIndex:(int)destIndex;
 
+// Set the controller's active state. `state` is one of
+// "Active", "xLights Only", or "Inactive" — the strings
+// `Controller::SetActive` accepts. Returns NO if the
+// controller doesn't exist, the string is bad, or the
+// controller is FromBase (must be unlinked first). Marks
+// `_controllersDirty` on success.
+- (BOOL)setControllerActiveState:(NSString*)state
+                    onController:(NSString*)name
+    NS_SWIFT_NAME(setControllerActiveState(_:onController:));
+
+// Clear the `FromBase` flag so subsequent base-folder merges
+// won't overwrite local edits. Returns NO if the controller
+// doesn't exist or isn't currently flagged.
+- (BOOL)unlinkControllerFromBase:(NSString*)name
+    NS_SWIFT_NAME(unlinkControllerFromBase(_:));
+
+// Sort the controllers list. `field` is one of "name", "id",
+// "ip", "fppProxy", "vendor", "protocol". Returns NO on
+// unknown field. Marks `_controllersDirty` on success.
+- (BOOL)sortControllersBy:(NSString*)field
+    NS_SWIFT_NAME(sortControllersBy(_:));
+
+#pragma mark - Base Show Directory
+
+// Path of the configured base show folder, or nil if none is
+// set. Stored in OutputManager (`xlights_networks.xml`) — this
+// is per-show, not a global preference.
+- (nullable NSString*)baseShowDirectory NS_SWIFT_NAME(baseShowDirectory());
+
+// Set or clear the base show folder. Pass nil/empty to clear.
+// Marks `_controllersDirty`.
+- (void)setBaseShowDirectory:(nullable NSString*)path
+    NS_SWIFT_NAME(setBaseShowDirectory(_:));
+
+// Auto-update-on-open flag.
+- (BOOL)autoUpdateFromBaseShowDirectory
+    NS_SWIFT_NAME(autoUpdateFromBaseShowDirectory());
+- (void)setAutoUpdateFromBaseShowDirectory:(BOOL)enabled
+    NS_SWIFT_NAME(setAutoUpdateFromBaseShowDirectory(_:));
+
+// Pull controllers, models, model groups, and view objects
+// from the base show folder. Returns a summary dictionary:
+//   @"controllersChanged" — NSNumber (BOOL)
+//   @"modelsChanged"      — NSNumber (BOOL)
+//   @"objectsChanged"     — NSNumber (BOOL)
+//   @"error"              — NSString (optional)
+//   @"needsReselect"      — NSNumber BOOL (optional; YES when
+//                            the bookmark is stale and the
+//                            user should re-pick the folder)
+- (NSDictionary*)updateFromBaseShowDirectory
+    NS_SWIFT_NAME(updateFromBaseShowDirectory());
+
 // Phase J-31.6 — push the show's pixel-string / model
 // configuration to a physical controller via its HTTP API.
 // Mirrors desktop's `xLightsFrame::UploadOutputToController`:

@@ -19,9 +19,6 @@ a vendor request lands.
 ## Carried-forward deferrals from I-2
 
 - Model-blending toggle. Niche.
-- `.xsq` / `.xsqz` UTType registration in the iPad app's
-  `LSItemContentTypes` (Info.plist edit) — file picker today
-  works via extension matching.
 - Apply still runs with hardcoded `convertRender=false`.
 - Removing the desktop dialog's per-instance `norm` /
   `aggressive` / `regex` lambdas. Still work; clean up only if
