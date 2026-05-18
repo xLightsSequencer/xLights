@@ -246,7 +246,7 @@ xlColourPickerDialog::xlColourPickerDialog(wxWindow* parent, const wxColour& ini
     // Helper — creates a bordered colour swatch panel
     auto makeSwatchPanel = [&](const wxColour& color) {
         auto* p = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(SWATCH_W, SWATCH_H),
-                              wxBORDER_NONE);
+                              wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE);
         p->SetBackgroundColour(color);
         p->SetBackgroundStyle(wxBG_STYLE_PAINT);
         p->SetCursor(wxCURSOR_HAND);
