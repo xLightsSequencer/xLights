@@ -15,6 +15,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.09  May 9, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
                                 so dependent models become unassigned instead of pointing at a missing controller.
+    -bug (derwin12)             Revert change to correct black artifacts in video render
+    -enh (derwin12)             Add ability to repick missing shaders and other media types 
+    -bug (derwin12)             Shift select to delete nodes on submodels now removes all like entries (6359)
+    -bug (derwin12)             After deleting a model, random item was selected (6342) (#6343)
+    -bug (derwin12)             Update pathing if multiple shaders/images where selected (#6327)
+    -enh (derwin12)             Warn users if a shader fails to compile (#6298)
+    -enh (derwin12)             Provide a warning when autosize is enabled on uncommon universe size (#4123)
+    -bug (derwin12)             Default column width on layout tab for Linux was incorrect (#6328)
     -enh (scott)                Add experimental custom color picker (Preferences > Other) with HSV disc,
                                 brightness slider, CSS named-color swatches, recent colors, and hex entry.
     -enh (cybercop23)           "Paste Effects" auto-inserts the needed layers when pasting multi-layer effects;
