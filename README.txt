@@ -10,7 +10,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.09  May ??, 2026
+2026.09  May 9, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
                                 so dependent models become unassigned instead of pointing at a missing controller.
     -enh (scott)                Add experimental custom color picker (Preferences > Other) with HSV disc,
