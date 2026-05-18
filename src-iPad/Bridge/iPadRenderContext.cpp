@@ -1122,9 +1122,33 @@ bool iPadRenderContext::UndoLastLayoutChange() {
     return false;
 }
 
+bool iPadRenderContext::AddNamedLayoutGroup(const std::string& name) {
+    if (name.empty()) return false;
+    // Reserved sentinels — desktop's create-preview dialog rejects
+    // these explicitly, mirror to avoid corrupting filter logic
+    // (`modelsInActiveLayoutGroup` only treats "Default" and
+    // "All Previews" specially today).
+    if (name == "Default" || name == "All Models" || name == "Unassigned" ||
+        name == "All Previews") {
+        return false;
+    }
+    for (const auto& g : _namedLayoutGroups) {
+        if (g.name == name) return false;
+    }
+    NamedLayoutGroup g;
+    g.name = name;
+    _namedLayoutGroups.push_back(std::move(g));
+    // The save patcher walks _dirtyBackgroundGroups and appends a
+    // `<layoutGroup name="…">` for any name not already in the
+    // file. We have no background image yet, so the saved entry
+    // is empty except for the name attribute.
+    _dirtyBackgroundGroups.insert(name);
+    return true;
+}
+
 void iPadRenderContext::SetActiveLayoutGroup(const std::string& name) {
-    if (name == "Default") {
-        _activeLayoutGroup = "Default";
+    if (name == "Default" || name == "All Models" || name == "Unassigned") {
+        _activeLayoutGroup = name;
         return;
     }
     for (const auto& g : _namedLayoutGroups) {
@@ -1256,8 +1280,17 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
     if (!_modelManager) return out;
 
     const std::string& active = _activeLayoutGroup;
+    // "All Models" / "Unassigned" are virtual previews matching
+    // desktop's `LayoutPanel`. "All Models" shows every model; the
+    // "Unassigned" virtual preview surfaces models whose
+    // layout_group is literally "Unassigned" (desktop sets this on
+    // models that get removed from a preview).
+    const bool allModels  = (active == "All Models");
+    const bool unassigned = (active == "Unassigned");
 
     auto matchesActive = [&](const std::string& g) {
+        if (allModels) return true;
+        if (unassigned) return g == "Unassigned";
         return g == active || g == "All Previews";
     };
 
@@ -1278,23 +1311,26 @@ std::vector<Model*> iPadRenderContext::GetModelsForActivePreview() const {
     }
     // Pass 2: ModelGroups tagged for this preview — flatten their
     // children (recursively for nested groups). A model already added
-    // in pass 1 is not duplicated.
-    std::function<void(ModelGroup*)> expand = [&](ModelGroup* grp) {
-        if (!grp) return;
-        for (Model* m : grp->Models()) {
-            if (!m) continue;
-            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
-                expand(static_cast<ModelGroup*>(m));
-            } else {
-                addModelIfAbsent(m);
+    // in pass 1 is not duplicated. Skip when viewing "Unassigned"
+    // (desktop's filter explicitly excludes groups from that view).
+    if (!unassigned) {
+        std::function<void(ModelGroup*)> expand = [&](ModelGroup* grp) {
+            if (!grp) return;
+            for (Model* m : grp->Models()) {
+                if (!m) continue;
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    expand(static_cast<ModelGroup*>(m));
+                } else {
+                    addModelIfAbsent(m);
+                }
             }
-        }
-    };
-    for (const auto& [name, model] : _modelManager->GetModels()) {
-        if (!model) continue;
-        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
-        if (matchesActive(model->GetLayoutGroup())) {
-            expand(static_cast<ModelGroup*>(model));
+        };
+        for (const auto& [name, model] : _modelManager->GetModels()) {
+            if (!model) continue;
+            if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
+            if (matchesActive(model->GetLayoutGroup())) {
+                expand(static_cast<ModelGroup*>(model));
+            }
         }
     }
     return out;

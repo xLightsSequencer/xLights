@@ -864,6 +864,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)activeLayoutGroup;
 - (void)setActiveLayoutGroup:(NSString*)name;
 
+// Create a brand-new empty layout group ("preview"). Returns YES
+// if the group was added (and the rgbeffects file is marked dirty
+// so it persists on save). Rejects empty names, "Default", and
+// the desktop-reserved sentinels "All Models" / "Unassigned" /
+// "All Previews", matching the desktop's create-preview dialog.
+- (BOOL)createLayoutGroup:(NSString*)name;
+
 // Desktop's last-used House Preview 3D-vs-2D mode, read from
 // `<settings><LayoutMode3D>` at show-folder load. Used as the initial
 // value for the House Preview's is3D toggle; not written back since
@@ -877,6 +884,42 @@ NS_ASSUME_NONNULL_BEGIN
 // ModelGroup children are expanded; duplicates are NOT suppressed —
 // matches desktop's UpdateModelsList behaviour.
 - (NSArray<NSString*>*)modelsInActiveLayoutGroup;
+
+// Compact per-row metadata for the layout-group sidebar lists.
+// Each entry is keyed by "name" (matches `modelsInActiveLayoutGroup`
+// / `modelGroupsInActiveLayoutGroup` /
+// `viewObjectsInActiveLayoutGroup`) and carries just the fields the
+// sidebar renders inline, so the SwiftUI side can cache one dict
+// per visible row instead of round-tripping the full
+// `*LayoutSummary` per row. All entries include `isFromBase`
+// (NSNumber BOOL) so the link badge can be drawn without a second
+// bridge call.
+//
+// modelsListSummary keys:
+//   "name"               — NSString
+//   "displayAs"          — NSString (e.g. "Arches", "Tree", "Custom")
+//   "startChannelString" — NSString (raw `ModelStartChannel`,
+//                          e.g. "!FPPYard:2431" or "1234")
+//   "firstChannel"       — NSNumber (uint32_t, computed)
+//   "lastChannel"        — NSNumber (uint32_t, computed)
+//   "controllerName"     — NSString (empty when unassigned)
+//   "isFromBase"         — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)modelsListSummary;
+
+// modelGroupsListSummary keys:
+//   "name"        — NSString
+//   "modelCount"  — NSNumber (int, immediate children)
+//   "layoutStyle" — NSString (`ModelGroup::GetLayout()` wire value,
+//                  e.g. "grid", "horizontal", "Single Line")
+//   "gridSize"    — NSNumber (int)
+//   "isFromBase"  — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)modelGroupsListSummary;
+
+// viewObjectsListSummary keys:
+//   "name"       — NSString
+//   "displayAs"  — NSString (e.g. "Image", "Ruler", "Mesh", "Gridlines")
+//   "isFromBase" — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)viewObjectsListSummary;
 
 // Read-only snapshot of one model's layout-relevant state. Returns
 // nil for unknown names. Keys (all NSString unless noted):

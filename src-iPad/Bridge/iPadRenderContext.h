@@ -266,6 +266,15 @@ public:
     };
     const std::vector<NamedLayoutGroup>& GetNamedLayoutGroups() const { return _namedLayoutGroups; }
 
+    // Append a brand-new empty layout group. Returns true if the
+    // group was added; false if `name` is empty, equals "Default",
+    // collides with an existing entry, or is one of the reserved
+    // sentinels desktop disallows ("All Models" / "Unassigned").
+    // Marks the background-group dirty set so the next
+    // SaveLayoutChanges writes a `<layoutGroups><layoutGroup name=…/>`
+    // entry.
+    bool AddNamedLayoutGroup(const std::string& name);
+
     // Active House-Preview layout group. "Default" means the implicit
     // default preview (models with layout_group == "Default" or
     // "All Previews"); other values must match a named group from

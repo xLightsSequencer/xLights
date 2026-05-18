@@ -26,6 +26,43 @@ enum LayoutSidebarTab: String, CaseIterable, Identifiable {
     }
 }
 
+/// Sort modes for the Models sidebar list. `natural` preserves
+/// the bridge's `modelsInActiveLayoutGroup` order (matches
+/// desktop's `UpdateModelsList`), which usually mirrors the
+/// model-list order in the rgbeffects file.
+enum ModelSortMode: String, CaseIterable, Identifiable {
+    case natural
+    case nameAsc, nameDesc
+    case startChannelAsc, startChannelDesc
+    case endChannelAsc, endChannelDesc
+    case typeAsc
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .natural:            return "List Order"
+        case .nameAsc:            return "Name (A→Z)"
+        case .nameDesc:           return "Name (Z→A)"
+        case .startChannelAsc:    return "Start Channel (Low→High)"
+        case .startChannelDesc:   return "Start Channel (High→Low)"
+        case .endChannelAsc:      return "End Channel (Low→High)"
+        case .endChannelDesc:     return "End Channel (High→Low)"
+        case .typeAsc:            return "Type"
+        }
+    }
+    var systemImage: String {
+        switch self {
+        case .natural:            return "list.bullet"
+        case .nameAsc:            return "arrow.up"
+        case .nameDesc:           return "arrow.down"
+        case .startChannelAsc:    return "arrow.up"
+        case .startChannelDesc:   return "arrow.down"
+        case .endChannelAsc:      return "arrow.up"
+        case .endChannelDesc:     return "arrow.down"
+        case .typeAsc:            return "tag"
+        }
+    }
+}
+
 /// Phase J-0 / J-1 — Layout Editor screen. Opens via Tools → Edit
 /// Layout… in its own `WindowGroup("layout-editor")` scene. The
 /// user picks a layout group, sees its models in a Metal canvas,
@@ -135,10 +172,30 @@ struct LayoutEditorView: View {
     /// J-5 — ViewObjects roster. Selection on the view model so
     /// the canvas picks up handles.
     @State private var objectNames: [String] = []
+    /// Per-row metadata caches for the Models / Groups / Objects
+    /// sidebar lists, keyed by name. Each entry is the dictionary
+    /// returned by the matching `*ListSummary` bridge call —
+    /// carries `isFromBase`, model type, channel info, layout
+    /// style, etc. Refreshed alongside the names arrays in
+    /// `refreshModelList`.
+    @State private var modelSummaries: [String: [String: Any]] = [:]
+    @State private var groupSummaries: [String: [String: Any]] = [:]
+    @State private var objectSummaries: [String: [String: Any]] = [:]
     /// J-5 — search text per tab. Reset on editor close.
     @State private var modelFilter: String = ""
     @State private var groupFilter: String = ""
     @State private var objectFilter: String = ""
+    /// Models-tab sort. Default is the bridge's natural order
+    /// (matches desktop's `UpdateModelsList`), which keeps the
+    /// list aligned with start-channel layout. Other modes are
+    /// scoped to the Models tab only and apply on top of the
+    /// search filter.
+    @State private var modelSort: ModelSortMode = .natural
+    /// Sheet state for "Create New Preview" launched from the
+    /// Models section-header menu.
+    @State private var newPreviewSheetVisible: Bool = false
+    @State private var newPreviewName: String = ""
+    @State private var newPreviewError: String? = nil
     /// J-31 — Controllers tab filter + cached list. The cache is
     /// rebuilt on `.task` / `.onChange(of: showFolderLoaded)` /
     /// after layout-save (controllers are stored in the output
@@ -568,6 +625,9 @@ struct LayoutEditorView: View {
                 addModelSheetVisible = false
             }
         }
+        .sheet(isPresented: $newPreviewSheetVisible) {
+            newPreviewSheet
+        }
         // J-4 (download) — vendor catalog browser. On download
         // we reuse the same `layoutPendingImportPath` path Import
         // uses, so the user gets the familiar "tap canvas to
@@ -850,13 +910,24 @@ struct LayoutEditorView: View {
         switch sidebarTab {
         case .models:
             List(selection: modelListBinding) {
-                Section("\(activeLayoutGroup) (\(filteredModelNames.count)\(modelNames.count != filteredModelNames.count ? " of \(modelNames.count)" : ""))") {
+                Section {
                     ForEach(filteredModelNames, id: \.self) { name in
-                        Text(name)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                        let s = modelSummaries[name] ?? [:]
+                        let displayAs  = (s["displayAs"] as? String) ?? ""
+                        let scString   = (s["startChannelString"] as? String) ?? ""
+                        let firstCh    = (s["firstChannel"] as? NSNumber)?.uint32Value ?? 0
+                        let lastCh     = (s["lastChannel"]  as? NSNumber)?.uint32Value ?? 0
+                        let fromBase   = (s["isFromBase"]   as? NSNumber)?.boolValue ?? false
+                        rosterRow(name: name,
+                                  isFromBase: fromBase,
+                                  leadingSystemImage: Self.modelTypeSFSymbol(forDisplayAs: displayAs),
+                                  secondary: Self.modelRowSecondary(scString: scString,
+                                                                     firstCh: firstCh,
+                                                                     lastCh: lastCh))
                             .tag(name)
                     }
+                } header: {
+                    modelsSectionHeader
                 }
             }
             .listStyle(.sidebar)
@@ -873,9 +944,17 @@ struct LayoutEditorView: View {
             List(selection: groupListBinding) {
                 Section {
                     ForEach(filteredGroupNames, id: \.self) { name in
-                        Text(name)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
+                        let s = groupSummaries[name] ?? [:]
+                        let count    = (s["modelCount"] as? NSNumber)?.intValue ?? 0
+                        let style    = (s["layoutStyle"] as? String) ?? ""
+                        let gridSize = (s["gridSize"]   as? NSNumber)?.intValue ?? 0
+                        let fromBase = (s["isFromBase"] as? NSNumber)?.boolValue ?? false
+                        rosterRow(name: name,
+                                  isFromBase: fromBase,
+                                  leadingSystemImage: "square.stack.3d.up",
+                                  secondary: Self.groupRowSecondary(modelCount: count,
+                                                                     layoutStyle: style,
+                                                                     gridSize: gridSize))
                             .tag(name)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 // Don't mark this destructive: iOS 26's
@@ -930,18 +1009,23 @@ struct LayoutEditorView: View {
             List(selection: objectListBinding) {
                 Section {
                     ForEach(filteredObjectNames, id: \.self) { name in
+                        let s = objectSummaries[name] ?? [:]
+                        let displayAs = (s["displayAs"] as? String) ?? ""
+                        let fromBase  = (s["isFromBase"] as? NSNumber)?.boolValue ?? false
                         // 2D Background is a synthetic pseudo-object;
                         // skip the delete swipe so the user can't try
                         // to remove it.
                         if name == "2D Background" {
-                            Text(name)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
+                            rosterRow(name: name,
+                                      isFromBase: false,
+                                      leadingSystemImage: "rectangle.checkered",
+                                      secondary: "2D backdrop")
                                 .tag(name)
                         } else {
-                            Text(name)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
+                            rosterRow(name: name,
+                                      isFromBase: fromBase,
+                                      leadingSystemImage: Self.viewObjectTypeSFSymbol(forDisplayAs: displayAs),
+                                      secondary: displayAs)
                                 .tag(name)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     // See groups list above for why
@@ -1329,20 +1413,320 @@ struct LayoutEditorView: View {
         discoveryAutoAddSummary = (0, 0, [])
     }
 
+    /// "New Preview" sheet — name entry + duplicate-name guard
+    /// matching desktop's create-preview dialog (rejects empty,
+    /// "Default", "All Models", "Unassigned", "All Previews", and
+    /// already-existing names). On confirm, creates the layout
+    /// group via the bridge, switches the editor to it, refreshes
+    /// the roster, and marks the show dirty.
+    @ViewBuilder
+    private var newPreviewSheet: some View {
+        NavigationStack {
+            Form {
+                Section("Name") {
+                    TextField("Preview name", text: $newPreviewName)
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                        .onSubmit(commitNewPreview)
+                    if let err = newPreviewError {
+                        Text(err)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+                Section {
+                    Text("A preview is a named subset of the layout. Models tagged with this preview's name (or with \"All Previews\") show up on its canvas. The new preview will be empty until you assign models to it from each model's Layout Group field.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("New Preview")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { newPreviewSheetVisible = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create", action: commitNewPreview)
+                        .disabled(newPreviewName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+    }
+
+    private func commitNewPreview() {
+        let name = newPreviewName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else {
+            newPreviewError = "Name can't be empty."
+            return
+        }
+        let reserved: Set<String> = ["Default", "All Models", "Unassigned", "All Previews"]
+        if reserved.contains(name) {
+            newPreviewError = "\"\(name)\" is reserved by xLights."
+            return
+        }
+        if layoutGroups.contains(name) {
+            newPreviewError = "A preview named \"\(name)\" already exists."
+            return
+        }
+        guard viewModel.document.createLayoutGroup(name) else {
+            newPreviewError = "Couldn't create the preview."
+            return
+        }
+        newPreviewSheetVisible = false
+        layoutGroups = viewModel.document.layoutGroups()
+        activeLayoutGroup = name
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Models tab section header. Doubles as a switch-preview /
+    /// create-preview menu so users have one place to manage the
+    /// active layout group from the sidebar (parallel to the
+    /// canvas-overlay group switcher in `LayoutEditorView`). Also
+    /// hosts the per-tab sort picker — sort only applies to the
+    /// Models tab today, where ordering by start/end channel /
+    /// type is the most useful.
+    @ViewBuilder
+    private var modelsSectionHeader: some View {
+        HStack(spacing: 6) {
+            Menu {
+                if layoutGroups.count > 1 {
+                    Section("Switch Preview") {
+                        ForEach(layoutGroups, id: \.self) { name in
+                            Button {
+                                activeLayoutGroup = name
+                            } label: {
+                                if name == activeLayoutGroup {
+                                    Label(name, systemImage: "checkmark")
+                                } else {
+                                    Text(name)
+                                }
+                            }
+                        }
+                    }
+                }
+                Section {
+                    Button {
+                        newPreviewName = ""
+                        newPreviewError = nil
+                        newPreviewSheetVisible = true
+                    } label: {
+                        Label("New Preview…", systemImage: "plus.rectangle.on.rectangle")
+                    }
+                }
+                Section("Sort") {
+                    ForEach(ModelSortMode.allCases) { mode in
+                        Button {
+                            modelSort = mode
+                        } label: {
+                            if mode == modelSort {
+                                Label(mode.label, systemImage: "checkmark")
+                            } else {
+                                Label(mode.label, systemImage: mode.systemImage)
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(activeLayoutGroup)
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                }
+            }
+            .menuStyle(.borderlessButton)
+            .accessibilityLabel("Preview and sort menu")
+            Spacer(minLength: 0)
+            Text("(\(filteredModelNames.count)\(modelNames.count != filteredModelNames.count ? " of \(modelNames.count)" : ""))")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    /// Bridges return `[[AnyHashable: Any]]` for arrays of
+    /// dictionaries; coerce keys to String and key the result
+    /// by the row's `name` so the sidebar can look up per-row
+    /// metadata in O(1).
+    private static func indexSummariesByName(
+        _ raw: [[AnyHashable: Any]]
+    ) -> [String: [String: Any]] {
+        var out: [String: [String: Any]] = [:]
+        for entry in raw {
+            var dict: [String: Any] = [:]
+            for (k, v) in entry {
+                if let key = k as? String { dict[key] = v }
+            }
+            if let name = dict["name"] as? String, !name.isEmpty {
+                out[name] = dict
+            }
+        }
+        return out
+    }
+
+    /// Map a model's `GetDisplayAsString()` to an SF Symbol that
+    /// approximates the desktop's xlART_*_ICON. Picked for shape
+    /// recognition at caption size, not pixel-fidelity to the
+    /// desktop assets.
+    private static func modelTypeSFSymbol(forDisplayAs displayAs: String) -> String {
+        if displayAs == "Arches"            { return "rainbow" }
+        if displayAs == "Candy Canes"       { return "j.circle" }
+        if displayAs == "Circle"            { return "circle" }
+        if displayAs == "Channel Block"     { return "rectangle.split.3x1" }
+        if displayAs == "Cube"              { return "cube" }
+        if displayAs == "Custom"            { return "square.grid.3x3" }
+        if displayAs.contains("Dmx") || displayAs.contains("DMX") {
+            return "lightbulb.led"
+        }
+        if displayAs == "Icicles"           { return "snowflake" }
+        if displayAs == "Image"             { return "photo" }
+        if displayAs == "Label"             { return "textformat" }
+        if displayAs == "Single Line"       { return "line.horizontal.3" }
+        if displayAs.contains("Matrix")     { return "square.grid.4x3.fill" }
+        if displayAs == "Poly Line"         { return "scribble" }
+        if displayAs == "Sphere"            { return "circle.fill" }
+        if displayAs == "Spinner"           { return "fan" }
+        if displayAs == "Star"              { return "star" }
+        if displayAs == "SubModel"          { return "rectangle.dashed" }
+        if displayAs.contains("Tree")       { return "arrowtriangle.up.fill" }
+        if displayAs == "Wreath"            { return "circle.dotted" }
+        if displayAs == "Window Frame"      { return "rectangle.grid.2x2" }
+        if displayAs == "ModelGroup"        { return "square.stack.3d.up" }
+        return "cube.transparent"
+    }
+
+    /// Map a view object's display-as string to an SF Symbol.
+    private static func viewObjectTypeSFSymbol(forDisplayAs displayAs: String) -> String {
+        if displayAs == "Image"     { return "photo" }
+        if displayAs == "Ruler"     { return "ruler" }
+        if displayAs == "Mesh"      { return "scribble.variable" }
+        if displayAs == "Terrain"   { return "mountain.2" }
+        if displayAs == "Gridlines" { return "grid" }
+        return "viewfinder"
+    }
+
+    /// Build the secondary detail line for a model row. Shows the
+    /// raw start-channel string (e.g. "!FPPYard:2431") plus the
+    /// computed [first..last] range; falls back to either piece
+    /// alone if the other is missing.
+    private static func modelRowSecondary(scString: String,
+                                            firstCh: UInt32,
+                                            lastCh: UInt32) -> String {
+        var parts: [String] = []
+        let trimmed = scString.trimmingCharacters(in: .whitespaces)
+        if !trimmed.isEmpty {
+            parts.append(trimmed)
+        }
+        if firstCh > 0 && lastCh >= firstCh {
+            parts.append("\(firstCh)–\(lastCh)")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Build the secondary detail line for a group row.
+    private static func groupRowSecondary(modelCount: Int,
+                                            layoutStyle: String,
+                                            gridSize: Int) -> String {
+        var parts: [String] = []
+        parts.append("\(modelCount) model\(modelCount == 1 ? "" : "s")")
+        let prettyStyle = prettyGroupLayoutStyle(layoutStyle)
+        if !prettyStyle.isEmpty {
+            parts.append(prettyStyle)
+        }
+        // Grid size only matters for the layout styles that
+        // actually consult it ("grid" / "minimalGrid" / "Default
+        // Model As A Pixel"); for the others it'd just be noise.
+        if gridSize > 0 && Self.layoutStyleUsesGridSize(layoutStyle) {
+            parts.append("grid \(gridSize)")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Map wire-format layout-style values to short, readable
+    /// labels. Mirrors the first 4 entries in
+    /// `modelGroupLayoutSummary`'s `layoutStyleOptions` — the
+    /// remaining values already round-trip their display label.
+    private static func prettyGroupLayoutStyle(_ wire: String) -> String {
+        switch wire {
+        case "":             return ""
+        case "grid":         return "Grid"
+        case "minimalGrid":  return "Minimal Grid"
+        case "horizontal":   return "Horizontal Stack"
+        case "vertical":     return "Vertical Stack"
+        default:             return wire
+        }
+    }
+
+    private static func layoutStyleUsesGridSize(_ wire: String) -> Bool {
+        switch wire {
+        case "grid", "minimalGrid", "Default Model As A Pixel":
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Shared sidebar-row renderer for the Models / Groups /
+    /// Objects tabs. Renders an optional leading type icon, the
+    /// row name, an optional trailing "link" badge for entries
+    /// from the linked Base Show Folder, and an optional secondary
+    /// detail line (channel range / model count / etc).
+    @ViewBuilder
+    private func rosterRow(name: String,
+                            isFromBase: Bool,
+                            leadingSystemImage: String? = nil,
+                            secondary: String? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 6) {
+                if let icon = leadingSystemImage {
+                    Image(systemName: icon)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 16, alignment: .center)
+                }
+                Text(name)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if isFromBase {
+                    Image(systemName: "link")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                        .help("Linked to base show folder — most edits are disabled until Unlink from Base Show Folder.")
+                }
+            }
+            if let s = secondary, !s.isEmpty {
+                Text(s)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .padding(.leading, leadingSystemImage == nil ? 0 : 22)
+            }
+        }
+    }
+
     /// One sidebar row per controller. Shows name + a secondary
     /// line with Type / IP / Vendor / Model so the user can
     /// identify the fixture without opening the detail pane.
     private func controllerRow(row: [String: Any], name: String) -> some View {
-        let type   = (row["type"]   as? String) ?? ""
-        let ip     = (row["ip"]     as? String) ?? ""
-        let vendor = (row["vendor"] as? String) ?? ""
-        let model  = (row["model"]  as? String) ?? ""
-        let active = (row["active"] as? String) ?? ""
-        let osf    = ((row["caps.openSourceFirmware"] as? NSNumber)?.boolValue) ?? false
+        let type     = (row["type"]     as? String) ?? ""
+        let proto    = (row["protocol"] as? String) ?? ""
+        let ip       = (row["ip"]       as? String) ?? ""
+        let vendor   = (row["vendor"]   as? String) ?? ""
+        let model    = (row["model"]    as? String) ?? ""
+        let active   = (row["active"]   as? String) ?? ""
+        let osf      = ((row["caps.openSourceFirmware"] as? NSNumber)?.boolValue) ?? false
+        let isFromBase = (row["isFromBase"] as? NSNumber)?.boolValue ?? false
 
+        // Prefer the wire protocol (DDP, E1.31, ArtNet, DMX…) over
+        // the generic transport class ("Ethernet" / "Serial") when
+        // one is known. ControllerNull's protocol is empty, so we
+        // still get its "Null" type label.
         var secondaryParts: [String] = []
-        if !type.isEmpty   { secondaryParts.append(type) }
-        if !ip.isEmpty     { secondaryParts.append(ip) }
+        if !proto.isEmpty {
+            secondaryParts.append(proto)
+        } else if !type.isEmpty {
+            secondaryParts.append(type)
+        }
+        if !ip.isEmpty { secondaryParts.append(ip) }
         if !vendor.isEmpty || !model.isEmpty {
             let vm = [vendor, model].filter { !$0.isEmpty }.joined(separator: " ")
             if !vm.isEmpty { secondaryParts.append(vm) }
@@ -1355,6 +1739,12 @@ struct LayoutEditorView: View {
                     .font(.body.weight(.medium))
                     .lineLimit(1)
                     .truncationMode(.middle)
+                if isFromBase {
+                    Image(systemName: "link")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                        .help("Linked to base show folder — most edits are disabled until Unlink from Base Show Folder.")
+                }
                 if osf {
                     Image(systemName: "checkmark.shield")
                         .font(.caption2)
@@ -1870,8 +2260,48 @@ struct LayoutEditorView: View {
 
     private var filteredModelNames: [String] {
         let q = modelFilter.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return modelNames }
-        return modelNames.filter { $0.localizedCaseInsensitiveContains(q) }
+        let base = q.isEmpty
+            ? modelNames
+            : modelNames.filter { $0.localizedCaseInsensitiveContains(q) }
+        return sortedModelNames(base)
+    }
+
+    /// Apply the active `modelSort` to a names array using the
+    /// cached per-model metadata. Falls back to localized name
+    /// compare as a tie-breaker so the order is stable.
+    private func sortedModelNames(_ names: [String]) -> [String] {
+        switch modelSort {
+        case .natural:
+            return names
+        case .nameAsc:
+            return names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        case .nameDesc:
+            return names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedDescending }
+        case .startChannelAsc, .startChannelDesc, .endChannelAsc, .endChannelDesc:
+            let key: (String) -> UInt32 = { name in
+                let s = self.modelSummaries[name] ?? [:]
+                switch self.modelSort {
+                case .startChannelAsc, .startChannelDesc:
+                    return (s["firstChannel"] as? NSNumber)?.uint32Value ?? 0
+                case .endChannelAsc, .endChannelDesc:
+                    return (s["lastChannel"]  as? NSNumber)?.uint32Value ?? 0
+                default: return 0
+                }
+            }
+            let asc = (modelSort == .startChannelAsc || modelSort == .endChannelAsc)
+            return names.sorted { a, b in
+                let ka = key(a), kb = key(b)
+                if ka != kb { return asc ? ka < kb : ka > kb }
+                return a.localizedCaseInsensitiveCompare(b) == .orderedAscending
+            }
+        case .typeAsc:
+            return names.sorted { a, b in
+                let ta = (modelSummaries[a]?["displayAs"] as? String) ?? ""
+                let tb = (modelSummaries[b]?["displayAs"] as? String) ?? ""
+                if ta != tb { return ta.localizedCaseInsensitiveCompare(tb) == .orderedAscending }
+                return a.localizedCaseInsensitiveCompare(b) == .orderedAscending
+            }
+        }
     }
 
     private var filteredGroupNames: [String] {
@@ -2392,6 +2822,14 @@ struct LayoutEditorView: View {
         modelNames = viewModel.document.modelsInActiveLayoutGroup()
         groupNames = viewModel.document.modelGroupsInActiveLayoutGroup()
         objectNames = viewModel.document.viewObjectsInActiveLayoutGroup()
+        // Per-row metadata: keyed by name so the rendering closure
+        // can pull the dict in O(1) instead of N bridge calls.
+        modelSummaries = Self.indexSummariesByName(
+            viewModel.document.modelsListSummary())
+        groupSummaries = Self.indexSummariesByName(
+            viewModel.document.modelGroupsListSummary())
+        objectSummaries = Self.indexSummariesByName(
+            viewModel.document.viewObjectsListSummary())
         // J-31 — controllers refresh. The list is small (<100 in
         // realistic shows) and ObjC bridging is cheap, so reload
         // unconditionally rather than tracking dirty state.

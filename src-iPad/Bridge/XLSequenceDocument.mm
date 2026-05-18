@@ -2708,8 +2708,15 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 }
 
 - (NSArray<NSString*>*)layoutGroups {
+    // Order matches desktop LayoutPanel::Reset: Default, virtuals,
+    // named groups. The two virtuals ("All Models", "Unassigned")
+    // are not stored in `_namedLayoutGroups`; the model-filter
+    // code recognises them by literal string in
+    // GetModelsForActivePreview and the *ListSummary helpers.
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     [out addObject:@"Default"];
+    [out addObject:@"All Models"];
+    [out addObject:@"Unassigned"];
     if (!_context) return out;
     for (const auto& g : _context->GetNamedLayoutGroups()) {
         [out addObject:[NSString stringWithUTF8String:g.name.c_str()]];
@@ -2734,6 +2741,12 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         postNotificationName:@"XLLayoutGroupChanged" object:self];
 }
 
+- (BOOL)createLayoutGroup:(NSString*)name {
+    if (!_context || !name) return NO;
+    std::string s = [name UTF8String];
+    return _context->AddNamedLayoutGroup(s) ? YES : NO;
+}
+
 - (BOOL)layoutMode3D {
     if (!_context) return YES;
     return _context->GetLayoutMode3D() ? YES : NO;
@@ -2752,6 +2765,26 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         // which never lists them either.
         if (m->GetDisplayAs() == DisplayAsType::SubModel) continue;
         [out addObject:[NSString stringWithUTF8String:m->GetName().c_str()]];
+    }
+    return out;
+}
+
+- (NSArray<NSDictionary<NSString*, id>*>*)modelsListSummary {
+    NSMutableArray<NSDictionary<NSString*, id>*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    for (Model* m : _context->GetModelsForActivePreview()) {
+        if (!m) continue;
+        if (m->GetDisplayAs() == DisplayAsType::SubModel) continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        [out addObject:@{
+            @"name":               [NSString stringWithUTF8String:m->GetName().c_str()],
+            @"displayAs":          [NSString stringWithUTF8String:m->GetDisplayAsString().c_str()],
+            @"startChannelString": [NSString stringWithUTF8String:m->GetModelStartChannel().c_str()],
+            @"firstChannel":       @(m->GetFirstChannel()),
+            @"lastChannel":        @(m->GetLastChannel()),
+            @"controllerName":     [NSString stringWithUTF8String:m->GetControllerName().c_str()],
+            @"isFromBase":         @(m->IsFromBase() ? YES : NO),
+        }];
     }
     return out;
 }
@@ -4418,6 +4451,29 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
 
 // MARK: - Layout Editor (Phase J-5, Groups + ViewObjects)
 
+// Desktop parity (LayoutPanel.cpp:1948):
+//   group == "All Models"               → all groups
+//   group == "Unassigned"               → only model_group == "Unassigned"
+//   anything else                       → model_group == active OR "All Previews"
+static bool MatchesActiveLayoutGroupForRoster(const std::string& modelGroup,
+                                                const std::string& active) {
+    if (active == "All Models")  return true;
+    if (active == "Unassigned")  return modelGroup == "Unassigned";
+    return modelGroup == active || modelGroup == "All Previews";
+}
+
+// Resolve a virtual active group to the value that should be
+// stored on a newly-created model / group / view object's
+// `layoutGroup` field. "All Models" is virtual — newly created
+// items fall back to "Default" (matching desktop's
+// LayoutPanel.cpp:4912 logic). "Unassigned" round-trips so a
+// created-in-Unassigned item actually appears in the Unassigned
+// roster.
+static std::string LayoutGroupForNewItem(const std::string& active) {
+    if (active == "All Models" || active.empty()) return "Default";
+    return active;
+}
+
 - (NSArray<NSString*>*)modelGroupsInActiveLayoutGroup {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!_context || !_context->HasModelManager()) return out;
@@ -4425,10 +4481,29 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     for (const auto& [name, model] : _context->GetModelManager().GetModels()) {
         if (!model) continue;
         if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
-        const std::string& g = model->GetLayoutGroup();
-        if (g == active || g == "All Previews") {
+        if (MatchesActiveLayoutGroupForRoster(model->GetLayoutGroup(), active)) {
             [out addObject:[NSString stringWithUTF8String:name.c_str()]];
         }
+    }
+    return out;
+}
+
+- (NSArray<NSDictionary<NSString*, id>*>*)modelGroupsListSummary {
+    NSMutableArray<NSDictionary<NSString*, id>*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasModelManager()) return out;
+    const std::string active = _context->GetActiveLayoutGroup();
+    for (const auto& [name, model] : _context->GetModelManager().GetModels()) {
+        if (!model) continue;
+        if (model->GetDisplayAs() != DisplayAsType::ModelGroup) continue;
+        if (!MatchesActiveLayoutGroupForRoster(model->GetLayoutGroup(), active)) continue;
+        ModelGroup* g = static_cast<ModelGroup*>(model);
+        [out addObject:@{
+            @"name":        [NSString stringWithUTF8String:g->GetName().c_str()],
+            @"modelCount":  @(g->GetModelCount()),
+            @"layoutStyle": [NSString stringWithUTF8String:g->GetLayout().c_str()],
+            @"gridSize":    @(g->GetGridSize()),
+            @"isFromBase":  @(g->IsFromBase() ? YES : NO),
+        }];
     }
     return out;
 }
@@ -4637,8 +4712,7 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     grp->SetLayout("minimalGrid");
     grp->SetGridSize(400);
     grp->SetDefaultCamera("2D");
-    std::string active = _context->GetActiveLayoutGroup();
-    grp->SetLayoutGroup(active.empty() ? "Default" : active);
+    grp->SetLayoutGroup(LayoutGroupForNewItem(_context->GetActiveLayoutGroup()));
     grp->SetPreviewSize(_context->GetPreviewWidth(),
                          _context->GetPreviewHeight());
 
@@ -4738,6 +4812,16 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
 // layout group's background settings instead of ViewObjectManager.
 static NSString* const kBackgroundPseudoObjectName = @"2D Background";
 
+// View-object equivalent of MatchesActiveLayoutGroupForRoster.
+// Empty layout_group is treated as Default (legacy storage) for
+// the named-preview paths.
+static bool MatchesActiveLayoutGroupForViewObject(const std::string& voGroup,
+                                                    const std::string& active) {
+    if (active == "All Models")  return true;
+    if (active == "Unassigned")  return voGroup == "Unassigned";
+    return voGroup == active || voGroup == "All Previews" || voGroup.empty();
+}
+
 - (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
     if (!_context) return out;
@@ -4751,10 +4835,27 @@ static NSString* const kBackgroundPseudoObjectName = @"2D Background";
     for (auto it = vm.begin(); it != vm.end(); ++it) {
         ViewObject* vo = it->second;
         if (!vo) continue;
-        const std::string& g = vo->GetLayoutGroup();
-        if (g == active || g == "All Previews" || g.empty()) {
+        if (MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) {
             [out addObject:[NSString stringWithUTF8String:vo->GetName().c_str()]];
         }
+    }
+    return out;
+}
+
+- (NSArray<NSDictionary<NSString*, id>*>*)viewObjectsListSummary {
+    NSMutableArray<NSDictionary<NSString*, id>*>* out = [NSMutableArray array];
+    if (!_context || !_context->HasViewObjectManager()) return out;
+    const std::string active = _context->GetActiveLayoutGroup();
+    ViewObjectManager& vm = _context->GetAllObjects();
+    for (auto it = vm.begin(); it != vm.end(); ++it) {
+        ViewObject* vo = it->second;
+        if (!vo) continue;
+        if (!MatchesActiveLayoutGroupForViewObject(vo->GetLayoutGroup(), active)) continue;
+        [out addObject:@{
+            @"name":       [NSString stringWithUTF8String:vo->GetName().c_str()],
+            @"displayAs":  [NSString stringWithUTF8String:vo->GetDisplayAsString().c_str()],
+            @"isFromBase": @(vo->IsFromBase() ? YES : NO),
+        }];
     }
     return out;
 }
@@ -4929,8 +5030,10 @@ static NSString* const kBackgroundPseudoObjectName = @"2D Background";
     ViewObject* vo = vm.CreateAndAddObject(t);
     if (!vo) return nil;
     // Default to the active layout group so the new object
-    // immediately renders in the current preview.
-    vo->SetLayoutGroup(_context->GetActiveLayoutGroup());
+    // immediately renders in the current preview. "All Models"
+    // is virtual — fall back to "Default" so the object is
+    // actually stored against a real preview.
+    vo->SetLayoutGroup(LayoutGroupForNewItem(_context->GetActiveLayoutGroup()));
     // Ruler is a TwoPoint object — without initial geometry both
     // endpoints sit at world origin so the line is zero-length and
     // invisible. Match desktop's Add Ruler defaults (100-unit
@@ -11611,6 +11714,11 @@ static int parseDMXColorRed(const std::string& hex) {
 static NSDictionary* BuildControllerSummary(const Controller* c) {
     NSString* name      = [NSString stringWithUTF8String:c->GetName().c_str()];
     NSString* type      = [NSString stringWithUTF8String:c->GetType().c_str()];
+    // Per-class protocol (DDP / E1.31 / ArtNet for Ethernet, DMX /
+    // Renard / Pixelnet for Serial, "" for Null). Surfaced so the
+    // sidebar row can show the wire protocol instead of just the
+    // generic transport class.
+    NSString* protocol  = [NSString stringWithUTF8String:c->GetProtocol().c_str()];
     NSString* ip        = [NSString stringWithUTF8String:c->GetIP().c_str()];
     NSString* universes = [NSString stringWithUTF8String:c->GetColumn3Label().c_str()];
     NSString* channels  = [NSString stringWithUTF8String:c->GetColumn4Label().c_str()];
@@ -11635,6 +11743,7 @@ static NSDictionary* BuildControllerSummary(const Controller* c) {
     return @{
         @"name":         name,
         @"type":         type,
+        @"protocol":     protocol,
         @"ip":           ip,
         @"universes":    universes,
         @"channels":     channels,
