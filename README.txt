@@ -26,6 +26,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 on-load convert dialog catches them and converts to ProRes 4444 before playback.
     -enh (dkulp)                AVFoundationVideoReader detects rawvideo .mov with non-8-aligned stride at
                                 construction so desktop falls back to FFmpeg; iPad surfaces them as unreadable.
+    -enh (cybercop23)           Allow multi-model export/import from the same xmodel file.
+    -enh (cybercop23)           Add timeline to available effect import. Add the ability to hide unmapped submodels.
+                                Fix SubModel alias import.
+    -bug (cybercop23)           Fix highlight and key-bindings on model tree selection.
     -bug (dkulp)                Shader effect (Windows): return the GL context to the pool every frame instead
                                 of pinning one per ShaderRenderCache.
     -bug (dkulp)                Fast-math hazard audit: fixed TempoDetector, ChordDetector, and mapbox earcut OBJ
