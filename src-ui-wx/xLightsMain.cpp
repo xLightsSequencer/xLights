@@ -5403,6 +5403,9 @@ void xLightsFrame::ValidateEffectAssets()
     std::string missing;
     for (const auto& it : _sequenceElements.GetAllReferencedFiles()) {
         auto f = FileUtils::FixFile("", it);
+        if (_sequenceElements.GetSequenceMedia().GetMediaEmbedState(f).first) {
+            continue;
+        }
         ObtainAccessToURL(f);
         if (!FileExists(f, false)) {
             missing += it + "\n";
