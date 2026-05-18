@@ -2159,6 +2159,15 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // instead, which mirrors the existing `setSelectedGroup:` path.
 - (NSArray<NSString*>*)modelNamesForController:(NSString*)controllerName;
 
+// Look up a configured Ethernet controller whose IP or resolved
+// IP matches `host`. Used by the Map-From-Lights wizard so the
+// generated CustomModel/MultiPointModel can bind to the user's
+// existing xLights controller entry instead of being orphaned
+// onto the "No Controller" bucket. Returns nil when no
+// controller matches (or `host` is empty / no document loaded).
+- (nullable NSString*)controllerNameForFPPHost:(NSString*)host
+    NS_SWIFT_NAME(controllerNameForFPPHost(_:));
+
 // Phase J-31 — editable property descriptors for a controller.
 // Mirrors `perTypePropertiesForModel:` shape: NSArray<NSDictionary>
 // where each entry is a descriptor dict with keys

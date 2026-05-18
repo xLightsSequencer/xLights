@@ -127,6 +127,15 @@ struct LayoutEditorView: View {
     /// instead of an inline Menu avoids whatever launch-time issue
     /// the SwiftUI Menu in the canvas overlay triggers.
     @State private var addModelSheetVisible: Bool = false
+    /// Map-from-lights wizard. Presented from the Add-Model
+    /// sheet; runs an FPP-driven structured-light scan and
+    /// produces a `MapFromLightsResult` containing a snapped
+    /// CustomModel grid. Final model creation is deferred until
+    /// the canvas-tap → createModelOfType wiring is in place;
+    /// for now the wizard completes and the result is surfaced
+    /// in an alert.
+    @State private var mapFromLightsWizardVisible: Bool = false
+    @State private var mapFromLightsResult: MapFromLightsResult?
     /// J-3 (touch UX) — pending delete confirmation. Set when the
     /// user taps the trash icon in the inline action bar; cleared
     /// after the alert resolves either way.
@@ -620,14 +629,25 @@ struct LayoutEditorView: View {
         }
         .sheet(isPresented: $addModelSheetVisible) {
             AddModelSheet(types: availableModelTypes,
-                           labelFor: modelTypeLabel) { type in
-                viewModel.layoutPendingNewModelType = type
-                addModelSheetVisible = false
-            }
+                           labelFor: modelTypeLabel,
+                           onSelect: handleAddModelTypeSelected,
+                           onMapFromLights: handleMapFromLightsSelected)
         }
         .sheet(isPresented: $newPreviewSheetVisible) {
             newPreviewSheet
         }
+        .background(
+            MapFromLightsHost(isPresented: $mapFromLightsWizardVisible,
+                              result: $mapFromLightsResult,
+                              onApply: handleMapFromLightsApply,
+                              scanDumpParent: viewModel.showFolderPath.map {
+                                  URL(fileURLWithPath: $0)
+                              },
+                              knownControllersProvider: mapFromLightsKnownControllers,
+                              controllerNameLookup: { [weak viewModel] host in
+                                  viewModel?.document.controllerNameForFPPHost(host)
+                              })
+        )
         // J-4 (download) — vendor catalog browser. On download
         // we reuse the same `layoutPendingImportPath` path Import
         // uses, so the user gets the familiar "tap canvas to
@@ -3364,6 +3384,62 @@ struct LayoutEditorView: View {
                                             object: "LayoutEditor",
                                             userInfo: ["model": sel])
         }
+    }
+
+    private func handleAddModelTypeSelected(_ type: String) {
+        viewModel.layoutPendingNewModelType = type
+        addModelSheetVisible = false
+    }
+
+    private func handleMapFromLightsSelected() {
+        addModelSheetVisible = false
+        // Defer one runloop so the Add-Model sheet finishes
+        // dismissing before we present the wizard.
+        DispatchQueue.main.async {
+            mapFromLightsWizardVisible = true
+        }
+    }
+
+    /// Source list for the wizard's Connect-step picker. Pulls
+    /// every controller from `document.controllersListSummary()`,
+    /// keeps only the ones with a usable IP, and converts to the
+    /// value type the wizard expects. We don't pre-filter by
+    /// vendor — the user might be running FPP on hardware whose
+    /// `vendor` field reads something different (e.g. a custom
+    /// install on a generic Pi); if it has an IP, let them pick
+    /// it and the wizard's probe will surface a proper error if
+    /// it isn't actually FPP.
+    private func mapFromLightsKnownControllers() -> [MapFromLightsKnownController] {
+        let raw = viewModel.document.controllersListSummary()
+        return raw.compactMap { entry -> MapFromLightsKnownController? in
+            var dict: [String: Any] = [:]
+            for (k, v) in entry {
+                if let key = k as? String { dict[key] = v }
+            }
+            let name = (dict["name"] as? String) ?? ""
+            let ip = (dict["ip"] as? String) ?? ""
+            let vendor = (dict["vendor"] as? String) ?? ""
+            let trimmedIP = ip.trimmingCharacters(in: .whitespaces)
+            guard !trimmedIP.isEmpty,
+                  !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+                return nil
+            }
+            return MapFromLightsKnownController(name: name,
+                                                ip: trimmedIP,
+                                                vendor: vendor)
+        }
+    }
+
+    /// Wizard accepted — route the produced `.xmodel` file through
+    /// the existing import flow. The pending-import banner then
+    /// prompts the user to tap the canvas to place the model;
+    /// `PreviewPaneView` calls `bridge.importXmodel(fromPath:...)`
+    /// on the tap, which parses the file and adds the populated
+    /// CustomModel to ModelManager. Sidecar metadata
+    /// (`MapFromLights.*` attrs) rides along on the model XML
+    /// and survives subsequent Save/Load cycles.
+    private func handleMapFromLightsApply(_ result: MapFromLightsResult) {
+        viewModel.layoutPendingImportPath = result.xmodelURL.path
     }
 
     /// J-3 (touch UX) — exit fresh-model placement and / or mid-
@@ -11350,19 +11426,46 @@ private struct AddModelSheet: View {
     let types: [String]
     let labelFor: (String) -> String
     let onSelect: (String) -> Void
+    /// "Map from lights..." entry — opens the camera-driven
+    /// FPP scan wizard. Presented as a final section below the
+    /// model-type list because it's a distinct flow (the rest of
+    /// the list is "pick a type, tap canvas to place") and most
+    /// users will reach for a normal model type first.
+    let onMapFromLights: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            List(types, id: \.self) { type in
-                Button {
-                    onSelect(type)
-                } label: {
-                    HStack {
-                        Image(systemName: "plus.rectangle.on.rectangle")
-                            .foregroundStyle(.secondary)
-                        Text(labelFor(type))
-                            .foregroundStyle(.primary)
+            List {
+                Section("Choose a Type") {
+                    ForEach(types, id: \.self) { type in
+                        Button {
+                            onSelect(type)
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.rectangle.on.rectangle")
+                                    .foregroundStyle(.secondary)
+                                Text(labelFor(type))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                    }
+                }
+                Section {
+                    Button {
+                        onMapFromLights()
+                    } label: {
+                        HStack {
+                            Image(systemName: "camera.viewfinder")
+                                .foregroundStyle(Color.accentColor)
+                            VStack(alignment: .leading) {
+                                Text("Map from lights…")
+                                    .foregroundStyle(.primary)
+                                Text("Camera-driven scan of an FPP controller")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
             }

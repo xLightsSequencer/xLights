@@ -78,6 +78,10 @@
 #include "utils/xlImage.h"
 #include <wx/mstream.h>
 #include "model/GenerateCustomModelDialog.h"
+#ifdef __APPLE__
+#include "mac/CustomModelMethodPickerDialog.h"
+#include "mac/KLightMapperBridge.h"
+#endif
 #include "sequencer/GenerateLyricsDialog.h"
 #include "layout/HousePreviewPanel.h"
 #include "setup/IPEntryDialog.h"
@@ -4273,6 +4277,105 @@ void xLightsFrame::OnMenu_GenerateCustomModelSelected(wxCommandEvent& event)
 
     // creating the dialog can take some time so display an hourglass
     SetCursor(wxCURSOR_WAIT);
+
+#ifdef __APPLE__
+    // KLightMapper camera-scan offer: on macOS, if a Continuity
+    // Camera is paired (i.e. an iPhone the user can point at the
+    // prop), let them pick the new flow before falling through to
+    // the classic dialog. Empty camera list → no choice, classic
+    // path runs as before.
+    const auto cams = klbridge::DiscoverContinuityCameras();
+    if (!cams.empty()) {
+        CustomModelMethodPickerDialog picker(this, cams);
+        picker.CenterOnParent();
+        SetCursor(wxCURSOR_DEFAULT);
+        const int picked = picker.ShowModal();
+        SetCursor(wxCURSOR_WAIT);
+        if (picked == wxID_OK &&
+            picker.GetChoice() == CustomModelMethodPickerDialog::Choice::CameraScan &&
+            !picker.GetSelectedCameraID().empty()) {
+            SetCursor(wxCURSOR_DEFAULT);
+            // The scan window is shown non-modally (NSWindow + SwiftUI),
+            // so PresentScanWindow returns immediately. Output / timer /
+            // media state stay paused for as long as the user is in the
+            // scan flow because the scan pushes its own DDP traffic to
+            // FPP; re-enabling outputs here would collide with that.
+            // The completion (fires on the main thread once the user
+            // closes the window) restores everything and hands the
+            // produced .xmodel — if any — to a Save As dialog.
+            // Scan-dump persistence: each scan writes raw video +
+            // per-pattern frames + state JSON into
+            // <showDir>/MapFromLightsDebug/scan_<timestamp>/ so a
+            // failed multi-view solve or underdetected scan can be
+            // reproduced and debugged off-device.
+            //
+            // Pass the show folder directly — KLightMapper's
+            // ScanFrameSaver.createScanDir appends "MapFromLightsDebug"
+            // to whatever parent it's given. Passing an already-
+            // suffixed path would produce
+            // <showDir>/MapFromLightsDebug/MapFromLightsDebug/...
+            const std::string& showDir = GetShowDirectory();
+            const std::string scanDumpParent = showDir;
+            klbridge::PresentScanWindow(
+                picker.GetSelectedCameraID(),
+                scanDumpParent,
+                [this, output, timerRunning, mps](std::optional<std::string> xmodelPath) {
+                    if (xmodelPath.has_value() && !xmodelPath->empty()) {
+                        wxLogNull logNo;
+                        const wxString src(xmodelPath->c_str(), wxConvUTF8);
+                        const wxString defaultName = wxFileName(src).GetName();
+                        const wxString destPath = wxFileSelector(
+                            _("Save mapped custom model"),
+                            wxEmptyString,
+                            defaultName,
+                            "xmodel",
+                            "Custom Model files (*.xmodel)|*.xmodel",
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT,
+                            this);
+                        if (!destPath.IsEmpty()) {
+                            if (wxCopyFile(src, destPath, true)) {
+                                wxMessageBox(_("Saved mapped custom model to:\n") + destPath,
+                                             _("Map from Lights"),
+                                             wxOK | wxICON_INFORMATION, this);
+                            } else {
+                                wxMessageBox(_("Could not write the mapped custom model to:\n") + destPath,
+                                             _("Map from Lights"),
+                                             wxOK | wxICON_ERROR, this);
+                            }
+                        }
+                        // Best-effort: remove the temp file regardless of
+                        // whether the user saved it; if save succeeded, the
+                        // destination holds the data, and if they cancelled
+                        // there's nothing to keep.
+                        wxRemoveFile(src);
+                    }
+                    if (output) { EnableOutputs(); }
+                    if (timerRunning) { OutputTimer.Start(); }
+                    if (mps == MEDIAPLAYINGSTATE::PLAYING &&
+                        CurrentSeqXmlFile != nullptr &&
+                        CurrentSeqXmlFile->GetMedia() != nullptr) {
+                        CurrentSeqXmlFile->GetMedia()->Play();
+                        SetAudioControls();
+                    }
+                });
+            return;
+        }
+        if (picked != wxID_OK) {
+            // User cancelled the picker entirely — same restore +
+            // bail as the camera-scan branch.
+            SetCursor(wxCURSOR_DEFAULT);
+            if (output) { EnableOutputs(); }
+            if (timerRunning) { OutputTimer.Start(); }
+            if (mps == MEDIAPLAYINGSTATE::PLAYING) {
+                CurrentSeqXmlFile->GetMedia()->Play();
+                SetAudioControls();
+            }
+            return;
+        }
+        // Fell through with Classic chosen — continue to the
+        // existing dialog below.
+    }
+#endif
 
     GenerateCustomModelDialog dialog(this, &_outputManager);
     dialog.CenterOnParent();

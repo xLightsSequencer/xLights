@@ -3955,6 +3955,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     // case in `ModelManager::CreateDefaultModel`. Strings here are
     // the literal type tags the factory expects; SwiftUI shows
     // friendlier labels.
+    //
+    // "Wreath" is intentionally absent — the desktop has marked it
+    // deprecated, so we don't want users creating new ones from
+    // the iPad. Existing Wreath models in a show still load and
+    // render correctly; this only gates the Add Model picker.
     return @[
         @"Arches",
         @"Candy Canes",
@@ -3973,7 +3978,6 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         @"Star",
         @"Tree",
         @"Window Frame",
-        @"Wreath",
     ];
 }
 
@@ -11829,6 +11833,14 @@ static NSDictionary* BuildControllerSummary(const Controller* c) {
         }
     }
     return out;
+}
+
+- (nullable NSString*)controllerNameForFPPHost:(NSString*)host {
+    if (!_context || host.length == 0) return nil;
+    const std::string ip = host.UTF8String;
+    auto matches = _context->GetOutputManager().GetControllers(ip);
+    if (matches.empty()) return nil;
+    return [NSString stringWithUTF8String:matches.front()->GetName().c_str()];
 }
 
 #pragma mark - J-31 — Controllers editable property descriptors
