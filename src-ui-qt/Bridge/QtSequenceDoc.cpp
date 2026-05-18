@@ -514,7 +514,8 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
     if (!root) root = doc.child("xlights_rgbeffects");
     if (!root) return;
 
-    pugi::xml_node modelsList = root.child("models");
+    pugi::xml_node modelsList  = root.child("models");
+    pugi::xml_node groupsList  = root.child("modelGroups"); // sibling of <models>
     if (!modelsList) return;
 
     // Load outputs/controllers from xlights_networks.xml so models can resolve
@@ -723,7 +724,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
     // of models.  Groups appear in sequence ElementEffects as type="model", so
     // the sequence parser already loads their effects; we just need the membership
     // and buffer dimensions so we can render and distribute pixels correctly.
-    for (auto g : modelsList.children("modelGroup")) {
+    for (auto g : groupsList.children("modelGroup")) {
         const char* nameStr = g.attribute("name").as_string("");
         if (!nameStr || nameStr[0] == '\0') continue;
 
@@ -738,8 +739,6 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         if (gi.modelNames.isEmpty()) continue;
 
         // Compute the bounding box from actual globalPositions of each member model.
-        // This correctly handles shaped models (trees, stars) whose physical extent
-        // differs from bufferW × scaleX.
         gi.minX = gi.minY =  1e9;
         gi.maxX = gi.maxY = -1e9;
         for (const QString& mn : gi.modelNames) {
@@ -763,7 +762,9 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
                 gi.maxY = qMax(gi.maxY, m.worldPosY + hh);
             }
         }
-        if (gi.maxX <= gi.minX || gi.maxY <= gi.minY) continue;
+        if (gi.maxX <= gi.minX && gi.maxY <= gi.minY) continue;
+        if (gi.maxX <= gi.minX) { gi.minX -= 0.5; gi.maxX += 0.5; }
+        if (gi.maxY <= gi.minY) { gi.minY -= 0.5; gi.maxY += 0.5; }
 
         // Scale the bounding box to a buffer capped at 256 pixels in the
         // largest dimension, keeping the aspect ratio.
@@ -780,6 +781,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
 
         info.groups[gi.name] = gi;
     }
+    spdlog::info("QtSequenceDoc: {} groups loaded from show file", info.groups.size());
 
     // ── Controller records ────────────────────────────────────────────────────
     for (const auto* c : outputManager.GetControllers()) {

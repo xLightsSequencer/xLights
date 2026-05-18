@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
+#include "../../src-core/utils/FileUtils.h"
+
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -15,12 +17,15 @@
 // ── Settings file path ────────────────────────────────────────────────────────
 
 QString QtXLightsApp::settingsFilePath() {
-    // Use AppDataLocation so the file is in a writable, user-specific directory
-    // on every platform, independent of how QSettings::setPath is configured.
     const QString dir = QStandardPaths::writableLocation(
                             QStandardPaths::AppDataLocation);
     QDir().mkpath(dir);
     return dir + "/settings.ini";
+}
+
+QString QtXLightsApp::logFilePath() {
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+           + "/xLights-Qt.log";
 }
 
 // ── Singleton ─────────────────────────────────────────────────────────────────
@@ -63,6 +68,7 @@ QtXLightsApp::QtXLightsApp(QObject* parent) : QObject(parent) {
     }
 
     _resourcesDir = resolveResourcesDir();
+    FileUtils::SetResourcesDir(_resourcesDir.toStdString());
     spdlog::info("QtXLightsApp: resources at '{}'", _resourcesDir.toStdString());
     loadEffectMetadata();
     spdlog::info("QtXLightsApp: {} effects loaded", _effects.size());
@@ -70,9 +76,11 @@ QtXLightsApp::QtXLightsApp(QObject* parent) : QObject(parent) {
     // Restore persisted show folder.
     QSettings s(settingsFilePath(), QSettings::IniFormat);
     _showFolder = s.value("showFolder").toString();
-    if (!_showFolder.isEmpty())
+    if (!_showFolder.isEmpty()) {
+        FileUtils::SetFixFileShowDir(_showFolder.toStdString());
         spdlog::info("QtXLightsApp: restored show folder '{}'",
                      _showFolder.toStdString());
+    }
 
     emit initialized();
 }
@@ -133,6 +141,7 @@ nlohmann::json QtXLightsApp::effectMetadata(const QString& name) const {
 // ── Show folder ───────────────────────────────────────────────────────────────
 void QtXLightsApp::setShowFolder(const QString& path) {
     _showFolder = path;
+    FileUtils::SetFixFileShowDir(path.toStdString());
     QSettings(settingsFilePath(), QSettings::IniFormat).setValue("showFolder", path);
     spdlog::info("QtXLightsApp: show folder → '{}'", path.toStdString());
     // If a sequence is already loaded, refresh model definitions from the new folder.

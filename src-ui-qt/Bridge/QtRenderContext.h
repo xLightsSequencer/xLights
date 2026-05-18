@@ -2,6 +2,7 @@
 #include "../../src-core/render/RenderContext.h"
 #include "../../src-core/effects/EffectManager.h"
 #include "../../src-core/outputs/OutputManager.h"
+#include "../../src-core/models/OutputModelManager.h"
 #include "../../src-core/render/SequenceElements.h"
 #include <memory>
 
@@ -30,7 +31,7 @@ public:
     AudioManager* GetCurrentMediaManager() const override { return nullptr; }
     const std::string& GetHeaderInfo(HEADER_INFO_TYPES) const override { return _empty; }
     Model* GetModel(const std::string&)     const override { return nullptr; }
-    OutputModelManager* GetOutputModelManager() override { return nullptr; }
+    OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
     bool AbortRender(int = 60000)           override { return false; }
     void RenderEffectForModel(const std::string&, int, int, bool = false) override {}
     TimingElement* AddTimingElement(const std::string&, const std::string& = "") override { return nullptr; }
@@ -39,7 +40,8 @@ public:
     OutputManager& outputManager() { return _outputManager; }
 
 private:
-    OutputManager                       _outputManager;  // empty stub — no real hardware
+    OutputManager                       _outputManager;      // empty stub — no real hardware
+    OutputModelManager                  _outputModelManager; // no-op: _disableASAPWork=true by default
     EffectManager                       _effectManager;
     std::unique_ptr<SequenceElements>   _seqElements;
     std::list<std::string>              _mediaFolders;

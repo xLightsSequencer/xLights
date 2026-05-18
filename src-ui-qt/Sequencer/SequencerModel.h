@@ -77,7 +77,10 @@ public:
 
     // ── Block manipulation ────────────────────────────────────────────────
     void moveBlock(int row, int block, int newStart);
+    void moveBlockToRow(int fromRow, int fromBlock, int toRow, int newStart);
     void resizeBlock(int row, int block, int newStart, int newEnd);
+    // Insert a brand-new block created by dropping an effect from the toolbar.
+    void createBlock(int row, int startFrame, int endFrame, const QString& effectName);
 
     // ── Coordinate helpers ────────────────────────────────────────────────
     int   frameAt(int x) const;         // pixel x → frame number (clamped)

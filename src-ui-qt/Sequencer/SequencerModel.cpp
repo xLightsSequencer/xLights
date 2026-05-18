@@ -120,6 +120,32 @@ void SequencerModel::moveBlock(int row, int block, int newStart) {
     emit modelChanged();
 }
 
+void SequencerModel::moveBlockToRow(int fromRow, int fromBlock, int toRow, int newStart) {
+    if (fromRow == toRow) { moveBlock(fromRow, fromBlock, newStart); return; }
+    if (fromRow < 0 || fromRow >= _rows.size()) return;
+    if (toRow   < 0 || toRow   >= _rows.size()) return;
+    if (fromBlock < 0 || fromBlock >= _rows[fromRow].blocks.size()) return;
+
+    // Deselect old location before moving.
+    _rows[fromRow].blocks[fromBlock].selected = false;
+
+    EffectBlock blk = _rows[fromRow].blocks[fromBlock];
+    const int   len = blk.endFrame - blk.startFrame;
+    blk.startFrame  = qBound(0, newStart, _totalFrames - len);
+    blk.endFrame    = blk.startFrame + len;
+    blk.selected    = true;
+
+    _rows[fromRow].blocks.removeAt(fromBlock);
+    _rows[toRow].blocks.append(blk);
+
+    // Update selection to the new location.
+    _selRow   = toRow;
+    _selBlock = _rows[toRow].blocks.size() - 1;
+
+    emit selectionChanged();
+    emit modelChanged();
+}
+
 void SequencerModel::resizeBlock(int row, int block, int newStart, int newEnd) {
     auto& blk      = _rows[row].blocks[block];
     blk.startFrame = qBound(0, newStart, newEnd - 1);
@@ -127,10 +153,21 @@ void SequencerModel::resizeBlock(int row, int block, int newStart, int newEnd) {
     emit modelChanged();
 }
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Block color (shared by load and create) ───────────────────────────────────
 static QColor effectColor(const QString& name) {
     uint h = qHash(name);
     return QColor::fromHsv(int((h * 137u) % 360), 160, 200);
+}
+
+void SequencerModel::createBlock(int row, int startFrame, int endFrame, const QString& effectName) {
+    if (row < 0 || row >= _rows.size()) return;
+    EffectBlock blk;
+    blk.startFrame = qBound(0, startFrame, _totalFrames);
+    blk.endFrame   = qBound(blk.startFrame + 1, endFrame, _totalFrames);
+    blk.effectName = effectName;
+    blk.color      = effectColor(effectName);
+    _rows[row].blocks.append(blk);
+    emit modelChanged();
 }
 
 // ── Real xsq data ─────────────────────────────────────────────────────────────

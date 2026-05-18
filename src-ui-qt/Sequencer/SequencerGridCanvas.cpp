@@ -2,6 +2,10 @@
 #include "SequencerModel.h"
 #include "SequencerController.h"
 
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QWheelEvent>
@@ -11,6 +15,7 @@ SequencerGridCanvas::SequencerGridCanvas(SequencerModel* model,
                                           QWidget* parent)
     : QWidget(parent), _model(model), _ctrl(ctrl) {
     setMouseTracking(true);
+    setAcceptDrops(true);
     connect(model, &SequencerModel::modelChanged,    this, [this]{ updateGeometry(); update(); });
     connect(model, &SequencerModel::geometryChanged, this, [this]{ updateGeometry(); update(); });
     connect(model, &SequencerModel::selectionChanged,this, QOverload<>::of(&QWidget::update));
@@ -92,7 +97,7 @@ void SequencerGridCanvas::paintEvent(QPaintEvent*) {
         p.drawLine(x, 0, x, height());
     }
 
-    // Effect blocks — dimmed originals while dragging
+    // Effect blocks — dim the block being dragged at its source row
     for (int r = 0; r < total; ++r) {
         if (!_model->isRowVisible(r)) continue;
         int y = _model->yAt(r);
@@ -100,7 +105,8 @@ void SequencerGridCanvas::paintEvent(QPaintEvent*) {
             const EffectBlock& blk = _model->row(r).blocks[b];
             int x0 = _model->xAt(blk.startFrame);
             int x1 = _model->xAt(blk.endFrame);
-            bool isDragged = _ctrl->hasGhost() && r == _ctrl->ghostRow()
+            // Dim at the SOURCE row while dragging (regardless of target row).
+            bool isDragged = _ctrl->hasGhost() && r == _ctrl->dragSourceRow()
                              && blk.selected;
             float opacity = isDragged ? 0.3f : 1.0f;
             drawBlock(p, x0, x1, y, rh, blk.color, blk.effectName,
@@ -117,21 +123,46 @@ void SequencerGridCanvas::paintEvent(QPaintEvent*) {
         }
     }
 
-    // Ghost during drag
+    // Ghost during drag — drawn at the TARGET row with the source block's color
     if (_ctrl->hasGhost()) {
-        int r  = _ctrl->ghostRow();
-        int y  = _model->yAt(r);
-        int x0 = _model->xAt(_ctrl->ghostStartFrame());
-        int x1 = _model->xAt(_ctrl->ghostEndFrame());
-        // Determine ghost color from the selected block
-        QColor gc = QColor(0x80, 0x80, 0xff);
-        if (_model->selectedBlock() >= 0 && _model->selectedBlock() < _model->row(r).blocks.size())
-            gc = _model->row(r).blocks[_model->selectedBlock()].color;
-        drawBlock(p, x0, x1, y, rh, gc, "", false, 0.7f);
-        // Dashed border on ghost
+        const int ghostR  = _ctrl->ghostRow();
+        const int srcR    = _ctrl->dragSourceRow();
+        const int ghostY  = _model->yAt(ghostR);
+        const int x0      = _model->xAt(_ctrl->ghostStartFrame());
+        const int x1      = _model->xAt(_ctrl->ghostEndFrame());
+
+        // Read effect name + color from the source block.
+        QColor  gc   = QColor(0x80, 0x80, 0xff);
+        QString name;
+        const int sb = _model->selectedBlock();
+        if (sb >= 0 && sb < _model->row(srcR).blocks.size()) {
+            gc   = _model->row(srcR).blocks[sb].color;
+            name = _model->row(srcR).blocks[sb].effectName;
+        }
+        drawBlock(p, x0, x1, ghostY, rh, gc, name, false, 0.7f);
+
+        // Dashed yellow border on the ghost
         QPen dash(QColor(0xff, 0xee, 0x00, 200), 1, Qt::DashLine);
         p.setPen(dash);
-        p.drawRect(QRect(x0+1, y+1, x1-x0-2, rh-2));
+        p.drawRect(QRect(x0 + 1, ghostY + 1, x1 - x0 - 2, rh - 2));
+
+        // Highlight the target row with a subtle tint when crossing rows
+        if (ghostR != srcR && _model->isRowVisible(ghostR)) {
+            p.fillRect(0, ghostY, width(), rh, QColor(0x80, 0x80, 0xff, 20));
+        }
+    }
+
+    // Drop ghost — new block dragged in from the effect toolbar
+    if (_hasDrop && _dropRow >= 0 && _model->isRowVisible(_dropRow)) {
+        const int  dy  = _model->yAt(_dropRow);
+        const int  dx0 = _model->xAt(_dropFrame);
+        const int  dx1 = _model->xAt(_dropFrame + _dropDuration);
+        const uint h   = qHash(_dropEffectName);
+        const QColor gc = QColor::fromHsv(int((h * 137u) % 360), 160, 200);
+        drawBlock(p, dx0, dx1, dy, rh, gc, _dropEffectName, false, 0.75f);
+        QPen dash(QColor(0xff, 0xee, 0x00, 220), 1, Qt::DashLine);
+        p.setPen(dash);
+        p.drawRect(QRect(dx0 + 1, dy + 1, dx1 - dx0 - 2, rh - 2));
     }
 }
 
@@ -147,21 +178,34 @@ void SequencerGridCanvas::mousePressEvent(QMouseEvent* e) {
 void SequencerGridCanvas::mouseMoveEvent(QMouseEvent* e) {
     _ctrl->mouseMove(e->pos());
 
-    // Update cursor based on hover zone
+    // While dragging, show a fixed cursor; only do hit-test for hover.
+    if (_ctrl->hasGhost()) {
+        const auto zone = _ctrl->dragZone();
+        if (zone == SequencerModel::ResizeLeft || zone == SequencerModel::ResizeRight)
+            setCursor(Qt::SizeHorCursor);
+        else
+            setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+
     int row, block;
     SequencerModel::HitZone zone;
     if (_model->hitTest(e->pos(), row, block, zone)) {
         if (zone == SequencerModel::ResizeLeft || zone == SequencerModel::ResizeRight)
             setCursor(Qt::SizeHorCursor);
         else
-            setCursor(Qt::SizeAllCursor);
+            setCursor(Qt::OpenHandCursor);
     } else {
         setCursor(Qt::ArrowCursor);
     }
 }
 
 void SequencerGridCanvas::mouseReleaseEvent(QMouseEvent* e) {
-    if (e->button() == Qt::LeftButton) _ctrl->mouseRelease(e->pos());
+    if (e->button() != Qt::LeftButton) return;
+    _ctrl->mouseRelease(e->pos());
+    // Re-emit blockSelected so the effect panel refreshes after a move or resize.
+    const int sr = _model->selectedRow(), sb = _model->selectedBlock();
+    if (sr >= 0 && sb >= 0) emit blockSelected(sr, sb);
 }
 
 void SequencerGridCanvas::wheelEvent(QWheelEvent* e) {
@@ -173,4 +217,54 @@ void SequencerGridCanvas::wheelEvent(QWheelEvent* e) {
     } else {
         e->ignore();   // let scroll area handle it
     }
+}
+
+// ── Effect-toolbar drag-and-drop ──────────────────────────────────────────────
+
+void SequencerGridCanvas::dragEnterEvent(QDragEnterEvent* e) {
+    if (e->mimeData()->hasFormat("application/x-xlights-effect"))
+        e->acceptProposedAction();
+}
+
+void SequencerGridCanvas::dragMoveEvent(QDragMoveEvent* e) {
+    if (!e->mimeData()->hasFormat("application/x-xlights-effect")) { e->ignore(); return; }
+
+    _dropEffectName = QString::fromUtf8(
+        e->mimeData()->data("application/x-xlights-effect"));
+    const QPoint pos = e->position().toPoint();
+    _dropRow      = _model->rowAt(pos.y());
+    _dropFrame    = _model->frameAt(pos.x());
+    _dropDuration = qMax(1, _model->fps() * 2);   // default 2-second block
+    _hasDrop      = (_dropRow >= 0 && _model->isRowVisible(_dropRow));
+
+    e->acceptProposedAction();
+    update();
+}
+
+void SequencerGridCanvas::dragLeaveEvent(QDragLeaveEvent*) {
+    _hasDrop = false;
+    update();
+}
+
+void SequencerGridCanvas::dropEvent(QDropEvent* e) {
+    _hasDrop = false;
+    if (!e->mimeData()->hasFormat("application/x-xlights-effect")) { e->ignore(); return; }
+    if (_dropRow < 0 || !_model->isRowVisible(_dropRow))           { e->ignore(); return; }
+
+    const int endFrame = qMin(_dropFrame + _dropDuration, _model->totalFrames());
+    _model->createBlock(_dropRow, _dropFrame, endFrame, _dropEffectName);
+
+    // Select the newly created block and open the effect panel.
+    const SequencerRow& row = _model->row(_dropRow);
+    for (int b = row.blocks.size() - 1; b >= 0; --b) {
+        if (row.blocks[b].startFrame == _dropFrame
+                && row.blocks[b].effectName == _dropEffectName) {
+            _model->select(_dropRow, b);
+            emit blockSelected(_dropRow, b);
+            break;
+        }
+    }
+
+    e->acceptProposedAction();
+    update();
 }

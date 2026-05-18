@@ -19,16 +19,21 @@
 #include "../Sequencer/SequencerWidget.h"
 
 #include <QAction>
+#include <QDesktopServices>
+#include <QRgb>
 #include <QDir>
 #include <QApplication>
 #include <QEvent>
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMenuBar>
+#include <QProgressBar>
 #include <QSettings>
 #include <QSplitter>
-#include <QProgressBar>
 #include <QStatusBar>
+#include <QUrl>
+
+#include <spdlog/spdlog.h>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // Title shows show folder name from the moment it's loaded.
@@ -136,30 +141,39 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     connect(_renderBridge, &QtRenderBridge::frameReady,
             this, [this](const QtEffectRenderer::Result& r) {
         _effectPanel->setBufferPixels(r.w, r.h, r.pixels);
-        const QtModelInfo mi =
-            QtXLightsApp::instance().currentSequence().modelInfo(_currentModel);
+        const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+        if (seq.isGroup(_currentModel)) {
+            distributeGroupToMembers(_currentModel, r.pixels, /*updateModelPreview=*/true);
+            return;
+        }
+        const QtModelInfo mi = seq.modelInfo(_currentModel);
         _preview->setResult(r, mi.nodePositions);
     });
 
-    // Playback → playhead + live preview update (only when frame changes)
+    // Playback → advance the playhead.
+    // • Selected model preview: rendered live every frame via renderAllLayers()
+    //   so the user always sees the correct effect output for the current position.
+    // • House preview: reads from the pre-built frame cache when available
+    //   (built by Render All); otherwise stays at the last Render All snapshot.
     connect(_playback, &PlaybackController::positionChanged, this, [this](int ms) {
         const int fps      = qMax(1, _sequencer->model()->fps());
         const int curFrame = ms * fps / 1000;
         _sequencer->setPlayhead(curFrame);
 
-        if (_playback->isPlaying() && curFrame != _lastRenderedFrame) {
-            _lastRenderedFrame = curFrame;
-
-            // Selected model: full src-core composite render every frame.
+        if (_playback->isPlaying()) {
+            // Always update the selected model so its preview tracks playback.
             if (!_currentModel.isEmpty())
                 renderAllLayers();
 
-            // House preview: software-renderer batch, cycling through all models.
-            tickHousePreview(curFrame);
+            // House preview from cache if pre-built; otherwise it stays frozen
+            // at whatever renderAllModels() last produced.
+            if (_renderCacheValid)
+                displayCacheFrame(curFrame);
         }
     });
 
-    // On stop/pause: do one accurate src-core house render at the stopped frame.
+    // On stop/pause: do a full house render at the stopped position so the
+    // preview accurately reflects the frame the user landed on.
     connect(_playback, &PlaybackController::playingChanged, this, [this](bool playing) {
         if (!playing && QtXLightsApp::instance().currentSequence().isValid())
             renderAllModels();
@@ -325,8 +339,6 @@ void MainWindow::renderAllLayers() {
 
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
     if (seq.isGroup(_currentModel)) {
-        // Groups: distribute pixels to member models and show their physical
-        // layout in the model preview (house-layout view of the group's members).
         distributeGroupToMembers(_currentModel, composite, /*updateModelPreview=*/true);
         return;
     }
@@ -339,42 +351,36 @@ void MainWindow::renderAllLayers() {
 }
 
 void MainWindow::renderAllModels() {
-    // Guard against re-entrant calls (possible because we process all events below).
     if (_renderAllInProgress) return;
     _renderAllInProgress = true;
 
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
     if (!seq.isValid()) { _renderAllInProgress = false; return; }
 
-    // Use ALL models from the show file (seq.models), not just the subset that
-    // have sequencer rows.  Models with no active blocks at the current frame
-    // are explicitly set to black so the house preview reflects the full show.
+    // All models and groups at the current playhead — groups after individual
+    // models so their composites overwrite member-model pixels.
     QStringList modelNames;
     for (auto it = seq.models.cbegin(); it != seq.models.cend(); ++it)
         modelNames.append(it.key());
+    for (auto it = seq.groups.cbegin(); it != seq.groups.cend(); ++it)
+        modelNames.append(it.key());
 
     const int total = modelNames.size();
-    if (total == 0) return;
+    if (total == 0) { _renderAllInProgress = false; return; }
 
-    // Initialise and auto-show the detail dialog so the user can see progress
-    // without needing to double-click during the render.
     if (_renderDetailDlg) {
         _renderDetailDlg->beginRender(modelNames);
         _renderDetailDlg->show();
         _renderDetailDlg->raise();
     }
 
-    // Force the status-bar progress bar to appear and repaint before the
-    // first blocking renderNow() call (Windows batches repaints without this).
     _renderProgress->setRange(0, total);
     _renderProgress->setValue(0);
-    _renderProgress->setFormat("%v / %m models");
+    _renderProgress->setFormat("%v / %m");
     _renderProgress->setTextVisible(true);
     _renderProgress->show();
     _renderProgress->repaint();
     statusBar()->repaint();
-    // Allow ALL events so the user can interact with the dialog during the render.
-    // The _renderAllInProgress guard prevents re-entrant renderAllModels() calls.
     QApplication::processEvents();
 
     int rendered = 0;
@@ -406,7 +412,6 @@ void MainWindow::renderAllModels() {
         _renderProgress->setValue(i + 1);
         statusBar()->showMessage(
             QString("Rendering %1  (%2/%3)").arg(mn).arg(i + 1).arg(total), 0);
-        // Allow all events so the detail dialog updates and stays interactive.
         QApplication::processEvents();
     }
 
@@ -416,7 +421,93 @@ void MainWindow::renderAllModels() {
     _renderProgress->hide();
     _renderAllInProgress = false;
     statusBar()->showMessage(
-        QString("House render — %1 / %2 models had active effects").arg(rendered).arg(total), 4000);
+        QString("House render — %1 / %2 had active effects").arg(rendered).arg(total), 4000);
+}
+
+// ── Cache helpers ─────────────────────────────────────────────────────────────
+
+void MainWindow::displayCacheFrame(int frame) {
+    if (!_renderCacheValid) return;
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+
+    for (auto it = _renderCache.cbegin(); it != _renderCache.cend(); ++it) {
+        const QString& mn = it.key();
+        if (frame >= it.value().size()) continue;
+        const QVector<QRgb>& cached = it.value()[frame];
+
+        if (cached.isEmpty()) {
+            // No effect active at this frame → go dark.
+            const QtModelInfo mi = seq.modelInfo(mn);
+            const int n = mi.bufferW * mi.bufferH;
+            if (n > 0)
+                _housePreview->setModelPixels(mn, QList<QColor>(n, Qt::black));
+        } else {
+            QList<QColor> pixels;
+            pixels.reserve(cached.size());
+            for (QRgb rgb : cached)
+                pixels.append(QColor::fromRgb(rgb));
+            _housePreview->setModelPixels(mn, pixels);
+        }
+    }
+
+    // Update the model preview for the currently selected model.
+    if (!_currentModel.isEmpty() && _renderCache.contains(_currentModel)) {
+        const QVector<QRgb>& cached = _renderCache[_currentModel].value(frame);
+        if (!cached.isEmpty()) {
+            const QtModelInfo mi = seq.modelInfo(_currentModel);
+            QList<QColor> pixels;
+            pixels.reserve(cached.size());
+            for (QRgb rgb : cached)
+                pixels.append(QColor::fromRgb(rgb));
+
+            if (seq.isGroup(_currentModel)) {
+                distributeGroupToMembers(_currentModel, pixels, /*updateModelPreview=*/true);
+            } else {
+                QtEffectRenderer::Result r;
+                r.w = mi.bufferW; r.h = mi.bufferH; r.pixels = pixels;
+                _preview->setResult(r, mi.nodePositions);
+            }
+        }
+    }
+}
+
+void MainWindow::cacheGroupDistribution(const QString& groupName,
+                                        const QList<QColor>& groupPixels,
+                                        int frame) {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    auto git = seq.groups.find(groupName);
+    if (git == seq.groups.end()) return;
+
+    const QtModelGroupInfo& gi = *git;
+    const double rangeX = gi.maxX - gi.minX;
+    const double rangeY = gi.maxY - gi.minY;
+    if (rangeX <= 0 && rangeY <= 0) return;
+
+    auto normX = [&](double x) { return rangeX > 0 ? qBound(0.0,(x-gi.minX)/rangeX,1.0) : 0.5; };
+    auto normY = [&](double y) { return rangeY > 0 ? qBound(0.0,(y-gi.minY)/rangeY,1.0) : 0.5; };
+    auto sample = [&](double nx, double ny) -> QRgb {
+        const int bx = qBound(0, int(nx*(gi.bufferW-1)), gi.bufferW-1);
+        const int by = qBound(0, (gi.bufferH-1)-int(ny*(gi.bufferH-1)), gi.bufferH-1);
+        const int bi = by*gi.bufferW + bx;
+        return bi < groupPixels.size() ? groupPixels[bi].rgb() : qRgb(0,0,0);
+    };
+
+    for (const QString& mn : gi.modelNames) {
+        if (!_renderCache.contains(mn)) continue;
+        auto mit = seq.models.find(mn);
+        if (mit == seq.models.end()) continue;
+        const QtModelInfo& mi = *mit;
+        const int nc = mi.globalPositions.size();
+        if (nc == 0) continue;
+
+        QVector<QRgb> pixels(nc);
+        for (int i = 0; i < nc; ++i) {
+            const QPointF& gp = mi.globalPositions[i];
+            pixels[i] = sample(normX(gp.x()), normY(gp.y()));
+        }
+        if (frame < _renderCache[mn].size())
+            _renderCache[mn][frame] = std::move(pixels);
+    }
 }
 
 // ── Group pixel distribution ──────────────────────────────────────────────────
@@ -438,18 +529,31 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
     auto git = seq.groups.find(groupName);
     if (git == seq.groups.end()) return;
 
-    const QtModelGroupInfo& gi     = *git;
-    const double            rangeX = gi.maxX - gi.minX;
-    const double            rangeY = gi.maxY - gi.minY;
-    if (rangeX <= 0 || rangeY <= 0) return;
+    const QtModelGroupInfo& gi = *git;
+    const double rangeX = gi.maxX - gi.minX;
+    const double rangeY = gi.maxY - gi.minY;
+    if (rangeX <= 0 && rangeY <= 0) return;   // truly empty — both axes degenerate
 
-    // ── Per-node distribution for house preview ────────────────────────────
-    // For each member model, sample the group buffer at each node's global
-    // position and update the house preview accordingly.
-    // Model-preview is handled separately below (one dot per model).
+    // Normalise a layout coordinate to [0,1] within the group bounding box.
+    // When one axis is degenerate (rangeX or rangeY == 0, e.g. all Tree-360 models
+    // at the same worldPosY), return 0.5 so nodes land at the centre of that axis.
+    auto normX = [&](double x) -> double {
+        return rangeX > 0 ? qBound(0.0, (x - gi.minX) / rangeX, 1.0) : 0.5;
+    };
+    auto normY = [&](double y) -> double {
+        return rangeY > 0 ? qBound(0.0, (y - gi.minY) / rangeY, 1.0) : 0.5;
+    };
+    // Sample the group render buffer at a normalised (nx, ny) position.
+    // xLights buffer: row 0 = physical bottom; flip ny so 0=top → row bufH-1.
+    auto sampleGroup = [&](double nx, double ny) -> QColor {
+        const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
+        const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)), gi.bufferH - 1);
+        const int bi = by * gi.bufferW + bx;
+        return bi < groupPixels.size() ? groupPixels[bi] : Qt::black;
+    };
 
+    // ── Per-node distribution for house preview ───────────────────────────
     for (const QString& mn : gi.modelNames) {
-        // Only process models we know about (skip sub-model paths like "X/Y").
         auto mit = seq.models.find(mn);
         if (mit == seq.models.end()) continue;
         const QtModelInfo& mi = *mit;
@@ -459,87 +563,42 @@ void MainWindow::distributeGroupToMembers(const QString& groupName,
         QList<QColor> pixels(nc, Qt::black);
         for (int i = 0; i < nc; ++i) {
             const QPointF& gp = mi.globalPositions[i];
-
-            // Normalise to [0,1] within the group bounding box (screen Y: 0=top).
-            const double nx = qBound(0.0, (gp.x() - gi.minX) / rangeX, 1.0);
-            const double ny = qBound(0.0, (gp.y() - gi.minY) / rangeY, 1.0);
-
-            // xLights render buffer has y=0 at the BOTTOM; flip so top of
-            // the physical group layout maps to the top of the rendered effect.
-            const int bx = qBound(0, int(nx * (gi.bufferW - 1)), gi.bufferW - 1);
-            const int by = qBound(0, (gi.bufferH - 1) - int(ny * (gi.bufferH - 1)),
-                                  gi.bufferH - 1);
-            const int bi = by * gi.bufferW + bx;
-            if (bi < groupPixels.size())
-                pixels[i] = groupPixels[bi];
+            pixels[i] = sampleGroup(normX(gp.x()), normY(gp.y()));
         }
         _housePreview->setModelPixels(mn, pixels);
     }
 
-    // ── Shape-preserving per-model view for the model preview widget ──────
-    // Trees are physically narrow in layout space (~20 units wide) relative to
-    // the group span (~900 units), so normalising globalPositions directly
-    // compresses each tree to a sub-pixel sliver.  Instead:
-    //   • each model is placed at its worldPos centre in group-normalised space
-    //   • its local nodePositions shape (triangle/star/grid/custom) is scaled
-    //     so every model occupies a minimum visible fraction of the preview
-    //   • colours are sampled from the group buffer at the PHYSICAL position
-    //     so left-to-right effects still colour trees correctly
+    // ── Physical-layout model preview ────────────────────────────────────
+    // Place each node at its actual normalised position within the group bounding
+    // box using globalPositions directly.  The previous approach (worldPos-centre
+    // + local-shape × dispScale) collapsed to a horizontal line whenever lp.y()
+    // was constant (e.g. Tree 360 top-down projection where all nodes have Z=0).
     if (updateModelPreview) {
-        // Count valid members to compute per-model display scale.
-        int nValid = 0;
-        for (const QString& mn : gi.modelNames)
-            if (seq.models.contains(mn)) ++nValid;
+        QList<QPointF> positions;
+        QList<QColor>  colors;
 
-        if (nValid > 0) {
-            QList<QPointF> positions;
-            QList<QColor>  colors;
+        for (const QString& mn : gi.modelNames) {
+            auto mit = seq.models.find(mn);
+            if (mit == seq.models.end()) continue;
+            const QtModelInfo& mi = *mit;
+            const int nc = mi.globalPositions.size();
+            if (nc == 0) continue;
 
-            // Scale each model's local shape so it fills ~0.8/√N of the preview.
-            const double dispScale = qBound(0.05, 0.8 / std::sqrt(double(nValid)), 0.9);
-
-            for (const QString& mn : gi.modelNames) {
-                auto mit = seq.models.find(mn);
-                if (mit == seq.models.end()) continue;
-                const QtModelInfo& mi = *mit;
-                if (mi.nodePositions.isEmpty()) continue;
-
-                // Model centre in group-normalised coordinates (0=left/top, 1=right/bottom).
-                const double cx = qBound(0.0, (mi.worldPosX - gi.minX) / rangeX, 1.0);
-                const double cy = qBound(0.0, (mi.worldPosY - gi.minY) / rangeY, 1.0);
-
-                const int nc = mi.nodePositions.size();
-                for (int i = 0; i < nc; ++i) {
-                    const QPointF& lp = mi.nodePositions[i];
-
-                    // Display position: model shape centred at (cx, cy), scaled.
-                    const double nx = qBound(0.0, cx + (lp.x() - 0.5) * dispScale, 1.0);
-                    const double ny = qBound(0.0, cy + (lp.y() - 0.5) * dispScale, 1.0);
-
-                    // Physical position for colour sampling — use globalPositions when
-                    // available, otherwise fall back to the world-centre of the model.
-                    double physNx = cx, physNy = cy;
-                    if (i < mi.globalPositions.size()) {
-                        physNx = qBound(0.0, (mi.globalPositions[i].x() - gi.minX) / rangeX, 1.0);
-                        physNy = qBound(0.0, (mi.globalPositions[i].y() - gi.minY) / rangeY, 1.0);
-                    }
-                    const int bx = qBound(0, int(physNx * (gi.bufferW - 1)), gi.bufferW - 1);
-                    const int by = qBound(0, (gi.bufferH - 1) - int(physNy * (gi.bufferH - 1)),
-                                          gi.bufferH - 1);
-                    const int bi = by * gi.bufferW + bx;
-
-                    positions.append({nx, ny});
-                    colors.append(bi < groupPixels.size() ? groupPixels[bi] : Qt::black);
-                }
+            for (int i = 0; i < nc; ++i) {
+                const QPointF& gp = mi.globalPositions[i];
+                const double nx = normX(gp.x());
+                const double ny = normY(gp.y());
+                positions.append({nx, ny});
+                colors.append(sampleGroup(nx, ny));
             }
+        }
 
-            if (!positions.isEmpty()) {
-                QtEffectRenderer::Result gv;
-                gv.w = colors.size();
-                gv.h = 1;
-                gv.pixels = colors;
-                _preview->setResult(gv, positions);
-            }
+        if (!positions.isEmpty()) {
+            QtEffectRenderer::Result gv;
+            gv.w = colors.size();
+            gv.h = 1;
+            gv.pixels = colors;
+            _preview->setResult(gv, positions);
         }
     }
 }
@@ -564,82 +623,6 @@ void MainWindow::populateEffectBar() {
         0);
 }
 
-// ── Real-time house preview ───────────────────────────────────────────────────
-
-QList<QColor> MainWindow::parsePaletteQuick(const QString& rawPalette) {
-    QList<QColor> colors;
-    if (rawPalette.isEmpty()) return colors;
-    QMap<QString, QString> vals;
-    for (const QString& part : rawPalette.split(',', Qt::SkipEmptyParts)) {
-        const int eq = part.indexOf('=');
-        if (eq <= 0) continue;
-        vals[part.left(eq).trimmed()] = part.mid(eq + 1).trimmed();
-    }
-    for (int i = 1; i <= 8; ++i) {
-        if (vals.value(QString("C_CHECKBOX_Palette%1").arg(i)) == "1") {
-            QColor c(vals.value(QString("C_BUTTON_Palette%1").arg(i)));
-            if (c.isValid()) colors.append(c);
-        }
-    }
-    return colors;
-}
-
-void MainWindow::tickHousePreview(int curFrame) {
-    if (_houseQueue.isEmpty()) return;
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    if (!seq.isValid()) return;
-
-    // Render kHouseModelsPerTick models per tick using the fast software renderer.
-    // Cycling ensures every model is refreshed within a full queue pass.
-    for (int i = 0; i < kHouseModelsPerTick; ++i) {
-        if (_houseQueueIdx >= _houseQueue.size())
-            _houseQueueIdx = 0;
-
-        const QString  mn = _houseQueue[_houseQueueIdx++];
-        const QtModelInfo mi = seq.modelInfo(mn);
-        const int n = mi.bufferW * mi.bufferH;
-        if (n == 0) continue;
-
-        // Composite all active layers for this model using the software renderer.
-        QList<QColor> composite(n, Qt::black);
-        bool anyPixels = false;
-
-        for (int r = 0; r < _sequencer->model()->rowCount(); ++r) {
-            const SequencerRow& row = _sequencer->model()->row(r);
-            if (row.modelName != mn) continue;
-            for (const EffectBlock& blk : row.blocks) {
-                if (curFrame < blk.startFrame || curFrame >= blk.endFrame) continue;
-
-                const double progress = blk.endFrame > blk.startFrame
-                    ? double(curFrame - blk.startFrame) / double(blk.endFrame - blk.startFrame)
-                    : 0.5;
-
-                QtEffectRenderer::Request req;
-                req.effectName = blk.effectName;
-                req.modelName  = mn;
-                req.bufferW    = mi.bufferW;
-                req.bufferH    = mi.bufferH;
-                req.progress   = qBound(0.0, progress, 1.0);
-                req.palette    = parsePaletteQuick(blk.palette);
-
-                const QtEffectRenderer::Result res = QtEffectRenderer::render(req);
-                if (res.isValid()) {
-                    for (int j = 0; j < n && j < res.pixels.size(); ++j) {
-                        const QColor& px = res.pixels[j];
-                        if (px.red() || px.green() || px.blue()) {
-                            composite[j] = px;
-                            anyPixels = true;
-                        }
-                    }
-                }
-                break;  // one active block per layer row
-            }
-        }
-
-        if (anyPixels)
-            _housePreview->setModelPixels(mn, composite);
-    }
-}
 
 void MainWindow::onEffectSelected(const QString& name) {
     if (name.isEmpty()) return;
@@ -709,21 +692,11 @@ void MainWindow::setupMenuBar() {
         const QtSequenceInfo info =
             QtXLightsApp::instance().openSequence(path, _sequencer->model());
         if (info.isValid()) {
-            _lastRenderedFrame = -1;
             QString sfName = QtXLightsApp::instance().showFolder();
-            _renderBridge->setShowFolder(sfName);   // load xlights_networks.xml
+            _renderBridge->setShowFolder(sfName);
             _modelInfoWin->refresh();
             _controllerInfoWin->refresh();
             _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
-
-            // Build the cycling queue for real-time house preview.
-            // Use all models from the show file so the house preview includes
-            // models that have no effects in this sequence.
-            _houseQueue.clear();
-            _houseQueueIdx = 0;
-            const QtSequenceInfo& loadedSeq = QtXLightsApp::instance().currentSequence();
-            for (auto it = loadedSeq.models.cbegin(); it != loadedSeq.models.cend(); ++it)
-                _houseQueue.append(it.key());
 
             // Resolve and load audio — try show folder first, then xsq directory.
             QString audioPath;
@@ -802,6 +775,13 @@ void MainWindow::setupMenuBar() {
         _controllerInfoWin->show();
         _controllerInfoWin->raise();
         _controllerInfoWin->activateWindow();
+    });
+
+    view->addSeparator();
+    auto* logAct = view->addAction("View &Log…", QKeySequence("Ctrl+L"));
+    connect(logAct, &QAction::triggered, this, []() {
+        spdlog::default_logger()->flush();
+        QDesktopServices::openUrl(QUrl::fromLocalFile(QtXLightsApp::logFilePath()));
     });
 
     menuBar()->addMenu("&Help")->addAction("&About xLights Qt…");

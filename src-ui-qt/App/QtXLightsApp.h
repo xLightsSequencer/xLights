@@ -32,6 +32,9 @@ public:
     // Path to the INI settings file — use this whenever creating a QSettings.
     static QString settingsFilePath();
 
+    // Path to the rotating log file written by spdlog.
+    static QString logFilePath();
+
     // Load an .xsq file and push rows into the given SequencerModel.
     // Returns the loaded sequence info (isValid() == false on failure).
     QtSequenceInfo openSequence(const QString& path, SequencerModel* model);

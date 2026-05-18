@@ -49,10 +49,10 @@ void RenderDetailDialog::beginRender(const QStringList& names) {
     _list->clear();
     _bar->setRange(0, names.size());
     _bar->setValue(0);
-    _summary->setText(QString("Rendering %1 models…").arg(names.size()));
+    _summary->setText(QString("Rendering %1 items…").arg(names.size()));
 
     for (const QString& n : names) {
-        auto* item = new QListWidgetItem("  ○  " + n);
+        auto* item = new QListWidgetItem("○  " + n);
         item->setForeground(QColor(0x88, 0x88, 0x88));
         _list->addItem(item);
         _items.append(item);
@@ -63,25 +63,27 @@ void RenderDetailDialog::setModelStatus(int index, Status s) {
     if (index < 0 || index >= _items.size()) return;
     QListWidgetItem* item = _items[index];
 
-    // Strip old prefix (5 chars: "  ○  " etc.) then re-prefix
-    const QString name = item->text().mid(5);
+    // Strip the leading icon + two spaces (e.g. "○  ") to recover the name.
+    const QString text = item->text();
+    const int sep = text.indexOf("  ");
+    const QString name = (sep >= 0) ? text.mid(sep + 2) : text;
 
     switch (s) {
     case Pending:
-        item->setText("  ○  " + name);
+        item->setText("○  " + name);
         item->setForeground(QColor(0x77, 0x77, 0x77));
         break;
     case Rendering:
-        item->setText("  ▶  " + name);
+        item->setText("▶  " + name);
         item->setForeground(QColor(0xff, 0xcc, 0x44));
         _list->scrollToItem(item);
         break;
     case Done:
-        item->setText("  ●  " + name);
+        item->setText("●  " + name);
         item->setForeground(QColor(0x44, 0xcc, 0x44));
         break;
     case NoEffects:
-        item->setText("  –  " + name);
+        item->setText("–  " + name);
         item->setForeground(QColor(0x55, 0x55, 0x55));
         break;
     }
@@ -92,5 +94,5 @@ void RenderDetailDialog::setModelStatus(int index, Status s) {
 void RenderDetailDialog::endRender(int rendered, int total) {
     _bar->setValue(total);
     _summary->setText(
-        QString("Done — %1 of %2 models had active effects").arg(rendered).arg(total));
+        QString("Done — %1 of %2 items had active effects").arg(rendered).arg(total));
 }

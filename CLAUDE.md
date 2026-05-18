@@ -97,12 +97,18 @@ Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is deli
 ### Adding New Source Files
 When adding new `.cpp`/`.h` files, place them in `src-core/` (wx-free
 core, linked by both desktop and iPad), `src-ui-wx/` (wxWidgets
-desktop UI), or `src-iPad/` (SwiftUI iPad app + ObjC++ bridge). The
-following project files must be updated manually:
+desktop UI), `src-iPad/` (SwiftUI iPad app + ObjC++ bridge), or
+`src-ui-qt/` (Qt UI). The following project files must be updated:
+
+**Desktop (wx) build:**
 - **`xLights/xLights.cbp`** — add `<Unit filename="...">` entries with paths relative to `xLights/` (e.g., `../src-core/render/Foo.cpp`)
 - **`xLights/Xlights.vcxproj`** — add `<ClCompile>` for `.cpp` and `<ClInclude>` for `.h` with paths relative to `xLights/` (e.g., `..\src-core\render\Foo.cpp`)
 - **`xLights/Xlights.vcxproj.filters`** — add corresponding filter entries to place files in the correct VS folder
 
+**Qt build (`src-ui-qt/` files only):**
+- **`CMakeLists.txt`** — add the `.cpp` file to the `set(XL_QT_SOURCES ...)` list inside the `if(XLIGHTS_BUILD_QT)` block (around line 820). New files in `src-core/` are picked up automatically by the `SRC_CORE` glob and do not need a separate entry.
+
+**macOS/iPad:**
 The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`)
 uses `PBXFileSystemSynchronizedRootGroup` for `src-core/`,
 `src-ui-wx/`, and `src-iPad/` — files in those directories are

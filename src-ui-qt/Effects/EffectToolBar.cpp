@@ -1,11 +1,59 @@
 #include "EffectToolBar.h"
 
+#include <QApplication>
+#include <QDrag>
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QMimeData>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QScrollArea>
 #include <QToolButton>
 #include <QWidgetAction>
+
+// ── Draggable effect button ───────────────────────────────────────────────────
+// Extends QToolButton so that clicking emits effectSelected and dragging
+// starts a QDrag carrying "application/x-xlights-effect" MIME data.
+class EffectDragButton : public QToolButton {
+public:
+    explicit EffectDragButton(const QString& name, const QIcon& icon, QWidget* parent = nullptr)
+        : QToolButton(parent), _name(name) {
+        setIcon(icon);
+        setText(name);
+        setToolTip(name);
+        setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+        setIconSize({32, 32});
+        setFixedSize(62, 54);
+        setCheckable(true);
+        setAutoExclusive(true);
+    }
+
+protected:
+    void mousePressEvent(QMouseEvent* e) override {
+        if (e->button() == Qt::LeftButton)
+            _dragOrigin = e->pos();
+        QToolButton::mousePressEvent(e);
+    }
+
+    void mouseMoveEvent(QMouseEvent* e) override {
+        if (!(e->buttons() & Qt::LeftButton)) return;
+        if ((e->pos() - _dragOrigin).manhattanLength() < QApplication::startDragDistance()) return;
+
+        auto* mime = new QMimeData;
+        mime->setData("application/x-xlights-effect", _name.toUtf8());
+
+        auto* drag = new QDrag(this);
+        drag->setMimeData(mime);
+        // Use the button's icon as the drag cursor image.
+        drag->setPixmap(icon().pixmap(32, 32));
+        drag->setHotSpot({16, 16});
+        drag->exec(Qt::CopyAction);
+    }
+
+private:
+    QString _name;
+    QPoint  _dragOrigin;
+};
 
 // ── Icon generation ───────────────────────────────────────────────────────────
 
@@ -90,15 +138,7 @@ void EffectToolBar::populate(const QStringList& names) {
     hbox->setSpacing(2);
 
     for (const QString& name : names) {
-        auto* btn = new QToolButton;
-        btn->setIcon(makeIcon(name));
-        btn->setText(name);
-        btn->setToolTip(name);
-        btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-        btn->setIconSize({32, 32});
-        btn->setFixedSize(62, 54);
-        btn->setCheckable(true);
-        btn->setAutoExclusive(true);
+        auto* btn = new EffectDragButton(name, makeIcon(name), container);
         connect(btn, &QToolButton::clicked, this, [this, name] {
             emit effectSelected(name);
         });

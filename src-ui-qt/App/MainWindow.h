@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QHash>
 #include <QList>
 #include <QMainWindow>
 #include <QString>
+#include <QVector>
 
 class ControllerInfoWindow;
 class EffectPanelWidget;
@@ -51,8 +53,12 @@ private:
     // Returns empty list if model has no active blocks at the current frame.
     QList<QColor> renderModelLayers(const QString& modelName);
 
-    // Render ALL models in the sequence and update the house preview (full, accurate).
+    // Build the full frame-by-frame render cache for all models.
+    // Called by the Render All button.  Uses the software renderer for speed.
     void renderAllModels();
+
+    // Display a specific frame from the pre-built cache on house + model previews.
+    void displayCacheFrame(int frame);
 
     // After rendering a group effect, distribute pixels to each member model's
     // nodes based on their global positions within the group bounding box,
@@ -61,14 +67,14 @@ private:
                                   const QList<QColor>& groupPixels,
                                   bool updateModelPreview = false);
 
-    // Fast house preview update during playback: renders kHouseModelsPerTick
-    // models per call using the software renderer, cycling through all models.
-    void tickHousePreview(int curFrame);
+    // Variant used during cache build: stores pixels in the render cache
+    // for each member model at the given frame instead of updating previews.
+    void cacheGroupDistribution(const QString& groupName,
+                                const QList<QColor>& groupPixels,
+                                int frame);
 
-    // Parse palette colours from a raw "C_BUTTON_Palette1=#rrggbb,..." string.
-    static QList<QColor> parsePaletteQuick(const QString& rawPalette);
 
-    PlaybackController*  _playback      = nullptr;
+PlaybackController*  _playback      = nullptr;
     TransportToolBar*    _transport     = nullptr;
     EffectToolBar*       _effectsBar    = nullptr;
     QtRenderBridge*      _renderBridge  = nullptr;
@@ -80,16 +86,16 @@ private:
     HousePreviewWidget*  _housePreview  = nullptr;
 
     QString             _currentModel;
-    int                 _lastRenderedFrame = -1;
     QProgressBar*       _renderProgress    = nullptr;
     RenderDetailDialog* _renderDetailDlg   = nullptr;
 
-    // House preview real-time cycling state
-    QStringList         _houseQueue;         // all model names from the sequence
-    int                 _houseQueueIdx = 0;  // position in the cycling queue
-    static constexpr int kHouseModelsPerTick = 5;  // models rendered per playback tick
+    bool                _renderAllInProgress = false;
 
-    bool                _renderAllInProgress = false;  // re-entrancy guard for renderAllModels
+    // Full timeline render cache built by renderAllModels().
+    // _renderCache[modelName][frame] = pixel data (empty = no active effect → black)
+    // Uses QRgb (4 bytes/pixel) for compact storage.
+    QHash<QString, QVector<QVector<QRgb>>> _renderCache;
+    bool                                   _renderCacheValid = false;
 
     ModelInfoWindow*      _modelInfoWin      = nullptr;
     ControllerInfoWindow* _controllerInfoWin = nullptr;

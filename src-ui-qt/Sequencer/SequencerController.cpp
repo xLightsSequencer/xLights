@@ -23,6 +23,7 @@ void SequencerController::mousePress(QPoint pos, Qt::KeyboardModifiers /*mods*/)
 
     _dragging    = true;
     _dragRow     = row;
+    _ghostRow    = row;   // starts on the source row
     _dragBlock   = block;
     _zone        = zone;
     _dragOriginX = pos.x();
@@ -41,10 +42,15 @@ void SequencerController::mouseMove(QPoint pos) {
     int dFrame = int(dx / _model->pixelsPerFrame());
 
     switch (_zone) {
-    case SequencerModel::Body:
+    case SequencerModel::Body: {
         _ghostStart = snap(_origStart + dFrame);
         _ghostEnd   = _ghostStart + (_origEnd - _origStart);
+        // Track target row: follow mouse Y, fall back to source row.
+        int targetRow = _model->rowAt(pos.y());
+        if (targetRow >= 0 && _model->isRowVisible(targetRow))
+            _ghostRow = targetRow;
         break;
+    }
     case SequencerModel::ResizeLeft:
         _ghostStart = snap(qMin(_origStart + dFrame, _origEnd - 1));
         _ghostEnd   = _origEnd;
@@ -63,9 +69,11 @@ void SequencerController::mouseMove(QPoint pos) {
 void SequencerController::mouseRelease(QPoint /*pos*/) {
     if (!_dragging) return;
 
-    // Commit
     if (_zone == SequencerModel::Body) {
-        _model->moveBlock(_dragRow, _dragBlock, _ghostStart);
+        if (_ghostRow != _dragRow)
+            _model->moveBlockToRow(_dragRow, _dragBlock, _ghostRow, _ghostStart);
+        else
+            _model->moveBlock(_dragRow, _dragBlock, _ghostStart);
     } else if (_zone == SequencerModel::ResizeLeft || _zone == SequencerModel::ResizeRight) {
         _model->resizeBlock(_dragRow, _dragBlock, _ghostStart, _ghostEnd);
     }

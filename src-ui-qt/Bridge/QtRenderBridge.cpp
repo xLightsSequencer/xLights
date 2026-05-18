@@ -11,6 +11,7 @@
 #include "../../src-core/effects/EffectManager.h"
 #include "../../src-core/models/ModelManager.h"
 #include "../../src-core/models/Model.h"
+#include "../../src-core/models/ModelGroup.h"
 #include "../../src-core/render/Effect.h"
 #include "../../src-core/render/EffectLayer.h"
 #include "../../src-core/render/Element.h"
@@ -51,17 +52,20 @@ void QtRenderBridge::setShowFolder(const QString& showFolder) {
     // Reload outputs.
     s_ctx->outputManager().Load(showFolder.toStdString());
 
-    // Load all models (including groups) from xlights_rgbeffects.xml so that
-    // renderCore() can use the real model topology (InitRenderBufferNodes).
-    // This matches what the wx version does with ModelManager::LoadModels().
+    // Load models AND groups from xlights_rgbeffects.xml so that renderCore()
+    // can call InitRenderBufferNodes for both regular models and ModelGroups.
+    // LoadModels() handles <model> elements; LoadGroups() handles <modelGroup>.
     try {
         const std::string rgbFile = showFolder.toStdString() + "/xlights_rgbeffects.xml";
         pugi::xml_document doc;
         if (doc.load_file(rgbFile.c_str())) {
             auto root = doc.first_child();
             auto modelsNode = root.child("models");
-            if (modelsNode && s_mm)
+            auto groupsNode = root.child("modelGroups");
+            if (modelsNode && s_mm) {
                 s_mm->LoadModels(modelsNode, 1920, 1080);
+                if (groupsNode) s_mm->LoadGroups(groupsNode, 1920, 1080);
+            }
         }
     } catch (...) {
         spdlog::warn("QtRenderBridge: failed to load show models");
@@ -94,6 +98,22 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
             if (!_showFolder.isEmpty())
                 s_ctx->outputManager().Load(_showFolder.toStdString());
             s_mm  = std::make_unique<ModelManager>(&s_ctx->outputManager(), s_ctx.get());
+
+            // Load models + groups from the show folder if it was already set.
+            if (!_showFolder.isEmpty()) {
+                const std::string rgbFile = _showFolder.toStdString() + "/xlights_rgbeffects.xml";
+                pugi::xml_document doc;
+                if (doc.load_file(rgbFile.c_str())) {
+                    auto root = doc.first_child();
+                    auto modelsNode = root.child("models");
+                    auto groupsNode = root.child("modelGroups");
+                    if (modelsNode) {
+                        s_mm->LoadModels(modelsNode, 1920, 1080);
+                        if (groupsNode) s_mm->LoadGroups(groupsNode, 1920, 1080);
+                    }
+                }
+            }
+
             spdlog::info("QtRenderBridge: src-core ready ({} effects)",
                          s_ctx->GetEffectManager().size());
         } catch (...) {
@@ -155,11 +175,9 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
         const std::string bufTransform = settings.Get("CHOICE_BufferTransform","None");
 
         // ── 3. Look up the real model from the show file ─────────────────
-        // Matches wx behaviour: use model->InitRenderBufferNodes() to get the
-        // correct buffer dimensions AND node topology for all model types,
-        // including group models (minimalGrid layout) and shaped models (trees,
-        // stars, custom).  Falls back to the stub/caller-supplied dims when the
-        // model is not found.
+        // Use model->InitRenderBufferNodes() to get the correct buffer dimensions
+        // and node topology for shaped models (trees, stars, custom).
+        // Falls back to the stub/caller-supplied dims when the model is not found.
         int bufW = req.bufferW;
         int bufH = req.bufferH;
         std::vector<NodeBaseClassPtr> realNodes;
@@ -169,7 +187,12 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
             try { realModel = s_mm->GetModel(req.modelName.toStdString()); }
             catch (...) { realModel = nullptr; }
 
-            if (realModel) {
+            // Skip InitRenderBufferNodes for ModelGroups: the minimalGrid buffer
+            // dimensions bear no relation to physical layout space, so sampling
+            // in distributeGroupToMembers (which uses globalPositions bounding-box
+            // coordinates) would map to completely wrong pixels.  Groups render
+            // into the bounding-box-sized buffer supplied by req.bufferW/H instead.
+            if (realModel && dynamic_cast<ModelGroup*>(realModel) == nullptr) {
                 try {
                     realModel->InitRenderBufferNodes(
                         bufStyle, "2D", bufTransform,
@@ -190,7 +213,7 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
 
         // ── 4. RenderBuffer ──────────────────────────────────────────────
         QtModelStub model(*s_mm, req.effectName.toStdString(), bufW, bufH);
-        RenderBuffer buffer(nullptr, nullptr, &model);
+        RenderBuffer buffer(s_ctx.get(), nullptr, &model);
         buffer.InitBuffer(bufH, bufW, bufTransform);
 
         // Give the buffer the real node topology so effects that walk

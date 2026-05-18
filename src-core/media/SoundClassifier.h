@@ -1,13 +1,13 @@
 #pragma once
 
-// A7: SNClassifySoundRequest wrapper. Classifies audio into sound
-// types (drums, vocals, guitar, applause, …) by running Apple's
-// built-in classifier over the AudioManager's raw signal. Returns a
-// per-second confidence curve for each detected class.
+// A7: Sound classification. Returns per-window confidence curves for each
+// detected sound class (drums, vocals, guitar, applause, …).
 //
-// Apple-only. The implementation lives in `SoundClassifier.mm`, which
-// is compiled only on Apple targets (macOS + iOS). Non-Apple callers
-// should guard with `#ifdef __APPLE__` — there is no stub here.
+// Two implementations:
+//   SoundClassifier.mm  — Apple targets (macOS 12+, iOS 15+).
+//                         Uses SNClassifySoundRequest from SoundAnalysis.framework.
+//   SoundClassifier.cpp — Windows / Linux (requires HAVE_ORT).
+//                         Uses an ONNX model at opts.modelPath (YAMNet-compatible).
 
 #include <string>
 #include <vector>
@@ -16,19 +16,15 @@ class AudioManager;
 
 struct SoundClassResult {
     std::string name;
-    // One confidence value per `timeStepSeconds` of audio. Values are
-    // Apple's [0, 1] classifier confidences for this class on each
-    // window.
+    // One confidence value per `timeStepSeconds` of audio; [0, 1] per window.
+    // Classes are returned sorted by averageConfidence descending.
     std::vector<float> confidence;
-    // Helper — mean of `confidence`. Classes are returned sorted by
-    // this value descending.
     float averageConfidence = 0.0f;
 };
 
 struct SoundClassification {
     std::vector<SoundClassResult> classes;
-    // Window-size (seconds) used by the analyzer. Usually 1.0 s for
-    // the built-in classifier.
+    // Window size (seconds) used by the analyzer.
     float timeStepSeconds = 1.0f;
     long lengthMS = 0;
 };
@@ -39,9 +35,11 @@ struct SoundClassifierOptions {
     float minAverageConfidence = 0.05f;
     // Upper bound on returned classes (for UI sanity).
     int maxClasses = 12;
-    // Window in seconds. Larger = smoother / faster; smaller = more
-    // reactive / slower. Apple defaults to 1.0.
+    // Reporting window in seconds. Larger = smoother curves.
     float windowSeconds = 1.0f;
+    // Path to .onnx model file. Non-Apple only; Apple uses the built-in
+    // classifier and ignores this field.
+    std::string modelPath;
 };
 
 // Runs synchronously. Apple's classifier is real-time on M-series
