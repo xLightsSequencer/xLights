@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 
+#include "utils/AutoReleasePool.h"
 #include "RenderEngine.h"
 #include "RenderContext.h"
 #include "Effect.h"
@@ -848,6 +849,7 @@ public:
             }
 
             for (int frame = startFrame; frame <= endFrame; ++frame) {
+                AutoReleasePool pool;
                 currentFrame = frame;
                 SetGenericStatus("{}: Starting frame {} ", frame, true, true);
 
