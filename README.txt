@@ -15,16 +15,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.09  May 9, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
                                 so dependent models become unassigned instead of pointing at a missing controller.
-    -bug (derwin12)             Revert change to correct black artifacts in video render
     -enh (derwin12)             Add ability to repick missing shaders and other media types 
-    -bug (derwin12)             Shift select to delete nodes on submodels now removes all like entries (6359)
-    -bug (derwin12)             After deleting a model, random item was selected (6342) (#6343)
-    -bug (derwin12)             Update pathing if multiple shaders/images where selected (#6327)
     -enh (derwin12)             Warn users if a shader fails to compile (#6298)
     -enh (derwin12)             Provide a warning when autosize is enabled on uncommon universe size (#4123)
-    -bug (derwin12)             Default column width on layout tab for Linux was incorrect (#6328)
     -enh (scott)                Add experimental custom color picker (Preferences > Other) with HSV disc,
                                 brightness slider, CSS named-color swatches, recent colors, and hex entry.
+    -enh (scott)                Add to moving head effect contol + click color wheel to open color picker.
     -enh (cybercop23)           "Paste Effects" auto-inserts the needed layers when pasting multi-layer effects;
                                 new "Copy Layers/SubModels to Models" pastes effects to multiple models at once.
     -enh (dkulp)                macOS crash report: capture every thread's backtrace at the moment of the crash
@@ -37,6 +33,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)           Allow multi-model export/import from the same xmodel file.
     -enh (cybercop23)           Add timeline to available effect import. Add the ability to hide unmapped submodels.
                                 Fix SubModel alias import.
+    -enh (scott)                Fix moving head effect Color Wheel not allowing 100 saturation.
+    -bug (derwin12)             Default column width on layout tab for Linux was incorrect (#6328)
+    -bug (derwin12)             Revert change to correct black artifacts in video render
+    -bug (derwin12)             Shift select to delete nodes on submodels now removes all like entries (6359)
+    -bug (derwin12)             After deleting a model, random item was selected (6342) (#6343)
+    -bug (derwin12)             Update pathing if multiple shaders/images where selected (#6327)
     -bug (cybercop23)           Fix highlight and key-bindings on model tree selection.
     -bug (dkulp)                Shader effect (Windows): return the GL context to the pool every frame instead
                                 of pinning one per ShaderRenderCache.
