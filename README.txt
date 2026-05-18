@@ -11,101 +11,54 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.09  May ??, 2026
-    -enh (dkulp)                On controller delete, clear any model's "!ControllerName:..." start channel
-                                and reset _controllerName so dependent models become fully unassigned
-                                rather than left pointing at a missing controller.
-    -enh (scott)                Add custom color picker dialog (opt-in via Preferences > Other > "Use custom
-                                color picker (experimental)") with HSV disc, brightness slider, CSS named color
-                                swatches, recent colors, hex entry, randomize, and system picker fallback.
-    -bug (dkulp)                Shader effect (Windows): return the GL context to the pool every frame
-                                instead of pinning one per ShaderRenderCache.
-    -enh (cybercop23)           Enhance "Paste Effects" on model context menu to automatically insert the needed
-                                layers when pasting multi-layer effects so the paste does not bleed into
-                                subsequent models or groups. Also adds "Copy Layers/SubModels to Models" option
-                                to copy effects to multiple models at once.
-    -bug (dkulp)                Audit/fix for fast-math hazard elsewhere: TempoDetector (could
-                                pick wrong tempo when autocorrelation peak was negative), ChordDetector
-                                key/chord scoring (latent), mapbox earcut polygon triangulation for OBJ
-                                mesh import. Also switched std::isnan/isinf/isfinite guards in
-                                BoxedScreenLocation, PolyPointScreenLocation, Model::sort, PixelBuffer
-                                RotoZoom, and the polyline length helper to __builtin_* equivalents so
+    -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
+                                so dependent models become unassigned instead of pointing at a missing controller.
+    -enh (scott)                Add experimental custom color picker (Preferences > Other) with HSV disc,
+                                brightness slider, CSS named-color swatches, recent colors, and hex entry.
+    -enh (cybercop23)           "Paste Effects" auto-inserts the needed layers when pasting multi-layer effects;
+                                new "Copy Layers/SubModels to Models" pastes effects to multiple models at once.
+    -enh (dkulp)                macOS crash report: capture every thread's backtrace at the moment of the crash
+                                into a new `all-threads.txt` file.
+    -enh (Neil)                 Custom Model Wiring header overlay now shows "Total Nodes: N" below Rotation.
+    -enh (dkulp)                MediaCompatibility flags rawvideo .mov with non-8-aligned row stride so the
+                                on-load convert dialog catches them and converts to ProRes 4444 before playback.
+    -enh (dkulp)                AVFoundationVideoReader detects rawvideo .mov with non-8-aligned stride at
+                                construction so desktop falls back to FFmpeg; iPad surfaces them as unreadable.
+    -bug (dkulp)                Shader effect (Windows): return the GL context to the pool every frame instead
+                                of pinning one per ShaderRenderCache.
+    -bug (dkulp)                Fast-math hazard audit: fixed TempoDetector, ChordDetector, and mapbox earcut OBJ
+                                triangulation; switched isnan/isinf/isfinite guards to __builtin_* so
                                 -ffinite-math-only no longer elides them.
     -bug (dkulp)                OpenGL (Windows): check the LoadGLFunctions return value before initializing
-                                shaders, and check every required GL entry point (not just glCreateShader)
-                                inside ShaderProgram::Init.
+                                shaders, and check every required GL entry point inside ShaderProgram::Init.
     -bug (dkulp)                EffectsPanel::SetDefaultEffectValues: null-check effectManager and
                                 effectPanelManager before iterating.
     -bug (dkulp)                LayoutPanel::FinalizeModel: null-check the dynamic_cast<PolyLineModel*> of
-                                _newModel before calling ClearPolyLineCreate/GetNumHandles. 
-    -bug (dkulp)                LayoutPanel: null-check event.GetProperty() in OnPropertyGridChanging.
-                                wxPropertyGrid can fire CHANGING with a null property during a grid rebuild
-                                (the prior selection was already detached); the three CreateUndoPoint call
-                                sites that dereferenced it crashed under that race. 5 reports / 2 reporters
-                                on 2026.07, triggered by editing the BkgSizeWidth/Height background-size
-                                spinners while the layout group was being switched.
-    -bug (dkulp)                Layout preview: guard Model::DisplayModelOnWindow / DisplayEffectOnWindow
-                                against null Nodes and empty Coords in the non-depth-sort node-order
-                                builder. Top Mac crash bucket (24 reports): rendering a freshly-created
-                                Tree/Sphere/Cube _newModel during 3D drag-to-place hit UB before geometry
-                                was populated.
-    -enh (dkulp)                macOS crash report: capture every thread's backtrace at the moment of
-                                the crash into a new `all-threads.txt` file.
-    -bug (dkulp)                Stem Separator crash: guard the CoreML inference call with @try/@catch and reject
+                                _newModel before calling ClearPolyLineCreate/GetNumHandles.
+    -bug (dkulp)                LayoutPanel: null-check event.GetProperty() in OnPropertyGridChanging — fixes
+                                crashes editing BkgSizeWidth/Height while a layout group is being switched.
+    -bug (dkulp)                Layout preview: guard DisplayModelOnWindow/DisplayEffectOnWindow against null
+                                Nodes/empty Coords — fixes top macOS crash 3D drag-placing new Tree/Sphere/Cube.
+    -bug (dkulp)                Stem Separator: guard the CoreML inference call with @try/@catch and reject
                                 outputs whose strides have fewer dimensions than the shape.
-    -bug (cybercop23)           Fix 3D shift+drag lasso selecting models outside the selection box, especially
-                                when zoomed in. The OBB containment test was projecting only 2 of the 8 AABB
-                                corners to screen space; now all 8 corners are projected and the true
-                                screen-space bounds are used. Added depth filtering so far-background models
-                                that happen to project within the lasso are no longer selected.
-    -bug (dkulp)                Fix Apple Intelligence crash inside FoundationModels.respond() on macOS 26.
-                                Reorder LD_RUNPATH_SEARCH_PATHS so /usr/lib/swift is searched before the .app's
-                                bundled libswift_Concurrency.dylib. With the old order, the back-deployed
-                                Swift 5.7 Concurrency runtime was loaded instead of the system Swift 6.x one,
-                                and FoundationModels (which uses Swift 6 isolation/executor ABI) nil-dereffed
-                                inside respond(). The Apple Intelligence bridge also now gates on
-                                SystemLanguageModel availability and surfaces a clear reason (not enabled /
-                                model not ready / device not eligible) instead of an empty result.
-    -enh (Neil)                 Custom Model Wiring view: header overlay now includes a "Total Nodes: N" line below
-                                Rotation so you can see the model's pixel count at a glance without counting.
-    -bug (scott)                Fix HTDemucs ONNX model download failing: the 12-second total curl timeout set for
-                                short API calls was also killing the large-file download before it could complete.
-    -bug (dkulp)                Backup: switch the per-file copy from wxCopyFile to std::filesystem::copy_file so
-                                failures log the source/dest path and the underlying system error (errno) instead
-                                of a bare "Copy Failed". Also request write access for the backup directory so
-                                sandboxed (App Store) builds get a writable security-scoped bookmark.
-    -bug (Neil)                 macOS: opening a .xsqz package while a sequence was already loaded replaced the
-                                current show folder in-place instead of launching a separate instance like Windows
-                                does. Now spawns a new xLights process for the package via `open -n`, leaving the
-                                current sequence untouched. The pre-existing File menu "Open New xLights Instance"
-                                also now uses the running bundle path so Debug builds spawn Debug builds.
-    -bug (cjd)                  Fix audio not playing on first Play after opening a sequence (had to Stop and Play again
-                                to get audio). AudioManager::Seek() now lazy-adds the audio stream, matching Play()'s
-                                behavior after the deferred-AddAudio change.
-    -bug (dkulp)                Generate AI Lyrics now feeds the recogniser whatever waveform the user has currently
-                                selected (RAW, an isolated HTDemucs vocals stem, a band-passed filter, etc.) instead
-                                of always sending the original mix. Previously the in-place stem selection was
-                                ignored and the recogniser saw the full mix unless an alt-track file was attached.
-    -bug (dkulp)                Video transcode: when a chosen encoder (e.g. libx265 with its 16x16 minimum) refuses
-                                to open for the source dimensions, fall through to the next candidate (libx264, etc.)
-                                instead of returning a "Could not open encoder" failure. Fixes transcoding very small
-                                videos on Windows where libx265 was previously the only HEVC option tried.
-    -bug (dkulp)                Video transcode + Export Model Video (.mov): root-cause is that AVFoundation's
-                                QuickTime rawvideo decoder requires the row stride to be a multiple of 8 bytes
-                                (so for rgb24, width must be a multiple of 8). Wider matrix sizes (128x96 etc.)
-                                always met this; narrow models (50x24 etc.) silently failed to decode on
-                                macOS sequence reopen and on iPad (no FFmpeg fallback). Now: when width is
-                                8-aligned, .mov stays rawvideo (bit-exact, what TuneToMatrix.mov-style files
-                                always did); otherwise we route through ProRes 4444 (visually-lossless,
-                                AVFoundation-decodable). The "Uncompressed" .avi export is unchanged.
-    -enh (dkulp)                MediaCompatibility check now flags rawvideo .mov files with non-8-aligned row
-                                stride so the on-load "convert incompatible video" dialog catches them and
-                                converts to ProRes 4444 instead of letting them silently fail at playback.
-                                Also catches the broader silent-failure pattern (AVAssetReader producing zero
-                                samples after a successful startReading).
-    -enh (dkulp)                AVFoundationVideoReader detects rawvideo .mov with non-8-aligned stride at
-                                construction and invalidates the reader so VideoReader.cpp's existing FFmpeg
-                                fallback handles those files on desktop. iPad has no fallback so the file is
-                                surfaced as unreadable rather than silently producing black frames.
+    -bug (cybercop23)           3D shift+drag lasso was selecting models outside the box when zoomed in: the OBB
+                                test now projects all 8 AABB corners (was 2) and depth-filters background models.
+    -bug (dkulp)                Fix Apple Intelligence crash in FoundationModels.respond() on macOS 26 by
+                                reordering rpath so /usr/lib/swift wins over the bundled libswift_Concurrency.
+    -bug (scott)                HTDemucs ONNX model download was failing because the 12s curl timeout meant for
+                                short API calls also killed the large-file download.
+    -bug (dkulp)                Backup: per-file copy now uses std::filesystem::copy_file (logs path/errno on
+                                failure), and requests write access so sandboxed builds get a writable bookmark.
+    -bug (Neil)                 macOS: opening a .xsqz package while a sequence is loaded now spawns a new xLights
+                                process via `open -n` instead of replacing the current show folder in-place.
+    -bug (cjd)                  Audio not playing on first Play after opening a sequence — AudioManager::Seek()
+                                now lazy-adds the audio stream the same way Play() does.
+    -bug (dkulp)                Generate AI Lyrics now feeds the recogniser the currently-selected waveform (RAW,
+                                HTDemucs vocals stem, band-passed, etc.) instead of always sending the mix.
+    -bug (dkulp)                Video transcode: when a chosen encoder (e.g. libx265's 16x16 minimum) refuses the
+                                source dimensions, fall through to the next candidate. Fixes very small videos.
+    -bug (dkulp)                Video transcode + Export Model Video (.mov): AVFoundation rawvideo decoder needs
+                                row stride divisible by 8, so non-8-aligned widths now route through ProRes 4444.
 
 2026.08  May 7, 2026
     -enh (dkulp)                When a JobPool worker thread dies from an unhandled C++ exception, the log now
