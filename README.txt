@@ -12,7 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
-2026.09  May 9, 2026
+2026.09  May 18, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
                                 so dependent models become unassigned instead of pointing at a missing controller.
     -enh (derwin12)             Add ability to repick missing shaders and other media types 
