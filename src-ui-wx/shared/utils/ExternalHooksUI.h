@@ -32,5 +32,6 @@
 #ifndef __XL_EXTERNAL_HOOKS__
 inline double xlOSGetMainScreenContentScaleFactor() { return 1.0; }
 inline bool IsMouseEventFromTouchpad() { return false; }
+inline bool hasFullDiskAccess() { return false; }
 #define WXGLUnsetCurrentContext()
 #endif

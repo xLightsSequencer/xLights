@@ -17,6 +17,35 @@ set(XL_INC  ${CMAKE_SOURCE_DIR}/include)
 set(XL_DEPS ${CMAKE_SOURCE_DIR}/dependencies)
 set(XL_LIB  ${CMAKE_SOURCE_DIR}/lib)
 
+# ─── macOS prebuilt dependency tree (matches Xcode build layout) ───────────
+# When macOS/scripts/download_deps has run, macOS/dependencies is a symlink
+# to either /opt/local or a tag-specific tarball under macOS/. Reuse those
+# prebuilt libs so the cmake build doesn't need a parallel copy.
+#
+# Single-config only: find_library can't use generator expressions, so the
+# wx-config + lib dir are chosen at configure time from CMAKE_BUILD_TYPE.
+#   Debug   → libdbg/ (dylibs)     — fast link, matches Xcode Debug.
+#   Release → lib/    (static+LTO) — slow link, matches Xcode Release.
+if(APPLE AND EXISTS "${CMAKE_SOURCE_DIR}/macOS/dependencies/bin/wx-config")
+    set(XL_MAC_DEPS "${CMAKE_SOURCE_DIR}/macOS/dependencies")
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(XL_MAC_LIB "${XL_MAC_DEPS}/libdbg")
+        set(_xl_wxcfg "${XL_MAC_LIB}/wx/config/osx_cocoa-unicode-3.3")
+    else()
+        set(XL_MAC_LIB "${XL_MAC_DEPS}/lib")
+        set(_xl_wxcfg "${XL_MAC_LIB}/wx/config/osx_cocoa-unicode-static-3.3")
+    endif()
+    set(XL_MAC_INC "${XL_MAC_DEPS}/include")
+    if(EXISTS "${_xl_wxcfg}")
+        set(wxWidgets_CONFIG_EXECUTABLE "${_xl_wxcfg}"
+            CACHE FILEPATH "wxWidgets config executable")
+    endif()
+    # Lets find_package(CURL / zstd / SDL2 / WebP) discover deps-tree configs
+    # ahead of any system install.
+    list(PREPEND CMAKE_PREFIX_PATH "${XL_MAC_DEPS}")
+    message(STATUS "macOS prebuilt deps: ${XL_MAC_DEPS} (lib dir: ${XL_MAC_LIB})")
+endif()
+
 if(MSVC)
     add_compile_options("/utf-8")
     # /MP — compile multiple source files in parallel within a single project.
@@ -101,7 +130,7 @@ if(WIN32 AND wxWidgets_ROOT_DIR AND NOT wxWidgets_LIB_DIR)
 endif()
 
 find_package(wxWidgets 3.3 REQUIRED
-    COMPONENTS core base gl net xml aui propgrid ribbon stc media qa html)
+    COMPONENTS core base gl net xml aui propgrid qa html)
 include(${wxWidgets_USE_FILE})
 # Ensure wx lib dir is in the linker search path for all targets (covers
 # transitive #pragma comment(lib,...) references inside the wx static libs).
@@ -154,7 +183,7 @@ else()
     if(NOT FFMPEG_INCLUDE_DIR)
         find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h)
     endif()
-    set(_FF_HINTS ${XL_LIB}/windows64 /usr/lib /usr/local/lib)
+    set(_FF_HINTS ${XL_MAC_LIB} ${XL_LIB}/windows64 /usr/lib /usr/local/lib)
     foreach(_ff avcodec avformat avutil avfilter swscale swresample)
         string(TOUPPER ${_ff} _FF_UPPER)
         find_library(${_FF_UPPER}_LIB NAMES ${_ff} HINTS ${_FF_HINTS})
@@ -164,7 +193,11 @@ endif()
 
 # ─── SDL2 ───────────────────────────────────────────────────────────────────
 # Try cmake config first (works on all platforms when SDL2 is installed with cmake).
-find_package(SDL2 QUIET CONFIG)
+# Skip on Apple-with-deps so we don't pull in /opt/homebrew/include — that
+# breaks sol2's `__has_include(<lua/lua.h>)` probe by exposing Homebrew's lua.
+if(NOT XL_MAC_DEPS)
+    find_package(SDL2 QUIET CONFIG)
+endif()
 if(SDL2_FOUND)
     # Modern SDL2 cmake config: target SDL2::SDL2
     set(SDL2_LINK_TARGET SDL2::SDL2)
@@ -179,7 +212,7 @@ else()
         find_path(SDL2_INCLUDE_DIR SDL.h PATH_SUFFIXES SDL2)
     endif()
     find_library(SDL2_LIB NAMES SDL2 SDL2-static
-        HINTS ${XL_LIB}/windows64
+        HINTS ${XL_MAC_LIB} ${XL_LIB}/windows64
         PATHS /usr/lib /usr/local/lib)
     set(SDL2_LINK_TARGET ${SDL2_LIB})
     set(SDL2_INC ${SDL2_INCLUDE_DIR})
@@ -208,6 +241,7 @@ else()
         set(ZSTD_LINK_TARGET optimized ${ZSTD_LIB_RELEASE} debug ${ZSTD_LIB_DEBUG})
     else()
         find_library(ZSTD_LIB NAMES zstd libzstd_static libzstd_static_VS
+            HINTS ${XL_MAC_LIB}
             PATHS /usr/lib /usr/local/lib)
         set(ZSTD_LINK_TARGET ${ZSTD_LIB})
     endif()
@@ -222,10 +256,10 @@ if(CURL_FOUND)
     set(CURL_INC "")
 else()
     find_path(CURL_INCLUDE_DIR curl/curl.h
-        HINTS ${XL_INC}
+        HINTS ${XL_MAC_INC} ${XL_INC}
         PATHS /usr/include /usr/local/include)
     find_library(CURL_LIB NAMES libcurl_msvc curl libcurl curl_imp libcurl_a
-        HINTS ${XL_LIB}/windows64
+        HINTS ${XL_MAC_LIB} ${XL_LIB}/windows64
         PATHS /usr/lib /usr/local/lib)
     # The vcxproj links via #pragma comment(lib,"libcurl.dll.a") which MSVC accepts.
     # Fall back to the same vendored file when no .lib variant is found.
@@ -251,6 +285,17 @@ list(REMOVE_ITEM LUA_SRC
     ${XL_DEPS}/lua/src/lua.c
     ${XL_DEPS}/lua/src/luac.c)
 set(LUA_INCLUDE_DIR ${XL_DEPS}/lua/src)
+
+# sol2 probes `__has_include(<lua/lua.h>)` first; if a system install
+# (e.g. Homebrew lua 5.5) is in the search path that probe wins, then
+# sol2 errors on the wrong API. Stage the vendored lua 5.4 headers
+# under a `lua/` subdir and add that as a PRIVATE -I so the probe
+# resolves against vendored first.
+set(LUA_STAGE_DIR ${CMAKE_BINARY_DIR}/lua_stage)
+file(MAKE_DIRECTORY ${LUA_STAGE_DIR}/lua)
+foreach(_h lua.h lualib.h lauxlib.h luaconf.h lua.hpp)
+    configure_file(${XL_DEPS}/lua/src/${_h} ${LUA_STAGE_DIR}/lua/${_h} COPYONLY)
+endforeach()
 
 # ─── Source file collection ─────────────────────────────────────────────────
 
@@ -300,10 +345,16 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp)
 elseif(APPLE)
+    # Match Xcode's EXCLUDED_SOURCE_FILE_NAMES on macOS: serial.cpp is the
+    # cross-platform impl that already covers the POSIX path on Apple, so
+    # serial_osx.cpp would double-define SerialPort::Open et al.
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
-        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_posix.cpp)
+        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_posix.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/outputs/uDMXOutput.cpp
+        ${CMAKE_SOURCE_DIR}/src-core/outputs/uDMXOutput.h)
 else()
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
@@ -340,7 +391,7 @@ file(GLOB SRC_EFFECTS
 # ─── ISPC (Intel SPMD Program Compiler — SIMD kernels) ──────────────────────
 # Visual Studio generators do not support enable_language(ISPC).
 # Use it on Linux/macOS (Ninja/Makefile), fall back to add_custom_command on VS.
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|ARM64")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
     set(_ispc_targets "neon-i32x8")
     set(_ispc_arch    "aarch64")
 else()
@@ -350,6 +401,10 @@ endif()
 
 if(NOT WIN32)
     # ── Linux / macOS: native CMake ISPC language support ──────────────────
+    if(XL_MAC_DEPS AND NOT CMAKE_ISPC_COMPILER
+       AND EXISTS "${XL_MAC_DEPS}/bin/ispc")
+        set(CMAKE_ISPC_COMPILER "${XL_MAC_DEPS}/bin/ispc" CACHE FILEPATH "ispc")
+    endif()
     include(CheckLanguage)
     check_language(ISPC)
     if(CMAKE_ISPC_COMPILER)
@@ -479,6 +534,52 @@ if(WIN32)
     set(WIN32_RC xLights/resource.rc)
 endif()
 
+if(APPLE)
+    # Stub source for Swift-dependent bridge symbols the cmake build
+    # can't compile (see cmake/macOS_stubs/macOS_cmake_stubs.mm).
+    set(XL_MACOS_CMAKE_STUBS
+        ${CMAKE_SOURCE_DIR}/cmake/macOS_stubs/macOS_cmake_stubs.mm)
+    # Non-Swift Apple bridges — same .mm files the Xcode build compiles.
+    # Anything that includes xLights_{Apple_core,macOSLib_UI}-Swift.h is
+    # skipped here and instead stubbed in macOS_cmake_stubs.mm.
+    set(XL_MACOS_BRIDGES
+        # Public/core side (src-core/media/*.mm): these are the classes
+        # AudioManager / VideoReader / etc. actually instantiate on Apple.
+        ${CMAKE_SOURCE_DIR}/src-core/media/AudioToolboxDecoder.mm
+        ${CMAKE_SOURCE_DIR}/src-core/media/AVAudioEngineOutput.mm
+        ${CMAKE_SOURCE_DIR}/src-core/media/AVFoundationVideoReader.mm
+        ${CMAKE_SOURCE_DIR}/src-core/media/MediaCompatibility.mm
+        ${CMAKE_SOURCE_DIR}/src-core/media/SoundClassifier.mm
+        ${CMAKE_SOURCE_DIR}/src-core/media/StemSeparator.mm
+        # Apple-platform back-ends (macOS/src-apple-core/): pure ObjC++,
+        # no Swift bridging required.
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/media/AudioToolboxBridge.mm
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/media/AVAudioEngineOutputBridge.mm
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/media/AVFoundationVideoBridge.mm
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/media/MediaCompatibilityBridge.mm
+        # SoundClassifierBridge.mm is skipped — src-core/media/SoundClassifier.mm
+        # already defines XLSoundClassifierObserver (looks like a duplicated
+        # work-in-progress on this branch).
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/media/StemSeparatorBridge.mm
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/osxUtils/XLMetricKit.mm
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core/osxUtils/xlVideoToolboxUtils.mm
+        # UI-side bridges in macOS/src-mac-ui/osxUtilsUI/.
+        ${CMAKE_SOURCE_DIR}/macOS/src-mac-ui/osxUtilsUI/InAppPurchaseDialog.cpp
+        ${CMAKE_SOURCE_DIR}/macOS/src-mac-ui/osxUtilsUI/osxInAppPurchases.mm
+        ${CMAKE_SOURCE_DIR}/src-ui-wx/shared/utils/xLightsTimer.mm)
+    # Allow bridge .mm files to find the headers next to them via
+    # "osxUtils/Foo.h" / "osxUtilsUI/Foo.h" style includes used in
+    # the broader codebase.
+    list(APPEND XL_APPLE_BRIDGE_INCLUDES
+        ${CMAKE_SOURCE_DIR}/macOS/src-apple-core
+        ${CMAKE_SOURCE_DIR}/macOS/src-mac-ui)
+    # The cmake build doesn't compile the Metal canvas / Metal bridges,
+    # so force the OpenGL canvas via xlGraphicsBase.h's escape hatch
+    # (adding macOS/src-mac-ui to the include path otherwise flips the
+    # `__has_include("osxUtilsUI/wxMetalCanvas.hpp")` probe to true).
+    add_compile_definitions(FORCE_OPENGL_BASE)
+endif()
+
 add_executable(xLights WIN32 MACOSX_BUNDLE
     ${SRC_CORE}
     ${SRC_EFFECTS}
@@ -486,6 +587,8 @@ add_executable(xLights WIN32 MACOSX_BUNDLE
     ${SRC_DEPS}
     ${LUA_SRC}
     ${WIN32_RC}
+    ${XL_MACOS_CMAKE_STUBS}
+    ${XL_MACOS_BRIDGES}
 )
 
 # Add ISPC-generated object files to the link step.
@@ -502,10 +605,12 @@ source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SRC_DEPS} ${LUA_SRC})
 
 # ─── Include directories ────────────────────────────────────────────────────
 target_include_directories(xLights PRIVATE
+    ${LUA_STAGE_DIR}
     ${CMAKE_SOURCE_DIR}/src-core
     ${CMAKE_SOURCE_DIR}/src-core/render
     ${CMAKE_SOURCE_DIR}/src-core/utils
     ${CMAKE_SOURCE_DIR}/src-ui-wx
+    ${XL_APPLE_BRIDGE_INCLUDES}
 
     ${XL_DEPS}
     ${XL_DEPS}/spdlog/include
@@ -530,8 +635,16 @@ if(NOT XLIGHTS_USE_VCPKG)
     # Prefer z.lib (plain static MSVC build, no ASM deps).
     # zlibwapi.lib ships without its companion gvmat64.obj / inffas8664.obj
     # ASM objects and causes LNK2001 on x64 MSVC — keep it as last resort.
+    # Windows-only hint: ${XL_LIB}/windows64 ships MinGW-built libz.a that
+    # macOS ld silently mis-identifies and rejects ("archive member '/' not
+    # a mach-o file") — keep it off the Apple/Linux search path.
+    if(WIN32)
+        set(_ZLIB_HINTS ${XL_LIB}/windows64)
+    else()
+        set(_ZLIB_HINTS /usr/lib /usr/local/lib)
+    endif()
     find_library(ZLIB_LIB NAMES z zlib zlibstatic zlibwapi
-        HINTS ${XL_LIB}/windows64 /usr/lib /usr/local/lib)
+        HINTS ${_ZLIB_HINTS})
     if(ZLIB_LIB)
         set(ZLIB_LINK_TARGET ${ZLIB_LIB})
     else()
@@ -569,7 +682,12 @@ endif()
 # ─── WebP ───────────────────────────────────────────────────────────────────
 # Required for wxWidgets WebP image support (wxUSE_WEBP is defined above).
 # Try cmake config first (vcpkg provides WebP::webp and WebP::webpdemux targets).
-find_package(WebP QUIET CONFIG)
+# Skip on Apple-with-deps — wx ships libwxwebp-3.3 baked in, and Homebrew's
+# WebPConfig.cmake would drag /opt/homebrew/include onto the system path
+# (breaks sol2's `__has_include(<lua/lua.h>)` probe by exposing Homebrew lua).
+if(NOT XL_MAC_DEPS)
+    find_package(WebP QUIET CONFIG)
+endif()
 if(WebP_FOUND AND TARGET WebP::webp AND TARGET WebP::webpdemux)
     target_link_libraries(xLights PRIVATE WebP::webp WebP::webpdemux)
     message(STATUS "WebP found via cmake CONFIG package")
@@ -630,7 +748,7 @@ endif()
 
 # libxlsxwriter — no cmake config package; find_library works for both vcpkg and vendored.
 find_library(XLSXWRITER_LIB NAMES xlsxwriter xlsxwriterd
-    HINTS ${XL_LIB}/windows64 ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
+    HINTS ${XL_MAC_LIB} ${XL_LIB}/windows64 ${XL_DEPS}/libxlsxwriter ${XL_DEPS}/libxlsxwriter/lib)
 if(XLSXWRITER_LIB)
     target_link_libraries(xLights PRIVATE ${XLSXWRITER_LIB})
 elseif(XLIGHTS_USE_VCPKG)
@@ -650,7 +768,7 @@ if(WIN32)
     endif()
 else()
     find_library(LIQUIDFUN_LIB NAMES liquidfun
-        HINTS ${XL_LIB}/linux ${CMAKE_SOURCE_DIR}/lib/linux)
+        HINTS ${XL_MAC_LIB} ${XL_LIB}/linux ${CMAKE_SOURCE_DIR}/lib/linux)
     if(LIQUIDFUN_LIB)
         target_link_libraries(xLights PRIVATE ${LIQUIDFUN_LIB})
     endif()
@@ -687,6 +805,55 @@ elseif(UNIX AND NOT APPLE)
         target_include_directories(xLights PRIVATE ${LIBUSB_INCLUDE_DIRS})
         target_link_libraries(xLights PRIVATE ${LIBUSB_LIBRARIES})
     endif()
+elseif(APPLE)
+    # System libs referenced by FFmpeg / wx / xLights itself.
+    target_link_libraries(xLights PRIVATE bz2 iconv)
+    # Apple frameworks referenced by FFmpeg's avcodec/avformat (VideoToolbox,
+    # CoreMedia, AudioToolbox) and by various Apple bridges that the cmake
+    # build skips compiling — Foundation/AppKit/Cocoa are needed for any
+    # macOS wx app, Security for keychain, IOKit/SystemConfiguration via libcurl.
+    target_link_libraries(xLights PRIVATE
+        "-framework AVFoundation"
+        "-framework Accelerate"    # vImage* (AVFoundationVideoReader)
+        "-framework AppKit"
+        "-framework ApplicationServices"
+        "-framework AudioToolbox"
+        "-framework AudioUnit"
+        "-framework Carbon"
+        "-framework Cocoa"
+        "-framework CoreAudio"
+        "-framework CoreFoundation"
+        "-framework CoreImage"     # CIContext (VideoToolbox helpers)
+        "-framework CoreMedia"
+        "-framework CoreML"        # MLModel* (StemSeparator)
+        "-framework CoreServices"
+        "-framework CoreText"
+        "-framework CoreVideo"
+        "-framework Foundation"
+        "-framework IOKit"
+        "-framework ImageIO"
+        "-framework Metal"
+        "-framework MetalKit"
+        "-framework MetricKit"
+        "-framework OpenGL"
+        "-framework QuartzCore"
+        "-framework Security"
+        "-framework SoundAnalysis" # SN* (SoundClassifier)
+        "-framework StoreKit"      # SK* (InAppPurchases)
+        "-framework SystemConfiguration"
+        "-framework UniformTypeIdentifiers"
+        "-framework VideoToolbox"
+    )
+    # libpostproc (FFmpeg companion, in the deps tree but not in FFMPEG_LIBS),
+    # libhidapi (referenced by core controller discovery).
+    find_library(POSTPROC_LIB NAMES postproc HINTS ${XL_MAC_LIB})
+    if(POSTPROC_LIB)
+        target_link_libraries(xLights PRIVATE ${POSTPROC_LIB})
+    endif()
+    find_library(HIDAPI_LIB NAMES hidapi HINTS ${XL_MAC_LIB})
+    if(HIDAPI_LIB)
+        target_link_libraries(xLights PRIVATE ${HIDAPI_LIB})
+    endif()
 endif()
 
 # ─── Stem separation backends ───────────────────────────────────────────────
@@ -697,7 +864,13 @@ endif()
 #   cmake -DXLIGHTS_USE_ORT=ON      # ONNX Runtime (vcpkg: onnxruntime[directml])
 #   cmake -DXLIGHTS_USE_OPENVINO=ON # OpenVINO     (vcpkg: openvino)
 
-option(XLIGHTS_USE_ORT      "Enable ONNX Runtime stem separation" ON)
+# Default OFF on Apple — the macOS prebuilt deps tree doesn't ship onnxruntime.
+# Stem separation on macOS uses the CoreML backend via AVAudioEngine instead.
+if(APPLE)
+    option(XLIGHTS_USE_ORT  "Enable ONNX Runtime stem separation" OFF)
+else()
+    option(XLIGHTS_USE_ORT  "Enable ONNX Runtime stem separation" ON)
+endif()
 option(XLIGHTS_USE_OPENVINO "Enable OpenVINO stem separation"     OFF)
 
 if(XLIGHTS_USE_ORT)
@@ -800,7 +973,7 @@ install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/xLights)
 option(XLIGHTS_BUILD_QT "Build the Qt6 UI target (xLights-Qt)" OFF)
 
 if(XLIGHTS_BUILD_QT)
-    find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Gui Network Multimedia)
+    find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Gui GuiPrivate Network Multimedia)
 
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)
@@ -934,16 +1107,17 @@ if(XLIGHTS_BUILD_QT)
         ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiFile.cpp
         ${CMAKE_SOURCE_DIR}/dependencies/midifile/src/MidiMessage.cpp
     )
-    # GL extension function pointer stubs compiled WITHOUT Qt include paths so
-    # <GL/glext.h> doesn't conflict with Qt's own OpenGL abstractions.
-    # GL extension function pointer stubs compiled as a plain (non-Qt) object
-    # library so that <GL/glext.h> doesn't conflict with Qt's GL headers.
-    # MSVC finds GL/gl.h via its own Windows SDK system include path.
-    add_library(_xlights_qt_gl_stubs OBJECT
-        src-ui-qt/Bridge/QtGLPointerDefs.cpp)
-    target_include_directories(_xlights_qt_gl_stubs PRIVATE
-        ${CMAKE_SOURCE_DIR}/dependencies)   # provides GL/glext.h
-    target_sources(xLights-Qt PRIVATE $<TARGET_OBJECTS:_xlights_qt_gl_stubs>)
+    # GL extension function pointer stubs compiled WITHOUT Qt include paths
+    # so <GL/glext.h> doesn't conflict with Qt's own OpenGL abstractions.
+    # Windows-only: macOS/Linux ship a full GL ABI that exports these symbols,
+    # so defining them again here would collide at link time.
+    if(WIN32)
+        add_library(_xlights_qt_gl_stubs OBJECT
+            src-ui-qt/Bridge/QtGLPointerDefs.cpp)
+        target_include_directories(_xlights_qt_gl_stubs PRIVATE
+            ${CMAKE_SOURCE_DIR}/dependencies)   # provides GL/glext.h
+        target_sources(xLights-Qt PRIVATE $<TARGET_OBJECTS:_xlights_qt_gl_stubs>)
+    endif()
 
     # minizip — SequencePackage uses unz* functions; same sources as main target
     set(XL_QT_MINIZIP
@@ -958,14 +1132,28 @@ if(XLIGHTS_BUILD_QT)
     if(ISPC_OBJECTS)
         target_sources(xLights-Qt PRIVATE ${ISPC_OBJECTS})
     endif()
+    if(APPLE)
+        # Apple bridge .mm files + stub for Swift-dep symbols — same as
+        # the wx target, minus xLightsTimer.mm (wx-typed) and
+        # InAppPurchaseDialog.cpp (wx dialog).
+        set(XL_QT_MACOS_BRIDGES ${XL_MACOS_BRIDGES})
+        list(REMOVE_ITEM XL_QT_MACOS_BRIDGES
+            ${CMAKE_SOURCE_DIR}/src-ui-wx/shared/utils/xLightsTimer.mm
+            ${CMAKE_SOURCE_DIR}/macOS/src-mac-ui/osxUtilsUI/InAppPurchaseDialog.cpp
+            ${CMAKE_SOURCE_DIR}/macOS/src-mac-ui/osxUtilsUI/osxInAppPurchases.mm)
+        target_sources(xLights-Qt PRIVATE
+            ${XL_QT_MACOS_BRIDGES} ${XL_MACOS_CMAKE_STUBS})
+    endif()
 
     target_include_directories(xLights-Qt PRIVATE
+        ${LUA_STAGE_DIR}
         src-ui-qt
         ${CMAKE_SOURCE_DIR}/dependencies/pugixml/src
         # ── src-core include paths (mirror xLights target) ──────────────────
         ${CMAKE_SOURCE_DIR}/src-core
         ${CMAKE_SOURCE_DIR}/src-core/render
         ${CMAKE_SOURCE_DIR}/src-core/utils
+        ${XL_APPLE_BRIDGE_INCLUDES}
         ${XL_DEPS}
         ${XL_DEPS}/spdlog/include
         ${XL_DEPS}/lua/src
@@ -1036,6 +1224,44 @@ if(XLIGHTS_BUILD_QT)
             $<$<CONFIG:Debug>:/NODEFAULTLIB:LIBCMTD>)
     elseif(UNIX AND NOT APPLE)
         target_link_libraries(xLights-Qt PRIVATE dl pthread)
+    elseif(APPLE)
+        # Same system libs + Apple frameworks as the wx target.
+        target_link_libraries(xLights-Qt PRIVATE bz2 iconv
+            "-framework AVFoundation"
+            "-framework Accelerate"
+            "-framework AppKit"
+            "-framework ApplicationServices"
+            "-framework AudioToolbox"
+            "-framework AudioUnit"
+            "-framework Carbon"
+            "-framework Cocoa"
+            "-framework CoreAudio"
+            "-framework CoreFoundation"
+            "-framework CoreImage"
+            "-framework CoreMedia"
+            "-framework CoreML"
+            "-framework CoreServices"
+            "-framework CoreText"
+            "-framework CoreVideo"
+            "-framework Foundation"
+            "-framework IOKit"
+            "-framework ImageIO"
+            "-framework Metal"
+            "-framework MetalKit"
+            "-framework MetricKit"
+            "-framework OpenGL"
+            "-framework QuartzCore"
+            "-framework Security"
+            "-framework SoundAnalysis"
+            "-framework SystemConfiguration"
+            "-framework UniformTypeIdentifiers"
+            "-framework VideoToolbox")
+        if(POSTPROC_LIB)
+            target_link_libraries(xLights-Qt PRIVATE ${POSTPROC_LIB})
+        endif()
+        if(HIDAPI_LIB)
+            target_link_libraries(xLights-Qt PRIVATE ${HIDAPI_LIB})
+        endif()
     endif()
 
     set_target_properties(xLights-Qt PROPERTIES
