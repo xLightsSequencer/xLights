@@ -589,17 +589,29 @@ void Waveform::mouseMoved(wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
     } else {
+        // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+        // mouse-move event allocates a 16 KiB CGImage on macOS.
+        static const wxCursor s_pointLeftCursor(wxCURSOR_POINT_LEFT);
+        static const wxCursor s_pointRightCursor(wxCURSOR_POINT_RIGHT);
+        static const wxCursor s_arrowCursor(wxCURSOR_ARROW);
+
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
+        DRAG_MODE new_mode;
+        const wxCursor* new_cursor;
         if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
-            SetCursor(wxCURSOR_POINT_LEFT);
-            m_drag_mode = DRAG_LEFT_EDGE;
+            new_mode = DRAG_LEFT_EDGE;
+            new_cursor = &s_pointLeftCursor;
         } else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
-            SetCursor(wxCURSOR_POINT_RIGHT);
-            m_drag_mode = DRAG_RIGHT_EDGE;
+            new_mode = DRAG_RIGHT_EDGE;
+            new_cursor = &s_pointRightCursor;
         } else {
-            SetCursor(wxCURSOR_ARROW);
-            m_drag_mode = DRAG_NORMAL;
+            new_mode = DRAG_NORMAL;
+            new_cursor = &s_arrowCursor;
+        }
+        if (new_mode != m_drag_mode) {
+            SetCursor(*new_cursor);
+            m_drag_mode = new_mode;
         }
     }
     int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());

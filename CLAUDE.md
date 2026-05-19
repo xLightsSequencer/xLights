@@ -273,6 +273,22 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
 
+## Objective-C++ Files: ARC is Off
+
+Every `.mm` file in this project compiles **without ARC**. The Xcode targets that link `.mm` sources (`xLights-Apple-core`, `xLights-macOSLib-UI`, `xLights-core`, `xLights-iPadLib`, `xLights`) leave `CLANG_ENABLE_OBJC_ARC` at its project default of NO. Write manual retain/release.
+
+- Methods named `alloc…`, `new…`, `copy`, `mutableCopy` return a +1 retain that **you own**. Pair each with `release` / `autorelease`, including on every early-return / error path.
+- Every other ObjC method (e.g. `[NSArray array]`, `[AVAsset assetWithURL:]`, `[CIImage imageWithCVImageBuffer:]`) returns an **autoreleased** object. Storing it in an ivar / C++ struct field without `[retain]` leaves you with a dangling pointer after the surrounding `@autoreleasepool` drains.
+- **`__strong` is a no-op without ARC.** Don't use it as a substitute for explicit retain. Declarations like `__strong AVAsset* asset = nil;` look correct but compile to a plain pointer that won't be retained on assignment.
+- `@property(strong)` on an `@interface` does generate a retaining synthesized setter — but only when you call it via `self.x = …`. Direct ivar assignment (`_x = …`) bypasses the setter and does NOT retain. Prefer `[[X alloc] init]` + matching `release` in `-dealloc` for ivars set in `-init`.
+- Every ObjC class that holds retained ivars needs an explicit `-dealloc` that releases each one and ends with `[super dealloc]`. ARC-style "no dealloc needed" code leaks.
+- C++ structs / classes that hold ObjC pointers (`MLModel*`, `AVAssetReader*`, …) must release them in their destructor. Setting the pointer to `nil` does NOT release.
+- Blocks that capture local ObjC pointers retain those captures when the block is copied — so passing a block to `dispatch_async` / `…completionHandler:` works the way you'd expect. `__block` variables are the exception: they are NOT retained by the block.
+- `CFBridgingRetain` / `CFBridgingRelease` are ARC-only. In our code use `CFRetain` / `CFRelease` and the `(__bridge CFType)` cast when crossing Core Foundation ↔ Objective-C.
+- `@autoreleasepool` only drains objects that were explicitly autoreleased (or returned from a non-`alloc`/`new`/`copy` method). It does NOT clean up `[[X alloc] init]` results — those still need `release`/`autorelease`. A common mistake is wrapping a hot loop in `@autoreleasepool` and assuming alloc/init buffers are reclaimed; they aren't.
+
+When in doubt, model it as: alloc/new/copy/mutableCopy = "I own +1, must release"; everything else = "autoreleased, retain if I want to keep it past the current pool."
+
 ## Release Builds Use -ffast-math
 
 Release builds on macOS desktop **and iPad** are compiled with `-ffast-math` (`GCC_FAST_MATH = YES` plus an explicit `-ffast-math` in `OTHER_CFLAGS` on the project-level Release/Archive configs), at `-O3` with `LLVM_LTO=YES_THIN`. The `xLights-iPadLib` target inherits these via `$(inherited)`. This affects every `.cpp`/`.mm` file in `src-core/`, `src-ui-wx/`, and `src-iPad/`. Linux and Windows release builds may not set `-ffast-math` today, but write code that doesn't depend on it being absent.

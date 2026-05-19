@@ -79,7 +79,7 @@ void xLightsTimerDataImpl::setupScreens() {
         int maxFPS = 0;
         for (NSScreen *scr in screens) {
             while (links.size() >= callbacks.size()) {
-                ScreenCallback *callback = [[[ScreenCallback alloc] init] retain];
+                ScreenCallback *callback = [[ScreenCallback alloc] init];
                 [callback setData:this];
                 [callback setLinkIdx:callbacks.size()];
                 callbacks.push_back(callback);
