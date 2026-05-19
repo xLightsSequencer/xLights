@@ -56,6 +56,7 @@
 #include "sequencer/EffectsPanel.h"
 #include "effects/EffectAssist.h"
 #include "color/ColorPanel.h"
+#include "color/xlColourPickerButton.h"
 #include "sequencer/BlendingPanel.h"
 #include "layout/ModelPreview.h"
 #include "MainSequencer.h"
@@ -3053,18 +3054,35 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
 		} else if (name.StartsWith("ID_COLOURPICKER")) {
-            wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
             wxColour c(value);
-            picker->SetColour(c);
+            // BulkEditColourPickerCtrl (used by JsonEffectPanel) extends
+            // xlColourPickerButton → wxPanel, NOT wxColourPickerCtrl.  Both
+            // types share the same name prefix and both expose SetColour(), so
+            // check via dynamic_cast to avoid calling into the wrong vtable.
+            xlColourPickerButton* pickerBtn = dynamic_cast<xlColourPickerButton*>(CtrlWin);
+            if (pickerBtn != nullptr) {
+                pickerBtn->SetColour(c);
+            } else {
+                wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(CtrlWin);
+                if (picker != nullptr) {
+                    picker->SetColour(c);
+                }
+            }
         } else if (name.StartsWith("ID_CUSTOM")) {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
-            custom->SetValue(value.ToStdString());
+            if (custom != nullptr) {
+                custom->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
-            vcb->SetValue(value.ToStdString());
+            if (vcb != nullptr) {
+                vcb->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
             wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
-            vcb->SetValue(wxAtoi(value) != 0);
+            if (vcb != nullptr) {
+                vcb->SetValue(wxAtoi(value) != 0);
+            }
         } else {
 			spdlog::error("ApplySetting: Unknown type: {}", (const char*)name.c_str());
             res = false;
