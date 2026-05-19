@@ -359,7 +359,6 @@
         delete kv.second;
     }
     _fontTextures.clear();
-    [super dealloc];
 }
 
 - (void)purgeTextureCaches {

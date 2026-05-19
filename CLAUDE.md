@@ -273,9 +273,15 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
 
-## Objective-C++ Files: ARC is Off
+## Objective-C++ Files: ARC rules differ by target
 
-Every `.mm` file in this project compiles **without ARC**. The Xcode targets that link `.mm` sources (`xLights-Apple-core`, `xLights-macOSLib-UI`, `xLights-core`, `xLights-iPadLib`, `xLights`) leave `CLANG_ENABLE_OBJC_ARC` at its project default of NO. Write manual retain/release.
+**Desktop targets are MRC.** `xLights-Apple-core`, `xLights-macOSLib-UI`, `xLights-core`, and `xLights` leave `CLANG_ENABLE_OBJC_ARC` at the project default of NO. Every `.mm` file compiled into those targets must use manual retain/release.
+
+**iPad targets are ARC.** `xLights-iPadLib` and the `xLights-iPad` app target set `CLANG_ENABLE_OBJC_ARC = YES`. Files under `src-iPad/` compile under ARC; do NOT write `retain` / `release` / `autorelease` / `[super dealloc]` in iPad code.
+
+The two coexist at link time — ARC and MRC translation units link into a shared binary without runtime issue, and `libxLights-core.a` (MRC) is consumed by `xLights-iPadLib` (ARC) without special handling.
+
+### MRC rules (desktop `.mm` files only)
 
 - Methods named `alloc…`, `new…`, `copy`, `mutableCopy` return a +1 retain that **you own**. Pair each with `release` / `autorelease`, including on every early-return / error path.
 - Every other ObjC method (e.g. `[NSArray array]`, `[AVAsset assetWithURL:]`, `[CIImage imageWithCVImageBuffer:]`) returns an **autoreleased** object. Storing it in an ivar / C++ struct field without `[retain]` leaves you with a dangling pointer after the surrounding `@autoreleasepool` drains.
@@ -287,7 +293,16 @@ Every `.mm` file in this project compiles **without ARC**. The Xcode targets tha
 - `CFBridgingRetain` / `CFBridgingRelease` are ARC-only. In our code use `CFRetain` / `CFRelease` and the `(__bridge CFType)` cast when crossing Core Foundation ↔ Objective-C.
 - `@autoreleasepool` only drains objects that were explicitly autoreleased (or returned from a non-`alloc`/`new`/`copy` method). It does NOT clean up `[[X alloc] init]` results — those still need `release`/`autorelease`. A common mistake is wrapping a hot loop in `@autoreleasepool` and assuming alloc/init buffers are reclaimed; they aren't.
 
-When in doubt, model it as: alloc/new/copy/mutableCopy = "I own +1, must release"; everything else = "autoreleased, retain if I want to keep it past the current pool."
+When in doubt under MRC, model it as: alloc/new/copy/mutableCopy = "I own +1, must release"; everything else = "autoreleased, retain if I want to keep it past the current pool."
+
+### ARC rules (iPad `.mm` files only)
+
+- No `retain` / `release` / `autorelease` / `[super dealloc]`. An explicit `-dealloc` is allowed only when you need to clean up non-ObjC state (e.g. `delete _bgTexture` for a C++ object held in an ObjC ivar); do not call `[super dealloc]`.
+- ObjC pointers in C++ classes/structs are automatically `__strong` and are retained on assignment / released on destruction — works because the TU is ObjC++ and ARC understands C++ destructors. Just declare `id<MTLTexture> texture = nil;` in a C++ class and ARC handles it.
+- Use `[NSData dataWithBytes:…]`, `[NSString stringWithUTF8String:…]`, etc. freely — autorelease-pool semantics are managed by ARC.
+- For blocks that capture `self` via an ivar (`_foo->bar()`), prefer explicit `self->_foo->bar()` to silence `-Wimplicit-retain-self` when the retention is intentional.
+- Cross-language refcounting (Core Foundation ↔ ObjC) uses `CFBridgingRetain` / `CFBridgingRelease` and `__bridge` / `__bridge_transfer` casts — the MRC-side `CFRetain` / `CFRelease` calls still work but are no longer the preferred idiom in ARC code.
+- Avoid `__weak` for the long-lived parent reference pattern (`_document` in import sessions); prefer `__unsafe_unretained` when you have a documented lifetime guarantee, since `__weak` adds zero-out overhead and isn't needed without retain-cycle risk.
 
 ## Release Builds Use -ffast-math
 

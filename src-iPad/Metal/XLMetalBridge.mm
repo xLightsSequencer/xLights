@@ -172,8 +172,6 @@
 - (void)dealloc {
     delete _bgTexture;
     _bgTexture = nullptr;
-    [_errorReason release];
-    [super dealloc];
 }
 
 - (NSString*)errorReason {
@@ -192,7 +190,6 @@
 - (void)setErrorReasonInternal:(NSString*)reason {
     NSString* canonical = reason ?: @"";
     if (_errorReason && [_errorReason isEqualToString:canonical]) return;
-    [_errorReason release];
     _errorReason = [canonical copy];
     if (canonical.length > 0) {
         std::string s = std::string([canonical UTF8String]);
@@ -205,7 +202,6 @@
 
 - (void)clearErrorReason {
     if (_errorReason && _errorReason.length == 0) return;
-    [_errorReason release];
     _errorReason = nil;
 }
 

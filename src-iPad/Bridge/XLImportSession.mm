@@ -35,12 +35,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     return doc != nil ? (iPadRenderContext*)[doc renderContext] : nullptr;
 }
 
-// The iPad-lib target compiles without ARC, so every NSString /
-// NSArray ivar set via direct `row->_field = autoreleasedValue` would
-// dangle as soon as the surrounding autorelease pool drained. We
-// retain on assignment and release in dealloc to keep these objects
-// alive across SwiftUI's redraw cycles.
-
 @implementation XLImportAvailableSource {
 @public
     NSString* _displayName;
@@ -58,12 +52,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     }
     return self;
 }
-- (void)dealloc {
-    [_displayName release];
-    [_canonicalName release];
-    [_modelType release];
-    [super dealloc];
-}
 - (NSString*)displayName { return _displayName; }
 - (NSString*)canonicalName { return _canonicalName; }
 - (NSString*)modelType { return _modelType; }
@@ -74,10 +62,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSString* _name;
     BOOL _alreadyExists;
     BOOL _selected;
-}
-- (void)dealloc {
-    [_name release];
-    [super dealloc];
 }
 - (NSString*)name { return _name; }
 - (BOOL)alreadyExists { return _alreadyExists; }
@@ -97,15 +81,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSInteger _effectCount;
     NSArray<XLImportMappingRow*>* _children;
 }
-- (void)dealloc {
-    [_model release];
-    [_strand release];
-    [_node release];
-    [_mapping release];
-    [_mappingModelType release];
-    [_children release];
-    [super dealloc];
-}
 - (intptr_t)nodeID { return _nodeID; }
 - (NSString*)model { return _model; }
 - (NSString*)strand { return _strand; }
@@ -119,11 +94,10 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
 @end
 
 @implementation XLImportSession {
-    // Plain pointer — the import sheet that owns this session is
+    // Unsafe-unretained: the import sheet that owns this session is
     // strictly shorter-lived than the host XLSequenceDocument, so
-    // there's no retain-cycle risk and no need for __weak (which the
-    // iPad-lib target doesn't compile with ARC).
-    XLSequenceDocument* _document;
+    // there's no retain-cycle risk and no need for __weak.
+    __unsafe_unretained XLSequenceDocument* _document;
 
     // Source-side state (the incoming sequence). Built lazily by
     // -loadSourceSequenceAtPath:. The SequencePackage owns the temp
@@ -469,15 +443,13 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         NSString* t = [[NSString alloc] initWithUTF8String:src.modelType.c_str()];
         XLImportAvailableSource* row = [[XLImportAvailableSource alloc]
             initWithDisplay:d canonical:c modelType:t];
-        [d release]; [c release]; [t release];
         [arr addObject:row];
-        [row release];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (XLImportMappingRow*)snapshotRow:(BasicImportMappingNode*)node {
-    XLImportMappingRow* row = [[[XLImportMappingRow alloc] init] autorelease];
+    XLImportMappingRow* row = [[XLImportMappingRow alloc] init];
     row->_nodeID = (intptr_t)node;
     row->_model = [[NSString alloc] initWithUTF8String:node->_model.c_str()];
     row->_strand = [[NSString alloc] initWithUTF8String:node->_strand.c_str()];
@@ -492,17 +464,16 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         BasicImportMappingNode* child = node->GetNthChild(i);
         if (child) [kids addObject:[self snapshotRow:child]];
     }
-    row->_children = kids;  // owned (alloc/initWithCapacity), released in dealloc
+    row->_children = kids;
     return row;
 }
 
 - (NSArray<XLImportMappingRow*>*)destinationRows {
     NSMutableArray* arr = [[NSMutableArray alloc] initWithCapacity:_destinationRoots.size()];
     for (const auto& root : _destinationRoots) {
-        // snapshotRow returns autoreleased — array retains it on add.
         [arr addObject:[self snapshotRow:root.get()]];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (NSArray<XLImportTimingTrack*>*)timingTracks {
@@ -513,9 +484,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         row->_alreadyExists = t.alreadyExists ? YES : NO;
         row->_selected = t.selected ? YES : NO;
         [arr addObject:row];
-        [row release];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (void)setTimingTrackImport:(NSString*)name enabled:(BOOL)enabled {
