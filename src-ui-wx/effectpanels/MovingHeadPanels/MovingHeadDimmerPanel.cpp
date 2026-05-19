@@ -281,10 +281,13 @@ void MovingHeadDimmerPanel::OnMovingHeadLeftUp(wxMouseEvent& event)
 
 void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
 {
+    static const wxCursor s_hand(wxCURSOR_HAND);
+    static const wxCursor s_arrow(wxCURSOR_ARROW);
+
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
-        SetCursor(wxCURSOR_HAND);
+        SetCursor(s_hand);
         m_mousePos = UItoNormalized(ptUI);
         //SnapToLines(m_mousePos);
         if( active_handle != -1 ) {
@@ -312,9 +315,9 @@ void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
         Refresh();
     } else {
         if ( HitTest(ptUI) >= 0 ) {
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
         } else {
-            SetCursor(wxCURSOR_ARROW);
+            SetCursor(s_arrow);
         }
     }
 }

@@ -328,12 +328,14 @@ void RowHeading::mouseMove(wxMouseEvent& event)
         SetWidth(event.GetX());
     }
 
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_arrow(wxCURSOR_ARROW);
     auto size = GetSize();
     if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())) {
-        SetCursor(wxCURSOR_SIZEWE);
+        SetCursor(s_sizeWE);
     }
     else {
-        SetCursor(wxCURSOR_ARROW);
+        SetCursor(s_arrow);
     }
 }
 

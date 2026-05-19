@@ -1734,7 +1734,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
                 }
             }
         } else {
-            SetCursor(wxCURSOR_DEFAULT);
+            static const wxCursor s_default(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
         }
     }
@@ -6101,6 +6102,14 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
 }
 
 void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
+    // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+    // mouse-move event allocates a 16 KiB CGImage on macOS.
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_pointLeft(wxCURSOR_POINT_LEFT);
+    static const wxCursor s_pointRight(wxCURSOR_POINT_RIGHT);
+    static const wxCursor s_hand(wxCURSOR_HAND);
+
     int effectIndex;
 
     int time = mTimeline->GetRawTimeMSfromPosition(x);
@@ -6110,32 +6119,32 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
         mResizeEffectIndex = effectIndex;
         switch (selectionType) {
         case HitLocation::NONE:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
         case HitLocation::LEFT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_LEFT);
+            SetCursor(s_pointLeft);
             mResizingMode = EFFECT_RESIZE_LEFT_EDGE;
             break;
         case HitLocation::LEFT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_LEFT;
             break;
         case HitLocation::RIGHT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_RIGHT);
+            SetCursor(s_pointRight);
             mResizingMode = EFFECT_RESIZE_RIGHT_EDGE;
             break;
         case HitLocation::RIGHT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_RIGHT;
             break;
         case HitLocation::LEFT:
         case HitLocation::RIGHT:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
         case HitLocation::CENTER:
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
             mResizingMode = EFFECT_RESIZE_MOVE;
             break;
             // update effect details
@@ -6147,7 +6156,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
         } else {
             xlights->SetStatusText(xlights->CurrentDir, true);
         }
-        SetCursor(wxCURSOR_DEFAULT);
+        SetCursor(s_default);
         mResizingMode = EFFECT_RESIZE_NO;
     }
 }
