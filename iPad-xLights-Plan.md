@@ -63,9 +63,11 @@ variants in `libdbg-ios/`.
 
 ## Remaining work
 
-- **FPP Connect (P1).** External testers keep asking for one-tap
-  uploads from the iPad so they can iterate on the field rig
-  without unwrapping a laptop. Tracked in
+- **FPP Connect Slice A shipped 2026-05-18.** Tools → FPP Connect
+  on iPad: discovery + per-FPP × per-sequence upload + per-UUID
+  persistence + cancel + progress + summary. **Slice B (per-instance
+  Models / UDP Out / Pixel Outputs config)** is the natural next
+  pull-in once field-test reports surface real needs. Tracked in
   [`future-controller-upload.md`](plans/future-controller-upload.md);
   the rest of the upload stack (Bulk Upload, HinksPix, drag-drop
   port mapping) is parked at P4 there. Pixel Test stays P2.

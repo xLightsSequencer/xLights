@@ -188,6 +188,12 @@
     std::unique_ptr<SequencePackage> _openPackage;
     std::string _packagePath;
     std::string _previousShowFolder;
+
+    // FPP Connect — `discoverFPPInstances` builds this list and the
+    // upload methods reuse it (the post-discovery FPP* objects carry
+    // authenticated curl handles, version, mode, etc.). Cleared by
+    // `releaseFPPInstances` when the SwiftUI sheet dismisses.
+    std::list<FPP*> _fppInstances;
 }
 
 @synthesize lastClassificationTimeStep = _lastClassificationTimeStep;
@@ -13892,6 +13898,187 @@ static std::string CSVQuote(const std::string& s) {
         @"maxRemotes":           @(caps->GetSmartRemoteCount()),
         @"types":                types,
     };
+}
+
+#pragma mark - FPP Connect (Slice A)
+
+namespace {
+
+NSString* fppTypeString(FPP_TYPE t) {
+    switch (t) {
+    case FPP_TYPE::FPP:          return @"FPP";
+    case FPP_TYPE::FALCONV4V5:   return @"FalconV4V5";
+    case FPP_TYPE::ESPIXELSTICK: return @"ESPixelStick";
+    case FPP_TYPE::GENIUS:       return @"Genius";
+    case FPP_TYPE::POWERDMX:     return @"PowerDMX";
+    }
+    return @"FPP";
+}
+
+} // namespace
+
+- (NSArray<NSDictionary*>*)discoverFPPInstances {
+    for (FPP* f : _fppInstances) delete f;
+    _fppInstances.clear();
+
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    auto& om = _context->GetOutputManager();
+
+    // Reuse the same broadcast-ping path desktop's
+    // `DiscoverFPPInstances` (DiscoveryHelpers.cpp:96) uses. No forced
+    // IPs today — iPad has no `FPPConnectForcedIPs` preference yet.
+    // Discovery runs synchronously on the calling thread; Swift wraps
+    // in `Task.detached`.
+    DiscoveryDelegate defaultDelegate;
+    Discovery discovery(&om, &defaultDelegate);
+    std::list<std::string> forcedAddresses;
+    FPP::PrepareDiscovery(discovery, forcedAddresses);
+    discovery.Discover();
+    FPP::MapToFPPInstances(discovery, _fppInstances, &om);
+
+    _fppInstances.sort(sortByIP);
+
+    for (FPP* fpp : _fppInstances) {
+        if (!fpp) continue;
+        NSString* uuid = fpp->uuid.empty()
+            ? [NSString stringWithUTF8String:fpp->ipAddress.c_str()]
+            : [NSString stringWithUTF8String:fpp->uuid.c_str()];
+        NSString* version = fpp->fullVersion.empty()
+            ? [NSString stringWithFormat:@"%u.%u.%u",
+                fpp->majorVersion, fpp->minorVersion, fpp->patchVersion]
+            : [NSString stringWithUTF8String:fpp->fullVersion.c_str()];
+        [out addObject:@{
+            @"ipAddress":   [NSString stringWithUTF8String:fpp->ipAddress.c_str()],
+            @"hostName":    [NSString stringWithUTF8String:fpp->hostName.c_str()],
+            @"description": [NSString stringWithUTF8String:fpp->description.c_str()],
+            @"platform":    [NSString stringWithUTF8String:fpp->platform.c_str()],
+            @"model":       [NSString stringWithUTF8String:fpp->model.c_str()],
+            @"mode":        [NSString stringWithUTF8String:fpp->mode.c_str()],
+            @"version":     version,
+            @"uuid":        uuid,
+            @"fppType":     fppTypeString(fpp->fppType),
+            @"supportedForFPPConnect": @(fpp->supportedForFPPConnect()),
+        }];
+    }
+    return out;
+}
+
+- (void)releaseFPPInstances {
+    for (FPP* f : _fppInstances) delete f;
+    _fppInstances.clear();
+}
+
+- (NSDictionary*)uploadFseq:(NSString*)fseqPath
+                  mediaPath:(nullable NSString*)mediaPath
+                       type:(int)fseqType
+                toIPAddress:(NSString*)ipAddress
+                   progress:(nullable id<XLFPPUploadProgress>)progress {
+    NSString* errorMessage = @"";
+    if (!_context || _fppInstances.empty()) {
+        return @{@"ok": @NO, @"cancelled": @NO,
+                 @"message": @"FPP instance list is empty — run discovery first."};
+    }
+
+    std::string targetIP = ipAddress.UTF8String;
+    FPP* target = nullptr;
+    for (FPP* f : _fppInstances) {
+        if (f && f->ipAddress == targetIP) { target = f; break; }
+    }
+    if (!target) {
+        return @{@"ok": @NO, @"cancelled": @NO,
+                 @"message": [NSString stringWithFormat:@"No discovered FPP at %@", ipAddress]};
+    }
+    if (!target->supportedForFPPConnect()) {
+        return @{@"ok": @NO, @"cancelled": @NO,
+                 @"message": @"This FPP version / mode does not support FPP Connect upload."};
+    }
+
+    std::string fseq = fseqPath.UTF8String;
+    std::string media = mediaPath ? std::string(mediaPath.UTF8String) : std::string();
+
+    std::unique_ptr<FSEQFile> seq(FSEQFile::openFSEQFile(fseq));
+    if (!seq) {
+        return @{@"ok": @NO, @"cancelled": @NO,
+                 @"message": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath]};
+    }
+
+    // Wire the per-instance progress callback. The FPP class reports
+    // network-side progress on a 0..1000 scale; downscale to 0..100.
+    // `DoYield` is a no-op on iPad since the upload runs off-main.
+    __weak id<XLFPPUploadProgress> weakProgress = progress;
+    bool cancelledFlag = false;
+    target->setProgress({
+        [weakProgress](int val) {
+            id<XLFPPUploadProgress> p = weakProgress;
+            if (p) [p setProgressValue:val / 10];
+        },
+        [weakProgress, &cancelledFlag]() -> bool {
+            id<XLFPPUploadProgress> p = weakProgress;
+            if (p && [p isCancelled]) cancelledFlag = true;
+            return cancelledFlag;
+        },
+        []() {}
+    });
+    target->defaultConnectTimeout = 5000;
+    target->messages.clear();
+
+    bool cancelled = target->PrepareUploadSequence(seq.get(), fseq, media, fseqType);
+    if (cancelled) {
+        target->setProgress({});
+        return @{@"ok": @NO, @"cancelled": @(cancelledFlag ? YES : NO),
+                 @"message": @"PrepareUploadSequence failed."};
+    }
+
+    if (target->WillUploadSequence()) {
+        if (target->NeedCustomSequence()) {
+            uint32_t numFrames = (uint32_t)seq->getNumFrames();
+            uint32_t channels = seq->getMaxChannel() + 1;
+            std::vector<uint8_t> buf(channels);
+
+            int lastReportedPct = -1;
+            for (uint32_t i = 0; i < numFrames; ++i) {
+                if (cancelledFlag) break;
+                FSEQFile::FrameData* fd = seq->getFrame(i);
+                if (!fd) continue;
+                if (!fd->readFrame(buf.data(), (uint32_t)buf.size())) {
+                    delete fd;
+                    errorMessage = [NSString stringWithFormat:
+                        @"FSEQ corrupt at frame %u", i];
+                    cancelled = true;
+                    break;
+                }
+                delete fd;
+                target->AddFrameToUpload(i, buf.data());
+
+                int pct = (int)((uint64_t)i * 100 / std::max<uint32_t>(numFrames, 1));
+                if (pct != lastReportedPct) {
+                    lastReportedPct = pct;
+                    [progress setProgressValue:pct];
+                    if ([progress isCancelled]) { cancelledFlag = true; break; }
+                }
+            }
+        }
+        if (!cancelled && !cancelledFlag) {
+            cancelled = target->FinalizeUploadSequence();
+        }
+    }
+
+    target->setProgress({});
+
+    if (cancelledFlag) {
+        return @{@"ok": @NO, @"cancelled": @YES, @"message": @"Upload cancelled."};
+    }
+    if (cancelled) {
+        if ([errorMessage length] == 0 && !target->messages.empty()) {
+            errorMessage = [NSString stringWithUTF8String:target->messages.front().c_str()];
+        }
+        if ([errorMessage length] == 0) {
+            errorMessage = @"Upload failed.";
+        }
+        return @{@"ok": @NO, @"cancelled": @NO, @"message": errorMessage};
+    }
+    return @{@"ok": @YES, @"cancelled": @NO, @"message": @""};
 }
 
 @end

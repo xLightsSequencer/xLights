@@ -303,6 +303,17 @@ struct ContentView: View {
         )) {
             LogViewerSheet()
         }
+        // EX-4 Tools → FPP Connect. Hosted at the root so the
+        // sheet survives sequence reloads (discovery isn't tied to
+        // the open sequence) and so the upload progress flow stays
+        // present even if the user backgrounds the sequencer.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingFPPConnect },
+            set: { viewModel.showingFPPConnect = $0 }
+        )) {
+            FPPConnectSheet()
+                .environment(viewModel)
+        }
         // Unified Add Timing Track sheet. Driven by
         // viewModel.showingAddTimingTrack so all call sites
         // (Display Elements sheet, Settings → Timings tab, the
@@ -909,6 +920,66 @@ struct UbiquityBadge: View {
     }
 }
 
+/// How a sequence list is ordered. Used by the picker's In-This-Show-Folder
+/// section and the Batch Render sheet's sequence list. Persisted per
+/// surface via the `Storage` keys — they have independent state so a user
+/// can sort the picker by Name while sorting Batch Render by Modified.
+enum SequenceSortOrder: String, CaseIterable, Identifiable {
+    case name
+    case modifiedDescending
+    case renderedDescending
+    case outOfDateFirst
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .name: return "Name"
+        case .modifiedDescending: return "Modified (Newest First)"
+        case .renderedDescending: return "Rendered (Newest First)"
+        case .outOfDateFirst: return "Out of Date First"
+        }
+    }
+
+    enum Storage: String {
+        case picker = "xl.sequencePickerSortOrder"
+        case batchRender = "xl.batchRenderSortOrder"
+    }
+
+    static func load(_ storage: Storage) -> SequenceSortOrder {
+        let raw = UserDefaults.standard.string(forKey: storage.rawValue) ?? ""
+        return SequenceSortOrder(rawValue: raw) ?? .name
+    }
+
+    static func save(_ value: SequenceSortOrder, to storage: Storage) {
+        UserDefaults.standard.set(value.rawValue, forKey: storage.rawValue)
+    }
+
+    func apply(_ entries: [SequenceEntry]) -> [SequenceEntry] {
+        switch self {
+        case .name:
+            return entries.sorted {
+                $0.relativePath.localizedStandardCompare($1.relativePath) == .orderedAscending
+            }
+        case .modifiedDescending:
+            return entries.sorted {
+                ($0.modificationDate ?? .distantPast) > ($1.modificationDate ?? .distantPast)
+            }
+        case .renderedDescending:
+            return entries.sorted {
+                ($0.fseqModificationDate ?? .distantPast) > ($1.fseqModificationDate ?? .distantPast)
+            }
+        case .outOfDateFirst:
+            return entries.sorted { lhs, rhs in
+                if lhs.isFseqUpToDate != rhs.isFseqUpToDate {
+                    return !lhs.isFseqUpToDate
+                }
+                return lhs.relativePath.localizedStandardCompare(rhs.relativePath) == .orderedAscending
+            }
+        }
+    }
+}
+
 struct SequencePickerView: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Binding var showFolderConfig: Bool
@@ -917,6 +988,7 @@ struct SequencePickerView: View {
     @State private var showingNewWizard: Bool = false
     @State private var showingBatchRender: Bool = false
     @State private var openErrorMessage: String? = nil
+    @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.picker)
 
     var body: some View {
         NavigationStack {
@@ -925,6 +997,8 @@ struct SequencePickerView: View {
                     Section("Recent") {
                         ForEach(recent) { entry in
                             let status = ubiquityStatus(for: URL(fileURLWithPath: entry.path))
+                            let seqEntry = SequenceEntry.stat(path: entry.path,
+                                                               relativeTo: viewModel.showFolderPath)
                             Button {
                                 openWithDownloadIfNeeded(path: entry.path, status: status)
                             } label: {
@@ -938,6 +1012,7 @@ struct SequencePickerView: View {
                                             .foregroundStyle(.secondary)
                                             .lineLimit(1)
                                             .truncationMode(.middle)
+                                        SequenceDatesLabel(entry: seqEntry)
                                     }
                                     Spacer()
                                     UbiquityBadge(status: status)
@@ -956,7 +1031,7 @@ struct SequencePickerView: View {
                     }
                 }
                 Section(recent.isEmpty ? "Sequences" : "In This Show Folder") {
-                    ForEach(viewModel.sequenceFiles) { entry in
+                    ForEach(sortOrder.apply(viewModel.sequenceFiles)) { entry in
                         let status = ubiquityStatus(for: URL(fileURLWithPath: entry.fullPath))
                         Button {
                             openWithDownloadIfNeeded(path: entry.fullPath, status: status)
@@ -973,6 +1048,7 @@ struct SequencePickerView: View {
                                             .lineLimit(1)
                                             .truncationMode(.middle)
                                     }
+                                    SequenceDatesLabel(entry: entry)
                                 }
                                 Spacer()
                                 UbiquityBadge(status: status)
@@ -1003,23 +1079,32 @@ struct SequencePickerView: View {
                         }
                     }
                 }
-                if !recent.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Menu {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Picker("Sort By", selection: $sortOrder) {
+                            ForEach(SequenceSortOrder.allCases) { order in
+                                Text(order.label).tag(order)
+                            }
+                        }
+                        if !recent.isEmpty {
+                            Divider()
                             Button(role: .destructive) {
                                 RecentSequences.clear(forShowFolder: viewModel.showFolderPath)
                                 recent = []
                             } label: {
                                 Label("Clear Recent", systemImage: "clock.badge.xmark")
                             }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
                         }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
             .onAppear {
                 recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
+            }
+            .onChange(of: sortOrder) { _, newValue in
+                SequenceSortOrder.save(newValue, to: .picker)
             }
             .onChange(of: viewModel.showFolderPath) { _, _ in
                 // Show-folder change via the folder-config sheet —

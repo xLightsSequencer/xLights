@@ -482,6 +482,10 @@ class SequencerViewModel {
     // Library/Logs/xLights.log; level + logger + text filters
     // with optional follow-tail.
     var showingLogViewer = false
+    // Tools → FPP Connect. Discover FPP instances on the network and
+    // upload pre-rendered .fseq files. Gated on show-folder loaded so
+    // there's something to render against.
+    var showingFPPConnect = false
 
     /// Run Check Sequence on a background queue and report progress
     /// while it walks. The bridge's `SequenceChecker` calls back from
@@ -6201,9 +6205,14 @@ class SequencerViewModel {
 /// `relativePath` is the path under the show folder, with forward slashes
 /// (e.g. "Halloween 2026/skeleton.xsq"); `parentRelativePath` is just the
 /// directory portion ("Halloween 2026", or "" for sequences at the root).
+/// `modificationDate` is the xsq's mtime; `fseqModificationDate` is the
+/// companion fseq's mtime at the path `batchRenderFseqPath(forXsq:)` would
+/// write to (nil when the fseq doesn't exist).
 struct SequenceEntry: Hashable, Identifiable {
     let fullPath: String
     let relativePath: String
+    let modificationDate: Date?
+    let fseqModificationDate: Date?
     var id: String { fullPath }
     var displayName: String {
         (relativePath as NSString).lastPathComponent
@@ -6211,6 +6220,37 @@ struct SequenceEntry: Hashable, Identifiable {
     var parentRelativePath: String {
         let parent = (relativePath as NSString).deletingLastPathComponent
         return parent
+    }
+
+    /// True when an fseq exists and is at least as new as the xsq. False
+    /// when the fseq is missing or older — i.e. the sequence needs a
+    /// (re-)render before upload.
+    var isFseqUpToDate: Bool {
+        guard let fseq = fseqModificationDate else { return false }
+        guard let xsq = modificationDate else { return true }
+        return fseq >= xsq
+    }
+
+    /// Build a SequenceEntry by stat()ing a known xsq path. Used by the
+    /// Recent rows in the picker so they can share `SequenceDatesLabel`
+    /// with the show-folder scan results. `relativePath` falls back to the
+    /// basename when the file isn't under any known show folder.
+    static func stat(path: String, relativeTo showFolder: String? = nil) -> SequenceEntry {
+        let url = URL(fileURLWithPath: path)
+        let mtime = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        let fseqURL = URL(fileURLWithPath: batchRenderFseqPath(forXsq: path))
+        let fseqMtime = (try? fseqURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        let rel: String = {
+            if let showFolder, !showFolder.isEmpty,
+               path.hasPrefix(showFolder + "/") {
+                return String(path.dropFirst(showFolder.count + 1))
+            }
+            return url.lastPathComponent
+        }()
+        return SequenceEntry(fullPath: path,
+                              relativePath: rel,
+                              modificationDate: mtime,
+                              fseqModificationDate: fseqMtime)
     }
 }
 
@@ -6228,19 +6268,27 @@ enum SequenceScanner {
         while let dir = stack.popLast() {
             guard let children = try? fm.contentsOfDirectory(
                 at: dir,
-                includingPropertiesForKeys: [.isDirectoryKey],
+                includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey],
                 options: [.skipsHiddenFiles]
             ) else { continue }
             for child in children {
                 let name = child.lastPathComponent
                 if name.hasPrefix(".") { continue }
-                let isDir = (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+                let resourceValues = try? child.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey])
+                let isDir = resourceValues?.isDirectory ?? false
                 if isDir {
                     if name.caseInsensitiveCompare("Backup") == .orderedSame { continue }
                     stack.append(child)
                 } else if name.lowercased().hasSuffix(".xsq") {
                     let rel = relativePath(of: child, under: root)
-                    results.append(SequenceEntry(fullPath: child.path, relativePath: rel))
+                    let mtime = resourceValues?.contentModificationDate
+                    let fseqPath = batchRenderFseqPath(forXsq: child.path)
+                    let fseqURL = URL(fileURLWithPath: fseqPath)
+                    let fseqMtime = (try? fseqURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                    results.append(SequenceEntry(fullPath: child.path,
+                                                  relativePath: rel,
+                                                  modificationDate: mtime,
+                                                  fseqModificationDate: fseqMtime))
                 }
             }
         }

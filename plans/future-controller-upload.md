@@ -14,18 +14,23 @@ Activate/Inactivate, HTTP scan + auth, LED ping) is tracked in
 
 ## Priority bump
 
-**FPP Connect (EX-4) is now P1.** External testers are increasingly
-asking for one-tap uploads from the iPad so they can iterate on
-the field rig without unwrapping a laptop. FPP / WLED /
-ESPixelStick are the focus; the rest of the upload stack is parked
-at P4 (very low) until that picture changes.
+**FPP Connect (EX-4) Slice A shipped 2026-05-18.** Tools → FPP
+Connect on iPad: broadcast-ping discovery (reuses
+`FPP::PrepareDiscovery` + `MapToFPPInstances`), per-FPP
+checkbox + per-sequence checkbox, sequential upload with per-task
+and overall progress, cancel, summary. Per-UUID instance selection
+persisted across launches. Stale / missing fseqs greyed out — the
+sheet relies on Batch Render (also on iPad) to produce fresh
+fseqs. **Slice B (per-instance Models / UDP Out / Pixel-Outputs
+configuration) is the next pull-in** once field-test reports come
+back.
 
 ## Upload stack
 
 | # | Item | Severity | Effort |
 |---|---|---|---|
-| **EX-4** | **FPPConnectDialog** — FPP discovery (Bonjour + UDP); 13-column per-instance config; sequence + media file selection; HTTP REST API uploads. **Tools → FPP Connect** on desktop. | **P1** | XL |
-| EX-5 | FPPUploadProgressDialog — per-FPP gauges + cancel | P1 (pairs with EX-4) | S |
+| **EX-4** | **FPPConnectDialog** — desktop's 13-column per-instance config. **Slice A on iPad** (discover + sequential .fseq upload, no per-instance Models/UDP/Pixel-Outputs config) shipped 2026-05-18 via `src-iPad/App/FPPConnectSheet.swift` + bridge in `XLSequenceDocument.{h,mm}` (`discoverFPPInstances` / `uploadFseq:mediaPath:type:toIPAddress:progress:` / `releaseFPPInstances` + `XLFPPUploadProgress` protocol). **Remaining (Slice B):** Models / UDP Out / Pixel Outputs / Panel / Serial / PWM / Virtual Display Map / Playlist / Media-upload checkboxes plus the desktop's `FPPConnectForcedIPs` manual-add. | **P1** | XL |
+| EX-5 | FPPUploadProgressDialog — per-FPP gauges + cancel. **Per-task + overall progress + cancel shipped with Slice A.** Per-FPP parallel gauges (desktop runs all uploads in parallel) deferred — iPad serializes today. | P1 (pairs with EX-4) | S |
 | EX-6 | MultiControllerUploadDialog — controller checklist + log + right-click filters; covers Falcon, WLED, PowerDMX, etc. **Tools → Bulk Controller Upload** on desktop. | P4 | M |
 | EX-7 | HinksPixExportDialog — vendor-specific HSEQ format, master+2 slaves, playlists, schedule grid, USB drive export. **Tools → HinksPix Export** on desktop. | P4 | XL |
 | O-12 | RemapDMXChannelsDialog — From/To/Scale/Offset/Invert grid (48 rows); .xdmxmap CSV load/save | P2 | M |

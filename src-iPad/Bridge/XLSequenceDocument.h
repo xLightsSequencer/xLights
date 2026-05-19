@@ -10,6 +10,14 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// FPP Connect upload progress callback. The bridge calls
+// `setProgressValue:` periodically as frames flow and polls
+// `isCancelled` so the UI can stop the upload between frames.
+@protocol XLFPPUploadProgress <NSObject>
+- (void)setProgressValue:(int)value;
+- (BOOL)isCancelled;
+@end
+
 @interface XLSequenceDocument : NSObject
 
 // Show folder
@@ -2478,6 +2486,57 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // xLights itself.
 - (nullable NSString*)exportWiringCSVForController:(NSString*)name;
 - (nullable NSString*)exportWiringJSONForController:(NSString*)name;
+
+// Phase J — FPP Connect (Slice A: discover + sequence upload).
+//
+// Runs the same FPP discovery the Layout Editor Controllers tab uses,
+// but instead of merging hits into the controller list, it builds an
+// internal `std::list<FPP*>` keyed by IP and returns Swift-friendly
+// descriptions of every FPP-compatible target. The list is retained
+// by the document until `releaseFPPInstances` is called, so subsequent
+// upload calls can reuse the authenticated handles.
+//
+// Returns NSArray of NSDictionary:
+//   @"ipAddress"        — NSString
+//   @"hostName"         — NSString
+//   @"description"      — NSString (FPP description / location field)
+//   @"platform"         — NSString (Pi 4 / BeagleBone / FalconV4 / ESPixelStick / …)
+//   @"model"            — NSString (controller model, may be empty)
+//   @"mode"             — NSString ("player", "remote", "bridge", "master")
+//   @"version"          — NSString ("8.2.0")
+//   @"uuid"             — NSString (FPP-reported UUID; falls back to ipAddress)
+//   @"fppType"          — NSString ("FPP", "FalconV4V5", "ESPixelStick", "Genius", "PowerDMX")
+//   @"supportedForFPPConnect" — NSNumber (BOOL)
+- (NSArray<NSDictionary*>*)discoverFPPInstances;
+
+// Drop the internal `std::list<FPP*>` and free every instance. Call
+// when the FPP Connect sheet dismisses so the next open re-discovers
+// (FPP versions / modes / available pixels can change between sessions).
+- (void)releaseFPPInstances;
+
+// Upload one .fseq to one previously-discovered FPP instance.
+// `ipAddress` must match the `ipAddress` field from a
+// `discoverFPPInstances` entry. `fseqPath` is an absolute path to a
+// `.fseq` already on disk (caller is expected to have batch-rendered).
+// `mediaPath` is the audio companion to upload alongside the fseq —
+// pass nil / @"" to skip media upload. `fseqType`:
+//   0 — V2 Uncompressed (default; widest compatibility)
+//   1 — V2 zstd compressed
+//   2 — V1 (legacy)
+// `progress` may be nil; when supplied, the bridge calls
+// `setProgressValue:` periodically (0..100) and polls `isCancelled`
+// each tick so the SwiftUI sheet can stop the upload mid-frame.
+//
+// Returns NSDictionary:
+//   @"ok"        — NSNumber BOOL (overall success)
+//   @"cancelled" — NSNumber BOOL (true when the user aborted)
+//   @"message"   — NSString (first error / status line; empty on clean success)
+- (NSDictionary*)uploadFseq:(NSString*)fseqPath
+                  mediaPath:(nullable NSString*)mediaPath
+                       type:(int)fseqType
+                toIPAddress:(NSString*)ipAddress
+                   progress:(nullable id<XLFPPUploadProgress>)progress
+    NS_SWIFT_NAME(uploadFseq(_:mediaPath:type:toIPAddress:progress:));
 
 @end
 

@@ -297,6 +297,16 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            // EX-4 — Tools → FPP Connect. Discover FPP instances and
+            // upload batch-rendered .fseq files. Show folder must be
+            // loaded so the sheet has fseqs to enumerate.
+            Button("FPP Connect…") {
+                viewModel.showingFPPConnect = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded)
+
+            Divider()
+
             // H-6 / T-2 — Tools → View Log. Live log viewer for
             // troubleshooting without leaving the device.
             Button("View Log…") {
