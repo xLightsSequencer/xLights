@@ -298,10 +298,31 @@ int Model::InterpretSize(const std::string& size) {
             if (ft != 0 || in != 0) return static_cast<int>(((ft * 12.0) + in) * 25.4);
         }
     }
-    // Inches with quote.
-    if (std::regex_match(s, std::regex(R"(^\d+\.?\d*\"$)"))) {
-        const double v = std::strtod(s.c_str(), nullptr);
-        if (v != 0) return static_cast<int>(v * 25.4);
+    // Inches with optional parenthetical suffix: 19" or 19"(48cm) or 0"(0cm) or "(0cm).
+    {
+        std::smatch m;
+        if (std::regex_match(s, m, std::regex(R"(^(\d*\.?\d*)\".*$)"))) {
+            const double v = std::strtod(m[1].str().c_str(), nullptr);
+            return static_cast<int>(v * 25.4);
+        }
+    }
+    // Range in inches: 37/47" or 47/37" — take the larger value.
+    {
+        std::smatch m;
+        if (std::regex_match(s, m, std::regex(R"(^(\d+\.?\d*)\/(\d+\.?\d*)\"$)"))) {
+            const double a = std::strtod(m[1].str().c_str(), nullptr);
+            const double b = std::strtod(m[2].str().c_str(), nullptr);
+            const double v = std::max(a, b);
+            if (v != 0) return static_cast<int>(v * 25.4);
+        }
+    }
+    // "N Feet" or "N feet".
+    {
+        std::smatch m;
+        if (std::regex_match(s, m, std::regex(R"(^(\d+\.?\d*)[Ff]eet$)"))) {
+            const double v = std::strtod(m[1].str().c_str(), nullptr);
+            if (v != 0) return static_cast<int>(v * 12.0 * 25.4);
+        }
     }
     spdlog::warn("VendorCatalog: unable to interpret size '{}'", size);
     return -1;
