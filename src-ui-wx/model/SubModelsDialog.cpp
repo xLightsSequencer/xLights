@@ -3349,7 +3349,10 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
 
     std::vector<wxRealPoint> pts;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     //toggle nodes if double click
     bool found = false;
@@ -3448,7 +3451,10 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
 
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
         bool found = false;
@@ -3495,7 +3501,10 @@ void SubModelsDialog::RemoveNodes(bool suppress)
     if (nodes.size() == 0)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
