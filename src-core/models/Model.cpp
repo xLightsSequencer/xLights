@@ -3941,7 +3941,9 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     }
 
     if (model != nullptr) {
-        model->SetStartChannel(sc);
+        // Preserve individual start channels (@Model:chan references) on model import
+            model->SetStartChannel(sc);
+        }
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
         model->SetLayoutGroup(lg);
