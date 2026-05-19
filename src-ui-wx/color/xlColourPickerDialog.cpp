@@ -382,7 +382,23 @@ void xlColourPickerDialog::LoadRecentSwatches()
 
 void xlColourPickerDialog::PushRecentColor(const xlColor& c)
 {
-    for (int i = xlColourData::INSTANCE.GetNumCustomColours() - 1; i > 0; --i) {
+    int n = xlColourData::INSTANCE.GetNumCustomColours();
+
+    // Find existing position so we can move-to-front instead of duplicating.
+    int found = -1;
+    for (int i = 0; i < n; ++i) {
+        wxColour wc = xlColourData::INSTANCE.GetCustomColour(i);
+        if (!wc.IsOk()) continue;
+        xlColor existing = wxColourToXlColor(wc);
+        if (existing.red == c.red && existing.green == c.green && existing.blue == c.blue) {
+            found = i;
+            break;
+        }
+    }
+
+    // Shift elements above the found position (or all but the last if not found).
+    int limit = (found >= 0) ? found : (n - 1);
+    for (int i = limit; i > 0; --i) {
         xlColourData::INSTANCE.SetCustomColour(i, xlColourData::INSTANCE.GetCustomColour(i - 1));
     }
     xlColourData::INSTANCE.SetCustomColour(0, xlColorToWxColour(c));
