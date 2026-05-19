@@ -15,12 +15,13 @@
 #include <log.h>
 #include <mutex>
 
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <chrono>
 #include <memory>
 #include <algorithm>
-#include <cstdlib>
 
 #ifdef _WIN32
 #include <process.h>
