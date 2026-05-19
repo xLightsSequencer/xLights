@@ -83,8 +83,6 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t
             [encoder setDepthStencilState:delegate->getDepthStencilStateLE()];
         }
         
-        [renderPass release];
-
         frameData.MVP = matrix4x4_identity();
         frameData.modelMatrix = matrix4x4_identity();
         frameData.viewMatrix = matrix4x4_identity();
@@ -106,9 +104,6 @@ xlMetalGraphicsContext::xlMetalGraphicsContext(IMetalCanvas *c, id<MTLTexture> t
 
 
 xlMetalGraphicsContext::~xlMetalGraphicsContext() {
-    if (drawable != nil) {
-        [drawable release];
-    }
 }
 
 void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureBuffer) {
@@ -157,9 +152,6 @@ class xlMetalVertexAccumulator : public xlVertexAccumulator {
 public:
     xlMetalVertexAccumulator() {}
     virtual ~xlMetalVertexAccumulator() {
-        if (buffer) {
-            [buffer release];
-        }
     }
 
     virtual void Reset() override {
@@ -181,7 +173,6 @@ public:
                     memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
                     vertices[count] = (simd_float3){x, y, z};
                     bufferVertices = nullptr;
-                    [buffer release];
                     buffer = nil;
                 }
             } else {
@@ -259,12 +250,6 @@ class xlMetalVertexColorAccumulator : public xlVertexColorAccumulator {
 public:
     xlMetalVertexColorAccumulator() {}
     virtual ~xlMetalVertexColorAccumulator() {
-        if (vbuffer) {
-            [vbuffer release];
-        }
-        if (cbuffer) {
-            [cbuffer release];
-        }
     }
 
     virtual uint32_t getCount() override {
@@ -291,7 +276,6 @@ public:
                     memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
                     vertices[count] = (simd_float3){x, y, z};
                     bufferVertices = nullptr;
-                    [vbuffer release];
                     vbuffer = nil;
                 }
             } else {
@@ -306,7 +290,6 @@ public:
                     memcpy(&colors[0], bufferColors, count * sizeof(simd_uchar4));
                     colors[count] = (simd_uchar4){c.red, c.green, c.blue, c.alpha};
                     bufferColors = nullptr;
-                    [cbuffer release];
                     cbuffer = nil;
                 }
             } else {
@@ -443,12 +426,6 @@ public:
     
     xlMetalVertexIndexedColorAccumulator() {}
     virtual ~xlMetalVertexIndexedColorAccumulator() {
-        if (vbuffer) {
-            [vbuffer release];
-        }
-        if (cbuffer) {
-            [cbuffer release];
-        }
     }
 
     virtual uint32_t getCount() override {
@@ -480,7 +457,6 @@ public:
                     vertices[count].z = z;
                     vertices[count].colorIdx = cIdx;
                     bufferVertices = nullptr;
-                    [vbuffer release];
                     vbuffer = nil;
                 }
             } else {
@@ -512,7 +488,6 @@ public:
                 memcpy(&colors[0], bufferColors, idx * sizeof(simd_uchar4));
                 colors[idx] = (simd_uchar4){c.red, c.green, c.blue, c.alpha};
                 bufferColors = nullptr;
-                [cbuffer release];
                 cbuffer = nil;
             }
         } else {
@@ -654,12 +629,6 @@ class xlMetalVertexTextureAccumulator : public xlVertexTextureAccumulator {
 public:
     xlMetalVertexTextureAccumulator() {}
     virtual ~xlMetalVertexTextureAccumulator() {
-        if (vbuffer) {
-            [vbuffer release];
-        }
-        if (tbuffer) {
-            [tbuffer release];
-        }
     }
 
     virtual void Reset() override {
@@ -683,7 +652,6 @@ public:
                     memcpy(&vertices[0], bufferVertices, count * sizeof(simd_float3));
                     vertices[count] = (simd_float3){x, y, z};
                     bufferVertices = nullptr;
-                    [vbuffer release];
                     vbuffer = nil;
                 }
             } else {
@@ -698,7 +666,6 @@ public:
                     memcpy(&tvertices[0], bufferTexture, count * sizeof(simd_float2));
                     tvertices[count] = (simd_float2){tx, ty};
                     bufferTexture = nullptr;
-                    [tbuffer release];
                     tbuffer = nil;
                 }
             } else {
@@ -842,9 +809,6 @@ public:
 
 
     virtual ~xlMetalTexture() {
-        if (texture) {
-            [texture release];
-        }
     }
 
     void LoadImage(const xlImage &image) {
@@ -968,8 +932,9 @@ public:
             [blitCommandEncoder endEncoding];
             [bltBuffer popDebugGroup];
             [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
-                // Private texture is populated, we can release the srcBuffer
-                [srcTexture release];
+                // Block captures srcTexture as __strong; ARC releases it when
+                // the block is deallocated after completion fires.
+                (void)srcTexture;
             }];
             [bltBuffer commit];
 
@@ -1144,12 +1109,6 @@ public:
     virtual ~xlMetalMesh() {
         for (auto a: subMeshes) {
             delete a;
-        }
-        if (vbuffer != nil) {
-            [vbuffer release];
-        }
-        if (ibuffer != nil) {
-            [ibuffer release];
         }
     }
     void LoadBuffers() {

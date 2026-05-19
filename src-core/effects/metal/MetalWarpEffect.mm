@@ -28,11 +28,6 @@ public:
         functions[WarpEffect::WarpType::FLIP] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectFlip");
     }
     ~MetalWarpEffectData() {
-        for (auto &f : functions) {
-            if (f != nil) {
-                [f release];
-            }
-        }
     }
     bool requiresBufferCopy(WarpEffect::WarpType st) {
         switch (st) {

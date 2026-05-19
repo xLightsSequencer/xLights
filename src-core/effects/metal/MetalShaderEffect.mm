@@ -62,7 +62,7 @@ static id<MTLDevice> getANGLEMetalDevice(EGLDisplay display) {
 static bool importTextureToGL(EGLDisplay display, id<MTLTexture> metalTex, SharedTexture& out) {
     const EGLAttrib imageAttribs[] = { EGL_NONE };
     EGLImage image = eglCreateImage(display, EGL_NO_CONTEXT, EGL_METAL_TEXTURE_ANGLE,
-                                    (EGLClientBuffer)(void*)metalTex, imageAttribs);
+                                    (EGLClientBuffer)(__bridge void*)metalTex, imageAttribs);
     if (image == EGL_NO_IMAGE) {
         spdlog::error("MetalShaderEffect: eglCreateImage failed: 0x{:X}", eglGetError());
         return false;
@@ -94,8 +94,8 @@ static bool importTextureToGL(EGLDisplay display, id<MTLTexture> metalTex, Share
 static void destroySharedTexture(EGLDisplay display, SharedTexture& tex) {
     if (tex.glTexture) { glDeleteTextures(1, &tex.glTexture); tex.glTexture = 0; }
     if (tex.eglImage != EGL_NO_IMAGE && display) { eglDestroyImage(display, tex.eglImage); tex.eglImage = EGL_NO_IMAGE; }
-    if (tex.metalTexture) { [tex.metalTexture release]; tex.metalTexture = nil; }
-    if (tex.metalBuffer) { [tex.metalBuffer release]; tex.metalBuffer = nil; }
+    tex.metalTexture = nil;
+    tex.metalBuffer = nil;
     tex.width = 0;
     tex.height = 0;
 }
@@ -114,7 +114,6 @@ static bool createSharedTexture(EGLDisplay display, int w, int h, SharedTexture&
     if (!metalTex) return false;
 
     if (!importTextureToGL(display, metalTex, out)) {
-        [metalTex release];
         return false;
     }
 
@@ -153,12 +152,11 @@ static bool createSharedTextureFromRenderBuffer(EGLDisplay display, void* gpuRen
     if (!metalTex) return false;
 
     if (!importTextureToGL(display, metalTex, out)) {
-        [metalTex release];
         return false;
     }
 
     out.metalTexture = metalTex;
-    out.metalBuffer = [pixelBuffer retain];
+    out.metalBuffer = pixelBuffer;
     out.width = w;
     out.height = h;
 

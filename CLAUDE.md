@@ -275,11 +275,15 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 
 ## Objective-C++ Files: ARC rules differ by target
 
-**Desktop targets are MRC.** `xLights-Apple-core`, `xLights-macOSLib-UI`, `xLights-core`, and `xLights` leave `CLANG_ENABLE_OBJC_ARC` at the project default of NO. Every `.mm` file compiled into those targets must use manual retain/release.
+**MRC targets**: `xLights-core` and the desktop `xLights` app. Files in `src-core/`, `src-ui-wx/`, and `common/` compiled into those targets must use manual retain/release.
 
-**iPad targets are ARC.** `xLights-iPadLib` and the `xLights-iPad` app target set `CLANG_ENABLE_OBJC_ARC = YES`. Files under `src-iPad/` compile under ARC; do NOT write `retain` / `release` / `autorelease` / `[super dealloc]` in iPad code.
+**ARC targets**: `xLights-Apple-core` (files in `src-apple-core/`), `xLights-macOSLib-UI` (files in `src-mac-ui/`), `xLights-iPadLib`, and the `xLights-iPad` app target (files in `src-iPad/`). All set `CLANG_ENABLE_OBJC_ARC = YES`. Do NOT write `retain` / `release` / `autorelease` / `[super dealloc]` in these files.
 
-The two coexist at link time — ARC and MRC translation units link into a shared binary without runtime issue, and `libxLights-core.a` (MRC) is consumed by `xLights-iPadLib` (ARC) without special handling.
+The two coexist at link time — ARC and MRC translation units link into a shared binary without runtime issue. `libxLights-core.a` (MRC) is consumed by `xLights-iPadLib` (ARC) and the desktop `xLights` app (MRC); `libxLights-Apple-core.a` (ARC) is linked into both the desktop MRC app and the iPad ARC targets; `libxLights-macOSLib-UI.a` (ARC) is linked into the MRC `xLights` app.
+
+**Cross-ARC-boundary mangling gotcha.** When a function takes a *reference to an ObjC pointer* (`id<MTLCommandBuffer>&`, `NSString*&`, etc.) and the declaration is shared between ARC and MRC translation units (e.g. an ARC implementation called by a MRC caller via a qualified non-virtual call), the ARC compiler implicitly qualifies the parameter as `__autoreleasing` while the MRC compiler leaves it unqualified. These mangle to different symbols and link-fail. Fix: pin the qualifier explicitly with `__unsafe_unretained` (or `__autoreleasing` if out-param semantics are intended) in **both** the header declaration and the definition — `__unsafe_unretained` is recognized as a no-op in MRC and mangles identically in both modes. Direct ObjC pointer parameters (`id foo` not `id& foo`) are fine because both modes default to `__strong` semantics; only reference parameters have this issue.
+
+**MRC-style +1-ownership-transfer gotcha.** wxWidgets (MRC) follows the classic Cocoa convention that when you pass an NSView to `wxWidgetCocoaImpl`, you transfer your +1 ownership (from `alloc`/`init`) to wx — wx stores the pointer without an extra retain and balances with `[release]` in its destructor. Under ARC, the `__strong` local that holds the alloc/init result consumes that +1 and auto-releases at end of scope, so wx's later destructor `release` over-releases a deallocated view (zombie crash on the next autorelease pool drain). Fix at the boundary: call `CFBridgingRetain(view)` (discard the `CFTypeRef` return) right after `alloc`/`init` to add an extra retain that ARC won't release, restoring the +1 wx expects to own. This pattern is used in `wxMetalCanvas::Create` for `wxCustomMTKView`. Apply to any new ARC site that hands an NSView/NSObject to wx with MRC-style ownership semantics.
 
 ### MRC rules (desktop `.mm` files only)
 

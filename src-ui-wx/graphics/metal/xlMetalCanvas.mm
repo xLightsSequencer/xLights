@@ -158,7 +158,7 @@ public:
                                                 bool blending) override {
         return canvas->wxMetalCanvas::getPipelineState(name, vShader, fShader, blending);
     }
-    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+    void addToSyncPoint(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> drawable) override {
         canvas->wxMetalCanvas::addToSyncPoint(buffer, drawable);
     }
     id<CAMetalDrawable> getNextDrawable() override {

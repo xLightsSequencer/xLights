@@ -73,9 +73,13 @@ public:
                                                         const char* fShader,
                                                         bool blending) = 0;
 
-    // Frame presentation
-    virtual void addToSyncPoint(id<MTLCommandBuffer>& buffer,
-                                id<CAMetalDrawable>& drawable) = 0;
+    // Frame presentation. Pass by value (not by reference) so the signature
+    // mangles identically across MRC and ARC TUs — reference-to-ObjC-pointer
+    // params default to __autoreleasing under ARC and unqualified under MRC,
+    // which differ at both the symbol level and at the call site when binding
+    // __strong ivars.
+    virtual void addToSyncPoint(id<MTLCommandBuffer> buffer,
+                                id<CAMetalDrawable> drawable) = 0;
 
     // Drawable access — desktop gets this from MTKView, iPad from CAMetalLayer
     virtual id<CAMetalDrawable> getNextDrawable() = 0;

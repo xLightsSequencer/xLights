@@ -12,7 +12,6 @@ public:
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("ColorWashEffect");
     }
     ~MetalColorWashEffectData() {
-        if (fn) { [fn release]; }
     }
 
     bool canRender() { return fn != nil; }

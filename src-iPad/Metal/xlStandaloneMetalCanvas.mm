@@ -124,7 +124,7 @@ public:
             canvas->RequiresDepthBuffer(), canvas->usesMSAA(), fmt);
     }
 
-    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+    void addToSyncPoint(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> drawable) override {
         if (drawable != nil) {
             [buffer presentDrawable:drawable];
         }
