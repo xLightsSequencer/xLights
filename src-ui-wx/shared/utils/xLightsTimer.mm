@@ -54,16 +54,12 @@ xLightsTimerDataImpl::xLightsTimerDataImpl(xLightsTimer *t) : timer(t) {
 }
 xLightsTimerDataImpl::~xLightsTimerDataImpl() {
     releaseScreens();
-    for (auto c : callbacks) {
-        [c release];
-    }
 }
 void xLightsTimerDataImpl::releaseScreens() {
     if (@available(macOS 14.0, *)) {
         for (auto link : links) {
             [link setPaused:true];
             [link invalidate];
-            [link release];
         }
         links.clear();
         maxes.clear();
@@ -88,7 +84,6 @@ void xLightsTimerDataImpl::setupScreens() {
             CADisplayLink *link = [scr displayLinkWithTarget:callbacks[links.size()] selector:@selector(displayLinkCallback:)];
             [link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
             [link setPaused:true];
-            [link retain];
             links.push_back(link);
             double mrefresh = [scr minimumRefreshInterval];
             maxes.push_back(1.0l / mrefresh);

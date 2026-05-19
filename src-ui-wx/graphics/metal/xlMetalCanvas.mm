@@ -35,9 +35,6 @@ public:
         height = [layer drawableSize].height;
     }
     ~MSAATextureInfo() {
-        if (msaaTexture != nil) {
-            [msaaTexture release];
-        }
     }
     
     bool supportsMemoryless() {
@@ -95,9 +92,6 @@ public:
         height = [layer drawableSize].height;
     }
     ~DepthTextureInfo() {
-        if (depthTexture != nil) {
-            [depthTexture release];
-        }
     }
 
     bool supportsMemoryless() {
@@ -211,7 +205,7 @@ public:
         int bytesPerRow = w * 4;
         int bufferSize = bytesPerRow * h;
         auto dev = MetalDeviceManager::instance().getMTLDevice();
-        buffer = [[dev newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
+        buffer = [dev newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
 
         MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
                                                                                                width:w
@@ -221,12 +215,6 @@ public:
         target = [dev newTextureWithDescriptor:description];
     }
     ~CaptureBufferInfo() {
-        if (buffer != nil) {
-            [buffer release];
-        }
-        if (target != nil) {
-            [target release];
-        }
     }
     
     int width = 0;
@@ -393,8 +381,6 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
                         
             VideoToolboxCreateFrame(i2, f, getMTLDevice());
-            
-            [dict release];
         }
         return false;
     }

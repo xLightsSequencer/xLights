@@ -273,40 +273,30 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
 
-## Objective-C++ Files: ARC rules differ by target
+## Objective-C++ Files: All Targets Use ARC
 
-**MRC targets**: `xLights-core` and the desktop `xLights` app. Files in `src-core/`, `src-ui-wx/`, and `common/` compiled into those targets must use manual retain/release.
+Every Xcode target in this project sets `CLANG_ENABLE_OBJC_ARC = YES`: `xLights-Apple-core`, `xLights-core`, `xLights-macOSLib-UI`, `xLights-iPadLib`, `xLights-iPad`, and the desktop `xLights` app. Every `.mm` file in `src-apple-core/`, `src-core/`, `src-mac-ui/`, `src-ui-wx/`, `src-iPad/`, and `common/` compiles under ARC.
 
-**ARC targets**: `xLights-Apple-core` (files in `src-apple-core/`), `xLights-macOSLib-UI` (files in `src-mac-ui/`), `xLights-iPadLib`, and the `xLights-iPad` app target (files in `src-iPad/`). All set `CLANG_ENABLE_OBJC_ARC = YES`. Do NOT write `retain` / `release` / `autorelease` / `[super dealloc]` in these files.
+**Do NOT write** `retain` / `release` / `autorelease` / `[obj release]; obj = nil;` / `[super dealloc]` in any `.mm` file. ARC manages all that. Manual retain/release is a compile error.
 
-The two coexist at link time — ARC and MRC translation units link into a shared binary without runtime issue. `libxLights-core.a` (MRC) is consumed by `xLights-iPadLib` (ARC) and the desktop `xLights` app (MRC); `libxLights-Apple-core.a` (ARC) is linked into both the desktop MRC app and the iPad ARC targets; `libxLights-macOSLib-UI.a` (ARC) is linked into the MRC `xLights` app.
+### ARC rules
 
-**Cross-ARC-boundary mangling gotcha.** When a function takes a *reference to an ObjC pointer* (`id<MTLCommandBuffer>&`, `NSString*&`, etc.) and the declaration is shared between ARC and MRC translation units (e.g. an ARC implementation called by a MRC caller via a qualified non-virtual call), the ARC compiler implicitly qualifies the parameter as `__autoreleasing` while the MRC compiler leaves it unqualified. These mangle to different symbols and link-fail. Fix: pin the qualifier explicitly with `__unsafe_unretained` (or `__autoreleasing` if out-param semantics are intended) in **both** the header declaration and the definition — `__unsafe_unretained` is recognized as a no-op in MRC and mangles identically in both modes. Direct ObjC pointer parameters (`id foo` not `id& foo`) are fine because both modes default to `__strong` semantics; only reference parameters have this issue.
-
-**MRC-style +1-ownership-transfer gotcha.** wxWidgets (MRC) follows the classic Cocoa convention that when you pass an NSView to `wxWidgetCocoaImpl`, you transfer your +1 ownership (from `alloc`/`init`) to wx — wx stores the pointer without an extra retain and balances with `[release]` in its destructor. Under ARC, the `__strong` local that holds the alloc/init result consumes that +1 and auto-releases at end of scope, so wx's later destructor `release` over-releases a deallocated view (zombie crash on the next autorelease pool drain). Fix at the boundary: call `CFBridgingRetain(view)` (discard the `CFTypeRef` return) right after `alloc`/`init` to add an extra retain that ARC won't release, restoring the +1 wx expects to own. This pattern is used in `wxMetalCanvas::Create` for `wxCustomMTKView`. Apply to any new ARC site that hands an NSView/NSObject to wx with MRC-style ownership semantics.
-
-### MRC rules (desktop `.mm` files only)
-
-- Methods named `alloc…`, `new…`, `copy`, `mutableCopy` return a +1 retain that **you own**. Pair each with `release` / `autorelease`, including on every early-return / error path.
-- Every other ObjC method (e.g. `[NSArray array]`, `[AVAsset assetWithURL:]`, `[CIImage imageWithCVImageBuffer:]`) returns an **autoreleased** object. Storing it in an ivar / C++ struct field without `[retain]` leaves you with a dangling pointer after the surrounding `@autoreleasepool` drains.
-- **`__strong` is a no-op without ARC.** Don't use it as a substitute for explicit retain. Declarations like `__strong AVAsset* asset = nil;` look correct but compile to a plain pointer that won't be retained on assignment.
-- `@property(strong)` on an `@interface` does generate a retaining synthesized setter — but only when you call it via `self.x = …`. Direct ivar assignment (`_x = …`) bypasses the setter and does NOT retain. Prefer `[[X alloc] init]` + matching `release` in `-dealloc` for ivars set in `-init`.
-- Every ObjC class that holds retained ivars needs an explicit `-dealloc` that releases each one and ends with `[super dealloc]`. ARC-style "no dealloc needed" code leaks.
-- C++ structs / classes that hold ObjC pointers (`MLModel*`, `AVAssetReader*`, …) must release them in their destructor. Setting the pointer to `nil` does NOT release.
-- Blocks that capture local ObjC pointers retain those captures when the block is copied — so passing a block to `dispatch_async` / `…completionHandler:` works the way you'd expect. `__block` variables are the exception: they are NOT retained by the block.
-- `CFBridgingRetain` / `CFBridgingRelease` are ARC-only. In our code use `CFRetain` / `CFRelease` and the `(__bridge CFType)` cast when crossing Core Foundation ↔ Objective-C.
-- `@autoreleasepool` only drains objects that were explicitly autoreleased (or returned from a non-`alloc`/`new`/`copy` method). It does NOT clean up `[[X alloc] init]` results — those still need `release`/`autorelease`. A common mistake is wrapping a hot loop in `@autoreleasepool` and assuming alloc/init buffers are reclaimed; they aren't.
-
-When in doubt under MRC, model it as: alloc/new/copy/mutableCopy = "I own +1, must release"; everything else = "autoreleased, retain if I want to keep it past the current pool."
-
-### ARC rules (iPad `.mm` files only)
-
-- No `retain` / `release` / `autorelease` / `[super dealloc]`. An explicit `-dealloc` is allowed only when you need to clean up non-ObjC state (e.g. `delete _bgTexture` for a C++ object held in an ObjC ivar); do not call `[super dealloc]`.
-- ObjC pointers in C++ classes/structs are automatically `__strong` and are retained on assignment / released on destruction — works because the TU is ObjC++ and ARC understands C++ destructors. Just declare `id<MTLTexture> texture = nil;` in a C++ class and ARC handles it.
+- No `retain` / `release` / `autorelease` / `[super dealloc]`. An explicit `-dealloc` is only allowed when you need to clean up non-ObjC state (e.g. `delete _bgTexture` for a C++ object held in an ObjC ivar); never call `[super dealloc]`.
+- ObjC pointers in C++ classes/structs default to `__strong` and are retained on assignment / released on destruction — ARC understands C++ destructors. Just declare `id<MTLTexture> texture = nil;` in a C++ class and ARC handles it. Same applies to `std::vector<NSFoo*>`, `std::map`, and other STL containers — element types default to `__strong`.
+- Pass ObjC pointers **by value**, not by `id<…>&` reference. Reference-to-ObjC-pointer parameters default to `__autoreleasing` under ARC, which doesn't bind to `__strong` ivars at the call site. By-value passing also sidesteps a name-mangling hazard if the function is ever called across ARC↔MRC boundaries (see "wxWidgets boundary" below).
 - Use `[NSData dataWithBytes:…]`, `[NSString stringWithUTF8String:…]`, etc. freely — autorelease-pool semantics are managed by ARC.
 - For blocks that capture `self` via an ivar (`_foo->bar()`), prefer explicit `self->_foo->bar()` to silence `-Wimplicit-retain-self` when the retention is intentional.
-- Cross-language refcounting (Core Foundation ↔ ObjC) uses `CFBridgingRetain` / `CFBridgingRelease` and `__bridge` / `__bridge_transfer` casts — the MRC-side `CFRetain` / `CFRelease` calls still work but are no longer the preferred idiom in ARC code.
-- Avoid `__weak` for the long-lived parent reference pattern (`_document` in import sessions); prefer `__unsafe_unretained` when you have a documented lifetime guarantee, since `__weak` adds zero-out overhead and isn't needed without retain-cycle risk.
+- Cross-language refcounting (Core Foundation ↔ ObjC) uses `CFBridgingRetain` / `CFBridgingRelease` and `__bridge` / `__bridge_retained` / `__bridge_transfer` casts. Casts between `id` and `void*` (e.g. for `printf("%p", obj)` or passing to a C API) require an explicit `(__bridge void*)obj`.
+- For blocks with `NS_RETURNS_RETAINED` typedef (like `MPSCopyAllocator`), annotate the block literal with `__attribute__((ns_returns_retained))` after the return type to match the typedef.
+- Avoid `__weak` for the long-lived parent reference pattern; prefer `__unsafe_unretained` when you have a documented lifetime guarantee, since `__weak` adds zero-out overhead and isn't needed without retain-cycle risk.
+
+### wxWidgets boundary
+
+wxWidgets is an external MRC library. The boundary between our ARC code and wx's MRC code carries two gotchas worth knowing:
+
+**+1 ownership transfer.** wxWidgets follows the classic Cocoa convention that when you pass an NSView to `wxWidgetCocoaImpl(this, view, …)`, you transfer your +1 ownership (from `alloc`/`init`) to wx — wx stores the pointer without an extra retain and balances with `[release]` in its destructor. Under ARC, the `__strong` local that holds the alloc/init result consumes that +1 and auto-releases at end of scope, so wx's later destructor `release` over-releases a deallocated view (zombie crash on the next autorelease pool drain). Fix at the boundary: call `CFBridgingRetain(view)` (discard the `CFTypeRef` return) right after `alloc`/`init` to add an extra retain that ARC won't release, restoring the +1 wx expects to own. This pattern is used in `wxMetalCanvas::Create` for `wxCustomMTKView`. Apply to any new site that hands an NSView/NSObject to wx with MRC-style ownership semantics.
+
+**Reference-param mangling.** If you ever declare a function shared between our ARC headers and wx-derived MRC code with a `id<…>&` or `NSFoo*&` parameter, ARC will implicitly qualify the reference as `__autoreleasing` while wx's MRC TU leaves it unqualified — these mangle to different symbols and link-fail. Either pass by value (preferred) or pin the qualifier with `__unsafe_unretained` in the declaration (recognized as a no-op under MRC).
 
 ## Release Builds Use -ffast-math
 
