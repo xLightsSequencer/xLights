@@ -1667,7 +1667,7 @@ bool EffectsGrid::IsMouseOverTiming(int y) {
 }
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event) {
-    if (!mIsInitialized || mSequenceElements == nullptr) {
+    if (!mIsInitialized || mSequenceElements == nullptr || mTimeline == nullptr) {
         return;
     }
 
