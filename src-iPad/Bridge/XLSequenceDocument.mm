@@ -124,6 +124,10 @@
 #include "models/DMX/Mesh.h"
 #include "utils/FileUtils.h"
 #include "utils/ExternalHooks.h"
+#include "utils/XsqFileScanner.h"
+#include "utils/CurlManager.h"
+
+#import <Security/Security.h>
 #include "utils/xlImage.h"
 #include "xLightsVersion.h"
 #include "globals.h"
@@ -194,7 +198,22 @@
     // authenticated curl handles, version, mode, etc.). Cleared by
     // `releaseFPPInstances` when the SwiftUI sheet dismisses.
     std::list<FPP*> _fppInstances;
+
+    // FPP auth delegate (C++) bridged to a Swift prompt handler.
+    // Lifetime: owned by the document; shared across every FPP* in
+    // `_fppInstances` via `fpp->_authDelegate`. Defined below in the
+    // FPP Connect (Slice A) section.
+    std::unique_ptr<class XLiPadDiscoveryAuthDelegate> _fppAuthDelegate;
 }
+
+// Block signature for the Swift-side password prompt. The bridge
+// stores a copy in `_fppAuthDelegate` and invokes it on the main
+// thread when an FPP returns 401.
+typedef void (^XLFPPAuthPromptCompletion)(NSString* _Nullable user,
+                                           NSString* _Nullable password,
+                                           BOOL savePassword);
+typedef void (^XLFPPAuthPromptHandler)(NSString* host,
+                                        XLFPPAuthPromptCompletion completion);
 
 @synthesize lastClassificationTimeStep = _lastClassificationTimeStep;
 
@@ -13902,6 +13921,136 @@ static std::string CSVQuote(const std::string& s) {
 
 #pragma mark - FPP Connect (Slice A)
 
+// Iframe-Keychain-backed DiscoveryDelegate for FPP Connect.
+// One instance per document (constructed lazily) — shared across
+// every FPP* the discovery walk produces. Stored creds live in the
+// iOS Keychain under service "xLights/Discovery/<ip>" + account =
+// username (typically "admin"). 401 prompts hop to main, run a
+// caller-supplied ObjC block, and block the discovery thread on a
+// DispatchSemaphore until the user dismisses.
+class XLiPadDiscoveryAuthDelegate : public DiscoveryDelegate {
+public:
+    XLiPadDiscoveryAuthDelegate() = default;
+    ~XLiPadDiscoveryAuthDelegate() override = default;
+
+    void SetPromptHandler(XLFPPAuthPromptHandler handler) {
+        // ObjC ARC: copy the block so it survives past the calling
+        // scope (the caller may release theirs).
+        _handler = [handler copy];
+    }
+
+    bool PromptForPassword(const std::string& host, std::string& username,
+                           std::string& password, bool& savePassword) override {
+        XLFPPAuthPromptHandler handler = _handler;
+        if (!handler) return false;
+
+        NSString* hostNS = [NSString stringWithUTF8String:host.c_str()];
+
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        __block NSString* userOut = nil;
+        __block NSString* pwdOut = nil;
+        __block BOOL saveOut = NO;
+
+        XLFPPAuthPromptCompletion completion = ^(NSString* user, NSString* pwd, BOOL save) {
+            userOut = [user copy];
+            pwdOut = [pwd copy];
+            saveOut = save;
+            dispatch_semaphore_signal(sem);
+        };
+
+        // Always present from the main queue — UIAlertController
+        // requires it, and we don't know what thread the FPP
+        // class's curl callback ran us on.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            handler(hostNS, completion);
+        });
+
+        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+
+        if (userOut == nil || pwdOut == nil) {
+            // User cancelled.
+            return false;
+        }
+        username = userOut.UTF8String;
+        password = pwdOut.UTF8String;
+        savePassword = (saveOut == YES);
+        return true;
+    }
+
+    bool GetStoredPassword(const std::string& service, std::string& user, std::string& pwd) override {
+        @autoreleasepool {
+            NSString* svc = [NSString stringWithFormat:@"xLights/Discovery/%s",
+                             service.c_str()];
+            NSMutableDictionary* query = [NSMutableDictionary dictionary];
+            query[(__bridge id)kSecClass] = (__bridge id)kSecClassGenericPassword;
+            query[(__bridge id)kSecAttrService] = svc;
+            query[(__bridge id)kSecReturnAttributes] = @YES;
+            query[(__bridge id)kSecReturnData] = @YES;
+            query[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
+
+            CFTypeRef result = NULL;
+            OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
+            if (status != errSecSuccess || result == NULL) {
+                return false;
+            }
+            NSDictionary* item = (__bridge_transfer NSDictionary*)result;
+            NSString* account = item[(__bridge id)kSecAttrAccount];
+            NSData* pwdData = item[(__bridge id)kSecValueData];
+            if (account == nil || pwdData == nil) return false;
+            user = account.UTF8String;
+            NSString* pwdStr = [[NSString alloc] initWithData:pwdData
+                                                     encoding:NSUTF8StringEncoding];
+            if (pwdStr == nil) return false;
+            pwd = pwdStr.UTF8String;
+            return true;
+        }
+    }
+
+    bool StorePassword(const std::string& service, const std::string& user, const std::string& pwd) override {
+        @autoreleasepool {
+            NSString* svc = [NSString stringWithFormat:@"xLights/Discovery/%s",
+                             service.c_str()];
+            NSString* userNS = [NSString stringWithUTF8String:user.c_str()];
+            NSMutableDictionary* baseQuery = [NSMutableDictionary dictionary];
+            baseQuery[(__bridge id)kSecClass] = (__bridge id)kSecClassGenericPassword;
+            baseQuery[(__bridge id)kSecAttrService] = svc;
+
+            if (pwd.empty()) {
+                // Empty password = delete the entry.
+                OSStatus status = SecItemDelete((__bridge CFDictionaryRef)baseQuery);
+                return status == errSecSuccess || status == errSecItemNotFound;
+            }
+
+            NSData* pwdData = [[NSString stringWithUTF8String:pwd.c_str()]
+                                dataUsingEncoding:NSUTF8StringEncoding];
+
+            // Try update first (single-account-per-service); fall back
+            // to add when no entry exists.
+            NSDictionary* update = @{
+                (__bridge id)kSecAttrAccount: userNS,
+                (__bridge id)kSecValueData: pwdData,
+                (__bridge id)kSecAttrAccessible: (__bridge id)kSecAttrAccessibleAfterFirstUnlock,
+            };
+            OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)baseQuery,
+                                            (__bridge CFDictionaryRef)update);
+            if (status == errSecItemNotFound) {
+                NSMutableDictionary* add = [baseQuery mutableCopy];
+                [add addEntriesFromDictionary:update];
+                status = SecItemAdd((__bridge CFDictionaryRef)add, NULL);
+            }
+            return status == errSecSuccess;
+        }
+    }
+
+    void YieldToUI() override {
+        // No-op on iPad — discovery already runs off-main, so we
+        // don't need to yield anything.
+    }
+
+private:
+    XLFPPAuthPromptHandler _handler = nil;
+};
+
 namespace {
 
 NSString* fppTypeString(FPP_TYPE t) {
@@ -13939,8 +14088,29 @@ NSString* fppTypeString(FPP_TYPE t) {
 
     _fppInstances.sort(sortByIP);
 
+    // Wire the auth delegate onto every discovered FPP so a 401 from
+    // any of them routes back to the registered Swift prompt
+    // handler. Lazy-init: the delegate isn't constructed until the
+    // first discovery (saves a tiny bit at app launch).
+    if (!_fppAuthDelegate) {
+        _fppAuthDelegate = std::make_unique<XLiPadDiscoveryAuthDelegate>();
+    }
+    for (FPP* fpp : _fppInstances) {
+        if (fpp) fpp->_authDelegate = _fppAuthDelegate.get();
+    }
+
     for (FPP* fpp : _fppInstances) {
         if (!fpp) continue;
+        // iPad scope: FPP + ESPixelStick only (both open-source firmware).
+        // Falcon V4/V5, Genius, PowerDMX use proprietary HSEQ-style codecs
+        // that need separate per-vendor upload paths — explicitly out of
+        // iPad scope (see Slice E in future-controller-upload.md). Without
+        // this filter the bridge would route FPP-codec frames to those
+        // devices and the upload would silently produce broken output.
+        if (fpp->fppType != FPP_TYPE::FPP &&
+            fpp->fppType != FPP_TYPE::ESPIXELSTICK) {
+            continue;
+        }
         NSString* uuid = fpp->uuid.empty()
             ? [NSString stringWithUTF8String:fpp->ipAddress.c_str()]
             : [NSString stringWithUTF8String:fpp->uuid.c_str()];
@@ -13948,17 +14118,51 @@ NSString* fppTypeString(FPP_TYPE t) {
             ? [NSString stringWithFormat:@"%u.%u.%u",
                 fpp->majorVersion, fpp->minorVersion, fpp->patchVersion]
             : [NSString stringWithUTF8String:fpp->fullVersion.c_str()];
+        NSMutableArray<NSString*>* playlists = [NSMutableArray array];
+        for (const std::string& p : fpp->playlists) {
+            [playlists addObject:[NSString stringWithUTF8String:p.c_str()]];
+        }
+
+        // Resolve a user-facing cape / hat model name using the same
+        // logic as desktop's FPPConnectDialog::PopulateFPPInstanceList
+        // (line 685-707). Start with FPP::GetModel mapping; if the
+        // OutputManager has a matching ControllerEthernet whose caps
+        // report a model, prefer that. Empty result means the FPP has
+        // no cape worth offering an upload checkbox for — the SwiftUI
+        // sheet hides the Pixel Hat/Cape toggle in that case.
+        std::string capeModel = FPP::GetModel(fpp->pixelControllerType);
+        auto controllers = om.GetControllers(fpp->ipAddress);
+        if (controllers.size() == 1) {
+            if (auto* eth = dynamic_cast<ControllerEthernet*>(controllers.front())) {
+                if (const ControllerCaps* caps = eth->GetControllerCaps()) {
+                    std::string capsModel = caps->GetModel();
+                    if (!capsModel.empty()) capeModel = capsModel;
+                }
+            }
+        }
+        if (!capeModel.empty() && !fpp->panelSize.empty()) {
+            capeModel += " - " + fpp->panelSize;
+        }
+
         [out addObject:@{
-            @"ipAddress":   [NSString stringWithUTF8String:fpp->ipAddress.c_str()],
-            @"hostName":    [NSString stringWithUTF8String:fpp->hostName.c_str()],
-            @"description": [NSString stringWithUTF8String:fpp->description.c_str()],
-            @"platform":    [NSString stringWithUTF8String:fpp->platform.c_str()],
-            @"model":       [NSString stringWithUTF8String:fpp->model.c_str()],
-            @"mode":        [NSString stringWithUTF8String:fpp->mode.c_str()],
-            @"version":     version,
-            @"uuid":        uuid,
-            @"fppType":     fppTypeString(fpp->fppType),
+            @"ipAddress":           [NSString stringWithUTF8String:fpp->ipAddress.c_str()],
+            @"hostName":            [NSString stringWithUTF8String:fpp->hostName.c_str()],
+            @"description":         [NSString stringWithUTF8String:fpp->description.c_str()],
+            @"platform":            [NSString stringWithUTF8String:fpp->platform.c_str()],
+            @"model":               [NSString stringWithUTF8String:fpp->model.c_str()],
+            @"mode":                [NSString stringWithUTF8String:fpp->mode.c_str()],
+            @"version":             version,
+            @"uuid":                uuid,
+            @"fppType":             fppTypeString(fpp->fppType),
             @"supportedForFPPConnect": @(fpp->supportedForFPPConnect()),
+            @"playlists":           playlists,
+            // User-facing cape / hat model name (mirrors desktop's
+            // PopulateFPPInstanceList m-string). Empty when the FPP
+            // has no cape worth configuring — the SwiftUI sheet hides
+            // the Pixel Hat/Cape toggle entirely in that case. Always
+            // non-empty for FPPs with a real cape attached (e.g.
+            // "K8-Pro", "F32-B", "PiHat - 64x32").
+            @"capeModel":           [NSString stringWithUTF8String:capeModel.c_str()],
         }];
     }
     return out;
@@ -13969,12 +14173,16 @@ NSString* fppTypeString(FPP_TYPE t) {
     _fppInstances.clear();
 }
 
-- (NSDictionary*)uploadFseq:(NSString*)fseqPath
-                  mediaPath:(nullable NSString*)mediaPath
-                       type:(int)fseqType
-                toIPAddress:(NSString*)ipAddress
-                   progress:(nullable id<XLFPPUploadProgress>)progress {
-    NSString* errorMessage = @"";
+- (void)setFPPAuthPromptHandler:(nullable XLFPPAuthPromptHandler)handler {
+    if (!_fppAuthDelegate) {
+        _fppAuthDelegate = std::make_unique<XLiPadDiscoveryAuthDelegate>();
+    }
+    _fppAuthDelegate->SetPromptHandler(handler);
+}
+
+- (NSDictionary*)applyConfigToFPP:(NSString*)ipAddress
+                         settings:(NSDictionary*)settings
+                         progress:(nullable id<XLFPPUploadProgress>)progress {
     if (!_context || _fppInstances.empty()) {
         return @{@"ok": @NO, @"cancelled": @NO,
                  @"message": @"FPP instance list is empty — run discovery first."};
@@ -13989,31 +14197,23 @@ NSString* fppTypeString(FPP_TYPE t) {
         return @{@"ok": @NO, @"cancelled": @NO,
                  @"message": [NSString stringWithFormat:@"No discovered FPP at %@", ipAddress]};
     }
-    if (!target->supportedForFPPConnect()) {
-        return @{@"ok": @NO, @"cancelled": @NO,
-                 @"message": @"This FPP version / mode does not support FPP Connect upload."};
+    if (target->fppType != FPP_TYPE::FPP) {
+        // ESPixelStick doesn't accept Models/UDP/Cape uploads via this
+        // path; just report ok with no work done.
+        return @{@"ok": @YES, @"cancelled": @NO, @"message": @""};
     }
 
-    std::string fseq = fseqPath.UTF8String;
-    std::string media = mediaPath ? std::string(mediaPath.UTF8String) : std::string();
-
-    std::unique_ptr<FSEQFile> seq(FSEQFile::openFSEQFile(fseq));
-    if (!seq) {
-        return @{@"ok": @NO, @"cancelled": @NO,
-                 @"message": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath]};
-    }
-
-    // Wire the per-instance progress callback. The FPP class reports
-    // network-side progress on a 0..1000 scale; downscale to 0..100.
-    // `DoYield` is a no-op on iPad since the upload runs off-main.
+    // Mirror the desktop dialog's progress / cancel wiring. Single
+    // target here — the multi-target protocol's `setProgress:forIPAddress:`
+    // just routes the FPP's 0..1000 scale (downscaled to 0..100) into
+    // the per-IP slot the SwiftUI sheet reads.
     __weak id<XLFPPUploadProgress> weakProgress = progress;
+    NSString* targetIPNS = ipAddress;
     bool cancelledFlag = false;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-repeated-use-of-weak"
     target->setProgress({
-        [weakProgress](int val) {
+        [weakProgress, targetIPNS](int val) {
             id<XLFPPUploadProgress> p = weakProgress;
-            if (p) [p setProgressValue:val / 10];
+            if (p) [p setProgress:val / 10 forIPAddress:targetIPNS];
         },
         [weakProgress, &cancelledFlag]() -> bool {
             id<XLFPPUploadProgress> p = weakProgress;
@@ -14022,66 +14222,478 @@ NSString* fppTypeString(FPP_TYPE t) {
         },
         []() {}
     });
-#pragma clang diagnostic pop
     target->defaultConnectTimeout = 5000;
     target->messages.clear();
 
-    bool cancelled = target->PrepareUploadSequence(seq.get(), fseq, media, fseqType);
-    if (cancelled) {
-        target->setProgress({});
-        return @{@"ok": @NO, @"cancelled": @(cancelledFlag ? YES : NO),
-                 @"message": @"PrepareUploadSequence failed."};
+    auto& om = _context->GetOutputManager();
+    auto& mm = _context->GetModelManager();
+    bool cancelled = false;
+
+    // Match the matching ControllerEthernet for outputs uploads. If
+    // there isn't exactly one match, we skip the Cape uploads (desktop
+    // does the same — `if (c.size() == 1)` gate at line 1174).
+    auto controllers = om.GetControllers(target->ipAddress);
+    ControllerEthernet* matchedEth = nullptr;
+    if (controllers.size() == 1) {
+        matchedEth = dynamic_cast<ControllerEthernet*>(controllers.front());
     }
 
-    if (target->WillUploadSequence()) {
-        if (target->NeedCustomSequence()) {
-            uint32_t numFrames = (uint32_t)seq->getNumFrames();
-            uint32_t channels = seq->getMaxChannel() + 1;
-            std::vector<uint8_t> buf(channels);
+    // Backfill `ranges` so the FPP can advertise sane channel ownership
+    // when discovery didn't pre-populate it. Mirrors lines 1140-1147.
+    if (matchedEth && target->ranges.empty()) {
+        uint32_t sc = matchedEth->GetStartChannel() - 1;
+        target->ranges = std::to_string(sc) + "-" +
+            std::to_string(sc + matchedEth->GetChannels() - 1);
+    }
 
-            int lastReportedPct = -1;
-            for (uint32_t i = 0; i < numFrames; ++i) {
-                if (cancelledFlag) break;
-                FSEQFile::FrameData* fd = seq->getFrame(i);
-                if (!fd) continue;
-                if (!fd->readFrame(buf.data(), (uint32_t)buf.size())) {
-                    delete fd;
-                    errorMessage = [NSString stringWithFormat:
-                        @"FSEQ corrupt at frame %u", i];
-                    cancelled = true;
-                    break;
-                }
-                delete fd;
-                target->AddFrameToUpload(i, buf.data());
+    bool uploadProxies = [settings[@"uploadProxies"] boolValue];
+    bool uploadCape = [settings[@"uploadCape"] boolValue];
+    NSString* modelsMode = [settings[@"modelsMode"] isKindOfClass:[NSString class]]
+        ? (NSString*)settings[@"modelsMode"] : @"none";
+    NSString* udpOutMode = [settings[@"udpOutMode"] isKindOfClass:[NSString class]]
+        ? (NSString*)settings[@"udpOutMode"] : @"none";
+    NSString* playlist = [settings[@"playlist"] isKindOfClass:[NSString class]]
+        ? (NSString*)settings[@"playlist"] : @"";
 
-                int pct = (int)((uint64_t)i * 100 / std::max<uint32_t>(numFrames, 1));
-                if (pct != lastReportedPct) {
-                    lastReportedPct = pct;
-                    [progress setProgressValue:pct];
-                    if ([progress isCancelled]) { cancelledFlag = true; break; }
-                }
+    // Order mirrors desktop's per-FPP config loop
+    // (FPPConnectDialog.cpp:1148-1196): Playlist (setup) → Proxies →
+    // UDP Out → Cape → Models. Each upload may set the restart flag;
+    // the single `Restart(true)` at the end of this method commits.
+
+    if (playlist.length > 0 && !cancelled && !cancelledFlag) {
+        cancelled = target->UploadPlaylist(playlist.UTF8String);
+    }
+
+    if (uploadProxies && !cancelled && !cancelledFlag) {
+        cancelled = target->UploadControllerProxies(&om);
+    }
+
+    if (!cancelled && !cancelledFlag) {
+        if ([udpOutMode isEqualToString:@"all"]) {
+            // Build the universe file from every controller in the
+            // OutputManager. The `udpRanges` map collects the channel
+            // ranges that come back; we feed them back into the FPP's
+            // own range table (FillRanges + SetNewRanges) so it
+            // advertises ownership of the channels it now forwards.
+            std::map<int, int> udpRanges;
+            auto outputs = target->CreateUniverseFile(om.GetControllers(),
+                                                      false, &udpRanges);
+            cancelled = target->UploadUDPOut(outputs);
+            if (!cancelled && !cancelledFlag) {
+                std::map<int, int> rngs(udpRanges);
+                target->FillRanges(rngs);
+                target->SetNewRanges(rngs);
+                target->SetRestartFlag();
+            }
+        } else if ([udpOutMode isEqualToString:@"proxied"]) {
+            cancelled = target->UploadUDPOutputsForProxy(&om);
+            if (!cancelled && !cancelledFlag) {
+                target->SetRestartFlag();
             }
         }
+    }
+
+    if (uploadCape && !cancelled && !cancelledFlag && matchedEth) {
+        // Order matches FPPConnectDialog.cpp:1175-1178.
+        cancelled = target->UploadPanelOutputs(&mm, &om, matchedEth);
         if (!cancelled && !cancelledFlag) {
-            cancelled = target->FinalizeUploadSequence();
+            cancelled = target->UploadVirtualMatrixOutputs(&mm, &om, matchedEth);
         }
+        if (!cancelled && !cancelledFlag) {
+            cancelled = target->UploadPixelOutputs(&mm, &om, matchedEth);
+        }
+        if (!cancelled && !cancelledFlag) {
+            cancelled = target->UploadSerialOutputs(&mm, &om, matchedEth);
+        }
+    }
+
+    if (!cancelled && !cancelledFlag) {
+        if ([modelsMode isEqualToString:@"all"]) {
+            // "All": full channel range, plus a virtual display map
+            // built from the show's models + objects. Mirrors
+            // FPPConnectDialog.cpp:1181-1186.
+            auto memoryMaps = target->CreateModelMemoryMap(
+                &mm, 0, std::numeric_limits<int32_t>::max());
+            cancelled = target->UploadModels(memoryMaps);
+            if (!cancelled && !cancelledFlag) {
+                std::map<std::string, std::string> virtualDisplayData;
+                if (_context->HasViewObjectManager()) {
+                    FPP::CreateVirtualDisplayMap(
+                        mm, _context->GetAllObjects(),
+                        _context->GetPreviewWidth(),
+                        _context->GetPreviewHeight(),
+                        virtualDisplayData);
+                }
+                cancelled = target->UploadDisplayMap(virtualDisplayData);
+            }
+            // Model uploads still require a full restart per the
+            // desktop comment at line 1185.
+            if (!cancelled && !cancelledFlag) {
+                target->SetRestartFlag(true);
+            }
+        } else if ([modelsMode isEqualToString:@"local"] && matchedEth) {
+            // "Local": just the channels owned by the matched
+            // controller. No display map upload here either (desktop
+            // has it commented out at line 1192).
+            auto memoryMaps = target->CreateModelMemoryMap(
+                &mm,
+                matchedEth->GetStartChannel(),
+                matchedEth->GetEndChannel());
+            cancelled = target->UploadModels(memoryMaps);
+            if (!cancelled && !cancelledFlag) {
+                target->SetRestartFlag(true);
+            }
+        }
+    }
+
+    // Conditional restart — Restart(true) means "if needed" (only
+    // restarts when one of the uploads set the restart flag). Matches
+    // the desktop line 1197 pattern.
+    if (!cancelled && !cancelledFlag) {
+        target->Restart(true);
     }
 
     target->setProgress({});
 
     if (cancelledFlag) {
-        return @{@"ok": @NO, @"cancelled": @YES, @"message": @"Upload cancelled."};
+        return @{@"ok": @NO, @"cancelled": @YES, @"message": @"Configuration cancelled."};
     }
     if (cancelled) {
-        if ([errorMessage length] == 0 && !target->messages.empty()) {
-            errorMessage = [NSString stringWithUTF8String:target->messages.front().c_str()];
-        }
-        if ([errorMessage length] == 0) {
-            errorMessage = @"Upload failed.";
-        }
-        return @{@"ok": @NO, @"cancelled": @NO, @"message": errorMessage};
+        NSString* msg = target->messages.empty()
+            ? @"Configuration upload failed."
+            : [NSString stringWithUTF8String:target->messages.front().c_str()];
+        return @{@"ok": @NO, @"cancelled": @NO, @"message": msg};
     }
     return @{@"ok": @YES, @"cancelled": @NO, @"message": @""};
+}
+
+- (BOOL)updateChannelRangesForFPP:(NSString*)ipAddress {
+    if (!_context || _fppInstances.empty()) return NO;
+    std::string targetIP = ipAddress.UTF8String;
+    for (FPP* f : _fppInstances) {
+        if (f && f->ipAddress == targetIP) {
+            f->UpdateChannelRanges();
+            return YES;
+        }
+    }
+    return NO;
+}
+
+- (BOOL)finalizeFPP:(NSString*)ipAddress
+            playlist:(nullable NSString*)playlist {
+    if (!_context || _fppInstances.empty()) return NO;
+    std::string targetIP = ipAddress.UTF8String;
+    FPP* target = nullptr;
+    for (FPP* f : _fppInstances) {
+        if (f && f->ipAddress == targetIP) { target = f; break; }
+    }
+    if (!target) return NO;
+
+    bool ok = true;
+    if (playlist.length > 0) {
+        // Second `UploadPlaylist` pass — commits the just-uploaded
+        // sequences into the playlist. Matches FPPConnectDialog.cpp:1430.
+        if (target->UploadPlaylist(playlist.UTF8String)) ok = false;
+    }
+    if (target->Restart(true)) ok = false;
+    return ok;
+}
+
+- (nullable NSString*)mediaPathForXsq:(NSString*)xsqPath {
+    if (!_context || xsqPath.length == 0) return nil;
+    std::string xsq = xsqPath.UTF8String;
+    if (!FileExists(xsq)) return nil;
+
+    XsqFileInfo info = ScanXsqFile(xsq);
+    if (!info.isSequence || info.mediaFile.empty()) return nil;
+
+    const std::string& showDir = _context->GetShowDirectory();
+
+    // Mirror desktop's lookup priority (FPPConnectDialog.cpp:878-895):
+    //   1. The path as stored — if it resolves on disk, use it.
+    //   2. Walk every configured media folder for a basename match.
+    //   3. Fall back to FixFile against the show directory.
+    if (FileExists(info.mediaFile)) {
+        return [NSString stringWithUTF8String:info.mediaFile.c_str()];
+    }
+
+    std::filesystem::path raw(info.mediaFile);
+    std::string basename = raw.filename().string();
+    for (const auto& folder : _context->GetMediaFolders()) {
+        std::string candidate = folder + "/" + basename;
+        if (FileExists(candidate)) {
+            return [NSString stringWithUTF8String:candidate.c_str()];
+        }
+    }
+
+    std::string fixed = FileUtils::FixFile(showDir, info.mediaFile);
+    if (FileExists(fixed)) {
+        return [NSString stringWithUTF8String:fixed.c_str()];
+    }
+
+    return nil;
+}
+
+- (NSDictionary*)uploadFseq:(NSString*)fseqPath
+              toFPPInstances:(NSArray<NSDictionary*>*)targets
+                    progress:(nullable id<XLFPPUploadProgress>)progress {
+    NSMutableDictionary* outcomes = [NSMutableDictionary dictionary];
+
+    if (!_context || _fppInstances.empty()) {
+        return @{@"globalError": @"FPP instance list is empty — run discovery first.",
+                 @"outcomes": outcomes};
+    }
+    if (targets.count == 0) {
+        return @{@"outcomes": outcomes};
+    }
+
+    // Open the source fseq once — every target reads from this same
+    // FSEQFile (frame batches are buffered into local std::vectors
+    // before fan-out, so target threads never touch the source
+    // simultaneously).
+    std::string fseq = fseqPath.UTF8String;
+    std::unique_ptr<FSEQFile> seq(FSEQFile::openFSEQFile(fseq));
+    if (!seq) {
+        return @{@"globalError": [NSString stringWithFormat:@"Could not open fseq: %@", fseqPath],
+                 @"outcomes": outcomes};
+    }
+
+    // Resolve each target to its FPP* and compute the right codec.
+    // Targets that don't resolve (deleted between discover and upload?)
+    // are dropped silently; the caller can tell because they won't
+    // appear in the result map.
+    struct TargetCtx {
+        FPP* fpp = nullptr;
+        std::string ip;
+        std::string media;
+        int fseqType = 2;
+        NSString* ipNS = nil;       // for progress routing
+        bool prepared = false;
+        bool finalized = false;
+        bool cancelled = false;
+        bool failed = false;
+        std::string message;
+    };
+    std::vector<TargetCtx> ctxs;
+    ctxs.reserve(targets.count);
+    for (NSDictionary* t in targets) {
+        NSString* ipNS = t[@"ipAddress"];
+        if (![ipNS isKindOfClass:[NSString class]]) continue;
+        std::string ip = ipNS.UTF8String;
+        FPP* match = nullptr;
+        for (FPP* f : _fppInstances) {
+            if (f && f->ipAddress == ip) { match = f; break; }
+        }
+        if (!match || !match->supportedForFPPConnect()) continue;
+
+        TargetCtx ctx;
+        ctx.fpp = match;
+        ctx.ip = ip;
+        ctx.ipNS = ipNS;
+        NSString* mediaNS = t[@"mediaPath"];
+        if ([mediaNS isKindOfClass:[NSString class]]) {
+            ctx.media = mediaNS.UTF8String;
+        }
+        ctx.fseqType = (match->fppType == FPP_TYPE::ESPIXELSTICK) ? 3 : 2;
+        ctxs.push_back(ctx);
+    }
+
+    if (ctxs.empty()) {
+        return @{@"globalError": @"No targets resolved to a discovered FPP.",
+                 @"outcomes": outcomes};
+    }
+
+    // Wire per-target progress and cancel — one shared cancel flag,
+    // per-target progress routing keyed by IP. Cancellation propagates
+    // out of the dispatch_apply via the flag every target's IsCancelled
+    // lambda polls.
+    __weak id<XLFPPUploadProgress> weakProgress = progress;
+    bool cancelledFlag = false;
+    for (TargetCtx& c : ctxs) {
+        FPP* fpp = c.fpp;
+        NSString* ipNS = c.ipNS;
+        fpp->defaultConnectTimeout = 5000;
+        fpp->messages.clear();
+        fpp->setProgress({
+            [weakProgress, ipNS](int val) {
+                id<XLFPPUploadProgress> p = weakProgress;
+                if (p) [p setProgress:val / 10 forIPAddress:ipNS];
+            },
+            [weakProgress, &cancelledFlag]() -> bool {
+                id<XLFPPUploadProgress> p = weakProgress;
+                if (p && [p isCancelled]) cancelledFlag = true;
+                return cancelledFlag;
+            },
+            []() {}
+        });
+    }
+
+    auto pumpCurls = []() {
+        // Drain any in-flight transfers (Prepare may have queued
+        // capability probes / mediaUpload PUTs; Finalize will queue
+        // the bulk fseq transfer; AddFrameToUpload is CPU-only).
+        while (CurlManager::INSTANCE.processCurls()) {}
+    };
+
+    // Phase 1 — Prepare each target. Mirrors FPPConnectDialog.cpp:1253.
+    for (TargetCtx& c : ctxs) {
+        if (cancelledFlag) break;
+        bool prepFail = c.fpp->PrepareUploadSequence(seq.get(), fseq,
+                                                      c.media, c.fseqType);
+        if (prepFail) {
+            c.failed = true;
+            c.message = "PrepareUploadSequence failed.";
+        } else {
+            c.prepared = true;
+        }
+    }
+    pumpCurls();
+
+    // Phase 2 — frame fan-out. Only feed targets whose Prepare
+    // succeeded AND who actually need custom transcoding (some FPP
+    // versions accept the original fseq as-is via uploadOrCopyFile
+    // and don't need per-frame transcoding).
+    // Using `char` not `bool` so we can safely take a raw pointer
+    // into it from the dispatch block (std::vector<bool> is the
+    // packed specialization with no `data()`).
+    std::vector<char> needsFrames(ctxs.size(), 0);
+    bool anyNeedsFrames = false;
+    for (size_t i = 0; i < ctxs.size(); ++i) {
+        if (!ctxs[i].prepared) continue;
+        if (ctxs[i].fpp->WillUploadSequence() && ctxs[i].fpp->NeedCustomSequence()) {
+            needsFrames[i] = 1;
+            anyNeedsFrames = true;
+        } else if (ctxs[i].fpp->WillUploadSequence()) {
+            // Original-fseq path — FPP class flips progress to 100%
+            // internally; nothing for us to feed.
+        }
+    }
+
+    if (anyNeedsFrames && !cancelledFlag) {
+        const uint32_t numFrames = (uint32_t)seq->getNumFrames();
+        const uint32_t channels = seq->getMaxChannel() + 1;
+        constexpr int FRAMES_TO_BUFFER = 50;
+        std::vector<std::vector<uint8_t>> frames(FRAMES_TO_BUFFER);
+        for (auto& v : frames) v.resize(channels);
+
+        uint32_t frame = 0;
+        while (frame < numFrames && !cancelledFlag) {
+            // Read the next batch of frames from the source.
+            int lastBuffered = 0;
+            uint32_t startFrame = frame;
+            while (lastBuffered < FRAMES_TO_BUFFER && frame < numFrames) {
+                FSEQFile::FrameData* fd = seq->getFrame(frame);
+                if (!fd) {
+                    // Skip the frame; subsequent reads keep going.
+                    lastBuffered++;
+                    frame++;
+                    continue;
+                }
+                if (!fd->readFrame(frames[lastBuffered].data(), channels)) {
+                    delete fd;
+                    cancelledFlag = false;
+                    // Mark every prepared target as failed — a corrupt
+                    // source fseq is a batch-level fault.
+                    for (TargetCtx& c : ctxs) {
+                        if (c.prepared && !c.failed) {
+                            c.failed = true;
+                            c.message = "FSEQ corrupt at frame " +
+                                std::to_string(startFrame + lastBuffered);
+                        }
+                    }
+                    frame = numFrames;  // break outer loop
+                    break;
+                }
+                delete fd;
+                lastBuffered++;
+                frame++;
+            }
+
+            if (cancelledFlag || lastBuffered == 0) break;
+
+            // Fan out across targets in parallel. Each target's
+            // transcoder is its own object, so AddFrameToUpload is
+            // safe to run concurrently across targets. `dispatch_apply`
+            // blocks until every closure returns — matches desktop's
+            // `parallel_for(instances, func)` semantics.
+            //
+            // Block captures default to const, which would make the
+            // captured std::vector unmodifiable inside. Reach mutable
+            // storage via captured raw pointers: `framesPtr[x]` walks
+            // through a non-const std::vector*, and `ctxsPtr[i].fpp`
+            // gets a non-const FPP* for AddFrameToUpload.
+            const size_t numCtx = ctxs.size();
+            std::vector<uint8_t>* framesPtr = frames.data();
+            TargetCtx* ctxsPtr = ctxs.data();
+            const char* needsFramesPtr = needsFrames.data();
+            __block bool batchCancelled = cancelledFlag;
+            dispatch_apply(numCtx,
+                            dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),
+                            ^(size_t i) {
+                if (batchCancelled || !needsFramesPtr[i]) return;
+                FPP* fpp = ctxsPtr[i].fpp;
+                for (int x = 0; x < lastBuffered; ++x) {
+                    fpp->AddFrameToUpload(startFrame + x, framesPtr[x].data());
+                }
+            });
+            cancelledFlag = batchCancelled || cancelledFlag;
+
+            // Pump curls between batches so the previous-target's
+            // network transfer can drain while the CPU works on the
+            // next batch's transcode.
+            pumpCurls();
+        }
+    }
+
+    // Phase 3 — Finalize each target. This is where the bulk fseq
+    // upload actually queues onto CurlManager (via uploadOrCopyFile
+    // inside FinalizeUploadSequence).
+    for (TargetCtx& c : ctxs) {
+        if (cancelledFlag) {
+            c.cancelled = true;
+            continue;
+        }
+        if (!c.prepared || c.failed) continue;
+        bool finFail = c.fpp->FinalizeUploadSequence();
+        if (finFail) {
+            c.failed = true;
+            if (c.message.empty()) {
+                if (!c.fpp->messages.empty()) c.message = c.fpp->messages.front();
+                else c.message = "Finalize failed.";
+            }
+        } else {
+            c.finalized = true;
+        }
+    }
+
+    // Phase 4 — drain remaining curl transfers. The bulk fseq upload
+    // happens here; without this loop the function would return before
+    // any of them complete and the data wouldn't actually land on the
+    // FPP.
+    pumpCurls();
+
+    // Tear down per-target progress callbacks before returning so any
+    // residual curl callbacks don't try to dereference the now-dropped
+    // forwarder.
+    for (TargetCtx& c : ctxs) {
+        c.fpp->setProgress({});
+    }
+
+    // Build the result dict.
+    for (const TargetCtx& c : ctxs) {
+        NSString* msg = @"";
+        if (!c.message.empty()) {
+            msg = [NSString stringWithUTF8String:c.message.c_str()];
+        }
+        bool ok = c.prepared && !c.failed && !c.cancelled;
+        outcomes[c.ipNS] = @{
+            @"ok": @(ok),
+            @"cancelled": @(c.cancelled),
+            @"message": msg,
+        };
+    }
+    return @{@"outcomes": outcomes,
+             @"cancelled": @(cancelledFlag)};
 }
 
 @end

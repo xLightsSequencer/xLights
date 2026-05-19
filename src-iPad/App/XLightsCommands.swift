@@ -299,11 +299,12 @@ struct XLSequencerCommands: Commands {
 
             // EX-4 — Tools → FPP Connect. Discover FPP instances and
             // upload batch-rendered .fseq files. Show folder must be
-            // loaded so the sheet has fseqs to enumerate.
-            Button("FPP Connect…") {
-                viewModel.showingFPPConnect = true
-            }
-            .disabled(!viewModel.isShowFolderLoaded)
+            // loaded so the sheet has fseqs to enumerate. The sheet is
+            // hosted on the sequencer window only, so pull that window
+            // to the front before flipping the flag — otherwise the
+            // menu fires from the Layout Editor window and the sheet
+            // never appears.
+            FPPConnectMenuItem(viewModel: viewModel)
 
             Divider()
 
@@ -692,5 +693,25 @@ struct EditLayoutMenuItem: View {
             openWindow(id: "layout-editor")
         }
         .disabled(!viewModel.isShowFolderLoaded || viewModel.layoutEditorOpen)
+    }
+}
+
+/// Tools → FPP Connect menu entry. Pulls the sequencer window
+/// foreground before flipping `showingFPPConnect` so the sheet's host
+/// (ContentView, mounted only in the sequencer WindowGroup) is the
+/// active window when the modal presents. Without the
+/// `openWindow("sequencer")` step, firing this menu while the Layout
+/// Editor window is in front silently sets the flag but the sheet
+/// renders on the off-screen sequencer window.
+struct FPPConnectMenuItem: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("FPP Connect…") {
+            openWindow(id: "sequencer")
+            viewModel.showingFPPConnect = true
+        }
+        .disabled(!viewModel.isShowFolderLoaded)
     }
 }

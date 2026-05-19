@@ -63,14 +63,27 @@ variants in `libdbg-ios/`.
 
 ## Remaining work
 
-- **FPP Connect Slice A shipped 2026-05-18.** Tools → FPP Connect
-  on iPad: discovery + per-FPP × per-sequence upload + per-UUID
-  persistence + cancel + progress + summary. **Slice B (per-instance
-  Models / UDP Out / Pixel Outputs config)** is the natural next
-  pull-in once field-test reports surface real needs. Tracked in
-  [`future-controller-upload.md`](plans/future-controller-upload.md);
-  the rest of the upload stack (Bulk Upload, HinksPix, drag-drop
-  port mapping) is parked at P4 there. Pixel Test stays P2.
+- **FPP Connect is feature-complete for iPad scope (2026-05-19).**
+  Slices A + B + F + Slice-C auth shipped: discovery, password-
+  protected FPP support (Keychain credentials + UIAlertController
+  prompt on 401), full per-instance config drawer (Media / Cape /
+  Add Proxies / Models / UDP Out / Playlist + Create New Playlist
+  prompt), parallel transcode + curl-driven concurrent transfers,
+  per-FPP progress gauges, full per-FPP restart + channel-range +
+  playlist-finalize dance. Multi-window Tools-menu routing fix
+  included. iPad targets FPP / ESPixelStick only (open-source
+  firmware); proprietary controllers (Falcon V4/V5 / Genius /
+  PowerDMX) are filtered out of discovery. Remaining FPP Connect
+  work (manual Add FPP, Re-Discover, sequence-list polish, full
+  settings persistence parity, UX-string parity) is polish — no
+  concrete user need is blocking it today.
+  Slice C (manual Add FPP + auth + re-discover) and Slice F
+  (parallel transcode + concurrent curl transfers) remain the
+  next P2s after B finishes. Slice D is sequence-list polish;
+  G/H are settings persistence parity + UX strings. Slice E
+  (proprietary vendor codecs) is P4 / out of iPad scope. The rest
+  of the upload stack (Bulk Upload, HinksPix, drag-drop port
+  mapping) stays parked at P4. Pixel Test stays P2.
 - **Authenticated vendor downloads.** `VendorBrowserSheet` /
   `XLVendorCatalog` / `CachedFileDownloader` use anonymous libcurl
   HTTP — there is no auth path for behind-login catalog content

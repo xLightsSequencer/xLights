@@ -10,11 +10,20 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-// FPP Connect upload progress callback. The bridge calls
-// `setProgressValue:` periodically as frames flow and polls
-// `isCancelled` so the UI can stop the upload between frames.
+// FPP Connect upload progress callback. Single protocol used by both
+// the per-FPP config / finalize phases (where there's only one
+// target) and the parallel multi-target sequence upload (where
+// frames fan out to every selected FPP at once). Callers route
+// per-FPP progress by supplying the FPP's IP address; the config
+// callers just pass their one IP.
+//
+// All methods are called from background threads — the Swift
+// implementation must guard mutable state. `setProgress:forIPAddress:`
+// fires repeatedly from the bridge's per-frame loop and from libcurl's
+// transfer callbacks; `isCancelled` is polled between frames and on
+// each curl pump iteration so the user can stop a fan-out mid-flight.
 @protocol XLFPPUploadProgress <NSObject>
-- (void)setProgressValue:(int)value;
+- (void)setProgress:(int)value forIPAddress:(NSString*)ipAddress;
 - (BOOL)isCancelled;
 @end
 
@@ -2507,6 +2516,13 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   @"uuid"             — NSString (FPP-reported UUID; falls back to ipAddress)
 //   @"fppType"          — NSString ("FPP", "FalconV4V5", "ESPixelStick", "Genius", "PowerDMX")
 //   @"supportedForFPPConnect" — NSNumber (BOOL)
+//   @"playlists"        — NSArray<NSString> of playlist names hosted on
+//                         the FPP (player/master mode only; otherwise [])
+//   @"capeModel"        — NSString user-facing cape / hat model name
+//                         (e.g. "K8-Pro", "F32-B", "PiHat - 64x32").
+//                         Empty when the FPP has no cape worth
+//                         configuring — the iPad sheet hides the Pixel
+//                         Hat/Cape toggle in that case.
 - (NSArray<NSDictionary*>*)discoverFPPInstances;
 
 // Drop the internal `std::list<FPP*>` and free every instance. Call
@@ -2514,29 +2530,129 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // (FPP versions / modes / available pixels can change between sessions).
 - (void)releaseFPPInstances;
 
-// Upload one .fseq to one previously-discovered FPP instance.
-// `ipAddress` must match the `ipAddress` field from a
-// `discoverFPPInstances` entry. `fseqPath` is an absolute path to a
-// `.fseq` already on disk (caller is expected to have batch-rendered).
-// `mediaPath` is the audio companion to upload alongside the fseq —
-// pass nil / @"" to skip media upload. `fseqType`:
-//   0 — V2 Uncompressed (default; widest compatibility)
-//   1 — V2 zstd compressed
-//   2 — V1 (legacy)
-// `progress` may be nil; when supplied, the bridge calls
-// `setProgressValue:` periodically (0..100) and polls `isCancelled`
-// each tick so the SwiftUI sheet can stop the upload mid-frame.
+// Register the handler called when an FPP returns 401 during
+// discovery / probing. The bridge runs the prompt on the main
+// thread and blocks the calling (background) discovery thread on
+// a DispatchSemaphore until the completion fires.
+//
+// `host` is the FPP IP/hostname.
+// `completion` must be invoked exactly once with the user's choice:
+//   user/password nil  → user cancelled (login attempt fails)
+//   user/password set  → retry the request with these credentials
+//   savePassword       → if YES, persist to Keychain under
+//                        "xLights/Discovery/<host>" + account=user
+//
+// Passing nil clears the handler (subsequent 401s won't prompt).
+// Stored credentials are tried first regardless of whether a handler
+// is registered.
+- (void)setFPPAuthPromptHandler:(nullable void(^)(NSString* host,
+                                                    void(^completion)(NSString* _Nullable user,
+                                                                       NSString* _Nullable password,
+                                                                       BOOL savePassword)))handler;
+
+// Apply per-instance configuration to one FPP before any sequence
+// uploads. Mirrors the per-FPP config loop in desktop's
+// `FPPConnectDialog::doUpload` (lines 1148-1197). Settings dict keys:
+//   @"uploadCape"    — NSNumber BOOL (triggers UploadPanelOutputs +
+//                      UploadVirtualMatrixOutputs + UploadPixelOutputs
+//                      + UploadSerialOutputs against the matched
+//                      ControllerEthernet)
+//   @"uploadProxies" — NSNumber BOOL (triggers UploadControllerProxies)
+//   @"modelsMode"    — NSString "none" | "all" | "local". "all" uses
+//                      the full channel range; "local" restricts to
+//                      the matched ControllerEthernet's start/end.
+//                      Triggers UploadModels + UploadDisplayMap +
+//                      SetRestartFlag(true).
+//   @"udpOutMode"    — NSString "none" | "all" | "proxied". "all"
+//                      builds a universe file from every active
+//                      controller and pushes via UploadUDPOut;
+//                      "proxied" pushes only proxied controllers via
+//                      UploadUDPOutputsForProxy. Both set the restart
+//                      flag.
+//   @"playlist"      — NSString. Non-empty triggers an initial
+//                      `UploadPlaylist` setup call; the final
+//                      "commit just-uploaded sequences" call is
+//                      `finalizeFPP:playlist:` below.
+// Each upload internally sets the FPP's restart flag where needed.
+// After all settings are applied, this method calls `Restart(true)`
+// (ifNeeded), so a clean run with no restart-flagging uploads is a
+// no-op restart.
 //
 // Returns NSDictionary:
-//   @"ok"        — NSNumber BOOL (overall success)
-//   @"cancelled" — NSNumber BOOL (true when the user aborted)
-//   @"message"   — NSString (first error / status line; empty on clean success)
+//   @"ok"        — NSNumber BOOL
+//   @"cancelled" — NSNumber BOOL
+//   @"message"   — NSString (first error / status line; empty on success)
+- (NSDictionary*)applyConfigToFPP:(NSString*)ipAddress
+                         settings:(NSDictionary*)settings
+                         progress:(nullable id<XLFPPUploadProgress>)progress
+    NS_SWIFT_NAME(applyConfig(toFPP:settings:progress:));
+
+// Refresh the FPP's channel-range map after a config upload + restart.
+// Mirrors the post-config `UpdateChannelRanges` loop at
+// `FPPConnectDialog.cpp:1207-1212`. Safe to call when no config
+// changed (the FPP just re-reports its current ranges).
+- (BOOL)updateChannelRangesForFPP:(NSString*)ipAddress
+    NS_SWIFT_NAME(updateChannelRanges(forFPP:));
+
+// Post-sequence finalize step — calls UploadPlaylist (when playlist
+// is non-empty) so the just-uploaded fseqs land in the configured
+// playlist, then `Restart(true)` for the final commit. Mirrors
+// `FPPConnectDialog.cpp:1427-1432`. Pass nil/@"" playlist to skip
+// straight to the restart.
+- (BOOL)finalizeFPP:(NSString*)ipAddress
+            playlist:(nullable NSString*)playlist
+    NS_SWIFT_NAME(finalize(fpp:playlist:));
+
+// Resolve the on-disk media path referenced by an .xsq sequence.
+// Reads the sequence's `mediaFile` attribute via the shared
+// `ScanXsqFile` utility, then resolves through the show folder
+// + every configured media folder (mirrors the desktop dialog's
+// `LoadSequencesFromFolder` lookup at
+// `FPPConnectDialog.cpp:878-895`). Returns nil when the sequence
+// has no media reference or when the file can't be found on disk.
+// Used by FPP Connect's per-instance Media toggle to feed the
+// `mediaPath:` parameter of `uploadFseq:`.
+- (nullable NSString*)mediaPathForXsq:(NSString*)xsqPath
+    NS_SWIFT_NAME(mediaPath(forXsq:));
+
+// Upload one .fseq to N previously-discovered FPP instances in
+// parallel. `fseqPath` is an absolute path to a `.fseq` already on
+// disk (caller is expected to have batch-rendered). `targets` is an
+// NSArray of NSDictionary:
+//   @"ipAddress" — NSString matching `discoverFPPInstances`
+//   @"mediaPath" — NSString (audio companion path) or nil/@"" for none
+//
+// Mirrors desktop's `FPPConnectDialog::doUpload` frame-fanout
+// (FPPConnectDialog.cpp:1283-1336). Open the source fseq once, call
+// `PrepareUploadSequence` per target, then walk the source in
+// FRAMES_TO_BUFFER batches, dispatching `AddFrameToUpload` to all
+// targets concurrently via `dispatch_apply`. Each target's transcode
+// runs on its own thread so an N-FPP rig is N× faster than serial.
+// Curls are pumped (`CurlManager::INSTANCE.processCurls()`) between
+// phases so the network transfer for one target's previous batch can
+// flight while the CPU transcodes the next batch for others.
+// `FinalizeUploadSequence` per target queues the bulk fseq upload;
+// the bridge keeps pumping until every curl drains.
+//
+// The FSEQ codec is picked automatically per target (see
+// `applyConfigToFPP:`): FPP → V2-Sparse-zstd (type 2), ESPixelStick →
+// V2-Sparse-uncompressed (type 3). iPad only supports FPP 9+ and
+// ESPixelStick (both open-source firmware).
+//
+// `progress` may be nil; when supplied, the bridge calls
+// `setProgress:forIPAddress:` per-target (0..100) and polls
+// `isCancelled` between frame batches and on each curl pump tick.
+//
+// Returns NSDictionary keyed by IP:
+//   <ipAddress> → @{ @"ok": BOOL, @"cancelled": BOOL, @"message": NSString }
+// Targets that don't appear in the result dict were skipped (no
+// matching FPP in the discovered list); look at the top-level
+// `@"globalError"` NSString for batch-level failures
+// (e.g. source fseq couldn't be opened).
 - (NSDictionary*)uploadFseq:(NSString*)fseqPath
-                  mediaPath:(nullable NSString*)mediaPath
-                       type:(int)fseqType
-                toIPAddress:(NSString*)ipAddress
-                   progress:(nullable id<XLFPPUploadProgress>)progress
-    NS_SWIFT_NAME(uploadFseq(_:mediaPath:type:toIPAddress:progress:));
+              toFPPInstances:(NSArray<NSDictionary*>*)targets
+                    progress:(nullable id<XLFPPUploadProgress>)progress
+    NS_SWIFT_NAME(uploadFseq(_:toFPPInstances:progress:));
 
 @end
 

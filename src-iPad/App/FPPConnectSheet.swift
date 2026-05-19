@@ -22,6 +22,12 @@ import SwiftUI
 /// NSDictionary. UUID is used as the persistence key for the per-instance
 /// "do upload" toggle so the selection survives discovery re-runs even when
 /// IPs shift via DHCP.
+/// Sentinel selection value used by the Playlist picker to mean
+/// "open the name-prompt alert and create a new one." Deliberately
+/// noisy so it can't collide with any real playlist name a user
+/// might already have on their FPP.
+private let kCreateNewPlaylistSentinel = "\u{1F195} __xlights_create_new_playlist__ \u{1F195}"
+
 struct FPPInstance: Identifiable, Hashable, Sendable {
     let ipAddress: String
     let hostName: String
@@ -33,8 +39,30 @@ struct FPPInstance: Identifiable, Hashable, Sendable {
     let uuid: String
     let fppType: String
     let supportedForFPPConnect: Bool
+    /// Playlists hosted on the FPP (player/master mode only; empty
+    /// otherwise). Surfaced into the per-instance Playlist picker so
+    /// the user can opt-in to "add my uploaded sequences to playlist X".
+    let playlists: [String]
+    /// User-facing cape / hat model name (e.g. "K8-Pro", "F32-B",
+    /// "PiHat - 64x32"). Empty when this FPP has no cape worth
+    /// configuring — the Pixel Hat/Cape toggle is hidden entirely in
+    /// that case, mirroring desktop's `PopulateFPPInstanceList`
+    /// behavior. Non-empty values include the panel size suffix when
+    /// the FPP reports one.
+    let capeModel: String
+
+    /// True when the FPP has a real cape / hat the user can configure.
+    /// Drives whether the Pixel Hat/Cape toggle row even renders.
+    var hasCape: Bool { !capeModel.isEmpty }
 
     var id: String { uuid }
+
+    /// True for FPPs that can host a playlist (player/master mode).
+    /// Disables the Playlist picker for remote / bridge-mode FPPs.
+    var canHostPlaylist: Bool {
+        let m = mode.lowercased()
+        return m == "player" || m == "master" || !playlists.isEmpty
+    }
 
     var displayName: String {
         hostName.isEmpty ? ipAddress : hostName
@@ -63,6 +91,97 @@ struct FPPInstance: Identifiable, Hashable, Sendable {
         self.uuid = uuid
         self.fppType = (dict["fppType"] as? String) ?? "FPP"
         self.supportedForFPPConnect = (dict["supportedForFPPConnect"] as? NSNumber)?.boolValue ?? false
+        self.playlists = (dict["playlists"] as? [String]) ?? []
+        self.capeModel = (dict["capeModel"] as? String) ?? ""
+    }
+}
+
+/// Per-instance configuration for FPP Connect. One per FPP UUID,
+/// persisted as JSON inside `FPPInstanceConfigStore`. Mirrors the
+/// desktop dialog's per-row columns: Media checkbox, Models dropdown
+/// (None/All/Local), UDP Out dropdown (None/All/Proxied), Pixel
+/// Hat/Cape checkbox, Add Proxies checkbox, Playlist combobox.
+///
+/// **In B2, only `uploadMedia` is honored by the upload bridge.** The
+/// other fields are persisted so the user can configure now and the
+/// settings will activate when the corresponding bridge methods land
+/// (B3 = Cape + Add Proxies, B4 = Models + UDP Out + Playlist + restart
+/// sequencing). See `plans/future-controller-upload.md`.
+struct FPPInstanceConfig: Codable, Equatable, Sendable {
+    var uploadMedia: Bool = false
+    var modelsMode: ModelsMode = .none
+    var udpOutMode: UDPOutMode = .none
+    var uploadCape: Bool = false
+    var uploadProxies: Bool = false
+    /// Empty string means "don't add uploaded sequences to a playlist".
+    var playlist: String = ""
+
+    enum ModelsMode: String, Codable, CaseIterable, Identifiable, Sendable {
+        case none, all, local
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .none:  return "None"
+            case .all:   return "All Models"
+            case .local: return "Local Models Only"
+            }
+        }
+    }
+
+    enum UDPOutMode: String, Codable, CaseIterable, Identifiable, Sendable {
+        case none, all, proxied
+        var id: String { rawValue }
+        var label: String {
+            switch self {
+            case .none:    return "None"
+            case .all:     return "All Controllers"
+            case .proxied: return "Proxied Only"
+            }
+        }
+    }
+}
+
+/// Per-UUID config store, backed by a single UserDefaults JSON entry.
+/// Migrates the legacy `xLights-FPPConnect-mediaPerUUID` UUID-set into
+/// the new map on first read so users who opted into Media uploads in
+/// B1 don't lose the setting.
+enum FPPInstanceConfigStore {
+    private static let key = "xLights-FPPConnect-instanceConfig.v1"
+    private static let legacyMediaKey = "xLights-FPPConnect-mediaPerUUID"
+
+    static func loadAll() -> [String: FPPInstanceConfig] {
+        var dict: [String: FPPInstanceConfig] = [:]
+        if let data = UserDefaults.standard.data(forKey: key),
+           let decoded = try? JSONDecoder().decode([String: FPPInstanceConfig].self, from: data) {
+            dict = decoded
+        }
+        // One-time migration of the B1 media-only persistence.
+        if let legacy = UserDefaults.standard.stringArray(forKey: legacyMediaKey) {
+            for uuid in legacy where dict[uuid] == nil {
+                var cfg = FPPInstanceConfig()
+                cfg.uploadMedia = true
+                dict[uuid] = cfg
+            }
+            UserDefaults.standard.removeObject(forKey: legacyMediaKey)
+            persist(dict)
+        }
+        return dict
+    }
+
+    static func config(for uuid: String) -> FPPInstanceConfig {
+        loadAll()[uuid] ?? FPPInstanceConfig()
+    }
+
+    static func set(_ config: FPPInstanceConfig, for uuid: String) {
+        var all = loadAll()
+        all[uuid] = config
+        persist(all)
+    }
+
+    private static func persist(_ all: [String: FPPInstanceConfig]) {
+        if let data = try? JSONEncoder().encode(all) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
     }
 }
 
@@ -82,24 +201,28 @@ enum FPPConnectSelections {
     }
 }
 
+
 // MARK: - Upload progress forwarder
 
 /// Thread-safe bridge from the ObjC bridge's `XLFPPUploadProgress`
-/// protocol up to the SwiftUI runner. Progress is reported from the
-/// background upload thread; the runner polls `currentProgress` from
-/// MainActor every ~150ms. Cancellation is also flag-based — the bridge
-/// polls `isCancelled` between frames and on each curl callback.
+/// protocol up to the SwiftUI runner. Progress is per-IP since one
+/// upload call may fan out to N FPPs in parallel (Slice F); the runner
+/// reads `progress(forIP:)` from MainActor every ~150ms and renders
+/// per-FPP gauges. Cancellation is one shared flag — the bridge polls
+/// `isCancelled` between frame batches and on each curl pump tick.
 ///
 /// Conforms to `@unchecked Sendable` because every mutable field is
 /// guarded by `NSLock` — the access pattern is concurrent-by-design.
 @objc final class FPPUploadProgressForwarder: NSObject, XLFPPUploadProgress, @unchecked Sendable {
     private let lock = NSLock()
-    private var _progress: Int32 = 0
+    /// Per-IP progress, 0..100. Routed by the bridge based on which
+    /// FPP's internal progress callback fired.
+    private var _progress: [String: Int32] = [:]
     private var _cancelled: Bool = false
 
-    @objc func setProgressValue(_ value: Int32) {
+    @objc func setProgress(_ value: Int32, forIPAddress ip: String) {
         lock.lock()
-        _progress = value
+        _progress[ip] = value
         lock.unlock()
     }
 
@@ -109,16 +232,27 @@ enum FPPConnectSelections {
         return _cancelled
     }
 
-    /// Read the last value the bridge reported (0..100).
-    var currentProgress: Int {
+    /// Read the last value the bridge reported for one FPP (0..100).
+    /// Returns 0 for FPPs the bridge hasn't reported on yet.
+    func progress(forIP ip: String) -> Int {
         lock.lock()
         defer { lock.unlock() }
-        return Int(_progress)
+        return Int(_progress[ip] ?? 0)
+    }
+
+    /// Snapshot of every reported per-IP progress value. Used by the
+    /// SwiftUI sheet's per-FPP gauge row.
+    var allProgress: [String: Int] {
+        lock.lock()
+        defer { lock.unlock() }
+        var out: [String: Int] = [:]
+        for (k, v) in _progress { out[k] = Int(v) }
+        return out
     }
 
     func reset() {
         lock.lock()
-        _progress = 0
+        _progress.removeAll()
         _cancelled = false
         lock.unlock()
     }
@@ -139,17 +273,38 @@ final class FPPConnectRunner {
         case idle
         case discovering
         case selection
-        case uploading(taskIndex: Int, taskCount: Int,
-                       instanceName: String, sequenceName: String)
+        /// "Configuring N of M — <FPP name>". Per-FPP applyConfig
+        /// (Cape, Proxies, UDP Out, Models, Playlist setup pass).
+        /// FPPs whose config is all-default skip this phase.
+        case configuring(targetIndex: Int, targetCount: Int,
+                         instanceName: String)
+        /// Slice F — one sequence fans out to every selected FPP in
+        /// parallel. The phase carries the *sequence index* + the live
+        /// target list so the UI can show per-FPP gauges. Per-target
+        /// progress is read separately from `currentSequenceProgress`
+        /// since `@Observable` doesn't diff associated values cheaply.
+        case uploading(sequenceIndex: Int, sequenceCount: Int,
+                       sequenceName: String, targets: [FPPInstance])
+        /// Post-sequence finalize — UploadPlaylist (commits the
+        /// just-uploaded fseqs into the playlist) + Restart(true) per
+        /// FPP. Mirrors FPPConnectDialog.cpp:1427-1432. FPPs with no
+        /// playlist still get a restart so a config-only restart flag
+        /// from earlier in the run actually fires.
+        case finalizing(targetIndex: Int, targetCount: Int,
+                         instanceName: String)
         case done(succeeded: Int, failed: Int, cancelled: Bool,
                   failures: [String])
     }
 
     private(set) var phase: Phase = .idle
     private(set) var instances: [FPPInstance] = []
-    /// Fraction (0..1) of the *current* task — the bridge reports per-
-    /// frame transcode + curl byte progress on the same scale.
+    /// Single-target task progress (0..1). Used during `.configuring`
+    /// and `.finalizing` phases, where one FPP is in flight at a time.
+    /// Reads the lone reporting IP from the forwarder.
     private(set) var currentTaskProgress: Double = 0
+    /// Per-FPP-IP progress map (0..100). Populated during `.uploading`
+    /// when frames fan out to every selected target at once.
+    private(set) var currentSequenceProgress: [String: Int] = [:]
 
     private let document: XLSequenceDocument
     private let forwarder = FPPUploadProgressForwarder()
@@ -189,21 +344,56 @@ final class FPPConnectRunner {
         let message: String
     }
 
-    func startUpload(targets: [FPPInstance], sequences: [SequenceEntry]) {
+    /// Sendable result of a multi-target sequence upload. The bridge
+    /// returns @{ @"outcomes": { ip → {ok, cancelled, message} },
+    /// @"cancelled": BOOL, @"globalError": NSString? } — parsed into
+    /// pure-value form inside the detached task so the result can
+    /// cross the actor boundary cleanly.
+    struct MultiUploadResult: Sendable {
+        let outcomes: [String: UploadOutcome]
+        let cancelled: Bool
+        let globalError: String?
+
+        static func from(bridgeResult: [AnyHashable: Any]) -> MultiUploadResult {
+            var parsed: [String: UploadOutcome] = [:]
+            if let raw = bridgeResult["outcomes"] as? [String: Any] {
+                for (ip, value) in raw {
+                    guard let dict = value as? [String: Any] else { continue }
+                    parsed[ip] = UploadOutcome(
+                        ok: (dict["ok"] as? NSNumber)?.boolValue ?? false,
+                        cancelled: (dict["cancelled"] as? NSNumber)?.boolValue ?? false,
+                        message: (dict["message"] as? String) ?? "")
+                }
+            }
+            return MultiUploadResult(
+                outcomes: parsed,
+                cancelled: (bridgeResult["cancelled"] as? NSNumber)?.boolValue ?? false,
+                globalError: bridgeResult["globalError"] as? String)
+        }
+    }
+
+    func startUpload(targets: [FPPInstance],
+                      sequences: [SequenceEntry],
+                      configs: [String: FPPInstanceConfig]) {
         guard task == nil, !targets.isEmpty, !sequences.isEmpty else { return }
         forwarder.reset()
-        let taskList: [(FPPInstance, SequenceEntry)] = targets.flatMap { tgt in
-            sequences.map { (tgt, $0) }
-        }
-        let total = taskList.count
 
-        // Poll the forwarder for the per-task progress fraction on the
-        // main runloop so SwiftUI re-renders the bar without us having
-        // to ping from the background thread (which would require
-        // hopping back to MainActor on every byte).
+        // Poll the forwarder for per-target progress every ~150 ms.
+        // During config / finalize phases there's one IP reporting at
+        // a time — we surface it as `currentTaskProgress`. During the
+        // upload phase, every selected target reports; the per-IP map
+        // feeds the per-FPP gauge row in the sheet.
         pollTask = Task { @MainActor in
             while !Task.isCancelled {
-                self.currentTaskProgress = Double(self.forwarder.currentProgress) / 100.0
+                let map = self.forwarder.allProgress
+                self.currentSequenceProgress = map
+                // `currentTaskProgress` echoes a single reporter for
+                // the configuring / finalizing phases.
+                if let single = map.values.max() {
+                    self.currentTaskProgress = Double(single) / 100.0
+                } else {
+                    self.currentTaskProgress = 0
+                }
                 try? await Task.sleep(nanoseconds: 150_000_000)
             }
         }
@@ -212,24 +402,41 @@ final class FPPConnectRunner {
             var succeeded = 0
             var failed = 0
             var failures: [String] = []
-            for (i, pair) in taskList.enumerated() {
-                let (target, sequence) = pair
+
+            // Phase 1 — per-FPP configuration. Mirrors the desktop
+            // dialog's pre-sequence config loop (FPPConnectDialog.cpp
+            // 1148-1212): apply settings, restart (ifNeeded), then
+            // refresh channel ranges. Any failure here is recorded and
+            // the FPP is skipped for the rest of this run so we don't
+            // pump frames into a half-configured target.
+            var skipTargets: Set<String> = []
+            for (idx, tgt) in targets.enumerated() {
                 if forwarder.isCancelled() { break }
+                let cfg = configs[tgt.uuid] ?? FPPInstanceConfig()
+                let needsConfig = cfg.uploadCape || cfg.uploadProxies
+                    || cfg.modelsMode != .none
+                    || cfg.udpOutMode != .none
+                    || !cfg.playlist.isEmpty
+                if !needsConfig {
+                    continue
+                }
                 currentTaskProgress = 0
                 forwarder.reset()
-                phase = .uploading(taskIndex: i + 1,
-                                    taskCount: total,
-                                    instanceName: target.displayName,
-                                    sequenceName: sequence.displayName)
+                phase = .configuring(targetIndex: idx + 1,
+                                      targetCount: targets.count,
+                                      instanceName: tgt.displayName)
                 await Task.yield()
 
-                let fseqPath = batchRenderFseqPath(forXsq: sequence.fullPath)
                 let outcome: UploadOutcome = await Task.detached(priority: .userInitiated) { [document, forwarder] in
-                    let raw = document.uploadFseq(fseqPath,
-                                                   mediaPath: nil,
-                                                   type: 0,
-                                                   toIPAddress: target.ipAddress,
-                                                   progress: forwarder)
+                    let raw = document.applyConfig(toFPP: tgt.ipAddress,
+                                                    settings: [
+                                                        "uploadCape": cfg.uploadCape,
+                                                        "uploadProxies": cfg.uploadProxies,
+                                                        "modelsMode": cfg.modelsMode.rawValue,
+                                                        "udpOutMode": cfg.udpOutMode.rawValue,
+                                                        "playlist": cfg.playlist,
+                                                    ],
+                                                    progress: forwarder)
                     let dict = raw as? [String: Any] ?? [:]
                     return UploadOutcome(
                         ok: (dict["ok"] as? NSNumber)?.boolValue ?? false,
@@ -237,17 +444,127 @@ final class FPPConnectRunner {
                         message: (dict["message"] as? String) ?? "")
                 }.value
 
-                if outcome.cancelled {
-                    break
+                if outcome.cancelled { break }
+                if !outcome.ok {
+                    skipTargets.insert(tgt.uuid)
+                    let msg = outcome.message.isEmpty ? "Configuration failed" : outcome.message
+                    failures.append("\(tgt.displayName) (config): \(msg)")
+                    continue
                 }
-                if outcome.ok {
-                    succeeded += 1
-                } else {
-                    failed += 1
-                    let msg = outcome.message.isEmpty ? "Upload failed" : outcome.message
-                    failures.append("\(target.displayName) ← \(sequence.displayName): \(msg)")
+                // Post-restart channel-range refresh. Even a clean run
+                // with no actual restart is safe to call — the FPP just
+                // re-reports its current ranges.
+                _ = document.updateChannelRanges(forFPP: tgt.ipAddress)
+            }
+
+            // Phase 2 — sequence upload. For each sequence, fan out to
+            // every live target (skipping those that failed Phase 1).
+            // The bridge transcodes per target in parallel via
+            // dispatch_apply and drives the curl pump so the bulk
+            // fseq transfers happen concurrently over the wire.
+            let liveTargets = targets.filter { !skipTargets.contains($0.uuid) }
+            let sequenceCount = sequences.count
+            for (i, sequence) in sequences.enumerated() {
+                if forwarder.isCancelled() { break }
+                if liveTargets.isEmpty { break }
+                forwarder.reset()
+                currentSequenceProgress = [:]
+                currentTaskProgress = 0
+                phase = .uploading(sequenceIndex: i + 1,
+                                    sequenceCount: sequenceCount,
+                                    sequenceName: sequence.displayName,
+                                    targets: liveTargets)
+                await Task.yield()
+
+                // Resolve per-target media paths on the main actor —
+                // FPPInstanceConfig.uploadMedia gates whether the .xsq's
+                // media reference rides along. `document.mediaPath` is
+                // a cheap XML scan + filesystem lookups; keeping it on
+                // MainActor avoids a second capture of `document` into
+                // the detached closure.
+                let resolvedMedia: String? = {
+                    let anyWantsMedia = liveTargets.contains { tgt in
+                        configs[tgt.uuid]?.uploadMedia == true
+                    }
+                    guard anyWantsMedia else { return nil }
+                    return document.mediaPath(forXsq: sequence.fullPath)
+                }()
+
+                // Build a Sendable Swift representation of the target
+                // list; the NSDictionary form (with Any values) is
+                // constructed inside the detached task so we don't
+                // cross the actor boundary with non-Sendable values.
+                let targetPairs: [(ip: String, media: String?)] = liveTargets.map { tgt in
+                    let wantsMedia = configs[tgt.uuid]?.uploadMedia == true
+                    return (ip: tgt.ipAddress,
+                             media: wantsMedia ? resolvedMedia : nil)
+                }
+
+                let fseqPath = batchRenderFseqPath(forXsq: sequence.fullPath)
+                let result: MultiUploadResult = await Task.detached(priority: .userInitiated) { [document, forwarder] in
+                    let dicts: [[String: Any]] = targetPairs.map { pair in
+                        var d: [String: Any] = ["ipAddress": pair.ip]
+                        if let m = pair.media { d["mediaPath"] = m }
+                        return d
+                    }
+                    let raw = document.uploadFseq(fseqPath,
+                                                    toFPPInstances: dicts,
+                                                    progress: forwarder)
+                    return MultiUploadResult.from(bridgeResult: raw)
+                }.value
+
+                if result.cancelled { break }
+
+                // Roll the per-target outcomes into succeeded / failed
+                // counters and failure list. A successful (target, seq)
+                // counts as one "succeeded" so the summary scales with
+                // total work, not just sequence count.
+                for tgt in liveTargets {
+                    if let outcome = result.outcomes[tgt.ipAddress] {
+                        if outcome.ok {
+                            succeeded += 1
+                        } else if !outcome.cancelled {
+                            failed += 1
+                            let msg = outcome.message.isEmpty ? "Upload failed" : outcome.message
+                            failures.append("\(tgt.displayName) ← \(sequence.displayName): \(msg)")
+                        }
+                    } else {
+                        failed += 1
+                        failures.append("\(tgt.displayName) ← \(sequence.displayName): no outcome reported")
+                    }
+                }
+                if let globalErr = result.globalError, !globalErr.isEmpty {
+                    failures.append("\(sequence.displayName): \(globalErr)")
                 }
             }
+
+            // Phase 3 — finalize. Per-FPP post-sequence UploadPlaylist
+            // (commits the just-uploaded fseqs to the playlist) +
+            // Restart(true). Skips FPPs that failed Phase 1. Also
+            // skips when cancelled — partial state is recorded by the
+            // earlier phases.
+            if !forwarder.isCancelled() {
+                let finalizeTargets = targets.filter { !skipTargets.contains($0.uuid) }
+                for (idx, tgt) in finalizeTargets.enumerated() {
+                    if forwarder.isCancelled() { break }
+                    let cfg = configs[tgt.uuid] ?? FPPInstanceConfig()
+                    currentTaskProgress = 0
+                    forwarder.reset()
+                    phase = .finalizing(targetIndex: idx + 1,
+                                         targetCount: finalizeTargets.count,
+                                         instanceName: tgt.displayName)
+                    await Task.yield()
+
+                    let ok: Bool = await Task.detached(priority: .userInitiated) { [document] in
+                        document.finalize(fpp: tgt.ipAddress,
+                                           playlist: cfg.playlist.isEmpty ? nil : cfg.playlist)
+                    }.value
+                    if !ok {
+                        failures.append("\(tgt.displayName) (finalize): playlist or restart returned an error")
+                    }
+                }
+            }
+
             pollTask?.cancel()
             pollTask = nil
             phase = .done(succeeded: succeeded,
@@ -284,6 +601,23 @@ struct FPPConnectSheet: View {
     @State private var sequences: [SequenceEntry] = []
     @State private var selectedInstanceUUIDs: Set<String> = []
     @State private var selectedSequencePaths: Set<String> = []
+    /// All known per-instance configs, keyed by UUID. Loaded from
+    /// `FPPInstanceConfigStore` on appear; mutations write through
+    /// immediately. Independent of `selectedInstanceUUIDs` so the user
+    /// can configure an FPP without selecting it for this upload (and
+    /// vice versa).
+    @State private var instanceConfigs: [String: FPPInstanceConfig] = [:]
+    /// Which rows are currently expanded to show per-instance settings.
+    /// Persisted across sheet present/dismiss within the app session,
+    /// but not across launches — the per-row state is just transient UI.
+    @State private var expandedUUIDs: Set<String> = []
+    /// Drives the "create new playlist" alert. When non-nil, the alert
+    /// is showing for that UUID; the user's typed name gets committed
+    /// to that instance's config on Create. The actual playlist gets
+    /// materialized on the FPP when the Slice B4 `UploadPlaylist`
+    /// bridge call lands.
+    @State private var newPlaylistTargetUUID: String? = nil
+    @State private var newPlaylistName: String = ""
 
     var body: some View {
         NavigationStack {
@@ -294,10 +628,17 @@ struct FPPConnectSheet: View {
                         discoveringView()
                     case .selection:
                         selectionView(runner: runner)
-                    case .uploading(let i, let total, let inst, let seq):
+                    case .configuring(let i, let total, let inst):
+                        configuringView(runner: runner,
+                                         targetIndex: i, targetCount: total,
+                                         instanceName: inst)
+                    case .uploading(let i, let total, let seq, let tgts):
                         uploadingView(runner: runner,
-                                      taskIndex: i, taskCount: total,
-                                      instanceName: inst, sequenceName: seq)
+                                      sequenceIndex: i, sequenceCount: total,
+                                      sequenceName: seq, targets: tgts)
+                    case .finalizing(let i, let total, let inst):
+                        finalizingView(targetIndex: i, targetCount: total,
+                                        instanceName: inst)
                     case .done(let succeeded, let failed, let cancelled, let failures):
                         doneView(runner: runner,
                                  succeeded: succeeded, failed: failed,
@@ -326,18 +667,32 @@ struct FPPConnectSheet: View {
         }
         .interactiveDismissDisabled(isUploading)
         .onAppear {
+            // Register the auth prompt before kicking discovery so a
+            // 401 from a password-protected FPP routes through the
+            // UIAlertController instead of failing silently. Cleared
+            // in `.onDisappear` so a dismissed sheet stops popping
+            // prompts mid-app.
+            viewModel.document.setFPPAuthPromptHandler { host, completion in
+                FPPAuthPrompt.present(host: host, completion: completion)
+            }
             if runner == nil {
                 runner = FPPConnectRunner(document: viewModel.document)
                 runner?.discover()
             }
             selectedInstanceUUIDs = FPPConnectSelections.load()
+            instanceConfigs = FPPInstanceConfigStore.loadAll()
             sequences = SequenceScanner.scan(showFolder: viewModel.showFolderPath ?? "")
+        }
+        .onDisappear {
+            viewModel.document.setFPPAuthPromptHandler(nil)
         }
     }
 
     private var isUploading: Bool {
-        if case .uploading = runner?.phase { return true }
-        return false
+        switch runner?.phase {
+        case .uploading, .configuring, .finalizing: return true
+        default: return false
+        }
     }
 
     // MARK: Phase 1 — Discovering
@@ -370,33 +725,14 @@ struct FPPConnectSheet: View {
                                             description: Text("Make sure your iPad and your FPP devices are on the same network."))
                 } else {
                     ForEach(runner.instances) { inst in
-                        Button {
-                            toggleInstance(inst)
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: selectedInstanceUUIDs.contains(inst.uuid)
-                                      ? "checkmark.square.fill" : "square")
-                                    .foregroundStyle(selectedInstanceUUIDs.contains(inst.uuid)
-                                                     ? Color.accentColor : Color.secondary)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(inst.displayName)
-                                        .foregroundStyle(inst.supportedForFPPConnect
-                                                         ? Color.primary : Color.secondary)
-                                    Text(inst.subtitle)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                    if !inst.supportedForFPPConnect {
-                                        Text("Mode or version does not support FPP Connect uploads.")
-                                            .font(.caption2)
-                                            .foregroundStyle(.orange)
-                                    }
-                                }
-                                Spacer()
+                        VStack(alignment: .leading, spacing: 0) {
+                            instanceRowHeader(inst)
+                            if expandedUUIDs.contains(inst.uuid) {
+                                instanceSettings(inst)
+                                    .padding(.leading, 36)
+                                    .padding(.top, 8)
                             }
-                            .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
-                        .disabled(!inst.supportedForFPPConnect)
                     }
                 }
             }
@@ -451,7 +787,9 @@ struct FPPConnectSheet: View {
             }
             let disabled = targets.isEmpty || toUpload.isEmpty
             Button {
-                runner.startUpload(targets: targets, sequences: toUpload)
+                runner.startUpload(targets: targets,
+                                    sequences: toUpload,
+                                    configs: instanceConfigs)
             } label: {
                 Text(disabled
                      ? "Select at least one FPP and one sequence"
@@ -492,36 +830,335 @@ struct FPPConnectSheet: View {
         }
     }
 
-    // MARK: Phase 3 — Uploading
+    // MARK: - Per-instance row + settings
 
-    private func uploadingView(runner: FPPConnectRunner,
-                                taskIndex: Int,
-                                taskCount: Int,
-                                instanceName: String,
-                                sequenceName: String) -> some View {
-        let overall = (Double(taskIndex - 1) + runner.currentTaskProgress)
-            / Double(max(taskCount, 1))
-        return VStack(spacing: 20) {
+    /// Header HStack for one FPP row: selection checkbox + name/subtitle
+    /// + chevron toggle for the per-instance settings drawer. The two
+    /// halves are independently tappable so a user can configure an FPP
+    /// without selecting it for the current upload.
+    @ViewBuilder
+    private func instanceRowHeader(_ inst: FPPInstance) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                toggleInstance(inst)
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: selectedInstanceUUIDs.contains(inst.uuid)
+                          ? "checkmark.square.fill" : "square")
+                        .foregroundStyle(selectedInstanceUUIDs.contains(inst.uuid)
+                                         ? Color.accentColor : Color.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(inst.displayName)
+                            .foregroundStyle(inst.supportedForFPPConnect
+                                             ? Color.primary : Color.secondary)
+                        Text(inst.subtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        if !inst.supportedForFPPConnect {
+                            Text("Mode or version does not support FPP Connect uploads.")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!inst.supportedForFPPConnect)
+
+            Button {
+                withAnimation(.snappy(duration: 0.18)) {
+                    if expandedUUIDs.contains(inst.uuid) {
+                        expandedUUIDs.remove(inst.uuid)
+                    } else {
+                        expandedUUIDs.insert(inst.uuid)
+                    }
+                }
+            } label: {
+                Image(systemName: "chevron.right")
+                    .rotationEffect(.degrees(expandedUUIDs.contains(inst.uuid) ? 90 : 0))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!inst.supportedForFPPConnect)
+            .accessibilityLabel(expandedUUIDs.contains(inst.uuid)
+                                ? "Collapse \(inst.displayName) settings"
+                                : "Expand \(inst.displayName) settings")
+        }
+    }
+
+    /// "Pixel Hat / Cape Outputs - K8-Pro". Called only when the FPP
+    /// has a cape (the toggle row is hidden otherwise; see `hasCape`).
+    /// Mirrors desktop's per-row cape-model string from
+    /// `PopulateFPPInstanceList`.
+    private func capeLabel(for inst: FPPInstance) -> String {
+        "Pixel Hat / Cape Outputs - \(inst.capeModel)"
+    }
+
+    /// Binding into `instanceConfigs[uuid]` that writes through to the
+    /// persistent store on every change. Defaults to a fresh
+    /// `FPPInstanceConfig()` for unseen UUIDs so the picker / toggle
+    /// always has something to read.
+    private func configBinding(for uuid: String) -> Binding<FPPInstanceConfig> {
+        Binding(
+            get: { instanceConfigs[uuid] ?? FPPInstanceConfig() },
+            set: { newValue in
+                instanceConfigs[uuid] = newValue
+                FPPInstanceConfigStore.set(newValue, for: uuid)
+            }
+        )
+    }
+
+    /// Per-instance settings drawer. **B2 wires only Media through to
+    /// the upload bridge** — the other fields persist but their
+    /// uploads land in B3 / B4. The footer surfaces that distinction
+    /// so users aren't surprised when "Cape" stays unchecked on the FPP
+    /// despite being toggled here.
+    @ViewBuilder
+    private func instanceSettings(_ inst: FPPInstance) -> some View {
+        let cfg = configBinding(for: inst.uuid)
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("Media (MP3 / MP4 / WAV)", isOn: cfg.uploadMedia)
+                .help("Upload the sequence's audio companion alongside the .fseq. Typically only the player / master FPP needs this.")
+
+            if inst.hasCape {
+                Toggle(capeLabel(for: inst), isOn: cfg.uploadCape)
+                    .help("Push pixel, panel, virtual-matrix and serial output configuration. Restarts FPPD.")
+            }
+
+            Toggle("Add Show Proxies", isOn: cfg.uploadProxies)
+                .help("Upload proxy IP addresses configured in the show.")
+
+            HStack {
+                Text("Models")
+                Spacer()
+                Picker("Models", selection: cfg.modelsMode) {
+                    ForEach(FPPInstanceConfig.ModelsMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+            }
+
+            HStack {
+                Text("UDP Out")
+                Spacer()
+                Picker("UDP Out", selection: cfg.udpOutMode) {
+                    ForEach(FPPInstanceConfig.UDPOutMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+            }
+
+            HStack {
+                Text("Playlist")
+                Spacer()
+                if !inst.canHostPlaylist {
+                    Text("Not available in \(inst.mode) mode")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    // Intercept the sentinel selection so the picker
+                    // never actually settles on it — it just triggers
+                    // the alert and the picker reverts to the previous
+                    // value until the user confirms a real name.
+                    let pickerBinding = Binding<String>(
+                        get: { cfg.wrappedValue.playlist },
+                        set: { newValue in
+                            if newValue == kCreateNewPlaylistSentinel {
+                                newPlaylistName = ""
+                                newPlaylistTargetUUID = inst.uuid
+                            } else {
+                                cfg.wrappedValue.playlist = newValue
+                            }
+                        }
+                    )
+                    Picker("Playlist", selection: pickerBinding) {
+                        Text("None").tag("")
+                        // Render the current selection even when it
+                        // isn't in the FPP's reported playlist list
+                        // (typical for a name created via this alert
+                        // before the FPP has been re-discovered).
+                        let current = cfg.wrappedValue.playlist
+                        if !current.isEmpty
+                            && !inst.playlists.contains(current) {
+                            Text("\(current) (pending)").tag(current)
+                        }
+                        ForEach(inst.playlists, id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                        Divider()
+                        Text("Create New…").tag(kCreateNewPlaylistSentinel)
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                }
+            }
+
+            Text("Models uploads require a full FPPD restart. UDP Out and Pixel Hat/Cape uploads restart only if needed. Playlist additions take effect after the upload completes.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .padding(.top, 4)
+        }
+        .padding(.bottom, 4)
+        // "Create New Playlist" alert. Hosted per-row so the bound
+        // UUID is unambiguous — only the row whose UUID matches the
+        // target shows the alert.
+        .alert("New Playlist on \(inst.displayName)",
+                isPresented: Binding(
+                    get: { newPlaylistTargetUUID == inst.uuid },
+                    set: { showing in
+                        if !showing { newPlaylistTargetUUID = nil }
+                    }
+                )) {
+            TextField("Playlist name", text: $newPlaylistName)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+            Button("Cancel", role: .cancel) {
+                newPlaylistName = ""
+            }
+            Button("Create") {
+                let trimmed = newPlaylistName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { return }
+                var c = instanceConfigs[inst.uuid] ?? FPPInstanceConfig()
+                c.playlist = trimmed
+                instanceConfigs[inst.uuid] = c
+                FPPInstanceConfigStore.set(c, for: inst.uuid)
+                newPlaylistName = ""
+            }
+        } message: {
+            Text("Sequences uploaded to this FPP will be added to a playlist with this name. The playlist is created on the FPP at upload time.")
+        }
+    }
+
+    // MARK: Phase 3a — Configuring
+
+    /// Per-FPP config screen — shown while applyConfig is running for
+    /// targets with Cape or Add Proxies enabled. Indeterminate spinner
+    /// because applyConfig doesn't report per-step progress yet (the
+    /// FPP class's progress callback fires during the curl uploads
+    /// inside each UploadXOutputs call, but spans multiple of them).
+    private func configuringView(runner: FPPConnectRunner,
+                                  targetIndex: Int,
+                                  targetCount: Int,
+                                  instanceName: String) -> some View {
+        VStack(spacing: 20) {
             Spacer()
             ProgressView().controlSize(.large)
             VStack(spacing: 6) {
-                Text("Uploading \(taskIndex) of \(taskCount)")
+                Text("Configuring FPP \(targetIndex) of \(targetCount)")
                     .font(.title3.weight(.medium))
-                Text("\(sequenceName)  →  \(instanceName)")
+                Text(instanceName)
                     .font(.body)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
                     .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
-            VStack(spacing: 4) {
-                ProgressView(value: runner.currentTaskProgress)
-                    .progressViewStyle(.linear)
-                    .tint(.accentColor)
-                Text("\(Int(runner.currentTaskProgress * 100))% of this upload")
-                    .font(.caption)
+            Text("Pushing pixel outputs / proxies and restarting FPPD if needed. Sequence uploads start once every FPP is configured.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Spacer()
+        }
+        .padding()
+    }
+
+    // MARK: Phase 4 — Finalizing
+
+    /// Per-FPP finalize screen — committing the playlist (if any) and
+    /// firing the final restart so any restart-flagged config from
+    /// Phase 1 actually takes effect.
+    private func finalizingView(targetIndex: Int,
+                                 targetCount: Int,
+                                 instanceName: String) -> some View {
+        VStack(spacing: 20) {
+            Spacer()
+            ProgressView().controlSize(.large)
+            VStack(spacing: 6) {
+                Text("Finalizing FPP \(targetIndex) of \(targetCount)")
+                    .font(.title3.weight(.medium))
+                Text(instanceName)
+                    .font(.body)
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: 360)
+            Text("Committing playlist additions and restarting FPPD to apply any pending configuration changes.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Spacer()
+        }
+        .padding()
+    }
+
+    // MARK: Phase 3 — Uploading (parallel fan-out)
+
+    /// Slice F UI — one sequence is in flight to every selected FPP
+    /// in parallel. Show per-target gauges so the user can see if one
+    /// FPP is dragging the batch. Per-FPP progress is read from
+    /// `runner.currentSequenceProgress` (0..100 per IP).
+    private func uploadingView(runner: FPPConnectRunner,
+                                sequenceIndex: Int,
+                                sequenceCount: Int,
+                                sequenceName: String,
+                                targets: [FPPInstance]) -> some View {
+        let avg: Double = {
+            guard !targets.isEmpty else { return 0 }
+            let sum = targets.map { runner.currentSequenceProgress[$0.ipAddress] ?? 0 }
+                .reduce(0, +)
+            return Double(sum) / Double(targets.count) / 100.0
+        }()
+        let overall = (Double(sequenceIndex - 1) + avg) / Double(max(sequenceCount, 1))
+
+        return VStack(spacing: 16) {
+            VStack(spacing: 4) {
+                Text("Uploading \(sequenceIndex) of \(sequenceCount)")
+                    .font(.title3.weight(.medium))
+                Text(sequenceName)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                Text("\(targets.count) FPP\(targets.count == 1 ? "" : "s") in parallel")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.top, 8)
+
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(targets) { tgt in
+                        let pct = runner.currentSequenceProgress[tgt.ipAddress] ?? 0
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(tgt.displayName)
+                                    .font(.callout.weight(.medium))
+                                Spacer()
+                                Text("\(pct)%")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                            ProgressView(value: Double(pct) / 100.0)
+                                .progressViewStyle(.linear)
+                                .tint(.accentColor)
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+            .frame(maxHeight: 280)
+
             VStack(spacing: 4) {
                 ProgressView(value: overall)
                     .progressViewStyle(.linear)
@@ -531,14 +1168,15 @@ struct FPPConnectSheet: View {
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: 360)
-            Text("Keep the iPad on the same network as the FPPs. Backgrounding may pause the upload.")
+            .padding(.horizontal, 16)
+
+            Text("Keep the iPad on the same network as the FPPs. Backgrounding may pause uploads.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
-            Spacer()
+                .padding(.bottom, 8)
         }
-        .padding()
     }
 
     // MARK: Phase 4 — Done
