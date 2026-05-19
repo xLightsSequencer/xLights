@@ -115,16 +115,42 @@ CachedFileDownloader::URLFetcher CachedFileDownloader::GetURLFetcher() {
 }
 
 // A major constraint of this function is that it does not support https
+static std::string EncodeURL(const std::string& url) {
+    // Percent-encode characters that are invalid in URLs but may appear in
+    // vendor catalog XML (e.g. spaces in filenames). Only encode after the
+    // scheme+host so the protocol and domain are left intact.
+    static const std::string kUnsafe = " \t";
+    auto schemeEnd = url.find("://");
+    std::string::size_type pathStart = (schemeEnd == std::string::npos) ? 0
+                                     : url.find('/', schemeEnd + 3);
+    if (pathStart == std::string::npos) return url;
+
+    std::string out = url.substr(0, pathStart);
+    out.reserve(url.size() + 16);
+    for (std::string::size_type i = pathStart; i < url.size(); ++i) {
+        unsigned char c = static_cast<unsigned char>(url[i]);
+        if (kUnsafe.find(static_cast<char>(c)) != std::string::npos) {
+            char buf[4];
+            std::snprintf(buf, sizeof(buf), "%%%02X", c);
+            out += buf;
+        } else {
+            out += static_cast<char>(c);
+        }
+    }
+    return out;
+}
+
 bool FileCacheItem::DownloadURL(const std::string& url, const std::string& filename, std::function<bool(int)> progressCallback, int low, int high, bool keepProgress)
 {
-    spdlog::debug("Making request to '{}' -> {}.", url, filename);
+    const std::string encodedUrl = EncodeURL(url);
+    spdlog::debug("Making request to '{}' -> {}.", encodedUrl, filename);
     // Platform override (iPad: NSURLSession). The override skips
     // the curl progress callback because iPad consumers don't
     // surface per-file progress for catalog fetches; the
     // catalog-wide progress is reported via VendorCatalog's
     // `Load` callback.
     if (auto fetcher = CachedFileDownloader::GetURLFetcher()) {
-        return fetcher(url, filename);
+        return fetcher(encodedUrl, filename);
     }
     std::function<bool(int)> progress;
     if (progressCallback != nullptr) {
@@ -143,7 +169,7 @@ bool FileCacheItem::DownloadURL(const std::string& url, const std::string& filen
             return progressCallback(scaled);
         };
     }
-    return CurlManager::HTTPSGetFile(url, filename, "", "", 600, progress);
+    return CurlManager::HTTPSGetFile(encodedUrl, filename, "", "", 600, progress);
 }
 
 std::string FileCacheItem::DownloadURLToTemp(const std::string& url, const std::string& forceType, std::function<bool(int)> progressCallback, int low, int high, bool keepProgress)
