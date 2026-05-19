@@ -108,13 +108,13 @@
 					</object>
 					<object class="wxPanel" name="ID_PANEL1" variable="PreviewGLPanel" member="yes">
 						<style>0</style>
-						<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="no">
+						<object class="wxFlexGridSizer" variable="PreviewGLSizer" member="yes">
 							<cols>1</cols>
 							<rows>3</rows>
 							<growablecols>0</growablecols>
 							<growablerows>1</growablerows>
 							<object class="sizeritem">
-								<object class="wxFlexGridSizer" variable="FlexGridSizer1" member="no">
+								<object class="wxFlexGridSizer" variable="TopBarSizer" member="yes">
 									<cols>6</cols>
 									<growablecols>0</growablecols>
 									<object class="sizeritem">

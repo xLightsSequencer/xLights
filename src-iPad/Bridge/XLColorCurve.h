@@ -40,6 +40,8 @@ typedef NS_ENUM(NSInteger, XLColorCurveMode) {
 // Construction. Empty `serialised` creates an inactive curve with a
 // single midpoint at black — same default as desktop. `identifier`
 // is the slot id ("Palette1".."Palette8") that Save-to-file uses.
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)new NS_UNAVAILABLE;
 - (instancetype)initWithSerialised:(NSString*)serialised
                         identifier:(NSString*)identifier NS_DESIGNATED_INITIALIZER;
 

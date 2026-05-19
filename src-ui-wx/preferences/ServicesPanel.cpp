@@ -3,6 +3,8 @@
 #include "xLightsMain.h"
 #include "ai/chatGPT.h"
 #include "ai/ServiceManager.h"
+#include "ai/PropertyGridBuilder.h"
+#include "ai/aiBase.h"
 
 //(*InternalHeaders(ServicesPanel)
 #include <wx/intl.h>
@@ -170,7 +172,7 @@ void ServicesPanel::SetupTests() {
 bool ServicesPanel::TransferDataToWindow() {
     servicesGrid->Clear();
     for (auto const& ss : m_serviceManager->getServices()) {
-        ss->PopulateLLMSettings(servicesGrid);
+        PropertyGridBuilder::Append(servicesGrid, ss->GetProperties());
     }
     return true;
 }
@@ -208,7 +210,14 @@ void ServicesPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
     if (names.size() < 2) {
         return; // Not a valid service property
     }
-    m_serviceManager->getService(names[0])->SetSetting(name, event.GetPropertyValue());
+    aiBase* service = m_serviceManager->getService(names[0].ToStdString());
+    if (!service) {
+        return;
+    }
+    PropertyGridBuilder::Dispatch(event,
+        [service](const std::string& id, bool v)               { service->SetProperty(id, v); },
+        [service](const std::string& id, int v)                { service->SetProperty(id, v); },
+        [service](const std::string& id, const std::string& v) { service->SetProperty(id, v); });
 
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();

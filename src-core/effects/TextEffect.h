@@ -24,9 +24,6 @@ public:
     TextEffect(int id);
     virtual ~TextEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
-#ifdef LINUX
-    virtual bool CanRenderOnBackgroundThread(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override { return false; };
-#endif
     virtual bool CanBeRandom() override { return false; }
     virtual bool SupportsRenderCache(const SettingsMap& settings) const override;
 

@@ -33,7 +33,15 @@ public:
                                                                          height:height
                                                                       mipmapped:NO];
             desc.usage = MTLTextureUsageRenderTarget;
-            desc.storageMode = MTLStorageModePrivate;
+            // iPad GPUs are all TBDR (Apple4+ on every iOS-26-capable
+            // device) and the MSAA samples are only ever consumed
+            // during the render pass — `storeAction = MultisampleResolve`
+            // resolves them into the drawable at end-of-pass and then
+            // they're done. Tile memory holds them; system RAM never
+            // backs the surface. Saves real megabytes per pane on
+            // 4 GB devices like iPad Air 4 / iPad mini that run tight
+            // on the preview load path.
+            desc.storageMode = MTLStorageModeMemoryless;
             desc.textureType = MTLTextureType2DMultisample;
             desc.sampleCount = sampleCount;
             texture = [MetalDeviceManager::instance().getMTLDevice() newTextureWithDescriptor:desc];

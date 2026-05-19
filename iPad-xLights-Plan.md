@@ -1,30 +1,18 @@
 # xLights iPad — Implementation Plan
 
-This file tracks overall status. Details for each phase live under
-[`plans/`](plans/README.md) — one focused sub-plan per phase, listing
-only the work still to do. Completed phases have no sub-plan.
+This file tracks overall status. Details for active work live under
+[`plans/`](plans/README.md). Completed phases live in git history.
 
 ---
 
-## Current state
+## Where we are (2026-05-17)
 
-### Goal of the work so far
-
-The work so far has been scoped to the **core rendering path**: load a
-sequence, render it through the same C++ effect pipeline as desktop
-xLights, and display the house preview during playback. That is done
-and verified on a physical iPad. Shaders, video effects, and most
-effects render correctly.
-
-Everything above the core baseline — effects grid, inspector, output,
-preview chrome — has been rebuilt for touch. The effects grid is now
-Metal-backed, the inspector is metadata-driven with a four-tab shell,
-and both previews are interactive on device. The grid's rebuild got
-the rendering substrate and basic single-effect editing right, but a
-2026-04-20 parity audit against the desktop caught ~100 missing
-behaviours (multi-select, align / split, timing-track editing, loop
-region, follow-playhead, waveform variants, row-heading ops); see
-[`plans/phase-b-grid-parity.md`](plans/phase-b-grid-parity.md).
+The iPad app shipped to the App Store and exercises the full
+desktop rendering / effect / sequence pipeline through the same
+`src-core/` it shares with the Mac. Phases A, B-Metal, C, D, E, F,
+G, H are complete; phase B P0/P1 closed; Phase I MVP (`.xsq` /
+`.xsqz` / `.sup`) shipped; Phase J landed J-0..J-32. What follows
+is the remaining work.
 
 ### Code layout
 
@@ -47,7 +35,8 @@ src-iPad/
 Shared core that iPad consumes:
 
 - `src-core/` — wx-free C++ core (renderers, models, outputs, render
-  engine, effect manager, sequence file/elements, audio manager).
+  engine, effect manager, sequence file/elements, audio manager,
+  import_export).
 - `macOS/src-apple-core/` — Apple shared code (Metal device manager,
   external hooks, Apple utilities in Swift and ObjC++).
 
@@ -60,7 +49,7 @@ Shared core that iPad consumes:
 | `xLights-macOSLib-UI` | macOS-only UI (`macOS/src-mac-ui/`) | macOS only |
 | `xLights` | Desktop app | macOS only |
 | `EffectComputeFunctions` | Metal shaders | macOS + iOS |
-| `UIMetalShaders` | UI Metal shaders | macOS only |
+| `UIMetalShaders` | UI Metal shaders | macOS + iOS |
 | `ISPCEffectComputeFunctions` | SIMD kernels | macOS + iOS |
 | `xLights-iPadLib` | iPad bridge code (`src-iPad/`) | iOS |
 | `xLights-iPad` | SwiftUI iPad app | iOS 26+ |
@@ -72,63 +61,68 @@ variants in `libdbg-ios/`.
 
 ---
 
-## Phase status
+## Remaining work
 
-| Phase | Title | Status | Sub-plan |
-|---|---|---|---|
-| A | Core-path hardening | ✓ complete | — (one small follow-up in [`plans/followups.md`](plans/followups.md)) |
-| B | Effects grid parity with desktop | In progress — Metal-backed grid, basic selection / drag / resize / long-press shipped; ~100 desktop behaviours pending (multi-select, align/split, timing-track editing, loop region, follow-playhead, row-heading ops, waveform variants) | [`plans/phase-b-grid-parity.md`](plans/phase-b-grid-parity.md) |
-| B-Metal | Grid render pipeline migration (CG → Metal) | ✓ complete | — |
-| C | Effect settings inspector | In progress — C4 multi-effect blocked on grid multi-select; C7 specialised editors still open | [`plans/phase-c-inspector.md`](plans/phase-c-inspector.md) |
-| D | Model Preview + preview polish | ✓ complete — layout-editor overlays parked in [`plans/future-layout-editing.md`](plans/future-layout-editing.md) | [`plans/phase-d-preview.md`](plans/phase-d-preview.md) |
-| E | Sequence management (open / save / new / settings) | Partial — save / dirty / close-with-prompt and missing-media detection landed; New wizard, Sequence Settings dialog, recent docs, autosave still open | [`plans/phase-e-sequence-management.md`](plans/phase-e-sequence-management.md) |
-| F | Window system + Display Elements | Not started | [`plans/phase-f-window-system.md`](plans/phase-f-window-system.md) |
-| G | Document / iCloud polish | Not started | [`plans/phase-g-document.md`](plans/phase-g-document.md) |
-| H | App Store readiness | Not started | [`plans/phase-h-app-store.md`](plans/phase-h-app-store.md) |
+- **FPP Connect (P1).** External testers keep asking for one-tap
+  uploads from the iPad so they can iterate on the field rig
+  without unwrapping a laptop. Tracked in
+  [`future-controller-upload.md`](plans/future-controller-upload.md);
+  the rest of the upload stack (Bulk Upload, HinksPix, drag-drop
+  port mapping) is parked at P4 there. Pixel Test stays P2.
+- **Authenticated vendor downloads.** `VendorBrowserSheet` /
+  `XLVendorCatalog` / `CachedFileDownloader` use anonymous libcurl
+  HTTP — there is no auth path for behind-login catalog content
+  today. Open whenever the catalog starts gating models behind
+  accounts.
+- **Layout Editor Controllers-tab polish.** Drag-reorder + sort
+  modes + right-click Activate/Inactivate/Unlink + LED ping. The
+  Discover-sheet HTTP-scan-with-auth (O-7) is now P4. See
+  [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md).
+- **Phase B-77 — MIDI Import Notes.** Deprioritized; low desktop use
+  and no concrete iPad request open.
+- **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
+  until a vendor request lands.
+- **3 deferred Phase B items** (B16 drag-from-palette ghost,
+  B24 Find Possible Source Effects, B56 Convert-to-Effect) remain
+  parked. See [`phase-b-grid-parity.md`](plans/phase-b-grid-parity.md).
+- **Cross-phase follow-ups** (Data Layers tab, MH waypoint
+  authoring, shader uniform grouping). See
+  [`followups.md`](plans/followups.md).
 
-**Parallelism.** Phases B and C and E are independent and can run
-in parallel (in fact C's C4 is waiting on B's multi-select work).
-B works against the Metal grid + `SequencerViewModel` + row
-headers; C works against `EffectMetadata.swift` + the inspector
-view; E works against `XLSequenceDocument` + `SequencerViewModel`
-save/new paths. Phase F depends on the others — it composes the
-finished pieces (previews, inspector, grid) plus the File-menu
-commands (E) into the final window / menu-bar layout. G and H are
-sequential at the end.
+**Catalogue of full post-MVP scope.** The 2026-04-23 gap analysis
+(in the sibling working tree at
+`xLights/plans/gap-analysis-2026-04-23.md`) inventoried the full
+desktop surface and recommended ~12 phases beyond MVP totalling
+20–30 person-months. Each major domain is now tracked in a
+`plans/future-*.md` file — see [`plans/README.md`](plans/README.md).
 
-**Preview scope.** Phase D is preview *viewing and appearance*: camera,
-overlays, background, labels, transport, export. Desktop `ModelPreview`
-also hosts the layout editor (drag-to-move, resize handles, polyline
-editing, align/distribute, property grid) — that behaviour stays
-desktop-only and is not in Phase D or anywhere else in the iPad plan.
-Per-view model visibility / layout-group management is Phase F.
+## Deferred / explicitly out of MVP
 
-### Deferred / explicitly out of MVP
-
-- **Controller output** — infrastructure is in the tree (output
-  manager, per-frame send, sACN / ArtNet / DDP / OPC) but not on the
-  MVP critical path. Revisit after App Store submission.
 - **JobPool requeue redesign** — desktop-scope refactor to replace
-  block-on-other-model-frame with re-enqueue. Tracked separately; the
-  iPad workaround is "more threads."
-- **Layout editor, controller setup** — stays desktop-only.
+  block-on-other-model-frame with re-enqueue. Tracked separately;
+  the iPad workaround is "more threads."
+- **Disk-persistent effect presets** — in-session ship is enough
+  for now; on-disk store + preset-tree UI parked in
+  [`future-effect-presets.md`](plans/future-effect-presets.md).
 
 ---
 
 ## Risks
 
-- **JobPool deadlock on complex sequences** — mitigated by raising the
-  thread count; the underlying "workers block on peers" pattern is
-  still there.
-- **Memory on mid-tier iPads** — Phase A memory-pressure handling is
-  in place but under-tested.
-- **AVFoundation codec coverage** — video effects with unusual codecs
-  fail; no FFmpeg fallback on iPad.
+- **JobPool deadlock on complex sequences** — mitigated by raising
+  the thread count; the underlying "workers block on peers"
+  pattern is still there.
+- **Memory on mid-tier iPads** — Phase A memory-pressure handling
+  is in place but under-tested. External tester reports will be
+  the first stress signal.
+- **AVFoundation codec coverage** — video effects with unusual
+  codecs fail; no FFmpeg fallback on iPad.
+- **Auto Map false-positives on similar model names** — desktop
+  users live with this; iPad testers have a smaller screen for
+  review.
 
 ---
 
 ## Open questions
 
-1. For Phase H (App Store), existing Apple Developer team? And is the
-   iPad app a separate App Store record or shipped as a universal app
-   alongside macOS? (Impacts bundle id and entitlements.)
+_(none open.)_

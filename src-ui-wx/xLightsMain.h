@@ -87,7 +87,7 @@
 #include "color/ColorManager.h"
 #include "effects/EffectPresetManager.h"
 #include "render/ViewpointMgr.h"
-#include "sequencer/PhonemeDictionary.h"
+#include "lyrics/PhonemeDictionary.h"
 #include "render/SequenceFile.h"
 #include "sequencer/EffectsGrid.h"
 #include "render/RenderCache.h"
@@ -195,7 +195,9 @@ wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS_TO_MODELS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -249,7 +251,6 @@ enum SeqPlayerStates
     PLAYING_EFFECT
 };
 
-class RenderEvent;
 class wxDebugReportCompress;
 class BufferPanel;
 class LayoutPanel;
@@ -365,6 +366,7 @@ public:
     #endif
 
     PhonemeDictionary dictionary;
+    void LoadPhonemeDictionaries();
 
     bool IsExiting() const { return _exiting; }
     void SetEffectControls(const std::string &modelName, const std::string &name,
@@ -459,7 +461,7 @@ public:
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string());
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -496,10 +498,6 @@ public:
 
     EffectManager &GetEffectManager() override { return effectManager; }
 
-    bool ImportSuperStar(Element *el, pugi::xml_document &doc, int x_size, int y_size,
-                         int x_offset, int y_offset,
-                         int imageResizeType, const wxSize &modelSize, const wxString& layerBlend,
-                         const wxString& defaultGroupName = {});
     bool ImportLMS(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportLPE(pugi::xml_document &doc, const wxFileName &filename);
     bool ImportVixen3(const wxFileName &filename);
@@ -1136,7 +1134,7 @@ public:
     int effGridPrevX;
     int effGridPrevY;
     bool _backupSubfolders = true;
-    bool _excludePresetsFromPackagedSequences = true;
+    bool _excludeVideosFromPackagedSequences = false;
     bool _excludeAudioFromPackagedSequences = true;
     bool _promptBatchRenderIssues = true;
     bool _disablePromptBatchRenderIssues = false;
@@ -1161,6 +1159,8 @@ public:
     bool _renderBellEnabled = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
+    bool _enablePositionZones = true;
+    bool _showZoneIndicator = false;
     int _controllerPingInterval = 0;
     int _fseqVersion;
     int _timelineZooming;
@@ -1302,8 +1302,8 @@ public:
     int GetTimelineZooming() const { return _timelineZooming; }
     void SetTimelineZooming(int choice) { _timelineZooming = choice; }
 
-    bool ExcludePresetsFromPackagedSequences() const { return _excludePresetsFromPackagedSequences;}
-    void SetExcludePresetsFromPackagedSequences(bool b) {_excludePresetsFromPackagedSequences = b;}
+    bool ExcludeVideosFromPackagedSequences() const { return _excludeVideosFromPackagedSequences;}
+    void SetExcludeVideosFromPackagedSequences(bool b) {_excludeVideosFromPackagedSequences = b;}
 
     bool ExcludeAudioFromPackagedSequences() const { return _excludeAudioFromPackagedSequences;}
     void SetExcludeAudioFromPackagedSequences(bool b) {_excludeAudioFromPackagedSequences = b;}
@@ -1324,6 +1324,10 @@ public:
 
     bool GetPurgeDownloadCacheOnStart() const { return _purgeDownloadCacheOnStart; }
     void SetPurgeDownloadCacheOnStart(bool b) { _purgeDownloadCacheOnStart = b; }
+    bool GetEnablePositionZones() const override { return _enablePositionZones; }
+    void SetEnablePositionZones(bool b) { _enablePositionZones = b; }
+    bool GetShowZoneIndicator() const override { return _showZoneIndicator; }
+    void SetShowZoneIndicator(bool b) { _showZoneIndicator = b; }
 
     bool GetRecycleTips() const;
     void SetRecycleTips(bool b);
@@ -1631,7 +1635,6 @@ public:
     std::string GetSelectedLayoutPanelPreview() const;
     void UpdateRenderStatus();
     void LogRenderStatus();
-    void RenderMainThreadEffects() override;
     void RenderEffectForModel(const std::string &model, int startms, int endms, bool clear = false) override;
     void RenderTimeSlice(int startms, int endms, bool clear);
 
@@ -1713,6 +1716,7 @@ public:
      OpenSequence(passed_filename, nullptr);
     }
     void ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues);
+    int ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues);
     void SaveSequence();
     void SetSequenceTiming(int timingMS);
     bool CloseSequence();
@@ -1902,6 +1906,7 @@ private:
     SequenceVideoPanel* sequenceVideoPanel = nullptr;
     SearchPanel* _searchPanel = nullptr;
     std::unique_ptr<ScriptsDialog> _scriptsDialog{ nullptr };
+    std::unique_ptr<class WxServiceSettingsStore> _serviceSettingsStore;
     std::unique_ptr<ServiceManager> _serviceManager{ nullptr };
     int mMediaLengthMS;
     bool _usedRuler = false;
@@ -1941,7 +1946,9 @@ private:
     void PlayModel(wxCommandEvent& event);
     void CutModelEffects(wxCommandEvent& event);
     void CopyModelEffects(wxCommandEvent& event);
+    void CopyModelEffectsToModels(wxCommandEvent& event);
     void PasteModelEffects(wxCommandEvent& event);
+    void PasteModelEffectsWithSubModelLayers(wxCommandEvent& event);
     void ModelSelected(wxCommandEvent& event);
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);
@@ -1994,9 +2001,6 @@ private:
     void ValidateEffectAssets();
     bool CleanupRGBEffectsFileLocations();
     bool CleanupSequenceFileLocations();
-    void CheckElement(Element* e, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints, bool& usesShader, std::list<std::string>& allfiles);
-    void CheckEffect(Effect* ef, wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& name, const std::string& modelName, bool node, bool& videoCacheWarning, bool& disabledEffects, std::list<std::pair<std::string, std::string>>& faces, std::list<std::pair<std::string, std::string>>& states, std::list<std::string>& viewPoints);
-    bool CheckStart(wxFile& f, CheckSequenceReport& report, bool writeToTextFile, size_t& errcount, size_t& warncount, const std::string& startmodel, std::list<std::string>& seen, std::string& nextmodel);
     void ValidateWindow();
     void DoDonate();
     void AutoShowHouse();

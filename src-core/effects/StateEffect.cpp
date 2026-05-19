@@ -435,8 +435,12 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                     }
                     color.alpha = ((int)alpha * color.alpha) / 255;
                     if (type == 1) {
-                        for (const auto it : findNodeKey(model_info->GetStateInfoNodes().at(definition), statename)) {
-                            buffer.SetNodePixel(it, color, true);
+                        const auto& nodeMap = model_info->GetStateInfoNodes();
+                        auto nodeIt = nodeMap.find(definition);
+                        if (nodeIt != nodeMap.end()) {
+                            for (const auto it : findNodeKey(nodeIt->second, statename)) {
+                                buffer.SetNodePixel(it, color, true);
+                            }
                         }
                     } else {
                         for (const auto& valstr : Split(channels, ',')) {

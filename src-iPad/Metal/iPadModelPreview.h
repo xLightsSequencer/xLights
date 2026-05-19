@@ -46,7 +46,15 @@ public:
     int GetVirtualCanvasHeight() const override;
     void GetVirtualCanvasSize(int& w, int& h) const override;
 
-    float GetCameraZoomForHandles() const override { return ActiveCamera().GetZoom(); }
+    // Mirrors desktop ModelPreview::GetCameraZoomForHandles
+    // (ModelPreview.cpp:1304): 1.0 in 2D so the handle width is a
+    // fixed world-unit size and the View matrix's scale handles
+    // visual sizing. Returning the actual 2D zoom here would scale
+    // the handle math AND the View matrix, making handles
+    // quadratically tiny / huge as the user zooms.
+    float GetCameraZoomForHandles() const override {
+        return _is3d ? _camera3d.GetZoom() : 1.0f;
+    }
     int GetHandleScale() const override { return 1; }
     float GetCameraRotationX() const override { return ActiveCamera().GetAngleX(); }
     float GetCameraRotationY() const override { return ActiveCamera().GetAngleY(); }
@@ -63,7 +71,17 @@ public:
     bool StartDrawing(double pointSize, bool fromPaint = false) override;
     void EndDrawing(bool swapBuffers = true) override;
 
-    double calcPixelSize(double i) override { return i * 2.0; }
+    /// Reason the most-recent `StartDrawing` returned false. Empty
+    /// when nothing has gone wrong yet (or the last call succeeded).
+    /// XLMetalBridge surfaces this to SwiftUI when it can't draw.
+    const std::string& GetLastStartDrawingFailure() const {
+        return _lastStartDrawingFailure;
+    }
+    /// Public access to the cached preview name — used in log
+    /// prefixes ("XLMetalBridge[ModelPreview]: …").
+    const std::string& GetName() const { return _name; }
+
+    double calcPixelSize(double i) override { return i; }
 
     // Camera access — callers drive zoom/pan/rotate via the active camera's
     // PreviewCamera setters (see ViewpointMgr.h).
@@ -116,4 +134,5 @@ private:
     PreviewCamera _camera2d{false};
     PreviewCamera _camera3d{true};
     std::string _currentModel;  // empty = "render everything" (House Preview mode)
+    std::string _lastStartDrawingFailure;
 };

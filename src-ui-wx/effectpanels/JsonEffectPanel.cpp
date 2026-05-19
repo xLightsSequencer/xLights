@@ -891,6 +891,20 @@ void JsonEffectPanel::RemovePropertiesWithPrefix(const std::string& prefix) {
 
 void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, const nlohmann::json& prop, int cols) {
     std::string id = prop.value("id", "");
+
+    // Platform gate: entries flagged `"platform": "ipad"` are iPad-only
+    // custom controls (e.g. touch-canvas editors like `Morph_LineEditor`,
+    // `Sketch_PathEditor`). Skipping them here keeps the desktop load
+    // path quiet — the generic `controlType: "custom"` dispatch below
+    // would otherwise log a `CreateCustomControl returned null` warning
+    // for every ipad-only entry. No `properties_` slot is created, so
+    // settings round-trip is unaffected. Absent / "desktop" renders
+    // normally on desktop.
+    std::string platform = prop.value("platform", "");
+    if (platform == "ipad") {
+        return;
+    }
+
     std::string label = prop.value("label", id);
     std::string type = prop.value("type", "int");
     std::string controlType = prop.value("controlType", "slider");
@@ -1393,7 +1407,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         wxColour colour;
         colour.Set(wxString(defaultColor));
         auto* picker = new BulkEditColourPickerCtrl(parentWin, ctrlId, colour, wxDefaultPosition, wxDefaultSize,
-                                                      wxCLRP_DEFAULT_STYLE, wxDefaultValidator,
+                                                      0, wxDefaultValidator,
                                                       wxString(ctrlName));
         info.colourPicker = picker;
         sizer->Add(picker, 1, wxALL | wxEXPAND, 2);
@@ -1956,6 +1970,12 @@ void JsonEffectPanel::RepopulateTimingTrackChoices() {
 
         wxString selection = info.choice->GetStringSelection();
         info.choice->Clear();
+        bool hasBlankDefault = !info.defaultValue.is_null() &&
+                               info.defaultValue.is_string() &&
+                               info.defaultValue.get<std::string>().empty();
+        if (hasBlankDefault) {
+            info.choice->Append("");
+        }
         if (mSequenceElements != nullptr) {
             for (size_t i = 0; i < mSequenceElements->GetElementCount(); i++) {
                 Element* e = mSequenceElements->GetElement(i);
@@ -1965,9 +1985,7 @@ void JsonEffectPanel::RepopulateTimingTrackChoices() {
                 if (match) info.choice->Append(e->GetName());
             }
         }
-        if (!selection.empty()) {
-            info.choice->SetStringSelection(selection);
-        }
+        info.choice->SetStringSelection(selection);
         // Fall back to JSON default for brand-new effects.
         if (info.choice->GetSelection() == wxNOT_FOUND &&
             !info.defaultValue.is_null() && info.defaultValue.is_string()) {
@@ -2098,6 +2116,15 @@ void JsonEffectPanel::SetDefaultParameters() {
             } else {
                 if (info.slider) {
                     SetSliderValue(info.slider, info.defaultValue.get<int>());
+                } else if (info.settingPrefix == "TEXTCTRL") {
+                    // TEXTCTRL primary: text control holds the value, slider is a visual buddy
+                    int ival = info.defaultValue.get<int>();
+                    if (info.textCtrl) {
+                        SetTextValue(info.textCtrl, wxString::Format("%d", ival).ToStdString());
+                    }
+                    if (info.buddySlider) {
+                        static_cast<wxSlider*>(info.buddySlider)->SetValue(ival);
+                    }
                 }
             }
         } else if (info.controlType == "checkbox") {

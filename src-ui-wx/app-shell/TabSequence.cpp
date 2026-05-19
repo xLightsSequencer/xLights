@@ -54,6 +54,25 @@
 
 #include <log.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
+#endif
+
+static void LogMemoryUsage(const std::string& label)
+{
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        spdlog::debug("Memory [{}]: WorkingSet={}MB, Private={}MB",
+            label,
+            pmc.WorkingSetSize / (1024 * 1024),
+            pmc.PrivateUsage / (1024 * 1024));
+    }
+#endif
+}
+
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
     xlightsFilename = filename;
@@ -250,7 +269,7 @@ void xLightsFrame::LoadEffectsFile()
 
     // This is the earliest we can do the backup as now the settings node will be populated
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
-    ObtainAccessToURL(_backupDirectory);
+    ObtainAccessToURL(_backupDirectory, true);
     if (!wxDir::Exists(_backupDirectory)) {
         spdlog::warn("Backup Directory not Found ... switching to Show Directory.");
         _backupDirectory = showDirectory;
@@ -1294,9 +1313,10 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
     }
 
     if (wxGetKeyState(WXK_ESCAPE)) {
-        spdlog::debug("Batch render cancelled.");
+        spdlog::debug("Batch check sequence cancelled.");
+        _checkSequenceMode = false;
         EnableSequenceControls(true);
-        printf("Batch render cancelled.\n");
+        printf("Batch check sequence cancelled.\n");
 
         auto* config = GetXLightsConfig();
         if (config != nullptr) {
@@ -1315,6 +1335,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Check Sequence Cancelled."));
         }
         return;
     }
@@ -1388,6 +1409,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     if (wxGetKeyState(WXK_ESCAPE))
     {
         spdlog::debug("Batch render cancelled.");
+        _lowDefinitionRender = _saveLowDefinitionRender;
+        _renderMode = false;
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
@@ -1408,6 +1431,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Render Cancelled."));
         }
         return;
     }
@@ -1434,7 +1458,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
-    spdlog::debug("Batch Render Processing file {}\n", seq.ToStdString());
+    spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
+                 fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
+    LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1471,6 +1497,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
         if (!aborted || alreadyRetried) {
             spdlog::info("Saving fseq file.");
+            LogMemoryUsage("batch-render fseq save: " + xlightsFilename.ToStdString());
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.");
@@ -1494,7 +1521,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
 void xLightsFrame::SaveSequence()
 {
-    
+    LogMemoryUsage("SaveSequence start: " + xlightsFilename.ToStdString());
 
     if (_seqData.NumFrames() == 0)
     {
@@ -1637,7 +1664,7 @@ void xLightsFrame::SaveSequence()
             GaugeSizer->Layout();
 
             spdlog::info("Saving fseq file.");
-
+            LogMemoryUsage("SaveSequence fseq save: " + xlightsFilename.ToStdString());
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.", true);
@@ -1654,6 +1681,7 @@ void xLightsFrame::SaveSequence()
     }
     wxString display_name;
     if (mSaveFseqOnSave) {
+        LogMemoryUsage("SaveSequence fseq save (no render): " + xlightsFilename.ToStdString());
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
         WriteFalconPiFile(xlightsFilename, true);
         spdlog::info("fseq file done.");
@@ -1723,8 +1751,8 @@ void xLightsFrame::SaveAsSequence()
             wxString showPath = fnDir.GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR);
             if (!filePath.StartsWith(showPath)) {
                 ok = false;
-                DisplayWarning("Sequence files must be saved within the current show directory:\n" + showPath +
-                               "\n\nPlease choose a location inside the show directory.", this);
+                DisplayError("Sequence files must be saved within the current show directory:\n" + showPath +
+                             "\n\nPlease choose a location inside the show directory.", this);
                 fd.SetDirectory(CurrentDir);
             }
         }

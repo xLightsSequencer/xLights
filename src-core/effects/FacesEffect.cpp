@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <filesystem>
+#include <mutex>
 #include <spdlog/fmt/fmt.h>
 #include <list>
 
@@ -168,15 +169,25 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 std::string picture = it2.second;
 
                 if (picture != "") {
-                    if (!FileExists(picture)) {
+                    // Face image paths are stored as user-picked at config
+                    // time on desktop — often absolute. Run FixFile so a
+                    // sequence moved between machines still resolves
+                    // through the show / media folders the way the
+                    // renderer does (PicturesEffect::Render goes through
+                    // SequenceMedia which FixFile-resolves). Without this
+                    // a Face effect that renders cleanly would still
+                    // false-positive "image file not found" because the
+                    // raw stored path doesn't exist on this machine.
+                    std::string resolved = FileUtils::FixFile(std::string(), picture);
+                    if (resolved.empty() || !FileExists(resolved)) {
                         res.push_back(fmt::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     } else if (!FileUtils::IsFileInShowDir(std::string(), picture)) {
                         res.push_back(fmt::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 
-                    if (FileExists(picture)) {
+                    if (!resolved.empty() && FileExists(resolved)) {
                         xlImage i;
-                        i.LoadFromFile(picture);
+                        i.LoadFromFile(resolved);
                         if (i.IsOk()) {
                             int ih = i.GetHeight();
                             int iw = i.GetWidth();
@@ -686,9 +697,11 @@ static std::string NoInactive(std::string name)
     return name.starts_with(InactiveIndicator) ? name.substr(InactiveIndicator.size()) : name;
 }
 
-//cached model info:
+//cached model info; guarded by model_xy_mutex (effects render in parallel on multiple threads)
 static std::unordered_map<std::string, std::unordered_map<std::string, /*wxPoint*/ std::string> > model_xy;
+static std::mutex model_xy_mutex;
 
+// caller must hold model_xy_mutex
 static bool parse_model(const std::string& want_model, const std::string& showDir)
 {
     if (model_xy.find(want_model) != model_xy.end()) return true; //already have info
@@ -742,8 +755,6 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     //xLightsFrame contains a PixelBufferClass member named buffer, which is derived from Model and gives the name of the model currently being used
     //therefore we can access the model info by going to parent object's buffer member
 
-    if (!buffer.curPeriod) model_xy.clear(); //flush cache once at start of each effect
-
     static std::unordered_map<std::string, std::string> auto_phonemes {{"a-AI", "AI"}, {"a-E", "E"}, {"a-FV", "FV"}, {"a-L", "L"},
         {"a-MBP", "MBP"}, {"a-O", "O"}, {"a-U", "U"}, {"a-WQ", "WQ"}, {"a-etc", "etc"}, {"a-rest", "rest"}};
 
@@ -762,11 +773,17 @@ void FacesEffect::RenderCoroFacesFromPGO(RenderBuffer& buffer, const std::string
     std::vector<xlPoint> first_xy;
     const Model* model_info = buffer.GetModel();
 
-    if (!model_info || !parse_model(buffer.cur_model, buffer.renderContext->GetShowDirectory()))
+    // Take a local copy of the model's PGO map under lock so we can use it without
+    // holding the lock through ParseFaceElement / SetPixel (effects render in parallel).
+    std::unordered_map<std::string, std::string> map;
     {
-        return;
+        std::lock_guard<std::mutex> lk(model_xy_mutex);
+        if (!buffer.curPeriod) model_xy.clear(); //flush cache once at start of each effect
+        if (!model_info || !parse_model(buffer.cur_model, buffer.renderContext->GetShowDirectory())) {
+            return;
+        }
+        map = model_xy[(const char*)buffer.cur_model.c_str()];
     }
-    std::unordered_map<std::string, std::string>& map = model_xy[(const char*)buffer.cur_model.c_str()];
     if (Phoneme == "(test)")
     {
         std::string info = eyes;
@@ -857,9 +874,14 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     bool group = false;
     // if this is a submodel find the parent so we can find the face definition there
     if (model_info->GetDisplayAs() == DisplayAsType::SubModel) {
-        model_info = dynamic_cast<const SubModel*>(model_info)->GetParent();
+        auto* subModel = dynamic_cast<const SubModel*>(model_info);
+        if (subModel == nullptr) return;
+        model_info = subModel->GetParent();
+        if (model_info == nullptr) return;
     } else if (model_info->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        model_info = dynamic_cast<const ModelGroup*>(model_info)->GetFirstModel();
+        auto* modelGroup = dynamic_cast<const ModelGroup*>(model_info);
+        if (modelGroup == nullptr) return;
+        model_info = modelGroup->GetFirstModel();
         group = true;
         if (model_info == nullptr) {
             return;

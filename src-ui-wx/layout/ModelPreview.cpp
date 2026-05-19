@@ -1219,7 +1219,7 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 }
 
 double ModelPreview::calcPixelSize(double i) {
-    double d = translateToBacking(i * currentPixelScaleFactor);
+    double d = mapLogicalToAbsolute(i * currentPixelScaleFactor);
     if (d < 1.0) {
         d = 1.0;
     }
@@ -1227,31 +1227,17 @@ double ModelPreview::calcPixelSize(double i) {
 }
 
 double ModelPreview::getViewScale() const {
-    static constexpr double kBaseScale = 0.6;
-    if (allowSelected) {
-        if (!is3d) {
-            // 2D zoom increases when zooming in. Cap circles at kBaseScale when zoomed in;
-            // shrink proportionally when zoomed out (zoom < 1).
-            return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
-        } else {
-            // 3D zoom increases when zooming out (camera moves further away). Keep circles
-            // at kBaseScale when zoomed in (zoom <= 1); shrink proportionally when zoomed out.
-            float z = camera3d->GetZoom();
-            return z > 1.0f ? kBaseScale / z : kBaseScale;
-        }
-    }
-    // Non-layout previews (house preview, model preview): shrink with zoom-out, cap when zoomed in.
-    return std::min(kBaseScale, kBaseScale * (double)camera2d->GetZoom());
+    // Return 1.0 so GL_POINTS pixel sizes match the pre-zoom-scaling baseline.
+    // DrawModelNames uses this for font scaling and gets natural world-space text
+    // that grows proportionally as you zoom in, which is correct for a zoomable canvas.
+    return 1.0;
 }
 
 double ModelPreview::getBackingScaleFactor() const {
-#ifdef __APPLE__
-    // Metal Window are always 1:1 for drawing, the translateToBacking is to map
-    // mouse/window coords (which may not be 1:1), but that's not applicable here
-    return 1.0;
-#else
+    if (!drawingUsingLogicalSize()) {
+        return 1.0;
+    }
     return translateToBacking(1.0);
-#endif
 }
 
 bool ModelPreview::GetActive() const
@@ -1553,6 +1539,31 @@ void ModelPreview::AddBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
     });
 }
 
+void ModelPreview::AddScreenSpaceBoundingBoxToAccumulator(int x1, int y1, int x2, int y2) {
+    auto acc = solidProgram->getAccumulator();
+    int start = acc->getCount();
+    acc->AddRectAsDashedLines((float)x1, (float)y1, (float)x2, (float)y2, mapLogicalToAbsolute(8),
+                              ColorManager::instance()->GetColor(ColorManager::COLOR_LAYOUT_DASHES));
+    int count = acc->getCount() - start;
+
+    int w = mWindowWidth;
+    int h = mWindowHeight;
+    glm::mat4 pvm = ProjViewMatrix;
+
+    solidProgram->addStep([=](xlGraphicsContext *ctx) {
+        ctx->PushMatrix();
+        // Replace current perspective MVP with a screen-space ortho so the
+        // pixel coordinates of the selection rectangle map directly to the window.
+        // glm::ortho(l,r,b,t): (0,0)=top-left, (w,h)=bottom-right for screen pixels.
+        glm::mat4 screenOrtho = glm::ortho(0.0f, (float)w, (float)h, 0.0f);
+        // ApplyMatrix multiplies MVP = MVP * m.  At execution time MVP == pvm, so
+        // m = inverse(pvm) * screenOrtho  gives  MVP_new = pvm * m = screenOrtho.
+        ctx->ApplyMatrix(glm::inverse(pvm) * screenOrtho);
+        ctx->drawLines(acc, start, count);
+        ctx->PopMatrix();
+    });
+}
+
 void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
 {
     if (grid2d == nullptr) {
@@ -1609,5 +1620,9 @@ void ModelPreview::AddGridToAccumulator(const glm::mat4& ViewScale)
             ctx->drawLines(grid2d, xlGREENTRANSLUCENT, grid2d->getCount() - 8, 8);
         });
     }
-    
+
+}
+
+bool ModelPreview::GetShowZoneIndicator() const {
+    return xlights != nullptr && xlights->GetShowZoneIndicator();
 }

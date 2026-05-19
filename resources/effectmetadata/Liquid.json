@@ -92,15 +92,16 @@
             "description": "Radius of each particle in thousandths of a pixel. Larger values create bigger, blobby particles; smaller values create fine granular particles. Values above 1000 can slow rendering."
         },
         {
-            "id": "WarmUpFrames",
-            "label": "Warm Up Frames",
+            "id": "WarmUpTime",
+            "label": "Warm Up Time",
             "type": "int",
             "controlType": "slider",
             "settingPrefix": "TEXTCTRL",
             "default": 0,
+            "divisor": 100,
             "min": 0,
-            "max": 500,
-            "description": "Number of simulation frames to run before the first visible frame. This lets particles settle into a natural state before the effect begins."
+            "max": 2500,
+            "description": "How long to run the simulation before the first visible frame, in hundredths of seconds (e.g. 100 = 1 second, 500 = 5 seconds). This lets particles settle into a natural state before the effect begins. Frame-rate independent."
         },
         {
             "id": "Despeckle",
@@ -136,6 +137,14 @@
             "min": 0,
             "max": 360,
             "description": "Direction of gravity in degrees. 0 pulls downward, 90 pulls to the left, 180 pulls upward, and 270 pulls to the right."
+        },
+        {
+            "id": "Enabled1",
+            "label": "Enabled",
+            "type": "bool",
+            "controlType": "checkbox",
+            "default": true,
+            "description": "Enables particle source 1. When disabled, no particles are emitted from this source."
         },
         {
             "id": "X1",
@@ -489,6 +498,7 @@
                 {
                     "label": "Top",
                     "properties": [
+                        "Enabled1",
                         "X1",
                         "Y1",
                         "Direction1",
@@ -541,6 +551,13 @@
         }
     ],
     "visibilityRules": [
+        {
+            "when": { "property": "Enabled1", "equals": true },
+            "enable": [
+                "X1", "Y1", "Direction1", "Velocity1", "Flow1",
+                "Liquid_SourceSize1", "FlowMusic1"
+            ]
+        },
         {
             "when": { "property": "Enabled2", "equals": true },
             "enable": [

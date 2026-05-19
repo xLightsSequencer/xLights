@@ -26,8 +26,6 @@ TerrainScreenLocation::TerrainScreenLocation()
     : BoxedScreenLocation(NUM_TERRAIN_HANDLES+ 9)
 {
     mSelectableHandles = NUM_TERRAIN_HANDLES;
-    handle_aabb_max.resize(NUM_TERRAIN_HANDLES);
-    handle_aabb_min.resize(NUM_TERRAIN_HANDLES);
     num_points = num_points_wide * num_points_deep;
 }
 
@@ -44,76 +42,37 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
         handleColor = LOCKED_HANDLES_COLOUR;
     }
 
-    float x_offset = (num_points_wide - 1) * spacing / 2;
-    float z_offset = (num_points_deep - 1) * spacing / 2;
     float y_min = -10.0f;
     float y_max = 10.0f;
     float handle_width = GetRectHandleWidth(zoom, scale);
-    float sx, sy, sz;
-    
+
     int startVert = va->getCount();
-    
+
     if (!edit_active) {
-        // Center Handle
-        handle_aabb_min[CENTER_HANDLE].x = -handle_width;
-        handle_aabb_min[CENTER_HANDLE].y = -handle_width;
-        handle_aabb_min[CENTER_HANDLE].z = -handle_width;
-        handle_aabb_max[CENTER_HANDLE].x = handle_width;
-        handle_aabb_max[CENTER_HANDLE].y = handle_width;
-        handle_aabb_max[CENTER_HANDLE].z = handle_width;
-        mHandlePosition[CENTER_HANDLE].x = worldPos_x;
-        mHandlePosition[CENTER_HANDLE].y = worldPos_y;
-        mHandlePosition[CENTER_HANDLE].z = worldPos_z;
-        if (active_handle == CENTER_HANDLE) {
-            va->AddSphereAsTriangles(mHandlePosition[CENTER_HANDLE].x, mHandlePosition[CENTER_HANDLE].y, mHandlePosition[CENTER_HANDLE].z, (double)(handle_width), xlORANGETRANSLUCENT);
+        if (IsRole(active_handle, handles::Role::CentreCycle)) {
+            va->AddSphereAsTriangles(worldPos_x, worldPos_y, worldPos_z, (double)(handle_width), xlORANGETRANSLUCENT);
         }
-        // calculate elevation boundary
-        for (int j = 0; j < num_points_deep; ++j) {
-            for (int i = 0; i < num_points_wide; ++i) {
-                int abs_point = j * num_points_wide + i;
-                sy = mPos[abs_point];
-                if (sy < y_min) {
-                    y_min = sy;
-                }
-                if (sy > y_max) {
-                    y_max = sy;
-                }
+    }
+    // Elevation extents drive the bounding-box draw below; we need them
+    // whether or not edit mode is active.
+    for (int abs_point = 0; abs_point < num_points; ++abs_point) {
+        float sy = mPos[abs_point];
+        if (sy < y_min) y_min = sy;
+        if (sy > y_max) y_max = sy;
+    }
+    if (edit_active) {
+        // Only the highlighted / active vertex needs a sphere; positions
+        // come from GetVertexWorldPosition (the same getter GetHandles
+        // uses) so draw and hit stay in lockstep.
+        for (int abs_point = 0; abs_point < num_points; ++abs_point) {
+            const bool isActive = IsHandle(active_handle, handles::Role::Vertex, abs_point);
+            const bool isHighlighted = IsHandle(highlighted_handle, handles::Role::Vertex, abs_point);
+            if (!isActive && !isHighlighted) continue;
+            if (!_locked) {
+                handleColor = isActive ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
             }
-        }
-    } else {
-        for (int j = 0; j < num_points_deep; ++j) {
-            for (int i = 0; i < num_points_wide; ++i) {
-                int abs_point = j * num_points_wide + i;
-                sx = i * spacing - x_offset;
-                sz = j * spacing - z_offset;
-                sy = mPos[abs_point];
-                if (sy < y_min) {
-                    y_min = sy;
-                }
-                if (sy > y_max) {
-                    y_max = sy;
-                }
-                handle_aabb_min[abs_point + 1].x = sx * scalex - handle_width;
-                handle_aabb_min[abs_point + 1].y = sy * scaley - handle_width;
-                handle_aabb_min[abs_point + 1].z = sz * scalez - handle_width;
-                handle_aabb_max[abs_point + 1].x = sx * scalex + handle_width;
-                handle_aabb_max[abs_point + 1].y = sy * scaley + handle_width;
-                handle_aabb_max[abs_point + 1].z = sz * scalez + handle_width;
-                TranslatePoint(sx, sy, sz);
-                mHandlePosition[abs_point + 1].x = sx;
-                mHandlePosition[abs_point + 1].y = sy;
-                mHandlePosition[abs_point + 1].z = sz;
-                if (highlighted_handle == abs_point + 1 || active_handle == abs_point + 1) {
-                    if (!_locked) {
-                        if (active_handle == abs_point + 1) {
-                            handleColor = xlYELLOWTRANSLUCENT;
-                        } else {
-                            handleColor = xlBLUETRANSLUCENT;
-                        }
-                    }
-                    va->AddSphereAsTriangles(mHandlePosition[abs_point + 1].x, mHandlePosition[abs_point + 1].y, mHandlePosition[abs_point + 1].z, (double)(handle_width), handleColor);
-                }
-            }
+            const glm::vec3 p = GetVertexWorldPosition(abs_point);
+            va->AddSphereAsTriangles(p.x, p.y, p.z, (double)(handle_width), handleColor);
         }
     }
     int endVert = va->getCount();
@@ -129,32 +88,18 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     else if (_locked)
         Box3dColor = LOCKED_HANDLES_COLOUR;
 
-    startVert = va->getCount();
-    if (active_handle != -1) {
-        active_handle_pos = glm::vec3(mHandlePosition[active_handle].x, mHandlePosition[active_handle].y, mHandlePosition[active_handle].z);
+    if (active_handle.has_value()) {
+        glm::vec3 active_handle_pos = GetActiveHandlePosition();
         DrawAxisTool(active_handle_pos, program, zoom, scale);
-        startVert = va->getCount();
-        if (active_axis != MSLAXIS::NO_AXIS) {
-            switch (active_axis) {
-            case MSLAXIS::X_AXIS:
-                va->AddVertex(-1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                va->AddVertex(+1000000.0f, active_handle_pos.y, active_handle_pos.z, xlREDTRANSLUCENT);
-                break;
-            case MSLAXIS::Y_AXIS:
-                va->AddVertex(active_handle_pos.x, -1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                va->AddVertex(active_handle_pos.x, +1000000.0f, active_handle_pos.z, xlGREENTRANSLUCENT);
-                break;
-            case MSLAXIS::Z_AXIS:
-                va->AddVertex(active_handle_pos.x, active_handle_pos.y, -1000000.0f, xlBLUETRANSLUCENT);
-                va->AddVertex(active_handle_pos.x, active_handle_pos.y, +1000000.0f, xlBLUETRANSLUCENT);
-                break;
-            default:
-                assert(false);
-                break;
-            }
-        }
+        DrawActiveAxisIndicator(active_handle_pos, program);
     }
 
+    // Snapshot AFTER the gizmo helpers so the outer drawLines step
+    // below covers only the bounding-box wireframe — both helpers
+    // submit their own addSteps and would be double-rendered (and
+    // their triangle vertices misinterpreted as line pairs) if we
+    // included their range here.
+    startVert = va->getCount();
     //draw the new bounding box
     glm::vec4 c1(aabb_min.x, aabb_max.y, aabb_min.z, 1.0f);
     glm::vec4 c2(aabb_max.x, aabb_max.y, aabb_min.z, 1.0f);
@@ -210,140 +155,84 @@ bool TerrainScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, 
     return true;
 }
 
-CursorType TerrainScreenLocation::CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const
-{
-    CursorType return_value = CursorType::Default;
-    handle = NO_HANDLE;
 
-    if (_locked) {
-        return CursorType::Default;
+namespace {
+// SpaceMouse session for TerrainScreenLocation. Vertex handles
+// drive the elevation brush; anything else delegates to the
+// BoxedScreenLocation session for whole-model translate/rotate.
+class TerrainSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    TerrainSpaceMouseSession(TerrainScreenLocation* loc,
+                             std::optional<handles::Id> id)
+        : _loc(loc), _id(id),
+          _boxedInner(loc->BoxedScreenLocation::BeginSpaceMouseSession(id)) {}
+
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc || _loc->IsLocked()) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value() && _id->role == handles::Role::Vertex) {
+            _loc->ApplySpaceMouseElevation(_id->index, scale, mov);
+            // Legacy code returned 1 (no NEEDS_INIT) for terrain
+            // elevation; preserve that — the model regenerates its
+            // mesh from mPos[] each draw, no Setup() rebuild needed.
+            return handles::SpaceMouseResult::Dirty;
+        }
+        if (_boxedInner) {
+            return _boxedInner->Apply(scale, rot, mov);
+        }
+        return handles::SpaceMouseResult::Unchanged;
     }
 
-    return_value = CheckIfOverAxisHandles3D(ray_origin, ray_direction, handle, zoom, scale);
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
 
-    if (handle == NO_HANDLE) {
-        float distance = 1000000000.0f;
-        handle = -1;
+private:
+    TerrainScreenLocation*                       _loc;
+    std::optional<handles::Id>                   _id;
+    std::unique_ptr<handles::SpaceMouseSession>  _boxedInner;
+};
+} // namespace
 
-        // Test each each Oriented Bounding Box (OBB).
-        for (int i = edit_active ? 1 : 0; edit_active ? i < mSelectableHandles : i < 1; i++) {
-            float intersection_distance; // Output of TestRayOBBIntersection()
+void TerrainScreenLocation::ApplySpaceMouseElevation(int point,
+                                                      float scale,
+                                                      const glm::vec3& mov) {
+    if (axis_tool != MSLTOOL::TOOL_ELEVATE) return;
+    if (point < 0 || point >= (int)mPos.size()) return;
 
-            if (VectorMath::TestRayOBBIntersection(
-                ray_origin,
-                ray_direction,
-                handle_aabb_min[i],
-                handle_aabb_max[i],
-                ModelMatrix,
-                intersection_distance)
-                ) {
-                if (intersection_distance < distance) {
-                    distance = intersection_distance;
-                    handle = i;
-                    return_value = CursorType::Hand;
-                }
+    const float newz = mPos[point] - mov.z * scale;
+    mPos[point] = newz;
+    if (tool_size > 1) {
+        const int row = point / num_points_wide;
+        const int col = point % num_points_wide;
+        int start_row = row - tool_size + 1;
+        int end_row   = row + tool_size - 1;
+        int start_col = col - tool_size + 1;
+        int end_col   = col + tool_size - 1;
+        if (start_row < 0) start_row = 0;
+        if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
+        if (start_col < 0) start_col = 0;
+        if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
+        for (int j = start_row; j <= end_row; ++j) {
+            for (int i = start_col; i <= end_col; ++i) {
+                const int abs_point = j * num_points_wide + i;
+                mPos[abs_point] = newz;
             }
         }
     }
-
-    return return_value;
 }
 
-int TerrainScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
-{
-    if (_locked) return MODEL_UNCHANGED;
-
-    if (handle != CENTER_HANDLE) {
-        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
-            if (latch) {
-                saved_position.y = active_handle_pos.y;
-            }
-
-            if (!DragHandle(preview, mouseX, mouseY, latch)) return 0;
-
-            if (scaley == 0) scaley = 0.001f;
-            if (std::isnan(scaley)) scaley = 1.0f;
-
-            float newy = (saved_position.y + drag_delta.y - worldPos_y) / scaley;
-
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
-                if (active_axis == MSLAXIS::Y_AXIS) {
-                    mPos[point] = newy;
-                    if (tool_size > 1) {
-                        int row = point / num_points_wide;
-                        int col = point % num_points_wide;
-                        int start_row = row - tool_size + 1;
-                        int end_row = row + tool_size - 1;
-                        int start_col = col - tool_size + 1;
-                        int end_col = col + tool_size - 1;
-                        if (start_row < 0) start_row = 0;
-                        if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
-                        if (start_col < 0) start_col = 0;
-                        if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
-                        for (int j = start_row; j <= end_row; ++j) {
-                            for (int i = start_col; i <= end_col; ++i) {
-                                int abs_point = j * num_points_wide + i;
-                                mPos[abs_point] = newy;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        BoxedScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
-    }
-    return MODEL_UPDATE_RGBEFFECTS;
-}
-int TerrainScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (_locked) return 0;
-
-    if (handle != CENTER_HANDLE) {
-        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
-            int point = handle - 1;
-            if (point < (int)mPos.size()) {
-
-                float newz = (mPos[point] - mov.z*scale);
-                mPos[point] = newz;
-                if (tool_size > 1) {
-                    int row = point / num_points_wide;
-                    int col = point % num_points_wide;
-                    int start_row = row - tool_size + 1;
-                    int end_row = row + tool_size - 1;
-                    int start_col = col - tool_size + 1;
-                    int end_col = col + tool_size - 1;
-                    if (start_row < 0) start_row = 0;
-                    if (end_row > num_points_deep - 1) end_row = num_points_deep - 1;
-                    if (start_col < 0) start_col = 0;
-                    if (end_col > num_points_wide - 1) end_col = num_points_wide - 1;
-                    for (int j = start_row; j <= end_row; ++j) {
-                        for (int i = start_col; i <= end_col; ++i) {
-                            int abs_point = j * num_points_wide + i;
-                            mPos[abs_point] = newz;
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        BoxedScreenLocation::MoveHandle3D(scale, handle, rot, mov);
-    }
-    return 1;
+std::unique_ptr<handles::SpaceMouseSession>
+TerrainScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<TerrainSpaceMouseSession>(this, id);
 }
 
 
-
-void TerrainScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = handle;
-    highlighted_handle = -1;
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
 
 void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
 {
-    if (active_handle > 0) {
+    if (IsRole(active_handle, handles::Role::Vertex)) {
         axis_tool = MSLTOOL::TOOL_ELEVATE;
     } else {
         if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
@@ -355,7 +244,7 @@ void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
 
 void TerrainScreenLocation::AdvanceAxisTool()
 {
-    if (active_handle > 0) {
+    if (IsRole(active_handle, handles::Role::Vertex)) {
         axis_tool = MSLTOOL::TOOL_ELEVATE;
     } else {
         ModelScreenLocation::AdvanceAxisTool();
@@ -364,7 +253,7 @@ void TerrainScreenLocation::AdvanceAxisTool()
 
 void TerrainScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
-    if (active_handle > 0) {
+    if (IsRole(active_handle, handles::Role::Vertex)) {
         if (axis != MSLAXIS::NO_AXIS) {
             active_axis = MSLAXIS::Y_AXIS;
         } else {
@@ -408,10 +297,7 @@ void TerrainScreenLocation::UpdateSize(int wide, int deep, int points)
 
 void TerrainScreenLocation::Init() {
     mPos.resize(num_points);
-    mHandlePosition.resize(num_points + 1);
     mSelectableHandles = num_points + 1;
-    handle_aabb_min.resize(num_points + 1);
-    handle_aabb_max.resize(num_points + 1);
     for( int i : mPos ) {
         mPos[i] = 0.0f;
     }
@@ -441,4 +327,215 @@ const std::string TerrainScreenLocation::GetDataAsString() const {
         }
     }
     return point_data;
+}
+
+// ============================================================
+// Terrain TOOL_ELEVATE
+// per-grid-point height drag. Tool-size falloff (legacy
+// neighbor-blur) skipped in this first cut. CENTER drag
+// (translate / scale / rotate) inherits Boxed.
+// ============================================================
+
+namespace {
+
+class TerrainElevateSession : public handles::DragSession {
+public:
+    TerrainElevateSession(TerrainScreenLocation* loc,
+                          std::string modelName,
+                          handles::Id handleId,
+                          const handles::WorldRay& startRay,
+                          glm::vec3 activeHandlePos)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _gridIndex(handleId.index),
+          _savedActivePos(activeHandlePos),
+          _savedHeight(loc->GetGridHeight(handleId.index)) {
+        // Plane normal-to-X at savedActivePos.x — vertical YZ
+        // plane; the cursor's Y component picks elevation.
+        _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+        _planePoint  = glm::vec3(0.0f, 0.0f, _savedActivePos.z);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedActivePos;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier /*mods*/) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 dragDelta = cur - _savedIntersect;
+        const auto wp = _loc->GetWorldPosition();
+        const auto sm = _loc->GetScaleMatrix();
+        const float sy = (sm.y == 0.0f) ? 0.001f : sm.y;
+        const float newy = (_savedActivePos.y + dragDelta.y - wp.y) / sy;
+        _loc->SetGridHeight(_gridIndex, newy);
+
+        // tool-size falloff: when the user has selected
+        // a brush larger than 1, set the same height on neighbors
+        // within `tool_size - 1` rows/cols of the grabbed point.
+        // Mirrors legacy TerrainScreenLocation::MoveHandle3D.
+        const int toolSize = _loc->GetToolSize();
+        if (toolSize > 1) {
+            const int wide = _loc->GetNumPointsWide();
+            const int deep = _loc->GetNumPointsDeep();
+            if (wide > 0 && deep > 0) {
+                if (_savedNeighbors.empty()) {
+                    SnapshotNeighbors(toolSize, wide, deep);
+                }
+                const int row       = _gridIndex / wide;
+                const int col       = _gridIndex % wide;
+                int start_row = row - toolSize + 1;
+                int end_row   = row + toolSize - 1;
+                int start_col = col - toolSize + 1;
+                int end_col   = col + toolSize - 1;
+                if (start_row < 0)             start_row = 0;
+                if (end_row > deep - 1)        end_row   = deep - 1;
+                if (start_col < 0)             start_col = 0;
+                if (end_col > wide - 1)        end_col   = wide - 1;
+                for (int j = start_row; j <= end_row; ++j) {
+                    for (int i = start_col; i <= end_col; ++i) {
+                        const int abs_point = j * wide + i;
+                        _loc->SetGridHeight(abs_point, newy);
+                    }
+                }
+            }
+        }
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetGridHeight(_gridIndex, _savedHeight);
+        for (const auto& [idx, h] : _savedNeighbors) {
+            _loc->SetGridHeight(idx, h);
+        }
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Vertex : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    void SnapshotNeighbors(int toolSize, int wide, int deep) {
+        const int row = _gridIndex / wide;
+        const int col = _gridIndex % wide;
+        int start_row = row - toolSize + 1;
+        int end_row   = row + toolSize - 1;
+        int start_col = col - toolSize + 1;
+        int end_col   = col + toolSize - 1;
+        if (start_row < 0)             start_row = 0;
+        if (end_row > deep - 1)        end_row   = deep - 1;
+        if (start_col < 0)             start_col = 0;
+        if (end_col > wide - 1)        end_col   = wide - 1;
+        for (int j = start_row; j <= end_row; ++j) {
+            for (int i = start_col; i <= end_col; ++i) {
+                const int abs_point = j * wide + i;
+                if (abs_point == _gridIndex) continue;
+                _savedNeighbors.emplace_back(abs_point, _loc->GetGridHeight(abs_point));
+            }
+        }
+    }
+
+    TerrainScreenLocation* _loc;
+    std::string            _modelName;
+    handles::Id            _handleId;
+    int                    _gridIndex;
+    glm::vec3              _savedActivePos;
+    float                  _savedHeight;
+    glm::vec3              _savedIntersect{0.0f};
+    glm::vec3              _planePoint    {0.0f};
+    glm::vec3              _planeNormal   {0.0f, 0.0f, 1.0f};
+    std::vector<std::pair<int, float>> _savedNeighbors;
+    bool                   _changed = false;
+};
+
+} // namespace
+
+glm::vec3 TerrainScreenLocation::GetVertexWorldPosition(int abs_point) const {
+    const int i = abs_point % num_points_wide;
+    const int j = abs_point / num_points_wide;
+    const float x_offset = (num_points_wide - 1) * spacing / 2.0f;
+    const float z_offset = (num_points_deep - 1) * spacing / 2.0f;
+    float sx = i * spacing - x_offset;
+    float sy = (abs_point >= 0 && abs_point < static_cast<int>(mPos.size())) ? mPos[abs_point] : 0.0f;
+    float sz = j * spacing - z_offset;
+    TranslatePoint(sx, sy, sz);
+    return glm::vec3(sx, sy, sz);
+}
+
+std::vector<handles::Descriptor> TerrainScreenLocation::GetHandles(
+    handles::ViewMode mode, handles::Tool tool,
+    const handles::ViewParams& view) const {
+    if (mode != handles::ViewMode::ThreeD) {
+        return BoxedScreenLocation::GetHandles(mode, tool, view);
+    }
+    // active_handle == 0 is CENTER (bbox); handle index 1..N
+    // identifies a grid point.
+    //   - edit_active + Elevate tool: emit grid-point Vertex
+    //     descriptors so a click selects a grid point. If a grid
+    //     point is already active, also emit the Y-axis arrow at
+    //     that point.
+    //   - edit_active + non-Elevate tool, or !edit_active: fall
+    //     back to Boxed (centre / bbox gizmo).
+    if (edit_active && tool == handles::Tool::Elevate) {
+        std::vector<handles::Descriptor> out;
+        out.reserve(num_points + 1);
+        glm::vec3 activePointWorld(0.0f);
+        bool activePointFound = false;
+        for (int abs_point = 0; abs_point < num_points; ++abs_point) {
+            const glm::vec3 p = GetVertexWorldPosition(abs_point);
+            if (IsHandle(active_handle, handles::Role::Vertex, abs_point)) {
+                activePointWorld = p;
+                activePointFound = true;
+            }
+            handles::Descriptor d;
+            d.id.role  = handles::Role::Vertex;
+            d.id.index = abs_point;
+            d.worldPos = p;
+            d.suggestedRadius = 5.0f;
+            d.editable = !IsLocked();
+            d.selectionOnly = true;
+            out.push_back(d);
+        }
+        if (activePointFound && IsRole(active_handle, handles::Role::Vertex) && IsElevationHandle()) {
+            const float kArrowLen = view.axisArrowLength;
+            const float kHitOffset = kArrowLen - view.axisHeadLength * 0.5f;
+            handles::Descriptor d;
+            d.id.role  = handles::Role::AxisArrow;
+            d.id.axis  = handles::Axis::Y;
+            d.id.index = active_handle->index;
+            d.worldPos = activePointWorld + glm::vec3(0.0f, kHitOffset, 0.0f);
+            d.suggestedRadius = view.axisRadius;
+            d.editable = !IsLocked();
+            out.push_back(d);
+        }
+        return out;
+    }
+    return BoxedScreenLocation::GetHandles(mode, tool, view);
+}
+
+std::unique_ptr<handles::DragSession> TerrainScreenLocation::CreateDragSession(
+    const std::string& modelName,
+    const handles::Id& id,
+    const handles::WorldRay& startRay) {
+    if (_locked) return nullptr;
+    if (id.role == handles::Role::AxisArrow && id.axis == handles::Axis::Y &&
+        IsRole(active_handle, handles::Role::Vertex) && IsElevationHandle()) {
+        if (id.index < 0 || id.index >= num_points) return nullptr;
+        return std::make_unique<TerrainElevateSession>(this, modelName, id, startRay,
+                                                        GetActiveHandlePosition());
+    }
+    return BoxedScreenLocation::CreateDragSession(modelName, id, startRay);
 }

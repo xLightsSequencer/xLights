@@ -92,6 +92,22 @@ struct PropertyContextMenu: ViewModifier {
             }
         }
 
+        // G11 — "Apply to all selected" pushes the anchor's current
+        // value to every other effect in the multi-selection set.
+        // Only surfaced when multiple effects are selected; E_ keys
+        // are filtered per-target on the view-model side so we
+        // don't leak effect-specific properties to unrelated types.
+        if viewModel.isMultiEffectSelection {
+            Divider()
+            Button {
+                viewModel.applyValueToAllSelected(current,
+                                                   forKey: settingKey)
+            } label: {
+                Label("Apply to \(viewModel.selectedEffects.count - 1) Other Selected",
+                      systemImage: "square.stack.3d.up.fill")
+            }
+        }
+
         if property.valueCurve == true {
             Divider()
             Button {

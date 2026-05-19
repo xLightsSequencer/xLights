@@ -14,13 +14,11 @@ wxCheckedListCtrl::wxCheckedListCtrl()
 
 wxCheckedListCtrl::wxCheckedListCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pt,
    const wxSize& sz, long style,const wxValidator &validator=wxDefaultValidator, const wxString &name=wxListCtrlNameStr):
-   wxListCtrl(parent, id, pt, sz, style), m_imageList(16, 16)
-   {
-   SetImageList(&m_imageList, wxIMAGE_LIST_SMALL);
+   wxListCtrl(parent, id, pt, sz, style), m_imageList(16, 16) {
 
    //InsertColumn(0, _("Item"), wxLIST_FORMAT_LEFT, 200);
    //InsertColumn(1, _("Value"), wxLIST_FORMAT_LEFT, 80);
-   }
+}
 
 wxCheckedListCtrl::~wxCheckedListCtrl()
 {
@@ -63,6 +61,8 @@ void wxCheckedListCtrl::SetImages( char** ImageCheckedXPM,char** ImageUncheckedX
 
    m_imageList.Add(bitmapUnchecked);
    m_imageList.Add(bitmapChecked);
+    
+    SetImageList(&m_imageList, wxIMAGE_LIST_SMALL);
 }
 
 void wxCheckedListCtrl::AddImage( char** ImageXPM)
@@ -70,6 +70,8 @@ void wxCheckedListCtrl::AddImage( char** ImageXPM)
    wxImage imageNew(ImageXPM);
    wxBitmap bitmapNew(imageNew);
    m_imageList.Add(bitmapNew);
+    
+    SetImageList(&m_imageList, wxIMAGE_LIST_SMALL);
 }
 
 bool wxCheckedListCtrl::IsChecked(long item) const

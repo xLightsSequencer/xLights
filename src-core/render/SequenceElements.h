@@ -164,7 +164,7 @@ public:
     void SortElements();
     void MoveElement(int index, int destinationIndex);
 
-    void DeactivateAllTimingElements();
+    void DeactivateAllTimingElements(bool allViews = false);
     void SetFrequency(double frequency);
     double GetFrequency();
     int GetFrameMS();

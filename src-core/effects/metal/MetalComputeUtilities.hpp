@@ -80,6 +80,11 @@ private:
     std::pair<uint32_t, uint32_t> pixelTextureSize;
     bool committed = false;
     CurrentDataLocation currentDataLocation = BUFFER;
+
+    // Cached MPSImageTent for blur — recreating per-frame leaks driver-side
+    // metallib parsing state. Keep one alive per buffer, swap when radius changes.
+    id cachedBlurKernel;
+    int cachedBlurRadius;
     
     static std::atomic<uint32_t> commandBufferCount;
 };
@@ -108,7 +113,8 @@ public:
     id<MTLDevice> device;
     id<MTLLibrary> library;
     id<MTLCommandQueue> commandQueue;
-
+    NSUInteger maxTextureSize = 16384;
+    NSUInteger metalBufferSizeThreshold = 2048;
 
     id<MTLComputePipelineState> xrotateFunction;
     id<MTLComputePipelineState> yrotateFunction;

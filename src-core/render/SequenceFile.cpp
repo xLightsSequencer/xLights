@@ -476,7 +476,11 @@ std::optional<pugi::xml_document> SequenceFile::LoadSequence(const std::string& 
                                 spdlog::error("LoadSequence: audio file not readable.");
                             }
                         } else {
-                            spdlog::error("LoadSequence: audio file does not exist.");
+                            if (seq_type == "Animation") {
+                                spdlog::debug("LoadSequence: audio file does not exist (ignored for Animation).");
+                            } else {
+                                spdlog::error("LoadSequence: audio file does not exist.");
+                            }
                         }
                     }
                 } else if (name == "altAudioTracks") {

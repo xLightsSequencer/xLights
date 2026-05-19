@@ -37,6 +37,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include "import_export/ImportMappingNode.h"
 #include "render/SequencePackage.h"
 
 class SequenceElements;
@@ -64,7 +65,7 @@ public:
     wxString _type;
 };
 
-class xLightsImportModelNode : wxDataViewTreeStoreNode
+class xLightsImportModelNode : public wxDataViewTreeStoreNode, public ImportMappingNode
 {
 public:
     xLightsImportModelNode(xLightsImportModelNode* parent,
@@ -171,9 +172,9 @@ public:
         }
     }
 
-    bool IsGroup() const { return _group; }
+    bool IsGroup() const override { return _group; }
 
-    std::list<std::string> GetAliases() const {
+    std::list<std::string> GetAliases() const override {
         return _aliases;
     }
 
@@ -181,12 +182,18 @@ public:
         return _modelType;
     }
 
-    void Map(const std::string& mapTo, const std::string& mappingModelType)
+    void Map(const std::string& mapTo, const std::string& mappingModelType) override
     {
         _mapping = mapTo;
         _mappingExists = true;
         _mappingModelType = mappingModelType;
     }
+
+    // ImportMappingNode interface — string-field accessors used by AutoMapper.
+    const std::string& GetCoreModel() const override { return _model; }
+    const std::string& GetCoreStrand() const override { return _strand; }
+    const std::string& GetCoreNode() const override { return _node; }
+    const std::string& GetMapping() const override { return _mapping; }
 
     // This also considers children
     bool HasMapping() {
@@ -221,7 +228,7 @@ public:
     {
         return m_children;
     }
-    xLightsImportModelNode* GetNthChild(unsigned int n)
+    xLightsImportModelNode* GetNthChild(unsigned int n) override
     {
         return m_children.Item(n);
     }
@@ -233,12 +240,12 @@ public:
     {
         m_children.Add(child);
     }
-    unsigned int GetChildCount() const
+    unsigned int GetChildCount() const override
     {
         return m_children.GetCount();
     }
 
-    std::string GetModelName() const {
+    std::string GetModelName() const override {
         std::string name = _model;
         if (!_strand.empty()) {
             name += "/" + _strand;
@@ -386,9 +393,15 @@ public:
     virtual unsigned int GetChildren(const wxDataViewItem &parent,
         wxDataViewItemArray &array) const wxOVERRIDE;
 
+    bool _hideUnmapped = false;
+    void SetHideUnmapped(bool h) { _hideUnmapped = h; }
+
+    void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
+
 private:
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
+    wxDataViewCtrl* _ctrl = nullptr;
 };
 
 class StashedMapping
@@ -420,6 +433,7 @@ struct ImportChannel
     int height = 0;
     std::vector<std::string> subModelNames;
     std::vector<std::string> aliases;
+    std::vector<std::pair<int,int>> effectIntervals; // merged [startMS, endMS] active ranges
 
     //ImportChannel(std::string name_, std::string type_):
     //    name(std::move(name_)), type(std::move(type_))
@@ -454,6 +468,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 {
     xLightsImportModelNode* TreeContainsModel(std::string const& model, std::string const& strand = "", std::string const& node = "");
     wxDataViewItem FindItem(std::string const& model, std::string const& strand = "", std::string const& node = "");
+    long FindAvailableByName(const wxString& name) const;
     void OnSelectionChanged(wxDataViewEvent& event);
     void OnValueChanged(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -509,7 +524,9 @@ class xLightsImportChannelMapDialog: public wxDialog
         [[nodiscard]] std::vector<std::string> const GetChannelNames() const;
         [[nodiscard]] ImportChannel* GetImportChannel(std::string const& name) const;
         void SortChannels();
-        void AddChannel(std::string const& name, int effectCount = 0, bool isNode = false);
+        void AddChannel(std::string const& name, int effectCount = 0, bool isNode = false,
+                        std::vector<std::pair<int,int>> intervals = {});
+        void SetSequenceDuration(int durationMS) { _sequenceDurationMS = durationMS; }
         void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
 
         xLightsImportTreeModel *_dataModel;
@@ -648,11 +665,13 @@ protected:
         void BulkMapSubmodelsStrands(const std::string& fromModel, wxDataViewItem& toModel);
         void BulkMapNodes(const std::string& fromModel, wxDataViewItem& toModel);
         std::string findModelType(std::string modelName);
+        void NotifyMappingItemsChanged();
         void DoAutoMap(
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_model,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_strand,
             std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>& aliases)> lambda_node,
             const std::string& extra1, const std::string& extra2, const std::string& mg, const bool& select);
+        void DoSubModelFallback(bool select);
         void DoAIAutoMap(bool select);
 
 
@@ -662,6 +681,10 @@ protected:
         void SaveXMapMapping(wxString const& filename);
         void SaveJSONMapping(wxString const& filename);
         void generateMapHintsFile(wxString const& filename);
+        void RefreshTimelineColumnImages();
+        static wxBitmap GenerateTimelineBitmap(int width, int height,
+                                               const std::vector<std::pair<int,int>>& intervals,
+                                               int durationMS);
 
         static wxString AggressiveAutomap(const wxString& name);
         std::function<bool(const std::string&, const std::string&, const std::string&, const std::string&, const std::list<std::string>&)> aggressive =
@@ -709,6 +732,12 @@ protected:
             };
 
         SequencePackage* _xsqPkg {nullptr};
+        int _sequenceDurationMS {0};
+        wxCheckBox* CheckBox_ShowTimeline {nullptr};
+        wxCheckBox* CheckBox_HideUnmapped {nullptr};
+        std::vector<wxWindow*> _timingPillButtons;
+        int _timelineCol {-1};
+        std::map<ImportChannel*, int> _channelImageMap;
 
         std::vector<std::unique_ptr<ImportChannel>> importChannels;
         std::map<int, int> m_iconIndexMap; // Order in list->one we got

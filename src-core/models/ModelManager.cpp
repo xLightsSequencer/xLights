@@ -24,6 +24,7 @@
 #include "CircleModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "utils/AutoReleasePool.h"
 #include "utils/ExternalHooks.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
@@ -282,7 +283,10 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
         createAndAddModel(e, previewW, previewH);
     };
-    RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
+    {
+        AutoReleasePool pool;
+        parallel_for(modelsToLoad, f);
+    }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
     spdlog::debug("Models loaded in {}ms", timerElapsed);
@@ -1230,6 +1234,17 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
 
     for (auto& it : *this) {
         changed |= it.second->RenameController(oldName, newName);
+    }
+
+    return changed;
+}
+
+bool ModelManager::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    for (auto& it : *this) {
+        changed |= it.second->DeleteController(name);
     }
 
     return changed;

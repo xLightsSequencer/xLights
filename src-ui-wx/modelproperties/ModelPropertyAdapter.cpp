@@ -1557,6 +1557,30 @@ int ModelPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wx
                         OutputModelManager::WORK_CALCULATE_START_CHANNELS |
                         OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
                         OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "Model::OnPropertyGridChange::ModelStringType");
+
+            // Warn if a non-RGB color order is set via String Type when the controller
+            // supports hardware colour order — the controller property is preferred.
+            std::string nodeType = NODE_TYPES[i].ToStdString();
+            static const std::string nodesSuffix = " Nodes";
+            if (EndsWith(nodeType, nodesSuffix)) {
+                std::string colorOrder = nodeType.substr(0, nodeType.size() - nodesSuffix.size());
+                if (colorOrder != "RGB") {
+                    auto it = std::find(Model::CONTROLLER_COLORORDER.begin(), Model::CONTROLLER_COLORORDER.end(), colorOrder);
+                    if (it != Model::CONTROLLER_COLORORDER.end()) {
+                        auto caps = _model.GetControllerCaps();
+                        if (caps != nullptr && caps->SupportsPixelPortColourOrder()) {
+                            wxMessageBox(
+                                "Your controller supports setting color order as a controller property.\n\n"
+                                "Consider using the 'Set Color Order' setting in the Controller Connections section\n"
+                                "instead of changing the String Type. This keeps your sequence data in standard\n"
+                                "RGB format and lets the controller hardware handle the reordering.",
+                                "Consider Using Controller Color Order",
+                                wxICON_INFORMATION | wxOK
+                            );
+                        }
+                    }
+                }
+            }
         }
         return 0;
     } else if (event.GetPropertyName() == "ModelStartChannel" || event.GetPropertyName() == "ModelIndividualStartChannels.ModelStartChannel") {

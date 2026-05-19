@@ -97,6 +97,7 @@ void MatrixModel::InitSingleChannelModel()
     // rework bufX/bufY for singleChannel
     if (SingleNode)
     {
+        if (_strandsPerString < 1) _strandsPerString = 1;
         int NumStrands = _numStrings * _strandsPerString;
         int PixelsPerStrand = _nodesPerString / _strandsPerString;
         if (_vMatrix)
@@ -146,6 +147,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 {
     
     int stringnum, segmentnum;
+    if (_strandsPerString < 1) _strandsPerString = 1;
     if (_strandsPerString > _nodesPerString) {
         _strandsPerString = _nodesPerString;
     }
@@ -301,6 +303,7 @@ void MatrixModel::InitVMatrix(int firstExportStrand)
 void MatrixModel::InitHMatrix() {
     
     int idx,stringnum,segmentnum,xincr;
+    if (_strandsPerString < 1) _strandsPerString = 1;
     if (_strandsPerString > _nodesPerString) {
         _strandsPerString = _nodesPerString;
     }

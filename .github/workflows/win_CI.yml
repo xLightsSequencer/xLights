@@ -94,10 +94,21 @@ jobs:
         New-Item -ItemType Directory -Force -Path $wrapperDir | Out-Null
         # MSBuild invokes CLToolExe with cl-style args. The wrapper prepends
         # cl.exe as the first positional arg so sccache knows which compiler
-        # to wrap.
+        # to wrap. On failure, echo the source file being compiled so the
+        # log identifies which TU broke — MSBuild's MultiToolTask tends to
+        # drop non-canonical output from wrapped compilers, so without this
+        # nudge a bad compile just shows up as "cl.bat exited with code 2".
+        # Merge stderr into stdout (2>&1) so diagnostic lines aren't lost
+        # to stream-interleaving races when the child exits non-zero.
         @'
         @echo off
-        sccache.exe cl.exe %*
+        sccache.exe cl.exe %* 2>&1
+        set RC=%ERRORLEVEL%
+        if not "%RC%"=="0" (
+            echo cl.bat FAILED ^(rc=%RC%^) 1>&2
+            echo   args: %* 1>&2
+        )
+        exit /b %RC%
         '@ | Set-Content -Encoding Ascii "$wrapperDir\cl.bat"
         echo "SCCACHE_WRAPPER_DIR=$wrapperDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 

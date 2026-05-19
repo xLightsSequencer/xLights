@@ -2,6 +2,15 @@
     "effectName": "Morph",
     "properties": [
         {
+            "id": "Morph_LineEditor",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad-only touch editor showing the current Start (blue) and End (orange) lines on a 100x100 grid. Drag the four labelled endpoints to reposition; linked-point pairs (see Link Points) follow their master. Desktop skips this entry; desktop users edit via the sliders below."
+        },
+        {
             "id": "Morph_Start_X1",
             "label": "X1a",
             "type": "int",

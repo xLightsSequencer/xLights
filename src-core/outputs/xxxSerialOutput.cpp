@@ -41,7 +41,7 @@ void xxxSerialOutput::SetDeviceChannels(const std::string& deviceChannels) {
     auto ch = Split(_deviceChannels, ',');
     uint8_t channels = 0;
     for (const auto& it : ch) {
-        channels += std::stoi(it);
+        channels += (uint8_t)std::strtol(it.c_str(), nullptr, 10);
     }
     SetChannels(channels);
 }
@@ -155,7 +155,7 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
     uint8_t device = 0;
     auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = std::stoi(it);
+        int ch = (int)std::strtol(it.c_str(), nullptr, 10);
         if (channel < (uint32_t)ch) {
             break;
         }
@@ -168,7 +168,7 @@ uint8_t xxxSerialOutput::GetDeviceFromChannel(uint32_t channel) const {
 uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
     auto deviceChannels = Split(_deviceChannels, ',');
     for (const auto& it : deviceChannels) {
-        int ch = std::stoi(it);
+        int ch = (int)std::strtol(it.c_str(), nullptr, 10);
         if (channel < (uint32_t)ch) {
             break;
         }
@@ -180,7 +180,7 @@ uint8_t xxxSerialOutput::GetChannelOnDevice(uint32_t channel) const {
 uint8_t xxxSerialOutput::GetDeviceChannels(uint8_t device) const {
 	auto deviceChannels = Split(_deviceChannels, ',');
     if (device < deviceChannels.size()) {
-		return std::stoi(deviceChannels[device]);
+		return (uint8_t)std::strtol(deviceChannels[device].c_str(), nullptr, 10);
 	}
 	return 0;
 }

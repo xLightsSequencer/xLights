@@ -19,6 +19,15 @@ struct EffectCanvasActions {
     var onMoveEffectToRow: (_ srcRow: Int, _ effect: Int, _ dstRow: Int,
                              _ newStartMS: Int, _ newEndMS: Int) -> Void = { _,_,_,_,_ in }
     var onResizeEdge: (_ row: Int, _ effect: Int, _ edge: Int, _ newMS: Int) -> Void = { _,_,_,_ in }
+    /// Shared-edge resize commit (Pencil Pro squeeze + edge drag).
+    /// Two butted effects on the same row have their shared
+    /// boundary moved together — one grows while the other shrinks.
+    /// Arg order: `(row, leftEffectIdx, leftStartMS, leftEndMS,
+    /// rightEffectIdx, rightStartMS, rightEndMS)`. The view model
+    /// commits both moves inside one undo group.
+    var onResizeSharedEdge: ((_ row: Int,
+                               _ leftIdx: Int, _ leftStart: Int, _ leftEnd: Int,
+                               _ rightIdx: Int, _ rightStart: Int, _ rightEnd: Int) -> Void)?
     /// Fires when a fade-in or fade-out drag ends. `edge`: 0 = fade-in,
     /// 1 = fade-out. `seconds` is the new committed fade duration.
     var onAdjustFade: (_ row: Int, _ effect: Int, _ edge: Int, _ seconds: Float) -> Void = { _,_,_,_ in }
@@ -34,6 +43,16 @@ struct EffectCanvasActions {
     /// the touch location into view-space coordinates so the menu can
     /// anchor near the finger.
     var onRequestContextMenu: (_ row: Int, _ effect: Int, _ anchorInCanvas: CGPoint) -> Void = { _,_,_ in }
+    /// Fires when a long-press lands on a visible transition diamond
+    /// (the in/out fade bar at the top corners of an effect). `isIn`
+    /// distinguishes the in-side from the out-side so the picker writes
+    /// to the right `T_CHOICE_*_Transition_Type` key.
+    var onRequestTransitionMenu: (_ row: Int, _ effect: Int, _ isIn: Bool,
+                                   _ anchorInCanvas: CGPoint) -> Void = { _,_,_,_ in }
+    /// B18: double-tap in empty space. The canvas passes the row id
+    /// plus the `ms` it landed on; the outer view decides whether
+    /// to create an effect (palette armed) filling the cell.
+    var onDoubleTapEmpty: (_ rowIndex: Int, _ ms: Int) -> Void = { _,_ in }
 }
 
 /// State provider for per-effect lock / disabled look. Keeping this as a

@@ -217,11 +217,14 @@ END_EVENT_TABLE()
 #include "../xLightsMain.h"
 #include "../xLightsApp.h"
 #include "../sequencer/MainSequencer.h"
-#include "../ai/aiBase.h"
-#include "ServiceManager.h"
+#include "ai/aiBase.h"
+#include "ai/ServiceManager.h"
+#include "ai/PropertyGridBuilder.h"
 #include "TempFileManager.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+
+#include <wx/propgrid/propgrid.h>
 
 #include <log.h>
 
@@ -321,7 +324,21 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     if (service) {
         ImagePanel->Hide();
         generator = service->createAIImageGenerator();
-        generator->addControls(this, ParametersSizer);
+        auto generatorProps = generator->GetProperties();
+        if (!generatorProps.empty()) {
+            aiBase::AIImageGenerator* gen = generator;
+            auto* grid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 60),
+                                            wxPG_SPLITTER_AUTO_CENTER | wxPG_DEFAULT_STYLE);
+            grid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
+            PropertyGridBuilder::Append(grid, generatorProps);
+            grid->Bind(wxEVT_PG_CHANGED, [gen](wxPropertyGridEvent& e) {
+                PropertyGridBuilder::Dispatch(e,
+                    [gen](const std::string& id, bool v)               { gen->SetProperty(id, v); },
+                    [gen](const std::string& id, int v)                { gen->SetProperty(id, v); },
+                    [gen](const std::string& id, const std::string& v) { gen->SetProperty(id, v); });
+            });
+            ParametersSizer->Add(grid, 1, wxALL | wxEXPAND, 5);
+        }
 
         MainSizer->SetSizeHints(this);
         Center();
@@ -346,10 +363,18 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
         MainSizer->SetSizeHints(this);
         Center();
 
-        generator->generateImage(PromptBox->GetValue().ToStdString(), [this](const wxBitmap &i, const std::string &err) {
-            CallAfter([this, i, err] {
-                if (err.empty()) {
-                    _originalImage = i.ConvertToImage();
+        generator->generateImage(PromptBox->GetValue().ToStdString(), [this](aiBase::AIImageResult res) {
+            CallAfter([this, res = std::move(res)]() mutable {
+                wxImage decoded;
+                if (res.error.empty() && !res.pngBytes.empty()) {
+                    wxMemoryInputStream memStream(res.pngBytes.data(), res.pngBytes.size());
+                    decoded.LoadFile(memStream, wxBITMAP_TYPE_PNG);
+                    if (!decoded.IsOk()) {
+                        res.error = "Failed to decode generated image";
+                    }
+                }
+                if (res.error.empty()) {
+                    _originalImage = std::move(decoded);
                     _currentImage = _originalImage.Copy();
                     cropPanel->SetImage(_currentImage);
                     cropPanel->ClearSelection();
@@ -365,7 +390,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
                     ResetButton->Enable();
                 } else {
                     ImagePanel->Hide();
-                    ErrorText->SetValue(err);
+                    ErrorText->SetValue(res.error);
                     ErrorText->Show();
                     MainSizer->SetSizeHints(this);
                     Center();

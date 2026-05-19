@@ -98,6 +98,9 @@ Source: "../../resources/effectmetadata/*"; DestDir: "{app}/effectmetadata"; Fla
 ; Vamp dll's
 Source: "../../bin64/Vamp/*.dll"; DestDir: "{app}"; Flags: "ignoreversion"
 
+; ONNX Runtime  dll's
+Source: "../../bin64/onnxruntime.dll"; DestDir: "{app}";  Flags: "ignoreversion"
+
 ; readmes and licenses
 Source: "../../License.txt"; DestDir: "{app}";
 Source: "../../README.txt";  DestDir: "{app}"; Flags: isreadme

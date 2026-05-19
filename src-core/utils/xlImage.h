@@ -156,3 +156,9 @@ struct AnimatedImageData {
     int width = 0;
     int height = 0;
 };
+
+// Decode all frames of an animated GIF from raw memory using stb_image.
+// Handles GIF disposal methods (keep, restore-to-bg, restore-to-prev) internally.
+// frames: fully composited with background color; framesNoBG: background-colored
+// opaque pixels replaced with transparent. Delays are in milliseconds.
+AnimatedImageData LoadAnimatedGIFFromMemory(const uint8_t* data, size_t len);

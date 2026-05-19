@@ -17,6 +17,7 @@ struct ColorPaletteView: View {
     @State private var showingLoadSheet = false
     @State private var showingImportSheet = false
     @State private var showingSaveAsSheet = false
+    @State private var showingAISheet = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -71,6 +72,10 @@ struct ColorPaletteView: View {
                     currentPaletteString(), asName: name)
             }
         }
+        .sheet(isPresented: $showingAISheet) {
+            AIPaletteGenerationSheet()
+                .environment(viewModel)
+        }
     }
 
     // MARK: - Palette menu (save / load / import / export)
@@ -94,6 +99,13 @@ struct ColorPaletteView: View {
             Label("Load Saved Palette…", systemImage: "folder")
         }
         Divider()
+        if XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityColorPalettes) {
+            Button {
+                showingAISheet = true
+            } label: {
+                Label("AI Generate Palette…", systemImage: "wand.and.stars")
+            }
+        }
         Button {
             showingImportSheet = true
         } label: {
@@ -110,7 +122,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.currentPaletteString(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) ?? ""
+            at: Int32(sel.effectIndex))
     }
 
     private func applyPalette(_ paletteString: String) {
@@ -133,7 +145,7 @@ struct ColorPaletteView: View {
         guard let sel = viewModel.selectedEffect else { return (true, true) }
         let dict = viewModel.document.colorCurveModeSupport(
             forRow: Int32(sel.rowIndex),
-            at: Int32(sel.effectIndex)) as? [String: NSNumber] ?? [:]
+            at: Int32(sel.effectIndex))
         let linear = dict["linear"]?.boolValue ?? true
         let radial = dict["radial"]?.boolValue ?? true
         return (linear, radial)
@@ -231,17 +243,13 @@ struct ColorPaletteView: View {
         var s = hex.trimmingCharacters(in: .whitespaces)
         if s.hasPrefix("#") { s.removeFirst() }
         guard s.count == 6 || s.count == 8, let val = UInt64(s, radix: 16) else { return nil }
-        let r, g, b: Double
-        if s.count == 6 {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        } else {
-            r = Double((val >> 16) & 0xFF) / 255.0
-            g = Double((val >> 8) & 0xFF) / 255.0
-            b = Double(val & 0xFF) / 255.0
-        }
-        return Color(red: r, green: g, blue: b)
+        let r = Double((val >> 16) & 0xFF) / 255.0
+        let g = Double((val >> 8) & 0xFF) / 255.0
+        let b = Double(val & 0xFF) / 255.0
+        // sRGB-pinned so exact #RRGGBB hex the user types
+        // round-trips identically — see ColorPanelCustomRows.swift's
+        // top-level colorFromHex for the full rationale.
+        return Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
     }
 
     // Inline gradient thumbnail for palette slots holding a

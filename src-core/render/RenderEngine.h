@@ -13,8 +13,6 @@
 #include <functional>
 #include <list>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <string>
 
 class Effect;
@@ -24,7 +22,6 @@ class JobPool;
 class Model;
 class RenderCache;
 class RenderContext;
-class RenderEvent;
 class RenderProgressInfo;
 class RenderTreeData;
 class SequenceData;
@@ -32,7 +29,9 @@ class SequenceElements;
 class SettingsMap;
 
 // Platform-neutral render orchestration engine.
-// Owns the render tree, job tracking, and main-thread effect queue.
+// Owns the render tree and job tracking.  All effects run on render-pool
+// threads; ShaderEffect uses GLContextManager::ExecuteOnGLThread to
+// serialize GL work onto a dedicated worker on Windows.
 // xLightsFrame creates one of these and delegates all render work to it.
 class RenderEngine {
 public:
@@ -69,12 +68,10 @@ public:
     void SignalAbort();
     bool IsRenderDone() const { return _renderProgressInfo.empty(); }
 
-    void RenderMainThreadEffects();
-
     // ---- render job support ----
     bool RenderEffectFromMap(bool suppress, Effect* effect, int layer,
                              int period, SettingsMap& settings, PixelBufferClass& buffer,
-                             bool& resetEffectState, bool bgThread, RenderEvent* event);
+                             bool& resetEffectState);
     void OnRenderJobComplete(const std::string& modelName);
     void OnAllRenderJobsComplete();
 
@@ -104,25 +101,19 @@ public:
 
     // ---- callbacks set by UI layer ----
     void SetOnRenderStatusTimerStart(std::function<void()> fn) { _onRenderStatusTimerStart = std::move(fn); }
-    void SetOnCallAfterRenderMainThread(std::function<void()> fn) { _onCallAfterRenderMainThread = std::move(fn); }
     void SetOnRenderJobComplete(std::function<void(const std::string&)> fn) { _onRenderJobComplete = std::move(fn); }
     void SetOnAllRenderJobsComplete(std::function<void()> fn) { _onAllRenderJobsComplete = std::move(fn); }
 
 private:
-    void RenderEffectOnMainThread(RenderEvent* ev);
-
     RenderContext& _ctx;
     JobPool& _jobPool;
     RenderCache& _renderCache;
 
     RenderTree _renderTree;
     std::list<RenderProgressInfo*> _renderProgressInfo;
-    std::queue<RenderEvent*> _mainThreadRenderEvents;
-    std::mutex _renderEventLock;
     int _abortedRenderJobs = 0;
 
     std::function<void()> _onRenderStatusTimerStart;
-    std::function<void()> _onCallAfterRenderMainThread;
     std::function<void(const std::string&)> _onRenderJobComplete;
     std::function<void()> _onAllRenderJobsComplete;
 };

@@ -37,6 +37,7 @@
 #include "../outputs/IPOutput.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/ip_utils.h"
 #include "../utils/NodeUtils.h"
 #include "../render/RenderContext.h"
@@ -179,6 +180,39 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
     if (StartsWith(ModelStartChannel, "!" + oldName)) {
         SetStartChannel("!" + newName + ModelStartChannel.substr(oldName.size() + 1));
         changed = true;
+    }
+    return changed;
+}
+
+bool Model::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    if (_controllerName == name) {
+        // SetControllerName(NO_CONTROLLER) also clears the model
+        // chain + ctrl port + start channel. The start-channel
+        // clear sets it to "", which GetNumberFromChannelString
+        // can only resolve as "invalid → clamp to 1" with
+        // CouldComputeStartChannel=false, so reseat to "1"
+        // explicitly so the next RecalcStartChannels treats it as
+        // a valid starting point for re-numbering.
+        SetControllerName(NO_CONTROLLER, false);
+        SetStartChannel("1");
+        changed = true;
+    }
+
+    // Detach from a start channel that explicitly references the
+    // deleted controller ("!<name>:<channel>") so the model ends up
+    // fully unassigned rather than left pointing at a controller
+    // that no longer exists. Match by parsed controller token so we
+    // don't false-hit a longer name that shares the prefix.
+    std::string sc = Trim(ModelStartChannel);
+    if (StartsWith(sc, "!") && Contains(sc, ":")) {
+        std::string ref = Trim(BeforeFirst(AfterFirst(sc, '!'), ':'));
+        if (ref == name) {
+            SetStartChannel("1");
+            changed = true;
+        }
     }
     return changed;
 }
@@ -2012,9 +2046,9 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
-                spdlog::warn("Model Group ({}), Actual Grid Size of {} exceeded the Max Grid Size of {}.",
-                    (const char*)GetFullName().c_str(), 
-                    ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)), 
+                spdlog::debug("Model Group ({}), Actual Grid Size of {:.0f} exceeded the Max Grid Size of {}; scaling to fit.",
+                    (const char*)GetFullName().c_str(),
+                    ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)),
                     maxDimension);
                 factor = std::max(((float)(maxX - minX)) / (float)maxDimension, ((float)(maxY - minY)) / (float)maxDimension);
                 // But if it is already smaller we dont want to make it bigger
@@ -2440,7 +2474,11 @@ int Model::GetChanCountPerNode() const
 
 uint32_t Model::GetCoordCount(size_t nodenum) const
 {
-    return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+    // Null-check Nodes[nodenum]: the slot can exist (in-range index) but
+    // point to a not-yet-initialised node when a model is being placed in
+    // the layout — _newModel can hit DisplayModelOnWindow before its node
+    // geometry has been populated.
+    return (nodenum < Nodes.size() && Nodes[nodenum]) ? Nodes[nodenum]->Coords.size() : 0;
 }
 
 int Model::GetNodeStringNumber(size_t nodenum) const
@@ -3050,12 +3088,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         float modelPixelSize = pixelSize;
         // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles.
-        // Use getBackingScaleFactor() rather than calcPixelSize() to avoid double-applying the
-        // view-matrix scale (scale2d) that is already applied by the camera transform.
-        // The factor of 2 converts from modelPixelSize (diameter in local coords) to a radius
-        // that, after ApplyModelViewMatrices (×scalex) and the ViewMatrix (×zoom×scale2d), equals
-        // half the GL_POINTS diameter: backingScale × pixelSize × zoom × scale2d / 2.
+        // get the size to use for the pixelStyle 3/4 that use triangles.       
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
@@ -3064,7 +3097,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
             float length = std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
-            modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
+            modelPixelSize = 2.0f * (float)preview->calcPixelSize(pixelSize) / std::abs(length);
         }
 
         int nodeRenderOrder = NodeRenderOrder();
@@ -3080,12 +3113,16 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             std::vector<std::pair<float, int>> keys;
             keys.reserve(NodeCount);
             for (int n = 0; n < (int)NodeCount; ++n) {
-                if (Nodes[n]->Coords.empty()) {
+                if (!Nodes[n] || Nodes[n]->Coords.empty()) {
                     continue;
                 }
                 const auto& c = Nodes[n]->Coords[0];
                 float z = axis.x * c.screenX + axis.y * c.screenY + axis.z * c.screenZ;
-                if (!std::isfinite(z)) {
+                // xl::isfinite: std::isfinite folds to `true` under
+                // -ffinite-math-only (Release -ffast-math) — without this,
+                // NaN keys reach std::sort below and break strict weak
+                // ordering (UB; observed crashes). See FloatChecks.h.
+                if (!xl::isfinite(z)) {
                     z = 0.0f;
                 }
                 keys.emplace_back(z, n);
@@ -3101,6 +3138,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             }
             cache->viewSortAxis = currentSortAxis;
         } else {
+            // Mirror the depth-sort branch's guard: nodes with null entries
+            // or empty Coords contribute no geometry. Without this, a fresh
+            // _newModel (Tree/Sphere/Cube subclasses override NodeRenderOrder
+            // to 1) being rendered from the ASAP-work queue during a 3D
+            // LayoutPanel drag will dereference Nodes[n]->Coords[0].bufX
+            // below before the model's nodes have their coords populated.
+            // Top Mac crash bucket as of 2026.08, 24+ reports.
             int first = 0;
             int last = NodeCount;
             int buffFirst = -1;
@@ -3111,9 +3155,18 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (left) {
                     n = first;
                     first++;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        // Skip over a leading run of empty-coord nodes when
+                        // looking ahead to flip direction; otherwise the peek
+                        // at Nodes[first]->Coords[0] could trip the same UB.
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3122,8 +3175,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 } else {
                     last--;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    // Same look-ahead protection for the tail-walk direction.
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
@@ -3497,16 +3557,26 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             int buffFirst = -1;
             int buffLast = -1;
             bool left = true;
-            
+
             int nodeRenderOrder = NodeRenderOrder();
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
                     ++first;
+                    // Same guard as the DisplayModelOnWindow counterpart:
+                    // a freshly-created model may have null Nodes[n] or
+                    // empty Coords until placement completes; the
+                    // Nodes[n]->Coords[0].bufX peeks below would deref UB.
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3515,8 +3585,14 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 } else {
                     --last;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
@@ -3636,25 +3712,9 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
     }
 }
 
-glm::vec3 Model::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects)
+std::optional<handles::Id> Model::GetSelectedHandleId()
 {
-    if (GetModelScreenLocation().IsLocked() || IsFromBase())
-        return GetModelScreenLocation().GetHandlePosition(handle);
-
-    int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
-    if (i == MODEL_NEEDS_INIT) {
-        Setup();
-    } else if (i == MODEL_UPDATE_RGBEFFECTS) {
-        update_rgbeffects = true;
-    }
-    IncrementChangeCount();
-
-    return GetModelScreenLocation().GetHandlePosition(handle);
-}
-
-int Model::GetSelectedHandle()
-{
-    return GetModelScreenLocation().GetSelectedHandle();
+    return GetModelScreenLocation().GetSelectedHandleId();
 }
 
 int Model::GetNumHandles()

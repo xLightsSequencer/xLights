@@ -8,8 +8,13 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <atomic>
+#include <filesystem>
 #include <map>
+#include <system_error>
+#include <thread>
 
+#include <wx/progdlg.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
@@ -40,6 +45,7 @@
 #include "MidiFile.h"
 #include "import_export/MusicXML.h"
 #include "diagnostics/SeqElementMismatchDialog.h"
+#include "sequencer/SelectModelDialog.h"
 #include "media/SequenceVideoPanel.h"
 #include "sequencer/RenderCommandEvent.h"
 #include "xLightsVersion.h"
@@ -408,16 +414,16 @@ static void HandleChoices(xLightsFrame *frame,
                 switch (dlg.GetSelection()) {
                 case 0: {
                     // Rename Model
-                    wxSingleChoiceDialog namedlg(frame, "Choose the model to use instead:",
-                        "Select Model", ToArrayString(ModelNames));
+                    SelectModelDialog namedlg(frame, ModelNames);
                     if (namedlg.ShowModal() == wxID_OK) {
-                        std::string newName = namedlg.GetStringSelection().ToStdString();
+                        std::string newName = namedlg.GetSelectedModel();
+                        std::string oldName = element->GetName();
 
                         spdlog::debug("Sequence Element Mismatch 2: rename '{}' to '{}'", (const char*)element->GetFullName().c_str(), (const char*)newName.c_str());
 
                         // remove the existing element before we rename
-                        if (dynamic_cast<SubModelElement*>(element) != nullptr) {
-                            SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        SubModelElement* sme = dynamic_cast<SubModelElement*>(element);
+                        if (sme != nullptr) {
                             sme->GetModelElement()->RemoveSubModel(newName);
                         }
                         else {
@@ -427,6 +433,20 @@ static void HandleChoices(xLightsFrame *frame,
                         element->SetName(newName);
                         Remove(AllNames, newName);
                         Remove(ModelNames, newName);
+
+                        if (namedlg.ShouldAddAlias()) {
+                            Model* target = nullptr;
+                            if (sme != nullptr) {
+                                target = frame->AllModels[sme->GetModelElement()->GetName() + "/" + newName];
+                            } else {
+                                target = frame->AllModels[newName];
+                            }
+                            if (target != nullptr) {
+                                target->AddAlias("oldname:" + oldName);
+                                frame->UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
+                            }
+                        }
                     }
                     else {
                         ok = false;
@@ -613,11 +633,13 @@ void xLightsFrame::CheckForValidModels()
                             } else {
                                 dialog.ChoiceModels->SetStringSelection(mapto);
                                 dialog.RadioButtonRename->SetValue(true);
+                                dialog.CheckBoxAddAlias->Enable(true);
                             }
                         }
                         else {
                             dialog.ChoiceModels->Hide();
                             dialog.RadioButtonRename->Hide();
+                            dialog.CheckBoxAddAlias->Hide();
                             dialog.Layout();
                         }
                         dialog.Fit();
@@ -658,6 +680,11 @@ void xLightsFrame::CheckForValidModels()
                             ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                             Remove(AllNames, newName);
                             Remove(ModelNames, newName);
+                            if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr) {
+                                AllModels[newName]->AddAlias("oldname:" + name);
+                                UnsavedRgbEffectsChanges = true;
+                                spdlog::debug("Sequence Element Mismatch: added alias 'oldname:{}' to '{}'", (const char*)name.c_str(), (const char*)newName.c_str());
+                            }
                         }
                         else {
                             spdlog::error("Sequence Element Mismatch: rename '{}' to '{}' tried to rename to blank.", (const char*)name.c_str(), (const char*)newName.c_str());
@@ -788,27 +815,45 @@ void xLightsFrame::CheckForValidModels()
                             if (sme != nullptr &&
                                 dynamic_cast<StrandElement*>(sme) == nullptr &&
                                 m->GetSubModel(sme->GetName()) == nullptr) {
-                                std::vector<std::string> AllSMNames;
-                                std::vector<std::string> ModelSMNames;
+                                // Check for an oldname alias match — auto-remap silently without prompting
+                                bool submodelRenameAlias = false;
                                 for (int z = 0; z < m->GetNumSubModels(); z++) {
-                                    AllSMNames.push_back(m->GetSubModel(z)->GetName());
-                                    ModelSMNames.push_back(m->GetSubModel(z)->GetName());
-                                }
-                                if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
-                                    int priorCnt = el->GetSubModelAndStrandCount();
-                                    if (ringBell && _renderMode) {
-                                        ringBell = false; 
-                                        if (IsRenderBell()) {
-                                            wxBell();
+                                    Model* sm = m->GetSubModel(z);
+                                    if (sm != nullptr && sm->IsAlias(sme->GetName(), true)) {
+                                        // Only silently remap if the target name doesn't already exist in
+                                        // the sequence — never delete an existing row or its effects.
+                                        if (el->GetSubModel(sm->GetName(), false) == nullptr) {
+                                            spdlog::debug("CheckForValidModels: auto-renamed submodel '{}' to '{}' via alias",
+                                                sme->GetName(), sm->GetName());
+                                            sme->SetName(sm->GetName());
+                                            submodelRenameAlias = true;
                                         }
+                                        break;
                                     }
-                                    HandleChoices(this, AllSMNames, ModelSMNames, sme,
-                                        "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
-                                        + "How should we handle this?",
-                                        toMap, ignore, mapall);
-                                    // if count after is less than the count before then the submodel list is shorter, so rewind the index
-                                    if (priorCnt != el->GetSubModelAndStrandCount()) {
-                                        --x1;
+                                }
+                                if (!submodelRenameAlias) {
+                                    std::vector<std::string> AllSMNames;
+                                    std::vector<std::string> ModelSMNames;
+                                    for (int z = 0; z < m->GetNumSubModels(); z++) {
+                                        AllSMNames.push_back(m->GetSubModel(z)->GetName());
+                                        ModelSMNames.push_back(m->GetSubModel(z)->GetName());
+                                    }
+                                    if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
+                                        int priorCnt = el->GetSubModelAndStrandCount();
+                                        if (ringBell && _renderMode) {
+                                            ringBell = false;
+                                            if (IsRenderBell()) {
+                                                wxBell();
+                                            }
+                                        }
+                                        HandleChoices(this, AllSMNames, ModelSMNames, sme,
+                                            "SubModel " + sme->GetName() + " of Model " + m->GetName() + " does not exist.\n"
+                                            + "How should we handle this?",
+                                            toMap, ignore, mapall);
+                                        // if count after is less than the count before then the submodel list is shorter, so rewind the index
+                                        if (priorCnt != el->GetSubModelAndStrandCount()) {
+                                            --x1;
+                                        }
                                     }
                                 }
                             }
@@ -1672,9 +1717,19 @@ void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
+void xLightsFrame::CopyModelEffectsToModels(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CopyModelEffectsToModels(event.GetInt());
+}
+
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
+}
+
+void xLightsFrame::PasteModelEffectsWithSubModelLayers(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->PasteModelEffectsWithSubModelLayers(event.GetInt());
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
@@ -3227,6 +3282,42 @@ void xLightsFrame::DoLoadPerspective(Perspective* perspective)
         m_mgr->Update();
     }
 
+    // After a perspective load creates a floating House Preview / Model Preview
+    // frame, the embedded Metal canvas comes up gray until the user manually
+    // docks and re-floats the pane. The exact root cause is in MTKView /
+    // CAMetalLayer state set up during AUI's initial reparent, but the user
+    // workaround is reliable, so apply it programmatically: dock the pane and
+    // re-float it at the same position. The original perspective string is
+    // untouched — only the live layout cycles.
+    {
+        std::vector<std::string> recoverNames;
+        std::vector<wxPoint> recoverPos;
+        std::vector<wxSize> recoverSize;
+        wxAuiPaneInfoArray& panes = m_mgr->GetAllPanes();
+        for (size_t x = 0; x < panes.size(); ++x) {
+            if (!panes[x].IsFloating() || !panes[x].IsShown() || panes[x].frame == nullptr) continue;
+            std::string name = panes[x].name.ToStdString();
+            if (name != "HousePreview" && name != "ModelPreview") continue;
+            recoverNames.push_back(name);
+            recoverPos.push_back(panes[x].frame->GetPosition());
+            recoverSize.push_back(panes[x].frame->GetSize());
+        }
+        if (!recoverNames.empty()) {
+            for (const auto& nm : recoverNames) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(nm);
+                if (pane.IsOk()) pane.Dock();
+            }
+            m_mgr->Update();
+            for (size_t i = 0; i < recoverNames.size(); ++i) {
+                wxAuiPaneInfo& pane = m_mgr->GetPane(recoverNames[i]);
+                if (pane.IsOk()) {
+                    pane.Float().FloatingPosition(recoverPos[i]).FloatingSize(recoverSize[i]);
+                }
+            }
+            m_mgr->Update();
+        }
+    }
+
     if (m_mgr->GetPane("EffectPresets").IsShown() && !_effectPresetsInitialized && EffectTreeDlg != nullptr) {
         EffectTreeDlg->InitItems(_effectPresetManager);
         _effectPresetsInitialized = true;
@@ -3510,7 +3601,7 @@ TimingElement* xLightsFrame::AddTimingElement(const std::string& name, const std
     }
 
     // Deactivate active timing mark so new one is selected;
-    _sequenceElements.DeactivateAllTimingElements();
+    _sequenceElements.DeactivateAllTimingElements(true);
     int timingCount = _sequenceElements.GetNumberOfTimingElements();
     std::string type = "timing";
     TimingElement* e = dynamic_cast<TimingElement*>(_sequenceElements.AddElement(timingCount, n, type, true, false, true, false, false));
@@ -3633,7 +3724,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadAudacityFile(std::string fil
     std::map<int, std::vector<float>> res;
 
     spdlog::debug("Processing audacity file " + file);
-    spdlog::debug("Interval %d.", intervalMS);
+    spdlog::debug("Interval {}.", intervalMS);
     spdlog::debug("Start,End,midinote");
 
     wxTextFile f(file);
@@ -3879,7 +3970,7 @@ void xLightsFrame::ExecuteImportNotes(wxCommandEvent& command)
 
     if (dlgNoteImport.ShowModal() == wxID_OK) {
         wxString name = dlgNoteImport.TextCtrl_TimingName->GetValue();
-        _sequenceElements.DeactivateAllTimingElements();
+        _sequenceElements.DeactivateAllTimingElements(true);
         Element* element = AddTimingElement(std::string(name.ToStdString()));
         EffectLayer* effectLayer = element->GetEffectLayer(0);
         // _sequenceElements.AddTimingToCurrentView(name.ToStdString()); I dont think this is necessary
@@ -3977,7 +4068,7 @@ void xLightsFrame::ImportTimingElement()
             } else {
                 CurrentSeqXmlFile->ProcessAudacityTimingFiles( filenames, this);
             }
-            _sequenceElements.DeactivateAllTimingElements();
+            _sequenceElements.DeactivateAllTimingElements(true);
             int timingCount = _sequenceElements.GetNumberOfTimingElements();
             if (timingCount > 0) {
                 TimingElement* te = _sequenceElements.GetTimingElement(timingCount - 1);
@@ -4396,8 +4487,95 @@ void xLightsFrame::CallOnEffectAfterSelected(std::function<bool(Effect *)> &&cb)
 
 void xLightsFrame::GenerateAILyrics(wxCommandEvent& /* command*/) {
     if (CurrentSeqXmlFile->GetMedia() != nullptr) {
-        auto service = GetAIService(aiType::SPEECH2TEXT);
-        auto lyrics = service->GenerateLyricTrack(CurrentSeqXmlFile->GetMedia()->FileName());
+        auto services = GetAIServices(aiType::SPEECH2TEXT);
+        if (services.empty()) {
+            wxMessageBox("No speech-to-text AI service is configured. Configure one under Preferences → Services.",
+                         "Error", wxICON_ERROR);
+            return;
+        }
+
+        // Same pattern as PicturesPanel's AI image flow: use the
+        // single registered service when there's only one, prompt
+        // when there are multiple.
+        aiBase* service = services[0];
+        if (services.size() > 1) {
+            wxArrayString choices;
+            for (auto* s : services) {
+                choices.push_back(s->GetLLMName());
+            }
+            wxSingleChoiceDialog pick(this, "Choose Speech-to-Text Service",
+                                       "Generate Lyrics from Audio", choices);
+            if (pick.ShowModal() == wxID_CANCEL) return;
+            service = services[pick.GetSelection()];
+        }
+
+        // Use whichever audio the user currently has selected in the
+        // waveform. That's a combination of two things: which track
+        // (main or one of the alt tracks attached under the audio-
+        // track manager) and which filter/stem (RAW, STEM_VOCALS, a
+        // band-passed filter, etc.). The track picks the AudioManager;
+        // the filter is reflected in that AudioManager's playback
+        // buffers (SwitchTo overwrites _data[0]/_data[1] each time the
+        // user changes filter/stem). WriteCurrentToTempWav serializes
+        // those buffers to a temp WAV so the recogniser sees exactly
+        // what the user is hearing — including HTDemucs-isolated
+        // vocals, which are dramatically cleaner for speech-to-text
+        // than the full mix.
+        AudioManager* media = CurrentSeqXmlFile->GetMedia();
+        if (GetMainSequencer() != nullptr) {
+            int trackIdx = GetMainSequencer()->GetActiveAudioTrackIndex();
+            if (trackIdx > 0) {
+                int altTrackIdx = trackIdx - 1;
+                if (altTrackIdx < CurrentSeqXmlFile->GetAltTrackCount()) {
+                    AudioManager* alt = CurrentSeqXmlFile->GetAltTrackMedia(altTrackIdx);
+                    if (alt != nullptr) {
+                        media = alt;
+                    }
+                }
+            }
+        }
+        std::string tempAudioPath = media->WriteCurrentToTempWav();
+        // Fall back to the original file if we couldn't materialise the
+        // current selection (e.g. audio not yet fully loaded). Note
+        // that the fallback path is owned by the AudioManager and
+        // must NOT be deleted on cleanup.
+        std::string audioPath = tempAudioPath.empty() ? media->FileName() : tempAudioPath;
+        auto cleanupTemp = [&]() {
+            if (!tempAudioPath.empty()) {
+                std::error_code ec;
+                std::filesystem::remove(tempAudioPath, ec);
+            }
+        };
+
+        // Run the recognition on a worker thread so the main thread
+        // stays free to service the OS speech-permission prompt and
+        // the recognizer's main-thread callbacks. Pumping wxYield in
+        // the wait loop is what lets those callbacks reach the
+        // framework — blocking main directly here deadlocks against
+        // SFSpeechRecognizer's prompt UI.
+        wxProgressDialog dlg("Generating Lyrics",
+                              "Transcribing audio with on-device speech recognition. This can take a minute…",
+                              100, this,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        dlg.Show();
+        dlg.Pulse();
+
+        aiBase::AILyricTrack lyrics;
+        std::atomic<bool> recognitionDone{false};
+        std::thread worker([&]() {
+            lyrics = service->GenerateLyricTrack(audioPath);
+            recognitionDone = true;
+        });
+
+        while (!recognitionDone) {
+            wxYield();
+            wxMilliSleep(50);
+            dlg.Pulse();
+        }
+        worker.join();
+
+        cleanupTemp();
+
         if (!lyrics.error.empty()) {
             wxMessageBox("Failed to generate lyrics. Please check the media file and try again.", "Error", wxICON_ERROR);
             return;

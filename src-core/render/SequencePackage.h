@@ -23,6 +23,21 @@
 #include "render/Effect.h"
 
 class ModelManager;
+class ViewObjectManager;
+class SequenceMedia;
+
+/// Options controlling what a `SequencePackage::Pack()` run includes.
+/// `excludeAudio` drops the sequence's audio track from the zip;
+/// `excludeVideos` drops every video the SequenceMedia walk would
+/// otherwise include. Both default false. (Previously there was an
+/// "exclude presets" option on desktop; that option stripped the
+/// `<effects>` node from rgbeffects, but presets are stored under a
+/// different element now so the strip was a no-op. "Exclude Videos"
+/// is the replacement since videos routinely carry copyright.)
+struct SequencePackOptions {
+    bool excludeAudio  = false;
+    bool excludeVideos = false;
+};
 
 enum class MediaTargetDir
 {
@@ -70,6 +85,43 @@ class SequencePackage {
         const std::filesystem::path& GetXsqFile();
         pugi::xml_document& GetRgbEffectsFile();
         std::string GetTempDir() const;
+
+        // Pack the current temp directory back into a `.xsqz` at
+        // `targetXsqz`, overwriting atomically (writes to a sibling
+        // `.tmp`, then renames). Returns true on success. Used by the
+        // iPad flow when the user opens a `.xsqz` from Files, edits,
+        // and saves — the desktop has its own "Package Sequence"
+        // dialog that doesn't go through here.
+        bool Repack(const std::filesystem::path& targetXsqz);
+
+        // Pack a self-contained `.xsqz` for the current in-memory
+        // sequence + supporting managers. Walks SequenceMedia,
+        // every model/view-object's `GetFileReferences()`, and
+        // Matrix face images. `xlights_rgbeffects.xml` and
+        // `xlights_networks.xml` are derived from `showDir` — no
+        // need to pass them. `audioPath` + `altAudioPaths` are
+        // gated by `excludeAudio`; `extraFiles` is for caller-
+        // specific adjuncts (house background image, `.iseq`
+        // data-layer sources).
+        //
+        // Per-file failures are collected into `outWarnings` as
+        // human-readable strings; the package is still produced.
+        // Only catastrophic failures (missing `.xsq` / rgbeffects,
+        // zipOpen, XML parse, final rename) return false.
+        // Atomic write via sibling `.tmp` + rename.
+        static bool Pack(const std::filesystem::path& outputXsqz,
+                         const std::string& showDir,
+                         const std::string& sequenceXsqPath,
+                         const std::string& audioPath,
+                         const std::vector<std::string>& altAudioPaths,
+                         const std::vector<std::string>& extraFiles,
+                         SequenceMedia& media,
+                         ModelManager& models,
+                         ViewObjectManager& viewObjects,
+                         SequenceElements& seqElements,
+                         const SequencePackOptions& options,
+                         std::vector<std::string>* outWarnings = nullptr,
+                         ProgressCallback progress = nullptr);
 
         std::string FixAndImportMedia(Effect* mappedEffect, EffectLayer *target);
         void ImportFaceInfo(Effect* mappedEffect, EffectLayer *target, const std::string& faceName);

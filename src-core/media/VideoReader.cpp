@@ -114,6 +114,7 @@ bool VideoReader::AtEnd() const { return _impl->AtEnd(); }
 int VideoReader::GetPos() { return _impl->GetPos(); }
 std::string VideoReader::GetFilename() const { return _impl->GetFilename(); }
 int VideoReader::GetPixelChannels() const { return _impl->GetPixelChannels(); }
+bool VideoReader::Resize(int width, int height) { return _impl ? _impl->Resize(width, height) : false; }
 
 // Static methods delegate to FFmpeg on platforms that have it, no-ops on iPad
 #if TARGET_OS_IPHONE

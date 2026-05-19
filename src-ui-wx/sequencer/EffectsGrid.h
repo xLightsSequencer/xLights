@@ -129,7 +129,10 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
+    void CopyModelEffectsToModels(int row_number);
     void PasteModelEffects(int row_number, bool allLayers);
+    void PasteModelEffectsWithLayers(int row_number);
+    void PasteModelEffectsWithSubModelLayers(int row_number);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;

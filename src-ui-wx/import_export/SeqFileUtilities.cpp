@@ -42,6 +42,7 @@
 #include "import_export/VsaImportDialog.h"
 #include "import_export/xLightsImportChannelMapDialog.h"
 #include "render/SequenceMedia.h"
+#include "render/SeqMediaMigration.h"
 #include "media/MediaCompatibility.h"
 #include "media/VideoTranscoder.h"
 #include "utils/FileUtils.h"
@@ -254,6 +255,7 @@ void xLightsFrame::SetPanelSequencerLabel(const std::string& sequence)
 void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialog* plog, const wxString &rp)
 {
     FileUtils::ClearNonExistentFiles();
+    _sequenceElements.GetSequenceMedia().ClearRelocations();
 
     bool loaded_fseq = false;
     wxString filename;
@@ -685,6 +687,25 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
                     note->Wrap(kWrapWidth);
                     topSizer->Add(note, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
 
+                    // If any flagged file is an animated GIF, mention that those
+                    // are handled by switching the owning Video effect to a
+                    // Pictures effect (which already plays GIFs natively) — no
+                    // ffmpeg transcode needed for those.
+                    bool anyGif = false;
+                    for (const auto& issue : issues) {
+                        if (issue.isAnimatedGif() && issue.canConvert()) {
+                            anyGif = true;
+                            break;
+                        }
+                    }
+                    if (anyGif) {
+                        auto* gifNote = new wxStaticText(&dlg, wxID_ANY,
+                            "Animated GIFs above will be converted from Video effects to Pictures effects "
+                            "(which natively play GIF animation) — no file conversion is performed for those.");
+                        gifNote->Wrap(kWrapWidth);
+                        topSizer->Add(gifNote, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
+                    }
+
                     wxCheckBox* suppressCheck = new wxCheckBox(&dlg, wxID_ANY,
                         wxString::Format("Don't show this warning again for xLights %s", xlights_version_string));
                     topSizer->Add(suppressCheck, 0, wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -751,10 +772,18 @@ void xLightsFrame::OpenSequence(const wxString& passed_filename, ConvertLogDialo
 void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilityIssue>& issues)
 {
     // Gather the video issues. Audio ones aren't handled here — users will
-    // see the warning but need to re-encode audio separately.
+    // see the warning but need to re-encode audio separately. Animated GIFs
+    // are split out: ffmpeg-transcoding a GIF to mp4/mov produces poor
+    // results, so we instead rewrite the owning Video effect into a
+    // Pictures effect (which plays animated GIFs natively).
+    std::vector<MediaCompatibilityIssue> gifIssues;
     std::vector<std::pair<std::string, std::string>> jobs; // (source, target)
     for (const auto& issue : issues) {
         if (!issue.isVideo || !issue.canConvert()) continue;
+        if (issue.isAnimatedGif()) {
+            gifIssues.push_back(issue);
+            continue;
+        }
         std::string target = VideoTranscoder::SuggestedOutputPath(issue.filePath);
         if (target == issue.filePath) {
             // Source is already .mov (e.g. qtrle codec) — append _converted
@@ -765,7 +794,21 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
         }
         jobs.emplace_back(issue.filePath, target);
     }
-    if (jobs.empty()) return;
+
+    // Convert GIF effects first — instant, no progress dialog needed.
+    int gifsConverted = ConvertGifVideoEffectsToPictures(gifIssues);
+
+    if (jobs.empty()) {
+        if (gifsConverted > 0) {
+            wxMessageBox(wxString::Format(
+                            "Converted %d animated GIF Video effect(s) to Pictures effects.\n"
+                            "Remember to save the sequence to persist the changes.",
+                            gifsConverted),
+                         "GIF effect conversion results",
+                         wxOK | wxICON_INFORMATION, this);
+        }
+        return;
+    }
 
     // Progress dialog spans the whole batch; per-file we weight the progress
     // bar by frame counts we don't know up front, so just advance one tick
@@ -906,16 +949,29 @@ void xLightsFrame::ConvertIncompatibleVideos(const std::vector<MediaCompatibilit
 
     wxString msg = wxString::Format("Converted %zu of %zu file(s). %d video effect(s) updated.",
                                     completed.size(), jobs.size(), rewritten);
+    if (gifsConverted > 0) {
+        msg += wxString::Format("\n%d animated GIF Video effect(s) converted to Pictures effects.",
+                                gifsConverted);
+    }
     if (!failures.empty()) {
         msg += "\n\nFailures:\n";
         for (const auto& f : failures) msg += "  " + f + "\n";
     }
-    if (!completed.empty()) {
+    if (!completed.empty() || gifsConverted > 0) {
         msg += "\nRemember to save the sequence to persist the updated file references.";
     }
     wxMessageBox(msg, "Video conversion results",
                  wxOK | (failures.empty() ? wxICON_INFORMATION : wxICON_WARNING),
                  this);
+}
+
+int xLightsFrame::ConvertGifVideoEffectsToPictures(const std::vector<MediaCompatibilityIssue>& gifIssues)
+{
+    int rewritten = seqmedia::ConvertGifVideoEffectsToPictures(_sequenceElements, gifIssues);
+    if (rewritten > 0 && mainSequencer != nullptr && mainSequencer->PanelEffectGrid != nullptr) {
+        mainSequencer->PanelEffectGrid->ForceRefresh();
+    }
+    return rewritten;
 }
 
 void xLightsFrame::AddToMRU(const std::string& filename)

@@ -600,6 +600,7 @@ std::string AlphaPix::APPutURL(const std::string& url, const std::string& reques
 
         CURLcode ret = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
 
         if (ret == CURLE_OK) {
             return buffer;

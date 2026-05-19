@@ -19,6 +19,9 @@
 #include <wx/textctrl.h>
 //*)
 
+#include <string>
+#include <vector>
+
 class PhonemeDictionary;
 
 class LyricUserDictDialog: public wxDialog
@@ -64,7 +67,7 @@ class LyricUserDictDialog: public wxDialog
 
         void ReadUserDictionary() const;
         void WriteUserDictionary() const;
-        void InsertRow(const wxString& text, std::vector<wxArrayString> phonemeList) const;
+        void InsertRow(const wxString& text, std::vector<std::vector<std::string>> phonemeList) const;
         bool DoesGridContain(const wxString& text) const;
         bool IsValidPhoneme(const wxString& text) const;
 

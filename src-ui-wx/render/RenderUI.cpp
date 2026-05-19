@@ -98,7 +98,6 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
     int loops = 0;
     while (!_renderEngine->IsRenderDone() && loops < maxLoops) {
         loops++;
-        _renderEngine->RenderMainThreadEffects();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         UpdateRenderStatus();
         if (!_renderEngine->IsRenderDone() && loops > 25) {
@@ -119,10 +118,6 @@ bool xLightsFrame::AbortRender(int maxTimeMS, int* numThreadsAborted) {
 // ---------------------------------------------------------------------------
 // RenderContext overrides — delegate to RenderEngine
 // ---------------------------------------------------------------------------
-
-void xLightsFrame::RenderMainThreadEffects() {
-    _renderEngine->RenderMainThreadEffects();
-}
 
 void xLightsFrame::RenderEffectForModel(const std::string &model, int startms, int endms, bool clear) {
     _renderEngine->RenderEffectForModel(model, startms, endms,
@@ -189,8 +184,6 @@ void xLightsFrame::UpdateRenderStatus()
         RenderStatusTimer.Stop();
         return;
     }
-
-    RenderMainThreadEffects();
 
     for (auto it = _renderEngine->GetRenderProgressInfo().begin(); it != _renderEngine->GetRenderProgressInfo().end();) {
         int countModels = 0;

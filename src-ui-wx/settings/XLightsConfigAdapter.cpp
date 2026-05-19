@@ -55,6 +55,32 @@ static std::filesystem::path GetSettingsFilePath()
     return dir / "settings.json";
 }
 
+std::filesystem::path GetLogFileFolder() {
+    std::filesystem::path dir;
+
+#if defined(_WIN32) || defined(__WXMSW__)
+    const char* appData = std::getenv("APPDATA");
+    dir = std::filesystem::path(appData && *appData ? appData : ".") / "xLights" / "Logs";
+#elif defined(__APPLE__)
+    const char* home = std::getenv("HOME");
+    dir = std::filesystem::path(home && *home ? home : ".") / "Library" / "Logs";
+#else
+    dir = std::filesystem::path( "/tmp/");
+#endif
+
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    return dir;
+}
+
+std::string GetLogFileName() {
+    return "xLights_spdlog.log";
+}
+
+std::filesystem::path GetLogFilePath() {
+    return GetLogFileFolder() / GetLogFileName();
+}
+
 // ---------------------------------------------------------------------------
 // One-time import from legacy wxConfig (Registry / plist / .conf)
 // ---------------------------------------------------------------------------

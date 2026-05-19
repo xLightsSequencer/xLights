@@ -12,11 +12,13 @@
 
 // Platform-neutral OpenGL context manager for shader rendering.
 // Creates and pools offscreen GL contexts so ShaderEffect can render
-// on background threads without depending on wx/UI types.
+// without depending on wx/UI types.
 //
-// macOS:   Pure CGL — contexts created and pooled natively.
-// Windows: Hidden HWND + WGL — context creation dispatched to main thread.
-// Linux:   Callback-based — main thread context activation via UICallbacks.
+// macOS (CGL):    Independent contexts in pool, share via shared context.
+// macOS (ANGLE):  Single EGL context (ANGLE Metal serializes anyway).
+// Windows (WGL):  Hidden HWND + WGL contexts, all GL ops serialized on
+//                 an internal worker thread (see ExecuteOnGLThread).
+// Linux:          Independent GLX or EGL pbuffer contexts.
 
 #include <condition_variable>
 #include <cstdint>
@@ -39,10 +41,6 @@ public:
         // Windows: returns the shared HGLRC (cast to void*) from the main GL canvas.
         // Called lazily on first AcquireContext(), so the canvas need not exist at init time.
         std::function<void*()> getSharedGLContext;
-
-        // Linux: activate/deactivate the panel's GL context on the main thread.
-        std::function<void()> activateMainContext;
-        std::function<void()> deactivateMainContext;
 
         // Apple/ANGLE: Metal device registry ID to force ANGLE onto the same
         // GPU as the Metal compute effects.  Set to MTLDevice.registryID.
@@ -67,7 +65,8 @@ public:
     ContextHandle AcquireContext();
 
     // Make the given context current on the calling thread.
-    void MakeCurrent(ContextHandle ctx);
+    // Returns false if the context handle is invalid or the driver rejects it.
+    bool MakeCurrent(ContextHandle ctx);
 
     // Release the context from the calling thread (unset current).
     // Does NOT return it to the pool — call ReleaseContext() for that.
@@ -76,8 +75,21 @@ public:
     // Return the context to the pool for reuse by other threads.
     void ReleaseContext(ContextHandle ctx);
 
-    // Whether this platform supports shader rendering on background threads.
-    bool CanRenderOnBackgroundThread() const;
+    // Run a GL-touching callable on the thread that owns GL operations
+    // for this platform. Blocks until the callable returns.
+    //
+    // - macOS / iOS / Linux: invokes fn() directly on the calling thread.
+    //   Each render thread can hold its own context from the pool.
+    // - Windows: posts fn() to an internal GL worker thread, blocks, returns.
+    //   This serializes all GL work onto a single non-UI thread, dodging
+    //   the driver-stability issues that affect some Windows GL drivers
+    //   when GL is called from arbitrary render-pool threads. When
+    //   SetBackgroundRenderEnabled(true) is set, the dispatch is bypassed
+    //   and fn() runs directly — for users whose drivers are known good.
+    //
+    // The callable's lifetime must outlive the call (typical use is a
+    // lambda capturing locals; ExecuteOnGLThread blocks so this is safe).
+    void ExecuteOnGLThread(std::function<void()> fn);
 
     // Destroy all pooled contexts and release resources.
     void Shutdown();

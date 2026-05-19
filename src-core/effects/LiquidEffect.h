@@ -27,6 +27,8 @@ public:
     virtual ~LiquidEffect();
     virtual void Render(Effect* effect, const SettingsMap& settings, RenderBuffer& buffer) override;
     virtual std::list<std::string> CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) override;
+    virtual bool needToAdjustSettings(const std::string& version) override;
+    virtual void adjustSettings(const std::string& version, Effect* effect, bool removeDefaults = true) override;
     virtual bool AppropriateOnNodes() const override
     {
         return false;
@@ -48,7 +50,7 @@ public:
     static int sLifeTimeMin;
     static int sLifeTimeMax;
     static int sSizeDefault;
-    static int sWarmUpFramesDefault;
+    static int sWarmUpTimeDefault; // hundredths of a second
     static int sDespeckleDefault;
     static double sGravityDefault;
     static double sGravityMin;
@@ -57,6 +59,7 @@ public:
     static int sGravityAngleDefault;
     static int sGravityAngleMin;
     static int sGravityAngleMax;
+    static bool sEnabled1Default;
     static int sX1Default;
     static int sY1Default;
     static int sDirection1Default;
@@ -107,8 +110,8 @@ protected:
 
     void Render(RenderBuffer& buffer,
                 bool top, bool bottom, bool left, bool right,
-                int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpFrames,
-                int direction1, int x1, int y1, int velocity1, int flow1, int sourceSize1, bool flowMusic1,
+                int lifetime, bool holdcolor, bool mixcolors, int size, int warmUpTime,
+                bool enabled1, int direction1, int x1, int y1, int velocity1, int flow1, int sourceSize1, bool flowMusic1,
                 bool enabled2, int direction2, int x2, int y2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
                 bool enabled3, int direction3, int x3, int y3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
                 bool enabled4, int direction4, int x4, int y4, int velocity4, int flow4, int sourceSize4, bool flowMusic4,
@@ -116,12 +119,13 @@ protected:
     void CreateBarrier(b2World* world, float x, float y, float width, float height);
     void Draw(RenderBuffer& buffer, b2ParticleSystem* ps, const xlColor& color, bool mixColors, int despeckle, float gravityX, float gravityY);
     bool LostForever(int x, int y, int w, int h, float gravityX, float gravityY);
-    void CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize);
-    void CreateParticleSystem(b2World* world, int lifetime, int size);
+    void CreateParticles(b2ParticleSystem* ps, int x, int y, int direction, int velocity, int flow, bool flowMusic, int lifetime, int width, int height, const xlColor& c, const std::string& particleType, bool mixcolors, float audioLevel, int sourceSize, float& flowAccumulator, float dt, int maxParticles);
+    void CreateParticleSystem(b2World* world, int lifetime, int size, int maxParticles);
     void Step(b2World* world, RenderBuffer& buffer, bool enabled[], int lifetime, const std::string& particleType, bool mixcolors,
               int x1, int y1, int direction1, int velocity1, int flow1, int sourceSize1, bool flowMusic1,
               int x2, int y2, int direction2, int velocity2, int flow2, int sourceSize2, bool flowMusic2,
               int x3, int y3, int direction3, int velocity3, int flow3, int sourceSize3, bool flowMusic3,
-              int x4, int y4, int direction4, int velocity4, int flow4, int sourceSize4, bool flowMusic4, float time);
+              int x4, int y4, int direction4, int velocity4, int flow4, int sourceSize4, bool flowMusic4, float time,
+              float flowAccumulators[4], int maxParticles);
     xlColor GetDespeckleColor(RenderBuffer& buffer, size_t x, size_t y, int despeckle) const;
 };

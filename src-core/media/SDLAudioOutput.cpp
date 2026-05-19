@@ -12,12 +12,189 @@
 
 #include <cassert>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <string>
+#include <vector>
 
 #include <log.h>
 
 #include "kiss_fft/tools/kiss_fftr.h"
+
+// FFmpeg atempo filter for pitch-preserving speed change on non-Apple platforms.
+// Apple platforms use AVAudioUnitTimePitch in AVAudioEngineOutput instead.
+#ifndef __APPLE__
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+extern "C" {
+#include <libavfilter/avfilter.h>
+#include <libavfilter/buffersrc.h>
+#include <libavfilter/buffersink.h>
+#include <libavutil/opt.h>
+#include <libavutil/channel_layout.h>
+#include <libavutil/version.h>
+}
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
+
+// Stretch int16 stereo interleaved PCM using FFmpeg's atempo filter.
+// Returns a malloc-owned buffer; caller must free(). outputLen set on success.
+// Returns nullptr on failure — caller should fall back to device-rate change.
+static uint8_t* StretchAudioAtempo(const uint8_t* input, long inputLen,
+                                    int sampleRate, float tempo, long& outputLen)
+{
+    outputLen = 0;
+    if (inputLen <= 0 || sampleRate <= 0 || tempo <= 0.0f) return nullptr;
+
+    // atempo supports [0.5, 2.0]; chain filters for wider ranges (e.g. 4x = atempo=2.0,atempo=2.0)
+    std::string filterStr;
+    float t = tempo;
+    auto addFilter = [&](const char* f) {
+        if (!filterStr.empty()) filterStr += ',';
+        filterStr += f;
+    };
+    while (t > 2.0f + 1e-4f) { addFilter("atempo=2.0"); t /= 2.0f; }
+    while (t < 0.5f - 1e-4f) { addFilter("atempo=0.5"); t *= 2.0f; }
+    char atempoArg[32];
+    snprintf(atempoArg, sizeof(atempoArg), "atempo=%.6f", (double)t);
+    addFilter(atempoArg);
+
+    const AVFilter* abuffersrc_flt  = avfilter_get_by_name("abuffer");
+    const AVFilter* abuffersink_flt = avfilter_get_by_name("abuffersink");
+    if (!abuffersrc_flt || !abuffersink_flt) return nullptr;
+
+    AVFilterGraph* graph = avfilter_graph_alloc();
+    if (!graph) return nullptr;
+
+    AVFilterContext* srcCtx  = nullptr;
+    AVFilterContext* sinkCtx = nullptr;
+
+    char srcArgs[256];
+    snprintf(srcArgs, sizeof(srcArgs),
+             "time_base=1/%d:sample_rate=%d:sample_fmt=s16:channels=2:channel_layout=stereo",
+             sampleRate, sampleRate);
+
+    int ret = avfilter_graph_create_filter(&srcCtx, abuffersrc_flt, "in", srcArgs, nullptr, graph);
+    if (ret < 0) {
+        spdlog::warn("StretchAudioAtempo: abuffer create failed ({})", ret);
+        avfilter_graph_free(&graph);
+        return nullptr;
+    }
+
+    ret = avfilter_graph_create_filter(&sinkCtx, abuffersink_flt, "out", nullptr, nullptr, graph);
+    if (ret < 0) {
+        spdlog::warn("StretchAudioAtempo: abuffersink create failed ({})", ret);
+        avfilter_graph_free(&graph);
+        return nullptr;
+    }
+
+    {
+        AVFilterInOut* filterIn  = avfilter_inout_alloc();
+        AVFilterInOut* filterOut = avfilter_inout_alloc();
+        if (!filterIn || !filterOut) {
+            avfilter_inout_free(&filterIn);
+            avfilter_inout_free(&filterOut);
+            avfilter_graph_free(&graph);
+            return nullptr;
+        }
+        filterOut->name = av_strdup("in");  filterOut->filter_ctx = srcCtx;  filterOut->pad_idx = 0; filterOut->next = nullptr;
+        filterIn->name  = av_strdup("out"); filterIn->filter_ctx  = sinkCtx; filterIn->pad_idx  = 0; filterIn->next  = nullptr;
+
+        ret = avfilter_graph_parse_ptr(graph, filterStr.c_str(), &filterIn, &filterOut, nullptr);
+        avfilter_inout_free(&filterIn);
+        avfilter_inout_free(&filterOut);
+        if (ret < 0) {
+            spdlog::warn("StretchAudioAtempo: graph_parse_ptr failed ({})", ret);
+            avfilter_graph_free(&graph);
+            return nullptr;
+        }
+    }
+
+    ret = avfilter_graph_config(graph, nullptr);
+    if (ret < 0) {
+        spdlog::warn("StretchAudioAtempo: graph_config failed ({})", ret);
+        avfilter_graph_free(&graph);
+        return nullptr;
+    }
+
+    const long totalFrames = inputLen / (2L * (long)sizeof(int16_t));
+    std::vector<uint8_t> outVec;
+    outVec.reserve((size_t)((double)totalFrames / tempo * 1.1 + 8192) * 2 * sizeof(int16_t));
+
+    AVFrame* frame = av_frame_alloc();
+    if (!frame) {
+        avfilter_graph_free(&graph);
+        return nullptr;
+    }
+
+    const int chunkFrames = 4096;
+    long frameOffset = 0;
+    long framesLeft  = totalFrames;
+
+    auto drainSink = [&]() {
+        while (true) {
+            av_frame_unref(frame);
+            ret = av_buffersink_get_frame(sinkCtx, frame);
+            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) break;
+            if (ret < 0) { framesLeft = 0; break; }
+            size_t bytes = (size_t)frame->nb_samples * 2 * sizeof(int16_t);
+            size_t oldSz = outVec.size();
+            outVec.resize(oldSz + bytes);
+            memcpy(outVec.data() + oldSz, frame->data[0], bytes);
+        }
+    };
+
+    while (framesLeft > 0) {
+        int n = (int)std::min((long)chunkFrames, framesLeft);
+
+        av_frame_unref(frame);
+        frame->sample_rate = sampleRate;
+        frame->format      = AV_SAMPLE_FMT_S16;
+        frame->nb_samples  = n;
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 28, 100)
+        av_channel_layout_default(&frame->ch_layout, 2);
+#else
+        frame->channels       = 2;
+        frame->channel_layout = AV_CH_LAYOUT_STEREO;
+#endif
+        if (av_frame_get_buffer(frame, 0) < 0) break;
+
+        memcpy(frame->data[0], input + frameOffset * 2 * (long)sizeof(int16_t),
+               (size_t)n * 2 * sizeof(int16_t));
+        frame->pts = frameOffset;
+
+        if (av_buffersrc_add_frame_flags(srcCtx, frame, AV_BUFFERSRC_FLAG_KEEP_REF) < 0) break;
+        frameOffset += n;
+        framesLeft  -= n;
+        drainSink();
+    }
+
+    // Flush
+    av_buffersrc_add_frame_flags(srcCtx, nullptr, 0);
+    drainSink();
+
+    av_frame_free(&frame);
+    avfilter_graph_free(&graph);
+
+    if (outVec.empty()) return nullptr;
+
+    uint8_t* result = (uint8_t*)malloc(outVec.size());
+    if (!result) return nullptr;
+    memcpy(result, outVec.data(), outVec.size());
+    outputLen = (long)outVec.size();
+    return result;
+}
+#endif // !__APPLE__
 
 #ifndef __APPLE__
 #define DEFAULT_NUM_SAMPLES 1024
@@ -105,11 +282,30 @@ AudioData::AudioData() {
 }
 
 long AudioData::Tell() const {
+    if (_stretchedBuffer && _stretchedLen > 0) {
+        // Each stretched frame represents _stretchRatio original frames
+        long consumedStretched = (_stretchedLen - _audio_len) / 4;
+        long consumedOriginal = (long)((double)consumedStretched * _stretchRatio + 0.5);
+        return (long)(((Uint64)consumedOriginal * _lengthMS) / _trackSize);
+    }
     long pos = (long)(((((Uint64)(_original_len - _audio_len) / 4) * _lengthMS)) / _trackSize);
     return pos;
 }
 
 void AudioData::Seek(long ms) {
+    if (_stretchedBuffer && _stretchedLen > 0) {
+        // Map ms position in original audio to position in stretched buffer
+        long origFrames     = (long)((Uint64)ms * _rate / 1000);
+        long stretchFrames  = (long)((double)origFrames / _stretchRatio);
+        long byteOffset     = stretchFrames * 4;
+        byteOffset -= byteOffset % 4;
+        if (byteOffset < 0) byteOffset = 0;
+        if (byteOffset > _stretchedLen) byteOffset = _stretchedLen;
+        _audio_len = _stretchedLen - byteOffset;
+        _audio_pos = _stretchedBuffer + byteOffset;
+        spdlog::debug("ID {} Seeking to {}MS (stretched) ... stretched audio_len: {}", _id, ms, _audio_len);
+        return;
+    }
 
     if ((((Uint64)ms * _rate * 2 * 2) / 1000) > (Uint64)_original_len) {
         // I am not super sure about this
@@ -129,6 +325,21 @@ void AudioData::Seek(long ms) {
 }
 
 void AudioData::SeekAndLimitPlayLength(long ms, long len) {
+    if (_stretchedBuffer && _stretchedLen > 0) {
+        long startFrames  = (long)((double)((Uint64)ms * _rate / 1000) / _stretchRatio);
+        long lenFrames    = (long)((double)((Uint64)len * _rate / 1000) / _stretchRatio);
+        long byteStart    = startFrames * 4;
+        long byteCount    = lenFrames * 4;
+        byteStart -= byteStart % 4;
+        byteCount -= byteCount % 4;
+        if (byteStart > _stretchedLen) byteStart = _stretchedLen;
+        if (byteStart + byteCount > _stretchedLen) byteCount = _stretchedLen - byteStart;
+        _audio_len = byteCount;
+        _audio_pos = _stretchedBuffer + byteStart;
+        spdlog::debug("ID {} SeekAndLimit to {}MS len {}MS (stretched) ... audio_len: {}.", _id, ms, len, _audio_len);
+        return;
+    }
+
     _audio_len = (long)(((Uint64)len * _rate * 2 * 2) / 1000);
     _audio_len -= _audio_len % 4;
     _audio_pos = _original_pos + (((Uint64)ms * _rate * 2 * 2) / 1000);
@@ -505,7 +716,9 @@ std::list<std::string> OutputSDL::GetOutputDevices() {
 }
 
 bool OutputSDL::OpenDevice() {
-    bool res = BaseSDL::OpenDevice(false, _initialisedRate * _playbackrate);
+    // Device always runs at the natural sample rate. Speed changes are achieved
+    // by pre-processing audio through StretchAudioAtempo() (pitch is preserved).
+    bool res = BaseSDL::OpenDevice(false, _initialisedRate);
 
     if (res) {
         Pause();
@@ -680,6 +893,22 @@ int OutputSDL::AddAudio(long len, uint8_t* buffer, int volume, int rate, long tr
     ad->_trackSize = tracksize;
     ad->_paused = false;
 
+    // Pre-stretch audio if speed is not 1.0 so Seek() will use the stretched buffer
+#ifndef __APPLE__
+    if (_playbackrate != 1.0f) {
+        long stretchedLen = 0;
+        uint8_t* stretched = StretchAudioAtempo(buffer, len, rate, _playbackrate, stretchedLen);
+        if (stretched) {
+            ad->_stretchedBuffer = stretched;
+            ad->_stretchedLen    = stretchedLen;
+            ad->_stretchRatio    = _playbackrate;
+            ad->Seek(0);
+        } else {
+            spdlog::warn("SDL AddAudio: StretchAudioAtempo failed, audio will play at 1x speed instead of {}x", _playbackrate);
+        }
+    }
+#endif
+
     {
         std::unique_lock<std::mutex> locker(_audio_Lock);
         _audioData.push_back(ad);
@@ -719,11 +948,65 @@ void OutputSDL::Pause(int id, bool pause) {
         topause->Pause(pause);
 }
 
-void OutputSDL::SetRate(float rate) {
-    if (_playbackrate != rate) {
-        _playbackrate = rate;
-        Reopen();
+void OutputSDL::RebuildStretchedBuffers() {
+#ifndef __APPLE__
+    std::unique_lock<std::mutex> locker(_audio_Lock);
+    for (auto* ad : _audioData) {
+        free(ad->_stretchedBuffer);
+        ad->_stretchedBuffer = nullptr;
+        ad->_stretchedLen    = 0;
+        ad->_stretchRatio    = 1.0f;
+
+        if (_playbackrate != 1.0f) {
+            long stretchedLen = 0;
+            uint8_t* stretched = StretchAudioAtempo(ad->_original_pos, ad->_original_len,
+                                                    ad->_rate, _playbackrate, stretchedLen);
+            if (stretched) {
+                ad->_stretchedBuffer = stretched;
+                ad->_stretchedLen    = stretchedLen;
+                ad->_stretchRatio    = _playbackrate;
+            } else {
+                spdlog::warn("SDL RebuildStretchedBuffers: StretchAudioAtempo failed for id {}", ad->_id);
+            }
+        }
     }
+#endif
+}
+
+void OutputSDL::SetRate(float rate) {
+    if (_playbackrate == rate) return;
+
+    SDLSTATE oldstate = _state;
+    if (_state == SDLSTATE::SDLPLAYING) Stop();
+
+    // Save playback positions before rebuilding buffers
+    {
+        std::unique_lock<std::mutex> locker(_audio_Lock);
+        for (const auto& it : _audioData) {
+            it->SavePos();
+        }
+    }
+
+    _playbackrate = rate;
+
+    // Rebuild stretched buffers (time-consuming FFmpeg processing; audio is stopped).
+    // RebuildStretchedBuffers() holds _audio_Lock internally.
+    RebuildStretchedBuffers();
+
+    // Restore playback positions; no device close/reopen needed since OpenDevice()
+    // is independent of _playbackrate (device always runs at natural sample rate).
+    {
+        std::unique_lock<std::mutex> locker(_audio_Lock);
+        for (const auto& it : _audioData) {
+            it->RestorePos();
+        }
+    }
+
+    if (oldstate == SDLSTATE::SDLPLAYING) {
+        Play();
+    }
+
+    spdlog::info("SDL: playback rate changed to {:.2f}x (pitch-preserving)", rate);
 }
 
 void OutputSDL::Play() {

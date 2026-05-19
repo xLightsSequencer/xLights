@@ -294,8 +294,8 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 
 void ScriptsDialog::OnButton_DownloadClick(wxCommandEvent& event)
 {
-    //https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts
-    std::string json_data = CurlManager::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/scripts)");
+    //https://api.github.com/repos/xLightsSequencer/xLights/contents/resources/scripts
+    std::string json_data = CurlManager::HTTPSGet(R"(https://api.github.com/repos/xLightsSequencer/xLights/contents/resources/scripts)");
     std::vector<std::pair<wxString, wxString>> scripts = std::vector<std::pair<wxString, wxString>>();
 
     try {

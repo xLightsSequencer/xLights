@@ -18,11 +18,22 @@
     <ClCompile Include="..\src-ui-wx\setup\IPEntryDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
+    <ClCompile Include="..\src-core\media\OnsetDetector.cpp" />
+    <ClCompile Include="..\src-core\media\TempoDetector.cpp" />
+    <ClCompile Include="..\src-core\media\PitchDetector.cpp" />
+    <ClCompile Include="..\src-core\media\ChordDetector.cpp" />
+    <ClCompile Include="..\src-core\media\Spectrogram.cpp" />
+    <ClCompile Include="..\src-core\media\AIModelStore.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
     <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
+    <ClCompile Include="..\src-core\import_export\AutoMapper.cpp" />
+    <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
+    <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
+    <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
@@ -64,7 +75,8 @@
     <ClCompile Include="..\src-ui-wx\shared\dialogs\OptionChooser.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\sequencer\PhonemeDictionary.cpp" />
+    <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
+    <ClCompile Include="..\src-core\lyrics\PhonemeDictionary.cpp" />
     <ClCompile Include="..\src-core\render\PixelBuffer.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -82,6 +94,7 @@
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SelectModelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
@@ -120,10 +133,13 @@
     <ClCompile Include="..\src-ui-wx\color\xlColorCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFile.cpp">
       <Filter>render</Filter>
@@ -681,13 +697,14 @@
     <ClCompile Include="..\src-ui-wx\sequencer\MainSequencer.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\sequencer\LyricBreakdown.cpp">
-      <Filter>sequencer</Filter>
-    </ClCompile>
+    <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp">
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
@@ -832,9 +849,6 @@
     </ClCompile>
     <ClCompile Include="..\src-core\utils\ip_utils.cpp">
       <Filter>utils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp">
-      <Filter>shared\utils</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.cpp">
       <Filter>controllerproperties</Filter>
@@ -1053,20 +1067,24 @@
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\aiBase.cpp">
+    <ClCompile Include="..\src-core\ai\chatGPT.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\chatGPT.cpp">
+    <ClCompile Include="..\src-core\ai\claude.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\claude.cpp">
+    <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
+    <ClCompile Include="..\src-core\ai\ollama.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\diagnostics\CheckSequenceReport.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\ollama.cpp">
+    <ClCompile Include="..\src-core\ai\ServiceManager.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\ServiceManager.cpp">
+    <ClCompile Include="..\src-ui-wx\ai\PropertyGridBuilder.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-ui-wx\ai\WxServiceSettingsStore.cpp">
       <Filter>ai</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\XmlSerializer\XmlDeserializingModelFactory.cpp">
@@ -1094,6 +1112,9 @@
       <Filter>XmlSerializer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
+    <ClCompile Include="..\src-core\models\handles\HitTest.cpp">
+      <Filter>Models\handles</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -1101,16 +1122,16 @@
     <ClCompile Include="..\src-ui-wx\media\ShaderPreviewGenerator.cpp" />
     <ClCompile Include="..\dependencies\pugixml\src\pugixml.cpp" />
     <ClCompile Include="..\src-core\XmlSerializer\GdtfParser.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\Gemini.cpp">
+    <ClCompile Include="..\src-core\ai\gemini.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\GenericClient.cpp">
+    <ClCompile Include="..\src-core\ai\GenericClient.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\OpenAIAPI.cpp">
+    <ClCompile Include="..\src-core\ai\OpenAIAPI.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\ai\OpenAIImageGenerator.cpp">
+    <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp">
       <Filter>ai</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\effectpanels\DMXPanel.cpp">
@@ -1324,6 +1345,8 @@
     <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
+    <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp" />
+    <ClCompile Include="..\src-core\media\StemSeparator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
@@ -1340,6 +1363,12 @@
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
     <ClInclude Include="..\src-ui-wx\setup\IPEntryDialog.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
+    <ClInclude Include="..\src-core\media\OnsetDetector.h" />
+    <ClInclude Include="..\src-core\media\TempoDetector.h" />
+    <ClInclude Include="..\src-core\media\PitchDetector.h" />
+    <ClInclude Include="..\src-core\media\ChordDetector.h" />
+    <ClInclude Include="..\src-core\media\Spectrogram.h" />
+    <ClInclude Include="..\src-core\media\AIModelStore.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
     <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
@@ -1348,6 +1377,14 @@
     <ClInclude Include="..\src-core\media\IAudioOutput.h" />
     <ClInclude Include="..\src-core\media\SDLAudioOutput.h" />
     <ClInclude Include="..\src-core\media\xLightsVamp.h" />
+    <ClInclude Include="..\src-core\effects\BufferStyles.h" />
+    <ClInclude Include="..\src-core\import_export\AutoMapper.h" />
+    <ClInclude Include="..\src-core\import_export\BasicImportMappingNode.h" />
+    <ClInclude Include="..\src-core\import_export\EffectMapper.h" />
+    <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
+    <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
+    <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
@@ -1391,7 +1428,8 @@
     <ClInclude Include="..\src-core\utils\ExternalHooks.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
-    <ClInclude Include="..\src-ui-wx\sequencer\PhonemeDictionary.h" />
+    <ClInclude Include="..\src-core\lyrics\LRCParser.h" />
+    <ClInclude Include="..\src-core\lyrics\PhonemeDictionary.h" />
     <ClInclude Include="..\src-core\render\PixelBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -1406,6 +1444,7 @@
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SelectModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
@@ -1441,11 +1480,14 @@
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xlCustomControl.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xlGridCanvas.h" />
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
       <Filter>render</Filter>
@@ -2014,13 +2056,14 @@
     <ClInclude Include="..\src-ui-wx\sequencer\MainSequencer.h">
       <Filter>sequencer</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\sequencer\LyricBreakdown.h">
-      <Filter>sequencer</Filter>
-    </ClInclude>
+    <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h">
       <Filter>sequencer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceElements.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
@@ -2173,6 +2216,12 @@
     <ClInclude Include="..\src-core\utils\ip_utils.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\utils\FloatChecks.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\AutoReleasePool.h">
+      <Filter>utils</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\DuplicateDialog.h" />
     <ClInclude Include="..\src-core\models\DMX\DmxColorAbilityCMY.h">
       <Filter>Models\DMX</Filter>
@@ -2183,9 +2232,6 @@
     <ClInclude Include="..\src-ui-wx\sequencer\MetronomeLabelDialog.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h">
       <Filter>utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h">
-      <Filter>shared\utils</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\controllerproperties\ControllerEthernetPropertyAdapter.h">
       <Filter>controllerproperties</Filter>
@@ -2381,23 +2427,39 @@
     <ClInclude Include="..\src-ui-wx\preferences\ServicesPanel.h">
       <Filter>Preferences</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\aiBase.h">
+    <ClInclude Include="..\src-core\ai\aiBase.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\chatGPT.h">
+    <ClInclude Include="..\src-core\ai\aiPlugin.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\claude.h">
+    <ClInclude Include="..\src-core\ai\chatGPT.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\diagnostics\CheckSequenceReport.h" />
-    <ClInclude Include="..\src-ui-wx\ai\ollama.h">
+    <ClInclude Include="..\src-core\ai\claude.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\ServiceManager.h">
+    <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
+    <ClInclude Include="..\src-core\ai\ollama.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\aiType.h">
+    <ClInclude Include="..\src-core\ai\ServiceManager.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\aiType.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\IServiceSettingsStore.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\ServiceProperty.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\ai\PropertyGridBuilder.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-ui-wx\ai\WxServiceSettingsStore.h">
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\XmlSerializer\XmlSerializer.h">
@@ -2434,22 +2496,31 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
+    <ClInclude Include="..\src-core\models\handles\DragSession.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\handles\Handles.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\handles\HitTest.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\models\DMX\DmxBeamAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\media\ManageMediaPanel.h" />
     <ClInclude Include="..\src-ui-wx\media\ShaderPreviewGenerator.h" />
     <ClInclude Include="..\src-core\XmlSerializer\GdtfParser.h" />
-    <ClInclude Include="..\src-ui-wx\ai\gemini.h">
+    <ClInclude Include="..\src-core\ai\gemini.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\GenericClient.h">
+    <ClInclude Include="..\src-core\ai\GenericClient.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\OpenAIAPI.h">
+    <ClInclude Include="..\src-core\ai\OpenAIAPI.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\ai\OpenAIImageGenerator.h">
+    <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h">
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\effectpanels\DMXPanel.h">
@@ -2744,6 +2815,7 @@
     <ClInclude Include="..\src-core\controllers\PowerDMX.h" />
     <ClInclude Include="..\src-core\settings\XLightsSettings.h" />
     <ClInclude Include="..\src-ui-wx\settings\XLightsConfigAdapter.h" />
+    <ClInclude Include="..\src-ui-wx\shared\utils\wxUtilities.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Models">
@@ -2760,6 +2832,9 @@
     </Filter>
     <Filter Include="Models\DMX">
       <UniqueIdentifier>{4fb623be-9694-497c-b76e-19e9b12e5991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Models\handles">
+      <UniqueIdentifier>{6f6c7a3a-7d1c-4c4e-9b3a-2e1c7c0d8f10}</UniqueIdentifier>
     </Filter>
     <Filter Include="Preferences">
       <UniqueIdentifier>{deb253e2-d6a8-4b5f-909d-9a98e9e667e1}</UniqueIdentifier>

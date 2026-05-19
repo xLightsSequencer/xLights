@@ -23,15 +23,18 @@ public:
     virtual void Init() override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
     
-    virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
-    virtual int MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+    // Elevation-tool handler — applies the SpaceMouse Z delta to
+    // mPos[point] and (when tool_size > 1) the surrounding terrain
+    // cells. Public so the session class in the .cpp can call it.
+    void ApplySpaceMouseElevation(int point, float scale, const glm::vec3& mov);
 
-    virtual void SetActiveHandle(int handle) override;
+    // R-10b: Terrain inherits the base CentreCycle SetActiveHandleToCentre.
     virtual void AdvanceAxisTool() override;
     virtual void SetAxisTool(MSLTOOL mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
-    virtual bool IsElevationHandle() const override { return active_handle > 0; }
+    virtual bool IsElevationHandle() const override { return IsRole(active_handle, handles::Role::Vertex); }
     virtual bool CanEdit() const { return edit_active; }
     virtual void SetEdit(bool val) override { edit_active = val; }
     virtual void* GetRawData() override { return (void*)&mPos; }
@@ -39,6 +42,23 @@ public:
     int GetNumPointsWide() const { return num_points_wide; }
     int GetNumPointsDeep() const { return num_points_deep; }
     int GetNumPoints() const { return num_points; }
+
+    [[nodiscard]] float GetGridHeight(int idx) const {
+        return (idx >= 0 && idx < static_cast<int>(mPos.size())) ? mPos[idx] : 0.0f;
+    }
+    // Source of truth for the world position of grid vertex `abs_point`.
+    // Shared by GetHandles (descriptors) and DrawHandles (sphere).
+    [[nodiscard]] glm::vec3 GetVertexWorldPosition(int abs_point) const;
+    void SetGridHeight(int idx, float h) {
+        if (idx >= 0 && idx < static_cast<int>(mPos.size())) mPos[idx] = h;
+    }
+    [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const override;
+    std::unique_ptr<handles::DragSession> CreateDragSession(
+        const std::string& modelName,
+        const handles::Id& id,
+        const handles::WorldRay& startRay) override;
 
     void UpdateSize(int wide, int deep, int num_points);
 

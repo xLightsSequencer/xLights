@@ -11,6 +11,7 @@
  **************************************************************/
 
 //(*Headers(SeqElementMismatchDialog)
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/dialog.h>
 #include <wx/radiobut.h>
@@ -26,6 +27,7 @@ public:
     virtual ~SeqElementMismatchDialog();
 
     //(*Declarations(SeqElementMismatchDialog)
+    wxCheckBox* CheckBoxAddAlias;
     wxChoice* ChoiceModels;
     wxRadioButton* RadioButtonDelete;
     wxRadioButton* RadioButtonMap;
@@ -41,12 +43,14 @@ protected:
     static const long ID_RADIOBUTTON1;
     static const long ID_RADIOBUTTON3;
     static const long ID_CHOICE1;
+    static const long ID_CHECKBOX1;
     //*)
 
 private:
 
     //(*Handlers(SeqElementMismatchDialog)
     void OnChoiceModelsSelect(wxCommandEvent& event);
+    void OnRadioButtonSelect(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

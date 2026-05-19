@@ -33,12 +33,17 @@ class wxStaticText;
 #include <glm/glm.hpp>
 #include <pugixml.hpp>
 
+#include "models/handles/Handles.h"
+#include "models/handles/DragSession.h"
+#include "models/handles/SpaceMouseSession.h"
+
 #include "setup/ControllerConnectionDialog.h"
 #include "shared/utils/xlPropertyGrid.h"
 #include <wx/aui/aui.h>
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <vector>
 #include <list>
@@ -114,11 +119,13 @@ class LayoutPanel: public wxPanel
 		//(*Declarations(LayoutPanel)
 		wxButton* ButtonSavePreview;
 		wxCheckBox* CheckBoxOverlap;
-		wxCheckBox* CheckBox_3D;
 		wxCheckBox* CheckBoxShowInfo;
 		wxCheckBox* CheckBoxShowNames;
+		wxCheckBox* CheckBox_3D;
 		wxChoice* ChoiceLayoutGroups;
+		wxFlexGridSizer* PreviewGLSizer;
 		wxFlexGridSizer* ToolSizer;
+		wxFlexGridSizer* TopBarSizer;
 		wxNotebook* Notebook_Objects;
 		wxPanel* FirstPanel;
 		wxPanel* LeftPanel;
@@ -316,6 +323,7 @@ class LayoutPanel: public wxPanel
         void ResetToDefaults();
         void HideFloatingPanes();
         void RestoreFloatingPanes();
+        void UpdateModelButtonSizes();
         void OnLayoutPaneClose(wxAuiManagerEvent& event);
         void DockAndRefresh(bool setModelListHeight);
         void SaveLayoutPerspective();
@@ -344,6 +352,7 @@ class LayoutPanel: public wxPanel
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
+        void FocusModelTree();
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
@@ -447,7 +456,7 @@ class LayoutPanel: public wxPanel
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
         void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
-        void SelectModelInTree(Model* modelToSelect);
+        void SelectModelInTree(Model* modelToSelect, bool preserveFilter = false);
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
@@ -478,7 +487,15 @@ class LayoutPanel: public wxPanel
         int m_bound_start_y = 0;
         int m_bound_end_x = 0;
         int m_bound_end_y = 0;
-        int m_over_handle = -1;
+        bool m_3d_lasso_shift_continuous = false;  // shift was still held when last 3D lasso ended
+        bool m_3d_lasso_fresh_start = false;       // current 3D lasso clears prior selection
+        // Hover state: the handle the cursor is currently over.
+        // Cleared (nullopt) when the cursor is not on any handle.
+        std::optional<handles::Id> m_over_handle;
+        // Trailing-vertex counter for polyline create. Distinct from
+        // `m_over_handle` because the two have disjoint lifetimes and
+        // need different representations. Init -1 (NO_HANDLE).
+        int m_polyline_create_handle = -1;
         bool m_moving_handle = false;
         bool m_wheel_down = false;
         bool m_polyline_active = false;
@@ -500,10 +517,25 @@ class LayoutPanel: public wxPanel
         BaseObject *highlightedBaseObject = nullptr;
         wxTreeListItem selectedPrimaryTreeItem = nullptr;
         bool selectionLatched = false;
-        int over_handle = -1;
+        // Previous hover state, used to detect transitions so
+        // MouseOverHandle is only called on change.
+        std::optional<handles::Id> over_handle;
         glm::vec3 last_centerpos = {0,0,0};
         glm::vec3 last_worldrotate = {0,0,0};
         glm::vec3 last_worldscale = {0,0,0};
+
+        // descriptor-based drag session. Non-null while a
+        // new-API drag is in progress; legacy `MoveHandle3D` path
+        // is bypassed in mouse-move/up when this is set.
+        std::unique_ptr<handles::DragSession> m_dragSession;
+
+        // SpaceMouse 6-DOF session. Held across consecutive
+        // EVT_MOTION3D frames so per-frame Apply() calls accumulate
+        // on the same handle. Reset whenever selection changes or
+        // SpaceMouse goes idle (we'll drop it when no events arrive
+        // for one frame — see OnPreviewMotion3D).
+        std::unique_ptr<handles::SpaceMouseSession> m_spaceMouseSession;
+        BaseObject* m_spaceMouseTarget = nullptr;
 
         void clearPropGrid();
         bool stringPropsVisible = false;
@@ -579,7 +611,6 @@ class LayoutPanel: public wxPanel
         BaseObject* last_highlight = nullptr;
         int m_last_mouse_x = 0;
         int m_last_mouse_y = 0;
-        bool creating_model =  false;
         bool mouse_state_set = false;
 
         void OnSelectionChanged(wxTreeListEvent& event);
@@ -622,7 +653,8 @@ class LayoutPanel: public wxPanel
         void DisplayAddDmxPopup();
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
-        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups);
+        std::string ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
+        std::string FindNextModelNameAfterDelete(const wxArrayString& deletedNames) const;
         int GetColumnIndex(const std::string& name) const;
         wxSearchCtrl* ModelFilterCtrl = nullptr;
         wxString _filterString;

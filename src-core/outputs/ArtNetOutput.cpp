@@ -393,6 +393,7 @@ void ArtNetOutput::SetManyChannels(int32_t channel, unsigned char* data, size_t 
 
     if (!_enabled) return;
     assert((size_t)channel + size <= (size_t)_channels);
+    if (channel < 0 || channel >= _channels) return;
 
     size_t chs = (std::min)((int32_t)size, _channels - channel);
 

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -118,8 +118,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include;..\include\ffmpeg-6\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\dependencies\lua\src;..\include\sol2-3.5.0\;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;./ffmpeg-dev/lib;$(VCToolsInstallDir)lib\x64;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs;..\include\microsoft.ml.onnxruntime.directml.1.19.2\runtimes\win-x64\native</LibraryPath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
@@ -136,8 +136,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs</LibraryPath>
+    <IncludePath>$(WXWIDGETS_ROOT)\include;$(WXWIDGETS_ROOT)\include\msvc;$(WXWIDGETS_ROOT)\3rdparty;..\..\wxWidgets\include;..\..\wxWidgets\include\msvc;..\..\wxWidgets\3rdparty;$(IncludePath);..\include\ffmpeg-6\include;..\include;$(SolutionDir)\..\src-core;$(SolutionDir)\..\src-ui-wx;$(SolutionDir)\..\src-core\render;$(SolutionDir)\..\src-core\utils;..\include\zlib;..\dependencies;..\dependencies\libxlsxwriter\include;..\include\sol2-3.5.0\;..\dependencies\lua\src;..\dependencies\pybind11\include;..\dependencies\pugixml\src;$(Python_ROOT_DIR)\include;..\dependencies\spdlog\include;..\dependencies\midifile\include;..\dependencies\liquidfun\liquidfun\Box2D;..\include\microsoft.ml.onnxruntime.directml.1.19.2\build\native\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;..\..\wxWidgets\lib\vc_x64_lib;$(WXWIDGETS_ROOT)\lib\vc_x64_lib;..\lib\windows64;GL;..\dependencies\lua\src;$(Python_ROOT_DIR)\libs;..\include\microsoft.ml.onnxruntime.directml.1.19.2\runtimes\win-x64\native</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64EC'">
     <LinkIncremental>false</LinkIncremental>
@@ -158,7 +158,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions);WXDEBUG;__WXDEBUG__;_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);wxUSE_WEBP;HAVE_ORT</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj</AdditionalOptions>
@@ -275,7 +275,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IGNORE_VENDORS;$(DefineConstants);HAVE_ORT</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/D "NOMINMAX" /utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -431,31 +431,35 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\dependencies\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
+    <ClCompile Include="..\src-core\media\StemSeparator.cpp" />
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\modelproperties\adapters\PositionZoneDialog.cpp" />
     <ClCompile Include="..\src-core\utils\FileUtils.cpp" />
     <ClCompile Include="..\src-core\utils\NodeUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\app-shell\AboutDialog.cpp" />
+    <ClCompile Include="..\src-core\ai\chatGPT.cpp" />
+    <ClCompile Include="..\src-core\ai\claude.cpp" />
+    <ClCompile Include="..\src-core\ai\gemini.cpp" />
+    <ClCompile Include="..\src-core\ai\GenericClient.cpp" />
+    <ClCompile Include="..\src-core\ai\ollama.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenAIAPI.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp" />
+    <ClCompile Include="..\src-core\ai\ServiceManager.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\aiBase.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\chatGPT.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\claude.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\GenericClient.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\ollama.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\OpenAIAPI.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\OpenAIImageGenerator.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\ServiceManager.cpp" />
-    <ClCompile Include="..\src-ui-wx\ai\Gemini.cpp" />
+    <ClCompile Include="..\src-ui-wx\ai\PropertyGridBuilder.cpp" />
+    <ClCompile Include="..\src-ui-wx\ai\WxServiceSettingsStore.cpp" />
     <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\AutoLabelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\automation.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\PythonRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp" />
-    <ClCompile Include="..\src-ui-wx\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
+    <ClCompile Include="..\src-core\models\handles\HitTest.cpp" />
     <ClCompile Include="..\src-core\controllers\ILightThat.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.cpp" />
@@ -674,11 +678,22 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\OpenGLShaders.cpp" />
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
+    <ClCompile Include="..\src-core\media\OnsetDetector.cpp" />
+    <ClCompile Include="..\src-core\media\TempoDetector.cpp" />
+    <ClCompile Include="..\src-core\media\PitchDetector.cpp" />
+    <ClCompile Include="..\src-core\media\ChordDetector.cpp" />
+    <ClCompile Include="..\src-core\media\Spectrogram.cpp" />
+    <ClCompile Include="..\src-core\media\AIModelStore.cpp" />
     <ClCompile Include="..\src-core\media\MediaCompatibility.cpp" />
     <ClCompile Include="..\src-core\media\VideoTranscoder.cpp" />
     <ClCompile Include="..\src-core\media\AudioLoader.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegAudioDecoder.cpp" />
     <ClCompile Include="..\src-core\media\SDLAudioOutput.cpp" />
+    <ClCompile Include="..\src-core\import_export\AutoMapper.cpp" />
+    <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
+    <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
+    <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
@@ -791,6 +806,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\layout\LayoutPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\LorConvertDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LyricsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\media\ManageMediaPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\media\ShaderPreviewGenerator.cpp" />
@@ -860,7 +876,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\utils\Parallel.cpp" />
     <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\sequencer\PhonemeDictionary.cpp" />
+    <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
+    <ClCompile Include="..\src-core\lyrics\PhonemeDictionary.cpp" />
     <ClCompile Include="..\src-core\render\PixelBuffer.cpp" />
     <ClCompile Include="..\src-core\models\Pixels.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\PixelTestDialog.cpp" />
@@ -892,6 +909,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\diagnostics\SearchPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SelectModelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
@@ -905,9 +923,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsGrid.cpp" />
     <ClCompile Include="..\src-core\render\Element.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\MainSequencer.cpp" />
-    <ClCompile Include="..\src-ui-wx\sequencer\LyricBreakdown.cpp" />
+    <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
@@ -983,6 +1002,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourData.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
@@ -1028,25 +1049,34 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\utils\FileUtils.h" />
     <ClInclude Include="..\src-core\utils\NodeUtils.h" />
     <ClInclude Include="..\src-ui-wx\app-shell\AboutDialog.h" />
+    <ClInclude Include="..\src-core\ai\aiBase.h" />
+    <ClInclude Include="..\src-core\ai\aiPlugin.h" />
+    <ClInclude Include="..\src-core\ai\aiType.h" />
+    <ClInclude Include="..\src-core\ai\chatGPT.h" />
+    <ClInclude Include="..\src-core\ai\claude.h" />
+    <ClInclude Include="..\src-core\ai\gemini.h" />
+    <ClInclude Include="..\src-core\ai\GenericClient.h" />
+    <ClInclude Include="..\src-core\ai\IServiceSettingsStore.h" />
+    <ClInclude Include="..\src-core\ai\ollama.h" />
+    <ClInclude Include="..\src-core\ai\OpenAIAPI.h" />
+    <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h" />
+    <ClInclude Include="..\src-core\ai\ServiceManager.h" />
+    <ClInclude Include="..\src-core\ai\ServiceProperty.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ai\aiBase.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIImageDialog.h" />
-    <ClInclude Include="..\src-ui-wx\ai\aiType.h" />
-    <ClInclude Include="..\src-ui-wx\ai\chatGPT.h" />
-    <ClInclude Include="..\src-ui-wx\ai\claude.h" />
-    <ClInclude Include="..\src-ui-wx\ai\gemini.h" />
-    <ClInclude Include="..\src-ui-wx\ai\GenericClient.h" />
-    <ClInclude Include="..\src-ui-wx\ai\ollama.h" />
-    <ClInclude Include="..\src-ui-wx\ai\OpenAIAPI.h" />
-    <ClInclude Include="..\src-ui-wx\ai\OpenAIImageGenerator.h" />
-    <ClInclude Include="..\src-ui-wx\ai\ServiceManager.h" />
+    <ClInclude Include="..\src-ui-wx\ai\PropertyGridBuilder.h" />
+    <ClInclude Include="..\src-ui-wx\ai\WxServiceSettingsStore.h" />
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\AutoLabelDialog.h" />
     <ClInclude Include="..\src-ui-wx\automation\automation.h" />
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h" />
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h" />
-    <ClInclude Include="..\src-ui-wx\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
+    <ClInclude Include="..\src-core\models\handles\DragSession.h" />
+    <ClInclude Include="..\src-core\models\handles\Handles.h" />
+    <ClInclude Include="..\src-core\models\handles\HitTest.h" />
     <ClInclude Include="..\src-core\controllers\ILightThat.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BatchRenderDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BulkEditColourPickerDialog.h" />
@@ -1174,6 +1204,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h" />
+    <ClInclude Include="..\src-core\utils\FloatChecks.h" />
+    <ClInclude Include="..\src-core\utils\AutoReleasePool.h" />
     <ClInclude Include="..\src-core\utils\ip_utils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
@@ -1238,6 +1270,12 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\OpenGLShaders.h" />
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
+    <ClInclude Include="..\src-core\media\OnsetDetector.h" />
+    <ClInclude Include="..\src-core\media\TempoDetector.h" />
+    <ClInclude Include="..\src-core\media\PitchDetector.h" />
+    <ClInclude Include="..\src-core\media\ChordDetector.h" />
+    <ClInclude Include="..\src-core\media\Spectrogram.h" />
+    <ClInclude Include="..\src-core\media\AIModelStore.h" />
     <ClInclude Include="..\src-core\media\MediaCompatibility.h" />
     <ClInclude Include="..\src-core\media\VideoTranscoder.h" />
     <ClInclude Include="..\src-core\media\AudioLoader.h" />
@@ -1246,6 +1284,14 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\media\IAudioOutput.h" />
     <ClInclude Include="..\src-core\media\SDLAudioOutput.h" />
     <ClInclude Include="..\src-core\media\xLightsVamp.h" />
+    <ClInclude Include="..\src-core\effects\BufferStyles.h" />
+    <ClInclude Include="..\src-core\import_export\AutoMapper.h" />
+    <ClInclude Include="..\src-core\import_export\BasicImportMappingNode.h" />
+    <ClInclude Include="..\src-core\import_export\EffectMapper.h" />
+    <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
+    <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
+    <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
@@ -1350,6 +1396,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricsDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\ManageMediaPanel.h" />
     <ClInclude Include="..\src-ui-wx\media\ShaderPreviewGenerator.h" />
@@ -1419,7 +1466,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\utils\Parallel.h" />
     <ClInclude Include="..\src-ui-wx\model\PathGenerationDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
-    <ClInclude Include="..\src-ui-wx\sequencer\PhonemeDictionary.h" />
+    <ClInclude Include="..\src-core\lyrics\LRCParser.h" />
+    <ClInclude Include="..\src-core\lyrics\PhonemeDictionary.h" />
     <ClInclude Include="..\src-core\render\PixelBuffer.h" />
     <ClInclude Include="..\src-core\models\Pixels.h" />
     <ClInclude Include="..\src-ui-wx\setup\PixelTestDialog.h" />
@@ -1449,6 +1497,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\SearchPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SelectModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
@@ -1462,9 +1511,10 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\render\Element.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\ElementLayers.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\MainSequencer.h" />
-    <ClInclude Include="..\src-ui-wx\sequencer\LyricBreakdown.h" />
+    <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />
@@ -1546,6 +1596,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColourData.h" />
     <ClInclude Include="..\src-core\utils\xlImage.h" />
     <ClInclude Include="..\src-core\utils\Base64.h" />

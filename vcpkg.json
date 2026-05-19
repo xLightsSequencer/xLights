@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "xlights",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": [
+        "avcodec",
+        "avdevice",
+        "avfilter",
+        "avformat",
+        "swresample",
+        "swscale",
+        "nvcodec",
+        "opencl",
+        "qsv",
+        "vulkan",
+        "x264",
+        "x265",
+        "gpl"
+      ]
+    },
+    "sdl2",
+    "zstd",
+    "curl",
+    "hidapi",
+    "libxlsxwriter",
+    "libwebp"
+  ]
+}

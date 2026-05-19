@@ -40,6 +40,15 @@ public:
         }
     }
     
+    bool supportsMemoryless() {
+        if (@available(macOS 11.0, *)) {
+            return [canvas->getMTLDevice() respondsToSelector: @selector(supportsFamily:)]
+                && [canvas->getMTLDevice() supportsFamily: MTLGPUFamilyApple5];
+        } else {
+            return false;
+        }
+    }
+
     id<MTLTexture> getMSAATexture() {
         if (msaaTexture == nil) {
             MTLTextureDescriptor * msaaDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
@@ -47,7 +56,21 @@ public:
                                                                                                              height:height
                                                                                                           mipmapped:NO];
             msaaDesc.usage = MTLTextureUsageRenderTarget;
-            msaaDesc.storageMode = MTLStorageModePrivate;
+            // TBDR GPUs (Apple Silicon — M1+ on Mac, every iOS device)
+            // can keep the MSAA samples in tile memory only and resolve
+            // them straight into the drawable at end-of-pass — no
+            // system-memory backing required. The render pass already
+            // uses `loadAction = Clear` + `storeAction = MultisampleResolve`,
+            // which are the prerequisites for memoryless. Saves the
+            // full MSAA surface size × triple buffering on every M-series
+            // Mac. Intel Macs aren't TBDR, so fall back to Private there.
+            if (@available(macOS 11.0, *)) {
+                msaaDesc.storageMode = supportsMemoryless()
+                    ? MTLStorageModeMemoryless
+                    : MTLStorageModePrivate;
+            } else {
+                msaaDesc.storageMode = MTLStorageModePrivate;
+            }
             msaaDesc.textureType = MTLTextureType2DMultisample;
             msaaDesc.sampleCount = canvas->getMSAASampleCount();
             msaaTexture = [canvas->getMTLDevice() newTextureWithDescriptor:msaaDesc];

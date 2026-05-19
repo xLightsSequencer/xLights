@@ -18,6 +18,15 @@
             "description": "Read-only display of the active sketch definition string. The actual sketch is drawn / edited via the Effect Assist panel; this control just shows the resulting definition."
         },
         {
+            "id": "Sketch_PathEditor",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad-only touch editor for the sketch definition — drag endpoints and Bezier controls; tap in Add Line mode to append line segments; New Path starts a disconnected sub-path. Round-trips advanced segments through the desktop Effect Assist unchanged; desktop skips this entry."
+        },
+        {
             "id": "Sketch_BackgroundRow",
             "label": "",
             "type": "string",

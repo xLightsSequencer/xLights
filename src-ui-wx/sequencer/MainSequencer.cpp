@@ -1338,6 +1338,8 @@ void MainSequencer::DoUndo(wxCommandEvent& event) {
         PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
 }
 
@@ -1350,6 +1352,8 @@ void MainSequencer::DoRedo(wxCommandEvent& event) {
         PanelEffectGrid->ClearSelection();
         PanelEffectGrid->Draw();
         PanelEffectGrid->sendRenderDirtyEvent();
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     }
 }
 
@@ -1378,7 +1382,7 @@ void MainSequencer::GetPresetData(wxString& copy_data)
     }
 }
 
-bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
+bool MainSequencer::GetSelectedEffectsData(wxString& copy_data, bool includeElementInfo) {
     
 
     bool effectsPresent = false;
@@ -1435,6 +1439,14 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                 else
                 {
                     ++number_of_effects;
+                    wxString element_suffix;
+                    if (includeElementInfo) {
+                        auto* ri = mSequenceElements->GetRowInformation(i);
+                        auto* se = ri ? dynamic_cast<SubModelElement*>(ri->element) : nullptr;
+                        if (se != nullptr) {
+                            element_suffix = wxString("\tSUBMODEL:") + se->GetName();
+                        }
+                    }
                     if( column_start_time == -1000 && mSequenceElements->GetSelectedTimingRow() >= 0 )
                     {
                         if (tel == nullptr)
@@ -1477,10 +1489,10 @@ bool MainSequencer::GetSelectedEffectsData(wxString& copy_data) {
                                 wxString end_pct_str = wxString::Format("%d",end_pct);
                                 wxString start_index_str = wxString::Format("%d",start_index);
                                 wxString end_index_str = wxString::Format("%d",end_index);
-                                effect_data += "\t" + start_index_str + "\t" + end_index_str + "\t" + start_pct_str + "\t" + end_pct_str + "\n";
-                            } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
-                        } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
-                    } else {effect_data += "\tNO_PASTE_BY_CELL\n";}
+                                effect_data += "\t" + start_index_str + "\t" + end_index_str + "\t" + start_pct_str + "\t" + end_pct_str + element_suffix + "\n";
+                            } else {effect_data += "\tNO_PASTE_BY_CELL" + element_suffix + "\n";}
+                        } else {effect_data += "\tNO_PASTE_BY_CELL" + element_suffix + "\n";}
+                    } else {effect_data += "\tNO_PASTE_BY_CELL" + element_suffix + "\n";}
                 }
             }
         }
@@ -1635,6 +1647,19 @@ bool MainSequencer::CopySelectedEffects() {
     else {
         dataPresent = GetSelectedEffectsData(copy_data);
     }
+    if (dataPresent && !copy_data.IsEmpty() && wxTheClipboard != nullptr && wxTheClipboard->Open()) {
+        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
+            DisplayError("Unable to copy data to clipboard.", this);
+        }
+        wxTheClipboard->Close();
+        return true;
+    }
+    return false;
+}
+
+bool MainSequencer::CopySelectedEffectsWithElementInfo() {
+    wxString copy_data;
+    bool dataPresent = GetSelectedEffectsData(copy_data, true);
     if (dataPresent && !copy_data.IsEmpty() && wxTheClipboard != nullptr && wxTheClipboard->Open()) {
         if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
             DisplayError("Unable to copy data to clipboard.", this);

@@ -29,6 +29,307 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize2.h"
 
+// Decode GIF LZW compressed data for one frame into palette indices.
+// minCodeSize: the LZW minimum code size byte from the image block.
+// lzwData: concatenated raw LZW bytes (sub-blocks stripped).
+// out: destination buffer, exactly framePixels = fw*fh entries.
+static void gifLZWDecode(int minCodeSize, const std::vector<uint8_t>& lzwData,
+                         std::vector<uint8_t>& out, int framePixels) {
+    out.assign(framePixels, 0);
+    if (lzwData.empty() || minCodeSize < 2 || minCodeSize > 11) return;
+
+    const int MAXCODES = 4096;
+    const int clearCode = 1 << minCodeSize;
+    const int eoiCode   = clearCode + 1;
+
+    uint16_t prefix[MAXCODES];
+    uint8_t  suffix[MAXCODES];
+    // Initialize root entries
+    for (int i = 0; i < clearCode; i++) { prefix[i] = 0xFFFF; suffix[i] = (uint8_t)i; }
+
+    int codeSize = minCodeSize + 1;
+    int nextCode  = eoiCode + 1;
+    int maxCode   = 1 << codeSize;
+
+    // Bit-stream reader (LSB first, as GIF specifies)
+    size_t bitPos = 0;
+    const size_t totalBits = lzwData.size() * 8;
+    auto readCode = [&]() -> int {
+        if (bitPos + codeSize > totalBits) return eoiCode;
+        int val = 0;
+        for (int i = 0; i < codeSize; i++) {
+            val |= ((lzwData[bitPos >> 3] >> (bitPos & 7)) & 1) << i;
+            bitPos++;
+        }
+        return val;
+    };
+
+    int outIdx   = 0;
+    int prevCode = -1;
+    uint8_t firstByte = 0;
+
+    while (outIdx < framePixels) {
+        int code = readCode();
+        if (code == clearCode) {
+            codeSize = minCodeSize + 1;
+            nextCode = eoiCode + 1;
+            maxCode  = 1 << codeSize;
+            prevCode = -1;
+            continue;
+        }
+        if (code == eoiCode || code > nextCode || code >= MAXCODES) break;
+
+        // Decode code to string via stack
+        uint8_t stack[MAXCODES];
+        int     top = 0;
+        int     c   = code;
+
+        if (code == nextCode) {
+            // Special case: code not yet in tabBle – string is prevString + prevString[0]
+            if (top < MAXCODES) stack[top++] = firstByte;
+            c = prevCode;
+        }
+        while (c >= 0 && c < MAXCODES && prefix[c] != 0xFFFF) {
+            if (top >= MAXCODES - 1) break;
+            stack[top++] = suffix[c];
+            c = prefix[c];
+        }
+        if (c >= 0 && c < MAXCODES && top < MAXCODES)
+            stack[top++] = suffix[c];
+
+        firstByte = stack[top - 1]; // first byte of decoded string
+
+        // Output (stack is reversed)
+        for (int i = top - 1; i >= 0 && outIdx < framePixels; i--)
+            out[outIdx++] = stack[i];
+
+        // Add new table entry
+        if (prevCode >= 0 && nextCode < MAXCODES) {
+            prefix[nextCode] = (uint16_t)prevCode;
+            suffix[nextCode] = firstByte;
+            nextCode++;
+            if (nextCode == maxCode && codeSize < 12) {
+                codeSize++;
+                maxCode <<= 1;
+            }
+        }
+        prevCode = code;
+    }
+}
+
+AnimatedImageData LoadAnimatedGIFFromMemory(const uint8_t* data, size_t len) {
+    AnimatedImageData result;
+    if (len < 13 || data[0] != 'G' || data[1] != 'I' || data[2] != 'F') return result;
+
+    // ---- Simple binary reader ----
+    size_t pos = 6; // skip "GIF87a" / "GIF89a"
+    auto r8  = [&]() -> uint8_t  { return pos < len ? data[pos++] : 0; };
+    auto r16 = [&]() -> int      { uint8_t lo = r8(), hi = r8(); return lo | (hi << 8); };
+    auto skipBlocks = [&]() {
+        while (pos < len) { uint8_t n = r8(); if (!n) break; pos += n; }
+    };
+    auto readBlocks = [&](std::vector<uint8_t>& out) {
+        while (pos < len) {
+            uint8_t n = r8(); if (!n) break;
+            for (int i = 0; i < n && pos < len; i++) out.push_back(data[pos++]);
+        }
+    };
+    auto readPal = [&](uint8_t pal[][4], int count) {
+        for (int i = 0; i < count; i++) {
+            pal[i][0] = r8(); pal[i][1] = r8(); pal[i][2] = r8(); pal[i][3] = 255;
+        }
+    };
+
+    // ---- Logical Screen Descriptor ----
+    int cW = r16(), cH = r16();
+    uint8_t packed = r8();
+    uint8_t bgIdx  = r8();
+    r8(); // pixel aspect ratio
+
+    bool hasGCT  = (packed & 0x80) != 0;
+    int  gctSize = 2 << (packed & 0x07);
+
+    uint8_t gct[256][4] = {};
+    if (hasGCT) readPal(gct, gctSize);
+
+    if (cW <= 0 || cH <= 0) return result;
+    result.width  = cW;
+    result.height = cH;
+
+    xlColor bgColor;
+    if (hasGCT) bgColor = xlColor(gct[bgIdx][0], gct[bgIdx][1], gct[bgIdx][2]);
+    result.backgroundColor = bgColor;
+
+    // Single compositing canvas, transparent background (matching old wxGIFDecoder
+    // behaviour). Transparent GIF pixels are left as alpha=0 so previews show the
+    // panel colour behind the image. BuildNoBGFrames() in AnimatedImage handles the
+    // suppress-background rendering case on top of this.
+    const size_t canvasBytes = (size_t)cW * cH * 4;
+
+    std::vector<uint8_t> canvas(canvasBytes, 0);
+
+    // Saved canvas state for disposal==3 (restore-to-previous)
+    std::vector<uint8_t> saved(canvasBytes, 0);
+
+    // GCE state carried from one image block to the next
+    // (GCE describes how to dispose the frame that follows it)
+    int prevDisposal   = 0;   // disposal method for the PREVIOUS frame
+    int prevFx = 0, prevFy = 0, prevFw = 0, prevFh = 0; // bounding box of prev frame
+    int currDisposal   = 0;   // from the most-recently-seen GCE
+    int currDelay      = 100; // ms
+    int currTranspIdx  = -1;
+    bool hadPrevFrame  = false;
+
+    // ---- Main parsing loop ----
+    while (pos < len) {
+        uint8_t tag = r8();
+        if (tag == 0x3B) break; // GIF trailer
+
+        if (tag == 0x21) { // Extension block
+            uint8_t ext = r8();
+            if (ext == 0xF9) { // Graphic Control Extension
+                uint8_t bsz = r8();
+                if (bsz >= 4) {
+                    uint8_t ef  = r8();
+                    currDisposal  = (ef >> 2) & 0x07;
+                    int deciSecs  = r16();
+                    currDelay     = (deciSecs > 0) ? deciSecs * 10 : 100;
+                    if (ef & 0x01) {
+                        currTranspIdx = (int)r8();
+                    } else {
+                        r8(); // consume the byte (always present in the 4-byte block)
+                        currTranspIdx = -1;
+                    }
+                    bsz -= 4;
+                }
+                if (bsz > 0) pos += bsz;
+                skipBlocks(); // consume terminator
+            } else {
+                skipBlocks();
+            }
+            continue;
+        }
+
+        if (tag != 0x2C) continue; // unknown — skip
+
+        // ---- Image Descriptor ----
+        int fx = r16(), fy = r16(), fw = r16(), fh = r16();
+        uint8_t imgFlags   = r8();
+        bool hasLCT        = (imgFlags & 0x80) != 0;
+        bool interlaced    = (imgFlags & 0x40) != 0;
+        int  lctEntries    = hasLCT ? (2 << (imgFlags & 0x07)) : 0;
+
+        uint8_t lct[256][4] = {};
+        if (hasLCT) readPal(lct, lctEntries);
+        const uint8_t (*pal)[4] = hasLCT ? lct : gct;
+
+        // Build a local RGBA palette with transparency applied
+        uint8_t localPal[256][4];
+        std::memcpy(localPal, pal, sizeof(localPal));
+        if (currTranspIdx >= 0 && currTranspIdx < 256)
+            localPal[currTranspIdx][3] = 0;
+
+        // LZW decode
+        int minCodeSz = r8();
+        std::vector<uint8_t> lzwData;
+        readBlocks(lzwData);
+
+        int clampW = (fx < cW && fw > 0) ? std::min(fw, cW - fx) : 0;
+        int clampH = (fy < cH && fh > 0) ? std::min(fh, cH - fy) : 0;
+
+        std::vector<uint8_t> indices;
+        if (clampW > 0 && clampH > 0)
+            gifLZWDecode(minCodeSz, lzwData, indices, fw * fh);
+
+        // ---- Apply PREVIOUS frame's disposal before drawing this frame ----
+        if (hadPrevFrame) {
+            if (prevDisposal == 2) {
+                // Restore entire previous-frame rectangle to transparent.
+                // GIF spec says "restore to background colour", but we keep the canvas
+                // transparent (alpha=0) so that previews show the panel colour behind
+                // the image, matching the old wxGIFDecoder behaviour.
+                int clampPW = std::min(prevFw, cW - prevFx);
+                int clampPH = std::min(prevFh, cH - prevFy);
+                for (int r = 0; r < clampPH; r++) {
+                    size_t rowOff = ((size_t)(prevFy + r) * cW + prevFx) * 4;
+                    std::memset(canvas.data() + rowOff, 0, (size_t)clampPW * 4);
+                }
+            } else if (prevDisposal == 3) {
+                // Restore to the state saved before the previous frame was drawn
+                std::copy(saved.begin(), saved.end(), canvas.begin());
+            }
+            // disposal 0 or 1: leave canvas unchanged
+        }
+
+        // Save canvas state before drawing (used if the NEXT frame has disposal==3)
+        std::copy(canvas.begin(), canvas.end(), saved.begin());
+
+        // ---- Paint this frame's pixels onto both canvases ----
+        // For interlaced frames we must iterate every storage row (not clampH —
+        // a clipped storage range can still emit display rows that fall inside
+        // the canvas), so the per-row dispY check below does the bounds clip.
+        if (!indices.empty() && clampW > 0 && clampH > 0) {
+            const int loopH = interlaced ? fh : clampH;
+            for (int row = 0; row < loopH; row++) {
+                // Map storage row to display row. For interlaced GIFs, LZW
+                // bytes are stored in pass order (0,8,16,…,4,12,…,2,6,…,1,3,…)
+                // so storage row N decodes to a different display row.
+                int dispRow = row;
+                if (interlaced) {
+                    int cnt = 0;
+                    const int starts[4] = {0, 4, 2, 1};
+                    const int steps[4]  = {8, 8, 4, 2};
+                    for (int p = 0; p < 4; p++) {
+                        for (int r2 = starts[p]; r2 < fh; r2 += steps[p], cnt++) {
+                            if (cnt == row) { dispRow = r2; goto doneInterlace; }
+                        }
+                    }
+                    doneInterlace:;
+                }
+                int dispY = fy + dispRow;
+                if (dispY < 0 || dispY >= cH) continue;
+
+                for (int col = 0; col < clampW; col++) {
+                    uint8_t idx = indices[(size_t)row * fw + col];
+                    if (currTranspIdx >= 0 && idx == (uint8_t)currTranspIdx)
+                        continue; // transparent pixel — leave canvas unchanged
+
+                    const uint8_t* c = localPal[idx];
+                    size_t o = ((size_t)dispY * cW + (fx + col)) * 4;
+                    canvas[o]   = c[0]; canvas[o+1] = c[1];
+                    canvas[o+2] = c[2]; canvas[o+3] = 255;
+                }
+            }
+        }
+
+        // ---- Snapshot canvas as output frame ----
+        {
+            uint8_t* frameData = new uint8_t[canvasBytes];
+            std::memcpy(frameData, canvas.data(), canvasBytes);
+            result.frames.emplace_back(cW, cH, frameData);
+            result.frameTimes.push_back((long)currDelay);
+        }
+
+        // Carry disposal forward; reset GCE state for next frame
+        prevDisposal  = currDisposal;
+        prevFx = fx; prevFy = fy; prevFw = fw; prevFh = fh;
+        hadPrevFrame  = true;
+        currDisposal  = 0;
+        currDelay     = 100;
+        currTranspIdx = -1;
+    }
+
+    if (result.frames.empty()) return result;
+
+    // If every frame delay is 0 (malformed GIF), default to 100 ms
+    long total = 0;
+    for (long t : result.frameTimes) total += t;
+    if (total == 0)
+        std::fill(result.frameTimes.begin(), result.frameTimes.end(), 100L);
+
+    return result;
+}
+
 bool xlImage::LoadFromMemory(const uint8_t* data, size_t len) {
     int w = 0, h = 0, channels = 0;
     // Request 4 channels (RGBA) regardless of source format

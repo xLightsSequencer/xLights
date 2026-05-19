@@ -16,6 +16,7 @@
 #include <wx/rawbmp.h>
 
 #include "UtilFunctions.h"
+#include "color/xlColourPickerDialog.h"
 namespace
 {
     const int BorderWidth = 5;
@@ -132,10 +133,17 @@ void MHRgbPickerPanel::OnPaint(wxPaintEvent& /*event*/) {
             pdc.SetBrush(*wxWHITE_BRUSH);
         }
         pdc.DrawPolygon(num_points, points, wxODDEVEN_RULE);
+        // Restore value to compute RGB
+        hsv.value = value;
+        xlColor rgb;
+        rgb.fromHSV(hsv);
         pdc.SetTextForeground(*wxBLACK);
-        wxString text = wxString::Format("H:%i,S:%i,V:%i",
-                        int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
-        pdc.DrawText(text, 0 , 0);
+        wxString hsvText = wxString::Format("H:%i S:%i V:%i",
+                           int(hsv.hue * 360.0), int(hsv.saturation * 100.0), int(value * 100.0));
+        wxString rgbText = wxString::Format("R:%i G:%i B:%i", rgb.red, rgb.green, rgb.blue);
+        int lineH = pdc.GetCharHeight();
+        pdc.DrawText(hsvText, 0, 0);
+        pdc.DrawText(rgbText, 0, lineH + 2);
     }
 }
 
@@ -170,6 +178,50 @@ void MHRgbPickerPanel::OnKeyUp(wxKeyEvent& event)
 void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
+
+    // Ctrl+click (Cmd+click on macOS): open colour picker and place/move the active handle
+    if (event.CmdDown()) {
+        xlColor initialColor = xlWHITE;
+        int hitHandle = HitTest(ptUI);
+        if (hitHandle >= 0) {
+            initialColor = m_handles[hitHandle].color;
+            active_handle = hitHandle;
+            selected_point = hitHandle;
+        } else if (active_handle >= 0 && active_handle < (int)m_handles.size()) {
+            initialColor = m_handles[active_handle].color;
+        } else if (insideColors(ptUI.m_x, ptUI.m_y)) {
+            initialColor = GetPointColor(ptUI.m_x, ptUI.m_y);
+        }
+
+        xlColourPickerDialog dlg(this, xlColorToWxColour(initialColor));
+        if (dlg.ShowModal() == wxID_OK) {
+            xlColor chosen = wxColourToXlColor(dlg.GetColour());
+            HSVValue hsv;
+            chosen.toHSV(hsv);
+
+            // Place handle at the wheel position for this HSV (same maths as SetColours)
+            double hyp = hsv.saturation * radius;
+            double phi = hsv.hue * 360.0 * PI / 180.0;
+            double px  = std::cos(phi) * hyp + center;
+            double py  = std::sin(phi) * hyp + center;
+            wxPoint2DDouble ptWheel(px, py);
+            wxPoint2DDouble ptNorm = UItoNormalized(ptWheel);
+            ptNorm.m_y = 1.0 - ptNorm.m_y;
+
+            if (active_handle >= 0 && active_handle < (int)m_handles.size()) {
+                m_handles[active_handle].pt    = ptNorm;
+                m_handles[active_handle].color = hsv;
+            } else if (m_handles.size() < 8) {
+                m_handles.push_back(HandlePoint(ptNorm, hsv));
+                active_handle  = (int)m_handles.size() - 1;
+                selected_point = active_handle;
+            }
+            m_rgbPickerParent->NotifyColorUpdated();
+            Refresh();
+        }
+        return;   // do not fall through to normal click handling
+    }
+
     m_mousePos = UItoNormalized(ptUI);
     m_mouseDown = true;
     if (m_handles.empty()) {
@@ -384,7 +436,7 @@ xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
     if( hyp <= radius ) {  // inside circle
         float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
         phi = fmod(phi, 360.0f);
-        v.saturation = hyp / center;
+        v.saturation = std::min(1.0f, (float)(std::ceil(hyp / radius * 100.0f) / 100.0f));
         v.hue = phi / 360.0f;
         c.fromHSV(v);
     } else {
@@ -433,7 +485,7 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
         double sat { wxAtof(colors[i*3+1]) };
         double val { wxAtof(colors[i*3+2]) };
         HSVValue v(hue, sat, val);
-        double hyp {v.saturation * center};
+        double hyp {v.saturation * radius};
         double phi {v.hue * 360.0f * PI / 180.0f};
         float x = cos(phi) * hyp + center;
         float y = sin(phi) * hyp + center;

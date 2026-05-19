@@ -39,6 +39,9 @@ public:
     static int EncodeChoices(const wxPGChoices& choices, const std::string& choice);
     static std::string DecodeChoices(const wxPGChoices& choices, int choice);
 
+    Controller* GetController() { return &_controller; }
+    Controller const* GetController() const { return &_controller; }
+
 protected:
     void AddModels(wxPGProperty* property, wxPGProperty* vp);
     void AddVariants(wxPGProperty* property);

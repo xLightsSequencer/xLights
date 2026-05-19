@@ -101,17 +101,25 @@ void DragEffectBitmapButton::OnMouseLeftDown(wxMouseEvent& event)
     wxString data;
     wxTextDataObject dragData(data);
 
-    //unselect any running effect to make sure the notebook change won't effect it
+    // Run the unselect + choicebook-change events SYNCHRONOUSLY,
+    // before kicking off DoDragDrop. They used to be wxPostEvent
+    // (async), but DoDragDrop runs a nested event loop on macOS —
+    // any events posted before the drag fire DURING the drag, and
+    // we'd see crashes inside AppKit's NSCoreDragProcessSourceDrag
+    // (null deref at +0xb0) when the parent's response to those
+    // events touched state AppKit was still using to drive the
+    // drag. Processing them synchronously here lets the parent
+    // settle its selection / choicebook state before AppKit takes
+    // ownership of the drag session.
     wxCommandEvent unselectEffect(EVT_UNSELECTED_EFFECT);
-    wxPostEvent(GetParent(), unselectEffect);
+    GetParent()->GetEventHandler()->ProcessEvent(unselectEffect);
 
     int id = mEffect->GetId();
 
-    // Change the Choicebook to correct page
     SelectedEffectChangedEvent eventEffectChanged(nullptr, false, true);
     // We are only changing choicebook not populating effect panel with settings
     eventEffectChanged.SetInt(id);
-    wxPostEvent(GetParent(), eventEffectChanged);
+    GetParent()->GetEventHandler()->ProcessEvent(eventEffectChanged);
 
 #ifdef __linux__
     wxIcon dragCursor;

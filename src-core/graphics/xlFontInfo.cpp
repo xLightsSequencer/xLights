@@ -4,6 +4,7 @@
 #include <log.h>
 #include <vector>
 #include <map>
+#include <mutex>
 
 // Uncomment to enable the code to create any missing FontInfo's
 // #define CREATE_MISSING_FONTS
@@ -169,8 +170,14 @@ void xlFontInfo::populate(xlVertexTextureAccumulator &va, float x, float yBase, 
     }
 }
 
+// FONTS is mutated (insert + xlFontInfo::init writes fields) from any thread that
+// renders text — must be guarded. std::map keeps references to existing entries
+// stable across insertions, so returning a const& after releasing the lock is safe
+// as long as no entry is ever erased.
 static std::map<unsigned int, xlFontInfo> FONTS;
+static std::mutex FONTS_MUTEX;
 const xlFontInfo &xlFontInfo::FindFont(int size) {
+    std::lock_guard<std::mutex> lock(FONTS_MUTEX);
     int tsize = size;
     while (!FONTS[tsize].valid() && tsize > 0) {
         if (FONTS[tsize].init(tsize)) {
@@ -187,7 +194,7 @@ const xlFontInfo &xlFontInfo::FindFont(int size) {
     }
 
     if (!FONTS[tsize].valid()) {
-        
+
         spdlog::warn("xlFontTexture had trouble creating font size {} ... this could end badly.", size);
     }
 

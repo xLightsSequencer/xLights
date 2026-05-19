@@ -34,11 +34,14 @@ class OtherSettingsPanel: public wxPanel
 
 		//(*Declarations(OtherSettingsPanel)
 		wxCheckBox* CheckBox_BatchRenderPromptIssues;
+		wxCheckBox* CheckBox_EnablePositionZones;
 		wxCheckBox* CheckBox_IgnoreVendorModelRecommendations;
 		wxCheckBox* CheckBox_PurgeDownloadCache;
 		wxCheckBox* CheckBox_RecycleTips;
+		wxCheckBox* CheckBox_ShowZoneIndicator;
+		wxCheckBox* CheckBox_UseCustomColorPicker;
 		wxCheckBox* ExcludeAudioCheckBox;
-		wxCheckBox* ExcludePresetsCheckBox;
+		wxCheckBox* ExcludeVideosCheckBox;
 		wxCheckBox* GPURenderCheckbox;
 		wxCheckBox* HardwareVideoDecodingCheckBox;
 		wxCheckBox* ShaderCheckbox;
@@ -87,6 +90,9 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX9;
 		static const wxWindowID ID_STATICTEXT7;
 		static const wxWindowID ID_CTRLPINGINTERVAL;
+		static const wxWindowID ID_CHECKBOX10;
+		static const wxWindowID ID_CHECKBOX11;
+		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
 		//*)
 
 	private:

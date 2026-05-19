@@ -1,9 +1,14 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
+#import <CoreGraphics/CGBase.h>
 
 // ObjC bridge for iPadRenderContext — callable from Swift.
 // Manages show folder loading and sequence access.
+
+@class XLCheckSequenceIssue;
+
+NS_ASSUME_NONNULL_BEGIN
 
 @interface XLSequenceDocument : NSObject
 
@@ -25,16 +30,16 @@
 // Copy `sourcePath` into `<showFolder>/<subdirectory>`, appending `_N`
 // to the basename on collision. Returns the destination absolute path
 // on success, nil on failure (no show folder loaded, copy error).
-- (NSString*)moveFileToShowFolder:(NSString*)sourcePath
-                        subdirectory:(NSString*)subdirectory;
+- (nullable NSString*)moveFileToShowFolder:(NSString*)sourcePath
+                                 subdirectory:(NSString*)subdirectory;
 
 // Copy `sourcePath` into `<mediaFolderPath>/<subdirectory>`.
 // `mediaFolderPath` must already be in `mediaFolderPaths`; unknown
 // paths are rejected so the "media always lives in a configured root"
 // invariant isn't broken.
-- (NSString*)copyFileToMediaFolder:(NSString*)sourcePath
-                       mediaFolderPath:(NSString*)mediaFolderPath
-                        subdirectory:(NSString*)subdirectory;
+- (nullable NSString*)copyFileToMediaFolder:(NSString*)sourcePath
+                                mediaFolderPath:(NSString*)mediaFolderPath
+                                 subdirectory:(NSString*)subdirectory;
 
 // True iff `path` is under the show folder or any configured media
 // folder. Used to decide whether a picked file needs copying.
@@ -50,10 +55,58 @@
 - (void)closeSequence;
 - (BOOL)isSequenceLoaded;
 
+// xsqz open: `pkgPath` is a `.xsqz` / `.zip` / `.piz` package.
+// Extracts it to a temp dir (via `SequencePackage`), swaps the
+// show folder to that temp dir, and opens the inner `.xsq`.
+// On a subsequent `-saveSequence`, the bridge re-packs the
+// temp dir back into `pkgPath` atomically — see
+// `-[saveSequence]`. `-closeSequence` wipes the temp dir and
+// restores whatever show folder was active before the open.
+//
+// May take a noticeable time for large packages (disk I/O on
+// many-MB zips); Swift callers should dispatch this off the
+// main queue and show a progress affordance.
+//
+// Returns NO if extraction fails, the package has no `.xsq`
+// inside, or the internal open fails.
+- (BOOL)openPackagedSequence:(NSString*)pkgPath NS_SWIFT_NAME(openPackagedSequence(atPath:));
+
+// YES iff the currently-open sequence was opened via
+// `-openPackagedSequence:` and hasn't been closed yet. The
+// Swift UI uses this to skip "Save As to new xsq" affordances
+// that would break out of the package.
+- (BOOL)isPackagedSequence;
+
+// Absolute path of the `.xsqz` the current session was opened
+// from. Empty when the current sequence isn't packaged.
+- (NSString*)packagePath;
+
+// E-2 — create a fresh sequence on disk at `savePath` and
+// immediately open it as the active document. `type` is one of
+// "Media" / "Animation" / "Effect"; `mediaPath` is required for
+// Media and ignored otherwise (paths are resolved through the
+// show folder). `durationMS` and `frameMS` write the XML head
+// attributes matching the desktop wizard's output. Returns NO
+// on failure; closes any previously-open sequence before
+// starting.
+- (BOOL)newSequenceAtPath:(NSString*)savePath
+                       type:(NSString*)type
+                  mediaPath:(NSString*)mediaPath
+                 durationMS:(int)durationMS
+                    frameMS:(int)frameMS;
+
 // Save the currently-open sequence back to its on-disk path. Returns
 // NO if there's no sequence loaded, the path is empty, or the XML
 // write fails. Marks the sequence clean on success.
 - (BOOL)saveSequence;
+
+// Tier 1 memory mitigation — drop the undo / redo history.
+// Per-step snapshots (settings + palette strings for every
+// captured effect) add up fast in long editing sessions. Called
+// from the Swift save path after a successful save so the app
+// reclaims memory at the natural "I'm done with those edits"
+// checkpoint. Safe to call with no sequence open — no-op.
+- (void)clearUndoHistory;
 
 // Save to a new path (Save As / Export). `path` must end in `.xsq`;
 // the caller is responsible for obtaining security-scoped access
@@ -75,6 +128,82 @@
 - (BOOL)isSequenceDirty;
 - (void)markSequenceClean;
 
+// E-4 — version metadata. `sequenceFileVersion` is the xLights
+// version string recorded in the on-disk `.xsq` at the time it
+// was last saved; `currentAppVersion` is the running build's
+// `xlights_version_string`. Differ → the sequence was authored
+// in a different build, so the inspector shows the migration
+// banner. Both are empty when no sequence is loaded.
+- (NSString*)sequenceFileVersion;
+- (NSString*)currentAppVersion;
+
+// About-screen helpers. `appVersion` (without an instance) and
+// `licenseText` are both static — same value across the whole app
+// lifetime — so they're class methods so the About sheet doesn't
+// need a document handle. `licenseText` is the GPL preamble +
+// upstream credit text from `XLIGHTS_LICENSE` in `globals.h`,
+// shared with desktop's About dialog.
++ (NSString*)appVersion;
++ (NSString*)licenseText;
+
+// E-6 — autosave / `.xbkp` recovery. Write the current in-memory
+// sequence to `<basename>.xbkp` alongside the `.xsq` without
+// touching the canonical file or the dirty flag. Temporarily
+// swaps the SequenceFile's `mFilePath` (matching desktop's
+// `SaveWorking` pattern in `xLightsMain.cpp:4588-4632`), writes,
+// then restores. Returns NO if no sequence is open or the
+// current path is empty (new-unsaved sequences have nowhere to
+// put the backup yet).
+- (BOOL)writeAutosaveBackup;
+
+// E-3 — Sequence Settings. Info tab (read-only) + Metadata tab
+// (header text fields) + Media file swap + Render Mode /
+// blending toggle. All setters mark the sequence dirty via the
+// normal `SequenceElements::IncrementChangeCount` path.
+//
+// Metadata keys accepted by `headerInfoForKey:` /
+// `setHeaderInfo:forKey:`: "song", "artist", "album", "author",
+// "email", "website", "url", "comment". Other keys return
+// empty / no-op.
+- (NSString*)headerInfoForKey:(NSString*)key;
+- (BOOL)setHeaderInfo:(NSString*)value forKey:(NSString*)key;
+
+// Media file getters/setters. `setMediaFilePath:` routes
+// through `SequenceFile::SetMediaFile` with `overwrite_tags=NO`
+// so existing song / artist metadata isn't clobbered when the
+// user is swapping the audio track on a sequence that already
+// has populated header fields. Pass empty to clear the media
+// file (turns a Musical sequence into an Animation — matches
+// desktop behaviour).
+- (NSString*)currentMediaFilePath;
+- (BOOL)setMediaFilePath:(NSString*)path;
+
+// ID3-style tags from the loaded audio track. Empty strings when
+// no media is loaded or the file has no metadata. Used to
+// pre-populate the AI palette generator's "Song" mode.
+- (NSString*)audioTitle;
+- (NSString*)audioArtist;
+- (NSString*)audioAlbum;
+
+// Sequence type (see `newSequenceAtPath:…`): "Media" /
+// "Animation" / "Effect". Writes flow through
+// `SequenceFile::SetSequenceType` which clears media file +
+// audio when switching to Animation / Effect.
+- (NSString*)sequenceType;
+- (BOOL)setSequenceType:(NSString*)type;
+
+// Per-frame interval in ms (the sequence's tick). Changes to
+// this require a full re-render; callers should abort any
+// in-flight render before calling.
+- (BOOL)setFrameIntervalMS:(int)frameMS;
+
+// Model-blending toggle (global blend mode).
+- (BOOL)sequenceSupportsModelBlending;
+- (BOOL)setSequenceSupportsModelBlending:(BOOL)enabled;
+
+// Read-only summary for the Info tab.
+- (int)sequenceModelCount;
+
 // Sequence metadata
 - (int)sequenceDurationMS;
 - (int)frameIntervalMS;
@@ -93,6 +222,14 @@
 - (NSArray<NSNumber*>*)timingRowIndices;
 - (BOOL)timingRowIsActiveAtIndex:(int)rowIndex;
 - (void)setTimingRowActive:(BOOL)active atIndex:(int)rowIndex;
+// B81: hide or show every timing track in the sequence (master
+// view). `allTimingTracksHidden` returns YES when none are
+// currently in the row-information list, i.e. all have been
+// hidden. Caller should `reloadRows` after flipping the state.
+- (void)setAllTimingTracksHidden:(BOOL)hidden;
+- (BOOL)allTimingTracksHidden;
+// B82: add every visible timing track to every non-master view.
+- (int)addAllTimingTracksToAllViews;
 // Color index assigned sequentially to each timing element (0..4, cycles).
 // Layers within the same timing element share the same color index.
 - (int)timingRowColorIndexAtIndex:(int)rowIndex;
@@ -105,6 +242,10 @@
 // Model-row queries used by row headers.
 - (BOOL)rowIsModelGroupAtIndex:(int)rowIndex;
 - (int)rowLayerCountAtIndex:(int)rowIndex;
+// B48: number of empty layers on the row's element. Use to gate
+// the "Delete Unused Layers" row-menu entry + label its count.
+- (int)unusedLayerCountAtRow:(int)rowIndex
+    NS_SWIFT_NAME(unusedLayerCount(atRow:));
 - (BOOL)rowIsElementCollapsedAtIndex:(int)rowIndex;
 - (void)toggleElementCollapsedAtIndex:(int)rowIndex;
 
@@ -141,7 +282,162 @@
 // that case too). Repopulates row info on success.
 - (BOOL)insertEffectLayerAboveAtIndex:(int)rowIndex;
 - (BOOL)insertEffectLayerBelowAtIndex:(int)rowIndex;
+// B47: insert `count` empty layers below the row's layerIndex.
+- (int)insertEffectLayersBelowAtIndex:(int)rowIndex count:(int)count
+    NS_SWIFT_NAME(insertEffectLayersBelow(at:count:));
 - (BOOL)removeEffectLayerAtIndex:(int)rowIndex;
+
+// B55: rewrite each effect's `B_CHOICE_BufferStyle` setting from
+// "Per Preview" / "Default" / "Single Line" / "" to the matching
+// "Per Model …" variant. When `acrossAllLayers` is YES, walks every
+// layer of the row's element (model-scope menu); otherwise only
+// the row's own layer (layer-scope menu, mirrors desktop's two
+// menu entries). Returns the count of effects whose setting was
+// updated so the UI can show "N converted" if it wants. Triggers a
+// re-render of the affected model on success.
+- (int)convertEffectsToPerModelOnRow:(int)rowIndex acrossAllLayers:(BOOL)allLayers
+    NS_SWIFT_NAME(convertEffectsToPerModel(onRow:acrossAllLayers:));
+
+// B56: promote node-level "On" / "Color Wash" effects up the
+// strand → model hierarchy when every node carries an identical
+// copy at the same time range. Two-pass: nodes → strand layer 0,
+// then strand layer 0 → model layer 0 (only when there's > 1
+// strand). No-op for ModelGroup / SubModel rows. Returns the
+// number of effects coalesced; on success a model re-render is
+// triggered automatically.
+- (int)promoteNodeEffectsOnRow:(int)rowIndex
+    NS_SWIFT_NAME(promoteNodeEffects(onRow:));
+
+// B48: delete every layer on the row's element that has zero
+// effects (keeps the element's ≥ 1 layer invariant). Returns the
+// number of layers removed. Caller should `reloadRows` afterward.
+- (int)deleteUnusedLayersOnElementAtRow:(int)rowIndex
+    NS_SWIFT_NAME(deleteUnusedLayers(onElementAt:));
+
+// B57: global collapse / expand. `collapseAllElements` sets
+// `SetCollapsed(true)` on every non-timing Element; `expandAll` does
+// the opposite. Repopulates row info so the caller just needs to
+// reloadRows afterwards.
+- (void)collapseAllElements;
+- (void)expandAllElements;
+
+// B46: in-place rename of an effect layer's name (`EffectLayer::
+// SetLayerName`). Empty string clears the name. Returns NO if the
+// row doesn't resolve to an EffectLayer.
+- (BOOL)renameLayerAtRow:(int)rowIndex
+                    name:(NSString*)newName
+    NS_SWIFT_NAME(renameLayer(atRow:name:));
+
+// B51: Element-level render-disabled toggle. Disables rendering for
+// the whole element (model + submodels + strands + nodes). Reads via
+// `elementRenderDisabled` / writes via `setElementRenderDisabled`.
+- (BOOL)elementRenderDisabledAtRow:(int)rowIndex
+    NS_SWIFT_NAME(elementRenderDisabled(atRow:));
+- (void)setElementRenderDisabled:(BOOL)disabled atRow:(int)rowIndex
+    NS_SWIFT_NAME(setElementRenderDisabled(_:atRow:));
+
+// B50: return the count of effects on the given row's layer. Used
+// to gate the "Delete All Effects" menu entry and report "N effects
+// will be deleted" in the confirm alert.
+- (int)effectCountOnRow:(int)rowIndex
+    NS_SWIFT_NAME(effectCountOnRow(_:));
+
+// B87: drop any word + phoneme layers (layers 1 and 2) from the
+// timing element the given row belongs to. Rejected if the element
+// has no sub-layers, or if any word/phoneme mark is locked. Matches
+// desktop's implicit "empty layer when user doesn't need it" cleanup;
+// no explicit desktop menu entry — it's an inverse of
+// BreakdownPhrases.
+- (BOOL)removeWordsAndPhonemesAtRow:(int)rowIndex
+    NS_SWIFT_NAME(removeWordsAndPhonemes(atRow:));
+
+// B76: timing-track fixed-vs-variable accessors. Fixed tracks carry
+// a non-zero `mFixed` interval (milliseconds-per-mark) that
+// prevents per-mark editing. `makeTimingTrackVariable` calls
+// `SetFixedTiming(0)` which unlocks user editing while leaving the
+// existing fixed-period marks in place. Returns NO if the row isn't
+// a timing element.
+- (BOOL)timingTrackIsFixedAtRow:(int)rowIndex
+    NS_SWIFT_NAME(timingTrackIsFixed(atRow:));
+- (BOOL)makeTimingTrackVariableAtRow:(int)rowIndex
+    NS_SWIFT_NAME(makeTimingTrackVariable(atRow:));
+
+// B74 import: read an `.xtiming` file (single `<timing>` or
+// multi-`<timings>` wrapper) and add each entry as a new timing
+// track. Names uniquified on collision (same rule as
+// `addTimingTrack`). Returns the number of tracks added (0 on
+// parse failure). Routes through
+// `SequenceFile::ProcessXTiming({path}, iPadRenderContext)`.
+- (int)importXTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importXTiming(fromPath:));
+
+// LOR `.lms` timing import. Routes through `SequenceFile::
+// ProcessLorTiming({path}, iPadRenderContext)` which handles both
+// "regular" and "musical" LOR timings. Returns the number of
+// tracks added.
+- (int)importLorTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importLorTiming(fromPath:));
+
+// Papagayo `.pgo` lyric-sync import. Routes through
+// `SequenceFile::ProcessPapagayo({path}, iPadRenderContext)` which
+// builds Phrase / Word / Phoneme layers. Returns the number of
+// tracks added.
+- (int)importPapagayoTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importPapagayoTiming(fromPath:));
+
+// B78 import lyrics: replace the target timing element's layers
+// with a single phrase layer populated from `phrases`. Each non-
+// empty phrase gets one mark spanning its slice of
+// [startMS, endMS], end times snapped to the sequence's frame
+// period. `phrases` should already have whitespace trimmed per
+// line; this method still strips a few common illegal XML chars
+// and smart-quote unicode variants. Returns the number of marks
+// added (0 on failure / empty input).
+- (int)importLyricsAtRow:(int)rowIndex
+                 phrases:(NSArray<NSString*>*)phrases
+                 startMS:(int)startMS
+                   endMS:(int)endMS
+    NS_SWIFT_NAME(importLyrics(atRow:phrases:startMS:endMS:));
+
+// B75 export: write the timing element at `rowIndex` to `path` as a
+// self-contained `.xtiming` XML document (wraps
+// `TimingElement::GetExport()` with the standard `<?xml ...?>` +
+// `<timing name=... subType=... SourceVersion=...>` envelope).
+// Returns NO if the row isn't a timing row or the write failed.
+// Caller is responsible for obtaining security-scoped access to
+// `path` before calling.
+- (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path
+    NS_SWIFT_NAME(exportTimingTrack(atRow:toPath:));
+
+// B49: export the rendered channel data for the row's model as a
+// compressed FSEQ v2 `.eseq` sub-sequence — the format Falcon
+// Player uses to play back per-model data. Uses the current render
+// state in `_seqData`, so the caller should ensure a full render
+// has completed first (the render engine runs continuously on
+// iPad, but a fresh render can be forced by kicking off the
+// toolbar render button). When `startMS` >= 0 and `endMS` > 0 the
+// exported file only covers the [startMS, endMS] frame range;
+// otherwise the whole sequence is written. Returns NO if the row
+// isn't a model row, the sequence has no rendered data, or the
+// write failed. Caller must call `ObtainAccessToURL` on `path`
+// beforehand.
+- (BOOL)exportModelAsFSEQAtRow:(int)rowIndex toPath:(NSString*)path
+                       startMS:(int)startMS endMS:(int)endMS
+    NS_SWIFT_NAME(exportModelAsFSEQ(atRow:toPath:startMS:endMS:));
+
+// Write the rendered sequence to `path` as a v2/zstd/sparse FSEQ matching
+// the format produced by desktop's xLightsFrame::WriteFalconPiFile. Returns
+// NO if no sequence is loaded, the path is empty, or the underlying write
+// fails. Caller must call `ObtainAccessToURL` on `path` beforehand.
+- (BOOL)writeFseqToPath:(NSString*)path NS_SWIFT_NAME(writeFseq(toPath:));
+
+// Try to populate sequence frame data from a previously-saved FSEQ file at
+// `fseqPath`, allowing the caller to skip an immediate render. Returns NO if
+// the file is missing, older than `xsqPath`, or its shape (frame count, step
+// time, channel count) doesn't match the loaded sequence. `xsqPath` may be
+// empty to skip the staleness check (not recommended in normal flows).
+- (BOOL)tryLoadFseqFromPath:(NSString*)fseqPath xsqPath:(NSString*)xsqPath
+    NS_SWIFT_NAME(tryLoadFseq(fseqPath:xsqPath:));
 
 // Timing track rename / delete. `renameTiming…` wires through
 // `SequenceElements::RenameTimingTrack` so effect references to
@@ -153,10 +449,280 @@
 - (BOOL)renameTimingTrackAtIndex:(int)rowIndex newName:(NSString*)newName;
 - (BOOL)deleteTimingTrackAtIndex:(int)rowIndex;
 
+// B73: add a new variable (user-editable) timing track with the given
+// name. The new track is made active (`DeactivateAllTimingElements` +
+// active=true on the new one). Returns NO if `name` is empty; a
+// unique suffix is auto-appended (Timing -> Timing_1) if the name
+// collides with an existing track.
+- (BOOL)addTimingTrackNamed:(NSString*)name;
+
+// Fixed-interval timing track. `intervalMS = 0` creates an empty
+// track (no marks); any positive value creates a fixed-interval
+// track with marks at multiples of `intervalMS` from 0 to the
+// sequence end. Mirrors the desktop's
+// `SequenceFile::AddFixedTimingSection(name, intervalMS, ctx)`.
+//
+// Returns the (possibly uniquified) track name on success or empty
+// string on failure (no sequence loaded, etc).
+- (NSString*)addFixedIntervalTimingTrackNamed:(NSString*)name
+                                    intervalMS:(int)intervalMS
+    NS_SWIFT_NAME(addFixedIntervalTimingTrack(named:intervalMS:));
+
+// Metronome with tags. Each generated mark gets one of `tags` as
+// its label, cycled in order (or randomised when `randomize` is
+// true and tags has 2+ entries). Empty `tags` defaults to "1"–"10".
+// `minIntervalMS = -1` means "fixed interval"; positive means
+// "random interval between minIntervalMS and intervalMS per mark"
+// (matches the desktop's "random metronome" behaviour). Wraps
+// `SequenceFile::AddMetronomeLabelTimingSection`.
+- (NSString*)addMetronomeTimingTrackNamed:(NSString*)name
+                                intervalMS:(int)intervalMS
+                                      tags:(NSArray<NSString*>*)tags
+                             minIntervalMS:(int)minIntervalMS
+                                 randomize:(BOOL)randomize
+    NS_SWIFT_NAME(addMetronomeTimingTrack(named:intervalMS:tags:minIntervalMS:randomize:));
+
+// FPP Commands / FPP Effects timing track. `subType` should be
+// "FPP Commands" or "FPP Effects" — those are the only values the
+// renderer/exporter recognises. Wraps
+// `SequenceFile::AddNewTimingSection(name, ctx, subType)`.
+- (NSString*)addFPPTimingTrackNamed:(NSString*)name
+                              subType:(NSString*)subType
+    NS_SWIFT_NAME(addFPPTimingTrack(named:subType:));
+
+// AI-lyrics flow: create a new timing track and bulk-populate it with
+// word entries from `aiBase::GenerateLyricTrack`'s output. Times are
+// rounded to the sequence's frame interval; whitespace-only words are
+// skipped. Returns the final, possibly-uniquified track name on
+// success or an empty string on failure (no sequence loaded, no words).
+//
+// `words` / `startMS` / `endMS` are parallel arrays — element i forms
+// a single word entry. Mismatched lengths return empty.
+- (NSString*)addLyricTimingTrackNamed:(NSString*)name
+                                 words:(NSArray<NSString*>*)words
+                              startMS:(NSArray<NSNumber*>*)startMS
+                                endMS:(NSArray<NSNumber*>*)endMS
+    NS_SWIFT_NAME(addLyricTimingTrack(named:words:startMS:endMS:));
+
+// True when the loaded audio's HTDemucs vocals stem has been
+// computed. The AI-lyrics flow can use this to decide whether to
+// offer "use isolated vocals" as a UI affordance, but doesn't need
+// it as a precondition — `writeCurrentToTempWav` always writes
+// whatever the user has currently selected on the waveform.
+- (BOOL)hasVocalsStems;
+
+// Write whatever audio the user currently has selected on the
+// waveform (RAW, STEM_VOCALS, a band-passed filter, etc.) to a
+// temporary stereo float32 WAV and return its absolute path (or nil
+// on failure / no audio loaded). Caller owns the file — delete
+// after use.
+- (nullable NSString*)writeCurrentToTempWav
+    NS_SWIFT_NAME(writeCurrentToTempWav());
+
+// Audio-file path for the sequence's currently-loaded audio, or nil
+// if no audio is loaded.
+- (nullable NSString*)sequenceAudioFilePath
+    NS_SWIFT_NAME(sequenceAudioFilePath());
+
+// B67 / B69: timing-mark primitives. Marks are stored as `Effect`
+// entries on the timing row's `EffectLayer`; these wrap the existing
+// `addEffectToRow:...` / `deleteEffectInRow:atIndex:` but add a
+// rowIsTiming guard and a range-overlap check. `addTimingMark` sets
+// the effect name to `label` (the phrase/word/phoneme text on
+// lyric tracks; empty string for plain timing marks). Returns the
+// new mark's index, or -1 on failure (row isn't a timing row,
+// overlap, or sequence end overlap).
+- (int)addTimingMarkAtRow:(int)rowIndex
+                  startMS:(int)startMS
+                    endMS:(int)endMS
+                    label:(NSString*)label;
+- (BOOL)deleteTimingMarkAtRow:(int)rowIndex atIndex:(int)markIndex;
+
+// B70: rename a timing mark's label in-place. `label` may be empty
+// (clearing the label). Returns NO if the row isn't a timing row
+// or the index is out of range. No overlap/validation — labels are
+// free text.
+- (BOOL)setTimingMarkLabelAtRow:(int)rowIndex
+                        atIndex:(int)markIndex
+                          label:(NSString*)label
+    NS_SWIFT_NAME(setTimingMarkLabel(atRow:at:label:));
+
+// B84: break every phrase mark on a timing element into per-word
+// sub-marks on layer 1. Rejects rows that aren't the phrase layer
+// (layer 0) of a timing element. Discards any existing word + phoneme
+// layers on the element and adds a fresh word layer. Rejects when
+// any existing word/phoneme effect is locked (matches desktop
+// safety check in RowHeading::BreakdownTimingPhrases).
+// Returns NO on rejection.
+- (BOOL)breakdownPhrasesAtRow:(int)rowIndex
+    NS_SWIFT_NAME(breakdownPhrases(atRow:));
+
+// B84 (per-mark): break a single phrase into per-word sub-marks
+// without touching the other phrases on the row. Creates the words
+// layer if missing; otherwise wipes any existing words + phonemes
+// that fall inside the target phrase's [start, end] range and
+// substitutes the fresh per-word marks. Rejects rows that aren't
+// the phrase layer (layer 0) and rejects when a locked
+// word/phoneme mark sits inside the range. Returns NO on rejection.
+- (BOOL)breakdownPhraseAtRow:(int)rowIndex atIndex:(int)phraseIndex
+    NS_SWIFT_NAME(breakdownPhrase(atRow:atIndex:));
+
+// B85: break every word mark on the Words layer (layer 1) into
+// per-phoneme sub-marks on a fresh Phonemes layer (layer 2). Uses
+// the phoneme dictionary owned by `iPadRenderContext` (lazy-loaded
+// from the bundled `dictionaries/` resource folder on first call).
+// Rejects when the element doesn't yet have a Words layer (caller
+// should Breakdown Phrases first) or when a locked phoneme mark
+// is in the way. Returns NO on rejection.
+- (BOOL)breakdownWordsAtRow:(int)rowIndex
+    NS_SWIFT_NAME(breakdownWords(atRow:));
+
+// B34 / B35 — 10 numbered tags (0..9) anchored to absolute sequence
+// times. -1 = unset. Desktop's `SequenceElements::_tagPositions`
+// already persists via the `<TimingTags>` node in the .xsq so
+// save/load round-trips automatically.
+- (int)tagPositionAtIndex:(int)index
+    NS_SWIFT_NAME(tagPosition(at:));
+- (void)setTagPositionAtIndex:(int)index positionMS:(int)position
+    NS_SWIFT_NAME(setTagPosition(at:positionMS:));
+- (void)clearAllTags;
+
 // Views (view picker).
 - (NSArray<NSString*>*)availableViews;
 - (int)currentViewIndex;
 - (void)setCurrentViewIndex:(int)viewIndex;
+
+// MARK: - Display Elements editor (F-6)
+//
+// View lifecycle + per-view model membership + global element visibility
+// + per-timing-track view membership. Each mutation marks the sequence
+// dirty via `SequenceElements::IncrementChangeCount` and posts
+// `XLViewsChanged` on NotificationCenter so the sequencer view picker
+// and any open Display Elements sheet refresh. When a mutation touches
+// the *current* view, row information is repopulated so a subsequent
+// `reloadRows()` sees the new set.
+
+// Views — CRUD + reorder. `addViewNamed:` / `cloneViewAtIndex:as:`
+// reject empty names and collisions. `deleteViewAtIndex:` refuses the
+// Master View (index 0); callers should disable the delete affordance
+// for that row. `moveView…` operates on the user-view portion of the
+// list — attempting to move the Master View is rejected; moving into
+// index 0 is rejected.
+- (BOOL)addViewNamed:(NSString*)name
+    NS_SWIFT_NAME(addView(named:));
+- (BOOL)deleteViewAtIndex:(int)idx
+    NS_SWIFT_NAME(deleteView(atIndex:));
+- (BOOL)renameViewAtIndex:(int)idx to:(NSString*)newName
+    NS_SWIFT_NAME(renameView(atIndex:to:));
+- (BOOL)cloneViewAtIndex:(int)idx as:(NSString*)newName
+    NS_SWIFT_NAME(cloneView(atIndex:as:));
+- (BOOL)moveViewUpAtIndex:(int)idx
+    NS_SWIFT_NAME(moveViewUp(atIndex:));
+- (BOOL)moveViewDownAtIndex:(int)idx
+    NS_SWIFT_NAME(moveViewDown(atIndex:));
+
+// Model list for the view at `idx`. Master View (0) returns every
+// model Element in the sequence; user views return their
+// `SequenceView` members in stored order.
+- (NSArray<NSString*>*)modelsInViewAtIndex:(int)idx
+    NS_SWIFT_NAME(modelsInView(atIndex:));
+
+// Add / remove / reorder a model in the user view at `idx`. Position
+// is 0-based; `-1` means "end of list". `addModel:` requires the
+// model to already be in the show's Master-View element set (pick
+// from `allModelNamesInShow`); fails with NO otherwise. `moveModel:`
+// removes then re-inserts at the requested position. All three reject
+// index 0 (Master View membership is derived, not stored).
+- (BOOL)addModel:(NSString*)name toViewAtIndex:(int)idx atPosition:(int)pos
+    NS_SWIFT_NAME(addModel(_:toViewAtIndex:atPosition:));
+- (BOOL)removeModel:(NSString*)name fromViewAtIndex:(int)idx
+    NS_SWIFT_NAME(removeModel(_:fromViewAtIndex:));
+- (BOOL)moveModel:(NSString*)name inViewAtIndex:(int)idx toPosition:(int)pos
+    NS_SWIFT_NAME(moveModel(_:inViewAtIndex:toPosition:));
+
+// Roster for the "members" pane of the editor — Master-View *Elements*
+// (models the sequence has opted in, plus every timing track). A model
+// being in the show's `ModelManager` does NOT imply it's in the
+// sequence; Effect Sequences start with zero models here.
+- (NSArray<NSString*>*)allModelNamesInShow;   // Master-View model Elements
+- (NSArray<NSString*>*)allTimingTrackNames;   // every TimingElement
+
+// Models that live in the show layout (`ModelManager`) but are not
+// yet Elements in this sequence. Drives the "Available" pane when the
+// Master View is selected — picking one adds it to the sequence via
+// `addModelToMasterView:`. Empty if no show folder is loaded.
+- (NSArray<NSString*>*)modelsAvailableInShowLayout;
+
+// Add a show-layout model to the sequence's Master View. Creates a
+// new `Element` with one fresh effect layer, matching desktop
+// `ViewsModelsPanel::AddSelectedModels` for the MASTER_VIEW branch.
+// Fails if the name isn't in `ModelManager` or already exists as an
+// Element. Rebuilds row information and fires `XLViewsChanged`.
+- (BOOL)addModelToMasterView:(NSString*)name;
+
+// True iff the named Element has any effects on any of its effect
+// layers. Used by the remove-confirmation dialog to warn users
+// before a `removeElementFromMasterView:` delete (which destroys
+// effects and layers along with the Element).
+- (BOOL)elementHasEffects:(NSString*)name;
+
+// Remove an Element from the sequence entirely (delegates to
+// `SequenceElements::DeleteElement`). Aborts in-flight render jobs
+// first so workers don't dereference the about-to-be-deleted
+// pointers (matches desktop issue #4134). Silently drops any
+// effects on the element. Also removes the element from every user
+// view's model-name list. Returns NO if no such Element exists.
+- (BOOL)removeElementFromMasterView:(NSString*)name;
+
+// Sequence-load "missing model" reconciliation, mirroring desktop's
+// `xLightsFrame::CheckForValidModels` post-open pass. Names returned
+// here are ELEMENT_TYPE_MODEL elements whose `GetModelName()` doesn't
+// resolve in the current `ModelManager` AND that carry at least one
+// effect (no effects = silently drop, no user prompt needed). Names
+// that already match an "oldname:" alias on some existing model are
+// filtered out — they auto-remap and don't need user input.
+- (NSArray<NSString*>*)missingModelNamesWithEffects;
+
+// Rename a missing model-element to an existing model name. When
+// `addAlias` is YES, also call `Model::AddAlias("oldname:" +
+// originalName)` on the target so future sequences referencing the
+// old name auto-remap (mirrors desktop's new "Add as alias"
+// checkbox in `SeqElementMismatchDialog`). The alias add marks the
+// target model dirty so `saveLayoutChanges` persists it. Returns NO
+// if either name is empty, the original element isn't present, or
+// the target model can't be resolved.
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                 byRenameTo:(NSString*)existingName
+                   addAlias:(BOOL)addAlias
+    NS_SWIFT_NAME(resolveMissingModel(_:byRenameTo:addAlias:));
+
+// Delete a missing model-element from the sequence outright (the
+// other branch of desktop's mismatch dialog). Pass YES for
+// `delete_` to actually delete; NO is a no-op (keeps the symmetric
+// shape with the rename method). Returns NO if no such element
+// exists or the flag is NO.
+- (BOOL)resolveMissingModel:(NSString*)originalName
+                   byDelete:(BOOL)delete_
+    NS_SWIFT_NAME(resolveMissingModel(_:byDelete:));
+
+// Global element visibility. Models drive `Element::SetVisible`; for
+// timings this toggles `TimingElement::SetMasterVisible` (visibility
+// in the Master View). Per-non-Master-view timing visibility is
+// stored in the timing's `views` CSV — see
+// `addTiming:toViewNamed:` below.
+- (BOOL)elementVisible:(NSString*)name;
+- (BOOL)setElementVisible:(NSString*)name visible:(BOOL)visible;
+
+// Per-view membership for a timing track, via
+// `TimingElement::mViews` (comma-separated view names). An entry in
+// the CSV means "this timing is visible when that view is active".
+// The Master-Visible flag (above) governs Master-View visibility
+// separately.
+- (NSArray<NSString*>*)viewsContainingTiming:(NSString*)timingName;
+- (BOOL)addTiming:(NSString*)timingName toViewNamed:(NSString*)viewName;
+- (BOOL)removeTiming:(NSString*)timingName fromViewNamed:(NSString*)viewName;
+// B82 — add a timing track to every non-Master view in one call.
+- (BOOL)addTimingToAllViews:(NSString*)timingName;
 
 // dynamicOptions sources for JSON `choice` properties. Mirrors the desktop
 // repopulate lambdas in JsonEffectPanel (file:1777-1884). Empty arrays on
@@ -209,8 +775,8 @@
 // auto-generate `PAL001.xpalette` (incrementing to avoid collisions).
 // Returns the on-disk filename on success, nil on failure (no
 // show folder, unwritable, invalid input).
-- (NSString*)savePaletteString:(NSString*)paletteString
-                        asName:(NSString*)name;
+- (nullable NSString*)savePaletteString:(NSString*)paletteString
+                                  asName:(nullable NSString*)name;
 
 // Remove a previously-saved palette file. `filename` is the
 // basename returned by `savedPalettes`. Only removes files under
@@ -251,8 +817,8 @@
 // `.xvc` under `<showFolder>/valuecurves/<name>.xvc`. Name is
 // sanitised to alphanumerics; pass nil / empty to auto-generate
 // `VC001.xvc`. Returns the on-disk filename, or nil on failure.
-- (NSString*)saveValueCurveSerialised:(NSString*)serialised
-                                asName:(NSString*)name;
+- (nullable NSString*)saveValueCurveSerialised:(NSString*)serialised
+                                         asName:(nullable NSString*)name;
 
 // Delete a saved value curve by basename. Only removes files
 // under `<showFolder>/valuecurves/`; bundled presets are read-
@@ -298,11 +864,543 @@
 - (NSString*)activeLayoutGroup;
 - (void)setActiveLayoutGroup:(NSString*)name;
 
+// Create a brand-new empty layout group ("preview"). Returns YES
+// if the group was added (and the rgbeffects file is marked dirty
+// so it persists on save). Rejects empty names, "Default", and
+// the desktop-reserved sentinels "All Models" / "Unassigned" /
+// "All Previews", matching the desktop's create-preview dialog.
+- (BOOL)createLayoutGroup:(NSString*)name;
+
 // Desktop's last-used House Preview 3D-vs-2D mode, read from
 // `<settings><LayoutMode3D>` at show-folder load. Used as the initial
 // value for the House Preview's is3D toggle; not written back since
 // iPad layout editing stays desktop-only.
 - (BOOL)layoutMode3D;
+
+// MARK: - Layout Editor (Phase J-0, read-only)
+
+// Names of every model visible in the active layout group, in the
+// order desktop renders them (`iPadRenderContext::GetModelsForActivePreview`).
+// ModelGroup children are expanded; duplicates are NOT suppressed —
+// matches desktop's UpdateModelsList behaviour.
+- (NSArray<NSString*>*)modelsInActiveLayoutGroup;
+
+// Compact per-row metadata for the layout-group sidebar lists.
+// Each entry is keyed by "name" (matches `modelsInActiveLayoutGroup`
+// / `modelGroupsInActiveLayoutGroup` /
+// `viewObjectsInActiveLayoutGroup`) and carries just the fields the
+// sidebar renders inline, so the SwiftUI side can cache one dict
+// per visible row instead of round-tripping the full
+// `*LayoutSummary` per row. All entries include `isFromBase`
+// (NSNumber BOOL) so the link badge can be drawn without a second
+// bridge call.
+//
+// modelsListSummary keys:
+//   "name"               — NSString
+//   "displayAs"          — NSString (e.g. "Arches", "Tree", "Custom")
+//   "startChannelString" — NSString (raw `ModelStartChannel`,
+//                          e.g. "!FPPYard:2431" or "1234")
+//   "firstChannel"       — NSNumber (uint32_t, computed)
+//   "lastChannel"        — NSNumber (uint32_t, computed)
+//   "controllerName"     — NSString (empty when unassigned)
+//   "isFromBase"         — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)modelsListSummary;
+
+// modelGroupsListSummary keys:
+//   "name"        — NSString
+//   "modelCount"  — NSNumber (int, immediate children)
+//   "layoutStyle" — NSString (`ModelGroup::GetLayout()` wire value,
+//                  e.g. "grid", "horizontal", "Single Line")
+//   "gridSize"    — NSNumber (int)
+//   "isFromBase"  — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)modelGroupsListSummary;
+
+// viewObjectsListSummary keys:
+//   "name"       — NSString
+//   "displayAs"  — NSString (e.g. "Image", "Ruler", "Mesh", "Gridlines")
+//   "isFromBase" — NSNumber (BOOL)
+- (NSArray<NSDictionary<NSString*, id>*>*)viewObjectsListSummary;
+
+// Read-only snapshot of one model's layout-relevant state. Returns
+// nil for unknown names. Keys (all NSString unless noted):
+//   "name"              — model's display name
+//   "displayAs"         — model type string ("Arch", "Tree", "Custom", …)
+//   "centerX"/"Y"/"Z"   — NSNumber (double) world-space centre
+//   "width"/"height"/"depth" — NSNumber (double) world-space size
+//   "rotateX"/"Y"/"Z"   — NSNumber (double) Euler rotation in degrees
+//   "locked"            — NSNumber (BOOL)
+//   "layoutGroup"       — NSString
+//   "controllerName"    — NSString (empty if unassigned)
+//   "startChannel"      — NSNumber (uint32)
+//   "endChannel"        — NSNumber (uint32)
+//   "stringCount"       — NSNumber (int)
+//   "nodeCount"         — NSNumber (int)
+- (nullable NSDictionary<NSString*, id>*)modelLayoutSummary:(NSString*)name;
+
+// Mutate a single layout-relevant property on `name`. Returns YES
+// if the value changed; NO if `name` was unknown, the property key
+// was unsupported, the model is locked (for setters that respect
+// the lock), or the value was already at the requested setting.
+//
+// The change is staged in memory and tracked in
+// `_dirtyLayoutModels`; nothing hits disk until `saveLayoutChanges`
+// is called. Property keys mirror the `modelLayoutSummary` keys
+// (Phase J-1 v1, common-properties surface):
+//
+//   "centerX"/"centerY"/"centerZ"  — NSNumber (double)
+//   "width"/"height"/"depth"       — NSNumber (double)
+//   "rotateX"/"rotateY"/"rotateZ"  — NSNumber (double, degrees)
+//   "locked"                       — NSNumber (BOOL)
+//   "layoutGroup"                  — NSString
+//   "controllerName"               — NSString
+//
+// Per-model-type properties (string count, custom-model matrix,
+// DMX channel mapping, …) land in J-3.
+- (BOOL)setLayoutModelProperty:(NSString*)name
+                           key:(NSString*)key
+                         value:(id)value;
+
+// Flush every pending layout-property change to
+// `xlights_rgbeffects.xml`. Returns YES if the write succeeded (or
+// if nothing was dirty). One disk round-trip per call —
+// SwiftUI callers should batch by editing in-memory and saving on
+// commit / lose-focus / scene-close, not per-keystroke.
+- (BOOL)saveLayoutChanges;
+
+// Phase J-2 (touch UX) — read / write the `axis_tool` member on
+// the named model's screen location. Drives which descriptor
+// handles `GetHandles` emits (translate arrows / rotate rings /
+// scale cubes / etc.). Returns "translate" / "rotate" / "scale" /
+// "xy_trans" / "elevate" / "none". Not part of the layout
+// dirty / undo path — tool selection is a UI mode, not model
+// state to be persisted.
+- (NSString*)axisToolForModel:(NSString*)modelName;
+- (BOOL)setAxisTool:(NSString*)tool forModel:(NSString*)modelName;
+
+// Phase J-2 (touch UX) — vertex / curve operations on PolyLine /
+// MultiPoint / Custom models. Mirror the desktop right-click
+// menu entries (Delete Point / Add Point / Define Curve / Remove
+// Curve). All push a layout-undo snapshot internally and mark the
+// model dirty on success. Vertex / segment indices are 0-based;
+// the bridge handles the legacy 1-based int conversion.
+- (BOOL)deleteVertexAtIndex:(NSInteger)vertexIndex forModel:(NSString*)modelName;
+- (BOOL)insertVertexInSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName;
+- (BOOL)setCurve:(BOOL)create onSegment:(NSInteger)segmentIndex forModel:(NSString*)modelName;
+
+// Phase J-3 (touch UX) — model creation. The curated subset of
+// model types the iPad's Add-Model picker exposes. Desktop's
+// `ModelManager::CreateDefaultModel` accepts more types
+// (DmxMovingHead, Spinner, etc.); J-3 lifts more in once the per-
+// type property pages land.
+- (NSArray<NSString*>*)availableModelTypesForCreation;
+
+// Phase J-3 (touch UX) — delete a model from the active layout.
+// Used both by Add-Model cancel ("the user tapped + then changed
+// their mind") and by the inline action bar's future Delete
+// affordance. Does NOT participate in the existing layout undo
+// system (which only captures property changes); the action bar
+// confirmation flow is the only safety net. Returns NO if the
+// model isn't present.
+- (BOOL)deleteModel:(NSString*)modelName;
+
+// J-18 — rename a model. Calls `ModelManager::Rename` which
+// updates the in-memory references (other groups containing
+// this model fix their member-list vectors). The new name is
+// sanitized via `Model::SafeModelName`. Returns NO if the new
+// name is empty after sanitize, collides with an existing
+// model/group, or `oldName` doesn't resolve. SubModels can't be
+// renamed via this path.
+- (BOOL)renameModel:(NSString*)oldName
+                 to:(NSString*)newName;
+
+// J-18 pass 2 — wholesale-replace this model's alias list with
+// `aliases`. Strings are trimmed + lowercased + de-duped on the
+// way through (matches `Model::SetAliases` semantics). The
+// model's own name is filtered out because `AddAlias` rejects
+// it. Marks the model dirty so the save path re-serializes the
+// `<model>` node — alias child elements come along automatically.
+// Returns NO if the model can't be resolved.
+- (BOOL)setModelAliases:(NSString*)modelName
+                aliases:(NSArray<NSString*>*)aliases;
+
+// J-18 pass 3 — wholesale-replace strand / node names for this
+// model. Both store as comma-delimited strings on the Model
+// (the delimiter is fixed, so any commas inside an entry are
+// stripped on the way through). Empty slots are preserved —
+// the desktop format relies on positional ordering so a missing
+// label at index N stays an empty string rather than dropping
+// the slot.
+- (BOOL)setStrandNames:(NSString*)modelName
+                 names:(NSArray<NSString*>*)names;
+- (BOOL)setNodeNames:(NSString*)modelName
+               names:(NSArray<NSString*>*)names;
+
+// J-18 pass 4 — remove a submodel by name from its parent.
+// Routes through Model::RemoveSubModel which deletes the
+// SubModel*; the next save re-serializes the parent without
+// the submodel's `<subModel>` child. Group / effect references
+// to the deleted submodel are NOT cleaned up — matches desktop
+// behaviour. Returns NO if either name doesn't resolve.
+- (BOOL)deleteSubModelNamed:(NSString*)submodelName
+                    onModel:(NSString*)parentName;
+
+// J-22 — rename a submodel on its parent model. Sanitizes via
+// Model::SafeModelName. Refuses collisions with an existing
+// submodel on the same parent. Returns NO on lookup / collide /
+// empty-name failures.
+- (BOOL)renameSubModelNamed:(NSString*)oldName
+                    onModel:(NSString*)parentName
+                         to:(NSString*)newName;
+
+// J-23.3 — Submodel detail accessor. Returns an array of dicts
+// (one per submodel) with all the editable fields:
+//   "name"        — NSString
+//   "isRanges"    — NSNumber bool (true = ranges/lines, false =
+//                   sub-buffer)
+//   "isVertical"  — NSNumber bool
+//   "bufferStyle" — NSString ("Default", "Keep XY", "Stacked",
+//                   "Stacked Right", "Stacked Left", "Stacked Up",
+//                   "Stacked Down", "Stacked Vertical Concatenate")
+//   "strands"     — NSArray<NSString*> (when isRanges)
+//   "subBuffer"   — NSString             (when !isRanges)
+- (NSArray<NSDictionary*>*)submodelDetailsForModel:(NSString*)parentName;
+
+// J-23.3 — Wholesale-replace all submodels on `parentName`. The
+// payload mirrors `submodelDetailsForModel:`. Internally calls
+// `RemoveAllSubModels` then re-creates each entry via
+// `new SubModel(...)` + `AddDefaultBuffer` / `AddRangeXY` /
+// `AddSubbuffer`. Mirrors desktop SubModelsDialog::Save.
+- (BOOL)replaceSubModelsOnModel:(NSString*)parentName
+                    withEntries:(NSArray<NSDictionary*>*)entries;
+
+// J-22 — add a new submodel to a parent. Type defaults to
+// "ranges" (the most common form on desktop); the bridge
+// creates a single placeholder "1-1" range so the new
+// submodel is immediately valid. Returns the sanitized name
+// on success, nil on failure (empty / colliding name or
+// parent lookup miss).
+- (nullable NSString*)addSubModelToModel:(NSString*)parentName
+                                    name:(NSString*)submodelName;
+
+// J-30 — Submodel editor support. Return the node count of the
+// named (parent) model. Used by the SwiftUI editor to validate
+// range numbers and animate playback through the full range.
+- (NSInteger)nodeCountForModel:(NSString*)modelName
+    NS_SWIFT_NAME(nodeCount(forModel:));
+
+// J-30 — Submodel editor support. Replace this model's alias
+// list with `aliases` (mirrors `setModelAliases:` semantics but
+// scoped to a SubModel). Strings are trimmed + lowercased +
+// de-duped on the way through.
+- (BOOL)setSubmodelAliasesOnParent:(NSString*)parentName
+                          submodel:(NSString*)submodelName
+                           aliases:(NSArray<NSString*>*)aliases
+    NS_SWIFT_NAME(setSubmodelAliases(onParent:submodel:aliases:));
+
+// J-30 — Submodel editor support. Read this submodel's alias
+// list. Returns an empty array for missing / no-alias submodels.
+- (NSArray<NSString*>*)submodelAliasesOnParent:(NSString*)parentName
+                                      submodel:(NSString*)submodelName
+    NS_SWIFT_NAME(submodelAliases(onParent:submodel:));
+
+// J-18 pass 6 — clear any dimming curve set on this model.
+// SetDimmingInfo({}) deletes the cached `modelDimmingCurve`
+// and empties the `<dimmingCurve>` XML child block on save.
+// Returns NO if the model doesn't resolve or there's
+// nothing to clear.
+- (BOOL)clearDimmingCurveOnModel:(NSString*)modelName;
+
+// J-22 — wholesale-replace a model's full face / state map.
+// Value is NSDictionary<NSString*, NSDictionary<NSString*,
+// NSString*>*>* mirroring the desktop's `FaceStateData`
+// (map<faceOrStateName, map<attrName, attrValue>>). Routes
+// through Model::SetFaceInfo / SetStateInfo, which also
+// recomputes the derived node-list map. Marks the model
+// dirty so save re-serializes the `<faceInfo>` / `<stateInfo>`
+// child block. Returns NO if the model doesn't resolve.
+- (BOOL)setFaceInfo:(NSString*)modelName
+            entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+- (BOOL)setStateInfo:(NSString*)modelName
+             entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+
+// J-22 — read the model's face / state map as a structured
+// NSDictionary suitable for SwiftUI consumption. Format mirrors
+// `setFaceInfo:`/`setStateInfo:`. Returns an empty dictionary
+// if the model has no face / state data.
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        faceInfoForModel:(NSString*)modelName;
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        stateInfoForModel:(NSString*)modelName;
+
+// J-23 — Custom-model grid data accessor / mutator. The editor
+// works on the 3D `_locations` vector directly: each cell holds
+// the 1-based pixel number that lights at that position, or 0
+// for empty. Dictionary returned by `customModelDataForModel:`
+// has these keys:
+//   "width"     — NSNumber (int)
+//   "height"    — NSNumber (int)
+//   "depth"     — NSNumber (int)
+//   "locations" — NSArray<NSArray<NSArray<NSNumber>>>
+//                 indexed as [depth][height][width]
+// `setCustomModelData:width:height:depth:locations:` wholesale-
+// replaces both the dimensions and the grid. Locations must be
+// rectangular and match the dimensions, else returns NO.
+- (NSDictionary*)customModelDataForModel:(NSString*)modelName;
+- (BOOL)setCustomModelData:(NSString*)modelName
+                     width:(int)w
+                    height:(int)h
+                     depth:(int)d
+                 locations:(NSArray<NSArray<NSArray<NSNumber*>*>*>*)locations;
+
+// J-22 — wholesale-set the dimming curve for a model. `entries`
+// mirrors desktop's `dimmingInfo` map<channel, map<attr,
+// value>>. Channel keys are "all", "red", "green", "blue",
+// "white". Empty dict clears (equivalent to
+// clearDimmingCurveOnModel:). Returns NO on lookup failure.
+- (BOOL)setDimmingInfo:(NSString*)modelName
+               entries:(NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)entries;
+- (NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>*)
+        dimmingInfoForModel:(NSString*)modelName;
+
+// Phase J-5 (sidebar tabs) — ModelGroups visible in the active
+// layout group. Names only, in the same order as
+// `modelsInActiveLayoutGroup` (alphabetical by ModelManager map
+// iteration). Excludes regular Models; only entries whose
+// DisplayAs == ModelGroup land here.
+- (NSArray<NSString*>*)modelGroupsInActiveLayoutGroup;
+
+// Per-ModelGroup summary. Keys mirror `modelLayoutSummary` where
+// the underlying BaseObject exposes the same field, plus group-
+// specific entries. All keys NSString unless noted:
+//   "name"           — NSString (display name)
+//   "displayAs"      — NSString ("ModelGroup")
+//   "layoutGroup"    — NSString
+//   "modelCount"     — NSNumber (int, immediate child count)
+//   "models"         — NSArray<NSString*> (immediate child names,
+//                      in declared order)
+//   "defaultCamera"  — NSString
+//   "layout"         — NSString (group preview layout style)
+//   "gridSize"       — NSNumber (int)
+//   "centerX"/"centerY" — NSNumber (double, 2D group centre)
+//   "centerDefined"  — NSNumber (BOOL)
+//   "locked"         — NSNumber (BOOL)
+- (nullable NSDictionary<NSString*, id>*)modelGroupLayoutSummary:(NSString*)name;
+
+// Set a property on a ModelGroup. Supported keys (J-5 + J-9):
+// "layoutGroup", "locked", "defaultCamera", "layout", "gridSize"
+// (NSNumber int), "centerX"/"centerY" (NSNumber double),
+// "tagColor" (NSString hex), "members" (NSArray<NSString*> —
+// replaces the full member list, used for drag-to-reorder).
+// Returns NO for unknown groups, unknown keys, or no-op writes.
+// Mutations are staged + saved through the same path as models.
+- (BOOL)setLayoutModelGroupProperty:(NSString*)name
+                                key:(NSString*)key
+                              value:(id)value;
+
+// J-9 (group CRUD) — full submodel name list for `modelName`, in
+// declared order. Returns names in the canonical "Parent/Sub"
+// form (matches `ModelGroup::AddModel` membership conventions).
+// Empty array for unknown / non-Model targets, or models with
+// no submodels. Used by the Add Member sheet to surface
+// submodels for selection alongside top-level models.
+- (NSArray<NSString*>*)submodelsForModel:(NSString*)modelName;
+
+// Phase J-5 (sidebar tabs) — ViewObjects visible in the active
+// layout group. Names of every view object whose layout_group
+// matches the active group (or "All Previews"), in
+// ViewObjectManager iteration order.
+- (NSArray<NSString*>*)viewObjectsInActiveLayoutGroup;
+
+// Per-ViewObject summary. Keys mirror `modelLayoutSummary` where
+// the underlying BaseObject exposes the same field. All keys
+// NSString unless noted:
+//   "name"           — NSString
+//   "displayAs"      — NSString (object type, e.g. "Mesh", "Image")
+//   "layoutGroup"    — NSString
+//   "centerX"/"Y"/"Z" — NSNumber (double)
+//   "width"/"height"/"depth" — NSNumber (double)
+//   "rotateX"/"Y"/"Z" — NSNumber (double, degrees)
+//   "locked"         — NSNumber (BOOL)
+// Editable in J-6 (view-object save patcher landed). Supported
+// keys via `setLayoutViewObjectProperty:`:
+//   "centerX"/"Y"/"Z", "rotateX"/"Y"/"Z", "locked", "layoutGroup",
+//   "width"/"height"/"depth".
+- (nullable NSDictionary<NSString*, id>*)viewObjectLayoutSummary:(NSString*)name;
+
+// J-6 — mutate a single property on a view object. Returns YES
+// iff the value changed. Marks the object dirty for save (the
+// patcher rewrites WorldPos/Scale/Rotate/Locked/LayoutGroup
+// attributes on the `<view_object>` XML element).
+- (BOOL)setLayoutViewObjectProperty:(NSString*)name
+                                key:(NSString*)key
+                              value:(id)value;
+
+// J-12 — view object lifecycle. Type strings accepted by
+// `ViewObjectManager::CreateAndAddObject`: "Gridlines",
+// "Image", "Mesh", "Terrain", "Ruler". Names are auto-generated
+// by the manager (e.g. "Gridlines-1"). Returns the generated
+// name on success, nil on failure (invalid type / Ruler when
+// one already exists).
+- (nullable NSString*)createViewObjectWithType:(NSString*)type;
+
+// Delete a view object. Returns NO if the name doesn't resolve.
+// Background pseudo-object is never deletable.
+- (BOOL)deleteViewObject:(NSString*)name;
+
+// J-17 — rename a view object. Calls `ViewObjectManager::Rename`
+// (which updates the manager map). Sanitizes via
+// `Model::SafeModelName` to match group rename semantics.
+// Returns NO on collision / empty / 2D Background pseudo-object.
+- (BOOL)renameViewObject:(NSString*)oldName
+                      to:(NSString*)newName;
+
+// J-17 — shallow-copy duplicate of a view object. Round-trips
+// through `XmlSerializer::SerializeObject` → `CreateObject`,
+// generates a unique name via `GenerateObjectName`, offsets
+// world position by (+50, +50, 0). Returns the new name on
+// success, nil for the background pseudo or other failure.
+- (nullable NSString*)duplicateViewObject:(NSString*)name;
+
+// J-12 — types accepted by `createViewObjectWithType:`. Ruler
+// is filtered out when one already exists in the show (it's a
+// singleton). Order matches desktop's Objects → Add menu.
+- (NSArray<NSString*>*)availableViewObjectTypes;
+
+// J-7 (group CRUD) — model group lifecycle. Each method returns
+// YES on success, NO on validation failures (unknown names,
+// duplicate names, attempts to add a model to its own ancestor
+// group, …) and marks the group dirty / created / deleted as
+// appropriate for the next `saveLayoutChanges`.
+
+// Append `modelName` to `groupName`'s member list. No-op if the
+// model is already a direct member. Does NOT recurse — adding a
+// group to a group adds the group as a member, not its
+// children. Returns NO for unknown group/model.
+- (BOOL)addModel:(NSString*)modelName
+         toGroup:(NSString*)groupName;
+
+// Remove `modelName` from `groupName`'s member list. No-op if
+// not a member.
+- (BOOL)removeModel:(NSString*)modelName
+          fromGroup:(NSString*)groupName;
+
+// Create a new ModelGroup in the active layout group with the
+// curated defaults (layout="minimalGrid", gridSize=400,
+// DefaultCamera="2D"). Initial member list is `initialMembers`
+// (may be empty). Returns NO if `groupName` collides with an
+// existing model / group.
+- (BOOL)createModelGroup:(NSString*)groupName
+                  members:(nullable NSArray<NSString*>*)initialMembers;
+
+// Delete a ModelGroup. Returns NO if `groupName` doesn't resolve
+// to a ModelGroup. Any reference to the group elsewhere (other
+// groups containing this one) is NOT cleaned up — Reset on the
+// next layout reload handles it (matches desktop behaviour).
+- (BOOL)deleteModelGroup:(NSString*)groupName;
+
+// J-16 — rename a ModelGroup. `ModelManager::Rename` updates
+// every in-memory reference (other groups containing this one
+// get their member lists fixed); the save patcher uses the
+// stored old name to locate the on-disk `<modelGroup>` element
+// and rewrites its `name` attribute. The new name is sanitized
+// via `Model::SafeModelName` (strips `, ~ ! ; < > " ' & : | @ /
+// \ \t \r \n` + surrounding whitespace) before being applied,
+// so passing a name with illegal characters won't fail —
+// callers see the sanitized name take effect. Returns NO if
+// the sanitized name is empty, equal to the old name, or
+// collides with an existing model/group.
+- (BOOL)renameModelGroup:(NSString*)oldName
+                      to:(NSString*)newName;
+
+// J-16 — preview of the sanitized form of `name`. Mirrors
+// `Model::SafeModelName` so the SwiftUI sheets can show the
+// user what their input will be reduced to before they submit
+// (matches the desktop convention of silently stripping).
+- (NSString*)sanitizedModelName:(NSString*)name;
+
+// Phase J-6 (per-type properties) — descriptors for a model's
+// type-specific surface (Tree branches, Matrix strings, Star
+// points, etc.). Empty array if the model's type is unsupported
+// in this build.
+//
+// Each entry is an NSDictionary with these keys:
+//   "key"     — NSString stable id (matches desktop wxprop names
+//                so the iPad and desktop XML stay in sync).
+//   "label"   — NSString display name.
+//   "kind"    — NSString one of "int" | "double" | "bool" |
+//                "enum" | "string".
+//   "value"   — NSNumber for int/double/bool/enum (enum carries
+//                its option index); NSString for "string".
+//   "min"/"max" — NSNumber (optional, for int/double).
+//   "step"    — NSNumber (optional, for double).
+//   "precision" — NSNumber (optional, decimal places for double).
+//   "options" — NSArray<NSString*> (for enum).
+//   "enabled" — NSNumber (BOOL, optional, defaults YES).
+//   "help"    — NSString (optional one-liner).
+//   "group"   — NSString (optional section header for grouping).
+- (NSArray<NSDictionary*>*)perTypePropertiesForModel:(NSString*)modelName;
+
+// Set a per-type property by `key` (one of the keys returned by
+// `perTypePropertiesForModel:`). `value` is NSNumber for
+// int/double/bool/enum (enum carries the index), NSString for
+// "string". Returns YES iff the value changed. Triggers
+// `Reinitialize()` on the model so geometry / node count updates
+// reflect immediately, and marks the model dirty for save.
+- (BOOL)setPerTypeProperty:(NSString*)key
+                   onModel:(NSString*)modelName
+                     value:(id)value;
+
+// YES iff at least one layout-property edit is staged in memory
+// and not yet persisted. The Layout Editor uses this to gate a
+// "Save" button + warn-on-close.
+- (BOOL)hasUnsavedLayoutChanges;
+
+// Drop the dirty-layout set without writing to disk. Used after
+// Discard Changes — every undo restore re-marked the model dirty
+// even though the in-memory state now matches what's on disk.
+- (void)clearDirtyLayoutChanges;
+
+// Phase J-2 — layout undo. Snapshot the named model's common-
+// properties surface (centre, dimensions, rotation, locked,
+// layoutGroup, controllerName) before making an edit; the most
+// recent snapshot is restored by `undoLastLayoutChange`. Stack is
+// capped at 100 entries inside the render context. Multiple
+// pushes for the same model just stack — undo walks them one at
+// a time. The drag handler pushes once at gesture-began, so a
+// single drag is one undo entry.
+- (void)pushLayoutUndoSnapshotForModel:(NSString*)modelName;
+
+// J-17 — push a view-object snapshot onto the same unified
+// undo stack the model path uses. UndoLast dispatches by entry
+// kind so one button reverts whatever the user did last.
+- (void)pushLayoutUndoSnapshotForViewObject:(NSString*)objectName;
+
+// J-17 — push a terrain VO's heightmap data onto the undo
+// stack. Heightmap edits are destructive (each tap mutates
+// PointData in place), so the tap handler calls this BEFORE
+// applying the brush.
+- (void)pushTerrainHeightmapUndoSnapshot:(NSString*)terrainName;
+
+// Pop and restore the most recent undo entry. Returns YES if a
+// snapshot was applied (model still exists, dirty marked); NO if
+// the stack was empty or the model has since been removed.
+- (BOOL)undoLastLayoutChange;
+
+// YES iff there's at least one layout-undo snapshot pending.
+- (BOOL)canUndoLayoutChange;
+
+// Read-only snapshot of layout-editor display state. Keys:
+//   "backgroundImage"        — NSString (FixFile-resolved, "" if none)
+//   "backgroundBrightness"   — NSNumber (int 0..100)
+//   "backgroundAlpha"        — NSNumber (int 0..100)
+//   "scaleBackgroundImage"   — NSNumber (BOOL)
+//   "display2DGrid"          — NSNumber (BOOL)
+//   "display2DGridSpacing"   — NSNumber (long, world units)
+//   "display2DBoundingBox"   — NSNumber (BOOL)
+//   "display2DCenter0"       — NSNumber (BOOL)
+//   "previewWidth"/"previewHeight" — NSNumber (int) virtual canvas size
+//   "layoutMode3D"           — NSNumber (BOOL)
+- (NSDictionary<NSString*, id>*)layoutDisplayState;
 
 // Effect editing
 - (BOOL)addEffectToRow:(int)rowIndex
@@ -385,6 +1483,28 @@
 - (NSString*)effectPaletteStringForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSString*)effectNameForRow:(int)rowIndex atIndex:(int)effectIndex;
 
+// B15: replace an effect's settings + palette wholesale. Used by
+// Randomize / Reset bulk ops and (future) preset-apply. Empty
+// palette string skips palette replacement.
+- (BOOL)replaceEffectSettings:(NSString*)settings
+                      palette:(NSString*)palette
+                        inRow:(int)rowIndex
+                      atIndex:(int)effectIndex
+    NS_SWIFT_NAME(replaceEffectSettings(_:palette:inRow:atIndex:));
+
+// B20: free-text description for an effect, stored in the
+// `X_Effect_Description` settings key. The X_ prefix means
+// `SetSettings(… keepxsettings=true)` preserves it across
+// Randomise / Reset / preset-apply. Empty string clears the
+// entry. Caller should call `renderEffectForRow` afterward if the
+// effect is visible.
+- (NSString*)effectDescriptionForRow:(int)rowIndex atIndex:(int)effectIndex
+    NS_SWIFT_NAME(effectDescription(forRow:atIndex:));
+- (BOOL)setEffectDescription:(NSString*)description
+                        forRow:(int)rowIndex
+                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(setEffectDescription(_:forRow:atIndex:));
+
 // Paste / scripted add: insert a new effect with settings+palette pre-populated.
 // Returns the index of the new effect, or -1 on failure.
 - (int)addEffectToRow:(int)rowIndex
@@ -409,10 +1529,24 @@
 - (void)stopOutput;
 - (BOOL)isOutputting;
 - (void)outputFrame:(int)frameMS;
+- (NSInteger)outputCount;
 
 // Rendering
 - (void)renderAll;
 - (BOOL)isRenderDone;
+
+// YES if the most recent render had at least one job aborted before
+// completion (typically because of a memory-pressure signal — see
+// HandleMemoryWarning). Counter resets at every render start, so this
+// reflects only the latest pass. Callers about to persist
+// `SequenceData` (fseq write, batch render) should consult it: an
+// aborted render leaves the data buffer partly stale.
+- (BOOL)wasRenderAborted;
+
+// Coarse render-progress fraction (0..1) for the in-flight render of the
+// currently-loaded sequence. Aggregates per-row job frame counters against
+// the sequence's frame range. Returns 1.0 when no render is active.
+- (float)renderProgressFraction;
 // Signal all in-flight render jobs to abort and block until they've
 // completed (or `timeoutSeconds` elapses). Returns YES if the render
 // is fully quiesced by the time the call returns. Call on shutdown /
@@ -429,7 +1563,7 @@
 // House preview pixel data at a given time
 // Returns NSData containing packed float x, y and uint8 r, g, b per pixel
 - (int)pixelCountAtMS:(int)frameMS;
-- (NSData*)pixelDataAtMS:(int)frameMS;
+- (nullable NSData*)pixelDataAtMS:(int)frameMS;
 
 // Audio playback
 - (BOOL)hasAudio;
@@ -437,16 +1571,204 @@
 - (void)audioPause;
 - (void)audioStop;
 - (void)audioSeekToMS:(long)positionMS;
+
+// B40: play a short audio window (`lengthMS` ms starting at
+// `positionMS`) without disturbing the main play/pause state. Used
+// to give an audible cue while the user drags the playhead. Safe
+// to call rapidly — AudioManager::Play(pos, len) handles overlapping
+// requests by re-seeking. No-op when audio isn't loaded or when
+// regular playback is in flight (we don't want to fight the
+// main playback engine).
+- (void)audioPlaySegmentFromMS:(long)positionMS lengthMS:(long)lengthMS
+    NS_SWIFT_NAME(audioPlaySegment(fromMS:lengthMS:));
 - (long)audioTellMS;
 - (int)audioPlayingState;  // 0=PLAYING, 1=PAUSED, 2=STOPPED
 - (void)setAudioVolume:(int)volume;
 - (int)audioVolume;
 
+// F-4 playback speed. Mirrors desktop's 8 discrete speed options
+// (0.25x / 0.5x / 0.75x / 1.0x / 1.5x / 2x / 3x / 4x) routed
+// through `AudioManager::SetPlaybackRate`. On iOS this drives the
+// AVAudioEngine time-pitch unit so audio stays audible at off-1x
+// speeds without a pitch shift. No-audio sequences scale their
+// timer tick in Swift instead — this call is a no-op there.
+- (void)setAudioPlaybackRate:(float)rate;
+
 // Waveform data — returns downsampled peaks for display
-// Returns array of alternating min/max float values for the given time range
-- (NSData*)waveformDataFromMS:(long)startMS
+// Returns per-bucket float triples `{min, max, rms}` for the given
+// time range. `peaks[i*3+0]` = bucket min (<=0), `peaks[i*3+1]` = max
+// (>=0), `peaks[i*3+2]` = RMS (>=0, used by A10 RMS overlay).
+- (nullable NSData*)waveformDataFromMS:(long)startMS
                          toMS:(long)endMS
                    numSamples:(int)numSamples;
+
+// B41: same as above, with a filter type parameter matching
+// `AUDIOSAMPLETYPE` (0=RAW, 1=BASS, 2=TREBLE, 3=ALTO, 4=NONVOCALS).
+// A9.1 extends the id space with 5=CUSTOM — a parametric band filter
+// whose MIDI-note range is taken from `lowNote` / `highNote` (see the
+// `lowNote:highNote:` overload). If `GetFilteredAudioData` returns
+// null (unfiltered source), the method falls back to the raw waveform
+// rather than returning an empty buffer.
+- (nullable NSData*)waveformDataFromMS:(long)startMS
+                         toMS:(long)endMS
+                   numSamples:(int)numSamples
+                   filterType:(int)filterType
+    NS_SWIFT_NAME(waveformData(fromMS:toMS:numSamples:filterType:));
+
+// A9.1 parametric-band variant. `lowNote` / `highNote` are MIDI note
+// numbers (0–127) and are only consulted for filterType=5 (CUSTOM);
+// other filter types use their hardcoded ranges. Callers that don't
+// need the custom band should use the 4-argument overload.
+- (nullable NSData*)waveformDataFromMS:(long)startMS
+                         toMS:(long)endMS
+                   numSamples:(int)numSamples
+                   filterType:(int)filterType
+                      lowNote:(int)lowNote
+                     highNote:(int)highNote
+    NS_SWIFT_NAME(waveformData(fromMS:toMS:numSamples:filterType:lowNote:highNote:));
+
+// B43: alternate audio tracks (vocal stems, etc.). Used to switch
+// the *waveform* view between the main sequence audio and any of
+// the alt tracks declared in the .xsq. Playback always uses the
+// main track. -1 = main, 0..altTrackCount-1 = alt index.
+- (NSInteger)altTrackCount;
+- (NSString*)altTrackDisplayNameAtIndex:(NSInteger)index
+    NS_SWIFT_NAME(altTrackDisplayName(at:));
+- (NSInteger)activeWaveformTrack;
+- (void)setActiveWaveformTrack:(NSInteger)index;
+
+// Phase E follow-up — alt-track CRUD for the Sequence Settings
+// Audio Tracks tab. `addAltTrack:` / `setAltTrackPath:` route the
+// path through `SequenceFile::AddAltTrack` /
+// `SequenceFile::SetAltTrackPath` which use the show folder as the
+// FixFile root. `altTrackPath:` returns the resolved absolute path
+// (empty when unresolved); `altTrackShortname:` returns the user
+// label (may be empty — display fallback is "Track N"). All
+// mutators mark the sequence dirty.
+- (NSString*)altTrackPathAtIndex:(NSInteger)index
+    NS_SWIFT_NAME(altTrackPath(at:));
+- (NSString*)altTrackShortnameAtIndex:(NSInteger)index
+    NS_SWIFT_NAME(altTrackShortname(at:));
+- (BOOL)addAltTrackAtPath:(NSString*)path shortname:(NSString*)shortname
+    NS_SWIFT_NAME(addAltTrack(atPath:shortname:));
+- (BOOL)removeAltTrackAtIndex:(NSInteger)index
+    NS_SWIFT_NAME(removeAltTrack(at:));
+- (BOOL)setAltTrackPathAtIndex:(NSInteger)index path:(NSString*)path
+    NS_SWIFT_NAME(setAltTrackPath(at:path:));
+- (BOOL)setAltTrackShortnameAtIndex:(NSInteger)index shortname:(NSString*)shortname
+    NS_SWIFT_NAME(setAltTrackShortname(at:shortname:));
+
+// A2 onset detection. Runs the spectral-flux detector over the full
+// audio track, returning onset positions in milliseconds (ascending).
+// `sensitivity` is the adaptive-threshold multiplier: higher = fewer
+// onsets. Blocks until audio is loaded — expect a few hundred ms for
+// typical 3–4 minute tracks on modern iPad hardware.
+- (NSArray<NSNumber*>*)detectOnsetsWithSensitivity:(float)sensitivity
+    NS_SWIFT_NAME(detectOnsets(sensitivity:));
+
+// A7 sound classification. Runs Apple's SNClassifySoundRequest over
+// the entire audio track and returns the top-N sound classes with
+// per-second confidence curves. Keys of the returned dictionary are
+// class names ("music.drums", "music.vocals", …); values are
+// `[NSNumber]` floats in [0, 1], one per `timeStepSeconds` (also
+// reported). Blocks — typical 3–4 minute tracks take a few seconds
+// on Apple Silicon.
+- (nullable NSDictionary*)classifySound
+    NS_SWIFT_NAME(classifySound());
+// Time-step (seconds) for the last `classifySound` call. Set by the
+// call above; 0 if classification has never been run on this track.
+@property(nonatomic, readonly) float lastClassificationTimeStep;
+
+// A4 tempo detection. Runs autocorrelation on the onset envelope
+// to find the most likely period, then phase-locks a Dirac comb to
+// produce beat positions. Returns a dictionary with:
+//   "bpm"        — NSNumber(float)    — detected BPM, 0 on failure
+//   "confidence" — NSNumber(float)    — 0..1 heuristic confidence
+//   "beats"      — NSArray<NSNumber*> — ascending ms beat positions
+// Blocks; a 3–4 minute track finishes in well under a second.
+- (NSDictionary*)detectTempo
+    NS_SWIFT_NAME(detectTempo());
+
+// A5 pitch contour. Per-frame fundamental-frequency estimate from
+// FFT-based autocorrelation. Returns a flat Float array laid out as
+// (timeMS, frequency, confidence) triples (3 entries per sample).
+// Unvoiced frames have frequency=0 but still carry a confidence.
+- (nullable NSData*)detectPitchContour
+    NS_SWIFT_NAME(detectPitchContour());
+
+// Route the currently-picked waveform filter into the audio engine
+// so playback follows the display. `filterType` matches the int
+// convention of `waveformData(...)` (0 RAW, 1 BASS, …, 5 CUSTOM,
+// 6 LUFS, 7 VOCALS, 8..11 STEM_*). `lowNote` / `highNote` are the
+// MIDI bounds for CUSTOM; ignored otherwise. Internally dispatches
+// through `AudioManager::SwitchTo` which blocks on audio load +
+// filter build, so callers should prefer a background queue (e.g.
+// `Task.detached`) rather than the main actor. No-op when no audio
+// is loaded.
+- (void)applyPlaybackFilterType:(int)filterType
+                          lowNote:(int)lowNote
+                         highNote:(int)highNote
+    NS_SWIFT_NAME(applyPlaybackFilter(type:lowNote:highNote:));
+
+// A9 chord + key detection via chromagram + 24 major/minor templates
+// and Krumhansl–Schmuckler. Returns:
+//   "key"    — NSString (e.g. "C major", "A minor"; empty on failure)
+//   "chords" — NSArray<NSDictionary*> with {startMS, endMS, name}
+- (NSDictionary*)detectChords
+    NS_SWIFT_NAME(detectChords());
+
+// A6 spectrogram computation. Runs the STFT once and retains the
+// magnitude buffer on the bridge; returns YES on success. Subsequent
+// `spectrogramBGRAForRangeMS:...` calls resample the cached buffer
+// into viewport-sized BGRA images without recomputing the FFT.
+- (BOOL)ensureSpectrogramComputed
+    NS_SWIFT_NAME(ensureSpectrogramComputed());
+
+// A8 stem separation (macOS 12+ / iOS 15+ only — ML model uses
+// Float16 multi-arrays). All four methods no-op on older OS.
+
+// Roots (show folder + configured media folders) where the model
+// could be installed, in preference order. UI uses this to present
+// a picker.
+- (NSArray<NSString*>*)stemModelCandidateRoots
+    NS_SWIFT_NAME(stemModelCandidateRoots());
+
+// Scans candidate roots for an already-installed
+// `HTDemucs_SourceSeparation_F32.mlpackage` (including nested-from-
+// zip layouts which get lifted to the canonical path). Returns the
+// absolute path, or nil if not present.
+- (nullable NSString*)findInstalledStemModelPath
+    NS_SWIFT_NAME(findInstalledStemModelPath());
+
+// First-run installer. Downloads the model zip to
+// `<root>/ai-models/`, unzips, lifts the nested `.mlpackage` up to
+// the canonical location. `progress` fires on the main queue with
+// 0..100. `completion` fires on the main queue with the final model
+// path (nil on failure / cancel).
+- (void)installStemModelToRoot:(NSString*)root
+                        progress:(void(^)(int pct))progress
+                      completion:(void(^)(NSString* _Nullable installedPath))completion
+    NS_SWIFT_NAME(installStemModel(toRoot:progress:completion:));
+
+// Asynchronous stem separation. Dispatches CoreML inference to a
+// background queue (required — CoreML warns if called on main) and
+// invokes `progress` / `completion` on the main queue. On success
+// the result is stashed on the underlying AudioManager via
+// `SetStemData` so subsequent `waveformData(...filterType:8..11)`
+// queries serve the stems.
+- (void)runStemSeparationAtPath:(NSString*)modelPath
+                        progress:(void(^)(int pct))progress
+                      completion:(void(^)(BOOL ok))completion
+    NS_SWIFT_NAME(runStemSeparation(atPath:progress:completion:));
+
+// Renders the cached spectrogram at [startMS, endMS] into an
+// `outWidth × outHeight` BGRA buffer (length = w*h*4). Returns nil
+// if the spectrogram hasn't been computed yet.
+- (nullable NSData*)spectrogramBGRAForRangeMS:(long)startMS
+                                toMS:(long)endMS
+                               width:(int)outWidth
+                              height:(int)outHeight
+    NS_SWIFT_NAME(spectrogramBGRA(fromMS:toMS:width:height:));
 
 // Effect-background batch append. Mirrors desktop's
 // `EffectsGrid::DrawEffectBackground` helper — resolves the
@@ -526,6 +1848,21 @@
 - (int)embedAllMediaOfType:(NSString*)typeFilter;
 - (int)extractAllMediaOfType:(NSString*)typeFilter;
 
+// Replace a missing / broken media file with a fresh pick from
+// disk (E-4 — relocate). Copies the source file into the show
+// folder at a path derived from the stored path's type + the
+// picked file's basename, then either re-reads the cache entry
+// in place (when the target path matches the stored path) or
+// performs a full rename-with-reference-update (when the target
+// path differs — typical when the stored path was an absolute
+// cross-machine path).
+//
+// `sourcePath` must be an on-disk absolute path the caller has
+// already obtained security-scoped access to. Returns the
+// target show-relative path on success, nil on failure.
+- (nullable NSString*)replaceMissingMediaAtPath:(NSString*)storedPath
+                                  fromSourcePath:(NSString*)sourcePath;
+
 // Rename a cache entry (G30 — C5). Works for both embedded
 // entries (cache-key swap only) and external files (also moves
 // the file on disk so the stored path resolves at the new
@@ -559,7 +1896,24 @@
 // in a warning alert pointing the user at Handbrake / ffmpeg
 // on desktop. Desktop keeps its in-app convert flow via
 // `VideoTranscoder`; that path is not exposed to iPad.
-- (NSString*)videoCompatibilityIssueForPath:(NSString*)path;
+- (nullable NSString*)videoCompatibilityIssueForPath:(NSString*)path;
+
+// Walk the loaded sequence and surface authoring issues. Goes
+// through `src-core/diagnostics/SequenceChecker` so the iPad
+// catches every check the desktop `xLightsFrame::CheckSequence`
+// covers, minus the wx-only network / OS / preferences chunks
+// (those don't apply on iPad anyway).
+//
+// `progress` (optional) is invoked from the checker thread —
+// callers that update SwiftUI must hop to MainActor. Percent in
+// [0, 100]; `step` is the human-readable section name. Returns
+// an empty array when no sequence is loaded.
+//
+// Safe to call from a background queue: SequenceChecker only
+// reads in-memory objects and the resulting NSArray is fully
+// detached from any C++ state by the time it returns.
+- (NSArray<XLCheckSequenceIssue*>*)runSequenceCheckWithProgress:
+    (nullable void (^)(int percent, NSString* _Nonnull step))progress;
 
 // Ensure a preview-frame bundle exists for `path` at the requested
 // thumbnail bounds. Loads the entry if not yet loaded and calls
@@ -583,9 +1937,9 @@
 // frame exists. Returns nil if the path / index is invalid or PNG
 // encoding fails. `mediaType` disambiguates the cache lookup (see
 // above).
-- (NSData*)thumbnailPNGForPath:(NSString*)path
-                     mediaType:(NSString*)mediaType
-                    frameIndex:(int)frameIndex;
+- (nullable NSData*)thumbnailPNGForPath:(NSString*)path
+                              mediaType:(NSString*)mediaType
+                             frameIndex:(int)frameIndex;
 
 // Duration of the frame at `frameIndex` in milliseconds. Driven by the
 // underlying format: animated-GIF / WebP frame delays, video frame
@@ -611,8 +1965,520 @@
 // RenderableEffect's compiled-in XPM data. `desiredSize` is rounded
 // up to the nearest {16,24,32,48,64} bucket. Returns nil if the effect
 // name is unknown or the XPM couldn't be parsed.
-- (NSData*)iconBGRAForEffectNamed:(NSString*)effectName
-                      desiredSize:(int)desiredSize
-                        outputSize:(int*)outputSize;
+- (nullable NSData*)iconBGRAForEffectNamed:(NSString*)effectName
+                               desiredSize:(int)desiredSize
+                                outputSize:(int*)outputSize;
+
+// MARK: - Moving Head fixture plumbing (G3 — C7)
+//
+// The Moving Head effect stores its actual renderable parameters
+// as packed command strings in `E_TEXTCTRL_MH1_Settings` …
+// `E_TEXTCTRL_MH8_Settings` (semicolon-separated `Key: value`
+// pairs, with '@' as an escaped ';' inside VC blobs). A fixture
+// is "active" iff its settings string is non-empty — desktop
+// derives checkbox state the same way at open time
+// (`MovingHeadPanel.cpp:1974-1985`).
+
+/// Mask of which fixture slots (1..8) are active for the selected
+/// Moving Head effect. Each bit: `1 << (fixture - 1)`. 0 when no
+/// effect is selected, not a Moving Head effect, or no fixtures
+/// are active.
+- (int)movingHeadActiveFixturesForRow:(int)rowIndex
+                               atIndex:(int)effectIndex;
+
+/// Toggle a fixture slot active / inactive. Writes a seed
+/// command string with the current slider values (Pan / Tilt /
+/// offsets / groupings / cycles) when activating; clears
+/// `E_TEXTCTRL_MH<fixture>_Settings` when deactivating. Also
+/// rewrites every active fixture's `Heads:` list so it reflects
+/// the new selection. Returns YES on change.
+- (BOOL)setMovingHeadFixture:(int)fixture
+                        active:(BOOL)active
+                        forRow:(int)rowIndex
+                       atIndex:(int)effectIndex;
+
+/// Rewrite every active fixture's Pan / Tilt / offsets / groupings
+/// / cycles commands from the current slider values, preserving
+/// colour / path / dimmer / shutter settings untouched. Called
+/// automatically by the view model whenever a slider the renderer
+/// actually reads changes. Returns the count of fixtures updated.
+- (int)syncMovingHeadPositionForRow:(int)rowIndex
+                              atIndex:(int)effectIndex;
+
+/// G3+ — read / write a packed MH command (e.g. "Color",
+/// "Dimmer", "Path") on the effect's active fixtures. The reader
+/// returns the value from the first active fixture (assumed
+/// uniform across fixtures); the writer replaces the command on
+/// every active fixture, or removes it when `value` is empty.
+/// Triggers a model re-render on success so the preview updates
+/// immediately. No-op when no fixtures are active or the row
+/// isn't a Moving Head effect.
+- (NSString*)movingHeadCommand:(NSString*)cmdName
+                          forRow:(int)rowIndex
+                         atIndex:(int)effectIndex
+    NS_SWIFT_NAME(movingHeadCommand(_:forRow:atIndex:));
+- (BOOL)setMovingHeadCommand:(NSString*)cmdName
+                         value:(NSString*)value
+                        forRow:(int)rowIndex
+                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(setMovingHeadCommand(_:value:forRow:atIndex:));
+
+// MARK: - DMX state + remap plumbing (G8 — C7)
+//
+// Model states live on the `Model` object's in-memory
+// `stateInfo` map. Desktop's Save-State writes a new entry then
+// fires `EVT_RGBEFFECTS_CHANGED` to persist `xlights_rgbeffects.xml`;
+// iPad v1 keeps the save in-memory for the session and does NOT
+// persist (documented in the banner on the DMX panel). Loading
+// desktop-authored states works across restarts because the
+// states were already read out of the XML at show-folder open.
+
+/// True iff a state with `stateName` already exists on the
+/// effect's target model. Used for the save-overwrite prompt.
+- (BOOL)dmxStateExistsForRow:(int)rowIndex
+                      atIndex:(int)effectIndex
+                     stateName:(NSString*)stateName;
+
+/// Copy the current effect's `E_SLIDER_DMX1..48` values into a
+/// new (or existing) state on the model. Builds the attribute
+/// map matching desktop's `DMXPanel::OnSaveAsStateClick`
+/// (CustomColors=1, Type=SingleNode, s<n>-Color="#XXXXXX"). In-
+/// memory only — not persisted to disk in v1.
+///
+/// `overwrite=NO` aborts when the state already exists.
+/// Returns YES on successful save.
+- (BOOL)dmxSaveStateForRow:(int)rowIndex
+                    atIndex:(int)effectIndex
+                   stateName:(NSString*)stateName
+                   overwrite:(BOOL)overwrite;
+
+/// Pull a saved state's channel values back into the effect's
+/// `E_SLIDER_DMX1..N` settings. Matches desktop's
+/// `DMXPanel::OnLoadFromStateClick`: validates `Type=SingleNode`
+/// and `CustomColors=1`, reads `s<n>-Color` hex, extracts the
+/// red channel as the DMX byte, writes it via the settings map
+/// (so the UI sliders pick up the change through the normal
+/// observable path). Returns YES on successful apply, NO if the
+/// state isn't present or doesn't match the expected shape.
+- (BOOL)dmxLoadStateForRow:(int)rowIndex
+                    atIndex:(int)effectIndex
+                   stateName:(NSString*)stateName;
+
+/// Preset channel remappings for the DMX effect. Smaller scope
+/// than desktop's `RemapDMXChannelsDialog` — iPad v1 exposes a
+/// handful of common transforms via a menu instead of the full
+/// 48-row grid editor (deferred to post-v1).
+///
+///   0 = Shift +1     (channel n value → channel n+1, wrap)
+///   1 = Shift -1     (channel n value → channel n-1, wrap)
+///   2 = Reverse      (1↔48, 2↔47, …)
+///   3 = Invert All   (each channel value = 255 - old)
+///   4 = Double       (each channel value × 2, clamp to 255)
+///   5 = Half         (each channel value / 2)
+///
+/// Returns YES when anything changed.
+- (BOOL)dmxRemapChannelsForRow:(int)rowIndex
+                        atIndex:(int)effectIndex
+                         preset:(int)preset;
+
+// Effect bracket palette — sourced from the show folder's <colors>
+// node in xlights_rgbeffects.xml so user-customised desktop palettes
+// round-trip to iPad. Falls back to ColorManager defaults when the
+// show has no customised palette. Returns each component as a
+// 0..1 CGFloat through out-params (kept as scalars rather than
+// UIColor so the per-frame draw loop in EffectsMetalGridView can
+// feed them straight into appendLineX1's r/g/b args).
+typedef NS_ENUM(NSInteger, XLEffectBracketState) {
+    XLEffectBracketStateDefault = 0,
+    XLEffectBracketStateSelected,
+    XLEffectBracketStateLocked,
+    XLEffectBracketStateDisabled,
+};
+- (void)bracketColorForState:(XLEffectBracketState)state
+                         outR:(CGFloat*)outR
+                         outG:(CGFloat*)outG
+                         outB:(CGFloat*)outB
+    NS_SWIFT_NAME(bracketColor(forState:outR:outG:outB:));
+
+#pragma mark - J-31 — Controllers (Layout Editor sidebar)
+
+// Phase J-31 — list of every configured controller from the
+// active output manager, in declared order. Each dictionary
+// carries the canonical column data mirroring desktop's
+// Controllers tab grid (Name / Type / IP / Channels / Vendor /
+// Model / Variant / Active state) plus capability booleans the
+// SwiftUI side uses to gate Upload / Visualize actions to
+// open-source firmware controllers only.
+//
+// Each dictionary:
+//   @"name"          — NSString
+//   @"type"          — NSString (Column1: NULL, E1.31, ArtNet, …)
+//   @"ip"            — NSString (resolved IP / device address)
+//   @"universes"     — NSString (Column3: universe range string)
+//   @"channels"      — NSString (Column4: "N [start-end]")
+//   @"vendor"        — NSString
+//   @"model"         — NSString
+//   @"variant"       — NSString
+//   @"active"        — NSString ("Active" / "Inactive" / "xLights Only")
+//   @"autoLayout"    — NSNumber (BOOL)
+//   @"autoSize"      — NSNumber (BOOL)
+//   @"description"   — NSString
+//   @"caps.openSourceFirmware" — NSNumber (BOOL); when YES, the
+//                      iPad surfaces Upload / Visualize actions
+//                      in the long-press menu. nil-caps
+//                      controllers default to NO.
+- (NSArray<NSDictionary*>*)controllersListSummary;
+
+// Phase J-31 — full editable detail for a specific controller.
+// Same shape as `controllersListSummary` rows; surfaces extra
+// fields (`url` for Open action, `pingDescription`) that the
+// detail pane reads. Returns nil when the controller doesn't
+// exist.
+- (nullable NSDictionary<NSString*, id>*)controllerDetailForName:(NSString*)name;
+
+// Phase J-31 — model names assigned to `controllerName`. Used
+// by the Controllers tab's detail pane (member list). Canvas-
+// side tinting goes through `XLMetalBridge.setSelectedController:`
+// instead, which mirrors the existing `setSelectedGroup:` path.
+- (NSArray<NSString*>*)modelNamesForController:(NSString*)controllerName;
+
+// Phase J-31 — editable property descriptors for a controller.
+// Mirrors `perTypePropertiesForModel:` shape: NSArray<NSDictionary>
+// where each entry is a descriptor dict with keys
+// `key` / `label` / `kind` (int / double / bool / enum / string
+// / header) plus kind-specific extras. Returns an empty array
+// when the controller doesn't exist.
+//
+// Covers the base `ControllerPropertyAdapter` surface (Name,
+// Description, Id, Active, AutoLayout/Upload/Size,
+// FullxLightsControl, DefaultBrightness, SuppressDuplicates,
+// Monitor, Vendor/Model/Variant cascade) plus Ethernet
+// (Multicast, IP, FPPProxy, Protocol, ForceLocalIP, Priority,
+// Managed) and Null (Channels). Serial-specific properties
+// (Port / Speed / I2C / SPI / Prefix / Postfix) are deferred —
+// they need a follow-up turn for the sub-protocol switches.
+// `ControllerCaps::GetExtraPropertyDefs()` extras land as
+// String / Enum descriptors at the tail with `ControllerExtra.`
+// key prefix.
+- (NSArray<NSDictionary*>*)controllerPropertiesForName:(NSString*)name;
+
+// Phase J-31 — commit a single controller property. Returns NO
+// for: unknown controller, validation failure (e.g. duplicate
+// name), unknown key, or wrong value type. Marks the
+// `_controllersDirty` flag on success so `SaveLayoutChanges()`
+// rewrites `xlights_networks.xml`.
+- (BOOL)setControllerProperty:(NSString*)key
+                 onController:(NSString*)name
+                        value:(id)value;
+
+// Phase J-31.3 — add a new controller. `type` is one of
+// `"Ethernet"` / `"Serial"` / `"Null"`; mirrors the three
+// `OnButtonAddController…Click` entry points on desktop's Setup
+// tab. The OutputManager auto-assigns a unique name. Returns
+// the new name on success; nil on bad `type` or no
+// OutputManager.
+- (nullable NSString*)addControllerOfType:(NSString*)type;
+
+// Phase J-31.3 — delete by name. Returns YES on success, NO
+// when the controller doesn't exist. Marks
+// `_controllersDirty`.
+- (BOOL)deleteController:(NSString*)name;
+
+// Phase J-31.5 — reorder. Controller order determines auto-
+// computed start channels, so drag-and-drop on the sidebar
+// list calls this with the desired 0-indexed destination.
+// Returns NO when the name doesn't exist or the destination
+// is out of range. Marks `_controllersDirty` on success.
+- (BOOL)moveController:(NSString*)name toIndex:(int)destIndex;
+
+// Set the controller's active state. `state` is one of
+// "Active", "xLights Only", or "Inactive" — the strings
+// `Controller::SetActive` accepts. Returns NO if the
+// controller doesn't exist, the string is bad, or the
+// controller is FromBase (must be unlinked first). Marks
+// `_controllersDirty` on success.
+- (BOOL)setControllerActiveState:(NSString*)state
+                    onController:(NSString*)name
+    NS_SWIFT_NAME(setControllerActiveState(_:onController:));
+
+// Clear the `FromBase` flag so subsequent base-folder merges
+// won't overwrite local edits. Returns NO if the controller
+// doesn't exist or isn't currently flagged.
+- (BOOL)unlinkControllerFromBase:(NSString*)name
+    NS_SWIFT_NAME(unlinkControllerFromBase(_:));
+
+#pragma mark - Base Show Directory
+
+// Path of the configured base show folder, or nil if none is
+// set. Stored in OutputManager (`xlights_networks.xml`) — this
+// is per-show, not a global preference.
+- (nullable NSString*)baseShowDirectory NS_SWIFT_NAME(baseShowDirectory());
+
+// Set or clear the base show folder. Pass nil/empty to clear.
+// Marks `_controllersDirty`.
+- (void)setBaseShowDirectory:(nullable NSString*)path
+    NS_SWIFT_NAME(setBaseShowDirectory(_:));
+
+// Auto-update-on-open flag.
+- (BOOL)autoUpdateFromBaseShowDirectory
+    NS_SWIFT_NAME(autoUpdateFromBaseShowDirectory());
+- (void)setAutoUpdateFromBaseShowDirectory:(BOOL)enabled
+    NS_SWIFT_NAME(setAutoUpdateFromBaseShowDirectory(_:));
+
+// Pull controllers, models, model groups, and view objects
+// from the base show folder. Returns a summary dictionary:
+//   @"controllersChanged" — NSNumber (BOOL)
+//   @"modelsChanged"      — NSNumber (BOOL)
+//   @"objectsChanged"     — NSNumber (BOOL)
+//   @"error"              — NSString (optional)
+//   @"needsReselect"      — NSNumber BOOL (optional; YES when
+//                            the bookmark is stale and the
+//                            user should re-pick the folder)
+- (NSDictionary*)updateFromBaseShowDirectory
+    NS_SWIFT_NAME(updateFromBaseShowDirectory());
+
+// Phase J-31.6 — push the show's pixel-string / model
+// configuration to a physical controller via its HTTP API.
+// Mirrors desktop's `xLightsFrame::UploadOutputToController`:
+// recalculates model start channels, constructs the
+// vendor-specific `BaseController` via factory, verifies
+// connection, calls `SetOutputs`. Blocking — call from a
+// detached Task.
+//
+// Returns NSDictionary:
+//   @"success"     — NSNumber (BOOL)
+//   @"message"     — NSString (user-facing result string)
+//   @"log"         — NSString (any messages the upload's UI
+//                    callbacks captured along the way)
+- (NSDictionary*)uploadOutputForController:(NSString*)name;
+
+// Phase J-31.6 — push the show's universe-input configuration
+// (which DMX universes the controller should listen on) to
+// the device. Mirrors desktop's
+// `xLightsFrame::UploadInputToController`. Same return shape
+// as the output upload.
+- (NSDictionary*)uploadInputForController:(NSString*)name;
+
+// Phase J-31.4 — controller network discovery. Runs the cross-
+// protocol scanner (FPP / ArtNet / Twinkly / Pixlite / DDP) on
+// the **calling thread** — Swift wraps it in `Task.detached`
+// to keep the UI responsive (typical run is 5–10s). Auto-adds
+// each freshly-discovered ethernet controller whose name +
+// protocol + IP are all unique; collects every other hit into
+// a mismatches array the SwiftUI side resolves via
+// `applyDiscoveryMismatch:action:`.
+//
+// Returns:
+//   @"added"           — NSNumber (count of newly-added controllers)
+//   @"already"         — NSNumber (count whose IP + name matched an existing one)
+//   @"addedNames"      — NSArray<NSString> of new controller names
+//   @"mismatches"      — NSArray<NSDictionary>; each entry self-contained
+//                        with everything needed to apply a choice:
+//     For kind="ip-update":
+//       @"id", @"kind"="ip-update",
+//       @"existingName", @"existingIP", @"discoveredIP",
+//       @"protocol", @"vendor", @"model", @"variant",
+//       @"discoveredName"     — fallback when user picks Add New
+//     For kind="rename":
+//       @"id", @"kind"="rename",
+//       @"existingName", @"existingIP", @"discoveredName"
+- (NSDictionary*)runControllerDiscovery;
+
+// Phase J-31.7 — resolve a discovery mismatch. The `descriptor`
+// is one of the dicts from `runControllerDiscovery`'s
+// `mismatches` array; the action is one of:
+//   "update"   — (ip-update) write discoveredIP onto the
+//                existing controller named existingName.
+//   "add-new"  — (ip-update) create a new ControllerEthernet
+//                using the discovered scalars and add it
+//                alongside the existing one. Name is auto-
+//                uniquified.
+//   "rename"   — (rename) write discoveredName onto the
+//                existing controller named existingName,
+//                and rewrite every model's controllerName
+//                that referenced it.
+//   "skip"     — leave everything as-is.
+// Returns YES on success (including "skip", which is always
+// successful by definition). Marks `_controllersDirty` when
+// any state actually changed.
+- (BOOL)applyDiscoveryMismatch:(NSDictionary*)descriptor
+                         action:(NSString*)action;
+
+// Phase J-32.1 — wiring view ("Visualize" on desktop).
+// Constructs a `UDController` for the named controller and
+// serializes its port-by-port model assignment graph into a
+// nested NSDictionary the SwiftUI sheet renders directly.
+// Returns nil if the controller doesn't exist.
+//
+// Returns NSDictionary:
+//   @"name", @"ip", @"vendor", @"model", @"variant"   — controller identity
+//   @"valid"          — NSNumber (BOOL) overall UDController::IsValid()
+//   @"errorMessage"   — NSString (UDController::Check result, may be empty)
+//   @"ports"          — NSArray<NSDictionary>; each entry:
+//     @"kind"           — "pixel" | "serial" | "pwm" | "virtualMatrix" | "ledPanelMatrix"
+//     @"port"           — NSNumber port index (1-based for pixel/serial)
+//     @"name"           — NSString port label ("Pixel Port 3", "DMX Out 1", …)
+//     @"protocol"       — NSString
+//     @"valid"          — NSNumber BOOL
+//     @"invalidReason"  — NSString (may be empty)
+//     @"isSmartRemotePort" — NSNumber BOOL
+//     @"smartRemoteCount" — NSNumber
+//     @"startChannel"   — NSNumber (absolute show channel)
+//     @"endChannel"     — NSNumber
+//     @"channels"       — NSNumber
+//     @"pixels"         — NSNumber (channels / channelsPerPixel)
+//     @"models"         — NSArray<NSDictionary>; each entry:
+//       @"name", @"label"
+//       @"string"            — NSNumber (0 for primary string)
+//       @"startChannel", @"endChannel", @"channels"  — NSNumber
+//       @"smartRemote"       — NSNumber (0 = no SR, 1-N for A-…)
+//       @"smartRemoteLetter" — NSString ("" or "A".."P")
+//       @"smartRemoteType"   — NSString
+//       @"universe"          — NSNumber
+//       @"universeStartChannel" — NSNumber
+//       @"protocol"          — NSString (per-model override)
+//       @"valid"             — NSNumber BOOL
+//       @"invalidReason"     — NSString
+//   @"noConnection"    — NSArray<NSDictionary> of model-shape entries
+//                        for models claiming this controller but having
+//                        no port assignment (or unreachable port).
+//   @"totals":
+//     @"models", @"channels", @"pixelPorts", @"serialPorts"  — NSNumber
+- (nullable NSDictionary*)wiringForController:(NSString*)name;
+
+// Phase J-32.2 — protocols the user can choose for a port of
+// `kind` ("pixel" / "serial") on the named controller. Filtered
+// through `ControllerCaps` when available (falls back to the
+// full type catalogue when the vendor/model has no caps entry).
+// Used by the Visualize sheet's protocol picker.
+- (NSArray<NSString*>*)availableProtocolsForController:(NSString*)name
+                                                  kind:(NSString*)kind;
+
+// Phase J-32.2 — write `protocol` onto every model on the
+// specified port (1-based, matches UDController). When the caps
+// don't allow simultaneous-different protocols across ports of
+// the same kind, the protocol is applied to EVERY port of that
+// kind (mirrors desktop's `SupportsMultipleSimultaneousOutputProtocols`
+// branch in ControllerModelDialog::OnPopupCommand for
+// CONTROLLER_PROTOCOL). Returns NO when:
+//   - controller name doesn't exist
+//   - kind isn't "pixel" / "serial"
+//   - protocol is not in the caps-filtered list
+//   - no models on the port (nothing to write — UI shouldn't
+//     have offered the picker for an empty port anyway).
+- (BOOL)setPortProtocolOnController:(NSString*)name
+                                kind:(NSString*)kind
+                                port:(int)port
+                            protocol:(NSString*)protocol
+    NS_SWIFT_NAME(setPortProtocol(onController:kind:port:protocol:));
+
+// Phase J-32.3 — return the controller-connection state for the
+// named model in the shape the Visualize "Edit Controller
+// Properties" sheet edits. The "*Active" flags are CTRL_PROPS
+// bits — when OFF, the corresponding value is ignored at upload
+// time and the controller falls back to its own defaults.
+//
+// Returns NSDictionary:
+//   @"brightnessActive"    — NSNumber BOOL
+//   @"brightness"          — NSNumber Int (0..100)
+//   @"gammaActive"         — NSNumber BOOL
+//   @"gamma"               — NSNumber Float
+//   @"colorOrderActive"    — NSNumber BOOL
+//   @"colorOrderIndex"     — NSNumber Int (index into colorOrderOptions)
+//   @"colorOrder"          — NSString (e.g. "RGB", "GRB")
+//   @"colorOrderOptions"   — NSArray<NSString>
+//   @"groupCountActive"    — NSNumber BOOL
+//   @"groupCount"          — NSNumber Int
+//   @"startNullsActive"    — NSNumber BOOL
+//   @"startNulls"          — NSNumber Int
+//   @"endNullsActive"      — NSNumber BOOL
+//   @"endNulls"            — NSNumber Int
+//   @"dmxChannel"          — NSNumber Int (serial-port only)
+//   @"useSmartRemote"      — NSNumber BOOL (USE_SMART_REMOTE flag)
+//   @"smartRemote"         — NSNumber Int (0=none, 1..N for A..)
+//   @"smartRemoteType"     — NSString
+//   @"smartRemoteTypeOptions" — NSArray<NSString>
+//   @"srMaxCascade"        — NSNumber Int
+//   @"srCascadeOnPort"     — NSNumber BOOL
+// Returns nil if the model can't be resolved.
+- (nullable NSDictionary*)controllerConnectionForModel:(NSString*)modelName;
+
+// Phase J-32.4 — controller-level smart-remote capabilities for
+// the named controller's caps. Used by the SR picker to know
+// how many letters to show and which SR types are valid.
+//
+// Returns:
+//   @"supportsSmartRemotes" — NSNumber BOOL
+//   @"maxRemotes"           — NSNumber Int (1-based count, e.g. 16 for "A".."P")
+//   @"types"                — NSArray<NSString>
+- (NSDictionary*)smartRemoteCapabilitiesForController:(NSString*)name;
+
+// Phase J-32.5 — assign a model to a port on a controller.
+// Mirrors desktop's `DropModelFromModelsPaneOnModel` /
+// `DropFromModels` chain-aware drop:
+//   - Sets the model's controllerName / port / protocol
+//     (auto-picked from caps when the port is empty, or
+//     inherited from the existing model chain).
+//   - Pixel ports: when `afterModel` is set, chains the model
+//     immediately after it via `modelChain = ">{afterModel}"`
+//     and reparents any model that had been chained off
+//     `afterModel`. When `afterModel` is nil + the port is
+//     non-empty, the model lands at the END of the chain.
+//   - Serial ports: walks DMX-channel chain instead of the
+//     `modelChain` string (matches desktop's rhs=true serial
+//     branch). Drop-at-end picks the next channel past the
+//     current last model.
+//   - Smart-remote inheritance: when dropping after a model,
+//     the new model picks up that model's smart-remote ID. When
+//     dropping on an empty port, SR is preserved at 0 unless
+//     the caller asks otherwise via `smartRemote >= 1`.
+//   - `smartRemote == -1` means "inherit from afterModel or
+//     leave alone"; `>= 0` overrides explicitly.
+//   - Recalcs start channels at the end so the canvas + the
+//     wiring sheet repaint with the new ranges.
+// Returns NO when the model / controller doesn't exist or the
+// port kind is unsupported.
+- (BOOL)assignModelToController:(NSString*)modelName
+                  controllerName:(NSString*)controllerName
+                            kind:(NSString*)portKind
+                            port:(int)port
+                      afterModel:(nullable NSString*)afterModelName
+                     smartRemote:(int)smartRemote
+    NS_SWIFT_NAME(assignModel(_:toController:kind:port:afterModel:smartRemote:));
+
+// Phase J-32.5 — remove a model's controller assignment so it
+// returns to the "No Connection" bucket / models pane. Clears
+// `controllerName`, `controllerPort`, `modelChain`, and any
+// model chained off this one re-resolves to whichever model
+// (if any) preceded the removed one on its port.
+- (BOOL)removeModelFromController:(NSString*)modelName
+    NS_SWIFT_NAME(removeModelFromController(_:));
+
+// Phase J-32.6 — caps-reported max port counts for the named
+// controller. Used by the "Move to Port" picker to know how
+// many pixel / serial ports to show. Falls back to {0, 0} when
+// caps aren't available — the picker then hides itself.
+//
+// Returns:
+//   @"maxPixelPort"  — NSNumber Int
+//   @"maxSerialPort" — NSNumber Int
+- (NSDictionary*)portCountsForController:(NSString*)name;
+
+// Phase J-32.7 — wiring export. Wraps `UDController::ExportAsCSV`
+// and `ExportAsJSON` from src-core/. Returns nil when the
+// controller doesn't exist or the export fails.
+//
+// CSV: a single string with `\n`-separated rows, header line
+// included. Cells that contain commas / quotes are
+// double-quoted. Suitable to drop straight into a temp file +
+// share via UIActivityViewController.
+//
+// JSON: the same JSON document desktop's "Export JSON" produces;
+// the recipient is expected to be another JSON-aware tool, not
+// xLights itself.
+- (nullable NSString*)exportWiringCSVForController:(NSString*)name;
+- (nullable NSString*)exportWiringJSONForController:(NSString*)name;
 
 @end
+
+NS_ASSUME_NONNULL_END

@@ -229,11 +229,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
     PreviewWindows.clear();
 
-    // remove any 3d viewpoints
-    viewpoint_mgr.Clear();
-
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
+    viewpoint_mgr.Clear();
 
     // Force re-initialization of Effect Presets panel when show directory changes.
     // If the panel is already visible, reload it immediately; otherwise defer until next show.
@@ -1341,6 +1339,7 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
+        layoutPanel->FocusModelTree();
     }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
         logger_work->debug("    WORK_REDRAW_LAYOUTPREVIEW.");
@@ -1917,6 +1916,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
     auto selections = GetSelectedControllerNames();
 
     if (selections.size() != 1 || _outputManager.GetController(selections.front()) == nullptr) {
+        _controllerAdapter.reset();
         Controllers_PropertyEditor->Clear();
         ButtonVisualise->Enable(false);
         ButtonUploadInput->Enable(false);
@@ -2019,7 +2019,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             }
 
             // one item selected - display selected controller properties
-            if (rebuildPropGrid) {
+            if (rebuildPropGrid || !_controllerAdapter || _controllerAdapter->GetController() != controller) {
                 Controllers_PropertyEditor->Clear();
                 _controllerAdapter = ControllerPropertyManager::CreateAdapter(*controller);
                 _controllerAdapter->AddProperties(Controllers_PropertyEditor, &AllModels, expandProperties);
@@ -2340,6 +2340,7 @@ void xLightsFrame::DeleteSelectedControllers() {
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
             waitForPingsToComplete();
             for (const auto& it : todel) {
+                AllModels.DeleteController(it);
                 _outputManager.DeleteController(it);
             }
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
@@ -2601,6 +2602,7 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         waitForPingsToComplete();
+        AllModels.DeleteController(name);
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");

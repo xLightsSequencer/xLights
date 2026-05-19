@@ -6,11 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3 (custom fork). Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their own repositories.
 
-**Minimum supported platforms:** macOS 11, Linux (Debian 12 / Ubuntu 24.04), Windows 8.
+**Minimum supported platforms:** macOS 10.15 (Catalina), Linux (Debian 12 / Ubuntu 24.04), Windows 8.
+
+### iPad app
+
+This repository also contains the **iPad app** (SwiftUI, iOS 26+). It is
+NOT a port — it's a second UI that shares the same wx-free C++ core
+(`src-core/`), render engine, effect manager, sequence file / elements,
+and audio manager as the desktop app. iPad-specific code lives in
+`src-iPad/` (SwiftUI views + view model, ObjC++ bridges,
+Metal canvases). The iPad app is pre-release and tracked in
+[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) + `plans/`.
+
+### Desktop ↔ iPad parity (important)
+
+Any change that touches a feature that exists on both platforms
+**should have equivalent changes applied to the other** in the same
+PR whenever possible. Concretely:
+
+- **Changes to `src-core/`** affect both apps automatically (both link
+  the same core). Review both code paths when touching core — a new
+  edge case in `src-core/render/` or `src-core/effects/` needs to
+  behave correctly through the wx UI *and* the SwiftUI UI.
+- **UI-layer features in `src-ui-wx/`** that have an iPad counterpart
+  in `src-iPad/App/` should be updated together. Example: a new
+  entry in the desktop row-heading right-click menu should also
+  land in `ModelRowHeader.contextMenu` on iPad (and vice versa).
+- **Bridge surface in `src-iPad/Bridge/`** mirrors or wraps desktop
+  behavior. When the desktop adds a new mutating op on `Effect` /
+  `EffectLayer` / `Element` / `SequenceElements`, the iPad bridge
+  usually needs a matching wrapper. Follow the
+  `NS_SWIFT_NAME(…)` convention already in `XLSequenceDocument.h`.
+- **Features iPad can't support** (e.g. controller setup, layout
+  editor, FFmpeg-only audio filters) are fine to leave desktop-only
+  — track them in the "Deferred / out of MVP" section of
+  `iPad-xLights-Plan.md` so we know why.
+- **Features iPad has that desktop doesn't** (rare so far — two-
+  finger marquee, long-press menus, trackpad `allowedScrollTypesMask`)
+  are fine; they're touch-idioms without desktop equivalents.
+
+When unsure, err toward matching: it's cheaper to add a parallel UI
+entry than to ship a behavior gap that users discover when they
+move between the two clients.
 
 ## Build Commands
 
-### macOS
+### macOS (desktop)
 ```bash
 # Xcode project at macOS/xLights.xcodeproj
 xcodebuild                    # CLI build
@@ -18,6 +59,20 @@ xcodebuild                    # CLI build
 # Dependencies auto-download if using matching Xcode version.
 # Libraries install to /opt/local/lib (release) and /opt/local/libdbg (debug)
 ```
+
+### iPad (SwiftUI app)
+```bash
+# Same Xcode project. iPad deps live at /opt/xLights-macOS-dependencies/lib-ios/.
+xcodebuild -project macOS/xLights.xcodeproj \
+           -scheme xLights-iPadLib \
+           -configuration Debug \
+           -destination 'generic/platform=iOS' build
+```
+`xLights-iPadLib` builds the static library that the
+`xLights-iPad` app target links against. For fast iterative
+checks prefer this scheme — it skips the app bundle wrap and
+catches the vast majority of errors. Build the `xLights-iPad`
+scheme only when you need to deploy to a device / simulator.
 
 ### Linux
 ```bash
@@ -40,20 +95,39 @@ Open in Visual Studio (vcxproj files) or Code::Blocks.
 Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `src-ui-wx/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
 
 ### Adding New Source Files
-When adding new `.cpp`/`.h` files, place them in `src-core/` (wx-free core) or `src-ui-wx/` (wxWidgets UI) as appropriate. The following project files must be updated manually:
+When adding new `.cpp`/`.h` files, place them in `src-core/` (wx-free
+core, linked by both desktop and iPad), `src-ui-wx/` (wxWidgets
+desktop UI), or `src-iPad/` (SwiftUI iPad app + ObjC++ bridge). The
+following project files must be updated manually:
 - **`xLights/xLights.cbp`** — add `<Unit filename="...">` entries with paths relative to `xLights/` (e.g., `../src-core/render/Foo.cpp`)
 - **`xLights/Xlights.vcxproj`** — add `<ClCompile>` for `.cpp` and `<ClInclude>` for `.h` with paths relative to `xLights/` (e.g., `..\src-core\render\Foo.cpp`)
 - **`xLights/Xlights.vcxproj.filters`** — add corresponding filter entries to place files in the correct VS folder
 
-The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`) uses `PBXFileSystemSynchronizedRootGroup` for both `src-core/` and `src-ui-wx/` — files in those directories are auto-discovered. No manual pbxproj editing needed for new files in existing directories.
+The macOS Xcode project (`macOS/xLights.xcodeproj/project.pbxproj`)
+uses `PBXFileSystemSynchronizedRootGroup` for `src-core/`,
+`src-ui-wx/`, and `src-iPad/` — files in those directories are
+auto-discovered. No manual pbxproj editing needed for new files in
+existing directories. Note that Windows/Linux builds intentionally
+do not compile `src-iPad/`, so new iPad files never need to land in
+the `.cbp` / `.vcxproj` files.
+
+The top-level **`CMakeLists.txt`** (used for the `cmake_vs/` cmake-based
+VS build) uses `file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
+SRC_CORE ...)` to discover source files automatically from the
+directories listed in the glob patterns (e.g., `src-ui-wx/color/*.cpp`,
+`src-core/effects/*.cpp`). New files added inside those directories
+**do not** need a manual CMakeLists.txt edit — they are picked up on
+the next cmake configure. Only files placed **outside** the existing
+glob patterns (e.g., a new top-level subdirectory) require a new
+`file(GLOB ...)` or explicit `list(APPEND ...)` line in CMakeLists.txt.
 
 ### Release Notes
-`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single summary line with no code to the current release section:
+`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single very brief summary line with no code to the current release section:
 - **Enhancements**: `    -enh (author)                Description of the enhancement`
 - **Bug fixes**: `    -bug (author)                Description of the bug fix`
 - **Changes**: `    -change (author)             Description of the change`
 
-Keep descriptions concise (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
+Keep description summary very brief (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
 **Do NOT add iPad-specific changes to `README.txt`.** The iPad app has not shipped yet and its changelog would only clutter the desktop release notes. Instead, keep `iPad-xLights-Plan.md` (next to `README.txt`) up to date: move items from "pending" to "done" as they land, and record any landed-fix details (root cause, follow-ups) inside the matching phase entry. Changes that touch shared `src-core/` code *and* user-visible desktop behavior still belong in `README.txt`; the iPad-only side goes in the plan.
 
@@ -65,6 +139,15 @@ xcodebuild                        # Normal iterative build (Release, universal, 
 xcodebuild GCC_PREPROCESSOR_DEFINITIONS='$(inherited) NO_PCH '   # Final verification only
 ```
 Adding `-configuration Debug` builds only for the native architecture in Debug mode, which is much quicker for iterative build testing during development. The default Release build is universal (arm64 + x86_64) and optimized, so it takes longer. The `NO_PCH` flag disables pre-compiled headers, making the macOS build closer to Linux/Windows behavior and helping catch missing `#include` directives that the PCH would otherwise mask. However, disabling PCH significantly slows the build, so use it only as a final verification before committing — not for iterative development.
+
+**When a change touches `src-core/` or `src-iPad/`, also build the
+iPad library** to catch platform-specific breaks that the desktop
+build won't surface (e.g. `#ifdef __APPLE__` paths, ObjC++ bridge
+compilation, Swift interop):
+```bash
+xcodebuild -project macOS/xLights.xcodeproj -scheme xLights-iPadLib \
+           -configuration Debug -destination 'generic/platform=iOS' build
+```
 
 ## Architecture
 
@@ -84,7 +167,7 @@ Adding `-configuration Debug` builds only for the native architecture in Debug m
 
 The codebase physically separates wx-free core logic from wxWidgets UI code. Core code lives in `src-core/`, UI code in `src-ui-wx/`. The goal is a platform-neutral core usable without wx (e.g., for an iPad app). Build system files remain in `xLights/`.
 
-**Core packages** (enforced by `ci_scripts/check_core_include_boundaries.sh`): `discovery/`, `graphics/`, `media/`, `render/`, `effects/`, `models/`, `outputs/`, `controllers/`, `utils/`, `XmlSerializer/`. These directories **must not** include `ui/` headers, `xLightsMain.h`, or `xLightsApp.h` in their public headers or implementation files. New violations are blocked in strict mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
+**Core rule:** anything under `src-core/` **must not** include anything from `src-ui-wx/` / `src-ui*/` or any `wx/…` header. This applies to every file in every core package — public headers and implementation files alike. The goal is that `src-core/` compiles and links without wxWidgets so the iPad app (and any future non-wx host) can reuse it unchanged. Core packages enforced by `ci_scripts/check_core_include_boundaries.sh`: `discovery/`, `graphics/`, `lyrics/`, `media/`, `render/`, `effects/`, `models/`, `outputs/`, `controllers/`, `utils/`, `XmlSerializer/`. New violations are blocked in strict mode; approved exceptions live in `ci_scripts/include_policy_allowlist.txt`.
 
 **`src-core/graphics/`** — wx-free core graphics abstraction layer:
 - `xlGraphicsContext.h` — abstract GPU context interface (no wx types; no window pointer; use `setContextualValue`/`getContextualValue` for passing context like `IModelPreview*`)
@@ -114,9 +197,53 @@ The codebase physically separates wx-free core logic from wxWidgets UI code. Cor
 - **Show directory vs Media directories**: The show directory is the primary project folder. Additional media directories can be configured. Both are searched when resolving relative paths.
 - **`ObtainAccessToURL(path, enforceWritable)`**: Must be called before reading/writing files on macOS to handle App Sandbox security-scoped bookmarks. Defined in `macOS/macOS-src/osxUtils/ExternalHooksMacOS.h`, implemented in Swift (`xlMacUtils.swift`). Returns `bool` — `true` if access granted. Pass `enforceWritable=true` when writing. Bookmarks are persisted in UserDefaults so access survives app restarts. No explicit release call needed. On non-macOS platforms this is a no-op. Call `ObtainAccessToURL` whenever a path comes from user input (file dialogs, drag-and-drop, text fields, etc.) so that persistent bookmarks are created/updated for that path. This ensures future access to the file/directory works even after app restart.
 
+### iPad app layout (`src-iPad/`)
+
+The iPad app is a SwiftUI client that shares `src-core/` with the
+desktop and adds its own UI + bridge layers.
+
+```
+src-iPad/
+  App/            SwiftUI views + @Observable view model
+                  (SequencerViewModel, SequencerView, SequencerGridV2View,
+                   EffectsMetalGridView, TimingEffectsMetalGridView,
+                   TopChromeMetalGridView, RowHeaderViews, …)
+  Bridge/         ObjC++ bridges (XLSequenceDocument, iPadRenderContext,
+                  XLiPadInit, CoreGraphicsTextDrawingContext,
+                  XLValueCurve)
+  Metal/          xlStandaloneMetalCanvas, iPadModelPreview,
+                  XLMetalBridge, iPadGridPreview, XLGridMetalBridge
+  Metadata/       EffectMetadata.swift (JSON model for effectmetadata/*.json)
+```
+
+Key patterns:
+
+- **`XLSequenceDocument`** (`src-iPad/Bridge/`) is the ObjC++ bridge
+  for Swift callers. Every method here is callable from Swift; use
+  `NS_SWIFT_NAME(…)` to control the imported Swift name when the
+  default transformation is awkward.
+- **`iPadRenderContext`** (`src-iPad/Bridge/`) subclasses
+  `RenderContext` from `src-core/render/` — it's the iPad's
+  concrete render context implementation, mirroring
+  `xLightsFrame`'s role in the desktop app.
+- **`SequencerViewModel`** (`src-iPad/App/`) is the single
+  `@Observable` class that SwiftUI views read. All mutating ops go
+  through it so undo registration + row reloads happen in one
+  place.
+- **Metal-backed grid**: `EffectsMetalGridView` /
+  `TimingEffectsMetalGridView` / `TopChromeMetalGridView` render
+  via `XLGridMetalBridge` → `xlStandaloneMetalCanvas` →
+  `xlMetalGraphicsContext`. The iPad grid is Metal-only; the
+  desktop grid uses `xlGraphicsBase`'s OpenGL/Metal switch.
+- **Sub-plans**: `plans/phase-b-grid-parity.md` tracks the gap
+  analysis against desktop behavior. 
+
 ### Data Formats
 - `.xsq` — Sequence files (XML-based, can contain embedded images as base64)
 - `.fseq` — Binary playback format for Falcon Player
+- `.xtiming` — Standalone timing-track export (`<timing>` or
+  `<timings>` wrapper XML, read/written by both desktop and iPad).
+- `.pgo` — Papagayo lipsync file (desktop import only today).
 - Sequence settings stored as XML attributes with typed prefixes
 
 ### Sub-applications
@@ -130,6 +257,7 @@ Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their o
 - Opening braces on same line (K&R style)
 - Match the style of nearby code — the codebase is not perfectly consistent
 - Avoid purely cosmetic changes in PRs
+- **Comments**: Default to writing no comments. Only add one when the WHY is non-obvious: a hidden constraint, a subtle invariant, a workaround for a specific bug, or behavior that would surprise a reader. Don't explain what the code does (well-named identifiers do that), and don't reference the current task or fix (those belong in the commit message).
 
 ## Prefer std::* Over wx* Types
 
@@ -144,6 +272,17 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **When wx constants suffice**: If a wx API accepts a wx constant directly (e.g. `*wxBLACK`, `*wxWHITE` for `SetTextForeground`), use the wx constant rather than converting an `xl*` constant through `xlColorToWxColour`.
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
+
+## Release Builds Use -ffast-math
+
+Release builds on macOS desktop **and iPad** are compiled with `-ffast-math` (`GCC_FAST_MATH = YES` plus an explicit `-ffast-math` in `OTHER_CFLAGS` on the project-level Release/Archive configs), at `-O3` with `LLVM_LTO=YES_THIN`. The `xLights-iPadLib` target inherits these via `$(inherited)`. This affects every `.cpp`/`.mm` file in `src-core/`, `src-ui-wx/`, and `src-iPad/`. Linux and Windows release builds may not set `-ffast-math` today, but write code that doesn't depend on it being absent.
+
+`-ffast-math` implies `-ffinite-math-only`, which licenses the optimizer to assume no operand is `inf`/`NaN`. Under `-O3` + LTO this breaks two patterns that look correct in source:
+
+- **`infinity()` as a "max-so-far" sentinel** — `float best = std::numeric_limits<float>::infinity()` gets folded to 0; the first `if (v < best)` comparison fails and the value is silently dropped. **Use `std::numeric_limits<float>::max()` (or `::lowest()` for `-inf`)** as the sentinel. The legacy idiom `1000000000.0f` already common in `LayoutPanel.cpp` is also fine. Same goes for `HUGE_VALF`, `INFINITY`, manual `1.0f/0.0f`.
+- **`std::isnan(x)` / `std::isinf(x)` / `std::isfinite(x)` as defensive guards** — these may be folded to constants (`false`/`false`/`true`) in Release, making the guard a no-op. **Use the portable `xl::isnan` / `xl::isinf` / `xl::isfinite` helpers in `src-core/utils/FloatChecks.h`** — they map to `__builtin_*` on clang/gcc (preserved under `-ffinite-math-only`) and to `std::*` on MSVC (which compiles with `/fp:precise`, not fast-math). Do **not** call `__builtin_isnan` etc. directly: MSVC doesn't have those builtins and the Windows build will fail.
+
+Don't write code that depends on `NaN` propagation, `-0.0` sign preservation, or `inf` arithmetic surviving — fast-math is allowed to reorder, fuse, or eliminate those. ISPC files (`*.ispc`) have their own compile flags and are not subject to this. Vendored third-party headers we've had to patch carry a `// xLights local patch:` comment marker — preserve those across upstream merges.
 
 ## Key Dependencies
 

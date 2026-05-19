@@ -14,6 +14,7 @@
 #include <future>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include <vector>
@@ -31,6 +32,14 @@ enum class AUDIOSAMPLETYPE {
     CUSTOM,
     ALTO,
     NONVOCALS,
+    LUFS,         // A3: BS.1770 K-weighted momentary-loudness envelope
+    VOCALS,       // A8 (partial): center-channel extraction — M - α|S|
+    CLASSIFIED,   // A7: raw signal gated by a SoundAnalysis class curve
+    STEM_DRUMS,   // A8: isolated drums from HTDemucs
+    STEM_BASS,    // A8: isolated bass from HTDemucs
+    STEM_OTHER,   // A8: everything-else stem from HTDemucs
+    STEM_VOCALS,  // A8: ML-isolated vocals from HTDemucs (full separation,
+                  //     not to be confused with the M/S trick above)
     ANY
 };
 
@@ -94,7 +103,27 @@ class AudioManager {
     MEDIAPLAYINGSTATE _media_state;
     bool _polyphonicTranscriptionDone = false;
     std::vector<FilteredAudioData*> _filtered;
-    int _sdlid = 0;
+    // Guards `_filtered`. Filter computations (EnsureFilteredAudioData)
+    // can run from the UI thread or render workers concurrently with
+    // SetStemData/SetClassifyGate, which erase entries; iterating the
+    // vector or holding a FilteredAudioData* across erase is otherwise
+    // UAF.
+    mutable std::recursive_mutex _filteredMutex;
+    // A7: state for `AUDIOSAMPLETYPE::CLASSIFIED`. Populated by
+    // `SetClassifyGate`. The gate curve is re-interpolated per-
+    // sample inside `EnsureFilteredAudioData(CLASSIFIED)`.
+    std::string _classifyGateClass;
+    std::vector<float> _classifyGateCurve;
+    float _classifyGateTimeStep = 1.0f;
+    // A8: cached output of the HTDemucs stem separator. Set via
+    // `SetStemData` and consumed by
+    // `EnsureFilteredAudioData(STEM_*)`. All eight vectors must be
+    // the same length (the track's sample count).
+    std::vector<float> _stemDrumsL, _stemDrumsR;
+    std::vector<float> _stemBassL, _stemBassR;
+    std::vector<float> _stemOtherL, _stemOtherR;
+    std::vector<float> _stemVocalsL, _stemVocalsR;
+    mutable int _sdlid = 0;
     bool _ok = false;
     std::string _hash;
     std::future<void> _prepFrameData;
@@ -188,7 +217,7 @@ public:
     float GetRawRightData(long offset);
     float GetRawLeftData(long offset);
     void SwitchTo(AUDIOSAMPLETYPE type, int lowNote = 0, int highNote = 127);
-    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type = AUDIOSAMPLETYPE::ANY, int lowNote = -1, int highNote = -1);
+    void GetLeftDataMinMax(long start, long end, float& minimum, float& maximum, AUDIOSAMPLETYPE type = AUDIOSAMPLETYPE::ANY, int lowNote = -1, int highNote = -1, float* rms = nullptr);
     float* GetFilteredRightDataPtr(long offset);
     float* GetFilteredLeftDataPtr(long offset);
     float* GetRawRightDataPtr(long offset);
@@ -209,6 +238,50 @@ public:
     };
 
     FilteredAudioData* GetFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote);
+
+    // A8: drop in the output of `StemSeparator::SeparateStems` so
+    // the filter cache can serve it through `AUDIOSAMPLETYPE::
+    // STEM_{DRUMS,BASS,OTHER,VOCALS}`. Each vector holds a full-track
+    // mono signal; stereo is reconstructed from the L/R pairs. Any
+    // stale STEM_* cache entries are evicted so subsequent
+    // `EnsureFilteredAudioData(STEM_X)` rebuilds from the new data.
+    // Pass empty vectors (or all-zero-length) to clear.
+    void SetStemData(const std::vector<float>& drumsL, const std::vector<float>& drumsR,
+                      const std::vector<float>& bassL, const std::vector<float>& bassR,
+                      const std::vector<float>& otherL, const std::vector<float>& otherR,
+                      const std::vector<float>& vocalsL, const std::vector<float>& vocalsR);
+    bool HasStemData() const { return !_stemDrumsL.empty(); }
+
+    // Write the currently selected audio (whatever AUDIOSAMPLETYPE
+    // the most recent SwitchTo landed on — RAW, STEM_VOCALS, a
+    // band-passed filter, etc.) to a temporary stereo float32 WAV
+    // file. Returns the absolute path on success, an empty string
+    // if no audio is loaded or the write failed. The caller owns the
+    // file — delete when done. Used by the speech-to-lyrics pipeline
+    // so the recognizer sees whatever the user has currently picked
+    // in the waveform (e.g. an isolated vocals stem instead of the
+    // full mix, which gets the recognizer hopelessly confused by
+    // drums + bass + backing instruments).
+    std::string WriteCurrentToTempWav() const;
+
+    // A7: provide the per-second confidence curve that
+    // `AUDIOSAMPLETYPE::CLASSIFIED` should gate the raw signal by.
+    // Clearing any existing CLASSIFIED cache entry so the next
+    // `EnsureFilteredAudioData(CLASSIFIED)` rebuilds with the new
+    // curve. `timeStepSec` is the hop between consecutive confidence
+    // samples (Apple's default is 1.0 s).
+    void SetClassifyGate(const std::string& className,
+                          const std::vector<float>& confidencePerStep,
+                          float timeStepSec);
+
+    // Lazy variant of `GetFilteredAudioData` — if the cache doesn't
+    // already hold an entry matching `type`/`lowNote`/`highNote` it
+    // builds one (same factory logic as `SwitchTo`) and returns it.
+    // Unlike `SwitchTo`, this does NOT overwrite `_pcmdata`/`_data`
+    // — it leaves playback untouched. Safe to call from the iPad
+    // waveform bridge where we want filtered samples for display
+    // only. Returns nullptr if the track isn't loaded yet.
+    FilteredAudioData* EnsureFilteredAudioData(AUDIOSAMPLETYPE type, int lowNote, int highNote);
     bool WriteCurrentAudio(const std::string& path, long bitrate);
     static bool EncodeAudio(const std::vector<float>& left_channel,
                             const std::vector<float>& right_channel,

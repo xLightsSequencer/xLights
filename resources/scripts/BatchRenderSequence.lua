@@ -19,6 +19,10 @@ for i,seq in ipairs(seqs) do
     Log(string.format("Render Elapsed time: %.4f seconds for %s", end_time - start_time_seq, seq))
 
     properties = {}
+    result = RunCommand('saveSequence', properties)
+    Log('Save: ' .. result['msg'])
+
+    properties = {}
     properties['quiet'] = 'true'
     properties['force'] = 'true'
     result = RunCommand('closeSequence', properties)

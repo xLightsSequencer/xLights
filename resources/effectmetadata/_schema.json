@@ -56,6 +56,11 @@
                     "enum": ["slider", "checkbox", "choice", "combobox", "spin", "text", "filepicker", "fontpicker", "colourpicker", "togglebutton", "point2d", "custom"],
                     "description": "UI control type hint. 'point2d' expands into two slider rows suffixed X/Y; use minX/maxX/defaultX and minY/maxY/defaultY for per-axis bounds (falls back to min/max/default if absent)."
                 },
+                "platform": {
+                    "type": "string",
+                    "enum": ["ipad", "desktop"],
+                    "description": "Platform gate for the entry. 'ipad' = iPad-only (desktop JsonEffectPanel::BuildPropertyRow skips it, so settings round-trip cleanly and no spdlog warning fires). 'desktop' = desktop-only (iPad skips in its layout walk). Absent = both. Used for custom touch-canvas controls like Morph_LineEditor and Sketch_PathEditor that only make sense on one platform."
+                },
                 "default": {
                     "description": "Default value (type depends on 'type' field)"
                 },

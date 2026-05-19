@@ -67,7 +67,6 @@ public:
 
     // ---- rendering control ----
     virtual bool AbortRender(int maxTimeMs = 60000) = 0;
-    virtual void RenderMainThreadEffects() {}
     virtual void RenderEffectForModel(const std::string& model,
                                       int startms,
                                       int endms,
@@ -86,6 +85,8 @@ public:
     // ---- misc ----
     virtual void SuspendAutoSave(bool suspend) = 0;
     virtual bool IsLowDefinitionRender() const { return false; }
+    virtual bool GetEnablePositionZones() const { return true; }
+    virtual bool GetShowZoneIndicator() const { return false; }
 
     // ---- UI callbacks (nullptr when running headless) ----
     virtual UICallbacks* GetUICallbacks() { return nullptr; }

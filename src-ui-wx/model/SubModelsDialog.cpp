@@ -31,6 +31,7 @@
 #include <wx/mimetype.h>
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
+#include <wx/spinctrl.h>
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
 
@@ -145,6 +146,11 @@ const long SubModelsDialog::SUBMODEL_DIALOG_COMPRESS_STRANDS_ALL = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_ZERO = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_BLANKS_AS_EMPTY = wxNewId();
 const long SubModelsDialog::SUBMODEL_DIALOG_REMOVE_BLANKS_ZEROS = wxNewId();
+
+const long SubModelsDialog::ID_BUTTON_PLAY_ANIM = wxNewId();
+const long SubModelsDialog::ID_SLIDER_ANIM_SPEED = wxNewId();
+const long SubModelsDialog::ID_SLIDER_ANIM_TRAIL = wxNewId();
+const long SubModelsDialog::ID_ANIM_TIMER = wxNewId();
 
 
 BEGIN_EVENT_TABLE(SubModelsDialog,wxDialog)
@@ -365,6 +371,7 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
     Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
     Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(wxID_OK, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnOK);
     Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::ApplySubmodelName);
 
     TextCtrl_Name->Bind(wxEVT_KILL_FOCUS, &SubModelsDialog::OnTextCtrl_NameText_KillFocus, this);
@@ -419,6 +426,30 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     SubBufferSizer->SetSizeHints(SubBufferPanelHolder);
     Connect(subBufferPanel->GetId(),SUBBUFFER_RANGE_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnSubBufferRangeChange);
     subBufferPanel->Connect(wxEVT_SIZE, (wxObjectEventFunction)&SubModelsDialog::OnSubbufferSize, nullptr, this);
+
+    wxStaticBox* animBox = new wxStaticBox(ModelPreviewPanelLocation, wxID_ANY, _("Node Animation"));
+    wxStaticBoxSizer* animSizer = new wxStaticBoxSizer(animBox, wxVERTICAL);
+
+    Button_PlayAnim = new wxButton(animBox, ID_BUTTON_PLAY_ANIM, _("Play"));
+    animSizer->Add(Button_PlayAnim, 0, wxALL | wxEXPAND, 5);
+
+    wxBoxSizer* controlsRow = new wxBoxSizer(wxHORIZONTAL);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Speed:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimSpeed = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_SPEED, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 9);
+    controlsRow->Add(Spin_AnimSpeed, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    controlsRow->Add(new wxStaticText(animBox, wxID_ANY, _("Trail:")), 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    Spin_AnimTrail = new wxSpinCtrl(animBox, ID_SLIDER_ANIM_TRAIL, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 10, 5);
+    controlsRow->Add(Spin_AnimTrail, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    animSizer->Add(controlsRow, 0, wxEXPAND);
+
+    PreviewSizer->SetRows(0);
+    PreviewSizer->Add(animSizer, 0, wxALL | wxEXPAND, 5);
+
+    Connect(ID_BUTTON_PLAY_ANIM, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SubModelsDialog::OnPlayAnimClick);
+    Connect(ID_SLIDER_ANIM_SPEED, wxEVT_SPINCTRL, (wxObjectEventFunction)&SubModelsDialog::OnAnimSpeedChange);
+
+    _animTimer.SetOwner(this, ID_ANIM_TIMER);
+    Connect(ID_ANIM_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&SubModelsDialog::OnAnimTimerTick);
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
@@ -504,7 +535,14 @@ void SubModelsDialog::OnCancel(wxCloseEvent& event)
     if (wxMessageBox("Are you sure you want to close the Submodels window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
+    StopAnimation();
     SubModelsDialog::EndDialog(wxID_CANCEL);
+}
+
+void SubModelsDialog::OnOK(wxCommandEvent& event)
+{
+    StopAnimation();
+    SubModelsDialog::EndDialog(wxID_OK);
 }
 
 SubModelsDialog::~SubModelsDialog()
@@ -523,6 +561,7 @@ SubModelsDialog::~SubModelsDialog()
     config->Write("SubModelsDialogSashPosition", i);
     config->Flush();
 
+    StopAnimation();
     StopOutputToLights();
     if (_oldOutputToLights) {
         if (_outputManager->StartOutput()) SetConfigBool("OutputActive", true);
@@ -1223,6 +1262,7 @@ void SubModelsDialog::OnLayoutCheckboxClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnTypeNotebookPageChanged(wxBookCtrlEvent& event)
 {
+    StopAnimation();
     wxString name = GetSelectedName();
     if (name == "") {
         return;
@@ -1409,6 +1449,7 @@ void SubModelsDialog::OnButton_ReverseNodesClick(wxCommandEvent& event)
 
 void SubModelsDialog::OnListCtrl_SubModelsItemSelect(wxListEvent& event)
 {
+    StopAnimation();
     shouldProcessGridCellChanged = false;
     if (ListCtrl_SubModels->GetSelectedItemCount() == 1)
     {
@@ -2422,6 +2463,11 @@ void SubModelsDialog::ValidateWindow()
         TypeNotebook->Disable();
         ChoiceBufferStyle->Disable();
     }
+
+    Button_PlayAnim->Enable(
+        _animPlaying ||
+        (ListCtrl_SubModels->GetSelectedItemCount() == 1 && TypeNotebook->GetSelection() == 0)
+    );
 }
 
 void SubModelsDialog::UnSelectAll()
@@ -3539,13 +3585,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
                 }
             }
         } else {
-            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-                if (*it == stNode) {
-                    oldNodeArrray.erase(it);
-                    // Note that this only erases once, in case it somehow got added multiple times...
-                    break;
-                }
-            }
+            oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), stNode), oldNodeArrray.end());
         }
     }
 
@@ -4966,4 +5006,139 @@ wxString SubModelsDialog::GetDownloadSubmodels() {
         }
     }
     return wxString();
+}
+
+void SubModelsDialog::ParseAnimRows()
+{
+    _animRows.clear();
+    _animMaxSteps = 0;
+
+    int nodeCount = (int)model->GetNodeCount();
+    for (int row = 0; row < NodesGrid->GetNumberRows(); ++row) {
+        wxString v = NodesGrid->GetCellValue(row, 0);
+        AnimRows::value_type rowSlots;
+
+        wxStringTokenizer wtkz(v, ",", wxTOKEN_RET_EMPTY_ALL);
+        while (wtkz.HasMoreTokens()) {
+            wxString token = wtkz.GetNextToken().Trim(true).Trim(false);
+            if (token.Contains("-")) {
+                int idx = token.Index('-');
+                int startRaw = wxAtoi(token.Left(idx));
+                int endRaw   = wxAtoi(token.Right(token.size() - idx - 1));
+                if (startRaw > 0 && endRaw > 0) {
+                    int start = startRaw - 1;
+                    int end   = endRaw - 1;
+                    int step  = (start <= end) ? 1 : -1;
+                    for (int n = start; n != end + step; n += step) {
+                        std::vector<int> slot;
+                        if (n < nodeCount)
+                            slot.push_back(n);
+                        rowSlots.push_back(std::move(slot));
+                    }
+                } else {
+                    rowSlots.push_back({});
+                }
+            } else {
+                std::vector<int> slot;
+                if (!token.empty()) {
+                    int n = wxAtoi(token) - 1;
+                    if (n >= 0 && n < nodeCount)
+                        slot.push_back(n);
+                }
+                rowSlots.push_back(std::move(slot));
+            }
+        }
+
+        _animMaxSteps = std::max(_animMaxSteps, (int)rowSlots.size());
+        _animRows.push_back(std::move(rowSlots));
+    }
+
+    // build flat deduplicated node list for efficient per-tick resets
+    _animSubmodelNodes.clear();
+    for (auto const& row : _animRows)
+        for (auto const& slot : row)
+            for (int n : slot)
+                _animSubmodelNodes.push_back(n);
+    std::sort(_animSubmodelNodes.begin(), _animSubmodelNodes.end());
+    _animSubmodelNodes.erase(
+        std::unique(_animSubmodelNodes.begin(), _animSubmodelNodes.end()),
+        _animSubmodelNodes.end());
+}
+
+void SubModelsDialog::StopAnimation()
+{
+    if (!_animPlaying)
+        return;
+    _animTimer.Stop();
+    _animPlaying = false;
+    Button_PlayAnim->SetLabel(_("Play"));
+    NodesGrid->EnableEditing(true);
+    SelectRow(NodesGrid->GetGridCursorRow());
+}
+
+void SubModelsDialog::OnPlayAnimClick(wxCommandEvent& event)
+{
+    if (_animPlaying) {
+        StopAnimation();
+        return;
+    }
+
+    if (TypeNotebook->GetSelection() != 0 || ListCtrl_SubModels->GetSelectedItemCount() != 1)
+        return;
+
+    ParseAnimRows();
+    if (_animMaxSteps == 0)
+        return;
+
+    // one-time clear: set all nodes dark, then paint submodel white
+    ClearNodeColor(model);
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
+
+    _animPlaying = true;
+    _animStep = 0;
+    _animTotalSteps = 0;
+    Button_PlayAnim->SetLabel(_("Stop"));
+    NodesGrid->EnableEditing(false);
+
+    int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
+    _animTimer.Start(interval);
+}
+
+void SubModelsDialog::OnAnimSpeedChange(wxSpinEvent& event)
+{
+    if (_animPlaying) {
+        int interval = 520 - 50 * Spin_AnimSpeed->GetValue();
+        _animTimer.Start(interval);
+    }
+}
+
+void SubModelsDialog::OnAnimTimerTick(wxTimerEvent& event)
+{
+    int trail = std::min(Spin_AnimTrail->GetValue(), _animTotalSteps);
+
+    // reset only submodel nodes to white — non-submodel nodes stay dark from play-start
+    for (int n : _animSubmodelNodes)
+        model->SetNodeColor(n, xlWHITE);
+
+    // paint trail first, head last — blue head fades back to white
+    static const xlColor animHead(0, 120, 255);
+    for (int offset = trail; offset >= 0; --offset) {
+        int step = ((_animStep - offset) % _animMaxSteps + _animMaxSteps) % _animMaxSteps;
+        float frac = (float)(trail - offset + 1) / (trail + 1);
+        xlColor c((uint8_t)(animHead.red   * frac + 255.0f * (1.0f - frac)),
+                  (uint8_t)(animHead.green * frac + 255.0f * (1.0f - frac)),
+                  (uint8_t)(animHead.blue  * frac + 255.0f * (1.0f - frac)));
+        for (auto const& row : _animRows) {
+            if (step < (int)row.size()) {
+                for (int node : row[step])
+                    model->SetNodeColor(node, c);
+            }
+        }
+    }
+
+    model->DisplayEffectOnWindow(modelPreview, mPointSize);
+    _animStep = (_animStep + 1) % _animMaxSteps;
+    if (_animTotalSteps < Spin_AnimTrail->GetMax())
+        ++_animTotalSteps;
 }

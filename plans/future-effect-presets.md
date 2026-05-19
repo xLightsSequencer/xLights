@@ -1,31 +1,42 @@
 # Future — Effect Presets on iPad
 
-Not in the first-pass Phase C scope. Captured here so it isn't lost.
+In-session presets ship today (`SequencerViewModel`'s
+`saveSelectedEffectAsPreset` / `applyPreset` / `deletePreset`,
+exercised via the `SequencerGridV2View` effect context menu). The
+store is session-only, cleared on app launch.
 
 ## Gap
 
-**G12 — Effect presets (save / load named bundles).** Desktop ships
-`EffectPresetManager` + an effect-tree UI that lets users save a
-full effect + palette + buffer + blending settings bundle under a
-friendly name and re-apply it to new effects. iPad has no save /
-load preset UI. Presets round-trip through a file format the
-desktop already reads, so the iPad work is purely:
+**G12 — Effect presets (save / load named bundles, persistent).**
+Desktop ships `EffectPresetManager` + an effect-tree UI that
+persists presets into `xLights/presets/` and re-applies them
+across sessions. iPad needs:
 
-- Bridge method to list existing presets from `xLights/presets/`.
+- Bridge method to list existing presets from `xLights/presets/`
+  (and surface bundled / show-folder presets too).
 - Bridge method to read the full effect settings string at a
   preset path + apply it to the currently-selected effect.
 - SwiftUI sheet: preset tree, Save-As, Apply, Delete.
-- "Save Effect as Preset…" entry in the inspector's overflow menu
-  or long-press on an effect bar in the grid.
+- Promote the existing in-session presets array onto the new
+  persistent store (write captured presets to disk on save,
+  not just keep them in memory).
 
-## Why deferred
+## Why not done yet
 
-- Not day-to-day blocking — users primarily pick effect types from
-  the palette and tweak per-instance. Presets are a power-user
+- The in-session shortcut already covers the "copy this effect's
+  settings to a few siblings within one editing session"
   workflow.
-- The file-format plumbing is already shared via desktop; no core
-  changes needed when we get to it. Cleanly layered on top of the
-  current inspector.
+- The on-disk side needs a real picker UI and round-trips with
+  desktop's preset tree — non-trivial enough to defer until user
+  demand calls it in.
+- File-format plumbing is already shared via desktop; no core
+  changes needed when we get to it.
 
-Re-scope into Phase C (or a dedicated follow-up phase) when first-
-pass C lands and real users ask for it.
+## Pairs with EffectTree dialog
+
+The 2026-04-23 gap analysis (AP-4 in §2.19) recommends shipping
+the disk-persistent half together with the EffectTree / EffectList
+dialog — preset-tree UI, drag-to-apply, manage / search / import /
+export, GIF preview animation. They share a backing store and a
+data model; landing one without the other leaves UX rough edges.
+See [`future-aux-panels.md`](future-aux-panels.md) AP-4.

@@ -33,7 +33,8 @@ enum class MediaType {
     Shader,
     TextFile,
     BinaryFile,
-    Video
+    Video,
+    Audio
 };
 
 /**
@@ -174,13 +175,12 @@ public:
     void SetFrameData(std::vector<std::string> data) { _frameData = std::move(data); }
 
     // Set animation loaders (called once during app init)
-    static void SetGIFLoader(AnimationLoaderFunc loader) { _gifLoader = std::move(loader); }
     static void SetWebPLoader(AnimationLoaderFunc loader) { _webpLoader = std::move(loader); }
-    static const AnimationLoaderFunc& GetGIFLoader() { return _gifLoader; }
 
 private:
     void LoadFromFile(const std::string& filepath);
     void LoadFromData(const std::string& base64Data);
+    void storeAnimated(AnimatedImageData result);
     void loadAnimated(const std::vector<uint8_t> &data, const AnimationLoaderFunc &loader);
     void loadImage(const std::vector<uint8_t> &data);
     int GetExifOrientation(const uint8_t* data, size_t len);
@@ -201,7 +201,6 @@ private:
     // Scaled image cache
     mutable std::map<ScaledImageCacheKey, std::shared_ptr<xlImage>> _scaledImageCache;
 
-    static AnimationLoaderFunc _gifLoader;
     static AnimationLoaderFunc _webpLoader;
 };
 
@@ -346,6 +345,27 @@ private:
 };
 
 /**
+ * AudioMediaCacheEntry - Path-only entry for audio files (too large to embed)
+ *
+ * Audio files are never embedded in the sequence — they are always referenced
+ * by path. Loading the actual audio data is handled separately by AudioManager
+ * in SequenceFile; this entry exists purely for inventory and file management
+ * purposes within the media panel.
+ */
+class AudioMediaCacheEntry : public MediaCacheEntry
+{
+public:
+    AudioMediaCacheEntry();
+    explicit AudioMediaCacheEntry(const std::string& filePath);
+
+    bool IsEmbeddable() const override { return false; }
+
+    void Load() override;
+    bool LoadFromXml(const pugi::xml_node& node) override;
+    void SaveToXml(pugi::xml_node& parent) const override;
+};
+
+/**
  * SequenceMedia - Manages all media caching for a sequence
  *
  * Provides unified access to images, SVGs, shaders, text files, binary files,
@@ -377,12 +397,19 @@ public:
     std::vector<std::string> GetImagePaths() const;
     void RemoveUnusedImages();
 
+    std::vector<std::pair<std::string, std::string>> GetImageRelocations() const;
+    void RecordRelocation(const std::string& from, const std::string& to);
+    void ClearRelocations();
+
+    std::vector<std::string> GetShaderPaths() const;
+
     // === Type-specific retrieval (create-on-first-access, resolve via FileUtils::FixFile) ===
     std::shared_ptr<TextMediaCacheEntry> GetTextFile(const std::string& filepath);
     std::shared_ptr<SVGMediaCacheEntry> GetSVG(const std::string& filepath);
     std::shared_ptr<ShaderMediaCacheEntry> GetShader(const std::string& filepath);
     std::shared_ptr<BinaryMediaCacheEntry> GetBinaryFile(const std::string& filepath, const std::string& subtype = "");
     std::shared_ptr<VideoMediaCacheEntry> GetVideo(const std::string& filepath);
+    std::shared_ptr<AudioMediaCacheEntry> GetAudio(const std::string& filepath);
 
     // === Cross-type queries ===
     bool HasMedia(const std::string& filepath) const;
@@ -395,6 +422,13 @@ public:
     bool RenameMedia(const std::string& oldPath, const std::string& newPath);
     // Reload a non-embedded entry from disk (erases and re-creates the cache entry)
     bool ReloadMedia(const std::string& filepath);
+    // Force-insert a fresh entry at `filepath` with `resolvedPath` as its physical
+    // file path. Unlike GetXxx(), this always creates a new entry at `filepath` and
+    // never returns an existing entry that happens to share the same resolved path.
+    // Also removes any other cache entry whose resolved path equals `resolvedPath`
+    // to prevent the duplicate-path check from suppressing future GetXxx() calls.
+    // Use this after a re-select or bulk-find where the exact replacement file is known.
+    void ForceRefreshEntry(const std::string& filepath, const std::string& resolvedPath, MediaType type);
     size_t GetMediaCount() const;
     std::vector<std::pair<std::string, MediaType>> GetAllMediaPaths() const;
     // Returns {isEmbedded, isEmbeddable} for any media path across all caches
@@ -414,6 +448,14 @@ public:
     void MarkAllUnused();
     void RemoveUnusedMedia();
 
+    // Memory-pressure helpers. `PurgePreviewCaches` drops every
+    // entry's preview-frame strip (the thumbnail arrays built for
+    // the media picker / effect panels) and, for image entries,
+    // the unbounded `_scaledImageCache`. Entries themselves stay —
+    // only the render-time / UI-time derivatives are freed. Cheap
+    // to call; previews rebuild on next access.
+    void PurgePreviewCaches();
+
     // === Serialization ===
     bool LoadFromXml(const pugi::xml_node& node);
     void SaveToXml(pugi::xml_node& parent) const;
@@ -422,6 +464,8 @@ private:
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
 
+    std::vector<std::pair<std::string, std::string>> _pendingRelocations;
+
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;
     std::map<std::string, std::shared_ptr<TextMediaCacheEntry>> _textCache;
@@ -429,6 +473,7 @@ private:
     std::map<std::string, std::shared_ptr<ShaderMediaCacheEntry>> _shaderCache;
     std::map<std::string, std::shared_ptr<BinaryMediaCacheEntry>> _binaryCache;
     std::map<std::string, std::shared_ptr<VideoMediaCacheEntry>> _videoCache;
+    std::map<std::string, std::shared_ptr<AudioMediaCacheEntry>> _audioCache;
 
     mutable std::recursive_mutex _cacheMutex;
 };

@@ -321,7 +321,7 @@
 			<SupportsUniversePerString/>
 			<!--SupportsUpload/-->
 			<MaxInputUniverses>192</MaxInputUniverses>
-			<MaxPixelPort>96</MaxPixelPort>
+			<MaxPixelPort>192</MaxPixelPort>
 			<MaxSerialPort>0</MaxSerialPort>
 			<MaxSerialPortChannels>0</MaxSerialPortChannels>
 			<MaxPixelPortChannels>1020</MaxPixelPortChannels>

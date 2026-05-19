@@ -65,6 +65,7 @@ class ImportPreviewsModelsDialog: public wxDialog
         bool GetIncludeEmptyGroups() const;
         wxArrayString GetPreviews() const;
         std::list<impTreeItemData*> GetModelsInPreview(wxString preview) const;
+        float GetSourceRulerPerUnit() const;
 		//(*Declarations(ImportPreviewsModelsDialog)
 		wxButton* Button_Cancel;
 		wxButton* Button_Ok;

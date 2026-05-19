@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "effects/BufferStyles.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "render/PixelBuffer.h"
@@ -165,10 +166,6 @@ void BufferPanel::OnBufferTransformSelect(wxCommandEvent& event) {
     event.Skip();
 }
 
-bool BufferPanel::CanRenderBufferUseCamera(const std::string& rb) {
-    return rb == "Per Preview" || rb == "Per Model Per Preview";
-}
-
 void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     auto* bsInfo = GetPropertyInfo("BufferStyle");
     auto* camInfo = GetPropertyInfo("PerPreviewCamera");
@@ -178,7 +175,7 @@ void BufferPanel::OnBufferStyleChoiceSelect(wxCommandEvent& event) {
     }
 
     std::string bs = bsInfo->choice->GetStringSelection().ToStdString();
-    if (CanRenderBufferUseCamera(bs)) {
+    if (BufferStyles::CanRenderBufferUseCamera(bs)) {
         wxString currentCamera = camInfo->choice->GetStringSelection();
 
         camInfo->choice->Clear();

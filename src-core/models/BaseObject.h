@@ -36,9 +36,13 @@ public:
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
-    virtual glm::vec3 MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects);
-    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects);
-    void SelectHandle(int handle);
+    // SpaceMouse 6-DOF input. Open a session on the active
+    // handle (whatever `GetActiveHandleId()` reports), then drive
+    // each frame's deltas through `Apply()`. Returns nullptr for
+    // locked or fromBase objects so callers can skip cleanly.
+    virtual std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession();
+    void SelectHandle();
     void Lock(bool lock);
     bool IsLocked() const;
     virtual void AddASAPWork(uint32_t work, const std::string& from) = 0;

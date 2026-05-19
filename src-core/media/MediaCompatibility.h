@@ -14,6 +14,7 @@
 // (i.e., will work on iPad without FFmpeg).
 // On non-Apple platforms, all files are reported as compatible (no check needed).
 
+#include <cctype>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,17 @@ struct MediaCompatibilityIssue {
     bool canConvert() const {
         return reason.rfind("Cannot open", 0) != 0 &&
                reason.rfind("Cannot read", 0) != 0;
+    }
+
+    // Animated GIFs reach us as "video" but transcode poorly — the renderer's
+    // PicturesEffect already plays GIF frames natively, so we convert the
+    // owning Video effect into a Pictures effect instead of running ffmpeg.
+    bool isAnimatedGif() const {
+        if (!isVideo) return false;
+        if (filePath.size() < 4) return false;
+        std::string ext = filePath.substr(filePath.size() - 4);
+        for (auto& c : ext) c = (char)std::tolower((unsigned char)c);
+        return ext == ".gif";
     }
 };
 

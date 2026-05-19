@@ -51,6 +51,7 @@ public:
     int getHeight() const { return _height; }
     void setSize(int w, int h) { _width = w; _height = h; }
     void setScaleFactor(double s) { _scaleFactor = s; }
+    double getScaleFactor() const { return _scaleFactor; }
 
 private:
     std::string _name;

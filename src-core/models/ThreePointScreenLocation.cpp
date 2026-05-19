@@ -33,20 +33,33 @@ static glm::mat4 Identity(glm::mat4(1.0f));
 
 ThreePointScreenLocation::ThreePointScreenLocation()
 {
-    mHandlePosition.resize(4);
-    handle_aabb_max.resize(4);
-    handle_aabb_min.resize(4);
     mSelectableHandles = 4;
 }
 
 ThreePointScreenLocation::~ThreePointScreenLocation() {
 }
 
+namespace {
+// Legacy ThreePoint int → descriptor Id. 0/1/2 = Endpoint; 3 = Shear.
+std::optional<handles::Id> ThreePointLegacyToId(int h) {
+    if (h == NO_HANDLE) return std::nullopt;
+    handles::Id id;
+    if (h == SHEAR_HANDLE) {
+        id.role = handles::Role::Shear;
+        id.index = SHEAR_HANDLE;
+    } else {
+        id.role = handles::Role::Endpoint;
+        id.index = h;
+    }
+    return id;
+}
+}
+
 CursorType ThreePointScreenLocation::InitializeLocation(int &handle, int x, int y, const std::vector<NodeBaseClassPtr> &Nodes, IModelPreview* preview) {
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if( preview->Is3D() ) {
-            active_handle = END_HANDLE;
+            active_handle = ThreePointLegacyToId(END_HANDLE);
         }
     }
     else {
@@ -182,16 +195,10 @@ float ThreePointScreenLocation::GetMWidth() const
     return TwoPointScreenLocation::GetMWidth();
 }
 
-void ThreePointScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = handle;
-    highlighted_handle = -1;
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
 
 void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 {
-    if (active_handle == SHEAR_HANDLE) {
+    if (IsRole(active_handle, handles::Role::Shear)) {
         axis_tool = MSLTOOL::TOOL_XY_TRANS;
     } else {
         TwoPointScreenLocation::SetAxisTool(mode);
@@ -200,7 +207,7 @@ void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 
 void ThreePointScreenLocation::AdvanceAxisTool()
 {
-    if (active_handle == SHEAR_HANDLE) {
+    if (IsRole(active_handle, handles::Role::Shear)) {
         axis_tool = MSLTOOL::TOOL_XY_TRANS;
     } else {
         TwoPointScreenLocation::AdvanceAxisTool();
@@ -209,7 +216,7 @@ void ThreePointScreenLocation::AdvanceAxisTool()
 
 void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
-    if (active_handle == SHEAR_HANDLE) {
+    if (IsRole(active_handle, handles::Role::Shear)) {
         if (axis != MSLAXIS::NO_AXIS) {
             active_axis = MSLAXIS::X_AXIS;
         } else {
@@ -220,58 +227,30 @@ void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
     }
 }
 bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
-    if (active_handle != -1) {
-
-        float HandleHt = RenderHt;
-        if (HandleHt > RenderWi)
-            HandleHt = RenderWi;
-        float ymax = HandleHt;
-        
+    if (active_handle.has_value()) {
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
         vac->PreAlloc(38);
 
-        float x = RenderWi / 2;
-        if (supportsAngle) {
-            ymax = HandleHt * height;
-            rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
-        }
-
-        glm::vec3 v1 = glm::vec3(matrix * glm::vec4(glm::vec3(x, ymax, 0.0f), 1.0f));
-        float sx = v1.x;
-        float sy = v1.y;
-        float sz = v1.z;
+        // Shear sphere position is the same point GetHandles emits for
+        // hit-testing; calling the getter directly keeps draw and hit
+        // in lockstep without re-walking the descriptor list.
+        const glm::vec3 shearPos = GetShearHandleWorldPosition();
         vac->AddVertex(center.x, center.y, center.z, xlWHITE);
-        vac->AddVertex(sx, sy, sz, xlWHITE);
+        vac->AddVertex(shearPos.x, shearPos.y, shearPos.z, xlWHITE);
 
         xlColor h4c = xlBLUETRANSLUCENT;
-        if (fromBase)
-        {
+        if (fromBase) {
             h4c = FROM_BASE_HANDLES_COLOUR;
-        } else
-        if (_locked) {
+        } else if (_locked) {
             h4c = LOCKED_HANDLES_COLOUR;
         } else {
-            h4c = (highlighted_handle == SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
+            h4c = IsHandle(highlighted_handle, handles::Role::Shear, SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
 
         float hw = GetRectHandleWidth(zoom, scale);
-        vac->AddSphereAsTriangles(sx, sy, sz, hw, h4c);
-        mHandlePosition[SHEAR_HANDLE].x = sx;
-        mHandlePosition[SHEAR_HANDLE].y = sy;
-        mHandlePosition[SHEAR_HANDLE].z = sz;
+        vac->AddSphereAsTriangles(shearPos.x, shearPos.y, shearPos.z, hw, h4c);
 
-        handle_aabb_min[SHEAR_HANDLE].x = x * scalex - hw;
-        handle_aabb_min[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) - hw;
-        handle_aabb_min[SHEAR_HANDLE].z = -hw;
-        handle_aabb_max[SHEAR_HANDLE].x = x * scalex + hw;
-        handle_aabb_max[SHEAR_HANDLE].y = ymax * scaley * (supportsShear ? height : 1.0f) + hw;
-        handle_aabb_max[SHEAR_HANDLE].z = hw;
-
-        if (supportsShear) {
-            handle_aabb_min[SHEAR_HANDLE] = glm::vec3(shearMatrix * glm::vec4(handle_aabb_min[SHEAR_HANDLE], 1.0f));
-            handle_aabb_max[SHEAR_HANDLE] = glm::vec3(shearMatrix * glm::vec4(handle_aabb_max[SHEAR_HANDLE], 1.0f));
-        }
         int count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
             ctx->drawLines(vac, startVertex, 2);
@@ -284,42 +263,22 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
 }
 
 bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
-    float sx1 = center.x;
-    float sy1 = center.y;
-
-    float HandleHt = RenderHt;
-    if (HandleHt > RenderWi)
-        HandleHt = RenderWi;
-    float ymax = HandleHt;
-
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
     vac->PreAlloc(18);
 
-    float x = RenderWi / 2;
-    if (supportsAngle) {
-        ymax = HandleHt * height;
-        rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
-    }
-
-    glm::vec3 v1 = glm::vec3(matrix * glm::vec4(glm::vec3(x, ymax, 1), 1.0f));
-    float sx = v1.x;
-    float sy = v1.y;
-    vac->AddVertex(sx1, sy1, xlWHITE);
-    vac->AddVertex(sx, sy, xlWHITE);
+    const glm::vec3 shearPos = GetShearHandleWorldPosition();
+    vac->AddVertex(center.x, center.y, xlWHITE);
+    vac->AddVertex(shearPos.x, shearPos.y, xlWHITE);
 
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (fromBase)
-    {
+    if (fromBase) {
         handleColor = FROM_BASE_HANDLES_COLOUR;
-    } else
-    if (_locked) {
+    } else if (_locked) {
         handleColor = LOCKED_HANDLES_COLOUR;
     }
     float hw = GetRectHandleWidth(zoom, scale);
-    vac->AddRectAsTriangles(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
-    mHandlePosition[SHEAR_HANDLE].x = sx;
-    mHandlePosition[SHEAR_HANDLE].y = sy;
+    vac->AddRectAsTriangles(shearPos.x - hw/2.0, shearPos.y - hw/2.0, shearPos.x + hw, shearPos.y + hw, handleColor);
     int count = vac->getCount();
     program->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawLines(vac, startVertex, 2);
@@ -339,208 +298,65 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
     DrawBoundingBoxLines(Box3dColor, aabb_min, aabb_max, draw_3d ? ModelMatrix : TranslateMatrix, *vac);
 }
 
-int ThreePointScreenLocation::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) {
 
-    if (_locked) return MODEL_UNCHANGED;
 
-    if (handle == SHEAR_HANDLE) {
-        glm::vec3 ray_origin;
-        glm::vec3 ray_direction;
+namespace {
+// SpaceMouse session for ThreePointScreenLocation. Adds a Shear
+// handle on top of TwoPoint's CENTER / START / END behavior:
+// dragging Shear adjusts angle / shear / height (subclass-defined
+// — Arch / Window Frame each set their `supports*` flags).
+class ThreePointSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    ThreePointSpaceMouseSession(ThreePointScreenLocation* loc,
+                                std::optional<handles::Id> id)
+        : _loc(loc), _id(id),
+          _twoPointInner(loc->TwoPointScreenLocation::BeginSpaceMouseSession(id)) {}
 
-        VectorMath::ScreenPosToWorldRay(
-            mouseX, preview->getHeight() - mouseY,
-            preview->getWidth(), preview->getHeight(),
-            preview->GetProjViewMatrix(),
-            ray_origin,
-            ray_direction
-        );
-
-        float posx = ray_origin.x - center.x;
-        float posy = ray_origin.y - center.y;
-
-        float HandleHt = RenderHt;
-        if (HandleHt > RenderWi)
-            HandleHt = RenderWi;
-        float ymax = HandleHt;
-        if (ymax < 0.01f) {
-            ymax = 0.01f;
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value() && _id->role == handles::Role::Shear) {
+            _loc->ApplySpaceMouseShearHandle(scale, rot, mov);
+            return handles::SpaceMouseResult::NeedsInit;
         }
-        //Calculate angle of mouse from center.
-        if (supportsAngle) {
-            if (posy == 0.0f) return MODEL_UNCHANGED;
-            float tan = (float)posx / (float)posy;
-            int angle1 = -toDegrees((float)atan(tan));
-            if (x2 < 0.0f) {
-                angle1 = -angle1;
-            }
-            if (posy >= 0) {
-                angle = angle1;
-            } else if (posx <= 0) {
-                angle = 90 + (90 + angle1);
-            } else {
-                angle = -90 - (90 - angle1);
-            }
-            if (ShiftKeyPressed) {
-                angle = (int)(angle / 5) * 5;
-            }
-            float length = std::sqrt(posy*posy + posx * posx);
-            height = length / (HandleHt * scaley);
-        } else if (supportsShear) {
-            glm::mat4 m = glm::inverse(matrix);
-            glm::vec3 v = glm::vec3(m * glm::vec4(ray_origin, 1.0f));
-            if (height < 0.0f) {
-                shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
-            } else {
-                shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
-            }
-            if (shear < -3.0f) {
-                shear = -3.0f;
-            } else if (shear > 3.0f) {
-                shear = 3.0f;
-            }
-            height = posy / (HandleHt * scaley);
-        } else {
-            height = height * posy / ymax;
+        if (_twoPointInner) {
+            return _twoPointInner->Apply(scale, rot, mov);
         }
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            } else {
-                height = 0.01f;
-            }
-        }
-        return MODEL_NEEDS_INIT;
+        return handles::SpaceMouseResult::Unchanged;
     }
 
-    return TwoPointScreenLocation::MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    ThreePointScreenLocation*                       _loc;
+    std::optional<handles::Id>                      _id;
+    std::unique_ptr<handles::SpaceMouseSession>     _twoPointInner;
+};
+} // namespace
+
+void ThreePointScreenLocation::ApplySpaceMouseShearHandle(float /*scale*/,
+                                                           const glm::vec3& /*rot*/,
+                                                           const glm::vec3& mov) {
+    if (supportsAngle) {
+        angle -= mov.x * 10.0f;
+        height += -mov.z;
+    } else if (supportsShear) {
+        shear -= mov.x * 10.0f;
+        height += -mov.z;
+    } else {
+        height += -mov.z;
+    }
+    if (std::abs(height) < 0.01f) {
+        height = (height < 0.0f) ? -0.01f : 0.01f;
+    }
 }
 
-int ThreePointScreenLocation::MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z)
-{
-    if (_locked) return MODEL_UNCHANGED;
-
-    if (handle == SHEAR_HANDLE) {
-        if (latch) {
-            saved_position.x = mHandlePosition[SHEAR_HANDLE].x;
-            saved_position.y = mHandlePosition[SHEAR_HANDLE].y;
-            saved_position.z = mHandlePosition[SHEAR_HANDLE].z;
-        }
-
-        if (!DragHandle(preview, mouseX, mouseY, latch)) return MODEL_UNCHANGED;
-
-        if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
-            glm::vec3 a = point2 - origin;
-            glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
-            glm::mat4 inv_rotation = glm::inverse(rotationMatrix);
-            glm::vec3 cent = glm::vec3(inv_rotation * glm::vec4(center, 1.0f));
-            glm::vec3 origin = glm::vec3(inv_rotation * glm::vec4(saved_position + drag_delta, 1.0f));
-
-            float posx = origin.x - cent.x;
-            float posy = origin.y - cent.y;
-
-            //float posx = saved_position.x + drag_delta.x - center.x;
-            //float posy = saved_position.y + drag_delta.y - center.y;
-
-            float HandleHt = RenderHt;
-            if (HandleHt > RenderWi)
-                HandleHt = RenderWi;
-            float ymax = HandleHt;
-            if (ymax < 0.01f) {
-                ymax = 0.01f;
-            }
-
-            //Calculate angle of mouse from center.
-            if (supportsAngle) {
-                if (posy == 0.0f) return MODEL_UNCHANGED;
-                float tan = (float)posx / (float)posy;
-                int angle1 = -toDegrees((float)atan(tan));
-                if (posy >= 0) {
-                    angle = angle1;
-                }
-                else if (posx <= 0) {
-                    angle = 180 + angle1;
-                }
-                else {
-                    angle = -180 + angle1;
-                }
-                if (ShiftKeyPressed) {
-                    angle = (int)(angle / 5) * 5;
-                }
-                float length = std::sqrt(posy*posy + posx * posx);
-                height = length / (HandleHt * scaley);
-            }
-            else if (supportsShear) {
-                glm::mat4 m = glm::inverse(matrix);
-                glm::vec3 v = glm::vec3(m * glm::vec4(saved_position + drag_delta, 1.0f));
-                if (height < 0.0f) {
-                    shear -= (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
-                }
-                else {
-                    shear += (v.x - ((RenderWi) / 2.0f)) / (RenderWi);
-                }
-                if (shear < -3.0f) {
-                    shear = -3.0f;
-                }
-                else if (shear > 3.0f) {
-                    shear = 3.0f;
-                }
-                height = posy / (HandleHt * scaley);
-            }
-            else {
-                height = height * posy / ymax;
-            }
-            if (std::abs(height) < 0.01f) {
-                if (height < 0.0f) {
-                    height = -0.01f;
-                }
-                else {
-                    height = 0.01f;
-                }
-            }
-            return MODEL_NEEDS_INIT;
-        }
-    }
-    else if (handle == CENTER_HANDLE ) {
-        if (axis_tool == MSLTOOL::TOOL_ROTATE) {
-            if (latch) {
-                saved_angle = 0.0f;
-                saved_position = center;
-                saved_point = glm::vec3(worldPos_x, worldPos_y, worldPos_z);
-            }
-            glm::vec3 start_vector = saved_intersect - saved_position;
-            glm::vec3 end_vector = start_vector + drag_delta;
-            if (active_axis == MSLAXIS::X_AXIS) {
-                double start_angle = atan2(start_vector.y, start_vector.z) * 180.0 / M_PI;
-                double end_angle = atan2(end_vector.y, end_vector.z) * 180.0 / M_PI;
-                double angle = end_angle - start_angle;
-                rotatex = saved_rotate.x - angle;
-            }
-        }
-    }
-    return TwoPointScreenLocation::MoveHandle3D(preview, handle, ShiftKeyPressed, CtrlKeyPressed, mouseX, mouseY, latch, scale_z);
-}
-int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == SHEAR_HANDLE) {
-        //we'll handle move, ignore rotations
-        if (supportsAngle) {
-            angle -= mov.x*10.0f;
-            height += -mov.z;
-        } else if (supportsShear) {
-            shear -= mov.x*10.0f;
-            height += -mov.z;
-        } else {
-            height += -mov.z;
-        }
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            } else {
-                height = 0.01f;
-            }
-        }
-        return MODEL_NEEDS_INIT;
-    }
-    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+std::unique_ptr<handles::SpaceMouseSession>
+ThreePointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<ThreePointSpaceMouseSession>(this, id);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandleHeight) {
@@ -643,4 +459,321 @@ void ThreePointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClass
             aabb_min.z -= 5;
         }
     }
+}
+
+// ============================================================
+// ThreePoint shear handle. Endpoints / centre inherit TwoPoint.
+// ============================================================
+
+glm::vec3 ThreePointScreenLocation::GetShearHandleWorldPosition() const {
+    // Matches DrawHandles' shear-sphere position formula so the
+    // descriptor and the drawn sphere stay in lockstep.
+    float HandleHt = RenderHt;
+    if (HandleHt > RenderWi) HandleHt = RenderWi;
+    float ymax = HandleHt;
+    float x = RenderWi / 2.0f;
+    if (supportsAngle) {
+        ymax = HandleHt * height;
+        rotate_point(RenderWi / 2.0f, 0.0f, toRadians(angle), x, ymax);
+    }
+    glm::vec3 v = glm::vec3(matrix * glm::vec4(glm::vec3(x, ymax, 0.0f), 1.0f));
+    return v;
+}
+
+namespace {
+
+// 3D shear-handle drag (axis_tool == TOOL_XY_TRANS). The user
+// pulls the SHEAR sphere along the XY plane through its saved
+// world position; the cursor delta is then mapped back into the
+// model's local axis frame via the inverse of the rotation that
+// aligns +X with (point2 - origin), so subsequent supportsAngle
+// / supportsShear / default branches run on planar coords.
+class ThreePoint3DShearSession : public handles::DragSession {
+public:
+    ThreePoint3DShearSession(ThreePointScreenLocation* loc,
+                             std::string modelName,
+                             handles::Id handleId,
+                             const handles::WorldRay& startRay,
+                             glm::vec3 shearWorldPos)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _savedShearPos(shearWorldPos),
+          _savedAngle(loc->GetAngle()),
+          _savedHeight(loc->GetHeight()),
+          _savedShear(loc->GetShear()) {
+        _planeNormal = glm::vec3(0.0f, 0.0f, 1.0f);
+        _planePoint  = glm::vec3(0.0f, 0.0f, _savedShearPos.z);
+        if (!Intersect(startRay, _savedIntersect)) {
+            _savedIntersect = _savedShearPos;
+        }
+    }
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier mods) override {
+        glm::vec3 cur(0.0f);
+        if (!Intersect(ray, cur)) return handles::UpdateResult::Unchanged;
+        const glm::vec3 dragDelta = cur - _savedIntersect;
+
+        glm::vec3 a = _loc->GetPoint2() - _loc->GetPoint1();
+        glm::mat4 rotationMatrix = VectorMath::rotationMatrixFromXAxisToVector(a);
+        glm::mat4 inv_rotation   = glm::inverse(rotationMatrix);
+        glm::vec3 cent           = glm::vec3(inv_rotation * glm::vec4(_loc->GetCenterPosition(), 1.0f));
+        glm::vec3 originLocal    = glm::vec3(inv_rotation * glm::vec4(_savedShearPos + dragDelta, 1.0f));
+
+        const float posx = originLocal.x - cent.x;
+        const float posy = originLocal.y - cent.y;
+        float HandleHt = _loc->GetRenderHt();
+        if (HandleHt > _loc->GetRenderWi()) HandleHt = _loc->GetRenderWi();
+        float ymax = HandleHt;
+        if (ymax < 0.01f) ymax = 0.01f;
+
+        const bool shift = handles::HasModifier(mods, handles::Modifier::Shift);
+        if (_loc->GetSupportsAngle()) {
+            if (posy == 0.0f) return handles::UpdateResult::Unchanged;
+            float tan = posx / posy;
+            int angle1 = -static_cast<int>(glm::degrees(std::atan(tan)));
+            int newAngle = 0;
+            if (posy >= 0)        newAngle = angle1;
+            else if (posx <= 0)   newAngle = 180 + angle1;
+            else                  newAngle = -180 + angle1;
+            if (shift) newAngle = (newAngle / 5) * 5;
+            float length = std::sqrt(posy * posy + posx * posx);
+            float newHeight = length / (HandleHt * _loc->GetScaleMatrix().y);
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetAngle(newAngle);
+            _loc->SetHeight(newHeight);
+        } else if (_loc->GetSupportsShear()) {
+            glm::mat4 m = glm::inverse(_loc->GetModelMatrix());
+            glm::vec3 v = glm::vec3(m * glm::vec4(_savedShearPos + dragDelta, 1.0f));
+            const float renderWi = _loc->GetRenderWi();
+            float newShear = _loc->GetShear();
+            const float halfWi = renderWi / 2.0f;
+            if (_loc->GetHeight() < 0.0f) {
+                newShear -= (v.x - halfWi) / renderWi;
+            } else {
+                newShear += (v.x - halfWi) / renderWi;
+            }
+            if (newShear < -3.0f) newShear = -3.0f;
+            else if (newShear > 3.0f) newShear = 3.0f;
+            _loc->SetShear(newShear);
+            float newHeight = posy / (HandleHt * _loc->GetScaleMatrix().y);
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetHeight(newHeight);
+        } else {
+            float newHeight = _loc->GetHeight() * posy / ymax;
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetHeight(newHeight);
+        }
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetAngle(_savedAngle);
+        _loc->SetHeight(_savedHeight);
+        _loc->SetShear(_savedShear);
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Shear : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    bool Intersect(const handles::WorldRay& ray, glm::vec3& out) const {
+        return VectorMath::GetPlaneIntersect(
+            ray.origin, ray.direction, _planePoint, _planeNormal, out);
+    }
+
+    ThreePointScreenLocation* _loc;
+    std::string               _modelName;
+    handles::Id               _handleId;
+    glm::vec3                 _savedShearPos;
+    int                       _savedAngle;
+    float                     _savedHeight;
+    float                     _savedShear;
+    glm::vec3                 _savedIntersect{0.0f};
+    glm::vec3                 _planePoint    {0.0f};
+    glm::vec3                 _planeNormal   {0.0f, 0.0f, 1.0f};
+    bool                      _changed = false;
+};
+
+class ThreePointShearSession : public handles::DragSession {
+public:
+    ThreePointShearSession(ThreePointScreenLocation* loc,
+                           std::string modelName,
+                           handles::Id handleId)
+        : _loc(loc),
+          _modelName(std::move(modelName)),
+          _handleId(handleId),
+          _savedAngle(loc->GetAngle()),
+          _savedHeight(loc->GetHeight()),
+          _savedShear(loc->GetShear()) {}
+
+    handles::UpdateResult Update(const handles::WorldRay& ray,
+                                  handles::Modifier mods) override {
+        // Mirrors `ThreePointScreenLocation::MoveHandle`'s
+        // SHEAR_HANDLE branch.
+        const float posx = ray.origin.x - _loc->GetCenterPosition().x;
+        const float posy = ray.origin.y - _loc->GetCenterPosition().y;
+        float HandleHt = _loc->GetRenderHt();
+        if (HandleHt > _loc->GetRenderWi()) HandleHt = _loc->GetRenderWi();
+        float ymax = HandleHt;
+        if (ymax < 0.01f) ymax = 0.01f;
+
+        const bool shift = handles::HasModifier(mods, handles::Modifier::Shift);
+        if (_loc->GetSupportsAngle()) {
+            if (posy == 0.0f) return handles::UpdateResult::Unchanged;
+            float tan = posx / posy;
+            int angle1 = -static_cast<int>(glm::degrees(std::atan(tan)));
+            if (_loc->GetX2() < 0.0f) {
+                angle1 = -angle1;
+            }
+            int newAngle = 0;
+            if (posy >= 0) {
+                newAngle = angle1;
+            } else if (posx <= 0) {
+                newAngle = 90 + (90 + angle1);
+            } else {
+                newAngle = -90 - (90 - angle1);
+            }
+            if (shift) newAngle = (newAngle / 5) * 5;
+            float length = std::sqrt(posy * posy + posx * posx);
+            float newHeight = length / (HandleHt * _loc->GetScaleMatrix().y);
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetAngle(newAngle);
+            _loc->SetHeight(newHeight);
+        } else if (_loc->GetSupportsShear()) {
+            // supportsShear branch (Tree-style models).
+            // Mirror legacy: cursor → model-local via inverse
+            // model matrix, then differential update of `shear`
+            // gated by current height sign, plus height = posy /
+            // (HandleHt * scaley). Clamp shear to ±3.
+            glm::mat4 m = glm::inverse(_loc->GetModelMatrix());
+            glm::vec3 v = glm::vec3(m * glm::vec4(ray.origin, 1.0f));
+            const float renderWi = _loc->GetRenderWi();
+            float newShear = _loc->GetShear();
+            const float halfWi = renderWi / 2.0f;
+            if (_loc->GetHeight() < 0.0f) {
+                newShear -= (v.x - halfWi) / renderWi;
+            } else {
+                newShear += (v.x - halfWi) / renderWi;
+            }
+            if (newShear < -3.0f) newShear = -3.0f;
+            else if (newShear > 3.0f) newShear = 3.0f;
+            _loc->SetShear(newShear);
+            float newHeight = posy / (HandleHt * _loc->GetScaleMatrix().y);
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetHeight(newHeight);
+        } else {
+            // Default branch — height-only scale by posy / ymax.
+            float newHeight = _savedHeight * posy / ymax;
+            if (std::fabs(newHeight) < 0.01f) {
+                newHeight = newHeight < 0.0f ? -0.01f : 0.01f;
+            }
+            _loc->SetHeight(newHeight);
+        }
+        _changed = true;
+        return handles::UpdateResult::NeedsInit;
+    }
+
+    void Revert() override {
+        _loc->SetAngle(_savedAngle);
+        _loc->SetHeight(_savedHeight);
+        _loc->SetShear(_savedShear);
+        _changed = false;
+    }
+
+    CommitResult Commit() override {
+        return CommitResult{
+            _modelName,
+            _changed ? handles::DirtyField::Shear : handles::DirtyField::None
+        };
+    }
+
+    handles::Id GetHandleId() const override { return _handleId; }
+
+private:
+    ThreePointScreenLocation* _loc;
+    std::string               _modelName;
+    handles::Id               _handleId;
+    int                       _savedAngle;
+    float                     _savedHeight;
+    float                     _savedShear;
+    bool                      _changed = false;
+};
+
+} // namespace
+
+std::vector<handles::Descriptor> ThreePointScreenLocation::GetHandles(
+    handles::ViewMode mode, handles::Tool tool,
+    const handles::ViewParams& view) const {
+    auto out = TwoPointScreenLocation::GetHandles(mode, tool, view);
+    if (mode == handles::ViewMode::ThreeD) {
+        // The shear sphere is drawn whenever the model is selected,
+        // so the descriptor needs to be emitted unconditionally so
+        // an initial click can land on it. When the shear isn't yet
+        // active, the descriptor is selectionOnly — click promotes it
+        // to active_handle = SHEAR_HANDLE (which also forces axis_tool
+        // = TOOL_XY_TRANS via ThreePoint::SetActiveHandle). Once active
+        // + XY_TRANS, the descriptor is draggable and routes to the
+        // 3D shear session.
+        if (_locked) return out;
+        const bool draggable = (IsRole(active_handle, handles::Role::Shear) &&
+                                axis_tool == MSLTOOL::TOOL_XY_TRANS);
+        handles::Descriptor d;
+        d.id.role  = handles::Role::Shear;
+        d.id.index = SHEAR_HANDLE;
+        d.worldPos = GetShearHandleWorldPosition();
+        d.suggestedRadius = 5.0f;
+        d.editable = true;
+        d.selectionOnly = !draggable;
+        out.push_back(d);
+        return out;
+    }
+    if (mode != handles::ViewMode::TwoD) return out;
+    if (_locked) return out;
+    handles::Descriptor d;
+    d.id.role = handles::Role::Shear;
+    d.id.index = SHEAR_HANDLE;
+    d.worldPos = GetShearHandleWorldPosition();
+    d.suggestedRadius = 5.0f;
+    d.editable = true;
+    out.push_back(d);
+    return out;
+}
+
+std::unique_ptr<handles::DragSession> ThreePointScreenLocation::CreateDragSession(
+    const std::string& modelName,
+    const handles::Id& id,
+    const handles::WorldRay& startRay) {
+    if (id.role == handles::Role::Shear) {
+        if (_locked) return nullptr;
+        if (id.index != SHEAR_HANDLE) return nullptr;
+        if (IsRole(active_handle, handles::Role::Shear) && axis_tool == MSLTOOL::TOOL_XY_TRANS) {
+            // 3D shear (XY_TRANS): cursor lives on an XY plane
+            // through the shear sphere's saved world position.
+            return std::make_unique<ThreePoint3DShearSession>(this, modelName, id, startRay,
+                                                                GetShearHandleWorldPosition());
+        }
+        (void)startRay;
+        return std::make_unique<ThreePointShearSession>(this, modelName, id);
+    }
+    return TwoPointScreenLocation::CreateDragSession(modelName, id, startRay);
 }

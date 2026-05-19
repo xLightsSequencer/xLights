@@ -597,6 +597,36 @@ void DmxMovingHeadAdv::DrawModel(IModelPreview* preview, xlGraphicsContext* ctx,
         pan_angle_raw -= 360.0f;
     pan_angle_raw = 360.0f - pan_angle_raw;
 
+    // draw zone-active indicator ring at fixture base when a position zone is being applied
+    if (active && !position_zones.empty() && preview->GetShowZoneIndicator()) {
+        int panCoarse = pan_motor->GetChannelCoarse();
+        int tiltCoarse = tilt_motor->GetChannelCoarse();
+        int panVal = (panCoarse > 0 && panCoarse <= (int)Nodes.size()) ? GetChannelValue(panCoarse - 1, false) : -1;
+        int tiltVal = (tiltCoarse > 0 && tiltCoarse <= (int)Nodes.size()) ? GetChannelValue(tiltCoarse - 1, false) : -1;
+        bool zoneActive = false;
+        for (const auto& zone : position_zones) {
+            if (panVal >= zone.pan_min && panVal <= zone.pan_max &&
+                tiltVal >= zone.tilt_min && tiltVal <= zone.tilt_max) {
+                zoneActive = true;
+                break;
+            }
+        }
+        if (zoneActive) {
+            xlColor ringColor(255, 140, 0, 220);
+            float zOff = sbl * 0.5f;
+            float ro = sbl * 0.45f;
+            float ri = sbl * 0.34f;
+            auto svac = sprogram->getAccumulator();
+            int rs = svac->getCount();
+            svac->AddCircleAsTriangles(0, 0, zOff,          ro, ringColor, ringColor, 0, 48);
+            svac->AddCircleAsTriangles(0, 0, zOff + 0.01f, ri, xlBLACK,   xlBLACK,   0, 48);
+            int re = svac->getCount();
+            sprogram->addStep([=](xlGraphicsContext* ctx) {
+                ctx->drawTriangles(svac, rs, re - rs);
+            });
+        }
+    }
+
     auto vac = tprogram->getAccumulator();
     int start = vac->getCount();
     Draw3DBeam(vac, beam_color, beam_length_displayed, pan_angle_raw, tilt_angle, shutter_open, beam_ability->GetBeamYOffset());

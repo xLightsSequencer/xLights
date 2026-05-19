@@ -17,6 +17,7 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include <log.h>
+#include "utils/FloatChecks.h"
 #include "utils/xlPoint.h"
 #include <cassert>
 #include <cstdlib>
@@ -144,8 +145,8 @@ namespace {
             return fabs(Len2() - 1) < 1e-6;
         }
         Vec2D Rotate(const double& fAngle) const {
-            float cs = RenderBuffer::cos(fAngle);
-            float sn = RenderBuffer::sin(fAngle);
+            float const cs = RenderBuffer::cos(fAngle);
+            float const sn = RenderBuffer::sin(fAngle);
             return Vec2D(x * cs + y * sn, -x * sn + y * cs);
         }
         Vec2D RotateAbout(double angle, const Vec2D& pt) const {
@@ -2664,7 +2665,9 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 }
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset) {
-    if (std::isinf(offset))
+    // xl::isinf: std::isinf may fold to `false` under -ffinite-math-only
+    // (Release -ffast-math); use the helper to keep the clamp working.
+    if (xl::isinf(offset))
         offset = 1.0;
 
     GPURenderUtils::RotoZoomSettings settings;

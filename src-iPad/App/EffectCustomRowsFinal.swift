@@ -113,11 +113,11 @@ struct RotoZoomPresetRowView: View {
     private func setRampVC(_ id: String,
                             p1: Double, p2: Double,
                             min: Double, max: Double, divisor: Int) {
-        guard let vc = XLValueCurve(serialised: "",
-                                      forId: id,
-                                      min: min,
-                                      max: max,
-                                      divisor: Double(divisor)) else { return }
+        let vc = XLValueCurve(serialised: "",
+                               forId: id,
+                               min: min,
+                               max: max,
+                               divisor: Double(divisor))
         vc.type = "Ramp"
         vc.parameter1 = p1
         vc.parameter2 = p2
@@ -133,11 +133,11 @@ struct RotoZoomPresetRowView: View {
                             p1: Double, p2: Double, p3: Double, p4: Double,
                             min: Double, max: Double, divisor: Int,
                             wrap: Bool = true) {
-        guard let vc = XLValueCurve(serialised: "",
-                                      forId: id,
-                                      min: min,
-                                      max: max,
-                                      divisor: Double(divisor)) else { return }
+        let vc = XLValueCurve(serialised: "",
+                               forId: id,
+                               min: min,
+                               max: max,
+                               divisor: Double(divisor))
         vc.type = "Sine"
         vc.parameter1 = p1
         vc.parameter2 = p2
@@ -631,27 +631,279 @@ private struct DMXChannelRow: View {
     }
 }
 
-/// `DMX_ButtonsRow` — Remap / Save As State / Load From State. Each
-/// depends on desktop dialog flow (model state read/write) that
-/// hasn't been ported. Render disabled buttons so the user sees the
-/// desktop feature exists but can't accidentally trigger something
-/// half-built.
+/// `DMX_ButtonsRow` — Remap / Save State / Load State (G8 — C7).
+/// Desktop's Remap dialog is a 48-row wxGrid; iPad replaces it
+/// with a menu of common channel-remap presets (Shift +1 / -1,
+/// Reverse, Invert All, Double, Half). Save / Load round-trip
+/// through the model's in-memory `stateInfo` via the
+/// `dmxSaveState` / `dmxLoadState` bridge methods.
+///
+/// New state saves are session-only on iPad — persistence to
+/// `xlights_rgbeffects.xml` is deferred; desktop-authored states
+/// are loadable since they're already in the model XML at
+/// show-folder open.
 struct DMXButtonsRowView: View {
+    @Environment(SequencerViewModel.self) var viewModel
+
+    @State private var showLoadSheet = false
+    @State private var showSaveSheet = false
+    @State private var showOverwriteConfirm = false
+    @State private var pendingSaveName: String = ""
+    @State private var remapStatus: String? = nil
+
     var body: some View {
-        HStack(spacing: 6) {
-            Button("Remap") {}
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Menu {
+                    Button("Shift +1") { applyRemap(0) }
+                    Button("Shift -1") { applyRemap(1) }
+                    Button("Reverse") { applyRemap(2) }
+                    Button("Invert All") { applyRemap(3) }
+                    Button("Double") { applyRemap(4) }
+                    Button("Half") { applyRemap(5) }
+                } label: {
+                    Label("Remap", systemImage: "shuffle")
+                        .font(.caption)
+                }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(true)
-            Button("Save State") {}
+                .disabled(viewModel.selectedEffect == nil)
+
+                Button {
+                    pendingSaveName = ""
+                    showSaveSheet = true
+                } label: {
+                    Label("Save State", systemImage: "square.and.arrow.down")
+                        .font(.caption)
+                }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(true)
-            Button("Load State") {}
+                .disabled(viewModel.selectedEffect == nil)
+
+                Button {
+                    showLoadSheet = true
+                } label: {
+                    Label("Load State", systemImage: "square.and.arrow.up")
+                        .font(.caption)
+                }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .disabled(true)
+                .disabled(!hasAnyStates)
+            }
+            if let status = remapStatus {
+                Text(status)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.vertical, 2)
+        .sheet(isPresented: $showLoadSheet) {
+            DMXLoadStateSheet(
+                states: availableStates,
+                onPick: { name in
+                    showLoadSheet = false
+                    applyLoad(name)
+                },
+                onCancel: { showLoadSheet = false })
+                .environment(viewModel)
+        }
+        .sheet(isPresented: $showSaveSheet) {
+            DMXSaveStateSheet(
+                existingStates: availableStates,
+                name: $pendingSaveName,
+                onConfirm: { name in
+                    showSaveSheet = false
+                    attemptSave(name)
+                },
+                onCancel: { showSaveSheet = false })
+                .environment(viewModel)
+        }
+        .alert("State Exists",
+               isPresented: $showOverwriteConfirm) {
+            Button("Overwrite", role: .destructive) {
+                commitSave(pendingSaveName, overwrite: true)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("A state named \"\(pendingSaveName)\" already exists on this model. Overwrite it?")
+        }
+    }
+
+    // MARK: - State list
+
+    private var availableStates: [String] {
+        _ = viewModel.inspectorRevision
+        guard let sel = viewModel.selectedEffect else { return [] }
+        let arr = viewModel.document.states(
+            forRow: Int32(sel.rowIndex),
+            at: Int32(sel.effectIndex))
+        return arr.sorted()
+    }
+
+    private var hasAnyStates: Bool { !availableStates.isEmpty }
+
+    // MARK: - Actions
+
+    private func applyRemap(_ preset: Int) {
+        guard let sel = viewModel.selectedEffect else { return }
+        let ok = viewModel.document.dmxRemapChannels(
+            forRow: Int32(sel.rowIndex),
+            at: Int32(sel.effectIndex),
+            preset: Int32(preset))
+        remapStatus = ok ? "Remap applied." : "Remap made no change."
+        // The bridge mutated settings directly; refresh the
+        // observable dict so every channel slider re-reads.
+        viewModel.refreshSelectedEffectSettings()
+        viewModel.inspectorRevision &+= 1
+    }
+
+    private func applyLoad(_ name: String) {
+        guard let sel = viewModel.selectedEffect else { return }
+        let ok = viewModel.document.dmxLoadState(
+            forRow: Int32(sel.rowIndex),
+            at: Int32(sel.effectIndex),
+            stateName: name)
+        remapStatus = ok
+            ? "Loaded \"\(name)\"."
+            : "State not compatible (needs Type=SingleNode + CustomColors)."
+        viewModel.refreshSelectedEffectSettings()
+        viewModel.inspectorRevision &+= 1
+    }
+
+    private func attemptSave(_ name: String) {
+        guard let sel = viewModel.selectedEffect else { return }
+        let sanitized = sanitise(name)
+        if sanitized.isEmpty {
+            remapStatus = "Invalid state name."
+            return
+        }
+        pendingSaveName = sanitized
+        let exists = viewModel.document.dmxStateExists(
+            forRow: Int32(sel.rowIndex),
+            at: Int32(sel.effectIndex),
+            stateName: sanitized)
+        if exists {
+            showOverwriteConfirm = true
+        } else {
+            commitSave(sanitized, overwrite: false)
+        }
+    }
+
+    private func commitSave(_ name: String, overwrite: Bool) {
+        guard let sel = viewModel.selectedEffect else { return }
+        let ok = viewModel.document.dmxSaveState(
+            forRow: Int32(sel.rowIndex),
+            at: Int32(sel.effectIndex),
+            stateName: name,
+            overwrite: overwrite)
+        remapStatus = ok
+            ? "Saved \"\(name)\" (session only — not persisted)."
+            : "Save failed."
+        viewModel.inspectorRevision &+= 1
+    }
+
+    /// Match desktop's `::Lower` + `StripAllBut` sanitisation so
+    /// names round-trip with desktop-authored states.
+    private func sanitise(_ s: String) -> String {
+        let allowed = Set("abcdefghijklmnopqrstuvwxyz0123456789-_/\\|#")
+        return String(s.lowercased().filter { allowed.contains($0) })
+    }
+}
+
+// MARK: - Load-state picker sheet
+
+private struct DMXLoadStateSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let states: [String]
+    let onPick: (String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if states.isEmpty {
+                    ContentUnavailableView(
+                        "No Saved States",
+                        systemImage: "archivebox",
+                        description: Text("Save a state first, or author one in the desktop DMX panel."))
+                } else {
+                    List(states, id: \.self) { name in
+                        Button {
+                            onPick(name)
+                        } label: {
+                            HStack {
+                                Image(systemName: "archivebox")
+                                    .foregroundStyle(.secondary)
+                                Text(name)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.tertiary)
+                                    .font(.caption)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .navigationTitle("Load State")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        onCancel()
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Save-state name entry sheet
+
+private struct DMXSaveStateSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let existingStates: [String]
+    @Binding var name: String
+    let onConfirm: (String) -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("State name", text: $name)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                } header: {
+                    Text("Save Current DMX Channels")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Session-only: iPad does not write states back to xlights_rgbeffects.xml in v1. Use the desktop DMX panel for persistent saves.")
+                        if !existingStates.isEmpty {
+                            Text("Existing: \(existingStates.joined(separator: ", "))")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .font(.caption2)
+                }
+            }
+            .navigationTitle("Save State")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        onCancel()
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onConfirm(name)
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
     }
 }

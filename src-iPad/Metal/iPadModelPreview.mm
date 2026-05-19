@@ -48,18 +48,32 @@ xlGraphicsContext* iPadModelPreview::getCurrentGraphicsContext() {
 }
 
 bool iPadModelPreview::StartDrawing(double pointSize, bool fromPaint) {
-    if (_isDrawing) return false;
-    if (_canvas->getMetalLayer() == nil) return false;
+    _lastStartDrawingFailure.clear();
+    if (_isDrawing) {
+        _lastStartDrawingFailure = "Draw already in progress (re-entrant call)";
+        return false;
+    }
+    if (_canvas->getMetalLayer() == nil) {
+        _lastStartDrawingFailure = "No CAMetalLayer attached to canvas";
+        return false;
+    }
 
     int w = _canvas->getWidth();
     int h = _canvas->getHeight();
-    if (w == 0 || h == 0) return false;
+    if (w == 0 || h == 0) {
+        _lastStartDrawingFailure = "Canvas has zero size (waiting for layout)";
+        return false;
+    }
 
-    // Create the Metal graphics context — acquires a drawable
+    // Create the Metal graphics context — acquires a drawable. Failure
+    // here usually means `nextDrawable` returned nil (CAMetalLayer not
+    // ready) or the pipeline-state cache couldn't compile shaders for
+    // this device's MTLGPUFamily.
     _ctx = new xlMetalGraphicsContext(_canvas, nil, false);
     if (!_ctx->isValid()) {
         delete _ctx;
         _ctx = nullptr;
+        _lastStartDrawingFailure = "Metal graphics context invalid (no drawable or pipeline-state failure — see MetalDeviceManager log)";
         return false;
     }
 

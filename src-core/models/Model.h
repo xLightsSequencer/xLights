@@ -31,6 +31,9 @@ class BaseSerializingVisitor;
 #include "UtilFunctions.h"
 
 #include "../utils/xlPoint.h"
+#include "handles/Handles.h"
+#include "handles/DragSession.h"
+#include <memory>
 
 
 class DimmingCurve;
@@ -167,9 +170,9 @@ public:
     [[nodiscard]] virtual FaceStateData const& GetStateInfo() const { return stateInfo; };
     [[nodiscard]] virtual FaceStateNodes const& GetStateInfoNodes() const { return stateInfoNodes; };
 
-    virtual void SetFaceInfo(FaceStateData const& info) { faceInfo = info; };
+    virtual void SetFaceInfo(FaceStateData const& info) { faceInfo = info; UpdateFaceInfoNodes(); };
     virtual void SetFaceInfoNodes(FaceStateNodes const& nodes) { faceInfoNodes = nodes; };
-    virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; };
+    virtual void SetStateInfo(FaceStateData const& info) { stateInfo = info; UpdateStateInfoNodes(); };
     virtual void SetStateInfoNodes(FaceStateNodes const& nodes) { stateInfoNodes = nodes; };
 
     // Add face with data structure-based method
@@ -487,8 +490,37 @@ public:
     virtual bool CleanupFileLocations(RenderContext* ctx) override;
     void AddASAPWork(uint32_t work, const std::string& from) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
-    glm::vec3 MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
-    int GetSelectedHandle();
+
+    // Descriptor-based handle API. See `plans/handle-system-refactor.md`.
+    //
+    // GetHandles returns the current handle layout for drawing +
+    // hit-testing. Tool only affects ThreeD mode (translate
+    // arrows vs scale cubes vs rotate rings). Default impl
+    // returns empty (frontend falls back to legacy DrawHandles).
+    [[nodiscard]] virtual std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const {
+        (void)mode;
+        (void)tool;
+        (void)view;
+        return {};
+    }
+
+    // BeginDrag returns nullptr if the model isn't editable
+    // (locked, fromBase, etc.) — the frontend uses this signal to
+    // give the user direct feedback ("can't move base-show
+    // models") rather than starting a drag that silently no-ops.
+    // Default returns nullptr; subclasses with editable
+    // ScreenLocations override.
+    virtual std::unique_ptr<handles::DragSession> BeginDrag(
+        const handles::Id& id,
+        const handles::WorldRay& startRay) {
+        (void)id;
+        (void)startRay;
+        return nullptr;
+    }
+
+    std::optional<handles::Id> GetSelectedHandleId();
     int GetNumHandles();
     int GetSelectedSegment();
     bool SupportsCurves();
@@ -745,6 +777,7 @@ public:
     void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
     void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
     [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName);
+    [[nodiscard]] bool DeleteController(const std::string& name);
 
     [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
@@ -857,10 +890,23 @@ inline int Model::MapPhysicalStringToLogicalString(int string) const
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {
 public:
-    virtual const ModelScreenLocation &GetModelScreenLocation() const { return screenLocation; }
-    virtual ModelScreenLocation &GetModelScreenLocation() { return screenLocation; }
-    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const { return screenLocation; }
-    virtual ModelScreenLocation &GetBaseObjectScreenLocation() { return screenLocation; }
+    virtual const ModelScreenLocation &GetModelScreenLocation() const override { return screenLocation; }
+    virtual ModelScreenLocation &GetModelScreenLocation() override { return screenLocation; }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return screenLocation; }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return screenLocation; }
+
+    // Handle-system delegate to the screen location.
+    [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const override {
+        return screenLocation.GetHandles(mode, tool, view);
+    }
+    std::unique_ptr<handles::DragSession> BeginDrag(
+        const handles::Id& id,
+        const handles::WorldRay& startRay) override {
+        if (IsFromBase()) return nullptr;
+        return screenLocation.CreateDragSession(GetName(), id, startRay);
+    }
 protected:
     ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
     virtual ~ModelWithScreenLocation() {}

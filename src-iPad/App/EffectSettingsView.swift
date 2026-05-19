@@ -45,6 +45,7 @@ enum InspectorTab: String, CaseIterable, Identifiable, Hashable, Codable {
 
 struct EffectSettingsView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @Environment(\.openWindow) private var openWindow
 
     // Persist the selected tab across sequence loads and app launches.
     @AppStorage("inspectorTab") private var storedTab: String = InspectorTab.effect.rawValue
@@ -61,13 +62,24 @@ struct EffectSettingsView: View {
             if viewModel.selectedEffect != nil {
                 VStack(spacing: 0) {
                     header
+                    if viewModel.isMultiEffectSelection {
+                        multiSelectChrome
+                    }
                     timingRow
                     Divider()
                     tabBar
                     Divider()
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
-                            tabContent
+                            // F-1c: when the selected tab is open in
+                            // its own `inspector-tab` scene window,
+                            // show a dock placeholder here; the
+                            // content lives in the detached window.
+                            if viewModel.detachedInspectorTabs.contains(selectedTab.wrappedValue.rawValue) {
+                                InspectorTabDockedPlaceholder(tab: selectedTab.wrappedValue)
+                            } else {
+                                InspectorTabContent(tab: selectedTab.wrappedValue)
+                            }
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 6)
@@ -101,6 +113,56 @@ struct EffectSettingsView: View {
         .padding(.horizontal)
         .padding(.top, 8)
         .padding(.bottom, 4)
+    }
+
+    /// "N effects selected" chrome shown when more than one effect is
+    /// selected (G41). Values in the controls below reflect the anchor
+    /// effect; long-pressing a control exposes "Apply to all selected"
+    /// (G11), and the top-bar "Update All" button flushes every
+    /// current inspector value across the set (G14).
+    @ViewBuilder
+    private var multiSelectChrome: some View {
+        let count = viewModel.selectedEffects.count
+        let uniqueNames = Set(viewModel.selectedEffects.map { $0.name }).count
+        HStack(spacing: 8) {
+            Image(systemName: "square.stack.3d.up.fill")
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(count) effects selected")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text(uniqueNames > 1
+                     ? "Showing anchor values — mixed effect types"
+                     : "Showing anchor values")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button {
+                viewModel.updateAllLikeAnchor()
+            } label: {
+                Label("Update All", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+                    .labelStyle(.iconOnly)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("Copy every inspector value from the anchor effect to all other selected effects")
+            Button {
+                // Collapse multi-select to the anchor.
+                if let sel = viewModel.selectedEffect {
+                    viewModel.selectEffect(rowIndex: sel.rowIndex,
+                                            effectIndex: sel.effectIndex)
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Clear multi-selection")
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color.accentColor.opacity(0.08))
     }
 
     /// Live start / end + play-position readout. Reads the effect's
@@ -153,14 +215,31 @@ struct EffectSettingsView: View {
     // MARK: - Tab bar
 
     private var tabBar: some View {
-        Picker("Inspector Tab", selection: selectedTab) {
-            ForEach(InspectorTab.allCases) { tab in
-                Image(systemName: tab.symbol)
-                    .accessibilityLabel(tab.label)
-                    .tag(tab)
+        HStack(spacing: 6) {
+            Picker("Inspector Tab", selection: selectedTab) {
+                ForEach(InspectorTab.allCases) { tab in
+                    Image(systemName: tab.symbol)
+                        .accessibilityLabel(tab.label)
+                        .tag(tab)
+                }
             }
+            .pickerStyle(.segmented)
+
+            // F-1c: open the currently-selected tab in its own
+            // `inspector-tab` scene window. Disabled while that tab
+            // is already detached; in that case the user docks it
+            // via the placeholder's button (which dismissWindow's
+            // the detached scene).
+            Button {
+                let tab = selectedTab.wrappedValue
+                viewModel.pendingDetachTokens.insert("inspector-tab:\(tab.rawValue)")
+                openWindow(id: "inspector-tab", value: tab)
+            } label: {
+                Image(systemName: "rectangle.on.rectangle.angled")
+            }
+            .disabled(viewModel.detachedInspectorTabs.contains(selectedTab.wrappedValue.rawValue))
+            .help("Open this tab in its own window")
         }
-        .pickerStyle(.segmented)
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
     }
@@ -168,7 +247,7 @@ struct EffectSettingsView: View {
     // MARK: - Tab content
 
     @ViewBuilder
-    private var tabContent: some View {
+    private var _legacyTabContent: some View {
         switch selectedTab.wrappedValue {
         case .effect:
             if let md = viewModel.selectedEffectMetadata {
@@ -202,6 +281,200 @@ struct EffectSettingsView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
             .padding()
+    }
+
+    private func formatMS(_ ms: Int) -> String {
+        let s = ms / 1000
+        let m = s / 60
+        let frac = (ms % 1000) / 10
+        return String(format: "%d:%02d.%02d", m, s % 60, frac)
+    }
+}
+
+// F-1c — reusable "content of a single inspector tab". Extracted so
+// it can be rendered either inside the embedded sidebar or inside a
+// standalone `inspector-tab` scene window.
+struct InspectorTabContent: View {
+    @Environment(SequencerViewModel.self) var viewModel
+    let tab: InspectorTab
+
+    var body: some View {
+        switch tab {
+        case .effect:
+            if let md = viewModel.selectedEffectMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("No metadata available for this effect")
+            }
+        case .colors:
+            if let md = viewModel.colorMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Color metadata not loaded")
+            }
+        case .blending:
+            if let md = viewModel.blendingMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Blending metadata not loaded")
+            }
+        case .buffer:
+            if let md = viewModel.bufferMetadata {
+                EffectMetadataPanel(metadata: md)
+            } else {
+                unavailable("Buffer metadata not loaded")
+            }
+        }
+    }
+
+    private func unavailable(_ msg: String) -> some View {
+        Text(msg)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding()
+    }
+}
+
+// F-1c — placeholder shown in the embedded sidebar when the
+// selected tab is open in its own window. Tapping "Dock Here"
+// dismisses the detached scene, which fires its onDisappear and
+// restores the content here.
+struct InspectorTabDockedPlaceholder: View {
+    let tab: InspectorTab
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "rectangle.on.rectangle.angled")
+                .font(.system(size: 32))
+                .foregroundStyle(.secondary)
+            Text("\(tab.label) is in its own window")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button("Dock Here") {
+                dismissWindow(id: "inspector-tab", value: tab)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+    }
+}
+
+// F-1c — root view for a detached inspector-tab scene window. Shows
+// the effect header + timing row for context, then the single tab's
+// content. Tracks its presence in `viewModel.detachedInspectorTabs`
+// so the embedded sidebar swaps to the dock placeholder.
+//
+// No NavigationStack — the title bar it adds imposes a ~320pt
+// minimum width that keeps the scene window from shrinking. Stage
+// Manager already displays the scene title (`WindowGroup` id) in
+// its chrome. The header row leaves ~80pt of leading padding so the
+// iPadOS 26 window-controls pill doesn't overlay the effect name.
+struct DetachedInspectorRoot: View {
+    let tab: InspectorTab
+    @Environment(SequencerViewModel.self) var viewModel
+    @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
+    @State private var suppressed: Bool = false
+
+    var body: some View {
+        Group {
+            if suppressed {
+                Color(.systemBackground)
+            } else if viewModel.selectedEffect != nil {
+                VStack(spacing: 0) {
+                    header
+                    timingRow
+                    Divider()
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            InspectorTabContent(tab: tab)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            } else {
+                VStack {
+                    Spacer()
+                    Text("Select an effect to view \(tab.label.lowercased()) settings")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+            }
+        }
+        .frame(minWidth: 220, minHeight: 280)
+        .navigationTitle("\(tab.label) — Inspector")
+        .onAppear {
+            // F-1 restoration guard (see HousePreviewView for detail).
+            // Also open the sequencer first when this scene was the
+            // auto-restored connecting session — otherwise we leave
+            // zero scenes alive and the app goes to a black screen.
+            let token = "inspector-tab:\(tab.rawValue)"
+            if viewModel.pendingDetachTokens.remove(token) != nil {
+                viewModel.detachedInspectorTabs.insert(tab.rawValue)
+            } else {
+                suppressed = true
+                DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
+                    dismissWindow(id: "inspector-tab", value: tab)
+                }
+            }
+        }
+        .onDisappear {
+            if !suppressed {
+                viewModel.detachedInspectorTabs.remove(tab.rawValue)
+            }
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            Image(systemName: tab.symbol)
+                .foregroundStyle(.secondary)
+            Text(viewModel.selectedEffect?.name ?? "")
+                .font(.headline)
+                .lineLimit(1)
+            Spacer()
+        }
+        .padding(.horizontal)
+        // iPadOS 26 Stage Manager pill overlays the leading edge;
+        // reserve ~80pt here so the effect name stays visible.
+        .padding(.leading, 80)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+    }
+
+    private var timingRow: some View {
+        let (start, end) = currentTimes()
+        return HStack(spacing: 10) {
+            Text("Start:")
+            Text(formatMS(start))
+                .monospacedDigit()
+            Spacer(minLength: 4)
+            Text("End:")
+            Text(formatMS(end))
+                .monospacedDigit()
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal)
+        .padding(.bottom, 6)
+    }
+
+    private func currentTimes() -> (Int, Int) {
+        guard let sel = viewModel.selectedEffect else { return (0, 0) }
+        if let row = viewModel.rows.first(where: { $0.id == sel.rowIndex }),
+           sel.effectIndex >= 0,
+           sel.effectIndex < row.effects.count {
+            let e = row.effects[sel.effectIndex]
+            return (e.startTimeMS, e.endTimeMS)
+        }
+        return (sel.startTimeMS, sel.endTimeMS)
     }
 
     private func formatMS(_ ms: Int) -> String {
@@ -289,7 +562,8 @@ struct EffectMetadataPanel: View {
                             Divider().padding(.vertical, 2)
                         }
                         EffectPropertyView(property: prop,
-                                           metadataPrefix: metadata.settingKeyPrefix)
+                                           metadataPrefix: metadata.settingKeyPrefix,
+                                           ruleDisabled: !isPropertyEnabledByRules(prop))
                     }
                 case .group(let group):
                     groupView(group: group)
@@ -312,7 +586,8 @@ struct EffectMetadataPanel: View {
                     settingKey: group.settingKey,
                     metadataPrefix: metadata.settingKeyPrefix,
                     propsById: propsById,
-                    isVisible: isPropertyVisible
+                    isVisible: isPropertyVisible,
+                    isEnabled: isPropertyEnabledByRules
                 )
             }
         case "section":
@@ -330,7 +605,8 @@ struct EffectMetadataPanel: View {
                             Divider().padding(.vertical, 2)
                         }
                         EffectPropertyView(property: prop,
-                                           metadataPrefix: metadata.settingKeyPrefix)
+                                           metadataPrefix: metadata.settingKeyPrefix,
+                                           ruleDisabled: !isPropertyEnabledByRules(prop))
                     }
                 }
             }
@@ -376,6 +652,10 @@ struct EffectMetadataPanel: View {
     /// property when its condition is met. Absent / unmatched rules leave
     /// the property visible.
     private func isPropertyVisible(_ prop: PropertyMetadata) -> Bool {
+        // Platform gate — `"platform": "desktop"` entries are never
+        // surfaced on iPad. Mirrors the desktop gate in
+        // `JsonEffectPanel::BuildPropertyRow` for `"platform": "ipad"`.
+        if !prop.isForIPad { return false }
         guard let rules = metadata.visibilityRules else { return true }
         for rule in rules {
             let hides = rule.hide?.contains(prop.id) ?? false
@@ -385,6 +665,29 @@ struct EffectMetadataPanel: View {
             let conditionMet = evaluateCondition(rule.when)
             if hides && conditionMet { return false }
             if shows && !conditionMet { return false }
+        }
+        return true
+    }
+
+    /// Visibility-rule "enable / disable" semantics — controls stay
+    /// visible but lose interactivity (greyed out) when their gating
+    /// condition isn't met. Mirrors desktop's
+    /// `JsonEffectPanel::ApplyVisibilityRules` setEnabled path
+    /// (`JsonEffectPanel.cpp:1758-1773`). Returns false when at least
+    /// one rule's enable/disable clause forces this prop disabled.
+    /// `show`/`hide` are handled separately via `isPropertyVisible`.
+    private func isPropertyEnabledByRules(_ prop: PropertyMetadata) -> Bool {
+        guard let rules = metadata.visibilityRules else { return true }
+        for rule in rules {
+            let disables = rule.disable?.contains(prop.id) ?? false
+            let enables = rule.enable?.contains(prop.id) ?? false
+            if !disables && !enables { continue }
+
+            let conditionMet = evaluateCondition(rule.when)
+            // disable when condition met → grey out.
+            if disables && conditionMet { return false }
+            // enable when condition met → grey out when condition is NOT met.
+            if enables && !conditionMet { return false }
         }
         return true
     }

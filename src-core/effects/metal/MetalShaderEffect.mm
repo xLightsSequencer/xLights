@@ -241,6 +241,8 @@ void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersI
                                  buffer.BufferWi, buffer.BufferHt,
                                  cache->sharedInputTex.metalBuffer ? "zero-copy" : "Metal-copy",
                                  cache->sharedOutputTex.metalBuffer ? "zero-copy" : "Metal-copy");
+                    // Attach already done above; skip the per-frame re-attach below.
+                    return;
                 } else {
                     spdlog::warn("MetalShaderEffect: FBO incomplete (0x{:X}), falling back", status);
                     destroySharedTexture(display, cache->sharedInputTex);
@@ -252,6 +254,14 @@ void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersI
                 if (outputOk) destroySharedTexture(display, cache->sharedOutputTex);
             }
         }
+    }
+
+    // FBO is recreated per-frame in Render(), so re-attach the shared
+    // output texture each frame the interop path is active.
+    if (cache->useMetalInterop) {
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fbId));
+        LOG_GL_ERRORV(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                              GL_TEXTURE_2D, cache->sharedOutputTex.glTexture, 0));
     }
 #endif
 }

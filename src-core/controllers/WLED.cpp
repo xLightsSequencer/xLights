@@ -263,6 +263,8 @@ bool WLED::PostJSON(nlohmann::json const& jsonVal) {
         curl_easy_setopt(hnd, CURLOPT_WRITEDATA, &buffer);
 
         CURLcode ret = curl_easy_perform(hnd);
+        curl_easy_cleanup(hnd);
+        curl_slist_free_all(headers);
         if (ret == CURLE_OK) {
             if (buffer.find("error") != std::string::npos) {
                 spdlog::error("Error From WLED {}", buffer);

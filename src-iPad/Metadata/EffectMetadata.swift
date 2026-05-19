@@ -56,6 +56,13 @@ struct PropertyMetadata: Codable {
     let growable: Bool?
     let checkboxLabel: String?
     let description: String?
+    /// Platform gate. Values: "ipad" (iPad-only), "desktop"
+    /// (desktop-only), nil / "" (both). Desktop skips ipad-only
+    /// entries in `JsonEffectPanel::BuildPropertyRow`; iPad
+    /// filters desktop-only entries in the inspector layout walk.
+    /// Used for custom touch-canvas controls (Morph_LineEditor,
+    /// Sketch_PathEditor) that only make sense on one platform.
+    let platform: String?
 
     // Per-axis bounds for `controlType: "point2d"`. Each axis falls back
     // to the single-valued `min` / `max` / `default` fields when its
@@ -77,6 +84,14 @@ struct PropertyMetadata: Codable {
         case fileFilter, fileMessage, settingPrefix
         case fullWidth, expandToFill, growable, checkboxLabel, description
         case minX, maxX, defaultX, minY, maxY, defaultY
+        case platform
+    }
+
+    /// True iff this property should render on iPad. Skips
+    /// `"platform": "desktop"` entries.
+    var isForIPad: Bool {
+        guard let p = platform, !p.isEmpty else { return true }
+        return p == "ipad"
     }
 
     /// Float values stored as int with divisor. Slider min/max are raw ints; the

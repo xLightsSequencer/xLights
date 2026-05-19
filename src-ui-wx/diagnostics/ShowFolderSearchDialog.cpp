@@ -105,33 +105,7 @@ void ShowFolderSearchDialog::ValidateWindow()
 
 wxString ShowFolderSearchDialog::FindLogFolder() const
 {
-    wxString dir;
-#ifdef __WXMSW__
-    wxGetEnv("APPDATA", &dir);
-    if (dir.EndsWith("/") || dir.EndsWith("\\")) {
-        dir = dir.Left(dir.Length() - 1);
-    }
-    dir = dir + wxFileName::GetPathSeparator();
-#endif
-#ifdef __WXOSX__
-    wxFileName home;
-    home.AssignHomeDir();
-    dir = home.GetFullPath();
-    if (dir.EndsWith("/")) {
-        dir = dir.Left(dir.Length() - 1);
-    }
-    dir = dir + "/Library/Logs/";
-#endif
-#ifdef __LINUX__
-    dir = "/tmp/";
-#endif
-    if (!wxDir::Exists(dir)) {
-        if (wxDir::Exists(xLightsFrame::CurrentDir + wxFileName::GetPathSeparator())) {
-            dir = xLightsFrame::CurrentDir + wxFileName::GetPathSeparator();
-        } else if (wxDir::Exists(wxGetCwd() + wxFileName::GetPathSeparator())) {
-            dir = wxGetCwd() + wxFileName::GetPathSeparator();
-        }
-    }
+    wxString const dir = GetLogFileFolder().string();
     return dir;
 }
 

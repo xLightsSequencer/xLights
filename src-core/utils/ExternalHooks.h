@@ -29,7 +29,6 @@
 #include <filesystem>
 #include <string>
 #include <list>
-#include <functional>
 
 #define EnableSleepModes()
 #define DisableSleepModes()
@@ -37,7 +36,6 @@
 
 inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
-inline void RunInAutoReleasePool(std::function<void()> &&f) { f(); }
 
 inline bool FileExists(const std::string &s, bool waitForDownload = true) {
     std::error_code ec;
