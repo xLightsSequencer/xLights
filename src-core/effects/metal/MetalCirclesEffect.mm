@@ -11,8 +11,6 @@ public:
     MetalCirclesEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("CirclesEffect");
     }
-    ~MetalCirclesEffectData() {
-    }
 
     bool canRender() { return fn != nil; }
 

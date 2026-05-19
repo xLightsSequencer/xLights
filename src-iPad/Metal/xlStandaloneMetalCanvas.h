@@ -43,7 +43,7 @@ public:
 
     // iPad-specific: attach/detach the CAMetalLayer from SwiftUI
 #ifdef __OBJC__
-    void setMetalLayer(__strong CAMetalLayer* layer);
+    void setMetalLayer(CAMetalLayer* layer);
     CAMetalLayer* getMetalLayer() const { return _layer; }
 #endif
 

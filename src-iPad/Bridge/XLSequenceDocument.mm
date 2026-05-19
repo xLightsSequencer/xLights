@@ -14008,6 +14008,8 @@ NSString* fppTypeString(FPP_TYPE t) {
     // `DoYield` is a no-op on iPad since the upload runs off-main.
     __weak id<XLFPPUploadProgress> weakProgress = progress;
     bool cancelledFlag = false;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-repeated-use-of-weak"
     target->setProgress({
         [weakProgress](int val) {
             id<XLFPPUploadProgress> p = weakProgress;
@@ -14020,6 +14022,7 @@ NSString* fppTypeString(FPP_TYPE t) {
         },
         []() {}
     });
+#pragma clang diagnostic pop
     target->defaultConnectTimeout = 5000;
     target->messages.clear();
 

@@ -20,8 +20,6 @@ public:
         //functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PinwheelEffectStyle0");
         //functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PinwheelEffectStyle0");
     }
-    ~MetalPinwheelEffectData() {
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }

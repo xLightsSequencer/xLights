@@ -24,8 +24,6 @@ public:
         //functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ShockwaveEffectStyle4");
         //functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ShockwaveEffectStyle5");
     }
-    ~MetalShockwaveEffectData() {
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }

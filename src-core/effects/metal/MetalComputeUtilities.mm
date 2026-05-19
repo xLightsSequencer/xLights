@@ -35,8 +35,6 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
     sparkleBuffer = nil;
     tmpBufferBlend = nil;
 }
-MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
-}
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
     if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
@@ -1163,13 +1161,9 @@ MetalComputeUtilities::TransitionInfo::TransitionInfo(int t) : type(t), reversed
 MetalComputeUtilities::TransitionInfo::TransitionInfo(const char *fn, int t, bool r) : type(t), reversed(r) {
     function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
 }
-MetalComputeUtilities::TransitionInfo::~TransitionInfo() {
-}
 
 MetalComputeUtilities::BlendFunctionInfo::BlendFunctionInfo(const char *fn, int mtd, bool ni) : name(fn), mixTypeData(mtd), needIndexes(ni) {
     function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
-}
-MetalComputeUtilities::BlendFunctionInfo::~BlendFunctionInfo() {
 }
 
 id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const char *name) {

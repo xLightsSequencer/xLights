@@ -183,6 +183,7 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
                          error:nil];
 
     __block NSURL* finalZip = nil;
+    __block NSError* blockErr = nil;
     NSError* coordErr = nil;
     NSFileCoordinator* coord = [[NSFileCoordinator alloc] init];
     [coord coordinateReadingItemAtURL:stagingDir
@@ -195,8 +196,8 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
         NSError* copyErr = nil;
         if ([fm copyItemAtURL:zippedURL toURL:dst error:&copyErr]) {
             finalZip = dst;
-        } else if (outError) {
-            *outError = copyErr;
+        } else {
+            blockErr = copyErr;
         }
     }];
 
@@ -205,6 +206,9 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
     if (coordErr) {
         if (outError) *outError = coordErr;
         return nil;
+    }
+    if (blockErr && outError) {
+        *outError = blockErr;
     }
     return finalZip;
 }

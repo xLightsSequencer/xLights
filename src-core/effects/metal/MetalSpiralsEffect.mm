@@ -11,8 +11,6 @@ public:
     MetalSpiralsEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("SpiralsEffect");
     }
-    ~MetalSpiralsEffectData() {
-    }
 
     bool canRender() { return fn != nil; }
 

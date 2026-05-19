@@ -11,8 +11,6 @@ public:
     MetalFanEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("FanEffect");
     }
-    ~MetalFanEffectData() {
-    }
 
     bool canRender() { return fn != nil; }
 

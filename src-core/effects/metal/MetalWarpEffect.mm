@@ -27,8 +27,6 @@ public:
         functions[WarpEffect::WarpType::BANDED_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectBandedSwirl");
         functions[WarpEffect::WarpType::FLIP] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectFlip");
     }
-    ~MetalWarpEffectData() {
-    }
     bool requiresBufferCopy(WarpEffect::WarpType st) {
         switch (st) {
             case WarpEffect::WarpType::COPY:

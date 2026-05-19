@@ -18,8 +18,6 @@ public:
         fnRadial    = MetalComputeUtilities::INSTANCE.FindComputeFunction("KaleidoscopeEffectRadial");
         fnTriangle  = MetalComputeUtilities::INSTANCE.FindComputeFunction("KaleidoscopeEffectTriangle");
     }
-    ~MetalKaleidoscopeEffectData() {
-    }
 
     bool canRenderType(const std::string& type) {
         if (type == "Square 2") return fnSquare2 != nil;

@@ -14,7 +14,7 @@ class RenderBuffer;
 class MetalPixelBufferComputeData {
 public:
     MetalPixelBufferComputeData();
-    ~MetalPixelBufferComputeData();
+    ~MetalPixelBufferComputeData() = default;
 
     bool doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB);
     bool doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels);
@@ -133,7 +133,7 @@ public:
     class BlendFunctionInfo {
     public:
         BlendFunctionInfo(const char *fn, int mtd = 0, bool needIndexes = false);
-        ~BlendFunctionInfo();
+        ~BlendFunctionInfo() = default;
         
         id<MTLComputePipelineState> function;
         std::string name;
@@ -148,7 +148,7 @@ public:
     public:
         TransitionInfo(int t);
         TransitionInfo(const char *fn, int t, bool r = false);
-        ~TransitionInfo();
+        ~TransitionInfo() = default;
         id<MTLComputePipelineState> function;
         int type;
         bool reversed;

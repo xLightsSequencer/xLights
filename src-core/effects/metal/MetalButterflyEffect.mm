@@ -25,8 +25,6 @@ public:
         functions[9] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
         functions[10] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
     }
-    ~MetalButterflyEffectData() {
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }

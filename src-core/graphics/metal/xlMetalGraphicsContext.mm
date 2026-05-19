@@ -931,11 +931,10 @@ public:
             [blitCommandEncoder optimizeContentsForGPUAccess:privateTexture];
             [blitCommandEncoder endEncoding];
             [bltBuffer popDebugGroup];
-            [bltBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb) {
-                // Block captures srcTexture as __strong; ARC releases it when
-                // the block is deallocated after completion fires.
-                (void)srcTexture;
-            }];
+            // Metal retains resources referenced by encoded commands for the
+            // duration of the command buffer's execution, so srcTexture stays
+            // alive until the GPU is done with it even after we reassign
+            // `texture` below.
             [bltBuffer commit];
 
             texture = privateTexture;

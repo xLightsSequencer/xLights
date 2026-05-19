@@ -34,8 +34,6 @@ public:
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
     }
-    ~MSAATextureInfo() {
-    }
     
     bool supportsMemoryless() {
         if (@available(macOS 11.0, *)) {
@@ -90,8 +88,6 @@ public:
         CAMetalLayer *layer = (CAMetalLayer *)[c->getMTKView() layer];
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
-    }
-    ~DepthTextureInfo() {
     }
 
     bool supportsMemoryless() {
@@ -213,8 +209,6 @@ public:
                                                                                            mipmapped:false];
         description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
         target = [dev newTextureWithDescriptor:description];
-    }
-    ~CaptureBufferInfo() {
     }
     
     int width = 0;
