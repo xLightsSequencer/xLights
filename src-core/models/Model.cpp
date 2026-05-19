@@ -3378,13 +3378,37 @@ std::string Model::GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip)
     if (flip)
         py = h - pt.y;
 
+    // Pre-compute loop-invariant values to avoid O(n) GetMinScreenXY inside the O(n) node loop.
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
-        auto c = it.get()->Coords;
-        for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
-
+        for (const auto& it2 : it->Coords) {
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             if (sx >= (px - pointScale) && sx <= (px + pointScale) &&
                 sy >= (py - pointScale) && sy <= (py + pointScale)) {
                 return std::to_string(i);
@@ -3400,14 +3424,39 @@ bool Model::GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<f
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
 
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         if (c.size() != 1)
             return false;
         for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             coords[i] = std::make_pair(sx, sy);
         }
         ++i;
@@ -3439,13 +3488,37 @@ std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint st
         endpy = tmp;
     }
 
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
-
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             if (sx >= startpx && sx <= endpx &&
                 sy >= startpy && sy <= endpy) {
                 nodes.push_back(i);

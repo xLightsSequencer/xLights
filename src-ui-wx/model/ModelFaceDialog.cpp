@@ -386,6 +386,7 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
 
     FlexGridSizer1->Fit(this);
     FlexGridSizer1->SetSizeHints(this);
+    SplitterWindow1->SetSashPosition(Panel3->GetBestSize().GetWidth());
     Center();
     SetEscapeId(wxID_CANCEL);
 
@@ -457,16 +458,33 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
         FaceTypeChoice->Disable();
     }
 
-    wxArrayString names;
-    names.push_back("");
-    for (size_t x = 0; x < cls->GetNodeCount(); x++) {
-        wxString nn = cls->GetNodeName(x, true);
-        names.push_back(nn);
-    }
+    size_t nodeCount = cls->GetNodeCount();
+    _nodeNameToIndex.clear();
+    _nodeNameToIndex.reserve(nodeCount);
 
-    NodesGridCellEditor *editor = new NodesGridCellEditor();
-    editor->names = names;
-    SingleNodeGrid->SetDefaultEditor(editor);
+    // For very large models the NodesGridCellEditor wxListBox becomes unusably slow.
+    // Above this threshold skip the dropdown and fall back to plain text entry.
+    static constexpr size_t MAX_NODES_FOR_DROPDOWN = 5000;
+    const bool buildDropdown = (nodeCount <= MAX_NODES_FOR_DROPDOWN);
+
+    if (buildDropdown) {
+        wxArrayString names;
+        names.reserve(nodeCount + 1);
+        names.push_back("");
+        for (size_t x = 0; x < nodeCount; x++) {
+            std::string nn = cls->GetNodeName(x, true);
+            _nodeNameToIndex[nn].push_back(x);
+            names.push_back(wxString(nn));
+        }
+        NodesGridCellEditor *editor = new NodesGridCellEditor();
+        editor->names = names;
+        SingleNodeGrid->SetDefaultEditor(editor);
+    } else {
+        for (size_t x = 0; x < nodeCount; x++) {
+            std::string nn = cls->GetNodeName(x, true);
+            _nodeNameToIndex[nn].push_back(x);
+        }
+    }
     for (int x = 0; x < SingleNodeGrid->GetNumberRows(); x++) {
         SingleNodeGrid->SetReadOnly(x, 1);
     }
@@ -481,7 +499,10 @@ void ModelFaceDialog::SetFaceInfo(Model *cls, std::map< std::string, std::map<st
         NodeRangeGrid->SetReadOnly(x, 1);
     }
 
-    UpdatePreview("", *wxWHITE);
+    // Defer the first preview render so the dialog is shown before the first-time
+    // OpenGL context initialisation in DisplayEffectOnWindow can block the UI thread.
+    CallAfter([this]() { UpdatePreview("", *wxWHITE); });
+
     std::list<std::string> warnings = cls->CheckModelSettings();
     if (!warnings.empty()) {
         std::string warningsStr = Join(warnings, "\n");
@@ -1088,12 +1109,12 @@ void ModelFaceDialog::UpdatePreview(const std::string& channels, wxColor c)
             wxStringTokenizer wtkz(channels, ",");
             while (wtkz.HasMoreTokens())
             {
-                wxString valstr = wtkz.GetNextToken();
-                for (size_t n = 0; n < model->GetNodeCount(); n++) {
-                    wxString ns = model->GetNodeName(n, true);
-                    if (ns == valstr) {
-                        model->SetNodeColor(n, cc);
-                        _selected.push_back(n);
+                std::string valstr = wtkz.GetNextToken().ToStdString();
+                auto it = _nodeNameToIndex.find(valstr);
+                if (it != _nodeNameToIndex.end()) {
+                    for (size_t idx : it->second) {
+                        model->SetNodeColor(idx, cc);
+                        _selected.push_back(idx);
                     }
                 }
             }
