@@ -696,20 +696,25 @@ struct EditLayoutMenuItem: View {
     }
 }
 
-/// Tools → FPP Connect menu entry. Pulls the sequencer window
-/// foreground before flipping `showingFPPConnect` so the sheet's host
-/// (ContentView, mounted only in the sequencer WindowGroup) is the
-/// active window when the modal presents. Without the
-/// `openWindow("sequencer")` step, firing this menu while the Layout
-/// Editor window is in front silently sets the flag but the sheet
-/// renders on the off-screen sequencer window.
+/// Tools → FPP Connect menu entry. The sheet is hosted only in the
+/// sequencer WindowGroup, so when the Layout Editor window is in
+/// front we need to swap focus before flipping the flag. But
+/// `openWindow(id: "sequencer")` on iPadOS multi-instance WindowGroups
+/// spawns a second sequencer scene when one is already foreground
+/// (the SwiftUI API for "activate existing" is unreliable here), so
+/// we gate the openWindow call on `viewModel.layoutEditorOpen` — that
+/// flag is only true while a Layout Editor scene is alive. When no
+/// Layout Editor is open the sequencer must be the front window
+/// already, so we skip the switch and just flip the flag.
 struct FPPConnectMenuItem: View {
     let viewModel: SequencerViewModel
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Button("FPP Connect…") {
-            openWindow(id: "sequencer")
+            if viewModel.layoutEditorOpen {
+                openWindow(id: "sequencer")
+            }
             viewModel.showingFPPConnect = true
         }
         .disabled(!viewModel.isShowFolderLoaded)

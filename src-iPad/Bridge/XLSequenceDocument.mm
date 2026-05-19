@@ -14207,17 +14207,14 @@ NSString* fppTypeString(FPP_TYPE t) {
     // target here — the multi-target protocol's `setProgress:forIPAddress:`
     // just routes the FPP's 0..1000 scale (downscaled to 0..100) into
     // the per-IP slot the SwiftUI sheet reads.
-    __weak id<XLFPPUploadProgress> weakProgress = progress;
     NSString* targetIPNS = ipAddress;
     bool cancelledFlag = false;
     target->setProgress({
-        [weakProgress, targetIPNS](int val) {
-            id<XLFPPUploadProgress> p = weakProgress;
-            if (p) [p setProgress:val / 10 forIPAddress:targetIPNS];
+        [progress, targetIPNS](int val) {
+            if (progress) [progress setProgress:val / 10 forIPAddress:targetIPNS];
         },
-        [weakProgress, &cancelledFlag]() -> bool {
-            id<XLFPPUploadProgress> p = weakProgress;
-            if (p && [p isCancelled]) cancelledFlag = true;
+        [progress, &cancelledFlag]() -> bool {
+            if (progress && [progress isCancelled]) cancelledFlag = true;
             return cancelledFlag;
         },
         []() {}
@@ -14507,7 +14504,6 @@ NSString* fppTypeString(FPP_TYPE t) {
     // per-target progress routing keyed by IP. Cancellation propagates
     // out of the dispatch_apply via the flag every target's IsCancelled
     // lambda polls.
-    __weak id<XLFPPUploadProgress> weakProgress = progress;
     bool cancelledFlag = false;
     for (TargetCtx& c : ctxs) {
         FPP* fpp = c.fpp;
@@ -14515,13 +14511,11 @@ NSString* fppTypeString(FPP_TYPE t) {
         fpp->defaultConnectTimeout = 5000;
         fpp->messages.clear();
         fpp->setProgress({
-            [weakProgress, ipNS](int val) {
-                id<XLFPPUploadProgress> p = weakProgress;
-                if (p) [p setProgress:val / 10 forIPAddress:ipNS];
+            [progress, ipNS](int val) {
+                if (progress) [progress setProgress:val / 10 forIPAddress:ipNS];
             },
-            [weakProgress, &cancelledFlag]() -> bool {
-                id<XLFPPUploadProgress> p = weakProgress;
-                if (p && [p isCancelled]) cancelledFlag = true;
+            [progress, &cancelledFlag]() -> bool {
+                if (progress && [progress isCancelled]) cancelledFlag = true;
                 return cancelledFlag;
             },
             []() {}

@@ -51,7 +51,7 @@ enum FPPAuthPrompt {
         // checkbox in keychain prompts; this toggles before the
         // user taps Sign In.
         var savePassword = true
-        weak var weakAlert: UIAlertController? = alert
+        weak let weakAlert: UIAlertController? = alert
         let saveTitle: () -> String = { savePassword ? "☑ Save Password" : "☐ Save Password" }
         let saveAction = UIAlertAction(title: saveTitle(), style: .default) { _ in
             // We can't reuse the same alert after dismissal, so
@@ -116,7 +116,7 @@ enum FPPAuthPrompt {
         }
 
         var savePassword = initialSave
-        weak var weakAlert: UIAlertController? = alert
+        weak let weakAlert: UIAlertController? = alert
         let saveTitle: () -> String = { savePassword ? "☑ Save Password" : "☐ Save Password" }
         let saveAction = UIAlertAction(title: saveTitle(), style: .default) { _ in
             let typedUser = weakAlert?.textFields?[0].text ?? "admin"
