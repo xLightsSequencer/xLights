@@ -1060,6 +1060,7 @@ if(XLIGHTS_BUILD_QT)
         src-ui-qt/Effects/SubBufferWidget.cpp
         src-ui-qt/Info/ModelInfoWindow.cpp
         src-ui-qt/Info/ControllerInfoWindow.cpp
+        src-ui-qt/Layout/ModelLayoutCanvas.cpp
         src-ui-qt/Layout/HousePreviewWidget.cpp
         src-ui-qt/App/RenderDetailDialog.cpp
     )
