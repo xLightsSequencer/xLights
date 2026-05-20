@@ -11,6 +11,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
+    -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
+                                 Layout tab — selecting, dragging, and center-handle tool cycling now work
+                                 again after the DragSession refactor.
 
 2026.09  May 18, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel

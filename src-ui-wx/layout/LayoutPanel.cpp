@@ -3825,8 +3825,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 // Descriptor-based hit-test. CentreCycle / locked /
                 // fromBase return nullptr from BeginDrag — those
                 // hits route through the selectionOnly path below
-                // instead of starting a drag session.
-                Model* model = dynamic_cast<Model*>(selectedBaseObject);
+                // instead of starting a drag session. BaseObject
+                // (not just Model) exposes GetHandles/BeginDrag, so
+                // ViewObjects flow through the same path.
                 const auto currentTool =
                     selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool();
                 handles::Tool newApiTool = handles::Tool::Translate;
@@ -3855,7 +3856,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     default:
                         break;
                 }
-                if (model != nullptr && toolSupportedByNewApi) {
+                if (toolSupportedByNewApi) {
                     const float zoom = modelPreview->GetCameraZoomForHandles();
                     const int hscale = modelPreview->GetHandleScale();
                     auto& sloc0 = selectedBaseObject->GetBaseObjectScreenLocation();
@@ -3863,7 +3864,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     view.axisArrowLength = sloc0.GetAxisArrowLength(zoom, hscale);
                     view.axisHeadLength  = sloc0.GetAxisHeadLength(zoom, hscale);
                     view.axisRadius      = sloc0.GetAxisRadius(zoom, hscale);
-                    auto descriptors = model->GetHandles(
+                    auto descriptors = selectedBaseObject->GetHandles(
                         handles::ViewMode::ThreeD, newApiTool, view);
                     if (!descriptors.empty()) {
                         handles::ScreenProjection proj{
@@ -3912,7 +3913,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                 }
                             } else {
                                 handles::WorldRay startRay{ray_origin, ray_direction};
-                                if (auto session = model->BeginDrag(hit->id, startRay)) {
+                                if (auto session = selectedBaseObject->BeginDrag(hit->id, startRay)) {
                                     xlights->AbortRender();
                                     if (selectedBaseObject != _newModel) {
                                         CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject",
@@ -3958,23 +3959,38 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 }
 
             }
-            if (!handledByNewApi && editing_models && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            if (!handledByNewApi && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
                 // click missed all handles on the currently
-                // selected model. If the click landed on a different
-                // model body, switch selection to it (avoids needing
-                // to click empty space first to unlatch).
+                // selected object. If the click landed on a different
+                // body, switch selection to it (avoids needing to
+                // click empty space first to unlatch). Walks Models
+                // or ViewObjects depending on which tab is editing.
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 BaseObject* which_object = nullptr;
                 float distance = 1000000000.0f;
-                for (const auto& it : modelPreview->GetModels()) {
-                    if (it == selectedBaseObject) continue;
-                    float intersection_distance = 1000000000.0f;
-                    if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
-                        if (intersection_distance < distance) {
-                            distance = intersection_distance;
-                            which_object = it;
+                if (editing_models) {
+                    for (const auto& it : modelPreview->GetModels()) {
+                        if (it == selectedBaseObject) continue;
+                        float intersection_distance = 1000000000.0f;
+                        if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < distance) {
+                                distance = intersection_distance;
+                                which_object = it;
+                            }
+                        }
+                    }
+                } else {
+                    for (const auto& it : xlights->AllObjects) {
+                        ViewObject* vo = it.second;
+                        if (vo == selectedBaseObject) continue;
+                        float intersection_distance = 1000000000.0f;
+                        if (vo->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < distance) {
+                                distance = intersection_distance;
+                                which_object = vo;
+                            }
                         }
                     }
                 }
@@ -5586,8 +5602,17 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             BaseObject *obj = _newModel;
             if (obj == nullptr) {
                 obj = selectedBaseObject;
-                Model* m = dynamic_cast<Model*>(obj);
-                if (obj == nullptr || (!xlights->AllModels.IsModelValid(m) && _newModel != obj)) return;
+                if (obj == nullptr) return;
+                if (_newModel != obj) {
+                    // Validity check covers both Model and ViewObject
+                    // selections — the previously-selected object may
+                    // have been deleted out from under us.
+                    Model* m = dynamic_cast<Model*>(obj);
+                    ViewObject* vo = dynamic_cast<ViewObject*>(obj);
+                    const bool modelOk = (m != nullptr) && xlights->AllModels.IsModelValid(m);
+                    const bool viewOk  = (vo != nullptr) && (xlights->AllObjects[vo->GetName()] == vo);
+                    if (!modelOk && !viewOk) return;
+                }
             }
             // descriptor session takes the move stream when
             // active. This branch fires for the polyline "trail vertex
@@ -5619,8 +5644,15 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
         }
         else {
+            // Validity covers both Model and ViewObject selections —
+            // hover handles work for whichever the user is editing.
             Model* m = dynamic_cast<Model*>(selectedBaseObject);
-            if (selectedBaseObject != nullptr && (_newModel == selectedBaseObject || xlights->AllModels.IsModelValid(m))) {
+            ViewObject* vo = dynamic_cast<ViewObject*>(selectedBaseObject);
+            const bool selectionStillValid = selectedBaseObject != nullptr &&
+                (_newModel == selectedBaseObject
+                    || (m != nullptr && xlights->AllModels.IsModelValid(m))
+                    || (vo != nullptr && xlights->AllObjects[vo->GetName()] == vo));
+            if (selectionStillValid) {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving but no model selected");
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
@@ -5631,7 +5663,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 // handler can route by descriptor identity.
                 CursorType hoverCursor = CursorType::Default;
                 std::optional<handles::Id> hoverId;
-                if (m != nullptr) {
+                {
                     auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
                     const auto legacyToolHover = sloc.GetAxisTool();
                     handles::Tool hoverTool = handles::Tool::Translate;
@@ -5651,7 +5683,7 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         hoverView.axisArrowLength = sloc.GetAxisArrowLength(zoom, hscale);
                         hoverView.axisHeadLength  = sloc.GetAxisHeadLength(zoom, hscale);
                         hoverView.axisRadius      = sloc.GetAxisRadius(zoom, hscale);
-                        const auto hoverDescs = m->GetHandles(handles::ViewMode::ThreeD, hoverTool, hoverView);
+                        const auto hoverDescs = selectedBaseObject->GetHandles(handles::ViewMode::ThreeD, hoverTool, hoverView);
                         if (!hoverDescs.empty()) {
                             handles::ScreenProjection hoverProj{
                                 modelPreview->GetProjViewMatrix(),

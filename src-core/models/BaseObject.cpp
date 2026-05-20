@@ -38,6 +38,19 @@ void BaseObject::SetLayoutGroup(const std::string &grp, bool ignore_changes) {
     AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "SetLayoutGroup");
 }
 
+std::vector<handles::Descriptor> BaseObject::GetHandles(
+    handles::ViewMode mode, handles::Tool tool,
+    const handles::ViewParams& view) const {
+    return GetBaseObjectScreenLocation().GetHandles(mode, tool, view);
+}
+
+std::unique_ptr<handles::DragSession> BaseObject::BeginDrag(
+    const handles::Id& id,
+    const handles::WorldRay& startRay) {
+    if (IsFromBase()) return nullptr;
+    return GetBaseObjectScreenLocation().CreateDragSession(GetName(), id, startRay);
+}
+
 // SpaceMouse 6-DOF input — open a session on the active handle.
 // Returns nullptr for locked / fromBase objects so the caller
 // (typically `LayoutPanel::OnPreviewMotion3D`) can drop the event

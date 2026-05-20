@@ -36,6 +36,21 @@ public:
     virtual std::list<std::string> GetFileReferences() { return std::list<std::string>(); }
     virtual std::list<std::string> CheckModelSettings() { std::list<std::string> res; return res; };
 
+    // Descriptor-based handle API. See `plans/handle-system-refactor.md`.
+    // GetHandles returns the current handle layout for drawing +
+    // hit-testing — `tool` only affects ThreeD mode. BeginDrag
+    // returns nullptr if the object isn't editable (fromBase) — the
+    // frontend uses the nullptr signal to fall back to selection-
+    // only handling rather than starting a drag that no-ops.
+    // Both delegate to the screen location so every BaseObject
+    // subtype (Model, ViewObject) shares one implementation.
+    [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const;
+    std::unique_ptr<handles::DragSession> BeginDrag(
+        const handles::Id& id,
+        const handles::WorldRay& startRay);
+
     // SpaceMouse 6-DOF input. Open a session on the active
     // handle (whatever `GetActiveHandleId()` reports), then drive
     // each frame's deltas through `Apply()`. Returns nullptr for
