@@ -178,6 +178,7 @@ ModelGroupPanel::ModelGroupPanel(wxWindow* parent, ModelManager &Models, LayoutP
 	ChoiceModelLayoutType->Append(_("Overlay - Scaled"));
 	ChoiceModelLayoutType->Append(_("Single Line Model As A Pixel"));
 	ChoiceModelLayoutType->Append(_("Default Model As A Pixel"));
+	ChoiceModelLayoutType->Append(_("Per Model Default"));
 	FlexGridSizer6->Add(ChoiceModelLayoutType, 1, wxALL|wxEXPAND, 2);
 	StaticText12 = new wxStaticText(this, ID_STATICTEXT12, _("Default Camera:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT12"));
 	FlexGridSizer6->Add(StaticText12, 1, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
@@ -556,6 +557,9 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
         else if (v == "vertical") {
             ChoiceModelLayoutType->SetSelection(3);
         }
+        else if (v == "perModelDefault") {
+            ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->FindString(_("Per Model Default")));
+        }
         else {
             int idx = ChoiceModelLayoutType->FindString(v);
             if (idx >= 0) {
@@ -799,22 +803,27 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     g->SetDefaultCamera(Choice_DefaultCamera->GetStringSelection().ToStdString());
     
     std::string layoutStr;
-    switch (ChoiceModelLayoutType->GetSelection()) {
-    case 0:
-        layoutStr = "grid";
-        break;
-    case 1:
-        layoutStr = "minimalGrid";
-        break;
-    case 6:
-        layoutStr = "horizontal";
-        break;
-    case 7:
-        layoutStr = "vertical";
-        break;
-    default:
-        layoutStr = ChoiceModelLayoutType->GetStringSelection().ToStdString();
-        break;
+    wxString selStr = ChoiceModelLayoutType->GetStringSelection();
+    if (selStr == _("Per Model Default")) {
+        layoutStr = "perModelDefault";
+    } else {
+        switch (ChoiceModelLayoutType->GetSelection()) {
+        case 0:
+            layoutStr = "grid";
+            break;
+        case 1:
+            layoutStr = "minimalGrid";
+            break;
+        case 6:
+            layoutStr = "horizontal";
+            break;
+        case 7:
+            layoutStr = "vertical";
+            break;
+        default:
+            layoutStr = selStr.ToStdString();
+            break;
+        }
     }
     g->SetLayout(layoutStr);
     

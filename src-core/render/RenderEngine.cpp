@@ -248,6 +248,7 @@ public:
                 mainBuffer->InitBuffer(*mdl, numLayers, seqData->FrameTime());
                 const Model *model = mainBuffer->GetModel();
                 if (DisplayAsType::ModelGroup == model->GetDisplayAs()) {
+                    const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
                     //for (int l = 0; l < numLayers; ++l) {
                     for (int l = numLayers - 1; l >= 0; --l) {
                         EffectLayer *layer = row->GetEffectLayer(l);
@@ -265,9 +266,12 @@ public:
                                 } else {
                                     perModelEffects = true;
                                 }
+                            } else if (bt == DEFAULT) {
+                                if (grp != nullptr && grp->GetDefaultBufferStyle().compare(0, 9, PER_MODEL) == 0) {
+                                    perModelEffects = true;
+                                }
                             }
                         }
-                        const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
                         if (perModelEffectsDeep) {
                             mainBuffer->InitPerModelBuffersDeep(*grp, l, data.FrameTime());
                         }
