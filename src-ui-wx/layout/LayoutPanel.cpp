@@ -31,6 +31,7 @@
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
+#include <cmath>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -408,6 +409,9 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT = wxNe
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEX = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEY = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEZ = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_GROUND = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
@@ -2358,6 +2362,84 @@ void LayoutPanel::BulkEditPixelSize() {
         // reselect all the models
         ReselectTreeModels(selectedModelPaths);
     }
+}
+
+void LayoutPanel::BulkEditRotateX() { BulkEditRotateAxis('X'); }
+void LayoutPanel::BulkEditRotateY() { BulkEditRotateAxis('Y'); }
+void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
+
+void LayoutPanel::BulkEditRotateAxis(char axis) {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+
+    std::vector<Model*> editableModels;
+    editableModels.reserve(modelsToEdit.size());
+    for (Model* model : modelsToEdit) {
+        if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
+            editableModels.push_back(model);
+        }
+    }
+    if (editableModels.empty()) {
+        return;
+    }
+
+    // Pre-fill the dialog with the first editable model's current rotation so
+    // the user only has to type a value if they want to change it.
+    float initial = 0.0f;
+    switch (axis) {
+        case 'X': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateX(); break;
+        case 'Y': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateY(); break;
+        case 'Z': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateZ(); break;
+    }
+
+    wxString title = wxString::Format("Bulk Edit Rotate %c", axis);
+    wxString prompt = wxString::Format("Rotate %c (degrees):", axis);
+    wxTextEntryDialog dlg(this, prompt, title, wxString::Format("%g", initial));
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    // Parse the entered angle. Use strtod (not std::stod) because xLights has
+    // effectively no exception handling - see CLAUDE.md "Prefer std::* Over wx*".
+    std::string entered = dlg.GetValue().ToStdString();
+    char* endp = nullptr;
+    double angle = std::strtod(entered.c_str(), &endp);
+    if (endp == entered.c_str() || !std::isfinite(angle)) {
+        // Unparseable or NaN/Inf - abort silently rather than letting garbage
+        // propagate into transform matrices.
+        return;
+    }
+    // Match the [-180, 180] range enforced by the rotation property grid
+    // (see ScreenLocationPropertyHelper.cpp RotateX/Y/Z Min/Max). Out-of-range
+    // values are silently reset to 0 by BoxedScreenLocation::Init(), so reject
+    // them here with a clear message rather than letting the user lose their
+    // change without warning.
+    if (angle < -180.0 || angle > 180.0) {
+        wxMessageBox(
+            wxString::Format("Rotation angle must be between -180 and 180 degrees (got %g).", angle),
+            "Invalid rotation angle", wxOK | wxICON_WARNING, this);
+        return;
+    }
+    float newAngle = static_cast<float>(angle);
+
+    CreateUndoPoint("All", editableModels.front()->name,
+                    wxString::Format("BulkRotate%c", axis).ToStdString(),
+                    entered);
+
+    for (Model* model : editableModels) {
+        auto& loc = model->GetBaseObjectScreenLocation();
+        switch (axis) {
+            case 'X': loc.SetRotateX(newAngle); break;
+            case 'Y': loc.SetRotateY(newAngle); break;
+            case 'Z': loc.SetRotateZ(newAngle); break;
+        }
+        loc.Reload();
+        loc.Init();
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(
+        OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+        wxString::Format("BulkEditRotate%c", axis).ToStdString());
 }
 
 void LayoutPanel::BulkEditPixelStyle() {
@@ -6017,6 +6099,11 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SHADOWMODELFOR, "Shadow Model For");
 
         mnuBulkEdit->AppendSeparator();
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEX, "Rotate X");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEY, "Rotate Y");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEZ, "Rotate Z");
+
+        mnuBulkEdit->AppendSeparator();
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Port");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT, "Controller Port and Increment");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERPROTOCOL, "Controller Protocol");
@@ -6237,6 +6324,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
@@ -9180,6 +9273,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
