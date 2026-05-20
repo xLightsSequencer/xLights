@@ -558,7 +558,7 @@ void ModelGroupPanel::UpdatePanel(const std::string& group)
             ChoiceModelLayoutType->SetSelection(3);
         }
         else if (v == "perModelDefault") {
-            ChoiceModelLayoutType->SetSelection(15);
+            ChoiceModelLayoutType->SetSelection(ChoiceModelLayoutType->FindString(_("Per Model Default")));
         }
         else {
             int idx = ChoiceModelLayoutType->FindString(v);
@@ -803,25 +803,27 @@ void ModelGroupPanel::SaveGroupChanges(bool centreUpdate)
     g->SetDefaultCamera(Choice_DefaultCamera->GetStringSelection().ToStdString());
     
     std::string layoutStr;
-    switch (ChoiceModelLayoutType->GetSelection()) {
-    case 0:
-        layoutStr = "grid";
-        break;
-    case 1:
-        layoutStr = "minimalGrid";
-        break;
-    case 6:
-        layoutStr = "horizontal";
-        break;
-    case 7:
-        layoutStr = "vertical";
-        break;
-    case 15:
+    wxString selStr = ChoiceModelLayoutType->GetStringSelection();
+    if (selStr == _("Per Model Default")) {
         layoutStr = "perModelDefault";
-        break;
-    default:
-        layoutStr = ChoiceModelLayoutType->GetStringSelection().ToStdString();
-        break;
+    } else {
+        switch (ChoiceModelLayoutType->GetSelection()) {
+        case 0:
+            layoutStr = "grid";
+            break;
+        case 1:
+            layoutStr = "minimalGrid";
+            break;
+        case 6:
+            layoutStr = "horizontal";
+            break;
+        case 7:
+            layoutStr = "vertical";
+            break;
+        default:
+            layoutStr = selStr.ToStdString();
+            break;
+        }
     }
     g->SetLayout(layoutStr);
     
