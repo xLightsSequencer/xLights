@@ -50,6 +50,7 @@ private:
     wxStaticText* _emojiDisplay = nullptr;
     wxFontPickerCtrl* _fontPicker = nullptr;
     wxSpinCtrl* _charSpin = nullptr;
+    wxButton* _charBrowseBtn = nullptr;
     wxChoice* _skinToneChoice = nullptr;
     MediaPickerCtrl* _svgPicker = nullptr;
     std::list<ShapePanelEmoji*> _emojis;
