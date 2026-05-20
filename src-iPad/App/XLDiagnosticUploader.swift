@@ -93,7 +93,41 @@ final class XLDiagnosticUploader {
             }
         }
 
+        pruneStaleDiagnosticsAsync()
         kickoff()
+    }
+
+    // Pre-fix builds let Library/Logs/Diagnostics/*.json grow forever
+    // (the auto-upload path copied but never deleted). Sweep anything
+    // older than the cutoff at startup so existing backlogs drain.
+    // Recent files are left for the next stagePendingUpload() to bundle
+    // and prune.
+    nonisolated private func pruneStaleDiagnosticsAsync() {
+        workQueue.async {
+            let fm = FileManager.default
+            guard let lib = try? fm.url(
+                for: .libraryDirectory, in: .userDomainMask,
+                appropriateFor: nil, create: false
+            ) else { return }
+            let diagnosticsDir = lib
+                .appendingPathComponent("Logs", isDirectory: true)
+                .appendingPathComponent("Diagnostics", isDirectory: true)
+
+            guard let entries = try? fm.contentsOfDirectory(
+                at: diagnosticsDir,
+                includingPropertiesForKeys: [.contentModificationDateKey],
+                options: [.skipsHiddenFiles]
+            ) else { return }
+
+            let cutoff = Date().addingTimeInterval(-7 * 24 * 60 * 60)
+            for entry in entries {
+                let values = try? entry.resourceValues(
+                    forKeys: [.contentModificationDateKey])
+                guard let mtime = values?.contentModificationDate,
+                      mtime < cutoff else { continue }
+                try? fm.removeItem(at: entry)
+            }
+        }
     }
 
     func beginCurrentSession() {

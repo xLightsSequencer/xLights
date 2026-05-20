@@ -4298,9 +4298,13 @@ void xLightsFrame::OnPaneClose(wxAuiManagerEvent& event)
     UpdateViewMenu();
 }
 
+#ifdef __APPLE__
+static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report);
+#endif
+
 void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
 {
-    
+
     wxDebugReportCompress* const report = &crashHandler->GetDebugReport();
 
     report->SetCompressedFileDirectory(CurrentDir);
@@ -4359,7 +4363,25 @@ void xLightsFrame::CreateDebugReport(xlCrashHandler* crashHandler)
     report->AddText("threads.txt", threadStatus, "Threads Status");
     spdlog::critical("{}", (const char*)threadStatus.c_str());
 
+#ifdef __APPLE__
+    auto metricKitPaths = AddMetricKitPayloadsToReport(*report);
+#endif
+
     crashHandler->ProcessCrashReport(xlCrashHandler::SendReportOptions::ASK_USER_TO_SEND);
+
+#ifdef __APPLE__
+    // ProcessCrashReport ran Process() on the wxDebugReport, so the
+    // JSONs are now durable inside the compressed zip on disk
+    // (uploaded too, unless the user canceled the preview). Delete the
+    // sources so they don't reship in every subsequent crash zip and
+    // inflate per-payload counts on the server.
+    {
+        std::error_code rmEc;
+        for (auto const& p : metricKitPaths) {
+            std::filesystem::remove(p, rmEc);
+        }
+    }
+#endif
 }
 
 void xLightsFrame::OnMenuItemPackageDebugFiles(wxCommandEvent& event)
@@ -4471,6 +4493,34 @@ static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxD
     }
 }
 
+#ifdef __APPLE__
+// MetricKit payloads (crash / hang / CPU / disk diagnostics + daily
+// metrics) accumulate in a Diagnostics/ folder next to the spdlog file.
+// Apple delivers payloads ~24h after the underlying event, so the
+// directory contains everything since the last upload — whichever zip
+// ships next sweeps them up. The crash-zip caller deletes the listed
+// paths after the report's Process() runs so the same JSON doesn't get
+// re-uploaded under every subsequent build's filename.
+static std::vector<std::filesystem::path> AddMetricKitPayloadsToReport(wxDebugReport& report) {
+    std::vector<std::filesystem::path> added;
+    std::filesystem::path diagnosticsDir = GetLogFilePath().parent_path() / "Diagnostics";
+    std::error_code ec;
+    if (!std::filesystem::exists(diagnosticsDir, ec) ||
+        !std::filesystem::is_directory(diagnosticsDir, ec)) {
+        return added;
+    }
+    for (auto const& entry : std::filesystem::directory_iterator(diagnosticsDir, ec)) {
+        if (!entry.is_regular_file(ec)) continue;
+        if (entry.path().extension().string() != ".json") continue;
+        std::string fullPath = entry.path().string();
+        std::string archiveName = std::string("MetricKit/") + entry.path().filename().string();
+        report.AddFile(wxString::FromUTF8(fullPath), wxString::FromUTF8(archiveName));
+        added.push_back(entry.path());
+    }
+    return added;
+}
+#endif
+
 void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
 {
     wxFileName fn(CurrentDir, OutputManager::GetNetworksFileName());
@@ -4488,26 +4538,7 @@ void xLightsFrame::AddDebugFilesToReport(wxDebugReport& report)
     AddLogFile(CurrentDir, "xLights_spdlog.1.log", report);
 
 #ifdef __APPLE__
-    // MetricKit payloads (crash / hang / CPU / disk diagnostics + daily
-    // metrics) accumulate in a Diagnostics/ folder next to the spdlog
-    // file. Apple delivers payloads ~24h after the underlying event,
-    // so the directory contains everything since the last crash zip
-    // was processed; whichever zip ships next sweeps them up.
-    {
-        std::filesystem::path diagnosticsDir = GetLogFilePath().parent_path() / "Diagnostics";
-        std::error_code ec;
-        if (std::filesystem::exists(diagnosticsDir, ec) &&
-            std::filesystem::is_directory(diagnosticsDir, ec)) {
-            for (auto const& entry : std::filesystem::directory_iterator(diagnosticsDir, ec)) {
-                if (!entry.is_regular_file(ec)) continue;
-                std::string ext = entry.path().extension().string();
-                if (ext != ".json") continue;
-                std::string fullPath = entry.path().string();
-                std::string archiveName = std::string("MetricKit/") + entry.path().filename().string();
-                report.AddFile(wxString::FromUTF8(fullPath), wxString::FromUTF8(archiveName));
-            }
-        }
-    }
+    AddMetricKitPayloadsToReport(report);
 #endif
 
     if (GetSeqXmlFileName() != "") {

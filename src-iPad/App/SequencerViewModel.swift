@@ -97,6 +97,12 @@ class SequencerViewModel {
     @ObservationIgnored private var loadInFlight = false
     @ObservationIgnored private var pendingLoadRequest: (path: String, mediaFolders: [String])?
 
+    /// Set while `performOpenSequence` has a detached `document.openSequence`
+    /// task in flight. Blocks re-entrant opens (e.g. a stray double-tap or
+    /// a URL-handler racing the row tap) until the current open finishes
+    /// and `applyOpenResult` has applied state on the main actor.
+    @ObservationIgnored private var openInFlight = false
+
     /// Post-load "missing model" reconciliation prompt. Populated by
     /// `performOpenSequence` after a successful open whenever the
     /// bridge reports at least one model element referenced by the
@@ -1122,54 +1128,74 @@ class SequencerViewModel {
     }
 
     private func performOpenSequence(path: String, forceRender: Bool) {
-        if document.openSequence(path) {
-            isSequenceLoaded = true
-            isDirty = false
-            sequenceName = document.sequenceName()
-            sequenceDurationMS = Int(document.sequenceDurationMS())
-            frameIntervalMS = Int(document.frameIntervalMS())
-            hasAudio = document.hasAudio()
-            reloadAltTracks()
-            reloadRows()
-            reloadTagPositions()
-            syncClipboardFromPasteboard()   // B99
-            loadAvailableEffects()
-            // Initial load uses a modest sample count; grid re-requests
-            // a higher-resolution waveform once it knows the zoom level
-            // via `refreshWaveformForZoom`.
-            loadWaveform(startMS: 0, endMS: sequenceDurationMS)
-            // FSEQ short-circuit: if the user has the feature on and a
-            // matching .fseq exists, skip the render and load frame data
-            // straight from disk. On any mismatch (stale, wrong shape,
-            // missing) we fall through to the normal background render.
-            // `forceRender` (used by Batch Render) bypasses the
-            // short-circuit so we always re-render against the current
-            // layout regardless of any cached fseq.
-            if !forceRender,
-               let fseqPath = FolderConfig.fseqPath(forXsq: path),
-               document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
-                isRendering = false
-                isRenderDone = true
-            } else {
-                startBackgroundRender()
-            }
-            startDirtyPolling()
-            // Scan for missing media on open — the full render pass
-            // populates the media cache which the scan walks. We run
-            // the scan on a utility queue after a short delay so the
-            // cache has settled, then hop back to main to update the
-            // banner count. Keeps the open path from blocking on I/O.
-            scheduleBrokenMediaScan()
-            // E-5 — push to the Recent list (scoped to the current
-            // show folder) so the next visit to the picker surfaces
-            // it. Different show folders keep independent lists.
-            RecentSequences.record(path: path, forShowFolder: showFolderPath)
-            // E-6 — begin autosave writes for this session. The
-            // recovery prompt (when the `.xbkp` is newer than the
-            // `.xsq`) is presented by the UI shell after open.
-            startAutosaveTimer()
-            checkMissingModelsAfterOpen()
+        if openInFlight {
+            print("performOpenSequence: ignoring concurrent open of \(path)")
+            return
         }
+        openInFlight = true
+
+        // Heavy: full .xsq XML parse + audio decode in the bridge.
+        // On the main actor this was tripping the 0x8BADF00D
+        // scene-update watchdog when `handleIncomingSequenceURL`
+        // delivered a file URL during a SwiftUI scene phase change.
+        // Detach the parse; apply state on the main hop. Mirrors the
+        // existing `loadShowFolder` detach pattern.
+        Task.detached { [document, weak self] in
+            let opened = document.openSequence(path)
+            await self?.applyOpenResult(opened: opened, path: path, forceRender: forceRender)
+        }
+    }
+
+    private func applyOpenResult(opened: Bool, path: String, forceRender: Bool) {
+        defer { openInFlight = false }
+        guard opened else { return }
+
+        isSequenceLoaded = true
+        isDirty = false
+        sequenceName = document.sequenceName()
+        sequenceDurationMS = Int(document.sequenceDurationMS())
+        frameIntervalMS = Int(document.frameIntervalMS())
+        hasAudio = document.hasAudio()
+        reloadAltTracks()
+        reloadRows()
+        reloadTagPositions()
+        syncClipboardFromPasteboard()   // B99
+        loadAvailableEffects()
+        // Initial load uses a modest sample count; grid re-requests
+        // a higher-resolution waveform once it knows the zoom level
+        // via `refreshWaveformForZoom`.
+        loadWaveform(startMS: 0, endMS: sequenceDurationMS)
+        // FSEQ short-circuit: if the user has the feature on and a
+        // matching .fseq exists, skip the render and load frame data
+        // straight from disk. On any mismatch (stale, wrong shape,
+        // missing) we fall through to the normal background render.
+        // `forceRender` (used by Batch Render) bypasses the
+        // short-circuit so we always re-render against the current
+        // layout regardless of any cached fseq.
+        if !forceRender,
+           let fseqPath = FolderConfig.fseqPath(forXsq: path),
+           document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
+            isRendering = false
+            isRenderDone = true
+        } else {
+            startBackgroundRender()
+        }
+        startDirtyPolling()
+        // Scan for missing media on open — the full render pass
+        // populates the media cache which the scan walks. We run
+        // the scan on a utility queue after a short delay so the
+        // cache has settled, then hop back to main to update the
+        // banner count. Keeps the open path from blocking on I/O.
+        scheduleBrokenMediaScan()
+        // E-5 — push to the Recent list (scoped to the current
+        // show folder) so the next visit to the picker surfaces
+        // it. Different show folders keep independent lists.
+        RecentSequences.record(path: path, forShowFolder: showFolderPath)
+        // E-6 — begin autosave writes for this session. The
+        // recovery prompt (when the `.xbkp` is newer than the
+        // `.xsq`) is presented by the UI shell after open.
+        startAutosaveTimer()
+        checkMissingModelsAfterOpen()
     }
 
     /// Mirrors desktop `CheckForValidModels` — after a sequence
