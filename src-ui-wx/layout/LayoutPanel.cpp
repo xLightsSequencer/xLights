@@ -2276,9 +2276,6 @@ void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
 void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
 
-    // Filter to only the models we can actually modify (non-null, non-locked).
-    // Doing this up front lets us skip the undo snapshot entirely when nothing
-    // would change - see Copilot review on PR #6184.
     std::vector<Model*> editableModels;
     editableModels.reserve(modelsToEdit.size());
     for (Model* model : modelsToEdit) {
@@ -2330,17 +2327,6 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     }
     float newAngle = static_cast<float>(angle);
 
-    // Snapshot the full models XML before any changes so a single Ctrl-Z
-    // rolls back the entire bulk rotation as one undo step. Taken only after
-    // we know we have at least one editable model and a valid in-range angle,
-    // so Cancel / invalid input / all-locked selections don't leave a no-op
-    // entry on the undo stack.
-    //
-    // The second CreateUndoPoint argument is used later in DoUndo() as the
-    // "selectedModel" hint passed to AddASAPWork, so it must be an actual
-    // model name rather than an operation label - otherwise post-undo
-    // selection logic would try to resolve a nonexistent model. Operation
-    // context goes in the key/data fields.
     CreateUndoPoint("All", editableModels.front()->name,
                     wxString::Format("BulkRotate%c", axis).ToStdString(),
                     entered);
@@ -2352,25 +2338,10 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
             case 'Y': loc.SetRotateY(newAngle); break;
             case 'Z': loc.SetRotateZ(newAngle); break;
         }
-        // SetRotateX/Y/Z only updates the raw rotatex/y/z fields. The cached
-        // rotate_quat (used by TranslatePoint, which in turn drives the
-        // selection bounding box math) is rebuilt only inside Init() when
-        // rotation_init==true. Reload() sets that flag, but nothing in the
-        // draw loop calls Init() to honor it - so without the explicit Init()
-        // here the selection wireframe keeps using the pre-rotation quaternion
-        // until the layout is closed and reopened (which triggers a fresh
-        // load-time Init). Calling both makes the cache consistent immediately.
         loc.Reload();
         loc.Init();
     }
 
-    // Use WORK_SCREEN_LOCATION_CHANGE (not WORK_RELOAD_ALLMODELS) to match how
-    // Nudge() and the property-grid rotation handlers persist position/rotation
-    // changes: it re-computes transforms, persists to XML, redraws the preview,
-    // and reloads the property grid - all without tearing down and rebuilding
-    // the models. That preserves selection naturally (so no ClearSelectedModel /
-    // ReselectTreeModels dance) and keeps the selection bounding box in sync
-    // with the rotated model geometry.
     xlights->GetOutputModelManager()->AddASAPWork(
         OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
         wxString::Format("BulkEditRotate%c", axis).ToStdString());
