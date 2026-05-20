@@ -1,10 +1,12 @@
 #include "SubBufferWidget.h"
+#include "SubBufferCanvas.h"
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QSlider>
 #include <QVBoxLayout>
 
@@ -48,7 +50,14 @@ SubBufferWidget::SubBufferWidget(QWidget* parent) : QWidget(parent) {
     _overlay = new QCheckBox(box);
     form->addRow("Overlay Bkg:", _overlay);
 
-    // ── Sub-Buffer ────────────────────────────────────────────────────────
+    // ── Sub-Buffer canvas ─────────────────────────────────────────────────────
+    _oversized = new QCheckBox("Oversized (-100 to 200)", box);
+    form->addRow(_oversized);
+
+    _canvas = new SubBufferCanvas(box);
+    form->addRow(_canvas);
+
+    // ── Sub-Buffer sliders ─────────────────────────────────────────────────────
     auto makeSlider = [&](const QString& label) {
         auto* sl = new QSlider(Qt::Horizontal, box);
         sl->setRange(0, 100);
@@ -73,7 +82,14 @@ SubBufferWidget::SubBufferWidget(QWidget* parent) : QWidget(parent) {
 }
 
 void SubBufferWidget::connectSignals() {
-    auto notify = [this]() { updateSubBufferLabel(); emit changed(); };
+    auto notify = [this]() {
+        updateSubBufferLabel();
+        // Keep canvas in sync with sliders.
+        QSignalBlocker b(_canvas);
+        _canvas->setRegion(_left->value(), _bottom->value(),
+                           _right->value(), _top->value());
+        emit changed();
+    };
     connect(_style,     QOverload<int>::of(&QComboBox::currentIndexChanged), this, notify);
     connect(_transform, QOverload<int>::of(&QComboBox::currentIndexChanged), this, notify);
     connect(_overlay,   &QCheckBox::toggled,          this, notify);
@@ -81,6 +97,31 @@ void SubBufferWidget::connectSignals() {
     connect(_right,     &QSlider::valueChanged,       this, notify);
     connect(_bottom,    &QSlider::valueChanged,       this, notify);
     connect(_top,       &QSlider::valueChanged,       this, notify);
+
+    // Canvas → sliders
+    connect(_canvas, &SubBufferCanvas::regionChanged,
+            this, [this](int l, int b, int r, int t) {
+        QSignalBlocker bL(_left), bR(_right), bB(_bottom), bT(_top);
+        _left->setValue(l); _right->setValue(r);
+        _bottom->setValue(b); _top->setValue(t);
+        updateSubBufferLabel();
+        emit changed();
+    });
+
+    // Oversized toggle: expand/contract slider ranges and canvas coordinate space.
+    connect(_oversized, &QCheckBox::toggled, this, [this](bool on) {
+        setSliderRanges(on);
+        _canvas->setOversized(on);
+        // setOversized emits regionChanged which updates sliders; suppress double-emit.
+        emit changed();
+    });
+}
+
+void SubBufferWidget::setSliderRanges(bool oversized) {
+    const int lo = oversized ? -100 : 0;
+    const int hi = oversized ?  200 : 100;
+    for (QSlider* sl : {_left, _right, _bottom, _top})
+        sl->setRange(lo, hi);
 }
 
 void SubBufferWidget::updateSubBufferLabel() {
@@ -124,9 +165,9 @@ void SubBufferWidget::decodeSubBuffer(const QString& sb,
 // ── Public API ────────────────────────────────────────────────────────────────
 
 void SubBufferWidget::loadSettings(const QVariantMap& settings) {
-    // Block signals during load so we don't fire changed() multiple times.
     QSignalBlocker bStyle(_style), bTransform(_transform),
-                   bOverlay(_overlay), bL(_left), bR(_right), bB(_bottom), bT(_top);
+                   bOverlay(_overlay), bL(_left), bR(_right), bB(_bottom), bT(_top),
+                   bCanvas(_canvas), bOver(_oversized);
 
     // Buffer style
     const QString style = settings.value("CHOICE_BufferStyle", "Default").toString();
@@ -145,12 +186,19 @@ void SubBufferWidget::loadSettings(const QVariantMap& settings) {
     const QString sb = settings.value("CUSTOM_SubBuffer", "").toString();
     int l, bo, r, t;
     decodeSubBuffer(sb, l, bo, r, t);
+    // Auto-enable oversized mode if the loaded values are outside 0–100.
+    const bool needOversized = (l < 0 || bo < 0 || r > 100 || t > 100);
+    _oversized->setChecked(needOversized);
+    setSliderRanges(needOversized);
+    _canvas->setOversized(needOversized);
+
     _left->setValue(l);
     _bottom->setValue(bo);
     _right->setValue(r);
     _top->setValue(t);
 
     updateSubBufferLabel();
+    _canvas->setRegion(l, bo, r, t);
 }
 
 void SubBufferWidget::writeSettings(QVariantMap& settings) const {

@@ -1052,7 +1052,10 @@ if(XLIGHTS_BUILD_QT)
         $<$<BOOL:${WIN32}>:${CMAKE_CURRENT_SOURCE_DIR}/src-ui-qt/App/xLightsQt.rc>
         src-ui-qt/App/PlaybackController.cpp
         src-ui-qt/App/TransportToolBar.cpp
+        src-ui-qt/Effects/ColourSettingsWidget.cpp
+        src-ui-qt/Effects/SubBufferCanvas.cpp
         src-ui-qt/Effects/EffectToolBar.cpp
+        src-ui-qt/Effects/LayerBlendWidget.cpp
         src-ui-qt/Effects/PaletteWidget.cpp
         src-ui-qt/Effects/BufferWidget.cpp
         src-ui-qt/Effects/controls/ColorSwatchButton.cpp

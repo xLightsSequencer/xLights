@@ -6,6 +6,7 @@ class QCheckBox;
 class QComboBox;
 class QLabel;
 class QSlider;
+class SubBufferCanvas;
 
 // Panel that mirrors xLights' "Buffer" tab on every effect:
 //   - Buffer Style   (B_CHOICE_BufferStyle  → key "CHOICE_BufferStyle")
@@ -44,5 +45,9 @@ private:
     QSlider* _bottom = nullptr;
     QSlider* _top    = nullptr;
 
-    QLabel* _sbLabel = nullptr;   // shows current sub-buffer percentages
+    QLabel*          _sbLabel   = nullptr;
+    SubBufferCanvas* _canvas    = nullptr;
+    QCheckBox*       _oversized = nullptr;
+
+    void setSliderRanges(bool oversized);
 };

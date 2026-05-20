@@ -1,6 +1,8 @@
 #include "EffectPanelWidget.h"
 #include "BufferWidget.h"
+#include "ColourSettingsWidget.h"
 #include "EffectControlBuilder.h"
+#include "LayerBlendWidget.h"
 #include "PaletteWidget.h"
 #include "SubBufferWidget.h"
 #include "../App/QtXLightsApp.h"
@@ -9,10 +11,12 @@
 #include <spdlog/spdlog.h>
 
 #include <QFile>
+#include <QFrame>
 #include <QLabel>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QSignalBlocker>
-#include <QSplitter>
+#include <QTabWidget>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -21,42 +25,78 @@ EffectPanelWidget::EffectPanelWidget(QWidget* parent) : QWidget(parent) {
     vlay->setContentsMargins(4, 4, 4, 4);
     vlay->setSpacing(4);
 
+    // Effect name label above the tab bar.
     _titleLabel = new QLabel("No effect selected", this);
-    _titleLabel->setStyleSheet("font-weight: bold; font-size: 13px; padding: 4px;");
+    _titleLabel->setStyleSheet(
+        "font-weight: bold; font-size: 13px; padding: 4px 4px 2px 4px;");
     vlay->addWidget(_titleLabel);
 
-    _palette = new PaletteWidget(this);
-    vlay->addWidget(_palette);
+    _tabs = new QTabWidget(this);
+    _tabs->setTabPosition(QTabWidget::North);
+    _tabs->setDocumentMode(true);
+    vlay->addWidget(_tabs, 1);
 
-    // Vertical splitter: buffer view on top, effect controls below.
-    auto* splitter = new QSplitter(Qt::Vertical, this);
-    splitter->setChildrenCollapsible(true);
+    // ── Tab 1 — Effect ───────────────────────────────────────────────────────
+    auto* tab1 = new QWidget;
+    auto* t1v  = new QVBoxLayout(tab1);
+    t1v->setContentsMargins(4, 4, 4, 4);
+    t1v->setSpacing(4);
 
-    _buffer = new BufferWidget(splitter);
-    splitter->addWidget(_buffer);
+    _palette = new PaletteWidget(tab1);
+    t1v->addWidget(_palette);
 
-    _scroll = new QScrollArea(splitter);
+    _scroll = new QScrollArea(tab1);
     _scroll->setWidgetResizable(true);
     _scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    splitter->addWidget(_scroll);
+    t1v->addWidget(_scroll, 1);
 
-    splitter->setSizes({160, 400});
-    vlay->addWidget(splitter, 1);
+    _tabs->addTab(tab1, "Effect");
 
-    // Sub-buffer / buffer settings panel below the effect controls scroll area.
-    _subBuffer = new SubBufferWidget(this);
-    vlay->addWidget(_subBuffer);
+    // ── Tab 2 — Colour ────────────────────────────────────────────────────────
+    _colour = new ColourSettingsWidget;
+    _tabs->addTab(_colour, "Colour");
 
+    // ── Tab 3 — Layer ────────────────────────────────────────────────────────
+    _layerBlend = new LayerBlendWidget;
+    _tabs->addTab(_layerBlend, "Layer");
+
+    // ── Tab 4 — Buffer ───────────────────────────────────────────────────────
+    auto* tab4    = new QWidget;
+    auto* t4v     = new QVBoxLayout(tab4);
+    t4v->setContentsMargins(4, 4, 4, 4);
+    t4v->setSpacing(4);
+
+    _subBuffer = new SubBufferWidget(tab4);
+    t4v->addWidget(_subBuffer);
+
+    auto* sep = new QFrame(tab4);
+    sep->setFrameShape(QFrame::HLine);
+    sep->setFrameShadow(QFrame::Sunken);
+    t4v->addWidget(sep);
+
+    _buffer = new BufferWidget(tab4);
+    t4v->addWidget(_buffer, 1);
+
+    _tabs->addTab(tab4, "Buffer");
+
+    // ── Debounce timer ────────────────────────────────────────────────────────
     _debounce = new QTimer(this);
     _debounce->setSingleShot(true);
     _debounce->setInterval(40);
     connect(_debounce, &QTimer::timeout, this, &EffectPanelWidget::onDebounceTimeout);
 
-    connect(_palette, &PaletteWidget::paletteChanged, this, [this](const QList<QColor>&) {
+    // ── Signal wiring ─────────────────────────────────────────────────────────
+    connect(_palette, &PaletteWidget::paletteChanged,
+            this, [this](const QList<QColor>&) { notifyChange(); });
+
+    connect(_colour, &ColourSettingsWidget::changed, this, [this]() {
+        _colour->writeSettings(_settings);
         notifyChange();
     });
-    connect(_buffer, &BufferWidget::blendModeChanged,  this, [this](const QString&) { notifyChange(); });
-    connect(_buffer, &BufferWidget::bufferStyleChanged, this, [this](const QString&) { notifyChange(); });
+
+    connect(_layerBlend, &LayerBlendWidget::blendModeChanged,
+            this, [this](const QString&) { notifyChange(); });
+
     connect(_subBuffer, &SubBufferWidget::changed, this, [this]() {
         _subBuffer->writeSettings(_settings);
         notifyChange();
@@ -70,10 +110,6 @@ QList<QColor> EffectPanelWidget::palette() const {
 void EffectPanelWidget::loadBlockPalette(const QString& rawPalette) {
     if (rawPalette.isEmpty()) return;
 
-    // The xsq palette string is "key=value,key=value,..." where commas inside
-    // values are escaped as "&comma;" by xLights' SettingsMap::AsString().
-    // We parse it manually because we only need the simple C_BUTTON/CHECKBOX keys
-    // and hex colors don't contain commas, so a two-pass unescape approach is safe.
     QMap<QString, QString> vals;
     for (const QString& part : rawPalette.split(',', Qt::SkipEmptyParts)) {
         const int eq = part.indexOf('=');
@@ -91,11 +127,8 @@ void EffectPanelWidget::loadBlockPalette(const QString& rawPalette) {
             if (c.isValid()) colors.append(c);
         }
     }
-
     if (colors.isEmpty()) return;
 
-    // Update the palette widget without triggering an extra settingsChanged /
-    // paletteChanged render (the caller will trigger its own render with rawPalette).
     QSignalBlocker blocker(_palette);
     _palette->setColors(colors);
 }
@@ -105,16 +138,8 @@ void EffectPanelWidget::setBufferPixels(int w, int h, const QList<QColor>& pixel
 }
 
 // ── Settings parser ───────────────────────────────────────────────────────────
-// Converts an xsq settings string like
-//   "E_TEXTCTRL_Text_Line1=Hello,E_CHOICE_Text_Dir=left,..."
-// into a QVariantMap keyed by bare control ID:
-//   { "Text_Line1": "Hello", "Text_Dir": "left", ... }
-// The mapping strips the 2-char type prefix (E_, T_, B_, C_) and then the
-// control-class prefix (TEXTCTRL_, CHOICE_, SLIDER_, CHECKBOX_, etc.) so the
-// resulting keys match what EffectControlBuilder stores in _settings.
+
 static QVariantMap parseRawSettings(const QString& raw) {
-    // Control-class prefixes stripped only for E_* (effect) keys → bare ID.
-    // B_* (buffer), T_* (transition) keep their CHOICE_/SLIDER_/etc. prefix.
     static const QStringList kCtrlPfx = {
         "TEXTCTRL_", "SLIDER_", "CHECKBOX_", "CHOICE_", "SPINCTRL_",
         "FILEPICKERCTRL_", "FONTPICKER_", "CUSTOM_", "VALUECURVE_",
@@ -128,39 +153,42 @@ static QVariantMap parseRawSettings(const QString& raw) {
         QString val = part.mid(eq + 1).trimmed();
         val.replace("&comma;", ",").replace("&amp;", "&");
 
-        if (key.size() < 3 || key[1] != '_') {
-            result[key] = val;
-            continue;
-        }
+        if (key.size() < 3 || key[1] != '_') { result[key] = val; continue; }
         const QChar pfxChar = key[0];
-        key = key.mid(2);   // strip "X_"
+        key = key.mid(2);
 
         if (pfxChar == 'E') {
-            // Effect settings: also strip control-class prefix → bare ID
             for (const QString& cpfx : kCtrlPfx)
                 if (key.startsWith(cpfx)) { key = key.mid(cpfx.size()); break; }
         }
-        // B_/T_: keep CHOICE_/SLIDER_/CHECKBOX_/CUSTOM_ prefix so SubBufferWidget
-        //        can find them without colliding with bare effect IDs.
-        // C_: skip palette entries (handled by loadBlockPalette separately).
-        if (pfxChar != 'C')
+        // C_: include colour settings but skip palette entries
+        // (C_CHECKBOX_Palette\d+ / C_BUTTON_Palette\d+ handled by loadBlockPalette).
+        if (pfxChar == 'C') {
+            static const QRegularExpression kPaletteKey(
+                "^(CHECKBOX|BUTTON)_Palette\\d+$");
+            if (!kPaletteKey.match(key).hasMatch())
+                result[key] = val;
+        } else {
             result[key] = val;
+        }
     }
     return result;
 }
 
+// ── Effect display ────────────────────────────────────────────────────────────
+
 void EffectPanelWidget::showEffect(const QString& effectName,
                                     const QString& rawSettings) {
-    // Force-rebuild controls even if the same effect name is already shown,
-    // because a different block may have different settings values.
     _currentEffect = effectName;
-    _settings = parseRawSettings(rawSettings);   // pre-populate with block values
+    _settings      = parseRawSettings(rawSettings);
     clearControls();
     _buffer->clear();
     _titleLabel->setText(effectName);
     buildControls(effectName);
-    // Populate sub-buffer panel from B_* settings (kept with CHOICE_/CHECKBOX_/CUSTOM_ prefix).
     _subBuffer->loadSettings(_settings);
+    _colour->loadSettings(_settings);
+    // Switch to Tab 1 automatically so the user sees effect controls.
+    _tabs->setCurrentIndex(0);
     notifyChange();
 }
 
@@ -172,6 +200,9 @@ void EffectPanelWidget::showEffect(const QString& effectName) {
     _buffer->clear();
     _titleLabel->setText(effectName);
     buildControls(effectName);
+    _subBuffer->loadSettings(_settings);
+    _colour->loadSettings(_settings);
+    _tabs->setCurrentIndex(0);
     notifyChange();
 }
 
@@ -205,9 +236,6 @@ void EffectPanelWidget::buildControls(const QString& effectName) {
     _contentLay->setSpacing(6);
 
     auto onChange = [this]() { _debounce->start(); };
-    // _settings may already contain pre-populated values from parseRawSettings();
-    // EffectControlBuilder respects existing values and only fills in defaults for
-    // keys that are absent.
     EffectControlBuilder::build(_content, _contentLay,
                                 doc.value("properties", nlohmann::json::array()),
                                 _settings, std::move(onChange));
@@ -220,9 +248,7 @@ void EffectPanelWidget::clearControls() {
     _contentLay = nullptr;
 }
 
-void EffectPanelWidget::notifyChange() {
-    _debounce->start();
-}
+void EffectPanelWidget::notifyChange() { _debounce->start(); }
 
 void EffectPanelWidget::onDebounceTimeout() {
     emit settingsChanged(_currentEffect, _settings);
