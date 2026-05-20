@@ -102,15 +102,6 @@ public:
         NO_AXIS
     };
 
-    enum class MSLTOOL {
-        TOOL_TRANSLATE,
-        TOOL_SCALE,
-        TOOL_ROTATE,
-        TOOL_XY_TRANS,
-        TOOL_ELEVATE,
-        TOOL_NONE
-    };
-
     MSLAXIS NextAxis(MSLAXIS axis);
     virtual void Init() = 0;
     void Reload() { rotation_init = true; }
@@ -337,20 +328,20 @@ public:
     virtual void AdvanceAxisTool()
     {
         switch (axis_tool) {
-        case MSLTOOL::TOOL_TRANSLATE:
-            axis_tool = MSLTOOL::TOOL_SCALE;
+        case handles::Tool::Translate:
+            axis_tool = handles::Tool::Scale;
             break;
-        case MSLTOOL::TOOL_SCALE:
-            axis_tool = MSLTOOL::TOOL_ROTATE;
+        case handles::Tool::Scale:
+            axis_tool = handles::Tool::Rotate;
             break;
-        case MSLTOOL::TOOL_ROTATE:
+        case handles::Tool::Rotate:
         default:
-            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+            axis_tool = handles::Tool::Translate;
             break;
         }
     }
-    virtual void SetAxisTool(MSLTOOL mode) { axis_tool = mode; }
-    MSLTOOL GetAxisTool() const { return axis_tool; }
+    virtual void SetAxisTool(handles::Tool mode) { axis_tool = mode; }
+    handles::Tool GetAxisTool() const { return axis_tool; }
     // Ray-plane intersection helper. Builds a constraint plane based
     // on `axis_tool` + `active_axis` + `active_plane` (and an optional
     // `planePoint` to anchor the plane through), intersects the cursor
@@ -360,7 +351,7 @@ public:
                     glm::vec3& outIntersect,
                     glm::vec3 planePoint = glm::vec3(0.0f));
     void TranslateVector(glm::vec3& point) const;
-    virtual MSLTOOL GetDefaultTool() const { return MSLTOOL::TOOL_TRANSLATE; }
+    virtual handles::Tool GetDefaultTool() const { return handles::Tool::Translate; }
     virtual void MouseOverHandle(std::optional<handles::Id> handle);
     const std::optional<handles::Id>& GetHighlightedHandleId() const { return highlighted_handle; }
     int GetNumSelectableHandles() const { return mSelectableHandles; }
@@ -455,7 +446,7 @@ protected:
     std::optional<handles::Id> active_handle;
     std::optional<handles::Id> highlighted_handle;
     MSLAXIS active_axis = MSLAXIS::NO_AXIS;
-    MSLTOOL axis_tool = MSLTOOL::TOOL_TRANSLATE;
+    handles::Tool axis_tool = handles::Tool::Translate;
     int tool_size = 1;
     bool _hasX2 = false;
     bool supportsZScaling = false;

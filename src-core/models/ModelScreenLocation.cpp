@@ -220,7 +220,7 @@ ModelScreenLocation::MSLAXIS ModelScreenLocation::NextAxis(MSLAXIS axis)
 
 void ModelScreenLocation::SetActiveAxis(MSLAXIS axis)
 {
-    if (axis_tool == MSLTOOL::TOOL_ROTATE && axis != MSLAXIS::NO_AXIS) {
+    if (axis_tool == handles::Tool::Rotate && axis != MSLAXIS::NO_AXIS) {
         active_axis = NextAxis(axis);
     }
     else {
@@ -419,7 +419,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
     int num_points = 18;
     float os = (float)GetRectHandleWidth(zoom, scale);
 
-    if (axis_tool == MSLTOOL::TOOL_TRANSLATE) {
+    if (axis_tool == handles::Tool::Translate) {
         xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
         xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlGREEN;
         xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlBLUE;
@@ -451,7 +451,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_SCALE) {
+    } else if (axis_tool == handles::Tool::Scale) {
         xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
         xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlGREEN;
         xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlBLUE;
@@ -463,7 +463,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
         program->addStep([program, vac, startVertex, count](xlGraphicsContext *ctx) {
             ctx->drawTriangles(vac, startVertex, count - startVertex);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_ROTATE) {
+    } else if (axis_tool == handles::Tool::Rotate) {
         xlColor ax1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
         xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::Y) ? xlYELLOW : xlBLUE;
         xlColor ax3c = IsAxisHandle(highlighted_handle, handles::Axis::Z) ? xlYELLOW : xlRED;
@@ -497,7 +497,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
             ctx->drawLines(vac, startVertex, triangleStart - startVertex);
             ctx->drawTriangles(vac, triangleStart, count - triangleStart);
         });
-    } else if (axis_tool == MSLTOOL::TOOL_XY_TRANS) {
+    } else if (axis_tool == handles::Tool::XYTranslate) {
         xlColor a1c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlRED;
         xlColor a2c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
         float arrow_length = GetAxisArrowLength(zoom, scale) / 2.0f;
@@ -550,7 +550,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
             ctx->drawTriangles(vac, triangeVertex, count - triangeVertex);
         });
 
-    } else if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
+    } else if (axis_tool == handles::Tool::Elevate) {
         xlColor ax2c = IsAxisHandle(highlighted_handle, handles::Axis::X) ? xlYELLOW : xlGREEN;
         float tip = pos.y + GetAxisArrowLength(zoom, scale);
         for (int i = 0; i < num_points; i++) {
@@ -570,7 +570,7 @@ void ModelScreenLocation::DrawAxisTool(const glm::vec3& pos, xlGraphicsProgram *
         });
 
     }
-    if (axis_tool == MSLTOOL::TOOL_TRANSLATE || axis_tool == MSLTOOL::TOOL_SCALE) {
+    if (axis_tool == handles::Tool::Translate || axis_tool == handles::Tool::Scale) {
         startVertex = vac->getCount();
         vac->AddVertex(pos.x + os, pos.y, pos.z, xlRED);
         vac->AddVertex(pos.x + GetAxisArrowLength(zoom, scale) - GetAxisRadius(zoom, scale), pos.y, pos.z, xlRED);
@@ -709,7 +709,7 @@ bool ModelScreenLocation::DragHandle(IModelPreview* preview, int mouseX, int mou
     glm::vec3 normal(0.0f);
     glm::vec3 intersect(0.0f);
 
-    if (axis_tool == MSLTOOL::TOOL_ROTATE) {
+    if (axis_tool == handles::Tool::Rotate) {
         switch (active_axis) {
         case MSLAXIS::X_AXIS:
             normal = glm::vec3(planePoint.x + GetAxisArrowLength(zoom, scale), 0.0f, 0.0f);

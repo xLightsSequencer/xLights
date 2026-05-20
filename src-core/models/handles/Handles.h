@@ -66,9 +66,12 @@ inline Axis NextAxis(Axis a) {
 // ---------------------------------------------------------------
 // Tool — the active "what does the gizmo do" mode. Frontend-owned;
 // passed to `Model::GetHandleStream()` so the model only emits the
-// gizmo handles relevant to the current tool.
+// gizmo handles relevant to the current tool. `None` is the sentinel
+// for "no active tool" and also the default-init value — pass it to
+// `GetHandles` for body-only descriptors (no axis gizmo).
 // ---------------------------------------------------------------
 enum class Tool : uint8_t {
+    None,
     Translate,
     Scale,
     Rotate,

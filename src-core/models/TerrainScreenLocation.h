@@ -32,7 +32,7 @@ public:
 
     // R-10b: Terrain inherits the base CentreCycle SetActiveHandleToCentre.
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
     virtual bool IsElevationHandle() const override { return IsRole(active_handle, handles::Role::Vertex); }
     virtual bool CanEdit() const { return edit_active; }

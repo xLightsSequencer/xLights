@@ -196,10 +196,10 @@ float ThreePointScreenLocation::GetMWidth() const
 }
 
 
-void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
+void ThreePointScreenLocation::SetAxisTool(handles::Tool mode)
 {
     if (IsRole(active_handle, handles::Role::Shear)) {
-        axis_tool = MSLTOOL::TOOL_XY_TRANS;
+        axis_tool = handles::Tool::XYTranslate;
     } else {
         TwoPointScreenLocation::SetAxisTool(mode);
     }
@@ -208,7 +208,7 @@ void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 void ThreePointScreenLocation::AdvanceAxisTool()
 {
     if (IsRole(active_handle, handles::Role::Shear)) {
-        axis_tool = MSLTOOL::TOOL_XY_TRANS;
+        axis_tool = handles::Tool::XYTranslate;
     } else {
         TwoPointScreenLocation::AdvanceAxisTool();
     }
@@ -736,7 +736,7 @@ std::vector<handles::Descriptor> ThreePointScreenLocation::GetHandles(
         // 3D shear session.
         if (_locked) return out;
         const bool draggable = (IsRole(active_handle, handles::Role::Shear) &&
-                                axis_tool == MSLTOOL::TOOL_XY_TRANS);
+                                axis_tool == handles::Tool::XYTranslate);
         handles::Descriptor d;
         d.id.role  = handles::Role::Shear;
         d.id.index = SHEAR_HANDLE;
@@ -766,7 +766,7 @@ std::unique_ptr<handles::DragSession> ThreePointScreenLocation::CreateDragSessio
     if (id.role == handles::Role::Shear) {
         if (_locked) return nullptr;
         if (id.index != SHEAR_HANDLE) return nullptr;
-        if (IsRole(active_handle, handles::Role::Shear) && axis_tool == MSLTOOL::TOOL_XY_TRANS) {
+        if (IsRole(active_handle, handles::Role::Shear) && axis_tool == handles::Tool::XYTranslate) {
             // 3D shear (XY_TRANS): cursor lives on an XY plane
             // through the shear sphere's saved world position.
             return std::make_unique<ThreePoint3DShearSession>(this, modelName, id, startRay,

@@ -977,32 +977,15 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     if (m->IsFromBase()) return -1;
 
     if (_preview->Is3D()) {
-        handles::Tool newApiTool = handles::Tool::Translate;
-        bool toolSupportedByNewApi = false;
-        switch (loc.GetAxisTool()) {
-            case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE:
-                newApiTool = handles::Tool::Translate;
-                toolSupportedByNewApi = true;
-                break;
-            case ModelScreenLocation::MSLTOOL::TOOL_SCALE:
-                newApiTool = handles::Tool::Scale;
-                toolSupportedByNewApi = true;
-                break;
-            case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:
-                newApiTool = handles::Tool::Rotate;
-                toolSupportedByNewApi = true;
-                break;
-            default:
-                break;
-        }
+        const handles::Tool currentTool = loc.GetAxisTool();
         const float zoom = _preview->GetCameraZoomForHandles();
         const int hscale = _preview->GetHandleScale();
         handles::ViewParams view;
         view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
         view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
         view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
-        auto descriptors = toolSupportedByNewApi
-            ? m->GetHandles(handles::ViewMode::ThreeD, newApiTool, view)
+        auto descriptors = (currentTool != handles::Tool::None)
+            ? m->GetHandles(handles::ViewMode::ThreeD, currentTool, view)
             : std::vector<handles::Descriptor>{};
         if (!descriptors.empty()) {
             handles::ScreenProjection proj;
@@ -1104,15 +1087,8 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     // CentreCycle / non-axis selectionOnly descriptors trigger the
     // tool cycle; axis / segment / draggable descriptors are drag
     // targets and a tap on them is a no-op.
-    handles::Tool centerTool = handles::Tool::Translate;
-    switch (loc.GetAxisTool()) {
-        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: centerTool = handles::Tool::Translate;   break;
-        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     centerTool = handles::Tool::Scale;       break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    centerTool = handles::Tool::Rotate;      break;
-        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  centerTool = handles::Tool::XYTranslate; break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   centerTool = handles::Tool::Elevate;     break;
-        default: return NO;
-    }
+    const handles::Tool centerTool = loc.GetAxisTool();
+    if (centerTool == handles::Tool::None) return NO;
     const float zoom = _preview->GetCameraZoomForHandles();
     const int hscale = _preview->GetHandleScale();
     handles::ViewParams view;
@@ -2101,14 +2077,9 @@ float ReadAlignReference(Model* model, const std::string& edge) {
 
     // Build the descriptor set for the current tool (mirrors
     // pickHandle's selection of TwoD vs ThreeD).
-    handles::Tool tool = handles::Tool::Translate;
-    switch (loc.GetAxisTool()) {
-        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: tool = handles::Tool::Translate;   break;
-        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     tool = handles::Tool::Scale;       break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    tool = handles::Tool::Rotate;      break;
-        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  tool = handles::Tool::XYTranslate; break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   tool = handles::Tool::Elevate;     break;
-        default: break;
+    const handles::Tool tool = loc.GetAxisTool();
+    if (tool == handles::Tool::None) {
+        return [self clearHoveredHandleForDocument:doc];
     }
 
     handles::ViewParams view;

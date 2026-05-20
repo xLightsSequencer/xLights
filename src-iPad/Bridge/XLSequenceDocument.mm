@@ -3893,11 +3893,11 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     Model* m = _context->GetModelManager()[modelName.UTF8String];
     if (!m) return @"none";
     switch (m->GetModelScreenLocation().GetAxisTool()) {
-        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: return @"translate";
-        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     return @"scale";
-        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    return @"rotate";
-        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  return @"xy_trans";
-        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   return @"elevate";
+        case handles::Tool::Translate: return @"translate";
+        case handles::Tool::Scale:     return @"scale";
+        case handles::Tool::Rotate:    return @"rotate";
+        case handles::Tool::XYTranslate:  return @"xy_trans";
+        case handles::Tool::Elevate:   return @"elevate";
         default:                                            return @"none";
     }
 }
@@ -3906,14 +3906,14 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     if (!_context || !modelName || modelName.length == 0 || !tool) return NO;
     Model* m = _context->GetModelManager()[modelName.UTF8String];
     if (!m) return NO;
-    ModelScreenLocation::MSLTOOL mslTool;
-    if      ([tool isEqualToString:@"translate"]) mslTool = ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE;
-    else if ([tool isEqualToString:@"scale"])     mslTool = ModelScreenLocation::MSLTOOL::TOOL_SCALE;
-    else if ([tool isEqualToString:@"rotate"])    mslTool = ModelScreenLocation::MSLTOOL::TOOL_ROTATE;
-    else if ([tool isEqualToString:@"xy_trans"])  mslTool = ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS;
-    else if ([tool isEqualToString:@"elevate"])   mslTool = ModelScreenLocation::MSLTOOL::TOOL_ELEVATE;
+    handles::Tool axisTool;
+    if      ([tool isEqualToString:@"translate"]) axisTool = handles::Tool::Translate;
+    else if ([tool isEqualToString:@"scale"])     axisTool = handles::Tool::Scale;
+    else if ([tool isEqualToString:@"rotate"])    axisTool = handles::Tool::Rotate;
+    else if ([tool isEqualToString:@"xy_trans"])  axisTool = handles::Tool::XYTranslate;
+    else if ([tool isEqualToString:@"elevate"])   axisTool = handles::Tool::Elevate;
     else                                          return NO;
-    m->GetModelScreenLocation().SetAxisTool(mslTool);
+    m->GetModelScreenLocation().SetAxisTool(axisTool);
     return YES;
 }
 

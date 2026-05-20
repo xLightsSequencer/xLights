@@ -3828,35 +3828,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 // instead of starting a drag session. BaseObject
                 // (not just Model) exposes GetHandles/BeginDrag, so
                 // ViewObjects flow through the same path.
-                const auto currentTool =
+                const handles::Tool currentTool =
                     selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool();
-                handles::Tool newApiTool = handles::Tool::Translate;
-                bool toolSupportedByNewApi = false;
-                switch (currentTool) {
-                    case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE:
-                        newApiTool = handles::Tool::Translate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_SCALE:
-                        newApiTool = handles::Tool::Scale;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:
-                        newApiTool = handles::Tool::Rotate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:
-                        newApiTool = handles::Tool::XYTranslate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:
-                        newApiTool = handles::Tool::Elevate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    default:
-                        break;
-                }
-                if (toolSupportedByNewApi) {
+                if (currentTool != handles::Tool::None) {
                     const float zoom = modelPreview->GetCameraZoomForHandles();
                     const int hscale = modelPreview->GetHandleScale();
                     auto& sloc0 = selectedBaseObject->GetBaseObjectScreenLocation();
@@ -3865,7 +3839,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     view.axisHeadLength  = sloc0.GetAxisHeadLength(zoom, hscale);
                     view.axisRadius      = sloc0.GetAxisRadius(zoom, hscale);
                     auto descriptors = selectedBaseObject->GetHandles(
-                        handles::ViewMode::ThreeD, newApiTool, view);
+                        handles::ViewMode::ThreeD, currentTool, view);
                     if (!descriptors.empty()) {
                         handles::ScreenProjection proj{
                             modelPreview->GetProjViewMatrix(),
@@ -3879,8 +3853,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         // screen tolerance so descriptors at the
                         // active handle catch clicks anywhere in
                         // that volume.
-                        opts.handleTolerance = (newApiTool == handles::Tool::XYTranslate ||
-                                                newApiTool == handles::Tool::Elevate)
+                        opts.handleTolerance = (currentTool == handles::Tool::XYTranslate ||
+                                                currentTool == handles::Tool::Elevate)
                                                 ? 28.0f : 8.0f;
                         glm::vec2 mousePx{ static_cast<float>(event.GetX()),
                                            static_cast<float>(event.GetY()) };
@@ -4812,7 +4786,7 @@ void LayoutPanel::FinalizeModel()
 
     if (_newModel != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel New model is not null.");
-        _newModel->GetBaseObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
+        _newModel->GetBaseObjectScreenLocation().SetAxisTool(handles::Tool::Translate);
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         std::vector<DownloadedModelInfo> additionalModels;
@@ -5665,18 +5639,8 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 std::optional<handles::Id> hoverId;
                 {
                     auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
-                    const auto legacyToolHover = sloc.GetAxisTool();
-                    handles::Tool hoverTool = handles::Tool::Translate;
-                    bool hoverToolSupported = false;
-                    switch (legacyToolHover) {
-                        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: hoverTool = handles::Tool::Translate;   hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     hoverTool = handles::Tool::Scale;       hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    hoverTool = handles::Tool::Rotate;      hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  hoverTool = handles::Tool::XYTranslate; hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   hoverTool = handles::Tool::Elevate;     hoverToolSupported = true; break;
-                        default: break;
-                    }
-                    if (hoverToolSupported) {
+                    const handles::Tool hoverTool = sloc.GetAxisTool();
+                    if (hoverTool != handles::Tool::None) {
                         const float zoom = modelPreview->GetCameraZoomForHandles();
                         const int hscale = modelPreview->GetHandleScale();
                         handles::ViewParams hoverView;

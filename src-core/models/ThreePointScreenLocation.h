@@ -55,11 +55,11 @@ public:
     virtual float GetRealWidth() const override;
     virtual float GetRealHeight() const override;
 
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Translate; }
 
     // ThreePoint inherits TwoPoint's SetActiveHandleToCentre override.
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
     virtual bool IsXYTransHandle() const override { return IsRole(active_handle, handles::Role::Shear); }
 

@@ -168,7 +168,7 @@ int TerrainObjectPropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* 
             _terrain.GetObjectScreenLocation().SetEdit(true);
         } else {
             _terrain.GetObjectScreenLocation().SetActiveHandleToCentre();
-            _terrain.GetObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
+            _terrain.GetObjectScreenLocation().SetAxisTool(handles::Tool::Translate);
             _terrain.GetObjectScreenLocation().SetEdit(false);
         }
         _terrain.IncrementChangeCount();

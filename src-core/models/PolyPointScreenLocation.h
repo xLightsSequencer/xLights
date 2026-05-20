@@ -91,7 +91,7 @@ public:
     virtual float GetMDepth() const override;
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_XY_TRANS; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::XYTranslate; }
     void SetActiveHandleToDefault() override {
         // Legacy END_HANDLE = 2 → Vertex(index 1), the second
         // vertex placed by polyline create. Lines up with what
@@ -104,7 +104,7 @@ public:
     virtual float GetYShear() const { return 0.0; }
     virtual void SetActiveHandle(const std::optional<handles::Id>& id) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
     int GetNumPoints() const { return num_points; }

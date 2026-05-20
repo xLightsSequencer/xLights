@@ -198,7 +198,7 @@ private:
 void TerrainScreenLocation::ApplySpaceMouseElevation(int point,
                                                       float scale,
                                                       const glm::vec3& mov) {
-    if (axis_tool != MSLTOOL::TOOL_ELEVATE) return;
+    if (axis_tool != handles::Tool::Elevate) return;
     if (point < 0 || point >= (int)mPos.size()) return;
 
     const float newz = mPos[point] - mov.z * scale;
@@ -230,13 +230,13 @@ TerrainScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& 
 
 
 
-void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
+void TerrainScreenLocation::SetAxisTool(handles::Tool mode)
 {
     if (IsRole(active_handle, handles::Role::Vertex)) {
-        axis_tool = MSLTOOL::TOOL_ELEVATE;
+        axis_tool = handles::Tool::Elevate;
     } else {
-        if (axis_tool == MSLTOOL::TOOL_ELEVATE) {
-            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+        if (axis_tool == handles::Tool::Elevate) {
+            axis_tool = handles::Tool::Translate;
         }
         ModelScreenLocation::SetAxisTool(mode);
     }
@@ -245,7 +245,7 @@ void TerrainScreenLocation::SetAxisTool(MSLTOOL mode)
 void TerrainScreenLocation::AdvanceAxisTool()
 {
     if (IsRole(active_handle, handles::Role::Vertex)) {
-        axis_tool = MSLTOOL::TOOL_ELEVATE;
+        axis_tool = handles::Tool::Elevate;
     } else {
         ModelScreenLocation::AdvanceAxisTool();
     }

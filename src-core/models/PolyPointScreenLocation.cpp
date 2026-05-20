@@ -363,17 +363,17 @@ void PolyPointScreenLocation::SetActiveHandle(const std::optional<handles::Id>& 
     SetAxisTool(axis_tool);
 }
 
-void PolyPointScreenLocation::SetAxisTool(MSLTOOL mode)
+void PolyPointScreenLocation::SetAxisTool(handles::Tool mode)
 {
     if (IsRole(active_handle, handles::Role::CentreCycle)) {
         ModelScreenLocation::SetAxisTool(mode);
     }
     else {
-        if (mode == MSLTOOL::TOOL_TRANSLATE || mode == MSLTOOL::TOOL_XY_TRANS) {
+        if (mode == handles::Tool::Translate || mode == handles::Tool::XYTranslate) {
             axis_tool = mode;
         }
         else {
-            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+            axis_tool = handles::Tool::Translate;
         }
     }
 }
@@ -384,7 +384,7 @@ void PolyPointScreenLocation::AdvanceAxisTool()
         ModelScreenLocation::AdvanceAxisTool();
     }
     else {
-        axis_tool = MSLTOOL::TOOL_TRANSLATE;
+        axis_tool = handles::Tool::Translate;
     }
 }
 
@@ -530,7 +530,7 @@ bool PolyPointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom
             // the descriptors we just drew.
             const glm::vec3 active_handle_pos = GetActiveSubHandleWorldPos();
             DrawAxisTool(active_handle_pos, program, zoom, scale);
-            if (axis_tool == MSLTOOL::TOOL_XY_TRANS && active_axis != MSLAXIS::NO_AXIS) {
+            if (axis_tool == handles::Tool::XYTranslate && active_axis != MSLAXIS::NO_AXIS) {
                 // XY_TRANS draws a planar cross (X + Y lines) rather than
                 // a single-axis indicator. Inline; the base helper handles
                 // the simpler single-axis case. Snapshot AFTER

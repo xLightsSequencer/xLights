@@ -99,7 +99,7 @@ public:
     void SetY2(float val) {y2 = val;}
     void SetZ2(float val) {z2 = val;}
 
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_TRANSLATE; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Translate; }
 
     void SetActiveHandleToCentre() override;
     void SetActiveHandleToDefault() override {
@@ -111,7 +111,7 @@ public:
         SetActiveHandle(std::optional<handles::Id>(id));
     }
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
 
     glm::vec3 GetPoint1() const { return origin; }
     glm::vec3 GetPoint2() const { return point2; }

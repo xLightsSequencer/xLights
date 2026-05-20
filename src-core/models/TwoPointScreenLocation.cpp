@@ -162,20 +162,20 @@ void TwoPointScreenLocation::SetActiveHandleToCentre()
     SetAxisTool(axis_tool);
 }
 
-void TwoPointScreenLocation::SetAxisTool(MSLTOOL mode)
+void TwoPointScreenLocation::SetAxisTool(handles::Tool mode)
 {
-    if (mode != MSLTOOL::TOOL_SCALE && mode != MSLTOOL::TOOL_XY_TRANS) {
+    if (mode != handles::Tool::Scale && mode != handles::Tool::XYTranslate) {
         axis_tool = mode;
     }
     else {
-        axis_tool = MSLTOOL::TOOL_TRANSLATE;
+        axis_tool = handles::Tool::Translate;
     }
 }
 
 void TwoPointScreenLocation::AdvanceAxisTool()
 {
     ModelScreenLocation::AdvanceAxisTool();
-    if (axis_tool == MSLTOOL::TOOL_SCALE) {
+    if (axis_tool == handles::Tool::Scale) {
         ModelScreenLocation::AdvanceAxisTool();
     }
 }

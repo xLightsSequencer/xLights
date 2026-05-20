@@ -151,7 +151,7 @@ public:
     bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) { supportsZScaling = b; }
 
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_SCALE; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Scale; }
     float GetCentreX() const { return centerx; }
     float GetCentreY() const { return centery; }
     float GetCentreZ() const { return centerz; }
