@@ -1031,7 +1031,6 @@ if(XLIGHTS_BUILD_QT)
         src-ui-qt/Sequencer/TimingRulerCanvas.cpp
         src-ui-qt/Sequencer/SequencerWidget.cpp
         src-ui-qt/Bridge/QtSequenceDoc.cpp
-        src-ui-qt/Bridge/QtEffectRenderer.cpp
         src-ui-qt/Bridge/QtRenderBridge.cpp
         src-ui-qt/Bridge/QtRenderContext.cpp
         src-ui-qt/Bridge/QtTextDrawingContext.cpp

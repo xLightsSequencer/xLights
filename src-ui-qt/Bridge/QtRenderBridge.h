@@ -5,8 +5,8 @@
 #include <QTimer>
 
 // Debounces render requests and runs them through the src-core rendering
-// pipeline (RenderableEffect::Render).  Falls back to the software renderer
-// (QtEffectRenderer) if the effect is not found or throws.
+// pipeline (RenderableEffect::Render), matching the wx and iPad render paths.
+// Returns a black result if src-core is unavailable or the effect throws.
 class QtRenderBridge : public QObject {
     Q_OBJECT
 public:

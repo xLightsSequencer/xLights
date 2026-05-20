@@ -81,13 +81,29 @@ QtEffectRenderer::Result QtRenderBridge::renderNow(const QtEffectRenderer::Reque
     return renderCore(req);
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+// Returns a valid all-black result sized to the request buffer dimensions.
+// Used wherever src-core cannot render (init failure, unknown effect, exception).
+static QtEffectRenderer::Result blackResult(const QtEffectRenderer::Request& req) {
+    QtEffectRenderer::Result r;
+    r.w = qMax(1, req.bufferW);
+    r.h = qMax(1, req.bufferH);
+    r.pixels.fill(Qt::black, r.w * r.h);
+    return r;
+}
+
 // ── src-core render path ──────────────────────────────────────────────────────
 
 QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Request& req) {
 
-    // Permanently disabled if a previous attempt crashed.
-    if (s_initFailed)
-        return QtEffectRenderer::render(req);
+    // Permanently disabled after a previous crash — return black rather than
+    // attempt a re-init that will fail the same way.
+    if (s_initFailed) {
+        spdlog::debug("QtRenderBridge: src-core disabled — returning black for '{}'",
+                      req.effectName.toStdString());
+        return blackResult(req);
+    }
 
     // ── One-time initialisation ────────────────────────────────────────────
     if (!s_ctx) {
@@ -118,11 +134,11 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
                          s_ctx->GetEffectManager().size());
         } catch (...) {
             spdlog::error("QtRenderBridge: src-core init failed — "
-                          "using software renderer for all effects");
+                          "all renders will return black until the app restarts");
             s_ctx.reset();
             s_mm.reset();
             s_initFailed = true;
-            return QtEffectRenderer::render(req);
+            return blackResult(req);
         }
     }
 
@@ -135,9 +151,9 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
     }
 
     if (!effect) {
-        spdlog::debug("QtRenderBridge: '{}' not in EffectManager — software fallback",
-                      req.effectName.toStdString());
-        return QtEffectRenderer::render(req);
+        spdlog::warn("QtRenderBridge: '{}' not in EffectManager — returning black",
+                     req.effectName.toStdString());
+        return blackResult(req);
     }
 
     // ── Render via src-core ────────────────────────────────────────────────
@@ -288,8 +304,8 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
         return result;
 
     } catch (...) {
-        spdlog::warn("QtRenderBridge: exception rendering '{}' — software fallback",
+        spdlog::warn("QtRenderBridge: exception rendering '{}' — returning black",
                      req.effectName.toStdString());
-        return QtEffectRenderer::render(req);
+        return blackResult(req);
     }
 }
