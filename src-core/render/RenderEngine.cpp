@@ -265,6 +265,11 @@ public:
                                 } else {
                                     perModelEffects = true;
                                 }
+                            } else if (bt == DEFAULT) {
+                                const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);
+                                if (grp != nullptr && grp->GetDefaultBufferStyle().compare(0, 9, PER_MODEL) == 0) {
+                                    perModelEffects = true;
+                                }
                             }
                         }
                         const ModelGroup* grp = dynamic_cast<const ModelGroup*>(model);

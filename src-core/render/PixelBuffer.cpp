@@ -2153,6 +2153,19 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     const std::string& xpivotValueCurve = settingsMap.Get(VALUECURVE_XPivot, STR_EMPTY);
     const std::string& ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
 
+    // If the effect uses "Default" style on a group whose defaultBufferStyle is a Per Model variant,
+    // resolve now so the Per Model detection below fires correctly (the resolution inside
+    // InitRenderBufferNodes is too late — Per Model needs separate buffer allocation here first).
+    if (type == "Default") {
+        const ModelGroup* mg = dynamic_cast<const ModelGroup*>(model);
+        if (mg != nullptr) {
+            const std::string& dbs = mg->GetDefaultBufferStyle();
+            if (dbs.compare(0, 9, "Per Model") == 0) {
+                type = dbs;
+            }
+        }
+    }
+
     if (inf->bufferType != type ||
         inf->camera != camera ||
         inf->bufferTransform != transform ||
