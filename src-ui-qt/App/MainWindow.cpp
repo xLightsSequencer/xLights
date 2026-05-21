@@ -15,6 +15,7 @@
 #include "../Bridge/SubBufferUtil.h"
 #include "../Layout/HousePreviewWidget.h"
 #include "../Layout/LayoutWindow.h"
+#include "../Controllers/ControllerVisualizerWindow.h"
 #include "../Preview/PreviewWidget.h"
 #include "../Sequencer/SequencerModel.h"
 #include "../Sequencer/SequencerWidget.h"
@@ -196,6 +197,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     _modelInfoWin      = new ModelInfoWindow(this);
     _controllerInfoWin = new ControllerInfoWindow(this);
     _layoutWin         = new LayoutWindow(this);
+    _controllerVizWin  = new ControllerVisualizerWindow(this);
+
+    connect(_controllerInfoWin, &ControllerInfoWindow::visualizerRequested,
+            this, [this](const QString& name) {
+        _controllerVizWin->openForController(name);
+    });
 }
 
 // ── Render helper ─────────────────────────────────────────────────────────────

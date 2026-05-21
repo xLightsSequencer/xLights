@@ -14,6 +14,7 @@
 #include "../../src-core/models/ModelManager.h"
 #include "../../src-core/outputs/OutputManager.h"
 #include "../../src-core/outputs/Controller.h"
+#include "../../src-core/controllers/ControllerCaps.h"
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 static int roundToFrame(int ms, int frameMs) {
@@ -716,6 +717,11 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
             }
         }
 
+        // ── Controller wiring ─────────────────────────────────────────────────
+        mi.controllerName = QString::fromUtf8(m.attribute("Controller").as_string(""));
+        if (auto cc = m.child("ControllerConnection"))
+            mi.controllerPort = cc.attribute("Port").as_int(0);
+
         // ── Sub-models ────────────────────────────────────────────────────────
         for (auto smNode : m.children("subModel")) {
             QtSubModelInfo sm;
@@ -848,7 +854,13 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         ci.startChannel = c->GetStartChannel();
         ci.channelCount = c->GetChannels();
         ci.protocol     = QString::fromStdString(c->GetProtocol());
-        ci.universeOrBaud = 0;   // available on ControllerEthernet; skip cast for now
+        ci.universeOrBaud = 0;
+        // Port capabilities from ControllerCaps if this is a known smart controller.
+        if (const ControllerCaps* caps = ControllerCaps::GetControllerConfig(c)) {
+            ci.pixelPortCount    = caps->GetMaxPixelPort();
+            ci.serialPortCount   = caps->GetMaxSerialPort();
+            ci.pixelPortChannels = caps->GetMaxPixelPortChannels();
+        }
         info.controllers.append(ci);
     }
 }

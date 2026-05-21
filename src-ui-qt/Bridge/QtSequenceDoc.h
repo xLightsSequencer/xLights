@@ -80,6 +80,10 @@ struct QtModelInfo {
     // Computed in loadModels from nodePositions + worldPos + scale.
     QList<QPointF> globalPositions;
 
+    // Controller wiring from the <model> element.
+    QString controllerName;     // value of Controller="" attribute
+    int     controllerPort = 0; // Port from <ControllerConnection Port="N"/>
+
     // Sub-models, faces, and states parsed from the <model> element.
     QList<QtSubModelInfo> subModels;
     QList<QtFaceInfo>     faces;
@@ -95,6 +99,11 @@ struct QtControllerInfo {
     int     channelCount = 0;
     int     universeOrBaud = 0;
     QString protocol;       // e131, artnet, DDP, DMX, …
+
+    // Port capabilities from ControllerCaps (0 = unknown / not a smart controller).
+    int     pixelPortCount    = 0;
+    int     serialPortCount   = 0;
+    int     pixelPortChannels = 0;   // max channels per pixel port
 };
 
 struct QtEffectBlock {

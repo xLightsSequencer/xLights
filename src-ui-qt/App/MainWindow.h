@@ -7,6 +7,7 @@
 #include <QVector>
 
 class ControllerInfoWindow;
+class ControllerVisualizerWindow;
 class EffectPanelWidget;
 class LayoutWindow;
 class EffectToolBar;
@@ -98,7 +99,8 @@ PlaybackController*  _playback      = nullptr;
     QHash<QString, QVector<QVector<QRgb>>> _renderCache;
     bool                                   _renderCacheValid = false;
 
-    ModelInfoWindow*      _modelInfoWin      = nullptr;
-    ControllerInfoWindow* _controllerInfoWin = nullptr;
-    LayoutWindow*         _layoutWin         = nullptr;
+    ModelInfoWindow*             _modelInfoWin      = nullptr;
+    ControllerInfoWindow*        _controllerInfoWin = nullptr;
+    LayoutWindow*                _layoutWin         = nullptr;
+    ControllerVisualizerWindow*  _controllerVizWin  = nullptr;
 };
