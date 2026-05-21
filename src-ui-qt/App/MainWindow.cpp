@@ -137,12 +137,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
             triggerRender(name);
     });
 
-    // Render result → buffer widget + preview (with physical node layout)
+    // Render result → buffer canvas + model preview.
+    // The house preview is NOT touched here — it is owned exclusively by
+    // renderAllModels() so all models in the yard always come from the same
+    // render pass at the same frame position.
     connect(_renderBridge, &QtRenderBridge::frameReady,
             this, [this](const QtEffectRenderer::Result& r) {
         _effectPanel->setBufferPixels(r.w, r.h, r.pixels);
         const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
         if (seq.isGroup(_currentModel)) {
+            // Groups distribute to the model preview; house is still owned by renderAllModels.
             distributeGroupToMembers(_currentModel, r.pixels, /*updateModelPreview=*/true);
             return;
         }
@@ -343,11 +347,12 @@ void MainWindow::renderAllLayers() {
         return;
     }
 
-    // Individual models: show the effect buffer in the model preview.
+    // Individual models: update the model preview only.
+    // renderAllModels() owns the house preview so it always shows all models
+    // from the same src-core render pass at the same frame position.
     QtEffectRenderer::Result result;
     result.w = bufW; result.h = bufH; result.pixels = composite;
     _preview->setResult(result, mi.nodePositions);
-    _housePreview->setModelPixels(_currentModel, composite);
 }
 
 void MainWindow::renderAllModels() {
@@ -666,6 +671,10 @@ void MainWindow::onBlockSelected(int row, int block) {
     // Composite ALL layers of this model at the current playhead position
     // so sub-buffer bands, marquees, and overlapping effects are shown together.
     renderAllLayers();
+
+    // Refresh the house preview so it shows ALL models at the same frame from
+    // the same src-core render pass — keeps the yard view consistent.
+    renderAllModels();
 
     statusBar()->showMessage(
         QString("Row %1 | %2 | frames %3–%4")

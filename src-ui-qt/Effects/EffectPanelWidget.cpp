@@ -94,8 +94,10 @@ EffectPanelWidget::EffectPanelWidget(QWidget* parent) : QWidget(parent) {
         notifyChange();
     });
 
-    connect(_layerBlend, &LayerBlendWidget::blendModeChanged,
-            this, [this](const QString&) { notifyChange(); });
+    connect(_layerBlend, &LayerBlendWidget::changed, this, [this]() {
+        _layerBlend->writeSettings(_settings);
+        notifyChange();
+    });
 
     connect(_subBuffer, &SubBufferWidget::changed, this, [this]() {
         _subBuffer->writeSettings(_settings);
@@ -143,7 +145,7 @@ static QVariantMap parseRawSettings(const QString& raw) {
     static const QStringList kCtrlPfx = {
         "TEXTCTRL_", "SLIDER_", "CHECKBOX_", "CHOICE_", "SPINCTRL_",
         "FILEPICKERCTRL_", "FONTPICKER_", "CUSTOM_", "VALUECURVE_",
-        "0FILEPICKERCTRL_", "TOGGLEBUTTON_", "NOTEBOOK_", "PANEL_"
+        "BUTTON_", "0FILEPICKERCTRL_", "TOGGLEBUTTON_", "NOTEBOOK_", "PANEL_"
     };
     QVariantMap result;
     for (const QString& part : raw.split(',', Qt::SkipEmptyParts)) {
@@ -157,15 +159,15 @@ static QVariantMap parseRawSettings(const QString& raw) {
         const QChar pfxChar = key[0];
         key = key.mid(2);
 
-        if (pfxChar == 'E') {
-            for (const QString& cpfx : kCtrlPfx)
-                if (key.startsWith(cpfx)) { key = key.mid(cpfx.size()); break; }
-        }
-        // C_: include colour settings but skip palette entries
-        // (C_CHECKBOX_Palette\d+ / C_BUTTON_Palette\d+ handled by loadBlockPalette).
+        // E_, B_, C_, T_ — all strip the inner control-class prefix so bare IDs
+        // flow into _settings and match the JSON property id fields directly.
+        for (const QString& cpfx : kCtrlPfx)
+            if (key.startsWith(cpfx)) { key = key.mid(cpfx.size()); break; }
+
+        // C_: skip palette entries (handled by loadBlockPalette).
         if (pfxChar == 'C') {
             static const QRegularExpression kPaletteKey(
-                "^(CHECKBOX|BUTTON)_Palette\\d+$");
+                "^Palette\\d+$");
             if (!kPaletteKey.match(key).hasMatch())
                 result[key] = val;
         } else {
@@ -187,6 +189,7 @@ void EffectPanelWidget::showEffect(const QString& effectName,
     buildControls(effectName);
     _subBuffer->loadSettings(_settings);
     _colour->loadSettings(_settings);
+    _layerBlend->loadSettings(_settings);
     // Switch to Tab 1 automatically so the user sees effect controls.
     _tabs->setCurrentIndex(0);
     notifyChange();
@@ -202,6 +205,7 @@ void EffectPanelWidget::showEffect(const QString& effectName) {
     buildControls(effectName);
     _subBuffer->loadSettings(_settings);
     _colour->loadSettings(_settings);
+    _layerBlend->loadSettings(_settings);
     _tabs->setCurrentIndex(0);
     notifyChange();
 }

@@ -1,100 +1,94 @@
 #include "ColourSettingsWidget.h"
+#include "EffectControlBuilder.h"
+#include "../App/QtXLightsApp.h"
+
+#include <spdlog/spdlog.h>
 
 #include <QCheckBox>
 #include <QColorDialog>
+#include <QFile>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSignalBlocker>
 #include <QSlider>
 #include <QVBoxLayout>
 
-// ── Helper: labelled slider row ───────────────────────────────────────────────
-static QSlider* makeSlider(int lo, int hi, int def, QWidget* parent) {
-    auto* s = new QSlider(Qt::Horizontal, parent);
-    s->setRange(lo, hi);
-    s->setValue(def);
-    return s;
+// ── ECB section (re)build ─────────────────────────────────────────────────────
+
+void ColourSettingsWidget::buildEcbSection() {
+    if (auto* old = _scroll->takeWidget()) old->deleteLater();
+
+    // Collect non-custom properties from Color.json
+    nlohmann::json props = nlohmann::json::array();
+    if (_json.contains("properties") && _json["properties"].is_array()) {
+        for (const auto& p : _json["properties"]) {
+            if (p.value("controlType", "") != "custom")
+                props.push_back(p);
+        }
+    }
+
+    auto* w = new QWidget;
+    auto* lay = new QVBoxLayout(w);
+    lay->setContentsMargins(4, 4, 4, 4);
+    lay->setSpacing(4);
+    EffectControlBuilder::build(w, lay, props,
+                                _settings, [this]() { emit changed(); });
+    _scroll->setWidget(w);
 }
 
 // ── Construction ──────────────────────────────────────────────────────────────
 
 ColourSettingsWidget::ColourSettingsWidget(QWidget* parent) : QWidget(parent) {
+    // Load Color.json
+    const QString jsonPath = QtXLightsApp::instance().effectMetadataDir()
+                             + "/shared/Color.json";
+    QFile f(jsonPath);
+    if (f.open(QIODevice::ReadOnly)) {
+        try { _json = nlohmann::json::parse(f.readAll().toStdString()); }
+        catch (...) { spdlog::warn("ColourSettingsWidget: failed to parse Color.json"); }
+    } else {
+        spdlog::warn("ColourSettingsWidget: cannot open {}", jsonPath.toStdString());
+    }
+
     auto* vbox = new QVBoxLayout(this);
-    vbox->setContentsMargins(8, 8, 8, 8);
-    vbox->setSpacing(10);
+    vbox->setContentsMargins(4, 4, 4, 4);
+    vbox->setSpacing(6);
 
-    auto makeValLabel = [](int v, int w = 36) {
-        auto* l = new QLabel(QString::number(v));
-        l->setFixedWidth(w);
-        l->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        return l;
-    };
+    // ── ECB scroll (Brightness, Contrast, HSV sliders) ────────────────────────
+    _scroll = new QScrollArea(this);
+    _scroll->setWidgetResizable(true);
+    _scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _scroll->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    vbox->addWidget(_scroll);
 
-    auto sliderRow = [&](QFormLayout* form, const QString& label,
-                         QSlider* slider, QLabel* valLbl) {
-        auto* row = new QWidget;
-        auto* h   = new QHBoxLayout(row);
-        h->setContentsMargins(0,0,0,0);
-        h->setSpacing(4);
-        h->addWidget(slider, 1);
-        h->addWidget(valLbl);
-        form->addRow(label, row);
-    };
-
-    // ── HSV Adjustment ────────────────────────────────────────────────────────
-    {
-        auto* grp  = new QGroupBox("HSV Adjustment", this);
-        auto* form = new QFormLayout(grp);
-        form->setSpacing(6);
-
-        _hue    = makeSlider(-180, 180, 0, grp);
-        _hueVal = makeValLabel(0, 40);
-        sliderRow(form, "Hue:", _hue, _hueVal);
-
-        _sat    = makeSlider(-100, 100, 0, grp);
-        _satVal = makeValLabel(0, 40);
-        sliderRow(form, "Saturation:", _sat, _satVal);
-
-        _val    = makeSlider(-100, 100, 0, grp);
-        _valVal = makeValLabel(0, 40);
-        sliderRow(form, "Value:", _val, _valVal);
-
-        vbox->addWidget(grp);
-    }
-
-    // ── Brightness / Contrast ─────────────────────────────────────────────────
-    {
-        auto* grp  = new QGroupBox("Brightness / Contrast", this);
-        auto* form = new QFormLayout(grp);
-        form->setSpacing(6);
-
-        _brightness    = makeSlider(0, 100, 100, grp);
-        _brightnessVal = makeValLabel(100);
-        sliderRow(form, "Brightness:", _brightness, _brightnessVal);
-
-        _contrast    = makeSlider(0, 100, 0, grp);
-        _contrastVal = makeValLabel(0);
-        sliderRow(form, "Contrast:", _contrast, _contrastVal);
-
-        vbox->addWidget(grp);
-    }
+    buildEcbSection();
 
     // ── Sparkle ───────────────────────────────────────────────────────────────
     {
         auto* grp  = new QGroupBox("Sparkle", this);
         auto* form = new QFormLayout(grp);
-        form->setSpacing(6);
+        form->setSpacing(4);
 
-        _sparkle    = makeSlider(0, 200, 0, grp);
-        _sparkleVal = makeValLabel(0);
-        sliderRow(form, "Frequency:", _sparkle, _sparkleVal);
+        _sparkle    = new QSlider(Qt::Horizontal, grp);
+        _sparkle->setRange(0, 200);
+        _sparkle->setValue(0);
+        _sparkleVal = new QLabel("0", grp);
+        _sparkleVal->setFixedWidth(32);
+
+        auto* srow = new QWidget(grp);
+        auto* sh   = new QHBoxLayout(srow);
+        sh->setContentsMargins(0,0,0,0);
+        sh->addWidget(_sparkle, 1);
+        sh->addWidget(_sparkleVal);
+        form->addRow("Frequency:", srow);
 
         _musicSparkle = new QCheckBox("Sync to music", grp);
-        form->addRow("Music sparkle:", _musicSparkle);
+        form->addRow(_musicSparkle);
 
         vbox->addWidget(grp);
     }
@@ -103,11 +97,9 @@ ColourSettingsWidget::ColourSettingsWidget(QWidget* parent) : QWidget(parent) {
     {
         auto* grp  = new QGroupBox("Shimmer", this);
         auto* form = new QFormLayout(grp);
-        form->setSpacing(6);
-
+        form->setSpacing(4);
         _shimmer = new QCheckBox("Enable shimmer", grp);
         form->addRow(_shimmer);
-
         vbox->addWidget(grp);
     }
 
@@ -115,7 +107,7 @@ ColourSettingsWidget::ColourSettingsWidget(QWidget* parent) : QWidget(parent) {
     {
         auto* grp  = new QGroupBox("Chroma Key", this);
         auto* form = new QFormLayout(grp);
-        form->setSpacing(6);
+        form->setSpacing(4);
 
         _chromaEnable = new QCheckBox("Enable", grp);
         form->addRow(_chromaEnable);
@@ -126,52 +118,46 @@ ColourSettingsWidget::ColourSettingsWidget(QWidget* parent) : QWidget(parent) {
         updateChromaButton();
         form->addRow("Key colour:", _chromaColour);
 
-        _chromaThresh    = makeSlider(0, 100, 10, grp);
-        _chromaThreshVal = makeValLabel(10);
+        _chromaThresh = new QSlider(Qt::Horizontal, grp);
+        _chromaThresh->setRange(0, 100);
+        _chromaThresh->setValue(10);
         _chromaThresh->setEnabled(false);
-        sliderRow(form, "Threshold:", _chromaThresh, _chromaThreshVal);
+        _chromaThreshVal = new QLabel("10", grp);
+        _chromaThreshVal->setFixedWidth(32);
+
+        auto* trow = new QWidget(grp);
+        auto* th   = new QHBoxLayout(trow);
+        th->setContentsMargins(0,0,0,0);
+        th->addWidget(_chromaThresh, 1);
+        th->addWidget(_chromaThreshVal);
+        form->addRow("Threshold:", trow);
 
         vbox->addWidget(grp);
     }
 
-    vbox->addStretch(1);
-
-    connectSignals();
+    connectCustomSignals();
 }
 
 // ── Signal wiring ─────────────────────────────────────────────────────────────
 
-void ColourSettingsWidget::connectSignals() {
-    connect(_hue, &QSlider::valueChanged, this, [this](int v) {
-        _hueVal->setText(QString::number(v));
-        emit changed();
-    });
-    connect(_sat, &QSlider::valueChanged, this, [this](int v) {
-        _satVal->setText(QString::number(v));
-        emit changed();
-    });
-    connect(_val, &QSlider::valueChanged, this, [this](int v) {
-        _valVal->setText(QString::number(v));
-        emit changed();
-    });
-    connect(_brightness, &QSlider::valueChanged, this, [this](int v) {
-        _brightnessVal->setText(QString::number(v));
-        emit changed();
-    });
-    connect(_contrast, &QSlider::valueChanged, this, [this](int v) {
-        _contrastVal->setText(QString::number(v));
-        emit changed();
-    });
+void ColourSettingsWidget::connectCustomSignals() {
     connect(_sparkle, &QSlider::valueChanged, this, [this](int v) {
         _sparkleVal->setText(QString::number(v));
+        _settings["SparkleFrequency"] = v;
         emit changed();
     });
-    connect(_musicSparkle, &QCheckBox::toggled, this, [this]() { emit changed(); });
-    connect(_shimmer,      &QCheckBox::toggled, this, [this]() { emit changed(); });
-
+    connect(_musicSparkle, &QCheckBox::toggled, this, [this](bool on) {
+        _settings["MusicSparkle"] = on ? "1" : "0";
+        emit changed();
+    });
+    connect(_shimmer, &QCheckBox::toggled, this, [this](bool on) {
+        _settings["Shimmer"] = on ? "1" : "0";
+        emit changed();
+    });
     connect(_chromaEnable, &QCheckBox::toggled, this, [this](bool on) {
         _chromaColour->setEnabled(on);
         _chromaThresh->setEnabled(on);
+        _settings["ChromaKey"] = on ? "1" : "0";
         emit changed();
     });
     connect(_chromaColour, &QPushButton::clicked, this, [this]() {
@@ -179,11 +165,13 @@ void ColourSettingsWidget::connectSignals() {
         if (c.isValid()) {
             _chromaColor = c;
             updateChromaButton();
+            _settings["ChromaColour"] = _chromaColor.name().toUpper();
             emit changed();
         }
     });
     connect(_chromaThresh, &QSlider::valueChanged, this, [this](int v) {
         _chromaThreshVal->setText(QString::number(v));
+        _settings["ChromaKeyThreshold"] = v;
         emit changed();
     });
 }
@@ -196,59 +184,49 @@ void ColourSettingsWidget::updateChromaButton() {
 }
 
 // ── Settings I/O ──────────────────────────────────────────────────────────────
-// Keys use the C_ control-class form (SLIDER_Brightness etc.) since
-// parseRawSettings strips only the "C_" type prefix, leaving the
-// SLIDER_/CHECKBOX_/BUTTON_ control-class prefix intact for C_ keys.
+// All keys are bare IDs matching Color.json ids (prefix stripped by parseRawSettings).
 
 void ColourSettingsWidget::loadSettings(const QVariantMap& s) {
-    QSignalBlocker b1(_brightness), b2(_contrast), b3(_sparkle),
-                   b4(_musicSparkle), b5(_shimmer),
-                   b6(_chromaEnable), b7(_chromaThresh),
-                   b8(_hue), b9(_sat), b10(_val);
+    // Only extract keys managed by this widget (Color.json IDs + custom compound keys).
+    _settings.clear();
+    if (_json.contains("properties") && _json["properties"].is_array()) {
+        for (const auto& p : _json["properties"]) {
+            if (p.value("controlType", "") == "custom") continue;
+            const QString id = QString::fromStdString(p.value("id", ""));
+            if (!id.isEmpty() && s.contains(id)) _settings[id] = s[id];
+        }
+    }
+    // Hand-coded custom keys
+    for (const QString& k : {"SparkleFrequency", "MusicSparkle", "Shimmer",
+                              "ChromaKey", "ChromaColour", "ChromaKeyThreshold"})
+        if (s.contains(k)) _settings[k] = s[k];
 
-    _hue->setValue(s.value("SLIDER_Color_HueAdjust",        0).toInt());
-    _hueVal->setText(QString::number(_hue->value()));
-    _sat->setValue(s.value("SLIDER_Color_SaturationAdjust", 0).toInt());
-    _satVal->setText(QString::number(_sat->value()));
-    _val->setValue(s.value("SLIDER_Color_ValueAdjust",      0).toInt());
-    _valVal->setText(QString::number(_val->value()));
+    buildEcbSection();
 
-    _brightness->setValue(s.value("SLIDER_Brightness",      100).toInt());
-    _brightnessVal->setText(QString::number(_brightness->value()));
+    QSignalBlocker b1(_sparkle), b2(_musicSparkle), b3(_shimmer),
+                   b4(_chromaEnable), b5(_chromaThresh);
 
-    _contrast->setValue(s.value("SLIDER_Contrast",          0).toInt());
-    _contrastVal->setText(QString::number(_contrast->value()));
-
-    _sparkle->setValue(s.value("SLIDER_SparkleFrequency",   0).toInt());
+    _sparkle->setValue(_settings.value("SparkleFrequency", 0).toInt());
     _sparkleVal->setText(QString::number(_sparkle->value()));
 
-    _musicSparkle->setChecked(s.value("CHECKBOX_MusicSparkle", "0").toString() == "1");
-    _shimmer->setChecked(     s.value("CHECKBOX_Shimmer",      "0").toString() == "1");
+    _musicSparkle->setChecked(_settings.value("MusicSparkle", "0").toString() == "1");
+    _shimmer->setChecked(_settings.value("Shimmer", "0").toString() == "1");
 
-    const bool chromaOn = s.value("CHECKBOX_ChromaKey", "0").toString() == "1";
+    const bool chromaOn = _settings.value("ChromaKey", "0").toString() == "1";
     _chromaEnable->setChecked(chromaOn);
     _chromaColour->setEnabled(chromaOn);
     _chromaThresh->setEnabled(chromaOn);
 
-    const QString colStr = s.value("BUTTON_ChromaColour", "#00FF00").toString();
+    const QString colStr = _settings.value("ChromaColour", "#00FF00").toString();
     _chromaColor = QColor(colStr.isEmpty() ? "#00FF00" : colStr);
     if (!_chromaColor.isValid()) _chromaColor = Qt::green;
     updateChromaButton();
 
-    _chromaThresh->setValue(s.value("SLIDER_ChromaKeyThreshold", 10).toInt());
+    _chromaThresh->setValue(_settings.value("ChromaKeyThreshold", 10).toInt());
     _chromaThreshVal->setText(QString::number(_chromaThresh->value()));
 }
 
 void ColourSettingsWidget::writeSettings(QVariantMap& s) const {
-    s["SLIDER_Color_HueAdjust"]        = _hue->value();
-    s["SLIDER_Color_SaturationAdjust"] = _sat->value();
-    s["SLIDER_Color_ValueAdjust"]      = _val->value();
-    s["SLIDER_Brightness"]             = _brightness->value();
-    s["SLIDER_Contrast"]          = _contrast->value();
-    s["SLIDER_SparkleFrequency"]  = _sparkle->value();
-    s["CHECKBOX_MusicSparkle"]    = _musicSparkle->isChecked() ? "1" : "0";
-    s["CHECKBOX_Shimmer"]         = _shimmer->isChecked()      ? "1" : "0";
-    s["CHECKBOX_ChromaKey"]       = _chromaEnable->isChecked() ? "1" : "0";
-    s["BUTTON_ChromaColour"]      = _chromaColor.name().toUpper();
-    s["SLIDER_ChromaKeyThreshold"] = _chromaThresh->value();
+    for (auto it = _settings.cbegin(); it != _settings.cend(); ++it)
+        s[it.key()] = it.value();
 }

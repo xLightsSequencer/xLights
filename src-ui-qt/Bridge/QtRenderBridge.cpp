@@ -174,15 +174,25 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
                 settings[k]        = it->second;   // keep prefixed form too
             }
         } else {
+            // Settings map uses bare IDs (JSON id fields); add all prefix×control-type
+            // forms so src-core can find them regardless of which prefix it uses.
+            static const std::string kPfx[] = {"E_","B_","C_","T_"};
+            static const std::string kCtrl[] = {
+                "SLIDER_","CHECKBOX_","CHOICE_","TEXTCTRL_",
+                "SPINCTRL_","FILEPICKERCTRL_","CUSTOM_","BUTTON_","VALUECURVE_"
+            };
             for (auto it = req.settings.begin(); it != req.settings.end(); ++it) {
                 const std::string k = it.key().toStdString();
                 const std::string v = it.value().toString().toStdString();
-                settings[k]                       = v;
-                settings["E_SLIDER_"        + k]  = v;
-                settings["E_CHECKBOX_"      + k]  = v;
-                settings["E_CHOICE_"        + k]  = v;
-                settings["E_TEXTCTRL_"      + k]  = v;
-                settings["E_FILEPICKERCTRL_"+ k]  = v;
+                settings[k] = v;
+                // Add prefix×control-type forms (e.g., "B_CHOICE_BufferStyle")
+                // and also control-type-only forms (e.g., "CHOICE_BufferStyle")
+                // so src-core can find settings regardless of which prefix it reads.
+                for (const auto& ct : kCtrl)
+                    settings[ct + k] = v;
+                for (const auto& pfx : kPfx)
+                    for (const auto& ct : kCtrl)
+                        settings[pfx + ct + k] = v;
             }
         }
 

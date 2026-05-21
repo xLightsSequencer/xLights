@@ -2,15 +2,18 @@
 #include <QColor>
 #include <QVariantMap>
 #include <QWidget>
+#include <nlohmann/json.hpp>
 
 class QCheckBox;
 class QLabel;
+class QScrollArea;
 class QSlider;
 class QPushButton;
 
-// Tab 2 — Colour settings.
-// Mirrors xLights' colour panel: brightness, contrast, sparkle,
-// shimmer, and chroma-key.  Settings are stored as C_* keys.
+// Tab 2 — Colour settings loaded from Color.json.
+// Non-custom properties (Brightness, Contrast, HSV) are built by EffectControlBuilder.
+// Compound custom controls (Sparkle, Shimmer, Chroma Key) are hand-coded below.
+// All settings keys are bare IDs matching Color.json property ids.
 class ColourSettingsWidget : public QWidget {
     Q_OBJECT
 public:
@@ -23,32 +26,19 @@ signals:
     void changed();
 
 private:
-    void connectSignals();
+    void buildEcbSection();
+    void connectCustomSignals();
     void updateChromaButton();
 
-    // HSV adjustment
-    QSlider* _hue    = nullptr;
-    QLabel*  _hueVal = nullptr;
-    QSlider* _sat    = nullptr;
-    QLabel*  _satVal = nullptr;
-    QSlider* _val    = nullptr;
-    QLabel*  _valVal = nullptr;
+    nlohmann::json _json;
+    QVariantMap    _settings;
+    QScrollArea*   _scroll = nullptr;
 
-    // Brightness / contrast
-    QSlider* _brightness    = nullptr;
-    QLabel*  _brightnessVal = nullptr;
-    QSlider* _contrast      = nullptr;
-    QLabel*  _contrastVal   = nullptr;
-
-    // Sparkle
-    QSlider*   _sparkle      = nullptr;
-    QLabel*    _sparkleVal   = nullptr;
-    QCheckBox* _musicSparkle = nullptr;
-
-    // Shimmer
-    QCheckBox* _shimmer = nullptr;
-
-    // Chroma key
+    // Hand-coded custom controls
+    QSlider*    _sparkle      = nullptr;
+    QLabel*     _sparkleVal   = nullptr;
+    QCheckBox*  _musicSparkle = nullptr;
+    QCheckBox*  _shimmer      = nullptr;
     QCheckBox*  _chromaEnable = nullptr;
     QPushButton* _chromaColour = nullptr;
     QSlider*    _chromaThresh = nullptr;

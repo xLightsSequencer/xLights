@@ -1,144 +1,48 @@
 #include "SubBufferWidget.h"
+#include "EffectControlBuilder.h"
 #include "SubBufferCanvas.h"
+#include "../App/QtXLightsApp.h"
+
+#include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 #include <QCheckBox>
-#include <QComboBox>
-#include <QFormLayout>
-#include <QGroupBox>
-#include <QLabel>
+#include <QFile>
+#include <QScrollArea>
 #include <QSignalBlocker>
-#include <QSlider>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
-SubBufferWidget::SubBufferWidget(QWidget* parent) : QWidget(parent) {
-    auto* box = new QGroupBox("Buffer", this);
-    auto* outer = new QVBoxLayout(this);
-    outer->setContentsMargins(0, 0, 0, 0);
-    outer->addWidget(box);
+// ── JSON helpers ──────────────────────────────────────────────────────────────
 
-    auto* form = new QFormLayout(box);
-    form->setContentsMargins(6, 4, 6, 4);
-    form->setSpacing(4);
+// Returns the properties array for the named tab (skips custom controlType).
+nlohmann::json SubBufferWidget::tabProps(const std::string& tabLabel) const {
+    std::map<std::string, nlohmann::json> byId;
+    if (_json.contains("properties") && _json["properties"].is_array())
+        for (const auto& p : _json["properties"])
+            if (p.contains("id")) byId[p["id"].get<std::string>()] = p;
 
-    // ── Buffer Style ──────────────────────────────────────────────────────
-    _style = new QComboBox(box);
-    for (const char* s : {"Default",
-                           "Single Line",
-                           "Horizontal Per Model/Strand",
-                           "Vertical Per Model/Strand",
-                           "Per Model Default",
-                           "Per Preview",
-                           "Per Preview Model",
-                           "Rotate CW 90",
-                           "Rotate CCW 90"})
-        _style->addItem(s);
-    form->addRow("Style:", _style);
-
-    // ── Buffer Transform ──────────────────────────────────────────────────
-    _transform = new QComboBox(box);
-    for (const char* t : {"None",
-                           "Rotate CW 90",
-                           "Rotate CCW 90",
-                           "Rotate 180",
-                           "Flip Horizontal",
-                           "Flip Vertical",
-                           "Flip H&V"})
-        _transform->addItem(t);
-    form->addRow("Transform:", _transform);
-
-    // ── Overlay Background ────────────────────────────────────────────────
-    _overlay = new QCheckBox(box);
-    form->addRow("Overlay Bkg:", _overlay);
-
-    // ── Sub-Buffer canvas ─────────────────────────────────────────────────────
-    _oversized = new QCheckBox("Oversized (-100 to 200)", box);
-    form->addRow(_oversized);
-
-    _canvas = new SubBufferCanvas(box);
-    form->addRow(_canvas);
-
-    // ── Sub-Buffer sliders ─────────────────────────────────────────────────────
-    auto makeSlider = [&](const QString& label) {
-        auto* sl = new QSlider(Qt::Horizontal, box);
-        sl->setRange(0, 100);
-        sl->setValue(0);
-        sl->setTickPosition(QSlider::TicksBelow);
-        sl->setTickInterval(25);
-        form->addRow(label, sl);
-        return sl;
-    };
-    _left   = makeSlider("Sub Left %:");
-    _right  = makeSlider("Sub Right %:");
-    _bottom = makeSlider("Sub Bottom %:");
-    _top    = makeSlider("Sub Top %:");
-    _right->setValue(100);
-    _top->setValue(100);
-
-    _sbLabel = new QLabel("L:0  R:100  B:0  T:100", box);
-    _sbLabel->setStyleSheet("color:#888; font-size:10px;");
-    form->addRow("", _sbLabel);
-
-    connectSignals();
-}
-
-void SubBufferWidget::connectSignals() {
-    auto notify = [this]() {
-        updateSubBufferLabel();
-        // Keep canvas in sync with sliders.
-        QSignalBlocker b(_canvas);
-        _canvas->setRegion(_left->value(), _bottom->value(),
-                           _right->value(), _top->value());
-        emit changed();
-    };
-    connect(_style,     QOverload<int>::of(&QComboBox::currentIndexChanged), this, notify);
-    connect(_transform, QOverload<int>::of(&QComboBox::currentIndexChanged), this, notify);
-    connect(_overlay,   &QCheckBox::toggled,          this, notify);
-    connect(_left,      &QSlider::valueChanged,       this, notify);
-    connect(_right,     &QSlider::valueChanged,       this, notify);
-    connect(_bottom,    &QSlider::valueChanged,       this, notify);
-    connect(_top,       &QSlider::valueChanged,       this, notify);
-
-    // Canvas → sliders
-    connect(_canvas, &SubBufferCanvas::regionChanged,
-            this, [this](int l, int b, int r, int t) {
-        QSignalBlocker bL(_left), bR(_right), bB(_bottom), bT(_top);
-        _left->setValue(l); _right->setValue(r);
-        _bottom->setValue(b); _top->setValue(t);
-        updateSubBufferLabel();
-        emit changed();
-    });
-
-    // Oversized toggle: expand/contract slider ranges and canvas coordinate space.
-    connect(_oversized, &QCheckBox::toggled, this, [this](bool on) {
-        setSliderRanges(on);
-        _canvas->setOversized(on);
-        // setOversized emits regionChanged which updates sliders; suppress double-emit.
-        emit changed();
-    });
-}
-
-void SubBufferWidget::setSliderRanges(bool oversized) {
-    const int lo = oversized ? -100 : 0;
-    const int hi = oversized ?  200 : 100;
-    for (QSlider* sl : {_left, _right, _bottom, _top})
-        sl->setRange(lo, hi);
-}
-
-void SubBufferWidget::updateSubBufferLabel() {
-    _sbLabel->setText(QString("L:%1  R:%2  B:%3  T:%4")
-                      .arg(_left->value())
-                      .arg(_right->value())
-                      .arg(_bottom->value())
-                      .arg(_top->value()));
+    nlohmann::json result = nlohmann::json::array();
+    if (!_json.contains("groups")) return result;
+    for (const auto& group : _json["groups"]) {
+        if (group.value("type", "") != "tabs") continue;
+        for (const auto& tab : group.value("tabs", nlohmann::json::array())) {
+            if (tab.value("label", "") != tabLabel) continue;
+            for (const auto& pid : tab.value("properties", nlohmann::json::array())) {
+                auto it = byId.find(pid.get<std::string>());
+                if (it == byId.end()) continue;
+                if (it->second.value("controlType", "") != "custom")
+                    result.push_back(it->second);
+            }
+        }
+    }
+    return result;
 }
 
 // ── Sub-buffer codec ──────────────────────────────────────────────────────────
-// xLights encodes as "x1xy1xx2xy2x0x0" where the separator is the letter 'x'.
-// x1=left%, y1=bottom%, x2=right%, y2=top%, last two are centre offsets (0).
 
 QString SubBufferWidget::encodeSubBuffer(int left, int bottom, int right, int top) {
-    if (left == 0 && bottom == 0 && right == 100 && top == 100)
-        return {};   // empty = full buffer (no sub-buffer)
+    if (left == 0 && bottom == 0 && right == 100 && top == 100) return {};
     return QString("%1x%2x%3x%4x0x0").arg(left).arg(bottom).arg(right).arg(top);
 }
 
@@ -146,8 +50,6 @@ void SubBufferWidget::decodeSubBuffer(const QString& sb,
                                       int& left, int& bottom, int& right, int& top) {
     left = 0; bottom = 0; right = 100; top = 100;
     if (sb.isEmpty()) return;
-
-    // Replace "Max" with a placeholder that has no 'x', then split on 'x'.
     QString s = sb;
     s.replace("Max", "___");
     const QStringList parts = s.split('x');
@@ -162,49 +64,132 @@ void SubBufferWidget::decodeSubBuffer(const QString& sb,
     top    = toInt(3, 100);
 }
 
+// ── ECB rebuild helpers ───────────────────────────────────────────────────────
+
+void SubBufferWidget::buildBufferEcb() {
+    if (auto* old = _bufScroll->takeWidget()) old->deleteLater();
+    auto* w = new QWidget;
+    auto* lay = new QVBoxLayout(w);
+    lay->setContentsMargins(4, 4, 4, 4);
+    lay->setSpacing(4);
+    EffectControlBuilder::build(w, lay, tabProps("Buffer"),
+                                _settings, [this]() { emit changed(); });
+    _bufScroll->setWidget(w);
+}
+
+void SubBufferWidget::buildRotoZoomEcb() {
+    if (auto* old = _rzScroll->takeWidget()) old->deleteLater();
+    auto* w = new QWidget;
+    auto* lay = new QVBoxLayout(w);
+    lay->setContentsMargins(4, 4, 4, 4);
+    lay->setSpacing(4);
+    EffectControlBuilder::build(w, lay, tabProps("Roto-Zoom"),
+                                _settings, [this]() { emit changed(); });
+    _rzScroll->setWidget(w);
+}
+
+// ── Constructor ───────────────────────────────────────────────────────────────
+
+SubBufferWidget::SubBufferWidget(QWidget* parent) : QWidget(parent) {
+    // Load Buffer.json
+    const QString jsonPath = QtXLightsApp::instance().effectMetadataDir()
+                             + "/shared/Buffer.json";
+    QFile f(jsonPath);
+    if (f.open(QIODevice::ReadOnly)) {
+        try { _json = nlohmann::json::parse(f.readAll().toStdString()); }
+        catch (...) { spdlog::warn("SubBufferWidget: failed to parse Buffer.json"); }
+    } else {
+        spdlog::warn("SubBufferWidget: cannot open {}", jsonPath.toStdString());
+    }
+
+    auto* outer = new QVBoxLayout(this);
+    outer->setContentsMargins(0, 0, 0, 0);
+    outer->setSpacing(0);
+
+    _tabs = new QTabWidget(this);
+    outer->addWidget(_tabs, 1);
+
+    // ── Buffer tab ────────────────────────────────────────────────────────────
+    auto* bufTab = new QWidget;
+    auto* bufLay = new QVBoxLayout(bufTab);
+    bufLay->setContentsMargins(4, 4, 4, 4);
+    bufLay->setSpacing(4);
+
+    _bufScroll = new QScrollArea(bufTab);
+    _bufScroll->setWidgetResizable(true);
+    _bufScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _bufScroll->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    bufLay->addWidget(_bufScroll);
+
+    _oversized = new QCheckBox("Oversized (-100 to 200)", bufTab);
+    bufLay->addWidget(_oversized);
+
+    _canvas = new SubBufferCanvas(bufTab);
+    bufLay->addWidget(_canvas, 1);
+
+    _tabs->addTab(bufTab, "Buffer");
+
+    // ── Roto-Zoom tab ─────────────────────────────────────────────────────────
+    _rzScroll = new QScrollArea;
+    _rzScroll->setWidgetResizable(true);
+    _rzScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _tabs->addTab(_rzScroll, "Roto-Zoom");
+
+    // Build initial ECB content
+    buildBufferEcb();
+    buildRotoZoomEcb();
+
+    // ── Canvas / oversized signals ────────────────────────────────────────────
+    connect(_canvas, &SubBufferCanvas::regionChanged,
+            this, [this](int l, int b, int r, int t) {
+        _settings["SubBuffer"] = encodeSubBuffer(l, b, r, t);
+        emit changed();
+    });
+
+    connect(_oversized, &QCheckBox::toggled, this, [this](bool on) {
+        _canvas->setOversized(on);
+        emit changed();
+    });
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 void SubBufferWidget::loadSettings(const QVariantMap& settings) {
-    QSignalBlocker bStyle(_style), bTransform(_transform),
-                   bOverlay(_overlay), bL(_left), bR(_right), bB(_bottom), bT(_top),
-                   bCanvas(_canvas), bOver(_oversized);
+    // Only extract keys managed by this widget (Buffer.json property IDs + SubBuffer).
+    _settings.clear();
+    if (_json.contains("properties") && _json["properties"].is_array()) {
+        for (const auto& p : _json["properties"]) {
+            const QString id = QString::fromStdString(p.value("id", ""));
+            if (!id.isEmpty() && settings.contains(id))
+                _settings[id] = settings[id];
+        }
+    }
+    // Always seed SubBuffer even if not in properties (it's custom)
+    _settings["SubBuffer"] = settings.value("SubBuffer", "");
 
-    // Buffer style
-    const QString style = settings.value("CHOICE_BufferStyle", "Default").toString();
-    int idx = _style->findText(style);
-    _style->setCurrentIndex(idx >= 0 ? idx : 0);
+    buildBufferEcb();
+    buildRotoZoomEcb();
 
-    // Transform
-    const QString xform = settings.value("CHOICE_BufferTransform", "None").toString();
-    int tidx = _transform->findText(xform);
-    _transform->setCurrentIndex(tidx >= 0 ? tidx : 0);
-
-    // Overlay background
-    _overlay->setChecked(settings.value("CHECKBOX_OverlayBkg", "0").toString() == "1");
-
-    // Sub-buffer
-    const QString sb = settings.value("CUSTOM_SubBuffer", "").toString();
+    // Decode SubBuffer for the canvas
+    const QString sb = _settings.value("SubBuffer", "").toString();
     int l, bo, r, t;
     decodeSubBuffer(sb, l, bo, r, t);
-    // Auto-enable oversized mode if the loaded values are outside 0–100.
     const bool needOversized = (l < 0 || bo < 0 || r > 100 || t > 100);
-    _oversized->setChecked(needOversized);
-    setSliderRanges(needOversized);
+
+    {
+        QSignalBlocker bOver(_oversized);
+        _oversized->setChecked(needOversized);
+    }
     _canvas->setOversized(needOversized);
-
-    _left->setValue(l);
-    _bottom->setValue(bo);
-    _right->setValue(r);
-    _top->setValue(t);
-
-    updateSubBufferLabel();
-    _canvas->setRegion(l, bo, r, t);
+    {
+        QSignalBlocker bCanvas(_canvas);
+        _canvas->setRegion(l, bo, r, t);
+    }
 }
 
 void SubBufferWidget::writeSettings(QVariantMap& settings) const {
-    settings["CHOICE_BufferStyle"]    = _style->currentText();
-    settings["CHOICE_BufferTransform"]= _transform->currentText();
-    settings["CHECKBOX_OverlayBkg"]   = _overlay->isChecked() ? "1" : "0";
-    settings["CUSTOM_SubBuffer"]      = encodeSubBuffer(
-        _left->value(), _bottom->value(), _right->value(), _top->value());
+    for (auto it = _settings.cbegin(); it != _settings.cend(); ++it)
+        settings[it.key()] = it.value();
+    // Keep SubBuffer in sync with the canvas current state
+    // (canvas may have been dragged without a regionChanged if setRegion was blocked)
 }
