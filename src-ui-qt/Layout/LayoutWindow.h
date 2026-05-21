@@ -4,6 +4,7 @@
 #include <QString>
 #include <QWidget>
 
+class ModelEditDialog;
 class ModelLayoutCanvas;
 class QListWidget;
 class QListWidgetItem;
@@ -46,4 +47,6 @@ private:
 
     // Right side
     ModelLayoutCanvas* _canvas       = nullptr;
+
+    ModelEditDialog*   _editDialog   = nullptr;
 };

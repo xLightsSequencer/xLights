@@ -10,6 +10,30 @@
 // Reads the elements/layers/effects from a .xsq file without linking src-core.
 // Phase 5+ will replace this with a full SequenceElements integration.
 
+// One named node-range row inside a sub-model definition.
+struct QtSubModelInfo {
+    QString     name;
+    bool        vertical    = false;
+    bool        isRanges    = true;
+    QString     bufferStyle = "Default";
+    QStringList ranges;     // one entry per <subBuffer range="..."/>
+};
+
+// One face definition (maps phonemes → node ranges or single nodes).
+struct QtFaceInfo {
+    QString               name;
+    QString               type;   // "SingleNode" | "NodeRange" | "Matrix"
+    QMap<QString,QString> attrs;  // all XML attributes verbatim (incl. Name, Type)
+};
+
+// One named state (maps state keys → colors).
+struct QtStateInfo {
+    QString               name;
+    QString               type;   // "SingleNode" | "NodeRange"
+    bool                  customColors = false;
+    QMap<QString,QString> entries; // XML attrs excluding Name/Type/CustomColors
+};
+
 // Model dimensions and physical node layout loaded from xlights_rgbeffects.xml.
 struct QtModelInfo {
     QString       name;
@@ -46,6 +70,11 @@ struct QtModelInfo {
     // Global layout positions for each node in layout units (same space as worldPos).
     // Computed in loadModels from nodePositions + worldPos + scale.
     QList<QPointF> globalPositions;
+
+    // Sub-models, faces, and states parsed from the <model> element.
+    QList<QtSubModelInfo> subModels;
+    QList<QtFaceInfo>     faces;
+    QList<QtStateInfo>    states;
 };
 
 // Controller record extracted from xlights_networks.xml at sequence open time.

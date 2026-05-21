@@ -1065,6 +1065,7 @@ if(XLIGHTS_BUILD_QT)
         src-ui-qt/Layout/ModelLayoutCanvas.cpp
         src-ui-qt/Layout/HousePreviewWidget.cpp
         src-ui-qt/Layout/LayoutWindow.cpp
+        src-ui-qt/Layout/ModelEditDialog.cpp
         src-ui-qt/App/RenderDetailDialog.cpp
     )
 

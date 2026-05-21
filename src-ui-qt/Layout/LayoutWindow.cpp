@@ -1,10 +1,12 @@
 #include "LayoutWindow.h"
+#include "ModelEditDialog.h"
 #include "ModelLayoutCanvas.h"
 #include "../App/QtXLightsApp.h"
 #include "../Bridge/QtSequenceDoc.h"
 
 #include <QHeaderView>
 #include <QListWidget>
+#include <QPushButton>
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -36,6 +38,9 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     _propTable->setSelectionMode(QAbstractItemView::NoSelection);
     _propTable->setMinimumHeight(160);
 
+    auto* editBtn = new QPushButton("Edit Sub-Models / Faces / States…");
+    editBtn->setEnabled(false);
+
     _leftSplit = new QSplitter(Qt::Vertical);
     _leftSplit->addWidget(_tabs);
     _leftSplit->addWidget(_propTable);
@@ -56,8 +61,23 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     auto* root = new QVBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
     root->addWidget(mainSplit);
+    root->addWidget(editBtn);
 
     // ── Connections ───────────────────────────────────────────────────────
+    _editDialog = new ModelEditDialog(this);
+
+    // Enable edit button only when a model is selected; open on click or double-click.
+    connect(_modelList, &QListWidget::currentRowChanged, this, [editBtn, this](int row) {
+        editBtn->setEnabled(row >= 0);
+    });
+    connect(_modelList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem* item) {
+        if (item) _editDialog->openForModel(item->text());
+    });
+    connect(editBtn, &QPushButton::clicked, this, [this]() {
+        auto* item = _modelList->currentItem();
+        if (item) _editDialog->openForModel(item->text());
+    });
+
     connect(_modelList,      &QListWidget::itemClicked,
             this, &LayoutWindow::onModelListClicked);
     connect(_groupList,      &QListWidget::itemClicked,

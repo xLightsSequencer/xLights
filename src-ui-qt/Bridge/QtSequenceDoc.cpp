@@ -716,6 +716,50 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
             }
         }
 
+        // ── Sub-models ────────────────────────────────────────────────────────
+        for (auto smNode : m.children("subModel")) {
+            QtSubModelInfo sm;
+            // XML uses "name" (lower) in some versions, "Name" in others
+            const char* smName = smNode.attribute("name").as_string(
+                                     smNode.attribute("Name").as_string(""));
+            sm.name        = QString::fromUtf8(smName);
+            sm.vertical    = smNode.attribute("vertical").as_int(0) != 0;
+            sm.isRanges    = smNode.attribute("isRanges").as_int(1) != 0;
+            sm.bufferStyle = QString::fromUtf8(
+                                 smNode.attribute("bufferStyle").as_string("Default"));
+            for (auto sb : smNode.children("subBuffer"))
+                sm.ranges.append(QString::fromUtf8(sb.attribute("range").as_string("")));
+            if (!sm.name.isEmpty())
+                mi.subModels.append(sm);
+        }
+
+        // ── Faces ─────────────────────────────────────────────────────────────
+        for (auto fNode : m.children("faceInfo")) {
+            QtFaceInfo fi;
+            fi.name = QString::fromUtf8(fNode.attribute("Name").as_string(""));
+            fi.type = QString::fromUtf8(fNode.attribute("Type").as_string("NodeRange"));
+            for (auto attr : fNode.attributes())
+                fi.attrs[QString::fromUtf8(attr.name())] =
+                    QString::fromUtf8(attr.value());
+            if (!fi.name.isEmpty())
+                mi.faces.append(fi);
+        }
+
+        // ── States ────────────────────────────────────────────────────────────
+        for (auto sNode : m.children("stateInfo")) {
+            QtStateInfo si;
+            si.name         = QString::fromUtf8(sNode.attribute("Name").as_string(""));
+            si.type         = QString::fromUtf8(sNode.attribute("Type").as_string("NodeRange"));
+            si.customColors = sNode.attribute("CustomColors").as_int(0) != 0;
+            for (auto attr : sNode.attributes()) {
+                const QString k = QString::fromUtf8(attr.name());
+                if (k != "Name" && k != "Type" && k != "CustomColors")
+                    si.entries[k] = QString::fromUtf8(attr.value());
+            }
+            if (!si.name.isEmpty())
+                mi.states.append(si);
+        }
+
         info.models[mi.name] = mi;
     }
 
