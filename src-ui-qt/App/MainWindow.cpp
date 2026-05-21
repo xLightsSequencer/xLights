@@ -819,12 +819,6 @@ void MainWindow::setupMenuBar() {
         _layoutWin->activateWindow();
     });
     view->addSeparator();
-    auto* modelsAct = view->addAction("&Models…", QKeySequence("Ctrl+M"));
-    connect(modelsAct, &QAction::triggered, this, [this]() {
-        _modelInfoWin->show();
-        _modelInfoWin->raise();
-        _modelInfoWin->activateWindow();
-    });
     auto* ctrlAct = view->addAction("&Controllers…", QKeySequence("Ctrl+K"));
     connect(ctrlAct, &QAction::triggered, this, [this]() {
         _controllerInfoWin->show();
