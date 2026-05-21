@@ -431,6 +431,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\dependencies\wxJSON\jsonval.cpp" />
     <ClCompile Include="..\dependencies\wxJSON\jsonwriter.cpp" />
     <ClCompile Include="..\src-core\controllers\PowerDMX.cpp" />
+    <ClCompile Include="..\src-core\media\SoundClassifier.cpp" />
     <ClCompile Include="..\src-core\media\StemSeparator.cpp" />
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />

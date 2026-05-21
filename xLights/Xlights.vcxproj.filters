@@ -1333,6 +1333,7 @@
     <ClCompile Include="..\src-core\settings\XLightsSettings.cpp" />
     <ClCompile Include="..\src-ui-wx\settings\XLightsConfigAdapter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\wxUtilities.cpp" />
+    <ClCompile Include="..\src-core\media\SoundClassifier.cpp" />
     <ClCompile Include="..\src-core\media\StemSeparator.cpp" />
   </ItemGroup>
   <ItemGroup>

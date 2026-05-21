@@ -102,7 +102,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
             this, &MainWindow::renderAllModels);
 
     // House preview model click → select that model for single-model preview.
-    connect(_housePreview, &HousePreviewWidget::modelClicked,
+    connect(_housePreview, &ModelLayoutCanvas::modelClicked,
             this, [this](const QString& name) {
         _currentModel = name;
         renderAllLayers();

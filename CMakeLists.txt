@@ -973,7 +973,7 @@ install(DIRECTORY resources/ DESTINATION ${CMAKE_INSTALL_DATADIR}/xLights)
 option(XLIGHTS_BUILD_QT "Build the Qt6 UI target (xLights-Qt)" OFF)
 
 if(XLIGHTS_BUILD_QT)
-    find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Gui GuiPrivate Network Multimedia)
+    find_package(Qt6 6.7 REQUIRED COMPONENTS Widgets Gui Network Multimedia)
 
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_AUTOUIC ON)

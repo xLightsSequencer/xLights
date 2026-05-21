@@ -183,6 +183,8 @@
 		<Unit filename="../src-ui-wx/model/AlignmentDialog.h" />
 		<Unit filename="../src-core/media/AudioManager.cpp" />
 		<Unit filename="../src-core/media/AudioManager.h" />
+		<Unit filename="../src-core/media/SoundClassifier.cpp" />
+		<Unit filename="../src-core/media/SoundClassifier.h" />
 		<Unit filename="../src-core/media/OnsetDetector.cpp" />
 		<Unit filename="../src-core/media/OnsetDetector.h" />
 		<Unit filename="../src-core/media/TempoDetector.cpp" />
