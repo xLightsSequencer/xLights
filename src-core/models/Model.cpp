@@ -3347,7 +3347,6 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
         sy = ((sy * scale) + (h / 2));
         sx = (sx * scale) + (w / 2);
     } else {
-        // Must match DisplayEffectOnWindow's Translate(w/2 - ml*scale, h/2 - mb*scale)
         float ml, mb;
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
@@ -3562,16 +3561,40 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         int w, h;
         float scale = GetPreviewDimScale(preview, w, h);
 
+        const bool useBufCoords = UsesBufCoordsForModelPreview();
+
+        float ml, mb;
+        if (useBufCoords) {
+            ml = GetModelScreenLocation().RenderWi / 2.0f;
+            mb = GetModelScreenLocation().RenderHt / 2.0f;
+            float mnX = 1e30f, mxX = -1e30f, mnY = 1e30f, mxY = -1e30f;
+            for (const auto& nd : Nodes) {
+                for (const auto& co : nd->Coords) {
+                    mnX = std::min(mnX, (float)co.bufX);
+                    mxX = std::max(mxX, (float)co.bufX);
+                    mnY = std::min(mnY, (float)co.bufY);
+                    mxY = std::max(mxY, (float)co.bufY);
+                }
+            }
+            if (mxX > mnX || mxY > mnY) {
+                float nw = mxX - mnX, nh = mxY - mnY;
+                float adjX = nw > 0.001f ? float(w) * 0.95f / nw : 1e30f;
+                float adjY = nh > 0.001f ? float(h) * 0.95f / nh : 1e30f;
+                scale = std::min(adjX, adjY);
+                ml = (mnX + mxX) / 2.0f;
+                mb = (mnY + mxY) / 2.0f;
+            }
+        } else {
+            GetMinScreenXY(ml, mb);
+            ml += GetModelScreenLocation().RenderWi / 2;
+            mb += GetModelScreenLocation().RenderHt / 2;
+        }
+
         size_t NodeCount = Nodes.size();
         bool created = false;
 
         int renderWi = GetModelScreenLocation().RenderWi;
         int renderHi = GetModelScreenLocation().RenderHt;
-
-        float ml, mb;
-        GetMinScreenXY(ml, mb);
-        ml += GetModelScreenLocation().RenderWi / 2;
-        mb += GetModelScreenLocation().RenderHt / 2;
 
         auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
         // Circle styles bake the radius (which depends on scale/w/h/backingScale) into the geometry,
@@ -3675,8 +3698,8 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 size_t CoordCount = GetCoordCount(n);
                 for (size_t c = 0; c < CoordCount; ++c) {
                     // draw node on screen
-                    float newsx = Nodes[n]->Coords[c].screenX;
-                    float newsy = Nodes[n]->Coords[c].screenY;
+                    float newsx = useBufCoords ? (float)Nodes[n]->Coords[c].bufX : Nodes[n]->Coords[c].screenX;
+                    float newsy = useBufCoords ? (float)Nodes[n]->Coords[c].bufY : Nodes[n]->Coords[c].screenY;
 
                     if (lastPixelStyle != Nodes[n]->model->_pixelStyle || lastPixelSize != Nodes[n]->model->pixelSize) {
                         if (cache->vica->getCount() && (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
@@ -3761,10 +3784,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            if (!GetModelScreenLocation().IsCenterBased()) {
-                // Non-center-based models (e.g. polylines) have screenX/Y in [0, RenderWi/RenderHt].
-                // The inner translate centers the model at origin, so the outer translate is just
-                // the panel center — no ml/mb offset needed (ml would shift it to lower-left).
+            if (useBufCoords) {
+                ctx->Translate(w / 2.0f - ml * scale, h / 2.0f - mb * scale, 0.0f);
+                ctx->Scale(scale, scale, 1.0);
+            } else if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(w / 2.0f, h / 2.0f, 0.0f);
                 ctx->Scale(scale, scale, 1.0);
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,

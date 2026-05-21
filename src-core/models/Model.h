@@ -480,6 +480,7 @@ public:
 
 
     virtual int NodeRenderOrder() { return 0; }
+    virtual bool UsesBufCoordsForModelPreview() const { return false; }
     float GetPreviewDimScale(IModelPreview* preview, int& w, int& h);
     void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
     bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
