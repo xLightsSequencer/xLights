@@ -785,6 +785,7 @@ void MainWindow::setupMenuBar() {
         if (path.isEmpty()) return;
         QtXLightsApp::instance().setShowFolder(path);  // also persists to INI
         _renderBridge->setShowFolder(path);            // reload xlights_networks.xml
+        _layoutWin->refresh();                         // load models from show file
         _playback->setMediaFile({});                   // clear audio until sequence reloaded
         statusBar()->showMessage("Show folder: " + path, 5000);
         // Refresh title bar if a sequence is loaded

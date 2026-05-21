@@ -2,7 +2,6 @@
 #include "../Bridge/QtSequenceDoc.h"
 #include <QDialog>
 
-class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
@@ -28,7 +27,6 @@ private slots:
     void onSmDelete();
     void onSmNameEdited(const QString&);
     void onSmBufferStyleChanged(const QString&);
-    void onSmVerticalChanged(bool);
     void onSmRangeAdd();
     void onSmRangeDelete();
 
@@ -82,8 +80,9 @@ private:
     // Sub-models tab widgets
     QListWidget*  _smList        = nullptr;
     QLineEdit*    _smNameEdit    = nullptr;
+    QComboBox*    _smLayout      = nullptr;
+    QComboBox*    _smType        = nullptr;
     QComboBox*    _smBufferStyle = nullptr;
-    QCheckBox*    _smVertical    = nullptr;
     QTableWidget* _smRanges      = nullptr;
 
     // Faces tab widgets

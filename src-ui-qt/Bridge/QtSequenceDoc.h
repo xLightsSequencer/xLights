@@ -10,28 +10,37 @@
 // Reads the elements/layers/effects from a .xsq file without linking src-core.
 // Phase 5+ will replace this with a full SequenceElements integration.
 
-// One named node-range row inside a sub-model definition.
+// One named sub-model definition.
+// Ranges type: line0/line1/… hold node-range strings ("1-10").
+// Subbuffer type: ranges[0] holds the subBuffer expression.
 struct QtSubModelInfo {
     QString     name;
-    bool        vertical    = false;
-    bool        isRanges    = true;
+    QString     layout      = "horizontal"; // "horizontal" | "vertical"
+    QString     type        = "ranges";     // "ranges" | "subbuffer"
     QString     bufferStyle = "Default";
-    QStringList ranges;     // one entry per <subBuffer range="..."/>
+    QStringList ranges;     // line0, line1, … values (ranges type) OR single subBuffer expr
 };
 
 // One face definition (maps phonemes → node ranges or single nodes).
+// attrs contains all XML attributes verbatim, including Name and Type.
+// Colour for feature F is stored in attrs[F + "Color"] when present.
 struct QtFaceInfo {
     QString               name;
     QString               type;   // "SingleNode" | "NodeRange" | "Matrix"
-    QMap<QString,QString> attrs;  // all XML attributes verbatim (incl. Name, Type)
+    QMap<QString,QString> attrs;
 };
 
-// One named state (maps state keys → colors).
+// One entry inside a state definition.
+struct QtStateEntry {
+    QString key;    // raw XML key, e.g. "s001" or "s001-s005"
+    QString color;  // color value, e.g. "Red" or "#FF0000"
+};
+
+// One named state (maps node keys → colors).
 struct QtStateInfo {
-    QString               name;
-    QString               type;   // "SingleNode" | "NodeRange"
-    bool                  customColors = false;
-    QMap<QString,QString> entries; // XML attrs excluding Name/Type/CustomColors
+    QString              name;
+    QString              type;   // "SingleNode" | "NodeRange"
+    QList<QtStateEntry>  entries;
 };
 
 // Model dimensions and physical node layout loaded from xlights_rgbeffects.xml.

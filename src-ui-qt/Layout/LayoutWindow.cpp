@@ -91,26 +91,51 @@ LayoutWindow::LayoutWindow(QWidget* parent)
 // ── Refresh ───────────────────────────────────────────────────────────────────
 
 void LayoutWindow::refresh() {
+    // If a sequence is loaded use it; otherwise fall back to loading model
+    // definitions directly from xlights_rgbeffects.xml so the window is
+    // usable without an open sequence.
+    const QtSequenceInfo* seqPtr = nullptr;
+    QtSequenceInfo fallback;
+
     const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    if (!seq.models.isEmpty()) {
+        seqPtr = &seq;
+    } else {
+        const QString sf = QtXLightsApp::instance().showFolder();
+        if (!sf.isEmpty()) {
+            QtSequenceDoc::loadModels(sf + "/xlights_rgbeffects.xml", fallback);
+            if (!fallback.models.isEmpty())
+                seqPtr = &fallback;
+        }
+    }
+
+    if (!seqPtr) {
+        _modelList->clear();
+        _groupList->clear();
+        _controllerList->clear();
+        _canvas->loadLayout(QtSequenceInfo{});
+        clearProps();
+        return;
+    }
 
     // Models tab
     _modelList->clear();
-    for (auto it = seq.models.begin(); it != seq.models.end(); ++it)
+    for (auto it = seqPtr->models.constBegin(); it != seqPtr->models.constEnd(); ++it)
         _modelList->addItem(it->name);
     _modelList->sortItems();
 
     // Groups tab
     _groupList->clear();
-    for (auto it = seq.groups.begin(); it != seq.groups.end(); ++it)
+    for (auto it = seqPtr->groups.constBegin(); it != seqPtr->groups.constEnd(); ++it)
         _groupList->addItem(it->name);
     _groupList->sortItems();
 
     // Controllers tab
     _controllerList->clear();
-    for (const QtControllerInfo& c : seq.controllers)
+    for (const QtControllerInfo& c : seqPtr->controllers)
         _controllerList->addItem(c.name);
 
-    _canvas->loadLayout(seq);
+    _canvas->loadLayout(*seqPtr);
     clearProps();
 }
 

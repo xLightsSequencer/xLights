@@ -719,16 +719,22 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         // ── Sub-models ────────────────────────────────────────────────────────
         for (auto smNode : m.children("subModel")) {
             QtSubModelInfo sm;
-            // XML uses "name" (lower) in some versions, "Name" in others
-            const char* smName = smNode.attribute("name").as_string(
-                                     smNode.attribute("Name").as_string(""));
-            sm.name        = QString::fromUtf8(smName);
-            sm.vertical    = smNode.attribute("vertical").as_int(0) != 0;
-            sm.isRanges    = smNode.attribute("isRanges").as_int(1) != 0;
-            sm.bufferStyle = QString::fromUtf8(
-                                 smNode.attribute("bufferStyle").as_string("Default"));
-            for (auto sb : smNode.children("subBuffer"))
-                sm.ranges.append(QString::fromUtf8(sb.attribute("range").as_string("")));
+            sm.name        = QString::fromUtf8(smNode.attribute("name").as_string(""));
+            sm.layout      = QString::fromUtf8(smNode.attribute("layout").as_string("horizontal"));
+            sm.type        = QString::fromUtf8(smNode.attribute("type").as_string("ranges"));
+            sm.bufferStyle = QString::fromUtf8(smNode.attribute("bufferstyle").as_string("Default"));
+            if (sm.type == "ranges") {
+                // Ranges are stored as line0, line1, line2, … attributes.
+                for (int li = 0; ; ++li) {
+                    auto lineAttr = smNode.attribute(("line" + std::to_string(li)).c_str());
+                    if (!lineAttr) break;
+                    sm.ranges.append(QString::fromUtf8(lineAttr.as_string("")));
+                }
+            } else {
+                // Subbuffer expression stored in a single "subBuffer" attribute.
+                const char* sb = smNode.attribute("subBuffer").as_string("");
+                if (sb && sb[0]) sm.ranges.append(QString::fromUtf8(sb));
+            }
             if (!sm.name.isEmpty())
                 mi.subModels.append(sm);
         }
@@ -748,13 +754,18 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         // ── States ────────────────────────────────────────────────────────────
         for (auto sNode : m.children("stateInfo")) {
             QtStateInfo si;
-            si.name         = QString::fromUtf8(sNode.attribute("Name").as_string(""));
-            si.type         = QString::fromUtf8(sNode.attribute("Type").as_string("NodeRange"));
-            si.customColors = sNode.attribute("CustomColors").as_int(0) != 0;
+            si.name = QString::fromUtf8(sNode.attribute("Name").as_string(""));
+            si.type = QString::fromUtf8(sNode.attribute("Type").as_string("NodeRange"));
             for (auto attr : sNode.attributes()) {
                 const QString k = QString::fromUtf8(attr.name());
-                if (k != "Name" && k != "Type" && k != "CustomColors")
-                    si.entries[k] = QString::fromUtf8(attr.value());
+                if (k == "Name" || k == "Type" || k == "CustomColors") continue;
+                // Only collect keys that look like state entries (start with 's').
+                if (k.startsWith('s') && k.size() > 1 && k[1].isDigit()) {
+                    QtStateEntry e;
+                    e.key   = k;
+                    e.color = QString::fromUtf8(attr.value());
+                    si.entries.append(e);
+                }
             }
             if (!si.name.isEmpty())
                 mi.states.append(si);
