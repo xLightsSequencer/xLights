@@ -8677,25 +8677,36 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     auto nz = (int)nd.attribute("WorldPosZ").as_double();
                     source_model_name = nd.attribute("name").as_string();
 
-                    bool moved = true;
-                    while (moved)
+                    constexpr float PASTE_PADDING = 20.0f; // extra gap between copies
+                    constexpr float PASTE_MIN_OFFSET = 80.0f; // guard against zero-width edge case
+                    constexpr int   PASTE_LOOP_MAX  = 500; // safety cap
+
+                    if (!copyData.IsViewObject())
                     {
-                        moved = false;
-                        // is there a model in the same location of the same type ... if so offset the pasting of the model
-                        for (const auto& it : xlights->AllModels)
+                        bool moved = true;
+                        int loopGuard = 0;
+                        bool hitCap = false;
+                        while (moved)
                         {
-                            if (nda == it.second->GetDisplayAs())
+                            if (loopGuard >= PASTE_LOOP_MAX) { hitCap = true; break; }
+                            ++loopGuard;
+                            moved = false;
+                            for (const auto& it : xlights->AllModels)
                             {
+                                if (nda != it.second->GetDisplayAs()) continue;
+
                                 auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
-                                auto x = (int)pos.x;
-                                auto y = (int)pos.y;
-                                auto z = (int)pos.z;
-                                if (nx == x &&
-                                    ny == y &&
-                                    nz == z)
+                                float itWidth = it.second->GetRestorableMWidth();
+                                if (itWidth <= 0) itWidth = PASTE_MIN_OFFSET;
+                                float itHalf = itWidth * 0.5f;
+
+                                if ((int)pos.y == ny &&
+                                    (int)pos.z == nz &&
+                                    std::abs(static_cast<float>(nx) - pos.x) < itHalf)
                                 {
-                                    nx += 40;
-                                    SetXmlNodeAttribute(nd, "WorldPosX", fmt::format("{:6.4f}", (float)nx));
+                                    nx = static_cast<int>(pos.x + itWidth + PASTE_PADDING);
+                                    SetXmlNodeAttribute(nd, "WorldPosX",
+                                                        fmt::format("{:6.4f}", (float)nx));
                                     moved = true;
                                     break;
                                 }
@@ -8709,6 +8720,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (!editing_models)//dont paste model in View Object mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
 
@@ -8736,6 +8750,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (editing_models)//dont paste view objects in model editing mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
 						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
