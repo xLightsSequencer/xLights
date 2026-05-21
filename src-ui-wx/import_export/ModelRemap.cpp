@@ -17,46 +17,47 @@ const long ModelRemap::ID_TEXTCTRL1 = wxNewId();
 const long ModelRemap::ID_BUTTON1 = wxNewId();
 //*)
 
-BEGIN_EVENT_TABLE(ModelRemap, wxDialog)
-//(*EventTable(ModelRemap)
-//*)
+BEGIN_EVENT_TABLE(ModelRemap,wxDialog)
+	//(*EventTable(ModelRemap)
+	//*)
 END_EVENT_TABLE()
 
-ModelRemap::ModelRemap(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size) {
-    //(*Initialize(ModelRemap)
-    wxFlexGridSizer* FlexGridSizer1;
-    wxFlexGridSizer* FlexGridSizer2;
+ModelRemap::ModelRemap(wxWindow* parent,wxWindowID id,const wxPoint& pos,const wxSize& size)
+{
+	//(*Initialize(ModelRemap)
+	wxFlexGridSizer* FlexGridSizer1;
+	wxFlexGridSizer* FlexGridSizer2;
 
-    Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxRESIZE_BORDER | wxCLOSE_BOX, _T("id"));
-    SetClientSize(wxDefaultSize);
-    Move(wxDefaultPosition);
-    FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer1->AddGrowableCol(0);
-    StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Set in code"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
-    FlexGridSizer1->Add(StaticText1, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 2);
-    FlexGridSizer2->AddGrowableCol(1);
-    StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Custom xModel File With the faces/states/submodels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
-    FlexGridSizer2->Add(StaticText2, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    FilePickerCtrl_Original = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select a file"), _T("*.xmodel"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
-    FlexGridSizer2->Add(FilePickerCtrl_Original, 1, wxALL | wxEXPAND, 5);
-    StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Custom xModel File with the correct wiring layout:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
-    FlexGridSizer2->Add(StaticText3, 1, wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 5);
-    FilePickerCtrl_NewWiring = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL2, wxEmptyString, _("Select a file"), _T("*.xmodel"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST | wxFLP_OPEN | wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
-    FlexGridSizer2->Add(FilePickerCtrl_NewWiring, 1, wxALL | wxEXPAND, 5);
-    FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL | wxEXPAND, 5);
-    TextCtrl_Messages = new wxTextCtrl(this, ID_TEXTCTRL1, _("Select xModel files."), wxDefaultPosition, wxSize(0, 200), wxTE_MULTILINE | wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-    FlexGridSizer1->Add(TextCtrl_Messages, 1, wxALL | wxEXPAND, 5);
-    Button_Generate = new wxButton(this, ID_BUTTON1, _("Generate xModel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
-    FlexGridSizer1->Add(Button_Generate, 1, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL, 5);
-    SetSizer(FlexGridSizer1);
-    FlexGridSizer1->Fit(this);
-    FlexGridSizer1->SetSizeHints(this);
+	Create(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION|wxRESIZE_BORDER|wxCLOSE_BOX, _T("id"));
+	SetClientSize(wxDefaultSize);
+	Move(wxDefaultPosition);
+	FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
+	FlexGridSizer1->AddGrowableCol(0);
+	StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _("Set in code"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
+	FlexGridSizer1->Add(StaticText1, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer2 = new wxFlexGridSizer(0, 2, 0, 2);
+	FlexGridSizer2->AddGrowableCol(1);
+	StaticText2 = new wxStaticText(this, ID_STATICTEXT2, _("Custom xModel File With the faces/states/submodels:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
+	FlexGridSizer2->Add(StaticText2, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FilePickerCtrl_Original = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL1, wxEmptyString, _("Select a file"), _T("*.xmodel"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL1"));
+	FlexGridSizer2->Add(FilePickerCtrl_Original, 1, wxALL|wxEXPAND, 5);
+	StaticText3 = new wxStaticText(this, ID_STATICTEXT3, _("Custom xModel File with the correct wiring layout:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT3"));
+	FlexGridSizer2->Add(StaticText3, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	FilePickerCtrl_NewWiring = new wxFilePickerCtrl(this, ID_FILEPICKERCTRL2, wxEmptyString, _("Select a file"), _T("*.xmodel"), wxDefaultPosition, wxDefaultSize, wxFLP_FILE_MUST_EXIST|wxFLP_OPEN|wxFLP_USE_TEXTCTRL, wxDefaultValidator, _T("ID_FILEPICKERCTRL2"));
+	FlexGridSizer2->Add(FilePickerCtrl_NewWiring, 1, wxALL|wxEXPAND, 5);
+	FlexGridSizer1->Add(FlexGridSizer2, 1, wxALL|wxEXPAND, 5);
+	TextCtrl_Messages = new wxTextCtrl(this, ID_TEXTCTRL1, _("Select xModel files."), wxDefaultPosition, wxSize(0,200), wxTE_MULTILINE|wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL1"));
+	FlexGridSizer1->Add(TextCtrl_Messages, 1, wxALL|wxEXPAND, 5);
+	Button_Generate = new wxButton(this, ID_BUTTON1, _("Generate xModel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
+	FlexGridSizer1->Add(Button_Generate, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	SetSizer(FlexGridSizer1);
+	FlexGridSizer1->Fit(this);
+	FlexGridSizer1->SetSizeHints(this);
 
-    Connect(ID_FILEPICKERCTRL1, wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&ModelRemap::OnFilePickerCtrl_OriginalFileChanged);
-    Connect(ID_FILEPICKERCTRL2, wxEVT_COMMAND_FILEPICKER_CHANGED, (wxObjectEventFunction)&ModelRemap::OnFilePickerCtrl_NewWiringFileChanged);
-    Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&ModelRemap::OnButton_GenerateClick);
-    //*)
+	Connect(ID_FILEPICKERCTRL1,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ModelRemap::OnFilePickerCtrl_OriginalFileChanged);
+	Connect(ID_FILEPICKERCTRL2,wxEVT_COMMAND_FILEPICKER_CHANGED,(wxObjectEventFunction)&ModelRemap::OnFilePickerCtrl_NewWiringFileChanged);
+	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ModelRemap::OnButton_GenerateClick);
+	//*)
 
     StaticText1->SetLabelText("This tool is used to take a model with valid/useful face definitions, state definitions and submodels and remap them onto a model with a reordered wiring layout.\n\n"
                               "To use the tool you must have 2 xmodel files.\n\n"
@@ -69,9 +70,10 @@ ModelRemap::ModelRemap(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
     ValidateWindow();
 }
 
-ModelRemap::~ModelRemap() {
-    //(*Destroy(ModelRemap)
-    //*)
+ModelRemap::~ModelRemap()
+{
+	//(*Destroy(ModelRemap)
+	//*)
 }
 
 void ModelRemap::OnButton_GenerateClick(wxCommandEvent& event) {
