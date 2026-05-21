@@ -41,10 +41,19 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     auto* editBtn = new QPushButton("Edit Sub-Models / Faces / States…");
     editBtn->setEnabled(false);
 
+    // Wrap the properties table and edit button together so the button
+    // sits directly under the model settings panel in the left splitter.
+    auto* propWidget = new QWidget;
+    auto* propVL = new QVBoxLayout(propWidget);
+    propVL->setContentsMargins(0, 0, 0, 0);
+    propVL->setSpacing(2);
+    propVL->addWidget(_propTable, 1);
+    propVL->addWidget(editBtn);
+
     _leftSplit = new QSplitter(Qt::Vertical);
     _leftSplit->addWidget(_tabs);
-    _leftSplit->addWidget(_propTable);
-    _leftSplit->setSizes({380, 200});
+    _leftSplit->addWidget(propWidget);
+    _leftSplit->setSizes({380, 220});
     _leftSplit->setMinimumWidth(260);
     _leftSplit->setMaximumWidth(400);
 
@@ -61,7 +70,6 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     auto* root = new QVBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
     root->addWidget(mainSplit);
-    root->addWidget(editBtn);
 
     // ── Connections ───────────────────────────────────────────────────────
     _editDialog = new ModelEditDialog(this);
