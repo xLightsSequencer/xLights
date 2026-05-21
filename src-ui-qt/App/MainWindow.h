@@ -8,6 +8,7 @@
 
 class ControllerInfoWindow;
 class EffectPanelWidget;
+class LayoutWindow;
 class EffectToolBar;
 class HousePreviewWidget;
 class ModelInfoWindow;
@@ -99,4 +100,5 @@ PlaybackController*  _playback      = nullptr;
 
     ModelInfoWindow*      _modelInfoWin      = nullptr;
     ControllerInfoWindow* _controllerInfoWin = nullptr;
+    LayoutWindow*         _layoutWin         = nullptr;
 };

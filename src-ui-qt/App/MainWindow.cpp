@@ -14,6 +14,7 @@
 #include "../Effects/EffectToolBar.h"
 #include "../Bridge/SubBufferUtil.h"
 #include "../Layout/HousePreviewWidget.h"
+#include "../Layout/LayoutWindow.h"
 #include "../Preview/PreviewWidget.h"
 #include "../Sequencer/SequencerModel.h"
 #include "../Sequencer/SequencerWidget.h"
@@ -194,6 +195,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ── Info windows (created once, shown on demand) ──────────────────────
     _modelInfoWin      = new ModelInfoWindow(this);
     _controllerInfoWin = new ControllerInfoWindow(this);
+    _layoutWin         = new LayoutWindow(this);
 }
 
 // ── Render helper ─────────────────────────────────────────────────────────────
@@ -740,6 +742,7 @@ void MainWindow::setupMenuBar() {
             _renderBridge->setShowFolder(sfName);
             _modelInfoWin->refresh();
             _controllerInfoWin->refresh();
+            _layoutWin->refresh();
             _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
 
             // Resolve and load audio — try show folder first, then xsq directory.
@@ -808,6 +811,13 @@ void MainWindow::setupMenuBar() {
 
     // ── View menu ─────────────────────────────────────────────────────────
     auto* view = menuBar()->addMenu("&View");
+    auto* layoutAct = view->addAction("&Layout…", QKeySequence("Ctrl+L"));
+    connect(layoutAct, &QAction::triggered, this, [this]() {
+        _layoutWin->show();
+        _layoutWin->raise();
+        _layoutWin->activateWindow();
+    });
+    view->addSeparator();
     auto* modelsAct = view->addAction("&Models…", QKeySequence("Ctrl+M"));
     connect(modelsAct, &QAction::triggered, this, [this]() {
         _modelInfoWin->show();

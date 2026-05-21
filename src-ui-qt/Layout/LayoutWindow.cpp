@@ -1,0 +1,210 @@
+#include "LayoutWindow.h"
+#include "ModelLayoutCanvas.h"
+#include "../App/QtXLightsApp.h"
+#include "../Bridge/QtSequenceDoc.h"
+
+#include <QHeaderView>
+#include <QListWidget>
+#include <QSplitter>
+#include <QTabWidget>
+#include <QTableWidget>
+#include <QVBoxLayout>
+
+LayoutWindow::LayoutWindow(QWidget* parent)
+    : QWidget(parent, Qt::Window)
+{
+    setWindowTitle("Layout");
+    setMinimumSize(900, 600);
+    resize(1200, 750);
+
+    // ── Left panel ────────────────────────────────────────────────────────
+    _modelList      = new QListWidget;
+    _groupList      = new QListWidget;
+    _controllerList = new QListWidget;
+
+    _tabs = new QTabWidget;
+    _tabs->addTab(_modelList,      "Models");
+    _tabs->addTab(_groupList,      "Groups");
+    _tabs->addTab(_controllerList, "Controllers");
+
+    _propTable = new QTableWidget(0, 2);
+    _propTable->setHorizontalHeaderLabels({"Property", "Value"});
+    _propTable->horizontalHeader()->setStretchLastSection(true);
+    _propTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    _propTable->verticalHeader()->hide();
+    _propTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    _propTable->setSelectionMode(QAbstractItemView::NoSelection);
+    _propTable->setMinimumHeight(160);
+
+    _leftSplit = new QSplitter(Qt::Vertical);
+    _leftSplit->addWidget(_tabs);
+    _leftSplit->addWidget(_propTable);
+    _leftSplit->setSizes({380, 200});
+    _leftSplit->setMinimumWidth(260);
+    _leftSplit->setMaximumWidth(400);
+
+    // ── Right panel: 2D canvas ────────────────────────────────────────────
+    _canvas = new ModelLayoutCanvas;
+
+    // ── Main horizontal splitter ──────────────────────────────────────────
+    auto* mainSplit = new QSplitter(Qt::Horizontal, this);
+    mainSplit->addWidget(_leftSplit);
+    mainSplit->addWidget(_canvas);
+    mainSplit->setSizes({300, 900});
+    mainSplit->setStretchFactor(1, 1);
+
+    auto* root = new QVBoxLayout(this);
+    root->setContentsMargins(0, 0, 0, 0);
+    root->addWidget(mainSplit);
+
+    // ── Connections ───────────────────────────────────────────────────────
+    connect(_modelList,      &QListWidget::itemClicked,
+            this, &LayoutWindow::onModelListClicked);
+    connect(_groupList,      &QListWidget::itemClicked,
+            this, &LayoutWindow::onGroupListClicked);
+    connect(_controllerList, &QListWidget::itemClicked,
+            this, &LayoutWindow::onControllerListClicked);
+    connect(_canvas, &ModelLayoutCanvas::modelClicked,
+            this, &LayoutWindow::onCanvasModelClicked);
+}
+
+// ── Refresh ───────────────────────────────────────────────────────────────────
+
+void LayoutWindow::refresh() {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+
+    // Models tab
+    _modelList->clear();
+    for (auto it = seq.models.begin(); it != seq.models.end(); ++it)
+        _modelList->addItem(it->name);
+    _modelList->sortItems();
+
+    // Groups tab
+    _groupList->clear();
+    for (auto it = seq.groups.begin(); it != seq.groups.end(); ++it)
+        _groupList->addItem(it->name);
+    _groupList->sortItems();
+
+    // Controllers tab
+    _controllerList->clear();
+    for (const QtControllerInfo& c : seq.controllers)
+        _controllerList->addItem(c.name);
+
+    _canvas->loadLayout(seq);
+    clearProps();
+}
+
+// ── List clicks ───────────────────────────────────────────────────────────────
+
+void LayoutWindow::onModelListClicked(QListWidgetItem* item) {
+    if (!item) return;
+    const QString name = item->text();
+    _canvas->setSelectedModel(name);
+    _canvas->setGroupHighlight({}, {});
+    buildModelProps(name);
+}
+
+void LayoutWindow::onGroupListClicked(QListWidgetItem* item) {
+    if (!item) return;
+    const QString name = item->text();
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    const QtModelGroupInfo& gi = seq.groups.value(name);
+    _canvas->setGroupHighlight(name, gi.modelNames);
+    _canvas->clearSelection();
+    buildGroupProps(name);
+}
+
+void LayoutWindow::onControllerListClicked(QListWidgetItem* item) {
+    if (!item) return;
+    _canvas->clearSelection();
+    _canvas->setGroupHighlight({}, {});
+    buildControllerProps(item->text());
+}
+
+// ── Canvas click ──────────────────────────────────────────────────────────────
+
+void LayoutWindow::onCanvasModelClicked(const QString& modelName) {
+    _canvas->setSelectedModel(modelName);
+    _canvas->setGroupHighlight({}, {});
+
+    // Sync the list selection.
+    const QList<QListWidgetItem*> matches =
+        _modelList->findItems(modelName, Qt::MatchExactly);
+    _modelList->clearSelection();
+    if (!matches.isEmpty()) {
+        _tabs->setCurrentIndex(0);   // switch to Models tab
+        matches.first()->setSelected(true);
+        _modelList->scrollToItem(matches.first());
+    }
+
+    buildModelProps(modelName);
+}
+
+// ── Property panel ────────────────────────────────────────────────────────────
+
+void LayoutWindow::clearProps() {
+    _propTable->setRowCount(0);
+}
+
+void LayoutWindow::setProps(const QList<QPair<QString,QString>>& rows) {
+    _propTable->setRowCount(rows.size());
+    for (int i = 0; i < rows.size(); ++i) {
+        _propTable->setItem(i, 0, new QTableWidgetItem(rows[i].first));
+        _propTable->setItem(i, 1, new QTableWidgetItem(rows[i].second));
+    }
+}
+
+void LayoutWindow::buildModelProps(const QString& name) {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    const QtModelInfo& m = seq.models.value(name);
+    if (m.name.isEmpty()) { clearProps(); return; }
+
+    setProps({
+        { "Name",          m.name },
+        { "Type",          m.type },
+        { "Nodes",         QString::number(m.nodeCount) },
+        { "Parm1",         QString::number(m.parm1) },
+        { "Parm2",         QString::number(m.parm2) },
+        { "Buffer W",      QString::number(m.bufferW) },
+        { "Buffer H",      QString::number(m.bufferH) },
+        { "Start Channel", QString::number(m.startChannel) },
+        { "World X",       QString::number(m.worldPosX, 'f', 2) },
+        { "World Y",       QString::number(m.worldPosY, 'f', 2) },
+        { "Scale X",       QString::number(m.scaleX,    'f', 3) },
+        { "Scale Y",       QString::number(m.scaleY,    'f', 3) },
+    });
+}
+
+void LayoutWindow::buildGroupProps(const QString& name) {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    const QtModelGroupInfo& g = seq.groups.value(name);
+    if (g.name.isEmpty()) { clearProps(); return; }
+
+    setProps({
+        { "Name",     g.name },
+        { "Layout",   g.layout },
+        { "Members",  QString::number(g.modelNames.size()) },
+        { "Buffer W", QString::number(g.bufferW) },
+        { "Buffer H", QString::number(g.bufferH) },
+        { "Bounds X", QString("%1 – %2").arg(g.minX, 0, 'f', 1).arg(g.maxX, 0, 'f', 1) },
+        { "Bounds Y", QString("%1 – %2").arg(g.minY, 0, 'f', 1).arg(g.maxY, 0, 'f', 1) },
+        { "Models",   g.modelNames.join(", ") },
+    });
+}
+
+void LayoutWindow::buildControllerProps(const QString& name) {
+    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    for (const QtControllerInfo& c : seq.controllers) {
+        if (c.name != name) continue;
+        setProps({
+            { "Name",          c.name },
+            { "Type",          c.type },
+            { "IP / Port",     c.ip },
+            { "Protocol",      c.protocol },
+            { "Start Channel", QString::number(c.startChannel) },
+            { "Channels",      QString::number(c.channelCount) },
+        });
+        return;
+    }
+    clearProps();
+}
