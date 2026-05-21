@@ -19,6 +19,7 @@ public:
     virtual ~PolyLineModel();
 
     virtual int GetLightsPerNode() const override { return _lightsPerNode; }
+    bool UsesBufCoordsForModelPreview() const override { return _maxH > 1; }
     virtual int GetStrandLength(int strand) const override;
     virtual int MapToNodeIndex(int strand, int node) const override;
 
