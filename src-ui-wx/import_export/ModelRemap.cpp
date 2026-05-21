@@ -6,6 +6,7 @@
 //*)
 
 #include <wx/msgdlg.h>
+#include "XmlSerializer/XmlSerializeFunctions.h"
 
 //(*IdInit(ModelRemap)
 const long ModelRemap::ID_STATICTEXT1 = wxNewId();
@@ -274,26 +275,6 @@ void RemapModelProperties::RemapNodes(pugi::xml_node n, const std::string& attr,
     n.append_attribute(attr) = stro;
 }
 
-void RemapModelProperties::ParseData(const std::string& data)
-{
-    _data.clear();
-
-	auto layers = wxSplit(data, '|');
-    for (const auto& l : layers) {
-        auto rows = wxSplit(l, ';');
-        for (const auto& r : rows) {
-            auto cells = wxSplit(r, ',');
-            for (const auto& c : cells) {
-                if (c == "") {
-                    _data.push_back(0);
-                } else {
-                    _data.push_back(wxAtoi(c));
-                }
-            }
-        }
-	}
-}
-
 void RemapModelProperties::Load(const std::string& filename)
 {
     _ok = false;
@@ -328,8 +309,18 @@ void RemapModelProperties::Load(const std::string& filename)
 				if (_w == 0 || _h == 0 || _d == 0) {
                     _message += "\nAt least one dimension invalid.";
 				} else {
-                    // number of pixels
-                    ParseData(root.attribute("CustomModel").as_string());
+                    // Parse custom model data - supports both CustomModel and CustomModelCompressed attributes
+                    auto locations = XmlSerialize::ParseCustomModelDataFromXml(root);
+
+                    // Flatten the 3D vector into our 1D data vector
+                    _data.clear();
+                    for (const auto& layer : locations) {
+                        for (const auto& row : layer) {
+                            for (const auto& cell : row) {
+                                _data.push_back(cell);
+                            }
+                        }
+                    }
 
 					uint32_t cnt = 0;
                     for (const auto& it: _data) {

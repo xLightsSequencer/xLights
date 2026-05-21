@@ -29,7 +29,6 @@ class RemapModelProperties
     uint32_t _d = 0;
 
     void RemapNodes(pugi::xml_node n, const std::string& attr, const std::map<uint32_t, uint32_t>& mapping);
-	void ParseData(const std::string& data);
     uint32_t GetWidth() const
     {
         return _w;
