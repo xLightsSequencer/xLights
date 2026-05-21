@@ -7910,33 +7910,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     auto nz = (int)nd.attribute("WorldPosZ").as_double();
                     source_model_name = nd.attribute("name").as_string();
 
-                    // Push the paste out of the way of anything it would visually
-                    // overlap. Two improvements over the old center-point + fixed
-                    // 40-unit bump:
-                    //
-                    //   1. Step size is the COLLIDED model's width (plus a small
-                    //      padding) so the paste actually clears that model's
-                    //      bounding box. A fixed bump was fine for small arches
-                    //      but left large matrices visually overlapping.
-                    //
-                    //   2. Overlap test uses the collided model's half-width
-                    //      either side of centre rather than requiring an exact
-                    //      integer-truncated centre match. This catches copies
-                    //      that land inside a wide model without being on its
-                    //      exact centre, which is the common case when pasting
-                    //      repeatedly (clipboard keeps the original position;
-                    //      the bump from the previous paste may land inside the
-                    //      next model's bbox but not on its exact centre).
-                    //
-                    // Only same-type models are considered "colliding" - same
-                    // behaviour as before, so e.g. an Arches paste doesn't get
-                    // pushed past unrelated Pixel Matrixes that happen to be
-                    // nearby.
-                    //
-                    // ViewObject pastes (Images / Meshes) use a separate
-                    // coordinate space and overlap detection isn't meaningful
-                    // against AllModels entries, so we scope the loop to the
-                    // Model paste path only. See Copilot review on PR #6192.
                     constexpr float PASTE_PADDING = 20.0f; // extra gap between copies
                     constexpr float PASTE_MIN_OFFSET = 80.0f; // guard against zero-width edge case
                     constexpr int   PASTE_LOOP_MAX  = 500; // safety cap
@@ -7971,12 +7944,6 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                                     break;
                                 }
                             }
-                        }
-                        if (hitCap) {
-                            spdlog::warn("LayoutPanel::DoPaste: collision-avoidance "
-                                         "loop hit the {}-iteration safety cap; the "
-                                         "pasted copy may still visually overlap an "
-                                         "existing model at x={}.", PASTE_LOOP_MAX, nx);
                         }
                     }
 
