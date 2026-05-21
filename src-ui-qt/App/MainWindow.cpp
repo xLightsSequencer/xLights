@@ -20,6 +20,7 @@
 
 #include <QAction>
 #include <QDesktopServices>
+#include <QRegularExpression>
 #include <QRgb>
 #include <QDir>
 #include <QApplication>
@@ -219,6 +220,42 @@ void MainWindow::triggerRender(const QString& effectName, double progress,
 
 // ── Composite render at playhead ──────────────────────────────────────────────
 
+static QString layerMethodFromSettings(const QString& raw) {
+    for (const QString& part : raw.split(QRegularExpression("[,\n]"), Qt::SkipEmptyParts)) {
+        const int eq = part.indexOf('=');
+        if (eq < 0) continue;
+        const QString key = part.left(eq).trimmed();
+        if (key == "T_CHOICE_LayerMethod" || key == "CHOICE_LayerMethod")
+            return part.mid(eq + 1).trimmed();
+    }
+    return QStringLiteral("Normal");
+}
+
+static QColor blendLayers(const QColor& dst, const QColor& src, const QString& method) {
+    if (method == "Effect 1")
+        return dst;
+    if (method == "Effect 2")
+        return src;
+    if (method == "Additive")
+        return QColor(qMin(255, dst.red()   + src.red()),
+                      qMin(255, dst.green() + src.green()),
+                      qMin(255, dst.blue()  + src.blue()));
+    if (method == "Average")
+        return QColor((dst.red()   + src.red())   / 2,
+                      (dst.green() + src.green()) / 2,
+                      (dst.blue()  + src.blue())  / 2);
+    if (method == "Max")
+        return QColor(qMax(dst.red(),   src.red()),
+                      qMax(dst.green(), src.green()),
+                      qMax(dst.blue(),  src.blue()));
+    if (method == "Min")
+        return QColor(qMin(dst.red(),   src.red()),
+                      qMin(dst.green(), src.green()),
+                      qMin(dst.blue(),  src.blue()));
+    // Normal / Layered / default: src overwrites dst; black src = transparent.
+    return (src.red() || src.green() || src.blue()) ? src : dst;
+}
+
 // ── Core per-model render (shared by single-model and house preview) ──────────
 
 QList<QColor> MainWindow::renderModelLayers(const QString& modelName) {
@@ -273,10 +310,14 @@ QList<QColor> MainWindow::renderModelLayers(const QString& modelName) {
 
         QtEffectRenderer::Request req;
         req.effectName  = blk.effectName;
-        req.modelName   = modelName;   // real model for InitRenderBufferNodes
+        req.modelName   = modelName;
         req.settings    = _effectPanel->currentSettings();
         req.palette     = _effectPanel->palette();
         req.progress    = qBound(0.0, progress, 1.0);
+        req.startMs     = blk.startFrame * frameMs;
+        req.endMs       = blk.endFrame   * frameMs;
+        req.curMs       = curMs;
+        req.frameMs     = frameMs;
         req.rawSettings = blk.settings;
         req.rawPalette  = blk.palette;
         req.bufferW     = fullBuf ? bufW : subW;
@@ -285,12 +326,10 @@ QList<QColor> MainWindow::renderModelLayers(const QString& modelName) {
         const QtEffectRenderer::Result r = _renderBridge->renderNow(req);
         if (!r.isValid()) continue;
 
+        const QString method = layerMethodFromSettings(blk.settings);
         if (fullBuf) {
-            for (int i = 0; i < n && i < r.pixels.size(); ++i) {
-                const QColor& px = r.pixels[i];
-                if (px.red() || px.green() || px.blue())
-                    composite[i] = px;
-            }
+            for (int i = 0; i < n && i < r.pixels.size(); ++i)
+                composite[i] = blendLayers(composite[i], r.pixels[i], method);
         } else {
             for (int sy = 0; sy < subH; ++sy) {
                 const int fy = subBottom_px + sy;
@@ -298,9 +337,9 @@ QList<QColor> MainWindow::renderModelLayers(const QString& modelName) {
                 for (int sx = 0; sx < subW; ++sx) {
                     const int fx = subLeft_px + sx;
                     if (fx >= bufW) break;
-                    const QColor& px = r.pixels[sy * subW + sx];
-                    if (px.red() || px.green() || px.blue())
-                        composite[fy * bufW + fx] = px;
+                    const int di = fy * bufW + fx;
+                    composite[di] = blendLayers(composite[di],
+                                                r.pixels[sy * subW + sx], method);
                 }
             }
         }
@@ -347,12 +386,12 @@ void MainWindow::renderAllLayers() {
         return;
     }
 
-    // Individual models: update the model preview only.
-    // renderAllModels() owns the house preview so it always shows all models
-    // from the same src-core render pass at the same frame position.
+    // Individual models: update both the model preview and the house preview
+    // node colours for this model only — no need to re-render every model.
     QtEffectRenderer::Result result;
     result.w = bufW; result.h = bufH; result.pixels = composite;
     _preview->setResult(result, mi.nodePositions);
+    _housePreview->setModelPixels(_currentModel, composite);
 }
 
 void MainWindow::renderAllModels() {
@@ -668,13 +707,9 @@ void MainWindow::onBlockSelected(int row, int block) {
         }
     }
 
-    // Composite ALL layers of this model at the current playhead position
-    // so sub-buffer bands, marquees, and overlapping effects are shown together.
+    // Composite all layers of this model and update its house preview node colours.
+    // Other models keep their last rendered state — no full re-render needed.
     renderAllLayers();
-
-    // Refresh the house preview so it shows ALL models at the same frame from
-    // the same src-core render pass — keeps the yard view consistent.
-    renderAllModels();
 
     statusBar()->showMessage(
         QString("Row %1 | %2 | frames %3–%4")

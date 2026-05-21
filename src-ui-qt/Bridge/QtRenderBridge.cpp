@@ -276,27 +276,35 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
         }
 
         // ── 5. Timing ────────────────────────────────────────────────────
-        // curPeriod / curEffStartPer / curEffEndPer are all in "frames" units.
-        // We use a virtual 0..200 frame range so progress maps linearly.
-        // curEffEndPer must be > curEffStartPer so GetEffectTimeIntervalPosition()
-        // doesn't short-circuit to 0 (its division-by-zero guard).
-        buffer.curEffStartPer = 0;
-        buffer.curEffEndPer   = 200;
-        buffer.curPeriod      = int(req.progress * 200.0);
-        buffer.frameTimeInMs  = 50;
+        // Use real sequence timing when provided; fall back to virtual 0..200
+        // range driven by progress for standalone (non-sequence) renders.
+        // curEffEndPer must be > curEffStartPer to avoid division-by-zero in
+        // GetEffectTimeIntervalPosition().
+        const int fms = req.frameMs > 0 ? req.frameMs : 50;
+        if (req.frameMs > 0 && req.endMs > req.startMs) {
+            buffer.curEffStartPer = req.startMs / fms;
+            buffer.curEffEndPer   = req.endMs   / fms;
+            buffer.curPeriod      = req.curMs   / fms;
+        } else {
+            buffer.curEffStartPer = 0;
+            buffer.curEffEndPer   = 200;
+            buffer.curPeriod      = int(req.progress * 200.0);
+        }
+        buffer.frameTimeInMs = fms;
 
         // ── 6. Minimal Effect* stub ───────────────────────────────────────
         // Prevents crashes in effects that walk effect→layer→element→seqElements.
         ModelElement stubElement(&s_ctx->GetSequenceElements(),
                                  req.effectName.toStdString(), false);
         EffectLayer   stubLayer(&stubElement);
-        // Map our 0..200 virtual-frame range to ms so GetStartTimeMS/GetEndTimeMS
-        // return meaningful values if effects query them.
+        const int effectStartMs = (req.frameMs > 0) ? req.startMs : 0;
+        const int effectEndMs   = (req.frameMs > 0 && req.endMs > req.startMs)
+                                    ? req.endMs : 10000;
         Effect        stubEffect(&s_ctx->GetEffectManager(), &stubLayer,
                                  /*id=*/0,
                                  req.effectName.toStdString(),
                                  /*settings=*/"", /*palette=*/"",
-                                 /*startMs=*/0,   /*endMs=*/10000,
+                                 /*startMs=*/effectStartMs, /*endMs=*/effectEndMs,
                                  EFFECT_NOT_SELECTED, /*protected=*/false,
                                  /*importing=*/true);
 

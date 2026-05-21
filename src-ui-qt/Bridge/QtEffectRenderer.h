@@ -17,7 +17,14 @@ struct Request {
     QList<QColor> palette;
     int           bufferW  = 100;
     int           bufferH  = 1;
-    double        progress = 0.0;
+    double        progress = 0.0;   // fallback when startMs==endMs
+
+    // Real effect timing from the sequence (milliseconds).
+    // When frameMs > 0 these take precedence over `progress`.
+    int           startMs = 0;
+    int           endMs   = 0;
+    int           curMs   = 0;
+    int           frameMs = 0;
 
     // Raw xsq settings/palette strings — passed directly to src-core
     // SettingsMap::Parse() when non-empty.  Takes precedence over `settings`.
