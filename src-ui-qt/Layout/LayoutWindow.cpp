@@ -103,11 +103,11 @@ LayoutWindow::LayoutWindow(QWidget* parent)
         editBtn->setEnabled(row >= 0 && _tabs->currentIndex() == 0);
     });
     connect(_modelList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem* item) {
-        if (item) _editDialog->openForModel(item->text());
+        if (item) _editDialog->openForModel(item->text(), _data);
     });
     connect(editBtn, &QPushButton::clicked, this, [this]() {
         auto* item = _modelList->currentItem();
-        if (item) _editDialog->openForModel(item->text());
+        if (item) _editDialog->openForModel(item->text(), _data);
     });
 
     connect(_modelList,      &QListWidget::itemClicked,

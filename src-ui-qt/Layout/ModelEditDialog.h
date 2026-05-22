@@ -17,7 +17,8 @@ class ModelEditDialog : public QDialog {
     Q_OBJECT
 public:
     explicit ModelEditDialog(QWidget* parent = nullptr);
-    void openForModel(const QString& modelName);
+    // seqData must be the effective sequence (live or show-file fallback).
+    void openForModel(const QString& modelName, const QtSequenceInfo& seqData);
 
 private slots:
     // Sub-models

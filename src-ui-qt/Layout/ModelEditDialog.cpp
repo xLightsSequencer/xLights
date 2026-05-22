@@ -343,12 +343,12 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
 // ── openForModel ──────────────────────────────────────────────────────────────
 
-void ModelEditDialog::openForModel(const QString& modelName) {
+void ModelEditDialog::openForModel(const QString& modelName, const QtSequenceInfo& seqData) {
     _modelName = modelName;
     _titleLabel->setText(modelName);
     setWindowTitle("Model Editor — " + modelName);
 
-    const QtModelInfo& mi = QtXLightsApp::instance().currentSequence().modelInfo(modelName);
+    const QtModelInfo& mi = seqData.modelInfo(modelName);
     _nodeCount = mi.nodeCount > 0 ? mi.nodeCount : mi.bufferW * mi.bufferH;
     _subModels = mi.subModels;
     _faces     = mi.faces;
