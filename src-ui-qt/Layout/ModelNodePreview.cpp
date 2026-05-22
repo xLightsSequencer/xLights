@@ -14,28 +14,35 @@ ModelNodePreview::ModelNodePreview(QWidget* parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true);
     setCursor(Qt::CrossCursor);
-    // Do NOT use setStyleSheet with border-radius on a custom-painted widget —
-    // Qt's style engine tries to co-paint and crashes before the native handle exists.
-    // Background is drawn manually in paintEvent instead.
+    // WA_OpaquePaintEvent: we paint every pixel ourselves — no background fill needed.
+    // Do NOT set a stylesheet with border-radius; the style engine co-paints and can
+    // crash before the native backing store is ready.
     setAttribute(Qt::WA_OpaquePaintEvent);
+    setAttribute(Qt::WA_NoSystemBackground);
+}
+
+// Only schedule a repaint when the widget is actually visible; calling update()
+// on a hidden widget can trigger paintEvent before the backing store exists.
+static void safeUpdate(QWidget* w) {
+    if (w->isVisible()) w->update();
 }
 
 void ModelNodePreview::setNodePositions(const QList<QPointF>& positions) {
     _positions = positions;
     _highlighted.clear();
-    update();
+    safeUpdate(this);
 }
 
 void ModelNodePreview::highlightNodes(const QList<int>& indices, const QColor& color) {
     _highlighted.clear();
     for (int i : indices) _highlighted.insert(i);
     _hlColor = color;
-    update();
+    safeUpdate(this);
 }
 
 void ModelNodePreview::clearHighlight() {
     _highlighted.clear();
-    update();
+    safeUpdate(this);
 }
 
 QPointF ModelNodePreview::toWidget(const QPointF& norm) const {
@@ -47,6 +54,10 @@ QPointF ModelNodePreview::toWidget(const QPointF& norm) const {
 
 void ModelNodePreview::paintEvent(QPaintEvent*) {
     QPainter p(this);
+    // Guard against a partially-initialised backing store (can happen if Qt
+    // processes a deferred repaint before the window's native handle is ready).
+    if (!p.isActive()) return;
+
     p.setRenderHint(QPainter::Antialiasing);
     p.fillRect(rect(), QColor(0x11, 0x11, 0x11));
 
@@ -56,12 +67,10 @@ void ModelNodePreview::paintEvent(QPaintEvent*) {
         return;
     }
 
-    // Compute a node radius that scales with density.
     const qreal r = qBound(2.0, 6.0, 280.0 / double(_positions.size()));
 
     for (int i = 0; i < _positions.size(); ++i) {
         const QPointF wp = toWidget(_positions[i]);
-        // Skip degenerate coordinates (NaN/Inf from uninitialized model data).
         if (!std::isfinite(wp.x()) || !std::isfinite(wp.y())) continue;
 
         if (_highlighted.contains(i)) {
@@ -76,7 +85,6 @@ void ModelNodePreview::paintEvent(QPaintEvent*) {
         }
     }
 
-    // Draw the lasso rect while dragging.
     if (_lassoing) {
         p.setBrush(QColor(0x28, 0x78, 0xff, 40));
         p.setPen(QPen(QColor(0x28, 0x78, 0xff), 1, Qt::DashLine));
