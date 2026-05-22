@@ -278,6 +278,7 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
 
     _faceTable = new QTableWidget(0, 3);
     _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
+    _faceTable->horizontalHeader()->setMinimumSectionSize(0);
     _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
@@ -310,6 +311,7 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
     _stateTable = new QTableWidget(0, 3);
     _stateTable->setHorizontalHeaderLabels({"Key", "Nodes", "Color"});
+    _stateTable->horizontalHeader()->setMinimumSectionSize(0);
     _stateTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _stateTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     _stateTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
@@ -450,8 +452,10 @@ void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
         _faceTable->setHorizontalHeaderLabels({"Feature", "Image Path", ""});
         _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-        _faceTable->setColumnWidth(2, 28);
+        // ResizeToContents for the browse-button column — avoids a Qt debug
+        // assert when setColumnWidth() is called with a value below the DPI-scaled
+        // minimum section size (e.g., 28px < ~30px at 125% DPI on Windows 11).
+        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
         QStringList keys = kMatrixImageKeys;
         for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
@@ -483,6 +487,7 @@ void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
         // SingleNode or NodeRange mode.
         _faceTable->setColumnCount(3);
         _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
+        _faceTable->horizontalHeader()->setMinimumSectionSize(0);
         _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
