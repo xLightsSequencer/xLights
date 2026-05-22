@@ -88,9 +88,19 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     // ── Connections ───────────────────────────────────────────────────────
     _editDialog = new ModelEditDialog(this);
 
-    // Enable edit button only when a model is selected; open on click or double-click.
+    // Disable all contextual buttons and clear props when the tab changes.
+    connect(_tabs, &QTabWidget::currentChanged, this, [editBtn, vizBtn, uploadBtn, this](int tab) {
+        editBtn->setEnabled(false);
+        vizBtn->setEnabled(false);
+        uploadBtn->setEnabled(false);
+        clearProps();
+        _canvas->clearSelection();
+        _canvas->setGroupHighlight({}, {});
+    });
+
+    // Enable edit button only when a model is selected (Models tab only).
     connect(_modelList, &QListWidget::currentRowChanged, this, [editBtn, this](int row) {
-        editBtn->setEnabled(row >= 0);
+        editBtn->setEnabled(row >= 0 && _tabs->currentIndex() == 0);
     });
     connect(_modelList, &QListWidget::itemDoubleClicked, this, [this](QListWidgetItem* item) {
         if (item) _editDialog->openForModel(item->text());
@@ -128,25 +138,19 @@ LayoutWindow::LayoutWindow(QWidget* parent)
 // ── Refresh ───────────────────────────────────────────────────────────────────
 
 void LayoutWindow::refresh() {
-    // If a sequence is loaded use it; otherwise fall back to loading model
-    // definitions directly from xlights_rgbeffects.xml so the window is
-    // usable without an open sequence.
-    const QtSequenceInfo* seqPtr = nullptr;
-    QtSequenceInfo fallback;
-
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    if (!seq.models.isEmpty()) {
-        seqPtr = &seq;
+    // Prefer the live sequence; fall back to loading model definitions
+    // directly from xlights_rgbeffects.xml when no sequence is open.
+    const QtSequenceInfo& live = QtXLightsApp::instance().currentSequence();
+    if (!live.models.isEmpty()) {
+        _data = live;
     } else {
+        _data = QtSequenceInfo{};
         const QString sf = QtXLightsApp::instance().showFolder();
-        if (!sf.isEmpty()) {
-            QtSequenceDoc::loadModels(sf + "/xlights_rgbeffects.xml", fallback);
-            if (!fallback.models.isEmpty())
-                seqPtr = &fallback;
-        }
+        if (!sf.isEmpty())
+            QtSequenceDoc::loadModels(sf + "/xlights_rgbeffects.xml", _data);
     }
 
-    if (!seqPtr) {
+    if (_data.models.isEmpty() && _data.controllers.isEmpty()) {
         _modelList->clear();
         _groupList->clear();
         _controllerList->clear();
@@ -155,24 +159,21 @@ void LayoutWindow::refresh() {
         return;
     }
 
-    // Models tab
     _modelList->clear();
-    for (auto it = seqPtr->models.constBegin(); it != seqPtr->models.constEnd(); ++it)
+    for (auto it = _data.models.constBegin(); it != _data.models.constEnd(); ++it)
         _modelList->addItem(it->name);
     _modelList->sortItems();
 
-    // Groups tab
     _groupList->clear();
-    for (auto it = seqPtr->groups.constBegin(); it != seqPtr->groups.constEnd(); ++it)
+    for (auto it = _data.groups.constBegin(); it != _data.groups.constEnd(); ++it)
         _groupList->addItem(it->name);
     _groupList->sortItems();
 
-    // Controllers tab
     _controllerList->clear();
-    for (const QtControllerInfo& c : seqPtr->controllers)
+    for (const QtControllerInfo& c : _data.controllers)
         _controllerList->addItem(c.name);
 
-    _canvas->loadLayout(*seqPtr);
+    _canvas->loadLayout(_data);
     clearProps();
 }
 
@@ -189,8 +190,7 @@ void LayoutWindow::onModelListClicked(QListWidgetItem* item) {
 void LayoutWindow::onGroupListClicked(QListWidgetItem* item) {
     if (!item) return;
     const QString name = item->text();
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    const QtModelGroupInfo& gi = seq.groups.value(name);
+    const QtModelGroupInfo& gi = _data.groups.value(name);
     _canvas->setGroupHighlight(name, gi.modelNames);
     _canvas->clearSelection();
     buildGroupProps(name);
@@ -237,11 +237,10 @@ void LayoutWindow::setProps(const QList<QPair<QString,QString>>& rows) {
 }
 
 void LayoutWindow::buildModelProps(const QString& name) {
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    const QtModelInfo& m = seq.models.value(name);
+    const QtModelInfo& m = _data.models.value(name);
     if (m.name.isEmpty()) { clearProps(); return; }
 
-    setProps({
+    QList<QPair<QString,QString>> rows = {
         { "Name",          m.name },
         { "Type",          m.type },
         { "Nodes",         QString::number(m.nodeCount) },
@@ -254,12 +253,17 @@ void LayoutWindow::buildModelProps(const QString& name) {
         { "World Y",       QString::number(m.worldPosY, 'f', 2) },
         { "Scale X",       QString::number(m.scaleX,    'f', 3) },
         { "Scale Y",       QString::number(m.scaleY,    'f', 3) },
-    });
+    };
+    if (!m.controllerName.isEmpty()) {
+        rows.append({ "Controller", m.controllerName });
+        if (m.controllerPort > 0)
+            rows.append({ "Port", QString::number(m.controllerPort) });
+    }
+    setProps(rows);
 }
 
 void LayoutWindow::buildGroupProps(const QString& name) {
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    const QtModelGroupInfo& g = seq.groups.value(name);
+    const QtModelGroupInfo& g = _data.groups.value(name);
     if (g.name.isEmpty()) { clearProps(); return; }
 
     setProps({
@@ -275,17 +279,21 @@ void LayoutWindow::buildGroupProps(const QString& name) {
 }
 
 void LayoutWindow::buildControllerProps(const QString& name) {
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    for (const QtControllerInfo& c : seq.controllers) {
+    for (const QtControllerInfo& c : _data.controllers) {
         if (c.name != name) continue;
-        setProps({
+        QList<QPair<QString,QString>> rows = {
             { "Name",          c.name },
             { "Type",          c.type },
             { "IP / Port",     c.ip },
             { "Protocol",      c.protocol },
             { "Start Channel", QString::number(c.startChannel) },
             { "Channels",      QString::number(c.channelCount) },
-        });
+        };
+        if (c.pixelPortCount > 0)
+            rows.append({ "Pixel Ports", QString::number(c.pixelPortCount) });
+        if (c.serialPortCount > 0)
+            rows.append({ "Serial Ports", QString::number(c.serialPortCount) });
+        setProps(rows);
         return;
     }
     clearProps();

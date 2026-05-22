@@ -1,4 +1,5 @@
 #pragma once
+#include "../Bridge/QtSequenceDoc.h"
 #include <QList>
 #include <QPair>
 #include <QString>
@@ -54,4 +55,8 @@ private:
     ModelLayoutCanvas* _canvas       = nullptr;
 
     ModelEditDialog*   _editDialog   = nullptr;
+
+    // Effective sequence data — either the live sequence or the show-file fallback.
+    // All property lookups use this instead of currentSequence() directly.
+    QtSequenceInfo     _data;
 };

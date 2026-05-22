@@ -1,4 +1,5 @@
 #pragma once
+#include "../Bridge/QtSequenceDoc.h"
 #include <QWidget>
 #include <QString>
 
@@ -35,6 +36,8 @@ private:
                     const QString& controllerName, int port);
 
     bool eventFilter(QObject* obj, QEvent* ev) override;
+
+    QtSequenceInfo _data;   // effective sequence (live or show-file fallback)
 
     QComboBox*   _ctrlCombo    = nullptr;
     QScrollArea* _portScroll   = nullptr;

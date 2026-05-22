@@ -327,19 +327,28 @@ bool ControllerVisualizerWindow::eventFilter(QObject* obj, QEvent* ev) {
 }
 
 void ControllerVisualizerWindow::refresh() {
-    const QString current = _ctrlCombo->currentText();
+    // Prefer the live sequence; fall back to show-file data when none is open.
+    const QtSequenceInfo& live = QtXLightsApp::instance().currentSequence();
+    if (!live.models.isEmpty() || !live.controllers.isEmpty()) {
+        _data = live;
+    } else {
+        _data = QtSequenceInfo{};
+        const QString sf = QtXLightsApp::instance().showFolder();
+        if (!sf.isEmpty())
+            QtSequenceDoc::loadModels(sf + "/xlights_rgbeffects.xml", _data);
+    }
 
+    const QString current = _ctrlCombo->currentText();
     _ctrlCombo->blockSignals(true);
     _ctrlCombo->clear();
 
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
-    for (const QtControllerInfo& ci : seq.controllers)
+    for (const QtControllerInfo& ci : _data.controllers)
         _ctrlCombo->addItem(ci.name);
 
-    // Also add controllers found only as model.controllerName assignments.
+    // Also add controllers referenced only by model assignments.
     QSet<QString> seen;
-    for (const auto& ci : seq.controllers) seen.insert(ci.name);
-    for (auto it = seq.models.constBegin(); it != seq.models.constEnd(); ++it) {
+    for (const auto& ci : _data.controllers) seen.insert(ci.name);
+    for (auto it = _data.models.constBegin(); it != _data.models.constEnd(); ++it) {
         if (!it->controllerName.isEmpty() && !seen.contains(it->controllerName)) {
             _ctrlCombo->addItem(it->controllerName);
             seen.insert(it->controllerName);
@@ -379,7 +388,7 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
 
     if (ctrlName.isEmpty()) return;
 
-    const QtSequenceInfo& seq = QtXLightsApp::instance().currentSequence();
+    const QtSequenceInfo& seq = _data;
 
     // Find controller caps for port count and channel limits.
     int maxPixelPorts  = 0;
