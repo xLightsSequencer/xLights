@@ -400,7 +400,14 @@ void ModelEditDialog::populateSmEditor(int idx) {
     _smType->setEnabled(valid);
     _smBufferStyle->setEnabled(valid);
     _smRanges->setEnabled(valid);
-    if (!valid) { _smNameEdit->clear(); _smRanges->setRowCount(0); _preview->clearHighlight(); return; }
+    if (!valid) {
+        _smNameEdit->clear();
+        _smRanges->setUpdatesEnabled(false);
+        _smRanges->setRowCount(0);
+        _smRanges->setUpdatesEnabled(true);
+        _preview->clearHighlight();
+        return;
+    }
 
     const QtSubModelInfo& sm = _subModels[idx];
 
@@ -411,11 +418,13 @@ void ModelEditDialog::populateSmEditor(int idx) {
     };
     setCombo(_smLayout, sm.layout); setCombo(_smType, sm.type); setCombo(_smBufferStyle, sm.bufferStyle);
 
+    _smRanges->setUpdatesEnabled(false);
     _smRanges->blockSignals(true);
     _smRanges->setRowCount(sm.ranges.size());
     for (int r = 0; r < sm.ranges.size(); ++r)
         _smRanges->setItem(r, 0, new QTableWidgetItem(sm.ranges[r]));
     _smRanges->blockSignals(false);
+    _smRanges->setUpdatesEnabled(true);
 
     _preview->clearHighlight();
 }
@@ -426,7 +435,9 @@ void ModelEditDialog::populateFaceEditor(int idx) {
     const bool valid = idx >= 0 && idx < _faces.size();
     _faceType->setEnabled(valid);
     _faceTable->setEnabled(valid);
+    _faceTable->setUpdatesEnabled(false);
     _faceTable->setRowCount(0);
+    _faceTable->setUpdatesEnabled(true);
     if (!valid) { _preview->clearHighlight(); return; }
 
     const QtFaceInfo& fi = _faces[idx];
@@ -439,6 +450,7 @@ void ModelEditDialog::populateFaceEditor(int idx) {
 }
 
 void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
+    _faceTable->setUpdatesEnabled(false);
     _faceTable->blockSignals(true);
     _faceTable->setRowCount(0);
 
@@ -517,6 +529,7 @@ void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
         }
     }
     _faceTable->blockSignals(false);
+    _faceTable->setUpdatesEnabled(true);
 }
 
 // ── State editor ──────────────────────────────────────────────────────────────
@@ -525,7 +538,9 @@ void ModelEditDialog::populateStateEditor(int idx) {
     const bool valid = idx >= 0 && idx < _states.size();
     _stateType->setEnabled(valid);
     _stateTable->setEnabled(valid);
+    _stateTable->setUpdatesEnabled(false);
     _stateTable->setRowCount(0);
+    _stateTable->setUpdatesEnabled(true);
     if (!valid) { _preview->clearHighlight(); return; }
 
     const QtStateInfo& si = _states[idx];
@@ -538,6 +553,7 @@ void ModelEditDialog::populateStateEditor(int idx) {
 }
 
 void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
+    _stateTable->setUpdatesEnabled(false);
     _stateTable->blockSignals(true);
     _stateTable->setRowCount(si.entries.size());
 
@@ -563,6 +579,7 @@ void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
         _stateTable->setCellWidget(r, 2, makeSwatchBtn(e.color, _stateTable));
     }
     _stateTable->blockSignals(false);
+    _stateTable->setUpdatesEnabled(true);
 }
 
 // ── Preview highlight helpers ─────────────────────────────────────────────────
