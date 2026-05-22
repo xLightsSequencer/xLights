@@ -829,21 +829,6 @@ void MainWindow::setupMenuBar() {
     // ── View menu ─────────────────────────────────────────────────────────
     auto* view = menuBar()->addMenu("&View");
 
-    // Show folder is the primary setting; put it at the top of View too.
-    auto* sfViewAct = view->addAction("Set Show &Folder…");
-    connect(sfViewAct, &QAction::triggered, this, [this]() {
-        const QString current = QtXLightsApp::instance().showFolder();
-        const QString path = QFileDialog::getExistingDirectory(
-            this, "Set Show Folder", current.isEmpty() ? QDir::homePath() : current);
-        if (path.isEmpty()) return;
-        QtXLightsApp::instance().setShowFolder(path);
-        _renderBridge->setShowFolder(path);
-        _layoutWin->refresh();
-        _playback->setMediaFile({});
-        statusBar()->showMessage("Show folder: " + path, 5000);
-    });
-    view->addSeparator();
-
     auto* layoutAct = view->addAction("&Layout…", QKeySequence("Ctrl+L"));
     connect(layoutAct, &QAction::triggered, this, [this]() {
         _layoutWin->show();
