@@ -308,11 +308,11 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
     _stateType->addItems({"NodeRange", "SingleNode"});
 
     _stateTable = new QTableWidget(0, 3);
-    _stateTable->setHorizontalHeaderLabels({"Key", "Nodes", "Color"});
+    _stateTable->setHorizontalHeaderLabels({"Name", "Nodes", "Color"});
     _stateTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _stateTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     _stateTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    _stateTable->verticalHeader()->hide();
+    _stateTable->verticalHeader()->setVisible(true);  // shows s1, s2, … row numbers
 
     auto* seAdd = new QPushButton("+ Row");
     auto* seDel = new QPushButton("– Row");
@@ -557,25 +557,30 @@ void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
     _stateTable->blockSignals(true);
     _stateTable->setRowCount(si.entries.size());
 
+    // Label each row sN so the user always knows the XML key.
+    for (int r = 0; r < si.entries.size(); ++r)
+        _stateTable->setVerticalHeaderItem(r,
+            new QTableWidgetItem(QString("s%1").arg(r + 1)));
+
     for (int r = 0; r < si.entries.size(); ++r) {
         const QtStateEntry& e = si.entries[r];
-        _stateTable->setItem(r, 0, new QTableWidgetItem(e.key));
 
-        // Derive node display from key.
-        QString nodeVal = e.key;
-        if (nodeVal.startsWith('s') || nodeVal.startsWith('S'))
-            nodeVal = nodeVal.mid(1).replace(QRegularExpression("^s|^S"), "");
+        // Column 0: Name (user label, e.g. "Test")
+        _stateTable->setItem(r, 0, new QTableWidgetItem(e.name));
 
+        // Column 1: Nodes — QSpinBox for SingleNode, QLineEdit text for NodeRange
         if (si.type == "SingleNode") {
             auto* spin = new QSpinBox;
             spin->setRange(1, qMax(1, _nodeCount));
-            spin->setValue(qMax(1, nodeVal.section('-', 0, 0).toInt()));
+            spin->setValue(qMax(1, e.nodes.toInt()));
             connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
                     this, [this](int) { previewFromStateRow(_stateTable->currentRow()); });
             _stateTable->setCellWidget(r, 1, spin);
         } else {
-            _stateTable->setItem(r, 1, new QTableWidgetItem(nodeVal));
+            _stateTable->setItem(r, 1, new QTableWidgetItem(e.nodes));
         }
+
+        // Column 2: Color swatch
         _stateTable->setCellWidget(r, 2, makeSwatchBtn(e.color, _stateTable));
     }
     _stateTable->blockSignals(false);
@@ -612,12 +617,13 @@ void ModelEditDialog::previewFromStateRow(int row) {
     const QString type = _states[_curState].type;
     QList<int> indices;
 
-    auto* keyIt = _stateTable->item(row, 0);
+    // Column 1 holds the node value (spinbox for SingleNode, text for NodeRange).
     if (type == "SingleNode") {
         if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(row, 1)))
             indices = parseRangeStr(QString::number(spin->value()));
-    } else if (keyIt) {
-        indices = parseStateKey(keyIt->text(), _nodeCount);
+    } else {
+        if (auto* nodesIt = _stateTable->item(row, 1))
+            indices = parseRangeStr(nodesIt->text());
     }
 
     // Use the state's color for preview.
@@ -740,12 +746,18 @@ void ModelEditDialog::commitCurrentState() {
     si.type = _stateType->currentText();
     si.entries.clear();
     for (int r = 0; r < _stateTable->rowCount(); ++r) {
-        auto* kIt = _stateTable->item(r, 0);
-        if (!kIt || kIt->text().trimmed().isEmpty()) continue;
         QtStateEntry e;
-        e.key   = kIt->text().trimmed();
+        // Col 0: Name
+        if (auto* nIt = _stateTable->item(r, 0)) e.name = nIt->text().trimmed();
+        // Col 1: Nodes (spinbox or text)
+        if (si.type == "SingleNode") {
+            if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(r, 1)))
+                e.nodes = QString::number(spin->value());
+        } else {
+            if (auto* nIt = _stateTable->item(r, 1)) e.nodes = nIt->text().trimmed();
+        }
+        // Col 2: Color swatch
         e.color = swatchColor(_stateTable->cellWidget(r, 2));
-        if (e.color.isEmpty()) e.color = "Black";
         si.entries.append(e);
     }
 }
@@ -853,8 +865,10 @@ void ModelEditDialog::onStateEntryAdd() {
     if (_curState < 0) return;
     const int r = _stateTable->rowCount();
     _stateTable->setRowCount(r + 1);
-    const QString key = QString("s%1").arg(r + 1, 3, 10, QChar('0'));
-    _stateTable->setItem(r, 0, new QTableWidgetItem(key));
+    _stateTable->setVerticalHeaderItem(r, new QTableWidgetItem(QString("s%1").arg(r + 1)));
+    // Col 0: Name (empty by default)
+    _stateTable->setItem(r, 0, new QTableWidgetItem(""));
+    // Col 1: Nodes
     const QString type = _stateType->currentText();
     if (type == "SingleNode") {
         auto* spin = new QSpinBox; spin->setRange(1, qMax(1, _nodeCount)); spin->setValue(r + 1);
@@ -939,9 +953,16 @@ bool ModelEditDialog::saveToXml() {
         auto sNode = modelNode.append_child("stateInfo");
         sNode.append_attribute("Name") = si.name.toStdString().c_str();
         sNode.append_attribute("Type") = si.type.toStdString().c_str();
-        for (const QtStateEntry& e : si.entries) {
-            if (e.key.isEmpty()) continue;
-            sNode.append_attribute(e.key.toStdString().c_str()) = e.color.toStdString().c_str();
+        if (si.forceColor)
+            sNode.append_attribute("CustomColors") = "1";
+        // Write entries as s1="nodes" s1-Color="color" s1-Name="name"
+        for (int i = 0; i < si.entries.size(); ++i) {
+            const QtStateEntry& e = si.entries[i];
+            const std::string base = "s" + std::to_string(i + 1);
+            sNode.append_attribute(base.c_str()) = e.nodes.toStdString().c_str();
+            sNode.append_attribute((base + "-Color").c_str()) = e.color.toStdString().c_str();
+            if (!e.name.isEmpty())
+                sNode.append_attribute((base + "-Name").c_str()) = e.name.toStdString().c_str();
         }
     }
 

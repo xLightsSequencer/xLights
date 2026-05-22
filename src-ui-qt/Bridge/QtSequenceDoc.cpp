@@ -750,6 +750,8 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
             QtFaceInfo fi;
             fi.name = QString::fromUtf8(fNode.attribute("Name").as_string(""));
             fi.type = QString::fromUtf8(fNode.attribute("Type").as_string("NodeRange"));
+            const char* fcc = fNode.attribute("CustomColors").as_string("");
+            fi.forceColor = (fcc && fcc[0] != '\0');
             for (auto attr : fNode.attributes())
                 fi.attrs[QString::fromUtf8(attr.name())] =
                     QString::fromUtf8(attr.value());
@@ -758,21 +760,47 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         }
 
         // ── States ────────────────────────────────────────────────────────────
+        // Format: s1="node-range"  s1-Color="color"  s1-Name="label"
+        // Up to s200 (or however many are defined).
         for (auto sNode : m.children("stateInfo")) {
             QtStateInfo si;
             si.name = QString::fromUtf8(sNode.attribute("Name").as_string(""));
             si.type = QString::fromUtf8(sNode.attribute("Type").as_string("NodeRange"));
+            const char* scc = sNode.attribute("CustomColors").as_string("");
+            si.forceColor = (scc && scc[0] != '\0');
+
+            // First pass: collect all numeric keys from sN attributes.
+            QMap<int, QtStateEntry> entryMap;
             for (auto attr : sNode.attributes()) {
                 const QString k = QString::fromUtf8(attr.name());
                 if (k == "Name" || k == "Type" || k == "CustomColors") continue;
-                // Only collect keys that look like state entries (start with 's').
-                if (k.startsWith('s') && k.size() > 1 && k[1].isDigit()) {
-                    QtStateEntry e;
-                    e.key   = k;
-                    e.color = QString::fromUtf8(attr.value());
-                    si.entries.append(e);
-                }
+                if (!k.startsWith('s') || k.size() < 2) continue;
+
+                // Split on first '-': "s1" → base="s1", suffix=""
+                //                     "s1-Color" → base="s1", suffix="-Color"
+                //                     "s1-Name"  → base="s1", suffix="-Name"
+                const int dash = k.indexOf('-');
+                const QString base   = (dash < 0) ? k : k.left(dash);
+                const QString suffix = (dash < 0) ? QString() : k.mid(dash);
+
+                // base must be 's' followed by digits only
+                const QString numStr = base.mid(1);
+                bool ok = false;
+                const int n = numStr.toInt(&ok);
+                if (!ok || n < 1) continue;
+
+                const QString val = QString::fromUtf8(attr.value());
+                if (suffix.isEmpty())
+                    entryMap[n].nodes = val;
+                else if (suffix.compare("-Color", Qt::CaseInsensitive) == 0)
+                    entryMap[n].color = val;
+                else if (suffix.compare("-Name", Qt::CaseInsensitive) == 0)
+                    entryMap[n].name = val;
             }
+
+            for (auto it = entryMap.constBegin(); it != entryMap.constEnd(); ++it)
+                si.entries.append(it.value());
+
             if (!si.name.isEmpty())
                 mi.states.append(si);
         }
