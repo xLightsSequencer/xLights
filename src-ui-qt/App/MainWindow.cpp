@@ -196,7 +196,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ── Info windows (created once, shown on demand) ──────────────────────
     _modelInfoWin     = new ModelInfoWindow(this);
     _layoutWin        = new LayoutWindow(this);
+    _layoutWin->setRenderBridge(_renderBridge);
     _controllerVizWin    = new ControllerVisualizerWindow(this);
+    _controllerVizWin->setRenderBridge(_renderBridge);
     _controllerUploadDlg = new ControllerUploadDialog(this);
 
     connect(_layoutWin, &LayoutWindow::visualizerRequested,

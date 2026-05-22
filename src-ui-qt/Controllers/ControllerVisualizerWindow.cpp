@@ -1,6 +1,10 @@
 #include "ControllerVisualizerWindow.h"
 #include "../App/QtXLightsApp.h"
 #include "../Bridge/QtSequenceDoc.h"
+#include "../Bridge/QtRenderBridge.h"
+
+#include "../../src-core/models/ModelManager.h"
+#include "../../src-core/models/Model.h"
 
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
@@ -42,22 +46,32 @@ static QColor modelColor(const QString& name) {
 // A small colored widget representing one model wired to a port.
 // Starts a QDrag carrying the model name on mouse drag.
 
+struct ModelPortInfo {
+    int     count       = 0;    // pixels (pixel port) or channels (serial port)
+    bool    isPixel     = true;
+    QString colorOrder;
+    char    smartRemote = 0;    // 0 = none, 'A'/'B'/'C'/…
+    int     brightness  = 100;
+    int     groupCount  = 1;
+};
+
 class ModelBoxButton : public QWidget {
     Q_OBJECT
 public:
-    ModelBoxButton(const QString& modelName, int channels,
+    ModelBoxButton(const QString& modelName, const ModelPortInfo& info,
                    int port, QWidget* parent = nullptr)
-        : QWidget(parent), _name(modelName), _channels(channels), _port(port)
+        : QWidget(parent), _name(modelName), _info(info), _port(port)
     {
         setFixedHeight(kBoxH);
         setMinimumWidth(kBoxMinW);
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-        setToolTip(QString("%1\n%2 channels\nPort %3").arg(modelName).arg(channels).arg(port));
         setAcceptDrops(false);
+        buildTooltip();
     }
 
     const QString& modelName() const { return _name; }
-    int channels() const { return _channels; }
+    int count() const { return _info.count; }
+    bool isPixel() const { return _info.isPixel; }
     int port() const { return _port; }
 
 protected:
@@ -78,8 +92,9 @@ protected:
         f.setBold(false); f.setPointSize(7); p.setFont(f);
         p.setPen(QColor(230,230,230));
         const QRect chR = rect().adjusted(kBoxPad, kBoxH/2, -kBoxPad, -4);
+        const QString unit = _info.isPixel ? "px" : "ch";
         p.drawText(chR, Qt::AlignLeft | Qt::AlignVCenter,
-                   QString("%1 ch").arg(_channels));
+                   QString("%1 %2").arg(_info.count).arg(unit));
     }
 
     void mousePressEvent(QMouseEvent* e) override {
@@ -105,10 +120,25 @@ protected:
     }
 
 private:
-    QString _name;
-    int     _channels;
-    int     _port;
-    QPoint  _dragStart;
+    void buildTooltip() {
+        QString tip = _name;
+        const QString unit = _info.isPixel ? "px" : "ch";
+        tip += QString("\n%1 %2  (Port %3)").arg(_info.count).arg(unit).arg(_port);
+        if (!_info.colorOrder.isEmpty() && _info.colorOrder != "RGB")
+            tip += "\nColor Order: " + _info.colorOrder;
+        if (_info.smartRemote)
+            tip += QString("\nSmart Receiver: %1").arg(QChar(_info.smartRemote));
+        if (_info.brightness != 100)
+            tip += QString("\nBrightness: %1%").arg(_info.brightness);
+        if (_info.groupCount > 1)
+            tip += QString("\nGrouping: %1").arg(_info.groupCount);
+        setToolTip(tip);
+    }
+
+    QString      _name;
+    ModelPortInfo _info;
+    int          _port;
+    QPoint       _dragStart;
 };
 
 // ── PortRowWidget ─────────────────────────────────────────────────────────────
@@ -159,12 +189,12 @@ public:
 
     int portNum() const { return _portNum; }
 
-    void addModel(const QString& name, int channels) {
-        // Insert before the trailing stretch.
-        auto* btn = new ModelBoxButton(name, channels, _portNum, _strip);
+    void addModel(const QString& name, const ModelPortInfo& info) {
+        auto* btn = new ModelBoxButton(name, info, _portNum, _strip);
         const int pos = qMax(0, _stripLayout->count() - 1);
         _stripLayout->insertWidget(pos, btn);
-        _totalChannels += channels;
+        // Overflow check uses channel count regardless of pixel/serial distinction.
+        _totalChannels += info.isPixel ? info.count * 3 : info.count;
         updateOverflow();
     }
 
@@ -174,7 +204,7 @@ public:
             auto* btn = qobject_cast<ModelBoxButton*>(
                 _stripLayout->itemAt(i)->widget());
             if (btn && btn->modelName() == name) {
-                const int ch = btn->channels();
+                const int ch = btn->isPixel() ? btn->count() * 3 : btn->count();
                 _stripLayout->removeItem(_stripLayout->itemAt(i));
                 btn->deleteLater();
                 _totalChannels -= ch;
@@ -326,6 +356,10 @@ bool ControllerVisualizerWindow::eventFilter(QObject* obj, QEvent* ev) {
     return QWidget::eventFilter(obj, ev);
 }
 
+void ControllerVisualizerWindow::setRenderBridge(QtRenderBridge* bridge) {
+    _bridge = bridge;
+}
+
 void ControllerVisualizerWindow::refresh() {
     // Prefer the live sequence; fall back to show-file data when none is open.
     const QtSequenceInfo& live = QtXLightsApp::instance().currentSequence();
@@ -404,13 +438,44 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
     }
 
     // Group models by port for this controller.
-    QMap<int, QList<QPair<QString,int>>> portModels; // port → [(name, channels)]
+    // Multi-string models span GetNumStrings() consecutive ports.
+    // Pixel ports show pixel count; serial ports show channel count.
+    ModelManager* mm = _bridge ? _bridge->modelManager() : nullptr;
+    QMap<int, QList<QPair<QString,ModelPortInfo>>> portModels;
     for (auto it = seq.models.constBegin(); it != seq.models.constEnd(); ++it) {
         const QtModelInfo& m = *it;
-        if (m.controllerName == ctrlName) {
-            const int port = qMax(1, m.controllerPort);
-            portModels[port].append({m.name, m.nodeCount});
+        if (m.controllerName != ctrlName) continue;
+        const int startPort = qMax(1, m.controllerPort);
+
+        ModelPortInfo info;
+        info.isPixel = true;   // assume pixel unless overridden below
+
+        int numStrings = 1;
+        if (mm) {
+            Model* model = mm->GetModel(m.name.toStdString());
+            if (model) {
+                numStrings          = qMax(1, model->GetNumStrings());
+                const int totalNodes = static_cast<int>(model->GetNodeCount());
+                const int chanPerNode = model->GetChanCountPerNode();
+                // Pixel count per port (nodes / strings); channels for serial models.
+                if (chanPerNode == 1) {
+                    info.isPixel = false;
+                    info.count   = static_cast<int>(model->GetChanCount()) / numStrings;
+                } else {
+                    info.isPixel = true;
+                    info.count   = totalNodes / numStrings;
+                }
+                info.colorOrder  = QString::fromStdString(model->GetControllerColorOrder());
+                info.smartRemote = model->GetSmartRemoteLetter();
+                info.brightness  = model->GetControllerBrightness();
+                info.groupCount  = model->GetControllerGroupCount();
+            }
+        } else {
+            info.count = m.nodeCount / numStrings;
         }
+
+        for (int s = 0; s < numStrings; ++s)
+            portModels[startPort + s].append({m.name, info});
     }
 
     // Determine how many pixel ports to show.
@@ -423,15 +488,13 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
         auto* row = new PortRowWidget(portLabel2, p, maxPortCh, _portContainer);
 
         if (portModels.contains(p)) {
-            // Sort by start channel.
             auto& mlist = portModels[p];
             std::sort(mlist.begin(), mlist.end(), [&](const auto& a, const auto& b) {
-                const auto& ma = seq.models.value(a.first);
-                const auto& mb = seq.models.value(b.first);
-                return ma.startChannel < mb.startChannel;
+                return seq.models.value(a.first).startChannel
+                     < seq.models.value(b.first).startChannel;
             });
-            for (const auto& [name, ch] : mlist)
-                row->addModel(name, ch);
+            for (const auto& [name, info] : mlist)
+                row->addModel(name, info);
         }
 
         connect(row, &PortRowWidget::modelDropped,
@@ -456,7 +519,7 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
     for (auto it = seq.models.constBegin(); it != seq.models.constEnd(); ++it) {
         if (it->controllerName != ctrlName) {
             auto* item = new QListWidgetItem(
-                QString("%1  (%2, %3 ch)").arg(it->name).arg(it->type).arg(it->nodeCount));
+                QString("%1  (%2, %3 nodes)").arg(it->name).arg(it->type).arg(it->nodeCount));
             item->setData(Qt::UserRole, it->name);
             _availList->addItem(item);
         }

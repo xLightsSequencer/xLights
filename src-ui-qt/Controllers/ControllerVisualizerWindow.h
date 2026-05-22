@@ -9,6 +9,7 @@ class QListWidget;
 class QScrollArea;
 class QSplitter;
 class QVBoxLayout;
+class QtRenderBridge;
 
 // Phase 16 — Controller Visualizer.
 // Shows one row per port for the selected controller with model boxes
@@ -20,6 +21,10 @@ public:
 
     // Reload from the current sequence / show file.
     void refresh();
+
+    // Provide the render bridge so buildPortView() can call GetNumStrings()
+    // on the real src-core Model objects via ModelManager.
+    void setRenderBridge(QtRenderBridge* bridge);
 
     // Open the window and pre-select a specific controller.
     void openForController(const QString& controllerName);
@@ -37,7 +42,8 @@ private:
 
     bool eventFilter(QObject* obj, QEvent* ev) override;
 
-    QtSequenceInfo _data;   // effective sequence (live or show-file fallback)
+    QtSequenceInfo  _data;   // effective sequence (live or show-file fallback)
+    QtRenderBridge* _bridge = nullptr;
 
     QComboBox*   _ctrlCombo    = nullptr;
     QScrollArea* _portScroll   = nullptr;

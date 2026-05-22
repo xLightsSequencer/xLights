@@ -53,8 +53,6 @@ struct QtModelInfo {
     int           bufferW   = 100;
     int           bufferH   = 1;
     int           nodeCount = 100;
-    int           parm1        = 1;   // NumStrings / NumArches / etc.
-    int           parm2        = 1;   // NodesPerString / NodesPerArch / etc.
     int           startChannel = 1;   // 1-based DMX start channel from show file
 
     // World position and scale from the layout canvas.
@@ -68,11 +66,6 @@ struct QtModelInfo {
     // Used to compute globalPositions with the correct physical width/height
     // (replaces bufferW × scaleX which is wrong for shaped models like trees).
     double screenRangeX = 0.0, screenRangeY = 0.0;
-
-    // For Star models with a "LayerSizes" attribute (concentric rings):
-    // each entry is the node count in that ring, innermost first.
-    // Empty for single-layer stars.
-    QList<int> layerSizes;
 
     // Normalized [0,1]×[0,1] position for each node (size == nodeCount).
     // Gives the physical layout so PreviewWidget can draw the model shape.

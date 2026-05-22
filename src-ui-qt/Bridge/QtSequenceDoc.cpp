@@ -189,210 +189,8 @@ QtSequenceInfo QtSequenceDoc::load(const QString& path, const QString& showFolde
 
 // ── Show file parser ──────────────────────────────────────────────────────────
 
-// ── Node position computation ─────────────────────────────────────────────────
-// Returns normalized [0,1]×[0,1] positions matching the xLights OpenGL preview.
-// Formulas are derived from xLights' model screenX/screenY calculations in
-// SingleLineModel.cpp, MatrixModel.cpp, TreeModel.cpp, etc.
-
-static QList<QPointF> computeNodePositions(const QString& type,
-                                            int parm1, int parm2,
-                                            int bufW, int bufH,
-                                            const QList<int>& layerSizes = {})
-{
-    const int N = bufW * bufH;
-    QList<QPointF> pos;
-    pos.reserve(N);
-
-    // ── Single Line / Poly Line / Arch / Icicles / Window Frame / etc. ──
-    // Explicitly named 1-D types — drawn as a horizontal strip.
-    // NOTE: do NOT add a generic "bufH==1" catch here; shaped models like
-    // Star, Arches, and Candy Canes also have bufH==1 but need their own
-    // shape-aware branches below.  Unknown bufH==1 types fall to the final else.
-    if (type == "Single Line" || type == "Poly Line"
-        || type == "Icicles"   || type == "Window Frame"
-        || type == "Gridlines" || type == "Arch") {
-        for (int i = 0; i < N; ++i)
-            pos.append({ N > 1 ? double(i) / (N - 1) : 0.5, 0.5 });
-
-    // ── Arch (single) ────────────────────────────────────────────────────
-    } else if (type == "Arch" && bufH > 1) {   // only if 2-D (shouldn't happen)
-        for (int i = 0; i < N; ++i) {
-            double t = N > 1 ? double(i) / (N - 1) : 0.5;
-            double a = M_PI * t;                       // 0 (left) → π (right)
-            pos.append({ (1.0 - std::cos(a)) / 2.0,   // x: 0 → 1
-                          1.0 - std::sin(a) * 0.90 }); // y: peak near top
-        }
-
-    // ── Multiple arches ───────────────────────────────────────────────────
-    } else if (type == "Arches") {
-        int nA = qMax(1, parm1), nP = qMax(1, parm2);
-        double hw = 0.44 / nA;
-        for (int a = 0; a < nA; ++a) {
-            double cx = (a + 0.5) / nA;
-            for (int n = 0; n < nP; ++n) {
-                double t     = nP > 1 ? double(n) / (nP - 1) : 0.5;
-                double angle = M_PI * t;
-                pos.append({ cx + std::cos(M_PI - angle) * hw,
-                              1.0 - std::sin(angle) * 0.88 });
-            }
-        }
-
-    // ── Matrix (Horiz or Vert) ────────────────────────────────────────────
-    // Grid of W×H nodes. bufW=cols, bufH=rows (already corrected in loadModels).
-    } else if (type == "Horiz Matrix" || type == "Vert Matrix"
-               || type == "Matrix"    || type == "Spinner") {
-        // row=0 is the physical bottom (xLights y=0 is lower-left); flip so that
-        // it maps to y=1.0 (bottom of screen in Qt coordinates).
-        for (int row = 0; row < bufH; ++row)
-            for (int col = 0; col < bufW; ++col)
-                pos.append({ bufW > 1 ? double(col) / (bufW - 1) : 0.5,
-                              bufH > 1 ? 1.0 - double(row) / (bufH - 1) : 0.5 });
-
-    // ── Tree 360 (top-down circular) ──────────────────────────────────────
-    // bufW = strands, bufH = nodes per strand.
-    // Buffer is node-major: index = node*strands + strand.
-    // Outer loop must be over nodes (bufY), inner over strands (bufX).
-    } else if (type == "Tree 360") {
-        int nS = qMax(1, parm1), nP = qMax(1, parm2);
-        for (int n = 0; n < nP; ++n) {                    // bufY = node
-            double r = double(n + 1) / nP * 0.46;
-            for (int s = 0; s < nS; ++s) {                // bufX = strand
-                double angle = 2.0 * M_PI * s / nS - M_PI / 2.0;
-                pos.append({ 0.5 + std::cos(angle) * r,
-                              0.5 + std::sin(angle) * r });
-            }
-        }
-
-    // ── Tree 270 (¾-arc view) ─────────────────────────────────────────────
-    } else if (type == "Tree 270") {
-        int nS = qMax(1, parm1), nP = qMax(1, parm2);
-        for (int n = 0; n < nP; ++n) {                    // bufY = node
-            double r = double(n + 1) / nP * 0.46;
-            for (int s = 0; s < nS; ++s) {                // bufX = strand
-                double angle = (2.0 * M_PI * 0.75) * s / qMax(1, nS - 1)
-                               - M_PI * 0.875;
-                pos.append({ 0.5 + std::cos(angle) * r,
-                              0.5 + std::sin(angle) * r });
-            }
-        }
-
-    // ── Tree 180 (front view, half-arc fan) ──────────────────────────────
-    // Strands fan from -90° to +90° at the base and converge to the tip.
-    // Using arc distribution (sin) to match xLights layout canvas.
-    } else if (type == "Tree 180") {
-        int nS = qMax(1, parm1), nP = qMax(1, parm2);
-        for (int n = 0; n < nP; ++n) {                    // bufY = node
-            double t = nP > 1 ? double(n) / (nP - 1) : 0.0;
-            double y = 1.0 - t;
-            for (int s = 0; s < nS; ++s) {                // bufX = strand
-                double angle = nS > 1 ? (double(s) / (nS - 1) - 0.5) * M_PI : 0.0;
-                double xBase = 0.5 + 0.5 * std::sin(angle);
-                double x = xBase * (1.0 - t) + 0.5 * t;
-                pos.append({ x, y });
-            }
-        }
-
-    // ── Tree (other/generic front view, triangular cone) ──────────────────
-    // Strands spread at the base and converge to a tip at the top centre.
-    } else if (type.startsWith("Tree")) {
-        int nS = qMax(1, parm1), nP = qMax(1, parm2);
-        for (int n = 0; n < nP; ++n) {                    // bufY = node
-            double t = nP > 1 ? double(n) / (nP - 1) : 0.0;
-            double y = 1.0 - t;
-            for (int s = 0; s < nS; ++s) {                // bufX = strand
-                double xBase = (s + 0.5) / nS;
-                double x = xBase * (1.0 - t) + 0.5 * t;
-                pos.append({ x, y });
-            }
-        }
-
-    // ── Circle / concentric rings ─────────────────────────────────────────
-    } else if (type == "Circle") {
-        int nR = qMax(1, parm1), nP = qMax(1, parm2);
-        for (int r = 0; r < nR; ++r) {
-            double radius = double(r + 1) / nR * 0.45;
-            for (int n = 0; n < nP; ++n) {
-                double a = 2.0 * M_PI * n / nP - M_PI / 2.0;
-                pos.append({ 0.5 + std::cos(a) * radius,
-                              0.5 + std::sin(a) * radius });
-            }
-        }
-
-    // ── Star ─────────────────────────────────────────────────────────────
-    // parm1 = StarPoints.  Nodes arranged along the star outline with
-    // alternating outer (tip) and inner (valley) radii.
-    // Multi-layer (concentric) stars: layerSizes gives node count per ring,
-    // innermost first; each ring scales its radii proportionally.
-    } else if (type == "Star") {
-        int    P         = qMax(3, parm1);
-        double outerRMax = 0.45;
-        double innerRMax = outerRMax * 0.40;
-
-        auto placeStarNodes = [&](int count, double outerR, double innerR) {
-            for (int i = 0; i < count; ++i) {
-                double t     = double(i) / count;
-                double angle = 2.0 * M_PI * t - M_PI / 2.0;
-                double phase = std::fmod(t * P, 1.0);
-                double r = phase < 0.5
-                           ? outerR - (outerR - innerR) * phase * 2.0
-                           : innerR + (outerR - innerR) * (phase - 0.5) * 2.0;
-                pos.append({ 0.5 + std::cos(angle) * r,
-                              0.5 + std::sin(angle) * r });
-            }
-        };
-
-        if (!layerSizes.isEmpty()) {
-            // Concentric rings: innermost at smallest radius, outermost at max.
-            int nL = layerSizes.size();
-            for (int l = 0; l < nL; ++l) {
-                double scale  = double(l + 1) / nL;
-                placeStarNodes(layerSizes[l],
-                               outerRMax * scale, innerRMax * scale);
-            }
-        } else {
-            placeStarNodes(N, outerRMax, innerRMax);
-        }
-
-    // ── Candy Canes ───────────────────────────────────────────────────────
-    } else if (type == "Candy Canes") {
-        int    nC = qMax(1, parm1), nP = qMax(1, parm2);
-        double hw = 0.36 / nC;
-        for (int c = 0; c < nC; ++c) {
-            double cx = (c + 0.5) / nC;
-            for (int n = 0; n < nP; ++n) {
-                double t = nP > 1 ? double(n) / (nP - 1) : 0.5;
-                double x, y;
-                if (t < 0.72) {
-                    x = cx;
-                    y = 1.0 - t / 0.72 * 0.80;
-                } else {
-                    double a = M_PI * (t - 0.72) / 0.28;
-                    x = cx + std::sin(a) * hw * 0.7;
-                    y = 0.20 - std::cos(a) * hw * 0.7 + hw * 0.7;
-                }
-                pos.append({ x, y });
-            }
-        }
-
-    // ── Custom model ──────────────────────────────────────────────────────
-    // Custom model data parsed separately; fall through to grid.
-
-    // ── Generic 2-D fallback ─────────────────────────────────────────────
-    // Flip y so row=0 (physical bottom in xLights coords) maps to y=1.0 (screen bottom).
-    } else if (bufH > 1) {
-        for (int row = 0; row < bufH; ++row)
-            for (int col = 0; col < bufW; ++col)
-                pos.append({ bufW > 1 ? double(col) / (bufW - 1) : 0.5,
-                              bufH > 1 ? 1.0 - double(row) / (bufH - 1) : 0.5 });
-
-    // ── Generic 1-D fallback ─────────────────────────────────────────────
-    } else {
-        for (int i = 0; i < N; ++i)
-            pos.append({ N > 1 ? double(i) / (N - 1) : 0.5, 0.5 });
-    }
-
-    return pos;
-}
+// (computeNodePositions removed — node positions always come from
+//  coreNodePositions() via src-core InitRenderBufferNodes.)
 
 // ── Core model → node positions ───────────────────────────────────────────────
 // Deserialise one model using src-core, run InitRenderBufferNodes() to get
@@ -560,39 +358,27 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         if (t == "Horiz Matrix" || t == "Matrix") {
             int nStr = iattr("NumStrings",     "parm1");   // rows
             int nPer = iattr("NodesPerString", "parm2");   // cols
-            mi.parm1 = nStr; mi.parm2 = nPer;
             mi.bufferW = qMax(1, nPer);   // cols = width
             mi.bufferH = qMax(1, nStr);   // rows = height
 
         // ── Vertical matrix ───────────────────────────────────────────────
-        // parm1 = NumStrings = cols, parm2 = NodesPerString = rows.
         } else if (t == "Vert Matrix" || t == "Spinner") {
             int nStr = iattr("NumStrings",     "parm1");   // cols
             int nPer = iattr("NodesPerString", "parm2");   // rows
-            mi.parm1 = nStr; mi.parm2 = nPer;
             mi.bufferW = qMax(1, nStr);   // cols = width
             mi.bufferH = qMax(1, nPer);   // rows = height
 
         // ── Tree variants ─────────────────────────────────────────────────
-        // Multi-string tree (parm1 > 1): parm1=strands, parm2=nodes/strand.
-        // Single-string tree (parm1 == 1): parm3 is the visual strand count;
-        //   nodes are wrapped into parm3 arms of parm2/parm3 nodes each.
         } else if (t.startsWith("Tree")) {
             int nStr = iattr("NumStrings",     "parm1");
             int nPer = iattr("NodesPerString", "parm2");
             int lpn  = iattr("LightsPerNode",  "parm3");
             if (nStr > 1) {
-                // Standard multi-string tree: parm3 = lights/node (ignored here)
-                mi.parm1 = nStr;
-                mi.parm2 = nPer;
                 mi.bufferW = qMax(1, nStr);
                 mi.bufferH = qMax(1, nPer);
             } else {
-                // Single-string tree: parm3 = visual strand count, e.g. parm3=8 → 8 arms
                 int visualStrands = qMax(1, lpn);
                 int nodesPerArm   = qMax(1, nPer / visualStrands);
-                mi.parm1 = visualStrands;
-                mi.parm2 = nodesPerArm;
                 mi.bufferW = visualStrands;
                 mi.bufferH = nodesPerArm;
             }
@@ -601,19 +387,16 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         } else if (t == "Custom") {
             mi.bufferW = qMax(1, iattr("CustomWidth",  "parm1"));
             mi.bufferH = qMax(1, iattr("CustomHeight", "parm2"));
-            mi.parm1 = mi.bufferW; mi.parm2 = mi.bufferH;
 
         // ── Cube ──────────────────────────────────────────────────────────
         } else if (t == "Cube") {
             mi.bufferW = qMax(1, iattr("CubeWidth",  "parm1"));
             mi.bufferH = qMax(1, iattr("CubeHeight", "parm2"));
-            mi.parm1 = mi.bufferW; mi.parm2 = mi.bufferH;
 
         // ── Arches (multiple) ─────────────────────────────────────────────
         } else if (t == "Arches") {
             int nArch = iattr("NumArches",    "parm1");
             int nPer  = iattr("NodesPerArch", "parm2");
-            mi.parm1 = nArch; mi.parm2 = nPer;
             mi.bufferW = qMax(1, nArch * nPer);
             mi.bufferH = 1;
 
@@ -621,7 +404,6 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         } else if (t == "Candy Canes") {
             int nCane = iattr("NumCanes",     "parm1");
             int nPer  = iattr("NodesPerCane", "parm2");
-            mi.parm1 = nCane; mi.parm2 = nPer;
             mi.bufferW = qMax(1, nCane * nPer);
             mi.bufferH = 1;
 
@@ -629,19 +411,13 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         } else if (t == "Circle") {
             int nStr = iattr("NumStrings",     "parm1");
             int nPer = iattr("NodesPerString", "parm2");
-            mi.parm1 = nStr; mi.parm2 = nPer;
             mi.bufferW = qMax(1, nStr);
             mi.bufferH = qMax(1, nPer);
 
         // ── Star ──────────────────────────────────────────────────────────
-        // parm3 = StarPoints (NOT LightsPerNode) in xLights Star model.
-        // LayerSizes="40,60,80" → concentric rings (innermost first).
         } else if (t == "Star") {
-            int pts = m.attribute("StarPoints").as_int(
-                          m.attribute("parm3").as_int(5));   // parm3, not parm1
-            int p1  = iattr("NumStrings",     "parm1");      // usually 1
-            int p2  = iattr("NodesPerString", "parm2");      // nodes per string
-            mi.parm1 = pts; mi.parm2 = p2;
+            int p1  = iattr("NumStrings",     "parm1");
+            int p2  = iattr("NodesPerString", "parm2");
 
             // Parse LayerSizes (e.g. "40,60,80") — present on PixelTreeStar etc.
             const char* lsStr = m.attribute("LayerSizes").as_string("");
@@ -650,7 +426,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
                 for (const QString& part :
                          QString::fromUtf8(lsStr).split(',', Qt::SkipEmptyParts)) {
                     int n = part.trimmed().toInt();
-                    if (n > 0) { mi.layerSizes.append(n); total += n; }
+                    if (n > 0) total += n;
                 }
                 mi.bufferW = qMax(1, total);
             } else {
@@ -663,7 +439,6 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
             int p1 = iattr("NumStrings",     "parm1");
             int p2 = iattr("NodesPerString", "parm2");
             int p3 = iattr("LightsPerNode",  "parm3");
-            mi.parm1 = p1; mi.parm2 = p2;
             mi.bufferW = qMax(1, p1 * p2 * p3);
             mi.bufferH = 1;
         }
@@ -688,11 +463,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         }
 
         if (!coreOk) {
-            // Math fallback: compute node positions from buffer dimensions + model type.
-            mi.nodeCount     = mi.bufferW * mi.bufferH;
-            mi.nodePositions = computeNodePositions(t, mi.parm1, mi.parm2,
-                                                    mi.bufferW, mi.bufferH,
-                                                    mi.layerSizes);
+            mi.nodeCount = mi.bufferW * mi.bufferH;
         }
 
         // Compute global layout positions from nodePositions + world transform.

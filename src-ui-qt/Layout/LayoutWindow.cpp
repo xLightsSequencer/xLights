@@ -253,8 +253,6 @@ void LayoutWindow::buildModelProps(const QString& name) {
         { "Name",          m.name },
         { "Type",          m.type },
         { "Nodes",         QString::number(m.nodeCount) },
-        { "Parm1",         QString::number(m.parm1) },
-        { "Parm2",         QString::number(m.parm2) },
         { "Buffer W",      QString::number(m.bufferW) },
         { "Buffer H",      QString::number(m.bufferH) },
         { "Start Channel", QString::number(m.startChannel) },
