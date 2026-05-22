@@ -606,7 +606,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
     TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
-    Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
+    Sizer1->Add(TimingTrackPanel, 0, wxEXPAND | wxALL, 1);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(1);
     StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
@@ -1028,7 +1028,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         const int COLS = (int)timingTracks.size() > 9 ? 4 : 3;
         int rows = ((int)timingTracks.size() + COLS - 1) / COLS;
 
-        auto* gridSizer = new wxFlexGridSizer(rows, COLS, 4, 16);
+        auto* gridSizer = new wxFlexGridSizer(rows, COLS, 4, 8);
         for (int c = 0; c < COLS; c++)
             gridSizer->AddGrowableCol(c, 1);
 
@@ -1037,7 +1037,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
             int item = TimingTrackListBox->Append(timingTracks[i]);
             TimingTrackListBox->Check(item, checked);
 
-            auto* cb = new wxCheckBox(Panel1, wxID_ANY, timingTracks[i]);
+            auto* cb = new wxCheckBox(TimingTrackPanel->GetStaticBox(), wxID_ANY, timingTracks[i]);
             cb->SetValue(checked);
             gridSizer->Add(cb, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
             _timingCheckboxes.push_back(cb);
@@ -1051,7 +1051,7 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
         for (int i = 0; i < rem; i++)
             gridSizer->AddSpacer(0);
 
-        TimingTrackPanel->Add(gridSizer, 1, wxEXPAND | wxALL, 6);
+        TimingTrackPanel->Add(gridSizer, 1, wxEXPAND | wxALL, 3);
     }
 
     if (!checkboxText.empty()) {
