@@ -689,7 +689,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
     //*)
 
-    Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
     Connect(ID_LISTCTRL1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModelsAvail);
 
     SetSize(800, 600);
@@ -758,7 +757,7 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
     }
 }
 
-void xLightsImportChannelMapDialog::RightClickModelsAvail(wxDataViewEvent& event) {
+void xLightsImportChannelMapDialog::RightClickModelsAvail(wxContextMenuEvent& event) {
         wxMenu mnuLayer;
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
@@ -1052,6 +1051,10 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
             gridSizer->AddSpacer(0);
 
         TimingTrackPanel->Add(gridSizer, 1, wxEXPAND | wxALL, 3);
+
+        TimingTrackPanel->GetStaticBox()->Bind(wxEVT_CONTEXT_MENU, [this](wxContextMenuEvent& evt) {
+            RightClickTimingTracks(evt);
+        });
     }
 
     if (!checkboxText.empty()) {
@@ -1088,12 +1091,15 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
             CheckBox_ShowTimeline = new wxCheckBox(Panel2, wxID_ANY, _("Show Timeline"));
-            CheckBox_ShowTimeline->SetValue(true);
+            CheckBox_ShowTimeline->SetValue(GetXLightsConfig()->ReadBool("ImportShowTimeline", true));
             findRowSizer->Add(CheckBox_ShowTimeline, 0, wxALIGN_CENTER_VERTICAL);
             findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
             findSizer->Layout();
             Sizer2->Layout();
             CheckBox_ShowTimeline->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+                auto* config = GetXLightsConfig();
+                config->Write("ImportShowTimeline", CheckBox_ShowTimeline->IsChecked());
+                config->Flush();
                 PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
             });
         }
@@ -1865,11 +1871,11 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     auto mappings = data["mappings"].array();
     for (size_t i = 0; i < mappings.size(); ++i) {
         wxString const model = mappings.at(i).at("model").get<std::string>();
-        wxString const strand = mappings.at(i).at("strand").get<std::string>();
-        wxString const node = mappings.at(i).at("node").get<std::string>();
+        wxString const strand = mappings.at(i).value("strand", "");
+        wxString const node = mappings.at(i).value("node", "");
         wxString const mapping = mappings.at(i).at("mapping").get<std::string>();
-        wxColor color = wxColor(mappings.at(i).at("color").get<std::string>());
-        bool stashed = mappings.at(i).at("stashed").get<bool>();
+        wxColor color = wxColor(mappings.at(i).value("color", "#FFFFFF"));
+        bool stashed = mappings.at(i).value("stashed", false);
 
         Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
 

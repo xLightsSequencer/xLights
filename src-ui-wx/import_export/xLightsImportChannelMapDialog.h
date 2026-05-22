@@ -649,7 +649,7 @@ protected:
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
-        void RightClickModelsAvail(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxContextMenuEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
