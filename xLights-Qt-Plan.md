@@ -5,18 +5,16 @@
 | Question | Answer |
 |---|---|
 | Output directory | `bin-qt/` (separate from `bin/`) |
-| Effects panel | One generic panel, controls generated from `effectmetadata/*.json` |
-| Palette | PaletteWidget (8 swatches) at top of every effect panel; color = QColorDialog |
-| Layer blend modes | Standard xLights set in BufferWidget combo: Normal, Add, Subtract, Max, Layered, etc. |
-| Buffer widget | Shows raw 2D render buffer (effect output before model mapping); QPainter grid |
-| Buffer style | Combo in BufferWidget: Default, Per Model Strand, Single Line, etc. |
-| Model preview | QtEffectRenderer (software, Phase 6a done); real src-core render in Phase 7 |
-| Graphics | Qt RHI → D3D11 (Win), Metal (macOS), Vulkan/OpenGL (Linux) |
-| Shader scope | MVP subset: solid rectangles, text glyphs, textured quads only |
-| xSchedule | Out of scope |
-| Sequencer editing | View + select + move + drag-to-resize (with ghost preview) |
-| Live preview | 40ms debounce on slider/palette change → QtRenderBridge → QtEffectRenderer |
-| Scope | MVP only |
+| Build | CMake with `XLIGHTS_BUILD_QT=ON`, regenerate via `VS2022.bat` (includes `-DCMAKE_PREFIX_PATH="D:/Qt/6.8.3/msvc2022_64"`) |
+| Effects panel | QTabWidget with 4 tabs (see Effect Panel Redesign below) |
+| Palette | PaletteWidget (8 swatches) at top of Tab 1; color = QColorDialog |
+| Model preview | PreviewWidget — node positions when available, else 2D grid / 1D strand |
+| House preview | HousePreviewWidget — physical yard layout from globalPositions |
+| Rendering | **All** effect rendering uses src-core (`RenderableEffect::Render`) via `QtRenderBridge`, matching the wx and iPad apps. |
+| Playback | Audio-synced via QMediaPlayer; 40ms tick; previews update live |
+| Render All | Snapshot of current frame for all models → house preview; on stop/pause too |
+| Sequencer editing | View + select + move (same row + cross-row) + resize + drag-drop from toolbar |
+| CMakeLists | New `.cpp` files in `src-ui-qt/` must be added to `XL_QT_SOURCES` in `CMakeLists.txt` |
 
 ## Architecture
 
@@ -24,266 +22,217 @@
 src-core/             ← unchanged, shared with wx + iPad
 src-ui-wx/            ← unchanged, wx build unaffected
 src-ui-qt/
-  App/                QApplication, main window, menu bar
-                      PlaybackController, TransportToolBar
-  Bridge/             C++ wrappers over src-core (no wx types)
-                      QtSequenceDoc, QtEffectRenderer, QtRenderBridge
-  Sequencer/          Timeline grid, row headers, timing ruler, playhead
-  Effects/            EffectToolBar (icon row), PaletteWidget, BufferWidget
-                      EffectPanelWidget, EffectControlBuilder
-                      controls/ (SliderSpinRow, CheckRow, ComboRow, etc.)
-  Preview/            PreviewWidget — 1D strip or 2D grid of rendered pixels
-  Layout/             Model layout canvas (Phase 8, read-only)
-  Graphics/           RhiCanvas (QRhiWidget base)
+  App/                MainWindow, QtXLightsApp, PlaybackController, TransportToolBar
+                      ExportDialog, RenderDetailDialog
+  Bridge/             QtSequenceDoc, QtRenderBridge, QtRenderContext
+                      QtModelStub, QtTextDrawingContext, FseqWriter, SubBufferUtil
+                      QtEffectRenderer (structs only — software renderer removed)
+  Sequencer/          SequencerModel, SequencerController, SequencerGridCanvas
+                      RowHeaderWidget, TimingRulerCanvas, SequencerWidget
+  Effects/            EffectPanelWidget, EffectControlBuilder, EffectToolBar
+                      PaletteWidget, BufferWidget, SubBufferWidget
+                      controls/ (SliderSpinRow, CheckRow, ComboRow, TextRow,
+                                 FilePickerRow, ColorSwatchButton)
+  Preview/            PreviewWidget
+  Layout/             ModelLayoutCanvas (base: geometry, drawing, selection, group highlight)
+                      HousePreviewWidget (extends ModelLayoutCanvas; adds setModelPixels/clearPixels)
+                      LayoutWindow (Phase 11 — tabbed list + property panel + canvas)
+                      ModelEditDialog (Phase 12 — sub-model/face/state editor)
+                      ModelNodePreview (node dot canvas with lasso selection)
+  Controllers/        ControllerVisualizerWindow (Phase 16 — port wiring + drag-drop)
+  Info/               ControllerInfoWindow (kept for controller list; Visualize button removed)
+  Graphics/           RhiCanvas
 CMakeLists.txt        xLights-Qt target, bin-qt/ output
 ```
 
-## Completed Phases
+## Completed Work
 
-### Phase 1 — Scaffold ✓
-QRhiWidget builds on Win/macOS/Linux, bin-qt/, D3D11/Metal/Vulkan.
+### Phases 1–6a — Scaffold through software renderer ✓
+### Phase 6b — Model topology + house preview ✓
+### Phase 6c — Real src-core rendering ✓
+### Phase 6d — Group rendering in sequencer ✓
+### Phase 6e — Remove software renderer ✓
+### Phase 7 — FSEQ export ✓
+### Phase 8 — House preview / layout ✓ (read-only; interactive editing in Phase 11)
+### Phase 9 — Effect drag-drop onto timeline ✓
 
-### Phase 2 — Core bridge ✓
-`QtSequenceDoc`: pugixml .xsq parser. Fix: sequenceDuration stored in seconds (×1000).
-Fallback: compute totalFrames from max block end time when sequenceDuration absent.
-`QtXLightsApp`: loads effectmetadata/*.json, owns effect list + metadata map.
-`SequencerModel::loadFromSequence()`: converts ms→frames.
+### Rendering model (current) ✓
+- **Block selected** → `renderAllLayers()` → src-core render of that model → model preview + house entry
+- **Render All** → `renderAllModels()` → snapshot of all models at current playhead → house preview
+- **During playback** → `renderAllLayers()` each frame for selected model (live)
+- Rendering uses real timing (startMs/endMs/curMs/frameMs) and correct layer blend modes
+- `onBlockSelected` does NOT call `renderAllModels()` — only selected model is rendered
 
-### Phase 3 — Generic effects panel ✓
-`EffectControlBuilder`: JSON → QWidget for slider/checkbox/choice/text/filepicker/spin/custom.
-`EffectPanelWidget`: palette row + buffer view (collapsible splitter) + effect controls scroll.
-Emits `settingsChanged` and `paletteChanged` after 40ms debounce. Fires initial render on showEffect().
-`PaletteWidget`: 8 ColorSwatchButton swatches, default xLights palette, QColorDialog on click.
-`BufferWidget`: 2D pixel grid canvas + blend mode combo (Normal/Add/Subtract/…) + buffer style combo.
-`ColorSwatchButton`: checkerboard alpha preview, click → QColorDialog.
+### Phase 11 — Layout window ✓
+- `LayoutWindow`: horizontal splitter — left (tabbed list: Models/Groups/Controllers + property table + buttons), right (ModelLayoutCanvas)
+- Loads from `xlights_rgbeffects.xml` directly when no sequence is open (show-folder fallback)
+- Properties show model/group/controller attributes; model props include Controller/Port
+- **Edit** button (Models tab only): opens ModelEditDialog for selected model
+- **Visualize** + **Upload** buttons (Controllers tab only): open visualizer / emit uploadRequested
+- Tab switch clears selection and disables irrelevant buttons
+- `_data` member stores effective sequence (live or fallback); all property lookups use it
 
-### Phase 4 — Sequencer grid ✓
-`SequencerGridCanvas`: effect blocks + ghost drag, resize handles, red playhead line.
-`SequencerController`: Body/ResizeLeft/ResizeRight zones, move+resize, snap.
-`RowHeaderWidget`, `TimingRulerCanvas`: headers + ruler + playhead indicator.
-`SequencerWidget`: QGridLayout, synced scrollbars, `setPlayhead(frame)` forwarding.
-`SequencerModel`: playhead frame, `setPlayhead()` emits geometryChanged.
+### Phase 12 — Sub-model / Face / State editor ✓
+- `ModelEditDialog`: 3-tab dialog + `ModelNodePreview` right panel
+- **Sub-Models tab**: list + name/layout/type/bufferstyle form + node ranges table (line0/line1/…)
+  - Row click → preview highlights nodes in that range; uses `itemClicked` (fires on every click)
+- **Faces tab**: list + type (NodeRange/SingleNode/Matrix) + phoneme grid (Feature|Nodes|Color swatch)
+  - Nodes column: plain text for all types (comma-separated ranges like "1,3-5,10")
+  - Matrix type: file-path rows with browse buttons
+  - "Force custom colors" checkbox shows/hides Color column; persists as `CustomColors` attribute
+- **States tab**: list + type (NodeRange/SingleNode) + Name|Nodes|Color swatch table
+  - Parses `s1="nodes"`, `s1-Color="color"`, `s1-Name="name"` triplets; sorted by N; up to 200
+  - Saves in same format; state entry names normalized to lowercase alphanumeric
+  - Vertical header shows s1, s2, … row numbers; blank rows preserved
+  - "Force custom colors" checkbox shows/hides Color column
+  - Row click → preview highlights nodes; uses `itemClicked`
+- **ModelNodePreview**: renders to off-screen QPixmap (no QPainter-on-widget crash);
+  highlights selected row's nodes in yellow; lasso rubber-band selection writes range back to row
+  - `nodeCount` and `nodePositions` fixed: wiring order (positions[i] = node i+1), not buffer order
+  - `qBound(min, val, max)` argument order fixed; radius: `qBound(1.5, 180/size, 3.5)`
+- All table ops wrapped in `setUpdatesEnabled(false/true)` to suppress Qt qBound asserts at high DPI
 
-### Phase 5 — Transport + Effects toolbar ✓
-`PlaybackController`: real-time playback via QElapsedTimer, 40ms tick.
-`TransportToolBar`: play/pause/stop + scrub slider + time display (m:ss.mmm).
-`EffectToolBar`: scrollable icon row across top; colored icons generated per effect name.
-`PreviewWidget`: 1D strip (strand) or 2D grid (matrix) of rendered pixels below sequencer.
-Mock colors used as placeholder before first render bridge result arrives.
+### Phase 13 — Controller upload ✓
+- `ControllerUploadDialog`: non-modal dialog with progress bar + scrolling log
+- `QtUploadCallbacks` implements full `UICallbacks` interface (prompts auto-accept defaults)
+- Upload runs on `QThread`; signals cross to main thread via QueuedConnection
+- `QtRenderBridge::upload()`: calls `SetInputUniverses()` first then `SetOutputs()`; uses existing s_ctx/s_mm
+- Entry point: **Upload** button in LayoutWindow's Controllers tab
 
-### Phase 6a — Software effect renderer ✓
-`QtEffectRenderer`: software renderer covering 12+ effects using real palette colors:
-- **On, Off** — solid fill or black
-- **Bars** — respects BarCount, Cycles, Direction settings
-- **Rainbow** — hue gradient cycling over time
-- **Colorloop** — full-model hue cycle
-- **Fire** — bottom-hot gradient with sine turbulence; uses palette if provided
-- **Chase / Meteor** — moving head with fading trail, respects Cycles
-- **Sparkle / Twinkle** — random pixel illumination seeded by playback position
-- **Spiral** — angle+distance palette mapping
-- **Snowflakes** — random falling dots
-- **Generic fallback** — scrolling palette gradient for any unrecognised effect
+### Phase 16 — Controller visualizer ✓
+- `ControllerVisualizerWindow`: controller selector + scrollable port rows + available models list
+- `PortRowWidget`: custom port rows with `ModelBoxButton` widgets (colored, drag-to-move)
+- Overflow indicator when assigned channels exceed port capacity
+- Drag model boxes between ports or back to available list; saves Controller/ControllerConnection
+- Uses `_data` member (same live/fallback pattern as LayoutWindow)
+- Entry point: **Visualize** button in LayoutWindow's Controllers tab
+- `QtControllerInfo` now includes `pixelPortCount`/`serialPortCount`/`pixelPortChannels` from ControllerCaps
 
-`QtRenderBridge`: 40ms debounce → `QtEffectRenderer::render()` → `frameReady` signal.
-Progress value computed from playhead position within clicked block (not always 0.5).
-Result routes to: BufferWidget (2D grid) + PreviewWidget (1D or 2D depending on bufH).
+### Phase 18a — ModelManager XML loading ✓
+- `QtRenderBridge::ensureInitialized()`: eagerly creates `s_ctx` + `s_mm` when `setShowFolder()` is called (not lazy on first render), so `modelManager()` returns valid data immediately.
+- `QtRenderBridge::modelManager()`: public accessor returning `s_mm.get()` (returns `nullptr` if not yet initialized).
+- `LayoutWindow::setRenderBridge(QtRenderBridge*)`: stores bridge so `refresh()` can access `modelManager()`.
+- `LayoutWindow::refresh()` calls `_canvas->loadLayoutFromManager(_bridge->modelManager())` — falls back to `loadLayout(_data)` if bridge unavailable.
+
+### Phase 18b — Screen-location geometry ✓
+- `ModelLayoutCanvas` now has two drawing modes:
+  - **Rect mode** (`loadLayoutFromManager(mm)`): iterates all `Model*` in `ModelManager`, reads `GetModelScreenLocation().GetLeft/Right/Top/Bottom()` → stores as `ModelRect { name, left, right, top, bottom, isGroup }`.
+  - **Dot mode** (`loadLayout(seq)`): existing per-node dot drawing from `globalPositions` (unchanged; still used by `HousePreviewWidget`).
+- `paintRects()`: Y-flipped world→widget mapping (`wy = (1 - (y - minY)/range) * height`). Models drawn as filled blue rectangles, selected = yellow border, group members = outlined. Group highlight draws dashed bounding box around union of member rects.
+- `mousePressEvent` rect mode: click selects smallest rect that contains the click (handles 1D models with ±1.5px padding).
+- `ModelGroup*` instances are skipped when drawing rects (they appear only as group-highlight outlines when their group is selected in the Groups tab).
+
+### Data layer additions ✓
+- `QtModelInfo`: `controllerName`, `controllerPort`, `subModels`, `faces`, `states`
+- `QtControllerInfo`: `pixelPortCount`, `serialPortCount`, `pixelPortChannels`
+- `QtSubModelInfo`: `name`, `layout`, `type`, `bufferStyle`, `ranges` (line0/line1/… format)
+- `QtFaceInfo`: `name`, `type`, `forceColor`, `attrs` map
+- `QtStateEntry`: `name`, `nodes`, `color` (from sN-Name, sN, sN-Color attributes)
+- `QtStateInfo`: `name`, `type`, `forceColor`, `entries`
+- `nodeCount` = `nodes.size()` (physical nodes, not `bufW*bufH`); `nodePositions` in wiring order
+
+### Crash / assert fixes ✓
+- QPainter 0x3F0 crash: `ModelNodePreview` renders to QPixmap cache; `paintEvent` only blits
+- Qt qBound assert at high DPI: all `setColumnWidth` removed; table mods wrapped in `setUpdatesEnabled`
+- `qBound` arg order bug in `rebuildCache`: fixed to `qBound(min, val, max)` not `qBound(min, max, val)`
+- `nodeCount = bufW*bufH` bug: was returning buffer size (e.g., 6000) instead of node count (200)
+
+## Effect Panel Redesign (right-side panel)
+
+Replace the current single-pane `EffectPanelWidget` with a `QTabWidget` containing four tabs.
+
+### Tab 1 — Effect Settings
+- **Top**: `PaletteWidget` (8 colour swatches, unchanged)
+- **Below palette**: scrollable effect controls generated by `EffectControlBuilder` from
+  `effectmetadata/*.json`
+
+### Tab 2 — Colour Settings
+- Secondary colour controls populated from `C_*` keys in the effect's settings map.
+
+### Tab 3 — Layer Blending
+- Blend mode selector, layer opacity / brightness.
+
+### Tab 4 — Buffer Settings
+- Buffer style combo, buffer transform, sub-buffer region controls, 2D buffer canvas.
 
 ## Remaining Work
 
-### Phase 6b — Model topology mapping
-Parse model pixel node positions from xsq `<models>` section in QtSequenceDoc.
-Store model dimensions (W×H for matrices, N for strands) in QtSequenceInfo.
-PreviewWidget: when model has 2D topology, draw nodes at real pixel coordinates
-(e.g. star shape, spiral tree) rather than a rectangular grid approximation.
-`QtEffectRenderer::Request`: expose `bufferW/H` from model dimensions, not hardcoded 100×1.
-
-### Phase 6c — Real src-core rendering (replaces software renderer)
-Link src-core to xLights-Qt target in CMakeLists.txt (same SRC_CORE glob).
-`QtRenderContext` (`src-ui-qt/Bridge/`): subclass of RenderContext, mirrors iPadRenderContext.
-`QtRenderBridge` extended: runs RenderableEffect on QThreadPool worker instead of software renderer.
-Render flow: Request → QThreadPool → RenderableEffect::Render(buffer) → frameReady.
-
-### Phase 6d — Multi-layer sequencer rows (Phase 4 extension)
+### Phase 6d — Multi-layer sequencer rows
 `SequencerRow` → `QList<SequencerLayer>` (each layer has blocks + blend mode + collapsed flag).
 Grid canvas draws collapsible sub-rows per layer with blend mode label.
 QtSequenceDoc parses EffectLayer children as separate layers (currently merged to one).
 
-### Phase 7 — FSEQ export
-Render all frames to RenderBuffer; write v2 FSEQ binary (row: channel data, little-endian).
-ExportDialog: progress bar, output path picker, frame range.
-
-### Phase 8 — Layout view (read-only)
-`LayoutViewCanvas` (RhiCanvas): parse `<modelGroup>` positions from xsq, draw wireframes.
-
-## Phase Order
-
-```
-Phase 1  Scaffold                            ✓ done
-Phase 2  Core bridge / .xsq parser          ✓ done
-Phase 3  Generic effects panel + palette     ✓ done
-Phase 4  Sequencer grid + playhead           ✓ done
-Phase 5  Transport + icon toolbar            ✓ done
-Phase 6a Software effect renderer            ✓ done
-Phase 6b Model topology (node positions)     ← next
-Phase 6c Real src-core rendering             ← after 6b
-Phase 6d Multi-layer sequencer rows          ← parallel with 6b/6c
-Phase 7  FSEQ export
-Phase 8  Layout view
-Phase 9  Effect drag-drop onto timeline
-Phase 10 Timing track editing
-Phase 11 Model editing
-Phase 12 Face / State / Sub-model editing
-Phase 13 Controller upload
-Phase 14 Import sequence dialog
-Phase 15 Batch render
-Phase 16 Controller visualizer
-Phase 17 Model & Controller info viewer
-```
-
-## Full File Inventory
-
-```
-src-ui-qt/
-  App/
-    main.cpp ✓
-    MainWindow.{h,cpp} ✓
-    QtXLightsApp.{h,cpp} ✓
-    PlaybackController.{h,cpp} ✓
-    TransportToolBar.{h,cpp} ✓
-  Bridge/
-    QtSequenceDoc.{h,cpp} ✓
-    QtEffectRenderer.{h,cpp} ✓
-    QtRenderBridge.{h,cpp} ✓
-    QtRenderContext.{h,cpp}     ← Phase 6c
-  Graphics/
-    RhiCanvas.{h,cpp} ✓
-  Sequencer/
-    SequencerWidget.{h,cpp} ✓
-    SequencerGridCanvas.{h,cpp} ✓
-    RowHeaderWidget.{h,cpp} ✓
-    TimingRulerCanvas.{h,cpp} ✓
-    SequencerController.{h,cpp} ✓
-    SequencerModel.{h,cpp} ✓
-  Effects/
-    EffectPanelWidget.{h,cpp} ✓
-    EffectControlBuilder.{h,cpp} ✓
-    EffectToolBar.{h,cpp} ✓
-    PaletteWidget.{h,cpp} ✓
-    BufferWidget.{h,cpp} ✓
-    controls/
-      SliderSpinRow.{h,cpp} ✓
-      CheckRow.{h,cpp} ✓
-      ComboRow.{h,cpp} ✓
-      TextRow.{h,cpp} ✓
-      FilePickerRow.{h,cpp} ✓
-      ColorSwatchButton.{h,cpp} ✓
-  Preview/
-    PreviewWidget.{h,cpp} ✓
-  Layout/
-    LayoutViewCanvas.{h,cpp}    ← Phase 8
-```
-
-## Post-MVP Phases
-
-### Phase 9 — Effect drag-drop onto timeline
-Drag an effect icon from EffectToolBar onto a sequencer row to create a new block.
-- `SequencerGridCanvas`: accept drop events, show insertion ghost while dragging over row
-- On drop: create `EffectBlock` at nearest frame boundary, emit `modelChanged`
-- Drag source: `EffectToolBar` buttons set drag data (effect name)
-
 ### Phase 10 — Timing tracks
-Dedicated timing row type in SequencerModel (separate from model rows).
-- `TimingTrackRow`: list of timing marks (frame positions + label)
-- `TimingRulerCanvas` extended: click to add marks, drag to move
-- Import/export `.xtiming` format (already parsed by QtSequenceDoc — just needs UI)
-- Snap-to-timing-mark in SequencerController (currently snaps to frame boundary only)
+Dedicated timing row type. TimingTrackRow: list of marks (frame + label).
+TimingRulerCanvas extended: click to add marks, drag to move.
+Import/export .xtiming. Snap-to-timing-mark in SequencerController.
 
-### Phase 11 — Model editing
-Edit model definitions inline without leaving the Qt app.
-- `ModelEditorDialog`: name, type (strand/matrix/tree/star/etc.), dimensions, starting channel
-- Write changes back to the xsq `<models>` section via QtSequenceDoc
-- `LayoutViewCanvas` (Phase 8) becomes interactive: drag models to reposition
-- Sub-model editor: define sub-ranges within a model (e.g. "top half of matrix")
+#### Phase 13b — FPP Connect (TODO)
+FPP Connect uploads FSEQ files + media to Falcon Player instances. The core code is
+wx-free (`src-core/controllers/FPP.h/.cpp`) and ready to use.
 
-### Phase 12 — Face / State / Sub-model editing
-- **Faces**: map model nodes to phoneme regions (mouth shapes for singing faces)
-  `FaceEditorDialog`: node picker + phoneme assignment table
-- **States**: define named lighting states (e.g. "all on", "chaser running")
-  `StateEditorDialog`: list of states, each with per-node color overrides
-- **Sub-models**: carve a parent model into named sub-ranges
-  `SubModelEditorDialog`: contiguous or non-contiguous node range picker
-- All three stored as child XML under `<model>` in the xsq; parsed + written by QtSequenceDoc
+**What to add to `ControllerUploadDialog`:**
+- "FPP Connect" section below the standard upload log
+- Discover FPP instances on the network via `FPP::PrepareDiscovery()` (multicast + HTTP)
+- List discovered instances in a table (hostname, IP, version, upload checkbox)
+- "Upload FSEQ + Media" button: for each checked instance:
+  1. `FPP::AuthenticateAndUpdateVersions()` — verify connection
+  2. `FPP::PrepareUploadSequence(fseqFile, seqPath, mediaPath, type)`
+  3. Frame-by-frame `AddFrameToUpload()` + `FinalizeUploadSequence()`
+  4. `FPP::CheckUploadMedia(mediaPath, baseName)` — upload audio/video if missing
+  5. `FPP::UploadPlaylist(playlistName)` — optional playlist update
+- Progress reported through the existing `UICallbacks` / progress bar
+- FSEQ path comes from the currently exported sequence (ExportDialog output) or a file picker
+- Media path from the sequence's `mediaFile` field
 
-### Phase 13 — Controller upload
-Upload FSEQ + show file to a Falcon Player or other controller.
-- `ControllerUploadDialog`: IP/hostname, progress bar, upload status
-- Uses existing `src-core/controllers/FPP.cpp` logic (requires Phase 6c src-core link)
-- Also supports direct E1.31/ArtNet test output via `src-core/outputs/`
-- xSchedule integration: out of scope (separate app)
+**Key FPP API facts:**
+- FPP class inherits `BaseController`; `SetOutputs()` / `SetInputUniverses()` also available
+- Upload endpoints: `/api/file/sequences`, `/api/media/`, `/api/playlist/`
+- FPP v7+ uses chunked 16 MB uploads via `uploadFileV7()`
+- Discovery: UDP multicast `239.70.80.80:4048` + HTTP `/api/fppd/multiSyncSystems`
+- No wx dependencies; uses libcurl + nlohmann/json + zstd
 
 ### Phase 14 — Import sequence dialog
-Import effects from another sequence file into the current sequence.
-- `ImportSequenceDialog`: file picker + model mapping table
-- Source formats:
-  - `.xsq` — import effects from another xLights sequence (model-to-model mapping)
-  - `.lsp` / `.msq` — Light-O-Rama / Vixen / HLS import via `src-core/import_export/`
-  - `.gled` — GrandMA, etc.
-- Model mapping table: left column = source model names, right column = target model dropdown
-- Effect import: copies EffectBlocks into the target SequencerModel rows, respecting frame offsets
-- Timing import: optionally pull timing marks from the source sequence
-- Uses existing `src-core/import_export/MapXLightsEffects` and `LoadMapHintsFile` logic
-  (these are already compiled into the cmake build via src-core/import_export/*.cpp)
+ImportSequenceDialog: file picker + model-to-model mapping table.
 
-### Phase 16 — Batch render
-Render multiple sequences to FSEQ in one operation.
-- `BatchRenderDialog`: sequence file list, output folder, progress per file
-- Runs Phase 7 FSEQ export logic per sequence on a QThreadPool worker
+### Phase 15 — Batch render
+BatchRenderDialog: sequence list, output folder, per-file progress on QThreadPool.
 
-### Phase 16 — Controller visualizer
-Visual representation of controller port assignments — shows which models are wired
-to which ports and validates channel counts before upload.
-- `ControllerVisualizerWidget`: grid of port rows (port number | pixel count | model name | channel range)
-- Color-coded by model: each model gets a consistent hue, matching its sequencer row color
-- Overflow indicator: port exceeds pixel/channel limit shown in red
-- Live: updates as models are added/moved in the layout editor (Phase 11)
-- Supports common controller families: Falcon (F4/F16/F48), FPP, WLED, ESPixelStick
-  — port count and pixel limits loaded from `src-core/controllers/` vendor data
-- Dock as a panel alongside the layout view or as a separate dialog
+### Phase 17 — Value curves and color curves in effect panel
+Value curve editor: graphical envelope beside each slider (VC button → curve mode).
+Color curve editor: per-palette-slot gradient over effect duration.
+Uses existing ValueCurve / ColorCurve types from src-core/render/.
 
-### Phase 17 — Model & Controller Info Viewer
-Read-only panel showing all models and controllers loaded from the show folder.
-Data sources: `xlights_rgbeffects.xml` (models) + `xlights_networks.xml` (controllers),
-both already parsed at sequence open time.
+### Phase 18 — Model/House Preview rewrite using src-core screen primitives
 
-**Models tab**
-- Table: Name | Type (DisplayAs) | Start Channel | Nodes | Buffer W×H | Controller
-- Sortable by any column; filter box for quick search by model name
-- Selecting a row highlights the corresponding sequencer row and fires a preview render
-  with the model's current dimensions (same as clicking a block)
-- Double-click → quick view of node positions in PreviewWidget (empty/Off effect)
+Phases 18a and 18b are complete (see Completed Work). Remaining optional phases:
 
-**Controllers tab**
-- Table: Name | Type (Ethernet/Serial) | IP / Port | Universe / Start | Channel Count
-- Expand arrow per row → sub-table of ports: Port# | Protocol | Nodes | Model(s) assigned
-- Port overflow shown in amber/red (node count exceeds controller cap)
-- Source data from `OutputManager::GetControllers()` — available immediately after
-  `OutputManager::Load(showDir)` is called in `loadModels`
+#### 18c — Mesh-based DMX model previews (optional, lower priority)
 
-**Implementation notes**
-- Two **separate non-modal windows** — both can be open simultaneously alongside the
-  main window. `QWidget` with `Qt::Window` flag (not QDialog) so they don't block input.
-- **`ModelInfoWindow`**: table of models from `QtSequenceInfo::models`
-- **`ControllerInfoWindow`**: table of controllers from `QtControllerInfo` list stored
-  in `QtSequenceInfo` (populated from `OutputManager::GetControllers()` in `loadModels`)
-- `QtControllerInfo` struct added to `QtSequenceDoc.h`; mirrors what `OutputManager`
-  exposes without needing to hold a live `OutputManager` reference beyond load time
-- Accessible via **View** menu: "Models…" (`Ctrl+M`) and "Controllers…" (`Ctrl+K`)
-- Windows are created once, hidden by default, shown/raised on menu action
-- Refresh automatically when a new sequence is opened (connect to `QtXLightsApp` signal)
-- No editing — mutations belong to Phase 11 (Model editing) and Phase 13 (Upload)
-- New files: `src-ui-qt/Info/ModelInfoWindow.{h,cpp}`,
-             `src-ui-qt/Info/ControllerInfoWindow.{h,cpp}`
+For DMX models that carry 3D OBJ meshes:
+
+- `DMX/Mesh.h` — `class Mesh` wraps TinyObjLoader; `Load(path)`, `vertices`, `normals`,
+  `faces` — no wx
+- `graphics/xlMesh.h` — lighter weight; same TinyObjLoader backend
+- Render path: load OBJ → extract vertex list → project 3D → draw polygon outline in
+  QPainter (or hand off to a `QOpenGLWidget` once Phase 18d lands)
+
+#### 18d — GPU-accelerated canvas via QOpenGLWidget (future)
+
+Google ANGLE (a GL ES → D3D/Vulkan/Metal translator) is **not** shipped with
+Qt 6 on Windows — Qt dropped bundled ANGLE after Qt 5.
+`QOpenGLWidget` is the Qt-recommended path for GPU-accelerated custom rendering:
+
+- Subclass `QOpenGLWidget`, override `initializeGL()` / `resizeGL()` / `paintGL()`
+- Qt on Windows selects the best backend automatically (native OpenGL, or ANGLE via
+  a custom `QSurfaceFormat` with `RenderableType::OpenGLES` if ANGLE is installed)
+- `QOpenGLWidget` can coexist in a QSplitter / QLayout alongside normal widgets
+- **When to use**: replace `ModelLayoutCanvas` QPainter with a `QOpenGLWidget` if
+  mesh rendering (Phase 18c) becomes a performance bottleneck, or when Phase 18d
+  targets waveform/particle effects in the layout view
+- **Prerequisite**: keep Phase 18a–18c on QPainter first; migrate to GPU only if
+  frame rate demands it
 
 ## Out of Scope
 
-xSchedule (separate app).
+xSchedule (separate app), full xlGraphicsContext parity (OpenGL shader library).

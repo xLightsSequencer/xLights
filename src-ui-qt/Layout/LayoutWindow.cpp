@@ -3,6 +3,7 @@
 #include "ModelLayoutCanvas.h"
 #include "../App/QtXLightsApp.h"
 #include "../Bridge/QtSequenceDoc.h"
+#include "../Bridge/QtRenderBridge.h"
 
 #include <QHeaderView>
 #include <QListWidget>
@@ -135,6 +136,8 @@ LayoutWindow::LayoutWindow(QWidget* parent)
             this, &LayoutWindow::onCanvasModelClicked);
 }
 
+void LayoutWindow::setRenderBridge(QtRenderBridge* bridge) { _bridge = bridge; }
+
 // ── Refresh ───────────────────────────────────────────────────────────────────
 
 void LayoutWindow::refresh() {
@@ -154,7 +157,7 @@ void LayoutWindow::refresh() {
         _modelList->clear();
         _groupList->clear();
         _controllerList->clear();
-        _canvas->loadLayout(QtSequenceInfo{});
+        _canvas->loadLayoutFromManager(_bridge ? _bridge->modelManager() : nullptr);
         clearProps();
         return;
     }
@@ -173,7 +176,13 @@ void LayoutWindow::refresh() {
     for (const QtControllerInfo& c : _data.controllers)
         _controllerList->addItem(c.name);
 
-    _canvas->loadLayout(_data);
+    // Use src-core ModelManager for bounding-box geometry (Phase 18b).
+    // Falls back to a dot-based layout from _data if the bridge is unavailable.
+    if (_bridge && _bridge->modelManager())
+        _canvas->loadLayoutFromManager(_bridge->modelManager());
+    else
+        _canvas->loadLayout(_data);
+
     clearProps();
 }
 

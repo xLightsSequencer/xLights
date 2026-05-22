@@ -48,8 +48,28 @@ void QtRenderBridge::setMetadataDir(const QString& dir) {
     _metadataDir = dir;
 }
 
+ModelManager* QtRenderBridge::modelManager() const { return s_mm.get(); }
+
+void QtRenderBridge::ensureInitialized() {
+    if (s_ctx || s_initFailed || _metadataDir.isEmpty()) return;
+    try {
+        s_ctx = std::make_unique<QtRenderContext>(_metadataDir.toStdString());
+        if (!_showFolder.isEmpty())
+            s_ctx->outputManager().Load(_showFolder.toStdString());
+        s_mm  = std::make_unique<ModelManager>(&s_ctx->outputManager(), s_ctx.get());
+        spdlog::info("QtRenderBridge: src-core ready ({} effects)",
+                     s_ctx->GetEffectManager().size());
+    } catch (...) {
+        spdlog::error("QtRenderBridge: src-core init failed in ensureInitialized");
+        s_ctx.reset(); s_mm.reset(); s_initFailed = true;
+    }
+}
+
 void QtRenderBridge::setShowFolder(const QString& showFolder) {
     _showFolder = showFolder;
+    // Eagerly initialise the context so modelManager() returns a valid pointer
+    // as soon as a show folder is provided (without waiting for the first render).
+    ensureInitialized();
     if (!s_ctx || showFolder.isEmpty()) return;
 
     // Reload outputs.

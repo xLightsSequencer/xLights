@@ -7,19 +7,26 @@
 #include <QStringList>
 #include <QWidget>
 
+class ModelManager;
+
 // Base canvas that draws all models in their physical yard layout.
-// Owns geometry (globalPositions → widget coords), bounding box, node rendering,
-// group highlight, and single-model selection highlight.
-//
-// Subclass to add live pixel updates (HousePreviewWidget) or interactive editing
-// (layout window canvas).
+// Two drawing modes:
+//   Rect mode  — loadLayoutFromManager(): draws bounding-box rectangles derived
+//                from the src-core ModelScreenLocation (used by LayoutWindow).
+//   Dot mode   — loadLayout():            draws per-node dots at globalPositions
+//                (used by HousePreviewWidget for live pixel updates).
 class ModelLayoutCanvas : public QWidget {
     Q_OBJECT
 public:
     explicit ModelLayoutCanvas(QWidget* parent = nullptr);
     QSize sizeHint() const override { return {800, 400}; }
 
-    // Load model positions from the current sequence. Resets all node colors to dim gray.
+    // Rect mode: load model bounding boxes from the src-core ModelManager.
+    // Uses ModelScreenLocation::GetTop/Left/Right/Bottom() for each model.
+    void loadLayoutFromManager(ModelManager* mm);
+
+    // Dot mode: load per-node positions from QtSequenceInfo.
+    // Resets all node colors to dim gray.
     void loadLayout(const QtSequenceInfo& seq);
 
     // Highlight the member models of a group with a dashed outline.
@@ -36,28 +43,46 @@ signals:
     void modelClicked(const QString& modelName);
 
 protected:
+    // Dot-mode model data (used by HousePreviewWidget for live colors).
     struct ModelData {
         QtModelInfo   info;
         QList<QColor> pixels;    // node colors; defaults to dim gray
         bool          hasPixels = false;
     };
 
-    // Subclass access to the model list for pixel updates.
+    // Rect-mode model bounding box (world-space, Y-up).
+    struct ModelRect {
+        QString name;
+        float   left   = 0.f;
+        float   right  = 0.f;
+        float   top    = 0.f;    // GetTop()    > GetBottom()
+        float   bottom = 0.f;
+        bool    isGroup = false;
+    };
+
+    // Subclass access to the dot-mode model list for pixel updates.
     QList<ModelData>&        models()       { return _models; }
     const QList<ModelData>&  models() const { return _models; }
     const QMap<QString,int>& index()  const { return _index; }
 
-    // Convert a layout-space point to widget pixels.
+    // Convert a dot-mode layout-space point to widget pixels (Y down = down).
     QPointF toWidget(double gx, double gy) const;
 
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
 
 private:
+    // Dot mode
     QList<ModelData>   _models;
-    QMap<QString, int> _index;
 
-    double _minX = 0, _minY = 0, _maxX = 1, _maxY = 1;
+    // Rect mode
+    QList<ModelRect>   _rects;
+
+    // Shared
+    QMap<QString, int> _index;
+    bool               _rectMode = false;
+
+    double _minX = 0, _minY = 0, _maxX = 1920, _maxY = 1080;
     mutable float _nodeR = 3.0f;
 
     QString     _highlightGroup;
@@ -65,4 +90,5 @@ private:
     QString     _selectedModel;
 
     void recomputeBounds();
+    void paintRects(QPainter& p);
 };

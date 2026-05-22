@@ -4,8 +4,9 @@
 #include <QString>
 #include <QTimer>
 
-// Forward declaration so callers don't need to pull in all src-core headers.
+// Forward declarations so callers don't need to pull in all src-core headers.
 class UICallbacks;
+class ModelManager;
 
 // Debounces render requests and runs them through the src-core rendering
 // pipeline (RenderableEffect::Render), matching the wx and iPad render paths.
@@ -34,6 +35,10 @@ public:
     // Used for live playback updates where latency matters more than debouncing.
     QtEffectRenderer::Result renderNow(const QtEffectRenderer::Request& req);
 
+    // Access the live ModelManager (populated after setShowFolder succeeds).
+    // May return nullptr if no show folder has been set or init failed.
+    ModelManager* modelManager() const;
+
 signals:
     void frameReady(QtEffectRenderer::Result result);
 
@@ -42,6 +47,10 @@ private:
     QtEffectRenderer::Request _pending;
     QString                   _metadataDir;
     QString                   _showFolder;
+
+    // Ensure s_ctx / s_mm are created.  Called eagerly from setShowFolder()
+    // so modelManager() returns valid data before the first render is requested.
+    void ensureInitialized();
 
     QtEffectRenderer::Result renderCore(const QtEffectRenderer::Request& req);
 };

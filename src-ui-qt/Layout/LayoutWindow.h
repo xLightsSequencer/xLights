@@ -7,6 +7,7 @@
 
 class ModelEditDialog;
 class ModelLayoutCanvas;
+class QtRenderBridge;
 class QListWidget;
 class QPushButton;
 class QListWidgetItem;
@@ -22,6 +23,10 @@ class LayoutWindow : public QWidget {
     Q_OBJECT
 public:
     explicit LayoutWindow(QWidget* parent = nullptr);
+
+    // Provide the render bridge so refresh() can pull ModelManager geometry.
+    // Must be called once before the first refresh().
+    void setRenderBridge(QtRenderBridge* bridge);
 
     // Reload all lists and canvas from the current sequence.
     void refresh();
@@ -55,6 +60,7 @@ private:
     ModelLayoutCanvas* _canvas       = nullptr;
 
     ModelEditDialog*   _editDialog   = nullptr;
+    QtRenderBridge*    _bridge       = nullptr;
 
     // Effective sequence data — either the live sequence or the show-file fallback.
     // All property lookups use this instead of currentSequence() directly.
