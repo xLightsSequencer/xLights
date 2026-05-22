@@ -35,7 +35,7 @@ void ModelNodePreview::rebuildCache() {
         return;
     }
 
-    const qreal r = qBound(1.5, 3.5, 180.0 / double(_positions.size()));
+    const qreal r = qBound(1.5, 180.0 / double(_positions.size()), 3.5);
 
     for (int i = 0; i < _positions.size(); ++i) {
         const QPointF wp = toWidget(_positions[i]);
