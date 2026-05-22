@@ -50,14 +50,15 @@ protected:
         bool          hasPixels = false;
     };
 
-    // Rect-mode model bounding box (world-space, Y-up).
+    // Rect-mode model: bounding box + individual node world positions (Y-up).
     struct ModelRect {
-        QString name;
-        float   left   = 0.f;
-        float   right  = 0.f;
-        float   top    = 0.f;    // GetTop()    > GetBottom()
-        float   bottom = 0.f;
-        bool    isGroup = false;
+        QString        name;
+        float          left   = 0.f;
+        float          right  = 0.f;
+        float          top    = 0.f;    // GetTop()    > GetBottom()
+        float          bottom = 0.f;
+        bool           isGroup = false;
+        QList<QPointF> nodeWorldPos;    // per-node world-space coords (Y-up)
     };
 
     // Subclass access to the dot-mode model list for pixel updates.

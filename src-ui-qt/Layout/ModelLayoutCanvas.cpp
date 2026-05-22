@@ -4,6 +4,7 @@
 #include "../../src-core/models/Model.h"
 #include "../../src-core/models/ModelGroup.h"
 #include "../../src-core/models/ModelScreenLocation.h"
+#include "../../src-core/models/Node.h"
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -32,12 +33,38 @@ void ModelLayoutCanvas::loadLayoutFromManager(ModelManager* mm) {
             const ModelScreenLocation& loc = model->GetModelScreenLocation();
             ModelRect r;
             r.name    = QString::fromStdString(model->GetFullName());
-            // Normalise so left < right and bottom < top regardless of model flip/scale sign.
             r.left    = std::min(loc.GetLeft(),   loc.GetRight());
             r.right   = std::max(loc.GetLeft(),   loc.GetRight());
             r.bottom  = std::min(loc.GetBottom(), loc.GetTop());
             r.top     = std::max(loc.GetBottom(), loc.GetTop());
             r.isGroup = (dynamic_cast<ModelGroup*>(model) != nullptr);
+
+            // Compute per-node world-space positions for non-group models.
+            // Mapping: screenX ∈ [-RenderWi/2, +RenderWi/2] → [left, right]
+            //          screenY ∈ [-RenderHt/2, +RenderHt/2] → [bottom, top]
+            if (!r.isGroup) {
+                try {
+                    std::vector<NodeBaseClassPtr> nodes;
+                    int bw = 1, bh = 1;
+                    model->InitRenderBufferNodes("Default", "2D", "", nodes, bw, bh, 0);
+
+                    const float rw = loc.GetRenderWi();
+                    const float rh = loc.GetRenderHt();
+                    r.nodeWorldPos.reserve((int)nodes.size());
+
+                    for (const auto& node : nodes) {
+                        if (node->Coords.empty()) continue;
+                        const auto& c = node->Coords[0];
+                        const float nx = rw > 0.f ? (c.screenX / rw + 0.5f) : 0.5f;
+                        const float ny = rh > 0.f ? (c.screenY / rh + 0.5f) : 0.5f;
+                        const float wx = r.left  + nx * (r.right  - r.left);
+                        const float wy = r.bottom + ny * (r.top - r.bottom);
+                        r.nodeWorldPos.append({ double(wx), double(wy) });
+                    }
+                } catch (...) {
+                    r.nodeWorldPos.clear();
+                }
+            }
 
             _rects.append(r);
             _index[r.name] = _rects.size() - 1;
@@ -276,75 +303,117 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
     const double rangeY = _maxY - _minY;
     if (rangeX <= 0 || rangeY <= 0) return;
 
-    // World → widget: X left-to-right, Y flipped (world Y-up → widget Y-down).
-    auto toW = [&](float wx, float wy) -> QPointF {
-        return { (wx - _minX) / rangeX * width(),
-                 (1.0 - (wy - _minY) / rangeY) * height() };
-    };
-    // Returns widget-space rect for a ModelRect.
-    auto toWidgetRect = [&](const ModelRect& r) -> QRectF {
-        const QPointF tl = toW(r.left,  r.top);     // top-left  in widget
-        const QPointF br = toW(r.right, r.bottom);   // bot-right in widget
-        QRectF wr(tl, br);
-        // 1D models (strand / arch seen edge-on) — ensure a minimum visible size.
-        if (wr.width()  < 2.0) { wr.setLeft(wr.left()  - 1.5); wr.setRight(wr.right()  + 1.5); }
-        if (wr.height() < 2.0) { wr.setTop(wr.top()    - 1.5); wr.setBottom(wr.bottom() + 1.5); }
-        return wr;
-    };
+    // Scale node radius to world density (same formula as dot mode).
+    const double pxPerU = qMin(width() / rangeX, height() / rangeY);
+    _nodeR = float(qBound(1.0, pxPerU * 0.45, 6.0));
 
     const bool hasGroupHL  = !_highlightGroup.isEmpty();
     const bool hasModelSel = !_selectedModel.isEmpty();
 
-    // Draw non-group models.
+    // World (Y-up) → widget pixel (Y-down).
+    auto toW = [&](double wx, double wy) -> QPointF {
+        return { (wx - _minX) / rangeX * width(),
+                 (1.0 - (wy - _minY) / rangeY) * height() };
+    };
+    // Widget-space bounding rect for a ModelRect.
+    auto toBoundingRect = [&](const ModelRect& r) -> QRectF {
+        const QPointF tl = toW(r.left,  r.top);
+        const QPointF br = toW(r.right, r.bottom);
+        QRectF wr(tl, br);
+        if (wr.width()  < 2.0) { wr.setLeft(wr.left()-1.5); wr.setRight(wr.right()+1.5); }
+        if (wr.height() < 2.0) { wr.setTop(wr.top()-1.5);   wr.setBottom(wr.bottom()+1.5); }
+        return wr;
+    };
+
+    // ── 1. Draw nodes ─────────────────────────────────────────────────────
+    p.setPen(Qt::NoPen);
     for (const auto& r : _rects) {
         if (r.isGroup) continue;
 
         const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
         const bool isSel   = hasModelSel && r.name == _selectedModel;
 
-        QRectF wr = toWidgetRect(r);
+        if (!r.nodeWorldPos.isEmpty()) {
+            // Per-node circles at real src-core world positions.
+            QColor col(45, 50, 75);
+            if      (isSel)           col = QColor(80, 110, 190);
+            else if (inGroup)         col = QColor(70, 95, 160);
+            else if (hasGroupHL)      col = QColor(25, 28, 42);
+            else if (hasModelSel)     col = QColor(35, 38, 58);
 
-        QColor fill(35, 55, 110);
-        if      (isSel)                                   fill = QColor(60, 90, 170);
-        else if (inGroup)                                 fill = QColor(50, 80, 150);
-        else if (hasGroupHL)                              fill = fill.darker(160);
-        else if (hasModelSel)                             fill = fill.darker(130);
-
-        p.setBrush(fill);
-        p.setPen(Qt::NoPen);
-        p.drawRect(wr);
-
-        // Border
-        if (isSel) {
-            p.setBrush(Qt::NoBrush);
-            p.setPen(QPen(QColor(255, 220, 0, 230), 2.0));
-            p.drawRect(wr.adjusted(-2, -2, 2, 2));
-        } else if (inGroup) {
-            p.setBrush(Qt::NoBrush);
-            p.setPen(QPen(QColor(255, 200, 60, 200), 1.5));
-            p.drawRect(wr);
+            p.setBrush(col);
+            for (const QPointF& wp : r.nodeWorldPos) {
+                const QPointF w = toW(wp.x(), wp.y());
+                p.drawEllipse(QRectF(w.x() - _nodeR, w.y() - _nodeR,
+                                     _nodeR * 2.f, _nodeR * 2.f));
+            }
+        } else {
+            // Fallback rect when InitRenderBufferNodes failed.
+            QColor fill(35, 55, 110);
+            if      (isSel)       fill = QColor(60, 90, 170);
+            else if (inGroup)     fill = QColor(50, 80, 150);
+            else if (hasGroupHL)  fill = fill.darker(160);
+            else if (hasModelSel) fill = fill.darker(130);
+            p.setBrush(fill);
+            p.drawRect(toBoundingRect(r));
         }
-        p.setPen(Qt::NoPen);
+    }
 
-        // Label — only when there is enough room.
-        if (wr.width() >= 24 && wr.height() >= 8) {
+    // ── 2. Selection / group outlines using real bounding box ─────────────
+    for (const auto& r : _rects) {
+        if (r.isGroup) continue;
+
+        const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
+        const bool isSel   = hasModelSel && r.name == _selectedModel;
+        if (!isSel && !inGroup) continue;
+
+        const QRectF wr = toBoundingRect(r);
+        p.setBrush(Qt::NoBrush);
+        if (isSel) {
+            p.setPen(QPen(QColor(255, 220, 0, 230), 2.0));
+            p.drawRoundedRect(wr.adjusted(-2, -2, 2, 2), 4, 4);
+        } else {
+            p.setPen(QPen(QColor(255, 200, 60, 200), 1.5));
+            p.drawRoundedRect(wr, 4, 4);
+        }
+    }
+    p.setPen(Qt::NoPen);
+
+    // ── 3. Model name labels ──────────────────────────────────────────────
+    for (const auto& r : _rects) {
+        if (r.isGroup) continue;
+
+        const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
+        const bool isSel   = hasModelSel && r.name == _selectedModel;
+        const QRectF wr = toBoundingRect(r);
+
+        if (wr.width() >= 20 && wr.height() >= 8 && _nodeR >= 1.5f) {
             QFont lf;
-            lf.setPointSizeF(qBound(6.0, qMin(wr.height() * 0.3, wr.width() * 0.12), 10.0));
+            lf.setPointSizeF(qBound(6.0, double(_nodeR) * 2.0, 10.0));
             p.setFont(lf);
             const QColor labelColor = (inGroup || isSel)
-                ? QColor(255, 220, 80, 230) : QColor(200, 200, 220, 170);
+                ? QColor(255, 220, 80, 230) : QColor(190, 195, 215, 160);
             p.setPen(labelColor);
-            p.drawText(wr, Qt::AlignCenter, r.name);
+            QFontMetrics fm(lf);
+            // Place label centred on the bounding box.
+            const QPointF ctr = wr.center();
+            QRectF lr(ctr.x() - fm.horizontalAdvance(r.name)/2.0 - 2,
+                      ctr.y() - fm.height() - 2,
+                      fm.horizontalAdvance(r.name) + 4, fm.height() + 2);
+            if (wr.contains(lr) || isSel || inGroup) {
+                p.fillRect(lr, QColor(0, 0, 0, (inGroup || isSel) ? 140 : 80));
+                p.drawText(lr, Qt::AlignCenter, r.name);
+            }
             p.setPen(Qt::NoPen);
         }
     }
 
-    // Dashed outline around the highlighted group's member bounding box.
+    // ── 4. Dashed group outline ───────────────────────────────────────────
     if (hasGroupHL && !_highlightMembers.isEmpty()) {
         double wx0 = 1e9, wy0 = 1e9, wx1 = -1e9, wy1 = -1e9;
         for (const auto& r : _rects) {
             if (r.isGroup || !_highlightMembers.contains(r.name)) continue;
-            const QRectF wr = toWidgetRect(r);
+            const QRectF wr = toBoundingRect(r);
             wx0 = qMin(wx0, wr.left());  wx1 = qMax(wx1, wr.right());
             wy0 = qMin(wy0, wr.top());   wy1 = qMax(wy1, wr.bottom());
         }
