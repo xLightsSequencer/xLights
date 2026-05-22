@@ -424,6 +424,7 @@ public:
     }
     void RemoveSubModel(const std::string& name);
     void RemoveAllSubModels();
+    void ClearRenderCaches();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
     virtual std::vector<PWMOutput> GetPWMOutputs() const;

@@ -74,6 +74,7 @@ class ModelManager : public ObjectManager
         std::vector<std::string> GetLayoutGroupNames() const;
 
         void clear();
+        void clearUIObjects();
 
         std::map<std::string, Model*>::const_iterator begin() const;
         std::map<std::string, Model*>::const_iterator end() const;

@@ -111,6 +111,18 @@ ModelManager::~ModelManager()
     clear();
 }
 
+void ModelManager::clearUIObjects()
+{
+    while (_modelsLoading)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+    for (auto& it : models) {
+        if (it.second != nullptr) {
+            it.second->ClearRenderCaches();
+        }
+    }
+}
+
 void ModelManager::clear()
 {
     std::lock_guard<std::recursive_mutex> _lock(_modelMutex);

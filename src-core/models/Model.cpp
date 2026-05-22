@@ -1232,6 +1232,15 @@ void Model::RemoveAllSubModels()
     }
 }
 
+void Model::ClearRenderCaches()
+{
+    for (auto* sm : subModels) {
+        if (sm != nullptr)
+            sm->ClearRenderCaches();
+    }
+    deleteUIObjects();
+}
+
 Model* Model::GetSubModel(const std::string& name) const
 {
     auto it = sortedSubModels.find(name);
