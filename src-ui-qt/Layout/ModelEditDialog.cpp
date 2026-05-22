@@ -278,11 +278,9 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
 
     _faceTable = new QTableWidget(0, 3);
     _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
-    _faceTable->horizontalHeader()->setMinimumSectionSize(0);
     _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-    _faceTable->setColumnWidth(2, 50);
+    _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     _faceTable->verticalHeader()->hide();
 
     auto* ed  = new QWidget;
@@ -311,11 +309,9 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
     _stateTable = new QTableWidget(0, 3);
     _stateTable->setHorizontalHeaderLabels({"Key", "Nodes", "Color"});
-    _stateTable->horizontalHeader()->setMinimumSectionSize(0);
     _stateTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _stateTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    _stateTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-    _stateTable->setColumnWidth(2, 50);
+    _stateTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     _stateTable->verticalHeader()->hide();
 
     auto* seAdd = new QPushButton("+ Row");
@@ -487,11 +483,9 @@ void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
         // SingleNode or NodeRange mode.
         _faceTable->setColumnCount(3);
         _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
-        _faceTable->horizontalHeader()->setMinimumSectionSize(0);
         _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-        _faceTable->setColumnWidth(2, 50);
+        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
         QStringList keys = kPhonemeKeys;
         for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {

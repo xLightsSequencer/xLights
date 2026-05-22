@@ -14,56 +14,24 @@ ModelNodePreview::ModelNodePreview(QWidget* parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true);
     setCursor(Qt::CrossCursor);
-    // WA_OpaquePaintEvent: we paint every pixel ourselves — no background fill needed.
-    // Do NOT set a stylesheet with border-radius; the style engine co-paints and can
-    // crash before the native backing store is ready.
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAttribute(Qt::WA_NoSystemBackground);
 }
 
-// Only schedule a repaint when the widget is actually visible; calling update()
-// on a hidden widget can trigger paintEvent before the backing store exists.
-static void safeUpdate(QWidget* w) {
-    if (w->isVisible()) w->update();
-}
+// ── Cache rebuild (off-screen QPainter — always safe) ─────────────────────────
 
-void ModelNodePreview::setNodePositions(const QList<QPointF>& positions) {
-    _positions = positions;
-    _highlighted.clear();
-    safeUpdate(this);
-}
+void ModelNodePreview::rebuildCache() {
+    const int w = width(), h = height();
+    if (w <= 0 || h <= 0) return;
 
-void ModelNodePreview::highlightNodes(const QList<int>& indices, const QColor& color) {
-    _highlighted.clear();
-    for (int i : indices) _highlighted.insert(i);
-    _hlColor = color;
-    safeUpdate(this);
-}
-
-void ModelNodePreview::clearHighlight() {
-    _highlighted.clear();
-    safeUpdate(this);
-}
-
-QPointF ModelNodePreview::toWidget(const QPointF& norm) const {
-    const int w = width()  - 2 * kPad;
-    const int h = height() - 2 * kPad;
-    return { kPad + norm.x() * w,
-             kPad + norm.y() * h };
-}
-
-void ModelNodePreview::paintEvent(QPaintEvent*) {
-    QPainter p(this);
-    // Guard against a partially-initialised backing store (can happen if Qt
-    // processes a deferred repaint before the window's native handle is ready).
-    if (!p.isActive()) return;
-
+    _cache = QPixmap(w, h);
+    QPainter p(&_cache);          // painting to QPixmap — never crashes
     p.setRenderHint(QPainter::Antialiasing);
-    p.fillRect(rect(), QColor(0x11, 0x11, 0x11));
+    p.fillRect(0, 0, w, h, QColor(0x11, 0x11, 0x11));
 
     if (_positions.isEmpty()) {
         p.setPen(QColor(0x44, 0x44, 0x44));
-        p.drawText(rect(), Qt::AlignCenter, "No model loaded");
+        p.drawText(QRect(0, 0, w, h), Qt::AlignCenter, "No model loaded");
         return;
     }
 
@@ -84,7 +52,59 @@ void ModelNodePreview::paintEvent(QPaintEvent*) {
             p.drawEllipse(wp, r, r);
         }
     }
+}
 
+// ── Public API ────────────────────────────────────────────────────────────────
+
+void ModelNodePreview::setNodePositions(const QList<QPointF>& positions) {
+    _positions = positions;
+    _highlighted.clear();
+    rebuildCache();
+    if (isVisible()) update();
+}
+
+void ModelNodePreview::highlightNodes(const QList<int>& indices, const QColor& color) {
+    _highlighted.clear();
+    for (int i : indices) _highlighted.insert(i);
+    _hlColor = color;
+    rebuildCache();
+    if (isVisible()) update();
+}
+
+void ModelNodePreview::clearHighlight() {
+    _highlighted.clear();
+    rebuildCache();
+    if (isVisible()) update();
+}
+
+// ── QWidget overrides ─────────────────────────────────────────────────────────
+
+QPointF ModelNodePreview::toWidget(const QPointF& norm) const {
+    const int w = width()  - 2 * kPad;
+    const int h = height() - 2 * kPad;
+    return { kPad + norm.x() * w, kPad + norm.y() * h };
+}
+
+void ModelNodePreview::resizeEvent(QResizeEvent* e) {
+    QWidget::resizeEvent(e);
+    rebuildCache();
+}
+
+void ModelNodePreview::paintEvent(QPaintEvent*) {
+    // All complex drawing is in the QPixmap cache — this just blits it.
+    // Keeping paintEvent minimal avoids the QPainter-on-widget crash caused
+    // by a partially-initialised backing-store raster buffer on Windows.
+    QPainter p(this);
+    if (!p.isActive()) return;
+
+    if (_cache.isNull() || _cache.size() != size()) {
+        rebuildCache();
+        if (_cache.isNull()) { p.fillRect(rect(), QColor(0x11,0x11,0x11)); return; }
+    }
+
+    p.drawPixmap(0, 0, _cache);
+
+    // Draw lasso overlay on top of the cached image.
     if (_lassoing) {
         p.setBrush(QColor(0x28, 0x78, 0xff, 40));
         p.setPen(QPen(QColor(0x28, 0x78, 0xff), 1, Qt::DashLine));
