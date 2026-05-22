@@ -3,6 +3,7 @@
 #include <QDialog>
 
 class ModelNodePreview;
+class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
@@ -108,14 +109,16 @@ private:
     QTableWidget* _smRanges      = nullptr;
 
     // Faces tab
-    QListWidget*  _faceList      = nullptr;
-    QComboBox*    _faceType      = nullptr;
-    QTableWidget* _faceTable     = nullptr;
+    QListWidget*  _faceList       = nullptr;
+    QComboBox*    _faceType       = nullptr;
+    QTableWidget* _faceTable      = nullptr;
+    QCheckBox*    _faceForceColor = nullptr;
 
     // States tab
-    QListWidget*  _stateList     = nullptr;
-    QComboBox*    _stateType     = nullptr;
-    QTableWidget* _stateTable    = nullptr;
+    QListWidget*  _stateList       = nullptr;
+    QComboBox*    _stateType       = nullptr;
+    QTableWidget* _stateTable      = nullptr;
+    QCheckBox*    _stateForceColor = nullptr;
 
     QTabWidget*       _tabs       = nullptr;
     QLabel*           _titleLabel = nullptr;

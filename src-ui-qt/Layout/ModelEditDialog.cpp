@@ -19,7 +19,6 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QSpinBox>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QTabWidget>
@@ -283,10 +282,13 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
     _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     _faceTable->verticalHeader()->hide();
 
+    _faceForceColor = new QCheckBox("Force custom colors");
+
     auto* ed  = new QWidget;
     auto* edVL = new QVBoxLayout(ed);
     auto* typeRow = new QHBoxLayout;
-    typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_faceType); typeRow->addStretch();
+    typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_faceType);
+    typeRow->addSpacing(12); typeRow->addWidget(_faceForceColor); typeRow->addStretch();
     edVL->addLayout(typeRow);
     edVL->addWidget(_faceTable, 1);
 
@@ -296,6 +298,11 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
 
     connect(_faceList, &QListWidget::currentRowChanged, this, [this](int) { onFaceSelectionChanged(); });
     connect(_faceType, &QComboBox::currentTextChanged,  this, &ModelEditDialog::onFaceTypeChanged);
+    connect(_faceForceColor, &QCheckBox::toggled, this, [this](bool on) {
+        if (_curFace >= 0 && _curFace < _faces.size())
+            _faces[_curFace].forceColor = on;
+        _faceTable->setColumnHidden(2, !on);
+    });
     connect(_faceTable, &QTableWidget::currentCellChanged,
             this, [this](int row, int col, int, int) { onFaceCellChanged(row, col); });
 }
@@ -321,10 +328,13 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
     auto* seBtns = new QHBoxLayout;
     seBtns->addWidget(seAdd); seBtns->addWidget(seDel); seBtns->addStretch();
 
+    _stateForceColor = new QCheckBox("Force custom colors");
+
     auto* ed  = new QWidget;
     auto* edVL = new QVBoxLayout(ed);
     auto* typeRow = new QHBoxLayout;
-    typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_stateType); typeRow->addStretch();
+    typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_stateType);
+    typeRow->addSpacing(12); typeRow->addWidget(_stateForceColor); typeRow->addStretch();
     edVL->addLayout(typeRow);
     edVL->addWidget(_stateTable, 1);
     edVL->addLayout(seBtns);
@@ -337,6 +347,11 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
     connect(_stateType, &QComboBox::currentTextChanged,  this, &ModelEditDialog::onStateTypeChanged);
     connect(_stateTable, &QTableWidget::currentCellChanged,
             this, [this](int row, int col, int, int) { onStateCellChanged(row, col); });
+    connect(_stateForceColor, &QCheckBox::toggled, this, [this](bool on) {
+        if (_curState >= 0 && _curState < _states.size())
+            _states[_curState].forceColor = on;
+        _stateTable->setColumnHidden(2, !on);
+    });
 }
 
 // ── openForModel ──────────────────────────────────────────────────────────────
@@ -445,6 +460,11 @@ void ModelEditDialog::populateFaceEditor(int idx) {
     _faceType->setCurrentIndex(qMax(0, _faceType->findText(fi.type)));
     _faceType->blockSignals(false);
 
+    _faceForceColor->blockSignals(true);
+    _faceForceColor->setChecked(fi.forceColor);
+    _faceForceColor->blockSignals(false);
+    _faceTable->setColumnHidden(2, !fi.forceColor);
+
     rebuildFaceNodeCells(fi);
     _preview->clearHighlight();
 }
@@ -513,18 +533,7 @@ void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
             kItem->setFlags(Qt::ItemIsEnabled);
             _faceTable->setItem(r, 0, kItem);
 
-            const QString nodeVal = fi.attrs.value(k);
-            if (fi.type == "SingleNode") {
-                auto* spin = new QSpinBox;
-                spin->setRange(0, _nodeCount);
-                spin->setSpecialValueText("—");
-                spin->setValue(nodeVal.isEmpty() ? 0 : nodeVal.toInt());
-                connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
-                        this, [this](int) { previewFromFaceRow(_faceTable->currentRow()); });
-                _faceTable->setCellWidget(r, 1, spin);
-            } else {
-                _faceTable->setItem(r, 1, new QTableWidgetItem(nodeVal));
-            }
+            _faceTable->setItem(r, 1, new QTableWidgetItem(fi.attrs.value(k)));
             _faceTable->setCellWidget(r, 2, makeSwatchBtn(fi.attrs.value(k + kColorSuffix), _faceTable));
         }
     }
@@ -548,6 +557,11 @@ void ModelEditDialog::populateStateEditor(int idx) {
     _stateType->setCurrentIndex(qMax(0, _stateType->findText(si.type)));
     _stateType->blockSignals(false);
 
+    _stateForceColor->blockSignals(true);
+    _stateForceColor->setChecked(si.forceColor);
+    _stateForceColor->blockSignals(false);
+    _stateTable->setColumnHidden(2, !si.forceColor);
+
     rebuildStateNodeCells(si);
     _preview->clearHighlight();
 }
@@ -568,17 +582,8 @@ void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
         // Column 0: Name (user label, e.g. "Test")
         _stateTable->setItem(r, 0, new QTableWidgetItem(e.name));
 
-        // Column 1: Nodes — QSpinBox for SingleNode, QLineEdit text for NodeRange
-        if (si.type == "SingleNode") {
-            auto* spin = new QSpinBox;
-            spin->setRange(1, qMax(1, _nodeCount));
-            spin->setValue(qMax(1, e.nodes.toInt()));
-            connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
-                    this, [this](int) { previewFromStateRow(_stateTable->currentRow()); });
-            _stateTable->setCellWidget(r, 1, spin);
-        } else {
-            _stateTable->setItem(r, 1, new QTableWidgetItem(e.nodes));
-        }
+        // Column 1: Nodes — always plain text (comma-separated ranges like "1,3-5,10")
+        _stateTable->setItem(r, 1, new QTableWidgetItem(e.nodes));
 
         // Column 2: Color swatch
         _stateTable->setCellWidget(r, 2, makeSwatchBtn(e.color, _stateTable));
@@ -601,10 +606,7 @@ void ModelEditDialog::previewFromFaceRow(int row) {
     const QString type = _faces[_curFace].type;
 
     QString nodeVal;
-    if (type == "SingleNode") {
-        if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(row, 1)))
-            nodeVal = QString::number(spin->value());
-    } else if (type != "Matrix") {
+    if (type != "Matrix") {
         if (auto* it = _faceTable->item(row, 1)) nodeVal = it->text();
     }
     _preview->highlightNodes(parseRangeStr(nodeVal));
@@ -617,14 +619,9 @@ void ModelEditDialog::previewFromStateRow(int row) {
     const QString type = _states[_curState].type;
     QList<int> indices;
 
-    // Column 1 holds the node value (spinbox for SingleNode, text for NodeRange).
-    if (type == "SingleNode") {
-        if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(row, 1)))
-            indices = parseRangeStr(QString::number(spin->value()));
-    } else {
-        if (auto* nodesIt = _stateTable->item(row, 1))
-            indices = parseRangeStr(nodesIt->text());
-    }
+    // Column 1 is always plain text (comma-separated range like "1,3-5,10").
+    if (auto* nodesIt = _stateTable->item(row, 1))
+        indices = parseRangeStr(nodesIt->text());
 
     // Use the state's color for preview.
     QColor color = Qt::yellow;
@@ -659,10 +656,7 @@ void ModelEditDialog::onNodesLassoed(const QList<int>& indices) {
         const int row = _faceTable->currentRow();
         if (row < 0) return;
         const QString type = _faceType->currentText();
-        if (type == "SingleNode") {
-            if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(row, 1)))
-                spin->setValue(indices.first() + 1);
-        } else if (type == "NodeRange") {
+        if (type != "Matrix") {
             _faceTable->blockSignals(true);
             _faceTable->setItem(row, 1, new QTableWidgetItem(indicesToRangeStr(indices)));
             _faceTable->blockSignals(false);
@@ -673,15 +667,9 @@ void ModelEditDialog::onNodesLassoed(const QList<int>& indices) {
         // States: write into Nodes cell of selected row.
         const int row = _stateTable->currentRow();
         if (row < 0) return;
-        const QString type = _stateType->currentText();
-        if (type == "SingleNode") {
-            if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(row, 1)))
-                spin->setValue(indices.first() + 1);
-        } else {
-            _stateTable->blockSignals(true);
-            _stateTable->setItem(row, 1, new QTableWidgetItem(indicesToRangeStr(indices)));
-            _stateTable->blockSignals(false);
-        }
+        _stateTable->blockSignals(true);
+        _stateTable->setItem(row, 1, new QTableWidgetItem(indicesToRangeStr(indices)));
+        _stateTable->blockSignals(false);
         _preview->highlightNodes(indices);
     }
 }
@@ -706,6 +694,7 @@ void ModelEditDialog::commitCurrentFace() {
     if (_curFace < 0 || _curFace >= _faces.size()) return;
     QtFaceInfo& fi = _faces[_curFace];
     fi.type = _faceType->currentText();
+    fi.forceColor = _faceForceColor->isChecked();
     fi.attrs["Name"] = fi.name;
     fi.attrs["Type"] = fi.type;
 
@@ -723,12 +712,7 @@ void ModelEditDialog::commitCurrentFace() {
             const QString key = kIt->text();
 
             QString nodeVal;
-            if (fi.type == "SingleNode") {
-                if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(r, 1)))
-                    nodeVal = spin->value() > 0 ? QString::number(spin->value()) : QString();
-            } else {
-                if (auto* vIt = _faceTable->item(r, 1)) nodeVal = vIt->text().trimmed();
-            }
+            if (auto* vIt = _faceTable->item(r, 1)) nodeVal = vIt->text().trimmed();
             if (nodeVal.isEmpty()) fi.attrs.remove(key); else fi.attrs[key] = nodeVal;
 
             const QString color = swatchColor(_faceTable->cellWidget(r, 2));
@@ -744,6 +728,7 @@ void ModelEditDialog::commitCurrentState() {
     if (_curState < 0 || _curState >= _states.size()) return;
     QtStateInfo& si = _states[_curState];
     si.type = _stateType->currentText();
+    si.forceColor = _stateForceColor->isChecked();
     si.entries.clear();
     for (int r = 0; r < _stateTable->rowCount(); ++r) {
         QtStateEntry e;
@@ -754,13 +739,8 @@ void ModelEditDialog::commitCurrentState() {
             e.name = raw;
             if (nIt->text() != raw) nIt->setText(raw); // fix up in place
         }
-        // Col 1: Nodes (spinbox or text)
-        if (si.type == "SingleNode") {
-            if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(r, 1)))
-                e.nodes = QString::number(spin->value());
-        } else {
-            if (auto* nIt = _stateTable->item(r, 1)) e.nodes = nIt->text().trimmed();
-        }
+        // Col 1: Nodes (plain text in all modes)
+        if (auto* nIt = _stateTable->item(r, 1)) e.nodes = nIt->text().trimmed();
         // Col 2: Color swatch
         e.color = swatchColor(_stateTable->cellWidget(r, 2));
         si.entries.append(e);
@@ -873,14 +853,8 @@ void ModelEditDialog::onStateEntryAdd() {
     _stateTable->setVerticalHeaderItem(r, new QTableWidgetItem(QString("s%1").arg(r + 1)));
     // Col 0: Name (empty by default)
     _stateTable->setItem(r, 0, new QTableWidgetItem(""));
-    // Col 1: Nodes
-    const QString type = _stateType->currentText();
-    if (type == "SingleNode") {
-        auto* spin = new QSpinBox; spin->setRange(1, qMax(1, _nodeCount)); spin->setValue(r + 1);
-        _stateTable->setCellWidget(r, 1, spin);
-    } else {
-        _stateTable->setItem(r, 1, new QTableWidgetItem(""));
-    }
+    // Col 1: Nodes (comma-separated range text)
+    _stateTable->setItem(r, 1, new QTableWidgetItem(""));
     _stateTable->setCellWidget(r, 2, makeSwatchBtn("", _stateTable));
 }
 
@@ -948,8 +922,11 @@ bool ModelEditDialog::saveToXml() {
         auto fNode = modelNode.append_child("faceInfo");
         fNode.append_attribute("Name") = fi.name.toStdString().c_str();
         fNode.append_attribute("Type") = fi.type.toStdString().c_str();
+        if (fi.forceColor)
+            fNode.append_attribute("CustomColors") = "1";
         for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
-            if (it.key() == "Name" || it.key() == "Type" || it.value().isEmpty()) continue;
+            if (it.key() == "Name" || it.key() == "Type" || it.key() == "CustomColors"
+                    || it.value().isEmpty()) continue;
             fNode.append_attribute(it.key().toStdString().c_str()) = it.value().toStdString().c_str();
         }
     }
