@@ -747,8 +747,13 @@ void ModelEditDialog::commitCurrentState() {
     si.entries.clear();
     for (int r = 0; r < _stateTable->rowCount(); ++r) {
         QtStateEntry e;
-        // Col 0: Name
-        if (auto* nIt = _stateTable->item(r, 0)) e.name = nIt->text().trimmed();
+        // Col 0: Name — lowercase alphanumeric only
+        if (auto* nIt = _stateTable->item(r, 0)) {
+            QString raw = nIt->text().toLower();
+            raw.remove(QRegularExpression("[^a-z0-9]"));
+            e.name = raw;
+            if (nIt->text() != raw) nIt->setText(raw); // fix up in place
+        }
         // Col 1: Nodes (spinbox or text)
         if (si.type == "SingleNode") {
             if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(r, 1)))
