@@ -1,5 +1,6 @@
 #include "ModelNodePreview.h"
 
+#include <cmath>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -13,7 +14,10 @@ ModelNodePreview::ModelNodePreview(QWidget* parent)
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setMouseTracking(true);
     setCursor(Qt::CrossCursor);
-    setStyleSheet("background:#111;border-radius:4px;");
+    // Do NOT use setStyleSheet with border-radius on a custom-painted widget —
+    // Qt's style engine tries to co-paint and crashes before the native handle exists.
+    // Background is drawn manually in paintEvent instead.
+    setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
 void ModelNodePreview::setNodePositions(const QList<QPointF>& positions) {
@@ -53,14 +57,17 @@ void ModelNodePreview::paintEvent(QPaintEvent*) {
     }
 
     // Compute a node radius that scales with density.
-    const float r = qBound(2.0f, 6.0f, 280.0f / (float)_positions.size());
+    const qreal r = qBound(2.0, 6.0, 280.0 / double(_positions.size()));
 
     for (int i = 0; i < _positions.size(); ++i) {
         const QPointF wp = toWidget(_positions[i]);
+        // Skip degenerate coordinates (NaN/Inf from uninitialized model data).
+        if (!std::isfinite(wp.x()) || !std::isfinite(wp.y())) continue;
+
         if (_highlighted.contains(i)) {
             p.setBrush(_hlColor);
             p.setPen(_hlColor.darker(150));
-            p.drawEllipse(wp, r + 1, r + 1);
+            p.drawEllipse(wp, r + 1.0, r + 1.0);
         } else {
             const QColor dim(0x44, 0x44, 0x44);
             p.setBrush(dim);
