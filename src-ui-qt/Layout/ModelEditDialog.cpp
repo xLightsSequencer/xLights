@@ -258,8 +258,12 @@ void ModelEditDialog::setupSubModelsTab(QWidget* tab) {
     vl->addWidget(makeTabSplit(listPanel, ed));
 
     connect(_smList, &QListWidget::currentRowChanged, this, [this](int) { onSmSelectionChanged(); });
-    connect(_smRanges, &QTableWidget::currentCellChanged,
-            this, [this](int row, int col, int, int) { onSmRangeCellChanged(row, col); });
+    // itemClicked fires on every click even if the same row is already selected,
+    // which is necessary when the user switches sub-models and clicks the same row index.
+    connect(_smRanges, &QTableWidget::itemClicked,
+            this, [this](QTableWidgetItem* it) {
+        if (it) previewFromSmRow(_smRanges->row(it));
+    });
     connect(_smRanges, &QTableWidget::itemChanged,
             this, [this](QTableWidgetItem*) {
         previewFromSmRow(_smRanges->currentRow());
@@ -303,8 +307,10 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
             _faces[_curFace].forceColor = on;
         _faceTable->setColumnHidden(2, !on);
     });
-    connect(_faceTable, &QTableWidget::currentCellChanged,
-            this, [this](int row, int col, int, int) { onFaceCellChanged(row, col); });
+    connect(_faceTable, &QTableWidget::itemClicked,
+            this, [this](QTableWidgetItem* it) {
+        if (it) previewFromFaceRow(_faceTable->row(it));
+    });
 }
 
 void ModelEditDialog::setupStatesTab(QWidget* tab) {
@@ -345,8 +351,10 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
     connect(_stateList, &QListWidget::currentRowChanged, this, [this](int) { onStateSelectionChanged(); });
     connect(_stateType, &QComboBox::currentTextChanged,  this, &ModelEditDialog::onStateTypeChanged);
-    connect(_stateTable, &QTableWidget::currentCellChanged,
-            this, [this](int row, int col, int, int) { onStateCellChanged(row, col); });
+    connect(_stateTable, &QTableWidget::itemClicked,
+            this, [this](QTableWidgetItem* it) {
+        if (it) previewFromStateRow(_stateTable->row(it));
+    });
     connect(_stateForceColor, &QCheckBox::toggled, this, [this](bool on) {
         if (_curState >= 0 && _curState < _states.size())
             _states[_curState].forceColor = on;
@@ -634,8 +642,6 @@ void ModelEditDialog::previewFromStateRow(int row) {
 // ── Cell-changed slots (drive preview) ───────────────────────────────────────
 
 void ModelEditDialog::onSmRangeCellChanged(int row, int) { previewFromSmRow(row); }
-void ModelEditDialog::onFaceCellChanged(int row, int)    { previewFromFaceRow(row); }
-void ModelEditDialog::onStateCellChanged(int row, int)   { previewFromStateRow(row); }
 
 // ── Lasso → row population ────────────────────────────────────────────────────
 

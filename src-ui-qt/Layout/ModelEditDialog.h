@@ -37,7 +37,6 @@ private slots:
     void onFaceAdd();
     void onFaceDelete();
     void onFaceTypeChanged(const QString&);
-    void onFaceCellChanged(int row, int col);
 
     // States
     void onStateSelectionChanged();
@@ -46,7 +45,6 @@ private slots:
     void onStateTypeChanged(const QString&);
     void onStateEntryAdd();
     void onStateEntryDelete();
-    void onStateCellChanged(int row, int col);
 
     void onSave();
 
