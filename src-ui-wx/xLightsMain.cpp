@@ -3253,6 +3253,13 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     _exiting = true;
 
+    // Release GL resources from all models while contexts are still alive.
+    // Must happen before ShowHideAllSequencerWindows: hiding canvases causes
+    // IsShownOnScreen()==false which makes SetCurrentGLContext() a no-op, so
+    // any glDeleteBuffers calls after that point run with no current context
+    // and corrupt the heap on some drivers (AMD in particular).
+    AllModels.clearUIObjects();
+
     ShowHideAllSequencerWindows(false);
 
     spdlog::debug("Destroying {} preview windows.", (int)PreviewWindows.size());
