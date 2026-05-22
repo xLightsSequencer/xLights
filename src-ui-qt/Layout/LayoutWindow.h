@@ -27,6 +27,7 @@ public:
 
 signals:
     void visualizerRequested(const QString& controllerName);
+    void uploadRequested(const QString& controllerName);
 
 private slots:
     void onModelListClicked(QListWidgetItem* item);

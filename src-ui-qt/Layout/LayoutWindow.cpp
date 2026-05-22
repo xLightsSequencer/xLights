@@ -42,15 +42,19 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     auto* editBtn = new QPushButton("Edit Sub-Models / Faces / States…");
     editBtn->setEnabled(false);
 
-    auto* vizBtn = new QPushButton("Open Visualizer…");
+    auto* vizBtn    = new QPushButton("Visualize");
+    auto* uploadBtn = new QPushButton("Upload");
     vizBtn->setEnabled(false);
+    uploadBtn->setEnabled(false);
 
     // Row of contextual buttons under the properties table.
-    // editBtn is enabled when a model is selected; vizBtn when a controller is.
+    // editBtn: enabled when a model is selected.
+    // vizBtn / uploadBtn: enabled when a controller is selected.
     auto* btnRow = new QHBoxLayout;
     btnRow->setContentsMargins(0, 0, 0, 0);
     btnRow->addWidget(editBtn);
     btnRow->addWidget(vizBtn);
+    btnRow->addWidget(uploadBtn);
 
     // Wrap the properties table and buttons together in the left splitter.
     auto* propWidget = new QWidget;
@@ -103,13 +107,19 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     connect(_controllerList, &QListWidget::itemClicked,
             this, &LayoutWindow::onControllerListClicked);
 
-    // Enable vizBtn only when a controller is selected.
-    connect(_controllerList, &QListWidget::currentRowChanged, this, [vizBtn](int row) {
+    // Enable controller buttons only when a controller is selected.
+    connect(_controllerList, &QListWidget::currentRowChanged,
+            this, [vizBtn, uploadBtn](int row) {
         vizBtn->setEnabled(row >= 0);
+        uploadBtn->setEnabled(row >= 0);
     });
     connect(vizBtn, &QPushButton::clicked, this, [this]() {
         auto* item = _controllerList->currentItem();
         if (item) emit visualizerRequested(item->text());
+    });
+    connect(uploadBtn, &QPushButton::clicked, this, [this]() {
+        auto* item = _controllerList->currentItem();
+        if (item) emit uploadRequested(item->text());
     });
     connect(_canvas, &ModelLayoutCanvas::modelClicked,
             this, &LayoutWindow::onCanvasModelClicked);
