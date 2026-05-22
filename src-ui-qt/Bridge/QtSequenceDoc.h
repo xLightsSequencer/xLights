@@ -27,19 +27,22 @@ struct QtSubModelInfo {
 struct QtFaceInfo {
     QString               name;
     QString               type;   // "SingleNode" | "NodeRange" | "Matrix"
+    bool forceColor { false }; // whether to use the color attributes or ignore them //CustomColors="" or CustomColors="1"
     QMap<QString,QString> attrs;
 };
 
 // One entry inside a state definition.
 struct QtStateEntry {
-    QString key;    // raw XML key, e.g. "s001" or "s001-s005"
-    QString color;  // color value, e.g. "Red" or "#FF0000"
+    QString name;    // raw XML value, "s001-name"
+    QString nodes;  // raw XML value, "s001"
+    QString color;  // raw XML value, "s001-color", color value, e.g. "Red" or "#FF0000"
 };
 
 // One named state (maps node keys → colors).
 struct QtStateInfo {
     QString              name;
     QString              type;   // "SingleNode" | "NodeRange"
+    bool forceColor { false }; //CustomColors="" or CustomColors="1"
     QList<QtStateEntry>  entries;
 };
 
