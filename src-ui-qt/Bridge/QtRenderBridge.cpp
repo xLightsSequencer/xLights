@@ -19,6 +19,9 @@
 #include "../../src-core/render/ColorCurve.h"
 #include "../../src-core/utils/UtilClasses.h"
 #include "../../src-core/utils/Color.h"
+#include "../../src-core/controllers/BaseController.h"
+#include "../../src-core/outputs/Controller.h"
+#include "../../src-core/render/UICallbacks.h"
 
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
@@ -326,4 +329,48 @@ QtEffectRenderer::Result QtRenderBridge::renderCore(const QtEffectRenderer::Requ
                      req.effectName.toStdString());
         return blackResult(req);
     }
+}
+
+// ── Controller upload ─────────────────────────────────────────────────────────
+
+bool QtRenderBridge::upload(const QString& controllerName, UICallbacks* ui) {
+    if (!s_ctx || !s_mm) {
+        if (ui) ui->ShowMessage("Render context not initialised — open a sequence first.",
+                                "Upload failed");
+        return false;
+    }
+
+    OutputManager& om = s_ctx->outputManager();
+    Controller* ctrl  = om.GetController(controllerName.toStdString());
+    if (!ctrl) {
+        if (ui) ui->ShowMessage(
+            "Controller '" + controllerName.toStdString() + "' not found in outputs.",
+            "Upload failed");
+        return false;
+    }
+
+    BaseController* bc = BaseController::CreateBaseController(ctrl);
+    if (!bc) {
+        if (ui) ui->ShowMessage(
+            "No upload handler available for controller type '" +
+                ctrl->GetType() + "'.", "Upload failed");
+        return false;
+    }
+
+    bool ok = true;
+    try {
+        spdlog::info("QtRenderBridge: uploading inputs to '{}'",
+                     controllerName.toStdString());
+        bc->SetInputUniverses(ctrl, ui);   // inputs first; optional — ignore return value
+
+        spdlog::info("QtRenderBridge: uploading outputs to '{}'",
+                     controllerName.toStdString());
+        ok = bc->SetOutputs(s_mm.get(), &om, ctrl, ui);
+    } catch (...) {
+        if (ui) ui->ShowMessage("Exception during upload.", "Upload failed");
+        ok = false;
+    }
+
+    delete bc;
+    return ok;
 }

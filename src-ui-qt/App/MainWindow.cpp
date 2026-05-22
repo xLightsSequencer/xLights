@@ -15,6 +15,7 @@
 #include "../Layout/HousePreviewWidget.h"
 #include "../Layout/LayoutWindow.h"
 #include "../Controllers/ControllerVisualizerWindow.h"
+#include "../Controllers/ControllerUploadDialog.h"
 #include "../Preview/PreviewWidget.h"
 #include "../Sequencer/SequencerModel.h"
 #include "../Sequencer/SequencerWidget.h"
@@ -195,7 +196,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     // ── Info windows (created once, shown on demand) ──────────────────────
     _modelInfoWin     = new ModelInfoWindow(this);
     _layoutWin        = new LayoutWindow(this);
-    _controllerVizWin = new ControllerVisualizerWindow(this);
+    _controllerVizWin    = new ControllerVisualizerWindow(this);
+    _controllerUploadDlg = new ControllerUploadDialog(this);
 
     connect(_layoutWin, &LayoutWindow::visualizerRequested,
             this, [this](const QString& name) {
@@ -203,8 +205,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     });
     connect(_layoutWin, &LayoutWindow::uploadRequested,
             this, [this](const QString& name) {
-        Q_UNUSED(name)
-        statusBar()->showMessage("Upload not yet implemented", 3000);
+        _controllerUploadDlg->openForController(name, _renderBridge);
     });
 
     // If a show folder was restored from settings, load the layout immediately

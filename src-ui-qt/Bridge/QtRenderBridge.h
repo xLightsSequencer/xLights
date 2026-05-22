@@ -4,6 +4,9 @@
 #include <QString>
 #include <QTimer>
 
+// Forward declaration so callers don't need to pull in all src-core headers.
+class UICallbacks;
+
 // Debounces render requests and runs them through the src-core rendering
 // pipeline (RenderableEffect::Render), matching the wx and iPad render paths.
 // Returns a black result if src-core is unavailable or the effect throws.
@@ -21,6 +24,11 @@ public:
 
     // Queue a render request; fires after 40 ms of silence.
     void request(const QtEffectRenderer::Request& req);
+
+    // Upload outputs + inputs for the named controller.
+    // Runs synchronously — call from a background thread to avoid blocking the UI.
+    // Returns true on success. ui receives progress and error messages.
+    bool upload(const QString& controllerName, UICallbacks* ui);
 
     // Synchronous render — returns result immediately, no debounce.
     // Used for live playback updates where latency matters more than debouncing.

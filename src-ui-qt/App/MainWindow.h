@@ -6,6 +6,7 @@
 #include <QString>
 #include <QVector>
 
+class ControllerUploadDialog;
 class ControllerVisualizerWindow;
 class EffectPanelWidget;
 class LayoutWindow;
@@ -100,5 +101,6 @@ PlaybackController*  _playback      = nullptr;
 
     ModelInfoWindow*             _modelInfoWin     = nullptr;
     LayoutWindow*                _layoutWin        = nullptr;
-    ControllerVisualizerWindow*  _controllerVizWin = nullptr;
+    ControllerVisualizerWindow*  _controllerVizWin    = nullptr;
+    ControllerUploadDialog*      _controllerUploadDlg = nullptr;
 };
