@@ -68,6 +68,7 @@ RenderProgressDialog::RenderProgressDialog(wxWindow* parent)
         Layout();
     }
     EnsureWindowHeaderIsOnScreen(this);
+	SetWindowStyle(GetWindowStyle() | wxSTAY_ON_TOP);
 }
 
 RenderProgressDialog::~RenderProgressDialog()
