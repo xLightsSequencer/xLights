@@ -465,28 +465,28 @@ static bool coreNodePositions(pugi::xml_node modelXml,
     constexpr float PAD = 0.05f;
     constexpr float INN = 1.f - 2.f * PAD;
 
+    // Build positions in wiring order so positions[i] == xLights node i+1.
+    // Using the first Coord of each node as its representative screen position.
+    // This makes node numbers in sub-model/face/state ranges map correctly.
     QList<QPointF> positions;
-    positions.reserve(bufW * bufH);
-    for (int i = 0; i < bufW * bufH; ++i) {
-        float nx, ny;
-        if (used[i]) {
-            nx = rangeX > 0.f ? PAD + (sxArr[i] - minX) / rangeX * INN : 0.5f;
-            // For front view: xLights Y=0 is at the bottom, Qt Y=0 is at the top → flip.
-            // For top-down (Tree 360): Z axis has no natural "up" → no flip needed.
+    positions.reserve((int)nodes.size());
+    for (const auto& node : nodes) {
+        float nx = 0.5f, ny = 0.5f;
+        if (!node->Coords.empty()) {
+            const auto& c = node->Coords[0];
+            float a = c.screenX;
+            float b = topDown ? c.screenZ : c.screenY;
+            nx = rangeX > 0.f ? PAD + (a - minX) / rangeX * INN : 0.5f;
             if (rangeY > 0.f)
-                ny = topDown ? PAD + (syArr[i] - minY) / rangeY * INN
-                             : PAD + (1.f - (syArr[i] - minY) / rangeY) * INN;
-            else
-                ny = 0.5f;
-        } else {
-            nx = ny = 0.5f;
+                ny = topDown ? PAD + (b - minY) / rangeY * INN
+                             : PAD + (1.f - (b - minY) / rangeY) * INN;
         }
         positions.append({ double(nx), double(ny) });
     }
 
     out.bufferW       = bufW;
     out.bufferH       = bufH;
-    out.nodeCount     = bufW * bufH;
+    out.nodeCount     = (int)nodes.size();   // physical nodes, not buffer cells
     out.nodePositions = positions;
 
     // Store the raw screen coordinate ranges so loadModels() can compute
