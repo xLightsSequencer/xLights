@@ -201,6 +201,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
             this, [this](const QString& name) {
         _controllerVizWin->openForController(name);
     });
+    connect(_layoutWin, &LayoutWindow::uploadRequested,
+            this, [this](const QString& name) {
+        Q_UNUSED(name)
+        statusBar()->showMessage("Upload not yet implemented", 3000);
+    });
+
+    // If a show folder was restored from settings, load the layout immediately
+    // so the layout window is populated before any sequence is opened.
+    if (!QtXLightsApp::instance().showFolder().isEmpty()) {
+        _renderBridge->setShowFolder(QtXLightsApp::instance().showFolder());
+        _layoutWin->refresh();
+    }
 }
 
 // ── Render helper ─────────────────────────────────────────────────────────────
@@ -816,6 +828,22 @@ void MainWindow::setupMenuBar() {
 
     // ── View menu ─────────────────────────────────────────────────────────
     auto* view = menuBar()->addMenu("&View");
+
+    // Show folder is the primary setting; put it at the top of View too.
+    auto* sfViewAct = view->addAction("Set Show &Folder…");
+    connect(sfViewAct, &QAction::triggered, this, [this]() {
+        const QString current = QtXLightsApp::instance().showFolder();
+        const QString path = QFileDialog::getExistingDirectory(
+            this, "Set Show Folder", current.isEmpty() ? QDir::homePath() : current);
+        if (path.isEmpty()) return;
+        QtXLightsApp::instance().setShowFolder(path);
+        _renderBridge->setShowFolder(path);
+        _layoutWin->refresh();
+        _playback->setMediaFile({});
+        statusBar()->showMessage("Show folder: " + path, 5000);
+    });
+    view->addSeparator();
+
     auto* layoutAct = view->addAction("&Layout…", QKeySequence("Ctrl+L"));
     connect(layoutAct, &QAction::triggered, this, [this]() {
         _layoutWin->show();
