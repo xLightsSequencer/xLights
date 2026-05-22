@@ -1,4 +1,5 @@
 #include "ModelEditDialog.h"
+#include "ModelNodePreview.h"
 #include "../App/QtXLightsApp.h"
 
 #include <pugixml.hpp>
@@ -8,6 +9,7 @@
 #include <QColorDialog>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -17,56 +19,116 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-// ── Known face phoneme keys (display order) ───────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
+
 static const QStringList kPhonemeKeys = {
     "FaceOutline",
     "Mouth_AI", "Mouth_E", "Mouth_etc", "Mouth_FV", "Mouth_L",
     "Mouth_MBP", "Mouth_O", "Mouth_rest", "Mouth_U", "Mouth_WQ",
     "Eyes_Open", "Eyes_Closed"
 };
+static const QStringList kMatrixImageKeys = {
+    "Eyes_Open", "Eyes_Closed", "Mouth"
+};
 static const QString kColorSuffix = "Color";
 
 // ── Color-swatch helpers ──────────────────────────────────────────────────────
 
-// Parse a color string (name or #rrggbb) to QColor; returns black on failure.
 static QColor parseColor(const QString& s) {
-    if (s.isEmpty()) return QColor();
-    QColor c(s);
-    return c.isValid() ? c : QColor();
+    if (s.isEmpty()) return {};
+    QColor c(s); return c.isValid() ? c : QColor();
 }
 
-// Create a colored push-button that opens QColorDialog on click.
-// The current color is stored in the Qt property "colorHex".
 static QPushButton* makeSwatchBtn(const QString& colorStr, QWidget* parent) {
     auto* btn = new QPushButton(parent);
-    btn->setFlat(true);
-    btn->setFixedSize(40, 20);
-
-    const QColor c = parseColor(colorStr);
+    btn->setFlat(true); btn->setFixedSize(40, 20);
+    const QColor c   = parseColor(colorStr);
     const QString hex = c.isValid() ? c.name() : "#000000";
     btn->setProperty("colorHex", hex);
     btn->setStyleSheet(QString("background-color:%1;border:1px solid #666;").arg(hex));
-
     QObject::connect(btn, &QPushButton::clicked, [btn, parent]() {
-        const QColor cur = QColor(btn->property("colorHex").toString());
-        const QColor chosen = QColorDialog::getColor(cur.isValid() ? cur : Qt::black, parent, "Color");
+        const QColor cur(btn->property("colorHex").toString());
+        const QColor chosen = QColorDialog::getColor(cur.isValid() ? cur : Qt::black, parent);
         if (chosen.isValid()) {
             btn->setProperty("colorHex", chosen.name());
-            btn->setStyleSheet(QString("background-color:%1;border:1px solid #666;")
-                               .arg(chosen.name()));
+            btn->setStyleSheet(QString("background-color:%1;border:1px solid #666;").arg(chosen.name()));
         }
     });
     return btn;
 }
 
-static QString swatchColor(QWidget* btn) {
-    if (!btn) return {};
-    return btn->property("colorHex").toString();
+static QString swatchColor(QWidget* w) {
+    return w ? w->property("colorHex").toString() : QString();
+}
+
+// ── Node-range utilities ──────────────────────────────────────────────────────
+
+QList<int> ModelEditDialog::parseRangeStr(const QString& s) const {
+    QList<int> result;
+    if (s.isEmpty()) return result;
+    for (const QString& part : s.split(',', Qt::SkipEmptyParts)) {
+        const int dash = part.indexOf('-');
+        if (dash > 0) {
+            const int from = part.left(dash).trimmed().toInt() - 1;
+            const int to   = part.mid(dash + 1).trimmed().toInt() - 1;
+            for (int i = from; i <= to; ++i)
+                if (i >= 0 && i < _nodeCount) result.append(i);
+        } else {
+            const int n = part.trimmed().toInt() - 1;
+            if (n >= 0 && n < _nodeCount) result.append(n);
+        }
+    }
+    return result;
+}
+
+QString ModelEditDialog::indicesToRangeStr(const QList<int>& idx) const {
+    if (idx.isEmpty()) return {};
+    QList<int> sorted = idx;
+    std::sort(sorted.begin(), sorted.end());
+    QString result;
+    int start = sorted[0], end = sorted[0];
+    auto flush = [&] {
+        if (!result.isEmpty()) result += ',';
+        if (start == end) result += QString::number(start + 1);
+        else result += QString("%1-%2").arg(start + 1).arg(end + 1);
+    };
+    for (int i = 1; i < sorted.size(); ++i) {
+        if (sorted[i] == end + 1) { end = sorted[i]; }
+        else { flush(); start = end = sorted[i]; }
+    }
+    flush();
+    return result;
+}
+
+QString ModelEditDialog::indicesToSingleNodeStr(const QList<int>& idx) const {
+    return idx.isEmpty() ? QString() : QString::number(idx.first() + 1);
+}
+
+// Parse the key part of a state entry (e.g. "s001" → 0, "s001-s005" → 0..4).
+static QList<int> parseStateKey(const QString& key, int nodeCount) {
+    QList<int> result;
+    // Strip leading 's' and possible second 's' in range.
+    QString k = key;
+    if (k.startsWith('s') || k.startsWith('S')) k = k.mid(1);
+    const int dash = k.indexOf('-');
+    if (dash > 0) {
+        QString right = k.mid(dash + 1);
+        if (right.startsWith('s') || right.startsWith('S')) right = right.mid(1);
+        const int from = k.left(dash).toInt() - 1;
+        const int to   = right.toInt() - 1;
+        for (int i = from; i <= to && i < nodeCount; ++i)
+            if (i >= 0) result.append(i);
+    } else {
+        const int n = k.toInt() - 1;
+        if (n >= 0 && n < nodeCount) result.append(n);
+    }
+    return result;
 }
 
 // ── Constructor ───────────────────────────────────────────────────────────────
@@ -75,8 +137,8 @@ ModelEditDialog::ModelEditDialog(QWidget* parent)
     : QDialog(parent)
 {
     setWindowTitle("Model Editor");
-    setMinimumSize(860, 580);
-    resize(1040, 660);
+    setMinimumSize(900, 580);
+    resize(1100, 680);
 
     _titleLabel = new QLabel("No model selected");
     QFont f = _titleLabel->font(); f.setBold(true); f.setPointSize(f.pointSize() + 1);
@@ -90,7 +152,36 @@ ModelEditDialog::ModelEditDialog(QWidget* parent)
     _tabs->addTab(faceTab,  "Faces");
     _tabs->addTab(stateTab, "States");
 
-    auto* buttons = new QDialogButtonBox;
+    connect(_tabs, &QTabWidget::currentChanged, this, [this](int idx) {
+        _activeTab = idx;
+        _preview->clearHighlight();
+    });
+
+    // ── Preview panel ─────────────────────────────────────────────────────
+    _preview = new ModelNodePreview;
+    auto* prevLabel = new QLabel("Model Preview");
+    prevLabel->setStyleSheet("font-weight:bold;color:#aaa;");
+    auto* prevHint  = new QLabel("Drag to lasso-select nodes");
+    prevHint->setStyleSheet("color:#666;font-size:10px;");
+    auto* prevPanel = new QWidget;
+    auto* prevVL    = new QVBoxLayout(prevPanel);
+    prevVL->setContentsMargins(0,0,0,0);
+    prevVL->addWidget(prevLabel);
+    prevVL->addWidget(_preview, 1);
+    prevVL->addWidget(prevHint);
+    prevPanel->setMinimumWidth(180);
+
+    connect(_preview, &ModelNodePreview::nodesLassoed,
+            this, &ModelEditDialog::onNodesLassoed);
+
+    // ── Main splitter: tabs | preview ─────────────────────────────────────
+    auto* mainSplit = new QSplitter(Qt::Horizontal);
+    mainSplit->addWidget(_tabs);
+    mainSplit->addWidget(prevPanel);
+    mainSplit->setSizes({700, 240});
+    mainSplit->setStretchFactor(0, 1);
+
+    auto* buttons  = new QDialogButtonBox;
     auto* saveBtn  = buttons->addButton("Save",  QDialogButtonBox::AcceptRole);
     auto* closeBtn = buttons->addButton("Close", QDialogButtonBox::RejectRole);
     connect(saveBtn,  &QPushButton::clicked, this, &ModelEditDialog::onSave);
@@ -98,7 +189,7 @@ ModelEditDialog::ModelEditDialog(QWidget* parent)
 
     auto* root = new QVBoxLayout(this);
     root->addWidget(_titleLabel);
-    root->addWidget(_tabs, 1);
+    root->addWidget(mainSplit, 1);
     root->addWidget(buttons);
 }
 
@@ -114,7 +205,7 @@ static QWidget* makeListPanel(QListWidget*& list, QObject* recv,
     QObject::connect(delBtn, SIGNAL(clicked()), recv, delSlot);
     auto* btnRow = new QHBoxLayout;
     btnRow->addWidget(addBtn); btnRow->addWidget(delBtn); btnRow->addStretch();
-    auto* w = new QWidget;
+    auto* w  = new QWidget;
     auto* vl = new QVBoxLayout(w);
     vl->setContentsMargins(0,0,0,0);
     vl->addWidget(list, 1);
@@ -124,10 +215,8 @@ static QWidget* makeListPanel(QListWidget*& list, QObject* recv,
 
 static QSplitter* makeTabSplit(QWidget* listPanel, QWidget* editor) {
     auto* s = new QSplitter(Qt::Horizontal);
-    s->addWidget(listPanel);
-    s->addWidget(editor);
-    s->setSizes({220, 700});
-    s->setStretchFactor(1, 1);
+    s->addWidget(listPanel); s->addWidget(editor);
+    s->setSizes({200, 600}); s->setStretchFactor(1, 1);
     return s;
 }
 
@@ -136,12 +225,9 @@ void ModelEditDialog::setupSubModelsTab(QWidget* tab) {
                                     SLOT(onSmAdd()), SLOT(onSmDelete()));
 
     _smNameEdit    = new QLineEdit;
-    _smLayout      = new QComboBox;
-    _smLayout->addItems({"horizontal", "vertical"});
-    _smType        = new QComboBox;
-    _smType->addItems({"ranges", "subbuffer"});
-    _smBufferStyle = new QComboBox;
-    _smBufferStyle->addItems({"Default", "Keep XY", "Stacked Strands"});
+    _smLayout      = new QComboBox;  _smLayout->addItems({"horizontal","vertical"});
+    _smType        = new QComboBox;  _smType->addItems({"ranges","subbuffer"});
+    _smBufferStyle = new QComboBox;  _smBufferStyle->addItems({"Default","Keep XY","Stacked Strands"});
 
     auto* form = new QFormLayout;
     form->addRow("Name:",         _smNameEdit);
@@ -150,7 +236,7 @@ void ModelEditDialog::setupSubModelsTab(QWidget* tab) {
     form->addRow("Buffer style:", _smBufferStyle);
 
     _smRanges = new QTableWidget(0, 1);
-    _smRanges->setHorizontalHeaderLabels({"Node Ranges"});
+    _smRanges->setHorizontalHeaderLabels({"Node Ranges (e.g. 1-10)"});
     _smRanges->horizontalHeader()->setStretchLastSection(true);
     _smRanges->verticalHeader()->hide();
 
@@ -161,7 +247,7 @@ void ModelEditDialog::setupSubModelsTab(QWidget* tab) {
     auto* rBtns = new QHBoxLayout;
     rBtns->addWidget(rAdd); rBtns->addWidget(rDel); rBtns->addStretch();
 
-    auto* ed = new QWidget;
+    auto* ed  = new QWidget;
     auto* edVL = new QVBoxLayout(ed);
     edVL->addLayout(form);
     edVL->addWidget(new QLabel("Ranges (one per row):"));
@@ -173,7 +259,13 @@ void ModelEditDialog::setupSubModelsTab(QWidget* tab) {
     vl->addWidget(makeTabSplit(listPanel, ed));
 
     connect(_smList, &QListWidget::currentRowChanged, this, [this](int) { onSmSelectionChanged(); });
-    connect(_smNameEdit,    &QLineEdit::textEdited,      this, &ModelEditDialog::onSmNameEdited);
+    connect(_smRanges, &QTableWidget::currentCellChanged,
+            this, [this](int row, int col, int, int) { onSmRangeCellChanged(row, col); });
+    connect(_smRanges, &QTableWidget::itemChanged,
+            this, [this](QTableWidgetItem*) {
+        previewFromSmRow(_smRanges->currentRow());
+    });
+    connect(_smNameEdit,    &QLineEdit::textEdited, this, &ModelEditDialog::onSmNameEdited);
     connect(_smBufferStyle, &QComboBox::currentTextChanged, this, &ModelEditDialog::onSmBufferStyleChanged);
 }
 
@@ -184,7 +276,6 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
     _faceType = new QComboBox;
     _faceType->addItems({"NodeRange", "SingleNode", "Matrix"});
 
-    // 3 columns: Feature (read-only), Nodes, Color swatch
     _faceTable = new QTableWidget(0, 3);
     _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
     _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -193,7 +284,7 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
     _faceTable->setColumnWidth(2, 50);
     _faceTable->verticalHeader()->hide();
 
-    auto* ed = new QWidget;
+    auto* ed  = new QWidget;
     auto* edVL = new QVBoxLayout(ed);
     auto* typeRow = new QHBoxLayout;
     typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_faceType); typeRow->addStretch();
@@ -206,6 +297,8 @@ void ModelEditDialog::setupFacesTab(QWidget* tab) {
 
     connect(_faceList, &QListWidget::currentRowChanged, this, [this](int) { onFaceSelectionChanged(); });
     connect(_faceType, &QComboBox::currentTextChanged,  this, &ModelEditDialog::onFaceTypeChanged);
+    connect(_faceTable, &QTableWidget::currentCellChanged,
+            this, [this](int row, int col, int, int) { onFaceCellChanged(row, col); });
 }
 
 void ModelEditDialog::setupStatesTab(QWidget* tab) {
@@ -215,9 +308,8 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
     _stateType = new QComboBox;
     _stateType->addItems({"NodeRange", "SingleNode"});
 
-    // 3 columns: Key (s001…), Nodes (derived / same), Color swatch
     _stateTable = new QTableWidget(0, 3);
-    _stateTable->setHorizontalHeaderLabels({"Key (s001…)", "Nodes", "Color"});
+    _stateTable->setHorizontalHeaderLabels({"Key", "Nodes", "Color"});
     _stateTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     _stateTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     _stateTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
@@ -231,7 +323,7 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
     auto* seBtns = new QHBoxLayout;
     seBtns->addWidget(seAdd); seBtns->addWidget(seDel); seBtns->addStretch();
 
-    auto* ed = new QWidget;
+    auto* ed  = new QWidget;
     auto* edVL = new QVBoxLayout(ed);
     auto* typeRow = new QHBoxLayout;
     typeRow->addWidget(new QLabel("Type:")); typeRow->addWidget(_stateType); typeRow->addStretch();
@@ -245,6 +337,8 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
     connect(_stateList, &QListWidget::currentRowChanged, this, [this](int) { onStateSelectionChanged(); });
     connect(_stateType, &QComboBox::currentTextChanged,  this, &ModelEditDialog::onStateTypeChanged);
+    connect(_stateTable, &QTableWidget::currentCellChanged,
+            this, [this](int row, int col, int, int) { onStateCellChanged(row, col); });
 }
 
 // ── openForModel ──────────────────────────────────────────────────────────────
@@ -254,11 +348,13 @@ void ModelEditDialog::openForModel(const QString& modelName) {
     _titleLabel->setText(modelName);
     setWindowTitle("Model Editor — " + modelName);
 
-    const QtModelInfo& mi =
-        QtXLightsApp::instance().currentSequence().modelInfo(modelName);
+    const QtModelInfo& mi = QtXLightsApp::instance().currentSequence().modelInfo(modelName);
+    _nodeCount = mi.nodeCount > 0 ? mi.nodeCount : mi.bufferW * mi.bufferH;
     _subModels = mi.subModels;
     _faces     = mi.faces;
     _states    = mi.states;
+
+    _preview->setNodePositions(mi.nodePositions);
 
     _curSm = _curFace = _curState = -1;
     refreshSmList();
@@ -297,7 +393,7 @@ void ModelEditDialog::refreshStateList() {
     populateStateEditor(-1);
 }
 
-// ── Editor population ─────────────────────────────────────────────────────────
+// ── Sub-model editor ──────────────────────────────────────────────────────────
 
 void ModelEditDialog::populateSmEditor(int idx) {
     const bool valid = idx >= 0 && idx < _subModels.size();
@@ -306,88 +402,265 @@ void ModelEditDialog::populateSmEditor(int idx) {
     _smType->setEnabled(valid);
     _smBufferStyle->setEnabled(valid);
     _smRanges->setEnabled(valid);
-
-    if (!valid) { _smNameEdit->clear(); _smRanges->setRowCount(0); return; }
+    if (!valid) { _smNameEdit->clear(); _smRanges->setRowCount(0); _preview->clearHighlight(); return; }
 
     const QtSubModelInfo& sm = _subModels[idx];
 
-    _smNameEdit->blockSignals(true);
-    _smNameEdit->setText(sm.name);
-    _smNameEdit->blockSignals(false);
+    _smNameEdit->blockSignals(true); _smNameEdit->setText(sm.name); _smNameEdit->blockSignals(false);
 
     auto setCombo = [](QComboBox* cb, const QString& v) {
-        cb->blockSignals(true);
-        int i = cb->findText(v);
-        cb->setCurrentIndex(i >= 0 ? i : 0);
-        cb->blockSignals(false);
+        cb->blockSignals(true); int i = cb->findText(v); cb->setCurrentIndex(i>=0?i:0); cb->blockSignals(false);
     };
-    setCombo(_smLayout,      sm.layout);
-    setCombo(_smType,        sm.type);
-    setCombo(_smBufferStyle, sm.bufferStyle);
+    setCombo(_smLayout, sm.layout); setCombo(_smType, sm.type); setCombo(_smBufferStyle, sm.bufferStyle);
 
+    _smRanges->blockSignals(true);
     _smRanges->setRowCount(sm.ranges.size());
     for (int r = 0; r < sm.ranges.size(); ++r)
         _smRanges->setItem(r, 0, new QTableWidgetItem(sm.ranges[r]));
+    _smRanges->blockSignals(false);
+
+    _preview->clearHighlight();
 }
+
+// ── Face editor ───────────────────────────────────────────────────────────────
 
 void ModelEditDialog::populateFaceEditor(int idx) {
     const bool valid = idx >= 0 && idx < _faces.size();
     _faceType->setEnabled(valid);
     _faceTable->setEnabled(valid);
     _faceTable->setRowCount(0);
-    if (!valid) return;
+    if (!valid) { _preview->clearHighlight(); return; }
 
     const QtFaceInfo& fi = _faces[idx];
-    int tIdx = _faceType->findText(fi.type);
     _faceType->blockSignals(true);
-    _faceType->setCurrentIndex(tIdx >= 0 ? tIdx : 0);
+    _faceType->setCurrentIndex(qMax(0, _faceType->findText(fi.type)));
     _faceType->blockSignals(false);
 
-    // Build rows: known phonemes first, then any unknown attrs that aren't Color variants.
-    QStringList keys = kPhonemeKeys;
-    for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
-        const QString& k = it.key();
-        if (k == "Name" || k == "Type" || k.endsWith(kColorSuffix)) continue;
-        if (!keys.contains(k)) keys.append(k);
-    }
-
-    _faceTable->setRowCount(keys.size());
-    for (int r = 0; r < keys.size(); ++r) {
-        const QString& k = keys[r];
-        // Feature label (read-only)
-        auto* kItem = new QTableWidgetItem(k);
-        kItem->setFlags(Qt::ItemIsEnabled);
-        _faceTable->setItem(r, 0, kItem);
-        // Nodes column
-        _faceTable->setItem(r, 1, new QTableWidgetItem(fi.attrs.value(k)));
-        // Color swatch
-        _faceTable->setCellWidget(r, 2,
-            makeSwatchBtn(fi.attrs.value(k + kColorSuffix), _faceTable));
-    }
+    rebuildFaceNodeCells(fi);
+    _preview->clearHighlight();
 }
+
+void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
+    _faceTable->blockSignals(true);
+    _faceTable->setRowCount(0);
+
+    if (fi.type == "Matrix") {
+        // Image-path mode: show file-picker rows for matrix image keys.
+        _faceTable->setColumnCount(3);
+        _faceTable->setHorizontalHeaderLabels({"Feature", "Image Path", ""});
+        _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+        _faceTable->setColumnWidth(2, 28);
+
+        QStringList keys = kMatrixImageKeys;
+        for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
+            const QString& k = it.key();
+            if (k == "Name" || k == "Type" || k.endsWith(kColorSuffix)) continue;
+            if (!keys.contains(k)) keys.append(k);
+        }
+
+        _faceTable->setRowCount(keys.size());
+        for (int r = 0; r < keys.size(); ++r) {
+            const QString& k = keys[r];
+            auto* kItem = new QTableWidgetItem(k);
+            kItem->setFlags(Qt::ItemIsEnabled);
+            _faceTable->setItem(r, 0, kItem);
+            _faceTable->setItem(r, 1, new QTableWidgetItem(fi.attrs.value(k)));
+
+            auto* browseBtn = new QPushButton("…");
+            browseBtn->setFixedSize(24, 20);
+            const int row = r;
+            connect(browseBtn, &QPushButton::clicked, this, [this, row]() {
+                const QString path = QFileDialog::getOpenFileName(
+                    this, "Select Image", {}, "Images (*.png *.jpg *.bmp *.gif)");
+                if (!path.isEmpty())
+                    if (auto* it = _faceTable->item(row, 1)) it->setText(path);
+            });
+            _faceTable->setCellWidget(r, 2, browseBtn);
+        }
+    } else {
+        // SingleNode or NodeRange mode.
+        _faceTable->setColumnCount(3);
+        _faceTable->setHorizontalHeaderLabels({"Feature / Phoneme", "Nodes", "Color"});
+        _faceTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        _faceTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        _faceTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+        _faceTable->setColumnWidth(2, 50);
+
+        QStringList keys = kPhonemeKeys;
+        for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
+            const QString& k = it.key();
+            if (k == "Name" || k == "Type" || k.endsWith(kColorSuffix)) continue;
+            if (!keys.contains(k)) keys.append(k);
+        }
+
+        _faceTable->setRowCount(keys.size());
+        for (int r = 0; r < keys.size(); ++r) {
+            const QString& k = keys[r];
+            auto* kItem = new QTableWidgetItem(k);
+            kItem->setFlags(Qt::ItemIsEnabled);
+            _faceTable->setItem(r, 0, kItem);
+
+            const QString nodeVal = fi.attrs.value(k);
+            if (fi.type == "SingleNode") {
+                auto* spin = new QSpinBox;
+                spin->setRange(0, _nodeCount);
+                spin->setSpecialValueText("—");
+                spin->setValue(nodeVal.isEmpty() ? 0 : nodeVal.toInt());
+                connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
+                        this, [this](int) { previewFromFaceRow(_faceTable->currentRow()); });
+                _faceTable->setCellWidget(r, 1, spin);
+            } else {
+                _faceTable->setItem(r, 1, new QTableWidgetItem(nodeVal));
+            }
+            _faceTable->setCellWidget(r, 2, makeSwatchBtn(fi.attrs.value(k + kColorSuffix), _faceTable));
+        }
+    }
+    _faceTable->blockSignals(false);
+}
+
+// ── State editor ──────────────────────────────────────────────────────────────
 
 void ModelEditDialog::populateStateEditor(int idx) {
     const bool valid = idx >= 0 && idx < _states.size();
     _stateType->setEnabled(valid);
     _stateTable->setEnabled(valid);
     _stateTable->setRowCount(0);
-    if (!valid) return;
+    if (!valid) { _preview->clearHighlight(); return; }
 
     const QtStateInfo& si = _states[idx];
-    int tIdx = _stateType->findText(si.type);
     _stateType->blockSignals(true);
-    _stateType->setCurrentIndex(tIdx >= 0 ? tIdx : 0);
+    _stateType->setCurrentIndex(qMax(0, _stateType->findText(si.type)));
     _stateType->blockSignals(false);
 
+    rebuildStateNodeCells(si);
+    _preview->clearHighlight();
+}
+
+void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
+    _stateTable->blockSignals(true);
     _stateTable->setRowCount(si.entries.size());
+
     for (int r = 0; r < si.entries.size(); ++r) {
         const QtStateEntry& e = si.entries[r];
         _stateTable->setItem(r, 0, new QTableWidgetItem(e.key));
-        // Nodes: for "s001-s010" show "1-10"; for "s003" show "3"
-        QString nodes = e.key;
-        if (nodes.startsWith('s')) nodes = nodes.mid(1).replace('-', '-');
-        _stateTable->setItem(r, 1, new QTableWidgetItem(nodes));
+
+        // Derive node display from key.
+        QString nodeVal = e.key;
+        if (nodeVal.startsWith('s') || nodeVal.startsWith('S'))
+            nodeVal = nodeVal.mid(1).replace(QRegularExpression("^s|^S"), "");
+
+        if (si.type == "SingleNode") {
+            auto* spin = new QSpinBox;
+            spin->setRange(1, qMax(1, _nodeCount));
+            spin->setValue(qMax(1, nodeVal.section('-', 0, 0).toInt()));
+            connect(spin, QOverload<int>::of(&QSpinBox::valueChanged),
+                    this, [this](int) { previewFromStateRow(_stateTable->currentRow()); });
+            _stateTable->setCellWidget(r, 1, spin);
+        } else {
+            _stateTable->setItem(r, 1, new QTableWidgetItem(nodeVal));
+        }
         _stateTable->setCellWidget(r, 2, makeSwatchBtn(e.color, _stateTable));
+    }
+    _stateTable->blockSignals(false);
+}
+
+// ── Preview highlight helpers ─────────────────────────────────────────────────
+
+void ModelEditDialog::previewFromSmRow(int row) {
+    if (row < 0 || row >= _smRanges->rowCount()) { _preview->clearHighlight(); return; }
+    auto* it = _smRanges->item(row, 0);
+    _preview->highlightNodes(parseRangeStr(it ? it->text() : QString()));
+}
+
+void ModelEditDialog::previewFromFaceRow(int row) {
+    if (row < 0 || row >= _faceTable->rowCount()) { _preview->clearHighlight(); return; }
+    if (_curFace < 0 || _curFace >= _faces.size()) return;
+    const QString type = _faces[_curFace].type;
+
+    QString nodeVal;
+    if (type == "SingleNode") {
+        if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(row, 1)))
+            nodeVal = QString::number(spin->value());
+    } else if (type != "Matrix") {
+        if (auto* it = _faceTable->item(row, 1)) nodeVal = it->text();
+    }
+    _preview->highlightNodes(parseRangeStr(nodeVal));
+}
+
+void ModelEditDialog::previewFromStateRow(int row) {
+    if (row < 0 || row >= _stateTable->rowCount()) { _preview->clearHighlight(); return; }
+    if (_curState < 0 || _curState >= _states.size()) return;
+
+    const QString type = _states[_curState].type;
+    QList<int> indices;
+
+    auto* keyIt = _stateTable->item(row, 0);
+    if (type == "SingleNode") {
+        if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(row, 1)))
+            indices = parseRangeStr(QString::number(spin->value()));
+    } else if (keyIt) {
+        indices = parseStateKey(keyIt->text(), _nodeCount);
+    }
+
+    // Use the state's color for preview.
+    QColor color = Qt::yellow;
+    const QString hex = swatchColor(_stateTable->cellWidget(row, 2));
+    if (!hex.isEmpty()) { QColor c(hex); if (c.isValid()) color = c; }
+
+    _preview->highlightNodes(indices, color);
+}
+
+// ── Cell-changed slots (drive preview) ───────────────────────────────────────
+
+void ModelEditDialog::onSmRangeCellChanged(int row, int) { previewFromSmRow(row); }
+void ModelEditDialog::onFaceCellChanged(int row, int)    { previewFromFaceRow(row); }
+void ModelEditDialog::onStateCellChanged(int row, int)   { previewFromStateRow(row); }
+
+// ── Lasso → row population ────────────────────────────────────────────────────
+
+void ModelEditDialog::onNodesLassoed(const QList<int>& indices) {
+    if (indices.isEmpty()) return;
+
+    if (_activeTab == 0) {
+        // Sub-models: write range string into current range row.
+        const int row = _smRanges->currentRow();
+        if (row < 0) return;
+        _smRanges->blockSignals(true);
+        _smRanges->setItem(row, 0, new QTableWidgetItem(indicesToRangeStr(indices)));
+        _smRanges->blockSignals(false);
+        _preview->highlightNodes(indices);
+
+    } else if (_activeTab == 1 && _curFace >= 0) {
+        // Faces: write into Nodes cell of selected row.
+        const int row = _faceTable->currentRow();
+        if (row < 0) return;
+        const QString type = _faceType->currentText();
+        if (type == "SingleNode") {
+            if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(row, 1)))
+                spin->setValue(indices.first() + 1);
+        } else if (type == "NodeRange") {
+            _faceTable->blockSignals(true);
+            _faceTable->setItem(row, 1, new QTableWidgetItem(indicesToRangeStr(indices)));
+            _faceTable->blockSignals(false);
+        }
+        _preview->highlightNodes(indices);
+
+    } else if (_activeTab == 2 && _curState >= 0) {
+        // States: write into Nodes cell of selected row.
+        const int row = _stateTable->currentRow();
+        if (row < 0) return;
+        const QString type = _stateType->currentText();
+        if (type == "SingleNode") {
+            if (auto* spin = qobject_cast<QSpinBox*>(_stateTable->cellWidget(row, 1)))
+                spin->setValue(indices.first() + 1);
+        } else {
+            _stateTable->blockSignals(true);
+            _stateTable->setItem(row, 1, new QTableWidgetItem(indicesToRangeStr(indices)));
+            _stateTable->blockSignals(false);
+        }
+        _preview->highlightNodes(indices);
     }
 }
 
@@ -403,8 +676,7 @@ void ModelEditDialog::commitCurrentSubModel() {
     sm.ranges.clear();
     for (int r = 0; r < _smRanges->rowCount(); ++r) {
         auto* it = _smRanges->item(r, 0);
-        if (it && !it->text().trimmed().isEmpty())
-            sm.ranges.append(it->text().trimmed());
+        if (it && !it->text().trimmed().isEmpty()) sm.ranges.append(it->text().trimmed());
     }
 }
 
@@ -414,22 +686,35 @@ void ModelEditDialog::commitCurrentFace() {
     fi.type = _faceType->currentText();
     fi.attrs["Name"] = fi.name;
     fi.attrs["Type"] = fi.type;
-    for (int r = 0; r < _faceTable->rowCount(); ++r) {
-        auto* kItem = _faceTable->item(r, 0);
-        auto* vItem = _faceTable->item(r, 1);
-        if (!kItem) continue;
-        const QString key = kItem->text();
-        const QString nodes = vItem ? vItem->text().trimmed() : QString();
-        if (nodes.isEmpty())
-            fi.attrs.remove(key);
-        else
-            fi.attrs[key] = nodes;
-        // Color swatch
-        const QString color = swatchColor(_faceTable->cellWidget(r, 2));
-        if (color.isEmpty() || color == "#000000")
-            fi.attrs.remove(key + kColorSuffix);
-        else
-            fi.attrs[key + kColorSuffix] = color;
+
+    if (fi.type == "Matrix") {
+        for (int r = 0; r < _faceTable->rowCount(); ++r) {
+            auto* kIt = _faceTable->item(r, 0);
+            auto* vIt = _faceTable->item(r, 1);
+            if (kIt && vIt && !vIt->text().isEmpty())
+                fi.attrs[kIt->text()] = vIt->text();
+        }
+    } else {
+        for (int r = 0; r < _faceTable->rowCount(); ++r) {
+            auto* kIt = _faceTable->item(r, 0);
+            if (!kIt) continue;
+            const QString key = kIt->text();
+
+            QString nodeVal;
+            if (fi.type == "SingleNode") {
+                if (auto* spin = qobject_cast<QSpinBox*>(_faceTable->cellWidget(r, 1)))
+                    nodeVal = spin->value() > 0 ? QString::number(spin->value()) : QString();
+            } else {
+                if (auto* vIt = _faceTable->item(r, 1)) nodeVal = vIt->text().trimmed();
+            }
+            if (nodeVal.isEmpty()) fi.attrs.remove(key); else fi.attrs[key] = nodeVal;
+
+            const QString color = swatchColor(_faceTable->cellWidget(r, 2));
+            if (color.isEmpty() || color == "#000000")
+                fi.attrs.remove(key + kColorSuffix);
+            else
+                fi.attrs[key + kColorSuffix] = color;
+        }
     }
 }
 
@@ -439,10 +724,10 @@ void ModelEditDialog::commitCurrentState() {
     si.type = _stateType->currentText();
     si.entries.clear();
     for (int r = 0; r < _stateTable->rowCount(); ++r) {
-        auto* kItem = _stateTable->item(r, 0);
-        if (!kItem || kItem->text().trimmed().isEmpty()) continue;
+        auto* kIt = _stateTable->item(r, 0);
+        if (!kIt || kIt->text().trimmed().isEmpty()) continue;
         QtStateEntry e;
-        e.key   = kItem->text().trimmed();
+        e.key   = kIt->text().trimmed();
         e.color = swatchColor(_stateTable->cellWidget(r, 2));
         if (e.color.isEmpty()) e.color = "Black";
         si.entries.append(e);
@@ -459,31 +744,24 @@ void ModelEditDialog::onSmSelectionChanged() {
 
 void ModelEditDialog::onSmAdd() {
     commitCurrentSubModel();
-    QtSubModelInfo sm;
-    sm.name = "SubModel" + QString::number(_subModels.size() + 1);
-    _subModels.append(sm);
-    refreshSmList();
-    _smList->setCurrentRow(_subModels.size() - 1);
-    onSmSelectionChanged();
+    QtSubModelInfo sm; sm.name = "SubModel" + QString::number(_subModels.size() + 1);
+    _subModels.append(sm); refreshSmList();
+    _smList->setCurrentRow(_subModels.size() - 1); onSmSelectionChanged();
 }
 
 void ModelEditDialog::onSmDelete() {
     if (_curSm < 0 || _curSm >= _subModels.size()) return;
-    _subModels.removeAt(_curSm);
-    _curSm = -1;
-    refreshSmList();
+    _subModels.removeAt(_curSm); _curSm = -1; refreshSmList();
 }
 
-void ModelEditDialog::onSmNameEdited(const QString& text) {
+void ModelEditDialog::onSmNameEdited(const QString& t) {
     if (_curSm < 0 || _curSm >= _subModels.size()) return;
-    _subModels[_curSm].name = text.trimmed();
-    if (auto* it = _smList->item(_curSm))
-        it->setText(text.trimmed().isEmpty() ? "(unnamed)" : text.trimmed());
+    _subModels[_curSm].name = t.trimmed();
+    if (auto* it = _smList->item(_curSm)) it->setText(t.trimmed().isEmpty() ? "(unnamed)" : t.trimmed());
 }
 
 void ModelEditDialog::onSmBufferStyleChanged(const QString& s) {
-    if (_curSm >= 0 && _curSm < _subModels.size())
-        _subModels[_curSm].bufferStyle = s;
+    if (_curSm >= 0 && _curSm < _subModels.size()) _subModels[_curSm].bufferStyle = s;
 }
 
 void ModelEditDialog::onSmRangeAdd() {
@@ -509,29 +787,23 @@ void ModelEditDialog::onFaceSelectionChanged() {
 
 void ModelEditDialog::onFaceAdd() {
     commitCurrentFace();
-    QtFaceInfo fi;
-    fi.name = "Face" + QString::number(_faces.size() + 1);
-    fi.type = "NodeRange";
-    fi.attrs["Name"] = fi.name;
-    fi.attrs["Type"] = fi.type;
-    _faces.append(fi);
-    refreshFaceList();
-    _faceList->setCurrentRow(_faces.size() - 1);
-    onFaceSelectionChanged();
+    QtFaceInfo fi; fi.name = "Face" + QString::number(_faces.size() + 1);
+    fi.type = "NodeRange"; fi.attrs["Name"] = fi.name; fi.attrs["Type"] = fi.type;
+    _faces.append(fi); refreshFaceList();
+    _faceList->setCurrentRow(_faces.size() - 1); onFaceSelectionChanged();
 }
 
 void ModelEditDialog::onFaceDelete() {
     if (_curFace < 0 || _curFace >= _faces.size()) return;
-    _faces.removeAt(_curFace);
-    _curFace = -1;
-    refreshFaceList();
+    _faces.removeAt(_curFace); _curFace = -1; refreshFaceList();
 }
 
 void ModelEditDialog::onFaceTypeChanged(const QString& t) {
-    if (_curFace >= 0 && _curFace < _faces.size()) {
-        _faces[_curFace].type = t;
-        _faces[_curFace].attrs["Type"] = t;
-    }
+    if (_curFace < 0 || _curFace >= _faces.size()) return;
+    commitCurrentFace();
+    _faces[_curFace].type = t;
+    _faces[_curFace].attrs["Type"] = t;
+    rebuildFaceNodeCells(_faces[_curFace]);
 }
 
 // ── State slots ───────────────────────────────────────────────────────────────
@@ -544,34 +816,36 @@ void ModelEditDialog::onStateSelectionChanged() {
 
 void ModelEditDialog::onStateAdd() {
     commitCurrentState();
-    QtStateInfo si;
-    si.name = "State" + QString::number(_states.size() + 1);
-    si.type = "NodeRange";
-    _states.append(si);
-    refreshStateList();
-    _stateList->setCurrentRow(_states.size() - 1);
-    onStateSelectionChanged();
+    QtStateInfo si; si.name = "State" + QString::number(_states.size() + 1); si.type = "NodeRange";
+    _states.append(si); refreshStateList();
+    _stateList->setCurrentRow(_states.size() - 1); onStateSelectionChanged();
 }
 
 void ModelEditDialog::onStateDelete() {
     if (_curState < 0 || _curState >= _states.size()) return;
-    _states.removeAt(_curState);
-    _curState = -1;
-    refreshStateList();
+    _states.removeAt(_curState); _curState = -1; refreshStateList();
 }
 
 void ModelEditDialog::onStateTypeChanged(const QString& t) {
-    if (_curState >= 0 && _curState < _states.size())
-        _states[_curState].type = t;
+    if (_curState < 0 || _curState >= _states.size()) return;
+    commitCurrentState();
+    _states[_curState].type = t;
+    rebuildStateNodeCells(_states[_curState]);
 }
 
 void ModelEditDialog::onStateEntryAdd() {
     if (_curState < 0) return;
     const int r = _stateTable->rowCount();
     _stateTable->setRowCount(r + 1);
-    _stateTable->setItem(r, 0, new QTableWidgetItem(
-        QString("s%1").arg(r + 1, 3, 10, QChar('0'))));
-    _stateTable->setItem(r, 1, new QTableWidgetItem(""));
+    const QString key = QString("s%1").arg(r + 1, 3, 10, QChar('0'));
+    _stateTable->setItem(r, 0, new QTableWidgetItem(key));
+    const QString type = _stateType->currentText();
+    if (type == "SingleNode") {
+        auto* spin = new QSpinBox; spin->setRange(1, qMax(1, _nodeCount)); spin->setValue(r + 1);
+        _stateTable->setCellWidget(r, 1, spin);
+    } else {
+        _stateTable->setItem(r, 1, new QTableWidgetItem(""));
+    }
     _stateTable->setCellWidget(r, 2, makeSwatchBtn("", _stateTable));
 }
 
@@ -583,57 +857,42 @@ void ModelEditDialog::onStateEntryDelete() {
 // ── Save ──────────────────────────────────────────────────────────────────────
 
 void ModelEditDialog::onSave() {
-    commitCurrentSubModel();
-    commitCurrentFace();
-    commitCurrentState();
-
+    commitCurrentSubModel(); commitCurrentFace(); commitCurrentState();
     if (!saveToXml()) {
         QMessageBox::critical(this, "Save Failed",
             "Could not write to xlights_rgbeffects.xml.\n"
             "Check the show folder is set and the file is not read-only.");
         return;
     }
-
     const QString sf = QtXLightsApp::instance().showFolder();
-    if (!sf.isEmpty())
-        QtXLightsApp::instance().setShowFolder(sf);
-
+    if (!sf.isEmpty()) QtXLightsApp::instance().setShowFolder(sf);
     accept();
 }
 
 bool ModelEditDialog::saveToXml() {
     const QString sf = QtXLightsApp::instance().showFolder();
     if (sf.isEmpty()) return false;
-
     const QString xmlPath = sf + "/xlights_rgbeffects.xml";
     pugi::xml_document doc;
     if (!doc.load_file(xmlPath.toStdString().c_str())) return false;
-
     pugi::xml_node root = doc.child("xrgb");
     if (!root) root = doc.child("xlights_rgbeffects");
     if (!root) return false;
-
     pugi::xml_node modelsList = root.child("models");
     if (!modelsList) return false;
 
     pugi::xml_node modelNode;
-    for (auto m : modelsList.children("model")) {
-        if (QString::fromUtf8(m.attribute("name").as_string()) == _modelName) {
-            modelNode = m; break;
-        }
-    }
+    for (auto m : modelsList.children("model"))
+        if (QString::fromUtf8(m.attribute("name").as_string()) == _modelName) { modelNode = m; break; }
     if (!modelNode) return false;
 
-    // Remove existing sub-model, face, state children.
     std::vector<pugi::xml_node> toRemove;
     for (auto ch : modelNode.children()) {
         std::string tag = ch.name();
-        if (tag == "subModel" || tag == "faceInfo" || tag == "stateInfo")
-            toRemove.push_back(ch);
+        if (tag == "subModel" || tag == "faceInfo" || tag == "stateInfo") toRemove.push_back(ch);
     }
     for (auto& n : toRemove) modelNode.remove_child(n);
 
-    // Write sub-models using the correct attribute names.
     for (const QtSubModelInfo& sm : _subModels) {
         auto smNode = modelNode.append_child("subModel");
         smNode.append_attribute("name")        = sm.name.toStdString().c_str();
@@ -641,39 +900,32 @@ bool ModelEditDialog::saveToXml() {
         smNode.append_attribute("type")        = sm.type.toStdString().c_str();
         smNode.append_attribute("bufferstyle") = sm.bufferStyle.toStdString().c_str();
         if (sm.type == "ranges") {
-            for (int i = 0; i < sm.ranges.size(); ++i) {
-                auto key = "line" + std::to_string(i);
-                smNode.append_attribute(key.c_str()) =
+            for (int i = 0; i < sm.ranges.size(); ++i)
+                smNode.append_attribute(("line" + std::to_string(i)).c_str()) =
                     sm.ranges[i].toStdString().c_str();
-            }
         } else {
             smNode.append_attribute("subBuffer") =
                 sm.ranges.isEmpty() ? "" : sm.ranges[0].toStdString().c_str();
         }
     }
 
-    // Write faces.
     for (const QtFaceInfo& fi : _faces) {
         auto fNode = modelNode.append_child("faceInfo");
         fNode.append_attribute("Name") = fi.name.toStdString().c_str();
         fNode.append_attribute("Type") = fi.type.toStdString().c_str();
         for (auto it = fi.attrs.constBegin(); it != fi.attrs.constEnd(); ++it) {
-            if (it.key() == "Name" || it.key() == "Type" || it.value().isEmpty())
-                continue;
-            fNode.append_attribute(it.key().toStdString().c_str()) =
-                it.value().toStdString().c_str();
+            if (it.key() == "Name" || it.key() == "Type" || it.value().isEmpty()) continue;
+            fNode.append_attribute(it.key().toStdString().c_str()) = it.value().toStdString().c_str();
         }
     }
 
-    // Write states.
     for (const QtStateInfo& si : _states) {
         auto sNode = modelNode.append_child("stateInfo");
         sNode.append_attribute("Name") = si.name.toStdString().c_str();
         sNode.append_attribute("Type") = si.type.toStdString().c_str();
         for (const QtStateEntry& e : si.entries) {
             if (e.key.isEmpty()) continue;
-            sNode.append_attribute(e.key.toStdString().c_str()) =
-                e.color.toStdString().c_str();
+            sNode.append_attribute(e.key.toStdString().c_str()) = e.color.toStdString().c_str();
         }
     }
 
