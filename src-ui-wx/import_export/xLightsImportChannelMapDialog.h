@@ -649,7 +649,7 @@ protected:
 
         void RightClickTimingTracks(wxContextMenuEvent& event);
         void RightClickModels(wxDataViewEvent& event);
-        void RightClickModelsAvail(wxDataViewEvent& event);
+        void RightClickModelsAvail(wxContextMenuEvent& event);
         void CollapseAll();
         void ExpandAll();
         void ClearAll();
@@ -735,7 +735,7 @@ protected:
         int _sequenceDurationMS {0};
         wxCheckBox* CheckBox_ShowTimeline {nullptr};
         wxCheckBox* CheckBox_HideUnmapped {nullptr};
-        std::vector<wxWindow*> _timingPillButtons;
+        std::vector<wxCheckBox*> _timingCheckboxes;
         int _timelineCol {-1};
         std::map<ImportChannel*, int> _channelImageMap;
 

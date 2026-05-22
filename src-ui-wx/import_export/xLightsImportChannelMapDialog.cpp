@@ -183,58 +183,7 @@ public:
     }
 };
 
-//wxColourData ColorRenderer::_colorData;
 
-class TimingPillButton : public wxWindow {
-public:
-    wxString _label;
-    bool _selected = true;
-
-    TimingPillButton(wxWindow* parent, const wxString& label, bool selected)
-        : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-        , _label(label), _selected(selected)
-    {
-        SetBackgroundStyle(wxBG_STYLE_PAINT);
-        Bind(wxEVT_PAINT, &TimingPillButton::OnPaint, this);
-        Bind(wxEVT_LEFT_DOWN, &TimingPillButton::OnClick, this);
-        wxSize ts = GetTextExtent(_label);
-        SetMinSize(wxSize(ts.x + 20, ts.y + 10));
-    }
-
-    bool IsSelected() const { return _selected; }
-    void SetSelected(bool sel) { _selected = sel; Refresh(); Update(); }
-
-private:
-    void OnPaint(wxPaintEvent&) {
-        wxAutoBufferedPaintDC dc(this);
-        dc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
-        dc.Clear();
-        wxRect rect = GetClientRect();
-        rect.Deflate(1, 1);
-        wxColour bg, fg;
-        if (_selected) {
-            bg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
-            fg = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
-        } else {
-            bg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-            fg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT);
-        }
-        dc.SetBrush(wxBrush(bg));
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.DrawRoundedRectangle(rect, rect.height / 2);
-        dc.SetTextForeground(fg);
-        dc.SetFont(GetFont());
-        dc.DrawLabel(_label, rect, wxALIGN_CENTER);
-    }
-
-    void OnClick(wxMouseEvent&) {
-        _selected = !_selected;
-        Refresh(); Update();
-        wxCommandEvent evt(wxEVT_BUTTON, GetId());
-        evt.SetEventObject(this);
-        ProcessWindowEvent(evt);
-    }
-};
 
 xLightsImportTreeModel::xLightsImportTreeModel()
 {
@@ -657,7 +606,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
     TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
-    Sizer1->Add(TimingTrackPanel, 0, wxEXPAND, 0);
+    Sizer1->Add(TimingTrackPanel, 0, wxEXPAND | wxALL, 1);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
     FlexGridSizer4->AddGrowableCol(1);
     StaticText2 = new wxStaticText(Panel1, ID_STATICTEXT2, _("Find:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT2"));
@@ -740,7 +689,6 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_COL_CLICK, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableColumnClick);
     //*)
 
-    Connect(ID_CHECKLISTBOX1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickTimingTracks);
     Connect(ID_LISTCTRL1, wxEVT_CONTEXT_MENU, (wxObjectEventFunction)&xLightsImportChannelMapDialog::RightClickModelsAvail);
 
     SetSize(800, 600);
@@ -809,7 +757,7 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
     }
 }
 
-void xLightsImportChannelMapDialog::RightClickModelsAvail(wxDataViewEvent& event) {
+void xLightsImportChannelMapDialog::RightClickModelsAvail(wxContextMenuEvent& event) {
         wxMenu mnuLayer;
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
@@ -1022,8 +970,8 @@ void xLightsImportChannelMapDialog::OnPopupTimingTracks(wxCommandEvent& event)
     for (unsigned int i = 0; i < TimingTrackListBox->GetCount(); ++i) {
         TimingTrackListBox->Check(i, checked);
     }
-    for (auto* btn : _timingPillButtons) {
-        static_cast<TimingPillButton*>(btn)->SetSelected(checked);
+    for (auto* cb : _timingCheckboxes) {
+        cb->SetValue(checked);
     }
 }
 
@@ -1073,59 +1021,38 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
     if (timingTracks.empty() || !_allowTimingTrack) {
         Sizer1->Hide(TimingTrackPanel, true);
     } else {
-        // Replace the checklistbox with scrollable pill-style toggle buttons.
-        // TimingTrackListBox stays hidden and is kept in sync — callers in
-        // ImportEffects.cpp read it directly, so we must not remove it.
         TimingTrackPanel->Detach(TimingTrackListBox);
         TimingTrackListBox->Show(false);
 
-        wxScrolledWindow* pillScrollWin = new wxScrolledWindow(Panel1, wxID_ANY,
-            wxDefaultPosition, wxDefaultSize, wxVSCROLL | wxBORDER_NONE);
-        pillScrollWin->SetBackgroundColour(Panel1->GetBackgroundColour());
-        pillScrollWin->SetScrollRate(0, 5);
-        // 0 flags: disable wxEXTEND_LAST_ON_EACH_LINE so pills keep their natural width
-        wxWrapSizer* pillSizer = new wxWrapSizer(wxHORIZONTAL, 0);
-        pillScrollWin->SetSizer(pillSizer);
+        const int COLS = (int)timingTracks.size() > 9 ? 4 : 3;
+        int rows = ((int)timingTracks.size() + COLS - 1) / COLS;
+
+        auto* gridSizer = new wxFlexGridSizer(rows, COLS, 4, 8);
+        for (int c = 0; c < COLS; c++)
+            gridSizer->AddGrowableCol(c, 1);
 
         for (int i = 0; i < (int)timingTracks.size(); ++i) {
             bool checked = !timingTrackAlreadyExists[timingTracks[i]];
             int item = TimingTrackListBox->Append(timingTracks[i]);
             TimingTrackListBox->Check(item, checked);
 
-            auto* pill = new TimingPillButton(pillScrollWin, timingTracks[i], checked);
-            pillSizer->Add(pill, 0, wxALL, 3);
-            _timingPillButtons.push_back(pill);
+            auto* cb = new wxCheckBox(TimingTrackPanel->GetStaticBox(), wxID_ANY, timingTracks[i]);
+            cb->SetValue(checked);
+            gridSizer->Add(cb, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+            _timingCheckboxes.push_back(cb);
 
             int trackIdx = i;
-            pill->Bind(wxEVT_BUTTON, [this, trackIdx](wxCommandEvent&) {
-                TimingTrackListBox->Check(trackIdx,
-                    static_cast<TimingPillButton*>(_timingPillButtons[trackIdx])->IsSelected());
+            cb->Bind(wxEVT_CHECKBOX, [this, trackIdx](wxCommandEvent& evt) {
+                TimingTrackListBox->Check(trackIdx, evt.IsChecked());
             });
         }
+        int rem = rows * COLS - (int)timingTracks.size();
+        for (int i = 0; i < rem; i++)
+            gridSizer->AddSpacer(0);
 
-        // Fix height to exactly 2 rows based on actual pill height; scroll for more.
-        if (!_timingPillButtons.empty()) {
-            int pillH = static_cast<TimingPillButton*>(_timingPillButtons[0])->GetMinSize().GetHeight();
-            int twoRowH = (pillH + 6) * 2; // 6 = 3px top + 3px bottom padding per pill
-            pillScrollWin->SetMinSize(wxSize(-1, twoRowH));
-            pillScrollWin->SetMaxSize(wxSize(-1, twoRowH));
-        }
+        TimingTrackPanel->Add(gridSizer, 1, wxEXPAND | wxALL, 3);
 
-        // On resize, re-wrap pills and update the scrollable virtual height.
-        pillScrollWin->Bind(wxEVT_SIZE, [pillScrollWin, pillSizer](wxSizeEvent& evt) {
-            evt.Skip();
-            int w = pillScrollWin->GetClientSize().GetWidth();
-            if (w > 0) {
-                pillSizer->InformFirstDirection(wxHORIZONTAL, w, -1);
-                wxSize minSz = pillSizer->CalcMin();
-                pillScrollWin->SetVirtualSize(w, minSz.GetHeight());
-            }
-            pillScrollWin->Layout();
-        });
-
-        TimingTrackPanel->Add(pillScrollWin, 1, wxEXPAND | wxALL, 3);
-
-        pillScrollWin->Bind(wxEVT_CONTEXT_MENU, [this](wxContextMenuEvent& evt) {
+        TimingTrackPanel->GetStaticBox()->Bind(wxEVT_CONTEXT_MENU, [this](wxContextMenuEvent& evt) {
             RightClickTimingTracks(evt);
         });
     }
@@ -1164,12 +1091,15 @@ bool xLightsImportChannelMapDialog::InitImport(std::string checkboxText) {
             wxBoxSizer* findRowSizer = new wxBoxSizer(wxHORIZONTAL);
             findRowSizer->Add(TextCtrl_FindFrom, 1, wxEXPAND | wxRIGHT, 5);
             CheckBox_ShowTimeline = new wxCheckBox(Panel2, wxID_ANY, _("Show Timeline"));
-            CheckBox_ShowTimeline->SetValue(true);
+            CheckBox_ShowTimeline->SetValue(GetXLightsConfig()->ReadBool("ImportShowTimeline", true));
             findRowSizer->Add(CheckBox_ShowTimeline, 0, wxALIGN_CENTER_VERTICAL);
             findSizer->Insert(1, findRowSizer, 1, wxEXPAND);
             findSizer->Layout();
             Sizer2->Layout();
             CheckBox_ShowTimeline->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+                auto* config = GetXLightsConfig();
+                config->Write("ImportShowTimeline", CheckBox_ShowTimeline->IsChecked());
+                config->Flush();
                 PopulateAvailable(CheckBox_MapCCRStrand->GetValue());
             });
         }
@@ -1923,8 +1853,8 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             if (auto const& idx{ std::find(timingTracks.begin(), timingTracks.end(), ttname) }; idx != timingTracks.end()) {
                 auto index = std::distance(timingTracks.begin(), idx);
                 TimingTrackListBox->Check(index, ttenabled);
-                if (index < (long)_timingPillButtons.size()) {
-                    static_cast<TimingPillButton*>(_timingPillButtons[index])->SetSelected(ttenabled);
+                if (index < (long)_timingCheckboxes.size()) {
+                    _timingCheckboxes[index]->SetValue(ttenabled);
                 }
             }
         }
@@ -1941,11 +1871,11 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
     auto mappings = data["mappings"].array();
     for (size_t i = 0; i < mappings.size(); ++i) {
         wxString const model = mappings.at(i).at("model").get<std::string>();
-        wxString const strand = mappings.at(i).at("strand").get<std::string>();
-        wxString const node = mappings.at(i).at("node").get<std::string>();
+        wxString const strand = mappings.at(i).value("strand", "");
+        wxString const node = mappings.at(i).value("node", "");
         wxString const mapping = mappings.at(i).at("mapping").get<std::string>();
-        wxColor color = wxColor(mappings.at(i).at("color").get<std::string>());
-        bool stashed = mappings.at(i).at("stashed").get<bool>();
+        wxColor color = wxColor(mappings.at(i).value("color", "#FFFFFF"));
+        bool stashed = mappings.at(i).value("stashed", false);
 
         Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
 
