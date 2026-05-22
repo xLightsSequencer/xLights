@@ -6,6 +6,7 @@
 
 #include <QHeaderView>
 #include <QListWidget>
+#include <QHBoxLayout>
 #include <QPushButton>
 #include <QSplitter>
 #include <QTabWidget>
@@ -41,14 +42,23 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     auto* editBtn = new QPushButton("Edit Sub-Models / Faces / States…");
     editBtn->setEnabled(false);
 
-    // Wrap the properties table and edit button together so the button
-    // sits directly under the model settings panel in the left splitter.
+    auto* vizBtn = new QPushButton("Open Visualizer…");
+    vizBtn->setEnabled(false);
+
+    // Row of contextual buttons under the properties table.
+    // editBtn is enabled when a model is selected; vizBtn when a controller is.
+    auto* btnRow = new QHBoxLayout;
+    btnRow->setContentsMargins(0, 0, 0, 0);
+    btnRow->addWidget(editBtn);
+    btnRow->addWidget(vizBtn);
+
+    // Wrap the properties table and buttons together in the left splitter.
     auto* propWidget = new QWidget;
     auto* propVL = new QVBoxLayout(propWidget);
     propVL->setContentsMargins(0, 0, 0, 0);
     propVL->setSpacing(2);
     propVL->addWidget(_propTable, 1);
-    propVL->addWidget(editBtn);
+    propVL->addLayout(btnRow);
 
     _leftSplit = new QSplitter(Qt::Vertical);
     _leftSplit->addWidget(_tabs);
@@ -92,6 +102,15 @@ LayoutWindow::LayoutWindow(QWidget* parent)
             this, &LayoutWindow::onGroupListClicked);
     connect(_controllerList, &QListWidget::itemClicked,
             this, &LayoutWindow::onControllerListClicked);
+
+    // Enable vizBtn only when a controller is selected.
+    connect(_controllerList, &QListWidget::currentRowChanged, this, [vizBtn](int row) {
+        vizBtn->setEnabled(row >= 0);
+    });
+    connect(vizBtn, &QPushButton::clicked, this, [this]() {
+        auto* item = _controllerList->currentItem();
+        if (item) emit visualizerRequested(item->text());
+    });
     connect(_canvas, &ModelLayoutCanvas::modelClicked,
             this, &LayoutWindow::onCanvasModelClicked);
 }

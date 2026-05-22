@@ -1,7 +1,6 @@
 #pragma once
 #include <QWidget>
 
-class QPushButton;
 class QTableWidget;
 
 // Non-modal window listing all controllers loaded from xlights_networks.xml.
@@ -17,5 +16,4 @@ signals:
 
 private:
     QTableWidget* _table;
-    QPushButton*  _vizBtn = nullptr;
 };

@@ -7,6 +7,7 @@
 class ModelEditDialog;
 class ModelLayoutCanvas;
 class QListWidget;
+class QPushButton;
 class QListWidgetItem;
 class QSplitter;
 class QTabWidget;
@@ -23,6 +24,9 @@ public:
 
     // Reload all lists and canvas from the current sequence.
     void refresh();
+
+signals:
+    void visualizerRequested(const QString& controllerName);
 
 private slots:
     void onModelListClicked(QListWidgetItem* item);

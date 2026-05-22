@@ -2,7 +2,6 @@
 #include "PlaybackController.h"
 #include "QtXLightsApp.h"
 #include "TransportToolBar.h"
-#include "../Info/ControllerInfoWindow.h"
 #include "../Info/ModelInfoWindow.h"
 #include "../Bridge/FseqWriter.h"
 #include "../Bridge/QtEffectRenderer.h"
@@ -194,12 +193,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     syncDuration();
 
     // ── Info windows (created once, shown on demand) ──────────────────────
-    _modelInfoWin      = new ModelInfoWindow(this);
-    _controllerInfoWin = new ControllerInfoWindow(this);
-    _layoutWin         = new LayoutWindow(this);
-    _controllerVizWin  = new ControllerVisualizerWindow(this);
+    _modelInfoWin     = new ModelInfoWindow(this);
+    _layoutWin        = new LayoutWindow(this);
+    _controllerVizWin = new ControllerVisualizerWindow(this);
 
-    connect(_controllerInfoWin, &ControllerInfoWindow::visualizerRequested,
+    connect(_layoutWin, &LayoutWindow::visualizerRequested,
             this, [this](const QString& name) {
         _controllerVizWin->openForController(name);
     });
@@ -748,7 +746,6 @@ void MainWindow::setupMenuBar() {
             QString sfName = QtXLightsApp::instance().showFolder();
             _renderBridge->setShowFolder(sfName);
             _modelInfoWin->refresh();
-            _controllerInfoWin->refresh();
             _layoutWin->refresh();
             _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
 
@@ -825,14 +822,6 @@ void MainWindow::setupMenuBar() {
         _layoutWin->raise();
         _layoutWin->activateWindow();
     });
-    view->addSeparator();
-    auto* ctrlAct = view->addAction("&Controllers…", QKeySequence("Ctrl+K"));
-    connect(ctrlAct, &QAction::triggered, this, [this]() {
-        _controllerInfoWin->show();
-        _controllerInfoWin->raise();
-        _controllerInfoWin->activateWindow();
-    });
-
     view->addSeparator();
     auto* logAct = view->addAction("View &Log…", QKeySequence("Ctrl+L"));
     connect(logAct, &QAction::triggered, this, []() {
