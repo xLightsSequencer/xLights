@@ -3127,10 +3127,6 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 }
                 const auto& c = Nodes[n]->Coords[0];
                 float z = axis.x * c.screenX + axis.y * c.screenY + axis.z * c.screenZ;
-                // xl::isfinite: std::isfinite folds to `true` under
-                // -ffinite-math-only (Release -ffast-math) — without this,
-                // NaN keys reach std::sort below and break strict weak
-                // ordering (UB; observed crashes). See FloatChecks.h.
                 if (!xl::isfinite(z)) {
                     z = 0.0f;
                 }
@@ -3140,6 +3136,11 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             // OpenGL convention) renders first — i.e. back-to-front.
             std::sort(keys.begin(), keys.end(),
                       [](const std::pair<float, int>& a, const std::pair<float, int>& b) {
+                          const bool af = xl::isfinite(a.first);
+                          const bool bf = xl::isfinite(b.first);
+                          if (!af && !bf) return false;
+                          if (!af) return false;
+                          if (!bf) return true;
                           return a.first < b.first;
                       });
             for (const auto& kv : keys) {
