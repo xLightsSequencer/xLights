@@ -106,7 +106,12 @@ public:
     bool RequiresAlt() const noexcept { return _alt; }
     bool RequiresShift() const noexcept { return _shift; }
     bool InScope(const KBSCOPE scope) const noexcept { return scope == _scope; }
-    bool IsKey(wxKeyCode key) const noexcept { return (_key == key); }
+    bool IsKey(wxKeyCode key) const noexcept
+    {
+        wxKeyCode k = key;
+        if (k >= 97 && k <= 122) k = (wxKeyCode)(k - 32);
+        return (_key == k);
+    }
     bool IsDisabled() const noexcept { return _disabled; }
     std::string Description() const noexcept;
     std::string KeyDescription() const noexcept;

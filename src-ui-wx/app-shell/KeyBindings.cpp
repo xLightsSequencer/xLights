@@ -160,7 +160,8 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "JUKEBOX_BTN_4", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_5", KBSCOPE::Sequence },
     { "FPP_CONNECT", KBSCOPE::All },
-    { "FILTER_SEQUENCER", KBSCOPE::Sequence }
+    { "FILTER_SEQUENCER", KBSCOPE::Sequence },
+    { "ALTERNATE_PASTE", KBSCOPE::Sequence }
 };
 
 static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
@@ -293,6 +294,7 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "JUKEBOX_BTN_4", "Jukebox Button 4." },
     { "JUKEBOX_BTN_5", "Jukebox Button 5." },
     { "FPP_CONNECT", "Run FPP Connect" },
+    { "ALTERNATE_PASTE", "Paste effects using the opposite of the configured 'Paste As' mode (Relative vs As Layers)." },
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -991,7 +993,7 @@ bool KeyBinding::IsDuplicateKey(const KeyBinding& b) const
     if (_id == b.GetId()) return false;
 
     if (b.GetScope() == GetScope() || GetScope() == KBSCOPE::All || b.GetScope() == KBSCOPE::All) {
-        if (b.GetKey() == GetKey() && b.RequiresAlt() == RequiresAlt() && KeyBinding::IsControlEqual(b, RequiresRawControl(), RequiresControl()) && b.RequiresShift() == RequiresShift()) {
+        if (b.GetKey() == GetKey() && b.RequiresAlt() == RequiresAlt() && KeyBinding::IsControlEqual(b, RequiresControl(), RequiresRawControl()) && b.RequiresShift() == RequiresShift()) {
             return true;
         }
     }
