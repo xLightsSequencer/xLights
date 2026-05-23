@@ -4617,18 +4617,24 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
             if (last_model_lower.ends_with(".xmodel")) {
                 doc.load_file(last_model.c_str());
-                if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
+                {
+                    pugi::xml_node modelElem = doc.document_element();
+                    // Unwrap new-format <models> container to read model attributes
+                    if (modelElem && std::string_view(modelElem.name()) == "models") {
+                        modelElem = modelElem.first_child();
+                    }
+                    if (modelElem && !modelElem.attribute("name").empty()) {
                     docLoaded = true;
-                    std::string modelName = doc.document_element().attribute("name").as_string("");
+                    std::string modelName = modelElem.attribute("name").as_string("");
 
-                    if (!doc.document_element().attribute("widthmm").empty()) {
-                        widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("widthmm").empty()) {
+                        widthmm = (int)std::strtol(modelElem.attribute("widthmm").as_string(""), nullptr, 10);
                     }
-                    if (!doc.document_element().attribute("heightmm").empty()) {
-                        heightmm = (int)std::strtol(doc.document_element().attribute("heightmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("heightmm").empty()) {
+                        heightmm = (int)std::strtol(modelElem.attribute("heightmm").as_string(""), nullptr, 10);
                     }
-                    if (!doc.document_element().attribute("depthmm").empty()) {
-                        depthmm = (int)std::strtol(doc.document_element().attribute("depthmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("depthmm").empty()) {
+                        depthmm = (int)std::strtol(modelElem.attribute("depthmm").as_string(""), nullptr, 10);
                     }
 
 #ifdef __WXMSW__
@@ -4738,6 +4744,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 #endif
 
                 }
+                } // end modelElem scope
             }
         }
     }

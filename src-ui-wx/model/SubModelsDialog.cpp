@@ -3542,6 +3542,9 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     if (result)
     {
         pugi::xml_node root = doc.document_element();
+        if (std::string_view(root.name()) == "models") {
+            root = root.first_child();
+        }
         ImportSubModelXML(root);
     }
     else
@@ -3786,9 +3789,36 @@ void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<st
 
 void SubModelsDialog::ImportCustomModel(std::string filename)
 {
-    // Load custom model data using XmlSerializer
-    auto customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
-    
+    std::optional<XmlSerialize::CustomModelImportData> customModelOpt;
+
+    pugi::xml_document fileDoc;
+    if (!fileDoc.load_file(filename.c_str())) {
+        DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+        return;
+    }
+
+    pugi::xml_node root = fileDoc.document_element();
+    if (std::string_view(root.name()) == "models") {
+        // New-format xmodel: <models><model DisplayAs="Custom" ...>
+        pugi::xml_node modelNode = root.first_child();
+        if (!modelNode || std::string_view(modelNode.attribute("DisplayAs").as_string()) != "Custom") {
+            DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+            return;
+        }
+        // Adapt to <custommodel> element so LoadCustomModelFromXml can parse it
+        pugi::xml_document tempDoc;
+        pugi::xml_node cmNode = tempDoc.append_child("custommodel");
+        for (pugi::xml_attribute attr = modelNode.first_attribute(); attr; attr = attr.next_attribute()) {
+            cmNode.append_attribute(attr.name()) = attr.value();
+        }
+        for (pugi::xml_node child = modelNode.first_child(); child; child = child.next_sibling()) {
+            cmNode.append_copy(child);
+        }
+        customModelOpt = XmlSerialize::LoadCustomModelFromXml(cmNode);
+    } else {
+        customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
+    }
+
     if (!customModelOpt.has_value()) {
         DisplayError("Failure loading xModel file or model is not a 2D custom model.");
         return;
