@@ -123,6 +123,11 @@ void ModelWiring::DownloadXModel() {
     if (!d.load_file(_xmodelFile.c_str())) return;
     pugi::xml_node root = d.document_element();
     if (!root) return;
+    // Unwrap new-format <models> container to patch attributes on the actual <model> element
+    if (std::string_view(root.name()) == "models") {
+        root = root.first_child();
+        if (!root) return;
+    }
     bool changed = false;
     if (!root.attribute("PixelType") && !_model->_pixelDescription.empty()) {
         root.append_attribute("PixelType") = _model->_pixelDescription.c_str();
