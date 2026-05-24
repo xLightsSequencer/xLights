@@ -5604,7 +5604,6 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             struct LayerTarget {
                 Element* element = nullptr;
                 int layerIdx = 0;
-                // int oldFormatRank = -1; // >= 0 means no LAYER: token (old preset format)
             };
             std::map<int, LayerTarget> layerTargetMap; // keyed by eff_row value
             bool hasLayerTokens = false;

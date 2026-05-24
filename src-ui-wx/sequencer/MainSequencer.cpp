@@ -1654,7 +1654,7 @@ std::list<std::string> MainSequencer::GetAllEffectDescriptions() {
     return mSequenceElements->GetAllEffectDescriptions();
 }
 
-void MainSequencer::Paste(bool row_paste, bool invertLayerMode) {
+void MainSequencer::Paste(bool row_paste, bool invertPasteAsLayers) {
     wxTextDataObject data;
     wxClipboard* cbd = wxClipboard::Get();
     if (cbd && cbd->Open()) {
@@ -1662,7 +1662,7 @@ void MainSequencer::Paste(bool row_paste, bool invertLayerMode) {
             // assume clipboard always has data from same version of xLights
             wxString text = data.GetText();
             bool pasteAsLayers = xLightsApp::GetFrame()->IsPasteAsLayers();
-            if (invertLayerMode)
+            if (invertPasteAsLayers)
                 pasteAsLayers = !pasteAsLayers;
             bool layerMode = pasteAsLayers && text.Contains("\tLAYER:");
             Effect* ef = PanelEffectGrid->Paste(text, xlights_version_string, row_paste, layerMode);

@@ -79,7 +79,7 @@ class MainSequencer: public wxPanel
 
         void Cut();
         void Copy();
-        void Paste(bool row_paste = false, bool invertLayerMode = false);
+        void Paste(bool row_paste = false, bool invertPasteAsLayers = false);
 
         void DoCopy(wxCommandEvent& event);
         void DoCut(wxCommandEvent& event);

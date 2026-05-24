@@ -77,7 +77,6 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent, wxWindowID id, const wxPoin
     wxFlexGridSizer* FlexGridSizer2;
     wxFlexGridSizer* FlexGridSizer3;
     wxGridSizer* BoxSizer1;
-    wxStaticText* StaticTextApplyLabel;
 
     Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style, _T("wxID_ANY"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
