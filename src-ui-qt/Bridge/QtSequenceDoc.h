@@ -79,6 +79,7 @@ struct QtModelInfo {
     // Controller wiring from the <model> element.
     QString controllerName;     // value of Controller="" attribute
     int     controllerPort = 0; // Port from <ControllerConnection Port="N"/>
+    QString modelChain;         // ModelChain="" attribute: ">PrevModel" or empty
 
     // Sub-models, faces, and states parsed from the <model> element.
     QList<QtSubModelInfo> subModels;

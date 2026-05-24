@@ -2,14 +2,15 @@
 #include "../Bridge/QtSequenceDoc.h"
 #include <QWidget>
 #include <QString>
+#include <QStringList>
 
 class QComboBox;
 class QLabel;
-class QListWidget;
 class QScrollArea;
 class QSplitter;
 class QVBoxLayout;
 class QtRenderBridge;
+class AvailableModelsList;
 
 // Phase 16 — Controller Visualizer.
 // Shows one row per port for the selected controller with model boxes
@@ -36,19 +37,29 @@ private:
     void buildPortView(const QString& controllerName);
     void clearPortView();
 
-    // Save a model's wiring change to xlights_rgbeffects.xml.
-    void saveWiring(const QString& modelName,
-                    const QString& controllerName, int port);
+    // Apply a drop: update wiring of the moved model and re-stitch ModelChain
+    // attributes for the source and target ports based on the dropped position.
+    void applyDrop(const QString& modelName, int fromPort, int toPort,
+                   int insertIndex);
 
-    bool eventFilter(QObject* obj, QEvent* ev) override;
+    // Names of models currently displayed on a given port row, in display order.
+    QStringList portModelNames(int port) const;
+
+    // Persist controller assignment and re-write ModelChain attributes for the
+    // target port (in targetOrder) and the source port (in sourceOrder).
+    // Pass empty controllerName + port=0 to clear the model's wiring.
+    void saveWiring(const QString& modelName,
+                    const QString& controllerName, int port,
+                    const QStringList& targetOrder,
+                    const QStringList& sourceOrder);
 
     QtSequenceInfo  _data;   // effective sequence (live or show-file fallback)
     QtRenderBridge* _bridge = nullptr;
 
-    QComboBox*   _ctrlCombo    = nullptr;
-    QScrollArea* _portScroll   = nullptr;
-    QWidget*     _portContainer = nullptr;
-    QVBoxLayout* _portLayout   = nullptr;
-    QListWidget* _availList    = nullptr;
-    QSplitter*   _split        = nullptr;
+    QComboBox*           _ctrlCombo     = nullptr;
+    QScrollArea*         _portScroll    = nullptr;
+    QWidget*             _portContainer = nullptr;
+    QVBoxLayout*         _portLayout    = nullptr;
+    AvailableModelsList* _availList     = nullptr;
+    QSplitter*           _split         = nullptr;
 };

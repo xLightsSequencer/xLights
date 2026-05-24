@@ -492,6 +492,7 @@ void QtSequenceDoc::loadModels(const QString& showFilePath, QtSequenceInfo& info
         mi.controllerName = QString::fromUtf8(m.attribute("Controller").as_string(""));
         if (auto cc = m.child("ControllerConnection"))
             mi.controllerPort = cc.attribute("Port").as_int(0);
+        mi.modelChain = QString::fromUtf8(m.attribute("ModelChain").as_string(""));
 
         // ── Sub-models ────────────────────────────────────────────────────────
         for (auto smNode : m.children("subModel")) {

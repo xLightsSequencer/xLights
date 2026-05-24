@@ -55,6 +55,10 @@ struct ModelPortInfo {
     int     groupCount  = 1;
 };
 
+static QList<QPair<QString, ModelPortInfo>> orderPortModels(
+    const QList<QPair<QString, ModelPortInfo>>& mlist,
+    const QtSequenceInfo& seq);
+
 class ModelBoxButton : public QWidget {
     Q_OBJECT
 public:
@@ -141,6 +145,66 @@ private:
     QPoint       _dragStart;
 };
 
+// ── StripDropArea ─────────────────────────────────────────────────────────────
+// Inner widget that holds the model-box strip. Accepts drops directly so the
+// drop area covers the visible part of the row (the row's own drop handler
+// can't see drops here because the QScrollArea/viewport sits on top of it).
+
+class StripDropArea : public QWidget {
+    Q_OBJECT
+public:
+    explicit StripDropArea(QWidget* parent = nullptr) : QWidget(parent) {
+        setAcceptDrops(true);
+    }
+
+signals:
+    // insertIndex is the position in the port's ordered model list where the
+    // dropped model should land (0 = first, -1 = append after end).
+    void modelDropped(const QString& name, int fromPort, int insertIndex);
+
+protected:
+    void dragEnterEvent(QDragEnterEvent* e) override {
+        if (e->mimeData()->hasFormat("application/x-xlights-model")) {
+            e->acceptProposedAction();
+            setStyleSheet("background:#1e3a5f;border-radius:4px;");
+        }
+    }
+    void dragMoveEvent(QDragMoveEvent* e) override {
+        if (e->mimeData()->hasFormat("application/x-xlights-model"))
+            e->acceptProposedAction();
+    }
+    void dragLeaveEvent(QDragLeaveEvent*) override {
+        setStyleSheet("");
+    }
+    void dropEvent(QDropEvent* e) override {
+        setStyleSheet("");
+        if (!e->mimeData()->hasFormat("application/x-xlights-model")) return;
+        const QString name = QString::fromUtf8(
+            e->mimeData()->data("application/x-xlights-model"));
+        int fromPort = 0;
+        if (auto* srcBtn = qobject_cast<ModelBoxButton*>(e->source()))
+            fromPort = srcBtn->port();
+
+        // Determine insertion index from the drop x position relative to the
+        // existing model boxes (excluding the dragged one in a reorder).
+        const int dropX = e->position().toPoint().x();
+        QList<ModelBoxButton*> btns =
+            findChildren<ModelBoxButton*>(QString(), Qt::FindDirectChildrenOnly);
+        std::sort(btns.begin(), btns.end(), [](ModelBoxButton* a, ModelBoxButton* b) {
+            return a->geometry().x() < b->geometry().x();
+        });
+        int insertIndex = 0;
+        for (ModelBoxButton* btn : btns) {
+            if (btn->modelName() == name) continue;
+            if (dropX < btn->geometry().center().x()) break;
+            ++insertIndex;
+        }
+
+        e->acceptProposedAction();
+        emit modelDropped(name, fromPort, insertIndex);
+    }
+};
+
 // ── PortRowWidget ─────────────────────────────────────────────────────────────
 // One horizontal row: port label + scrollable strip of model boxes.
 // Accepts drops of "application/x-xlights-model".
@@ -166,11 +230,16 @@ public:
         lbl->setStyleSheet("color:#aaa;font-size:11px;");
         hl->addWidget(lbl);
 
-        _strip = new QWidget;
+        _strip = new StripDropArea;
         _stripLayout = new QHBoxLayout(_strip);
         _stripLayout->setContentsMargins(2,2,2,2);
         _stripLayout->setSpacing(3);
         _stripLayout->addStretch();
+
+        connect(_strip, &StripDropArea::modelDropped,
+                this, [this](const QString& name, int fromPort, int insertIndex) {
+                    emit modelDropped(name, fromPort, _portNum, insertIndex);
+                });
 
         auto* scroll = new QScrollArea;
         scroll->setWidget(_strip);
@@ -226,7 +295,7 @@ public:
     }
 
 signals:
-    void modelDropped(const QString& modelName, int fromPort, int toPort);
+    void modelDropped(const QString& modelName, int fromPort, int toPort, int insertIndex);
 
 protected:
     void dragEnterEvent(QDragEnterEvent* e) override {
@@ -252,7 +321,8 @@ protected:
             fromPort = srcBtn->port();
 
         e->acceptProposedAction();
-        emit modelDropped(name, fromPort, _portNum);
+        // Drops on the row label area (outside the strip) always append.
+        emit modelDropped(name, fromPort, _portNum, -1);
     }
 
 private:
@@ -262,13 +332,75 @@ private:
         setStyleSheet(over ? "border:1px solid #e55;border-radius:4px;" : "");
     }
 
-    QString      _portLabel;
-    int          _portNum      = 0;
-    int          _maxChannels  = 0;
-    int          _totalChannels = 0;
-    QWidget*     _strip        = nullptr;
-    QHBoxLayout* _stripLayout  = nullptr;
-    QLabel*      _overflowLabel = nullptr;
+    QString        _portLabel;
+    int            _portNum      = 0;
+    int            _maxChannels  = 0;
+    int            _totalChannels = 0;
+    StripDropArea* _strip        = nullptr;
+    QHBoxLayout*   _stripLayout  = nullptr;
+    QLabel*        _overflowLabel = nullptr;
+};
+
+// ── AvailableModelsList ───────────────────────────────────────────────────────
+// QListWidget that initiates drags with our custom mime type and accepts drops
+// of the same type (to clear a model's wiring).
+
+class AvailableModelsList : public QListWidget {
+    Q_OBJECT
+public:
+    explicit AvailableModelsList(QWidget* parent = nullptr) : QListWidget(parent) {
+        setDragEnabled(true);
+        setAcceptDrops(true);
+        setDropIndicatorShown(false);
+        setDragDropMode(QAbstractItemView::DragDrop);
+        setDefaultDropAction(Qt::MoveAction);
+        setSelectionMode(QAbstractItemView::SingleSelection);
+    }
+
+signals:
+    void modelDroppedToAvailable(const QString& name);
+
+protected:
+    void startDrag(Qt::DropActions /*supportedActions*/) override {
+        QListWidgetItem* it = currentItem();
+        if (!it) return;
+        const QString name = it->data(Qt::UserRole).toString();
+        if (name.isEmpty()) return;
+
+        auto* drag = new QDrag(this);
+        auto* mime = new QMimeData;
+        mime->setData("application/x-xlights-model", name.toUtf8());
+        drag->setMimeData(mime);
+        drag->exec(Qt::MoveAction);
+    }
+
+    void dragEnterEvent(QDragEnterEvent* e) override {
+        if (e->mimeData()->hasFormat("application/x-xlights-model") &&
+            e->source() != this) {
+            e->acceptProposedAction();
+        } else {
+            QListWidget::dragEnterEvent(e);
+        }
+    }
+    void dragMoveEvent(QDragMoveEvent* e) override {
+        if (e->mimeData()->hasFormat("application/x-xlights-model") &&
+            e->source() != this) {
+            e->acceptProposedAction();
+        } else {
+            QListWidget::dragMoveEvent(e);
+        }
+    }
+    void dropEvent(QDropEvent* e) override {
+        if (e->mimeData()->hasFormat("application/x-xlights-model") &&
+            e->source() != this) {
+            const QString name = QString::fromUtf8(
+                e->mimeData()->data("application/x-xlights-model"));
+            e->acceptProposedAction();
+            emit modelDroppedToAvailable(name);
+            return;
+        }
+        QListWidget::dropEvent(e);
+    }
 };
 
 #include "ControllerVisualizerWindow.moc"
@@ -305,9 +437,7 @@ ControllerVisualizerWindow::ControllerVisualizerWindow(QWidget* parent)
     _portScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     // ── Available models ──────────────────────────────────────────────────
-    _availList = new QListWidget;
-    _availList->setAcceptDrops(true);
-    _availList->setDragDropMode(QAbstractItemView::DropOnly);
+    _availList = new AvailableModelsList;
     _availList->setMinimumWidth(220);
 
     auto* availLabel = new QLabel("Available models");
@@ -336,24 +466,18 @@ ControllerVisualizerWindow::ControllerVisualizerWindow(QWidget* parent)
     connect(refreshBtn, &QPushButton::clicked,
             this, &ControllerVisualizerWindow::refresh);
 
-    // Available list accepts drops: remove model from its current port.
-    _availList->installEventFilter(this);
-}
-
-bool ControllerVisualizerWindow::eventFilter(QObject* obj, QEvent* ev) {
-    if (obj == _availList && ev->type() == QEvent::Drop) {
-        auto* de = static_cast<QDropEvent*>(ev);
-        if (de->mimeData()->hasFormat("application/x-xlights-model")) {
-            const QString name = QString::fromUtf8(
-                de->mimeData()->data("application/x-xlights-model"));
-            // Clear the wiring for this model.
-            saveWiring(name, {}, 0);
-            refresh();
-            de->acceptProposedAction();
-            return true;
-        }
-    }
-    return QWidget::eventFilter(obj, ev);
+    // Dropping a model box onto the available list clears its wiring.
+    connect(_availList, &AvailableModelsList::modelDroppedToAvailable,
+            this, [this](const QString& name) {
+                const int fromPort = _data.models.value(name).controllerPort;
+                QStringList sourceList;
+                if (fromPort > 0) {
+                    sourceList = portModelNames(fromPort);
+                    sourceList.removeAll(name);
+                }
+                saveWiring(name, {}, 0, {}, sourceList);
+                refresh();
+            });
 }
 
 void ControllerVisualizerWindow::setRenderBridge(QtRenderBridge* bridge) {
@@ -488,20 +612,15 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
         auto* row = new PortRowWidget(portLabel2, p, maxPortCh, _portContainer);
 
         if (portModels.contains(p)) {
-            auto& mlist = portModels[p];
-            std::sort(mlist.begin(), mlist.end(), [&](const auto& a, const auto& b) {
-                return seq.models.value(a.first).startChannel
-                     < seq.models.value(b.first).startChannel;
-            });
-            for (const auto& [name, info] : mlist)
+            auto ordered = orderPortModels(portModels[p], seq);
+            for (const auto& [name, info] : ordered)
                 row->addModel(name, info);
         }
 
         connect(row, &PortRowWidget::modelDropped,
-                this, [this](const QString& modelName, int fromPort, int toPort) {
-            Q_UNUSED(fromPort)
-            saveWiring(modelName, _ctrlCombo->currentText(), toPort);
-            refresh();
+                this, [this](const QString& modelName, int fromPort,
+                             int toPort, int insertIndex) {
+            applyDrop(modelName, fromPort, toPort, insertIndex);
         });
 
         _portLayout->insertWidget(_portLayout->count() - 1, row);
@@ -512,6 +631,11 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
         const QString label = QString("Serial %1").arg(p);
         const int sport = showPorts + p;
         auto* row = new PortRowWidget(label, sport, 512, _portContainer);
+        connect(row, &PortRowWidget::modelDropped,
+                this, [this](const QString& modelName, int fromPort,
+                             int toPort, int insertIndex) {
+            applyDrop(modelName, fromPort, toPort, insertIndex);
+        });
         _portLayout->insertWidget(_portLayout->count() - 1, row);
     }
 
@@ -526,8 +650,95 @@ void ControllerVisualizerWindow::buildPortView(const QString& ctrlName) {
     }
 }
 
+// Resolve display order from each model's ModelChain attribute.
+// A model with empty chain (or one that points outside this port's set) is a
+// "root"; otherwise it follows another model. Walk root → next → next … via
+// the inverse map. Falls back to start-channel order for roots and any models
+// not reachable from a chain.
+static QList<QPair<QString, ModelPortInfo>> orderPortModels(
+    const QList<QPair<QString, ModelPortInfo>>& mlist,
+    const QtSequenceInfo& seq)
+{
+    QSet<QString> nameSet;
+    QMap<QString, QString> follows;   // prev → next (within this port's set)
+    QSet<QString> hasPrev;
+    for (const auto& [name, info] : mlist) nameSet.insert(name);
+
+    for (const auto& [name, info] : mlist) {
+        QString chain = seq.models.value(name).modelChain;
+        if (chain.startsWith(">")) chain = chain.mid(1);
+        if (!chain.isEmpty() && nameSet.contains(chain)) {
+            follows.insert(chain, name);
+            hasPrev.insert(name);
+        }
+    }
+
+    QList<QPair<QString, ModelPortInfo>> roots;
+    QMap<QString, ModelPortInfo> infoByName;
+    for (const auto& [name, info] : mlist) {
+        infoByName.insert(name, info);
+        if (!hasPrev.contains(name)) roots.append({name, info});
+    }
+    std::sort(roots.begin(), roots.end(), [&](const auto& a, const auto& b) {
+        return seq.models.value(a.first).startChannel
+             < seq.models.value(b.first).startChannel;
+    });
+
+    QList<QPair<QString, ModelPortInfo>> ordered;
+    QSet<QString> visited;
+    for (const auto& [rname, rinfo] : roots) {
+        QString cur = rname;
+        while (!cur.isEmpty() && !visited.contains(cur)) {
+            ordered.append({cur, infoByName.value(cur)});
+            visited.insert(cur);
+            cur = follows.value(cur);
+        }
+    }
+    // Catch any models stranded by cycles.
+    for (const auto& [name, info] : mlist) {
+        if (!visited.contains(name)) {
+            ordered.append({name, info});
+            visited.insert(name);
+        }
+    }
+    return ordered;
+}
+
+QStringList ControllerVisualizerWindow::portModelNames(int port) const {
+    for (int i = 0; i < _portLayout->count(); ++i) {
+        auto* row = qobject_cast<PortRowWidget*>(_portLayout->itemAt(i)->widget());
+        if (row && row->portNum() == port)
+            return row->modelNames();
+    }
+    return {};
+}
+
+void ControllerVisualizerWindow::applyDrop(const QString& modelName,
+                                            int fromPort, int toPort, int insertIndex)
+{
+    const QString ctrlName = _ctrlCombo->currentText();
+
+    QStringList targetList = portModelNames(toPort);
+    targetList.removeAll(modelName);
+    if (insertIndex < 0 || insertIndex > targetList.size())
+        targetList.append(modelName);
+    else
+        targetList.insert(insertIndex, modelName);
+
+    QStringList sourceList;
+    if (fromPort != 0 && fromPort != toPort) {
+        sourceList = portModelNames(fromPort);
+        sourceList.removeAll(modelName);
+    }
+
+    saveWiring(modelName, ctrlName, toPort, targetList, sourceList);
+    refresh();
+}
+
 void ControllerVisualizerWindow::saveWiring(const QString& modelName,
-                                             const QString& ctrlName, int port)
+                                             const QString& ctrlName, int port,
+                                             const QStringList& targetOrder,
+                                             const QStringList& sourceOrder)
 {
     const QString sf = QtXLightsApp::instance().showFolder();
     if (sf.isEmpty()) return;
@@ -543,24 +754,54 @@ void ControllerVisualizerWindow::saveWiring(const QString& modelName,
     pugi::xml_node modelsList = root.child("models");
     if (!modelsList) return;
 
-    for (auto m : modelsList.children("model")) {
-        if (QString::fromUtf8(m.attribute("name").as_string()) != modelName) continue;
+    auto findModel = [&](const QString& name) -> pugi::xml_node {
+        for (auto m : modelsList.children("model"))
+            if (QString::fromUtf8(m.attribute("name").as_string()) == name)
+                return m;
+        return {};
+    };
+    auto setAttr = [](pugi::xml_node node, const char* key, const std::string& value) {
+        auto a = node.attribute(key);
+        if (!a) a = node.append_attribute(key);
+        a.set_value(value.c_str());
+    };
+    auto setChain = [&](pugi::xml_node m, const QString& chain) {
+        if (chain.isEmpty())
+            m.remove_attribute("ModelChain");
+        else
+            setAttr(m, "ModelChain", chain.toStdString());
+    };
 
+    // First, the moved model's controller assignment.
+    if (auto m = findModel(modelName)) {
         if (ctrlName.isEmpty()) {
             m.remove_attribute("Controller");
             m.remove_child("ControllerConnection");
+            m.remove_attribute("ModelChain");
         } else {
-            auto ctrlAttr = m.attribute("Controller");
-            if (!ctrlAttr) ctrlAttr = m.append_attribute("Controller");
-            ctrlAttr.set_value(ctrlName.toStdString().c_str());
-
+            setAttr(m, "Controller", ctrlName.toStdString());
             auto cc = m.child("ControllerConnection");
             if (!cc) cc = m.append_child("ControllerConnection");
-            auto portAttr = cc.attribute("Port");
-            if (!portAttr) portAttr = cc.append_attribute("Port");
-            portAttr.set_value(port);
+            auto p = cc.attribute("Port");
+            if (!p) p = cc.append_attribute("Port");
+            p.set_value(port);
         }
-        break;
+    }
+
+    // Write the target port's chain in order.
+    for (int i = 0; i < targetOrder.size(); ++i) {
+        auto m = findModel(targetOrder[i]);
+        if (!m) continue;
+        if (i == 0) setChain(m, "");
+        else        setChain(m, ">" + targetOrder[i - 1]);
+    }
+
+    // Patch up the source port's chain (model has been removed from it).
+    for (int i = 0; i < sourceOrder.size(); ++i) {
+        auto m = findModel(sourceOrder[i]);
+        if (!m) continue;
+        if (i == 0) setChain(m, "");
+        else        setChain(m, ">" + sourceOrder[i - 1]);
     }
 
     doc.save_file(xmlPath.toStdString().c_str());
