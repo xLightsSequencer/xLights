@@ -428,10 +428,11 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 if (oldIdx >= 0) {
                     int newIdx = el->GetIndex();
                     for (auto* step : fromList) {
-                        if (step->undo_action == UNDO_EFFECT_DELETED &&
-                            !step->deleted_effect_info.empty() &&
-                            step->deleted_effect_info[0]->layer_index == oldIdx) {
-                            step->deleted_effect_info[0]->layer_index = newIdx;
+                        if (step->undo_action == UNDO_EFFECT_DELETED) {
+                            for (auto* dei : step->deleted_effect_info) {
+                                if (dei->layer_index == oldIdx)
+                                    dei->layer_index = newIdx;
+                            }
                         }
                     }
                 }

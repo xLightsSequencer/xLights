@@ -123,7 +123,7 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	GridSizer1->Add(StaticTextPasteAs, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 	PasteAsChoice = new wxChoice(this, ID_CHOICE_PASTE_AS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PASTE_AS"));
 	PasteAsChoice->SetSelection( PasteAsChoice->Append(_("Relative")) );
-	PasteAsChoice->Append(_("As Layers"));
+	PasteAsChoice->Append(_("Layers"));
 	PasteAsChoice->SetToolTip(_("Relative: paste effects at the selected position. As Layers: paste preserving layer structure from copied effects."));
 	GridSizer1->Add(PasteAsChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -163,7 +163,7 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     GroupEffectIndicator->SetValue(frame->ShowGroupEffectIndicator());
     ShowAlternateTimingFormatCheckBox->SetValue(frame->ShowAlternateTimingFormat());
     BellOnRenderCompletion->SetValue(frame->IsRenderBell());
-    PasteAsChoice->SetSelection(frame->PasteAsLayers() ? 1 : 0);
+    PasteAsChoice->SetSelection(frame->IsPasteAsLayers() ? 1 : 0);
     int gs = frame->GridSpacing();
     switch (gs) {
         case 48:

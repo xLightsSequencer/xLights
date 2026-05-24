@@ -1185,7 +1185,7 @@ public:
 
     [[nodiscard]] bool IsRenderBell() const { return _renderBellEnabled; }
     void SetRenderBell(bool b) { _renderBellEnabled = b; }
-    [[nodiscard]] bool PasteAsLayers() const { return _pasteAsLayers; }
+    [[nodiscard]] bool IsPasteAsLayers() const { return _pasteAsLayers; }
     void SetPasteAsLayers(bool b) { _pasteAsLayers = b; }
 	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();

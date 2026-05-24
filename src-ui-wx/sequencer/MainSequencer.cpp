@@ -1661,7 +1661,7 @@ void MainSequencer::Paste(bool row_paste, bool invertLayerMode) {
         if ((cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT)) && cbd->GetData(data)) {
             // assume clipboard always has data from same version of xLights
             wxString text = data.GetText();
-            bool pasteAsLayers = xLightsApp::GetFrame()->PasteAsLayers();
+            bool pasteAsLayers = xLightsApp::GetFrame()->IsPasteAsLayers();
             if (invertLayerMode)
                 pasteAsLayers = !pasteAsLayers;
             bool layerMode = pasteAsLayers && text.Contains("\tLAYER:");

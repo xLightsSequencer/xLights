@@ -109,7 +109,7 @@ public:
     bool IsKey(wxKeyCode key) const noexcept
     {
         wxKeyCode k = key;
-        if (k >= 97 && k <= 122) k = (wxKeyCode)(k - 32);
+        if (k >= 'a' && k <= 'z') k = (wxKeyCode)(k - ('a' - 'A'));
         return (_key == k);
     }
     bool IsDisabled() const noexcept { return _disabled; }
