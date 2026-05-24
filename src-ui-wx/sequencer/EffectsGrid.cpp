@@ -5616,7 +5616,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
                         continue;
                     for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
-                        if (ef[fi].StartsWith("LAYER:") && wxAtoi(ef[fi].Mid(6)) > 0) {
+                        if (ef[fi].StartsWith("LAYER:")) {
                             hasLayerTokens = true;
                             break;
                         }
