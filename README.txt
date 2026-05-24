@@ -11,9 +11,46 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
+    -enh (derwin12)              Add "Per Model Default" layout option to model groups so effects using the
+                                 Default render style automatically render per-model on that group (#4125).
+    -enh (heffneil)              Add Bulk Edit Rotate X / Y / Z to the Layout tab right-click menu.
+    -enh (heffneil)              Layout copy/paste: smarter placement of the duplicate and only the new copy
+                                 is selected after paste (#6192).
+    -enh (derwin12)              Select Effects panel results are now sorted by time (#6389).
+    -enh (derwin12)              FPP Connect upload now also calls SetInputUniversesBridge so inputs match
+                                 the Controller upload path (#2747).
+    -enh (derwin12)              Import Mapping switched back to checkboxes for lyric tracks; remembers the
+                                 show-timeline setting (#6403).
+    -enh (jessica12ryan)         RenderProgressDialog now stays on top of other windows (#6404).
+    -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
+    -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
+                                 older MetricKit data.
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
+    -bug (derwin12)              Fix imports for both old and new xmodel formats (Layout import, Node Select
+                                 Grid, SubModels dialog) (#6411).
+    -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397, #6400).
+    -bug (derwin12)              PolyLine division-by-zero produced NaN coords that crashed the macOS depth
+                                 sort (#6407).
+    -bug (derwin12)              Fix the model preview for PolyLine with Drops (#6208).
+    -bug (derwin12)              Various crashes seen in submitted logs: harden Model/ModelManager null
+                                 guards, TwinklyOutput error handling, and main-frame model lookups (#6402).
+    -bug (derwin12)              Color picker crashes and timeline startup crashes (#6387).
+    -bug (derwin12)              Fix hangs in the Face/State Definition dialogs on large models (#6374).
+    -bug (derwin12)              Shockwave effect: end time no longer exceeds the effect end time (#6398).
+    -bug (derwin12)              Text effect: fix multi-line "color per word" rendering (#6393).
+    -bug (derwin12)              Shape effect: fix browse-button enable/disable logic (#6390).
+    -bug (derwin12)              SubModels dialog: extra comma appearing after the wxSplit→Split switch
+                                 because of empty-string handling differences (#6377).
+    -bug (derwin12)              Don't flag embedded images as missing in the sequence checker (#6378).
+    -bug (derwin12)              Color picker swatch panel: full repaint on resize fixes artifacts (#6376).
+    -bug (AlexB)                 Keep individual start channels when importing models (#6384).
+    -bug (AlexB)                 Fix vendor catalog download issues — surface errors and use longer timeouts
+                                 for the large-file fetches (#6381).
+    -bug (dkulp)                 Avoid creating and destroying wxCursor objects on every mouse move across
+                                 the grid canvases, color/value curve dialogs, and assist panels.
+    -bug (dkulp)                 macOS: fix waveform cursor memory leak (cursors were never released).
 
 2026.09  May 18, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
