@@ -19,6 +19,7 @@
 #include <condition_variable>
 #include <map>
 #include <memory>
+#include <unordered_map>
 
 #include "utils/AutoReleasePool.h"
 #include "RenderEngine.h"
@@ -280,8 +281,39 @@ public:
                         }
                     }
                 }
+                std::string duplicateIncludeSourceModel;
+                for (int lyr = 0; lyr < (int)rowToRender->GetEffectLayerCount() && duplicateIncludeSourceModel.empty(); ++lyr) {
+                    EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                    for (int e = 0; e < elyr->GetEffectCount(); ++e) {
+                        Effect* eff = elyr->GetEffect(e);
+                        if (eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                            eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                            duplicateIncludeSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
+                            break;
+                        }
+                    }
+                }
+
+                std::unordered_map<std::string, Element*> srcSubmodelsWithEffects;
+                if (!duplicateIncludeSourceModel.empty()) {
+                    ModelElement* srcModelEl = dynamic_cast<ModelElement*>(
+                        rowToRender->GetSequenceElements()->GetElement(duplicateIncludeSourceModel));
+                    if (srcModelEl != nullptr) {
+                        for (int x = 0; x < srcModelEl->GetSubModelAndStrandCount(); ++x) {
+                            SubModelElement* srcSe = srcModelEl->GetSubModel(x);
+                            if (srcSe != nullptr &&
+                                srcSe->GetType() != ElementType::ELEMENT_TYPE_STRAND &&
+                                srcSe->HasEffects()) {
+                                srcSubmodelsWithEffects[srcSe->GetName()] = srcSe;
+                            }
+                        }
+                    }
+                }
+
                 for (int x = 0; x < row->GetSubModelAndStrandCount(); ++x) {
                     SubModelElement *se = row->GetSubModel(x);
+                    const bool addForInheritedDuplicate = !srcSubmodelsWithEffects.empty() &&
+                                                          se->GetType() != ElementType::ELEMENT_TYPE_STRAND;
                     if (se->HasEffects()) {
                         if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
                             StrandElement *ste = (StrandElement*)se;
@@ -296,11 +328,31 @@ public:
                         } else {
                             Model *subModel = model->GetSubModel(se->GetName());
                             if (subModel != nullptr) {
-                                subModelInfos.push_back(new EffectLayerInfo(se->GetEffectLayerCount() + 1));
+                                int layerCount = (int)se->GetEffectLayerCount();
+                                if (addForInheritedDuplicate) {
+                                    auto srcIt = srcSubmodelsWithEffects.find(se->GetName());
+                                    if (srcIt != srcSubmodelsWithEffects.end())
+                                        layerCount = std::max(layerCount, (int)srcIt->second->GetEffectLayerCount());
+                                }
+                                subModelInfos.push_back(new EffectLayerInfo(layerCount + 1));
                                 subModelInfos.back()->element = se;
                                 subModelInfos.back()->submodel = subModelInfos.size() -1;
                                 subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
-                                subModelInfos.back()->buffer->InitBuffer(*subModel, se->GetEffectLayerCount() + 1, data.FrameTime());
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, layerCount + 1, data.FrameTime());
+                            }
+                        }
+                    } else if (addForInheritedDuplicate) {
+                        auto srcIt = srcSubmodelsWithEffects.find(se->GetName());
+                        if (srcIt != srcSubmodelsWithEffects.end()) {
+                            Model *subModel = model->GetSubModel(se->GetName());
+                            if (subModel != nullptr) {
+                                int layerCount = std::max(1, std::max((int)se->GetEffectLayerCount(),
+                                                                      (int)srcIt->second->GetEffectLayerCount()));
+                                subModelInfos.push_back(new EffectLayerInfo(layerCount + 1));
+                                subModelInfos.back()->element = se;
+                                subModelInfos.back()->submodel = subModelInfos.size() - 1;
+                                subModelInfos.back()->buffer.reset(new PixelBufferClass(_ctx));
+                                subModelInfos.back()->buffer->InitBuffer(*subModel, layerCount + 1, data.FrameTime());
                             }
                         }
                     }
@@ -543,10 +595,11 @@ public:
         return frame - (ef->GetStartTimeMS() / frameTime);
     }
 
-    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false) {
+    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, Effect* inheritedDuplicate = nullptr) {
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
+        const int effectiveNumLayers = (inheritedDuplicate != nullptr) ? info.numLayers - 1 : numLayers;
 
         std::vector<bool> partOfCanvas;
         partOfCanvas.resize(info.validLayers.size());
@@ -556,11 +609,14 @@ public:
         }
 
         // To support canvas mix type we must render them bottom to top
-        for (int layer = numLayers - 1; layer >= 0; --layer) {
-            EffectLayer* elayer = el->GetEffectLayer(layer);
+        for (int layer = effectiveNumLayers - 1; layer >= 0; --layer) {
+            EffectLayer* elayer = (layer < numLayers) ? el->GetEffectLayer(layer) : nullptr;
             //must lock the layer so the Effect* stays valid
-            std::unique_lock<std::recursive_mutex> elayerLock(elayer->GetLock());
-            Effect* ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            std::unique_lock<std::recursive_mutex> elayerLock;
+            if (elayer != nullptr) {
+                elayerLock = std::unique_lock<std::recursive_mutex>(elayer->GetLock());
+            }
+            Effect* ef = elayer ? findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]) : nullptr;
             Effect* copy = nullptr;
 
             if (ef != nullptr && ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
@@ -614,7 +670,18 @@ public:
                         }
                     }
                 }
-            } 
+            } else if (inheritedDuplicate != nullptr) {
+                if (auto* sme = dynamic_cast<SubModelElement*>(el)) {
+                    const std::string srcSubmodel = inheritedDuplicate->GetSetting("E_CHOICE_Duplicate_Model") + "/" + sme->GetName();
+                    Effect* srcEf = findEffectForFrame(srcSubmodel, layer + 1, frame);
+                    if (srcEf != nullptr && srcEf->GetEffectIndex() != EffectManager::eff_DUPLICATE) {
+                        copy = srcEf;
+                        tempEffect = new Effect(*srcEf);
+                        ef = tempEffect;
+                        ef->EnableBackgroundDisplayLists(false);
+                    }
+                }
+            }
 
             Effect* compare = copy != nullptr ? copy : ef;
 
@@ -752,8 +819,8 @@ public:
                 }
             }
             if (blend) {
-                buffer->SetColors(numLayers, &((*seqData)[frame][0]), seqData->NumChannels());
-                info.validLayers[numLayers] = true;
+                buffer->SetColors(effectiveNumLayers, &((*seqData)[frame][0]), seqData->NumChannels());
+                info.validLayers[effectiveNumLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
             buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
@@ -877,13 +944,26 @@ public:
                 bool cleared = ProcessFrame(frame, rowToRender, mainModelInfo, mainBuffer, -1, supportsModelBlending);
                 if (!subModelInfos.empty()) {
                     maybeWaitForFrame(frame);
+
+                    Effect* inheritedDuplicate = nullptr;
+                    for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicate == nullptr; ++lyr) {
+                        EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                        std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
+                        int discard = 0;
+                        Effect* eff = findEffectForFrame(elyr, frame, discard);
+                        if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
+                            eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
+                            inheritedDuplicate = eff;
+                        }
+                    }
+
                     for (const auto& a : subModelInfos) {
                         if (abort) {
                             rowToRender->SetDirtyRange(frame * seqData->FrameTime(), endFrame * seqData->FrameTime());
                             break;
                         }
                         EffectLayerInfo *info = a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared);
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicate);
                     }
                 }
 
