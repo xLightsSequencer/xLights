@@ -569,6 +569,7 @@ public:
     void OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event);
     void OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event);
     void OnMenuItemConvertSelected(wxCommandEvent& event);
+    void OnMenuItem_MovingHeadBuilderSelected(wxCommandEvent& event);
     void OnMenu_GenerateCustomModelSelected(wxCommandEvent& event);
     void OnPaneClose(wxAuiManagerEvent& event);
     void OnMenuItemPackageDebugFiles(wxCommandEvent& event);
@@ -829,6 +830,7 @@ public:
     static const wxWindowID ID_MNU_REMAPCUSTOM;
     static const wxWindowID ID_MENUITEM_GenerateAIImage;
     static const wxWindowID ID_MNU_GENERATELYRICS;
+    static const wxWindowID ID_MNU_MOVINGHEADBUILDER;
     static const wxWindowID ID_MENUITEM_CONVERT;
     static const wxWindowID ID_MNU_PREPAREAUDIO;
     static const wxWindowID ID_MENU_USER_DICT;
@@ -1034,6 +1036,7 @@ public:
     wxMenuItem* MenuItem_LogRenderState;
     wxMenuItem* MenuItem_LoudVol;
     wxMenuItem* MenuItem_MedVol;
+    wxMenuItem* MenuItem_MovingHeadBuilder;
     wxMenuItem* MenuItem_PackageSequence;
     wxMenuItem* MenuItem_PerspectiveAutosave;
     wxMenuItem* MenuItem_PrepareAudio;

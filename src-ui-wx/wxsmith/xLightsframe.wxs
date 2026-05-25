@@ -1327,6 +1327,11 @@
 					<help>Generate lyric phenomes from data</help>
 					<handler function="OnMenuItem_GenerateLyricsSelected" entry="EVT_MENU" />
 				</object>
+				<object class="wxMenuItem" name="ID_MNU_MOVINGHEADBUILDER" variable="MenuItem_MovingHeadBuilder" member="yes">
+					<label>Moving Head Builder</label>
+					<help>Open Moving Head Model Builder in browser</help>
+					<handler function="OnMenuItem_MovingHeadBuilderSelected" entry="EVT_MENU" />
+				</object>
 				<object class="wxMenuItem" name="ID_MENUITEM_CONVERT" variable="MenuItemConvert" member="yes">
 					<label>&amp;Convert</label>
 					<handler function="OnMenuItemConvertSelected" entry="EVT_MENU" />

@@ -305,6 +305,7 @@ const wxWindowID xLightsFrame::ID_MENUITEM_GenerateCustomModel = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_REMAPCUSTOM = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_GenerateAIImage = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_GENERATELYRICS = wxNewId();
+const wxWindowID xLightsFrame::ID_MNU_MOVINGHEADBUILDER = wxNewId();
 const wxWindowID xLightsFrame::ID_MENUITEM_CONVERT = wxNewId();
 const wxWindowID xLightsFrame::ID_MNU_PREPAREAUDIO = wxNewId();
 const wxWindowID xLightsFrame::ID_MENU_USER_DICT = wxNewId();
@@ -1145,6 +1146,8 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Menu1->Append(Menu_GenerateAIImage);
     MenuItem_GenerateLyrics = new wxMenuItem(Menu1, ID_MNU_GENERATELYRICS, _("Generate &Lyrics From Data"), _("Generate lyric phenomes from data"), wxITEM_NORMAL);
     Menu1->Append(MenuItem_GenerateLyrics);
+    MenuItem_MovingHeadBuilder = new wxMenuItem(Menu1, ID_MNU_MOVINGHEADBUILDER, _("Moving Head Builder"), _("Open Moving Head Model Builder in browser"), wxITEM_NORMAL);
+    Menu1->Append(MenuItem_MovingHeadBuilder);
     MenuItemConvert = new wxMenuItem(Menu1, ID_MENUITEM_CONVERT, _("&Convert"), wxEmptyString, wxITEM_NORMAL);
     Menu1->Append(MenuItemConvert);
     MenuItem_PrepareAudio = new wxMenuItem(Menu1, ID_MNU_PREPAREAUDIO, _("Prepare Audio"), wxEmptyString, wxITEM_NORMAL);
@@ -1412,6 +1415,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     Connect(ID_MNU_REMAPCUSTOM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_RemapCustomSelected);
     Connect(ID_MENUITEM_GenerateAIImage, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateAIImageSelected);
     Connect(ID_MNU_GENERATELYRICS, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_GenerateLyricsSelected);
+    Connect(ID_MNU_MOVINGHEADBUILDER, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_MovingHeadBuilderSelected);
     Connect(ID_MENUITEM_CONVERT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemConvertSelected);
     Connect(ID_MNU_PREPAREAUDIO, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItem_PrepareAudioSelected);
     Connect(ID_MENU_USER_DICT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsFrame::OnMenuItemUserDictSelected);
@@ -4238,6 +4242,11 @@ void xLightsFrame::OnAuiToolBarItemPasteByTimeClick(wxCommandEvent& event)
 void xLightsFrame::OnAuiToolBarItemPasteByCellClick(wxCommandEvent& event)
 {
     SetPasteByCell();
+}
+
+void xLightsFrame::OnMenuItem_MovingHeadBuilderSelected(wxCommandEvent& event)
+{
+    ::wxLaunchDefaultBrowser("https://agfazio.github.io/Moving-Heads/xmodel-builder.html");
 }
 
 void xLightsFrame::OnMenuItemConvertSelected(wxCommandEvent& event)
