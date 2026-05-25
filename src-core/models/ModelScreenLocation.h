@@ -414,7 +414,12 @@ public:
     // descriptor list.
     glm::vec3 GetHandlePositionById(const std::optional<handles::Id>& id) const;
     glm::vec3 GetActiveHandlePosition() const { return GetHandlePositionById(active_handle); }
-    glm::vec3 GetRotationAngles() const { return angles; }
+    // Returns the live rotation as Euler angles in degrees. Previously
+    // backed by a separate `angles` member that nothing ever wrote, so
+    // it silently returned (0,0,0) — see PR #6420 (Layout 3D ring-drag
+    // group rotation was broken because of this). Now an alias for
+    // GetRotation() to prevent the same trap.
+    glm::vec3 GetRotationAngles() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
 
 protected:
@@ -436,8 +441,6 @@ protected:
     mutable glm::quat rotate_quat = glm::quat(1.0, glm::vec3(0.0));
     mutable glm::vec3 aabb_min = glm::vec3(0.0f);
     mutable glm::vec3 aabb_max = glm::vec3(0.0f);
-
-    glm::vec3 angles = glm::vec3(0.0);
 
     mutable bool draw_3d = false;
 

@@ -14,12 +14,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (heffneil)              Layout 3D rotation ring with multi-selection now actually rotates the whole
                                  selection as a rigid group around the primary-selected model again. Regressed
                                  silently during the legacy-to-new-drag-session refactor: the per-frame delta
-                                 was being computed from GetRotationAngles(), but the `angles` field that
-                                 backs it is never written so it was always (0,0,0). Switch to GetRotation()
-                                 which reads the live rotatex/y/z that BoxedRotateSession actually updates
-                                 during the drag. Same fix at the 3 drag-start sites so the baseline matches.
-                                 Bulk Edit Rotate X/Y/Z (right-click menu) is unaffected — that path is
-                                 intentionally per-model.
+                                 was being computed from ModelScreenLocation::GetRotationAngles(), but the
+                                 `angles` field that backed it was never written by anyone — always returned
+                                 (0,0,0). Fixed at the accessor level so the trap is gone for all callers
+                                 (two iPad twist-rotate sites had the same latent bug). The `angles` field is
+                                 deleted; GetRotationAngles() now reads the live rotatex/y/z that
+                                 BoxedRotateSession actually updates during the drag. Bulk Edit Rotate X/Y/Z
+                                 (right-click menu) is unaffected — that path is intentionally per-model.
     -enh (derwin12)              Add "Per Model Default" layout option to model groups so effects using the
                                  Default render style automatically render per-model on that group (#4125).
     -enh (heffneil)              Add Bulk Edit Rotate X / Y / Z to the Layout tab right-click menu.

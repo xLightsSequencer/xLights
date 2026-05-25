@@ -5544,10 +5544,6 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             } else if (dragRole == handles::Role::AxisRing) {
                                 // Wrap-aware rotation delta. X is negated to match
                                 // RotateAboutPoint's handedness.
-                                // GetRotationAngles() reads the never-written `angles`
-                                // field and always returns (0,0,0); use GetRotation()
-                                // which reads the live rotatex/y/z that BoxedRotateSession
-                                // actually updates during the drag.
                                 glm::vec3 new_worldrotate = sloc.GetRotation();
                                 glm::vec3 rotate_offset   = new_worldrotate - last_worldrotate;
                                 if (rotate_offset.x >  180.0f) rotate_offset.x -= 360.0f;
