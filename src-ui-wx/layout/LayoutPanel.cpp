@@ -4002,7 +4002,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                     m_moving_handle = true;
                                     m_mouse_down = true;
                                     last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-                                    last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+                                    last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotation();
                                     last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                                     xlights->GetOutputModelManager()->AddASAPWork(
                                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
@@ -5158,7 +5158,7 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
                                           0.0f);
 
             last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-            last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+            last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotation();
             last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
 
             SetupPropGrid(selectedBaseObject);
@@ -5188,7 +5188,7 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
                 }
 
                 last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-                last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+                last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotation();
                 last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
 
                 SetupPropGrid(selectedBaseObject);
@@ -5544,7 +5544,11 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                             } else if (dragRole == handles::Role::AxisRing) {
                                 // Wrap-aware rotation delta. X is negated to match
                                 // RotateAboutPoint's handedness.
-                                glm::vec3 new_worldrotate = sloc.GetRotationAngles();
+                                // GetRotationAngles() reads the never-written `angles`
+                                // field and always returns (0,0,0); use GetRotation()
+                                // which reads the live rotatex/y/z that BoxedRotateSession
+                                // actually updates during the drag.
+                                glm::vec3 new_worldrotate = sloc.GetRotation();
                                 glm::vec3 rotate_offset   = new_worldrotate - last_worldrotate;
                                 if (rotate_offset.x >  180.0f) rotate_offset.x -= 360.0f;
                                 if (rotate_offset.y >  180.0f) rotate_offset.y -= 360.0f;

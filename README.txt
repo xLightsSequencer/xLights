@@ -11,6 +11,15 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
+    -bug (heffneil)              Layout 3D rotation ring with multi-selection now actually rotates the whole
+                                 selection as a rigid group around the primary-selected model again. Regressed
+                                 silently during the legacy-to-new-drag-session refactor: the per-frame delta
+                                 was being computed from GetRotationAngles(), but the `angles` field that
+                                 backs it is never written so it was always (0,0,0). Switch to GetRotation()
+                                 which reads the live rotatex/y/z that BoxedRotateSession actually updates
+                                 during the drag. Same fix at the 3 drag-start sites so the baseline matches.
+                                 Bulk Edit Rotate X/Y/Z (right-click menu) is unaffected — that path is
+                                 intentionally per-model.
     -enh (derwin12)              Add "Per Model Default" layout option to model groups so effects using the
                                  Default render style automatically render per-model on that group (#4125).
     -enh (heffneil)              Add Bulk Edit Rotate X / Y / Z to the Layout tab right-click menu.
