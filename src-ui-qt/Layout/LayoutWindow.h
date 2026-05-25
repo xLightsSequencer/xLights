@@ -1,23 +1,20 @@
 #pragma once
 #include "../Bridge/QtSequenceDoc.h"
-#include <QList>
-#include <QPair>
 #include <QString>
 #include <QWidget>
 
 class ModelEditDialog;
 class ModelLayoutCanvas;
+class LayoutPropertyTree;
 class QtRenderBridge;
 class QListWidget;
-class QPushButton;
 class QListWidgetItem;
 class QSplitter;
 class QTabWidget;
-class QTableWidget;
 
 // Phase 11 layout editor window.
 // Non-modal, stays open alongside the sequencer.
-// Left panel: tabbed list (Models / Groups / Controllers) + property table.
+// Left panel: tabbed list (Models / Groups / Controllers) + LayoutPropertyTree.
 // Right panel: ModelLayoutCanvas for interactive 2D yard view.
 class LayoutWindow : public QWidget {
     Q_OBJECT
@@ -46,23 +43,22 @@ private:
     void buildGroupProps(const QString& name);
     void buildControllerProps(const QString& name);
     void clearProps();
-    void setProps(const QList<QPair<QString,QString>>& rows);
 
     // Left side
-    QSplitter*         _leftSplit    = nullptr;
-    QTabWidget*        _tabs         = nullptr;
-    QListWidget*       _modelList    = nullptr;
-    QListWidget*       _groupList    = nullptr;
-    QListWidget*       _controllerList = nullptr;
-    QTableWidget*      _propTable    = nullptr;
+    QSplitter*          _leftSplit      = nullptr;
+    QTabWidget*         _tabs           = nullptr;
+    QListWidget*        _modelList      = nullptr;
+    QListWidget*        _groupList      = nullptr;
+    QListWidget*        _controllerList = nullptr;
+    LayoutPropertyTree* _props          = nullptr;
 
     // Right side
-    ModelLayoutCanvas* _canvas       = nullptr;
+    ModelLayoutCanvas*  _canvas         = nullptr;
 
-    ModelEditDialog*   _editDialog   = nullptr;
-    QtRenderBridge*    _bridge       = nullptr;
+    ModelEditDialog*    _editDialog     = nullptr;
+    QtRenderBridge*     _bridge         = nullptr;
 
     // Effective sequence data — either the live sequence or the show-file fallback.
     // All property lookups use this instead of currentSequence() directly.
-    QtSequenceInfo     _data;
+    QtSequenceInfo      _data;
 };

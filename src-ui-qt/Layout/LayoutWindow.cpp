@@ -1,9 +1,11 @@
 #include "LayoutWindow.h"
 #include "ModelEditDialog.h"
 #include "ModelLayoutCanvas.h"
+#include "LayoutPropertyTree.h"
 #include "../App/QtXLightsApp.h"
 #include "../Bridge/QtSequenceDoc.h"
 #include "../Bridge/QtRenderBridge.h"
+#include "../../src-core/models/ModelManager.h"
 
 #include <QHeaderView>
 #include <QListWidget>
@@ -11,7 +13,6 @@
 #include <QPushButton>
 #include <QSplitter>
 #include <QTabWidget>
-#include <QTableWidget>
 #include <QVBoxLayout>
 
 LayoutWindow::LayoutWindow(QWidget* parent)
@@ -31,14 +32,10 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     _tabs->addTab(_groupList,      "Groups");
     _tabs->addTab(_controllerList, "Controllers");
 
-    _propTable = new QTableWidget(0, 2);
-    _propTable->setHorizontalHeaderLabels({"Property", "Value"});
-    _propTable->horizontalHeader()->setStretchLastSection(true);
-    _propTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    _propTable->verticalHeader()->hide();
-    _propTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    _propTable->setSelectionMode(QAbstractItemView::NoSelection);
-    _propTable->setMinimumHeight(160);
+    // Single property tree for all three tabs.  Population branches on the
+    // selected item type (model / group / controller); see show* methods.
+    _props = new LayoutPropertyTree;
+    _props->setMinimumHeight(160);
 
     auto* editBtn = new QPushButton("Edit Sub-Models / Faces / States…");
     editBtn->setEnabled(false);
@@ -48,7 +45,7 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     vizBtn->setEnabled(false);
     uploadBtn->setEnabled(false);
 
-    // Row of contextual buttons under the properties table.
+    // Row of contextual buttons under the property panel.
     // editBtn: enabled when a model is selected.
     // vizBtn / uploadBtn: enabled when a controller is selected.
     auto* btnRow = new QHBoxLayout;
@@ -57,12 +54,12 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     btnRow->addWidget(vizBtn);
     btnRow->addWidget(uploadBtn);
 
-    // Wrap the properties table and buttons together in the left splitter.
+    // Wrap the property panel + buttons together in the left splitter.
     auto* propWidget = new QWidget;
     auto* propVL = new QVBoxLayout(propWidget);
     propVL->setContentsMargins(0, 0, 0, 0);
     propVL->setSpacing(2);
-    propVL->addWidget(_propTable, 1);
+    propVL->addWidget(_props, 1);
     propVL->addLayout(btnRow);
 
     _leftSplit = new QSplitter(Qt::Vertical);
@@ -90,7 +87,8 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     _editDialog = new ModelEditDialog(this);
 
     // Disable all contextual buttons and clear props when the tab changes.
-    connect(_tabs, &QTabWidget::currentChanged, this, [editBtn, vizBtn, uploadBtn, this](int tab) {
+    connect(_tabs, &QTabWidget::currentChanged, this,
+            [editBtn, vizBtn, uploadBtn, this](int /*tab*/) {
         editBtn->setEnabled(false);
         vizBtn->setEnabled(false);
         uploadBtn->setEnabled(false);
@@ -136,7 +134,11 @@ LayoutWindow::LayoutWindow(QWidget* parent)
             this, &LayoutWindow::onCanvasModelClicked);
 }
 
-void LayoutWindow::setRenderBridge(QtRenderBridge* bridge) { _bridge = bridge; }
+void LayoutWindow::setRenderBridge(QtRenderBridge* bridge) {
+    _bridge = bridge;
+    if (_props)
+        _props->setModelManager(bridge ? bridge->modelManager() : nullptr);
+}
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
 
@@ -182,6 +184,12 @@ void LayoutWindow::refresh() {
         _canvas->loadLayoutFromManager(_bridge->modelManager());
     else
         _canvas->loadLayout(_data);
+
+    // LayoutPropertyTree pulls live src-core objects via the bridge — refresh
+    // its pointer in case the bridge initialised after our last
+    // setRenderBridge() call.
+    if (_props && _bridge)
+        _props->setModelManager(_bridge->modelManager());
 
     clearProps();
 }
@@ -234,74 +242,17 @@ void LayoutWindow::onCanvasModelClicked(const QString& modelName) {
 // ── Property panel ────────────────────────────────────────────────────────────
 
 void LayoutWindow::clearProps() {
-    _propTable->setRowCount(0);
-}
-
-void LayoutWindow::setProps(const QList<QPair<QString,QString>>& rows) {
-    _propTable->setRowCount(rows.size());
-    for (int i = 0; i < rows.size(); ++i) {
-        _propTable->setItem(i, 0, new QTableWidgetItem(rows[i].first));
-        _propTable->setItem(i, 1, new QTableWidgetItem(rows[i].second));
-    }
+    if (_props) _props->clearAll();
 }
 
 void LayoutWindow::buildModelProps(const QString& name) {
-    const QtModelInfo& m = _data.models.value(name);
-    if (m.name.isEmpty()) { clearProps(); return; }
-
-    QList<QPair<QString,QString>> rows = {
-        { "Name",          m.name },
-        { "Type",          m.type },
-        { "Nodes",         QString::number(m.nodeCount) },
-        { "Buffer W",      QString::number(m.bufferW) },
-        { "Buffer H",      QString::number(m.bufferH) },
-        { "Start Channel", QString::number(m.startChannel) },
-        { "World X",       QString::number(m.worldPosX, 'f', 2) },
-        { "World Y",       QString::number(m.worldPosY, 'f', 2) },
-        { "Scale X",       QString::number(m.scaleX,    'f', 3) },
-        { "Scale Y",       QString::number(m.scaleY,    'f', 3) },
-    };
-    if (!m.controllerName.isEmpty()) {
-        rows.append({ "Controller", m.controllerName });
-        if (m.controllerPort > 0)
-            rows.append({ "Port", QString::number(m.controllerPort) });
-    }
-    setProps(rows);
+    if (_props) _props->showModel(name);
 }
 
 void LayoutWindow::buildGroupProps(const QString& name) {
-    const QtModelGroupInfo& g = _data.groups.value(name);
-    if (g.name.isEmpty()) { clearProps(); return; }
-
-    setProps({
-        { "Name",     g.name },
-        { "Layout",   g.layout },
-        { "Members",  QString::number(g.modelNames.size()) },
-        { "Buffer W", QString::number(g.bufferW) },
-        { "Buffer H", QString::number(g.bufferH) },
-        { "Bounds X", QString("%1 – %2").arg(g.minX, 0, 'f', 1).arg(g.maxX, 0, 'f', 1) },
-        { "Bounds Y", QString("%1 – %2").arg(g.minY, 0, 'f', 1).arg(g.maxY, 0, 'f', 1) },
-        { "Models",   g.modelNames.join(", ") },
-    });
+    if (_props) _props->showGroup(name);
 }
 
 void LayoutWindow::buildControllerProps(const QString& name) {
-    for (const QtControllerInfo& c : _data.controllers) {
-        if (c.name != name) continue;
-        QList<QPair<QString,QString>> rows = {
-            { "Name",          c.name },
-            { "Type",          c.type },
-            { "IP / Port",     c.ip },
-            { "Protocol",      c.protocol },
-            { "Start Channel", QString::number(c.startChannel) },
-            { "Channels",      QString::number(c.channelCount) },
-        };
-        if (c.pixelPortCount > 0)
-            rows.append({ "Pixel Ports", QString::number(c.pixelPortCount) });
-        if (c.serialPortCount > 0)
-            rows.append({ "Serial Ports", QString::number(c.serialPortCount) });
-        setProps(rows);
-        return;
-    }
-    clearProps();
+    if (_props) _props->showController(name);
 }

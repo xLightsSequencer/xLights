@@ -233,6 +233,95 @@ Qt 6 on Windows — Qt dropped bundled ANGLE after Qt 5.
 - **Prerequisite**: keep Phase 18a–18c on QPainter first; migrate to GPU only if
   frame rate demands it
 
+### Phase 19 — Model property panel parity (in progress)
+
+**Goal:** replace the small read-only `QTableWidget` in
+`src-ui-qt/Layout/LayoutWindow.cpp` with a Qt equivalent of wx's
+`wxPropertyGrid` model panel. Editable, all settings visible,
+per-model-type properties, popup dialogs.
+
+**Why:** the current Qt model panel shows ~10 fields
+(Name/Type/Nodes/Buffer/StartChannel/World/Scale/Controller/Port).
+The wx adapter (`src-ui-wx/modelproperties/ModelPropertyAdapter.cpp`,
+1702 lines) plus ~25 per-type adapters
+(`src-ui-wx/modelproperties/adapters/`) expose hundreds of fields
+with categories, controller-connection sub-tree, and dialogs
+(sub-models / faces / states / dimming / aliases).
+
+**Widget approach:** `QTreeWidget` + item delegates (no third-party
+deps). Categories are bold top-level items; rows are
+`Property | Value`. Data pulled from `Model*` via
+`QtRenderBridge::modelManager()` — NOT from the slim `QtModelInfo`
+snapshot in `QtSequenceDoc.h`.
+
+#### Phase 19a — Foundation + common props ✓
+- `src-ui-qt/Layout/LayoutPropertyTree.{h,cpp}` (renamed from
+  `ModelPropertyTree` once it grew group + controller support).
+- Categories implemented (read-only):
+  Identity, Sizing & Channels, Layout, Appearance,
+  String Properties, Controller Connection (basic),
+  Sub-Models / Faces / States counts.
+- Wired into `LayoutWindow`; the flat `QTableWidget` and
+  `QStackedWidget` have been removed — one tree serves all
+  three tabs.
+- Added to `CMakeLists.txt` `XL_QT_SOURCES`.
+
+#### Phase 19a' — Group + Controller property trees ✓
+- `LayoutPropertyTree::showGroup(name)` adds categories:
+  Model Group, Render Buffer, Bounds, Appearance, Members.
+  Reads `ModelGroup::ModelNames/GetLayout/GetCentreX/Y/Min/Max/`
+  `GetDefaultBufferWi/Ht/GetDefaultCamera/GetTagColour`.
+- `LayoutPropertyTree::showController(name)` adds categories:
+  controller-type header, Connection, Output Range, Capabilities
+  (when `ControllerCaps` available), Outputs (per-output universe).
+  Reads `Controller::GetName/Type/Description/Vendor/Model/`
+  `Variant/Active/IsAutoLayout/Size/Upload/GetProtocol/`
+  `GetStartChannel/EndChannel/Channels/GetUniverseString/`
+  `GetOutputs`. ControllerEthernet adds IP / FPP Proxy / Priority;
+  ControllerSerial adds Port / Speed.
+
+#### Phase 19b — Controller Connection sub-tree
+Mirror `ModelPropertyAdapter::AddControllerProperties`:
+Port, Protocol, Smart Remote chain (type / cascade / on-port),
+Brightness, Gamma, Color Order, Direction, Group Count, Zig Zag,
+Start/End Null Pixels, Smart Ts. Gate each field by
+`ControllerCaps` support (`SupportsPixelPortBrightness()` etc.).
+
+#### Phase 19c — Per-model-type properties
+25 type adapters from `src-ui-wx/modelproperties/adapters/`:
+Matrix, Tree (CandyCane is here), Arches, Cube, Custom,
+Channel Block, Circle, Icicles, Spinner, Star, Wreath,
+Window Frame, Polyline, Singleline, Submodel, all DMX*
+(Floodlight, General, MovingHead, MovingHeadAdv, Servo, Servo3d,
+Skull), plus 3D objects (Mesh, Image, Terrain, Ruler, Gridlines).
+Dispatch by `m->GetDisplayAs()`.
+
+#### Phase 19d — Popup dialogs
+Sub-Models / Faces / States are already covered by the existing
+`ModelEditDialog` (Phase 12). Reuse it — do **not** split into
+three separate dialogs. The property-tree rows for "Sub-Models",
+"Faces", "States" all open `ModelEditDialog` on the appropriate
+tab (`ModelEditDialog::openForModel(name, _data, tab)`).
+
+New dialogs still to implement (no existing Qt equivalent):
+`ModelDimmingCurveDialog`, `EditAliasesDialog`,
+`StrandNodeNamesDialog`, `StartChannelDialog`,
+`ModelChainDialog`. Triggered from a "…" button in the value
+cell (handled by the editing delegate).
+
+#### Phase 19e (last) — Editing wiring
+Done **last**, once every row is populating read-only across all
+three left-tab selections (model, group, controller) and every
+model type. `QStyledItemDelegate` produces per-row editors keyed
+off a "kind" enum stored in `Qt::UserRole`: int spin / double
+spin / line edit / combo / color picker / bool check. On commit:
+call the appropriate `Model` / `ModelGroup` / `Controller` setter →
+persist via `ModelManager` save to `xlights_rgbeffects.xml` →
+refresh canvas / preview.
+
+Undo: integrate with whatever undo stack the Qt UI ends up
+adopting (currently none — open question).
+
 ## Out of Scope
 
 xSchedule (separate app), full xlGraphicsContext parity (OpenGL shader library).
