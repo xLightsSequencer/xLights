@@ -284,6 +284,7 @@ public:
                 std::string duplicateIncludeSourceModel;
                 for (int lyr = 0; lyr < (int)rowToRender->GetEffectLayerCount() && duplicateIncludeSourceModel.empty(); ++lyr) {
                     EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
+                    std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
                     for (int e = 0; e < elyr->GetEffectCount(); ++e) {
                         Effect* eff = elyr->GetEffect(e);
                         if (eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
@@ -595,11 +596,11 @@ public:
         return frame - (ef->GetStartTimeMS() / frameTime);
     }
 
-    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, Effect* inheritedDuplicate = nullptr) {
+    bool ProcessFrame(int frame, Element *el, EffectLayerInfo &info, PixelBufferClass *buffer, int strand = -1, bool blend = false, const std::string& inheritedDuplicateSourceModel = std::string()) {
         bool effectsToUpdate = false;
         Effect* tempEffect = nullptr;
         int numLayers = el->GetEffectLayerCount();
-        const int effectiveNumLayers = (inheritedDuplicate != nullptr) ? info.numLayers - 1 : numLayers;
+        const int effectiveNumLayers = !inheritedDuplicateSourceModel.empty() ? info.numLayers - 1 : numLayers;
 
         std::vector<bool> partOfCanvas;
         partOfCanvas.resize(info.validLayers.size());
@@ -616,7 +617,10 @@ public:
             if (elayer != nullptr) {
                 elayerLock = std::unique_lock<std::recursive_mutex>(elayer->GetLock());
             }
-            Effect* ef = elayer ? findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]) : nullptr;
+            Effect* ef = nullptr;
+            if (elayer != nullptr) {
+                ef = findEffectForFrame(elayer, frame, info.currentEffectIdxs[layer]);
+            }
             Effect* copy = nullptr;
 
             if (ef != nullptr && ef->GetEffectIndex() == EffectManager::eff_DUPLICATE) {
@@ -670,9 +674,9 @@ public:
                         }
                     }
                 }
-            } else if (inheritedDuplicate != nullptr) {
+            } else if (!inheritedDuplicateSourceModel.empty()) {
                 if (auto* sme = dynamic_cast<SubModelElement*>(el)) {
-                    const std::string srcSubmodel = inheritedDuplicate->GetSetting("E_CHOICE_Duplicate_Model") + "/" + sme->GetName();
+                    const std::string srcSubmodel = inheritedDuplicateSourceModel + "/" + sme->GetName();
                     Effect* srcEf = findEffectForFrame(srcSubmodel, layer + 1, frame);
                     if (srcEf != nullptr && srcEf->GetEffectIndex() != EffectManager::eff_DUPLICATE) {
                         copy = srcEf;
@@ -945,15 +949,15 @@ public:
                 if (!subModelInfos.empty()) {
                     maybeWaitForFrame(frame);
 
-                    Effect* inheritedDuplicate = nullptr;
-                    for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicate == nullptr; ++lyr) {
+                    std::string inheritedDuplicateSourceModel;
+                    for (int lyr = 0; lyr < rowToRender->GetEffectLayerCount() && inheritedDuplicateSourceModel.empty(); ++lyr) {
                         EffectLayer* elyr = rowToRender->GetEffectLayer(lyr);
                         std::unique_lock<std::recursive_mutex> elyrLock(elyr->GetLock());
                         int discard = 0;
                         Effect* eff = findEffectForFrame(elyr, frame, discard);
                         if (eff != nullptr && eff->GetEffectIndex() == EffectManager::eff_DUPLICATE &&
                             eff->GetSetting("E_CHECKBOX_Duplicate_Include_Submodels") == "1") {
-                            inheritedDuplicate = eff;
+                            inheritedDuplicateSourceModel = eff->GetSetting("E_CHOICE_Duplicate_Model");
                         }
                     }
 
@@ -963,7 +967,7 @@ public:
                             break;
                         }
                         EffectLayerInfo *info = a;
-                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicate);
+                        ProcessFrame(frame, info->element, *info, info->buffer.get(), info->strand, supportsModelBlending ? true : cleared, inheritedDuplicateSourceModel);
                     }
                 }
 
