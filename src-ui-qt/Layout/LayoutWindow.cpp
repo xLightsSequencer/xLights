@@ -206,6 +206,10 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     });
     connect(_canvas, &ModelLayoutCanvas::modelClicked,
             this, &LayoutWindow::onCanvasModelClicked);
+    connect(_canvas, &ModelLayoutCanvas::placementClicked,
+            this, &LayoutWindow::onPlacementClicked);
+    connect(_canvas, &ModelLayoutCanvas::placementCancelled,
+            this, &LayoutWindow::onPlacementCancelled);
 
     // Property-tree → ModelEditDialog: open the right tab when the user
     // double-clicks the Sub-Models / Faces / States rows.
@@ -430,27 +434,55 @@ void LayoutWindow::onAddModel() {
         return;
     }
 
-    Model* m = mm->CreateDefaultModel(dlg.typeName().toStdString(),
-                                      dlg.startChannel().toStdString());
+    // Defer creation until the user clicks on the canvas so the new model
+    // lands where they want it (Phase 20f).  Escape cancels.
+    _pendingModel.active       = true;
+    _pendingModel.type         = dlg.typeName();
+    _pendingModel.name         = name;
+    _pendingModel.layoutGroup  = dlg.layoutGroup();
+    _pendingModel.startChannel = dlg.startChannel();
+    _canvas->setPlacementMode(true);
+    setWindowTitle("Layout — click to place '" + name + "'  (Esc cancels)");
+}
+
+void LayoutWindow::onPlacementClicked(double wx, double wy) {
+    if (!_pendingModel.active) return;
+    PendingModel p = _pendingModel;
+    _pendingModel = {};                     // consume — single-shot
+    setWindowTitle("Layout");
+
+    ModelManager* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) return;
+
+    Model* m = mm->CreateDefaultModel(p.type.toStdString(),
+                                      p.startChannel.toStdString());
     if (!m) {
         QMessageBox::warning(this, "Add Model",
-                             "src-core couldn't create a default '" + dlg.typeName() + "' model.");
+                             "src-core couldn't create a default '" + p.type + "' model.");
         return;
     }
-    m->Rename(name.toStdString());
-    if (!dlg.layoutGroup().isEmpty())
-        m->SetLayoutGroup(dlg.layoutGroup().toStdString());
+    m->Rename(p.name.toStdString());
+    if (!p.layoutGroup.isEmpty())
+        m->SetLayoutGroup(p.layoutGroup.toStdString());
+    // Position the new model at the click point.  Z stays at the default 0.
+    m->GetModelScreenLocation().SetWorldPos(
+        static_cast<float>(wx), static_cast<float>(wy), 0.0f);
     mm->AddModel(m);
 
-    if (_bridge) _bridge->saveModelToShowFile(name);
+    if (_bridge) _bridge->saveModelToShowFile(p.name);
     rebuildModelLists();
     _tabs->setCurrentIndex(0);
-    const auto matches = _modelList->findItems(name, Qt::MatchExactly);
+    const auto matches = _modelList->findItems(p.name, Qt::MatchExactly);
     if (!matches.isEmpty()) {
         _modelList->setCurrentItem(matches.first());
         _modelList->scrollToItem(matches.first());
     }
-    buildModelProps(name);
+    buildModelProps(p.name);
+}
+
+void LayoutWindow::onPlacementCancelled() {
+    _pendingModel = {};
+    setWindowTitle("Layout");
 }
 
 void LayoutWindow::onAddGroup() {

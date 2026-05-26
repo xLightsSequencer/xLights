@@ -46,6 +46,12 @@ private slots:
     void onDeleteGroup();
     void onDeleteController();
 
+    // Phase 20f — finalise an in-progress click-to-drop placement at the
+    // canvas click point (world-space coords).  Reads _pendingModel for the
+    // dialog values that were captured when the user accepted Add Model.
+    void onPlacementClicked(double wx, double wy);
+    void onPlacementCancelled();
+
 private:
     void buildModelProps(const QString& name);
     void buildGroupProps(const QString& name);
@@ -75,4 +81,15 @@ private:
     // Effective sequence data — either the live sequence or the show-file fallback.
     // All property lookups use this instead of currentSequence() directly.
     QtSequenceInfo      _data;
+
+    // Phase 20f — dialog values captured by onAddModel, waiting for the user
+    // to click on the canvas to place the model.  active=false when no
+    // placement is in flight.
+    struct PendingModel {
+        bool    active = false;
+        QString type;
+        QString name;
+        QString layoutGroup;
+        QString startChannel;
+    } _pendingModel;
 };

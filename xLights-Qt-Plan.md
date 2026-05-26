@@ -430,7 +430,7 @@ CandyCanes, all DMX*, etc.).
 Undo: integrate with whatever undo stack the Qt UI ends up
 adopting (currently none — open question).
 
-### Phase 20 — Add / delete entities (models, groups, controllers) ✓ (20a–20e + 20g)
+### Phase 20 — Add / delete entities (models, groups, controllers) ✓
 
 **Goal:** let the user create new models, model groups, and
 controllers from inside the Qt Layout window, and delete existing
@@ -561,16 +561,30 @@ output free, etc. — stays consistent):
 Delete confirmation: standard `QMessageBox::question` with the
 entity name, defaulting to No.
 
-#### Phase 20f — Interactive placement (deferred)
+#### Phase 20f — Interactive placement ✓
 
-In wx, dropping a new model places it at the click point in the
-layout canvas. The Qt `ModelLayoutCanvas` supports
-`modelClicked` but not "drop a new model here" yet. After
-Phase 20b–20e land we can wire a mode where the Add Model dialog
-sets a pending type, then the next canvas click places the model
-there (rather than at canvas centre).
+`ModelLayoutCanvas::setPlacementMode(bool)` switches the canvas
+into a click-to-drop mode: cursor becomes a crosshair, the next
+mouse click emits `placementClicked(wx, wy)` in world-space
+coords (instead of the usual `modelClicked`), and mode auto-
+exits. Escape fires `placementCancelled`.
 
-Defer until 20a–20e prove out.
+`LayoutWindow::onAddModel` no longer creates the model up-front
+— it stashes the dialog's values in a `PendingModel` struct,
+enters placement mode, and sets the window title to a hint
+("Layout — click to place '<Name>' (Esc cancels)").
+
+`onPlacementClicked(wx, wy)` does the actual creation:
+`CreateDefaultModel` → `Rename` → `SetLayoutGroup` →
+`GetModelScreenLocation().SetWorldPos(wx, wy, 0)` → `AddModel` →
+`saveModelToShowFile` → refresh + select.
+
+`onPlacementCancelled` discards the pending struct and restores
+the title.
+
+Only models use placement mode today; groups have no geometry of
+their own (they aggregate their members) and controllers aren't
+on the canvas, so neither flow enters placement.
 
 #### Phase 20g — Persistence (already mostly free)
 

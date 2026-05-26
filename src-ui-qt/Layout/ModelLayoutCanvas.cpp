@@ -6,6 +6,7 @@
 #include "../../src-core/models/ModelScreenLocation.h"
 #include "../../src-core/models/Node.h"
 
+#include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QtMath>
@@ -440,8 +441,47 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
 
 // ── Mouse ─────────────────────────────────────────────────────────────────────
 
+void ModelLayoutCanvas::setPlacementMode(bool on) {
+    if (_placementMode == on) return;
+    _placementMode = on;
+    if (on) {
+        setCursor(Qt::CrossCursor);
+        // Capture keyboard so Escape lands here while the user is in
+        // placement mode (the canvas isn't otherwise focusable by default).
+        setFocus(Qt::OtherFocusReason);
+        setFocusPolicy(Qt::StrongFocus);
+    } else {
+        unsetCursor();
+    }
+}
+
+void ModelLayoutCanvas::keyPressEvent(QKeyEvent* ev) {
+    if (_placementMode && ev->key() == Qt::Key_Escape) {
+        setPlacementMode(false);
+        emit placementCancelled();
+        ev->accept();
+        return;
+    }
+    QWidget::keyPressEvent(ev);
+}
+
 void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
     const QPointF click = ev->position();
+
+    // Placement mode (phase 20f) — first click reports the world position
+    // and exits placement mode.  Only meaningful in rect mode (LayoutWindow);
+    // dot mode (HousePreviewWidget) is read-only.
+    if (_placementMode && _rectMode) {
+        const double rangeX = _maxX - _minX;
+        const double rangeY = _maxY - _minY;
+        if (rangeX > 0 && rangeY > 0) {
+            const double wx = _minX + click.x() / qMax(1, width())  * rangeX;
+            const double wy = _minY + (1.0 - click.y() / qMax(1, height())) * rangeY;
+            setPlacementMode(false);
+            emit placementClicked(wx, wy);
+        }
+        return;
+    }
 
     if (_rectMode) {
         const double rangeX = _maxX - _minX;

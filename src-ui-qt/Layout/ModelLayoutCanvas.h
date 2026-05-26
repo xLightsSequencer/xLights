@@ -39,8 +39,25 @@ public:
     void setSelectedModel(const QString& modelName);
     void clearSelection();
 
+    // Placement mode (phase 20f).  While true, the next mouse click does NOT
+    // emit modelClicked — it emits placementClicked with the world-space
+    // coordinates of the click, then auto-exits placement mode.  Cursor
+    // switches to a crosshair while waiting.  Escape cancels.
+    void setPlacementMode(bool on);
+    bool isPlacementMode() const { return _placementMode; }
+
 signals:
     void modelClicked(const QString& modelName);
+
+    // Fired once when the user clicks the canvas while in placement mode.
+    // wx/wy are in the canvas's world-space coordinates (same space that
+    // ModelScreenLocation::SetWorldPos uses).
+    void placementClicked(double wx, double wy);
+
+    // Fired when the user cancels placement mode (Escape, or the caller
+    // explicitly turns it off).  Allows LayoutWindow to discard a pending
+    // placement and clean up.
+    void placementCancelled();
 
 protected:
     // Dot-mode model data (used by HousePreviewWidget for live colors).
@@ -71,6 +88,7 @@ protected:
 
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
+    void keyPressEvent(QKeyEvent*) override;
 
 private:
     // Dot mode
@@ -89,6 +107,9 @@ private:
     QString     _highlightGroup;
     QStringList _highlightMembers;
     QString     _selectedModel;
+
+    // Placement mode (phase 20f).
+    bool        _placementMode = false;
 
     void recomputeBounds();
     void paintRects(QPainter& p);
