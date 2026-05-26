@@ -125,6 +125,7 @@ class VendorModelDialog: public wxDialog
 		wxStaticText* StaticText2;
 		wxStaticText* StaticText5;
 		wxStaticText* StaticText6;
+		wxStaticText* StaticText_Disclaimer;
 		wxTextCtrl* TextCtrl_ModelDetails;
 		wxTextCtrl* TextCtrl_VendorDetails;
 		wxTreeCtrl* TreeCtrl_Navigator;
