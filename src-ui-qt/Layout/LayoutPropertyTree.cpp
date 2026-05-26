@@ -10,11 +10,25 @@
 #include "../../src-core/models/CandyCaneModel.h"
 #include "../../src-core/models/CubeModel.h"
 #include "../../src-core/models/MatrixModel.h"
+#include "../../src-core/models/ChannelBlockModel.h"
+#include "../../src-core/models/CircleModel.h"
+#include "../../src-core/models/CustomModel.h"
+#include "../../src-core/models/IciclesModel.h"
+#include "../../src-core/models/MultiPointModel.h"
 #include "../../src-core/models/PolyLineModel.h"
+#include "../../src-core/models/SingleLineModel.h"
+#include "../../src-core/models/SphereModel.h"
 #include "../../src-core/models/SpinnerModel.h"
 #include "../../src-core/models/StarModel.h"
 #include "../../src-core/models/TreeModel.h"
 #include "../../src-core/models/WindowFrameModel.h"
+#include "../../src-core/models/WreathModel.h"
+#include "../../src-core/models/DMX/DmxModel.h"
+#include "../../src-core/models/DMX/DmxServo.h"
+#include "../../src-core/models/DMX/DmxSkull.h"
+#include "../../src-core/models/DMX/DmxColorAbility.h"
+#include "../../src-core/models/ImageModel.h"
+#include "../../src-core/models/LabelModel.h"
 #include "../../src-core/outputs/Controller.h"
 #include "../../src-core/outputs/ControllerEthernet.h"
 #include "../../src-core/outputs/ControllerSerial.h"
@@ -725,6 +739,25 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
 void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     const DisplayAsType t = m->GetDisplayAs();
 
+    // Sphere is a MatrixModel subclass so it has to be checked first.
+    if (auto* sphere = dynamic_cast<SphereModel*>(m)) {
+        auto* cat = addCategory("Sphere");
+        addRow(cat, "Start Latitude",  QString::number(sphere->GetStartLatitude()));
+        addRow(cat, "End Latitude",    QString::number(sphere->GetEndLatitude()));
+        addRow(cat, "Sphere Degrees",  QString::number(sphere->GetSphereDegrees()));
+        // Sphere also inherits the Matrix # Strings / Nodes-per-String /
+        // Strands-per-String / Alternate Nodes / Don't Zig Zag knobs.
+        addEditableRow(cat, "# Strings",
+                       QString::number(sphere->GetNumPhysicalStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, sphere->IsSingleNode() ? "Lights/String" : "Nodes/String",
+               QString::number(sphere->GetNodesPerString()));
+        addRow(cat, "Strands/String",  QString::number(sphere->GetStrandsPerString()));
+        addRow(cat, "Alternate Nodes", sphere->HasAlternateNodes() ? "yes" : "no");
+        addRow(cat, "Don't Zig Zag",   sphere->IsNoZigZag() ? "yes" : "no");
+        return;
+    }
+
     if (auto* matrix = dynamic_cast<MatrixModel*>(m)) {
         auto* cat = addCategory("Matrix");
         addRow(cat, "Direction",        matrix->isVerticalMatrix() ? "Vertical" : "Horizontal");
@@ -842,11 +875,152 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    // Less-common types (Custom, Circle, Icicles, Wreath, ChannelBlock,
-    // SingleLine, MultiPoint, Sphere, all DMX*, view objects) still need
-    // type-specific rows here — each via its subclass's typed getters
-    // (never via the legacy "parm1"/"parm2"/"parm3" XML attributes).
-    // TODO: expand as each subclass exposes the getters we need.
+    if (auto* circle = dynamic_cast<CircleModel*>(m)) {
+        auto* cat = addCategory("Circle");
+        addEditableRow(cat, "# Strings",
+                       QString::number(circle->GetNumCircleStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, circle->IsSingleNode() ? "Lights/String" : "Nodes/String",
+               QString::number(circle->GetNodesPerString()));
+        addRow(cat, "Center %",     QString::number(circle->GetCenterPercent()));
+        addRow(cat, "Inside Out",   circle->IsInsideOut() ? "yes" : "no");
+        addRow(cat, "Layers",       QString::number(circle->GetLayerSizeCount()));
+        return;
+    }
+
+    if (auto* icicles = dynamic_cast<IciclesModel*>(m)) {
+        auto* cat = addCategory("Icicles");
+        addEditableRow(cat, "# Strings",
+                       QString::number(icicles->GetNumIcicleStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, "Lights/String", QString::number(icicles->GetLightsPerString()));
+        addRow(cat, "Drop Pattern",  qstr(icicles->GetDropPattern()));
+        addRow(cat, "Alternate Nodes", icicles->HasAlternateNodes() ? "yes" : "no");
+        return;
+    }
+
+    if (auto* wreath = dynamic_cast<WreathModel*>(m)) {
+        auto* cat = addCategory("Wreath");
+        addEditableRow(cat, "# Strings",
+                       QString::number(wreath->GetNumWreathStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, "Nodes/String", QString::number(wreath->GetNodesPerString()));
+        return;
+    }
+
+    if (auto* cb = dynamic_cast<ChannelBlockModel*>(m)) {
+        auto* cat = addCategory("Channel Block");
+        addEditableRow(cat, "# Channels",
+                       QString::number(cb->GetNumChannels()),
+                       Kind::Int, "NumStrings");
+        const auto& colors = cb->GetChannelColors();
+        addRow(cat, "Color Slots", QString::number(colors.size()));
+        for (int i = 0; i < (int)colors.size() && i < 24; ++i) {
+            const QString hex = qstr(colors[i]);
+            auto* row = addRow(cat, QString("  Channel %1").arg(i + 1), hex);
+            QColor c(hex);
+            if (c.isValid()) row->setBackground(1, c);
+        }
+        return;
+    }
+
+    if (auto* custom = dynamic_cast<CustomModel*>(m)) {
+        auto* cat = addCategory("Custom");
+        addRow(cat, "Width",   QString::number(custom->GetCustomWidth()));
+        addRow(cat, "Height",  QString::number(custom->GetCustomHeight()));
+        addRow(cat, "Depth",   QString::number(custom->GetCustomDepth()));
+        addRow(cat, "# Strings",       QString::number(custom->GetNumStrings()));
+        addRow(cat, "Background",      qstr(custom->GetCustomBackground()));
+        addRow(cat, "Lightness",       QString::number(custom->GetCustomLightness()));
+        addRow(cat, "Bkg Scale",       QString::number(custom->GetCustomBkgScale()));
+        addRow(cat, "Bkg Brightness",  QString::number(custom->GetCustomBkgBrightness()));
+        addRow(cat, "All Nodes Unique", custom->IsAllNodesUnique() ? "yes" : "no");
+        return;
+    }
+
+    if (auto* sl = dynamic_cast<SingleLineModel*>(m)) {
+        auto* cat = addCategory("Single Line");
+        addRow(cat, "# Lines",        QString::number(sl->GetNumLines()));
+        addRow(cat, "Nodes/Line",     QString::number(sl->GetNodesPerString()));
+        addRow(cat, "Lights/Node",    QString::number(sl->GetLightsPerNode()));
+        return;
+    }
+
+    if (auto* mp = dynamic_cast<MultiPointModel*>(m)) {
+        auto* cat = addCategory("Multi Point");
+        addRow(cat, "# Strings",      QString::number(mp->GetNumStrings()));
+        addRow(cat, "# Points",       QString::number(mp->GetNumPoints()));
+        addRow(cat, "Model Height",   QString::number(mp->GetModelHeight(), 'f', 2));
+        return;
+    }
+
+    if (auto* img = dynamic_cast<ImageModel*>(m)) {
+        auto* cat = addCategory("Image");
+        addRow(cat, "Image File",       qstr(img->GetImageFile()));
+        addRow(cat, "White As Alpha",   img->IsWhiteAsAlpha() ? "yes" : "no");
+        addRow(cat, "Off Brightness",   QString::number(img->GetOffBrightness()));
+        return;
+    }
+
+    if (auto* lbl = dynamic_cast<LabelModel*>(m)) {
+        auto* cat = addCategory("Label");
+        addRow(cat, "Text",       qstr(lbl->GetLabelText()));
+        addRow(cat, "Font Size",  QString::number(lbl->GetLabelFontSize()));
+        const xlColor c = lbl->GetLabelTextColor();
+        auto* row = addRow(cat, "Text Color", hexColor(c));
+        row->setBackground(1, QBrush(QColor(c.red, c.green, c.blue)));
+        return;
+    }
+
+    // ── DMX models ────────────────────────────────────────────────────────
+    // Subclasses with their own typed getters get their own section; every
+    // DMX model also gets the shared DmxModel base section (channel count
+    // + which DmxAbility components are configured).  Sub-section first so
+    // it appears above the base.
+    if (auto* servo = dynamic_cast<DmxServo*>(m)) {
+        auto* cat = addCategory("DMX Servo");
+        addRow(cat, "# Servos",     QString::number(servo->GetNumServos()));
+        addRow(cat, "16-bit",       servo->Is16Bit() ? "yes" : "no");
+        addRow(cat, "Brightness",   QString::number(servo->GetBrightness(), 'f', 2));
+        addRow(cat, "Transparency", QString::number(servo->GetTransparency()));
+    } else if (auto* skull = dynamic_cast<DmxSkull*>(m)) {
+        auto* cat = addCategory("DMX Skull");
+        addRow(cat, "16-bit",     skull->Is16Bit()    ? "yes" : "no");
+        addRow(cat, "Mesh Only",  skull->IsMeshOnly() ? "yes" : "no");
+        addRow(cat, "Has Jaw",    skull->HasJaw()     ? "yes" : "no");
+        addRow(cat, "Has Pan",    skull->HasPan()     ? "yes" : "no");
+        addRow(cat, "Has Tilt",   skull->HasTilt()    ? "yes" : "no");
+        addRow(cat, "Has Nod",    skull->HasNod()     ? "yes" : "no");
+        addRow(cat, "Has Eye LR", skull->HasEyeLR()   ? "yes" : "no");
+        addRow(cat, "Has Eye UD", skull->HasEyeUD()   ? "yes" : "no");
+        addRow(cat, "Has Color",  skull->HasColor()   ? "yes" : "no");
+        if (skull->HasJaw())    addRow(cat, "Jaw Orient",    QString::number(skull->GetJawOrient()));
+        if (skull->HasPan())    addRow(cat, "Pan Orient",    QString::number(skull->GetPanOrient()));
+        if (skull->HasTilt())   addRow(cat, "Tilt Orient",   QString::number(skull->GetTiltOrient()));
+        if (skull->HasNod())    addRow(cat, "Nod Orient",    QString::number(skull->GetNodOrient()));
+        if (skull->HasEyeUD())  addRow(cat, "Eye UD Orient", QString::number(skull->GetEyeUDOrient()));
+        if (skull->HasEyeLR())  addRow(cat, "Eye LR Orient", QString::number(skull->GetEyeLROrient()));
+    }
+
+    if (auto* dmx = dynamic_cast<DmxModel*>(m)) {
+        auto* cat = addCategory(qstr(DisplayAsTypeToString(t)));
+        addEditableRow(cat, "DMX Channels",
+                       QString::number(dmx->GetDmxChannelCount()),
+                       Kind::Int, "NumStrings");
+        if (dmx->HasColorAbility()) {
+            const std::string type = dmx->GetColorAbility()
+                                       ? dmx->GetColorAbility()->GetTypeName() : "";
+            addRow(cat, "Color Ability", type.empty() ? "yes" : qstr(type));
+        }
+        if (dmx->HasPresetAbility())  addRow(cat, "Preset Ability",  "yes");
+        if (dmx->HasShutterAbility()) addRow(cat, "Shutter Ability", "yes");
+        if (dmx->HasDimmerAbility())  addRow(cat, "Dimmer Ability",  "yes");
+        return;
+    }
+
+    // View objects (Mesh / Image / Terrain / Ruler / Gridlines / Label)
+    // and any remaining model classes still need per-type rows.
+    // TODO: expand as each subclass exposes typed getters.
 }
 
 void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
