@@ -109,6 +109,20 @@ LayoutWindow::LayoutWindow(QWidget* parent)
             case 2: onDeleteController(); break;
         }
     });
+    // Ctrl+A — select all rows in the active tab's list.  The list's own
+    // itemSelectionChanged signal then mirrors the selection to the canvas
+    // (for Models) via the connection wired below.  Inert on Groups /
+    // Controllers tabs whose lists stay in SingleSelection mode.
+    auto* selectAllShortcut = new QShortcut(QKeySequence::SelectAll, this);
+    connect(selectAllShortcut, &QShortcut::activated, this, [this]() {
+        QListWidget* list = nullptr;
+        switch (_tabs->currentIndex()) {
+            case 0: list = _modelList;      break;
+            case 1: list = _groupList;      break;
+            case 2: list = _controllerList; break;
+        }
+        if (list) list->selectAll();
+    });
 
     // Single property tree for all three tabs.  Population branches on the
     // selected item type (model / group / controller); see show* methods.
