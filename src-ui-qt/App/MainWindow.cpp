@@ -210,6 +210,17 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
         _controllerUploadDlg->openForController(name, _renderBridge);
     });
 
+    // After an in-place layout edit (add / delete / drag / property change)
+    // reload the cached QtSequenceInfo from disk and push the new layout
+    // into the HousePreviewWidget.  HousePreview's dot mode comes from the
+    // cached snapshot, not the live ModelManager, so it'd stay stale
+    // otherwise.
+    connect(_layoutWin, &LayoutWindow::layoutChanged, this, [this]() {
+        QtXLightsApp::instance().reloadSequenceModels();
+        if (_housePreview)
+            _housePreview->loadLayout(QtXLightsApp::instance().currentSequence());
+    });
+
     // If a show folder was restored from settings, load the layout immediately
     // so the layout window is populated before any sequence is opened.
     if (!QtXLightsApp::instance().showFolder().isEmpty()) {

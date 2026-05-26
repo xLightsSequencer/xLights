@@ -76,6 +76,10 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     QWidget* groupsTab      = makeTabWidget(_groupList,      &groupAdd, &groupDel);
     QWidget* controllersTab = makeTabWidget(_controllerList, &ctrlAdd,  &ctrlDel);
 
+    // Model list supports multi-select (Ctrl/Shift+click) — kept in sync
+    // with the canvas's selection set so users can drag from either side.
+    _modelList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
     _tabs = new QTabWidget;
     _tabs->addTab(modelsTab,      "Models");
     _tabs->addTab(groupsTab,      "Groups");
@@ -211,18 +215,51 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     connect(_canvas, &ModelLayoutCanvas::placementCancelled,
             this, &LayoutWindow::onPlacementCancelled);
 
-    // Drag-to-move: ModelLayoutCanvas already mutated the model's world
-    // position during the drag; we just persist + refresh.  showModel
-    // refreshes the property tree to display the new World X / Y values.
-    connect(_canvas, &ModelLayoutCanvas::modelDragged,
-            this, [this](const QString& name) {
-        if (name.isEmpty()) return;
-        if (_bridge) _bridge->saveModelToShowFile(name);
-        if (_bridge && _bridge->modelManager())
+    // Drag-to-move: ModelLayoutCanvas already mutated the dragged model's
+    // world position; we just persist + refresh.  modelsDragged also fires
+    // for multi-drags — we use it for the multi-persist path and let the
+    // single-model modelDragged signal trigger nothing on its own.
+    connect(_canvas, &ModelLayoutCanvas::modelsDragged,
+            this, [this](const QStringList& names) {
+        if (names.isEmpty() || !_bridge) return;
+        for (const QString& n : names)
+            _bridge->saveModelToShowFile(n);
+        if (_bridge->modelManager())
             _canvas->loadLayoutFromManager(_bridge->modelManager());
-        // Keep the dragged model selected.
-        _canvas->setSelectedModel(name);
-        if (_props) _props->showModel(name);
+        // Restore the multi-selection that was active during the drag.
+        _canvas->setSelectedModels(names);
+        // Sync the model-list widget too.
+        _modelList->blockSignals(true);
+        for (int i = 0; i < _modelList->count(); ++i) {
+            auto* it = _modelList->item(i);
+            it->setSelected(names.contains(it->text()));
+        }
+        _modelList->blockSignals(false);
+        if (_props && !names.isEmpty()) _props->showModel(names.last());
+        emit layoutChanged();
+    });
+
+    // Canvas-driven selection (Ctrl/Shift+click on the canvas) → mirror in
+    // the model list widget.
+    connect(_canvas, &ModelLayoutCanvas::selectionChanged,
+            this, [this](const QStringList& names) {
+        if (_tabs->currentIndex() != 0) _tabs->setCurrentIndex(0);
+        _modelList->blockSignals(true);
+        for (int i = 0; i < _modelList->count(); ++i) {
+            auto* it = _modelList->item(i);
+            it->setSelected(names.contains(it->text()));
+        }
+        _modelList->blockSignals(false);
+        if (_props && !names.isEmpty()) _props->showModel(names.last());
+    });
+
+    // Model-list driven selection (Ctrl/Shift+click in the list) → mirror
+    // in the canvas.
+    connect(_modelList, &QListWidget::itemSelectionChanged, this, [this]() {
+        if (_tabs->currentIndex() != 0) return;
+        QStringList names;
+        for (auto* item : _modelList->selectedItems()) names << item->text();
+        _canvas->setSelectedModels(names);
     });
 
     // Property-tree → ModelEditDialog: open the right tab when the user
@@ -243,6 +280,7 @@ LayoutWindow::LayoutWindow(QWidget* parent)
         if (_bridge && _bridge->modelManager())
             _canvas->loadLayoutFromManager(_bridge->modelManager());
         _props->showModel(name);
+        emit layoutChanged();
     });
 
     // Group edits persist to xlights_rgbeffects.xml exactly like models
@@ -254,6 +292,7 @@ LayoutWindow::LayoutWindow(QWidget* parent)
         if (_bridge && _bridge->modelManager())
             _canvas->loadLayoutFromManager(_bridge->modelManager());
         _props->showGroup(name);
+        emit layoutChanged();
     });
 
     // Controller edits persist to xlights_networks.xml via OutputManager::Save.
@@ -276,6 +315,7 @@ LayoutWindow::LayoutWindow(QWidget* parent)
             }
         }
         _props->showController(name);
+        emit layoutChanged();
     });
 }
 
@@ -492,6 +532,7 @@ void LayoutWindow::onPlacementClicked(double wx, double wy) {
         _modelList->scrollToItem(matches.first());
     }
     buildModelProps(p.name);
+    emit layoutChanged();
 }
 
 void LayoutWindow::onPlacementCancelled() {
@@ -536,6 +577,7 @@ void LayoutWindow::onAddGroup() {
         _groupList->scrollToItem(matches.first());
     }
     buildGroupProps(name);
+    emit layoutChanged();
 }
 
 void LayoutWindow::onAddController() {
@@ -599,6 +641,7 @@ void LayoutWindow::onAddController() {
         _controllerList->scrollToItem(matches.first());
     }
     buildControllerProps(name);
+    emit layoutChanged();
 }
 
 void LayoutWindow::onDeleteModel() {
@@ -615,6 +658,7 @@ void LayoutWindow::onDeleteModel() {
     if (_bridge) _bridge->removeModelFromShowFile(name);
     rebuildModelLists();
     clearProps();
+    emit layoutChanged();
 }
 
 void LayoutWindow::onDeleteGroup() {
@@ -631,6 +675,7 @@ void LayoutWindow::onDeleteGroup() {
     if (_bridge) _bridge->removeModelFromShowFile(name);
     rebuildModelLists();
     clearProps();
+    emit layoutChanged();
 }
 
 void LayoutWindow::onDeleteController() {
@@ -649,4 +694,5 @@ void LayoutWindow::onDeleteController() {
     if (_bridge) _bridge->saveControllersToShowFile();
     rebuildControllerList();
     clearProps();
+    emit layoutChanged();
 }

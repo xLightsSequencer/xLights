@@ -154,6 +154,16 @@ void QtXLightsApp::setShowFolder(const QString& path) {
     }
 }
 
+void QtXLightsApp::reloadSequenceModels() {
+    if (!_sequence.isValid() || _showFolder.isEmpty()) return;
+    _sequence.models.clear();
+    _sequence.groups.clear();
+    QtSequenceDoc::loadModels(_showFolder + "/xlights_rgbeffects.xml", _sequence);
+    spdlog::info("QtXLightsApp: reloaded {} model defs after layout change",
+                 _sequence.models.size());
+    emit sequenceLoaded(_sequence);
+}
+
 // ── Sequence loading ──────────────────────────────────────────────────────────
 QtSequenceInfo QtXLightsApp::openSequence(const QString& path, SequencerModel* model) {
     _sequence = QtSequenceDoc::load(path, _showFolder);

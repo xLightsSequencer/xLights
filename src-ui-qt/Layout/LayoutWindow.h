@@ -32,6 +32,13 @@ signals:
     void visualizerRequested(const QString& controllerName);
     void uploadRequested(const QString& controllerName);
 
+    // Emitted after the layout has been mutated on disk
+    // (xlights_rgbeffects.xml or xlights_networks.xml).  MainWindow uses
+    // this to keep the HousePreviewWidget in sync — its data comes from
+    // QtXLightsApp's cached QtSequenceInfo, which is stale until we ask
+    // for a reload.
+    void layoutChanged();
+
 private slots:
     void onModelListClicked(QListWidgetItem* item);
     void onGroupListClicked(QListWidgetItem* item);

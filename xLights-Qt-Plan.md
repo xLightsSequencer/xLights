@@ -598,7 +598,38 @@ Existing paths cover the new flow:
 Only new code: `removeModelFromShowFile(name)` for deletes (see
 20e).
 
-### Phase 21 — Drag-to-move in the layout canvas ✓
+### Phase 21 — Drag-to-move + multi-select in the layout canvas ✓
+
+`ModelLayoutCanvas` rect-mode supports selection AND drag-to-move:
+
+**Selection.** Now a `QSet<QString>` (plus a "primary" name for the
+property panel). Plain click on a model replaces the selection;
+Ctrl/Shift+click toggles a model's membership; click on empty
+space clears.  Emits `selectionChanged(QStringList)` so
+`LayoutWindow` can sync the model-list widget (now in
+`ExtendedSelection` mode) — and the list back-syncs the canvas
+via `itemSelectionChanged`.
+
+**Drag.** On press over a selected model, captures the start
+world position for EVERY selected model in `_dragStarts`.  Move
+past a 3-pixel jitter threshold applies the same world-space
+delta (Y flipped) to all of them — group keeps its relative
+shape regardless of drag distance. Release with motion emits
+`modelDragged(anchor)` AND `modelsDragged(QStringList)`;
+`LayoutWindow` connects to the plural form to persist each model
+via `saveModelToShowFile` in one pass. Release without motion
+still emits `modelClicked` so press-release behaves as a select.
+
+### Phase 22 — HousePreviewWidget tracks layout edits ✓
+
+`QtXLightsApp::reloadSequenceModels()` re-parses
+`xlights_rgbeffects.xml` into the cached `_sequence` and emits
+`sequenceLoaded`.  `LayoutWindow::layoutChanged` is emitted from
+every persistence site (model/group/controller property edits,
+add/delete, drag).  `MainWindow` connects it to
+`reloadSequenceModels` + `HousePreviewWidget::loadLayout` so the
+house preview's dot-mode view stays in sync — previously its
+snapshot only refreshed when a sequence (re)loaded.
 
 `ModelLayoutCanvas` rect-mode now supports drag-to-move:
 

@@ -41,6 +41,12 @@ public:
 
     const QtSequenceInfo& currentSequence() const { return _sequence; }
 
+    // Re-parse xlights_rgbeffects.xml from the current show folder into
+    // _sequence.models/_sequence.groups.  Emits sequenceLoaded so listeners
+    // (HousePreviewWidget) pick up the new layout.  No-op if no sequence
+    // is loaded or the show folder is empty.
+    void reloadSequenceModels();
+
 signals:
     void initialized();
     void sequenceLoaded(const QtSequenceInfo& info);

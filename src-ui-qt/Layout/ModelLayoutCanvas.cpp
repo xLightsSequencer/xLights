@@ -110,11 +110,21 @@ void ModelLayoutCanvas::setGroupHighlight(const QString& groupName,
 
 void ModelLayoutCanvas::setSelectedModel(const QString& modelName) {
     _selectedModel = modelName;
+    _selectedModels.clear();
+    if (!modelName.isEmpty()) _selectedModels.insert(modelName);
+    update();
+}
+
+void ModelLayoutCanvas::setSelectedModels(const QStringList& modelNames) {
+    _selectedModels.clear();
+    for (const auto& n : modelNames) _selectedModels.insert(n);
+    _selectedModel = modelNames.isEmpty() ? QString() : modelNames.last();
     update();
 }
 
 void ModelLayoutCanvas::clearSelection() {
     _selectedModel.clear();
+    _selectedModels.clear();
     update();
 }
 
@@ -204,14 +214,14 @@ void ModelLayoutCanvas::paintEvent(QPaintEvent*) {
     _nodeR = float(qBound(1.0, pxPerU * 0.40, 6.0));
 
     const bool hasGroupHL  = !_highlightGroup.isEmpty();
-    const bool hasModelSel = !_selectedModel.isEmpty();
+    const bool hasModelSel = !_selectedModels.isEmpty();
 
     p.setPen(Qt::NoPen);
 
     for (const auto& d : _models) {
         const int    N       = d.info.globalPositions.size();
         const bool   inGroup = hasGroupHL && _highlightMembers.contains(d.info.name);
-        const bool   isSel   = hasModelSel && d.info.name == _selectedModel;
+        const bool   isSel   = _selectedModels.contains(d.info.name);
         double cx = 0, cy = 0;
 
         for (int i = 0; i < N; ++i) {
@@ -313,7 +323,7 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
     _nodeR = float(qBound(1.0, pxPerU * 0.45, 6.0));
 
     const bool hasGroupHL  = !_highlightGroup.isEmpty();
-    const bool hasModelSel = !_selectedModel.isEmpty();
+    const bool hasModelSel = !_selectedModels.isEmpty();
 
     // World (Y-up) → widget pixel (Y-down).
     auto toW = [&](double wx, double wy) -> QPointF {
@@ -336,7 +346,7 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
         if (r.isGroup) continue;
 
         const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
-        const bool isSel   = hasModelSel && r.name == _selectedModel;
+        const bool isSel   = _selectedModels.contains(r.name);
 
         if (!r.nodeWorldPos.isEmpty()) {
             // Per-node circles at real src-core world positions.
@@ -369,7 +379,7 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
         if (r.isGroup) continue;
 
         const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
-        const bool isSel   = hasModelSel && r.name == _selectedModel;
+        const bool isSel   = _selectedModels.contains(r.name);
         if (!isSel && !inGroup) continue;
 
         const QRectF wr = toBoundingRect(r);
@@ -389,7 +399,7 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
         if (r.isGroup) continue;
 
         const bool inGroup = hasGroupHL && _highlightMembers.contains(r.name);
-        const bool isSel   = hasModelSel && r.name == _selectedModel;
+        const bool isSel   = _selectedModels.contains(r.name);
         const QRectF wr = toBoundingRect(r);
 
         if (wr.width() >= 20 && wr.height() >= 8 && _nodeR >= 1.5f) {
@@ -514,20 +524,57 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
             }
         }
 
-        // Capture drag state.  Drag is only enabled when we have a live
-        // ModelManager (so we can mutate the model's world position).
-        // mouseMoveEvent decides when motion actually exceeded the
-        // threshold; if it never does, mouseReleaseEvent emits modelClicked.
+        // Update selection from the press.  Ctrl/Shift toggles membership
+        // (additive); plain click without modifier replaces the selection
+        // (unless the click hits a model already in the multi-selection —
+        // in that case we keep the selection so the drag moves all of
+        // them).  Click on empty space clears selection.
+        const bool additive = (ev->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) != 0;
+        if (hit.isEmpty()) {
+            if (!additive && !_selectedModels.isEmpty()) {
+                _selectedModel.clear();
+                _selectedModels.clear();
+                emit selectionChanged({});
+                update();
+            }
+        } else if (additive) {
+            if (_selectedModels.contains(hit)) {
+                _selectedModels.remove(hit);
+                if (_selectedModel == hit)
+                    _selectedModel = _selectedModels.isEmpty() ? QString() : *_selectedModels.begin();
+            } else {
+                _selectedModels.insert(hit);
+                _selectedModel = hit;
+            }
+            emit selectionChanged(QStringList(_selectedModels.begin(), _selectedModels.end()));
+            update();
+        } else if (!_selectedModels.contains(hit)) {
+            _selectedModels.clear();
+            _selectedModels.insert(hit);
+            _selectedModel = hit;
+            emit selectionChanged({hit});
+            update();
+        }
+
+        // Capture drag state for every selected model (or just the hit
+        // model if nothing was previously selected).  Drag activates only
+        // when we have a live ModelManager.
         _dragModel.clear();
+        _dragStarts.clear();
         _dragMoved = false;
         if (!hit.isEmpty() && _mm) {
-            Model* m = nullptr;
-            try { m = _mm->GetModel(hit.toStdString()); } catch (...) {}
-            if (m) {
-                _dragModel       = hit;
-                _dragPressClick  = click;
-                _dragStartWorldX = m->GetModelScreenLocation().GetWorldPos_X();
-                _dragStartWorldY = m->GetModelScreenLocation().GetWorldPos_Y();
+            _dragModel      = hit;
+            _dragPressClick = click;
+            const QSet<QString>& set = _selectedModels.isEmpty()
+                                         ? QSet<QString>{hit} : _selectedModels;
+            for (const QString& name : set) {
+                Model* m = nullptr;
+                try { m = _mm->GetModel(name.toStdString()); } catch (...) {}
+                if (m) {
+                    _dragStarts.insert(name,
+                        QPointF(m->GetModelScreenLocation().GetWorldPos_X(),
+                                m->GetModelScreenLocation().GetWorldPos_Y()));
+                }
             }
         }
         return;
@@ -550,65 +597,73 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
 }
 
 void ModelLayoutCanvas::mouseMoveEvent(QMouseEvent* ev) {
-    if (_dragModel.isEmpty() || !_mm) {
+    if (_dragStarts.isEmpty() || !_mm) {
         QWidget::mouseMoveEvent(ev);
         return;
     }
-    // Only count this as a drag once the cursor has moved more than 3 pixels
-    // — keeps idle micro-jitter on click from accidentally moving a model.
     const QPointF cur = ev->position();
     const QPointF d   = cur - _dragPressClick;
+    // 3-pixel jitter threshold — keeps idle micro-jitter on click from
+    // accidentally moving a model.
     if (!_dragMoved && (d.x()*d.x() + d.y()*d.y()) < 9.0) return;
     _dragMoved = true;
 
-    Model* m = nullptr;
-    try { m = _mm->GetModel(_dragModel.toStdString()); } catch (...) {}
-    if (!m) return;
-
-    // Widget-pixel delta → world-space delta.  Y is flipped (world Y up,
-    // screen Y down).
     const double rangeX = _maxX - _minX;
     const double rangeY = _maxY - _minY;
     if (rangeX <= 0 || rangeY <= 0) return;
-    const double dwx =  d.x() / qMax(1, width())  * rangeX;
+    const double dwx =  d.x() / qMax(1, width())  * rangeX;   // Y flipped
     const double dwy = -d.y() / qMax(1, height()) * rangeY;
 
-    const float nx = _dragStartWorldX + static_cast<float>(dwx);
-    const float ny = _dragStartWorldY + static_cast<float>(dwy);
-    m->GetModelScreenLocation().SetWorldPos(
-        nx, ny, m->GetModelScreenLocation().GetWorldPos_Z());
+    // Move every dragging model by the SAME world-space delta.  The delta
+    // is computed against each model's STARTING world position so the
+    // group keeps its relative shape regardless of how far we drag.
+    for (auto it = _dragStarts.constBegin(); it != _dragStarts.constEnd(); ++it) {
+        const QString& name = it.key();
+        Model* m = nullptr;
+        try { m = _mm->GetModel(name.toStdString()); } catch (...) {}
+        if (!m) continue;
+        const QPointF start = it.value();
+        const float nx = static_cast<float>(start.x() + dwx);
+        const float ny = static_cast<float>(start.y() + dwy);
+        m->GetModelScreenLocation().SetWorldPos(
+            nx, ny, m->GetModelScreenLocation().GetWorldPos_Z());
 
-    // Reload the rect for this model so paintRects reflects the new
-    // position immediately.  Cheaper than the full loadLayoutFromManager
-    // rebuild, which would also reset selection state.
-    auto it = _index.find(_dragModel);
-    if (it != _index.end()) {
-        ModelRect& r = _rects[it.value()];
-        const auto& loc = m->GetModelScreenLocation();
-        r.left   = loc.GetLeft();
-        r.right  = loc.GetRight();
-        r.top    = loc.GetTop();
-        r.bottom = loc.GetBottom();
+        auto rit = _index.find(name);
+        if (rit != _index.end()) {
+            ModelRect& r = _rects[rit.value()];
+            const auto& loc = m->GetModelScreenLocation();
+            r.left   = loc.GetLeft();
+            r.right  = loc.GetRight();
+            r.top    = loc.GetTop();
+            r.bottom = loc.GetBottom();
+        }
     }
     update();
 }
 
 void ModelLayoutCanvas::mouseReleaseEvent(QMouseEvent* ev) {
-    if (_dragModel.isEmpty()) {
+    if (_dragStarts.isEmpty()) {
         QWidget::mouseReleaseEvent(ev);
         return;
     }
-    const QString name = _dragModel;
-    const bool wasDrag = _dragMoved;
+    const QString anchor = _dragModel;
+    const bool wasDrag   = _dragMoved;
+    const QStringList movedNames(_dragStarts.keyBegin(), _dragStarts.keyEnd());
     _dragModel.clear();
+    _dragStarts.clear();
     _dragMoved = false;
 
     if (wasDrag) {
-        emit modelDragged(name);
+        // Emit both single + plural so existing single-model listeners keep
+        // working, and the multi-drag persistence path can flush every
+        // moved model in one pass.
+        emit modelDragged(anchor);
+        emit modelsDragged(movedNames);
     } else {
-        // No motion past threshold → treat as a click.  Matches the wx UI
-        // where a press-release on a model selects it.
-        emit modelClicked(name);
+        // No motion past threshold → treat as a click.  Selection was
+        // already updated in mousePressEvent; emit modelClicked so the
+        // LayoutWindow's existing handler refreshes the property panel.
+        emit modelClicked(anchor);
     }
     QWidget::mouseReleaseEvent(ev);
 }

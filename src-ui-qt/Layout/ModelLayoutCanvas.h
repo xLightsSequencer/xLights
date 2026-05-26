@@ -1,8 +1,10 @@
 #pragma once
 #include "../Bridge/QtSequenceDoc.h"
 #include <QColor>
+#include <QHash>
 #include <QList>
 #include <QMap>
+#include <QSet>
 #include <QString>
 #include <QStringList>
 #include <QWidget>
@@ -33,10 +35,13 @@ public:
     // Pass an empty string to clear.
     void setGroupHighlight(const QString& groupName, const QStringList& memberModels);
 
-    // Single-model selection highlight (for the layout window list).
-    // The selected model gets a solid yellow border; others dim slightly.
-    // Independent from the group highlight — both can be active simultaneously.
+    // Selection.  setSelectedModel replaces the selection with a single
+    // model; setSelectedModels replaces it with a set; clearSelection
+    // empties it.  Selected models get a solid yellow border in paintRects.
+    // The "primary" model is the most recently added one — drives the
+    // property panel.  Independent from the group highlight.
     void setSelectedModel(const QString& modelName);
+    void setSelectedModels(const QStringList& modelNames);
     void clearSelection();
 
     // Placement mode (phase 20f).  While true, the next mouse click does NOT
@@ -59,11 +64,17 @@ signals:
     // placement and clean up.
     void placementCancelled();
 
-    // Fired on mouse release after a drag actually moved a model — the
-    // model's ModelScreenLocation has already been mutated by then.  The
-    // LayoutWindow uses this to persist + refresh.  No emission for clicks
-    // that didn't exceed the drag threshold (those still emit modelClicked).
+    // Fired on mouse release after a drag actually moved one or more
+    // models — every selected model's ModelScreenLocation has already
+    // been mutated by then.  LayoutWindow uses this to persist + refresh
+    // all of them.  No emission for clicks that didn't exceed the drag
+    // threshold (those still emit modelClicked).
     void modelDragged(const QString& modelName);
+    void modelsDragged(const QStringList& modelNames);
+
+    // Fired when the canvas-driven selection changes (Ctrl+click).  Caller
+    // (LayoutWindow) syncs the list-widget selection from this.
+    void selectionChanged(const QStringList& selectedNames);
 
 protected:
     // Dot-mode model data (used by HousePreviewWidget for live colors).
@@ -114,7 +125,11 @@ private:
 
     QString     _highlightGroup;
     QStringList _highlightMembers;
+    // Primary selection (drives the property panel) + full set (drives
+    // multi-drag and visual highlight).  _selectedModel is always the most
+    // recently added entry in _selectedModels, or empty when both are empty.
     QString     _selectedModel;
+    QSet<QString> _selectedModels;
 
     // Placement mode (phase 20f).
     bool        _placementMode = false;
@@ -123,14 +138,17 @@ private:
     // during a drag.  Populated by loadLayoutFromManager; reset by loadLayout.
     ModelManager* _mm = nullptr;
 
-    // Drag-to-move state.  _dragModel is empty when not dragging.  Press fills
-    // these; mouseMove uses them to compute the world-space delta; release
-    // emits modelDragged.
-    QString       _dragModel;
-    QPointF       _dragPressClick;          // widget-space press point
-    float         _dragStartWorldX = 0.f;   // model's world pos at press
-    float         _dragStartWorldY = 0.f;
-    bool          _dragMoved       = false; // exceeded threshold this drag
+    // Drag-to-move state.  _dragModel is the "anchor" — the model the user
+    // clicked on; populated from the hit-test on press.  When the press is
+    // on a model already in _selectedModels, every selected model is part
+    // of the drag (multi-drag).  Otherwise only _dragModel moves and the
+    // selection is replaced by it.  _dragStarts records each dragging
+    // model's world position at press time so the delta is applied to the
+    // STARTING position, not the cumulative moving position (drift-free).
+    QString             _dragModel;
+    QPointF             _dragPressClick;
+    QHash<QString,QPointF> _dragStarts;     // name → (worldX, worldY) at press
+    bool                _dragMoved = false; // exceeded threshold this drag
 
     void recomputeBounds();
     void paintRects(QPainter& p);
