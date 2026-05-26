@@ -414,7 +414,7 @@ public:
     // descriptor list.
     glm::vec3 GetHandlePositionById(const std::optional<handles::Id>& id) const;
     glm::vec3 GetActiveHandlePosition() const { return GetHandlePositionById(active_handle); }
-    glm::vec3 GetRotationAngles() const { return angles; }
+    glm::vec3 GetRotationAngles() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
 
 protected:

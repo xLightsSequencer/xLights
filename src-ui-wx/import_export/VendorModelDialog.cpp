@@ -254,6 +254,8 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     Panel1->SetSizer(FlexGridSizer3);
     SplitterWindow1->SplitVertically(Panel3, Panel1);
     FlexGridSizer1->Add(SplitterWindow1, 1, wxALL|wxEXPAND, 5);
+    StaticText_Disclaimer = new wxStaticText(this, wxID_ANY, _("NOTE: Models are provided by the vendors, not by xLights. They are free to use in your layout, but the designs are copyrighted and not licensed for recreation or public distribution."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL, _T("StaticText_Disclaimer"));
+    FlexGridSizer1->Add(StaticText_Disclaimer, 0, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
     SetSizer(FlexGridSizer1);
     Layout();
 
@@ -275,6 +277,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     //*)
 
     SetSize(800, 600);
+    StaticText_Disclaimer->Wrap(std::max(1, GetClientSize().GetWidth() - 10));
 
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
@@ -1205,6 +1208,8 @@ void VendorModelDialog::OnClose(wxCloseEvent& event)
 void VendorModelDialog::OnResize(wxSizeEvent& event)
 {
     wxDialog::OnSize(event);
+    StaticText_Disclaimer->SetLabel(_("NOTE: Models are provided by the vendors, not by xLights. They are free to use in your layout, but the designs are copyrighted and not licensed for recreation or public distribution."));
+    StaticText_Disclaimer->Wrap(GetClientSize().GetWidth() - 10);
 
     if (NotebookPanels->GetSelection() == 0)
     {

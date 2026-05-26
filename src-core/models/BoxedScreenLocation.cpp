@@ -997,6 +997,12 @@ public:
 
     handles::Id GetHandleId() const override { return _handleId; }
 
+    std::optional<handles::DragSession::RotationInfo> GetRotationInfo() const override {
+        return handles::DragSession::RotationInfo{
+            _savedWorldPos, _rotationAxis, static_cast<float>(_accumulated)
+        };
+    }
+
 private:
     void ComputeConstraintPlane(handles::Axis axis) {
         // Plane normal-to-axis at saved centre. Direction need not
@@ -1163,7 +1169,8 @@ public:
         : _loc(loc),
           _modelName(std::move(modelName)),
           _handleId(handleId),
-          _savedRotation(loc->GetRotateX(), loc->GetRotateY(), loc->GetRotateZ()) {}
+          _savedRotation(loc->GetRotateX(), loc->GetRotateY(), loc->GetRotateZ()),
+          _center(loc->GetHcenterPos(), loc->GetVcenterPos(), 0.0f) {}
 
     handles::UpdateResult Update(const handles::WorldRay& ray,
                                   handles::Modifier mods) override {
@@ -1203,11 +1210,19 @@ public:
 
     handles::Id GetHandleId() const override { return _handleId; }
 
+    std::optional<handles::DragSession::RotationInfo> GetRotationInfo() const override {
+        return handles::DragSession::RotationInfo{
+            _center, handles::Axis::Z,
+            _loc->GetRotateZ() - _savedRotation.z
+        };
+    }
+
 private:
     BoxedScreenLocation* _loc;
     std::string          _modelName;
     handles::Id          _handleId;
     glm::vec3            _savedRotation;
+    glm::vec3            _center;
     bool                 _changed = false;
 };
 
