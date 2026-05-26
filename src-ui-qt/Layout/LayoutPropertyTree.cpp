@@ -53,6 +53,36 @@ namespace {
 
 QString qstr(const std::string& s) { return QString::fromStdString(s); }
 
+// Render-type labels match wx ChoiceModelLayoutType.  The first two and
+// the per-model variants are stored as special XML values ("grid",
+// "minimalGrid", "horizontal", "vertical"); the rest store the display
+// label verbatim.  See ModelGroupPanel::OnSaveButtonClick for wx mapping.
+QStringList groupRenderTypeOptions() {
+    return {
+        "Grid as per preview", "Minimal Grid",
+        "Horizontal Stack", "Vertical Stack",
+        "Horizontal Stack - Scaled", "Vertical Stack - Scaled",
+        "Horizontal Per Model", "Vertical Per Model",
+        "Horizontal Per Model/Strand", "Vertical Per Model/Strand",
+    };
+}
+
+QString groupRenderTypeDisplay(const QString& stored) {
+    if (stored == "grid")        return "Grid as per preview";
+    if (stored == "minimalGrid") return "Minimal Grid";
+    if (stored == "horizontal")  return "Horizontal Per Model";
+    if (stored == "vertical")    return "Vertical Per Model";
+    return stored;
+}
+
+QString groupRenderTypeStored(const QString& display) {
+    if (display == "Grid as per preview")  return "grid";
+    if (display == "Minimal Grid")         return "minimalGrid";
+    if (display == "Horizontal Per Model") return "horizontal";
+    if (display == "Vertical Per Model")   return "vertical";
+    return display;
+}
+
 QString hexColor(const xlColor& c) {
     return QString("#%1%2%3")
         .arg(c.red,   2, 16, QChar('0'))
@@ -499,7 +529,13 @@ bool LayoutPropertyTree::commitGroupField(const QString& fieldId, const QVariant
 
     if (fieldId == "Active")        { g->SetActive(value.toString() == "yes"); return true; }
     if (fieldId == "LayoutGroup")   { g->SetLayoutGroup(value.toString().toStdString()); return true; }
-    if (fieldId == "Layout")        { g->SetLayout(value.toString().toStdString()); return true; }
+    if (fieldId == "Layout") {
+        // The combo shows display labels; XML/setter wants the stored form
+        // ("minimalGrid" etc.) for the four special values.  See the
+        // groupRenderType{Display,Stored} pair next to populateGroupIdentity.
+        g->SetLayout(groupRenderTypeStored(value.toString()).toStdString());
+        return true;
+    }
     if (fieldId == "DefaultCamera") { g->SetDefaultCamera(value.toString().toStdString()); return true; }
     if (fieldId == "TagColor") {
         const QColor c(value.toString());
@@ -1065,13 +1101,11 @@ void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
 
 void LayoutPropertyTree::populateGroupIdentity(ModelGroup* g) {
     auto* cat = addCategory("Model Group");
-    addRow(cat, "Name",   qstr(g->GetName()));
-    // Layout options match the wx ModelGroup adapter: Default / Minimal Grid /
-    // Horizontal Stack / Vertical Stack / Overlay / Per Model Default.
-    addEditableRow(cat, "Layout", qstr(g->GetLayout()), Kind::Enum, "Layout",
-                   {"Default", "Minimal Grid", "Horizontal Stack",
-                    "Vertical Stack", "Overlay-Center", "Overlay-Scaled",
-                    "Per Model Default"});
+    addRow(cat, "Name", qstr(g->GetName()));
+    addRow(cat, "Type", "Model Group");
+    addEditableRow(cat, "Render Type",
+                   groupRenderTypeDisplay(qstr(g->GetLayout())),
+                   Kind::Enum, "Layout", groupRenderTypeOptions());
     addRow(cat, "Members", QString::number(g->ModelNames().size()));
     addEditableRow(cat, "Layout Group", qstr(g->GetLayoutGroup()),
                    Kind::String, "LayoutGroup");

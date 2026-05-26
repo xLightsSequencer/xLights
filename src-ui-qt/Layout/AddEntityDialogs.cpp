@@ -54,10 +54,26 @@ QStringList addableModelTypes() {
     };
 }
 
+// Match the wx ModelGroupPanel "ChoiceModelLayoutType" labels — these are
+// the same options LayoutPropertyTree shows in its Render Type combo.
 QStringList groupLayoutChoices() {
-    return {"Default", "Minimal Grid", "Horizontal Stack",
-            "Vertical Stack", "Overlay-Center", "Overlay-Scaled",
-            "Per Model Default"};
+    return {
+        "Grid as per preview", "Minimal Grid",
+        "Horizontal Stack", "Vertical Stack",
+        "Horizontal Stack - Scaled", "Vertical Stack - Scaled",
+        "Horizontal Per Model", "Vertical Per Model",
+        "Horizontal Per Model/Strand", "Vertical Per Model/Strand",
+    };
+}
+
+// Stored XML value for a display label.  Inverse mirror of
+// groupRenderTypeStored in LayoutPropertyTree.cpp — kept in sync.
+static QString storedLayoutFor(const QString& display) {
+    if (display == "Grid as per preview")  return "grid";
+    if (display == "Minimal Grid")         return "minimalGrid";
+    if (display == "Horizontal Per Model") return "horizontal";
+    if (display == "Vertical Per Model")   return "vertical";
+    return display;
 }
 
 QStringList ethernetProtocolDefaults() {
@@ -226,7 +242,7 @@ void AddGroupDialog::moveSelected(QListWidget* from, QListWidget* to) {
 }
 
 QString AddGroupDialog::groupName()   const { return _name->text().trimmed(); }
-QString AddGroupDialog::layout()      const { return _layout->currentText(); }
+QString AddGroupDialog::layout()      const { return storedLayoutFor(_layout->currentText()); }
 QString AddGroupDialog::layoutGroup() const { return _layoutGroup->currentText().trimmed(); }
 
 QStringList AddGroupDialog::members() const {
