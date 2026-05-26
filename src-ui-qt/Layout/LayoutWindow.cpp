@@ -1,4 +1,5 @@
 #include "LayoutWindow.h"
+#include "AddEntityDialogs.h"
 #include "ModelEditDialog.h"
 #include "ModelLayoutCanvas.h"
 #include "LayoutPropertyTree.h"
@@ -6,15 +7,24 @@
 #include "../Bridge/QtSequenceDoc.h"
 #include "../Bridge/QtRenderBridge.h"
 #include "../../src-core/models/ModelManager.h"
+#include "../../src-core/models/Model.h"
+#include "../../src-core/models/ModelGroup.h"
 #include "../../src-core/outputs/OutputManager.h"
 #include "../../src-core/outputs/Controller.h"
+#include "../../src-core/outputs/ControllerEthernet.h"
+#include "../../src-core/outputs/ControllerSerial.h"
+#include "../../src-core/outputs/ControllerNull.h"
 
 #include <QHeaderView>
 #include <QListWidget>
 #include <QHBoxLayout>
+#include <QKeySequence>
+#include <QMessageBox>
 #include <QPushButton>
+#include <QShortcut>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 LayoutWindow::LayoutWindow(QWidget* parent)
@@ -29,10 +39,72 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     _groupList      = new QListWidget;
     _controllerList = new QListWidget;
 
+    // Helper: wrap a list widget in a vertical layout with a + / − toolbar
+    // above.  Returns the wrapper QWidget; `addBtnOut` / `delBtnOut` receive
+    // the toolbar buttons so callers can wire them.  The − button is
+    // auto-disabled until a row is selected.
+    auto makeTabWidget = [](QListWidget* list,
+                            QToolButton** addBtnOut,
+                            QToolButton** delBtnOut) -> QWidget* {
+        auto* w = new QWidget;
+        auto* v = new QVBoxLayout(w);
+        v->setContentsMargins(0, 0, 0, 0);
+        v->setSpacing(2);
+
+        auto* tb = new QHBoxLayout;
+        tb->setContentsMargins(2, 2, 2, 0);
+        tb->setSpacing(4);
+        auto* addBtn = new QToolButton; addBtn->setText("+"); addBtn->setToolTip("Add… (Insert)");
+        auto* delBtn = new QToolButton; delBtn->setText(QString::fromUtf8("−")); delBtn->setToolTip("Delete (Delete)");
+        delBtn->setEnabled(false);
+        tb->addWidget(addBtn);
+        tb->addWidget(delBtn);
+        tb->addStretch(1);
+        v->addLayout(tb);
+        v->addWidget(list, 1);
+
+        QObject::connect(list, &QListWidget::currentRowChanged, list,
+                         [delBtn](int row) { delBtn->setEnabled(row >= 0); });
+
+        *addBtnOut = addBtn;
+        *delBtnOut = delBtn;
+        return w;
+    };
+
+    QToolButton *modelAdd, *modelDel, *groupAdd, *groupDel, *ctrlAdd, *ctrlDel;
+    QWidget* modelsTab      = makeTabWidget(_modelList,      &modelAdd, &modelDel);
+    QWidget* groupsTab      = makeTabWidget(_groupList,      &groupAdd, &groupDel);
+    QWidget* controllersTab = makeTabWidget(_controllerList, &ctrlAdd,  &ctrlDel);
+
     _tabs = new QTabWidget;
-    _tabs->addTab(_modelList,      "Models");
-    _tabs->addTab(_groupList,      "Groups");
-    _tabs->addTab(_controllerList, "Controllers");
+    _tabs->addTab(modelsTab,      "Models");
+    _tabs->addTab(groupsTab,      "Groups");
+    _tabs->addTab(controllersTab, "Controllers");
+
+    connect(modelAdd, &QToolButton::clicked, this, &LayoutWindow::onAddModel);
+    connect(modelDel, &QToolButton::clicked, this, &LayoutWindow::onDeleteModel);
+    connect(groupAdd, &QToolButton::clicked, this, &LayoutWindow::onAddGroup);
+    connect(groupDel, &QToolButton::clicked, this, &LayoutWindow::onDeleteGroup);
+    connect(ctrlAdd,  &QToolButton::clicked, this, &LayoutWindow::onAddController);
+    connect(ctrlDel,  &QToolButton::clicked, this, &LayoutWindow::onDeleteController);
+
+    // Keyboard: Insert / Delete trigger the active tab's add / delete.
+    auto* insShortcut = new QShortcut(QKeySequence(Qt::Key_Insert), this);
+    connect(insShortcut, &QShortcut::activated, this, [this]() {
+        switch (_tabs->currentIndex()) {
+            case 0: onAddModel();      break;
+            case 1: onAddGroup();      break;
+            case 2: onAddController(); break;
+        }
+    });
+    auto* delShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
+    connect(delShortcut, &QShortcut::activated, this, [this]() {
+        switch (_tabs->currentIndex()) {
+            case 0: onDeleteModel();      break;
+            case 1: onDeleteGroup();      break;
+            case 2: onDeleteController(); break;
+        }
+    });
 
     // Single property tree for all three tabs.  Population branches on the
     // selected item type (model / group / controller); see show* methods.
@@ -310,4 +382,225 @@ void LayoutWindow::buildGroupProps(const QString& name) {
 
 void LayoutWindow::buildControllerProps(const QString& name) {
     if (_props) _props->showController(name);
+}
+
+// ── Add / delete entities (Phase 20) ──────────────────────────────────────────
+
+void LayoutWindow::rebuildModelLists() {
+    ModelManager* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) return;
+    _modelList->clear();
+    _groupList->clear();
+    for (const auto& [name, m] : *mm) {
+        const QString qname = QString::fromStdString(name);
+        if (dynamic_cast<ModelGroup*>(m))
+            _groupList->addItem(qname);
+        else
+            _modelList->addItem(qname);
+    }
+    _modelList->sortItems();
+    _groupList->sortItems();
+    _canvas->loadLayoutFromManager(mm);
+}
+
+void LayoutWindow::rebuildControllerList() {
+    if (!_bridge || !_bridge->modelManager()) return;
+    auto* om = _bridge->modelManager()->GetOutputManager();
+    if (!om) return;
+    _controllerList->clear();
+    for (auto* c : om->GetControllers())
+        _controllerList->addItem(QString::fromStdString(c->GetName()));
+}
+
+void LayoutWindow::onAddModel() {
+    ModelManager* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) {
+        QMessageBox::warning(this, "Add Model",
+                             "Render bridge not initialised — open a show folder first.");
+        return;
+    }
+    AddModelDialog dlg(mm, this);
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    const QString name = dlg.modelName();
+    if (name.isEmpty()) return;
+    if (mm->GetModel(name.toStdString()) != nullptr) {
+        QMessageBox::warning(this, "Add Model",
+                             "A model named '" + name + "' already exists.");
+        return;
+    }
+
+    Model* m = mm->CreateDefaultModel(dlg.typeName().toStdString(),
+                                      dlg.startChannel().toStdString());
+    if (!m) {
+        QMessageBox::warning(this, "Add Model",
+                             "src-core couldn't create a default '" + dlg.typeName() + "' model.");
+        return;
+    }
+    m->Rename(name.toStdString());
+    if (!dlg.layoutGroup().isEmpty())
+        m->SetLayoutGroup(dlg.layoutGroup().toStdString());
+    mm->AddModel(m);
+
+    if (_bridge) _bridge->saveModelToShowFile(name);
+    rebuildModelLists();
+    _tabs->setCurrentIndex(0);
+    const auto matches = _modelList->findItems(name, Qt::MatchExactly);
+    if (!matches.isEmpty()) {
+        _modelList->setCurrentItem(matches.first());
+        _modelList->scrollToItem(matches.first());
+    }
+    buildModelProps(name);
+}
+
+void LayoutWindow::onAddGroup() {
+    ModelManager* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) {
+        QMessageBox::warning(this, "Add Group",
+                             "Render bridge not initialised — open a show folder first.");
+        return;
+    }
+    AddGroupDialog dlg(mm, this);
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    const QString name = dlg.groupName();
+    if (name.isEmpty()) return;
+    if (mm->GetModel(name.toStdString()) != nullptr) {
+        QMessageBox::warning(this, "Add Group",
+                             "A model or group named '" + name + "' already exists.");
+        return;
+    }
+
+    auto* g = new ModelGroup(*mm);
+    g->Rename(name.toStdString());
+    g->SetLayout(dlg.layout().toStdString());
+    if (!dlg.layoutGroup().isEmpty())
+        g->SetLayoutGroup(dlg.layoutGroup().toStdString());
+    std::vector<std::string> members;
+    for (const auto& n : dlg.members()) members.push_back(n.toStdString());
+    g->SetModels(members);
+    mm->AddModel(g);
+
+    if (_bridge) _bridge->saveModelToShowFile(name);
+    rebuildModelLists();
+    _tabs->setCurrentIndex(1);
+    const auto matches = _groupList->findItems(name, Qt::MatchExactly);
+    if (!matches.isEmpty()) {
+        _groupList->setCurrentItem(matches.first());
+        _groupList->scrollToItem(matches.first());
+    }
+    buildGroupProps(name);
+}
+
+void LayoutWindow::onAddController() {
+    if (!_bridge || !_bridge->modelManager()) {
+        QMessageBox::warning(this, "Add Controller",
+                             "Render bridge not initialised — open a show folder first.");
+        return;
+    }
+    auto* om = _bridge->modelManager()->GetOutputManager();
+    if (!om) return;
+
+    AddControllerDialog dlg(this);
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    const QString name = dlg.controllerName();
+    if (name.isEmpty()) return;
+    if (om->GetController(name.toStdString()) != nullptr) {
+        QMessageBox::warning(this, "Add Controller",
+                             "A controller named '" + name + "' already exists.");
+        return;
+    }
+
+    Controller* c = nullptr;
+    switch (dlg.controllerType()) {
+        case AddControllerDialog::Type::Ethernet: {
+            auto* e = new ControllerEthernet(om, /*acceptDuplicates*/false);
+            if (!dlg.protocol().isEmpty())
+                e->SetProtocol(dlg.protocol().toStdString());
+            if (!dlg.ip().isEmpty())
+                e->SetIP(dlg.ip().toStdString());
+            c = e;
+            break;
+        }
+        case AddControllerDialog::Type::Serial: {
+            auto* s = new ControllerSerial(om);
+            if (!dlg.port().isEmpty())
+                s->SetPort(dlg.port().toStdString());
+            if (dlg.speed() > 0)
+                s->SetSpeed(dlg.speed());
+            c = s;
+            break;
+        }
+        case AddControllerDialog::Type::Null:
+            c = new ControllerNull(om);
+            break;
+    }
+    if (!c) return;
+
+    c->SetName(name.toStdString());
+    if (!dlg.vendor().isEmpty())  c->SetVendor(dlg.vendor().toStdString());
+    if (!dlg.model().isEmpty())   c->SetModel(dlg.model().toStdString());
+    if (!dlg.variant().isEmpty()) c->SetVariant(dlg.variant().toStdString());
+    om->AddController(c, /*pos=*/-1);
+
+    if (_bridge) _bridge->saveControllersToShowFile();
+    rebuildControllerList();
+    _tabs->setCurrentIndex(2);
+    const auto matches = _controllerList->findItems(name, Qt::MatchExactly);
+    if (!matches.isEmpty()) {
+        _controllerList->setCurrentItem(matches.first());
+        _controllerList->scrollToItem(matches.first());
+    }
+    buildControllerProps(name);
+}
+
+void LayoutWindow::onDeleteModel() {
+    auto* item = _modelList->currentItem();
+    if (!item) return;
+    const QString name = item->text();
+    if (QMessageBox::question(this, "Delete Model",
+            "Delete model '" + name + "'?  This cannot be undone.",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    auto* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) return;
+    mm->Delete(name.toStdString());
+    if (_bridge) _bridge->removeModelFromShowFile(name);
+    rebuildModelLists();
+    clearProps();
+}
+
+void LayoutWindow::onDeleteGroup() {
+    auto* item = _groupList->currentItem();
+    if (!item) return;
+    const QString name = item->text();
+    if (QMessageBox::question(this, "Delete Group",
+            "Delete group '" + name + "'?  Members will be unaffected.",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    auto* mm = _bridge ? _bridge->modelManager() : nullptr;
+    if (!mm) return;
+    mm->Delete(name.toStdString());
+    if (_bridge) _bridge->removeModelFromShowFile(name);
+    rebuildModelLists();
+    clearProps();
+}
+
+void LayoutWindow::onDeleteController() {
+    auto* item = _controllerList->currentItem();
+    if (!item) return;
+    const QString name = item->text();
+    if (QMessageBox::question(this, "Delete Controller",
+            "Delete controller '" + name +
+            "'?  Models referencing it will have an empty Controller field.",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    auto* om = (_bridge && _bridge->modelManager())
+                 ? _bridge->modelManager()->GetOutputManager() : nullptr;
+    if (!om) return;
+    om->DeleteController(name.toStdString());
+    if (_bridge) _bridge->saveControllersToShowFile();
+    rebuildControllerList();
+    clearProps();
 }

@@ -460,6 +460,43 @@ bool QtRenderBridge::saveModelToShowFile(const QString& modelName) {
     return saved;
 }
 
+bool QtRenderBridge::removeModelFromShowFile(const QString& modelName) {
+    if (_showFolder.isEmpty() || modelName.isEmpty()) return false;
+    const std::string rgbFile = _showFolder.toStdString() + "/xlights_rgbeffects.xml";
+
+    pugi::xml_document doc;
+    if (!doc.load_file(rgbFile.c_str())) {
+        spdlog::warn("QtRenderBridge::removeModelFromShowFile: failed to load {}",
+                     rgbFile);
+        return false;
+    }
+    pugi::xml_node root = doc.first_child();
+    if (!root) return false;
+
+    bool erased = false;
+    // Try <models>/<model> first, then <modelGroups>/<modelGroup>.  We don't
+    // know which one the caller meant — the live object may already be gone
+    // from ModelManager — so check both.
+    for (const char* listTag : {"models", "modelGroups"}) {
+        pugi::xml_node list = root.child(listTag);
+        if (!list) continue;
+        const char* itemTag = (std::string(listTag) == "models") ? "model" : "modelGroup";
+        for (pugi::xml_node it = list.child(itemTag); it; ) {
+            pugi::xml_node next = it.next_sibling(itemTag);
+            if (modelName == it.attribute("name").value()) {
+                list.remove_child(it);
+                erased = true;
+            }
+            it = next;
+        }
+    }
+    if (!erased) return false;
+    const bool saved = doc.save_file(rgbFile.c_str(), "  ");
+    if (!saved)
+        spdlog::warn("QtRenderBridge::removeModelFromShowFile: failed to write {}", rgbFile);
+    return saved;
+}
+
 bool QtRenderBridge::saveControllersToShowFile() {
     if (!s_ctx || _showFolder.isEmpty()) return false;
     OutputManager& om = s_ctx->outputManager();

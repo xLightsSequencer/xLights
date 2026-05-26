@@ -51,6 +51,11 @@ public:
     // unset or the model can't be found.
     bool saveModelToShowFile(const QString& modelName);
 
+    // Erase the named model/group from xlights_rgbeffects.xml.  Companion to
+    // saveModelToShowFile — that only replaces, never removes, so deletes
+    // need a dedicated path.  Returns true if a node was actually erased.
+    bool removeModelFromShowFile(const QString& modelName);
+
     // Persist the entire OutputManager (all controllers + outputs) back to
     // xlights_networks.xml.  Uses the src-core save path (OutputManager::Save)
     // which builds the XML from in-memory state.  Returns true on success.

@@ -1067,6 +1067,7 @@ if(XLIGHTS_BUILD_QT)
         src-ui-qt/Layout/ModelEditDialog.cpp
         src-ui-qt/Layout/ModelNodePreview.cpp
         src-ui-qt/Layout/LayoutPropertyTree.cpp
+        src-ui-qt/Layout/AddEntityDialogs.cpp
         src-ui-qt/Controllers/ControllerVisualizerWindow.cpp
         src-ui-qt/Controllers/ControllerUploadDialog.cpp
         src-ui-qt/App/RenderDetailDialog.cpp

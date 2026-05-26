@@ -38,11 +38,25 @@ private slots:
     void onControllerListClicked(QListWidgetItem* item);
     void onCanvasModelClicked(const QString& modelName);
 
+    // Phase 20 — add / delete entities.
+    void onAddModel();
+    void onAddGroup();
+    void onAddController();
+    void onDeleteModel();
+    void onDeleteGroup();
+    void onDeleteController();
+
 private:
     void buildModelProps(const QString& name);
     void buildGroupProps(const QString& name);
     void buildControllerProps(const QString& name);
     void clearProps();
+
+    // After an entity is added or removed, rebuild list widgets + canvas
+    // from live src-core managers.  Used by the Add / Delete flows; cheaper
+    // than the full refresh() which also pulls from QtXLightsApp's snapshot.
+    void rebuildModelLists();
+    void rebuildControllerList();
 
     // Left side
     QSplitter*          _leftSplit      = nullptr;

@@ -430,6 +430,160 @@ CandyCanes, all DMX*, etc.).
 Undo: integrate with whatever undo stack the Qt UI ends up
 adopting (currently none — open question).
 
+### Phase 20 — Add / delete entities (models, groups, controllers) ✓ (20a–20e + 20g)
+
+**Goal:** let the user create new models, model groups, and
+controllers from inside the Qt Layout window, and delete existing
+ones. Today the Qt UI only allows editing pre-existing entities
+that were created in the wx UI.
+
+**Why now:** the editable property tree (Phase 19) is meaningless
+in an empty show — the user has no way to put anything in the
+show without going back to the wx app. Add/delete closes that
+loop.
+
+#### Phase 20a — UI affordances
+
+Each of the three left-side tabs (Models, Groups, Controllers)
+gets a small toolbar above its `QListWidget` with **+** and
+**−** buttons:
+
+```
+[Models | Groups | Controllers]
+[+] [−]                                   ← new toolbar
+   ...list items...
+```
+
+- `+` → opens the matching "New …" dialog (below).
+- `−` → confirms then deletes the selected item.
+
+Keyboard: `Insert` triggers `+`, `Delete` triggers `−` (when the
+list has focus).
+
+Right-click context menu on the list duplicates the same two
+actions plus "Duplicate…" (creates a copy with " (copy)" suffix
+on the name).
+
+#### Phase 20b — Add Model
+
+A new `AddModelDialog` (Qt analog of the wx model-type chooser):
+
+- **Type** combo populated from `DisplayAsType` (filter out
+  `ModelGroup`, `SubModel`, `Unknown`, view-object types) — the
+  same list `xLightsFrame::CreateDefaultModelXxx` covers, plus
+  DMX subtypes.
+- **Name** line edit, pre-filled with `<Type>_001` (incremented
+  to the first unused name).
+- **Layout group** combo (defaults to currently-selected layout
+  group on the canvas; falls back to "Default").
+- **Start channel** — defaults to "next free" (`OutputManager`
+  can compute), editable.
+- **OK** invokes
+  `ModelManager::CreateDefaultModel(typeStr, startChannel)` →
+  `ModelManager::AddModel(Model*)` → set Name + LayoutGroup +
+  WorldPos(canvas centre) → `saveModelToShowFile(name)` →
+  refresh.
+
+For *interactive* placement (wx supports click-to-drop in the
+canvas), defer to Phase 20f.
+
+#### Phase 20c — Add Group
+
+A new `AddGroupDialog`:
+
+- **Name** line edit, pre-filled with `Group_001`.
+- **Layout** combo with the seven layout options (same list the
+  property tree already uses).
+- **Layout group** combo.
+- **Members** dual-list selector (available models on the left,
+  group members on the right, add/remove buttons in the middle).
+
+OK → construct `ModelGroup(modelManager)` → set its name /
+layout / members via the existing `ModelGroup::Set*` methods →
+`modelManager.AddModel(group)` (groups go through the same path
+as models in `ModelManager`) → `saveModelToShowFile(name)` (the
+existing path already routes `<modelGroup>` via dynamic_cast) →
+refresh.
+
+#### Phase 20d — Add Controller
+
+A new `AddControllerDialog`:
+
+- **Type** combo: Ethernet / Serial / Null.
+- **Name** line edit, pre-filled with `<Type>_001`.
+- **Vendor / Model / Variant** cascading combos populated from
+  `ControllerCaps::GetVendors(type)` →
+  `GetModels(type, vendor)` → `GetVariants(...)`. Same
+  population pattern the property tree already uses.
+- **For Ethernet**: Protocol dropdown (same logic as the
+  property tree — from `caps->GetInputProtocols()` or default
+  list), IP line edit (placeholder text shows the current
+  subnet's broadcast).
+- **For Serial**: Port dropdown
+  (`SerialOutput::GetPossibleSerialPorts()`), Speed dropdown
+  (`SerialOutput::GetPossibleBaudRates()`).
+
+OK constructs the right subclass and inserts it via
+`OutputManager::AddController(c)`:
+
+```cpp
+switch (type) {
+    case Ethernet: c = new ControllerEthernet(om, /*acceptDup*/false); break;
+    case Serial:   c = new ControllerSerial(om);                       break;
+    case Null:     c = new ControllerNull(om);                         break;
+}
+c->SetName(name); c->SetVendor(...); ...
+om->AddController(c, /*pos=*/-1);
+saveControllersToShowFile();
+```
+
+#### Phase 20e — Delete
+
+Deletes go through src-core's own remove methods (so dependent
+state — auto-channel-renumber, group-member cleanup, controller-
+output free, etc. — stays consistent):
+
+- Model: `ModelManager::Delete(name)` → `saveModelToShowFile`
+  isn't enough (we need to remove the node, not replace it); add
+  a small `QtRenderBridge::removeModelFromShowFile(name)` that
+  finds `<model name="X">` (or `<modelGroup>`) and erases it.
+  Plus iterate any model groups that contain it and rewrite them
+  too — `ModelGroup::Delete` will have done the in-memory update
+  already.
+- Group: `ModelManager::Delete(name)` + the same remove path; no
+  cascading cleanup needed (groups don't contain models, they
+  reference them by name).
+- Controller: `OutputManager::DeleteController(name)` →
+  `saveControllersToShowFile()`. Models referencing the deleted
+  controller by name become orphaned (Controller="" effectively)
+  — same as wx; flag with a warning dialog.
+
+Delete confirmation: standard `QMessageBox::question` with the
+entity name, defaulting to No.
+
+#### Phase 20f — Interactive placement (deferred)
+
+In wx, dropping a new model places it at the click point in the
+layout canvas. The Qt `ModelLayoutCanvas` supports
+`modelClicked` but not "drop a new model here" yet. After
+Phase 20b–20e land we can wire a mode where the Add Model dialog
+sets a pending type, then the next canvas click places the model
+there (rather than at canvas centre).
+
+Defer until 20a–20e prove out.
+
+#### Phase 20g — Persistence (already mostly free)
+
+Existing paths cover the new flow:
+- `saveModelToShowFile` already creates the `<model>` node if it
+  doesn't exist (the `if (target)` / `else` branch). New models /
+  groups Just Work.
+- `saveControllersToShowFile` calls `OutputManager::Save()` which
+  re-serialises everything. New controllers Just Work.
+
+Only new code: `removeModelFromShowFile(name)` for deletes (see
+20e).
+
 ## Out of Scope
 
 xSchedule (separate app), full xlGraphicsContext parity (OpenGL shader library).
