@@ -277,7 +277,7 @@ VendorModelDialog::VendorModelDialog(wxWindow* parent, const std::string& showFo
     //*)
 
     SetSize(800, 600);
-    StaticText_Disclaimer->Wrap(790);
+    StaticText_Disclaimer->Wrap(std::max(1, GetClientSize().GetWidth() - 10));
 
     PopulateModelPanel((MModel*)nullptr);
     PopulateVendorPanel(nullptr);
