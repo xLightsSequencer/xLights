@@ -12,6 +12,7 @@
 #include "../../src-core/models/ModelManager.h"
 #include "../../src-core/models/Model.h"
 #include "../../src-core/models/ModelGroup.h"
+#include "../../src-core/XmlSerializer/XmlSerializer.h"
 #include "../../src-core/render/Effect.h"
 #include "../../src-core/render/EffectLayer.h"
 #include "../../src-core/render/Element.h"
@@ -392,5 +393,80 @@ bool QtRenderBridge::upload(const QString& controllerName, UICallbacks* ui) {
     }
 
     delete bc;
+    return ok;
+}
+
+// ── Persistence ───────────────────────────────────────────────────────────────
+
+bool QtRenderBridge::saveModelToShowFile(const QString& modelName) {
+    if (!s_mm || _showFolder.isEmpty() || modelName.isEmpty()) return false;
+
+    Model* model = nullptr;
+    try { model = s_mm->GetModel(modelName.toStdString()); }
+    catch (...) { return false; }
+    if (!model) return false;
+
+    const std::string rgbFile = _showFolder.toStdString() + "/xlights_rgbeffects.xml";
+
+    pugi::xml_document doc;
+    pugi::xml_parse_result loaded = doc.load_file(rgbFile.c_str());
+    if (!loaded) {
+        spdlog::warn("QtRenderBridge::saveModelToShowFile: failed to load {} ({})",
+                     rgbFile, loaded.description());
+        return false;
+    }
+
+    // Find <xrgb>/<models>/<model name="X"> or <xrgb>/<modelGroups>/<modelGroup
+    // name="X">.  We branch on whether the live object is a ModelGroup.
+    pugi::xml_node root = doc.first_child();
+    if (!root) return false;
+    const bool isGroup = dynamic_cast<ModelGroup*>(model) != nullptr;
+    const char* listTag = isGroup ? "modelGroups" : "models";
+    const char* itemTag = isGroup ? "modelGroup"  : "model";
+
+    pugi::xml_node list = root.child(listTag);
+    if (!list) list = root.append_child(listTag);
+
+    pugi::xml_node target;
+    for (pugi::xml_node it : list.children(itemTag)) {
+        if (modelName == it.attribute("name").value()) {
+            target = it;
+            break;
+        }
+    }
+
+    // Re-serialise the model from src-core and copy its top-level child onto
+    // the existing node (so other XML in the file stays untouched).
+    XmlSerializer serializer;
+    pugi::xml_document fresh = serializer.SerializeModel(model);
+    pugi::xml_node freshModels = fresh.first_child();          // <models type="exported">
+    if (!freshModels) return false;
+    pugi::xml_node freshItem = freshModels.first_child();      // <model …> or <modelGroup …>
+    if (!freshItem) return false;
+
+    if (target) {
+        // Remove the old node and insert the fresh one in its place.
+        pugi::xml_node added = list.insert_copy_before(freshItem, target);
+        list.remove_child(target);
+        target = added;
+    } else {
+        // Model wasn't previously in the file (newly created in-memory).
+        list.append_copy(freshItem);
+    }
+
+    const bool saved = doc.save_file(rgbFile.c_str(), "  ");
+    if (!saved)
+        spdlog::warn("QtRenderBridge::saveModelToShowFile: failed to write {}", rgbFile);
+    return saved;
+}
+
+bool QtRenderBridge::saveControllersToShowFile() {
+    if (!s_ctx || _showFolder.isEmpty()) return false;
+    OutputManager& om = s_ctx->outputManager();
+    // OutputManager::Save() writes to the show directory configured at Load
+    // time.  Returns true on success.
+    const bool ok = om.Save();
+    if (!ok)
+        spdlog::warn("QtRenderBridge::saveControllersToShowFile: OutputManager::Save() failed");
     return ok;
 }

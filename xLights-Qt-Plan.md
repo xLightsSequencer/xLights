@@ -280,23 +280,51 @@ snapshot in `QtSequenceDoc.h`.
   `GetOutputs`. ControllerEthernet adds IP / FPP Proxy / Priority;
   ControllerSerial adds Port / Speed.
 
-#### Phase 19b — Controller Connection sub-tree
-Mirror `ModelPropertyAdapter::AddControllerProperties`:
-Port, Protocol, Smart Remote chain (type / cascade / on-port),
-Brightness, Gamma, Color Order, Direction, Group Count, Zig Zag,
-Start/End Null Pixels, Smart Ts. Gate each field by
-`ControllerCaps` support (`SupportsPixelPortBrightness()` etc.).
+#### Phase 19b — Controller Connection sub-tree ✓
+Mirrors `ModelPropertyAdapter::AddControllerProperties`:
+- Port + Protocol always shown.
+- Smart Remote block (pixel proto + `caps->GetSmartRemoteCount() > 0`):
+  Use Smart Remote / Smart Remote Type / Smart Remote (A/B/…) /
+  Max Cascade Remotes / Cascade On Port (cascade rows only when
+  `GetNumPhysicalStrings() > 1`).
+- Serial proto: DMX channel + protocol speed.
+- Pixel proto: "Set X / X" parent-child rows for each property,
+  gated by `ControllerCaps` (`SupportsPixelPortNullPixels`,
+  `…EndNullPixels`, `…Brightness`, `…Gamma`, `…ColourOrder`,
+  `…Direction`, `…Grouping`, `SupportsPixelZigZag`, `SupportsTs`).
+  Inactive children are rendered dim so the user can see at a
+  glance which fields are overridden vs. inherited.
 
-#### Phase 19c — Per-model-type properties
-25 type adapters from `src-ui-wx/modelproperties/adapters/`:
-Matrix, Tree (CandyCane is here), Arches, Cube, Custom,
-Channel Block, Circle, Icicles, Spinner, Star, Wreath,
-Window Frame, Polyline, Singleline, Submodel, all DMX*
-(Floodlight, General, MovingHead, MovingHeadAdv, Servo, Servo3d,
-Skull), plus 3D objects (Mesh, Image, Terrain, Ruler, Gridlines).
-Dispatch by `m->GetDisplayAs()`.
+#### Phase 19c — Per-model-type properties (partial ✓)
+`LayoutPropertyTree::populateModelTypeProperties(Model* m)`
+dispatches on `m->GetDisplayAs()`.  Coverage today (with verified
+public accessors):
+- **Matrix** — Direction, # Strings, Nodes/Lights per String,
+  Strands/String, Alternate Nodes, Don't Zig Zag, Starting
+  Location.
+- **Arches** — Layered flag, # Arches, Nodes/Arch, Layer Count,
+  Hollow %, Zig-Zag, Lights/Node, Arc Degrees, Gap, Starting
+  Location.
+- **Tree** — Tree Type, Degrees, Rotation, Spiral Rotations,
+  Bottom/Top Ratio, Perspective, First Strand.
+- **Star** — Star Ratio, Inner %, Start Location, Layers.
+- **Cube** — Strands, Nodes/Strand.
+- **CandyCanes** — # Canes, Lights per Node.
+- **PolyLine** — # Strings, Drop Points, Segments, Lights/Node,
+  Model Height, Alternate Nodes.
+- **WindowFrame** — Rotation.
+- **Spinner** — # Strings, Arms/String, Nodes/Arm, Hollow %,
+  Arc Angle, Start Angle, Zig-Zag, Alternate Nodes.
 
-#### Phase 19d — Popup dialogs
+Less-common types (Custom, Circle, Icicles, Wreath,
+ChannelBlock, SingleLine, MultiPoint, Sphere, all DMX*) currently
+show a category header + `# Strings` + "(detailed properties
+pending)" marker — they need either core-side getters or a fall-
+back that walks the model's XML attributes.  Tracked for a later
+pass; not blocking.  3D objects (Mesh / Image / Terrain / Ruler /
+Gridlines) not yet handled.
+
+#### Phase 19d — Popup dialogs ✓ (partial)
 Sub-Models / Faces / States are already covered by the existing
 `ModelEditDialog` (Phase 12). Reuse it — do **not** split into
 three separate dialogs. The property-tree rows for "Sub-Models",
@@ -309,15 +337,95 @@ New dialogs still to implement (no existing Qt equivalent):
 `ModelChainDialog`. Triggered from a "…" button in the value
 cell (handled by the editing delegate).
 
-#### Phase 19e (last) — Editing wiring
-Done **last**, once every row is populating read-only across all
-three left-tab selections (model, group, controller) and every
-model type. `QStyledItemDelegate` produces per-row editors keyed
-off a "kind" enum stored in `Qt::UserRole`: int spin / double
-spin / line edit / combo / color picker / bool check. On commit:
-call the appropriate `Model` / `ModelGroup` / `Controller` setter →
-persist via `ModelManager` save to `xlights_rgbeffects.xml` →
-refresh canvas / preview.
+#### Phase 19e — Editing wiring ✓ (initial pass)
+
+`LayoutPropertyDelegate` (`QStyledItemDelegate`) produces per-row
+editors keyed off a `LayoutPropertyTree::Kind` enum stored on the
+value cell's `Qt::UserRole+10`:
+- `String` → `QLineEdit`
+- `Int` → `QSpinBox` (0..100000)
+- `IntPercent` → `QSpinBox` 0..100 with " %" suffix
+- `Double` → `QDoubleSpinBox`
+- `Bool` → `QComboBox` ("yes" / "no")
+- `Color` → `QColorDialog` (opens immediately)
+
+Editable fields (model only — group/controller editing pending):
+Description, Active, Pixel Size, Transparency,
+Black Transparency, Tag Color, # Strings (Matrix → SetNumMatrixStrings,
+Arches → SetNumArches, Spinner → SetNumSpinnerStrings).
+
+Commit path: `itemChanged` → `commitModelField(fieldId, value)` →
+`Model::Set*()` → emits `modelChanged(name)` → `LayoutWindow`
+refreshes the canvas and re-shows the model props.
+
+**Persistence to `xlights_rgbeffects.xml` is NOT wired yet** —
+edits live in-memory in the `ModelManager` only and are lost on
+app exit. The phase 19f / 19g work below covers that.
+
+#### Phase 19f — Persistence ✓
+
+`QtRenderBridge::saveModelToShowFile(modelName)` writes the
+mutated model back to `xlights_rgbeffects.xml`:
+
+1. Load the existing file via pugixml.
+2. Walk to `<xrgb>/<models>/<model name="X">` (or
+   `<modelGroups>/<modelGroup name="X">` for groups).
+3. Build a fresh `pugi::xml_document` for the model using
+   `XmlSerializer::SerializeModel(Model*)`.
+4. Replace the existing node (`insert_copy_before` + `remove_child`)
+   so the rest of the file is preserved verbatim — other models,
+   controllers, layout groups, perspectives, view objects, etc.
+   are untouched.
+5. Write the file back with `doc.save_file(..., "  ")`.
+
+Wired in `LayoutWindow`: the property-tree's `modelChanged`
+signal calls `_bridge->saveModelToShowFile(name)` before
+refreshing the canvas and re-showing the props. Save is
+synchronous; if it becomes sluggish on slow disks we can debounce
+on a QTimer like `QtRenderBridge::request()` does for renders.
+
+Diverges from the wx path (which builds the WHOLE rgbeffects XML
+from scratch via `BuildEffectsXml()` and rewrites the file) —
+Qt's per-model surgical edit is safer since the Qt UI doesn't yet
+manage perspectives / color manager / viewpoints / sequence views,
+and we'd rather not clobber what wx wrote.
+
+#### Phase 19g — Editable fields for group + controller ✓
+
+Added a new `Kind::Enum` to `LayoutPropertyTree` (QComboBox with
+options stored in `Qt::UserRole+12`) so multi-value enums like
+controller Active state work.
+
+The itemChanged dispatcher now branches on `_currentKind`
+(Model / Group / Controller) and routes to one of:
+- `commitModelField` (existing)
+- `commitGroupField` → `ModelGroup::SetActive/SetLayoutGroup/`
+  `SetLayout/SetDefaultCamera/SetTagColour`.
+- `commitControllerField` → `Controller::SetDescription/SetActive/`
+  `SetAutoLayout/SetAutoUpload/SetVendor/SetModel/SetVariant`,
+  `ControllerEthernet::SetIP/SetFPPProxy/SetPriority/SetProtocol`,
+  `ControllerSerial::SetPort/SetSpeed`.
+
+Editable group fields: Layout (combo: Default / Minimal Grid /
+Horizontal Stack / Vertical Stack / Overlay-Center / Overlay-
+Scaled / Per Model Default), Layout Group, Active, Tag Color,
+Default Camera.
+
+Editable controller fields: Description, Vendor, Model, Variant,
+Active (enum), Auto Layout, Auto Upload; Ethernet adds IP / FPP
+Proxy / Priority; Serial adds Port / Speed.
+
+Persistence: groups re-use `QtRenderBridge::saveModelToShowFile`
+(it already branches on `dynamic_cast<ModelGroup*>` to write
+`<modelGroup>` nodes). Controllers go via new
+`QtRenderBridge::saveControllersToShowFile()` which calls
+`OutputManager::Save()` to rewrite `xlights_networks.xml`.
+
+#### Phase 19h — Editable fields: remaining per-type
+Currently editable: Matrix / Arches / Spinner `# Strings`. Add
+setters for the other types as their core-side `Set*` accessors
+become available (Circle, Wreath, ChannelBlock, Tree, PolyLine,
+CandyCanes, all DMX*, etc.).
 
 Undo: integrate with whatever undo stack the Qt UI ends up
 adopting (currently none — open question).

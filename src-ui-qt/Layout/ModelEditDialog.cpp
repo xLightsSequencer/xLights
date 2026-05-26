@@ -364,7 +364,8 @@ void ModelEditDialog::setupStatesTab(QWidget* tab) {
 
 // ── openForModel ──────────────────────────────────────────────────────────────
 
-void ModelEditDialog::openForModel(const QString& modelName, const QtSequenceInfo& seqData) {
+void ModelEditDialog::openForModel(const QString& modelName, const QtSequenceInfo& seqData,
+                                   int tabIndex) {
     _modelName = modelName;
     _titleLabel->setText(modelName);
     setWindowTitle("Model Editor — " + modelName);
@@ -381,6 +382,9 @@ void ModelEditDialog::openForModel(const QString& modelName, const QtSequenceInf
     refreshSmList();
     refreshFaceList();
     refreshStateList();
+
+    if (tabIndex >= 0 && tabIndex < _tabs->count())
+        _tabs->setCurrentIndex(tabIndex);
 
     show(); raise(); activateWindow();
 }

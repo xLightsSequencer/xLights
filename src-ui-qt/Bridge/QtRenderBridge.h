@@ -39,6 +39,23 @@ public:
     // May return nullptr if no show folder has been set or init failed.
     ModelManager* modelManager() const;
 
+    // Persist the named model's current state back to xlights_rgbeffects.xml
+    // (or the corresponding model-group / view-object element).  Uses
+    // pugixml: loads the existing file, finds the matching node by name,
+    // replaces its attributes/children with a fresh serialisation from the
+    // live Model*, and writes the file back.  All other content in the file
+    // (other models, controllers, layout groups, perspectives, etc.) is
+    // preserved verbatim.
+    //
+    // Returns true on success.  No-op + returns false if the show folder is
+    // unset or the model can't be found.
+    bool saveModelToShowFile(const QString& modelName);
+
+    // Persist the entire OutputManager (all controllers + outputs) back to
+    // xlights_networks.xml.  Uses the src-core save path (OutputManager::Save)
+    // which builds the XML from in-memory state.  Returns true on success.
+    bool saveControllersToShowFile();
+
 signals:
     void frameReady(QtEffectRenderer::Result result);
 

@@ -6,6 +6,8 @@
 #include "../Bridge/QtSequenceDoc.h"
 #include "../Bridge/QtRenderBridge.h"
 #include "../../src-core/models/ModelManager.h"
+#include "../../src-core/outputs/OutputManager.h"
+#include "../../src-core/outputs/Controller.h"
 
 #include <QHeaderView>
 #include <QListWidget>
@@ -132,6 +134,59 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     });
     connect(_canvas, &ModelLayoutCanvas::modelClicked,
             this, &LayoutWindow::onCanvasModelClicked);
+
+    // Property-tree → ModelEditDialog: open the right tab when the user
+    // double-clicks the Sub-Models / Faces / States rows.
+    connect(_props, &LayoutPropertyTree::editModelRequested,
+            this, [this](const QString& name, int tab) {
+        if (!_editDialog || name.isEmpty()) return;
+        _editDialog->openForModel(name, _data, tab);
+    });
+
+    // Property-tree commit → persist to xlights_rgbeffects.xml + refresh
+    // canvas + re-show props.  Save happens synchronously; if the file is
+    // huge this could feel sluggish on slow disks — at that point we can
+    // debounce on a QTimer like the renderer does.
+    connect(_props, &LayoutPropertyTree::modelChanged,
+            this, [this](const QString& name) {
+        if (_bridge) _bridge->saveModelToShowFile(name);
+        if (_bridge && _bridge->modelManager())
+            _canvas->loadLayoutFromManager(_bridge->modelManager());
+        _props->showModel(name);
+    });
+
+    // Group edits persist to xlights_rgbeffects.xml exactly like models
+    // (saveModelToShowFile handles both — it routes <modelGroup> by dynamic-
+    // casting the live object).
+    connect(_props, &LayoutPropertyTree::groupChanged,
+            this, [this](const QString& name) {
+        if (_bridge) _bridge->saveModelToShowFile(name);
+        if (_bridge && _bridge->modelManager())
+            _canvas->loadLayoutFromManager(_bridge->modelManager());
+        _props->showGroup(name);
+    });
+
+    // Controller edits persist to xlights_networks.xml via OutputManager::Save.
+    // For renames the controller-list widget still shows the old name, so we
+    // rebuild it from the live OutputManager and reselect the (possibly
+    // renamed) entry by its current name.
+    connect(_props, &LayoutPropertyTree::controllerChanged,
+            this, [this](const QString& name) {
+        if (_bridge) _bridge->saveControllersToShowFile();
+        if (_bridge && _bridge->modelManager()) {
+            if (auto* om = _bridge->modelManager()->GetOutputManager()) {
+                _controllerList->clear();
+                for (auto* c : om->GetControllers())
+                    _controllerList->addItem(QString::fromStdString(c->GetName()));
+                const auto matches = _controllerList->findItems(name, Qt::MatchExactly);
+                if (!matches.isEmpty()) {
+                    _controllerList->setCurrentItem(matches.first());
+                    _controllerList->scrollToItem(matches.first());
+                }
+            }
+        }
+        _props->showController(name);
+    });
 }
 
 void LayoutWindow::setRenderBridge(QtRenderBridge* bridge) {

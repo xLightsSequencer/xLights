@@ -11,6 +11,7 @@
 #include "../../src-core/models/CubeModel.h"
 #include "../../src-core/models/MatrixModel.h"
 #include "../../src-core/models/PolyLineModel.h"
+#include "../../src-core/models/SpinnerModel.h"
 #include "../../src-core/models/StarModel.h"
 #include "../../src-core/models/TreeModel.h"
 #include "../../src-core/models/WindowFrameModel.h"
@@ -19,13 +20,20 @@
 #include "../../src-core/outputs/ControllerSerial.h"
 #include "../../src-core/outputs/Output.h"
 #include "../../src-core/outputs/OutputManager.h"
+#include "../../src-core/outputs/SerialOutput.h"
 #include "../../src-core/controllers/ControllerCaps.h"
 #include "../../src-core/utils/Color.h"
 
 #include <QBrush>
+#include <QColorDialog>
+#include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QFont>
 #include <QHeaderView>
+#include <QLineEdit>
 #include <QPalette>
+#include <QSpinBox>
+#include <QStyledItemDelegate>
 
 namespace {
 
@@ -52,6 +60,12 @@ QString directionLabel(int reverse) {
     return reverse == 0 ? "Forward" : (reverse == 1 ? "Reverse" : QString::number(reverse));
 }
 
+// Tag keys on QTreeWidgetItem data.  UserRole+1 is reserved for the dialog
+// tab index used by editModelRequested (existing behaviour).
+constexpr int kRoleKind        = Qt::UserRole + 10;   // LayoutPropertyTree::Kind enum
+constexpr int kRoleFieldId     = Qt::UserRole + 11;   // QString fieldId
+constexpr int kRoleEnumOptions = Qt::UserRole + 12;   // QStringList for Kind::Enum
+
 QString activeStateLabel(Controller::ACTIVESTATE s) {
     switch (s) {
         case Controller::ACTIVESTATE::ACTIVE:           return "Active";
@@ -60,6 +74,127 @@ QString activeStateLabel(Controller::ACTIVESTATE s) {
         default:                                        return "Unknown";
     }
 }
+
+// Delegate that swaps in an editor based on the row's Kind tag.
+// Read-only rows (Kind::None or no tag) return nullptr from createEditor —
+// QTreeWidget then falls back to no-edit.
+class LayoutPropertyDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+    QWidget* createEditor(QWidget* parent,
+                          const QStyleOptionViewItem&,
+                          const QModelIndex& index) const override {
+        const auto kind = static_cast<LayoutPropertyTree::Kind>(
+            index.data(kRoleKind).toInt());
+        switch (kind) {
+            case LayoutPropertyTree::Kind::String: {
+                return new QLineEdit(parent);
+            }
+            case LayoutPropertyTree::Kind::Int: {
+                auto* s = new QSpinBox(parent);
+                s->setRange(0, 100000);
+                return s;
+            }
+            case LayoutPropertyTree::Kind::IntPercent: {
+                auto* s = new QSpinBox(parent);
+                s->setRange(0, 100);
+                s->setSuffix(" %");
+                return s;
+            }
+            case LayoutPropertyTree::Kind::Double: {
+                auto* s = new QDoubleSpinBox(parent);
+                s->setRange(-100000.0, 100000.0);
+                s->setDecimals(3);
+                return s;
+            }
+            case LayoutPropertyTree::Kind::Bool: {
+                auto* c = new QComboBox(parent);
+                c->addItems({"no", "yes"});
+                return c;
+            }
+            case LayoutPropertyTree::Kind::Enum: {
+                auto* c = new QComboBox(parent);
+                c->addItems(index.data(kRoleEnumOptions).toStringList());
+                return c;
+            }
+            case LayoutPropertyTree::Kind::Color: {
+                // Open the picker immediately, write the result back into the
+                // EDIT role, and return nullptr so the view doesn't try to
+                // host a child editor widget.
+                const QColor initial(index.data(Qt::DisplayRole).toString());
+                const QColor c = QColorDialog::getColor(initial.isValid() ? initial : Qt::black,
+                                                        parent, "Choose color");
+                if (c.isValid())
+                    const_cast<QAbstractItemModel*>(index.model())
+                        ->setData(index, c.name().toUpper(), Qt::EditRole);
+                return nullptr;
+            }
+            default:
+                return nullptr;
+        }
+    }
+
+    void setEditorData(QWidget* editor, const QModelIndex& index) const override {
+        const auto kind = static_cast<LayoutPropertyTree::Kind>(
+            index.data(kRoleKind).toInt());
+        const QString text = index.data(Qt::DisplayRole).toString();
+        switch (kind) {
+            case LayoutPropertyTree::Kind::String:
+                static_cast<QLineEdit*>(editor)->setText(text);
+                break;
+            case LayoutPropertyTree::Kind::Int:
+            case LayoutPropertyTree::Kind::IntPercent: {
+                QString stripped = text;
+                stripped.remove(" %");
+                static_cast<QSpinBox*>(editor)->setValue(stripped.toInt());
+                break;
+            }
+            case LayoutPropertyTree::Kind::Double:
+                static_cast<QDoubleSpinBox*>(editor)->setValue(text.toDouble());
+                break;
+            case LayoutPropertyTree::Kind::Bool:
+                static_cast<QComboBox*>(editor)->setCurrentIndex(text == "yes" ? 1 : 0);
+                break;
+            case LayoutPropertyTree::Kind::Enum: {
+                auto* c = static_cast<QComboBox*>(editor);
+                const int idx = c->findText(text);
+                c->setCurrentIndex(idx >= 0 ? idx : 0);
+                break;
+            }
+            default: break;
+        }
+    }
+
+    void setModelData(QWidget* editor, QAbstractItemModel* model,
+                      const QModelIndex& index) const override {
+        const auto kind = static_cast<LayoutPropertyTree::Kind>(
+            index.data(kRoleKind).toInt());
+        QVariant out;
+        switch (kind) {
+            case LayoutPropertyTree::Kind::String:
+                out = static_cast<QLineEdit*>(editor)->text();
+                break;
+            case LayoutPropertyTree::Kind::Int:
+                out = static_cast<QSpinBox*>(editor)->value();
+                break;
+            case LayoutPropertyTree::Kind::IntPercent:
+                out = QString::number(static_cast<QSpinBox*>(editor)->value()) + " %";
+                break;
+            case LayoutPropertyTree::Kind::Double:
+                out = static_cast<QDoubleSpinBox*>(editor)->value();
+                break;
+            case LayoutPropertyTree::Kind::Bool:
+                out = static_cast<QComboBox*>(editor)->currentIndex() == 1 ? "yes" : "no";
+                break;
+            case LayoutPropertyTree::Kind::Enum:
+                out = static_cast<QComboBox*>(editor)->currentText();
+                break;
+            default: return;
+        }
+        model->setData(index, out, Qt::EditRole);
+    }
+};
 
 } // namespace
 
@@ -72,8 +207,58 @@ LayoutPropertyTree::LayoutPropertyTree(QWidget* parent) : QTreeWidget(parent) {
     setUniformRowHeights(true);
     setAlternatingRowColors(true);
     setSelectionMode(QAbstractItemView::SingleSelection);
-    setEditTriggers(QAbstractItemView::NoEditTriggers);  // editable in phase 4
+    // Read-only rows are skipped by the delegate (returns nullptr from
+    // createEditor); editable ones get an editor on double-click.
+    setEditTriggers(QAbstractItemView::DoubleClicked |
+                    QAbstractItemView::EditKeyPressed);
+    setItemDelegateForColumn(1, new LayoutPropertyDelegate(this));
     setIndentation(14);
+
+    // Catch successful edits — itemChanged fires after the delegate's
+    // setModelData commits.  Route to the appropriate setter on the live
+    // src-core object.
+    connect(this, &QTreeWidget::itemChanged, this,
+            [this](QTreeWidgetItem* item, int col) {
+        if (col != 1 || !item) return;
+        const QString fieldId = item->data(0, kRoleFieldId).toString();
+        if (fieldId.isEmpty() || _currentEntity.isEmpty()) return;
+        const QString val = item->text(1);
+        switch (_currentKind) {
+            case EntityKind::Model:
+                if (commitModelField(fieldId, val))
+                    emit modelChanged(_currentEntity);
+                break;
+            case EntityKind::Group:
+                if (commitGroupField(fieldId, val))
+                    emit groupChanged(_currentEntity);
+                break;
+            case EntityKind::Controller:
+                if (commitControllerField(fieldId, val))
+                    emit controllerChanged(_currentEntity);
+                break;
+            default: break;
+        }
+    });
+
+    // Rows tagged with Qt::UserRole+1 are "editor" rows (Sub-Models / Faces /
+    // States).  Double-click emits editModelRequested so LayoutWindow can open
+    // ModelEditDialog on the right tab.
+    connect(this, &QTreeWidget::itemDoubleClicked, this,
+            [this](QTreeWidgetItem* item, int /*col*/) {
+        if (!item) return;
+        const QVariant v = item->data(0, Qt::UserRole + 1);
+        if (!v.isValid()) return;
+
+        // Walk up to find the model name from the populated tree.  The
+        // identity category's first row holds the model name.  We re-resolve
+        // by asking the parent widget — the tree itself doesn't store it.
+        const int tab = v.toInt();
+        QTreeWidgetItem* root = topLevelItem(0);
+        if (!root || root->childCount() == 0) return;
+        QTreeWidgetItem* nameRow = root->child(0);
+        if (!nameRow) return;
+        emit editModelRequested(nameRow->text(1), tab);
+    });
 }
 
 void LayoutPropertyTree::setModelManager(ModelManager* mm) {
@@ -85,6 +270,8 @@ void LayoutPropertyTree::clearAll() { clear(); }
 
 void LayoutPropertyTree::showModel(const QString& name) {
     clear();
+    _currentEntity.clear();
+    _currentKind = EntityKind::None;
     if (!_mm || name.isEmpty()) return;
 
     Model* m = nullptr;
@@ -95,7 +282,11 @@ void LayoutPropertyTree::showModel(const QString& name) {
     // Skip groups here — caller should use showGroup() for those.
     if (dynamic_cast<ModelGroup*>(m)) return;
 
+    _currentEntity = name;
+    _currentKind = EntityKind::Model;
+
     populateModelIdentity(m);
+    populateModelTypeProperties(m);
     populateModelSizingChannels(m);
     populateModelLayout(m);
     populateModelAppearance(m);
@@ -107,6 +298,8 @@ void LayoutPropertyTree::showModel(const QString& name) {
 
 void LayoutPropertyTree::showGroup(const QString& name) {
     clear();
+    _currentEntity.clear();
+    _currentKind = EntityKind::None;
     if (!_mm || name.isEmpty()) return;
 
     ModelGroup* g = nullptr;
@@ -115,6 +308,9 @@ void LayoutPropertyTree::showGroup(const QString& name) {
         g = dynamic_cast<ModelGroup*>(m);
     } catch (...) { g = nullptr; }
     if (!g) return;
+
+    _currentEntity = name;
+    _currentKind = EntityKind::Group;
 
     populateGroupIdentity(g);
     populateGroupBuffer(g);
@@ -126,12 +322,17 @@ void LayoutPropertyTree::showGroup(const QString& name) {
 
 void LayoutPropertyTree::showController(const QString& name) {
     clear();
+    _currentEntity.clear();
+    _currentKind = EntityKind::None;
     if (!_om || name.isEmpty()) return;
 
     Controller* c = nullptr;
     try { c = _om->GetController(name.toStdString()); }
     catch (...) { c = nullptr; }
     if (!c) return;
+
+    _currentEntity = name;
+    _currentKind = EntityKind::Controller;
 
     populateControllerIdentity(c);
     populateControllerNetwork(c);
@@ -159,16 +360,176 @@ QTreeWidgetItem* LayoutPropertyTree::addRow(QTreeWidgetItem* category,
     auto* row = new QTreeWidgetItem(category);
     row->setText(0, label);
     row->setText(1, value);
+    // Block itemChanged on read-only rows (would otherwise fire during
+    // addEditableRow's own setItem calls if a downstream class adds an item).
+    row->setFlags(row->flags() & ~Qt::ItemIsEditable);
     return row;
+}
+
+QTreeWidgetItem* LayoutPropertyTree::addEditableRow(QTreeWidgetItem* category,
+                                                    const QString& label,
+                                                    const QString& value,
+                                                    Kind kind,
+                                                    const QString& fieldId,
+                                                    const QStringList& enumOptions) {
+    // Suppress itemChanged while we initialise the row; only the user's
+    // subsequent edit should reach the commit dispatcher.
+    blockSignals(true);
+    auto* row = new QTreeWidgetItem(category);
+    row->setText(0, label);
+    row->setText(1, value);
+    row->setData(0, kRoleKind,    static_cast<int>(kind));
+    row->setData(0, kRoleFieldId, fieldId);
+    row->setData(1, kRoleKind,    static_cast<int>(kind));   // delegate reads from col 1
+    if (!enumOptions.isEmpty())
+        row->setData(1, kRoleEnumOptions, enumOptions);
+    Qt::ItemFlags f = row->flags();
+    f |= Qt::ItemIsEditable;
+    row->setFlags(f);
+    // Subtle visual hint that the value cell is editable.
+    QFont font = row->font(1);
+    font.setUnderline(true);
+    row->setFont(1, font);
+    blockSignals(false);
+    return row;
+}
+
+// ── Commit (Model only — group/controller editing comes later) ───────────────
+
+bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant& value) {
+    if (!_mm) return false;
+    Model* m = nullptr;
+    try { m = _mm->GetModel(_currentEntity.toStdString()); }
+    catch (...) { m = nullptr; }
+    if (!m) return false;
+
+    auto pctToInt = [](const QString& s) {
+        QString stripped = s; stripped.remove(" %"); return stripped.toInt();
+    };
+
+    if (fieldId == "Description") {
+        m->SetDescription(value.toString().toStdString());
+        return true;
+    }
+    if (fieldId == "Active") {
+        m->SetActive(value.toString() == "yes");
+        return true;
+    }
+    if (fieldId == "TagColor") {
+        const QColor c(value.toString());
+        if (c.isValid()) {
+            m->SetTagColour(xlColor(c.red(), c.green(), c.blue()));
+            return true;
+        }
+        return false;
+    }
+    if (fieldId == "PixelSize") {
+        m->SetPixelSize(value.toInt());
+        return true;
+    }
+    if (fieldId == "Transparency") {
+        m->SetTransparency(pctToInt(value.toString()));
+        return true;
+    }
+    if (fieldId == "BlackTransparency") {
+        m->SetBlackTransparency(pctToInt(value.toString()));
+        return true;
+    }
+
+    // # Strings edits — dispatch per model type.
+    if (fieldId == "NumStrings") {
+        const int n = value.toInt();
+        if (n <= 0) return false;
+        if (auto* matrix = dynamic_cast<MatrixModel*>(m)) {
+            matrix->SetNumMatrixStrings(n); return true;
+        }
+        if (auto* arches = dynamic_cast<ArchesModel*>(m)) {
+            arches->SetNumArches(n); return true;
+        }
+        if (auto* spinner = dynamic_cast<SpinnerModel*>(m)) {
+            spinner->SetNumSpinnerStrings(n); return true;
+        }
+        // Other types (Circle / Wreath / ChannelBlock / Tree / PolyLine /
+        // CandyCanes) need their own setters — not exposed via the base
+        // Model interface.  TODO once those headers gain SetNum* methods.
+        return false;
+    }
+
+    return false;
+}
+
+bool LayoutPropertyTree::commitGroupField(const QString& fieldId, const QVariant& value) {
+    if (!_mm) return false;
+    ModelGroup* g = nullptr;
+    try {
+        Model* m = _mm->GetModel(_currentEntity.toStdString());
+        g = dynamic_cast<ModelGroup*>(m);
+    } catch (...) { return false; }
+    if (!g) return false;
+
+    if (fieldId == "Active")        { g->SetActive(value.toString() == "yes"); return true; }
+    if (fieldId == "LayoutGroup")   { g->SetLayoutGroup(value.toString().toStdString()); return true; }
+    if (fieldId == "Layout")        { g->SetLayout(value.toString().toStdString()); return true; }
+    if (fieldId == "DefaultCamera") { g->SetDefaultCamera(value.toString().toStdString()); return true; }
+    if (fieldId == "TagColor") {
+        const QColor c(value.toString());
+        if (c.isValid()) {
+            g->SetTagColour(xlColor(c.red(), c.green(), c.blue()));
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool LayoutPropertyTree::commitControllerField(const QString& fieldId, const QVariant& value) {
+    if (!_om) return false;
+    Controller* c = nullptr;
+    try { c = _om->GetController(_currentEntity.toStdString()); }
+    catch (...) { return false; }
+    if (!c) return false;
+
+    if (fieldId == "Name") {
+        const QString newName = value.toString().trimmed();
+        if (newName.isEmpty() || newName == _currentEntity) return false;
+        // Refuse the rename if another controller already owns the new name —
+        // OutputManager keys by name and would otherwise silently collide.
+        if (_om->GetController(newName.toStdString()) != nullptr) return false;
+        c->SetName(newName.toStdString());
+        _currentEntity = newName;
+        return true;
+    }
+    if (fieldId == "Description")  { c->SetDescription(value.toString().toStdString()); return true; }
+    if (fieldId == "Active")       { c->SetActive(value.toString().toStdString());      return true; }
+    if (fieldId == "AutoLayout")   { c->SetAutoLayout(value.toString() == "yes");        return true; }
+    if (fieldId == "AutoSize")     { c->SetAutoSize(value.toString() == "yes", nullptr); return true; }
+    if (fieldId == "AutoUpload")   { c->SetAutoUpload(value.toString() == "yes");        return true; }
+    if (fieldId == "Vendor")       { c->SetVendor(value.toString().toStdString());       return true; }
+    if (fieldId == "Model")        { c->SetModel(value.toString().toStdString());        return true; }
+    if (fieldId == "Variant")      { c->SetVariant(value.toString().toStdString());      return true; }
+    if (fieldId == "SuppressDup")  { c->SetSuppressDuplicateFrames(value.toString() == "yes"); return true; }
+    if (fieldId == "Monitor")      { c->SetMonitoring(value.toString() == "yes");        return true; }
+
+    if (auto* e = dynamic_cast<ControllerEthernet*>(c)) {
+        if (fieldId == "IP")       { e->SetIP(value.toString().toStdString());       return true; }
+        if (fieldId == "FPPProxy") { e->SetFPPProxy(value.toString().toStdString()); return true; }
+        if (fieldId == "Priority") { e->SetPriority(value.toInt());                  return true; }
+        if (fieldId == "Protocol") { e->SetProtocol(value.toString().toStdString()); return true; }
+    } else if (auto* s = dynamic_cast<ControllerSerial*>(c)) {
+        if (fieldId == "Port")     { s->SetPort(value.toString().toStdString());     return true; }
+        if (fieldId == "Speed")    { s->SetSpeed(value.toInt());                     return true; }
+    }
+    return false;
 }
 
 // ── Model ─────────────────────────────────────────────────────────────────────
 
 void LayoutPropertyTree::populateModelIdentity(Model* m) {
     auto* cat = addCategory(qstr(DisplayAsTypeToString(m->GetDisplayAs())));
-    addRow(cat, "Name",        qstr(m->GetName()));
-    addRow(cat, "Type",        qstr(DisplayAsTypeToString(m->GetDisplayAs())));
-    addRow(cat, "Description", qstr(m->GetDescription()));
+    addRow(cat, "Name", qstr(m->GetName()));
+    addRow(cat, "Type", qstr(DisplayAsTypeToString(m->GetDisplayAs())));
+    addEditableRow(cat, "Description", qstr(m->GetDescription()),
+                   Kind::String, "Description");
 }
 
 void LayoutPropertyTree::populateModelSizingChannels(Model* m) {
@@ -187,7 +548,8 @@ void LayoutPropertyTree::populateModelSizingChannels(Model* m) {
 void LayoutPropertyTree::populateModelLayout(Model* m) {
     auto* cat = addCategory("Layout");
     addRow(cat, "Layout Group", qstr(m->GetLayoutGroup()));
-    addRow(cat, "Active",       m->IsActive() ? "yes" : "no");
+    addEditableRow(cat, "Active", m->IsActive() ? "yes" : "no",
+                   Kind::Bool, "Active");
     const auto& loc = m->GetModelScreenLocation();
     addRow(cat, "World X", QString::number(loc.GetWorldPos_X(), 'f', 2));
     addRow(cat, "World Y", QString::number(loc.GetWorldPos_Y(), 'f', 2));
@@ -204,11 +566,17 @@ void LayoutPropertyTree::populateModelLayout(Model* m) {
 
 void LayoutPropertyTree::populateModelAppearance(Model* m) {
     auto* cat = addCategory("Appearance");
-    addRow(cat, "Pixel Size",         QString::number(m->GetPixelSize()));
-    addRow(cat, "Pixel Style",        pixelStyleLabel(m->GetPixelStyle()));
-    addRow(cat, "Transparency",       QString::number(m->GetTransparency()) + " %");
-    addRow(cat, "Black Transparency", QString::number(m->GetBlackTransparency()) + " %");
-    auto* row = addRow(cat, "Tag Color", hexColor(m->GetTagColour()));
+    addEditableRow(cat, "Pixel Size", QString::number(m->GetPixelSize()),
+                   Kind::Int, "PixelSize");
+    addRow(cat, "Pixel Style", pixelStyleLabel(m->GetPixelStyle()));
+    addEditableRow(cat, "Transparency",
+                   QString::number(m->GetTransparency()) + " %",
+                   Kind::IntPercent, "Transparency");
+    addEditableRow(cat, "Black Transparency",
+                   QString::number(m->GetBlackTransparency()) + " %",
+                   Kind::IntPercent, "BlackTransparency");
+    auto* row = addEditableRow(cat, "Tag Color", hexColor(m->GetTagColour()),
+                               Kind::Color, "TagColor");
     const xlColor tc = m->GetTagColour();
     row->setBackground(1, QBrush(QColor(tc.red, tc.green, tc.blue)));
     const std::string smf = m->GetShadowModelFor();
@@ -348,11 +716,158 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
     }
 }
 
+// ── Per-model-type properties ─────────────────────────────────────────────────
+
+void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
+    const DisplayAsType t = m->GetDisplayAs();
+
+    if (auto* matrix = dynamic_cast<MatrixModel*>(m)) {
+        auto* cat = addCategory("Matrix");
+        addRow(cat, "Direction",        matrix->isVerticalMatrix() ? "Vertical" : "Horizontal");
+        addEditableRow(cat, "# Strings",
+                       QString::number(matrix->GetNumPhysicalStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, matrix->IsSingleNode() ? "Lights/String" : "Nodes/String",
+               QString::number(matrix->GetNodesPerString()));
+        addRow(cat, "Strands/String",   QString::number(matrix->GetStrandsPerString()));
+        addRow(cat, "Alternate Nodes",  matrix->HasAlternateNodes() ? "yes" : "no");
+        addRow(cat, "Don't Zig Zag",    matrix->IsNoZigZag() ? "yes" : "no");
+        const QString start = QString("%1 %2")
+            .arg(matrix->GetIsBtoT() ? "Bottom" : "Top")
+            .arg(matrix->GetIsLtoR() ? "Left"   : "Right");
+        addRow(cat, "Starting Location", start);
+        return;
+    }
+
+    if (auto* arches = dynamic_cast<ArchesModel*>(m)) {
+        auto* cat = addCategory("Arches");
+        const bool layered = arches->GetLayerSizeCount() != 0;
+        addRow(cat, "Layered Arches", layered ? "yes" : "no");
+        if (!layered) {
+            addEditableRow(cat, "# Arches",
+                           QString::number(arches->GetNumArches()),
+                           Kind::Int, "NumStrings");
+            addRow(cat, "Nodes Per Arch",  QString::number(arches->GetNodesPerArch()));
+        } else {
+            addRow(cat, "Nodes",        QString::number(arches->GetNodesPerArch()));
+            addRow(cat, "Layer Count",  QString::number(arches->GetLayerSizeCount()));
+            addRow(cat, "Hollow %",     QString::number(arches->GetHollow()));
+            addRow(cat, "Zig-Zag",      arches->GetZigZag() ? "yes" : "no");
+        }
+        addRow(cat, "Lights Per Node", QString::number(arches->GetLightsPerNode()));
+        addRow(cat, "Arc Degrees",     QString::number(arches->GetArc()));
+        if (!layered)
+            addRow(cat, "Gap Between Arches", QString::number(arches->GetGap()));
+        addRow(cat, "Starting Location",
+               arches->GetIsLtoR() ? "Green Square" : "Blue Square");
+        return;
+    }
+
+    if (auto* tree = dynamic_cast<TreeModel*>(m)) {
+        auto* cat = addCategory("Tree");
+        addRow(cat, "Tree Type",         QString::number(tree->GetTreeType()));
+        addRow(cat, "Degrees",           QString::number(tree->GetTreeDegrees(),  'f', 1));
+        addRow(cat, "Rotation",          QString::number(tree->GetTreeRotation(), 'f', 1));
+        addRow(cat, "Spiral Rotations",  QString::number(tree->GetSpiralRotations(), 'f', 2));
+        addRow(cat, "Bottom/Top Ratio",  QString::number(tree->GetBottomTopRatio(),  'f', 2));
+        addRow(cat, "Perspective",       QString::number(tree->GetTreePerspective(), 'f', 2));
+        addRow(cat, "First Strand",      QString::number(tree->GetFirstStrand()));
+        return;
+    }
+
+    if (auto* star = dynamic_cast<StarModel*>(m)) {
+        auto* cat = addCategory("Star");
+        addRow(cat, "Star Ratio",     QString::number(star->GetStarRatio(), 'f', 2));
+        addRow(cat, "Inner %",        QString::number(star->GetInnerPercent()));
+        addRow(cat, "Start Location", qstr(star->GetStartLocation()));
+        addRow(cat, "Layers",         QString::number(star->GetLayerSizeCount()));
+        return;
+    }
+
+    if (auto* cube = dynamic_cast<CubeModel*>(m)) {
+        auto* cat = addCategory("Cube");
+        addRow(cat, "Strands",        QString::number(cube->GetNumStrands()));
+        addRow(cat, "Nodes/Strand",   QString::number(cube->NodesPerString()));
+        return;
+    }
+
+    if (auto* candy = dynamic_cast<CandyCaneModel*>(m)) {
+        auto* cat = addCategory("Candy Canes");
+        addRow(cat, "# Canes",         QString::number(candy->GetNumStrings()));
+        addRow(cat, "Lights Per Node", QString::number(candy->GetLightsPerNode()));
+        return;
+    }
+
+    if (auto* poly = dynamic_cast<PolyLineModel*>(m)) {
+        auto* cat = addCategory("Poly Line");
+        addRow(cat, "# Strings",       QString::number(poly->GetNumStrings()));
+        addRow(cat, "Drop Points",     QString::number(poly->GetDropPoints()));
+        addRow(cat, "Segments",        QString::number(poly->GetNumSegments()));
+        addRow(cat, "Lights Per Node", QString::number(poly->GetLightsPerNode()));
+        addRow(cat, "Model Height",    QString::number(poly->GetModelHeight(), 'f', 2));
+        addRow(cat, "Alternate Nodes", poly->HasAlternateNodes() ? "yes" : "no");
+        return;
+    }
+
+    if (auto* wf = dynamic_cast<WindowFrameModel*>(m)) {
+        auto* cat = addCategory("Window Frame");
+        addRow(cat, "Rotation", QString::number(wf->GetRotation()));
+        return;
+    }
+
+    if (auto* spinner = dynamic_cast<SpinnerModel*>(m)) {
+        auto* cat = addCategory("Spinner");
+        addEditableRow(cat, "# Strings",
+                       QString::number(spinner->GetNumSpinnerStrings()),
+                       Kind::Int, "NumStrings");
+        addRow(cat, "Arms/String",     QString::number(spinner->GetArmsPerString()));
+        addRow(cat, "Nodes/Arm",       QString::number(spinner->GetNodesPerArm()));
+        addRow(cat, "Hollow %",        QString::number(spinner->GetHollowPercent()));
+        addRow(cat, "Arc Angle",       QString::number(spinner->GetArcAngle()));
+        addRow(cat, "Start Angle",     QString::number(spinner->GetStartAngle()));
+        addRow(cat, "Zig-Zag",         spinner->HasZigZag()        ? "yes" : "no");
+        addRow(cat, "Alternate Nodes", spinner->HasAlternateNodes() ? "yes" : "no");
+        return;
+    }
+
+    // Generic catch-all for less-common types — at least show the strings count
+    // and a hint that detailed per-type rows are still pending.
+    if (t == DisplayAsType::Custom ||
+        t == DisplayAsType::Circle ||
+        t == DisplayAsType::Icicles ||
+        t == DisplayAsType::Spinner ||
+        t == DisplayAsType::Wreath ||
+        t == DisplayAsType::ChannelBlock ||
+        t == DisplayAsType::SingleLine ||
+        t == DisplayAsType::MultiPoint ||
+        t == DisplayAsType::Sphere ||
+        IsDmxDisplayType(t)) {
+        auto* cat = addCategory(qstr(DisplayAsTypeToString(t)));
+        addRow(cat, "# Strings", QString::number(m->GetNumStrings()));
+        addRow(cat, "(detailed properties pending)", "");
+    }
+}
+
 void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
     auto* cat = addCategory("Sub-Models / Faces / States");
-    addRow(cat, "Faces",   QString::number(m->GetFaceInfo().size()));
-    addRow(cat, "States",  QString::number(m->GetStateInfo().size()));
+    // The three sub-model/faces/states rows are tagged with their dialog-tab
+    // index in Qt::UserRole + 1 so the itemDoubleClicked handler can route to
+    // the right ModelEditDialog tab.  Aliases stays a count-only row for now;
+    // the dialog re-implementation is in phase 19d.
+    auto tag = [](QTreeWidgetItem* r, int tab) {
+        r->setData(0, Qt::UserRole + 1, tab);
+        r->setText(1, r->text(1) + "   …");
+        r->setToolTip(0, "Double-click to edit");
+        r->setToolTip(1, "Double-click to edit");
+    };
+    tag(addRow(cat, "Sub-Models", QString::number(m->GetSubModels().size())), 0);
+    tag(addRow(cat, "Faces",      QString::number(m->GetFaceInfo().size())),  1);
+    tag(addRow(cat, "States",     QString::number(m->GetStateInfo().size())), 2);
     addRow(cat, "Aliases", QString::number(m->GetAliases().size()));
+    // GetStrandNames/GetNodeNames return a single comma-joined string — we
+    // show whether one was defined rather than the (often huge) raw value.
+    addRow(cat, "Strand Names", m->GetStrandNames().empty() ? "(none)" : "defined");
+    addRow(cat, "Node Names",   m->GetNodeNames().empty()   ? "(none)" : "defined");
 }
 
 // ── Model Group ───────────────────────────────────────────────────────────────
@@ -360,10 +875,17 @@ void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
 void LayoutPropertyTree::populateGroupIdentity(ModelGroup* g) {
     auto* cat = addCategory("Model Group");
     addRow(cat, "Name",   qstr(g->GetName()));
-    addRow(cat, "Layout", qstr(g->GetLayout()));
+    // Layout options match the wx ModelGroup adapter: Default / Minimal Grid /
+    // Horizontal Stack / Vertical Stack / Overlay / Per Model Default.
+    addEditableRow(cat, "Layout", qstr(g->GetLayout()), Kind::Enum, "Layout",
+                   {"Default", "Minimal Grid", "Horizontal Stack",
+                    "Vertical Stack", "Overlay-Center", "Overlay-Scaled",
+                    "Per Model Default"});
     addRow(cat, "Members", QString::number(g->ModelNames().size()));
-    addRow(cat, "Layout Group", qstr(g->GetLayoutGroup()));
-    addRow(cat, "Active",  g->IsActive() ? "yes" : "no");
+    addEditableRow(cat, "Layout Group", qstr(g->GetLayoutGroup()),
+                   Kind::String, "LayoutGroup");
+    addEditableRow(cat, "Active", g->IsActive() ? "yes" : "no",
+                   Kind::Bool, "Active");
 }
 
 void LayoutPropertyTree::populateGroupBuffer(ModelGroup* g) {
@@ -389,10 +911,12 @@ void LayoutPropertyTree::populateGroupBounds(ModelGroup* g) {
 
 void LayoutPropertyTree::populateGroupAppearance(ModelGroup* g) {
     auto* cat = addCategory("Appearance");
-    auto* row = addRow(cat, "Tag Color", hexColor(g->GetTagColour()));
+    auto* row = addEditableRow(cat, "Tag Color", hexColor(g->GetTagColour()),
+                               Kind::Color, "TagColor");
     const xlColor tc = g->GetTagColour();
     row->setBackground(1, QBrush(QColor(tc.red, tc.green, tc.blue)));
-    addRow(cat, "Default Camera", qstr(g->GetDefaultCamera()));
+    addEditableRow(cat, "Default Camera", qstr(g->GetDefaultCamera()),
+                   Kind::String, "DefaultCamera");
 }
 
 void LayoutPropertyTree::populateGroupMembers(ModelGroup* g) {
@@ -411,29 +935,115 @@ void LayoutPropertyTree::populateGroupMembers(ModelGroup* g) {
 
 void LayoutPropertyTree::populateControllerIdentity(Controller* c) {
     auto* cat = addCategory(qstr(c->GetType()));
-    addRow(cat, "Name",        qstr(c->GetName()));
-    addRow(cat, "Type",        qstr(c->GetType()));
-    addRow(cat, "Description", qstr(c->GetDescription()));
-    addRow(cat, "Vendor",      qstr(c->GetVendor()));
-    addRow(cat, "Model",       qstr(c->GetModel()));
-    if (!c->GetVariant().empty())
-        addRow(cat, "Variant", qstr(c->GetVariant()));
-    addRow(cat, "Active",      activeStateLabel(c->GetActive()));
-    addRow(cat, "Auto Layout", c->IsAutoLayout() ? "yes" : "no");
-    addRow(cat, "Auto Size",   c->IsAutoSize()   ? "yes" : "no");
-    addRow(cat, "Auto Upload", c->IsAutoUpload() ? "yes" : "no");
+    addEditableRow(cat, "Name", qstr(c->GetName()), Kind::String, "Name");
+    addRow(cat, "Type", qstr(c->GetType()));
+    addEditableRow(cat, "Description", qstr(c->GetDescription()),
+                   Kind::String, "Description");
+
+    // Vendor / Model / Variant come from the static ControllerCaps catalog.
+    // Each list narrows from the previous selection, mirroring the wx tab's
+    // cascading dropdowns.  When the user picks a new Vendor the controller
+    // edit fires showController() again (see LayoutWindow::controllerChanged)
+    // which rebuilds these rows with the new Model/Variant choices.
+    auto toQList = [](const std::list<std::string>& xs) {
+        QStringList out;
+        out.reserve(static_cast<int>(xs.size()));
+        for (const auto& s : xs) out.append(qstr(s));
+        return out;
+    };
+    const std::string type = c->GetType();
+    QStringList vendors  = toQList(ControllerCaps::GetVendors(type));
+    if (vendors.isEmpty()) vendors << qstr(c->GetVendor());
+    addEditableRow(cat, "Vendor", qstr(c->GetVendor()),
+                   Kind::Enum, "Vendor", vendors);
+
+    QStringList models = toQList(ControllerCaps::GetModels(type, c->GetVendor()));
+    if (models.isEmpty()) models << qstr(c->GetModel());
+    addEditableRow(cat, "Model", qstr(c->GetModel()),
+                   Kind::Enum, "Model", models);
+
+    QStringList variants = toQList(
+        ControllerCaps::GetVariants(type, c->GetVendor(), c->GetModel()));
+    if (variants.isEmpty()) variants << qstr(c->GetVariant());
+    addEditableRow(cat, "Variant", qstr(c->GetVariant()),
+                   Kind::Enum, "Variant", variants);
+
+    addEditableRow(cat, "Active",  activeStateLabel(c->GetActive()), Kind::Enum, "Active",
+                   {"Active", "Inactive", "xLights Only"});
+    addEditableRow(cat, "Auto Layout", c->IsAutoLayout() ? "yes" : "no",
+                   Kind::Bool, "AutoLayout");
+    addEditableRow(cat, "Auto Size",   c->IsAutoSize()   ? "yes" : "no",
+                   Kind::Bool, "AutoSize");
+    addEditableRow(cat, "Auto Upload", c->IsAutoUpload() ? "yes" : "no",
+                   Kind::Bool, "AutoUpload");
 }
 
 void LayoutPropertyTree::populateControllerNetwork(Controller* c) {
     auto* cat = addCategory("Connection");
-    addRow(cat, "Protocol", qstr(c->GetProtocol()));
+
+    // Protocol dropdown.  Source matches the wx ControllerEthernet adapter:
+    // when ControllerCaps is available we use caps->GetInputProtocols()
+    // mapped to the OUTPUT_* constants; otherwise the full default set.
+    // Serial controllers don't change protocol from this row — their
+    // protocol is fixed by type — so they stay read-only.
     if (auto* e = dynamic_cast<ControllerEthernet*>(c)) {
-        addRow(cat, "IP",         qstr(e->GetIP()));
-        addRow(cat, "FPP Proxy",  qstr(e->GetFPPProxy()));
-        addRow(cat, "Priority",   QString::number(e->GetPriority()));
+        QStringList protocols;
+        auto* caps = e->GetControllerCaps();
+        if (caps) {
+            for (const auto& it : caps->GetInputProtocols()) {
+                if      (it == "e131")          protocols << OUTPUT_E131;
+                else if (it == "zcpp")          protocols << OUTPUT_ZCPP;
+                else if (it == "artnet")        protocols << OUTPUT_ARTNET;
+                else if (it == "kinet")         protocols << OUTPUT_KINET;
+                else if (it == "ddp")           protocols << OUTPUT_DDP;
+                else if (it == "opc")           protocols << OUTPUT_OPC;
+                else if (it == "twinkly")       protocols << OUTPUT_TWINKLY;
+                else if (it == "player only")   protocols << OUTPUT_PLAYER_ONLY;
+                else if (it == "xxx ethernet")  protocols << OUTPUT_xxxETHERNET;
+            }
+        }
+        if (protocols.isEmpty()) {
+            protocols << OUTPUT_E131 << OUTPUT_ZCPP << OUTPUT_ARTNET
+                      << OUTPUT_DDP  << OUTPUT_OPC  << OUTPUT_KINET
+                      << OUTPUT_TWINKLY << OUTPUT_PLAYER_ONLY;
+        }
+        const QString curProto = qstr(e->GetProtocol());
+        if (!curProto.isEmpty() && !protocols.contains(curProto))
+            protocols.prepend(curProto);
+        addEditableRow(cat, "Protocol", curProto, Kind::Enum, "Protocol", protocols);
+
+        addEditableRow(cat, "IP", qstr(e->GetIP()), Kind::String, "IP");
+        addEditableRow(cat, "FPP Proxy", qstr(e->GetFPPProxy()),
+                       Kind::String, "FPPProxy");
+        addEditableRow(cat, "Priority", QString::number(e->GetPriority()),
+                       Kind::Int, "Priority");
     } else if (auto* s = dynamic_cast<ControllerSerial*>(c)) {
-        addRow(cat, "Port",  qstr(s->GetPort()));
-        addRow(cat, "Speed", QString::number(s->GetSpeed()));
+        // Serial controller protocol is fixed by type — show as read-only.
+        addRow(cat, "Protocol", qstr(c->GetProtocol()));
+        auto toQList = [](const std::list<std::string>& xs) {
+            QStringList out; out.reserve(static_cast<int>(xs.size()));
+            for (const auto& v : xs) out.append(qstr(v));
+            return out;
+        };
+        // Available ports come from SerialOutput's enumerator (scans
+        // /dev/cu.* on macOS, COM ports on Windows, /dev/tty* on Linux).
+        // Pre-pend the current value so the row keeps a valid selection on
+        // headless systems / unplugged adapters.
+        QStringList ports = toQList(SerialOutput::GetPossibleSerialPorts());
+        const QString curPort = qstr(s->GetPort());
+        if (!curPort.isEmpty() && !ports.contains(curPort))
+            ports.prepend(curPort);
+        if (ports.isEmpty()) ports << curPort;
+        addEditableRow(cat, "Port", curPort, Kind::Enum, "Port", ports);
+
+        QStringList baudRates = toQList(SerialOutput::GetPossibleBaudRates());
+        const QString curSpeed = QString::number(s->GetSpeed());
+        if (!curSpeed.isEmpty() && !baudRates.contains(curSpeed))
+            baudRates.prepend(curSpeed);
+        if (baudRates.isEmpty()) baudRates << curSpeed;
+        addEditableRow(cat, "Speed", curSpeed, Kind::Enum, "Speed", baudRates);
+    } else {
+        addRow(cat, "Protocol", qstr(c->GetProtocol()));
     }
 }
 
