@@ -310,27 +310,43 @@ void LayoutPropertyTree::showModel(const QString& name) {
     expandAll();
 }
 
-void LayoutPropertyTree::showGroup(const QString& name) {
+void LayoutPropertyTree::showGroup(const QString& name, const QtModelGroupInfo& fallback) {
     clear();
     _currentEntity.clear();
     _currentKind = EntityKind::None;
-    if (!_mm || name.isEmpty()) return;
+    if (name.isEmpty()) return;
 
     ModelGroup* g = nullptr;
-    try {
-        Model* m = _mm->GetModel(name.toStdString());
-        g = dynamic_cast<ModelGroup*>(m);
-    } catch (...) { g = nullptr; }
-    if (!g) return;
+    if (_mm) {
+        try {
+            Model* m = _mm->GetModel(name.toStdString());
+            g = dynamic_cast<ModelGroup*>(m);
+        } catch (...) { g = nullptr; }
+    }
 
     _currentEntity = name;
     _currentKind = EntityKind::Group;
 
-    populateGroupIdentity(g);
-    populateGroupBuffer(g);
-    populateGroupBounds(g);
-    populateGroupAppearance(g);
-    populateGroupMembers(g);
+    if (g) {
+        populateGroupIdentity(g);
+        populateGroupBuffer(g);
+        populateGroupBounds(g);
+        populateGroupAppearance(g);
+        populateGroupMembers(g);
+    } else if (fallback.isValid()) {
+        // ModelManager doesn't have the group — happens when the bridge
+        // hasn't initialised yet, or when LoadGroups couldn't resolve the
+        // members.  Fall back to the QtSequenceDoc snapshot so the user
+        // still sees the group's properties (edits won't work in this
+        // path — they require the live ModelGroup*).
+        populateGroupFromInfo(fallback);
+    } else {
+        // No live group + no fallback snapshot — surface that as a row so
+        // the empty tree doesn't look like a UI bug.
+        auto* cat = addCategory("Model Group");
+        addRow(cat, "Name", name);
+        addRow(cat, "(not loaded)", "group is not in ModelManager");
+    }
     expandAll();
 }
 
@@ -1065,9 +1081,15 @@ void LayoutPropertyTree::populateGroupIdentity(ModelGroup* g) {
 
 void LayoutPropertyTree::populateGroupBuffer(ModelGroup* g) {
     auto* cat = addCategory("Render Buffer");
-    addRow(cat, "Buffer W",   QString::number(g->GetDefaultBufferWi()));
-    addRow(cat, "Buffer H",   QString::number(g->GetDefaultBufferHt()));
-    addRow(cat, "Channels",   QString::number(g->GetNumChannels()));
+    addRow(cat, "Buffer W",      QString::number(g->GetDefaultBufferWi()));
+    addRow(cat, "Buffer H",      QString::number(g->GetDefaultBufferHt()));
+    addRow(cat, "Channels",      QString::number(g->GetNumChannels()));
+    addRow(cat, "First Channel", QString::number(g->GetFirstChannel()));
+    addRow(cat, "Last Channel",  QString::number(g->GetLastChannel()));
+    addRow(cat, "Grid Size",     QString::number(g->GetGridSize()));
+    addRow(cat, "Models",        QString::number(g->GetModelCount()));
+    addRow(cat, "X Centre Off",  QString::number(g->GetXCentreOffset()));
+    addRow(cat, "Y Centre Off",  QString::number(g->GetYCentreOffset()));
 }
 
 void LayoutPropertyTree::populateGroupBounds(ModelGroup* g) {
@@ -1104,6 +1126,41 @@ void LayoutPropertyTree::populateGroupMembers(ModelGroup* g) {
     int i = 1;
     for (const auto& n : names)
         addRow(cat, QString::number(i++), qstr(n));
+}
+
+void LayoutPropertyTree::populateGroupFromInfo(const QtModelGroupInfo& gi) {
+    // Used only when ModelManager doesn't have the live ModelGroup*.
+    // Rows here mirror what the XmlSerializer-backed live path shows, but
+    // sourced from the QtSequenceDoc snapshot.  No editable rows — edits
+    // need the live ModelGroup* to mutate.
+    {
+        auto* cat = addCategory("Model Group  (not loaded — read-only)");
+        addRow(cat, "Name",         gi.name);
+        addRow(cat, "Layout",       gi.layout);
+        addRow(cat, "Members",      QString::number(gi.modelNames.size()));
+    }
+    {
+        auto* cat = addCategory("Render Buffer");
+        addRow(cat, "Buffer W",     QString::number(gi.bufferW));
+        addRow(cat, "Buffer H",     QString::number(gi.bufferH));
+    }
+    {
+        auto* cat = addCategory("Bounds");
+        addRow(cat, "Min X",        QString::number(gi.minX, 'f', 2));
+        addRow(cat, "Min Y",        QString::number(gi.minY, 'f', 2));
+        addRow(cat, "Max X",        QString::number(gi.maxX, 'f', 2));
+        addRow(cat, "Max Y",        QString::number(gi.maxY, 'f', 2));
+    }
+    {
+        auto* cat = addCategory("Members");
+        if (gi.modelNames.isEmpty()) {
+            addRow(cat, "(none)", "");
+        } else {
+            int i = 1;
+            for (const auto& n : gi.modelNames)
+                addRow(cat, QString::number(i++), n);
+        }
+    }
 }
 
 // ── Controller ────────────────────────────────────────────────────────────────

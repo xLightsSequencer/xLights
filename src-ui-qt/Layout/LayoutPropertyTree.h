@@ -1,4 +1,5 @@
 #pragma once
+#include "../Bridge/QtSequenceDoc.h"   // for QtModelGroupInfo fallback
 #include <QString>
 #include <QTreeWidget>
 
@@ -50,7 +51,11 @@ public:
     void showModel(const QString& name);
 
     // Replace contents with properties for the named model group.
-    void showGroup(const QString& name);
+    // Tries the live ModelGroup* in ModelManager first; if that's missing
+    // (bridge not initialised, group with unresolved members, etc.) falls
+    // back to the supplied QtModelGroupInfo snapshot so the tree always
+    // shows something for a known group name.
+    void showGroup(const QString& name, const QtModelGroupInfo& fallback = {});
 
     // Replace contents with properties for the named controller.
     void showController(const QString& name);
@@ -108,6 +113,11 @@ private:
     void populateGroupBounds(ModelGroup* g);
     void populateGroupMembers(ModelGroup* g);
     void populateGroupAppearance(ModelGroup* g);
+
+    // Fallback path when ModelManager doesn't have the live ModelGroup*
+    // (e.g. unresolved members, bridge not yet initialised).  Populates a
+    // smaller set of rows directly from the QtSequenceDoc snapshot.
+    void populateGroupFromInfo(const QtModelGroupInfo& gi);
 
     // Controller population helpers (phase 7).
     void populateControllerIdentity(Controller* c);

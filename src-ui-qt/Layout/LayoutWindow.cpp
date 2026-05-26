@@ -449,7 +449,12 @@ void LayoutWindow::buildModelProps(const QString& name) {
 }
 
 void LayoutWindow::buildGroupProps(const QString& name) {
-    if (_props) _props->showGroup(name);
+    if (!_props) return;
+    // Pass the QtModelGroupInfo as a fallback so the tree always populates
+    // even when ModelManager doesn't have the live ModelGroup* (e.g. the
+    // group references models that haven't been loaded yet, or the bridge
+    // hasn't initialised).
+    _props->showGroup(name, _data.groups.value(name));
 }
 
 void LayoutWindow::buildControllerProps(const QString& name) {
