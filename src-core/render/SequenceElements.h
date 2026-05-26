@@ -102,6 +102,8 @@ public:
     bool IsValidElement(Element* e) const;
     size_t GetHiddenTimingCount() const;
     void HideAllTimingTracks(bool hide);
+    bool GetHideUnusedSubmodels() const { return mHideUnusedSubmodels; }
+    void SetHideUnusedSubmodels(bool hide) { mHideUnusedSubmodels = hide; }
 
     int GetTotalNumberOfModelRows();
     void SetMaxRowsDisplayed(int maxRows);
@@ -246,6 +248,7 @@ private:
     int mMaxRowsDisplayed = 0;
     int mCurrentView;
     bool hasPapagayoTiming;
+    bool mHideUnusedSubmodels = false;
     int mSequenceEndMS;
     bool supportsModelBlending;
 

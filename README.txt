@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
+    -enh (cybercop23)            Add right-click option to hide unused submodels when expanding a model row
+    -enh (cybercop23)            Add EffectPreset to the restore options
+    -enh (cybercop23)            Add include submodel opton to the Duplicate effect
     -enh (cybercop23)            Add vendor copyright disclaimer to bottom of Model Download dialog
     -enh (derwin12)              Add "Per Model Default" layout option to model groups so effects using the
                                  Default render style automatically render per-model on that group (#4125).

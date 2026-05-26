@@ -231,6 +231,8 @@ const long RowHeading::ID_ROW_MNU_GENERATE_FROM_ONSETS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_TEMPO = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_CHORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
+const long RowHeading::ID_ROW_MNU_HIDE_UNUSED_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SHOW_ALL_SUBMODELS = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -508,6 +510,11 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 }
                 if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
                     mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
+                }
+                if (mSequenceElements->GetHideUnusedSubmodels()) {
+                    mnuLayer.Append(ID_ROW_MNU_SHOW_ALL_SUBMODELS, "Show All Submodels");
+                } else {
+                    mnuLayer.Append(ID_ROW_MNU_HIDE_UNUSED_SUBMODELS, "Hide Unused Submodels");
                 }
                 bool canPromote = false;
                 ModelElement* me = dynamic_cast<ModelElement*>(element);
@@ -1709,6 +1716,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->HideAllTimingTracks(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_HIDE_UNUSED_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(true);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", true);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_SHOW_ALL_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(false);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
@@ -2573,6 +2590,9 @@ xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) co
 void RowHeading::SetSequenceElements(SequenceElements* elements)
 {
     mSequenceElements = elements;
+    if (mSequenceElements != nullptr) {
+        mSequenceElements->SetHideUnusedSubmodels(GetXLightsConfig()->ReadBool("HideUnusedSubmodels", false));
+    }
 }
 
 void RowHeading::DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row)
