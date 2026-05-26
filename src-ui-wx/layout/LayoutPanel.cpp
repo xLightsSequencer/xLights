@@ -8588,11 +8588,11 @@ public:
         top->Add(new wxStaticText(this, wxID_ANY, "For each replaced model, also:"),
                  0, wxLEFT | wxRIGHT | wxTOP, 8);
         _copyStartChannelCB = new wxCheckBox(this, wxID_ANY,
-            "Copy target's start channel and controller settings");
+            "Keep each target's start channel and controller settings");
         _mergeSubmodelsCB = new wxCheckBox(this, wxID_ANY,
-            "Merge target's submodels into the replacement");
+            "Keep each target's submodels");
         _copySizePosCB = new wxCheckBox(this, wxID_ANY,
-            "Use target's original size and position");
+            "Keep each target's position and size");
         _copyStartChannelCB->SetValue(true);
         _copySizePosCB->SetValue(true);
         const int cbFlags = wxLEFT | wxRIGHT | wxTOP;
@@ -8615,10 +8615,10 @@ public:
             UpdateMasterState();
         });
         _masterCB->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-            // wx's default tri-state click cycles 2-state visibly (unchecked
-            // -> checked -> unchecked). IsChecked() reflects the desired new
-            // state after the click - apply to every visible row.
-            const bool shouldCheck = _masterCB->IsChecked();
+            // 3-state checkbox: use Get3StateValue() — IsChecked() asserts
+            // on a 3-state in wxWidgets debug builds. Treat anything that
+            // isn't explicitly "checked" as an uncheck-all.
+            const bool shouldCheck = _masterCB->Get3StateValue() == wxCHK_CHECKED;
             for (const auto& row : _rows) {
                 row.cb->SetValue(shouldCheck);
                 if (shouldCheck) {
