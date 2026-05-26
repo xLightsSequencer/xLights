@@ -451,6 +451,14 @@ void ModelLayoutCanvas::paintRects(QPainter& p) {
             p.drawText(glr, Qt::AlignCenter, _highlightGroup);
         }
     }
+
+    // ── 5. Rubber-band selection rectangle ────────────────────────────────
+    if (_rubberBandActive && _rubberBandShown) {
+        const QRectF band = QRectF(_rubberBandStart, _rubberBandCurrent).normalized();
+        p.setBrush(QColor(120, 170, 255, 50));
+        p.setPen(QPen(QColor(120, 170, 255, 220), 1.0, Qt::DashLine));
+        p.drawRect(band);
+    }
 }
 
 // ── Mouse ─────────────────────────────────────────────────────────────────────
@@ -528,16 +536,18 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
         // (additive); plain click without modifier replaces the selection
         // (unless the click hits a model already in the multi-selection —
         // in that case we keep the selection so the drag moves all of
-        // them).  Click on empty space clears selection.
+        // them).  Empty-space press starts a rubber-band: selection isn't
+        // cleared until release (and only when no motion occurred — a real
+        // drag commits a rectangle-based selection instead).
         const bool additive = (ev->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) != 0;
         if (hit.isEmpty()) {
-            if (!additive && !_selectedModels.isEmpty()) {
-                _selectedModel.clear();
-                _selectedModels.clear();
-                emit selectionChanged({});
-                update();
-            }
-        } else if (additive) {
+            _rubberBandActive  = true;
+            _rubberBandShown   = false;
+            _rubberBandStart   = click;
+            _rubberBandCurrent = click;
+            return;
+        }
+        if (additive) {
             if (_selectedModels.contains(hit)) {
                 _selectedModels.remove(hit);
                 if (_selectedModel == hit)
@@ -597,6 +607,19 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
 }
 
 void ModelLayoutCanvas::mouseMoveEvent(QMouseEvent* ev) {
+    // Rubber-band path runs entirely on screen coords — it doesn't need the
+    // live ModelManager, only the rect list which we already have.
+    if (_rubberBandActive) {
+        _rubberBandCurrent = ev->position();
+        const QPointF d = _rubberBandCurrent - _rubberBandStart;
+        // Same 3-pixel threshold as drag — keeps a press-release without
+        // motion from drawing a flicker of rubber band.
+        if (!_rubberBandShown && (d.x()*d.x() + d.y()*d.y()) >= 9.0)
+            _rubberBandShown = true;
+        if (_rubberBandShown) update();
+        return;
+    }
+
     if (_dragStarts.isEmpty() || !_mm) {
         QWidget::mouseMoveEvent(ev);
         return;
@@ -642,6 +665,60 @@ void ModelLayoutCanvas::mouseMoveEvent(QMouseEvent* ev) {
 }
 
 void ModelLayoutCanvas::mouseReleaseEvent(QMouseEvent* ev) {
+    // ── Rubber-band release ────────────────────────────────────────────
+    if (_rubberBandActive) {
+        const bool wasBand  = _rubberBandShown;
+        const QRectF band   = QRectF(_rubberBandStart, _rubberBandCurrent).normalized();
+        const bool additive = (ev->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier)) != 0;
+        _rubberBandActive = false;
+        _rubberBandShown  = false;
+        update();
+
+        if (!wasBand) {
+            // Press-release on empty space without motion — treat as
+            // "click empty" which clears the selection unless modifier
+            // was held.
+            if (!additive && !_selectedModels.isEmpty()) {
+                _selectedModel.clear();
+                _selectedModels.clear();
+                emit selectionChanged({});
+                update();
+            }
+            QWidget::mouseReleaseEvent(ev);
+            return;
+        }
+
+        // Hit-test every model rect against the band (widget-space).
+        const double rangeX = _maxX - _minX;
+        const double rangeY = _maxY - _minY;
+        if (rangeX > 0 && rangeY > 0) {
+            auto toW = [&](float wx, float wy) -> QPointF {
+                return { (wx - _minX) / rangeX * width(),
+                         (1.0 - (wy - _minY) / rangeY) * height() };
+            };
+            QSet<QString> hits;
+            for (const auto& r : _rects) {
+                if (r.isGroup) continue;
+                const QPointF tl = toW(r.left,  r.top);
+                const QPointF br = toW(r.right, r.bottom);
+                if (band.intersects(QRectF(tl, br).normalized()))
+                    hits.insert(r.name);
+            }
+            if (additive) {
+                _selectedModels.unite(hits);
+            } else {
+                _selectedModels = hits;
+            }
+            _selectedModel = _selectedModels.isEmpty()
+                               ? QString() : *_selectedModels.begin();
+            emit selectionChanged(QStringList(_selectedModels.begin(),
+                                              _selectedModels.end()));
+            update();
+        }
+        QWidget::mouseReleaseEvent(ev);
+        return;
+    }
+
     if (_dragStarts.isEmpty()) {
         QWidget::mouseReleaseEvent(ev);
         return;

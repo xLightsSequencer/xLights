@@ -134,6 +134,17 @@ private:
     // Placement mode (phase 20f).
     bool        _placementMode = false;
 
+    // Rubber-band selection (phase 22).  Press on empty rect-mode space
+    // starts a band; mouseMove updates the current corner; release commits
+    // selection of every model whose rect intersects.  _rubberBandActive
+    // means "in progress this drag"; _rubberBandShown means "the rect has
+    // moved enough to be visible" — distinguishes a real rubber-band from
+    // a press-release-without-motion that should clear selection instead.
+    bool        _rubberBandActive = false;
+    bool        _rubberBandShown  = false;
+    QPointF     _rubberBandStart;
+    QPointF     _rubberBandCurrent;
+
     // Live ModelManager so mousePress can mutate a model's world position
     // during a drag.  Populated by loadLayoutFromManager; reset by loadLayout.
     ModelManager* _mm = nullptr;

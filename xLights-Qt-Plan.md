@@ -620,7 +620,21 @@ shape regardless of drag distance. Release with motion emits
 via `saveModelToShowFile` in one pass. Release without motion
 still emits `modelClicked` so press-release behaves as a select.
 
-### Phase 22 — HousePreviewWidget tracks layout edits ✓
+### Phase 22 — Rubber-band selection ✓
+
+Press on empty rect-mode space starts a rubber-band rectangle.
+mouseMove updates the current corner and (past a 3-pixel jitter
+threshold) repaints a translucent blue dashed rect.  Release
+computes selection as every model whose rect intersects the
+band; Ctrl/Shift keeps it additive on top of the existing
+selection, plain release replaces.
+
+Press-release on empty space without motion still clears the
+selection (matches previous behaviour).  Selection commit emits
+`selectionChanged(QStringList)` so the model-list widget stays
+in sync via the existing bridge.
+
+### Phase 23 — HousePreviewWidget tracks layout edits ✓
 
 `QtXLightsApp::reloadSequenceModels()` re-parses
 `xlights_rgbeffects.xml` into the cached `_sequence` and emits
