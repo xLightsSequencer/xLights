@@ -5896,7 +5896,6 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 const int selectedViewObjectCnt = ViewObjectsSelectedCount();
                 const bool multiSel = (selectedModelCnt > 1 || selectedViewObjectCnt > 1);
                 if (multiSel && selectedBaseObject != nullptr) {
-                    auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
                     const handles::Role dragRole = m_dragSession->GetHandleId().role;
                     if (dragRole == handles::Role::Rotate) {
                         if (auto ri = m_dragSession->GetRotationInfo()) {
