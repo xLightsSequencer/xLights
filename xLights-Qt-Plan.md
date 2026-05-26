@@ -598,6 +598,28 @@ Existing paths cover the new flow:
 Only new code: `removeModelFromShowFile(name)` for deletes (see
 20e).
 
+### Phase 21 — Drag-to-move in the layout canvas ✓
+
+`ModelLayoutCanvas` rect-mode now supports drag-to-move:
+
+- **Press**: hit-test the click against the model rects (same logic as
+  selection); if it lands on a model and the canvas has a live
+  `ModelManager`, capture the press position and the model's starting
+  world coordinates. Don't yet mark as a drag.
+- **Move**: once the cursor has moved more than 3 pixels (jitter
+  threshold), convert the widget-pixel delta to world-space (Y flipped),
+  call `Model::GetModelScreenLocation().SetWorldPos`, update the rect's
+  cached bounding box from `GetLeft/Right/Top/Bottom`, and `update()`.
+  Real-time visual feedback throughout the drag.
+- **Release**: if motion exceeded the threshold, emit `modelDragged`.
+  Otherwise emit `modelClicked` (so a press-release on a model still
+  selects it). `LayoutWindow::modelDragged` handler persists via
+  `saveModelToShowFile` and refreshes the canvas + property tree (the
+  property tree now shows the updated World X / Y).
+
+Dot mode (HousePreviewWidget) stays read-only — it doesn't have a live
+`ModelManager` pointer and is used for pixel display only.
+
 ## Out of Scope
 
 xSchedule (separate app), full xlGraphicsContext parity (OpenGL shader library).

@@ -25,6 +25,7 @@ void ModelLayoutCanvas::loadLayoutFromManager(ModelManager* mm) {
     _models.clear();
     _index.clear();
     _rectMode = true;
+    _mm = mm;
 
     if (mm && mm->size() > 0) {
         for (auto it = mm->begin(); it != mm->end(); ++it) {
@@ -83,6 +84,9 @@ void ModelLayoutCanvas::loadLayout(const QtSequenceInfo& seq) {
     _models.clear();
     _index.clear();
     _rectMode = false;
+    _mm = nullptr;
+    _dragModel.clear();
+    _dragMoved = false;
 
     for (const auto& mi : seq.models) {
         if (mi.globalPositions.isEmpty()) continue;
@@ -484,40 +488,55 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
     }
 
     if (_rectMode) {
+        // Hit-test the click against the rect list and pick the smallest
+        // rect that contains it (smallest = topmost in z-order).
         const double rangeX = _maxX - _minX;
         const double rangeY = _maxY - _minY;
-        if (rangeX <= 0 || rangeY <= 0) return;
-
-        auto toW = [&](float wx, float wy) -> QPointF {
-            return { (wx - _minX) / rangeX * width(),
-                     (1.0 - (wy - _minY) / rangeY) * height() };
-        };
-
-        QString bestModel;
-        double  bestArea = 1e18;
-
-        for (const auto& r : _rects) {
-            if (r.isGroup) continue;
-            const QPointF tl = toW(r.left, r.top);
-            const QPointF br = toW(r.right, r.bottom);
-            QRectF wr(tl, br);
-            if (wr.width()  < 3.0) { wr.setLeft(wr.left()  - 1.5); wr.setRight(wr.right()  + 1.5); }
-            if (wr.height() < 3.0) { wr.setTop(wr.top()    - 1.5); wr.setBottom(wr.bottom() + 1.5); }
-            wr.adjust(-4, -4, 4, 4);   // click tolerance
-            if (wr.contains(click)) {
-                const double area = wr.width() * wr.height();
-                if (area < bestArea) { bestArea = area; bestModel = r.name; }
+        QString hit;
+        if (rangeX > 0 && rangeY > 0) {
+            auto toW = [&](float wx, float wy) -> QPointF {
+                return { (wx - _minX) / rangeX * width(),
+                         (1.0 - (wy - _minY) / rangeY) * height() };
+            };
+            double bestArea = 1e18;
+            for (const auto& r : _rects) {
+                if (r.isGroup) continue;
+                const QPointF tl = toW(r.left, r.top);
+                const QPointF br = toW(r.right, r.bottom);
+                QRectF wr(tl, br);
+                if (wr.width()  < 3.0) { wr.setLeft(wr.left()  - 1.5); wr.setRight(wr.right()  + 1.5); }
+                if (wr.height() < 3.0) { wr.setTop(wr.top()    - 1.5); wr.setBottom(wr.bottom() + 1.5); }
+                wr.adjust(-4, -4, 4, 4);   // click tolerance
+                if (wr.contains(click)) {
+                    const double area = wr.width() * wr.height();
+                    if (area < bestArea) { bestArea = area; hit = r.name; }
+                }
             }
         }
 
-        if (!bestModel.isEmpty()) emit modelClicked(bestModel);
+        // Capture drag state.  Drag is only enabled when we have a live
+        // ModelManager (so we can mutate the model's world position).
+        // mouseMoveEvent decides when motion actually exceeded the
+        // threshold; if it never does, mouseReleaseEvent emits modelClicked.
+        _dragModel.clear();
+        _dragMoved = false;
+        if (!hit.isEmpty() && _mm) {
+            Model* m = nullptr;
+            try { m = _mm->GetModel(hit.toStdString()); } catch (...) {}
+            if (m) {
+                _dragModel       = hit;
+                _dragPressClick  = click;
+                _dragStartWorldX = m->GetModelScreenLocation().GetWorldPos_X();
+                _dragStartWorldY = m->GetModelScreenLocation().GetWorldPos_Y();
+            }
+        }
         return;
     }
 
-    // Dot mode: find nearest node.
+    // Dot mode: find nearest node.  No drag support — dot mode is read-only
+    // (HousePreviewWidget).
     double  bestDist = 1e9;
     QString bestModel;
-
     for (const auto& d : _models) {
         for (const QPointF& gp : d.info.globalPositions) {
             const QPointF wp = toWidget(gp.x(), gp.y());
@@ -527,6 +546,69 @@ void ModelLayoutCanvas::mousePressEvent(QMouseEvent* ev) {
             if (dist < bestDist) { bestDist = dist; bestModel = d.info.name; }
         }
     }
-
     if (!bestModel.isEmpty() && bestDist < 20.0) emit modelClicked(bestModel);
+}
+
+void ModelLayoutCanvas::mouseMoveEvent(QMouseEvent* ev) {
+    if (_dragModel.isEmpty() || !_mm) {
+        QWidget::mouseMoveEvent(ev);
+        return;
+    }
+    // Only count this as a drag once the cursor has moved more than 3 pixels
+    // — keeps idle micro-jitter on click from accidentally moving a model.
+    const QPointF cur = ev->position();
+    const QPointF d   = cur - _dragPressClick;
+    if (!_dragMoved && (d.x()*d.x() + d.y()*d.y()) < 9.0) return;
+    _dragMoved = true;
+
+    Model* m = nullptr;
+    try { m = _mm->GetModel(_dragModel.toStdString()); } catch (...) {}
+    if (!m) return;
+
+    // Widget-pixel delta → world-space delta.  Y is flipped (world Y up,
+    // screen Y down).
+    const double rangeX = _maxX - _minX;
+    const double rangeY = _maxY - _minY;
+    if (rangeX <= 0 || rangeY <= 0) return;
+    const double dwx =  d.x() / qMax(1, width())  * rangeX;
+    const double dwy = -d.y() / qMax(1, height()) * rangeY;
+
+    const float nx = _dragStartWorldX + static_cast<float>(dwx);
+    const float ny = _dragStartWorldY + static_cast<float>(dwy);
+    m->GetModelScreenLocation().SetWorldPos(
+        nx, ny, m->GetModelScreenLocation().GetWorldPos_Z());
+
+    // Reload the rect for this model so paintRects reflects the new
+    // position immediately.  Cheaper than the full loadLayoutFromManager
+    // rebuild, which would also reset selection state.
+    auto it = _index.find(_dragModel);
+    if (it != _index.end()) {
+        ModelRect& r = _rects[it.value()];
+        const auto& loc = m->GetModelScreenLocation();
+        r.left   = loc.GetLeft();
+        r.right  = loc.GetRight();
+        r.top    = loc.GetTop();
+        r.bottom = loc.GetBottom();
+    }
+    update();
+}
+
+void ModelLayoutCanvas::mouseReleaseEvent(QMouseEvent* ev) {
+    if (_dragModel.isEmpty()) {
+        QWidget::mouseReleaseEvent(ev);
+        return;
+    }
+    const QString name = _dragModel;
+    const bool wasDrag = _dragMoved;
+    _dragModel.clear();
+    _dragMoved = false;
+
+    if (wasDrag) {
+        emit modelDragged(name);
+    } else {
+        // No motion past threshold → treat as a click.  Matches the wx UI
+        // where a press-release on a model selects it.
+        emit modelClicked(name);
+    }
+    QWidget::mouseReleaseEvent(ev);
 }

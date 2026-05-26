@@ -59,6 +59,12 @@ signals:
     // placement and clean up.
     void placementCancelled();
 
+    // Fired on mouse release after a drag actually moved a model — the
+    // model's ModelScreenLocation has already been mutated by then.  The
+    // LayoutWindow uses this to persist + refresh.  No emission for clicks
+    // that didn't exceed the drag threshold (those still emit modelClicked).
+    void modelDragged(const QString& modelName);
+
 protected:
     // Dot-mode model data (used by HousePreviewWidget for live colors).
     struct ModelData {
@@ -88,6 +94,8 @@ protected:
 
     void paintEvent(QPaintEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
     void keyPressEvent(QKeyEvent*) override;
 
 private:
@@ -110,6 +118,19 @@ private:
 
     // Placement mode (phase 20f).
     bool        _placementMode = false;
+
+    // Live ModelManager so mousePress can mutate a model's world position
+    // during a drag.  Populated by loadLayoutFromManager; reset by loadLayout.
+    ModelManager* _mm = nullptr;
+
+    // Drag-to-move state.  _dragModel is empty when not dragging.  Press fills
+    // these; mouseMove uses them to compute the world-space delta; release
+    // emits modelDragged.
+    QString       _dragModel;
+    QPointF       _dragPressClick;          // widget-space press point
+    float         _dragStartWorldX = 0.f;   // model's world pos at press
+    float         _dragStartWorldY = 0.f;
+    bool          _dragMoved       = false; // exceeded threshold this drag
 
     void recomputeBounds();
     void paintRects(QPainter& p);

@@ -211,6 +211,20 @@ LayoutWindow::LayoutWindow(QWidget* parent)
     connect(_canvas, &ModelLayoutCanvas::placementCancelled,
             this, &LayoutWindow::onPlacementCancelled);
 
+    // Drag-to-move: ModelLayoutCanvas already mutated the model's world
+    // position during the drag; we just persist + refresh.  showModel
+    // refreshes the property tree to display the new World X / Y values.
+    connect(_canvas, &ModelLayoutCanvas::modelDragged,
+            this, [this](const QString& name) {
+        if (name.isEmpty()) return;
+        if (_bridge) _bridge->saveModelToShowFile(name);
+        if (_bridge && _bridge->modelManager())
+            _canvas->loadLayoutFromManager(_bridge->modelManager());
+        // Keep the dragged model selected.
+        _canvas->setSelectedModel(name);
+        if (_props) _props->showModel(name);
+    });
+
     // Property-tree → ModelEditDialog: open the right tab when the user
     // double-clicks the Sub-Models / Faces / States rows.
     connect(_props, &LayoutPropertyTree::editModelRequested,
