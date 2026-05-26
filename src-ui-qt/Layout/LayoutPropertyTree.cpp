@@ -534,11 +534,15 @@ void LayoutPropertyTree::populateModelIdentity(Model* m) {
 
 void LayoutPropertyTree::populateModelSizingChannels(Model* m) {
     auto* cat = addCategory("Sizing & Channels");
-    addRow(cat, "Start Channel", qstr(m->GetModelStartChannel()));
-    addRow(cat, "Channels",      QString::number(m->GetNumChannels()));
-    addRow(cat, "Strings",       QString::number(m->GetNumStrings()));
-    addRow(cat, "Buffer W",      QString::number(m->GetDefaultBufferWi()));
-    addRow(cat, "Buffer H",      QString::number(m->GetDefaultBufferHt()));
+    addRow(cat, "Start Channel",   qstr(m->GetModelStartChannel()));
+    addRow(cat, "Nodes",           QString::number(m->GetNodeCount()));
+    addRow(cat, "Channels/Node",   QString::number(m->GetChanCountPerNode()));
+    addRow(cat, "Channels",        QString::number(m->GetNumChannels()));
+    addRow(cat, "Active Channels", QString::number(m->GetActChanCount()));
+    addRow(cat, "Strings",         QString::number(m->GetNumStrings()));
+    addRow(cat, "Strands",         QString::number(m->GetNumStrands()));
+    addRow(cat, "Buffer W",        QString::number(m->GetDefaultBufferWi()));
+    addRow(cat, "Buffer H",        QString::number(m->GetDefaultBufferHt()));
     if (m->SupportsLowDefinitionRender())
         addRow(cat, "Low Def Factor", QString::number(m->GetLowDefFactor()));
     if (m->HasIndividualStartChannels())
@@ -788,6 +792,14 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         auto* cat = addCategory("Cube");
         addRow(cat, "Strands",        QString::number(cube->GetNumStrands()));
         addRow(cat, "Nodes/Strand",   QString::number(cube->NodesPerString()));
+        addRow(cat, "Width",          QString::number(cube->GetCubeWidth()));
+        addRow(cat, "Height",         QString::number(cube->GetCubeHeight()));
+        addRow(cat, "Depth",          QString::number(cube->GetCubeDepth()));
+        addRow(cat, "Cube Strings",   QString::number(cube->GetCubeStrings()));
+        addRow(cat, "Cube Style",     qstr(cube->GetCubeStyle()));
+        addRow(cat, "Strand Style",   qstr(cube->GetStrandStyle()));
+        addRow(cat, "Start",          qstr(cube->GetCubeStart()));
+        addRow(cat, "Strand Per Layer", cube->IsStrandPerLayer() ? "yes" : "no");
         return;
     }
 
@@ -830,22 +842,11 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    // Generic catch-all for less-common types — at least show the strings count
-    // and a hint that detailed per-type rows are still pending.
-    if (t == DisplayAsType::Custom ||
-        t == DisplayAsType::Circle ||
-        t == DisplayAsType::Icicles ||
-        t == DisplayAsType::Spinner ||
-        t == DisplayAsType::Wreath ||
-        t == DisplayAsType::ChannelBlock ||
-        t == DisplayAsType::SingleLine ||
-        t == DisplayAsType::MultiPoint ||
-        t == DisplayAsType::Sphere ||
-        IsDmxDisplayType(t)) {
-        auto* cat = addCategory(qstr(DisplayAsTypeToString(t)));
-        addRow(cat, "# Strings", QString::number(m->GetNumStrings()));
-        addRow(cat, "(detailed properties pending)", "");
-    }
+    // Less-common types (Custom, Circle, Icicles, Wreath, ChannelBlock,
+    // SingleLine, MultiPoint, Sphere, all DMX*, view objects) still need
+    // type-specific rows here — each via its subclass's typed getters
+    // (never via the legacy "parm1"/"parm2"/"parm3" XML attributes).
+    // TODO: expand as each subclass exposes the getters we need.
 }
 
 void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
