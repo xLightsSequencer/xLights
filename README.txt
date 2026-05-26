@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
+
+    -enh (cybercop23)            Add vendor copyright disclaimer to bottom of Model Download dialog
     -enh (derwin12)              Add "Per Model Default" layout option to model groups so effects using the
                                  Default render style automatically render per-model on that group (#4125).
     -enh (heffneil)              Add Bulk Edit Rotate X / Y / Z to the Layout tab right-click menu.
@@ -28,6 +30,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
+    -bug (derwin12)              Fix pivot point for rotating multiple objects (#6418)
     -bug (derwin12)              Fix imports for both old and new xmodel formats (Layout import, Node Select
                                  Grid, SubModels dialog) (#6411).
     -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397, #6400).
