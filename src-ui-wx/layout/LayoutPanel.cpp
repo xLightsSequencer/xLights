@@ -8607,6 +8607,12 @@ public:
         }
         SetSizer(top);
 
+        // Disable OK until the user has actually picked at least one target —
+        // OK with an empty selection is a confusing no-op for a destructive
+        // batch operation.
+        _okBtn = static_cast<wxButton*>(FindWindow(wxID_OK));
+        if (_okBtn != nullptr) _okBtn->Disable();
+
         RepopulateRows();
         UpdateMasterState();
 
@@ -8642,19 +8648,16 @@ public:
     bool CopySizePos()      const { return _copySizePosCB->IsChecked(); }
 
 private:
-    // Filter is case-insensitive substring match.
-    static bool PassesFilter(const std::string& name, const std::string& filterLower) {
-        if (filterLower.empty()) return true;
-        std::string lower = name;
-        std::transform(lower.begin(), lower.end(), lower.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
-        return lower.find(filterLower) != std::string::npos;
+    // Filter is case-insensitive substring match. wxString::Lower() handles
+    // Unicode correctly via the platform's locale; std::tolower / std::string
+    // would byte-fold and mishandle non-ASCII model names.
+    static bool PassesFilter(const std::string& name, const wxString& filterLower) {
+        if (filterLower.IsEmpty()) return true;
+        return wxString::FromUTF8(name).Lower().Contains(filterLower);
     }
 
     void RepopulateRows() {
-        std::string filterLower = _filterCtrl->GetValue().ToStdString();
-        std::transform(filterLower.begin(), filterLower.end(), filterLower.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
+        const wxString filterLower = _filterCtrl->GetValue().Lower();
 
         _rowsWindow->Freeze();
         _rowsSizer->Clear(true); // deletes existing row widgets
@@ -8690,6 +8693,7 @@ private:
         if (_rows.empty()) {
             _masterCB->Set3StateValue(wxCHK_UNCHECKED);
             _masterCB->Enable(false);
+            if (_okBtn != nullptr) _okBtn->Enable(!_checkedSet.empty());
             return;
         }
         _masterCB->Enable(true);
@@ -8704,6 +8708,10 @@ private:
         } else {
             _masterCB->Set3StateValue(wxCHK_UNDETERMINED);
         }
+        // OK is enabled iff at least one target is checked anywhere in the
+        // full set (not just visible ones — a user could filter, check
+        // something, then change the filter so it's hidden but still selected).
+        if (_okBtn != nullptr) _okBtn->Enable(!_checkedSet.empty());
     }
 
     struct RowEntry {
@@ -8718,6 +8726,7 @@ private:
     wxCheckBox* _copyStartChannelCB = nullptr;
     wxCheckBox* _mergeSubmodelsCB = nullptr;
     wxCheckBox* _copySizePosCB = nullptr;
+    wxButton*   _okBtn = nullptr;
 
     std::vector<std::string> _allCandidates;
     std::vector<RowEntry> _rows;
@@ -8877,11 +8886,20 @@ void LayoutPanel::ReplaceModel()
         target->Rename(trashName);
         xlights->AllModels.RenameInListOnly(tmpNewName, targetName);
         clone->Rename(targetName);
-        // Delete returns false if the named model wasn't found - treat as a
-        // failure so we don't silently leave a stray renamed target behind,
-        // and record it in the failures list so the final summary surfaces it.
+        // If Delete fails, we'd otherwise leave the layout half-updated: the
+        // clone is now under targetName but the original is still sitting in
+        // the model list as trashName. Roll back the rename so the original
+        // is restored and the clone gets removed, then record the failure.
         if (!xlights->AllModels.Delete(trashName)) {
-            spdlog::warn("ReplaceModel: failed to delete trashed target '{}'", trashName);
+            spdlog::warn("ReplaceModel: failed to delete trashed target '{}', rolling back swap", trashName);
+            // Best-effort rollback. Worst case (also fails): record failure
+            // and continue — manual cleanup may be needed, but the partial-
+            // state we leave is no worse than before this rollback path.
+            xlights->AllModels.RenameInListOnly(targetName, tmpNewName);
+            clone->Rename(tmpNewName);
+            xlights->AllModels.RenameInListOnly(trashName, targetName);
+            target->Rename(targetName);
+            xlights->AllModels.Delete(tmpNewName); // remove the clone we couldn't swap in
             failures.push_back(targetName);
             continue;
         }
@@ -8889,11 +8907,17 @@ void LayoutPanel::ReplaceModel()
         ++successCount;
     }
 
+    // Pass the source model name + replaced count as context so logs and any
+    // downstream observers can scope the change instead of seeing a bare
+    // "ReplaceModel" token.
+    const std::string workCtx = wxString::Format(
+        "ReplaceModel: source='%s' replaced=%d",
+        sourceModel->GetName(), successCount).ToStdString();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                   OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                   OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
                                                   OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER,
-                                                  "ReplaceModel");
+                                                  workCtx);
 
     // Always show a confirmation so the user knows the operation finished,
     // even when it was a silent full success. The icon makes the outcome
