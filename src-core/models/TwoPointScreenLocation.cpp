@@ -982,6 +982,12 @@ public:
 
     handles::Id GetHandleId() const override { return _handleId; }
 
+    std::optional<handles::DragSession::RotationInfo> GetRotationInfo() const override {
+        return handles::DragSession::RotationInfo{
+            _pivot, _rotationAxis, static_cast<float>(_accumulated)
+        };
+    }
+
 private:
     void ComputeConstraintPlane(handles::Axis axis) {
         switch (axis) {

@@ -4001,9 +4001,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                     m_dragSession = std::move(session);
                                     m_moving_handle = true;
                                     m_mouse_down = true;
-                                    last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-                                    last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
-                                    last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+                                    last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                                    last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
+                                    last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                                     xlights->GetOutputModelManager()->AddASAPWork(
                                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                         "LayoutPanel::ProcessLeftMouseClick3D-NewAPI");
@@ -4363,6 +4363,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                                 m_dragSession = std::move(session);
                                 m_moving_handle = true;
                                 m_mouse_down = true;
+                                last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                                last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
+                                last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                                 xlights->GetOutputModelManager()->AddASAPWork(
                                     OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                     "LayoutPanel::OnPreviewLeftDown-NewAPI2D");
@@ -5542,33 +5545,33 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                                 }
                                 last_centerpos = new_centerpos;
                             } else if (dragRole == handles::Role::AxisRing) {
-                                // Wrap-aware rotation delta. X is negated to match
-                                // RotateAboutPoint's handedness.
-                                glm::vec3 new_worldrotate = sloc.GetRotationAngles();
-                                glm::vec3 rotate_offset   = new_worldrotate - last_worldrotate;
-                                if (rotate_offset.x >  180.0f) rotate_offset.x -= 360.0f;
-                                if (rotate_offset.y >  180.0f) rotate_offset.y -= 360.0f;
-                                if (rotate_offset.z >  180.0f) rotate_offset.z -= 360.0f;
-                                if (rotate_offset.x < -180.0f) rotate_offset.x += 360.0f;
-                                if (rotate_offset.y < -180.0f) rotate_offset.y += 360.0f;
-                                if (rotate_offset.z < -180.0f) rotate_offset.z += 360.0f;
-                                rotate_offset.x = -rotate_offset.x;
-                                glm::vec3 active_handle_position = sloc.GetActiveHandlePosition();
-                                for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-                                    Model* mm = modelPreview->GetModels()[i];
-                                    if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
-                                        xlights->AbortRender();
-                                        mm->RotateAboutPoint(active_handle_position, rotate_offset);
+                                if (auto ri = m_dragSession->GetRotationInfo()) {
+                                    const float per_frame = ri->accumulated - last_worldrotate.x;
+                                    if (std::abs(per_frame) > 0.0f) {
+                                        glm::vec3 angle(0.0f);
+                                        switch (ri->rotationAxis) {
+                                            case handles::Axis::X: angle.x = -per_frame; break;
+                                            case handles::Axis::Y: angle.y =  per_frame; break;
+                                            case handles::Axis::Z: angle.z =  per_frame; break;
+                                        }
+                                        const glm::vec3 pivot = ri->pivot;
+                                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                                            Model* mm = modelPreview->GetModels()[i];
+                                            if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                                xlights->AbortRender();
+                                                mm->RotateAboutPoint(pivot, angle);
+                                            }
+                                        }
+                                        for (const auto& it : xlights->AllObjects) {
+                                            ViewObject* vo = it.second;
+                                            if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                                xlights->AbortRender();
+                                                vo->RotateAboutPoint(pivot, angle);
+                                            }
+                                        }
+                                        last_worldrotate.x = ri->accumulated;
                                     }
                                 }
-                                for (const auto& it : xlights->AllObjects) {
-                                    ViewObject* vo = it.second;
-                                    if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
-                                        xlights->AbortRender();
-                                        vo->RotateAboutPoint(active_handle_position, rotate_offset);
-                                    }
-                                }
-                                last_worldrotate = new_worldrotate;
                             } else if (dragRole == handles::Role::AxisCube) {
                                 glm::vec3 new_worldscale = sloc.GetScaleMatrix();
                                 if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
@@ -5887,6 +5890,39 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f",
                     m->GetBaseObjectScreenLocation().GetCenterPosition().x,
                     m->GetBaseObjectScreenLocation().GetCenterPosition().y));
+
+                // Multi-select propagation for 2D handle drags.
+                const int selectedModelCnt      = ModelsSelectedCount();
+                const int selectedViewObjectCnt = ViewObjectsSelectedCount();
+                const bool multiSel = (selectedModelCnt > 1 || selectedViewObjectCnt > 1);
+                if (multiSel && selectedBaseObject != nullptr) {
+                    auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
+                    const handles::Role dragRole = m_dragSession->GetHandleId().role;
+                    if (dragRole == handles::Role::Rotate) {
+                        if (auto ri = m_dragSession->GetRotationInfo()) {
+                            const float per_frame = ri->accumulated - last_worldrotate.x;
+                            if (std::abs(per_frame) > 0.0f) {
+                                glm::vec3 angle(0.0f);
+                                angle.z = per_frame;
+                                const glm::vec3 pivot = ri->pivot;
+                                for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                                    Model* mm = modelPreview->GetModels()[i];
+                                    if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                        mm->RotateAboutPoint(pivot, angle);
+                                    }
+                                }
+                                for (const auto& it : xlights->AllObjects) {
+                                    ViewObject* vo = it.second;
+                                    if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                        vo->RotateAboutPoint(pivot, angle);
+                                    }
+                                }
+                                last_worldrotate.x = ri->accumulated;
+                            }
+                        }
+                    }
+                }
+
                 xlights->GetOutputModelManager()->AddASAPWork(
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
