@@ -972,12 +972,14 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
             }
             else {
                 te->SetVisible(false);
-                auto views = Split(te->GetViews(), ',');
-                for (size_t v = 0; v < views.size(); v++) {
-                    const std::string& viewName = views[v];
-                    if (name == viewName) {
-                        te->SetVisible(true);
-                        break;
+                if (te->GetMasterVisible()) {
+                    auto views = Split(te->GetViews(), ',');
+                    for (size_t v = 0; v < views.size(); v++) {
+                        const std::string& viewName = views[v];
+                        if (name == viewName) {
+                            te->SetVisible(true);
+                            break;
+                        }
                     }
                 }
             }
@@ -1713,7 +1715,6 @@ size_t SequenceElements::GetHiddenTimingCount() const
 
 void SequenceElements::HideAllTimingTracks(bool hide)
 {
-    // This only works on timing tracks in master views because of the way we manage timing tracks in non master views
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
         Element* elem = mAllViews[MASTER_VIEW][i];
         TimingElement* te = dynamic_cast<TimingElement*>(elem);
