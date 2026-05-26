@@ -34,6 +34,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
     -bug (derwin12)              Fix pivot point for rotating multiple objects (#6418)
+    -bug (dkulp)                 Fix drag-and-drop of Video/Pictures/Glediator/Shader files onto the effect
+                                 grid losing the filename — the deferred effect-page-changed event was
+                                 clearing the panel after the drop, then the settings timer wrote the
+                                 cleared panel state back to the effect.
+    -bug (dkulp)                 macOS: Video effect now renders rawvideo MOV files (rgb24/bgr24/rgba/bgra)
+                                 by demuxing through AVAssetReader and converting to BGRA directly, instead
+                                 of routing them through VideoToolbox which has no `raw ` decoder.
     -bug (derwin12)              Fix imports for both old and new xmodel formats (Layout import, Node Select
                                  Grid, SubModels dialog) (#6411).
     -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397, #6400).

@@ -1227,7 +1227,7 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
     EffectSettingsTimer.Start(25);
-    
+
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
     if (reentry) {
@@ -1600,7 +1600,13 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = 0;
     for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++) {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName) {
-            EffectsPanel1->EffectChoicebook->SetSelection(i);
+            // SetEffectType (not SetSelection) so the deferred
+            // SelectedEffectChangedEvent is suppressed. The deferred event
+            // would otherwise fire ResetPanelDefaultSettings, clear the file
+            // picker the sync handler just populated, then EffectSettingsTimer
+            // would diff the cleared panel against selectedEffectString and
+            // call eff->SetSettings(...) — wiping the dropped filename.
+            EffectsPanel1->SetEffectType(i);
             effectIndex = i;
             break;
         }
