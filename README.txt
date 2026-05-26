@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
+    -enh (Neil)                  Show Face/State/SubModel/Node count badges on the Model pane
     -enh (cybercop23)            Add right-click option to hide unused submodels when expanding a model row
     -enh (cybercop23)            Add EffectPreset to the restore options
     -enh (cybercop23)            Add include submodel opton to the Duplicate effect
