@@ -241,9 +241,6 @@ protected:
     int m_tp = 0;
 };
 
-// Helpers to format the popup-dialog row labels with their current counts.
-// Kept free functions so AddProperties and UpdateProperties can both reuse
-// them without duplicating the format strings. See issue #5905.
 namespace {
 wxString FormatStrandNodeNamesLabel(const Model& m) {
     const auto nodes = m.GetNodeCount();
@@ -409,16 +406,6 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxStringProperty("Description", "Description", _model.GetDescription()));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
-    // Decorate the popup-dialog rows with "(N)" counts so the user can see
-    // at a glance how many Faces / States / Submodels / Nodes a model has
-    // without having to open each editor. Requested in issue #5905.
-    // The INTERNAL name (second arg to PopupDialogProperty) stays unchanged
-    // so property lookups by name elsewhere in the codebase keep working -
-    // only the display label (first arg) gets the count suffix.
-    //
-    // PopupDialogProperty takes a wxString label, so pass the formatted
-    // wxString directly - no ToStdString round-trip. Label refresh after
-    // the user edits any of these lists lives in UpdateProperties() below.
     p = grid->Append(new PopupDialogProperty(
         &_model, outputManager,
         FormatStrandNodeNamesLabel(_model),
@@ -548,10 +535,6 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
 void ModelPropertyAdapter::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     UpdateTypeProperties(grid);
 
-    // Refresh the "(N)" count suffixes on the popup-dialog rows so that
-    // after the user opens one of those editors and adds/removes entries
-    // the count in the label stays accurate instead of reflecting
-    // whatever was there when the property grid was first built. #5905.
     if (auto* pp = grid->GetPropertyByName("ModelStrandNodeNames")) {
         pp->SetLabel(FormatStrandNodeNamesLabel(_model));
     }
