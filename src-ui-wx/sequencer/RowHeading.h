@@ -151,4 +151,6 @@ private:
     static const long ID_ROW_MNU_GENERATE_FROM_CHORDS;
 
     static const long ID_ROW_MNU_SETLAYERNAME;
+    static const long ID_ROW_MNU_HIDE_UNUSED_SUBMODELS;
+    static const long ID_ROW_MNU_SHOW_ALL_SUBMODELS;
 };

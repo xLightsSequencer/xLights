@@ -1137,6 +1137,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     int& rowIndex,
     std::vector <Element*>& elements,
     bool submodel,
+    bool hideUnusedSubmodels,
     int nestDepth = 0)
 {
 
@@ -1197,15 +1198,17 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                         addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth);
                     }
                     else {
-                        addModelElement(melem, mRowInformation, rowIndex, elements, true, nestDepth + 1);
+                        addModelElement(melem, mRowInformation, rowIndex, elements, true, hideUnusedSubmodels, nestDepth + 1);
                     }
                 }
             }
         }
     }
     else if (elem->ShowStrands()) {
+        bool hideUnused = hideUnusedSubmodels && elem->HasEffects();
         for (int s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement* se = elem->GetSubModel(s);
+            if (hideUnused && !se->HasEffects()) continue;
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
                 m = 1;
@@ -1321,7 +1324,7 @@ void SequenceElements::PopulateRowInformation()
         if (elem != nullptr)
         {
             if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false);
+                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false, mHideUnusedSubmodels);
             }
         }
     }
