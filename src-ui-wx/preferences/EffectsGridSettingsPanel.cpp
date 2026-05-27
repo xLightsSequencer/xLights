@@ -35,6 +35,8 @@ const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX6 = wxNewId();
 const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX5 = wxNewId();
 const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX8 = wxNewId();
 const wxWindowID EffectsGridSettingsPanel::ID_CHECKBOX9 = wxNewId();
+const wxWindowID EffectsGridSettingsPanel::ID_STATICTEXT_PASTE_AS = wxNewId();
+const wxWindowID EffectsGridSettingsPanel::ID_CHOICE_PASTE_AS = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(EffectsGridSettingsPanel,wxPanel)
@@ -117,6 +119,14 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	GridSizer1->Add(BellOnRenderCompletion, 1, wxALL|wxEXPAND, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	StaticTextPasteAs = new wxStaticText(this, ID_STATICTEXT_PASTE_AS, _("Paste As"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_PASTE_AS"));
+	GridSizer1->Add(StaticTextPasteAs, 1, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
+	PasteAsChoice = new wxChoice(this, ID_CHOICE_PASTE_AS, wxDefaultPosition, wxDefaultSize, 0, 0, 0, wxDefaultValidator, _T("ID_CHOICE_PASTE_AS"));
+	PasteAsChoice->SetSelection( PasteAsChoice->Append(_("Relative")) );
+	PasteAsChoice->Append(_("Layers"));
+	PasteAsChoice->SetToolTip(_("Relative: paste effects at the selected position. As Layers: paste preserving layer structure from copied effects."));
+	GridSizer1->Add(PasteAsChoice, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+	GridSizer1->Add(-1,-1,1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	SetSizer(GridSizer1);
 	GridSizer1->SetSizeHints(this);
 
@@ -131,6 +141,7 @@ EffectsGridSettingsPanel::EffectsGridSettingsPanel(wxWindow* parent, xLightsFram
 	Connect(ID_CHECKBOX5, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnColorUpdateWarnCheckBoxClick);
 	Connect(ID_CHECKBOX8, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick);
 	Connect(ID_CHECKBOX9, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnBellOnRenderCompletionClick);
+	Connect(ID_CHOICE_PASTE_AS, wxEVT_COMMAND_CHOICE_SELECTED, (wxObjectEventFunction)&EffectsGridSettingsPanel::OnPasteAsChoiceSelect);
 	//*)
 }
 
@@ -152,6 +163,7 @@ bool EffectsGridSettingsPanel::TransferDataToWindow() {
     GroupEffectIndicator->SetValue(frame->ShowGroupEffectIndicator());
     ShowAlternateTimingFormatCheckBox->SetValue(frame->ShowAlternateTimingFormat());
     BellOnRenderCompletion->SetValue(frame->IsRenderBell());
+    PasteAsChoice->SetSelection(frame->IsPasteAsLayers() ? 1 : 0);
     int gs = frame->GridSpacing();
     switch (gs) {
         case 48:
@@ -202,6 +214,7 @@ bool EffectsGridSettingsPanel::TransferDataFromWindow() {
     frame->SetShowGroupEffectIndicator(GroupEffectIndicator->IsChecked());
     frame->SetShowAlternateTimingFormat(ShowAlternateTimingFormatCheckBox->IsChecked());
     frame->SetRenderBell(BellOnRenderCompletion->IsChecked());
+    frame->SetPasteAsLayers(PasteAsChoice->GetSelection() == 1);
     return true;
 }
 
@@ -284,6 +297,13 @@ void EffectsGridSettingsPanel::OnShowAlternateTimingFormatCheckBoxClick(wxComman
 }
 
 void EffectsGridSettingsPanel::OnBellOnRenderCompletionClick(wxCommandEvent& event)
+{
+    if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
+        TransferDataFromWindow();
+    }
+}
+
+void EffectsGridSettingsPanel::OnPasteAsChoiceSelect(wxCommandEvent& event)
 {
     if (wxPreferencesEditor::ShouldApplyChangesImmediately()) {
         TransferDataFromWindow();
