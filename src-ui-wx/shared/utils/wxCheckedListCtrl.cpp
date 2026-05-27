@@ -27,25 +27,35 @@ wxCheckedListCtrl::~wxCheckedListCtrl()
 
 void wxCheckedListCtrl::OnMouseEvent(wxMouseEvent& event)
 {
-  if (event.LeftDown())
-  {
-     int flags;
-     long item = HitTest(event.GetPosition(), flags);
-     if (item > -1 && (flags & wxLIST_HITTEST_ONITEMICON))
-     {
-         SetChecked(item, !IsChecked(item));
-        wxCommandEvent eventChecked(EVT_LISTITEM_CHECKED);
-        eventChecked.SetClientData((wxClientData*)GetItemData(item));
-        eventChecked.SetClientObject((wxClientData*)item);
-        wxPostEvent(GetParent(), eventChecked);
-     }
-     else
+    if (!event.LeftDown()) {
         event.Skip();
-  }
-  else
-  {
-     event.Skip();
-  }
+        return;
+    }
+
+    int flags = 0;
+    long item = HitTest(event.GetPosition(), flags);
+
+    bool iconHit = (item > -1) && (flags & wxLIST_HITTEST_ONITEMICON);
+
+    if (!iconHit && item > -1 && (flags & wxLIST_HITTEST_ONITEM)) {
+        const int col0Width = GetColumnWidth(0);
+        const int x = event.GetX();
+        const int hScrollPos = GetScrollPos(wxHORIZONTAL);
+        if (hScrollPos == 0 && col0Width > 0 && x >= 0 && x < col0Width) {
+            iconHit = true;
+        }
+    }
+
+    if (!iconHit) {
+        event.Skip();
+        return;
+    }
+
+    SetChecked(item, !IsChecked(item));
+    wxCommandEvent eventChecked(EVT_LISTITEM_CHECKED);
+    eventChecked.SetClientData((wxClientData*)GetItemData(item));
+    eventChecked.SetExtraLong(item);
+    wxPostEvent(GetParent(), eventChecked);
 }
 
 void wxCheckedListCtrl::SetImages( char** ImageCheckedXPM,char** ImageUncheckedXPM)
