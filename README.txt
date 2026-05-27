@@ -62,8 +62,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
-    -bug (Neil)                 Fix Edit Display Elements eye-icon click area on macOS HiDPI — clicks anywhere on the
-                                icon now toggle visibility instead of only the top-left 8x8 quadrant (#5015)
     -bug (derwin12)             Fix copy-paste model not assigning the next available start channel
     -bug (dkulp)                Metal render: drain autoreleased MTLCommandEncoders per frame instead of
                                 per render-job (large memory growth during long renders), fix sparkleBuffer
