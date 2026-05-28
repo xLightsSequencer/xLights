@@ -3952,7 +3952,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                                     f.push_back(k);
                                 }
                             }
-                            res[j] = f;
+                            res.insert({j, f});
                         }
                     }
 
@@ -3964,7 +3964,17 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                 } else if (e.isNoteOff()) {
                     notestate[e.getKeyNumber()]--;
                     if (notestate[e.getKeyNumber()] < 0) {
-                        // this should never happen
+                        notestate[e.getKeyNumber()] = 0;
+                    }
+                    int frame = LowerTS(time, intervalMS);
+                    if (frame >= 0) {
+                        std::vector<float> f;
+                        for (int k = 0; k <= 127; ++k) {
+                            if (notestate[k] > 0) {
+                                f.push_back(k);
+                            }
+                        }
+                        res[frame] = f;
                     }
                 }
             }
