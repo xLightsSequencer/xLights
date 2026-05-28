@@ -1111,8 +1111,13 @@ public:
         }
     }
     void LoadBuffers() {
+        // Mirror the OpenGL guard: if tinyobj failed to load or returned no
+        // geometry, bail before any GetAttrib() / GetShapes() deref.
+        if (!HasGeometry()) {
+            return;
+        }
         std::map<simd::int3, uint32_t, CompareSimdInt3> indexMap;
-        
+
         std::vector<MeshVertexInput> input;
         input.reserve(objects.GetAttrib().vertices.size());
         input.resize(1); // 0 position is ignored, indexMap[key] == 0 means not found yet

@@ -1709,12 +1709,18 @@ public:
         return ret;
     }
     void LoadBuffers() {
+        // Parse failed or produced no geometry — touching objects.GetAttrib()
+        // when the tinyobj reader is in a half-initialised state has been
+        // crashing the OpenGL render path on Windows. Bail before any deref.
+        if (!HasGeometry()) {
+            return;
+        }
         std::map<Index3, uint32_t, CompareIndex3> indexMap;
-        
+
         std::vector<MeshVertexInput> input;
         input.reserve(objects.GetAttrib().vertices.size());
         input.resize(1); // 0 position is ignored, indexMap[key] == 0 means not found yet
-        
+
         indexes.resize(0);
         lines.resize(0);
         wireFrame.resize(0);

@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
+    -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
+                                 high-quality video, near lossles.
     -enh (Neil)                  Show Face/State/SubModel/Node count badges on the Model pane
     -enh (cybercop23)            Add right-click option to hide unused submodels when expanding a model row
     -enh (cybercop23)            Add EffectPreset to the restore options
@@ -34,6 +36,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS: Package Sequence to a location outside any persistent bookmark (e.g.
                                  Desktop) no longer fails — the in-progress zip is now written to the system
                                  temp dir and atomically moved into the user-chosen path.
+    -bug (dkulp)                 macOS: Videos AVFoundation can't decode (e.g. lossless H.264 / High 4:4:4 at
+                                 small sizes) now fall back to FFmpeg at load instead of grinding for hours
+                                 per-frame during render.
     -bug (derwin12)              Fix hidden timing tracks reappearing when another timing track is expanded or collapsed (#6424)
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
@@ -75,6 +80,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  imports, controller rename / IP change / delete) so render jobs can no longer
                                  race a model add or start-channel rewrite. Addresses the long-standing
                                  ModelGroup::CheckForChanges off-main-thread crashes.
+    -bug (dkulp)                 Fix Windows crash in LayoutPanel::FinalizeModel when a download / progress
+                                 dialog pumped events and re-entered FinalizeModel against a freed _newModel.
+                                 Added a re-entrancy guard and a Reset() cleanup for show-folder loads.
+    -bug (dkulp)                 Fix crash when an OBJ mesh file fails to parse or contains no geometry; the
+                                 mesh draw path now skips LoadBuffers instead of dereferencing an empty
+                                 tinyobj attrib (xlGLMesh::LoadBuffers, xlMetalMesh::LoadBuffers).
 
 2026.09  May 18, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel
