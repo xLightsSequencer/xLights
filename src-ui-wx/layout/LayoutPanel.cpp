@@ -1097,6 +1097,12 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 
 void LayoutPanel::Reset()
 {
+    // A show-folder load triggered mid-placement leaves _newModel as a raw
+    // pointer that AllModels::clear() may or may not have freed (depending
+    // on whether placement reached FinalizeModel's AddModel call). Treat
+    // the panel as starting fresh: null the pointer without delete so we
+    // don't double-free a model already owned by the cleared manager.
+    _newModel = nullptr;
     selectedBaseObject = nullptr;
     highlightedBaseObject = nullptr;
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
@@ -2726,6 +2732,7 @@ void LayoutPanel::CreateModelGroupFromSelected()
 
         // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
         // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
+        xlights->AbortRender();
         xlights->AllModels.AddModel(newGroup);
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected");
 
@@ -4834,6 +4841,29 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
+    // Re-entrancy guard. FinalizeModel both pumps the event loop (AbortRender,
+    // modal Download / wxProgressDialog, wxMessageBox prompts in GetXlightsModel,
+    // ASAP-work dispatch) and mutates _newModel mid-flight. A second
+    // OnPreviewLeftUp / Escape / Return delivered during one of those pumps
+    // re-enters here, dereferences _newModel after the outer call has freed or
+    // reassigned it, and crashes on the vtable read in SetAxisTool. Windows
+    // bucket f6bdc90020 (7 reports, still regressing in dev). Drop the
+    // re-entrant call — the outer pass will finish the work.
+    static bool inFinalize = false;
+    if (inFinalize) {
+        spdlog::warn("LayoutPanel::FinalizeModel called re-entrantly; ignoring inner call.");
+        return;
+    }
+    struct InFinalizeGuard {
+        bool& flag;
+        InFinalizeGuard(bool& f) : flag(f) { flag = true; }
+        ~InFinalizeGuard() { flag = false; }
+    } guard(inFinalize);
+    // FinalizeModel adds (or deletes, on the cancel paths) the in-flight
+    // _newModel; both can race a render job that already snapshotted the
+    // model list. Match the pattern used by the other model-mutation
+    // entry points (Delete/Replace/Group) and stop the renderer first.
+    xlights->AbortRender();
     // discard any active drag session before mutating mPos.
     // FinalizeModel's polyline DeleteHandle below shrinks mPos, so a
     // session pointing at the trailing vertex would crash on the
@@ -8696,6 +8726,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
+            xlights->AbortRender();
             CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
             wxTextDataObject data;
@@ -9580,6 +9611,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             newModelGroup->SetLayout("minimalGrid");
             newModelGroup->SetGridSize(400);
             newModelGroup->SetLayoutGroup(grp.ToStdString());
+            xlights->AbortRender();
             xlights->AllModels.AddModel(newModelGroup);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -9608,6 +9640,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         }
 
         if (node) {
+            xlights->AbortRender();
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
         }
         //model_grp_panel->UpdatePanel(name);

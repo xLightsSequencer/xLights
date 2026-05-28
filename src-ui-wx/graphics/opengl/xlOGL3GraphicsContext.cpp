@@ -1262,7 +1262,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexAccumulator *vac, c
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumulator *vac, const xlColor &color, int start, int count) {
     xlOGL3VertexAccumulator *v = dynamic_cast<xlOGL3VertexAccumulator*>(vac);
-    if (v->getCount() == 0) {
+    if (!v || v->getCount() == 0) {
         return this;
     }
     int caps = enableCapabilities;

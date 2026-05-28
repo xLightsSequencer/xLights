@@ -909,6 +909,23 @@ PixelBufferClass::~PixelBufferClass() {
 }
 
 void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
+    // Callers are required to AbortRender before changing/deleting the
+    // model this buffer points at, so model should always be non-null
+    // here. Crash reports show otherwise (top mac/iPad crash); guard
+    // and log so the buffer is left empty rather than dereferencing
+    // a null model in InitRenderBufferNodes below.
+    if (model == nullptr) {
+        if (auto l = spdlog::get("render")) {
+            l->error("PixelBufferClass::reset called with null model ({} layers, modelName='{}') — likely a missing AbortRender before a model change.",
+                     nlayers, modelName);
+        }
+        for (int x = 0; x < numLayers; x++) {
+            delete layers[x];
+        }
+        layers.clear();
+        numLayers = 0;
+        return;
+    }
     for (int x = 0; x < numLayers; x++) {
         delete layers[x];
     }

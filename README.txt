@@ -65,6 +65,16 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Avoid creating and destroying wxCursor objects on every mouse move across
                                  the grid canvases, color/value curve dialogs, and assist panels.
     -bug (dkulp)                 macOS: fix waveform cursor memory leak (cursors were never released).
+    -bug (dkulp)                 Fix top macOS crash in Model::DisplayModelOnWindow when a freshly-placed
+                                 model is rendered before its node coords are populated.
+    -bug (dkulp)                 Fix Windows crash in xlOGL3GraphicsContext::drawPrimitive when the vertex
+                                 accumulator is null/wrong-type (seen in the Waveform render path).
+    -bug (dkulp)                 PixelBufferClass::reset now guards against a null model pointer and logs the
+                                 caller instead of crashing; also AbortRender at the remaining model-mutation
+                                 entry points (FinalizeModel, paste, group create/clone, LOR / channel-map
+                                 imports, controller rename / IP change / delete) so render jobs can no longer
+                                 race a model add or start-channel rewrite. Addresses the long-standing
+                                 ModelGroup::CheckForChanges off-main-thread crashes.
 
 2026.09  May 18, 2026
     -enh (dkulp)                Controller delete now clears any model's "!ControllerName:..." start channel

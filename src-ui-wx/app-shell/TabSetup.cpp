@@ -2125,6 +2125,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 List_Controllers->SetItemText(cn, event.GetValue().GetString());
 
                 // This fixes up any start channels dependent on the controller name
+                // RenameController rewrites each affected model's start channel
+                // (Model::SetStartChannel → IncrementChangeCount), which can fire
+                // ModelGroup::CheckForChanges on a render thread; stop the renderer first.
+                AbortRender();
                 AllModels.RenameController(oldName, event.GetValue().GetString());
 
                 _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "xLightsFrame::OnControllerPropertyGridChange::ControllerName", nullptr);
@@ -2132,6 +2136,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
             if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+                AbortRender();
                 AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
@@ -2339,6 +2344,11 @@ void xLightsFrame::DeleteSelectedControllers() {
         auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
             waitForPingsToComplete();
+            // DeleteController rewrites start channels on every model that referenced
+            // this controller (Model::SetStartChannel → IncrementChangeCount); stop
+            // the renderer before mutating so ModelGroup::CheckForChanges can't fire
+            // on a render thread.
+            AbortRender();
             for (const auto& it : todel) {
                 AllModels.DeleteController(it);
                 _outputManager.DeleteController(it);
@@ -2602,6 +2612,7 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         waitForPingsToComplete();
+        AbortRender();
         AllModels.DeleteController(name);
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");

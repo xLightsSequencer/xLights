@@ -811,6 +811,7 @@ void xLightsImportChannelMapDialog::AddEmptyGroup()
     newModelGroup->SetLayout("minimalGrid");
     newModelGroup->SetGridSize(400);
     newModelGroup->SetLayoutGroup("Default");
+    xlights->AbortRender();
     xlights->AllModels.AddModel(newModelGroup);
 
     xLightsImportModelNode* newGroup = new xLightsImportModelNode(

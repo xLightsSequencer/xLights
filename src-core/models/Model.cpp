@@ -3071,7 +3071,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         size_t vcount = 0;
         for (const auto& it : Nodes) {
-            vcount += it.get()->Coords.size();
+            // Match the null/empty guards used in the depth-sort and
+            // node-walk branches below: a freshly-placed _newModel can
+            // reach here before its nodes have been populated.
+            if (!it) {
+                continue;
+            }
+            vcount += it->Coords.size();
         }
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             int f = pixelSize;
@@ -3643,7 +3649,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // layer calculation and map to output
             unsigned int vcount = 0;
             for (const auto& it : Nodes) {
-                vcount += it.get()->Coords.size();
+                if (!it) {
+                    continue;
+                }
+                vcount += it->Coords.size();
             }
             if (vcount > maxVertexCount) {
                 maxVertexCount = vcount;
