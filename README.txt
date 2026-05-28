@@ -31,6 +31,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
+    -bug (dkulp)                 macOS: Package Sequence to a location outside any persistent bookmark (e.g.
+                                 Desktop) no longer fails — the in-progress zip is now written to the system
+                                 temp dir and atomically moved into the user-chosen path.
     -bug (derwin12)              Fix hidden timing tracks reappearing when another timing track is expanded or collapsed (#6424)
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
