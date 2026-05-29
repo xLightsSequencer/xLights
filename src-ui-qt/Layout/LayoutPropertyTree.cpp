@@ -270,6 +270,24 @@ LayoutPropertyTree::LayoutPropertyTree(QWidget* parent) : QTreeWidget(parent) {
         const QString fieldId = item->data(0, kRoleFieldId).toString();
         if (fieldId.isEmpty() || _currentEntity.isEmpty()) return;
         const QString val = item->text(1);
+
+        // Rename is special — it re-keys the ModelManager and needs the old
+        // XML node removed + lists rebuilt, so route it through the rename
+        // signals rather than the in-place change path.  Handles both
+        // models and groups (both live in ModelManager).
+        if (fieldId == "Name" &&
+            (_currentKind == EntityKind::Model || _currentKind == EntityKind::Group)) {
+            const QString oldName = _currentEntity;
+            const QString newName = val.trimmed();
+            if (newName.isEmpty() || newName == oldName || !_mm) return;
+            if (_mm->GetModel(newName.toStdString()) != nullptr) return;  // name taken
+            _mm->Rename(oldName.toStdString(), newName.toStdString());
+            _currentEntity = newName;
+            if (_currentKind == EntityKind::Model) emit modelRenamed(oldName, newName);
+            else                                   emit groupRenamed(oldName, newName);
+            return;
+        }
+
         switch (_currentKind) {
             case EntityKind::Model:
                 if (commitModelField(fieldId, val))
@@ -506,6 +524,16 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         m->SetPixelSize(value.toInt());
         return true;
     }
+    if (fieldId == "PixelStyle") {
+        const QString v = value.toString();
+        Model::PIXEL_STYLE ps = Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH;
+        if      (v == "Square")         ps = Model::PIXEL_STYLE::PIXEL_STYLE_SQUARE;
+        else if (v == "Smooth")         ps = Model::PIXEL_STYLE::PIXEL_STYLE_SMOOTH;
+        else if (v == "Solid Circle")   ps = Model::PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE;
+        else if (v == "Blended Circle") ps = Model::PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE;
+        m->SetPixelStyle(ps);
+        return true;
+    }
     if (fieldId == "Transparency") {
         m->SetTransparency(pctToInt(value.toString()));
         return true;
@@ -526,6 +554,12 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         m->SetRGBWHandling(value.toString().toStdString());
         return true;
     }
+    if (fieldId == "RGBOrder") {
+        // No independent rgbOrder setter — it's recomputed from StringType.
+        // Map the chosen order to the matching node string type.
+        m->SetStringType((value.toString() + " Nodes").toStdString());
+        return true;
+    }
     if (fieldId == "CustomColor") {
         // The Color delegate writes a #RRGGBB string, which SetCustomColor
         // accepts directly.
@@ -536,6 +570,12 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
     }
 
     // ── Controller connection (common to all models) ───────────────────
+    if (fieldId == "ControllerName") {
+        const QString v = value.toString();
+        // USE_START_CHANNEL maps to an empty controller name.
+        m->SetControllerName(v == USE_START_CHANNEL ? std::string() : v.toStdString());
+        return true;
+    }
     if (fieldId == "CtrlPort")       { m->SetControllerPort(value.toInt()); return true; }
     if (fieldId == "CtrlProtocol")   { m->SetControllerProtocol(value.toString().toStdString()); return true; }
     if (fieldId == "DMXChannel")     { m->SetControllerDMXChannel(value.toInt()); return true; }
@@ -833,7 +873,7 @@ void LayoutPropertyTree::populateModelIdentity(Model* m) {
     // Category is named "Model" (not the type) so it doesn't collide with the
     // per-type category that populateModelTypeProperties adds.
     auto* cat = addCategory("Model");
-    addRow(cat, "Name", qstr(m->GetName()));
+    addEditableRow(cat, "Name", qstr(m->GetName()), Kind::String, "Name");
     addRow(cat, "Type", qstr(DisplayAsTypeToString(m->GetDisplayAs())));
     addEditableRow(cat, "Description", qstr(m->GetDescription()),
                    Kind::String, "Description");
@@ -901,7 +941,9 @@ void LayoutPropertyTree::populateModelAppearance(Model* m) {
     auto* cat = addCategory("Appearance");
     addEditableRow(cat, "Pixel Size", QString::number(m->GetPixelSize()),
                    Kind::Int, "PixelSize");
-    addRow(cat, "Pixel Style", pixelStyleLabel(m->GetPixelStyle()));
+    addEditableRow(cat, "Pixel Style", pixelStyleLabel(m->GetPixelStyle()),
+                   Kind::Enum, "PixelStyle",
+                   {"Square", "Smooth", "Solid Circle", "Blended Circle"});
     addEditableRow(cat, "Transparency",
                    QString::number(m->GetTransparency()) + " %",
                    Kind::IntPercent, "Transparency");
@@ -942,7 +984,10 @@ void LayoutPropertyTree::populateModelStringProperties(Model* m) {
     addEditableRow(cat, "RGBW Handling", qstr(m->GetRGBWHandling()), Kind::Enum,
                    "RGBWHandling",
                    {"R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All"});
-    addRow(cat, "RGB Order", qstr(m->GetRGBOrder()));   // no setter — read-only
+    // RGB Order has no independent setter — it's derived from String Type.
+    // Editing it sets the matching "<order> Nodes" string type.
+    addEditableRow(cat, "RGB Order", qstr(m->GetRGBOrder()), Kind::Enum, "RGBOrder",
+                   {"RGB", "RBG", "GBR", "GRB", "BRG", "BGR"});
 }
 
 // Add an editable value child under a "Set X" parent.  When the property
@@ -968,8 +1013,19 @@ QTreeWidgetItem* LayoutPropertyTree::addCtrlChild(QTreeWidgetItem* parent,
 void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
     auto* cat = addCategory("Controller Connection");
 
-    const std::string ctrl = m->GetControllerName();
-    addRow(cat, "Controller", ctrl.empty() ? "(use start channel)" : qstr(ctrl));
+    // Controller assignment — combo of available controllers plus the
+    // "use start channel" / "No Controller" sentinels.
+    {
+        QStringList ctrls{USE_START_CHANNEL, NO_CONTROLLER};
+        if (_om) {
+            for (const auto& n : _om->GetAutoLayoutControllerNames())
+                ctrls << qstr(n);
+        }
+        const std::string ctrl = m->GetControllerName();
+        QString cur = ctrl.empty() ? QString(USE_START_CHANNEL) : qstr(ctrl);
+        if (!ctrls.contains(cur)) ctrls.prepend(cur);
+        addEditableRow(cat, "Controller", cur, Kind::Enum, "ControllerName", ctrls);
+    }
     addEditableRow(cat, "Port", QString::number(m->GetControllerPort(1)),
                    Kind::Int, "CtrlPort");
     // Protocol options from the model's available protocol list.
@@ -1510,7 +1566,7 @@ void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
 
 void LayoutPropertyTree::populateGroupIdentity(ModelGroup* g) {
     auto* cat = addCategory("Model Group");
-    addRow(cat, "Name", qstr(g->GetName()));
+    addEditableRow(cat, "Name", qstr(g->GetName()), Kind::String, "Name");
     addRow(cat, "Type", "Model Group");
     addEditableRow(cat, "Render Type",
                    groupRenderTypeDisplay(qstr(g->GetLayout())),

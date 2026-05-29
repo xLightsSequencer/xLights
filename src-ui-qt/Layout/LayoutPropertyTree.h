@@ -73,6 +73,12 @@ signals:
     void groupChanged(const QString& groupName);
     void controllerChanged(const QString& controllerName);
 
+    // Rename needs special handling (remove the old-named XML node, rebuild
+    // the list widgets, re-select) so it gets its own signals rather than
+    // the in-place modelChanged/groupChanged path.
+    void modelRenamed(const QString& oldName, const QString& newName);
+    void groupRenamed(const QString& oldName, const QString& newName);
+
 private:
     QTreeWidgetItem* addCategory(const QString& label);
     QTreeWidgetItem* addRow(QTreeWidgetItem* category,

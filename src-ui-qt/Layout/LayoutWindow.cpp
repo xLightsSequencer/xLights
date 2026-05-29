@@ -310,6 +310,37 @@ LayoutWindow::LayoutWindow(QWidget* parent)
         emit layoutChanged();
     });
 
+    // Rename: ModelManager already re-keyed and propagated references.
+    // Remove the old-named node, write the new one, rebuild the lists, and
+    // re-select.  A model rename may also touch groups that reference it, so
+    // re-save every group too (cheap; covered by saveModelToShowFile).
+    auto handleRename = [this](const QString& oldName, const QString& newName, bool isGroup) {
+        if (!_bridge) return;
+        _bridge->removeModelFromShowFile(oldName);
+        _bridge->saveModelToShowFile(newName);
+        // Persist groups that may now reference the new name.
+        if (!isGroup && _bridge->modelManager()) {
+            for (const auto& [n, m] : *_bridge->modelManager())
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
+                    _bridge->saveModelToShowFile(QString::fromStdString(n));
+        }
+        rebuildModelLists();
+        QListWidget* list = isGroup ? _groupList : _modelList;
+        _tabs->setCurrentIndex(isGroup ? 1 : 0);
+        const auto matches = list->findItems(newName, Qt::MatchExactly);
+        if (!matches.isEmpty()) {
+            list->setCurrentItem(matches.first());
+            list->scrollToItem(matches.first());
+        }
+        if (isGroup) _props->showGroup(newName);
+        else         _props->showModel(newName);
+        emit layoutChanged();
+    };
+    connect(_props, &LayoutPropertyTree::modelRenamed, this,
+            [handleRename](const QString& o, const QString& n) { handleRename(o, n, false); });
+    connect(_props, &LayoutPropertyTree::groupRenamed, this,
+            [handleRename](const QString& o, const QString& n) { handleRename(o, n, true); });
+
     // Controller edits persist to xlights_networks.xml via OutputManager::Save.
     // For renames the controller-list widget still shows the old name, so we
     // rebuild it from the live OutputManager and reselect the (possibly
