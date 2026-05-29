@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
+    -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
+                                 addition to the existing broadcast/multicast ping.
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
     -enh (Neil)                  Show Face/State/SubModel/Node count badges on the Model pane
