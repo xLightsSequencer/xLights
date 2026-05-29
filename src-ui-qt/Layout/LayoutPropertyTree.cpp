@@ -548,6 +548,32 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
     if (fieldId == "CtrlZigZag")     { m->SetControllerZigZag(value.toInt()); return true; }
     if (fieldId == "CtrlDirection")  { m->SetControllerReverse(value.toString() == "Reverse" ? 1 : 0); return true; }
 
+    // ── Smart Remote ───────────────────────────────────────────────────
+    if (fieldId == "UseSmartRemote") {
+        const bool on = value.toString() == "yes";
+        // Enabling with no remote yet selected defaults to A (1); disabling
+        // clears to 0.  SetSmartRemote drives the USE_SMART_REMOTE property.
+        m->SetSmartRemote(on ? (m->GetSmartRemote() > 0 ? m->GetSmartRemote() : 1) : 0);
+        return true;
+    }
+    if (fieldId == "SmartRemoteType") {
+        m->SetSmartRemoteType(value.toString().toStdString());
+        return true;
+    }
+    if (fieldId == "SmartRemote") {
+        // The combo shows the GetSmartRemoteValues() letters; the model wants
+        // the 1-based index (A=1).  Find the chosen value's position.
+        auto* caps = m->GetControllerCaps();
+        const int count = caps ? caps->GetSmartRemoteCount() : 15;
+        const auto vals = m->GetSmartRemoteValues(count);
+        for (int i = 0; i < (int)vals.size(); ++i) {
+            if (qstr(vals[i]) == value.toString()) { m->SetSmartRemote(i + 1); return true; }
+        }
+        return false;
+    }
+    if (fieldId == "SRMaxCascade")    { m->SetSRMaxCascade(value.toInt()); return true; }
+    if (fieldId == "SRCascadeOnPort") { m->SetSRCascadeOnPort(value.toString() == "yes"); return true; }
+
     // Screen-location edits (World / Scale / Rotation).  Scale setters take
     // the whole vec3, so read-modify-write the single axis.
     auto& loc = m->GetModelScreenLocation();
@@ -969,23 +995,40 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
         int smartRemoteCount = caps ? caps->GetSmartRemoteCount() : 15;
         if (smartRemoteCount != 0) {
             const bool useSR = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::USE_SMART_REMOTE);
-            auto* parent = addRow(cat, "Use Smart Remote", useSR ? "yes" : "no");
+            auto* parent = addEditableRow(cat, "Use Smart Remote", useSR ? "yes" : "no",
+                                          Kind::Bool, "UseSmartRemote");
             if (useSR) {
-                // Smart-remote sub-fields stay read-only for now (the chain
-                // semantics are involved; only the A/B/C remote is editable).
-                addRow(parent, "Smart Remote Type", qstr(m->GetSmartRemoteType()));
+                // Smart Remote Type — enum from the controller's available
+                // types (when more than one).
+                const auto srTypes = m->GetSmartRemoteTypes();
+                if (srTypes.size() > 1) {
+                    QStringList types;
+                    for (const auto& tp : srTypes) types << qstr(tp);
+                    addCtrlChild(parent, "Smart Remote Type", qstr(m->GetSmartRemoteType()),
+                                 true, Kind::Enum, "SmartRemoteType", types);
+                } else {
+                    addRow(parent, "Smart Remote Type", qstr(m->GetSmartRemoteType()));
+                }
 
+                // Smart Remote A/B/C… — enum of the letter values; the model
+                // stores it 1-based (A=1), so the option index maps to sr-1.
+                QStringList srValues;
+                for (const auto& v : m->GetSmartRemoteValues(smartRemoteCount))
+                    srValues << qstr(v);
                 const int sr = m->GetSmartRemote();
-                const QString srLabel = sr > 0
-                    ? QString(QChar('A' + sr - 1)) + QString(" (%1)").arg(sr)
-                    : QString("(none)");
-                addRow(parent, "Smart Remote", srLabel);
+                const QString cur = (sr > 0 && sr - 1 < srValues.size())
+                                      ? srValues[sr - 1]
+                                      : (srValues.isEmpty() ? QString() : srValues.first());
+                addCtrlChild(parent, "Smart Remote", cur, true,
+                             Kind::Enum, "SmartRemote", srValues);
 
                 if (m->GetNumPhysicalStrings() > 1) {
-                    addRow(parent, "Max Cascade Remotes",
-                           QString::number(m->GetSRMaxCascade()));
-                    addRow(parent, "Cascade On Port",
-                           m->GetSRCascadeOnPort() ? "yes" : "no");
+                    addCtrlChild(parent, "Max Cascade Remotes",
+                                 QString::number(m->GetSRMaxCascade()), true,
+                                 Kind::Int, "SRMaxCascade");
+                    addCtrlChild(parent, "Cascade On Port",
+                                 m->GetSRCascadeOnPort() ? "yes" : "no", true,
+                                 Kind::Bool, "SRCascadeOnPort");
                 }
                 parent->setExpanded(true);
             }
