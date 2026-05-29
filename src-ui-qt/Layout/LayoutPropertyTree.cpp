@@ -514,6 +514,29 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         m->SetBlackTransparency(pctToInt(value.toString()));
         return true;
     }
+    if (fieldId == "LayoutGroup") {
+        m->SetLayoutGroup(value.toString().toStdString());
+        return true;
+    }
+
+    // Screen-location edits (World / Scale / Rotation).  Scale setters take
+    // the whole vec3, so read-modify-write the single axis.
+    auto& loc = m->GetModelScreenLocation();
+    if (fieldId == "WorldX") { loc.SetWorldPos_X(value.toFloat()); return true; }
+    if (fieldId == "WorldY") { loc.SetWorldPos_Y(value.toFloat()); return true; }
+    if (fieldId == "WorldZ") { loc.SetWorldPos_Z(value.toFloat()); return true; }
+    if (fieldId == "ScaleX" || fieldId == "ScaleY" || fieldId == "ScaleZ") {
+        glm::vec3 s = loc.GetScaleMatrix();
+        const float v = value.toFloat();
+        if (fieldId == "ScaleX") s.x = v;
+        else if (fieldId == "ScaleY") s.y = v;
+        else s.z = v;
+        loc.SetScaleMatrix(s);
+        return true;
+    }
+    if (fieldId == "RotateX") { loc.SetRotateX(value.toFloat()); return true; }
+    if (fieldId == "RotateY") { loc.SetRotateY(value.toFloat()); return true; }
+    if (fieldId == "RotateZ") { loc.SetRotateZ(value.toFloat()); return true; }
 
     // # Strings edits — dispatch per model type via GetDisplayAs() +
     // static_cast (dynamic_cast was unreliable in the Qt build — see
@@ -654,21 +677,43 @@ void LayoutPropertyTree::populateModelSizingChannels(Model* m) {
 
 void LayoutPropertyTree::populateModelLayout(Model* m) {
     auto* cat = addCategory("Layout");
-    addRow(cat, "Layout Group", qstr(m->GetLayoutGroup()));
+
+    // Layout Group as an editable combo populated from the live layout-group
+    // list (plus Default / Unassigned).  Pre-pend the current value if it's
+    // not already in the list so the row keeps a valid selection.
+    QStringList groups{"Default", "Unassigned"};
+    if (_mm) {
+        for (const auto& g : Model::GetLayoutGroups(*_mm)) {
+            const QString s = qstr(g);
+            if (!groups.contains(s)) groups << s;
+        }
+    }
+    const QString curGroup = qstr(m->GetLayoutGroup());
+    if (!curGroup.isEmpty() && !groups.contains(curGroup)) groups.prepend(curGroup);
+    addEditableRow(cat, "Layout Group", curGroup, Kind::Enum, "LayoutGroup", groups);
+
     addEditableRow(cat, "Active", m->IsActive() ? "yes" : "no",
                    Kind::Bool, "Active");
+
     const auto& loc = m->GetModelScreenLocation();
-    addRow(cat, "World X", QString::number(loc.GetWorldPos_X(), 'f', 2));
-    addRow(cat, "World Y", QString::number(loc.GetWorldPos_Y(), 'f', 2));
-    addRow(cat, "World Z", QString::number(loc.GetWorldPos_Z(), 'f', 2));
+    addEditableRow(cat, "World X", QString::number(loc.GetWorldPos_X(), 'f', 2),
+                   Kind::Double, "WorldX");
+    addEditableRow(cat, "World Y", QString::number(loc.GetWorldPos_Y(), 'f', 2),
+                   Kind::Double, "WorldY");
+    addEditableRow(cat, "World Z", QString::number(loc.GetWorldPos_Z(), 'f', 2),
+                   Kind::Double, "WorldZ");
     const glm::vec3 s = loc.GetScaleMatrix();
-    addRow(cat, "Scale X", QString::number(s.x, 'f', 3));
-    addRow(cat, "Scale Y", QString::number(s.y, 'f', 3));
-    addRow(cat, "Scale Z", QString::number(s.z, 'f', 3));
-    const glm::vec3 r = loc.GetRotationAngles();
-    addRow(cat, "Rotation X", QString::number(r.x, 'f', 1));
-    addRow(cat, "Rotation Y", QString::number(r.y, 'f', 1));
-    addRow(cat, "Rotation Z", QString::number(r.z, 'f', 1));
+    addEditableRow(cat, "Scale X", QString::number(s.x, 'f', 3), Kind::Double, "ScaleX");
+    addEditableRow(cat, "Scale Y", QString::number(s.y, 'f', 3), Kind::Double, "ScaleY");
+    addEditableRow(cat, "Scale Z", QString::number(s.z, 'f', 3), Kind::Double, "ScaleZ");
+    // Rotation uses the rotatex/y/z trio (Get/SetRotateX/Y/Z) so display and
+    // edit are consistent — GetRotationAngles() reads a different field.
+    addEditableRow(cat, "Rotation X", QString::number(loc.GetRotateX(), 'f', 1),
+                   Kind::Double, "RotateX");
+    addEditableRow(cat, "Rotation Y", QString::number(loc.GetRotateY(), 'f', 1),
+                   Kind::Double, "RotateY");
+    addEditableRow(cat, "Rotation Z", QString::number(loc.GetRotateZ(), 'f', 1),
+                   Kind::Double, "RotateZ");
 }
 
 void LayoutPropertyTree::populateModelAppearance(Model* m) {
