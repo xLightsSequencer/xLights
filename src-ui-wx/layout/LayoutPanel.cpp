@@ -4808,6 +4808,14 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // each additional sibling into additionalModelObjects so FinalizeModel can
             // place them alongside the primary model.
             if (additionalModelObjects != nullptr && strcmp(root.name(), "models") == 0) {
+                pugi::xml_node primaryNode = root.first_child();
+                if (primaryNode) {
+                    float wx = primaryNode.attribute("WorldPosX").as_float(0.0f);
+                    float wy = primaryNode.attribute("WorldPosY").as_float(0.0f);
+                    float wz = primaryNode.attribute("WorldPosZ").as_float(0.0f);
+                    model->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(wx, wy, wz));
+                }
+
                 for (pugi::xml_node child = root.first_child().next_sibling(); child; child = child.next_sibling()) {
                     bool extraCancelled = false;
                     xlights->GetOutputModelManager()->DisableASAPWork(true);
@@ -4820,6 +4828,10 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     if (!extraModel->HasIndividualStartChannels()) {
                         extraModel->SetControllerName(NO_CONTROLLER, true);
                     }
+                    float wx = child.attribute("WorldPosX").as_float(0.0f);
+                    float wy = child.attribute("WorldPosY").as_float(0.0f);
+                    float wz = child.attribute("WorldPosZ").as_float(0.0f);
+                    extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(wx, wy, wz));
                     additionalModelObjects->push_back(extraModel);
                 }
             }
@@ -4890,7 +4902,6 @@ void LayoutPanel::FinalizeModel()
         std::vector<Model*> additionalModelObjects;
         glm::vec3 firstModelPos(0.0f);
         glm::vec3 multiModelAnchor(0.0f);
-        bool hasMultiModelRelativePositions = false;
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
@@ -4983,9 +4994,6 @@ void LayoutPanel::FinalizeModel()
                 delete prog;
             }
 
-            // For multi-model xmodel imports, preserve relative WorldPos from the file.
-            // Compute the bounding-box anchor (min X, min Y across all models) so the
-            // entire group lands with its anchor corner at the user's drop point.
             if (!additionalModelObjects.empty()) {
                 glm::vec3 primaryOrigPos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
                 float anchorX = primaryOrigPos.x;
@@ -4997,7 +5005,6 @@ void LayoutPanel::FinalizeModel()
                     anchorY = std::min(anchorY, ep.y);
                 }
                 multiModelAnchor = glm::vec3(anchorX, anchorY, 0.0f);
-                hasMultiModelRelativePositions = true;
                 glm::vec3 adjustedPos(pos.x + (primaryOrigPos.x - anchorX),
                                       pos.y + (primaryOrigPos.y - anchorY),
                                       pos.z);
@@ -5083,25 +5090,15 @@ void LayoutPanel::FinalizeModel()
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
 
-        // Place additional models loaded from a multi-model xmodel file.
-        // When WorldPos values were captured from the file (hasMultiModelRelativePositions),
-        // each model is placed at: dropPoint + (originalWorldPos - anchorWorldPos)
-        // so the entire group keeps its relative arrangement, anchored at the drop point.
         if (!additionalModelObjects.empty()) {
             for (Model* extraModel : additionalModelObjects) {
                 if (extraModel == nullptr) continue;
                 std::string uniqueName = xlights->AllModels.GenerateModelName(extraModel->name);
                 extraModel->name = uniqueName;
-
-                glm::vec3 newPos;
-                if (hasMultiModelRelativePositions) {
-                    glm::vec3 origPos = extraModel->GetBaseObjectScreenLocation().GetWorldPosition();
-                    newPos = glm::vec3(firstModelPos.x + (origPos.x - multiModelAnchor.x),
-                                      firstModelPos.y + (origPos.y - multiModelAnchor.y),
-                                      firstModelPos.z + (origPos.z - multiModelAnchor.z));
-                } else {
-                    newPos = firstModelPos;
-                }
+                glm::vec3 origPos = extraModel->GetBaseObjectScreenLocation().GetWorldPosition();
+                glm::vec3 newPos(firstModelPos.x + (origPos.x - multiModelAnchor.x),
+                                 firstModelPos.y + (origPos.y - multiModelAnchor.y),
+                                 firstModelPos.z + (origPos.z - multiModelAnchor.z));
                 extraModel->GetBaseObjectScreenLocation().SetWorldPosition(newPos);
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
                 xlights->AllModels.AddModel(extraModel);
