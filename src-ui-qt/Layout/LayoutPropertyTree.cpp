@@ -49,6 +49,8 @@
 #include <QSpinBox>
 #include <QStyledItemDelegate>
 
+#include <spdlog/spdlog.h>
+
 namespace {
 
 QString qstr(const std::string& s) { return QString::fromStdString(s); }
@@ -328,6 +330,11 @@ void LayoutPropertyTree::showModel(const QString& name) {
     // stored type enum and doesn't depend on RTTI behaving across the
     // separately-compiled Qt translation units.
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return;
+
+    spdlog::info("LayoutPropertyTree::showModel '{}' DisplayAs='{}' (enum={})",
+                 name.toStdString(),
+                 DisplayAsTypeToString(m->GetDisplayAs()),
+                 static_cast<int>(m->GetDisplayAs()));
 
     _currentEntity = name;
     _currentKind = EntityKind::Model;
@@ -811,6 +818,9 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
 
 void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     const DisplayAsType t = m->GetDisplayAs();
+    const int catsBefore = topLevelItemCount();
+    spdlog::info("populateModelTypeProperties: type='{}' enum={} (cats before={})",
+                 DisplayAsTypeToString(t), static_cast<int>(t), catsBefore);
 
     // Dispatch on the stored DisplayAsType enum + static_cast rather than
     // dynamic_cast — RTTI was producing null casts in the Qt build, which
@@ -1109,9 +1119,15 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    // View objects (Mesh / Image / Terrain / Ruler / Gridlines / Label)
-    // and any remaining model classes still need per-type rows.
-    // TODO: expand as each subclass exposes typed getters.
+    // Fallback — reached only when no case above matched the model's
+    // DisplayAsType.  Guarantee a visible category so the user never sees
+    // a model with zero type-specific rows (and so we can tell a code-path
+    // miss from a stale-binary problem).
+    auto* cat = addCategory(qstr(DisplayAsTypeToString(t)) + " — Type Properties");
+    addRow(cat, "Type",      qstr(DisplayAsTypeToString(t)));
+    addRow(cat, "# Strings", QString::number(m->GetNumStrings()));
+    spdlog::warn("populateModelTypeProperties: no specific case for '{}' — used fallback",
+                 DisplayAsTypeToString(t));
 }
 
 void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
