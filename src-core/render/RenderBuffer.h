@@ -28,15 +28,12 @@
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
 #define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
-#include <hash_map>
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
-#else
-#include <unordered_map>
-#define hash_map  unordered_map //c++ 2011
 #endif
+#include <unordered_map>
 #include <queue> //priority_queue
 #include <deque>
 #include <vector>
