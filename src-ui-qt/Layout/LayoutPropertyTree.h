@@ -89,6 +89,17 @@ private:
                                     const QString& fieldId,
                                     const QStringList& enumOptions = {});
 
+    // Add an editable "X" value row under a "Set X" controller-connection
+    // parent.  Dims the row when `active` is false (the model is inheriting
+    // the controller default).  Editable so the user can override.
+    QTreeWidgetItem* addCtrlChild(QTreeWidgetItem* parent,
+                                  const QString& label,
+                                  const QString& value,
+                                  bool active,
+                                  Kind kind,
+                                  const QString& fieldId,
+                                  const QStringList& enumOptions = {});
+
     // Apply an editor commit to the currently-shown entity.  Returns true if
     // the change was understood (and the entity mutated).
     bool commitModelField(const QString& fieldId, const QVariant& value);

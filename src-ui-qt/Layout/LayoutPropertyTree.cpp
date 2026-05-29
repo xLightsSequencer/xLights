@@ -535,6 +535,19 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         return true;
     }
 
+    // ── Controller connection (common to all models) ───────────────────
+    if (fieldId == "CtrlPort")       { m->SetControllerPort(value.toInt()); return true; }
+    if (fieldId == "CtrlProtocol")   { m->SetControllerProtocol(value.toString().toStdString()); return true; }
+    if (fieldId == "DMXChannel")     { m->SetControllerDMXChannel(value.toInt()); return true; }
+    if (fieldId == "StartNulls")     { m->SetControllerStartNulls(value.toInt()); return true; }
+    if (fieldId == "EndNulls")       { m->SetControllerEndNulls(value.toInt()); return true; }
+    if (fieldId == "CtrlBrightness") { m->SetControllerBrightness(pctToInt(value.toString())); return true; }
+    if (fieldId == "CtrlGamma")      { m->SetControllerGamma(value.toFloat()); return true; }
+    if (fieldId == "ColorOrder")     { m->SetControllerColorOrder(value.toString().toStdString()); return true; }
+    if (fieldId == "GroupCount")     { m->SetControllerGroupCount(value.toInt()); return true; }
+    if (fieldId == "CtrlZigZag")     { m->SetControllerZigZag(value.toInt()); return true; }
+    if (fieldId == "CtrlDirection")  { m->SetControllerReverse(value.toString() == "Reverse" ? 1 : 0); return true; }
+
     // Screen-location edits (World / Scale / Rotation).  Scale setters take
     // the whole vec3, so read-modify-write the single axis.
     auto& loc = m->GetModelScreenLocation();
@@ -906,22 +919,24 @@ void LayoutPropertyTree::populateModelStringProperties(Model* m) {
     addRow(cat, "RGB Order", qstr(m->GetRGBOrder()));   // no setter — read-only
 }
 
-// Add a value child under a "Set X" parent.  When the property isn't active
-// (i.e. the model is inheriting the controller's default), the child is
-// dimmed so the reader can tell at a glance which fields are overridden.
-static void addCtrlChild(QTreeWidgetItem* parent,
-                         const QString& label,
-                         const QString& value,
-                         bool active) {
-    auto* row = new QTreeWidgetItem(parent);
-    row->setText(0, label);
-    row->setText(1, value);
+// Add an editable value child under a "Set X" parent.  When the property
+// isn't active (the model inherits the controller default) the child is
+// dimmed, but it stays editable so the user can override.
+QTreeWidgetItem* LayoutPropertyTree::addCtrlChild(QTreeWidgetItem* parent,
+                                                  const QString& label,
+                                                  const QString& value,
+                                                  bool active,
+                                                  Kind kind,
+                                                  const QString& fieldId,
+                                                  const QStringList& enumOptions) {
+    auto* row = addEditableRow(parent, label, value, kind, fieldId, enumOptions);
     if (!active) {
-        const QColor dim = parent->treeWidget()->palette().color(QPalette::Disabled, QPalette::Text);
+        const QColor dim = palette().color(QPalette::Disabled, QPalette::Text);
         row->setForeground(0, dim);
         row->setForeground(1, dim);
     }
     parent->setExpanded(active);
+    return row;
 }
 
 void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
@@ -929,8 +944,20 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
 
     const std::string ctrl = m->GetControllerName();
     addRow(cat, "Controller", ctrl.empty() ? "(use start channel)" : qstr(ctrl));
-    addRow(cat, "Port",       QString::number(m->GetControllerPort(1)));
-    addRow(cat, "Protocol",   qstr(m->GetControllerProtocol()));
+    addEditableRow(cat, "Port", QString::number(m->GetControllerPort(1)),
+                   Kind::Int, "CtrlPort");
+    // Protocol options from the model's available protocol list.
+    {
+        std::vector<std::string> cp;
+        int idx = -1;
+        m->GetControllerProtocols(cp, idx);
+        QStringList protos;
+        for (const auto& s : cp) protos << qstr(s);
+        const QString cur = qstr(m->GetControllerProtocol());
+        if (!cur.isEmpty() && !protos.contains(cur)) protos.prepend(cur);
+        if (protos.isEmpty()) protos << cur;
+        addEditableRow(cat, "Protocol", cur, Kind::Enum, "CtrlProtocol", protos);
+    }
 
     auto* caps = m->GetControllerCaps();
     const bool pixel  = m->IsPixelProtocol();
@@ -944,86 +971,98 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
             const bool useSR = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::USE_SMART_REMOTE);
             auto* parent = addRow(cat, "Use Smart Remote", useSR ? "yes" : "no");
             if (useSR) {
-                addCtrlChild(parent, "Smart Remote Type",
-                             qstr(m->GetSmartRemoteType()), true);
+                // Smart-remote sub-fields stay read-only for now (the chain
+                // semantics are involved; only the A/B/C remote is editable).
+                addRow(parent, "Smart Remote Type", qstr(m->GetSmartRemoteType()));
 
                 const int sr = m->GetSmartRemote();
                 const QString srLabel = sr > 0
                     ? QString(QChar('A' + sr - 1)) + QString(" (%1)").arg(sr)
                     : QString("(none)");
-                addCtrlChild(parent, "Smart Remote", srLabel, true);
+                addRow(parent, "Smart Remote", srLabel);
 
                 if (m->GetNumPhysicalStrings() > 1) {
-                    addCtrlChild(parent, "Max Cascade Remotes",
-                                 QString::number(m->GetSRMaxCascade()), true);
-                    addCtrlChild(parent, "Cascade On Port",
-                                 m->GetSRCascadeOnPort() ? "yes" : "no", true);
+                    addRow(parent, "Max Cascade Remotes",
+                           QString::number(m->GetSRMaxCascade()));
+                    addRow(parent, "Cascade On Port",
+                           m->GetSRCascadeOnPort() ? "yes" : "no");
                 }
+                parent->setExpanded(true);
             }
         }
     }
 
     // ── Serial protocol: DMX channel + speed ────────────────────────────
     if (serial) {
-        addRow(cat, qstr(m->GetControllerProtocol()) + " Channel",
-               QString::number(m->GetControllerDMXChannel()));
+        addEditableRow(cat, qstr(m->GetControllerProtocol()) + " Channel",
+                       QString::number(m->GetControllerDMXChannel()),
+                       Kind::Int, "DMXChannel");
         if (m->GetControllerProtocolSpeed() > 0)
             addRow(cat, "Speed", QString::number(m->GetControllerProtocolSpeed()));
     }
 
     // ── Pixel protocol: per-property "Set X / X" rows gated by caps ─────
+    // The "Set X" parent toggles whether the model overrides the controller
+    // default; the child holds the editable value.
     if (pixel) {
         if (!caps || caps->SupportsPixelPortNullPixels()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::START_NULLS_ACTIVE);
             auto* p = addRow(cat, "Set Start Null Pixels", act ? "yes" : "no");
             addCtrlChild(p, "Start Null Pixels",
-                         QString::number(m->GetControllerStartNulls()), act);
+                         QString::number(m->GetControllerStartNulls()), act, Kind::Int, "StartNulls");
         }
         if (!caps || caps->SupportsPixelPortEndNullPixels()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::END_NULLS_ACTIVE);
             auto* p = addRow(cat, "Set End Null Pixels", act ? "yes" : "no");
             addCtrlChild(p, "End Null Pixels",
-                         QString::number(m->GetControllerEndNulls()), act);
+                         QString::number(m->GetControllerEndNulls()), act, Kind::Int, "EndNulls");
         }
         if (!caps || caps->SupportsPixelPortBrightness()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::BRIGHTNESS_ACTIVE);
             auto* p = addRow(cat, "Set Brightness", act ? "yes" : "no");
             addCtrlChild(p, "Brightness",
-                         QString::number(m->GetControllerBrightness()) + " %", act);
+                         QString::number(m->GetControllerBrightness()) + " %", act,
+                         Kind::IntPercent, "CtrlBrightness");
         }
         if (!caps || caps->SupportsPixelPortGamma()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::GAMMA_ACTIVE);
             auto* p = addRow(cat, "Set Gamma", act ? "yes" : "no");
             addCtrlChild(p, "Gamma",
-                         QString::number(m->GetControllerGamma(), 'f', 2), act);
+                         QString::number(m->GetControllerGamma(), 'f', 2), act,
+                         Kind::Double, "CtrlGamma");
         }
         if (!caps || caps->SupportsPixelPortColourOrder()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::COLOR_ORDER_ACTIVE);
             auto* p = addRow(cat, "Set Color Order", act ? "yes" : "no");
-            addCtrlChild(p, "Color Order", qstr(m->GetControllerColorOrder()), act);
+            addCtrlChild(p, "Color Order", qstr(m->GetControllerColorOrder()), act,
+                         Kind::Enum, "ColorOrder",
+                         {"RGB", "RBG", "GRB", "GBR", "BRG", "BGR",
+                          "RGBW", "RBGW", "GRBW", "GBRW", "BRGW", "BGRW", "WRGB"});
         }
         if (!caps || caps->SupportsPixelPortDirection()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::REVERSE_ACTIVE);
             auto* p = addRow(cat, "Set Pixel Direction", act ? "yes" : "no");
-            addCtrlChild(p, "Direction", directionLabel(m->GetControllerReverse()), act);
+            addCtrlChild(p, "Direction", directionLabel(m->GetControllerReverse()), act,
+                         Kind::Enum, "CtrlDirection", {"Forward", "Reverse"});
         }
         if (!caps || caps->SupportsPixelPortGrouping()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::GROUP_COUNT_ACTIVE);
             auto* p = addRow(cat, "Set Group Count", act ? "yes" : "no");
             addCtrlChild(p, "Group Count",
-                         QString::number(m->GetControllerGroupCount()), act);
+                         QString::number(m->GetControllerGroupCount()), act, Kind::Int, "GroupCount");
         }
         if (!caps || caps->SupportsPixelZigZag()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::ZIG_ZAG_ACTIVE);
             auto* p = addRow(cat, "Set Zig Zag", act ? "yes" : "no");
             addCtrlChild(p, "Zig Zag",
-                         QString::number(m->GetControllerZigZag()), act);
+                         QString::number(m->GetControllerZigZag()), act, Kind::Int, "CtrlZigZag");
         }
         if (!caps || caps->SupportsTs()) {
             const bool act = m->IsCtrlPropertySet(ControllerConnection::CTRL_PROPS::TS_ACTIVE);
             auto* p = addRow(cat, "Set Smart Ts", act ? "yes" : "no");
-            addCtrlChild(p, "Smart Ts",
-                         QString::number(m->GetSmartTs()), act);
+            // No SetSmartTs setter on the model — read-only child.
+            addRow(p, "Smart Ts", QString::number(m->GetSmartTs()));
+            p->setExpanded(act);
         }
     }
 }
