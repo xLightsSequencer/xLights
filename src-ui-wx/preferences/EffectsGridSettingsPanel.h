@@ -38,7 +38,9 @@ class EffectsGridSettingsPanel: public wxPanel
 		wxCheckBox* TransistionMarksCheckBox;
 		wxChoice* DoubleClickChoice;
 		wxChoice* GridSpacingChoice;
+		wxChoice* PasteAsChoice;
 		wxStaticText* StaticText1;
+		wxStaticText* StaticTextPasteAs;
 		//*)
 
         virtual bool TransferDataFromWindow() override;
@@ -59,6 +61,8 @@ class EffectsGridSettingsPanel: public wxPanel
 		static const wxWindowID ID_CHECKBOX5;
 		static const wxWindowID ID_CHECKBOX8;
 		static const wxWindowID ID_CHECKBOX9;
+		static const wxWindowID ID_STATICTEXT_PASTE_AS;
+		static const wxWindowID ID_CHOICE_PASTE_AS;
 		//*)
 
 	private:
@@ -79,6 +83,7 @@ class EffectsGridSettingsPanel: public wxPanel
 		void OnAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
 		void OnShowAlternateTimingFormatCheckBoxClick(wxCommandEvent& event);
 		void OnBellOnRenderCompletionClick(wxCommandEvent& event);
+		void OnPasteAsChoiceSelect(wxCommandEvent& event);
 		//*)
 
 		DECLARE_EVENT_TABLE()

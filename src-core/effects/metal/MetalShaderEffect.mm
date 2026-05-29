@@ -33,6 +33,18 @@
 #include "../OpenGLShaders.h"
 
 #include <log.h>
+#include <mutex>
+
+// ANGLE's Metal backend and the shared EGLImage/Metal device it imports
+// into are not thread-safe, and the size-1 GL context pool does not
+// actually serialize the Metal-side calls here (getBytes/replaceRegion
+// and texture creation don't require the GL context to be current). The
+// render engine runs ShaderEffect::Render on many worker threads at once
+// (per-model jobs plus per-sub-buffer parallel_for), so without this
+// lock one thread can create/replace a shared texture while others read
+// it via getBytes — a data race that crashes in createSharedTexture
+// (sig 5d9f29a77c). Serialize every interop touch through one mutex.
+static std::mutex sMetalInteropMutex;
 
 // -----------------------------------------------------------------------
 // SharedTexture — a texture that exists in both Metal and ANGLE GL,
@@ -171,6 +183,10 @@ class MetalShaderEffectCache : public EffectRenderCache {
 public:
     MetalShaderEffectCache() {}
     virtual ~MetalShaderEffectCache() {
+        // Freeing the shared textures hits ANGLE/EGL + Metal, which can
+        // race a concurrent createSharedTexture on another render thread
+        // (sig 5d9f29a77c) — serialize through the same interop mutex.
+        std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
         EGLDisplay display = (EGLDisplay)GLContextManager::Instance().GetNativeDisplay();
         destroySharedTexture(display, sharedInputTex);
         destroySharedTexture(display, sharedOutputTex);
@@ -205,6 +221,7 @@ MetalShaderEffect::~MetalShaderEffect() {
 
 void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
 
     // Recreate shared textures if the buffer was resized
@@ -266,6 +283,7 @@ void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersI
 
 void MetalShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
     if (cache->useMetalInterop) {
         // If buffer-backed (zero-copy), pixels are already in the texture — just bind it.
@@ -285,6 +303,7 @@ void MetalShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rb
 
 void MetalShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
     if (cache->useMetalInterop) {
         // If buffer-backed (zero-copy), result is already in pixels — just flush GL.

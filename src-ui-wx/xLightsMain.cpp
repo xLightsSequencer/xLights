@@ -1687,6 +1687,9 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     config->Read("xLightsRenderBell", &_renderBellEnabled, false);
     spdlog::debug("Render Bell Enabled: {}.", toStr(_renderBellEnabled));
 
+    config->Read("xLightsPasteAsLayers", &_pasteAsLayers, false);
+    spdlog::debug("Paste As Layers: {}.", toStr(_pasteAsLayers));
+
     config->Read("xLightsModelBlendDefaultOff", &_modelBlendDefaultOff, false);
     spdlog::debug("Model Blend Default Off: {}.", toStr(_modelBlendDefaultOff));
 
@@ -2377,6 +2380,7 @@ xLightsFrame::~xLightsFrame()
     config->Write("xLightsHidePresetPreview", _hidePresetPreview);
     config->Write("xLightsSmallWaveform", _smallWaveform);
     config->Write("xLightsRenderBell", _renderBellEnabled);
+    config->Write("xLightsPasteAsLayers", _pasteAsLayers);
     config->Write("xLightsModelBlendDefaultOff", _modelBlendDefaultOff);
     config->Write("xLightsLowDefinitionRender", _lowDefinitionRender);
     config->Write("xLightsTimelineZooming", _timelineZooming);
@@ -3047,6 +3051,10 @@ void xLightsFrame::OnNotebook1PageChanged1(wxAuiNotebookEvent& event)
     } else if (pagenum == NEWSEQUENCER) {
         InitSequencer();
         ShowHideAllSequencerWindows(true);
+        if (!_effectPresetsInitialized && EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+            EffectTreeDlg->InitItems(_effectPresetManager);
+            _effectPresetsInitialized = true;
+        }
         EffectSettingsTimer.Start(50, wxTIMER_ONE_SHOT);
         MenuItem_File_Save->SetItemLabel("Save Sequence\tCTRL-s");
         MenuItem_File_Save->Enable(MenuItem_File_SaveAs_Sequence->IsEnabled());
@@ -4141,9 +4149,15 @@ void xLightsFrame::UpdateSequenceLength()
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = wxAtoi(mss);
 
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-        _sequenceElements.IncrementChangeCount(nullptr);
+        // Reallocating _seqData frees the channel buffer a live render job may
+        // still be writing into. Only proceed if the render actually drained —
+        // AbortRender() returns false if it timed out.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _sequenceElements.IncrementChangeCount(nullptr);
+        } else {
+            spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+        }
 
         mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
         mainSequencer->PanelTimeLine->Initialize();

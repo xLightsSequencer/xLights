@@ -2476,7 +2476,7 @@ static inline bool IsInRange(const std::vector<bool>& restrictRange, size_t star
     return restrictRange[start];
 }
 
-void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange) {
+void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
     // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
@@ -2484,6 +2484,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
             // smaller model, no sense in setting up the parallel_for
             for (auto& n : layers[0]->buffer.Nodes) {
                 size_t start = n->ActChan;
+                // Mirror SetColors: never write past fdata. A stale ActChan
+                // (model node count changed / seqData reallocated under a
+                // live render job) would otherwise overrun the channel
+                // buffer in GetForChannels (crash sig 62b47aa9b8).
+                if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
                     if (n->model != nullptr) { // nor this
                         DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2514,6 +2519,8 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     // function already does this.
                     if (n == nullptr) return;
                     size_t start = n->ActChan;
+                    // Mirror SetColors: never write past fdata (see above).
+                    if (start >= numChannels) return;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this
                             DimmingCurve* curve = n->model->GetDimmingCurve();

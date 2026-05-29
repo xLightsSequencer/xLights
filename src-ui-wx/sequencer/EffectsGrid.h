@@ -158,7 +158,7 @@ public:
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
-    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
+    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false, bool layerMode = false);
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }

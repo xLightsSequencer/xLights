@@ -316,7 +316,7 @@ public:
     void HandleLayerTransitions(int EffectPeriod, int layer);
     void CalcOutput(int EffectPeriod, const std::vector<bool>& validLayers, int saveLayer = 0, bool saveToPixels = false);
     void SetColors(int layer, const unsigned char* fdata, unsigned int numChannels);
-    void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange);
+    void GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels);
 
     // place for GPU Renderers to attach extra data/objects it needs
     void* gpuRenderData = nullptr;

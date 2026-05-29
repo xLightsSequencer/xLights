@@ -16,7 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  addition to the existing broadcast/multicast ping.
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
-    -enh (Neil)                  Show Face/State/SubModel/Node count badges on the Model pane
+    -enh (heffneil)              Show Face/State/SubModel/Node count badges on the Model pane
     -enh (cybercop23)            Add right-click option to hide unused submodels when expanding a model row
     -enh (cybercop23)            Add EffectPreset to the restore options
     -enh (cybercop23)            Add include submodel opton to the Duplicate effect
@@ -36,12 +36,27 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
     -bug (derwin12)              Fix lasso selection corrupting State/Faces effect values (#5783)
+    -bug (derwin12)              Better handle multi chord MIDI tracks (#6434)
+    -bug (Neil)                  Fix edit display elements eye-icon for HiDPI (#5015)
+    -bug (dkulp)                 macOS: Provide other attempts to open Lua Script editor 
     -bug (dkulp)                 macOS: Package Sequence to a location outside any persistent bookmark (e.g.
                                  Desktop) no longer fails — the in-progress zip is now written to the system
                                  temp dir and atomically moved into the user-chosen path.
     -bug (dkulp)                 macOS: Videos AVFoundation can't decode (e.g. lossless H.264 / High 4:4:4 at
                                  small sizes) now fall back to FFmpeg at load instead of grinding for hours
                                  per-frame during render.
+    -bug (dkulp)                 Render: the render tree now rebuilds whenever any model is added/replaced/
+                                 deleted (ModelManager generation counter), so it can never hand a freed model
+                                 to the renderer; PixelBuffer::GetColors also bounds-checks node channel writes
+                                 (mirroring SetColors) and sequence-data reallocation is skipped if an in-flight
+                                 render can't be drained first — fixes render crashes when models or the channel
+                                 count change mid-render.
+    -bug (dkulp)                 Stem separation: lock the UI down (render-style) while inference runs and
+                                 refuse re-entry, so the sequence can't be closed and a second pass can't
+                                 start mid-run — fixes a crash on a freed model in the worker thread.
+    -bug (dkulp)                 Manage Media "Bulk Find" now extracts the filename from Windows-style
+                                 (backslash) paths when run on macOS/Linux, so images authored on Windows
+                                 are matched and relinked instead of always reporting "not found".
     -bug (derwin12)              Fix hidden timing tracks reappearing when another timing track is expanded or collapsed (#6424)
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work

@@ -113,6 +113,7 @@ public:
     std::string GetAltTrackDisplayName(int idx) const;
 
     Model* GetModel(const std::string& name) const override;
+    unsigned int GetModelGeneration() const override { return _modelManager ? _modelManager->GetModelGeneration() : 0; }
     EffectManager& GetEffectManager() override { return _effectManager; }
     OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
 

@@ -394,7 +394,8 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 EffectLayer* el = element->GetEffectLayerFromExclusiveIndex(next_action->layer_info[0]->exclusive_layer_index);
                 if (el != nullptr && element->GetEffectLayerCount() > 1) {
                     int pos = el->GetLayerNumber() - 1;
-                    LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name, -1, pos);
+                    LayerInfo* li = new LayerInfo(next_action->layer_info[0]->element_name,
+                                                  next_action->layer_info[0]->exclusive_layer_index, pos);
                     UndoStep* action = new UndoStep(UNDO_LAYER_REMOVED, li);
                     toList.push_back(action);
                     element->RemoveEffectLayer(pos);
@@ -422,6 +423,19 @@ void UndoManager::ProcessUndoStep(std::vector<UndoStep*> &fromList, std::vector<
                 UndoStep* action = new UndoStep(UNDO_LAYER_ADDED, li);
                 toList.push_back(action);
                 mParentSequence->PopulateRowInformation();
+                // Make sure redo recreates the layers needed to support the smart copy/paste
+                int oldIdx = next_action->layer_info[0]->exclusive_layer_index;
+                if (oldIdx >= 0) {
+                    int newIdx = el->GetIndex();
+                    for (auto* step : fromList) {
+                        if (step->undo_action == UNDO_EFFECT_DELETED) {
+                            for (auto* dei : step->deleted_effect_info) {
+                                if (dei->layer_index == oldIdx)
+                                    dei->layer_index = newIdx;
+                            }
+                        }
+                    }
+                }
             }
         }
         break;

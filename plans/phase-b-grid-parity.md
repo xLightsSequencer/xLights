@@ -14,7 +14,7 @@ All P0/P1 gaps closed. What remains is one named P2 plus 3 deferred.
 
 | # | Gap | What's needed |
 |---|---|---|
-| **B77** | Import Notes (MIDI) | New iOS-side MIDI parser (or AVFoundation `MIDIFile`) + `XLSequenceDocument` bridge that converts note-on events into timing marks on a chosen track. Acceptance: pick a `.mid` from `.fileImporter`, choose target timing track, marks appear at note-on times with note-name labels. |
+| **B77** | Import Notes (MIDI) | New iOS-side MIDI parser (or AVFoundation `MIDIFile`) + `XLSequenceDocument` bridge that converts note-on events into timing marks on a chosen track. Acceptance: pick a `.mid` from `.fileImporter`, choose target timing track, marks appear at note-on times with note-name labels. **Note:** desktop's 2026.10 fix (#6434) added handling for packed/Type-0 (single-track, merged-channel) `.mid` files — the iPad parser must cover that layout too, not just multi-track Type-1. |
 
 ### Deferred — substantial new work, not parity gaps in practice
 

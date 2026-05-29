@@ -118,7 +118,6 @@ class EffectTreeDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
-class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SearchPanel;
@@ -1157,6 +1156,7 @@ public:
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
+    bool _pasteAsLayers = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
     bool _enablePositionZones = true;
@@ -1184,6 +1184,8 @@ public:
 
     [[nodiscard]] bool IsRenderBell() const { return _renderBellEnabled; }
     void SetRenderBell(bool b) { _renderBellEnabled = b; }
+    [[nodiscard]] bool IsPasteAsLayers() const { return _pasteAsLayers; }
+    void SetPasteAsLayers(bool b) { _pasteAsLayers = b; }
 	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();
     [[nodiscard]] bool ProcessHttpRequest(HttpConnection& connection, HttpRequest& request);
@@ -1629,6 +1631,7 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     Model *GetModel(const std::string& name) const override;
+    unsigned int GetModelGeneration() const override { return AllModels.GetModelGeneration(); }
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
     bool AbortRender(int maxTimeMs, int* numThreadsAborted);
@@ -1657,7 +1660,7 @@ public:
     void DoPromoteEffects(ModelElement *element);
     EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
     void UpdateEffectPreset(EffectPreset* preset);
-    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
+    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion, bool layerMode = false);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
     void RenameModelInViews(const std::string old_name, const std::string& new_name);

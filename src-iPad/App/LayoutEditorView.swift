@@ -1671,6 +1671,7 @@ struct LayoutEditorView: View {
         case "minimalGrid":  return "Minimal Grid"
         case "horizontal":   return "Horizontal Stack"
         case "vertical":     return "Vertical Stack"
+        case "perModelDefault": return "Per Model Default"
         default:             return wire
         }
     }

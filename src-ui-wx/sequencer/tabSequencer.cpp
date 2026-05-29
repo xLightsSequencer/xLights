@@ -286,15 +286,20 @@ void xLightsFrame::InitSequencer()
             spdlog::info("Number of channels has changed ... reallocating sequence data memory.");
             spdlog::info("Channels prior {} and channels current {}", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
 
-            AbortRender();
+            // Reallocating _seqData frees the channel buffer a live render
+            // job may still be writing into. Only proceed if the render has
+            // actually drained — AbortRender() returns false if it timed out.
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _sequenceElements.IncrementChangeCount(nullptr);
 
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-            _sequenceElements.IncrementChangeCount(nullptr);
-
-            SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+                SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+            } else {
+                spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+            }
         }
     }
 
@@ -4347,9 +4352,9 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     return res;
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion, bool layerMode)
 {
-    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
+    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion, false, layerMode);
 }
 
 void xLightsFrame::PromoteEffects(wxCommandEvent& command)
