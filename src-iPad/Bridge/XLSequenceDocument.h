@@ -245,6 +245,12 @@ NS_ASSUME_NONNULL_BEGIN
 // hidden. Caller should `reloadRows` after flipping the state.
 - (void)setAllTimingTracksHidden:(BOOL)hidden;
 - (BOOL)allTimingTracksHidden;
+// Hide or show submodels/strands that have no effects, sequence-wide.
+// Mirrors desktop's row right-click "Hide Unused Submodels" /
+// "Show All Submodels". State lives on SequenceElements; caller
+// should reloadRows after flipping it.
+- (void)setHideUnusedSubmodels:(BOOL)hide;
+- (BOOL)hideUnusedSubmodels;
 // B82: add every visible timing track to every non-master view.
 - (int)addAllTimingTracksToAllViews;
 // Color index assigned sequentially to each timing element (0..4, cycles).

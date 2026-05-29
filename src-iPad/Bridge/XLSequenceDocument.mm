@@ -871,6 +871,16 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     se.PopulateRowInformation();
 }
 
+- (void)setHideUnusedSubmodels:(BOOL)hide {
+    auto& se = _context->GetSequenceElements();
+    se.SetHideUnusedSubmodels(hide ? true : false);
+    se.PopulateRowInformation();
+}
+
+- (BOOL)hideUnusedSubmodels {
+    return _context->GetSequenceElements().GetHideUnusedSubmodels() ? YES : NO;
+}
+
 // B82: add every visible timing track to every defined view.
 // Mirrors desktop's `AddTimingTracksToAllViews` row-menu entry.
 // Returns the count of timing-track-to-view additions performed
@@ -4571,6 +4581,7 @@ static std::string LayoutGroupForNewItem(const std::string& active) {
         @{@"value": @"Overlay - Scaled",              @"label": @"Overlay - Scaled"},
         @{@"value": @"Single Line Model As A Pixel",  @"label": @"Single Line Model As A Pixel"},
         @{@"value": @"Default Model As A Pixel",      @"label": @"Default Model As A Pixel"},
+        @{@"value": @"perModelDefault",               @"label": @"Per Model Default"},
     ];
 
     // J-9 — Default Camera options: "2D" + every named 3D camera

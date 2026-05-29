@@ -606,6 +606,13 @@ struct ModelRowHeader: View {
                     Label(showsChildren ? "Hide Strands/Submodels" : "Show Strands/Submodels",
                           systemImage: showsChildren ? "eye.slash" : "eye")
                 }
+                Button {
+                    document.setHideUnusedSubmodels(!document.hideUnusedSubmodels())
+                    onRowsChanged()
+                } label: {
+                    Label(document.hideUnusedSubmodels() ? "Show All Submodels" : "Hide Unused Submodels",
+                          systemImage: document.hideUnusedSubmodels() ? "eye" : "eye.slash")
+                }
             }
             if canToggleNodes {
                 Divider()
