@@ -2,6 +2,27 @@
 
 Small open items left over from phases that otherwise landed.
 
+## Landed fixes
+
+- **MetalShaderEffect interop data race (crash sig `5d9f29a77c`,
+  2026-05-29).** ShaderEffect renders on many worker threads at once
+  (per-model render jobs + per-sub-buffer `parallel_for`). On
+  `USE_GLES`, `GLContextManager::ExecuteOnGLThread` runs inline on the
+  calling thread, and the size-1 GL context pool does *not* serialize
+  the Metal-side interop calls (`getBytes` / `replaceRegion` / texture
+  creation don't need the GL context current). Multiple threads were
+  touching the single shared ANGLE EGLDisplay + Metal device — one in
+  `createSharedTexture` while others were in `copyPixelDataFromTexture`
+  — crashing in `createSharedTexture`
+  (`src-core/effects/metal/MetalShaderEffect.mm:104`). Fix: a
+  file-scope `static std::mutex sMetalInteropMutex` taken across the
+  full body of `preparePixelTextures`, `copyPixelDataToTexture`,
+  `copyPixelDataFromTexture`, and the cache destructor's
+  `destroySharedTexture` calls. Follow-up option if lock contention
+  ever shows: make `ExecuteOnGLThread` funnel to one GL thread on
+  `USE_GLES` like the Windows path, removing the whole class of
+  ANGLE-Metal threading bugs.
+
 ## Phase E — Sequence management polish
 
 - **Sequence Settings → Data Layers tab.** Image-data layers

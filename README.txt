@@ -41,6 +41,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS: Videos AVFoundation can't decode (e.g. lossless H.264 / High 4:4:4 at
                                  small sizes) now fall back to FFmpeg at load instead of grinding for hours
                                  per-frame during render.
+    -bug (dkulp)                 Stem separation: lock the UI down (render-style) while inference runs and
+                                 refuse re-entry, so the sequence can't be closed and a second pass can't
+                                 start mid-run — fixes a crash on a freed model in the worker thread.
     -bug (derwin12)              Fix hidden timing tracks reappearing when another timing track is expanded or collapsed (#6424)
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work

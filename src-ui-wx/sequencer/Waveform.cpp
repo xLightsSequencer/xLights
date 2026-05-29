@@ -672,6 +672,25 @@ bool Waveform::PrepareStemData()
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
 
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object (sig
+    // 0b727679d7). Refuse re-entry, and lock the UI down for the
+    // duration the same way a render does so the sequence can't be
+    // closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
+
     std::vector<std::string> roots;
     if (!xLightsFrame::CurrentDir.empty())
         roots.push_back(xLightsFrame::CurrentDir.ToStdString());
@@ -804,6 +823,25 @@ bool Waveform::PrepareStemData()
     }
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
+
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object in
+    // RunChunk (sig 0b727679d7). Refuse re-entry, and lock the UI down
+    // for the duration the same way a render does so the sequence can't
+    // be closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
 
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.
