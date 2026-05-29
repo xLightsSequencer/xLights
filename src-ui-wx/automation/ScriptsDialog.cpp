@@ -157,14 +157,25 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         wxFileName fn(filePath);
 
         wxFileType* ft = wxTheMimeTypesManager->GetFileTypeFromExtension(fn.GetExt());
-
-        // if there is no LUA file handler treat them as text files
-        if (ft == nullptr) {
-            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+        wxString command;
+        if (ft != nullptr) {
+            command = ft->GetOpenCommand(fn.GetFullPath());
         }
+        // if there is no LUA file handler or no command to open them, treat them as text files
+        if (ft == nullptr || command.empty()) {
+            ft = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            if (ft != nullptr) {
+                command = ft->GetOpenCommand(fn.GetFullPath());
+            }
+        }
+#ifdef __APPLE__
+        if (command.empty()) {
+            // just bail to the standard open in editor command
+            command = "open -e " + fn.GetFullPath().ToStdString();
+        }
+#endif
 
-        if (ft) {
-            wxString command = ft->GetOpenCommand(fn.GetFullPath());
+        if (!command.empty()) {
             wxUnsetEnv("LD_PRELOAD");
             spdlog::info("Opening script '{}' via '{}'", (const char*)filePath.c_str(), command.ToStdString().c_str());
             wxExecute(command);
