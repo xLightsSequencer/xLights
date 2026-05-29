@@ -4343,9 +4343,9 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     return res;
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion, bool layerMode)
 {
-    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
+    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion, false, layerMode);
 }
 
 void xLightsFrame::PromoteEffects(wxCommandEvent& command)
