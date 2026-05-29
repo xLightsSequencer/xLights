@@ -3188,10 +3188,19 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
     bool applylast = false;
 
+    for (const auto& it : settings) {
+        if (it.first.find("APPLYLAST") == std::string::npos &&
+            it.first.find("Definition") != std::string::npos) {
+            ApplySetting(it.first, ToWXString(it.second));
+        }
+    }
+
 	// Apply those settings without APPLYLAST in their name first
     for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos) {
-			ApplySetting(it.first, ToWXString(it.second));
+            if (it.first.find("Definition") == std::string::npos) {
+                ApplySetting(it.first, ToWXString(it.second));
+            }
         } else {
             applylast = true;
         }
