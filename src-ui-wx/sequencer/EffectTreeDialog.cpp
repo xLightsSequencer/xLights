@@ -101,20 +101,23 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Button_Bottom = new wxButton(this, ID_BUTTON12, _("vv"), wxDefaultPosition, wxDLG_UNIT(this,wxSize(15,-1)), 0, wxDefaultValidator, _T("ID_BUTTON12"));
 	BoxSizer3->Add(Button_Bottom, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxFIXED_MINSIZE, 5);
 	FlexGridSizer2->Add(BoxSizer3, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 0);
-	FlexGridSizer3 = new wxFlexGridSizer(4, 1, 0, 0);
+	FlexGridSizer3 = new wxFlexGridSizer(5, 1, 0, 0);
 	FlexGridSizer3->AddGrowableCol(0);
 	FlexGridSizer3->AddGrowableRow(0);
 	StaticBitmapGif = new wxStaticBitmap(this, ID_STATICBITMAP_GIF, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICBITMAP_GIF"));
 	FlexGridSizer3->Add(StaticBitmapGif, 1, wxALL|wxALIGN_CENTER_HORIZONTAL, 5);
 	StaticTextApplyLabel = new wxStaticText(this, ID_STATICTEXT_APPLY, _("Apply preset as:"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT_APPLY"));
 	FlexGridSizer3->Add(StaticTextApplyLabel, 0, wxALL|wxALIGN_LEFT, 5);
-	BoxSizer1 = new wxGridSizer(5, 2, 0, 0);
-	btPosition = new wxButton(this, ID_BTN_POSITION, _("Relative"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BTN_POSITION"));
+	wxBoxSizer* BoxSizerRadio = new wxBoxSizer(wxHORIZONTAL);
+	btPosition = new wxRadioButton(this, ID_BTN_POSITION, _("Relative"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP, wxDefaultValidator, _T("ID_BTN_POSITION"));
+	btPosition->SetValue(true);
 	btPosition->SetToolTip(_("Paste effects at the drop row, ignoring layer structure."));
-	BoxSizer1->Add(btPosition, 0, wxALL|wxEXPAND, 5);
-	btLayers = new wxButton(this, ID_BTN_LAYERS, _("Layers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BTN_LAYERS"));
+	BoxSizerRadio->Add(btPosition, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	btLayers = new wxRadioButton(this, ID_BTN_LAYERS, _("Using Layers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BTN_LAYERS"));
 	btLayers->SetToolTip(_("Paste effects preserving layer structure."));
-	BoxSizer1->Add(btLayers, 0, wxALL|wxEXPAND, 5);
+	BoxSizerRadio->Add(btLayers, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	FlexGridSizer3->Add(BoxSizerRadio, 0, wxALL|wxEXPAND, 0);
+	BoxSizer1 = new wxGridSizer(4, 2, 0, 0);
 	btApply = new wxButton(this, ID_BUTTON6, _("&Apply Preset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON6"));
 	btApply->SetToolTip(_("Apply the selected effect Preset."));
 	BoxSizer1->Add(btApply, 0, wxALL|wxEXPAND, 5);
@@ -170,8 +173,8 @@ EffectTreeDialog::EffectTreeDialog(wxWindow* parent,wxWindowID id,const wxPoint&
 	Connect(ID_TEXTCTRL_SEARCH, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&EffectTreeDialog::OnTextCtrl1TextEnter);
 	Connect(ID_BUTTON_SEARCH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnETButton1Click);
 	Connect(ID_TIMER_GIF, wxEVT_TIMER, (wxObjectEventFunction)&EffectTreeDialog::OnTimerGifTrigger);
-	Connect(ID_BTN_POSITION, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnBtnPositionClick);
-	Connect(ID_BTN_LAYERS, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&EffectTreeDialog::OnBtnLayersClick);
+	Connect(ID_BTN_POSITION, wxEVT_RADIOBUTTON, (wxObjectEventFunction)&EffectTreeDialog::OnBtnPositionClick);
+	Connect(ID_BTN_LAYERS, wxEVT_RADIOBUTTON, (wxObjectEventFunction)&EffectTreeDialog::OnBtnLayersClick);
 	//*)
 
     Connect(wxEVT_SHOW, (wxObjectEventFunction)&EffectTreeDialog::OnShow);
@@ -996,10 +999,8 @@ void EffectTreeDialog::UpdateModeButtons()
 {
     if (btPosition == nullptr || btLayers == nullptr)
         return;
-    btPosition->SetBackgroundColour(_layerMode ? wxNullColour : wxColour(100, 180, 100));
-    btLayers->SetBackgroundColour(_layerMode ? wxColour(100, 180, 100) : wxNullColour);
-    btPosition->Refresh();
-    btLayers->Refresh();
+    btPosition->SetValue(!_layerMode);
+    btLayers->SetValue(_layerMode);
 }
 
 void EffectTreeDialog::OnBtnPositionClick(wxCommandEvent& event)

@@ -13,6 +13,7 @@
 //(*Headers(EffectTreeDialog)
 #include <wx/button.h>
 #include <wx/panel.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
@@ -47,8 +48,8 @@ class EffectTreeDialog : public wxPanel
 		wxButton* Button_MoveUp;
 		wxButton* Button_Top;
 		wxButton* ETButton1;
-		wxButton* btLayers;
-		wxButton* btPosition;
+		wxRadioButton* btLayers;
+		wxRadioButton* btPosition;
 		wxButton* btAddGroup;
 		wxButton* btApply;
 		wxButton* btDelete;

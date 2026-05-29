@@ -77,7 +77,7 @@
 					<object class="sizeritem">
 						<object class="wxFlexGridSizer" variable="FlexGridSizer3" member="no">
 							<cols>1</cols>
-							<rows>4</rows>
+							<rows>5</rows>
 							<growablecols>0</growablecols>
 							<growablerows>0</growablerows>
 							<object class="sizeritem">
@@ -94,27 +94,34 @@
 								<border>5</border>
 							</object>
 							<object class="sizeritem">
+								<object class="wxBoxSizer" variable="BoxSizerRadio" member="no">
+									<orient>wxHORIZONTAL</orient>
+									<object class="sizeritem">
+										<object class="wxRadioButton" name="ID_BTN_POSITION" variable="btPosition" member="yes">
+											<label>Relative</label>
+											<style>wxRB_GROUP</style>
+											<tooltip>Paste effects at the drop row, ignoring layer structure.</tooltip>
+											<handler function="OnBtnPositionClick" entry="EVT_RADIOBUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+									</object>
+									<object class="sizeritem">
+										<object class="wxRadioButton" name="ID_BTN_LAYERS" variable="btLayers" member="yes">
+											<label>Using Layers</label>
+											<tooltip>Paste effects preserving layer structure.</tooltip>
+											<handler function="OnBtnLayersClick" entry="EVT_RADIOBUTTON" />
+										</object>
+										<flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+									</object>
+								</object>
+								<flag>wxALL|wxEXPAND</flag>
+							</object>
+							<object class="sizeritem">
 								<object class="wxGridSizer" variable="BoxSizer1" member="no">
 									<cols>2</cols>
-									<rows>5</rows>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BTN_POSITION" variable="btPosition" member="yes">
-											<label>Relative</label>
-											<tooltip>Paste effects at the drop row, ignoring layer structure.</tooltip>
-											<handler function="OnBtnPositionClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
-									<object class="sizeritem">
-										<object class="wxButton" name="ID_BTN_LAYERS" variable="btLayers" member="yes">
-											<label>Layers</label>
-											<tooltip>Paste effects preserving layer structure.</tooltip>
-											<handler function="OnBtnLayersClick" entry="EVT_BUTTON" />
-										</object>
-										<flag>wxALL|wxEXPAND</flag>
-										<border>5</border>
-									</object>
+									<rows>4</rows>
 									<object class="sizeritem">
 										<object class="wxButton" name="ID_BUTTON6" variable="btApply" member="yes">
 											<label>&amp;Apply Preset</label>
