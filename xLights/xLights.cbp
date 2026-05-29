@@ -380,6 +380,7 @@
 		<Unit filename="../src-ui-wx/layout/LayoutGroup.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ReplaceModelDialog.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.cpp" />

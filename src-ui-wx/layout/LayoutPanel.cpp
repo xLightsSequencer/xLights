@@ -43,6 +43,7 @@
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
+#include <wx/statline.h>
 
 #include "layout/LayoutPanel.h"
 #include "layout/ModelPreview.h"
@@ -93,6 +94,7 @@
 #include "modelproperties/ModelPropertyAdapter.h"
 
 #include "layout/LayoutUtils.h"
+#include "layout/ReplaceModelDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "import_export/VendorModelDialog.h"
 #include "CachedFileDownloader.h"
@@ -6150,7 +6152,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
         
         if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
-            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace Model(s) With This Model...");
         }
     }
 }
@@ -8566,108 +8568,223 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+
 void LayoutPanel::ReplaceModel()
 {
     if (selectedBaseObject == nullptr) return;
+    Model* sourceModel = dynamic_cast<Model*>(selectedBaseObject);
+    if (sourceModel == nullptr) return;
 
-    Model* modelToReplaceItWith = dynamic_cast<Model*>(selectedBaseObject);
-
-    wxArrayString choices;
-
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->GetName() != selectedBaseObject->GetName())
-        {
-            choices.Add(modelPreview->GetModels()[i]->GetName());
+    // Build alphabetised candidate list - everything in the preview except the source itself.
+    std::vector<std::string> candidates;
+    candidates.reserve(modelPreview->GetModels().size());
+    for (auto* m : modelPreview->GetModels()) {
+        if (m != nullptr && m != sourceModel) {
+            candidates.push_back(m->GetName());
         }
     }
+    if (candidates.empty()) {
+        wxMessageBox("There are no other models in the layout to replace.",
+                     "Replace Model", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+    std::sort(candidates.begin(), candidates.end());
 
-    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
-    dlg.SetSelection(0);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
     OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) return;
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-        xlights->AbortRender(); // we dont want to be rendering when we do this
+    auto targetNames = dlg.GetSelectedNames();
+    if (targetNames.empty()) return;
 
-        Model* replaceModel = nullptr;
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GetName() == dlg.GetStringSelection())
-            {
-                replaceModel = modelPreview->GetModels()[i];
-            }
-        }
+    const bool copyStartCh = dlg.CopyStartChannel();
+    const bool mergeSubs   = dlg.MergeSubmodels();
+    const bool copySizePos = dlg.CopySizePos();
 
-        if (replaceModel == nullptr) return;
+    xlights->UnselectEffect(); // in case an effect lives on one of the targets
+    xlights->AbortRender();
 
-        CreateUndoPoint("All", "", "");
+    // Suppress Model::Rename's "Save old name as alias?" prompt for the duration
+    // of this batch. Each target triggers several intermediate renames (clone
+    // temp-name, target trash-name, clone final-name) and the user didn't ask
+    // to rename anything - they asked to replace wholesale, so the alias
+    // question doesn't apply. Restore the previous setting after the batch so
+    // normal rename operations still obey the user's preference.
+    //
+    // Real RAII guard so the restore is resilient to any early return path
+    // (current or future) - the destructor fires on scope exit regardless of
+    // how we leave this function.
+    struct AliasBehaviorRestore {
+        xLightsFrame* frame;
+        wxString saved;
+        ~AliasBehaviorRestore() { frame->SetRenameModelAliasPromptBehavior(saved); }
+    } aliasGuard{ xlights, xlights->GetRenameModelAliasPromptBehavior() };
+    xlights->SetRenameModelAliasPromptBehavior("Always No");
 
-        // Prompt user to copy the target models start channel ...but only if
-        // they are not already the same and the new model uses a chaining start
-        // channel ... the theory being if you took time to set the start channel
-        // you probably want to keep it and so a prompt will just be annoying
-        if ((replaceModel->ModelStartChannel !=
-            modelToReplaceItWith->ModelStartChannel &&
-            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
-            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && (modelToReplaceItWith->GetControllerName() == "" || modelToReplaceItWith->GetControllerName() == NO_CONTROLLER)))
-        {
-            auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
-            if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
-            {
-                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel);
+    // One undo snapshot for the whole batch so a single Ctrl-Z rolls it all back.
+    CreateUndoPoint("All", sourceModel->GetName(), "ReplaceModel");
 
-                modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
-                modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
-                modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
-                modelToReplaceItWith->SetSmartRemote(replaceModel->GetSmartRemote());
-                modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
-                modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
-                modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
-            }
-        }
-
-        if (replaceModel->GetNumSubModels() > 0 ) {
-            if (wxMessageBox("Merge The Submodels", "Merge The Submodels", wxYES_NO) == wxYES) {
-                for (int i = 0; i < replaceModel->GetNumSubModels(); ++i) {
-                    auto name{ replaceModel->GetSubModel(i)->Name() };
-                    if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
-                        continue;
-                    }
-                    
-                    // Create SubModel using copy constructor
-                    const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(replaceModel->GetSubModel(i));
-                    SubModel* sm = new SubModel(modelToReplaceItWith, sourceSubModel);
-                    modelToReplaceItWith->AddSubmodel(sm);
-                }
-            }
-        }
-
-        auto rmn = replaceModel->GetName();
-        auto riw = modelToReplaceItWith->GetName();
-
-        if (wxMessageBox("Use original size and position of " + rmn, "Use original size and position", wxYES_NO) == wxYES) {
-            modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
-            modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
-            modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
-            modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
-            modelToReplaceItWith->SetHeight(replaceModel->GetHeight());       
-            modelToReplaceItWith->SetWidth(replaceModel->GetWidth());    
-            modelToReplaceItWith->SetDepth(replaceModel->GetDepth());    
-        }
-
-        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
-        replaceModel->Rename("Iamgoingtodeletethismodel");
-        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
-        modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
-        xlights->AllModels.Delete("Iamgoingtodeletethismodel");
-        xlights->ReplaceModelWithModelFixGroups(rmn, riw);
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                      OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                                                      OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
+    // Capture the source's XML ONCE. Each iteration builds a fresh clone from this
+    // snapshot so the original source stays intact across the whole batch.
+    CopyPasteBaseObject sourceXml;
+    sourceXml.SetBaseObject(sourceModel);
+    if (!sourceXml.IsOk()) {
+        wxMessageBox("Failed to serialize the source model; aborting.",
+                     "Replace Model", wxOK | wxICON_ERROR, this);
+        return; // aliasGuard destructor restores the behaviour
     }
+
+    int successCount = 0;
+    std::vector<std::string> failures;
+
+    for (const auto& targetName : targetNames) {
+        // Re-resolve the target from the model manager each iteration - names
+        // are stable but pointers may have changed due to earlier iterations.
+        Model* target = xlights->AllModels[targetName];
+        if (target == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        auto owned = sourceXml.GetBaseObjectXml();
+        pugi::xml_node nd = owned;
+        if (!nd) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        Model* clone = xlights->AllModels.CreateModel(nd);
+        if (clone == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        // Park the clone under a temporary name that is GUARANTEED not to
+        // collide with any currently-registered model. The double-underscore
+        // prefix makes accidental user collisions extremely unlikely, but
+        // AllModels.AddModel() silently replaces (deletes!) a pre-existing
+        // model with the same name - so we still have to verify uniqueness
+        // before handing the name over. Same goes for trashName below.
+        auto uniqueTempName = [this](const std::string& base, int seedSuffix) {
+            std::string name = base + std::to_string(seedSuffix);
+            int suffix = seedSuffix;
+            while (xlights->AllModels[name] != nullptr) {
+                ++suffix;
+                name = base + std::to_string(suffix);
+            }
+            return name;
+        };
+        const std::string tmpNewName = uniqueTempName("__xl_rmm_new_", successCount);
+        clone->Rename(tmpNewName);
+        xlights->AllModels.AddModel(clone);
+
+        // Per-target carryovers. These match the semantics of the three Yes/No
+        // prompts in the existing single-replace flow (see ReplaceModel()).
+        if (copyStartCh) {
+            clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetControllerProtocol(target->GetControllerProtocol());
+            clone->SetControllerPort(target->GetControllerPort());
+            clone->SetControllerName(target->GetControllerName());
+            clone->SetSmartRemote(target->GetSmartRemote());
+            clone->SetSmartRemoteType(target->GetSmartRemoteType());
+            clone->SetSRMaxCascade(target->GetSRMaxCascade());
+            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+        }
+        if (mergeSubs) {
+            for (int i = 0; i < target->GetNumSubModels(); ++i) {
+                const auto smName = target->GetSubModel(i)->Name();
+                if (clone->GetSubModel(smName) != nullptr) {
+                    continue; // clone already has a submodel with this name - skip
+                }
+                const SubModel* srcSub = dynamic_cast<const SubModel*>(target->GetSubModel(i));
+                if (srcSub == nullptr) continue;
+                SubModel* sm = new SubModel(clone, srcSub);
+                clone->AddSubmodel(sm);
+            }
+        }
+        if (copySizePos) {
+            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
+            clone->SetHcenterPos(target->GetHcenterPos());
+            clone->SetVcenterPos(target->GetVcenterPos());
+            clone->SetDcenterPos(target->GetDcenterPos());
+            clone->SetHeight(target->GetHeight());
+            clone->SetWidth(target->GetWidth());
+            clone->SetDepth(target->GetDepth());
+        }
+
+        // Rename dance: swap the target out and the clone in under the target's
+        // original name, then delete the parked target. Mirrors the approach
+        // used by the existing single-replace path.
+        const std::string trashName = uniqueTempName("__xl_rmm_old_", successCount);
+        xlights->AllModels.RenameInListOnly(targetName, trashName);
+        target->Rename(trashName);
+        xlights->AllModels.RenameInListOnly(tmpNewName, targetName);
+        clone->Rename(targetName);
+        // If Delete fails, we'd otherwise leave the layout half-updated: the
+        // clone is now under targetName but the original is still sitting in
+        // the model list as trashName. Roll back the rename so the original
+        // is restored and the clone gets removed, then record the failure.
+        if (!xlights->AllModels.Delete(trashName)) {
+            spdlog::warn("ReplaceModel: failed to delete trashed target '{}', rolling back swap", trashName);
+            // Best-effort rollback. Worst case (also fails): record failure
+            // and continue — manual cleanup may be needed, but the partial-
+            // state we leave is no worse than before this rollback path.
+            xlights->AllModels.RenameInListOnly(targetName, tmpNewName);
+            clone->Rename(tmpNewName);
+            xlights->AllModels.RenameInListOnly(trashName, targetName);
+            target->Rename(targetName);
+            xlights->AllModels.Delete(tmpNewName); // remove the clone we couldn't swap in
+            failures.push_back(targetName);
+            continue;
+        }
+
+        ++successCount;
+    }
+
+    // Pass the source model name + replaced count as context so logs and any
+    // downstream observers can scope the change instead of seeing a bare
+    // "ReplaceModel" token.
+    const std::string workCtx = wxString::Format(
+        "ReplaceModel: source='%s' replaced=%d",
+        sourceModel->GetName(), successCount).ToStdString();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                  OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER,
+                                                  workCtx);
+
+    // Always show a confirmation so the user knows the operation finished,
+    // even when it was a silent full success. The icon makes the outcome
+    // obvious at a glance (info / warning / error).
+    if (successCount == static_cast<int>(targetNames.size()) && failures.empty()) {
+        wxMessageBox(
+            wxString::Format("Successfully replaced %d model%s.",
+                             successCount, successCount == 1 ? "" : "s"),
+            "Replace Model", wxOK | wxICON_INFORMATION, this);
+    } else if (successCount == 0) {
+        wxString msg = "No models were replaced.";
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_ERROR, this);
+    } else {
+        wxString msg = wxString::Format("Replaced %d of %zu model(s).",
+                                        successCount, targetNames.size());
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_WARNING, this);
+    }
+
+    // aliasGuard goes out of scope here and restores the user's preference
 }
 
 void LayoutPanel::UnlinkSelectedModels()

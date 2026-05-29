@@ -1414,6 +1414,7 @@
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricsDialog.h" />
