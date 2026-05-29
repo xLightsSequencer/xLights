@@ -63,6 +63,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
+    -bug (derwin12)              Renaming a preview now updates all pick lists and the View menu (fixes #6430).
     -bug (derwin12)              Fix pivot point for rotating multiple objects (#6418)
     -bug (dkulp)                 Fix drag-and-drop of Video/Pictures/Glediator/Shader files onto the effect
                                  grid losing the filename
