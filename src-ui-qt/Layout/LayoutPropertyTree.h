@@ -129,6 +129,13 @@ private:
     ModelManager*  _mm = nullptr;
     OutputManager* _om = nullptr;
 
+    // True while a show*() call is building the tree.  The itemChanged
+    // handler checks this and ignores changes during population — otherwise
+    // a setText/setData/setBackground on an editable row fires itemChanged,
+    // which would run a spurious commit + modelChanged → re-entrant
+    // showModel → clear(), destroying the tree mid-build.
+    bool _populating = false;
+
     // The currently displayed entity — used by the delegate-commit path to
     // know what to mutate without searching the tree each time.
     QString _currentEntity;

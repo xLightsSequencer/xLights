@@ -49,8 +49,6 @@
 #include <QSpinBox>
 #include <QStyledItemDelegate>
 
-#include <spdlog/spdlog.h>
-
 namespace {
 
 QString qstr(const std::string& s) { return QString::fromStdString(s); }
@@ -265,6 +263,9 @@ LayoutPropertyTree::LayoutPropertyTree(QWidget* parent) : QTreeWidget(parent) {
     // src-core object.
     connect(this, &QTreeWidget::itemChanged, this,
             [this](QTreeWidgetItem* item, int col) {
+        // Ignore changes emitted while we're building the tree — only real
+        // user edits should reach the commit dispatcher.
+        if (_populating) return;
         if (col != 1 || !item) return;
         const QString fieldId = item->data(0, kRoleFieldId).toString();
         if (fieldId.isEmpty() || _currentEntity.isEmpty()) return;
@@ -331,14 +332,10 @@ void LayoutPropertyTree::showModel(const QString& name) {
     // separately-compiled Qt translation units.
     if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return;
 
-    spdlog::info("LayoutPropertyTree::showModel '{}' DisplayAs='{}' (enum={})",
-                 name.toStdString(),
-                 DisplayAsTypeToString(m->GetDisplayAs()),
-                 static_cast<int>(m->GetDisplayAs()));
-
     _currentEntity = name;
     _currentKind = EntityKind::Model;
 
+    _populating = true;
     populateModelIdentity(m);
     populateModelTypeProperties(m);
     populateModelSizingChannels(m);
@@ -347,7 +344,11 @@ void LayoutPropertyTree::showModel(const QString& name) {
     populateModelStringProperties(m);
     populateModelControllerConnection(m);
     populateModelAuxiliary(m);
+    _populating = false;
     expandAll();
+    // Rebuilding can leave the viewport scrolled down from the previous
+    // model, hiding the top categories.  Reset to the top.
+    scrollToTop();
 }
 
 void LayoutPropertyTree::showGroup(const QString& name, const QtModelGroupInfo& fallback) {
@@ -369,6 +370,7 @@ void LayoutPropertyTree::showGroup(const QString& name, const QtModelGroupInfo& 
     _currentEntity = name;
     _currentKind = EntityKind::Group;
 
+    _populating = true;
     if (g) {
         populateGroupIdentity(g);
         populateGroupBuffer(g);
@@ -389,7 +391,9 @@ void LayoutPropertyTree::showGroup(const QString& name, const QtModelGroupInfo& 
         addRow(cat, "Name", name);
         addRow(cat, "(not loaded)", "group is not in ModelManager");
     }
+    _populating = false;
     expandAll();
+    scrollToTop();
 }
 
 void LayoutPropertyTree::showController(const QString& name) {
@@ -406,12 +410,15 @@ void LayoutPropertyTree::showController(const QString& name) {
     _currentEntity = name;
     _currentKind = EntityKind::Controller;
 
+    _populating = true;
     populateControllerIdentity(c);
     populateControllerNetwork(c);
     populateControllerOutput(c);
     populateControllerCapabilities(c);
     populateControllerOutputs(c);
+    _populating = false;
     expandAll();
+    scrollToTop();
 }
 
 QTreeWidgetItem* LayoutPropertyTree::addCategory(const QString& label) {
@@ -619,7 +626,9 @@ bool LayoutPropertyTree::commitControllerField(const QString& fieldId, const QVa
 // ── Model ─────────────────────────────────────────────────────────────────────
 
 void LayoutPropertyTree::populateModelIdentity(Model* m) {
-    auto* cat = addCategory(qstr(DisplayAsTypeToString(m->GetDisplayAs())));
+    // Category is named "Model" (not the type) so it doesn't collide with the
+    // per-type category that populateModelTypeProperties adds.
+    auto* cat = addCategory("Model");
     addRow(cat, "Name", qstr(m->GetName()));
     addRow(cat, "Type", qstr(DisplayAsTypeToString(m->GetDisplayAs())));
     addEditableRow(cat, "Description", qstr(m->GetDescription()),
@@ -818,9 +827,6 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
 
 void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     const DisplayAsType t = m->GetDisplayAs();
-    const int catsBefore = topLevelItemCount();
-    spdlog::info("populateModelTypeProperties: type='{}' enum={} (cats before={})",
-                 DisplayAsTypeToString(t), static_cast<int>(t), catsBefore);
 
     // Dispatch on the stored DisplayAsType enum + static_cast rather than
     // dynamic_cast — RTTI was producing null casts in the Qt build, which
@@ -1126,8 +1132,6 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     auto* cat = addCategory(qstr(DisplayAsTypeToString(t)) + " — Type Properties");
     addRow(cat, "Type",      qstr(DisplayAsTypeToString(t)));
     addRow(cat, "# Strings", QString::number(m->GetNumStrings()));
-    spdlog::warn("populateModelTypeProperties: no specific case for '{}' — used fallback",
-                 DisplayAsTypeToString(t));
 }
 
 void LayoutPropertyTree::populateModelAuxiliary(Model* m) {
