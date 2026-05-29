@@ -27,7 +27,6 @@
 
 //added hash_map, queue, vector: -DJ
 #ifdef _MSC_VER
-#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
 #define strcasecmp _stricmp
