@@ -518,6 +518,22 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         m->SetLayoutGroup(value.toString().toStdString());
         return true;
     }
+    if (fieldId == "StringType") {
+        m->SetStringType(value.toString().toStdString());
+        return true;
+    }
+    if (fieldId == "RGBWHandling") {
+        m->SetRGBWHandling(value.toString().toStdString());
+        return true;
+    }
+    if (fieldId == "CustomColor") {
+        // The Color delegate writes a #RRGGBB string, which SetCustomColor
+        // accepts directly.
+        const QColor c(value.toString());
+        if (!c.isValid()) return false;
+        m->SetCustomColor(value.toString().toStdString());
+        return true;
+    }
 
     // Screen-location edits (World / Scale / Rotation).  Scale setters take
     // the whole vec3, so read-modify-write the single axis.
@@ -537,6 +553,132 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
     if (fieldId == "RotateX") { loc.SetRotateX(value.toFloat()); return true; }
     if (fieldId == "RotateY") { loc.SetRotateY(value.toFloat()); return true; }
     if (fieldId == "RotateZ") { loc.SetRotateZ(value.toFloat()); return true; }
+
+    // ── Per-type model parameter edits ─────────────────────────────────
+    // Dispatch on GetDisplayAs() + static_cast.  Each case handles the
+    // fieldIds emitted by the matching populateModelTypeProperties branch.
+    const bool b = value.toString() == "yes";
+    const int  iv = value.toInt();
+    const float fv = value.toFloat();
+    switch (m->GetDisplayAs()) {
+        case DisplayAsType::Matrix:
+        case DisplayAsType::Sphere: {
+            auto* mat = static_cast<MatrixModel*>(m);
+            if (fieldId == "Direction")       { mat->SetVertical(value.toString() == "Vertical"); return true; }
+            if (fieldId == "NodesPerString")  { mat->SetNodesPerString(iv);  return true; }
+            if (fieldId == "StrandsPerString"){ mat->SetStrandsPerString(iv); return true; }
+            if (fieldId == "AlternateNodes")  { mat->SetAlternateNodes(b);   return true; }
+            if (fieldId == "NoZigZag")        { mat->SetNoZigZag(b);         return true; }
+            if (m->GetDisplayAs() == DisplayAsType::Sphere) {
+                auto* sp = static_cast<SphereModel*>(m);
+                if (fieldId == "StartLatitude") { sp->SetStartLatitude(iv); return true; }
+                if (fieldId == "EndLatitude")   { sp->SetEndLatitude(iv);   return true; }
+                if (fieldId == "SphereDegrees") { sp->SetDegrees(iv);       return true; }
+            }
+            break;
+        }
+        case DisplayAsType::Arches: {
+            auto* a = static_cast<ArchesModel*>(m);
+            if (fieldId == "NodesPerArch")  { a->SetNodesPerArch(iv);  return true; }
+            if (fieldId == "LightsPerNode") { a->SetLightsPerNode(iv); return true; }
+            if (fieldId == "Arc")           { a->SetArc(iv);           return true; }
+            if (fieldId == "Hollow")        { a->SetHollow(iv);        return true; }
+            if (fieldId == "Gap")           { a->SetGap(iv);           return true; }
+            if (fieldId == "ZigZag")        { a->SetZigZag(b);         return true; }
+            break;
+        }
+        case DisplayAsType::Tree: {
+            auto* tr = static_cast<TreeModel*>(m);
+            if (fieldId == "TreeType")        { tr->SetTreeType(iv);              return true; }
+            if (fieldId == "TreeDegrees")     { tr->SetTreeDegrees((long)iv);     return true; }
+            if (fieldId == "TreeRotation")    { tr->SetTreeRotation(fv);          return true; }
+            if (fieldId == "SpiralRotations") { tr->SetTreeSpiralRotations(fv);   return true; }
+            if (fieldId == "BottomTopRatio")  { tr->SetTreeBottomTopRatio(fv);    return true; }
+            if (fieldId == "Perspective")     { tr->SetPerspective(fv);           return true; }
+            if (fieldId == "FirstStrand")     { tr->SetFirstStrand(iv);           return true; }
+            break;
+        }
+        case DisplayAsType::Star: {
+            auto* st = static_cast<StarModel*>(m);
+            if (fieldId == "StarRatio")    { st->SetStarRatio(fv);    return true; }
+            if (fieldId == "InnerPercent") { st->SetInnerPercent(iv); return true; }
+            break;
+        }
+        case DisplayAsType::Cube: {
+            auto* cu = static_cast<CubeModel*>(m);
+            if (fieldId == "CubeWidth")      { cu->SetCubeWidth(iv);       return true; }
+            if (fieldId == "CubeHeight")     { cu->SetCubeHeight(iv);      return true; }
+            if (fieldId == "CubeDepth")      { cu->SetCubeDepth(iv);       return true; }
+            if (fieldId == "CubeStrings")    { cu->SetCubeStrings(iv);     return true; }
+            if (fieldId == "StrandPerLayer") { cu->SetStrandPerLayer(b);   return true; }
+            break;
+        }
+        case DisplayAsType::CandyCanes: {
+            auto* cc = static_cast<CandyCaneModel*>(m);
+            if (fieldId == "NumCanes")      { cc->SetNumCanes(iv);      return true; }
+            if (fieldId == "LightsPerNode") { cc->SetLightsPerNode(iv); return true; }
+            break;
+        }
+        case DisplayAsType::PolyLine: {
+            auto* pl = static_cast<PolyLineModel*>(m);
+            if (fieldId == "NumStrings")     { pl->SetNumStrings(iv);     return true; }
+            if (fieldId == "LightsPerNode")  { pl->SetLightsPerNode(iv);  return true; }
+            if (fieldId == "ModelHeight")    { pl->SetModelHeight(fv);    return true; }
+            if (fieldId == "AlternateNodes") { pl->SetAlternateNodes(b);  return true; }
+            break;
+        }
+        case DisplayAsType::WindowFrame: {
+            auto* wf = static_cast<WindowFrameModel*>(m);
+            if (fieldId == "Rotation") { wf->SetRotation(iv); return true; }
+            break;
+        }
+        case DisplayAsType::Spinner: {
+            auto* sp = static_cast<SpinnerModel*>(m);
+            if (fieldId == "ArmsPerString") { sp->SetArmsPerString(iv); return true; }
+            if (fieldId == "NodesPerArm")   { sp->SetNodesPerArm(iv);   return true; }
+            if (fieldId == "Hollow")        { sp->SetHollow(iv);        return true; }
+            if (fieldId == "Arc")           { sp->SetArc(iv);           return true; }
+            if (fieldId == "StartAngle")    { sp->SetStartAngle(iv);    return true; }
+            if (fieldId == "ZigZag")        { sp->SetZigZag(b);         return true; }
+            if (fieldId == "Alternate")     { sp->SetAlternate(b);      return true; }
+            break;
+        }
+        case DisplayAsType::Circle: {
+            auto* ci = static_cast<CircleModel*>(m);
+            if (fieldId == "NodesPerString") { ci->SetCircleNodesPerString(iv); return true; }
+            if (fieldId == "CenterPercent")  { ci->SetCenterPercent(iv);        return true; }
+            if (fieldId == "InsideOut")      { ci->SetInsideOut(b);             return true; }
+            break;
+        }
+        case DisplayAsType::Icicles: {
+            auto* ic = static_cast<IciclesModel*>(m);
+            if (fieldId == "LightsPerString") { ic->SetLightsPerString(iv);          return true; }
+            if (fieldId == "DropPattern")     { ic->SetDropPattern(value.toString().toStdString()); return true; }
+            if (fieldId == "AlternateNodes")  { ic->SetAlternateNodes(b);            return true; }
+            break;
+        }
+        case DisplayAsType::Custom: {
+            auto* cm = static_cast<CustomModel*>(m);
+            if (fieldId == "Background")    { cm->SetCustomBackground(value.toString().toStdString()); return true; }
+            if (fieldId == "Lightness")     { cm->SetCustomLightness(iv);     return true; }
+            if (fieldId == "BkgScale")      { cm->SetCustomBkgScale(iv);      return true; }
+            if (fieldId == "BkgBrightness") { cm->SetCustomBkgBrightness(iv); return true; }
+            break;
+        }
+        case DisplayAsType::SingleLine: {
+            auto* sl = static_cast<SingleLineModel*>(m);
+            if (fieldId == "NumLines")     { sl->SetNumLines(iv);      return true; }
+            if (fieldId == "NodesPerLine") { sl->SetNodesPerLine(iv);  return true; }
+            if (fieldId == "LightsPerNode"){ sl->SetLightsPerNode(iv); return true; }
+            break;
+        }
+        case DisplayAsType::MultiPoint: {
+            auto* mp = static_cast<MultiPointModel*>(m);
+            if (fieldId == "ModelHeight") { mp->SetModelHeight(fv); return true; }
+            break;
+        }
+        default: break;
+    }
 
     // # Strings edits — dispatch per model type via GetDisplayAs() +
     // static_cast (dynamic_cast was unreliable in the Qt build — see
@@ -738,12 +880,30 @@ void LayoutPropertyTree::populateModelAppearance(Model* m) {
 
 void LayoutPropertyTree::populateModelStringProperties(Model* m) {
     auto* cat = addCategory("String Properties");
-    addRow(cat, "String Type",  qstr(m->GetStringType()));
-    auto* row = addRow(cat, "Custom Color", hexColor(m->GetCustomColor()));
+
+    static const QStringList kNodeTypes = {
+        "RGB Nodes", "RBG Nodes", "GBR Nodes", "GRB Nodes",
+        "BRG Nodes", "BGR Nodes", "Node Single Color", "3 Channel RGB",
+        "4 Channel RGBW", "4 Channel WRGB", "Strobes", "Single Color",
+        "Single Color Intensity", "Superstring", "WRGB Nodes", "WRBG Nodes",
+        "WGBR Nodes", "WGRB Nodes", "WBRG Nodes", "WBGR Nodes", "RGBW Nodes",
+        "RBGW Nodes", "GBRW Nodes", "GRBW Nodes", "BRGW Nodes", "BGRW Nodes",
+        "RGBWW Nodes"
+    };
+    QStringList stringTypes = kNodeTypes;
+    const QString curType = qstr(m->GetStringType());
+    if (!curType.isEmpty() && !stringTypes.contains(curType)) stringTypes.prepend(curType);
+    addEditableRow(cat, "String Type", curType, Kind::Enum, "StringType", stringTypes);
+
+    auto* row = addEditableRow(cat, "Custom Color", hexColor(m->GetCustomColor()),
+                               Kind::Color, "CustomColor");
     const xlColor cc = m->GetCustomColor();
     row->setBackground(1, QBrush(QColor(cc.red, cc.green, cc.blue)));
-    addRow(cat, "RGBW Handling", qstr(m->GetRGBWHandling()));
-    addRow(cat, "RGB Order",     qstr(m->GetRGBOrder()));
+
+    addEditableRow(cat, "RGBW Handling", qstr(m->GetRGBWHandling()), Kind::Enum,
+                   "RGBWHandling",
+                   {"R=G=B -> W", "RGB Only", "White Only", "Advanced", "White On All"});
+    addRow(cat, "RGB Order", qstr(m->GetRGBOrder()));   // no setter — read-only
 }
 
 // Add a value child under a "Set X" parent.  When the property isn't active
@@ -881,34 +1041,49 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     if (t == DisplayAsType::Sphere) {
         auto* sphere = static_cast<SphereModel*>(m);
         auto* cat = addCategory("Sphere");
-        addRow(cat, "Start Latitude",  QString::number(sphere->GetStartLatitude()));
-        addRow(cat, "End Latitude",    QString::number(sphere->GetEndLatitude()));
-        addRow(cat, "Sphere Degrees",  QString::number(sphere->GetSphereDegrees()));
-        // Sphere also inherits the Matrix # Strings / Nodes-per-String /
-        // Strands-per-String / Alternate Nodes / Don't Zig Zag knobs.
+        addEditableRow(cat, "Start Latitude", QString::number(sphere->GetStartLatitude()),
+                       Kind::Int, "StartLatitude");
+        addEditableRow(cat, "End Latitude",   QString::number(sphere->GetEndLatitude()),
+                       Kind::Int, "EndLatitude");
+        addEditableRow(cat, "Sphere Degrees", QString::number(sphere->GetSphereDegrees()),
+                       Kind::Int, "SphereDegrees");
+        // Sphere also inherits the Matrix knobs.
         addEditableRow(cat, "# Strings",
                        QString::number(sphere->GetNumPhysicalStrings()),
                        Kind::Int, "NumStrings");
-        addRow(cat, sphere->IsSingleNode() ? "Lights/String" : "Nodes/String",
-               QString::number(sphere->GetNodesPerString()));
-        addRow(cat, "Strands/String",  QString::number(sphere->GetStrandsPerString()));
-        addRow(cat, "Alternate Nodes", sphere->HasAlternateNodes() ? "yes" : "no");
-        addRow(cat, "Don't Zig Zag",   sphere->IsNoZigZag() ? "yes" : "no");
+        addEditableRow(cat, sphere->IsSingleNode() ? "Lights/String" : "Nodes/String",
+                       QString::number(sphere->GetNodesPerString()),
+                       Kind::Int, "NodesPerString");
+        addEditableRow(cat, "Strands/String", QString::number(sphere->GetStrandsPerString()),
+                       Kind::Int, "StrandsPerString");
+        addEditableRow(cat, "Alternate Nodes", sphere->HasAlternateNodes() ? "yes" : "no",
+                       Kind::Bool, "AlternateNodes");
+        addEditableRow(cat, "Don't Zig Zag",   sphere->IsNoZigZag() ? "yes" : "no",
+                       Kind::Bool, "NoZigZag");
         return;
     }
 
     if (t == DisplayAsType::Matrix) {
         auto* matrix = static_cast<MatrixModel*>(m);
         auto* cat = addCategory("Matrix");
-        addRow(cat, "Direction",        matrix->isVerticalMatrix() ? "Vertical" : "Horizontal");
+        addEditableRow(cat, "Direction",
+                       matrix->isVerticalMatrix() ? "Vertical" : "Horizontal",
+                       Kind::Enum, "Direction", {"Horizontal", "Vertical"});
         addEditableRow(cat, "# Strings",
                        QString::number(matrix->GetNumPhysicalStrings()),
                        Kind::Int, "NumStrings");
-        addRow(cat, matrix->IsSingleNode() ? "Lights/String" : "Nodes/String",
-               QString::number(matrix->GetNodesPerString()));
-        addRow(cat, "Strands/String",   QString::number(matrix->GetStrandsPerString()));
-        addRow(cat, "Alternate Nodes",  matrix->HasAlternateNodes() ? "yes" : "no");
-        addRow(cat, "Don't Zig Zag",    matrix->IsNoZigZag() ? "yes" : "no");
+        addEditableRow(cat, matrix->IsSingleNode() ? "Lights/String" : "Nodes/String",
+                       QString::number(matrix->GetNodesPerString()),
+                       Kind::Int, "NodesPerString");
+        addEditableRow(cat, "Strands/String",
+                       QString::number(matrix->GetStrandsPerString()),
+                       Kind::Int, "StrandsPerString");
+        addEditableRow(cat, "Alternate Nodes",
+                       matrix->HasAlternateNodes() ? "yes" : "no",
+                       Kind::Bool, "AlternateNodes");
+        addEditableRow(cat, "Don't Zig Zag",
+                       matrix->IsNoZigZag() ? "yes" : "no",
+                       Kind::Bool, "NoZigZag");
         const QString start = QString("%1 %2")
             .arg(matrix->GetIsBtoT() ? "Bottom" : "Top")
             .arg(matrix->GetIsLtoR() ? "Left"   : "Right");
@@ -925,17 +1100,24 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
             addEditableRow(cat, "# Arches",
                            QString::number(arches->GetNumArches()),
                            Kind::Int, "NumStrings");
-            addRow(cat, "Nodes Per Arch",  QString::number(arches->GetNodesPerArch()));
+            addEditableRow(cat, "Nodes Per Arch", QString::number(arches->GetNodesPerArch()),
+                           Kind::Int, "NodesPerArch");
         } else {
-            addRow(cat, "Nodes",        QString::number(arches->GetNodesPerArch()));
+            addEditableRow(cat, "Nodes",   QString::number(arches->GetNodesPerArch()),
+                           Kind::Int, "NodesPerArch");
             addRow(cat, "Layer Count",  QString::number(arches->GetLayerSizeCount()));
-            addRow(cat, "Hollow %",     QString::number(arches->GetHollow()));
-            addRow(cat, "Zig-Zag",      arches->GetZigZag() ? "yes" : "no");
+            addEditableRow(cat, "Hollow %", QString::number(arches->GetHollow()),
+                           Kind::Int, "Hollow");
+            addEditableRow(cat, "Zig-Zag", arches->GetZigZag() ? "yes" : "no",
+                           Kind::Bool, "ZigZag");
         }
-        addRow(cat, "Lights Per Node", QString::number(arches->GetLightsPerNode()));
-        addRow(cat, "Arc Degrees",     QString::number(arches->GetArc()));
+        addEditableRow(cat, "Lights Per Node", QString::number(arches->GetLightsPerNode()),
+                       Kind::Int, "LightsPerNode");
+        addEditableRow(cat, "Arc Degrees", QString::number(arches->GetArc()),
+                       Kind::Int, "Arc");
         if (!layered)
-            addRow(cat, "Gap Between Arches", QString::number(arches->GetGap()));
+            addEditableRow(cat, "Gap Between Arches", QString::number(arches->GetGap()),
+                           Kind::Int, "Gap");
         addRow(cat, "Starting Location",
                arches->GetIsLtoR() ? "Green Square" : "Blue Square");
         return;
@@ -944,21 +1126,30 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     if (t == DisplayAsType::Tree) {
         auto* tree = static_cast<TreeModel*>(m);
         auto* cat = addCategory("Tree");
-        addRow(cat, "Tree Type",         QString::number(tree->GetTreeType()));
-        addRow(cat, "Degrees",           QString::number(tree->GetTreeDegrees(),  'f', 1));
-        addRow(cat, "Rotation",          QString::number(tree->GetTreeRotation(), 'f', 1));
-        addRow(cat, "Spiral Rotations",  QString::number(tree->GetSpiralRotations(), 'f', 2));
-        addRow(cat, "Bottom/Top Ratio",  QString::number(tree->GetBottomTopRatio(),  'f', 2));
-        addRow(cat, "Perspective",       QString::number(tree->GetTreePerspective(), 'f', 2));
-        addRow(cat, "First Strand",      QString::number(tree->GetFirstStrand()));
+        addEditableRow(cat, "Tree Type",        QString::number(tree->GetTreeType()),
+                       Kind::Int, "TreeType");
+        addEditableRow(cat, "Degrees",          QString::number(tree->GetTreeDegrees(),  'f', 1),
+                       Kind::Double, "TreeDegrees");
+        addEditableRow(cat, "Rotation",         QString::number(tree->GetTreeRotation(), 'f', 1),
+                       Kind::Double, "TreeRotation");
+        addEditableRow(cat, "Spiral Rotations", QString::number(tree->GetSpiralRotations(), 'f', 2),
+                       Kind::Double, "SpiralRotations");
+        addEditableRow(cat, "Bottom/Top Ratio", QString::number(tree->GetBottomTopRatio(),  'f', 2),
+                       Kind::Double, "BottomTopRatio");
+        addEditableRow(cat, "Perspective",      QString::number(tree->GetTreePerspective(), 'f', 2),
+                       Kind::Double, "Perspective");
+        addEditableRow(cat, "First Strand",     QString::number(tree->GetFirstStrand()),
+                       Kind::Int, "FirstStrand");
         return;
     }
 
     if (t == DisplayAsType::Star) {
         auto* star = static_cast<StarModel*>(m);
         auto* cat = addCategory("Star");
-        addRow(cat, "Star Ratio",     QString::number(star->GetStarRatio(), 'f', 2));
-        addRow(cat, "Inner %",        QString::number(star->GetInnerPercent()));
+        addEditableRow(cat, "Star Ratio",  QString::number(star->GetStarRatio(), 'f', 2),
+                       Kind::Double, "StarRatio");
+        addEditableRow(cat, "Inner %",     QString::number(star->GetInnerPercent()),
+                       Kind::Int, "InnerPercent");
         addRow(cat, "Start Location", qstr(star->GetStartLocation()));
         addRow(cat, "Layers",         QString::number(star->GetLayerSizeCount()));
         return;
@@ -969,41 +1160,50 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         auto* cat = addCategory("Cube");
         addRow(cat, "Strands",        QString::number(cube->GetNumStrands()));
         addRow(cat, "Nodes/Strand",   QString::number(cube->NodesPerString()));
-        addRow(cat, "Width",          QString::number(cube->GetCubeWidth()));
-        addRow(cat, "Height",         QString::number(cube->GetCubeHeight()));
-        addRow(cat, "Depth",          QString::number(cube->GetCubeDepth()));
-        addRow(cat, "Cube Strings",   QString::number(cube->GetCubeStrings()));
+        addEditableRow(cat, "Width",  QString::number(cube->GetCubeWidth()),  Kind::Int, "CubeWidth");
+        addEditableRow(cat, "Height", QString::number(cube->GetCubeHeight()), Kind::Int, "CubeHeight");
+        addEditableRow(cat, "Depth",  QString::number(cube->GetCubeDepth()),  Kind::Int, "CubeDepth");
+        addEditableRow(cat, "Cube Strings", QString::number(cube->GetCubeStrings()),
+                       Kind::Int, "CubeStrings");
         addRow(cat, "Cube Style",     qstr(cube->GetCubeStyle()));
         addRow(cat, "Strand Style",   qstr(cube->GetStrandStyle()));
         addRow(cat, "Start",          qstr(cube->GetCubeStart()));
-        addRow(cat, "Strand Per Layer", cube->IsStrandPerLayer() ? "yes" : "no");
+        addEditableRow(cat, "Strand Per Layer", cube->IsStrandPerLayer() ? "yes" : "no",
+                       Kind::Bool, "StrandPerLayer");
         return;
     }
 
     if (t == DisplayAsType::CandyCanes) {
         auto* candy = static_cast<CandyCaneModel*>(m);
         auto* cat = addCategory("Candy Canes");
-        addRow(cat, "# Canes",         QString::number(candy->GetNumStrings()));
-        addRow(cat, "Lights Per Node", QString::number(candy->GetLightsPerNode()));
+        addEditableRow(cat, "# Canes", QString::number(candy->GetNumStrings()),
+                       Kind::Int, "NumCanes");
+        addEditableRow(cat, "Lights Per Node", QString::number(candy->GetLightsPerNode()),
+                       Kind::Int, "LightsPerNode");
         return;
     }
 
     if (t == DisplayAsType::PolyLine) {
         auto* poly = static_cast<PolyLineModel*>(m);
         auto* cat = addCategory("Poly Line");
-        addRow(cat, "# Strings",       QString::number(poly->GetNumStrings()));
+        addEditableRow(cat, "# Strings", QString::number(poly->GetNumStrings()),
+                       Kind::Int, "NumStrings");
         addRow(cat, "Drop Points",     QString::number(poly->GetDropPoints()));
         addRow(cat, "Segments",        QString::number(poly->GetNumSegments()));
-        addRow(cat, "Lights Per Node", QString::number(poly->GetLightsPerNode()));
-        addRow(cat, "Model Height",    QString::number(poly->GetModelHeight(), 'f', 2));
-        addRow(cat, "Alternate Nodes", poly->HasAlternateNodes() ? "yes" : "no");
+        addEditableRow(cat, "Lights Per Node", QString::number(poly->GetLightsPerNode()),
+                       Kind::Int, "LightsPerNode");
+        addEditableRow(cat, "Model Height", QString::number(poly->GetModelHeight(), 'f', 2),
+                       Kind::Double, "ModelHeight");
+        addEditableRow(cat, "Alternate Nodes", poly->HasAlternateNodes() ? "yes" : "no",
+                       Kind::Bool, "AlternateNodes");
         return;
     }
 
     if (t == DisplayAsType::WindowFrame) {
         auto* wf = static_cast<WindowFrameModel*>(m);
         auto* cat = addCategory("Window Frame");
-        addRow(cat, "Rotation", QString::number(wf->GetRotation()));
+        addEditableRow(cat, "Rotation", QString::number(wf->GetRotation()),
+                       Kind::Int, "Rotation");
         return;
     }
 
@@ -1013,13 +1213,20 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         addEditableRow(cat, "# Strings",
                        QString::number(spinner->GetNumSpinnerStrings()),
                        Kind::Int, "NumStrings");
-        addRow(cat, "Arms/String",     QString::number(spinner->GetArmsPerString()));
-        addRow(cat, "Nodes/Arm",       QString::number(spinner->GetNodesPerArm()));
-        addRow(cat, "Hollow %",        QString::number(spinner->GetHollowPercent()));
-        addRow(cat, "Arc Angle",       QString::number(spinner->GetArcAngle()));
-        addRow(cat, "Start Angle",     QString::number(spinner->GetStartAngle()));
-        addRow(cat, "Zig-Zag",         spinner->HasZigZag()        ? "yes" : "no");
-        addRow(cat, "Alternate Nodes", spinner->HasAlternateNodes() ? "yes" : "no");
+        addEditableRow(cat, "Arms/String", QString::number(spinner->GetArmsPerString()),
+                       Kind::Int, "ArmsPerString");
+        addEditableRow(cat, "Nodes/Arm",   QString::number(spinner->GetNodesPerArm()),
+                       Kind::Int, "NodesPerArm");
+        addEditableRow(cat, "Hollow %",    QString::number(spinner->GetHollowPercent()),
+                       Kind::Int, "Hollow");
+        addEditableRow(cat, "Arc Angle",   QString::number(spinner->GetArcAngle()),
+                       Kind::Int, "Arc");
+        addEditableRow(cat, "Start Angle", QString::number(spinner->GetStartAngle()),
+                       Kind::Int, "StartAngle");
+        addEditableRow(cat, "Zig-Zag",     spinner->HasZigZag() ? "yes" : "no",
+                       Kind::Bool, "ZigZag");
+        addEditableRow(cat, "Alternate Nodes", spinner->HasAlternateNodes() ? "yes" : "no",
+                       Kind::Bool, "Alternate");
         return;
     }
 
@@ -1029,10 +1236,13 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         addEditableRow(cat, "# Strings",
                        QString::number(circle->GetNumCircleStrings()),
                        Kind::Int, "NumStrings");
-        addRow(cat, circle->IsSingleNode() ? "Lights/String" : "Nodes/String",
-               QString::number(circle->GetNodesPerString()));
-        addRow(cat, "Center %",     QString::number(circle->GetCenterPercent()));
-        addRow(cat, "Inside Out",   circle->IsInsideOut() ? "yes" : "no");
+        addEditableRow(cat, circle->IsSingleNode() ? "Lights/String" : "Nodes/String",
+                       QString::number(circle->GetNodesPerString()),
+                       Kind::Int, "NodesPerString");
+        addEditableRow(cat, "Center %", QString::number(circle->GetCenterPercent()),
+                       Kind::Int, "CenterPercent");
+        addEditableRow(cat, "Inside Out", circle->IsInsideOut() ? "yes" : "no",
+                       Kind::Bool, "InsideOut");
         addRow(cat, "Layers",       QString::number(circle->GetLayerSizeCount()));
         return;
     }
@@ -1043,9 +1253,12 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         addEditableRow(cat, "# Strings",
                        QString::number(icicles->GetNumIcicleStrings()),
                        Kind::Int, "NumStrings");
-        addRow(cat, "Lights/String", QString::number(icicles->GetLightsPerString()));
-        addRow(cat, "Drop Pattern",  qstr(icicles->GetDropPattern()));
-        addRow(cat, "Alternate Nodes", icicles->HasAlternateNodes() ? "yes" : "no");
+        addEditableRow(cat, "Lights/String", QString::number(icicles->GetLightsPerString()),
+                       Kind::Int, "LightsPerString");
+        addEditableRow(cat, "Drop Pattern", qstr(icicles->GetDropPattern()),
+                       Kind::String, "DropPattern");
+        addEditableRow(cat, "Alternate Nodes", icicles->HasAlternateNodes() ? "yes" : "no",
+                       Kind::Bool, "AlternateNodes");
         return;
     }
 
@@ -1074,11 +1287,16 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         addRow(cat, "Width",   QString::number(custom->GetCustomWidth()));
         addRow(cat, "Height",  QString::number(custom->GetCustomHeight()));
         addRow(cat, "Depth",   QString::number(custom->GetCustomDepth()));
-        addRow(cat, "# Strings",       QString::number(custom->GetNumStrings()));
-        addRow(cat, "Background",      qstr(custom->GetCustomBackground()));
-        addRow(cat, "Lightness",       QString::number(custom->GetCustomLightness()));
-        addRow(cat, "Bkg Scale",       QString::number(custom->GetCustomBkgScale()));
-        addRow(cat, "Bkg Brightness",  QString::number(custom->GetCustomBkgBrightness()));
+        addEditableRow(cat, "# Strings", QString::number(custom->GetNumStrings()),
+                       Kind::Int, "NumStrings");
+        addEditableRow(cat, "Background", qstr(custom->GetCustomBackground()),
+                       Kind::String, "Background");
+        addEditableRow(cat, "Lightness", QString::number(custom->GetCustomLightness()),
+                       Kind::Int, "Lightness");
+        addEditableRow(cat, "Bkg Scale", QString::number(custom->GetCustomBkgScale()),
+                       Kind::Int, "BkgScale");
+        addEditableRow(cat, "Bkg Brightness", QString::number(custom->GetCustomBkgBrightness()),
+                       Kind::Int, "BkgBrightness");
         addRow(cat, "All Nodes Unique", custom->IsAllNodesUnique() ? "yes" : "no");
         return;
     }
@@ -1086,18 +1304,23 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     if (t == DisplayAsType::SingleLine) {
         auto* sl = static_cast<SingleLineModel*>(m);
         auto* cat = addCategory("Single Line");
-        addRow(cat, "# Lines",        QString::number(sl->GetNumLines()));
-        addRow(cat, "Nodes/Line",     QString::number(sl->GetNodesPerString()));
-        addRow(cat, "Lights/Node",    QString::number(sl->GetLightsPerNode()));
+        addEditableRow(cat, "# Lines",     QString::number(sl->GetNumLines()),
+                       Kind::Int, "NumLines");
+        addEditableRow(cat, "Nodes/Line",  QString::number(sl->GetNodesPerString()),
+                       Kind::Int, "NodesPerLine");
+        addEditableRow(cat, "Lights/Node", QString::number(sl->GetLightsPerNode()),
+                       Kind::Int, "LightsPerNode");
         return;
     }
 
     if (t == DisplayAsType::MultiPoint) {
         auto* mp = static_cast<MultiPointModel*>(m);
         auto* cat = addCategory("Multi Point");
-        addRow(cat, "# Strings",      QString::number(mp->GetNumStrings()));
+        addEditableRow(cat, "# Strings", QString::number(mp->GetNumStrings()),
+                       Kind::Int, "NumStrings");
         addRow(cat, "# Points",       QString::number(mp->GetNumPoints()));
-        addRow(cat, "Model Height",   QString::number(mp->GetModelHeight(), 'f', 2));
+        addEditableRow(cat, "Model Height", QString::number(mp->GetModelHeight(), 'f', 2),
+                       Kind::Double, "ModelHeight");
         return;
     }
 
