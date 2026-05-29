@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
+    -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
+                                 filtered, checkbox list of targets (fixes #4462).
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
     -enh (heffneil)              Show Face/State/SubModel/Node count badges on the Model pane
