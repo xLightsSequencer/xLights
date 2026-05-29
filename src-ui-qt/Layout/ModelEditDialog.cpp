@@ -453,7 +453,9 @@ void ModelEditDialog::populateSmEditor(int idx) {
     _smRanges->blockSignals(false);
     _smRanges->setUpdatesEnabled(true);
 
-    _preview->clearHighlight();
+    // Show every node in this sub-model so the whole shape is visible on
+    // first selection; clicking an individual range row narrows it.
+    previewAllSmNodes();
 }
 
 // ── Face editor ───────────────────────────────────────────────────────────────
@@ -478,7 +480,8 @@ void ModelEditDialog::populateFaceEditor(int idx) {
     _faceTable->setColumnHidden(2, !fi.forceColor);
 
     rebuildFaceNodeCells(fi);
-    _preview->clearHighlight();
+    // Show every node this face references on first selection.
+    previewAllFaceNodes();
 }
 
 void ModelEditDialog::rebuildFaceNodeCells(const QtFaceInfo& fi) {
@@ -575,7 +578,8 @@ void ModelEditDialog::populateStateEditor(int idx) {
     _stateTable->setColumnHidden(2, !si.forceColor);
 
     rebuildStateNodeCells(si);
-    _preview->clearHighlight();
+    // Show every node this state references on first selection.
+    previewAllStateNodes();
 }
 
 void ModelEditDialog::rebuildStateNodeCells(const QtStateInfo& si) {
@@ -641,6 +645,50 @@ void ModelEditDialog::previewFromStateRow(int row) {
     if (!hex.isEmpty()) { QColor c(hex); if (c.isValid()) color = c; }
 
     _preview->highlightNodes(indices, color);
+}
+
+// ── "Show all rows" helpers (run on first selection of an item) ───────────────
+
+void ModelEditDialog::previewAllSmNodes() {
+    QList<int> all;
+    QSet<int> seen;
+    for (int r = 0; r < _smRanges->rowCount(); ++r) {
+        auto* it = _smRanges->item(r, 0);
+        if (!it) continue;
+        for (int n : parseRangeStr(it->text()))
+            if (!seen.contains(n)) { seen.insert(n); all.append(n); }
+    }
+    if (all.isEmpty()) _preview->clearHighlight();
+    else               _preview->highlightNodes(all);
+}
+
+void ModelEditDialog::previewAllFaceNodes() {
+    if (_curFace < 0 || _curFace >= _faces.size()) { _preview->clearHighlight(); return; }
+    if (_faces[_curFace].type == "Matrix") { _preview->clearHighlight(); return; }
+
+    QList<int> all;
+    QSet<int> seen;
+    for (int r = 0; r < _faceTable->rowCount(); ++r) {
+        auto* it = _faceTable->item(r, 1);
+        if (!it) continue;
+        for (int n : parseRangeStr(it->text()))
+            if (!seen.contains(n)) { seen.insert(n); all.append(n); }
+    }
+    if (all.isEmpty()) _preview->clearHighlight();
+    else               _preview->highlightNodes(all);
+}
+
+void ModelEditDialog::previewAllStateNodes() {
+    QList<int> all;
+    QSet<int> seen;
+    for (int r = 0; r < _stateTable->rowCount(); ++r) {
+        auto* it = _stateTable->item(r, 1);
+        if (!it) continue;
+        for (int n : parseRangeStr(it->text()))
+            if (!seen.contains(n)) { seen.insert(n); all.append(n); }
+    }
+    if (all.isEmpty()) _preview->clearHighlight();
+    else               _preview->highlightNodes(all);
 }
 
 // ── Cell-changed slots (drive preview) ───────────────────────────────────────

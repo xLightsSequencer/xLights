@@ -79,6 +79,13 @@ private:
     void previewFromFaceRow(int row);
     void previewFromStateRow(int row);
 
+    // Highlight the union of every node referenced by the currently selected
+    // sub-model / face / state — shown when the item is first selected (before
+    // the user picks an individual row) so the whole shape is visible.
+    void previewAllSmNodes();
+    void previewAllFaceNodes();
+    void previewAllStateNodes();
+
     // Node-range utilities (1-based strings ↔ 0-based index lists).
     QList<int> parseRangeStr(const QString& s) const;
     QString    indicesToRangeStr(const QList<int>& indices) const;
