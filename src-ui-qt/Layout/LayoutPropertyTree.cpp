@@ -324,7 +324,10 @@ void LayoutPropertyTree::showModel(const QString& name) {
     if (!m) return;
 
     // Skip groups here — caller should use showGroup() for those.
-    if (dynamic_cast<ModelGroup*>(m)) return;
+    // Use GetDisplayAs() rather than dynamic_cast: it reads the model's
+    // stored type enum and doesn't depend on RTTI behaving across the
+    // separately-compiled Qt translation units.
+    if (m->GetDisplayAs() == DisplayAsType::ModelGroup) return;
 
     _currentEntity = name;
     _currentKind = EntityKind::Model;
@@ -350,7 +353,9 @@ void LayoutPropertyTree::showGroup(const QString& name, const QtModelGroupInfo& 
     if (_mm) {
         try {
             Model* m = _mm->GetModel(name.toStdString());
-            g = dynamic_cast<ModelGroup*>(m);
+            // GetDisplayAs() instead of dynamic_cast — see showModel.
+            if (m && m->GetDisplayAs() == DisplayAsType::ModelGroup)
+                g = static_cast<ModelGroup*>(m);
         } catch (...) { g = nullptr; }
     }
 
@@ -496,23 +501,38 @@ bool LayoutPropertyTree::commitModelField(const QString& fieldId, const QVariant
         return true;
     }
 
-    // # Strings edits — dispatch per model type.
+    // # Strings edits — dispatch per model type via GetDisplayAs() +
+    // static_cast (dynamic_cast was unreliable in the Qt build — see
+    // populateModelTypeProperties).
     if (fieldId == "NumStrings") {
         const int n = value.toInt();
         if (n <= 0) return false;
-        if (auto* matrix = dynamic_cast<MatrixModel*>(m)) {
-            matrix->SetNumMatrixStrings(n); return true;
+        switch (m->GetDisplayAs()) {
+            case DisplayAsType::Matrix:
+            case DisplayAsType::Sphere:
+                static_cast<MatrixModel*>(m)->SetNumMatrixStrings(n); return true;
+            case DisplayAsType::Arches:
+                static_cast<ArchesModel*>(m)->SetNumArches(n); return true;
+            case DisplayAsType::Spinner:
+                static_cast<SpinnerModel*>(m)->SetNumSpinnerStrings(n); return true;
+            case DisplayAsType::Circle:
+                static_cast<CircleModel*>(m)->SetNumCircleStrings(n); return true;
+            case DisplayAsType::Icicles:
+                static_cast<IciclesModel*>(m)->SetNumIcicleStrings(n); return true;
+            case DisplayAsType::ChannelBlock:
+                static_cast<ChannelBlockModel*>(m)->SetNumChannels(n); return true;
+            case DisplayAsType::Custom:
+                static_cast<CustomModel*>(m)->SetNumStrings(n); return true;
+            case DisplayAsType::SingleLine:
+                static_cast<SingleLineModel*>(m)->SetNumLines(n); return true;
+            case DisplayAsType::MultiPoint:
+                static_cast<MultiPointModel*>(m)->SetNumStrings(n); return true;
+            default:
+                if (IsDmxDisplayType(m->GetDisplayAs())) {
+                    static_cast<DmxModel*>(m)->SetDmxChannelCount(n); return true;
+                }
+                return false;
         }
-        if (auto* arches = dynamic_cast<ArchesModel*>(m)) {
-            arches->SetNumArches(n); return true;
-        }
-        if (auto* spinner = dynamic_cast<SpinnerModel*>(m)) {
-            spinner->SetNumSpinnerStrings(n); return true;
-        }
-        // Other types (Circle / Wreath / ChannelBlock / Tree / PolyLine /
-        // CandyCanes) need their own setters — not exposed via the base
-        // Model interface.  TODO once those headers gain SetNum* methods.
-        return false;
     }
 
     return false;
@@ -523,7 +543,8 @@ bool LayoutPropertyTree::commitGroupField(const QString& fieldId, const QVariant
     ModelGroup* g = nullptr;
     try {
         Model* m = _mm->GetModel(_currentEntity.toStdString());
-        g = dynamic_cast<ModelGroup*>(m);
+        if (m && m->GetDisplayAs() == DisplayAsType::ModelGroup)
+            g = static_cast<ModelGroup*>(m);
     } catch (...) { return false; }
     if (!g) return false;
 
@@ -791,8 +812,13 @@ void LayoutPropertyTree::populateModelControllerConnection(Model* m) {
 void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     const DisplayAsType t = m->GetDisplayAs();
 
-    // Sphere is a MatrixModel subclass so it has to be checked first.
-    if (auto* sphere = dynamic_cast<SphereModel*>(m)) {
+    // Dispatch on the stored DisplayAsType enum + static_cast rather than
+    // dynamic_cast — RTTI was producing null casts in the Qt build, which
+    // silently dropped every per-type section.  GetDisplayAs() reads the
+    // model's own type field and is always reliable.
+    // Sphere is a MatrixModel subclass but has its own DisplayAsType.
+    if (t == DisplayAsType::Sphere) {
+        auto* sphere = static_cast<SphereModel*>(m);
         auto* cat = addCategory("Sphere");
         addRow(cat, "Start Latitude",  QString::number(sphere->GetStartLatitude()));
         addRow(cat, "End Latitude",    QString::number(sphere->GetEndLatitude()));
@@ -810,7 +836,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* matrix = dynamic_cast<MatrixModel*>(m)) {
+    if (t == DisplayAsType::Matrix) {
+        auto* matrix = static_cast<MatrixModel*>(m);
         auto* cat = addCategory("Matrix");
         addRow(cat, "Direction",        matrix->isVerticalMatrix() ? "Vertical" : "Horizontal");
         addEditableRow(cat, "# Strings",
@@ -828,7 +855,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* arches = dynamic_cast<ArchesModel*>(m)) {
+    if (t == DisplayAsType::Arches) {
+        auto* arches = static_cast<ArchesModel*>(m);
         auto* cat = addCategory("Arches");
         const bool layered = arches->GetLayerSizeCount() != 0;
         addRow(cat, "Layered Arches", layered ? "yes" : "no");
@@ -852,7 +880,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* tree = dynamic_cast<TreeModel*>(m)) {
+    if (t == DisplayAsType::Tree) {
+        auto* tree = static_cast<TreeModel*>(m);
         auto* cat = addCategory("Tree");
         addRow(cat, "Tree Type",         QString::number(tree->GetTreeType()));
         addRow(cat, "Degrees",           QString::number(tree->GetTreeDegrees(),  'f', 1));
@@ -864,7 +893,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* star = dynamic_cast<StarModel*>(m)) {
+    if (t == DisplayAsType::Star) {
+        auto* star = static_cast<StarModel*>(m);
         auto* cat = addCategory("Star");
         addRow(cat, "Star Ratio",     QString::number(star->GetStarRatio(), 'f', 2));
         addRow(cat, "Inner %",        QString::number(star->GetInnerPercent()));
@@ -873,7 +903,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* cube = dynamic_cast<CubeModel*>(m)) {
+    if (t == DisplayAsType::Cube) {
+        auto* cube = static_cast<CubeModel*>(m);
         auto* cat = addCategory("Cube");
         addRow(cat, "Strands",        QString::number(cube->GetNumStrands()));
         addRow(cat, "Nodes/Strand",   QString::number(cube->NodesPerString()));
@@ -888,14 +919,16 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* candy = dynamic_cast<CandyCaneModel*>(m)) {
+    if (t == DisplayAsType::CandyCanes) {
+        auto* candy = static_cast<CandyCaneModel*>(m);
         auto* cat = addCategory("Candy Canes");
         addRow(cat, "# Canes",         QString::number(candy->GetNumStrings()));
         addRow(cat, "Lights Per Node", QString::number(candy->GetLightsPerNode()));
         return;
     }
 
-    if (auto* poly = dynamic_cast<PolyLineModel*>(m)) {
+    if (t == DisplayAsType::PolyLine) {
+        auto* poly = static_cast<PolyLineModel*>(m);
         auto* cat = addCategory("Poly Line");
         addRow(cat, "# Strings",       QString::number(poly->GetNumStrings()));
         addRow(cat, "Drop Points",     QString::number(poly->GetDropPoints()));
@@ -906,13 +939,15 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* wf = dynamic_cast<WindowFrameModel*>(m)) {
+    if (t == DisplayAsType::WindowFrame) {
+        auto* wf = static_cast<WindowFrameModel*>(m);
         auto* cat = addCategory("Window Frame");
         addRow(cat, "Rotation", QString::number(wf->GetRotation()));
         return;
     }
 
-    if (auto* spinner = dynamic_cast<SpinnerModel*>(m)) {
+    if (t == DisplayAsType::Spinner) {
+        auto* spinner = static_cast<SpinnerModel*>(m);
         auto* cat = addCategory("Spinner");
         addEditableRow(cat, "# Strings",
                        QString::number(spinner->GetNumSpinnerStrings()),
@@ -927,7 +962,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* circle = dynamic_cast<CircleModel*>(m)) {
+    if (t == DisplayAsType::Circle) {
+        auto* circle = static_cast<CircleModel*>(m);
         auto* cat = addCategory("Circle");
         addEditableRow(cat, "# Strings",
                        QString::number(circle->GetNumCircleStrings()),
@@ -940,7 +976,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* icicles = dynamic_cast<IciclesModel*>(m)) {
+    if (t == DisplayAsType::Icicles) {
+        auto* icicles = static_cast<IciclesModel*>(m);
         auto* cat = addCategory("Icicles");
         addEditableRow(cat, "# Strings",
                        QString::number(icicles->GetNumIcicleStrings()),
@@ -951,16 +988,10 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* wreath = dynamic_cast<WreathModel*>(m)) {
-        auto* cat = addCategory("Wreath");
-        addEditableRow(cat, "# Strings",
-                       QString::number(wreath->GetNumWreathStrings()),
-                       Kind::Int, "NumStrings");
-        addRow(cat, "Nodes/String", QString::number(wreath->GetNodesPerString()));
-        return;
-    }
+    // Wreath intentionally skipped — deprecated model type.
 
-    if (auto* cb = dynamic_cast<ChannelBlockModel*>(m)) {
+    if (t == DisplayAsType::ChannelBlock) {
+        auto* cb = static_cast<ChannelBlockModel*>(m);
         auto* cat = addCategory("Channel Block");
         addEditableRow(cat, "# Channels",
                        QString::number(cb->GetNumChannels()),
@@ -976,7 +1007,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* custom = dynamic_cast<CustomModel*>(m)) {
+    if (t == DisplayAsType::Custom) {
+        auto* custom = static_cast<CustomModel*>(m);
         auto* cat = addCategory("Custom");
         addRow(cat, "Width",   QString::number(custom->GetCustomWidth()));
         addRow(cat, "Height",  QString::number(custom->GetCustomHeight()));
@@ -990,7 +1022,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* sl = dynamic_cast<SingleLineModel*>(m)) {
+    if (t == DisplayAsType::SingleLine) {
+        auto* sl = static_cast<SingleLineModel*>(m);
         auto* cat = addCategory("Single Line");
         addRow(cat, "# Lines",        QString::number(sl->GetNumLines()));
         addRow(cat, "Nodes/Line",     QString::number(sl->GetNodesPerString()));
@@ -998,7 +1031,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* mp = dynamic_cast<MultiPointModel*>(m)) {
+    if (t == DisplayAsType::MultiPoint) {
+        auto* mp = static_cast<MultiPointModel*>(m);
         auto* cat = addCategory("Multi Point");
         addRow(cat, "# Strings",      QString::number(mp->GetNumStrings()));
         addRow(cat, "# Points",       QString::number(mp->GetNumPoints()));
@@ -1006,7 +1040,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* img = dynamic_cast<ImageModel*>(m)) {
+    if (t == DisplayAsType::Image) {
+        auto* img = static_cast<ImageModel*>(m);
         auto* cat = addCategory("Image");
         addRow(cat, "Image File",       qstr(img->GetImageFile()));
         addRow(cat, "White As Alpha",   img->IsWhiteAsAlpha() ? "yes" : "no");
@@ -1014,7 +1049,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         return;
     }
 
-    if (auto* lbl = dynamic_cast<LabelModel*>(m)) {
+    if (t == DisplayAsType::Label) {
+        auto* lbl = static_cast<LabelModel*>(m);
         auto* cat = addCategory("Label");
         addRow(cat, "Text",       qstr(lbl->GetLabelText()));
         addRow(cat, "Font Size",  QString::number(lbl->GetLabelFontSize()));
@@ -1029,13 +1065,15 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
     // DMX model also gets the shared DmxModel base section (channel count
     // + which DmxAbility components are configured).  Sub-section first so
     // it appears above the base.
-    if (auto* servo = dynamic_cast<DmxServo*>(m)) {
+    if (t == DisplayAsType::DmxServo) {
+        auto* servo = static_cast<DmxServo*>(m);
         auto* cat = addCategory("DMX Servo");
         addRow(cat, "# Servos",     QString::number(servo->GetNumServos()));
         addRow(cat, "16-bit",       servo->Is16Bit() ? "yes" : "no");
         addRow(cat, "Brightness",   QString::number(servo->GetBrightness(), 'f', 2));
         addRow(cat, "Transparency", QString::number(servo->GetTransparency()));
-    } else if (auto* skull = dynamic_cast<DmxSkull*>(m)) {
+    } else if (t == DisplayAsType::DmxSkull) {
+        auto* skull = static_cast<DmxSkull*>(m);
         auto* cat = addCategory("DMX Skull");
         addRow(cat, "16-bit",     skull->Is16Bit()    ? "yes" : "no");
         addRow(cat, "Mesh Only",  skull->IsMeshOnly() ? "yes" : "no");
@@ -1054,7 +1092,8 @@ void LayoutPropertyTree::populateModelTypeProperties(Model* m) {
         if (skull->HasEyeLR())  addRow(cat, "Eye LR Orient", QString::number(skull->GetEyeLROrient()));
     }
 
-    if (auto* dmx = dynamic_cast<DmxModel*>(m)) {
+    if (IsDmxDisplayType(t)) {
+        auto* dmx = static_cast<DmxModel*>(m);
         auto* cat = addCategory(qstr(DisplayAsTypeToString(t)));
         addEditableRow(cat, "DMX Channels",
                        QString::number(dmx->GetDmxChannelCount()),

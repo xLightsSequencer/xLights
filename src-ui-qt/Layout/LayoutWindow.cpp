@@ -8,6 +8,7 @@
 #include "../Bridge/QtRenderBridge.h"
 #include "../../src-core/models/ModelManager.h"
 #include "../../src-core/models/Model.h"
+#include "../../src-core/models/DisplayAsType.h"
 #include "../../src-core/models/ModelGroup.h"
 #include "../../src-core/outputs/OutputManager.h"
 #include "../../src-core/outputs/Controller.h"
@@ -470,7 +471,9 @@ void LayoutWindow::rebuildModelLists() {
     _groupList->clear();
     for (const auto& [name, m] : *mm) {
         const QString qname = QString::fromStdString(name);
-        if (dynamic_cast<ModelGroup*>(m))
+        // GetDisplayAs() rather than dynamic_cast — RTTI casts to model
+        // subclasses were unreliable in the Qt build.
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
             _groupList->addItem(qname);
         else
             _modelList->addItem(qname);
