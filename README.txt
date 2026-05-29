@@ -16,7 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  addition to the existing broadcast/multicast ping.
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
-    -enh (Neil)                  Show Face/State/SubModel/Node count badges on the Model pane
+    -enh (heffneil)              Show Face/State/SubModel/Node count badges on the Model pane
     -enh (cybercop23)            Add right-click option to hide unused submodels when expanding a model row
     -enh (cybercop23)            Add EffectPreset to the restore options
     -enh (cybercop23)            Add include submodel opton to the Duplicate effect
@@ -35,6 +35,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
+    -bug (derwin12)              Better handle multi chord MIDI tracks (#6434)
+    -bug (Neil)                  Fix edit display elements eye-icon for HiDPI (#5015)
+    -bug (dkulp)                 macOS: Provide other attempts to open Lua Script editor 
     -bug (dkulp)                 macOS: Package Sequence to a location outside any persistent bookmark (e.g.
                                  Desktop) no longer fails — the in-progress zip is now written to the system
                                  temp dir and atomically moved into the user-chosen path.
