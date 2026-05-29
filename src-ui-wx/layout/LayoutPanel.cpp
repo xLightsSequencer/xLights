@@ -10261,16 +10261,22 @@ void LayoutPanel::RenameCurrentPreview()
         if (!node.empty()) {
             node.mapped()->SetName(dlg.GetValue());
             node.key() = dlg.GetValue();
+            auto* rawGrp = node.mapped().get();
             xlights->LayoutGroups.insert(std::move(node));
+            if (rawGrp->GetMenuItem() != nullptr) {
+                rawGrp->GetMenuItem()->SetItemLabel(dlg.GetValue());
+            }
         }
     }
 
-     for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+    for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
         if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetString(i, dlg.GetValue());
             break;
         }
     }
+
+    model_grp_panel->RenamePreviewChoice(currentLayoutGroup, dlg.GetValue().ToStdString());
 
     currentLayoutGroup = dlg.GetValue();
 

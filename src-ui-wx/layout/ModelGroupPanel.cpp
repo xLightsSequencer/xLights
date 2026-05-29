@@ -344,6 +344,16 @@ void ModelGroupPanel::AddPreviewChoice(const std::string& name)
     ChoicePreviews->Append(name);
 }
 
+void ModelGroupPanel::RenamePreviewChoice(const std::string& oldName, const std::string& newName)
+{
+    for (size_t i = 0; i < ChoicePreviews->GetCount(); i++) {
+        if (ChoicePreviews->GetString(i) == oldName) {
+            ChoicePreviews->SetString(i, newName);
+            break;
+        }
+    }
+}
+
 bool canAddToGroup(ModelGroup *g, ModelManager &models, const std::string &model, std::list<std::string> &modelGroupsInGroup, std::list<std::string>& visitedGroups) {
 
     if (model == g->GetName()) {
