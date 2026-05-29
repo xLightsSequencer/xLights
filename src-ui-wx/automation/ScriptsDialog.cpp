@@ -166,6 +166,7 @@ void ScriptsDialog::OnPopup(wxCommandEvent& event)
         if (ft) {
             wxString command = ft->GetOpenCommand(fn.GetFullPath());
             wxUnsetEnv("LD_PRELOAD");
+            spdlog::info("Opening script '{}' via '{}'", (const char*)filePath.c_str(), command.ToStdString().c_str());
             wxExecute(command);
         } else {
             spdlog::warn("Unable to open script as no program can open the file {}.", (const char*)filePath.c_str());
