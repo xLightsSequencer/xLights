@@ -4889,6 +4889,8 @@ void LayoutPanel::FinalizeModel()
         std::vector<DownloadedModelInfo> additionalModels;
         std::vector<Model*> additionalModelObjects;
         glm::vec3 firstModelPos(0.0f);
+        glm::vec3 multiModelAnchor(0.0f);
+        bool hasMultiModelRelativePositions = false;
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel We were downloading or importing.");
@@ -4981,10 +4983,35 @@ void LayoutPanel::FinalizeModel()
                 delete prog;
             }
 
-            if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine) {
-                _newModel->SetPosition(pos.x, pos.y);
+            // For multi-model xmodel imports, preserve relative WorldPos from the file.
+            // Compute the bounding-box anchor (min X, min Y across all models) so the
+            // entire group lands with its anchor corner at the user's drop point.
+            if (!additionalModelObjects.empty()) {
+                glm::vec3 primaryOrigPos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
+                float anchorX = primaryOrigPos.x;
+                float anchorY = primaryOrigPos.y;
+                for (Model* em : additionalModelObjects) {
+                    if (em == nullptr) continue;
+                    glm::vec3 ep = em->GetBaseObjectScreenLocation().GetWorldPosition();
+                    anchorX = std::min(anchorX, ep.x);
+                    anchorY = std::min(anchorY, ep.y);
+                }
+                multiModelAnchor = glm::vec3(anchorX, anchorY, 0.0f);
+                hasMultiModelRelativePositions = true;
+                glm::vec3 adjustedPos(pos.x + (primaryOrigPos.x - anchorX),
+                                      pos.y + (primaryOrigPos.y - anchorY),
+                                      pos.z);
+                if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine) {
+                    _newModel->SetPosition(adjustedPos.x, adjustedPos.y);
+                } else {
+                    _newModel->GetBaseObjectScreenLocation().SetWorldPosition(adjustedPos);
+                }
             } else {
-                _newModel->GetBaseObjectScreenLocation().SetWorldPosition(pos);
+                if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine) {
+                    _newModel->SetPosition(pos.x, pos.y);
+                } else {
+                    _newModel->GetBaseObjectScreenLocation().SetWorldPosition(pos);
+                }
             }
             if (b->GetState() == 1)
             {
@@ -5056,24 +5083,28 @@ void LayoutPanel::FinalizeModel()
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
 
-        // Place additional models loaded from a multi-model xmodel file
+        // Place additional models loaded from a multi-model xmodel file.
+        // When WorldPos values were captured from the file (hasMultiModelRelativePositions),
+        // each model is placed at: dropPoint + (originalWorldPos - anchorWorldPos)
+        // so the entire group keeps its relative arrangement, anchored at the drop point.
         if (!additionalModelObjects.empty()) {
-            constexpr float BATCH_PLACEMENT_PADDING = 20.0f;
-            constexpr float BATCH_PLACEMENT_MIN_OFFSET = 50.0f;
-
-            float previousWidth = std::max(_newModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
-            float currentX = firstModelPos.x + previousWidth + BATCH_PLACEMENT_PADDING;
-
             for (Model* extraModel : additionalModelObjects) {
                 if (extraModel == nullptr) continue;
                 std::string uniqueName = xlights->AllModels.GenerateModelName(extraModel->name);
                 extraModel->name = uniqueName;
-                extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
+
+                glm::vec3 newPos;
+                if (hasMultiModelRelativePositions) {
+                    glm::vec3 origPos = extraModel->GetBaseObjectScreenLocation().GetWorldPosition();
+                    newPos = glm::vec3(firstModelPos.x + (origPos.x - multiModelAnchor.x),
+                                      firstModelPos.y + (origPos.y - multiModelAnchor.y),
+                                      firstModelPos.z + (origPos.z - multiModelAnchor.z));
+                } else {
+                    newPos = firstModelPos;
+                }
+                extraModel->GetBaseObjectScreenLocation().SetWorldPosition(newPos);
                 extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
                 xlights->AllModels.AddModel(extraModel);
-
-                float thisWidth = std::max(extraModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
-                currentX += thisWidth + BATCH_PLACEMENT_PADDING;
             }
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
