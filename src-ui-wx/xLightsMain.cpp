@@ -4141,9 +4141,15 @@ void xLightsFrame::UpdateSequenceLength()
         wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
         int ms = wxAtoi(mss);
 
-        AbortRender();
-        _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-        _sequenceElements.IncrementChangeCount(nullptr);
+        // Reallocating _seqData frees the channel buffer a live render job may
+        // still be writing into. Only proceed if the render actually drained —
+        // AbortRender() returns false if it timed out.
+        if (AbortRender()) {
+            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+            _sequenceElements.IncrementChangeCount(nullptr);
+        } else {
+            spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+        }
 
         mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
         mainSequencer->PanelTimeLine->Initialize();

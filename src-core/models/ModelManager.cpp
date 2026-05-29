@@ -133,6 +133,7 @@ void ModelManager::clear()
         }
     }
     models.clear();
+    _modelGeneration++;
 }
 
 inline BaseObject* ModelManager::GetObject(const std::string& name) const
@@ -1488,6 +1489,7 @@ void ModelManager::AddModel(Model* model)
             ResetModelGroups();
         }
         models[model->name] = model;
+        _modelGeneration++;
     }
 }
 
@@ -1496,8 +1498,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         Model *oldm = models[name];
         models[nm->name] = nm;
-        ResetModelGroups();       
+        ResetModelGroups();
         delete oldm;
+        _modelGeneration++;
     }
 }
 
@@ -2140,6 +2143,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
 
                 delete model;
+                _modelGeneration++;
                 if (_renderContext) _renderContext->MarkRgbEffectsChanged();
                 return true;
             }

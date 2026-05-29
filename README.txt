@@ -41,6 +41,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 macOS: Videos AVFoundation can't decode (e.g. lossless H.264 / High 4:4:4 at
                                  small sizes) now fall back to FFmpeg at load instead of grinding for hours
                                  per-frame during render.
+    -bug (dkulp)                 Render: the render tree now rebuilds whenever any model is added/replaced/
+                                 deleted (ModelManager generation counter), so it can never hand a freed model
+                                 to the renderer; PixelBuffer::GetColors also bounds-checks node channel writes
+                                 (mirroring SetColors) and sequence-data reallocation is skipped if an in-flight
+                                 render can't be drained first — fixes render crashes when models or the channel
+                                 count change mid-render.
     -bug (dkulp)                 Stem separation: lock the UI down (render-style) while inference runs and
                                  refuse re-entry, so the sequence can't be closed and a second pass can't
                                  start mid-run — fixes a crash on a freed model in the worker thread.

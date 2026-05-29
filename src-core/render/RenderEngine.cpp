@@ -827,7 +827,7 @@ public:
                 info.validLayers[effectiveNumLayers] = true;
             }
             buffer->CalcOutput(frame, info.validLayers);
-            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
+            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
 
             // Position Zone processing (DMX)
             if (_ctx->GetEnablePositionZones()) {
@@ -1019,7 +1019,7 @@ public:
                             std::vector<bool> valid(2, true);
                             buffer->SetColors(1, &((*seqData)[frame][0]), seqData->NumChannels());
                             buffer->CalcOutput(frame, valid);
-                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction);
+                            buffer->GetColors(&((*seqData)[frame][0]), rangeRestriction, seqData->NumChannels());
                         }
                     }
                 }
@@ -1345,7 +1345,11 @@ std::list<Model*> RenderEngine::RenderTree::GetModels() const {
 }
 
 void RenderEngine::BuildRenderTree(SequenceElements& elements, unsigned int modelsChangeCount) {
-    unsigned int curChangeCount = elements.GetMasterViewChangeCount() + modelsChangeCount;
+    // Include the model-manager generation so any model add/replace/delete/
+    // clear forces the tree to rebuild — otherwise a cached raw Model* can
+    // outlive the freed model and crash in PixelBufferClass::reset / GetColors
+    // (crash sigs 7d28659359, 998b51b4b4, 62b47aa9b8).
+    unsigned int curChangeCount = elements.GetMasterViewChangeCount() + modelsChangeCount + _ctx.GetModelGeneration();
     if (_renderTree.renderTreeChangeCount != curChangeCount) {
         _renderTree.Clear();
         const int numEls = elements.GetElementCount(MASTER_VIEW);

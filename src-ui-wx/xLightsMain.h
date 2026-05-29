@@ -118,7 +118,6 @@ class EffectTreeDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
-class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SearchPanel;
@@ -1629,6 +1628,7 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     Model *GetModel(const std::string& name) const override;
+    unsigned int GetModelGeneration() const override { return AllModels.GetModelGeneration(); }
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
     bool AbortRender(int maxTimeMs, int* numThreadsAborted);
