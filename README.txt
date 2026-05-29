@@ -53,6 +53,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Stem separation: lock the UI down (render-style) while inference runs and
                                  refuse re-entry, so the sequence can't be closed and a second pass can't
                                  start mid-run — fixes a crash on a freed model in the worker thread.
+    -bug (dkulp)                 Manage Media "Bulk Find" now extracts the filename from Windows-style
+                                 (backslash) paths when run on macOS/Linux, so images authored on Windows
+                                 are matched and relinked instead of always reporting "not found".
     -bug (derwin12)              Fix hidden timing tracks reappearing when another timing track is expanded or collapsed (#6424)
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work

@@ -106,6 +106,17 @@ static std::string CopyToDir(const std::string& srcPath, const std::string& targ
     return ToStdString(dest);
 }
 
+// Extract just the filename from a path, treating BOTH '/' and '\' as
+// separators regardless of the host OS. A sequence authored on Windows
+// stores paths like "B:\Foo\Bar\N.png"; on macOS/Linux wxFileName parses
+// with the native (Unix) format where '\' is an ordinary character, so
+// GetFullName() would return the whole string instead of "N.png".
+static wxString BaseFileName(const std::string& path) {
+    auto pos = path.find_last_of("/\\");
+    std::string name = (pos == std::string::npos) ? path : path.substr(pos + 1);
+    return wxString(name);
+}
+
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) {
         return "All Media Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.tga;*.pcx;*.ico;"
@@ -1663,9 +1674,9 @@ void ManageMediaPanel::OnBulkFindImages()
     int notFound = 0;
     std::string lastFixedPath;
     for (const auto& oldPath : brokenPaths) {
-        // Extract just the filename from the broken path
-        wxFileName fnOld(oldPath);
-        wxString nameToFind = fnOld.GetFullName();
+        // Extract just the filename from the broken path (handles Windows
+        // backslash paths even when running on macOS/Linux)
+        wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
         // Look for the file in the search directory (and subdirectories)
@@ -1941,8 +1952,7 @@ void ManageMediaPanel::BulkFindMediaByType(MediaType type)
     int notFound = 0;
     std::string lastFixedPath;
     for (const auto& oldPath : brokenPaths) {
-        wxFileName fnOld(oldPath);
-        wxString nameToFind = fnOld.GetFullName();
+        wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
         wxString foundFile;
