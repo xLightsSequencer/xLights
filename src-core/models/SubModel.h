@@ -31,8 +31,11 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
-    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects) override {
-        return glm::vec3(0, 0, 0);
+    std::unique_ptr<handles::SpaceMouseSession> BeginSpaceMouseSession() override {
+        // SubModels share their parent's screen location and don't
+        // have an independent 6-DOF identity. The SpaceMouse path
+        // never targets them directly; the parent handles it.
+        return nullptr;
     }
 
 

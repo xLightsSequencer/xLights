@@ -59,11 +59,6 @@ static NSError* MakeError(NSInteger code, NSString* msg) {
     }
     return self;
 }
-- (void)dealloc {
-    [_layerBlend release];
-    [_imageGroupPrefix release];
-    [super dealloc];
-}
 @end
 
 @implementation XLSuperStarImport
@@ -88,7 +83,7 @@ static NSError* MakeError(NSInteger code, NSString* msg) {
             [names addObject:[NSString stringWithUTF8String:sub->GetFullName().c_str()]];
         }
     }
-    return [[names copy] autorelease];
+    return [names copy];
 }
 
 + (BOOL)applyImportFromPath:(NSString*)path

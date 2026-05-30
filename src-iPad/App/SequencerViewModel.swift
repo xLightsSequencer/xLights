@@ -84,6 +84,34 @@ class SequencerViewModel {
     @ObservationIgnored private var accessRepromptQueue: [AccessRepromptRequest] = []
     @ObservationIgnored private var afterAccessQueueEmpty: (() -> Void)?
 
+    /// True while a `loadShowFolder` call is between its initial entry
+    /// and its terminal `applyLoadResult` / `queueStaleRepromptsThenReload`
+    /// resolution. Because the heavy work runs on `Task.detached` (cooperative
+    /// pool) and `iPadRenderContext::LoadShowFolder` rebuilds the
+    /// `ModelManager` / `ViewObjectManager` unique_ptrs in place, two
+    /// overlapping calls race on those owners and the in-flight call ends up
+    /// dereferencing a freed ViewObjectManager from inside
+    /// `LoadViewObjects`. We serialize at the VM layer: a second request
+    /// while a load is in flight is coalesced into `pendingLoadRequest`
+    /// (latest wins) and fired when the current load terminates.
+    @ObservationIgnored private var loadInFlight = false
+    @ObservationIgnored private var pendingLoadRequest: (path: String, mediaFolders: [String])?
+
+    /// Set while `performOpenSequence` has a detached `document.openSequence`
+    /// task in flight. Blocks re-entrant opens (e.g. a stray double-tap or
+    /// a URL-handler racing the row tap) until the current open finishes
+    /// and `applyOpenResult` has applied state on the main actor.
+    @ObservationIgnored private var openInFlight = false
+
+    /// Post-load "missing model" reconciliation prompt. Populated by
+    /// `performOpenSequence` after a successful open whenever the
+    /// bridge reports at least one model element referenced by the
+    /// sequence isn't in the show's `ModelManager`. Mirrors desktop's
+    /// `CheckForValidModels` per-name prompt loop. nil ⇒ no
+    /// outstanding prompt; flip back to nil after the user commits or
+    /// cancels so the sheet dismisses.
+    var missingModelPrompt: MissingModelPrompt?
+
     /// B97: Find / Replace state. Search is over timing-mark labels
     /// only (matches desktop's intentional restriction in
     /// `EffectsGrid::Find`). `findResults` caches `(rowIndex,
@@ -303,7 +331,102 @@ class SequencerViewModel {
     // model-list highlight doesn't clobber `previewModelName` (which
     // drives the Model Preview's single-model render mode and the
     // effect grid's row-tap state). Empty / nil = nothing selected.
+    // `layoutEditorSelectedModel` is the "primary" / most-recently-
+    // selected model — used by single-model UI (inline action bar,
+    // property panel, drag origin). The full selection set lives in
+    // `layoutEditorSelection`; the primary is conventionally
+    // `selection.first` of insertion order (the last model added).
     var layoutEditorSelectedModel: String? = nil
+    /// Phase J-4 (multi-select) — full selection set. Empty when
+    /// nothing's selected. Contains exactly `layoutEditorSelectedModel`
+    /// for single-select; multiple entries when the user has
+    /// activated edit mode and tapped / marqueed multiple models.
+    /// Align / distribute / multi-delete operate on this set.
+    var layoutEditorSelection: Set<String> = []
+    /// Phase J-4 (multi-select) — when true, taps on the canvas
+    /// toggle a model's membership in the selection set instead of
+    /// replacing the selection. Driven by a "Select" toggle in the
+    /// Layout Editor toolbar (Photos-style). Cleared on editor
+    /// close and on "Done" / explicit exit.
+    var layoutEditMode: Bool = false
+
+    /// Phase J-6 (sidebar canvas sync) — Group / ViewObject picks
+    /// in the sidebar. Independent of `layoutEditorSelectedModel`
+    /// so flipping tabs doesn't lose the model pick. The canvas
+    /// reads these via PreviewPaneView and tints / draws handles
+    /// accordingly.
+    var layoutEditorSelectedGroup: String? = nil
+    var layoutEditorSelectedObject: String? = nil
+    /// J-31 — Controllers tab selection. Drives the canvas tint
+    /// (via `XLMetalBridge.setSelectedController:`) so every
+    /// model assigned to this controller renders in the group-
+    /// member colour. Cleared when switching to a non-controllers
+    /// sidebar tab.
+    var layoutEditorSelectedController: String? = nil
+
+    /// J-20.6 — active sidebar tab in the Layout Editor, mirrored
+    /// from `LayoutEditorView`'s `@State sidebarTab`. Lives on the
+    /// view model so the canvas / preview pane can gate picking
+    /// behaviour (e.g. don't fall through to view-object picks
+    /// when the user is on the Models tab — desktop only lets
+    /// you select objects from the Layout panel's object list).
+    /// String-typed to avoid pulling `LayoutSidebarTab` into the
+    /// view model module.
+    var layoutEditorActiveTab: String = "models"
+
+    /// J-13 — name of the Terrain view object currently in
+    /// heightmap edit mode. When non-nil, canvas taps modify
+    /// the terrain's PointData rather than selecting models.
+    var terrainEditTarget: String? = nil
+    /// J-13 — magnitude of the per-tap height change in world
+    /// units. Sign comes from `terrainEditRaise`.
+    var terrainEditDelta: Float = 1.0
+    /// J-13 — brush radius in screen points. 0 = single-point;
+    /// >0 applies a cosine falloff to neighbour grid points.
+    var terrainEditBrushPoints: CGFloat = 24.0
+    /// J-13 — true → tap-to-raise; false → tap-to-lower.
+    var terrainEditRaise: Bool = true
+
+    /// Set both primary + selection set to a single model (or
+    /// clear them both for nil/empty). All single-select call
+    /// sites should use this to keep the two fields in sync —
+    /// the primary IS the only entry of the selection set in
+    /// single-select mode.
+    func layoutSelectSingle(_ name: String?) {
+        if let n = name, !n.isEmpty {
+            layoutEditorSelectedModel = n
+            layoutEditorSelection = [n]
+        } else {
+            layoutEditorSelectedModel = nil
+            layoutEditorSelection.removeAll()
+        }
+    }
+    /// Phase J-3 (touch UX) — when non-nil, the Layout Editor is
+    /// in "creation mode": the next tap on the canvas creates a
+    /// new model of this type at the touch point. Cleared on
+    /// creation, on Cancel, or when the editor closes.
+    var layoutPendingNewModelType: String? = nil
+    /// Phase J-3 (touch UX) — when non-nil, a polyline-style model
+    /// (Poly Line / MultiPoint) is mid-creation and each follow-on
+    /// tap appends a vertex. Cleared by an explicit Done, Esc /
+    /// Return key, or when the editor closes. Set after the first
+    /// vertex of a polyline is placed; mutually exclusive with
+    /// `layoutPendingNewModelType` (which only governs the first
+    /// vertex / fresh-model placement).
+    var layoutPolylineInProgress: String? = nil
+    /// Phase J-4 (import) — file path of a pending .xmodel import.
+    /// When non-nil the Layout Editor is in placement mode; the
+    /// next tap on the canvas calls `bridge.importXmodelFromPath:`
+    /// with the touch as the placement target. Cleared after a
+    /// successful import or Cancel.
+    var layoutPendingImportPath: String? = nil
+    /// Phase J-4 (import) — optional layout-group override applied
+    /// to the pending import. Multi-model `.xmodel` files prompt
+    /// the user for a destination group via `LayoutGroupPickerSheet`
+    /// and stash the choice here; the bridge picks it up when
+    /// placement commits. nil = use the active layout group
+    /// (single-model imports never set this).
+    var layoutPendingImportTargetGroup: String? = nil
     /// True when the standalone Layout Editor scene is open. The
     /// Tools menu entry disables itself on a second press so we
     /// don't fight `WindowGroup`'s "focus existing instance"
@@ -357,6 +480,18 @@ class SequencerViewModel {
     // fixed interval, metronome, FPP, audio analysis (Onsets /
     // Tempo / Chords), and AI Lyrics.
     var showingAddTimingTrack = false
+    // Tools → Package Sequence. Two-toggle option sheet (Include
+    // Audio / Include Videos) then `SequencePackage::Pack` on a
+    // background queue; result handed to the system share sheet.
+    var showingPackageSequence = false
+    // Tools → View Log. Reads the rotating spdlog file in
+    // Library/Logs/xLights.log; level + logger + text filters
+    // with optional follow-tail.
+    var showingLogViewer = false
+    // Tools → FPP Connect. Discover FPP instances on the network and
+    // upload pre-rendered .fseq files. Gated on show-folder loaded so
+    // there's something to render against.
+    var showingFPPConnect = false
 
     /// Run Check Sequence on a background queue and report progress
     /// while it walks. The bridge's `SequenceChecker` calls back from
@@ -537,6 +672,33 @@ class SequencerViewModel {
             }
         }.value
     }
+
+    // EX-11 Package Sequence. Walks the in-memory sequence + media
+    // and emits a self-contained `.xsqz` for sharing with support
+    // or another user. Mirrors desktop's Tools → Package Sequence;
+    // `SequencePackage::Pack` is shared core.
+    struct PackageSequenceResult {
+        let url: URL
+        let warnings: [String]
+    }
+    func packageSequence(excludeAudio: Bool,
+                         excludeVideos: Bool) async -> PackageSequenceResult? {
+        let doc = document
+        return await Task.detached(priority: .utility) { () -> PackageSequenceResult? in
+            var warningsObj: NSArray? = nil
+            do {
+                let url = try XLSequencePackager.packageSequence(
+                    for: doc,
+                    excludeAudio: excludeAudio,
+                    excludeVideos: excludeVideos,
+                    warnings: &warningsObj)
+                let warnings = (warningsObj as? [String]) ?? []
+                return PackageSequenceResult(url: url, warnings: warnings)
+            } catch {
+                return nil
+            }
+        }.value
+    }
     // Save As is a multi-step flow (persist, open exporter, handle
     // errors). The menu command bumps this counter; the SequencerView
     // `.onChange` reacts exactly once per command invocation even if
@@ -710,24 +872,107 @@ class SequencerViewModel {
     /// deferred until the queue drains; media folders we still can't
     /// access after the re-grant pass are dropped (matches the previous
     /// silent-drop behavior in `iPadRenderContext::LoadShowFolder`).
+    ///
+    /// The actual work — obtainAccess pre-flight, the C++
+    /// iPadRenderContext::LoadShowFolder call, and the recursive .xsq scan
+    /// — runs on a detached task. Each step does synchronous file I/O that
+    /// blocks on iCloud download for evicted folders; on the main actor
+    /// (this method is called from the Done button in FolderConfigView and
+    /// from the launch-time .task in XLightsApp), the cumulative time was
+    /// exceeding the 5-second 0x8BADF00D watchdog deadline and getting
+    /// the app killed. The detach keeps the main actor free while the
+    /// load runs, then we hop back to apply state. The method returns
+    /// immediately; observers should watch `isShowFolderLoaded`.
     func loadShowFolder(path: String, mediaFolders: [String]) {
+        if loadInFlight {
+            print("loadShowFolder: deferring concurrent request for \(path) until current load completes")
+            pendingLoadRequest = (path, mediaFolders)
+            return
+        }
+        loadInFlight = true
         showFolderPath = path
         mediaFolderPaths = mediaFolders
 
-        let showOK = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
-        var stale: [(path: String, label: String)] = []
-        if !showOK {
-            stale.append((path, "show folder"))
-        }
-        for folder in mediaFolders where !XLSequenceDocument.obtainAccess(toPath: folder, enforceWritable: false) {
-            stale.append((folder, "media folder"))
-        }
+        Task.detached { [document, weak self] in
+            let showOK = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+            var stale: [(path: String, label: String)] = []
+            if !showOK {
+                stale.append((path, "show folder"))
+            }
+            for folder in mediaFolders where !XLSequenceDocument.obtainAccess(toPath: folder, enforceWritable: false) {
+                stale.append((folder, "media folder"))
+            }
 
-        if stale.isEmpty {
-            performLoadShowFolder(path: path, mediaFolders: mediaFolders)
+            if stale.isEmpty {
+                let loaded = document.loadShowFolder(path, mediaFolders: mediaFolders)
+                let scanned: [SequenceEntry] = loaded ? SequenceScanner.scan(showFolder: path) : []
+                await self?.applyLoadResult(loaded: loaded, sequenceFiles: scanned, path: path)
+                return
+            }
+
+            await self?.queueStaleRepromptsThenReload(stale: stale, path: path, mediaFolders: mediaFolders)
+        }
+    }
+
+    /// MainActor-side completion handler for a successful (or failed)
+    /// detached show-folder load. Lives separately from `loadShowFolder`
+    /// so the Task closure only needs to send Sendable values across the
+    /// actor boundary.
+    private func applyLoadResult(loaded: Bool, sequenceFiles: [SequenceEntry], path: String) {
+        self.isShowFolderLoaded = loaded
+        self.sequenceFiles = sequenceFiles
+        if loaded {
+            // Record successful loads so the folder picker can surface them as MRU entries.
+            RecentShowFolders.record(path: path)
+            maybeAutoUpdateFromBaseShowFolder()
+        }
+        finishLoad()
+    }
+
+    private func maybeAutoUpdateFromBaseShowFolder() {
+        guard document.autoUpdateFromBaseShowDirectory(),
+              document.baseShowDirectory() != nil else { return }
+        let result = document.updateFromBaseShowDirectory()
+        if let error = result["error"] as? String {
+            // No UI context to prompt from here — defer to FolderConfigView via FolderConfig so the user can recover on next open.
+            if result["needsReselect"] as? Bool ?? false {
+                FolderConfig.pendingBaseDirReselectMessage = error
+            }
+            print("auto base-folder update skipped: \(error)")
             return
         }
+        let changed = result["controllersChanged"] as? Bool ?? false
+                   || result["modelsChanged"] as? Bool ?? false
+                   || result["objectsChanged"] as? Bool ?? false
+        if changed {
+            _ = document.saveLayoutChanges()
+        }
+    }
 
+    /// Flip the in-flight guard off and fire any pending coalesced request.
+    /// Called at the terminal points of the load flow: a successful or
+    /// failed `applyLoadResult`, or `queueStaleRepromptsThenReload` (where
+    /// the C++ load never ran because we detected a stale bookmark before
+    /// touching `iPadRenderContext`). The re-prompt branch's eventual
+    /// re-call into `loadShowFolder` is a fresh request, so it's safe to
+    /// release the guard here.
+    private func finishLoad() {
+        loadInFlight = false
+        if let pending = pendingLoadRequest {
+            pendingLoadRequest = nil
+            loadShowFolder(path: pending.path, mediaFolders: pending.mediaFolders)
+        }
+    }
+
+    /// MainActor-side handler for the stale-bookmark branch: surfaces the
+    /// re-prompt sheets, then on completion re-enters `loadShowFolder` so
+    /// the second pass picks up the freshly-granted bookmarks (and detaches
+    /// again for its own heavy work).
+    private func queueStaleRepromptsThenReload(
+        stale: [(path: String, label: String)],
+        path: String,
+        mediaFolders: [String]
+    ) {
         for entry in stale {
             enqueueAccessReprompt(label: entry.label, originalPath: entry.path, pickPath: entry.path)
         }
@@ -736,8 +981,10 @@ class SequencerViewModel {
             // After the re-grant pass: if the show folder is still not
             // accessible (user skipped, picked a different folder),
             // leave the app un-loaded so ContentView keeps showing the
-            // setup affordance. Otherwise load with whatever media
-            // folders survived re-grant.
+            // setup affordance. Otherwise re-enter loadShowFolder, which
+            // detaches the heavy work again. Media folders the user
+            // still hasn't granted are dropped to match the previous
+            // silent-drop behavior in iPadRenderContext::LoadShowFolder.
             guard XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false) else {
                 self.isShowFolderLoaded = false
                 return
@@ -745,32 +992,28 @@ class SequencerViewModel {
             let surviving = mediaFolders.filter {
                 XLSequenceDocument.obtainAccess(toPath: $0, enforceWritable: false)
             }
-            self.performLoadShowFolder(path: path, mediaFolders: surviving)
+            self.loadShowFolder(path: path, mediaFolders: surviving)
         }
         runNextAccessReprompt()
-    }
-
-    private func performLoadShowFolder(path: String, mediaFolders: [String]) {
-        isShowFolderLoaded = document.loadShowFolder(path, mediaFolders: mediaFolders)
-        if isShowFolderLoaded {
-            scanForSequenceFiles(at: path)
-            // L-1b: record successful loads so the folder picker can
-            // surface them as one-tap MRU entries on the next visit.
-            RecentShowFolders.record(path: path)
-        }
+        // The C++ side never ran on this branch (stale paths blocked the
+        // detached task before reaching `document.loadShowFolder`), so the
+        // guard can be released now. The re-prompt callback's eventual
+        // `loadShowFolder` re-entry will set it again.
+        finishLoad()
     }
 
     /// Attempt to load the persisted show folder at app startup.
-    /// Returns true if a show folder was configured and loaded successfully.
-    /// May also return false transiently when a re-prompt is queued —
-    /// the queued operation finishes the load asynchronously once the
-    /// user re-picks the folder.
+    /// Returns true if a show folder is configured (and a load is being
+    /// kicked off). Since the load itself runs on a detached task,
+    /// `isShowFolderLoaded` is generally still false at the moment this
+    /// returns — callers should observe `viewModel.isShowFolderLoaded`
+    /// with `.onChange` to react to completion.
     @discardableResult
     func restorePersistedShowFolder() -> Bool {
         guard let path = FolderConfig.showFolder else { return false }
         let mediaFolders = FolderConfig.mediaFolders
         loadShowFolder(path: path, mediaFolders: mediaFolders)
-        return isShowFolderLoaded
+        return true
     }
 
     // MARK: - Access re-prompt queue
@@ -885,53 +1128,120 @@ class SequencerViewModel {
     }
 
     private func performOpenSequence(path: String, forceRender: Bool) {
-        if document.openSequence(path) {
-            isSequenceLoaded = true
-            isDirty = false
-            sequenceName = document.sequenceName()
-            sequenceDurationMS = Int(document.sequenceDurationMS())
-            frameIntervalMS = Int(document.frameIntervalMS())
-            hasAudio = document.hasAudio()
-            reloadAltTracks()
-            reloadRows()
-            reloadTagPositions()
-            syncClipboardFromPasteboard()   // B99
-            loadAvailableEffects()
-            // Initial load uses a modest sample count; grid re-requests
-            // a higher-resolution waveform once it knows the zoom level
-            // via `refreshWaveformForZoom`.
-            loadWaveform(startMS: 0, endMS: sequenceDurationMS)
-            // FSEQ short-circuit: if the user has the feature on and a
-            // matching .fseq exists, skip the render and load frame data
-            // straight from disk. On any mismatch (stale, wrong shape,
-            // missing) we fall through to the normal background render.
-            // `forceRender` (used by Batch Render) bypasses the
-            // short-circuit so we always re-render against the current
-            // layout regardless of any cached fseq.
-            if !forceRender,
-               let fseqPath = FolderConfig.fseqPath(forXsq: path),
-               document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
-                isRendering = false
-                isRenderDone = true
-            } else {
-                startBackgroundRender()
-            }
-            startDirtyPolling()
-            // Scan for missing media on open — the full render pass
-            // populates the media cache which the scan walks. We run
-            // the scan on a utility queue after a short delay so the
-            // cache has settled, then hop back to main to update the
-            // banner count. Keeps the open path from blocking on I/O.
-            scheduleBrokenMediaScan()
-            // E-5 — push to the Recent list (scoped to the current
-            // show folder) so the next visit to the picker surfaces
-            // it. Different show folders keep independent lists.
-            RecentSequences.record(path: path, forShowFolder: showFolderPath)
-            // E-6 — begin autosave writes for this session. The
-            // recovery prompt (when the `.xbkp` is newer than the
-            // `.xsq`) is presented by the UI shell after open.
-            startAutosaveTimer()
+        if openInFlight {
+            print("performOpenSequence: ignoring concurrent open of \(path)")
+            return
         }
+        openInFlight = true
+
+        // Heavy: full .xsq XML parse + audio decode in the bridge.
+        // On the main actor this was tripping the 0x8BADF00D
+        // scene-update watchdog when `handleIncomingSequenceURL`
+        // delivered a file URL during a SwiftUI scene phase change.
+        // Detach the parse; apply state on the main hop. Mirrors the
+        // existing `loadShowFolder` detach pattern.
+        Task.detached { [document, weak self] in
+            let opened = document.openSequence(path)
+            await self?.applyOpenResult(opened: opened, path: path, forceRender: forceRender)
+        }
+    }
+
+    private func applyOpenResult(opened: Bool, path: String, forceRender: Bool) {
+        defer { openInFlight = false }
+        guard opened else { return }
+
+        isSequenceLoaded = true
+        isDirty = false
+        sequenceName = document.sequenceName()
+        sequenceDurationMS = Int(document.sequenceDurationMS())
+        frameIntervalMS = Int(document.frameIntervalMS())
+        hasAudio = document.hasAudio()
+        reloadAltTracks()
+        reloadRows()
+        reloadTagPositions()
+        syncClipboardFromPasteboard()   // B99
+        loadAvailableEffects()
+        // Initial load uses a modest sample count; grid re-requests
+        // a higher-resolution waveform once it knows the zoom level
+        // via `refreshWaveformForZoom`.
+        loadWaveform(startMS: 0, endMS: sequenceDurationMS)
+        // FSEQ short-circuit: if the user has the feature on and a
+        // matching .fseq exists, skip the render and load frame data
+        // straight from disk. On any mismatch (stale, wrong shape,
+        // missing) we fall through to the normal background render.
+        // `forceRender` (used by Batch Render) bypasses the
+        // short-circuit so we always re-render against the current
+        // layout regardless of any cached fseq.
+        if !forceRender,
+           let fseqPath = FolderConfig.fseqPath(forXsq: path),
+           document.tryLoadFseq(fseqPath: fseqPath, xsqPath: path) {
+            isRendering = false
+            isRenderDone = true
+        } else {
+            startBackgroundRender()
+        }
+        startDirtyPolling()
+        // Scan for missing media on open — the full render pass
+        // populates the media cache which the scan walks. We run
+        // the scan on a utility queue after a short delay so the
+        // cache has settled, then hop back to main to update the
+        // banner count. Keeps the open path from blocking on I/O.
+        scheduleBrokenMediaScan()
+        // E-5 — push to the Recent list (scoped to the current
+        // show folder) so the next visit to the picker surfaces
+        // it. Different show folders keep independent lists.
+        RecentSequences.record(path: path, forShowFolder: showFolderPath)
+        // E-6 — begin autosave writes for this session. The
+        // recovery prompt (when the `.xbkp` is newer than the
+        // `.xsq`) is presented by the UI shell after open.
+        startAutosaveTimer()
+        checkMissingModelsAfterOpen()
+    }
+
+    /// Mirrors desktop `CheckForValidModels` — after a sequence
+    /// loads, look for ELEMENT_TYPE_MODEL elements whose target
+    /// model isn't in the show's `ModelManager`. If any carry
+    /// effects, raise a prompt so the user can rename-with-alias or
+    /// delete each one. Models that auto-remap via an existing
+    /// "oldname:" alias are already filtered out by the bridge.
+    private func checkMissingModelsAfterOpen() {
+        let missing = document.missingModelNamesWithEffects() as [String]
+        if missing.isEmpty { return }
+        missingModelPrompt = MissingModelPrompt(originalNames: missing)
+    }
+
+    /// Apply each user decision from `MissingModelAliasSheet`. Renames
+    /// that opt into "add alias" also persist the alias to the show
+    /// layout via the bridge's `MarkLayoutModelDirty` plumbing; we
+    /// call `saveLayoutChanges` once at the end so the rgbeffects XML
+    /// is rewritten atomically.
+    func applyMissingModelDecisions(_ decisions: [(originalName: String, action: MissingModelDecision)]) {
+        var aliasAdded = false
+        for entry in decisions {
+            switch entry.action {
+            case .rename(let target, let addAlias):
+                _ = document.resolveMissingModel(entry.originalName,
+                                                byRenameTo: target,
+                                                addAlias: addAlias)
+                if addAlias { aliasAdded = true }
+            case .delete:
+                _ = document.resolveMissingModel(entry.originalName,
+                                                byDelete: true)
+            }
+        }
+        if aliasAdded {
+            _ = document.saveLayoutChanges()
+        }
+        missingModelPrompt = nil
+        reloadRows()
+    }
+
+    /// Dismiss the prompt without applying any decisions — the
+    /// sequence stays in its as-loaded state, so the affected rows
+    /// stay visible but with no resolvable model. Matches desktop's
+    /// behaviour when the user cancels the mismatch dialog.
+    func cancelMissingModelPrompt() {
+        missingModelPrompt = nil
     }
 
     /// Open an `.xsqz` / `.zip` / `.piz` sequence package. The bridge
@@ -1026,6 +1336,7 @@ class SequencerViewModel {
                 // entries that can't be re-opened is worse than
                 // making the user re-tap from Files.
                 self.startAutosaveTimer()
+                self.checkMissingModelsAfterOpen()
             }
         }
     }
@@ -3018,25 +3329,34 @@ class SequencerViewModel {
         XLAIServices.shared().generateLyricTrack(audioPath: audioPath,
                                                    forService: service.name) { words, starts, ends, error in
 
-            // The bridge marshals this completion to the main
-            // queue, but Swift's type system sees it as a non-
-            // isolated @Sendable closure. Hop explicitly to
-            // MainActor so reloadRows / registerUndo / setActionName
-            // / completion can safely touch MainActor state.
-            Task { @MainActor in
-                if let error = error {
+            // The bridge dispatches every completion path to the
+            // main queue (XLAIServices.mm:371-418). Convert the
+            // bridged NSArrays into Sendable Swift value types
+            // *before* entering the MainActor isolation so Swift 6
+            // strict concurrency doesn't flag the closure capture
+            // as a data-race risk. NSArray<NSNumber> isn't Sendable
+            // under strict mode; [Int] / [String] are.
+            let safeWords: [String]? = words
+            let safeStarts: [Int]? = starts?.map { $0.intValue }
+            let safeEnds: [Int]? = ends?.map { $0.intValue }
+            let safeError: String? = error
+
+            MainActor.assumeIsolated {
+                if let error = safeError {
                     completion(error)
                     return
                 }
-                guard let words = words, let starts = starts, let ends = ends, !words.isEmpty else {
+                guard let words = safeWords, let starts = safeStarts, let ends = safeEnds,
+                      !words.isEmpty else {
                     completion("Recognizer returned no words. Try again with the vocals stem (Tools → Stem Separation) or a clearer audio source.")
                     return
                 }
 
-                let trackName = doc.addLyricTimingTrack(named: name,
-                                                         words: words,
-                                                         startMS: starts,
-                                                         endMS: ends)
+                let trackName = doc.addLyricTimingTrack(
+                    named: name,
+                    words: words,
+                    startMS: starts.map { NSNumber(value: $0) },
+                    endMS: ends.map { NSNumber(value: $0) })
                 if trackName.isEmpty {
                     completion("Couldn't create the lyric timing track.")
                     return
@@ -5263,6 +5583,42 @@ class SequencerViewModel {
         }
     }
 
+    /// B53/B54 follow-up — paste the clipboard at the given row,
+    /// auto-inserting layers when the clipboard spans more rows
+    /// than the destination element currently has. Mirrors desktop
+    /// `EffectsGrid::PasteModelEffectsWithLayers` (PR #6363): copy a
+    /// multi-layer model, paste at another model with fewer layers,
+    /// and the destination grows to fit. Uses `playPositionMS` as
+    /// the time anchor — same convention as ⌘V.
+    func pasteAtRow(rowIndex: Int) {
+        if clipboardEntries.isEmpty { syncClipboardFromPasteboard() }
+        guard !clipboardEntries.isEmpty,
+              rowIndex >= 0, rowIndex < rows.count else { return }
+
+        let maxRowOffset = clipboardEntries.map { $0.rowOffset }.max() ?? 0
+        if maxRowOffset > 0,
+           let destModel = document.rowModelName(at: Int32(rowIndex)) as String?,
+           !destModel.isEmpty {
+            // Count consecutive rows after `rowIndex` that still
+            // belong to the destination model. Submodels of the same
+            // parent share `rowModelName` so they're counted in this
+            // trail — desktop's smart-paste does the same.
+            var existingTrail = 0
+            var probe = rowIndex + 1
+            while probe < rows.count,
+                  ((document.rowModelName(at: Int32(probe)) as String?) ?? "") == destModel {
+                existingTrail += 1
+                probe += 1
+            }
+            let toInsert = maxRowOffset - existingTrail
+            if toInsert > 0 {
+                _ = insertLayersBelow(rowIndex: rowIndex, count: toInsert)
+            }
+        }
+
+        pasteEffect(rowIndex: rowIndex, startMS: playPositionMS)
+    }
+
     // MARK: - Lock / Disable
 
     func toggleLockSelected() {
@@ -5869,19 +6225,20 @@ class SequencerViewModel {
 
         rows = newRows
     }
-
-    private func scanForSequenceFiles(at path: String) {
-        sequenceFiles = SequenceScanner.scan(showFolder: path)
-    }
 }
 
 /// A single .xsq surfaced by the picker / batch render scanners.
 /// `relativePath` is the path under the show folder, with forward slashes
 /// (e.g. "Halloween 2026/skeleton.xsq"); `parentRelativePath` is just the
 /// directory portion ("Halloween 2026", or "" for sequences at the root).
+/// `modificationDate` is the xsq's mtime; `fseqModificationDate` is the
+/// companion fseq's mtime at the path `batchRenderFseqPath(forXsq:)` would
+/// write to (nil when the fseq doesn't exist).
 struct SequenceEntry: Hashable, Identifiable {
     let fullPath: String
     let relativePath: String
+    let modificationDate: Date?
+    let fseqModificationDate: Date?
     var id: String { fullPath }
     var displayName: String {
         (relativePath as NSString).lastPathComponent
@@ -5889,6 +6246,37 @@ struct SequenceEntry: Hashable, Identifiable {
     var parentRelativePath: String {
         let parent = (relativePath as NSString).deletingLastPathComponent
         return parent
+    }
+
+    /// True when an fseq exists and is at least as new as the xsq. False
+    /// when the fseq is missing or older — i.e. the sequence needs a
+    /// (re-)render before upload.
+    var isFseqUpToDate: Bool {
+        guard let fseq = fseqModificationDate else { return false }
+        guard let xsq = modificationDate else { return true }
+        return fseq >= xsq
+    }
+
+    /// Build a SequenceEntry by stat()ing a known xsq path. Used by the
+    /// Recent rows in the picker so they can share `SequenceDatesLabel`
+    /// with the show-folder scan results. `relativePath` falls back to the
+    /// basename when the file isn't under any known show folder.
+    static func stat(path: String, relativeTo showFolder: String? = nil) -> SequenceEntry {
+        let url = URL(fileURLWithPath: path)
+        let mtime = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        let fseqURL = URL(fileURLWithPath: batchRenderFseqPath(forXsq: path))
+        let fseqMtime = (try? fseqURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        let rel: String = {
+            if let showFolder, !showFolder.isEmpty,
+               path.hasPrefix(showFolder + "/") {
+                return String(path.dropFirst(showFolder.count + 1))
+            }
+            return url.lastPathComponent
+        }()
+        return SequenceEntry(fullPath: path,
+                              relativePath: rel,
+                              modificationDate: mtime,
+                              fseqModificationDate: fseqMtime)
     }
 }
 
@@ -5906,19 +6294,27 @@ enum SequenceScanner {
         while let dir = stack.popLast() {
             guard let children = try? fm.contentsOfDirectory(
                 at: dir,
-                includingPropertiesForKeys: [.isDirectoryKey],
+                includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey],
                 options: [.skipsHiddenFiles]
             ) else { continue }
             for child in children {
                 let name = child.lastPathComponent
                 if name.hasPrefix(".") { continue }
-                let isDir = (try? child.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+                let resourceValues = try? child.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey])
+                let isDir = resourceValues?.isDirectory ?? false
                 if isDir {
                     if name.caseInsensitiveCompare("Backup") == .orderedSame { continue }
                     stack.append(child)
                 } else if name.lowercased().hasSuffix(".xsq") {
                     let rel = relativePath(of: child, under: root)
-                    results.append(SequenceEntry(fullPath: child.path, relativePath: rel))
+                    let mtime = resourceValues?.contentModificationDate
+                    let fseqPath = batchRenderFseqPath(forXsq: child.path)
+                    let fseqURL = URL(fileURLWithPath: fseqPath)
+                    let fseqMtime = (try? fseqURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                    results.append(SequenceEntry(fullPath: child.path,
+                                                  relativePath: rel,
+                                                  modificationDate: mtime,
+                                                  fseqModificationDate: fseqMtime))
                 }
             }
         }

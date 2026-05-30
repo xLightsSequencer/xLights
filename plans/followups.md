@@ -1,33 +1,76 @@
 # Cross-phase follow-ups
 
-Small items left over from phases that otherwise landed. No new
-phase home; catalogued here so they don't fall off.
+Small open items left over from phases that otherwise landed.
+
+## Landed fixes
+
+- **MetalShaderEffect interop data race (crash sig `5d9f29a77c`,
+  2026-05-29).** ShaderEffect renders on many worker threads at once
+  (per-model render jobs + per-sub-buffer `parallel_for`). On
+  `USE_GLES`, `GLContextManager::ExecuteOnGLThread` runs inline on the
+  calling thread, and the size-1 GL context pool does *not* serialize
+  the Metal-side interop calls (`getBytes` / `replaceRegion` / texture
+  creation don't need the GL context current). Multiple threads were
+  touching the single shared ANGLE EGLDisplay + Metal device — one in
+  `createSharedTexture` while others were in `copyPixelDataFromTexture`
+  — crashing in `createSharedTexture`
+  (`src-core/effects/metal/MetalShaderEffect.mm:104`). Fix: a
+  file-scope `static std::mutex sMetalInteropMutex` taken across the
+  full body of `preparePixelTextures`, `copyPixelDataToTexture`,
+  `copyPixelDataFromTexture`, and the cache destructor's
+  `destroySharedTexture` calls. Follow-up option if lock contention
+  ever shows: make `ExecuteOnGLThread` funnel to one GL thread on
+  `USE_GLES` like the Windows path, removing the whole class of
+  ANGLE-Metal threading bugs.
+
+## 2026.10 desktop deltas — iPad parity triage
+
+Reviewed every desktop commit in the 2026.10 cycle (since the
+`2026.09` tag) for iPad parity. Most landed in `src-core/` and apply
+to both clients automatically (Text effect multi-line color-per-word,
+Shockwave end-time clamp, the hidden-timing-track fix, and the
+render-engine crash/guard hardening). One UI gap was cheap enough to
+close in the same review:
+
+- **"Hide Unused Submodels"** is now on the iPad row-header context
+  menu (`setHideUnusedSubmodels` / `hideUnusedSubmodels` bridge over
+  the existing `SequenceElements::SetHideUnusedSubmodels`).
+- **Per-Model Default group render style (#4125)** now ships on iPad
+  too: added `perModelDefault` to the `layoutStyleOptions` list in the
+  bridge's `modelGroupLayoutSummary` and a pretty-name case in
+  `LayoutEditorView`. The J-5/J-7 group property editor's Layout-style
+  picker already round-trips arbitrary `layout` strings through
+  `setLayoutModelGroupProperty` → `ModelGroup::SetLayout`, and the
+  render half is shared core (`ModelGroup` / `PixelBuffer`).
+- **Duplicate "Include Submodels" (#6419)** — confirmed working on
+  iPad: render half is core (`RenderEngine`) and the new checkbox
+  rides in on `effectmetadata/Duplicate.json` via the metadata-driven
+  Duplicate panel.
+
+Already covered on iPad — no work needed:
+
+- **Model-pane count badges (#6202).** The iPad J-18 `extrasFor:`
+  bridge already surfaces Faces / States / SubModels / Strands / Nodes
+  (counts via the entry arrays, plus tap-to-view) in the layout
+  model-property editor.
+
+The desktop-only items below are tracked but not yet worth their own
+phase:
+
+- **SelectPanel sort-by-time (#6389).** Enhancement to a panel iPad
+  hasn't ported — folds into AP-3 in
+  [`future-aux-panels.md`](future-aux-panels.md).
+- Desktop-only with no iPad surface: EffectPreset restore option
+  (backup/restore dialog), and the Layout-tab editing improvements
+  (copy/paste placement, Bulk Edit Rotate X/Y/Z, 3D-object handle
+  picking, multi-object pivot) — already covered by
+  [`future-layout-editing.md`](future-layout-editing.md).
 
 ## Phase E — Sequence management polish
 
 - **Sequence Settings → Data Layers tab.** Image-data layers
   authoring. Lowest priority — deferred until someone actually
   uses them on iPad.
-
-- **Add-alias on missing-model prompt** (desktop landed
-  2026-05-01, `e1b90a0fd`). Desktop's `SeqElementMismatchDialog`
-  now offers an "Add as alias" checkbox so users can resolve a
-  missing-model load by aliasing the requested name to an
-  existing model. iPad currently silently drops missing models on
-  load — the access-reprompt sheet pattern (`AccessRepromptSheet`)
-  is the right shape to copy: add a `MissingModelAliasSheet` that
-  presents missing names with an alias-target picker, persist via
-  `Model::AddAlias()` through a new bridge. P2.
-
-## Phase F — Window system polish
-
-- **Display Elements filter** (desktop landed 2026-04-28,
-  `188387c7e`). Desktop's Edit Display Elements sheet now has a
-  search filter above the Available list — large shows with
-  hundreds of models / groups / timings make scroll-and-eye
-  picking tedious. iPad's `DisplayElementsSheet` should mirror
-  with a `.searchable`-driven filter on the Available column;
-  clear automatically when items are moved into the view. S effort.
 
 ## Phase C — Effect Settings Inspector polish
 
@@ -43,35 +86,15 @@ phase home; catalogued here so they don't fall off.
   `ShaderConfig::GetDynamicPropertiesJson()` so grouping carries
   across. Deferred until a real shader pack trips the issue. P2.
 
-- ~~**Shockwave Timing-Track field verification**~~. Verified +
-  fixed 2026-05-02. The new `Shockwave_TimingTrack` choice and
-  its `dynamicOptions: "timingTracks"` populate correctly through
-  the existing `EffectPropertyView` choice path. The change ALSO
-  introduced `enable`/`disable` clauses in `visibilityRules`
-  (`Filter`, `Regex`, `Duration` fields grey out when no timing
-  track is selected) — iPad's rule engine previously honoured
-  only `show`/`hide`, silently ignoring `enable`/`disable`. Added
-  `EffectSettingsView.isPropertyEnabledByRules` mirroring the
-  existing `isPropertyVisible`, plus a `ruleDisabled` param on
-  `EffectPropertyView` (combined with `runtimeDisabled` into a
-  single `effectiveDisabled`). Applied across slider / choice /
-  checkbox / spin / text branches via `.disabled(...)` +
-  `.opacity(0.5)`. 16 metadata files use `enable`/`disable` (Bars,
-  Pictures, Fire, Faces, Fireworks, Liquid, Morph, Meteors,
-  Sketch, Shockwave, SingleStrand, Tendril, Video, Circles,
-  Guitar, plus the schema) — all benefit from this single fix.
+## Handle / gizmo system
 
-## Phase E / G — Media handling
-
-- **Animated GIF → Pictures effect migration** (desktop landed
-  2026-04-27, `6e9e50211`). Desktop now auto-detects animated
-  GIFs sitting in Video effects on sequence load and converts
-  them to Pictures effects (PicturesEffect plays GIF frames
-  natively). The detection helper `MediaCompatibilityIssue::isAnimatedGif()`
-  already lives in `src-core/`; the migration logic itself is in
-  `src-ui-wx/import_export/SeqFileUtilities.cpp` (~200 lines). To
-  bring this to iPad: lift the migration into core (so both
-  clients call the same path) and either run it on sequence load
-  or surface as a one-tap "Convert to Pictures" action in the
-  Media Manager when an `isAnimatedGif` entry shows up in the
-  broken / unsupported list. M effort.
+- **R-8b leftover — descriptor-driven `DrawAxisTool` dispatch.**
+  `DrawAxisTool` and `DrawActiveAxisIndicator` still read
+  `axis_tool` / `active_axis` / `highlighted_handle` members
+  directly. Inline-position math in the per-subclass `DrawHandles`
+  is closed out (descriptors are now the source of truth for
+  Vertex / CurveControl / Shear / Terrain-vertex positions), but
+  the axis-gizmo helper itself hasn't been ported to a descriptor
+  stream. Gates on the first concrete consumer that wants to vary
+  per-axis styling (colour, locked state, hover) without touching
+  the model. Low priority.

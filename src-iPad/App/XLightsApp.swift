@@ -283,6 +283,37 @@ struct ContentView: View {
         )) {
             AIServicesSettingsSheet()
         }
+        // EX-11 Tools → Package Sequence. Hosted here (not on the
+        // sequencer view) so the option sheet survives navigation
+        // and so the result hand-off to `XLPresentShareSheet`
+        // runs against the root scene's window scene.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingPackageSequence },
+            set: { viewModel.showingPackageSequence = $0 }
+        )) {
+            PackageSequenceSheet()
+                .environment(viewModel)
+        }
+        // H-6 / T-2 Tools → View Log. Same hosting rationale as
+        // Package Sequence; the viewer is independent of any
+        // particular open sequence.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingLogViewer },
+            set: { viewModel.showingLogViewer = $0 }
+        )) {
+            LogViewerSheet()
+        }
+        // EX-4 Tools → FPP Connect. Hosted at the root so the
+        // sheet survives sequence reloads (discovery isn't tied to
+        // the open sequence) and so the upload progress flow stays
+        // present even if the user backgrounds the sequencer.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingFPPConnect },
+            set: { viewModel.showingFPPConnect = $0 }
+        )) {
+            FPPConnectSheet()
+                .environment(viewModel)
+        }
         // Unified Add Timing Track sheet. Driven by
         // viewModel.showingAddTimingTrack so all call sites
         // (Display Elements sheet, Settings → Timings tab, the
@@ -313,6 +344,24 @@ struct ContentView: View {
                 onPicked: { url in viewModel.acceptReprompt(pickedURL: url) },
                 onCancel: { viewModel.cancelReprompt() })
         }
+        // Phase E follow-up — missing-model reconciliation. After
+        // `openSequence` succeeds, the bridge reports any model
+        // elements whose target model isn't in the show layout;
+        // surface the per-name prompt sheet here so the user can
+        // rename-with-alias (auto-remap future sequences) or delete
+        // each orphan. Swipe-down cancels without applying
+        // decisions.
+        .sheet(item: Binding(
+            get: { viewModel.missingModelPrompt },
+            set: { newValue in
+                if newValue == nil { viewModel.cancelMissingModelPrompt() }
+            })) { prompt in
+            MissingModelAliasSheet(
+                prompt: prompt,
+                availableModels: (viewModel.document.modelsAvailableInShowLayout() as [String]),
+                onCommit: { viewModel.applyMissingModelDecisions($0) },
+                onCancel: { viewModel.cancelMissingModelPrompt() })
+        }
         .onAppear {
             // Auto-open the dialog on first launch when nothing is configured.
             if !viewModel.isShowFolderLoaded && FolderConfig.showFolder == nil {
@@ -325,13 +374,13 @@ struct ContentView: View {
         }
         // Show-folder restore is deferred to here (instead of running
         // synchronously in `XLightsApp.init`) so the first frame draws
-        // before we touch potentially-slow iCloud paths. iOS gives an
-        // app 20 wall-clock seconds to launch; an iCloud-backed show
-        // folder with a large rgbeffects.xml + many model background
-        // images can blow that budget on `ObtainAccessToURL` /
-        // `FileExists` alone, triggering 0x8BADF00D and a SIGKILL.
-        // Running here means the user can still see the launch UI
-        // (and our setup affordance) even if the restore stalls.
+        // before we touch potentially-slow iCloud paths. The heavy work
+        // inside `restorePersistedShowFolder` (obtainAccess pre-flight,
+        // the C++ load, the recursive .xsq scan) now detaches onto a
+        // background task so this `.task` returns quickly even with a
+        // fully-evicted iCloud show folder — the launch UI stays
+        // responsive and `isShowFolderLoaded` flips when the background
+        // load completes.
         .task {
             guard !didKickoffShowFolderRestore else { return }
             didKickoffShowFolderRestore = true
@@ -871,6 +920,66 @@ struct UbiquityBadge: View {
     }
 }
 
+/// How a sequence list is ordered. Used by the picker's In-This-Show-Folder
+/// section and the Batch Render sheet's sequence list. Persisted per
+/// surface via the `Storage` keys — they have independent state so a user
+/// can sort the picker by Name while sorting Batch Render by Modified.
+enum SequenceSortOrder: String, CaseIterable, Identifiable {
+    case name
+    case modifiedDescending
+    case renderedDescending
+    case outOfDateFirst
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .name: return "Name"
+        case .modifiedDescending: return "Modified (Newest First)"
+        case .renderedDescending: return "Rendered (Newest First)"
+        case .outOfDateFirst: return "Out of Date First"
+        }
+    }
+
+    enum Storage: String {
+        case picker = "xl.sequencePickerSortOrder"
+        case batchRender = "xl.batchRenderSortOrder"
+    }
+
+    static func load(_ storage: Storage) -> SequenceSortOrder {
+        let raw = UserDefaults.standard.string(forKey: storage.rawValue) ?? ""
+        return SequenceSortOrder(rawValue: raw) ?? .name
+    }
+
+    static func save(_ value: SequenceSortOrder, to storage: Storage) {
+        UserDefaults.standard.set(value.rawValue, forKey: storage.rawValue)
+    }
+
+    func apply(_ entries: [SequenceEntry]) -> [SequenceEntry] {
+        switch self {
+        case .name:
+            return entries.sorted {
+                $0.relativePath.localizedStandardCompare($1.relativePath) == .orderedAscending
+            }
+        case .modifiedDescending:
+            return entries.sorted {
+                ($0.modificationDate ?? .distantPast) > ($1.modificationDate ?? .distantPast)
+            }
+        case .renderedDescending:
+            return entries.sorted {
+                ($0.fseqModificationDate ?? .distantPast) > ($1.fseqModificationDate ?? .distantPast)
+            }
+        case .outOfDateFirst:
+            return entries.sorted { lhs, rhs in
+                if lhs.isFseqUpToDate != rhs.isFseqUpToDate {
+                    return !lhs.isFseqUpToDate
+                }
+                return lhs.relativePath.localizedStandardCompare(rhs.relativePath) == .orderedAscending
+            }
+        }
+    }
+}
+
 struct SequencePickerView: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Binding var showFolderConfig: Bool
@@ -879,6 +988,7 @@ struct SequencePickerView: View {
     @State private var showingNewWizard: Bool = false
     @State private var showingBatchRender: Bool = false
     @State private var openErrorMessage: String? = nil
+    @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.picker)
 
     var body: some View {
         NavigationStack {
@@ -887,6 +997,8 @@ struct SequencePickerView: View {
                     Section("Recent") {
                         ForEach(recent) { entry in
                             let status = ubiquityStatus(for: URL(fileURLWithPath: entry.path))
+                            let seqEntry = SequenceEntry.stat(path: entry.path,
+                                                               relativeTo: viewModel.showFolderPath)
                             Button {
                                 openWithDownloadIfNeeded(path: entry.path, status: status)
                             } label: {
@@ -900,6 +1012,7 @@ struct SequencePickerView: View {
                                             .foregroundStyle(.secondary)
                                             .lineLimit(1)
                                             .truncationMode(.middle)
+                                        SequenceDatesLabel(entry: seqEntry)
                                     }
                                     Spacer()
                                     UbiquityBadge(status: status)
@@ -918,7 +1031,7 @@ struct SequencePickerView: View {
                     }
                 }
                 Section(recent.isEmpty ? "Sequences" : "In This Show Folder") {
-                    ForEach(viewModel.sequenceFiles) { entry in
+                    ForEach(sortOrder.apply(viewModel.sequenceFiles)) { entry in
                         let status = ubiquityStatus(for: URL(fileURLWithPath: entry.fullPath))
                         Button {
                             openWithDownloadIfNeeded(path: entry.fullPath, status: status)
@@ -935,6 +1048,7 @@ struct SequencePickerView: View {
                                             .lineLimit(1)
                                             .truncationMode(.middle)
                                     }
+                                    SequenceDatesLabel(entry: entry)
                                 }
                                 Spacer()
                                 UbiquityBadge(status: status)
@@ -965,23 +1079,32 @@ struct SequencePickerView: View {
                         }
                     }
                 }
-                if !recent.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Menu {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Picker("Sort By", selection: $sortOrder) {
+                            ForEach(SequenceSortOrder.allCases) { order in
+                                Text(order.label).tag(order)
+                            }
+                        }
+                        if !recent.isEmpty {
+                            Divider()
                             Button(role: .destructive) {
                                 RecentSequences.clear(forShowFolder: viewModel.showFolderPath)
                                 recent = []
                             } label: {
                                 Label("Clear Recent", systemImage: "clock.badge.xmark")
                             }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
                         }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
             .onAppear {
                 recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
+            }
+            .onChange(of: sortOrder) { _, newValue in
+                SequenceSortOrder.save(newValue, to: .picker)
             }
             .onChange(of: viewModel.showFolderPath) { _, _ in
                 // Show-folder change via the folder-config sheet —

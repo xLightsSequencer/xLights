@@ -953,6 +953,16 @@ std::vector<std::string> SequenceMedia::GetImagePaths() const
     return paths;
 }
 
+std::vector<std::string> SequenceMedia::GetShaderPaths() const
+{
+    std::scoped_lock lock(_cacheMutex);
+    std::vector<std::string> paths;
+    for (const auto& pair : _shaderCache) {
+        paths.push_back(pair.first);
+    }
+    return paths;
+}
+
 std::vector<std::pair<std::string, std::string>> SequenceMedia::GetImageRelocations() const
 {
     std::scoped_lock lock(_cacheMutex);
@@ -1765,6 +1775,75 @@ bool SequenceMedia::ReloadMedia(const std::string& filepath) {
         return true;
     }
     return false;
+}
+
+void SequenceMedia::ForceRefreshEntry(const std::string& filepath,
+                                      const std::string& resolvedPath,
+                                      MediaType type) {
+    if (filepath.empty()) return;
+
+    // resolvedPath is the known absolute file path supplied by the caller (e.g. from
+    // the file picker). We use it directly so we bypass FixFile's stale positive/negative
+    // caches, which can misdirect GetXxx() to an old location after a re-select.
+    const std::string& loadPath = resolvedPath.empty() ? ResolvePath(filepath) : resolvedPath;
+
+    std::shared_ptr<MediaCacheEntry> entry;
+    {
+        std::scoped_lock lock(_cacheMutex);
+
+        // Generic helper: erase the exact key plus any other entry whose resolved path
+        // collides with loadPath (these would cause GetXxx(filepath)'s duplicate-path
+        // check to short-circuit and return without inserting the new key).
+        // Then insert a fresh entry at filepath.
+        auto doInsert = [&](auto& cache, auto makeEntry) -> std::shared_ptr<MediaCacheEntry> {
+            cache.erase(filepath);
+            for (auto it = cache.begin(); it != cache.end(); ) {
+                if (it->second->GetFilePath() == loadPath || ResolvePath(it->first) == loadPath)
+                    it = cache.erase(it);
+                else
+                    ++it;
+            }
+            auto np = makeEntry();
+            cache.emplace(filepath, np);
+            return np;
+        };
+
+        switch (type) {
+            case MediaType::Image:
+                entry = doInsert(_imageCache,
+                    [&]{ return std::make_shared<ImageCacheEntry>(loadPath); });
+                break;
+            case MediaType::Shader:
+                entry = doInsert(_shaderCache,
+                    [&]{ return std::make_shared<ShaderMediaCacheEntry>(loadPath); });
+                break;
+            case MediaType::SVG:
+                entry = doInsert(_svgCache,
+                    [&]{ return std::make_shared<SVGMediaCacheEntry>(loadPath); });
+                break;
+            case MediaType::TextFile:
+                entry = doInsert(_textCache,
+                    [&]{ return std::make_shared<TextMediaCacheEntry>(loadPath); });
+                break;
+            case MediaType::BinaryFile: {
+                // Preserve the subtype (e.g. "glediator") from the existing entry if present.
+                std::string subtype;
+                auto existing = _binaryCache.find(filepath);
+                if (existing != _binaryCache.end()) subtype = existing->second->GetSubtype();
+                entry = doInsert(_binaryCache,
+                    [&]{ return std::make_shared<BinaryMediaCacheEntry>(loadPath, subtype); });
+                break;
+            }
+            case MediaType::Video:
+                entry = doInsert(_videoCache,
+                    [&]{ return std::make_shared<VideoMediaCacheEntry>(loadPath); });
+                break;
+            default:
+                return;
+        }
+    }
+
+    if (entry) entry->Load();
 }
 
 size_t SequenceMedia::GetMediaCount() const {

@@ -17,6 +17,7 @@
 #include "models/ModelManager.h"
 #include "models/SingleLineModel.h"
 #include <log.h>
+#include "utils/FloatChecks.h"
 #include "utils/xlPoint.h"
 #include <cassert>
 #include <cstdlib>
@@ -144,8 +145,8 @@ namespace {
             return fabs(Len2() - 1) < 1e-6;
         }
         Vec2D Rotate(const double& fAngle) const {
-            float cs = RenderBuffer::cos(fAngle);
-            float sn = RenderBuffer::sin(fAngle);
+            float const cs = RenderBuffer::cos(fAngle);
+            float const sn = RenderBuffer::sin(fAngle);
             return Vec2D(x * cs + y * sn, -x * sn + y * cs);
         }
         Vec2D RotateAbout(double angle, const Vec2D& pt) const {
@@ -908,6 +909,23 @@ PixelBufferClass::~PixelBufferClass() {
 }
 
 void PixelBufferClass::reset(int nlayers, int timing, bool isNode) {
+    // Callers are required to AbortRender before changing/deleting the
+    // model this buffer points at, so model should always be non-null
+    // here. Crash reports show otherwise (top mac/iPad crash); guard
+    // and log so the buffer is left empty rather than dereferencing
+    // a null model in InitRenderBufferNodes below.
+    if (model == nullptr) {
+        if (auto l = spdlog::get("render")) {
+            l->error("PixelBufferClass::reset called with null model ({} layers, modelName='{}') — likely a missing AbortRender before a model change.",
+                     nlayers, modelName);
+        }
+        for (int x = 0; x < numLayers; x++) {
+            delete layers[x];
+        }
+        layers.clear();
+        numLayers = 0;
+        return;
+    }
     for (int x = 0; x < numLayers; x++) {
         delete layers[x];
     }
@@ -2152,6 +2170,19 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
     const std::string& xpivotValueCurve = settingsMap.Get(VALUECURVE_XPivot, STR_EMPTY);
     const std::string& ypivotValueCurve = settingsMap.Get(VALUECURVE_YPivot, STR_EMPTY);
 
+    // If the effect uses "Default" style on a group whose defaultBufferStyle is a Per Model variant,
+    // resolve now so the Per Model detection below fires correctly (the resolution inside
+    // InitRenderBufferNodes is too late — Per Model needs separate buffer allocation here first).
+    if (type == "Default") {
+        const ModelGroup* mg = dynamic_cast<const ModelGroup*>(model);
+        if (mg != nullptr) {
+            const std::string& dbs = mg->GetDefaultBufferStyle();
+            if (dbs.compare(0, 9, "Per Model") == 0) {
+                type = dbs;
+            }
+        }
+    }
+
     if (inf->bufferType != type ||
         inf->camera != camera ||
         inf->bufferTransform != transform ||
@@ -2445,7 +2476,7 @@ static inline bool IsInRange(const std::vector<bool>& restrictRange, size_t star
     return restrictRange[start];
 }
 
-void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange) {
+void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& restrictRange, unsigned int numChannels) {
     // KW ... I think this needs to be optimised
 
     if (layers[0] != nullptr) { // I dont like this ... it should never be null
@@ -2453,6 +2484,11 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
             // smaller model, no sense in setting up the parallel_for
             for (auto& n : layers[0]->buffer.Nodes) {
                 size_t start = n->ActChan;
+                // Mirror SetColors: never write past fdata. A stale ActChan
+                // (model node count changed / seqData reallocated under a
+                // live render job) would otherwise overrun the channel
+                // buffer in GetForChannels (crash sig 62b47aa9b8).
+                if (start >= numChannels) continue;
                 if (IsInRange(restrictRange, start)) {
                     if (n->model != nullptr) { // nor this
                         DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2483,6 +2519,8 @@ void PixelBufferClass::GetColors(unsigned char* fdata, const std::vector<bool>& 
                     // function already does this.
                     if (n == nullptr) return;
                     size_t start = n->ActChan;
+                    // Mirror SetColors: never write past fdata (see above).
+                    if (start >= numChannels) return;
                     if (IsInRange(restrictRange, start)) {
                         if (n->model != nullptr) { // nor this
                             DimmingCurve* curve = n->model->GetDimmingCurve();
@@ -2664,7 +2702,9 @@ void PixelBufferClass::RotateZAndZoom(RenderBuffer& buffer, GPURenderUtils::Roto
 }
 
 void PixelBufferClass::RotoZoom(LayerInfo* layer, float offset) {
-    if (std::isinf(offset))
+    // xl::isinf: std::isinf may fold to `false` under -ffinite-math-only
+    // (Release -ffast-math); use the helper to keep the clamp working.
+    if (xl::isinf(offset))
         offset = 1.0;
 
     GPURenderUtils::RotoZoomSettings settings;

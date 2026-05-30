@@ -692,24 +692,28 @@ void SubBufferPanel::mouseMoved(wxMouseEvent& event)
     }
     break;
     default: {
+        static const wxCursor s_sizeNESW(wxCURSOR_SIZENESW);
+        static const wxCursor s_sizeNWSE(wxCURSOR_SIZENWSE);
+        static const wxCursor s_sizing(wxCURSOR_SIZING);
+        static const wxCursor s_default(wxCURSOR_DEFAULT);
         int i = OverMouseHandle(event);
         if (i > -1 && !HasVC()) {
             switch (i) {
             case 0:
             case 2:
-                SetCursor(wxCURSOR_SIZENESW);
+                SetCursor(s_sizeNESW);
                 break;
             case 1:
             case 3:
-                SetCursor(wxCURSOR_SIZENWSE);
+                SetCursor(s_sizeNWSE);
                 break;
             case 4:
-                SetCursor(wxCURSOR_SIZING);
+                SetCursor(s_sizing);
                 break;
             }
         }
         else {
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
         }
     }
     }

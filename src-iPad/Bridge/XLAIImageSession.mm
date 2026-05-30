@@ -78,7 +78,9 @@
         // _generator is captured by raw pointer — the session must
         // outlive the callback. SwiftUI keeps the session in @State
         // while the sheet is open, which covers the full lifecycle.
-        _generator->generateImage(p, [completion](aiBase::AIImageResult res) {
+        // Explicit self-> so ARC's implicit-retain-self warning is satisfied;
+        // retaining self in the block is intentional.
+        self->_generator->generateImage(p, [completion](aiBase::AIImageResult res) {
             NSData* png = nil;
             NSString* err = nil;
             if (!res.error.empty()) {

@@ -14,18 +14,39 @@ struct FolderConfigView: View {
     @State private var fseqFolderPath: String?
     @State private var pickerMode: PickerMode?
     @State private var recentFolders: [RecentShowFolders.Entry] = []
+    @State private var baseShowFolderPath: String?
+    @State private var autoUpdateFromBase: Bool = false
+    @State private var updateResult: BaseDirUpdateResult?
+    @State private var reselectPrompt: ReselectPrompt?
 
     enum PickerMode: Identifiable {
         case showFolder
         case addMediaFolder
         case fseqFolder
+        case baseShowFolder
+        // Picks a base show folder then immediately retries the merge — used by the stale-bookmark reselect flow.
+        case baseShowFolderRetryUpdate
         var id: Int {
             switch self {
             case .showFolder: return 0
             case .addMediaFolder: return 1
             case .fseqFolder: return 2
+            case .baseShowFolder: return 3
+            case .baseShowFolderRetryUpdate: return 4
             }
         }
+    }
+
+    struct BaseDirUpdateResult: Identifiable {
+        let id = UUID()
+        let success: Bool
+        let title: String
+        let message: String
+    }
+
+    struct ReselectPrompt: Identifiable {
+        let id = UUID()
+        let message: String
     }
 
     init() {
@@ -111,6 +132,10 @@ struct FolderConfigView: View {
                     Text("Media folders are searched for audio, shaders, and other assets referenced by sequences.")
                 }
 
+                if showFolderPath != nil {
+                    baseShowFolderSection
+                }
+
                 Section {
                     Toggle("Save FSEQ on save", isOn: $fseqEnabled)
                     if fseqEnabled {
@@ -158,6 +183,12 @@ struct FolderConfigView: View {
             }
             .onAppear {
                 recentFolders = RecentShowFolders.load()
+                baseShowFolderPath = viewModel.document.baseShowDirectory()
+                autoUpdateFromBase = viewModel.document.autoUpdateFromBaseShowDirectory()
+                if let deferred = FolderConfig.pendingBaseDirReselectMessage {
+                    FolderConfig.pendingBaseDirReselectMessage = nil
+                    reselectPrompt = ReselectPrompt(message: deferred)
+                }
             }
             .sheet(item: $pickerMode) { mode in
                 ShowFolderPicker { url in
@@ -172,11 +203,114 @@ struct FolderConfigView: View {
                         }
                     case .fseqFolder:
                         fseqFolderPath = path
+                    case .baseShowFolder:
+                        baseShowFolderPath = path
+                    case .baseShowFolderRetryUpdate:
+                        baseShowFolderPath = path
+                        commitBaseShowDirectoryEdits()
+                        performUpdateFromBase()
                     }
                     pickerMode = nil
                 }
             }
+            .alert(item: $updateResult) { result in
+                Alert(title: Text(result.title),
+                      message: Text(result.message),
+                      dismissButton: .default(Text("OK")))
+            }
+            .alert(item: $reselectPrompt) { prompt in
+                Alert(title: Text("Reselect Base Show Folder"),
+                      message: Text(prompt.message),
+                      primaryButton: .default(Text("Reselect…")) {
+                          pickerMode = .baseShowFolderRetryUpdate
+                      },
+                      secondaryButton: .cancel())
+            }
         }
+    }
+
+    @ViewBuilder
+    private var baseShowFolderSection: some View {
+        Section {
+            if let path = baseShowFolderPath {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(displayName(path))
+                    Text(path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                Button("Change Base Show Folder…") {
+                    pickerMode = .baseShowFolder
+                }
+                Button("Clear Base Show Folder", role: .destructive) {
+                    baseShowFolderPath = nil
+                    autoUpdateFromBase = false
+                }
+                Toggle("Auto Update On Open", isOn: $autoUpdateFromBase)
+                Button("Update From Base Now") {
+                    performUpdateFromBase()
+                }
+                .disabled(path == showFolderPath)
+            } else {
+                Text("No base show folder")
+                    .foregroundStyle(.secondary)
+                Button("Choose Base Show Folder…") {
+                    pickerMode = .baseShowFolder
+                }
+            }
+        } header: {
+            Text("Base Show Folder")
+        } footer: {
+            Text("A base show folder lets this show pull in controllers, models, and view objects from a master folder. Turn on Auto Update to merge changes every time the show opens; tap Update From Base Now to merge on demand.")
+        }
+    }
+
+    private func performUpdateFromBase() {
+        // Flush pending edits before the merge so Update Now operates against the current path, not the previously-saved one.
+        commitBaseShowDirectoryEdits()
+
+        let result = viewModel.document.updateFromBaseShowDirectory()
+
+        if let error = result["error"] as? String {
+            let needsReselect = result["needsReselect"] as? Bool ?? false
+            if needsReselect {
+                reselectPrompt = ReselectPrompt(message: error)
+            } else {
+                updateResult = BaseDirUpdateResult(
+                    success: false,
+                    title: "Update Failed",
+                    message: error)
+            }
+            return
+        }
+
+        let controllersChanged = result["controllersChanged"] as? Bool ?? false
+        let modelsChanged = result["modelsChanged"] as? Bool ?? false
+        let objectsChanged = result["objectsChanged"] as? Bool ?? false
+        _ = viewModel.document.saveLayoutChanges()
+
+        if !controllersChanged && !modelsChanged && !objectsChanged {
+            updateResult = BaseDirUpdateResult(
+                success: true,
+                title: "Already Up To Date",
+                message: "Nothing to merge — the base show folder hasn't changed anything since the last update.")
+            return
+        }
+
+        var parts: [String] = []
+        if controllersChanged { parts.append("controllers") }
+        if modelsChanged { parts.append("models") }
+        if objectsChanged { parts.append("view objects") }
+        updateResult = BaseDirUpdateResult(
+            success: true,
+            title: "Updated From Base",
+            message: "Merged " + parts.joined(separator: ", ") + " from the base show folder.")
+    }
+
+    private func commitBaseShowDirectoryEdits() {
+        viewModel.document.setBaseShowDirectory(baseShowFolderPath)
+        viewModel.document.setAutoUpdateFromBaseShowDirectory(autoUpdateFromBase)
     }
 
     private func displayName(_ path: String) -> String {
@@ -192,10 +326,19 @@ struct FolderConfigView: View {
 
     private func apply() {
         guard let path = showFolderPath else { return }
+        let priorShowFolder = FolderConfig.showFolder
+
         FolderConfig.showFolder = path
         FolderConfig.mediaFolders = mediaFolderPaths
         FolderConfig.fseqEnabled = fseqEnabled
         FolderConfig.fseqFolder = fseqEnabled ? fseqFolderPath : nil
-        viewModel.loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
+
+        if path == priorShowFolder {
+            // Same show: base-dir edits apply to the loaded OutputManager — flush them. Different show: edits target the about-to-be-unloaded OM; loadShowFolder brings up the new show's own base-dir state.
+            commitBaseShowDirectoryEdits()
+            _ = viewModel.document.saveLayoutChanges()
+        } else {
+            viewModel.loadShowFolder(path: path, mediaFolders: mediaFolderPaths)
+        }
     }
 }

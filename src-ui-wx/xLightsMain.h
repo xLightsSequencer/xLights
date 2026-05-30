@@ -118,7 +118,6 @@ class EffectTreeDialog;
 class FPP;
 class ConvertDialog;
 class ConvertLogDialog;
-class RenderTreeData;
 class HousePreviewPanel;
 class SelectPanel;
 class SearchPanel;
@@ -195,7 +194,9 @@ wxDECLARE_EVENT(EVT_EXPORT_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_MODEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CUT_MODEL_EFFECTS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_COPY_MODEL_EFFECTS_TO_MODELS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODEL_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_PLAY_SEQUENCE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TOGGLE_PLAY, wxCommandEvent);
@@ -459,7 +460,7 @@ public:
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string());
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -1155,6 +1156,7 @@ public:
     bool _snapToTimingMarks = true;
     bool _autoSavePerspecive = true;
     bool _renderBellEnabled = false;
+    bool _pasteAsLayers = false;
     bool _ignoreVendorModelRecommendations = false;
     bool _purgeDownloadCacheOnStart = false;
     bool _enablePositionZones = true;
@@ -1182,6 +1184,8 @@ public:
 
     [[nodiscard]] bool IsRenderBell() const { return _renderBellEnabled; }
     void SetRenderBell(bool b) { _renderBellEnabled = b; }
+    [[nodiscard]] bool IsPasteAsLayers() const { return _pasteAsLayers; }
+    void SetPasteAsLayers(bool b) { _pasteAsLayers = b; }
 	[[nodiscard]] bool IsIgnoreVendorModelRecommendations() const { return _ignoreVendorModelRecommendations; }
     void StartAutomationListener();
     [[nodiscard]] bool ProcessHttpRequest(HttpConnection& connection, HttpRequest& request);
@@ -1627,6 +1631,7 @@ public:
     bool IsNewModel(Model* m) const;
     int GetCurrentPlayTime();
     Model *GetModel(const std::string& name) const override;
+    unsigned int GetModelGeneration() const override { return AllModels.GetModelGeneration(); }
     void RenderGridToSeqData(std::function<void(bool)>&& callback);
     bool AbortRender(int maxTimeMs = 60000) override;
     bool AbortRender(int maxTimeMs, int* numThreadsAborted);
@@ -1655,7 +1660,7 @@ public:
     void DoPromoteEffects(ModelElement *element);
     EffectPreset* CreateEffectPreset(EffectPresetGroup* parent, const std::string& name);
     void UpdateEffectPreset(EffectPreset* preset);
-    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion);
+    void ApplyEffectsPreset(wxString& data, const wxString &pasteDataVersion, bool layerMode = false);
     Effect* ApplyEffectsPreset(const std::string& presetName);
     std::vector<std::string> GetPresets() const;
     void RenameModelInViews(const std::string old_name, const std::string& new_name);
@@ -1944,7 +1949,9 @@ private:
     void PlayModel(wxCommandEvent& event);
     void CutModelEffects(wxCommandEvent& event);
     void CopyModelEffects(wxCommandEvent& event);
+    void CopyModelEffectsToModels(wxCommandEvent& event);
     void PasteModelEffects(wxCommandEvent& event);
+    void PasteModelEffectsWithSubModelLayers(wxCommandEvent& event);
     void ModelSelected(wxCommandEvent& event);
     void PlaySequence(wxCommandEvent& event);
     void PauseSequence(wxCommandEvent& event);

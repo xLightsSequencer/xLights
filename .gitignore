@@ -60,3 +60,4 @@ xScanner/x64
 .mcp.json
 share
 **/cmake_vs/
+plans/private-**

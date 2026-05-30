@@ -81,10 +81,6 @@ void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 
 std::string xLightsFrame::BuildEffectsXml()
 {
-    if (layoutPanel->Is3d() && GetXmlSetting("LayoutMode3D", "") != "1") {
-        SetXmlSetting("LayoutMode3D", "1");
-    }
-
     XmlSerializer serializer;
     StringSerializingVisitor visitor;
     visitor.WriteOpenTag("xrgb");
@@ -251,7 +247,6 @@ void xLightsFrame::LoadEffectsFile()
     pugi::xml_node layoutGroupsNode = root.child("layoutGroups");
     pugi::xml_node perspectivesNode = root.child("perspectives");
     pugi::xml_node settingsNode = root.child("settings");
-    _xmlSettings.clear();
     if (settingsNode) {
         for (pugi::xml_node s = settingsNode.first_child(); s; s = s.next_sibling()) {
             _xmlSettings[s.name()] = s.attribute("value").as_string();
@@ -494,25 +489,6 @@ void xLightsFrame::LoadEffectsFile()
         _housePreviewPanel->GetModelPreview()->RestoreDefaultCameraPosition();
     }
 
-    if (GetXmlSetting("LayoutMode3D", "0") == "0") {
-        bool has3dContent = (viewpoint_mgr.GetNum3DCameras() > 0 || viewpoint_mgr.GetDefaultCamera3D() != nullptr);
-        if (!has3dContent && viewObjectsNode) {
-            for (pugi::xml_node n = viewObjectsNode.first_child(); n && !has3dContent; n = n.next_sibling()) {
-                has3dContent = (std::string_view(n.attribute("DisplayAs").as_string()) != "Gridlines");
-            }
-        }
-        if (!has3dContent && modelsNode) {
-            for (pugi::xml_node n = modelsNode.first_child(); n && !has3dContent; n = n.next_sibling()) {
-                has3dContent = (n.attribute("WorldPosZ").as_float(0.0f) != 0.0f ||
-                                n.attribute("RotateX").as_float(0.0f) != 0.0f ||
-                                n.attribute("RotateY").as_float(0.0f) != 0.0f);
-            }
-        }
-        if (has3dContent) {
-            SetXmlSetting("LayoutMode3D", "1");
-        }
-    }
-
     if (!modelGroupsNode) {
         modelGroupsNode = root.append_child("modelGroups");
     }
@@ -649,7 +625,9 @@ void xLightsFrame::LoadEffectsFile()
         modelPreview->SetScaleBackgroundImage(layoutPanel->GetBackgroundScaledForSelectedPreview());
     }
     
-    bool is_3d = GetXmlSetting("LayoutMode3D", "0") == "1";
+    auto* config = GetXLightsConfig();
+    bool is_3d = config->ReadBool("LayoutMode3D", false);
+    is_3d = GetXmlSetting("LayoutMode3D", is_3d ? "1" : "0") == "1";
     modelPreview->Set3D(is_3d);
     _housePreviewPanel->Set3d(is_3d);
     layoutPanel->Set3d(is_3d);

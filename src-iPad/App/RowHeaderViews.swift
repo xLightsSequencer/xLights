@@ -291,12 +291,17 @@ struct ModelRowHeader: View {
     /// B51 toggle element render-disabled flag.
     var elementRenderDisabled: Bool = false
     var onToggleRenderDisabled: (() -> Void)?
-    /// B53 / B54 row + model cut / copy. Paste is the global Cmd+V
-    /// already plumbed for multi-effect clipboards (B98).
+    /// B53 / B54 row + model cut / copy. Paste is also exposed on
+    /// the menu via `onPaste` (in addition to the global Cmd+V
+    /// plumbed in B98) — fires `pasteAtRow` so a multi-layer
+    /// clipboard auto-inserts layers in the destination, matching
+    /// desktop PR #6363.
     var onCopyRow: (() -> Void)?
     var onCutRow: (() -> Void)?
     var onCopyModel: (() -> Void)?
     var onCutModel: (() -> Void)?
+    var onPaste: (() -> Void)?
+    var hasClipboard: Bool = false
     /// B49 export rendered-channel data for this row's model as a
     /// Falcon Player `.eseq` sub-sequence. The closure receives
     /// `true` when the caller should restrict the export to the
@@ -504,6 +509,11 @@ struct ModelRowHeader: View {
                            systemImage: "square.stack.3d.up.trianglebadge.exclamationmark")
                 }
             }
+            if hasClipboard, let fire = onPaste {
+                Button { fire() } label: {
+                    Label("Paste", systemImage: "doc.on.clipboard")
+                }
+            }
             if !isSubLayer && !isNodeRow, let fire = onExportModelFSEQ {
                 Button { fire(false) } label: {
                     Label("Export Model as FSEQ…",
@@ -595,6 +605,13 @@ struct ModelRowHeader: View {
                 } label: {
                     Label(showsChildren ? "Hide Strands/Submodels" : "Show Strands/Submodels",
                           systemImage: showsChildren ? "eye.slash" : "eye")
+                }
+                Button {
+                    document.setHideUnusedSubmodels(!document.hideUnusedSubmodels())
+                    onRowsChanged()
+                } label: {
+                    Label(document.hideUnusedSubmodels() ? "Show All Submodels" : "Hide Unused Submodels",
+                          systemImage: document.hideUnusedSubmodels() ? "eye" : "eye.slash")
                 }
             }
             if canToggleNodes {

@@ -3349,7 +3349,10 @@ void SubModelsDialog::OnPreviewLeftDClick(wxMouseEvent& event)
 
     std::vector<wxRealPoint> pts;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     //toggle nodes if double click
     bool found = false;
@@ -3448,7 +3451,10 @@ void SubModelsDialog::SelectAllInBoundingRect(bool shiftDwn, bool ctrlDown)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
 
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
         bool found = false;
@@ -3495,7 +3501,10 @@ void SubModelsDialog::RemoveNodes(bool suppress)
     if (nodes.size() == 0)
         return;
     auto const oldnodes = NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - row]);
-    auto oldNodeArrray = Split(oldnodes, ',');
+    std::vector<std::string> oldNodeArrray;
+    if (!oldnodes.empty()) {
+        oldNodeArrray = Split(oldnodes, ',');
+    }
 
     for (auto const& newNode : nodes) {
         auto const stNode = fmt::format("{}", newNode);
@@ -3508,13 +3517,7 @@ void SubModelsDialog::RemoveNodes(bool suppress)
                 }
             }
         } else {
-            for (auto it = oldNodeArrray.begin(); it != oldNodeArrray.end(); ++it) {
-                if (*it == stNode) {
-                    oldNodeArrray.erase(it);
-                    // Note that this only erases once, in case it somehow got added multiple times...
-                    break;
-                }
-            }
+            oldNodeArrray.erase(std::remove(oldNodeArrray.begin(), oldNodeArrray.end(), stNode), oldNodeArrray.end());
         }
     }
 
@@ -3539,6 +3542,9 @@ void SubModelsDialog::ImportSubModel(std::string filename)
     if (result)
     {
         pugi::xml_node root = doc.document_element();
+        if (std::string_view(root.name()) == "models") {
+            root = root.first_child();
+        }
         ImportSubModelXML(root);
     }
     else
@@ -3783,9 +3789,36 @@ void SubModelsDialog::CreateSubmodel(const std::string& name, const std::list<st
 
 void SubModelsDialog::ImportCustomModel(std::string filename)
 {
-    // Load custom model data using XmlSerializer
-    auto customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
-    
+    std::optional<XmlSerialize::CustomModelImportData> customModelOpt;
+
+    pugi::xml_document fileDoc;
+    if (!fileDoc.load_file(filename.c_str())) {
+        DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+        return;
+    }
+
+    pugi::xml_node root = fileDoc.document_element();
+    if (std::string_view(root.name()) == "models") {
+        // New-format xmodel: <models><model DisplayAs="Custom" ...>
+        pugi::xml_node modelNode = root.first_child();
+        if (!modelNode || std::string_view(modelNode.attribute("DisplayAs").as_string()) != "Custom") {
+            DisplayError("Failure loading xModel file or model is not a 2D custom model.");
+            return;
+        }
+        // Adapt to <custommodel> element so LoadCustomModelFromXml can parse it
+        pugi::xml_document tempDoc;
+        pugi::xml_node cmNode = tempDoc.append_child("custommodel");
+        for (pugi::xml_attribute attr = modelNode.first_attribute(); attr; attr = attr.next_attribute()) {
+            cmNode.append_attribute(attr.name()) = attr.value();
+        }
+        for (pugi::xml_node child = modelNode.first_child(); child; child = child.next_sibling()) {
+            cmNode.append_copy(child);
+        }
+        customModelOpt = XmlSerialize::LoadCustomModelFromXml(cmNode);
+    } else {
+        customModelOpt = XmlSerialize::LoadCustomModelFromFile(filename);
+    }
+
     if (!customModelOpt.has_value()) {
         DisplayError("Failure loading xModel file or model is not a 2D custom model.");
         return;

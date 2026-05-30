@@ -165,24 +165,17 @@ namespace
         return texId;
     }
 
-    bool createOpenGLRenderBuffer(int width, int height, GLuint* rbID, GLuint* fbID)
+    GLuint allocColorRenderbuffer(int width, int height)
     {
-        LOG_GL_ERRORV(glGenRenderbuffers(1, rbID));
-        LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, *rbID));
+        GLuint rb = 0;
+        LOG_GL_ERRORV(glGenRenderbuffers(1, &rb));
+        LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, rb));
 #ifdef USE_GLES
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height));
 #else
         LOG_GL_ERRORV(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height));
 #endif
-
-        LOG_GL_ERRORV(glGenFramebuffers(1, fbID));
-        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, *fbID));
-        glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
-        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, *rbID);
-
-        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-        return *rbID != 0 && *fbID != 0;
+        return rb;
     }
 
     const char* vsSrc =
@@ -473,15 +466,22 @@ public:
         }
         if (_shaderConfig != nullptr) delete _shaderConfig;
 
-        if (contextHandle) {
+        // Acquire any pool context to glDelete the shareable resources; they
+        // all live in the share group rooted at the shader share-root.
+        if (s_vertexBufferId || s_rbId || s_rbTex || s_audioTex) {
             auto& mgr = GLContextManager::Instance();
             mgr.ExecuteOnGLThread([&]() {
-                if (mgr.MakeCurrent(contextHandle)) {
-                    DestroyResources();
-                    mgr.DoneCurrent(contextHandle);
+                GLContextManager::ContextHandle ctx = mgr.AcquireContext();
+                if (ctx) {
+                    if (mgr.MakeCurrent(ctx)) {
+                        if (s_vertexBufferId) { LOG_GL_ERRORV(glDeleteBuffers(1, &s_vertexBufferId)); }
+                        if (s_rbId)           { LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId)); }
+                        if (s_rbTex)          { LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex)); }
+                        if (s_audioTex)       { LOG_GL_ERRORV(glDeleteTextures(1, &s_audioTex)); }
+                        mgr.DoneCurrent(ctx);
+                    }
+                    mgr.ReleaseContext(ctx);
                 }
-                mgr.ReleaseContext(contextHandle);
-                contextHandle = nullptr;
             });
         }
     }
@@ -518,10 +518,10 @@ public:
     }
 
     ShaderConfig* _shaderConfig = nullptr;
+    // Only shareable resources are cached here; VAO and FBO are non-shareable
+    // and recreated per frame in Render().
     bool s_shadersInit = false;
-    unsigned s_vertexArrayId = 0;
     unsigned s_vertexBufferId = 0;
-    unsigned s_fbId = 0;
     unsigned s_rbId = 0;
     unsigned s_rbTex = 0;
     unsigned s_audioTex = 0;
@@ -537,20 +537,6 @@ public:
         if (_shaderConfig != nullptr) delete _shaderConfig;
         _shaderConfig = ShaderEffect::ParseShader(filename, sequenceElements);
         s_shaderInfo = nullptr;
-    }
-
-    void DestroyResources() {
-        DestroyResources(s_vertexArrayId, s_vertexBufferId, s_fbId, s_rbId, s_rbTex, s_audioTex);
-        s_programId = 0; s_vertexArrayId = 0; s_vertexBufferId = 0;
-        s_fbId = 0; s_rbId = 0; s_rbTex = 0; s_audioTex = 0;
-    }
-    static void DestroyResources(unsigned vaId, unsigned vbId, unsigned fb, unsigned rb, unsigned rbTx, unsigned audTx) {
-        if (vaId) { LOG_GL_ERRORV(glDeleteVertexArrays(1, &vaId)); }
-        if (vbId) { LOG_GL_ERRORV(glDeleteBuffers(1, &vbId)); }
-        if (fb) { LOG_GL_ERRORV(glDeleteFramebuffers(1, &fb)); }
-        if (rb) { LOG_GL_ERRORV(glDeleteRenderbuffers(1, &rb)); }
-        if (rbTx) { LOG_GL_ERRORV(glDeleteTextures(1, &rbTx)); }
-        if (audTx) { LOG_GL_ERRORV(glDeleteTextures(1, &audTx)); }
     }
 };
 std::map<std::string, ShaderRenderCache::ShaderInfo*> ShaderRenderCache::shaderMap;
@@ -583,15 +569,14 @@ bool ShaderEffect::SetGLContext(ShaderRenderCache *cache) {
 void ShaderEffect::UnsetGLContext(ShaderRenderCache* cache) {
     auto& mgr = GLContextManager::Instance();
     mgr.DoneCurrent(cache->contextHandle);
-#if !defined(_WIN32)
-    // macOS/Linux: return context to pool after each frame so other threads
-    // can acquire it.  The per-thread context cache (contextHandle) is
-    // re-acquired at the start of the next frame; pool contexts share no
-    // state so GL resources (FBOs, textures) owned by the cache remain valid.
+    // Return the context to the pool every frame so a single GL worker
+    // context serves many ShaderRenderCaches in one frame instead of
+    // wglMakeCurrent-ing between N pinned HGLRCs (a common trigger for
+    // NVIDIA driver error 2004 / dropped shader frames on Windows).  Cached
+    // shareable resources survive the swap because pool contexts share a
+    // common root — see GLContextManager.cpp.
     mgr.ReleaseContext(cache->contextHandle);
     cache->contextHandle = nullptr;
-#endif
-    // Windows: keep context cached in ShaderRenderCache for reuse (pool grows on demand)
 }
 
 void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuffer& buffer)
@@ -624,9 +609,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     // This object has all the data from the json in the .fs file
     ShaderConfig*& _shaderConfig = cache->_shaderConfig;
     bool& s_shadersInit = cache->s_shadersInit;
-    unsigned& s_vertexArrayId = cache->s_vertexArrayId;
     unsigned& s_vertexBufferId = cache->s_vertexBufferId;
-    unsigned& s_fbId = cache->s_fbId;
     unsigned& s_rbId = cache->s_rbId;
     unsigned& s_rbTex = cache->s_rbTex;
     unsigned& s_audioTex = cache->s_audioTex;
@@ -711,12 +694,26 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     // todo is there more of this code we could add to the needtoinit case as this only happens on the first frame
     // ***********************************************************************************************************
 
-    // We re-use the same framebuffer for rendering all the shader effects
-    sizeForRenderBuffer(buffer, s_shadersInit, s_vertexArrayId, s_vertexBufferId, s_rbId, s_fbId, s_rbTex, s_rbWidth, s_rbHeight);
+    sizeForRenderBuffer(buffer, s_shadersInit, s_vertexBufferId, s_rbId, s_rbTex, s_rbWidth, s_rbHeight);
 
-    preparePixelTextures(buffer, s_shadersInit, s_fbId);
+    // VAO and FBO are not shareable across GL contexts per the spec, so
+    // recreate them per frame rather than tracking which pool context owns
+    // them.
+    GLuint vao = 0;
+    GLuint fb = 0;
+    LOG_GL_ERRORV(glGenVertexArrays(1, &vao));
+    LOG_GL_ERRORV(glBindVertexArray(vao));
+    LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
+    LOG_GL_ERRORV(glBindVertexArray(0));
+    LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-    LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, s_fbId));
+    LOG_GL_ERRORV(glGenFramebuffers(1, &fb));
+    LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fb));
+    LOG_GL_ERRORV(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, s_rbId));
+
+    preparePixelTextures(buffer, s_shadersInit, fb);
+
+    LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fb));
     LOG_GL_ERRORV(glViewport(0, 0, buffer.BufferWi, buffer.BufferHt));
 
     LOG_GL_ERRORV(glClearColor(0.f, 0.f, 0.f, 0.f));
@@ -748,7 +745,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
         copyPixelDataToTexture(buffer, s_rbTex);
     }
 
-    LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
+    LOG_GL_ERRORV(glBindVertexArray(vao));
     LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
     LOG_GL_ERRORV(glUseProgram(programId));
     
@@ -889,6 +886,9 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     copyPixelDataFromTexture(buffer);
 
     LOG_GL_ERRORV(glUseProgram(0));
+    LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    LOG_GL_ERRORV(glDeleteFramebuffers(1, &fb));
+    LOG_GL_ERRORV(glDeleteVertexArrays(1, &vao));
     cache->StoreProgramId();
     UnsetGLContext(cache);
     });
@@ -910,12 +910,12 @@ void ShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
 
 void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
     bool& s_shadersInit,
-    unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
+    unsigned& s_vertexBufferId, unsigned& s_rbId,
     unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight)
 {
-    
-
     if (!s_shadersInit) {
+        LOG_GL_ERRORV(glGenBuffers(1, &s_vertexBufferId));
+
         VertexTex vt[4] =
         {
            { {  1.f, -1.f }, { 1.f, 0.f } },
@@ -923,58 +923,31 @@ void ShaderEffect::sizeForRenderBuffer(const RenderBuffer& rb,
            { {  1.f,  1.f }, { 1.f, 1.f } },
            { { -1.f,  1.f }, { 0.f, 1.f } }
         };
-        LOG_GL_ERRORV(glGenVertexArrays(1, &s_vertexArrayId));
-        LOG_GL_ERRORV(glGenBuffers(1, &s_vertexBufferId));
-
-        LOG_GL_ERRORV(glBindVertexArray(s_vertexArrayId));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, s_vertexBufferId));
         LOG_GL_ERRORV(glBufferData(GL_ARRAY_BUFFER, sizeof(VertexTex[4]), vt, GL_STATIC_DRAW));
-
-        LOG_GL_ERRORV(glBindVertexArray(0));
         LOG_GL_ERRORV(glBindBuffer(GL_ARRAY_BUFFER, 0));
         GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
-           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex array - {}", err );
+           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error with vertex buffer - {}", err );
         }
-
-        createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
-        if ((err = glGetError()) != GL_NO_ERROR) {
-           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating framebuffer - {}", err );
-        }
-
-        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
-        if ((err = glGetError()) != GL_NO_ERROR) {
-           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error creating renderbuffer texture - {}", err );
-        }
-
-        s_rbWidth = rb.BufferWi;
-        s_rbHeight = rb.BufferHt;
-        s_shadersInit = true;
     } else if (rb.BufferWi > s_rbWidth || rb.BufferHt > s_rbHeight) {
-        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-        if (s_fbId) {
-            LOG_GL_ERRORV(glDeleteFramebuffers(1, &s_fbId));
-        }
-        if (s_rbId) {
-            LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-            LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
-        }
-        if (s_rbTex) {
-            LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
-        }
-        createOpenGLRenderBuffer(rb.BufferWi, rb.BufferHt, &s_rbId, &s_fbId);
-        GLenum err = glGetError();
-        if (err != GL_NO_ERROR) {
-           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating framebuffer - {}", err );
-        }
-        s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);;
-        if ((err = glGetError()) != GL_NO_ERROR) {
-           spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error recreating renderbuffer texture - {}", err );
-        }
-
-        s_rbWidth = rb.BufferWi;
-        s_rbHeight = rb.BufferHt;
+        LOG_GL_ERRORV(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+        LOG_GL_ERRORV(glDeleteRenderbuffers(1, &s_rbId));
+        LOG_GL_ERRORV(glDeleteTextures(1, &s_rbTex));
+    } else {
+        return;
     }
+
+    s_rbId = allocColorRenderbuffer(rb.BufferWi, rb.BufferHt);
+    s_rbTex = RenderBufferTexture(rb.BufferWi, rb.BufferHt);
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+       spdlog::error( "ShaderEffect::sizeForRenderBuffer() - Error allocating renderbuffer/texture - {}", err );
+    }
+
+    s_rbWidth = rb.BufferWi;
+    s_rbHeight = rb.BufferHt;
+    s_shadersInit = true;
 }
 
 unsigned ShaderEffect::programIdForShaderCode(ShaderConfig* cfg, ShaderRenderCache *cache)

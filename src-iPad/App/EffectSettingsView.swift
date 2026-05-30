@@ -377,6 +377,7 @@ struct DetachedInspectorRoot: View {
     let tab: InspectorTab
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -407,15 +408,32 @@ struct DetachedInspectorRoot: View {
             }
         }
         .frame(minWidth: 220, minHeight: 280)
-        .navigationTitle("\(tab.label) — Inspector")
+        // Without a NavigationStack `.navigationTitle` doesn't reach
+        // Stage Manager's scene chrome — iPadOS falls back to the most
+        // prominent Text in the scene, which is the effect name in
+        // `header`. The result was every detached tab being titled
+        // with the effect ("Pinwheel", "Pinwheel", ...). Set
+        // `UIWindowScene.title` explicitly so each tab gets its own
+        // descriptive title; only the Effect tab keeps the effect
+        // name (which is the right thing to show for that pane).
+        .background(
+            WindowSceneTitleSetter(title: sceneTitle)
+                .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
+        )
+        .navigationTitle(sceneTitle)
         .onAppear {
             // F-1 restoration guard (see HousePreviewView for detail).
+            // Also open the sequencer first when this scene was the
+            // auto-restored connecting session — otherwise we leave
+            // zero scenes alive and the app goes to a black screen.
             let token = "inspector-tab:\(tab.rawValue)"
             if viewModel.pendingDetachTokens.remove(token) != nil {
                 viewModel.detachedInspectorTabs.insert(tab.rawValue)
             } else {
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "inspector-tab", value: tab)
                 }
             }
@@ -477,6 +495,55 @@ struct DetachedInspectorRoot: View {
         let m = s / 60
         let frac = (ms % 1000) / 10
         return String(format: "%d:%02d.%02d", m, s % 60, frac)
+    }
+
+    private var sceneTitle: String {
+        switch tab {
+        case .effect:
+            return viewModel.selectedEffect?.name ?? "Effect Settings"
+        case .colors:
+            return "Color Palette"
+        case .blending:
+            return "Layer Blending"
+        case .buffer:
+            return "Buffer"
+        }
+    }
+}
+
+// Sets the host `UIWindowScene.title`, which iPadOS Stage Manager
+// displays in the scene's chrome and app-switcher card. SwiftUI's
+// `.navigationTitle` only feeds that chrome inside a `NavigationStack`;
+// detached inspector tabs deliberately have no stack (to avoid its
+// ~320pt minimum width), so this representable bridges directly.
+private struct WindowSceneTitleSetter: UIViewRepresentable {
+    let title: String
+
+    func makeUIView(context: Context) -> UIView {
+        let v = TitleSettingView()
+        v.desiredTitle = title
+        return v
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        (uiView as? TitleSettingView)?.desiredTitle = title
+    }
+
+    private final class TitleSettingView: UIView {
+        var desiredTitle: String = "" {
+            didSet { if oldValue != desiredTitle { apply() } }
+        }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            apply()
+        }
+
+        private func apply() {
+            DispatchQueue.main.async { [weak self] in
+                self?.window?.windowScene?.title = self?.desiredTitle
+            }
+        }
     }
 }
 

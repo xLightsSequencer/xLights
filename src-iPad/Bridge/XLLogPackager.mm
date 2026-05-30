@@ -132,9 +132,19 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
         }];
     CopyTreeIntoStaging(fm, logsDir, stagingDir.path, logFilter);
 
-    // 2. MetricKit JSON payloads.
+    // 2. MetricKit JSON payloads. For the auto-upload path, snapshot
+    //    the list before copying so we can delete exactly those files
+    //    after the zip is durable in PendingUpload/. Otherwise the
+    //    JSONs accumulate forever and ship in every subsequent zip,
+    //    inflating crash counts on the server (the same payload gets
+    //    re-uploaded under each later build's filename).
     NSString* diagnosticsSrc = [logsDir stringByAppendingPathComponent:@"Diagnostics"];
     NSString* diagnosticsDst = [stagingDir.path stringByAppendingPathComponent:@"Diagnostics"];
+    NSArray<NSString*>* diagnosticsToPrune = nil;
+    if (!includeUserContent) {
+        diagnosticsToPrune = [[fm contentsOfDirectoryAtPath:diagnosticsSrc
+                                                      error:nil] copy];
+    }
     CopyTreeIntoStaging(fm, diagnosticsSrc, diagnosticsDst, nil);
 
     // 3. Show folder XML + currently-open sequence — full-payload only.
@@ -183,6 +193,7 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
                          error:nil];
 
     __block NSURL* finalZip = nil;
+    __block NSError* blockErr = nil;
     NSError* coordErr = nil;
     NSFileCoordinator* coord = [[NSFileCoordinator alloc] init];
     [coord coordinateReadingItemAtURL:stagingDir
@@ -195,16 +206,30 @@ static NSURL* BuildLogZip(XLSequenceDocument* _Nullable document,
         NSError* copyErr = nil;
         if ([fm copyItemAtURL:zippedURL toURL:dst error:&copyErr]) {
             finalZip = dst;
-        } else if (outError) {
-            *outError = copyErr;
+        } else {
+            blockErr = copyErr;
         }
     }];
 
     [fm removeItemAtURL:stagingDir error:nil];
 
+    // The JSONs are now durable inside `finalZip`; PendingUpload/
+    // is retried on every launch until the server returns 200. Delete
+    // the source files so a later MetricKit delivery doesn't re-ship
+    // them under a new build-tagged filename.
+    if (finalZip && diagnosticsToPrune) {
+        for (NSString* name in diagnosticsToPrune) {
+            [fm removeItemAtPath:[diagnosticsSrc stringByAppendingPathComponent:name]
+                           error:nil];
+        }
+    }
+
     if (coordErr) {
         if (outError) *outError = coordErr;
         return nil;
+    }
+    if (blockErr && outError) {
+        *outError = blockErr;
     }
     return finalZip;
 }

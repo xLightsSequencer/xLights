@@ -261,6 +261,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
     weak var coordinator: EffectsMetalGridView.Coordinator?
     private var gestureDelegate: GestureDelegate?
     private weak var ownPan: UIPanGestureRecognizer?
+    /// Pinch recognizer (zoom). Disabled while the marquee long-
+    /// press owns the two-finger gesture so pinch can't fire mid-
+    /// marquee. Re-enabled on marquee end.
+    private weak var ownPinch: UIPinchGestureRecognizer?
     private let vFadeHitStrip: CGFloat = 7
     private let minIconWidth: CGFloat = 14
     private var pencilInteraction: UIPencilInteraction?
@@ -1019,23 +1023,33 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         pan.allowedScrollTypesMask = .all
         addGestureRecognizer(pan)
         ownPan = pan
-        // B1: two-finger drag → marquee multi-select (matches iPad
-        // Numbers/Keynote). Coexists with the pinch recognizer below
-        // — when the user keeps their fingers at roughly constant
-        // distance this wins; when they spread/pinch, pinch wins.
-        // Minor scale jitter during a marquee is tolerable.
-        let marquee = UIPanGestureRecognizer(target: self,
-                                              action: #selector(onMarqueePan(_:)))
-        marquee.minimumNumberOfTouches = 2
-        marquee.maximumNumberOfTouches = 2
+        // B1: two-finger long-press + drag → marquee multi-select.
+        // Earlier (pre-2026-05-15) this was a two-finger
+        // UIPanGestureRecognizer, which raced with the one-finger
+        // pan when the second finger landed an instant after the
+        // first — observed as "sometimes scrolls, sometimes
+        // marquees, sometimes both". Switching to a long-press
+        // makes the marquee an explicit, distinct gesture: hold
+        // two fingers still for ~0.4s, then drag to extend the
+        // selection rect. Matches the layout-canvas pattern for
+        // consistency.
+        let marquee = UILongPressGestureRecognizer(
+            target: self,
+            action: #selector(onMarqueeLongPress(_:)))
+        marquee.numberOfTouchesRequired = 2
+        marquee.minimumPressDuration = 0.4
+        marquee.allowableMovement = 16
+        marquee.name = "marqueeLP"
         marquee.delegate = del
         addGestureRecognizer(marquee)
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(_:)))
         pinch.delegate = del
         addGestureRecognizer(pinch)
+        ownPinch = pinch
         let lp = UILongPressGestureRecognizer(target: self, action: #selector(onLongPress(_:)))
         lp.minimumPressDuration = 0.6
         lp.allowableMovement = 4
+        lp.name = "contextMenuLP"
         lp.delegate = del
         addGestureRecognizer(lp)
     }
@@ -1382,17 +1396,29 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         @objc func tick(_ link: CADisplayLink) { action() }
     }
 
-    // MARK: - B1 marquee select (two-finger drag)
+    // MARK: - B1 marquee select (two-finger long-press + drag)
 
-    @objc func onMarqueePan(_ g: UIPanGestureRecognizer) {
+    /// Two-finger long-press → drag. On `.began` we cancel any
+    /// in-flight one-finger pan (the user could have started a
+    /// one-finger scroll, then dropped a second finger and held)
+    /// and disable pinch so a spread mid-marquee doesn't fire a
+    /// zoom. Both are restored on end / cancel.
+    @objc func onMarqueeLongPress(_ g: UILongPressGestureRecognizer) {
         guard let c = coordinator else { return }
         switch g.state {
         case .began:
-            // Treat the midpoint of the two fingers as the marquee
-            // anchor. Stored in world coords so the rectangle stays
-            // put if the view's hScrollOffsetPx changes during the
-            // drag (currently unlikely — we don't scroll during
-            // marquee — but kept consistent with effect-drag math).
+            // Cancel a concurrent one-finger pan if it had begun
+            // (briefly drag-flag the recognizer off + on). The pan
+            // handler's .cancelled branch tidies up its own scroll
+            // state.
+            if let pan = ownPan, pan.state == .began || pan.state == .changed {
+                pan.isEnabled = false
+                pan.isEnabled = true
+            }
+            // Quiet pinch so a finger-spread during marquee can't
+            // also fire a zoom.
+            ownPinch?.isEnabled = false
+
             let p = g.location(in: self)
             c.marqueeStartWorld = CGPoint(x: p.x + c.scrollOffsetX,
                                            y: p.y + c.scrollOffsetY)
@@ -1405,6 +1431,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                                              y: p.y + c.scrollOffsetY)
             setNeedsDisplay()
         case .ended:
+            defer { ownPinch?.isEnabled = true }
             guard let start = c.marqueeStartWorld,
                   let end = c.marqueeCurrentWorld else {
                 c.marqueeStartWorld = nil
@@ -1420,11 +1447,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             c.marqueeStartWorld = nil
             c.marqueeCurrentWorld = nil
             setNeedsDisplay()
-            // Tiny rectangles (accidental two-finger taps) — leave
-            // existing selection alone. 6 px minimum in each axis.
             if rect.width < 6 && rect.height < 6 { return }
             c.onMarqueeSelect?(hits)
         case .cancelled, .failed:
+            ownPinch?.isEnabled = true
             c.marqueeStartWorld = nil
             c.marqueeCurrentWorld = nil
             setNeedsDisplay()
@@ -1850,7 +1876,17 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
             guard let v = owner else { return true }
             if g is UIPinchGestureRecognizer { return true }
-            if g is UILongPressGestureRecognizer {
+            if let lp = g as? UILongPressGestureRecognizer {
+                // Two long-presses live on this view: the marquee
+                // (two-finger, "marqueeLP") and the context menu
+                // (one-finger, "contextMenuLP"). The marquee never
+                // needs a hit-test — it can start anywhere on the
+                // grid (including over effects, since the user may
+                // want a rectangle that includes them as the
+                // anchor). The context-menu LP only begins when a
+                // single finger lands on an effect, matching
+                // desktop's right-click-on-effect behaviour.
+                if lp.name == "marqueeLP" { return true }
                 let p = g.location(in: v)
                 return v.hitTestEffect(at: p) != nil
             }

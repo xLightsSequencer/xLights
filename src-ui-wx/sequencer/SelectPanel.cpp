@@ -236,6 +236,11 @@ bool SelectPanel::LayerHasMatchingBufferStyle(EffectLayer* elay, const wxString&
     return false;
 }
 
+static int wxCALLBACK EffectTimeSortFunc(wxIntPtr item1, wxIntPtr item2, wxIntPtr)
+{
+    return reinterpret_cast<Effect*>(item1)->GetStartTimeMS() - reinterpret_cast<Effect*>(item2)->GetStartTimeMS();
+}
+
 void SelectPanel::populateEffectsList()
 {
     ListCtrl_Select_Effects->ClearAll();
@@ -249,7 +254,6 @@ void SelectPanel::populateEffectsList()
 
     if (modelsSelected.size() != 0) {
         auto const[starttime, endtime] = GetStartAndEndTime();
-        std::vector<std::string> models;
         for (auto value : modelsSelected) {
             auto const& modelname = ListBox_Select_Models->GetString(value);
             Element* el = mSequenceElements->GetElement(modelname);
@@ -288,7 +292,7 @@ void SelectPanel::populateEffectsList()
 									elay->GetEffectsByTypeAndTime(type, starttime, endtime);
                                 for (Effect* eff : effs) {
                                     if (ContainsColor(eff) && MatchesBufferStyle(eff)) {
-                                        auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount() , wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
+                                        auto id = ListCtrl_Select_Effects->InsertItem(ListCtrl_Select_Effects->GetItemCount(), wxString::Format("[%s,%s] %s", FORMATTIME(eff->GetStartTimeMS()), FORMATTIME(eff->GetEndTimeMS()), tmpname));
                                         ListCtrl_Select_Effects->SetItemPtrData(id, (wxUIntPtr)eff);
                                     }
                                 }
@@ -298,6 +302,8 @@ void SelectPanel::populateEffectsList()
                 }
             }
         }
+
+        ListCtrl_Select_Effects->SortItems(EffectTimeSortFunc, 0);
 
         if (ListCtrl_Select_Effects->GetItemCount() == 1) {
             ListCtrl_Select_Effects->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);

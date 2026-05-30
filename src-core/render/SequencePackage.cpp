@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include <algorithm>
+#include <chrono>
 #include <pugixml.hpp>
 #include <fstream>
 #include <set>
@@ -44,6 +45,47 @@ static const std::string SUBFLD_VIDEOS = "Videos";
 static const std::string SUBFLD_FACES = "DownloadedFaces";
 static const std::string SUBFLD_SHADERS = "Shaders";
 static const std::string SUBFLD_GLEDIATORS = "Glediators";
+
+// Build a writable scratch path for the in-progress zip. On macOS the
+// App Sandbox grants implicit write access only to the exact path the
+// user picked in NSSavePanel — a sibling `.tmp` is rejected. Putting
+// the scratch file in the sandbox-owned temp dir avoids that.
+static std::filesystem::path makePackageScratchPath(const std::filesystem::path& target)
+{
+    std::error_code ec;
+    std::filesystem::path tmpDir = std::filesystem::temp_directory_path(ec);
+    if (ec || tmpDir.empty()) {
+        tmpDir = target.parent_path();
+    }
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::system_clock::now().time_since_epoch()).count();
+    return tmpDir / (target.filename().string() + ".tmp." + std::to_string(ms));
+}
+
+// std::filesystem::rename fails across volumes (errc::cross_device_link).
+// Fall back to copy + remove so a user saving to e.g. a USB drive still works.
+static bool atomicReplacePackageFile(const std::filesystem::path& tmp,
+                                     const std::filesystem::path& target,
+                                     std::error_code& ec)
+{
+    ec.clear();
+    std::filesystem::rename(tmp, target, ec);
+    if (!ec) {
+        return true;
+    }
+    std::error_code copyEc;
+    std::filesystem::copy_file(tmp, target,
+                               std::filesystem::copy_options::overwrite_existing,
+                               copyEc);
+    if (copyEc) {
+        ec = copyEc;
+        return false;
+    }
+    std::error_code rmEc;
+    std::filesystem::remove(tmp, rmEc);
+    ec.clear();
+    return true;
+}
 
 SeqPkgImportOptions::SeqPkgImportOptions() {};
 
@@ -709,10 +751,12 @@ bool SequencePackage::Repack(const std::filesystem::path& targetXsqz)
 
     ObtainAccessToURL(targetXsqz.string(), /*enforceWritable=*/true);
 
-    // Write to a sibling .tmp and atomically rename so a crash / failure
-    // mid-write can't corrupt the user's original package.
-    std::filesystem::path tmpPath = targetXsqz;
-    tmpPath += ".tmp";
+    // Write to a scratch file in the system temp dir, then atomically
+    // rename into place. A sibling `.tmp` would fail under macOS App
+    // Sandbox when the user picks a save location outside any of our
+    // persistent bookmarks — NSSavePanel only grants implicit access
+    // to the exact selected URL, not siblings.
+    std::filesystem::path tmpPath = makePackageScratchPath(targetXsqz);
 
     std::error_code ec;
     std::filesystem::remove(tmpPath, ec);
@@ -791,15 +835,15 @@ bool SequencePackage::Repack(const std::filesystem::path& targetXsqz)
         return false;
     }
 
-    // Atomic replace of the original .xsqz. std::filesystem::rename on
-    // POSIX is rename(2) which is atomic within a single filesystem —
-    // which is always the case here since the tmp and target are
-    // siblings in the user's Files location.
-    std::filesystem::rename(tmpPath, targetXsqz, ec);
-    if (ec) {
-        spdlog::error("SequencePackage::Repack: rename '{}' -> '{}' failed: {}",
+    // Atomic replace of the original .xsqz. Falls back to copy+remove
+    // when tmp and target live on different filesystems (the scratch
+    // file is in the system temp dir, which may not be on the same
+    // volume as the user's chosen location).
+    if (!atomicReplacePackageFile(tmpPath, targetXsqz, ec)) {
+        spdlog::error("SequencePackage::Repack: replace '{}' -> '{}' failed: {}",
                       tmpPath.string(), targetXsqz.string(), ec.message());
-        std::filesystem::remove(tmpPath, ec);
+        std::error_code rmEc;
+        std::filesystem::remove(tmpPath, rmEc);
         return false;
     }
 
@@ -1694,11 +1738,14 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
     rewritePathsInXml(xsqDoc.document_element(), sortedRewrites);
     tick(55);
 
-    // Stage 3 — open the output zip (to a .tmp sibling) and write
-    // everything. Atomic rename at the end guards against
-    // partial-write corruption.
-    std::filesystem::path tmpPath = outputXsqz;
-    tmpPath += ".tmp";
+    // Stage 3 — open the output zip in the system temp dir and write
+    // everything; atomically move into the user's chosen path at the
+    // end. The scratch file lives in the sandbox-owned temp dir so a
+    // user picking a save location outside any of our persistent
+    // bookmarks (e.g. ~/Desktop on macOS) still works — NSSavePanel
+    // only grants implicit access to the exact selected URL, not
+    // siblings like `<chosen>.tmp`.
+    std::filesystem::path tmpPath = makePackageScratchPath(outputXsqz);
     std::error_code ec;
     std::filesystem::remove(tmpPath, ec);
 
@@ -1770,11 +1817,11 @@ bool SequencePackage::Pack(const std::filesystem::path& outputXsqz,
         return false;
     }
 
-    std::filesystem::rename(tmpPath, outputXsqz, ec);
-    if (ec) {
-        spdlog::error("Pack: rename '{}' -> '{}' failed: {}",
+    if (!atomicReplacePackageFile(tmpPath, outputXsqz, ec)) {
+        spdlog::error("Pack: replace '{}' -> '{}' failed: {}",
                       tmpPath.string(), outputXsqz.string(), ec.message());
-        std::filesystem::remove(tmpPath, ec);
+        std::error_code rmEc;
+        std::filesystem::remove(tmpPath, rmEc);
         if (outWarnings) {
             outWarnings->insert(outWarnings->end(),
                                 warnings.begin(), warnings.end());

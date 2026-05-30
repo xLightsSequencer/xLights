@@ -20,12 +20,6 @@ public:
     StandaloneMSAATextureInfo(int w, int h, int sampleCount)
         : width(w), height(h), sampleCount(sampleCount) {}
 
-    ~StandaloneMSAATextureInfo() {
-        if (texture != nil) {
-            [texture release];
-        }
-    }
-
     id<MTLTexture> getTexture() {
         if (texture == nil) {
             auto desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
@@ -58,12 +52,6 @@ class StandaloneDepthTextureInfo {
 public:
     StandaloneDepthTextureInfo(int w, int h, int sampleCount)
         : width(w), height(h), sampleCount(sampleCount) {}
-
-    ~StandaloneDepthTextureInfo() {
-        if (texture != nil) {
-            [texture release];
-        }
-    }
 
     id<MTLTexture> getTexture() {
         if (texture == nil) {
@@ -136,7 +124,7 @@ public:
             canvas->RequiresDepthBuffer(), canvas->usesMSAA(), fmt);
     }
 
-    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+    void addToSyncPoint(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> drawable) override {
         if (drawable != nil) {
             [buffer presentDrawable:drawable];
         }

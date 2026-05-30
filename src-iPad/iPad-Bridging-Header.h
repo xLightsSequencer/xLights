@@ -9,6 +9,8 @@
 #import "Bridge/XLSuperStarImport.h"
 #import "Bridge/XLLyricsImport.h"
 #import "Bridge/XLLogPackager.h"
+#import "Bridge/XLSequencePackager.h"
 #import "Bridge/XLDiagnosticSession.h"
 #import "Bridge/XLAIServices.h"
 #import "Bridge/XLAIImageSession.h"
+#import "Bridge/XLVendorCatalog.h"

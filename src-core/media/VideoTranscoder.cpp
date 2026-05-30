@@ -186,9 +186,44 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
     //     decodable by AVFoundation on macOS and iPadOS 15.4+.
     bool sourceIsUncompressed = IsUncompressedCodec(srcCodecId);
     bool sourceHasAlpha = false;
+    bool sourceWideChroma = false; // genuine 4:4:4 (no chroma subsampling) in the pixel data
+    bool sourceHighBitDepth = false;
     if (const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(c.decCtx->pix_fmt)) {
         sourceHasAlpha = (desc->flags & AV_PIX_FMT_FLAG_ALPHA) != 0;
+        if (desc->nb_components >= 3) {
+            sourceWideChroma = (desc->log2_chroma_w == 0 && desc->log2_chroma_h == 0);
+        }
+        sourceHighBitDepth = desc->comp[0].depth > 8;
     }
+
+    // A 4:4:4 / 4:2:2 / high-bit / all-intra H.264·HEVC profile is the
+    // fingerprint of a lossless (or near-lossless) x264/x265 export — the
+    // author wanted maximum quality. We use that to *raise the encode
+    // quality*, not to pick the codec: these sources very often decode to
+    // plain 4:2:0 8-bit pixels anyway (x264/x265 lossless mode forces a
+    // 4:4:4 profile tag regardless of the actual chroma), and we can't
+    // reproduce true lossless H.264 because that re-creates the exact High
+    // 4:4:4 profile VideoToolbox can't decode at small sizes.
+    bool sourceHighQualityProfile = false;
+    {
+        const int p = c.decCtx->profile;
+        if (srcCodecId == AV_CODEC_ID_H264) {
+            sourceHighQualityProfile =
+                p == AV_PROFILE_H264_HIGH_444 ||
+                p == AV_PROFILE_H264_HIGH_444_PREDICTIVE ||
+                p == AV_PROFILE_H264_HIGH_444_INTRA ||
+                p == AV_PROFILE_H264_HIGH_422 ||
+                p == AV_PROFILE_H264_HIGH_422_INTRA ||
+                p == AV_PROFILE_H264_HIGH_10 ||
+                p == AV_PROFILE_H264_HIGH_10_INTRA ||
+                (p != AV_PROFILE_UNKNOWN && (p & AV_PROFILE_H264_INTRA) != 0);
+        } else if (srcCodecId == AV_CODEC_ID_HEVC) {
+            sourceHighQualityProfile = (p == AV_PROFILE_HEVC_REXT);
+        }
+    }
+    // When the H.264/HEVC route is taken below, encode near-lossless (low
+    // CRF / high VideoToolbox quality) for these high-quality sources.
+    const bool highQualityEncode = sourceHighQualityProfile;
 
     // --- Open output (allocated before encoder selection so candidates can
     //     read AVFMT_GLOBALHEADER before opening) -------------------------
@@ -241,13 +276,16 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
                 av_opt_set_int(tryCtx, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
 #if defined(__aarch64__)
                 tryCtx->flags |= AV_CODEC_FLAG_QSCALE;
-                tryCtx->global_quality = FF_QP2LAMBDA * 65; // ~visually lossless
+                // global_quality maps to VideoToolbox's 0..1 quality knob
+                // (value/FF_QP2LAMBDA/100). 65 is ~visually lossless; bump it
+                // toward lossless for high-quality (4:4:4/intra) sources.
+                tryCtx->global_quality = FF_QP2LAMBDA * (highQualityEncode ? 85 : 65);
 #else
-                tryCtx->bit_rate = (int64_t)width * height * 4 * 8; // generous
+                tryCtx->bit_rate = (int64_t)width * height * 4 * 8 * (highQualityEncode ? 2 : 1); // generous
 #endif
             } else {
-                av_opt_set(tryCtx, "crf", "18", AV_OPT_SEARCH_CHILDREN);
-                av_opt_set(tryCtx, "preset", "medium", AV_OPT_SEARCH_CHILDREN);
+                av_opt_set(tryCtx, "crf", highQualityEncode ? "12" : "18", AV_OPT_SEARCH_CHILDREN);
+                av_opt_set(tryCtx, "preset", highQualityEncode ? "slow" : "medium", AV_OPT_SEARCH_CHILDREN);
             }
         }
 
@@ -295,7 +333,7 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         struct Candidate {
             const char* name;        // null → generic find by id
             AVCodecID id;
-            bool onlyIfNeedLossless; // skip unless source has alpha or is uncompressed
+            bool onlyIfNeedLossless; // skip unless the source pixel data needs lossless (alpha/4:4:4/>8-bit/uncompressed)
         };
         static constexpr Candidate kCandidates[] = {
             { "prores_ks",         AV_CODEC_ID_PRORES, true  },
@@ -306,7 +344,12 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
             { "libx264",           AV_CODEC_ID_H264,   false },
             { nullptr,             AV_CODEC_ID_H264,   false },
         };
-        bool needLossless = sourceHasAlpha || sourceIsUncompressed;
+        // Route to ProRes when the *pixel data* genuinely carries more than
+        // lossy 4:2:0 8-bit can hold (alpha, real 4:4:4/4:2:2 chroma, >8-bit,
+        // or uncompressed) — H.264/HEVC would discard it. A mere 4:4:4
+        // *profile* on 4:2:0 8-bit pixels does not qualify; that's handled by
+        // highQualityEncode (low CRF) on the H.264/HEVC path instead.
+        bool needLossless = sourceHasAlpha || sourceIsUncompressed || sourceWideChroma || sourceHighBitDepth;
         for (const auto& cand : kCandidates) {
             if (cand.onlyIfNeedLossless && !needLossless) continue;
             const AVCodec* tryEncoder = cand.name ? avcodec_find_encoder_by_name(cand.name)

@@ -4305,18 +4305,21 @@ void GenerateCustomModelDialog::OnStaticBitmapMouseMove(wxMouseEvent& event)
         }
         else
         {
+            static const wxCursor s_arrow(wxCURSOR_ARROW);
+            static const wxCursor s_sizeNS(wxCURSOR_SIZENS);
+            static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
             int e = GetEdge(event.GetX(), event.GetY());
             if (e == -1)
             {
-                SetCursor(wxCURSOR_ARROW);
+                SetCursor(s_arrow);
             }
             else if (e % 2 == 0)
             {
-                SetCursor(wxCURSOR_SIZENS);
+                SetCursor(s_sizeNS);
             }
             else
             {
-                SetCursor(wxCURSOR_SIZEWE);
+                SetCursor(s_sizeWE);
             }
         }
     }

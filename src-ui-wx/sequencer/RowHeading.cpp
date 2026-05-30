@@ -190,6 +190,7 @@ const long RowHeading::ID_ROW_MNU_CUT_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_COPY_MODEL_TO_MODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_ROW = wxNewId();
 const long RowHeading::ID_ROW_MNU_PASTE_MODEL = wxNewId();
 const long RowHeading::ID_ROW_MNU_RENDERENABLE_MODEL = wxNewId();
@@ -230,6 +231,8 @@ const long RowHeading::ID_ROW_MNU_GENERATE_FROM_ONSETS = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_TEMPO = wxNewId();
 const long RowHeading::ID_ROW_MNU_GENERATE_FROM_CHORDS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
+const long RowHeading::ID_ROW_MNU_HIDE_UNUSED_SUBMODELS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SHOW_ALL_SUBMODELS = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -327,12 +330,14 @@ void RowHeading::mouseMove(wxMouseEvent& event)
         SetWidth(event.GetX());
     }
 
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_arrow(wxCURSOR_ARROW);
     auto size = GetSize();
     if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())) {
-        SetCursor(wxCURSOR_SIZEWE);
+        SetCursor(s_sizeWE);
     }
     else {
-        SetCursor(wxCURSOR_ARROW);
+        SetCursor(s_arrow);
     }
 }
 
@@ -484,15 +489,32 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
                     if (element->GetEffectLayerCount() > 1) {
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYER, "Delete Layer");
-
                         mnuLayer.Append(ID_ROW_MNU_DELETE_LAYERS, "Delete Multiple Layers");
-                        mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
+                    }
+                    {
+                        bool canDeleteUnused = element->GetEffectLayerCount() > 1;
+                        if (!canDeleteUnused) {
+                            ModelElement* checkMe = dynamic_cast<ModelElement*>(element);
+                            if (checkMe != nullptr) {
+                                for (int s = 0; s < checkMe->GetSubModelCount() && !canDeleteUnused; ++s) {
+                                    if (checkMe->GetSubModel(s)->GetEffectLayerCount() > 1)
+                                        canDeleteUnused = true;
+                                }
+                            }
+                        }
+                        if (canDeleteUnused)
+                            mnuLayer.Append(ID_ROW_MNU_DELETE_UNUSEDLAYERS, "Delete Unused Layers");
                     }
                     mnuLayer.Append(ID_ROW_MNU_SETLAYERNAME, "Edit Layer Name");
                     mnuLayer.AppendSeparator();
                 }
                 if (mSequenceElements->GetHiddenTimingCount() > 0 && mSequenceElements->GetCurrentView() == MASTER_VIEW) {
                     mnuLayer.Append(ID_ROW_MNU_SHOWALLTIMING, "Show All Timing Tracks");
+                }
+                if (mSequenceElements->GetHideUnusedSubmodels()) {
+                    mnuLayer.Append(ID_ROW_MNU_SHOW_ALL_SUBMODELS, "Show All Submodels");
+                } else {
+                    mnuLayer.Append(ID_ROW_MNU_HIDE_UNUSED_SUBMODELS, "Hide Unused Submodels");
                 }
                 bool canPromote = false;
                 ModelElement* me = dynamic_cast<ModelElement*>(element);
@@ -569,6 +591,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                 rowMenu->Append(ID_ROW_MNU_COPY_ROW, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL, "Copy Effects");
                 modelMenu->Append(ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS, "Copy Effects incl SubModels");
+                modelMenu->Append(ID_ROW_MNU_COPY_MODEL_TO_MODELS, "Copy Layers/SubModels to Models");
                 wxMenuItem* menu_paste = rowMenu->Append(ID_ROW_MNU_PASTE_ROW, "Paste Effects");
                 wxMenuItem* menu_pastem = modelMenu->Append(ID_ROW_MNU_PASTE_MODEL, "Paste Effects");
                 if (!mCanPaste) {
@@ -973,18 +996,21 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     } else if (id == ID_ROW_MNU_DELETE_UNUSEDLAYERS) {
         spdlog::debug("RowHeading::OnLayerPopup Deleting unused layers.");
         bool deleted = false;
-        for (int i = 0; i < (int)element->GetEffectLayerCount(); ++i) {
-            if (element->GetEffectLayer(i)->GetEffectCount() > 0) {
-                // dont delete this layer
-            } else {
-                if (element->GetEffectLayerCount() == 1) {
-                    // last layer ... dont delete it
-                } else {
+        auto deleteUnusedLayers = [&](Element* elem) {
+            for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+                if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
                     xLightsApp::GetFrame()->AbortRender();
-                    element->RemoveEffectLayer(i);
+                    elem->RemoveEffectLayer(i);
                     --i;
                     deleted = true;
                 }
+            }
+        };
+        deleteUnusedLayers(element);
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (me != nullptr) {
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                deleteUnusedLayers(me->GetSubModel(s));
             }
         }
         if (deleted) {
@@ -1690,6 +1716,16 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         mSequenceElements->HideAllTimingTracks(false);
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_HIDE_UNUSED_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(true);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", true);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
+    } else if (id == ID_ROW_MNU_SHOW_ALL_SUBMODELS) {
+        mSequenceElements->SetHideUnusedSubmodels(false);
+        GetXLightsConfig()->Write("HideUnusedSubmodels", false);
+        wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+        wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_REMOVE_TIMING_WORDS_PHONEMES) {
         auto te = dynamic_cast<TimingElement*>(element);
         if (te != nullptr) {
@@ -1779,6 +1815,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         copyRowEvent.SetString("AllInclSub");
         wxPostEvent(GetParent(), copyRowEvent);
         mCanPaste = true;
+    } else if (id == ID_ROW_MNU_COPY_MODEL_TO_MODELS) {
+        wxCommandEvent evt(EVT_COPY_MODEL_EFFECTS_TO_MODELS);
+        evt.SetInt(mSelectedRow);
+        wxPostEvent(GetParent(), evt);
     } else if (id == ID_ROW_MNU_DELETE_ROW_EFFECTS) {
         wxCommandEvent eventUnSelected(EVT_UNSELECTED_EFFECT);
         m_parent->ProcessWindowEvent(eventUnSelected);
@@ -1930,8 +1970,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_PASTE_MODEL) {
-        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS);
-        pasteRowEvent.SetString("All");
+        wxCommandEvent pasteRowEvent(EVT_PASTE_MODEL_EFFECTS_WITH_SUB_LAYERS);
         pasteRowEvent.SetInt(mSelectedRow);
         wxPostEvent(GetParent(), pasteRowEvent);
     } else if (id == ID_ROW_MNU_TOGGLE_STRANDS) {
@@ -2551,6 +2590,9 @@ xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) co
 void RowHeading::SetSequenceElements(SequenceElements* elements)
 {
     mSequenceElements = elements;
+    if (mSequenceElements != nullptr) {
+        mSequenceElements->SetHideUnusedSubmodels(GetXLightsConfig()->ReadBool("HideUnusedSubmodels", false));
+    }
 }
 
 void RowHeading::DrawHeading(wxPaintDC* dc, pugi::xml_node model, int width, int row)

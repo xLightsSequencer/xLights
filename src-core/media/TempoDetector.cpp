@@ -51,7 +51,11 @@ TempoResult DetectTempo(AudioManager* audio,
     // Locate the peak. Enhance the harmonic at 2*tau a little — this
     // biases toward the fundamental instead of picking up half-tempo.
     int bestTau = minTau;
-    float bestVal = -std::numeric_limits<float>::infinity();
+    // -ffast-math (desktop Release) implies -ffinite-math-only — the optimizer is
+    // licensed to assume no operand is +/-inf and may fold the sentinel to 0,
+    // which would make negative autocorrelation peaks fail `v > bestVal` and
+    // silently pick the wrong tempo. Use a finite sentinel.
+    float bestVal = std::numeric_limits<float>::lowest();
     for (int tau = minTau; tau <= maxTau; tau++) {
         float v = autocorr[tau];
         int tau2 = tau * 2;

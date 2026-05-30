@@ -10,6 +10,7 @@
 
 #include "wx/glcanvas.h"
 #include "wx/wx.h"
+#include <wx/clipbrd.h>
 #include <wx/numdlg.h>
 #include <wx/progdlg.h>
 #include <wx/textdlg.h>
@@ -38,6 +39,7 @@
 #include "sequencer/RenderCommandEvent.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "shared/dialogs/CheckboxSelectDialog.h"
 #include "media/VideoReader.h"
 #include "effects/RenderableEffect.h"
 #include "effectpanels/EffectIconCache.h"
@@ -1665,7 +1667,7 @@ bool EffectsGrid::IsMouseOverTiming(int y) {
 }
 
 void EffectsGrid::mouseMoved(wxMouseEvent& event) {
-    if (!mIsInitialized || mSequenceElements == nullptr) {
+    if (!mIsInitialized || mSequenceElements == nullptr || mTimeline == nullptr) {
         return;
     }
 
@@ -1732,7 +1734,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
                 }
             }
         } else {
-            SetCursor(wxCURSOR_DEFAULT);
+            static const wxCursor s_default(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
         }
     }
@@ -5446,7 +5449,7 @@ int EffectsGrid::GetMSFromColumn(int col) const {
     return 0;
 }
 
-Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste) {
+Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersion, bool row_paste, bool layerMode) {
     
 
     Effect* res = nullptr;
@@ -5546,10 +5549,32 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
             }
             int drop_row = mDropRow;
             int start_row = wxAtoi(eff1data[5]);
+            bool anchorRowUsed = false;
             if (xlights->IsACActive()) {
                 start_row = wxAtoi(banner_data[7]);
+            } else {
+                // Store anchor row so empty rows above the first effect are correctly preserved when pasting.
+                for (size_t fi = 6; fi < banner_data.size(); ++fi) {
+                    if (banner_data[fi].StartsWith("ANCHOR_ROW:")) {
+                        int ar = wxAtoi(banner_data[fi].Mid(11));
+                        if (ar >= 0) {
+                            start_row = ar;
+                            anchorRowUsed = true;
+                        }
+                        break;
+                    }
+                }
             }
             int drop_row_offset = drop_row - start_row;
+
+            if (anchorRowUsed && !layerMode && wxAtoi(eff1data[5]) > start_row) {
+                int anchorAbsRow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(anchorAbsRow);
+                if (ri != nullptr && ri->element != nullptr && ri->element->GetCollapsed()) {
+                    ri->element->SetCollapsed(false);
+                    mSequenceElements->PopulateRowInformation();
+                }
+            }
             if (number_of_timings > 0 && number_of_effects > 0) // only allow timing and model effects to be pasted on same rows
             {
                 drop_row = 0;
@@ -5602,6 +5627,227 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
             mSequenceElements->get_undo_mgr().CreateUndoStep();
 
+            struct LayerTarget {
+                Element* element = nullptr;
+                int layerIdx = 0;
+            };
+            std::map<int, LayerTarget> layerTargetMap; // keyed by eff_row value
+            bool hasLayerTokens = false;
+
+            if (layerMode && number_of_effects > 0 && !xlights->IsACActive()) {
+                bool singleElementPaste = true; // stays true for old-format; computed below for new-format
+                for (size_t si = 1; si < all_efdata.size() - 1 && !hasLayerTokens; si++) {
+                    wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                    if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                        continue;
+                    for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                        if (ef[fi].StartsWith("LAYER:")) {
+                            hasLayerTokens = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasLayerTokens) {
+                    std::vector<std::pair<int, int>> erLayerVec;
+                    for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                        wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                        if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                            continue;
+                        int er = wxAtoi(ef[5]);
+                        int layerIdx = 0;
+                        for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                            if (ef[fi].StartsWith("LAYER:")) {
+                                layerIdx = wxAtoi(ef[fi].Mid(6));
+                                break;
+                            }
+                        }
+                        erLayerVec.push_back({ er, layerIdx });
+                    }
+                    std::stable_sort(erLayerVec.begin(), erLayerVec.end(),
+                                     [](const auto& a, const auto& b) { return a.first < b.first; });
+
+                    struct ElemGroup {
+                        int numRows = 0;
+                        int targetRank = 0;
+                    };
+                    std::vector<ElemGroup> groups;
+                    std::map<int, int> erToRank;
+                    int prevLayer2 = INT_MAX;
+                    int startRow0 = -1;
+                    int sumExtraRows = 0;
+
+                    for (auto& [er, layerIdx] : erLayerVec) {
+                        if (erToRank.count(er))
+                            continue;
+                        if (layerIdx <= prevLayer2) {
+                            // New element group
+                            if (!groups.empty())
+                                sumExtraRows += groups.back().numRows - 1;
+                            int targetRank = groups.empty() ? 0 : (er - startRow0 - sumExtraRows);
+                            groups.push_back({ 1, targetRank });
+                            if (startRow0 < 0)
+                                startRow0 = er;
+                        } else {
+                            groups.back().numRows++;
+                        }
+                        prevLayer2 = layerIdx;
+                        erToRank[er] = groups.back().targetRank;
+                    }
+
+                    {
+                        int maxRank = 0;
+                        for (auto& [er2, rank2] : erToRank)
+                            maxRank = std::max(maxRank, rank2);
+                        singleElementPaste = (maxRank == 0);
+                    }
+
+                    int anchorOffset = 0;
+                    if (startRow0 >= 0) {
+                        for (size_t fi = 6; fi < banner_data.size(); ++fi) {
+                            if (banner_data[fi].StartsWith("ANCHOR_ROW:")) {
+                                int ar = wxAtoi(banner_data[fi].Mid(11));
+                                if (ar >= 0 && startRow0 > ar)
+                                    anchorOffset = startRow0 - ar;
+                                break;
+                            }
+                        }
+                    }
+                    // Before expanding and mapping ranks, delete unused layers on the model
+                    {
+                        int absModelRow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                        Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(absModelRow);
+                        ModelElement* me = (ri != nullptr) ? dynamic_cast<ModelElement*>(ri->element) : nullptr;
+                        if (me != nullptr) {
+                            auto& undo_mgr = mSequenceElements->get_undo_mgr();
+                            auto deleteUnused = [&](Element* elem) {
+                                for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+                                    if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
+                                        undo_mgr.CaptureRemovedLayer(elem->GetFullName(), i);
+                                        elem->RemoveEffectLayer(i);
+                                        --i;
+                                    }
+                                }
+                            };
+                            xLightsApp::GetFrame()->AbortRender();
+                            deleteUnused(me);
+                            for (int si = 0; si < me->GetSubModelCount(); ++si)
+                                deleteUnused(me->GetSubModel(si));
+                            undo_mgr.CreateUndoStep(); // needed for redo
+                            if (!singleElementPaste) {
+                                me->ShowStrands(true);
+                                mSequenceElements->PopulateRowInformation();
+                            }
+                        }
+                    }
+
+                    // Map target rank → element by walking rows from the anchor.
+                    std::map<int, Element*> rankToElem;
+                    if (singleElementPaste) {
+                        int row = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                        Row_Information_Struct* ri2 = mSequenceElements->GetRowInformationFromRow(row);
+                        if (ri2 != nullptr && ri2->element != nullptr)
+                            rankToElem[0] = ri2->element;
+                    } else {
+                        std::set<int> ranksNeeded;
+                        int maxRank = -1;
+                        for (auto& [er, rank] : erToRank) {
+                            ranksNeeded.insert(rank);
+                            maxRank = std::max(maxRank, rank);
+                        }
+
+                        int row = mDropRow + anchorOffset + mSequenceElements->GetFirstVisibleModelRow();
+                        Element* prevElem = nullptr;
+                        int elemIdx = -1;
+                        while (elemIdx < maxRank && !ranksNeeded.empty()) {
+                            Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(row);
+                            if (ri == nullptr || ri->element == nullptr)
+                                break;
+                            if (ri->element != prevElem) {
+                                ++elemIdx;
+                                if (ranksNeeded.count(elemIdx)) {
+                                    rankToElem[elemIdx] = ri->element;
+                                    ranksNeeded.erase(elemIdx);
+                                }
+                                prevElem = ri->element;
+                            }
+                            ++row;
+                        }
+                    }
+
+                    for (auto& [er, rank] : erToRank) {
+                        LayerTarget lt;
+                        lt.element = rankToElem.count(rank) ? rankToElem[rank] : nullptr;
+                        lt.layerIdx = 0;
+                        layerTargetMap[er] = lt;
+                    }
+
+                } else {
+                    int trow = mDropRow + mSequenceElements->GetFirstVisibleModelRow();
+                    Row_Information_Struct* ri = mSequenceElements->GetRowInformationFromRow(trow);
+                    if (ri != nullptr && ri->element != nullptr) {
+                        Element* targetElem = ri->element;
+                        std::set<int> uniqueRows;
+                        for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                            wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                            if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                                continue;
+                            uniqueRows.insert(wxAtoi(ef[5]));
+                        }
+                        int layerIdx = 0;
+                        for (int er : uniqueRows) {
+                            LayerTarget lt;
+                            lt.element = targetElem;
+                            lt.layerIdx = layerIdx++;
+                            layerTargetMap[er] = lt;
+                        }
+                    }
+                }
+
+                // Pre-create layers for both new-format and old-format layer-mode paste.
+                if (!layerTargetMap.empty()) {
+                    std::map<Element*, int> elemMaxLayer;
+                    for (auto& [row, lt] : layerTargetMap)
+                        if (lt.element)
+                            elemMaxLayer[lt.element] = std::max(elemMaxLayer[lt.element], lt.layerIdx);
+                    for (size_t si = 1; si < all_efdata.size() - 1; si++) {
+                        wxArrayString ef = wxSplit(all_efdata[si], '\t', wxT('\0'));
+                        if (ef.size() < 8 || ef[7] == "TIMING_EFFECT")
+                            continue;
+                        int er = wxAtoi(ef[5]);
+                        auto it = layerTargetMap.find(er);
+                        if (it == layerTargetMap.end() || it->second.element == nullptr)
+                            continue;
+                        for (int fi = (int)ef.size() - 1; fi >= 8; --fi) {
+                            if (ef[fi].StartsWith("LAYER:")) {
+                                int li2 = wxAtoi(ef[fi].Mid(6));
+                                elemMaxLayer[it->second.element] = std::max(elemMaxLayer[it->second.element], li2);
+                                break;
+                            }
+                        }
+                    }
+                    bool precreateNeedsPopulate = false;
+                    for (auto& [elem, maxLayer] : elemMaxLayer) {
+                        while ((int)elem->GetEffectLayerCount() <= maxLayer) {
+                            EffectLayer* nl = elem->AddEffectLayer();
+                            int pos = (int)elem->GetEffectLayerCount() - 1;
+                            mSequenceElements->get_undo_mgr().CaptureAddedLayer(elem->GetFullName(), nl->GetIndex(), pos);
+                            precreateNeedsPopulate = true;
+                        }
+                    }
+                    if (precreateNeedsPopulate) {
+                        if (!singleElementPaste) {
+                            for (auto& [elem, maxLayer] : elemMaxLayer) {
+                                ModelElement* me2 = dynamic_cast<ModelElement*>(elem);
+                                if (me2 != nullptr)
+                                    me2->ShowStrands(true);
+                            }
+                        }
+                        mSequenceElements->PopulateRowInformation();
+                    }
+                }
+            }
+
             for (int rpts = 0; rpts < timestopaste; ++rpts) {
                 for (size_t i = 1; i < all_efdata.size() - 1; i++) {
                     wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
@@ -5637,14 +5883,35 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                         drop_row += mSequenceElements->GetFirstVisibleModelRow();
                     }
                     Row_Information_Struct* row_info = mSequenceElements->GetRowInformationFromRow(drop_row);
-                    if (row_info == nullptr)
-                        break;
-                    Element* elem = row_info->element;
-                    if (elem == nullptr)
-                        break;
-                    EffectLayer* el = mSequenceElements->GetEffectLayer(row_info);
-                    if (el == nullptr)
-                        break;
+                    EffectLayer* el = nullptr;
+                    if (layerMode && !is_timing_effect && !layerTargetMap.empty()) {
+                        int er = wxAtoi(efdata[5]);
+                        auto it = layerTargetMap.find(er);
+                        if (it != layerTargetMap.end() && it->second.element != nullptr) {
+                            int layerIdx = it->second.layerIdx;
+                            if (hasLayerTokens) {
+                                for (int fi = (int)efdata.size() - 1; fi >= 8; --fi) {
+                                    if (efdata[fi].StartsWith("LAYER:")) {
+                                        layerIdx = wxAtoi(efdata[fi].Mid(6));
+                                        break;
+                                    }
+                                }
+                            }
+                            if (layerIdx >= 0 && layerIdx < (int)it->second.element->GetEffectLayerCount())
+                                el = it->second.element->GetEffectLayer(layerIdx);
+                        }
+                        if (el == nullptr)
+                            continue;
+                    } else {
+                        if (row_info == nullptr)
+                            break;
+                        Element* elem = row_info->element;
+                        if (elem == nullptr)
+                            break;
+                        el = mSequenceElements->GetEffectLayer(row_info);
+                        if (el == nullptr)
+                            break;
+                    }
                     if (el->GetRangeIsClearMS(new_start_time, new_end_time)) {
                         int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
                         if (effectIndex >= 0 || is_timing_effect) {
@@ -5678,6 +5945,11 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                 }
             }
             sendRenderDirtyEvent();
+            if (layerMode && !layerTargetMap.empty()) {
+                xlights->DoForceSequencerRefresh();
+                wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+                wxPostEvent(GetParent(), eventRowHeaderChanged);
+            }
             mPartialCellSelected = false;
         } else {
             // we refer to all_efdata[1] below so make sure it is there
@@ -6099,6 +6371,14 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
 }
 
 void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
+    // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+    // mouse-move event allocates a 16 KiB CGImage on macOS.
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+    static const wxCursor s_sizeWE(wxCURSOR_SIZEWE);
+    static const wxCursor s_pointLeft(wxCURSOR_POINT_LEFT);
+    static const wxCursor s_pointRight(wxCURSOR_POINT_RIGHT);
+    static const wxCursor s_hand(wxCURSOR_HAND);
+
     int effectIndex;
 
     int time = mTimeline->GetRawTimeMSfromPosition(x);
@@ -6108,32 +6388,32 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
         mResizeEffectIndex = effectIndex;
         switch (selectionType) {
         case HitLocation::NONE:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
         case HitLocation::LEFT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_LEFT);
+            SetCursor(s_pointLeft);
             mResizingMode = EFFECT_RESIZE_LEFT_EDGE;
             break;
         case HitLocation::LEFT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_LEFT;
             break;
         case HitLocation::RIGHT_EDGE_DISCONNECT:
-            SetCursor(wxCURSOR_POINT_RIGHT);
+            SetCursor(s_pointRight);
             mResizingMode = EFFECT_RESIZE_RIGHT_EDGE;
             break;
         case HitLocation::RIGHT_EDGE:
-            SetCursor(wxCURSOR_SIZEWE);
+            SetCursor(s_sizeWE);
             mResizingMode = EFFECT_RESIZE_RIGHT;
             break;
         case HitLocation::LEFT:
         case HitLocation::RIGHT:
-            SetCursor(wxCURSOR_DEFAULT);
+            SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
             break;
         case HitLocation::CENTER:
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
             mResizingMode = EFFECT_RESIZE_MOVE;
             break;
             // update effect details
@@ -6145,7 +6425,7 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
         } else {
             xlights->SetStatusText(xlights->CurrentDir, true);
         }
-        SetCursor(wxCURSOR_DEFAULT);
+        SetCursor(s_default);
         mResizingMode = EFFECT_RESIZE_NO;
     }
 }
@@ -7526,8 +7806,10 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                     }
                 }
             }
+            ((MainSequencer*)mParent)->CopySelectedEffectsWithElementInfo();
+        } else {
+            ((MainSequencer*)mParent)->CopySelectedEffects();
         }
-        ((MainSequencer*)mParent)->CopySelectedEffects();
         mSequenceElements->UnSelectAllEffects();
         mPartialCellSelected = true;
         mCellRangeSelected = false;
@@ -7541,6 +7823,80 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     }
 }
 
+void EffectsGrid::CopyModelEffectsToModels(int row_number) {
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (ri == nullptr || ri->element == nullptr)
+        return;
+    std::string source_name = ri->element->GetModelName();
+
+    int base_source_row = row_number;
+    for (size_t r = 0; r < mSequenceElements->GetVisibleRowInformationSize(); ++r) {
+        Row_Information_Struct* tr = mSequenceElements->GetVisibleRowInformation(r);
+        if (tr && tr->element &&
+            tr->element->GetModelName() == source_name &&
+            tr->layerIndex == 0 &&
+            !tr->submodel &&
+            tr->strandIndex < 0) {
+            base_source_row = (int)r;
+            break;
+        }
+    }
+
+    CopyModelEffects(base_source_row, true, true);
+
+    xLightsFrame* xlights = xLightsApp::GetFrame();
+    wxArrayString choices;
+    for (auto it = xlights->AllModels.begin(); it != xlights->AllModels.end(); ++it) {
+        Model* m = it->second;
+        if (m->Name() == source_name)
+            continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup)
+            continue;
+        if (mSequenceElements->GetElement(m->Name()) == nullptr)
+            continue;
+        choices.Add(m->Name());
+    }
+
+    if (choices.IsEmpty()) {
+        wxMessageBox("No other models found in this sequence.", "Copy Layers/SubModels to Models",
+                     wxOK | wxICON_INFORMATION, (wxWindow*)mParent);
+        return;
+    }
+
+    CheckboxSelectDialog dlg((wxWindow*)mParent, "Choose Model(s)", choices);
+    dlg.SetMinSize(wxSize(400, -1));
+    dlg.SetSize(wxSize(400, dlg.GetSize().GetHeight()));
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+
+    wxArrayString selections = dlg.GetSelectedItems();
+    if (selections.IsEmpty())
+        return;
+
+    for (const auto& sel : selections) {
+        std::string target_name = sel.ToStdString();
+
+        // Re-scan visible rows each iteration since prior pastes may have changed row positions
+        int base_row = -1;
+        for (size_t r = 0; r < mSequenceElements->GetVisibleRowInformationSize(); ++r) {
+            Row_Information_Struct* tr = mSequenceElements->GetVisibleRowInformation(r);
+            if (tr && tr->element &&
+                tr->element->GetModelName() == target_name &&
+                tr->layerIndex == 0 &&
+                !tr->submodel &&
+                tr->strandIndex < 0) {
+                base_row = (int)r;
+                break;
+            }
+        }
+
+        if (base_row < 0)
+            continue;
+
+        PasteModelEffectsWithSubModelLayers(base_row);
+    }
+}
+
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
     if (allLayers) {
         mDropRow = row_number - mSequenceElements->GetVisibleRowInformation(row_number)->layerIndex;
@@ -7550,6 +7906,251 @@ void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
     ((MainSequencer*)mParent)->Paste(true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+}
+
+static bool ReadClipboardEffectData(wxArrayString& all_efdata) {
+    wxTextDataObject data;
+    wxClipboard* cbd = wxClipboard::Get();
+    if (!cbd || !cbd->Open())
+        return false;
+    bool got = (cbd->IsSupported(wxDF_TEXT) || cbd->IsSupported(wxDF_UNICODETEXT)) && cbd->GetData(data);
+    cbd->Close();
+    if (!got)
+        return false;
+    all_efdata = wxSplit(data.GetText(), '\n', wxT('\0'));
+    if (all_efdata.size() < 2)
+        return false;
+    wxArrayString banner = wxSplit(all_efdata[0], '\t');
+    if (banner.size() < 3 || banner[0] != "CopyFormat1" || wxAtoi(banner[2]) == 0)
+        return false;
+    return true;
+}
+
+void EffectsGrid::PasteModelEffectsWithLayers(int row_number) {
+    wxArrayString all_efdata;
+    if (!ReadClipboardEffectData(all_efdata)) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    int start_row = -1;
+    int max_row = -1;
+    for (size_t i = 1; i < all_efdata.size() - 1; i++) {
+        wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
+        if (efdata.size() < 8)
+            break;
+        if (efdata[7] != "TIMING_EFFECT") {
+            int eff_row = wxAtoi(efdata[5]);
+            if (start_row == -1)
+                start_row = eff_row;
+            if (eff_row > max_row)
+                max_row = eff_row;
+        }
+    }
+
+    if (start_row == -1) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    int layers_needed = max_row - start_row + 1;
+
+    Row_Information_Struct* row_info = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (row_info == nullptr)
+        return;
+    int base_row = row_number - row_info->layerIndex;
+
+    Row_Information_Struct* base_row_info = mSequenceElements->GetVisibleRowInformation(base_row);
+    if (base_row_info == nullptr)
+        return;
+    Element* element = base_row_info->element;
+    if (element == nullptr)
+        return;
+
+    if (element->GetCollapsed())
+        element->SetCollapsed(false);
+
+    int current_layers = (int)element->GetEffectLayerCount();
+    int layers_to_add = layers_needed - current_layers;
+    if (layers_to_add > 0) {
+        xLightsApp::GetFrame()->AbortRender();
+        mSequenceElements->get_undo_mgr().CreateUndoStep();
+    }
+
+    for (int i = 0; i < layers_to_add; i++) {
+        EffectLayer* new_layer = element->AddEffectLayer();
+        int pos = (int)element->GetEffectLayerCount() - 1;
+        mSequenceElements->get_undo_mgr().CaptureAddedLayer(element->GetModelName(), new_layer->GetIndex(), pos);
+    }
+
+    mSequenceElements->PopulateRowInformation();
+
+    mDropRow = base_row;
+    ((MainSequencer*)mParent)->Paste(true);
+    mPartialCellSelected = true;
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
+}
+
+void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
+    wxArrayString all_efdata;
+    if (!ReadClipboardEffectData(all_efdata)) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    struct RowRange {
+        int min_row = std::numeric_limits<int>::max();
+        int max_row = std::numeric_limits<int>::min();
+    };
+    std::map<std::string, RowRange> element_ranges;
+
+    for (size_t i = 1; i < all_efdata.size() - 1; i++) {
+        wxArrayString efdata = wxSplit(all_efdata[i], '\t', wxT('\0'));
+        if (efdata.size() < 8)
+            break;
+        if (efdata[7] == "TIMING_EFFECT")
+            continue;
+
+        int eff_row = wxAtoi(efdata[5]);
+        std::string element_name;
+        for (size_t f = 7; f < efdata.size(); f++) {
+            if (efdata[f].StartsWith("SUBMODEL:")) {
+                element_name = efdata[f].Mid(9).ToStdString();
+                break;
+            }
+        }
+
+        auto it = element_ranges.find(element_name);
+        if (it == element_ranges.end()) {
+            element_ranges[element_name] = {eff_row, eff_row};
+        } else {
+            it->second.min_row = std::min(it->second.min_row, eff_row);
+            it->second.max_row = std::max(it->second.max_row, eff_row);
+        }
+    }
+
+    if (element_ranges.empty()) {
+        PasteModelEffects(row_number, true);
+        return;
+    }
+
+    // If clipboard has no SUBMODEL info, fall back to single-element paste-with-layers
+    bool hasSubModelInfo = false;
+    for (const auto& [ename, _] : element_ranges) {
+        if (!ename.empty()) {
+            hasSubModelInfo = true;
+            break;
+        }
+    }
+    if (!hasSubModelInfo) {
+        PasteModelEffectsWithLayers(row_number);
+        return;
+    }
+
+    Row_Information_Struct* row_info = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (row_info == nullptr)
+        return;
+    int base_row = row_number - row_info->layerIndex;
+    Row_Information_Struct* base_row_info = mSequenceElements->GetVisibleRowInformation(base_row);
+    if (base_row_info == nullptr)
+        return;
+    Element* base_element = base_row_info->element;
+    if (base_element == nullptr)
+        return;
+
+    ModelElement* me = dynamic_cast<ModelElement*>(base_element);
+    if (me == nullptr) {
+        auto* se = dynamic_cast<SubModelElement*>(base_element);
+        if (se != nullptr)
+            me = se->GetModelElement();
+    }
+    if (me == nullptr) {
+        PasteModelEffectsWithLayers(row_number);
+        return;
+    }
+
+    if (me->GetCollapsed())
+        me->SetCollapsed(false);
+    me->ShowStrands(true);
+
+    xLightsApp::GetFrame()->AbortRender();
+
+    auto& undo_mgr = mSequenceElements->get_undo_mgr();
+    undo_mgr.CreateUndoStep();
+
+    auto deleteUnusedLayers = [&undo_mgr](Element* elem) {
+        for (int i = 0; i < (int)elem->GetEffectLayerCount(); ++i) {
+            if (elem->GetEffectLayer(i)->GetEffectCount() == 0 && elem->GetEffectLayerCount() > 1) {
+                undo_mgr.CaptureRemovedLayer(elem->GetFullName(), i);
+                elem->RemoveEffectLayer(i);
+                --i;
+            }
+        }
+    };
+    deleteUnusedLayers(me);
+    for (int s = 0; s < me->GetSubModelCount(); ++s) {
+        deleteUnusedLayers(me->GetSubModel(s));
+    }
+
+    auto elementHasEffects = [](Element* elem) {
+        for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
+            if (elem->GetEffectLayer(i)->GetEffectCount() > 0)
+                return true;
+        }
+        return false;
+    };
+    bool hasRemainingEffects = elementHasEffects(me);
+    for (int s = 0; s < me->GetSubModelCount() && !hasRemainingEffects; ++s) {
+        hasRemainingEffects = elementHasEffects(me->GetSubModel(s));
+    }
+    if (hasRemainingEffects) {
+        int answer = wxMessageBox(wxString::Format("'%s' already has effects.\nErase existing effects before pasting?", me->GetModelName().c_str()),
+                                  "Erase Existing Effects", wxYES_NO | wxICON_QUESTION, (wxWindow*)mParent);
+        if (answer == wxYES) {
+            auto eraseAllEffects = [&undo_mgr](Element* elem) {
+                for (size_t i = 0; i < elem->GetEffectLayerCount(); ++i) {
+                    elem->GetEffectLayer(i)->RemoveAllEffects(&undo_mgr);
+                }
+            };
+            eraseAllEffects(me);
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                eraseAllEffects(me->GetSubModel(s));
+            }
+            deleteUnusedLayers(me);
+            for (int s = 0; s < me->GetSubModelCount(); ++s) {
+                deleteUnusedLayers(me->GetSubModel(s));
+            }
+        }
+    }
+
+    for (const auto& [ename, range] : element_ranges) {
+        if (range.min_row > range.max_row)
+            continue;
+        int layers_needed = range.max_row - range.min_row + 1;
+        Element* target_elem = ename.empty() ? static_cast<Element*>(me) : static_cast<Element*>(me->GetSubModel(ename, false));
+        if (target_elem == nullptr)
+            continue;
+
+        int current_layers = (int)target_elem->GetEffectLayerCount();
+        for (int i = current_layers; i < layers_needed; i++) {
+            EffectLayer* new_layer = target_elem->AddEffectLayer();
+            int pos = (int)target_elem->GetEffectLayerCount() - 1;
+            mSequenceElements->get_undo_mgr().CaptureAddedLayer(target_elem->GetFullName(), new_layer->GetIndex(), pos);
+        }
+    }
+
+    mSequenceElements->PopulateRowInformation();
+
+    mDropRow = base_row;
+    ((MainSequencer*)mParent)->Paste(true);
+    mPartialCellSelected = true;
+    ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
+
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
 void EffectsGrid::DuplicateSelectedEffects() {

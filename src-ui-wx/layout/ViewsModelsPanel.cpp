@@ -1213,7 +1213,7 @@ void ViewsModelsPanel::OnListCtrlItemCheck(wxCommandEvent& event)
     else {
         e->SetVisible(!e->GetVisible());
         TimingElement* te = dynamic_cast<TimingElement*>(e);
-        if (_sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW && te != nullptr) {
+        if (te != nullptr) {
             te->SetMasterVisible(e->GetVisible());
         }
     }

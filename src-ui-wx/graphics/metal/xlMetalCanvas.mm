@@ -34,11 +34,6 @@ public:
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
     }
-    ~MSAATextureInfo() {
-        if (msaaTexture != nil) {
-            [msaaTexture release];
-        }
-    }
     
     bool supportsMemoryless() {
         if (@available(macOS 11.0, *)) {
@@ -93,11 +88,6 @@ public:
         CAMetalLayer *layer = (CAMetalLayer *)[c->getMTKView() layer];
         width = [layer drawableSize].width;
         height = [layer drawableSize].height;
-    }
-    ~DepthTextureInfo() {
-        if (depthTexture != nil) {
-            [depthTexture release];
-        }
     }
 
     bool supportsMemoryless() {
@@ -158,7 +148,7 @@ public:
                                                 bool blending) override {
         return canvas->wxMetalCanvas::getPipelineState(name, vShader, fShader, blending);
     }
-    void addToSyncPoint(id<MTLCommandBuffer>& buffer, id<CAMetalDrawable>& drawable) override {
+    void addToSyncPoint(id<MTLCommandBuffer> buffer, id<CAMetalDrawable> drawable) override {
         canvas->wxMetalCanvas::addToSyncPoint(buffer, drawable);
     }
     id<CAMetalDrawable> getNextDrawable() override {
@@ -211,7 +201,7 @@ public:
         int bytesPerRow = w * 4;
         int bufferSize = bytesPerRow * h;
         auto dev = MetalDeviceManager::instance().getMTLDevice();
-        buffer = [[dev newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
+        buffer = [dev newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
 
         MTLTextureDescriptor *description = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
                                                                                                width:w
@@ -219,14 +209,6 @@ public:
                                                                                            mipmapped:false];
         description.usage = MTLTextureUsageShaderWrite | MTLTextureUsageShaderRead;
         target = [dev newTextureWithDescriptor:description];
-    }
-    ~CaptureBufferInfo() {
-        if (buffer != nil) {
-            [buffer release];
-        }
-        if (target != nil) {
-            [target release];
-        }
     }
     
     int width = 0;
@@ -393,8 +375,6 @@ bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer,
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
                         
             VideoToolboxCreateFrame(i2, f, getMTLDevice());
-            
-            [dict release];
         }
         return false;
     }

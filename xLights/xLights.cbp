@@ -19,7 +19,7 @@
 					<Add option="-g" />
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
-					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
@@ -55,7 +55,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
-					<Add option="`pkg-config --libs libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -85,7 +85,7 @@
 					<Add option="-std=gnu++20" />
 					<Add option="`wx-config --version=3.3 --cflags`" />
 					<Add option="`pkg-config --cflags gstreamer-1.0 gstreamer-video-1.0`" />
-					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --cflags libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`pkg-config --cflags lua53`" />
 					<Add option="`pkg-config --cflags freetype2 harfbuzz fontconfig`" />
 					<Add option="-Winvalid-pch" />
@@ -120,7 +120,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-lGL -lGLU -lglut -ldl -lX11 -lEGL -lcurl" />
-					<Add option="`pkg-config --libs libavformat libavcodec libavutil libswresample libswscale libavfilter`" />
+					<Add option="`pkg-config --libs libavformat libavcodec libavutil libavfilter libswresample libswscale`" />
 					<Add option="`sdl2-config --libs`" />
 					<Add option="`wx-config --version=3.3 --libs std,media,gl,aui,propgrid`" />
 					<Add option="`pkg-config --libs gstreamer-1.0 gstreamer-video-1.0`" />
@@ -219,6 +219,8 @@
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
+		<Unit filename="../src-core/import_export/VendorCatalog.cpp" />
+		<Unit filename="../src-core/import_export/VendorCatalog.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/BatchRenderDialog.cpp" />
@@ -378,6 +380,7 @@
 		<Unit filename="../src-ui-wx/layout/LayoutGroup.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutPanel.h" />
+		<Unit filename="../src-ui-wx/layout/ReplaceModelDialog.h" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.cpp" />
 		<Unit filename="../src-ui-wx/layout/LayoutUtils.h" />
 		<Unit filename="../src-ui-wx/sequencer/LinkJukeboxButtonDialog.cpp" />
@@ -1237,6 +1240,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
+		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />
+		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
 		<Unit filename="../src-core/render/SequenceMedia.h" />
 		<Unit filename="../src-core/render/TextDrawingContext.cpp" />
@@ -1365,6 +1370,8 @@
 		<Unit filename="../src-core/utils/GitUtils.h" />
 		<Unit filename="../src-core/utils/CurlManager.cpp" />
 		<Unit filename="../src-core/utils/CurlManager.h" />
+		<Unit filename="../src-core/utils/FloatChecks.h" />
+		<Unit filename="../src-core/utils/AutoReleasePool.h" />
 		<Unit filename="../src-core/utils/ip_utils.cpp" />
 		<Unit filename="../src-core/utils/ip_utils.h" />
 		<Unit filename="../src-core/utils/nanosvg_xl.h" />
@@ -1559,6 +1566,10 @@
 		<Unit filename="../src-ui-wx/color/xlColorPickerFields.h" />
 		<Unit filename="../src-ui-wx/color/xlColourData.cpp" />
 		<Unit filename="../src-ui-wx/color/xlColourData.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerButton.h" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.cpp" />
+		<Unit filename="../src-ui-wx/color/xlColourPickerDialog.h" />
 		<Unit filename="../src-core/utils/xlImage.cpp" />
 		<Unit filename="../src-core/utils/xlImage.h" />
 		<Unit filename="../src-core/utils/Base64.h" />

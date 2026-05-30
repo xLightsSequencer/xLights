@@ -31,6 +31,7 @@
     #include <cxxabi.h>
 #endif
 
+#include "utils/AutoReleasePool.h"
 #include "utils/ExternalHooks.h"
 #include <log.h>
 #include <spdlog/fmt/std.h>
@@ -340,7 +341,10 @@ void JobPoolWorker::ProcessJob(Job *job)
             stn = true;
         }
         bool deleteWhenComplete = job->DeleteWhenComplete();
-        RunInAutoReleasePool([job]() { job->Process(); });
+        {
+            AutoReleasePool pool;
+            job->Process();
+        }
         if (stn) {
             SetThreadName(origName);
         }

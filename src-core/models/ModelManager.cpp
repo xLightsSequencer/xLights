@@ -24,6 +24,7 @@
 #include "CircleModel.h"
 #include "CubeModel.h"
 #include "CustomModel.h"
+#include "utils/AutoReleasePool.h"
 #include "utils/ExternalHooks.h"
 #include "IciclesModel.h"
 #include "ImageModel.h"
@@ -110,6 +111,18 @@ ModelManager::~ModelManager()
     clear();
 }
 
+void ModelManager::clearUIObjects()
+{
+    while (_modelsLoading)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
+    for (auto& it : models) {
+        if (it.second != nullptr) {
+            it.second->ClearRenderCaches();
+        }
+    }
+}
+
 void ModelManager::clear()
 {
     std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
@@ -120,6 +133,7 @@ void ModelManager::clear()
         }
     }
     models.clear();
+    _modelGeneration++;
 }
 
 inline BaseObject* ModelManager::GetObject(const std::string& name) const
@@ -282,7 +296,10 @@ void ModelManager::LoadModels(pugi::xml_node modelNode, int previewW, int previe
     std::function<void(pugi::xml_node&, int)> f = [this, previewW, previewH](pugi::xml_node e, int idx) {
         createAndAddModel(e, previewW, previewH);
     };
-    RunInAutoReleasePool([&]() {parallel_for(modelsToLoad, f);});
+    {
+        AutoReleasePool pool;
+        parallel_for(modelsToLoad, f);
+    }
     // printf("%d Models loaded in %ldms", (int)modelsToLoad.size(), timer.Time());
     auto timerElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerStart).count();
     spdlog::debug("Models loaded in {}ms", timerElapsed);
@@ -1235,6 +1252,17 @@ bool ModelManager::RenameController(const std::string& oldName, const std::strin
     return changed;
 }
 
+bool ModelManager::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    for (auto& it : *this) {
+        changed |= it.second->DeleteController(name);
+    }
+
+    return changed;
+}
+
 // generate the next similar model name to the candidateName we are given
 std::string ModelManager::GenerateModelName(const std::string& candidateName) const
 {
@@ -1461,6 +1489,7 @@ void ModelManager::AddModel(Model* model)
             ResetModelGroups();
         }
         models[model->name] = model;
+        _modelGeneration++;
     }
 }
 
@@ -1469,8 +1498,9 @@ void ModelManager::ReplaceModel(const std::string &name, Model* nm) {
         std::lock_guard<std::recursive_mutex> _lock(_modelMutex);
         Model *oldm = models[name];
         models[nm->name] = nm;
-        ResetModelGroups();       
+        ResetModelGroups();
         delete oldm;
+        _modelGeneration++;
     }
 }
 
@@ -2113,6 +2143,7 @@ bool ModelManager::Delete(const std::string& name)
                 }
 
                 delete model;
+                _modelGeneration++;
                 if (_renderContext) _renderContext->MarkRgbEffectsChanged();
                 return true;
             }

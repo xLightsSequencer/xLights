@@ -300,7 +300,14 @@ wxWindow* BlendingPanel::BuildTransitionHeader(wxWindow* parentWin, wxSizer* siz
     fadeCombo->Bind(wxEVT_TEXT, commit);
     fadeCombo->Bind(wxEVT_COMBOBOX, commit);
     // Safety net for GTK: Tab/focus-away always commits whatever the user typed.
-    fadeCombo->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+    // Also the only place where we rewrite the visible text — clamps negative
+    // / unparseable values to "0.00" on commit (not on every keystroke, which
+    // would clobber a mid-edit value like ".").
+    fadeCombo->Bind(wxEVT_KILL_FOCUS, [this, fadeCombo](wxFocusEvent& e) {
+        double v = 0.0;
+        if (!fadeCombo->GetValue().ToCDouble(&v) || v < 0) {
+            fadeCombo->SetValue("0.00");
+        }
         ValidateWindow();
         FireChangeEvent();
         e.Skip();
@@ -465,7 +472,13 @@ void BlendingPanel::ValidateWindow() {
         }
     }
 
-    // Clamp negative fade times (users can type anything into the combo box).
+    // Compute the numeric fade time for the enable/disable logic below. Do
+    // NOT rewrite the combo's text here — ValidateWindow runs on every
+    // wxEVT_TEXT keystroke, so an intermediate value like "." (user typed
+    // a decimal point and is about to type a digit) would otherwise get
+    // overwritten with "0.00", causing the next keystroke to land in the
+    // wrong cursor position (e.g. typing ".5" produces "50.00"). Text
+    // normalization happens on KILL_FOCUS instead.
     // Use ToCDouble so '.' is the decimal separator regardless of the system
     // locale — otherwise wxAtof would return 0 for "0.50" on locales that
     // expect ',' as the separator and wrongly enable/disable the adjust rows.
@@ -473,13 +486,11 @@ void BlendingPanel::ValidateWindow() {
     double fadeOut = 0.0;
     if (_fadeinCombo) {
         wxString v = _fadeinCombo->GetValue();
-        bool ok = v.ToCDouble(&fadeIn);
-        if (!ok || fadeIn < 0) { _fadeinCombo->SetValue("0.00"); fadeIn = 0; }
+        if (!v.ToCDouble(&fadeIn) || fadeIn < 0) fadeIn = 0.0;
     }
     if (_fadeoutCombo) {
         wxString v = _fadeoutCombo->GetValue();
-        bool ok = v.ToCDouble(&fadeOut);
-        if (!ok || fadeOut < 0) { _fadeoutCombo->SetValue("0.00"); fadeOut = 0; }
+        if (!v.ToCDouble(&fadeOut) || fadeOut < 0) fadeOut = 0.0;
     }
 
     // Compound enable/disable: transition adjust / reverse are only active

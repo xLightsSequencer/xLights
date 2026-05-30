@@ -56,6 +56,7 @@
 #include "sequencer/EffectsPanel.h"
 #include "effects/EffectAssist.h"
 #include "color/ColorPanel.h"
+#include "color/xlColourPickerButton.h"
 #include "sequencer/BlendingPanel.h"
 #include "layout/ModelPreview.h"
 #include "MainSequencer.h"
@@ -285,15 +286,20 @@ void xLightsFrame::InitSequencer()
             spdlog::info("Number of channels has changed ... reallocating sequence data memory.");
             spdlog::info("Channels prior {} and channels current {}", _seqData.NumChannels(), roundTo4(GetMaxNumChannels()));
 
-            AbortRender();
+            // Reallocating _seqData frees the channel buffer a live render
+            // job may still be writing into. Only proceed if the render has
+            // actually drained — AbortRender() returns false if it timed out.
+            if (AbortRender()) {
+                wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
+                int ms = wxAtoi(mss);
 
-            wxString mss = CurrentSeqXmlFile->GetSequenceTiming();
-            int ms = wxAtoi(mss);
+                _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
+                _sequenceElements.IncrementChangeCount(nullptr);
 
-            _seqData.init(GetMaxNumChannels(), CurrentSeqXmlFile->GetSequenceDurationMS() / ms, ms);
-            _sequenceElements.IncrementChangeCount(nullptr);
-
-            SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+                SetStatusTextColor("Render buffer recreated. A render all is required.", *wxRED);
+            } else {
+                spdlog::error("Could not abort in-flight render before reallocating sequence data; skipping reallocation to avoid a crash.");
+            }
         }
     }
 
@@ -1226,7 +1232,7 @@ void xLightsFrame::EffectUpdated(wxCommandEvent& event)
 void xLightsFrame::SelectedEffectChanged(SelectedEffectChangedEvent& event)
 {
     EffectSettingsTimer.Start(25);
-    
+
     // prevent re-entry notification of effect selected changed
     static bool reentry = false;
     if (reentry) {
@@ -1599,7 +1605,13 @@ void xLightsFrame::EffectFileDroppedOnGrid(wxCommandEvent& event)
     int effectIndex = 0;
     for (size_t i = 0; i < EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetCount(); i++) {
         if (EffectsPanel1->EffectChoicebook->GetChoiceCtrl()->GetString(i) == effectName) {
-            EffectsPanel1->EffectChoicebook->SetSelection(i);
+            // SetEffectType (not SetSelection) so the deferred
+            // SelectedEffectChangedEvent is suppressed. The deferred event
+            // would otherwise fire ResetPanelDefaultSettings, clear the file
+            // picker the sync handler just populated, then EffectSettingsTimer
+            // would diff the cleared panel against selectedEffectString and
+            // call eff->SetSettings(...) — wiping the dropped filename.
+            EffectsPanel1->SetEffectType(i);
             effectIndex = i;
             break;
         }
@@ -1717,9 +1729,19 @@ void xLightsFrame::CopyModelEffects(wxCommandEvent& event)
     mainSequencer->PanelEffectGrid->CopyModelEffects(event.GetInt(), event.GetString().StartsWith("All"), event.GetString() == "AllInclSub");
 }
 
+void xLightsFrame::CopyModelEffectsToModels(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->CopyModelEffectsToModels(event.GetInt());
+}
+
 void xLightsFrame::PasteModelEffects(wxCommandEvent& event)
 {
     mainSequencer->PanelEffectGrid->PasteModelEffects(event.GetInt(), event.GetString() == "All");
+}
+
+void xLightsFrame::PasteModelEffectsWithSubModelLayers(wxCommandEvent& event)
+{
+    mainSequencer->PanelEffectGrid->PasteModelEffectsWithSubModelLayers(event.GetInt());
 }
 
 void xLightsFrame::ModelSelected(wxCommandEvent& event)
@@ -3043,18 +3065,35 @@ bool xLightsFrame::ApplySetting(wxString name, const wxString &value, int count)
 			oldfont.SetNativeFontInfoUserDesc(value);
 			picker->SetSelectedFont(oldfont);
 		} else if (name.StartsWith("ID_COLOURPICKER")) {
-            wxColourPickerCtrl* picker = (wxColourPickerCtrl*)CtrlWin;
             wxColour c(value);
-            picker->SetColour(c);
+            // BulkEditColourPickerCtrl (used by JsonEffectPanel) extends
+            // xlColourPickerButton → wxPanel, NOT wxColourPickerCtrl.  Both
+            // types share the same name prefix and both expose SetColour(), so
+            // check via dynamic_cast to avoid calling into the wrong vtable.
+            xlColourPickerButton* pickerBtn = dynamic_cast<xlColourPickerButton*>(CtrlWin);
+            if (pickerBtn != nullptr) {
+                pickerBtn->SetColour(c);
+            } else {
+                wxColourPickerCtrl* picker = dynamic_cast<wxColourPickerCtrl*>(CtrlWin);
+                if (picker != nullptr) {
+                    picker->SetColour(c);
+                }
+            }
         } else if (name.StartsWith("ID_CUSTOM")) {
             xlCustomControl *custom = dynamic_cast<xlCustomControl *>(CtrlWin);
-            custom->SetValue(value.ToStdString());
+            if (custom != nullptr) {
+                custom->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_VALUECURVE")) {
             ValueCurveButton *vcb = dynamic_cast<ValueCurveButton *>(CtrlWin);
-            vcb->SetValue(value.ToStdString());
+            if (vcb != nullptr) {
+                vcb->SetValue(value.ToStdString());
+            }
         } else if (name.StartsWith("ID_TOGGLEBUTTON")) {
             wxToggleButton *vcb = dynamic_cast<wxToggleButton *>(CtrlWin);
-            vcb->SetValue(wxAtoi(value) != 0);
+            if (vcb != nullptr) {
+                vcb->SetValue(wxAtoi(value) != 0);
+            }
         } else {
 			spdlog::error("ApplySetting: Unknown type: {}", (const char*)name.c_str());
             res = false;
@@ -3154,10 +3193,19 @@ void xLightsFrame::SetEffectControls(const SettingsMap &settings) {
 
     bool applylast = false;
 
+    for (const auto& it : settings) {
+        if (it.first.find("APPLYLAST") == std::string::npos &&
+            it.first.find("Definition") != std::string::npos) {
+            ApplySetting(it.first, ToWXString(it.second));
+        }
+    }
+
 	// Apply those settings without APPLYLAST in their name first
     for (const auto& it : settings) {
 		if (it.first.find("APPLYLAST") == std::string::npos) {
-			ApplySetting(it.first, ToWXString(it.second));
+            if (it.first.find("Definition") == std::string::npos) {
+                ApplySetting(it.first, ToWXString(it.second));
+            }
         } else {
             applylast = true;
         }
@@ -3918,7 +3966,7 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                                     f.push_back(k);
                                 }
                             }
-                            res[j] = f;
+                            res.insert({j, f});
                         }
                     }
 
@@ -3930,7 +3978,17 @@ std::map<int, std::vector<float>> xLightsFrame::LoadMIDIFile(std::string file, i
                 } else if (e.isNoteOff()) {
                     notestate[e.getKeyNumber()]--;
                     if (notestate[e.getKeyNumber()] < 0) {
-                        // this should never happen
+                        notestate[e.getKeyNumber()] = 0;
+                    }
+                    int frame = LowerTS(time, intervalMS);
+                    if (frame >= 0) {
+                        std::vector<float> f;
+                        for (int k = 0; k <= 127; ++k) {
+                            if (notestate[k] > 0) {
+                                f.push_back(k);
+                            }
+                        }
+                        res[frame] = f;
                     }
                 }
             }
@@ -4294,9 +4352,9 @@ Effect* xLightsFrame::ApplyEffectsPreset(const std::string& presetName)
     return res;
 }
 
-void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion)
+void xLightsFrame::ApplyEffectsPreset(wxString& data, const wxString& pasteDataVersion, bool layerMode)
 {
-    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion);
+    mainSequencer->PanelEffectGrid->Paste(data, pasteDataVersion, false, layerMode);
 }
 
 void xLightsFrame::PromoteEffects(wxCommandEvent& command)

@@ -21,6 +21,12 @@ namespace handles {
 // ones. The same descriptors work for both.
 struct HitTestOptions {
     float handleTolerance     = 4.0f;   // mouse default; touch should be ~24-40
+    // Axis handles (X/Y/Z arrows, cubes, rings) project to fixed
+    // screen positions near the model centre, so a generous touch
+    // slop on them swallows nearby body-drag taps. The 0-default
+    // means "use handleTolerance for everything"; touch callers
+    // should set this tighter (e.g. 24-28) than `handleTolerance`.
+    float axisHandleTolerance = 0.0f;
     bool  preferAxisHandles   = true;   // axis arrows beat body-shaped handles
                                         // when both are within tolerance
     bool  ignoreNonEditable   = false;  // skip descriptors with editable=false

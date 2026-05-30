@@ -129,7 +129,10 @@ public:
     void ProcessDroppedEffect(Effect* effect);
     void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
+    void CopyModelEffectsToModels(int row_number);
     void PasteModelEffects(int row_number, bool allLayers);
+    void PasteModelEffectsWithLayers(int row_number);
+    void PasteModelEffectsWithSubModelLayers(int row_number);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
@@ -155,7 +158,7 @@ public:
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
-    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
+    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false, bool layerMode = false);
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }

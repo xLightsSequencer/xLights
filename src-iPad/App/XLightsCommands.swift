@@ -285,6 +285,34 @@ struct XLSequencerCommands: Commands {
                     }
                 }
             }
+
+            // EX-11 — Tools → Package Sequence. Builds a `.xsqz`
+            // of the current sequence + media for sharing (mirrors
+            // desktop). Disabled until a sequence is loaded since
+            // there's nothing to package otherwise.
+            Button("Package Sequence…") {
+                viewModel.showingPackageSequence = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // EX-4 — Tools → FPP Connect. Discover FPP instances and
+            // upload batch-rendered .fseq files. Show folder must be
+            // loaded so the sheet has fseqs to enumerate. The sheet is
+            // hosted on the sequencer window only, so pull that window
+            // to the front before flipping the flag — otherwise the
+            // menu fires from the Layout Editor window and the sheet
+            // never appears.
+            FPPConnectMenuItem(viewModel: viewModel)
+
+            Divider()
+
+            // H-6 / T-2 — Tools → View Log. Live log viewer for
+            // troubleshooting without leaving the device.
+            Button("View Log…") {
+                viewModel.showingLogViewer = true
+            }
         }
 
         // Playback menu.
@@ -665,5 +693,30 @@ struct EditLayoutMenuItem: View {
             openWindow(id: "layout-editor")
         }
         .disabled(!viewModel.isShowFolderLoaded || viewModel.layoutEditorOpen)
+    }
+}
+
+/// Tools → FPP Connect menu entry. The sheet is hosted only in the
+/// sequencer WindowGroup, so when the Layout Editor window is in
+/// front we need to swap focus before flipping the flag. But
+/// `openWindow(id: "sequencer")` on iPadOS multi-instance WindowGroups
+/// spawns a second sequencer scene when one is already foreground
+/// (the SwiftUI API for "activate existing" is unreliable here), so
+/// we gate the openWindow call on `viewModel.layoutEditorOpen` — that
+/// flag is only true while a Layout Editor scene is alive. When no
+/// Layout Editor is open the sequencer must be the front window
+/// already, so we skip the switch and just flip the flag.
+struct FPPConnectMenuItem: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("FPP Connect…") {
+            if viewModel.layoutEditorOpen {
+                openWindow(id: "sequencer")
+            }
+            viewModel.showingFPPConnect = true
+        }
+        .disabled(!viewModel.isShowFolderLoaded)
     }
 }

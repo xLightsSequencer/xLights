@@ -669,6 +669,9 @@ void DrawLabel(TextDrawingContext *dc,
             if ( idx == text.size() )
                 break;
 
+            if (perWord && !curLine.empty()) {
+                curPos++;
+            }
             curLine.clear();
         }
         else // not end of line
@@ -1334,9 +1337,9 @@ std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
     std::string word;
     for (auto c : text) {
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-            if (word != "") {
+            if (!word.empty()) {
                 res.push_back(word);
-                word = "";
+                word.clear();
             }
         }
         else {
@@ -1344,7 +1347,7 @@ std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
         }
     }
 
-    if (word != "") {
+    if (!word.empty()) {
         res.push_back(word);
     }
 
@@ -1411,7 +1414,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     std::string filename = settings["FILEPICKERCTRL_Text_File"];
     std::string lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
-    if (text == "") {
+    if (text.empty()) {
         if (!filename.empty()) {
             auto* seqMedia = buffer.GetSequenceMedia();
             std::string fileContent;
@@ -1612,9 +1615,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                     line_offset_left += actual_width;
                 }
             }
+            if (perWord && !line.empty() && line_idx + 1 < lines.size()) {
+                curPos++;
+            }
             if (rotate_90) {
                 OffsetLeft += char_height + 1;
-                if (up) { 
+                if (up) {
                     OffsetTop = InitialOffsetTop;
                 }
             } else {

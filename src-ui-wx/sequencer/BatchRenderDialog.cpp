@@ -171,6 +171,7 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent& event) {
         return;
     }
 
+    CheckListBox_Sequences->Freeze();
     wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
     while (item.IsOk()) {
         bool isChecked = CheckListBox_Sequences->GetCheckedState(item) == wxCHK_CHECKED;
@@ -186,6 +187,7 @@ void BatchRenderDialog::OnPopupCommand(wxCommandEvent& event) {
         }
         item = CheckListBox_Sequences->GetNextItem(item);
     }
+    CheckListBox_Sequences->Thaw();
     ValidateWindow();
 }
 

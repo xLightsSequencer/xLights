@@ -285,6 +285,14 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="StaticText_Disclaimer" variable="StaticText_Disclaimer" member="yes">
+					<label>NOTE: Models are provided by the vendors, not by xLights. They are free to use in your layout, but the designs are copyrighted and not licensed for recreation or public distribution.</label>
+					<style>wxALIGN_CENTRE_HORIZONTAL</style>
+				</object>
+				<flag>wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND</flag>
+				<border>5</border>
+			</object>
 		</object>
 	</object>
 </wxsmith>

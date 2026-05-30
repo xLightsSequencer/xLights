@@ -589,17 +589,29 @@ void Waveform::mouseMoved(wxMouseEvent& event)
         eventSelected.SetInt(abs(mTimeline->GetNewStartTimeMS() - mTimeline->GetNewEndTimeMS()));
         wxPostEvent(mParent, eventSelected);
     } else {
+        // Cached stock cursors — constructing wxCursor(wxCURSOR_*) per
+        // mouse-move event allocates a 16 KiB CGImage on macOS.
+        static const wxCursor s_pointLeftCursor(wxCURSOR_POINT_LEFT);
+        static const wxCursor s_pointRightCursor(wxCURSOR_POINT_RIGHT);
+        static const wxCursor s_arrowCursor(wxCURSOR_ARROW);
+
         int selected_x1 = mTimeline->GetSelectedPositionStart();
         int selected_x2 = mTimeline->GetSelectedPositionEnd();
+        DRAG_MODE new_mode;
+        const wxCursor* new_cursor;
         if (event.GetX() >= selected_x1 && event.GetX() < selected_x1 + 6) {
-            SetCursor(wxCURSOR_POINT_LEFT);
-            m_drag_mode = DRAG_LEFT_EDGE;
+            new_mode = DRAG_LEFT_EDGE;
+            new_cursor = &s_pointLeftCursor;
         } else if (event.GetX() > selected_x2 - 6 && event.GetX() <= selected_x2) {
-            SetCursor(wxCURSOR_POINT_RIGHT);
-            m_drag_mode = DRAG_RIGHT_EDGE;
+            new_mode = DRAG_RIGHT_EDGE;
+            new_cursor = &s_pointRightCursor;
         } else {
-            SetCursor(wxCURSOR_ARROW);
-            m_drag_mode = DRAG_NORMAL;
+            new_mode = DRAG_NORMAL;
+            new_cursor = &s_arrowCursor;
+        }
+        if (new_mode != m_drag_mode) {
+            SetCursor(*new_cursor);
+            m_drag_mode = new_mode;
         }
     }
     int mouseTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(event.GetX());
@@ -659,6 +671,25 @@ bool Waveform::PrepareStemData()
     if (_media == nullptr) return false;
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
+
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object (sig
+    // 0b727679d7). Refuse re-entry, and lock the UI down for the
+    // duration the same way a render does so the sequence can't be
+    // closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
 
     std::vector<std::string> roots;
     if (!xLightsFrame::CurrentDir.empty())
@@ -792,6 +823,25 @@ bool Waveform::PrepareStemData()
     }
     auto* frame = xLightsApp::GetFrame();
     if (frame == nullptr) return false;
+
+    // The separation runs on a worker thread while we pump the event
+    // queue (wxApp::Yield) to keep the progress dialog live. That pump
+    // can re-dispatch the stem command (re-entry -> a second worker on
+    // the same _media) or let the sequence/_media be closed out from
+    // under the worker, both of which crash on a freed object in
+    // RunChunk (sig 0b727679d7). Refuse re-entry, and lock the UI down
+    // for the duration the same way a render does so the sequence can't
+    // be closed and the app can't be quit mid-inference.
+    if (_stemSeparationActive.exchange(true)) return false;
+    frame->EnableSequenceControls(false);
+    struct StemGuard {
+        std::atomic<bool>& active;
+        xLightsFrame* frame;
+        ~StemGuard() {
+            frame->EnableSequenceControls(true);
+            active.store(false);
+        }
+    } stemGuard{ _stemSeparationActive, frame };
 
     // Build the list of candidate install roots: show folder first,
     // then each configured media folder in preference order.

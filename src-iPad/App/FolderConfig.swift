@@ -11,6 +11,7 @@ enum FolderConfig {
     private static let mediaFoldersKey = "xl.mediaFolderPaths"
     private static let fseqEnabledKey = "xl.fseqEnabled"
     private static let fseqFolderKey = "xl.fseqFolderPath"
+    private static let pendingBaseDirReselectKey = "xl.pendingBaseDirReselectMessage"
 
     static var showFolder: String? {
         get { UserDefaults.standard.string(forKey: showFolderKey) }
@@ -49,6 +50,22 @@ enum FolderConfig {
                 UserDefaults.standard.set(v, forKey: fseqFolderKey)
             } else {
                 UserDefaults.standard.removeObject(forKey: fseqFolderKey)
+            }
+        }
+    }
+
+    /// Pending message from a silent auto-update-on-open run that
+    /// couldn't access the base show folder. FolderConfigView reads
+    /// this on appear so the user has a one-tap path to reselect.
+    /// Cleared after the user is shown the prompt — a fresh failure
+    /// will repopulate it on the next show-folder open.
+    static var pendingBaseDirReselectMessage: String? {
+        get { UserDefaults.standard.string(forKey: pendingBaseDirReselectKey) }
+        set {
+            if let v = newValue, !v.isEmpty {
+                UserDefaults.standard.set(v, forKey: pendingBaseDirReselectKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: pendingBaseDirReselectKey)
             }
         }
     }

@@ -195,17 +195,11 @@ float ThreePointScreenLocation::GetMWidth() const
     return TwoPointScreenLocation::GetMWidth();
 }
 
-void ThreePointScreenLocation::SetActiveHandle(int handle)
-{
-    active_handle = ThreePointLegacyToId(handle);
-    highlighted_handle.reset();
-    SetAxisTool(axis_tool);  // run logic to disallow certain tools
-}
 
-void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
+void ThreePointScreenLocation::SetAxisTool(handles::Tool mode)
 {
     if (IsRole(active_handle, handles::Role::Shear)) {
-        axis_tool = MSLTOOL::TOOL_XY_TRANS;
+        axis_tool = handles::Tool::XYTranslate;
     } else {
         TwoPointScreenLocation::SetAxisTool(mode);
     }
@@ -214,7 +208,7 @@ void ThreePointScreenLocation::SetAxisTool(MSLTOOL mode)
 void ThreePointScreenLocation::AdvanceAxisTool()
 {
     if (IsRole(active_handle, handles::Role::Shear)) {
-        axis_tool = MSLTOOL::TOOL_XY_TRANS;
+        axis_tool = handles::Tool::XYTranslate;
     } else {
         TwoPointScreenLocation::AdvanceAxisTool();
     }
@@ -234,42 +228,28 @@ void ThreePointScreenLocation::SetActiveAxis(MSLAXIS axis)
 }
 bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const {
     if (active_handle.has_value()) {
-
-        float HandleHt = RenderHt;
-        if (HandleHt > RenderWi)
-            HandleHt = RenderWi;
-        float ymax = HandleHt;
-        
         auto vac = program->getAccumulator();
         int startVertex = vac->getCount();
         vac->PreAlloc(38);
 
-        float x = RenderWi / 2;
-        if (supportsAngle) {
-            ymax = HandleHt * height;
-            rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
-        }
-
-        glm::vec3 v1 = glm::vec3(matrix * glm::vec4(glm::vec3(x, ymax, 0.0f), 1.0f));
-        float sx = v1.x;
-        float sy = v1.y;
-        float sz = v1.z;
+        // Shear sphere position is the same point GetHandles emits for
+        // hit-testing; calling the getter directly keeps draw and hit
+        // in lockstep without re-walking the descriptor list.
+        const glm::vec3 shearPos = GetShearHandleWorldPosition();
         vac->AddVertex(center.x, center.y, center.z, xlWHITE);
-        vac->AddVertex(sx, sy, sz, xlWHITE);
+        vac->AddVertex(shearPos.x, shearPos.y, shearPos.z, xlWHITE);
 
         xlColor h4c = xlBLUETRANSLUCENT;
-        if (fromBase)
-        {
+        if (fromBase) {
             h4c = FROM_BASE_HANDLES_COLOUR;
-        } else
-        if (_locked) {
+        } else if (_locked) {
             h4c = LOCKED_HANDLES_COLOUR;
         } else {
             h4c = IsHandle(highlighted_handle, handles::Role::Shear, SHEAR_HANDLE) ? xlYELLOWTRANSLUCENT : xlBLUETRANSLUCENT;
         }
 
         float hw = GetRectHandleWidth(zoom, scale);
-        vac->AddSphereAsTriangles(sx, sy, sz, hw, h4c);
+        vac->AddSphereAsTriangles(shearPos.x, shearPos.y, shearPos.z, hw, h4c);
 
         int count = vac->getCount();
         program->addStep([=](xlGraphicsContext *ctx) {
@@ -283,40 +263,22 @@ bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoo
 }
 
 bool ThreePointScreenLocation::DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const {
-    float sx1 = center.x;
-    float sy1 = center.y;
-
-    float HandleHt = RenderHt;
-    if (HandleHt > RenderWi)
-        HandleHt = RenderWi;
-    float ymax = HandleHt;
-
     auto vac = program->getAccumulator();
     int startVertex = vac->getCount();
     vac->PreAlloc(18);
 
-    float x = RenderWi / 2;
-    if (supportsAngle) {
-        ymax = HandleHt * height;
-        rotate_point(RenderWi / 2.0, 0, toRadians(angle), x, ymax);
-    }
-
-    glm::vec3 v1 = glm::vec3(matrix * glm::vec4(glm::vec3(x, ymax, 1), 1.0f));
-    float sx = v1.x;
-    float sy = v1.y;
-    vac->AddVertex(sx1, sy1, xlWHITE);
-    vac->AddVertex(sx, sy, xlWHITE);
+    const glm::vec3 shearPos = GetShearHandleWorldPosition();
+    vac->AddVertex(center.x, center.y, xlWHITE);
+    vac->AddVertex(shearPos.x, shearPos.y, xlWHITE);
 
     xlColor handleColor = xlBLUETRANSLUCENT;
-    if (fromBase)
-    {
+    if (fromBase) {
         handleColor = FROM_BASE_HANDLES_COLOUR;
-    } else
-    if (_locked) {
+    } else if (_locked) {
         handleColor = LOCKED_HANDLES_COLOUR;
     }
     float hw = GetRectHandleWidth(zoom, scale);
-    vac->AddRectAsTriangles(sx - hw/2.0, sy - hw/2.0, sx + hw, sy + hw, handleColor);
+    vac->AddRectAsTriangles(shearPos.x - hw/2.0, shearPos.y - hw/2.0, shearPos.x + hw, shearPos.y + hw, handleColor);
     int count = vac->getCount();
     program->addStep([=](xlGraphicsContext *ctx) {
         ctx->drawLines(vac, startVertex, 2);
@@ -338,28 +300,63 @@ void ThreePointScreenLocation::DrawBoundingBox(xlVertexColorAccumulator *vac, bo
 
 
 
-int ThreePointScreenLocation::MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) {
-    if (handle == SHEAR_HANDLE) {
-        //we'll handle move, ignore rotations
-        if (supportsAngle) {
-            angle -= mov.x*10.0f;
-            height += -mov.z;
-        } else if (supportsShear) {
-            shear -= mov.x*10.0f;
-            height += -mov.z;
-        } else {
-            height += -mov.z;
+namespace {
+// SpaceMouse session for ThreePointScreenLocation. Adds a Shear
+// handle on top of TwoPoint's CENTER / START / END behavior:
+// dragging Shear adjusts angle / shear / height (subclass-defined
+// — Arch / Window Frame each set their `supports*` flags).
+class ThreePointSpaceMouseSession : public handles::SpaceMouseSession {
+public:
+    ThreePointSpaceMouseSession(ThreePointScreenLocation* loc,
+                                std::optional<handles::Id> id)
+        : _loc(loc), _id(id),
+          _twoPointInner(loc->TwoPointScreenLocation::BeginSpaceMouseSession(id)) {}
+
+    handles::SpaceMouseResult Apply(float scale,
+                                     const glm::vec3& rot,
+                                     const glm::vec3& mov) override {
+        if (!_loc) return handles::SpaceMouseResult::Unchanged;
+        if (_id.has_value() && _id->role == handles::Role::Shear) {
+            _loc->ApplySpaceMouseShearHandle(scale, rot, mov);
+            return handles::SpaceMouseResult::NeedsInit;
         }
-        if (std::abs(height) < 0.01f) {
-            if (height < 0.0f) {
-                height = -0.01f;
-            } else {
-                height = 0.01f;
-            }
+        if (_twoPointInner) {
+            return _twoPointInner->Apply(scale, rot, mov);
         }
-        return MODEL_NEEDS_INIT;
+        return handles::SpaceMouseResult::Unchanged;
     }
-    return TwoPointScreenLocation::MoveHandle3D(scale, handle, rot, mov);
+
+    [[nodiscard]] std::optional<handles::Id> GetHandleId() const override {
+        return _id;
+    }
+
+private:
+    ThreePointScreenLocation*                       _loc;
+    std::optional<handles::Id>                      _id;
+    std::unique_ptr<handles::SpaceMouseSession>     _twoPointInner;
+};
+} // namespace
+
+void ThreePointScreenLocation::ApplySpaceMouseShearHandle(float /*scale*/,
+                                                           const glm::vec3& /*rot*/,
+                                                           const glm::vec3& mov) {
+    if (supportsAngle) {
+        angle -= mov.x * 10.0f;
+        height += -mov.z;
+    } else if (supportsShear) {
+        shear -= mov.x * 10.0f;
+        height += -mov.z;
+    } else {
+        height += -mov.z;
+    }
+    if (std::abs(height) < 0.01f) {
+        height = (height < 0.0f) ? -0.01f : 0.01f;
+    }
+}
+
+std::unique_ptr<handles::SpaceMouseSession>
+ThreePointScreenLocation::BeginSpaceMouseSession(const std::optional<handles::Id>& id) {
+    return std::make_unique<ThreePointSpaceMouseSession>(this, id);
 }
 float ThreePointScreenLocation::GetVScaleFactor() const {
     if (modelHandleHeight) {
@@ -739,7 +736,7 @@ std::vector<handles::Descriptor> ThreePointScreenLocation::GetHandles(
         // 3D shear session.
         if (_locked) return out;
         const bool draggable = (IsRole(active_handle, handles::Role::Shear) &&
-                                axis_tool == MSLTOOL::TOOL_XY_TRANS);
+                                axis_tool == handles::Tool::XYTranslate);
         handles::Descriptor d;
         d.id.role  = handles::Role::Shear;
         d.id.index = SHEAR_HANDLE;
@@ -769,7 +766,7 @@ std::unique_ptr<handles::DragSession> ThreePointScreenLocation::CreateDragSessio
     if (id.role == handles::Role::Shear) {
         if (_locked) return nullptr;
         if (id.index != SHEAR_HANDLE) return nullptr;
-        if (IsRole(active_handle, handles::Role::Shear) && axis_tool == MSLTOOL::TOOL_XY_TRANS) {
+        if (IsRole(active_handle, handles::Role::Shear) && axis_tool == handles::Tool::XYTranslate) {
             // 3D shear (XY_TRANS): cursor lives on an XY plane
             // through the shear sphere's saved world position.
             return std::make_unique<ThreePoint3DShearSession>(this, modelName, id, startRay,

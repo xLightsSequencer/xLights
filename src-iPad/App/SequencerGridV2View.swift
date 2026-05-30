@@ -1715,6 +1715,8 @@ struct SequencerGridV2View: View {
                     onCutRow: { viewModel.cutRow(rowIndex: row.id) },
                     onCopyModel: { viewModel.copyModel(rowIndex: row.id) },
                     onCutModel: { viewModel.cutModel(rowIndex: row.id) },
+                    onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
+                    hasClipboard: viewModel.hasClipboard,
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)

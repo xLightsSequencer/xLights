@@ -492,6 +492,24 @@ bool CurlManager::doGetFile(const std::string& url,
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+    // Force HTTP/1.1 for file fetches.
+    //   - The multi handle in `addCURL` enables CURLPIPE_MULTIPLEX,
+    //     which on HTTP/2 coalesces sockets across different
+    //     hostnames that resolve to overlapping IPs. Misconfigured
+    //     servers return 421 "Misdirected Request" when a request
+    //     for hostname A arrives over a connection negotiated for
+    //     hostname B (seen with mattosdesigns.com /
+    //     ledpixelshow.com in the vendor catalog).
+    //   - On iOS, ALPN-negotiated h2 over Secure Transport also
+    //     triggers TLS handshake aborts on some servers
+    //     (efl-designs.com, buildalightshow.com, twinkle-forge.com).
+    //   FRESH_CONNECT + FORBID_REUSE keep each file download on
+    //   its own connection, eliminating cross-host coalescing
+    //   entirely. Cost is negligible — vendor catalog fetches are
+    //   one-shot small XML downloads.
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_1_1);
+    curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L);
+    curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
 
     struct curl_slist* headers = nullptr;
     headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20130401 Firefox/21.0");

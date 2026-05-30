@@ -1407,7 +1407,7 @@ void JsonEffectPanel::BuildPropertyRow(wxWindow* parentWin, wxSizer* sizer, cons
         wxColour colour;
         colour.Set(wxString(defaultColor));
         auto* picker = new BulkEditColourPickerCtrl(parentWin, ctrlId, colour, wxDefaultPosition, wxDefaultSize,
-                                                      wxCLRP_DEFAULT_STYLE, wxDefaultValidator,
+                                                      0, wxDefaultValidator,
                                                       wxString(ctrlName));
         info.colourPicker = picker;
         sizer->Add(picker, 1, wxALL | wxEXPAND, 2);

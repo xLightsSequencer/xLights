@@ -20,6 +20,23 @@ final class PreviewSettings {
     /// J-2 — first-pixel highlight (cyan dot on each model's node 0).
     /// Off by default; mirrors desktop's `_showFirstPixel`.
     var showFirstPixel: Bool
+    /// J-2 (touch UX) — Layout Editor toolbar state. Replace
+    /// desktop's held-key modifiers (Shift / Ctrl).
+    /// `axisTool` is one of: "translate", "rotate", "scale",
+    /// "xy_trans", "elevate".
+    var axisTool: String
+    var uniformModifier: Bool
+    /// 0 = Free, 1 = X, 2 = Y, 3 = Z (matches MSLAXIS enum).
+    var lockAxis: Int
+    /// J-2 (touch UX) — model-name labels rendered as a SwiftUI
+    /// overlay above the Metal canvas. Off by default.
+    var showModelLabels: Bool
+    /// J-2 — Layout Editor info-line under each model label
+    /// (controller name + connection range, or start channel when
+    /// no controller is assigned). Mirrors desktop's
+    /// `_showModelInfo`. Requires `showModelLabels = true` to
+    /// surface; off by default.
+    var showModelInfo: Bool
 
     init(is3DDefault: Bool, showViewObjectsDefault: Bool) {
         self.is3D = is3DDefault
@@ -28,6 +45,11 @@ final class PreviewSettings {
         self.showLayoutBoundingBox = false
         self.snapToGrid = false
         self.showFirstPixel = false
+        self.axisTool = "translate"
+        self.uniformModifier = false
+        self.lockAxis = 0
+        self.showModelLabels = false
+        self.showModelInfo = false
     }
 }
 
@@ -110,6 +132,7 @@ struct HousePreviewView: View {
 struct DetachedHousePreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -132,12 +155,18 @@ struct DetachedHousePreviewRoot: View {
             // F-1 restoration guard — if no token is waiting, this
             // scene was auto-restored by iPadOS on launch rather
             // than opened by the user. Dismiss ourselves so the
-            // app comes back to its main window only.
+            // app comes back to its main window only. Also open
+            // the sequencer scene first: when iPadOS picks this
+            // aux session as the connecting one (last-quit with
+            // House Preview open), the main session has already
+            // been destroyed by the AppDelegate cleanup and
+            // dismissing here would leave zero scenes.
             if viewModel.pendingDetachTokens.remove("house-preview") != nil {
                 viewModel.housePreviewDetached = true
             } else {
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "house-preview")
                 }
             }
@@ -211,6 +240,7 @@ struct ModelPreviewView: View {
 struct DetachedModelPreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -229,8 +259,11 @@ struct DetachedModelPreviewRoot: View {
             if viewModel.pendingDetachTokens.remove("model-preview") != nil {
                 viewModel.modelPreviewDetached = true
             } else {
+                // See DetachedHousePreviewRoot for why we open the
+                // sequencer first.
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "model-preview")
                 }
             }
@@ -656,6 +689,17 @@ extension Notification.Name {
     /// `userInfo["model"]` carries the affected model name; the
     /// LayoutEditor side panel uses it to refresh its summary.
     static let layoutEditorModelMoved = Notification.Name("LayoutEditorModelMoved")
+    /// Phase J-2 (touch UX) — long-press on a handle posts this
+    /// with `userInfo` matching the shape returned by
+    /// `XLMetalBridge.inspectHandleAtScreenPoint:` (keys: `type`,
+    /// `modelName`, plus the per-type indices).
+    static let layoutEditorContextMenu = Notification.Name("LayoutEditorContextMenu")
+    /// Phase J-3 (touch UX) — Pencil Pro squeeze on the canvas
+    /// asks the LayoutEditor to undo the last layout edit. Posted
+    /// by PreviewPaneView's UIPencilInteraction handler;
+    /// LayoutEditorView listens and calls its `performUndo()`.
+    /// No userInfo.
+    static let layoutEditorPencilUndo = Notification.Name("LayoutEditorPencilUndo")
 }
 
 /// Diagnostic banner painted over the preview pane when the bridge

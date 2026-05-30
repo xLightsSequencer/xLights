@@ -35,6 +35,7 @@ class wxStaticText;
 
 #include "models/handles/Handles.h"
 #include "models/handles/DragSession.h"
+#include "models/handles/SpaceMouseSession.h"
 
 #include "setup/ControllerConnectionDialog.h"
 #include "shared/utils/xlPropertyGrid.h"
@@ -217,6 +218,9 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE;
         static const long ID_PREVIEW_BULKEDIT_PREVIEW;
         static const long ID_PREVIEW_BULKEDIT_DIMMINGCURVES;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEX;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEY;
+        static const long ID_PREVIEW_BULKEDIT_ROTATEZ;
         static const long ID_PREVIEW_ALIGN_TOP;
         static const long ID_PREVIEW_ALIGN_BOTTOM;
         static const long ID_PREVIEW_ALIGN_GROUND;
@@ -251,8 +255,6 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_VIEWPOINT3D;
         static const long ID_PREVIEW_DELETEVIEWPOINT2D;
         static const long ID_PREVIEW_DELETEVIEWPOINT3D;
-        static const long ID_PREVIEW_DELETEALLVIEWPOINTS3D;
-        static const long ID_PREVIEW_REVERT_TO_2D;
         // Base IDs for viewpoint camera menu items (camera index added to base)
         static const long ID_PREVIEW_CAMERA_LOAD_BASE = 18000;
         static const long ID_PREVIEW_CAMERA_DELETE_BASE = 18500;
@@ -353,6 +355,7 @@ class LayoutPanel: public wxPanel
         void UpdatePreview();
         void SelectBaseObject(const std::string & name, bool highlight_tree = true);
         void SelectBaseObject(BaseObject *base_object, bool highlight_tree = true);
+        void FocusModelTree();
         void SelectModel(const std::string & name, bool highlight_tree = true);
         void SelectModelGroupModels(ModelGroup* m, std::list<ModelGroup*>& processed);
         void SelectModel(Model *model, bool highlight_tree = true);
@@ -412,6 +415,10 @@ class LayoutPanel: public wxPanel
         void BulkEditControllerPreview();
         void BulkEditGroupControllerPreview();
         void BulkEditDimmingCurves();
+        void BulkEditRotateX();
+        void BulkEditRotateY();
+        void BulkEditRotateZ();
+        void BulkEditRotateAxis(char axis);
         void ReplaceModel();
         void EditSubModelAlias();
         void ShowNodeLayout();
@@ -456,7 +463,7 @@ class LayoutPanel: public wxPanel
         std::list<std::string> GetTreeItemPath(wxTreeListItem item);
         wxTreeListItem GetTreeItemBranch(wxTreeListItem parent, std::string branchName);
         void ReselectTreeModels(std::vector<std::list<std::string>> modelPaths);
-        void SelectModelInTree(Model* modelToSelect);
+        void SelectModelInTree(Model* modelToSelect, bool preserveFilter = false);
         void SelectBaseObjectInTree(BaseObject* baseObjectToSelect);
         void UnSelectModelInTree(Model* modelToUnSelect);
         void UnSelectBaseObjectInTree(BaseObject* baseObjectToUnSelect);
@@ -528,6 +535,14 @@ class LayoutPanel: public wxPanel
         // new-API drag is in progress; legacy `MoveHandle3D` path
         // is bypassed in mouse-move/up when this is set.
         std::unique_ptr<handles::DragSession> m_dragSession;
+
+        // SpaceMouse 6-DOF session. Held across consecutive
+        // EVT_MOTION3D frames so per-frame Apply() calls accumulate
+        // on the same handle. Reset whenever selection changes or
+        // SpaceMouse goes idle (we'll drop it when no events arrive
+        // for one frame — see OnPreviewMotion3D).
+        std::unique_ptr<handles::SpaceMouseSession> m_spaceMouseSession;
+        BaseObject* m_spaceMouseTarget = nullptr;
 
         void clearPropGrid();
         bool stringPropsVisible = false;
@@ -645,7 +660,8 @@ class LayoutPanel: public wxPanel
         void DisplayAddDmxPopup();
         void OnAddDmxPopup(wxCommandEvent& event);
         void SelectViewObject(ViewObject *v, bool highlight_tree = true);
-        void ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
+        std::string ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit = 0.0f);
+        std::string FindNextModelNameAfterDelete(const wxArrayString& deletedNames) const;
         int GetColumnIndex(const std::string& name) const;
         wxSearchCtrl* ModelFilterCtrl = nullptr;
         wxString _filterString;

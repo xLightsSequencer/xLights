@@ -1,19 +1,18 @@
 # Future — Preferences, ColorManager & Backup
 
-Desktop xLights ships ~96 preference options across 10 panels
-plus a 38-colour ColorManager and a backup/restore stack. iPad
-today exposes ~10 `@AppStorage` keys covering session/UI state
-only — **zero coverage of the desktop preferences surface**.
+Desktop xLights ships ~96 preference options across 10 panels plus
+a 38-colour ColorManager and a backup/restore stack. iPad today
+exposes ~10 `@AppStorage` keys covering session/UI state only.
 
 Source: §2.17 + §2.21 of the 2026-04-23 gap analysis (Phase M).
 
-## Status
+PR-9 Services (AI keys / endpoints) shipped via
+`AIServicesSettingsSheet`. PR-8 SequenceFile has two knobs
+(AutoSaveInterval, DefaultBlending) on the Render tab; B25
+ColorManager bracket palette is a small slice of PR-3.
+Everything else below is desktop-only.
 
-**Not started.** B25 ColorManager bracket-palette landed for the
-effects grid; the rest of the ColorManager (and every preference
-panel) is desktop-only.
-
-## Preference panels
+## Preference panels (still open)
 
 | # | Panel | Options | Persistence | Severity |
 |---|---|---|---|---|
@@ -24,8 +23,7 @@ panel) is desktop-only.
 | PR-5 | **Other** | 18 (Email, HardwareVideoDecode, HardwareVideoRender (7 backends), ShadersBgThreads, GPURendering, VideoCodec, Bitrate, ExcludeVideos, ExcludeAudio, PromptBatchIssues, PurgeDownloadCache, IgnoreVendorRecs, LinkControllerUpload, ModelRenamingAlias, MinimumTipLevel, RecycleTips, ControllerPingInterval, EnablePositionZones, ShowZoneIndicator) | wxConfig | P2 |
 | PR-6 | **Output** | 4 (UseFrameSync, ForceLocalIP, DuplicateFramesToSuppress, xFade/xSchedule mode) | wxConfig | P2 |
 | PR-7 | **RandomEffects** | dynamic — checkbox per installed effect (~80 toggles) | wxConfig | P3 |
-| PR-8 | **SequenceFile** | 14 (RenderOnSave, LowDef, SaveFSEQ, DefaultBlending, RenderCache mode, AutoSaveInterval, FSEQVersion (5 options), UseShowFolderRenderCache, RenderCacheDir, MaxRenderCacheSize, UseShowFolderFSEQ, FSEQDir, MediaDirs list, DefaultViewForNew) | per-show | P2 |
-| PR-9 | **Services** (AI keys / endpoints) | dynamic — per-service property grid + Test button | iOS Keychain | P2 |
+| PR-8 | **SequenceFile** (remaining 12 keys: RenderOnSave, LowDef, SaveFSEQ, RenderCache mode, FSEQVersion (5 options), UseShowFolderRenderCache, RenderCacheDir, MaxRenderCacheSize, UseShowFolderFSEQ, FSEQDir, MediaDirs list, DefaultViewForNew) | per-show | P2 |
 | PR-10 | **ViewSettings** | 12 (EffectIconSize, ModelHandleSize, EffectAssistWindow, ShowPlayControlsOnPreview, AutoShowHousePreview, EnableBaseShowSettings, TimelineZooming, HidePresetPreviews, ZoomToCursor, DisableKeyAcceleration, GroupCenterCrosshairSize, ColorPaletteSize) | wxConfig | P2 |
 
 ## ColorManager (PR-3 in detail)
@@ -70,12 +68,10 @@ a new store.
   several testers are likely to ask for darker / higher-contrast
   themes once they're using the app daily.
 - Backup (L-2..L-9) is partially covered by iCloud Drive's own
-  versioning + the Phase G `.xsqz` packager. Native iPad backup
-  UX would be additive, not blocking.
+  versioning + the Phase G `.xsqz` packager.
 
 ## When to come back
 
-- After Phase H ships, in roughly this order: PR-3 ColorManager
-  (highest user-visible value) → PR-4 + PR-10 (effect-grid view
-  settings users notice every session) → PR-8 (sequence-save
-  knobs) → backup stack → the rest.
+- Roughly in this order: PR-3 ColorManager → PR-4 + PR-10
+  (effect-grid view settings) → PR-8 (sequence-save knobs) →
+  backup stack → the rest.

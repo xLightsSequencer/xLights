@@ -64,9 +64,6 @@ bool MatchRegex(const std::string& target, const std::string& candidate,
 // `selectOnly` is set when the caller wants the run scoped to the
 // `selectedTargets` / available `selected` flags.
 // `selectedTargets` is the set of pointers to selected destination nodes.
-//
-// Mirrors xLightsImportChannelMapDialog::DoAutoMap exactly — same loop
-// structure, same alias fallback, same submodel-via-aliases pass.
 void Run(const std::vector<ImportMappingNode*>& roots,
          const std::vector<AvailableSource>& available,
          RenderContext& renderContext,
@@ -75,5 +72,19 @@ void Run(const std::vector<ImportMappingNode*>& roots,
          const std::string& mg,
          bool selectOnly,
          const std::unordered_set<const ImportMappingNode*>& selectedTargets);
+
+// Called once after all Run() passes complete. For destination models that
+// didn't get a direct mapping, attempts to map their unmapped submodels in
+// two steps:
+//   1. Direct name match: submodel name vs non-slashed available name.
+//   2. Alias match: submodel alias (from layout) vs non-slashed available name.
+// Running this after the aggressive pass ensures correct alias-based slashed
+// matches (e.g. "ModelAlias/SubmodelAlias") take priority over coincidental
+// plain-name matches from step 1.
+void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
+                         const std::vector<AvailableSource>& available,
+                         RenderContext& renderContext,
+                         bool selectOnly,
+                         const std::unordered_set<const ImportMappingNode*>& selectedTargets);
 
 } // namespace AutoMapper

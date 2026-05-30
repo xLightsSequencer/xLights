@@ -31,8 +31,10 @@
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
 #include <pugixml.hpp>
+#include <cmath>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <spdlog/fmt/fmt.h>
 #include <regex>
 #include <sstream>
@@ -41,6 +43,7 @@
 #include <wx/treebase.h>
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
+#include <wx/statline.h>
 
 #include "layout/LayoutPanel.h"
 #include "layout/ModelPreview.h"
@@ -91,6 +94,7 @@
 #include "modelproperties/ModelPropertyAdapter.h"
 
 #include "layout/LayoutUtils.h"
+#include "layout/ReplaceModelDialog.h"
 #include "shared/utils/wxUtilities.h"
 #include "import_export/VendorModelDialog.h"
 #include "CachedFileDownloader.h"
@@ -124,9 +128,12 @@ inline wxCursor CursorTypeToWx(CursorType ct) {
 #include <set>
 
 // Layout sizing constants
-static constexpr int kPaneMinHeight      = 400; // minimum height for ModelList / ModelSettings panes
-static constexpr int kListHeightFallback = 200; // fallback half-height used when container is hidden
-static constexpr int kMinPaneWidth       = 150; // absolute floor for left-panel sash drag (px)
+static constexpr int kPaneMinHeight        = 50;  // absolute floor: prevents panes from being fully hidden
+static constexpr int kFloatingFrameMinHeight = 200; // minimum height for floating panel windows
+static constexpr int kListHeightFallback   = 200; // fallback half-height used when container is hidden
+static constexpr int kMinPaneWidth         = 150; // absolute floor for left-panel sash drag (px)
+// Vertical sash minimum is enforced dynamically in LayoutAuiManager::OnMotion as 10% of
+// container height (floor kPaneMinHeight), so it scales with screen resolution.
 
 static inline handles::Modifier ModsFromEvent(const wxKeyboardState& event) {
     handles::Modifier mods = handles::Modifier::None;
@@ -157,7 +164,7 @@ public:
             wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT |
             wxCLIP_CHILDREN | wxCLOSE_BOX);
         // Prevent floating panels from being resized smaller than a usable area.
-        frame->SetMinClientSize(wxSize(300, kPaneMinHeight));
+        frame->SetMinClientSize(wxSize(300, kFloatingFrameMinHeight));
         return frame;
     }
 
@@ -266,10 +273,11 @@ public:
                 }
                 if (listPane.IsOk() && listPane.IsShown() && !listPane.IsFloating() && centerVisible) {
                     // new_size = (event.m_y - m_horizResizeActionOffsetY) - m_horizResizeDockY
-                    // Enforce new_size >= kPaneMinHeight and (containerH - new_size) >= kPaneMinHeight.
+                    // Enforce new_size >= 10% of containerH and (containerH - new_size) >= 10%.
                     int containerH = GetManagedWindow()->GetClientSize().GetHeight();
-                    int minY = kPaneMinHeight + m_horizResizeActionOffsetY + m_horizResizeDockY;
-                    int maxY = (containerH - kPaneMinHeight) + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int paneMin = std::max(containerH * 10 / 100, kPaneMinHeight);
+                    int minY = paneMin + m_horizResizeActionOffsetY + m_horizResizeDockY;
+                    int maxY = (containerH - paneMin) + m_horizResizeActionOffsetY + m_horizResizeDockY;
                     if (maxY < minY) maxY = minY; // degenerate: window too small for both minimums
                     event.m_y = std::clamp(event.m_y, minY, maxY);
                 }
@@ -403,6 +411,9 @@ const long LayoutPanel::ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTIONINCREMENT = wxNe
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_SMARTREMOTETYPE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_PREVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_BULKEDIT_DIMMINGCURVES = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEX = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEY = wxNewId();
+const long LayoutPanel::ID_PREVIEW_BULKEDIT_ROTATEZ = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_TOP = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_GROUND = wxNewId();
 const long LayoutPanel::ID_PREVIEW_ALIGN_BOTTOM = wxNewId();
@@ -449,8 +460,6 @@ const long LayoutPanel::ID_PREVIEW_VIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_VIEWPOINT3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_DELETEVIEWPOINT3D = wxNewId();
-const long LayoutPanel::ID_PREVIEW_DELETEALLVIEWPOINTS3D = wxNewId();
-const long LayoutPanel::ID_PREVIEW_REVERT_TO_2D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_IMPORT_MODELS_FROM_LORS5 = wxNewId();
 const long LayoutPanel::ID_ADD_OBJECT_IMAGE = wxNewId();
@@ -1090,6 +1099,12 @@ wxTreeListCtrl* LayoutPanel::CreateTreeListCtrl(long style, wxPanel* panel)
 
 void LayoutPanel::Reset()
 {
+    // A show-folder load triggered mid-placement leaves _newModel as a raw
+    // pointer that AllModels::clear() may or may not have freed (depending
+    // on whether placement reached FinalizeModel's AddModel call). Treat
+    // the panel as starting fresh: null the pointer without delete so we
+    // don't double-free a model already owned by the cleared manager.
+    _newModel = nullptr;
     selectedBaseObject = nullptr;
     highlightedBaseObject = nullptr;
     SetCurrentLayoutGroup(xlights->GetStoredLayoutGroup());
@@ -1344,7 +1359,8 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                         }
                     }
                     std::string oldname = selectedModel->name;
-                    if (oldname != safename) {
+                    bool nameChanged = (oldname != safename);
+                    if (nameChanged) {
                         RenameModelInTree(selectedModel, safename);
                         selectedBaseObject = nullptr;
                         xlights->RenameModel(oldname, safename);
@@ -1352,7 +1368,10 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                             lastModelName = safename;
                         }
                     }
-                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                    uint32_t extraWork = (nameChanged && !ModelMatchesFilter(selectedModel))
+                                        ? OutputModelManager::WORK_RELOAD_ALLMODELS : 0;
+                    xlights->GetOutputModelManager()->AddASAPWork(extraWork |
+                                                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                                   OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                                   OutputModelManager::WORK_CALCULATE_START_CHANNELS, "LayoutPanel::OnPropertyGridChange::ModelName", nullptr, nullptr, safename);
                 }
@@ -1396,6 +1415,17 @@ void LayoutPanel::SetDisplay2DCenter0(bool bb) {
 void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
     std::string name = event.GetPropertyName().ToStdString();
     xlights->AddTraceMessage("LayoutPanel::OnPropertyGridChanging  Property: " + name);
+    // event.GetProperty() can be null when wxPropertyGrid fires CHANGING
+    // during a grid rebuild (the prior selected property has already been
+    // detached). GetPropertyName above survives that case because it falls
+    // back to a cached name string, but the dereferences below would
+    // segfault. Top of bucket for "BkgSizeWidth" changes during layout-
+    // group switch: 5 reports / 2 reporters as of 2026.07.
+    wxPGProperty* prop = event.GetProperty();
+    if (prop == nullptr) {
+        spdlog::warn("LayoutPanel::OnPropertyGridChanging: event has no property (rebuild in flight?); ignoring '{}'.", name);
+        return;
+    }
     // Same dangling-pointer guard as OnPropertyGridChange - see IsSelectedBaseObjectValid.
     if (selectedBaseObject != nullptr && !IsSelectedBaseObjectValid()) {
         spdlog::warn("LayoutPanel::OnPropertyGridChanging: selectedBaseObject was stale; clearing cached selection.");
@@ -1424,7 +1454,7 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                 // ignore the submodel changes for now.
             //    int a = 0;
             } else {
-                CreateUndoPoint("ModelProperty", selectedModel->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                CreateUndoPoint("ModelProperty", selectedModel->name, name, prop->GetValue().GetString().ToStdString());
                 _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
             }
         } else {
@@ -1437,12 +1467,12 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
                     event.Veto();
                 }
             } else {
-                CreateUndoPoint("ObjectProperty", selectedObject->name, name, event.GetProperty()->GetValue().GetString().ToStdString());
+                CreateUndoPoint("ObjectProperty", selectedObject->name, name, prop->GetValue().GetString().ToStdString());
                 //objects_panel->GetSelectedObject()->OnPropertyGridChanging(propertyEditor, event);
             }
         }
     } else {
-        CreateUndoPoint("Background", "", name, event.GetProperty()->GetValue().GetString().ToStdString());
+        CreateUndoPoint("Background", "", name, prop->GetValue().GetString().ToStdString());
     }
 }
 
@@ -2342,6 +2372,84 @@ void LayoutPanel::BulkEditPixelSize() {
     }
 }
 
+void LayoutPanel::BulkEditRotateX() { BulkEditRotateAxis('X'); }
+void LayoutPanel::BulkEditRotateY() { BulkEditRotateAxis('Y'); }
+void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
+
+void LayoutPanel::BulkEditRotateAxis(char axis) {
+    std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
+
+    std::vector<Model*> editableModels;
+    editableModels.reserve(modelsToEdit.size());
+    for (Model* model : modelsToEdit) {
+        if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
+            editableModels.push_back(model);
+        }
+    }
+    if (editableModels.empty()) {
+        return;
+    }
+
+    // Pre-fill the dialog with the first editable model's current rotation so
+    // the user only has to type a value if they want to change it.
+    float initial = 0.0f;
+    switch (axis) {
+        case 'X': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateX(); break;
+        case 'Y': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateY(); break;
+        case 'Z': initial = editableModels.front()->GetBaseObjectScreenLocation().GetRotateZ(); break;
+    }
+
+    wxString title = wxString::Format("Bulk Edit Rotate %c", axis);
+    wxString prompt = wxString::Format("Rotate %c (degrees):", axis);
+    wxTextEntryDialog dlg(this, prompt, title, wxString::Format("%g", initial));
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    // Parse the entered angle. Use strtod (not std::stod) because xLights has
+    // effectively no exception handling - see CLAUDE.md "Prefer std::* Over wx*".
+    std::string entered = dlg.GetValue().ToStdString();
+    char* endp = nullptr;
+    double angle = std::strtod(entered.c_str(), &endp);
+    if (endp == entered.c_str() || !std::isfinite(angle)) {
+        // Unparseable or NaN/Inf - abort silently rather than letting garbage
+        // propagate into transform matrices.
+        return;
+    }
+    // Match the [-180, 180] range enforced by the rotation property grid
+    // (see ScreenLocationPropertyHelper.cpp RotateX/Y/Z Min/Max). Out-of-range
+    // values are silently reset to 0 by BoxedScreenLocation::Init(), so reject
+    // them here with a clear message rather than letting the user lose their
+    // change without warning.
+    if (angle < -180.0 || angle > 180.0) {
+        wxMessageBox(
+            wxString::Format("Rotation angle must be between -180 and 180 degrees (got %g).", angle),
+            "Invalid rotation angle", wxOK | wxICON_WARNING, this);
+        return;
+    }
+    float newAngle = static_cast<float>(angle);
+
+    CreateUndoPoint("All", editableModels.front()->name,
+                    wxString::Format("BulkRotate%c", axis).ToStdString(),
+                    entered);
+
+    for (Model* model : editableModels) {
+        auto& loc = model->GetBaseObjectScreenLocation();
+        switch (axis) {
+            case 'X': loc.SetRotateX(newAngle); break;
+            case 'Y': loc.SetRotateY(newAngle); break;
+            case 'Z': loc.SetRotateZ(newAngle); break;
+        }
+        loc.Reload();
+        loc.Init();
+    }
+
+    xlights->GetOutputModelManager()->AddASAPWork(
+        OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+        wxString::Format("BulkEditRotate%c", axis).ToStdString());
+}
+
 void LayoutPanel::BulkEditPixelStyle() {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
     // remember the selected models
@@ -2626,6 +2734,7 @@ void LayoutPanel::CreateModelGroupFromSelected()
 
         // create group and reload before adding selected models. prior models were added before create and I was seeing frequent
         // crashes in Render() with invalid model pointers especially with mixed selections (groups, submodels & models)
+        xlights->AbortRender();
         xlights->AllModels.AddModel(newGroup);
         xlights->GetOutputModelManager()->AddImmediateWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "CreateModelGroupFromSelected");
 
@@ -2871,8 +2980,8 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
                 m->Selected(false);
                 m->Highlighted(false);
                 m->GroupSelected(false);
-                m->SelectHandle(-1);
-                m->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                m->SelectHandle();
+                m->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 
                 for (const auto& sm : m->GetSubModels()) {
                     sm->Selected(false);
@@ -2894,8 +3003,8 @@ void LayoutPanel::UnSelectAllModels(bool addBkgProps)
             view_object->Selected(false);
             view_object->Highlighted(false);
             view_object->GroupSelected(false);
-            view_object->SelectHandle(-1);
-            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            view_object->SelectHandle();
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
         else {
             spdlog::error("Really strange ... unselect all models returned a null view object pointer");
@@ -3041,8 +3150,8 @@ void LayoutPanel::SelectAllModels()
             view_object->Selected(false);
             view_object->Highlighted(true);
             view_object->GroupSelected(true);
-            view_object->SelectHandle(-1);
-            view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            view_object->SelectHandle();
+            view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
     }
 
@@ -3184,7 +3293,7 @@ void LayoutPanel::SelectBaseObject3D()
                 Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
                 // I think the selected model might not be a model in some undo situations
                 if (selectedModel != nullptr) {
-                    selectedModel->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    selectedModel->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     selectedModel->GetBaseObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
                 }
             }
@@ -3192,7 +3301,7 @@ void LayoutPanel::SelectBaseObject3D()
                 ViewObject* selectedViewObject = dynamic_cast<ViewObject*>(selectedBaseObject);
                 // I think the selected model might not be a view object in some undo situations
                 if (selectedViewObject != nullptr) {
-                    selectedViewObject->GetObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    selectedViewObject->GetObjectScreenLocation().SetActiveHandleToCentre();
                     selectedViewObject->GetObjectScreenLocation().SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
                 }
             }
@@ -3204,7 +3313,6 @@ void LayoutPanel::SelectBaseObject3D()
 
 void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree)
 {
-    
     if( editing_models ) {
         Model *m = xlights->AllModels[name];
         if (m == nullptr)
@@ -3221,7 +3329,7 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
         }
         if (m != nullptr && m != selectedBaseObject)
         {
-            SelectModelInTree(m);
+            SelectModelInTree(m, true);
         }
     } else {
         ViewObject *v = xlights->AllObjects[name];
@@ -3236,8 +3344,8 @@ void LayoutPanel::SelectBaseObject(const std::string & name, bool highlight_tree
                 view_object->Selected(false);
                 view_object->Highlighted(false);
                 view_object->GroupSelected(false);
-                view_object->SelectHandle(-1);
-                view_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                view_object->SelectHandle();
+                view_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
             }
             SelectViewObject(v, highlight_tree);
         }
@@ -3316,7 +3424,7 @@ void LayoutPanel::SelectViewObject(ViewObject *v, bool highlight_tree) {
 
     selectedBaseObject = v;
     if (selectedBaseObject != nullptr) {
-        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         selectionLatched = true;
     }
     SelectBaseObject3D();
@@ -3580,19 +3688,61 @@ Model* LayoutPanel::SelectSingleModel(int x, int y)
     return nullptr;
 }
 
+static float LassoClipDepth(IModelPreview* preview, const ModelScreenLocation& loc)
+{
+    glm::vec4 c = preview->GetProjViewMatrix() * glm::vec4(loc.GetWorldPosition(), 1.0f);
+    return c.w; // clip-space W = view-space depth; positive = in front of camera
+}
+
+// Find the depth cutoff for a 3D lasso.  sorted_depths must be sorted ascending.
+// Scans for the first gap between consecutive depths that exceeds 40 % of
+// the nearest model's depth — that gap marks the foreground/background boundary.
+static float Lasso3DDepthCutoff(const std::vector<float>& sorted_depths)
+{
+    if (sorted_depths.empty()) return 0.0f;
+    const float gap_threshold = sorted_depths.front() * 0.4f;
+    for (size_t i = 1; i < sorted_depths.size(); ++i) {
+        if (sorted_depths[i] - sorted_depths[i - 1] > gap_threshold)
+            return sorted_depths[i - 1];
+    }
+    return sorted_depths.back(); // no gap: accept all candidates
+}
+
 void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
-        int count = 0;
-        for (const auto& it : modelPreview->GetModels()) {
-            if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
-                if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
-                    SelectModelInTree(it);
-                    count++;
+        if (is_3d) {
+            std::vector<std::pair<Model*, float>> candidates;
+            for (const auto& it : modelPreview->GetModels()) {
+                if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
+                    if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                        float d = LassoClipDepth(modelPreview, it->GetBaseObjectScreenLocation());
+                        if (d > 0.0f) candidates.emplace_back(it, d);
+                    }
                 }
             }
+            std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) { return a.second < b.second; });
+            std::vector<float> depths;
+            depths.reserve(candidates.size());
+            for (const auto& [m, d] : candidates) depths.push_back(d);
+            const float cutoff = Lasso3DDepthCutoff(depths);
+            int count = 0;
+            for (auto& [m, d] : candidates) {
+                if (d <= cutoff) { SelectModelInTree(m); ++count; }
+            }
+            if (count > 1) showBackgroundProperties();
+        } else {
+            int count = 0;
+            for (const auto& it : modelPreview->GetModels()) {
+                if (xlights->AllModels.IsModelValid(it) || it == _newModel) {
+                    if (it->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                        SelectModelInTree(it);
+                        count++;
+                    }
+                }
+            }
+            if (count > 1) showBackgroundProperties();
         }
-        if (count > 1) showBackgroundProperties();
     }
     if (!editing_models || models_and_objects) {
         for (const auto& it : xlights->AllObjects) {
@@ -3615,12 +3765,41 @@ void LayoutPanel::SelectAllInBoundingRect(bool models_and_objects)
 void LayoutPanel::HighlightAllInBoundingRect(bool models_and_objects)
 {
     if (editing_models || models_and_objects) {
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-            if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
-                modelPreview->GetModels()[i]->Highlighted(true);
-            } else if (!modelPreview->GetModels()[i]->Selected() &&
-                !modelPreview->GetModels()[i]->GroupSelected()) {
-                modelPreview->GetModels()[i]->Highlighted(false);
+        if (is_3d) {
+            const auto& models = modelPreview->GetModels();
+            // Collect (depth, index) pairs for candidates that pass 2D containment
+            std::vector<std::pair<float, size_t>> sorted_candidates;
+            std::vector<float> depths(models.size(), -1.0f);
+            for (size_t i = 0; i < models.size(); i++) {
+                if (models[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                    float d = LassoClipDepth(modelPreview, models[i]->GetBaseObjectScreenLocation());
+                    if (d > 0.0f) {
+                        depths[i] = d;
+                        sorted_candidates.emplace_back(d, i);
+                    }
+                }
+            }
+            std::sort(sorted_candidates.begin(), sorted_candidates.end());
+            std::vector<float> sc_depths;
+            sc_depths.reserve(sorted_candidates.size());
+            for (const auto& [d, idx] : sorted_candidates) sc_depths.push_back(d);
+            const float cutoff = Lasso3DDepthCutoff(sc_depths);
+            for (size_t i = 0; i < models.size(); i++) {
+                const float d = depths[i];
+                if (d > 0.0f && d <= cutoff) {
+                    models[i]->Highlighted(true);
+                } else if (!models[i]->Selected() && !models[i]->GroupSelected()) {
+                    models[i]->Highlighted(false);
+                }
+            }
+        } else {
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                if (modelPreview->GetModels()[i]->IsContained(modelPreview, m_bound_start_x, m_bound_start_y, m_bound_end_x, m_bound_end_y)) {
+                    modelPreview->GetModels()[i]->Highlighted(true);
+                } else if (!modelPreview->GetModels()[i]->Selected() &&
+                    !modelPreview->GetModels()[i]->GroupSelected()) {
+                    modelPreview->GetModels()[i]->Highlighted(false);
+                }
             }
         }
     }
@@ -3658,14 +3837,14 @@ bool LayoutPanel::SelectMultipleModels(int x,int y)
         if (selectedBaseObject != nullptr) {
             selectedBaseObject->GroupSelected(true);
             selectedBaseObject->Selected(false);
-            selectedBaseObject->SelectHandle(-1);
-            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+            selectedBaseObject->SelectHandle();
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
         }
 
         selectedBaseObject = clickedModel;
         highlightedBaseObject = selectedBaseObject;
-        selectedBaseObject->SelectHandle(-1);
-        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectedBaseObject->SelectHandle();
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         mmWorkRequired = true;
     } else {
         SelectModelInTree(clickedModel);
@@ -3737,37 +3916,12 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 // Descriptor-based hit-test. CentreCycle / locked /
                 // fromBase return nullptr from BeginDrag — those
                 // hits route through the selectionOnly path below
-                // instead of starting a drag session.
-                Model* model = dynamic_cast<Model*>(selectedBaseObject);
-                const auto currentTool =
+                // instead of starting a drag session. BaseObject
+                // (not just Model) exposes GetHandles/BeginDrag, so
+                // ViewObjects flow through the same path.
+                const handles::Tool currentTool =
                     selectedBaseObject->GetBaseObjectScreenLocation().GetAxisTool();
-                handles::Tool newApiTool = handles::Tool::Translate;
-                bool toolSupportedByNewApi = false;
-                switch (currentTool) {
-                    case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE:
-                        newApiTool = handles::Tool::Translate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_SCALE:
-                        newApiTool = handles::Tool::Scale;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:
-                        newApiTool = handles::Tool::Rotate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:
-                        newApiTool = handles::Tool::XYTranslate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:
-                        newApiTool = handles::Tool::Elevate;
-                        toolSupportedByNewApi = true;
-                        break;
-                    default:
-                        break;
-                }
-                if (model != nullptr && toolSupportedByNewApi) {
+                if (currentTool != handles::Tool::None) {
                     const float zoom = modelPreview->GetCameraZoomForHandles();
                     const int hscale = modelPreview->GetHandleScale();
                     auto& sloc0 = selectedBaseObject->GetBaseObjectScreenLocation();
@@ -3775,8 +3929,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     view.axisArrowLength = sloc0.GetAxisArrowLength(zoom, hscale);
                     view.axisHeadLength  = sloc0.GetAxisHeadLength(zoom, hscale);
                     view.axisRadius      = sloc0.GetAxisRadius(zoom, hscale);
-                    auto descriptors = model->GetHandles(
-                        handles::ViewMode::ThreeD, newApiTool, view);
+                    auto descriptors = selectedBaseObject->GetHandles(
+                        handles::ViewMode::ThreeD, currentTool, view);
                     if (!descriptors.empty()) {
                         handles::ScreenProjection proj{
                             modelPreview->GetProjViewMatrix(),
@@ -3790,8 +3944,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         // screen tolerance so descriptors at the
                         // active handle catch clicks anywhere in
                         // that volume.
-                        opts.handleTolerance = (newApiTool == handles::Tool::XYTranslate ||
-                                                newApiTool == handles::Tool::Elevate)
+                        opts.handleTolerance = (currentTool == handles::Tool::XYTranslate ||
+                                                currentTool == handles::Tool::Elevate)
                                                 ? 28.0f : 8.0f;
                         glm::vec2 mousePx{ static_cast<float>(event.GetX()),
                                            static_cast<float>(event.GetY()) };
@@ -3824,7 +3978,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                 }
                             } else {
                                 handles::WorldRay startRay{ray_origin, ray_direction};
-                                if (auto session = model->BeginDrag(hit->id, startRay)) {
+                                if (auto session = selectedBaseObject->BeginDrag(hit->id, startRay)) {
                                     xlights->AbortRender();
                                     if (selectedBaseObject != _newModel) {
                                         CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject",
@@ -3856,9 +4010,9 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                     m_dragSession = std::move(session);
                                     m_moving_handle = true;
                                     m_mouse_down = true;
-                                    last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-                                    last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
-                                    last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+                                    last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                                    last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
+                                    last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                                     xlights->GetOutputModelManager()->AddASAPWork(
                                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                         "LayoutPanel::ProcessLeftMouseClick3D-NewAPI");
@@ -3870,23 +4024,38 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 }
 
             }
-            if (!handledByNewApi && editing_models && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
+            if (!handledByNewApi && !event.ControlDown() && !event.ShiftDown() && !event.AltDown()) {
                 // click missed all handles on the currently
-                // selected model. If the click landed on a different
-                // model body, switch selection to it (avoids needing
-                // to click empty space first to unlatch).
+                // selected object. If the click landed on a different
+                // body, switch selection to it (avoids needing to
+                // click empty space first to unlatch). Walks Models
+                // or ViewObjects depending on which tab is editing.
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
                 GetMouseLocation(event.GetX(), event.GetY(), ray_origin, ray_direction);
                 BaseObject* which_object = nullptr;
                 float distance = 1000000000.0f;
-                for (const auto& it : modelPreview->GetModels()) {
-                    if (it == selectedBaseObject) continue;
-                    float intersection_distance = 1000000000.0f;
-                    if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
-                        if (intersection_distance < distance) {
-                            distance = intersection_distance;
-                            which_object = it;
+                if (editing_models) {
+                    for (const auto& it : modelPreview->GetModels()) {
+                        if (it == selectedBaseObject) continue;
+                        float intersection_distance = 1000000000.0f;
+                        if (it->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < distance) {
+                                distance = intersection_distance;
+                                which_object = it;
+                            }
+                        }
+                    }
+                } else {
+                    for (const auto& it : xlights->AllObjects) {
+                        ViewObject* vo = it.second;
+                        if (vo == selectedBaseObject) continue;
+                        float intersection_distance = 1000000000.0f;
+                        if (vo->GetBaseObjectScreenLocation().HitTest3D(ray_origin, ray_direction, intersection_distance)) {
+                            if (intersection_distance < distance) {
+                                distance = intersection_distance;
+                                which_object = vo;
+                            }
                         }
                     }
                 }
@@ -3901,7 +4070,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (selectedBaseObject != nullptr) {
                         selectionLatched = true;
                         highlightedBaseObject = selectedBaseObject;
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     }
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D-SwitchModel");
                 } else {
@@ -3919,7 +4088,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                 SelectBaseObject(highlightedBaseObject);
                 selectionLatched = true;
                 // latch center handle immediately
-                selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::ProcessLeftMouseClick3D");
             }
         }
@@ -3959,7 +4128,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
             UnSelectAllModelsInTree();
             UnSelectAllModels();
             _newModel->Selected(true);
-            _newModel->GetBaseObjectScreenLocation().SetActiveHandle(_newModel->GetBaseObjectScreenLocation().GetDefaultHandle());
+            _newModel->GetBaseObjectScreenLocation().SetActiveHandleToDefault();
             _newModel->GetBaseObjectScreenLocation().SetAxisTool(_newModel->GetBaseObjectScreenLocation().GetDefaultTool());
             selectionLatched = true;
             highlightedBaseObject = _newModel;
@@ -4044,13 +4213,13 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     if (selectedBaseObject != nullptr) {
                         selectedBaseObject->GroupSelected(true);
                         selectedBaseObject->Selected(false);
-                        selectedBaseObject->SelectHandle(-1);
-                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                        selectedBaseObject->SelectHandle();
+                        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
                     }
                     selectedBaseObject = which_object;
                     highlightedBaseObject = selectedBaseObject;
-                    selectedBaseObject->SelectHandle(-1);
-                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                    selectedBaseObject->SelectHandle();
+                    selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                     mmWorkRequired = true;
                 } else if (which_object->Selected()) {
                     if (editing_models) {
@@ -4058,8 +4227,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                     } else {
                         which_object->Selected(false);
                         which_object->Highlighted(false);
-                        which_object->SelectHandle(-1);
-                        which_object->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+                        which_object->SelectHandle();
+                        which_object->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
                         selectedBaseObject = nullptr;
 
                         for (const auto& it : xlights->AllObjects) {
@@ -4072,8 +4241,8 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                         if (selectedBaseObject != nullptr) {
                             selectedBaseObject->GroupSelected(false);
                             selectedBaseObject->Selected(true);
-                            selectedBaseObject->SelectHandle(-1);
-                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+                            selectedBaseObject->SelectHandle();
+                            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
                             highlightedBaseObject = selectedBaseObject;
                         }
                         mmWorkRequired = true;
@@ -4203,6 +4372,9 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                                 m_dragSession = std::move(session);
                                 m_moving_handle = true;
                                 m_mouse_down = true;
+                                last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                                last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
+                                last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
                                 xlights->GetOutputModelManager()->AddASAPWork(
                                     OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
                                     "LayoutPanel::OnPreviewLeftDown-NewAPI2D");
@@ -4272,7 +4444,7 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
             // `GetActiveHandleId()` to compute the next vertex
             // index — without this latch the 2nd click would drag
             // vertex 0 instead of the newly-added trailing vertex.
-            _newModel->GetBaseObjectScreenLocation().SetActiveHandle(_newModel->GetBaseObjectScreenLocation().GetDefaultHandle());
+            _newModel->GetBaseObjectScreenLocation().SetActiveHandleToDefault();
             _newModel->GetBaseObjectScreenLocation().SetAxisTool(_newModel->GetBaseObjectScreenLocation().GetDefaultTool());
             modelPreview->SetCursor(CursorTypeToWx(_newModel->InitializeLocation(m_polyline_create_handle, event.GetX(), event.GetY(), modelPreview)));
             // Open a 2D placement DragSession — mouse-move drives
@@ -4391,7 +4563,7 @@ void LayoutPanel::OnPreviewLeftUp(wxMouseEvent& event)
     FinalizeModel();
 }
 
-static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr)
+static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFrame* xlights, bool& cancelled, bool download, wxProgressDialog* prog, int low, int high, ModelPreview* modelPreview, int& widthmm, int& heightmm, int& depthmm, std::vector<DownloadedModelInfo>* additionalModels = nullptr, std::vector<Model*>* additionalModelObjects = nullptr)
 {
     pugi::xml_document doc;
     bool docLoaded = false;
@@ -4457,18 +4629,24 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             std::transform(last_model_lower.begin(), last_model_lower.end(), last_model_lower.begin(), ::tolower);
             if (last_model_lower.ends_with(".xmodel")) {
                 doc.load_file(last_model.c_str());
-                if (doc.document_element() && !doc.document_element().attribute("name").empty()) {
+                {
+                    pugi::xml_node modelElem = doc.document_element();
+                    // Unwrap new-format <models> container to read model attributes
+                    if (modelElem && std::string_view(modelElem.name()) == "models") {
+                        modelElem = modelElem.first_child();
+                    }
+                    if (modelElem && !modelElem.attribute("name").empty()) {
                     docLoaded = true;
-                    std::string modelName = doc.document_element().attribute("name").as_string("");
+                    std::string modelName = modelElem.attribute("name").as_string("");
 
-                    if (!doc.document_element().attribute("widthmm").empty()) {
-                        widthmm = (int)std::strtol(doc.document_element().attribute("widthmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("widthmm").empty()) {
+                        widthmm = (int)std::strtol(modelElem.attribute("widthmm").as_string(""), nullptr, 10);
                     }
-                    if (!doc.document_element().attribute("heightmm").empty()) {
-                        heightmm = (int)std::strtol(doc.document_element().attribute("heightmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("heightmm").empty()) {
+                        heightmm = (int)std::strtol(modelElem.attribute("heightmm").as_string(""), nullptr, 10);
                     }
-                    if (!doc.document_element().attribute("depthmm").empty()) {
-                        depthmm = (int)std::strtol(doc.document_element().attribute("depthmm").as_string(""), nullptr, 10);
+                    if (!modelElem.attribute("depthmm").empty()) {
+                        depthmm = (int)std::strtol(modelElem.attribute("depthmm").as_string(""), nullptr, 10);
                     }
 
 #ifdef __WXMSW__
@@ -4578,6 +4756,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 #endif
 
                 }
+                } // end modelElem scope
             }
         }
     }
@@ -4629,7 +4808,30 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // The deserialized model object has _controllerName="" (C++ default), not
             // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
             // point rather than auto-assigning it, leaving it stuck at channel 1.
-            model->SetControllerName(NO_CONTROLLER, true);
+            // Models with individual start channels on import are exempt - ie: moving heads strands
+            if (!model->HasIndividualStartChannels()) {
+                model->SetControllerName(NO_CONTROLLER, true);
+            }
+
+            // For multi-model xmodel files (<models> root with multiple children), load
+            // each additional sibling into additionalModelObjects so FinalizeModel can
+            // place them alongside the primary model.
+            if (additionalModelObjects != nullptr && strcmp(root.name(), "models") == 0) {
+                for (pugi::xml_node child = root.first_child().next_sibling(); child; child = child.next_sibling()) {
+                    bool extraCancelled = false;
+                    xlights->GetOutputModelManager()->DisableASAPWork(true);
+                    Model* extraModel = xlights->AllModels.CreateDefaultModel("Custom", "1");
+                    xlights->GetOutputModelManager()->DisableASAPWork(false);
+                    if (extraModel == nullptr) continue;
+                    extraModel->SetStartChannel("1");
+                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    if (extraCancelled || extraModel == nullptr) continue;
+                    if (!extraModel->HasIndividualStartChannels()) {
+                        extraModel->SetControllerName(NO_CONTROLLER, true);
+                    }
+                    additionalModelObjects->push_back(extraModel);
+                }
+            }
         }
 
         if (!cancelled)
@@ -4641,6 +4843,29 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
 void LayoutPanel::FinalizeModel()
 {
     xlights->AddTraceMessage("In LayoutPanel::FinalizeModel");
+    // Re-entrancy guard. FinalizeModel both pumps the event loop (AbortRender,
+    // modal Download / wxProgressDialog, wxMessageBox prompts in GetXlightsModel,
+    // ASAP-work dispatch) and mutates _newModel mid-flight. A second
+    // OnPreviewLeftUp / Escape / Return delivered during one of those pumps
+    // re-enters here, dereferences _newModel after the outer call has freed or
+    // reassigned it, and crashes on the vtable read in SetAxisTool. Windows
+    // bucket f6bdc90020 (7 reports, still regressing in dev). Drop the
+    // re-entrant call — the outer pass will finish the work.
+    static bool inFinalize = false;
+    if (inFinalize) {
+        spdlog::warn("LayoutPanel::FinalizeModel called re-entrantly; ignoring inner call.");
+        return;
+    }
+    struct InFinalizeGuard {
+        bool& flag;
+        InFinalizeGuard(bool& f) : flag(f) { flag = true; }
+        ~InFinalizeGuard() { flag = false; }
+    } guard(inFinalize);
+    // FinalizeModel adds (or deletes, on the cancel paths) the in-flight
+    // _newModel; both can race a render job that already snapshotted the
+    // model list. Match the pattern used by the other model-mutation
+    // entry points (Delete/Replace/Group) and stop the renderer first.
+    xlights->AbortRender();
     // discard any active drag session before mutating mPos.
     // FinalizeModel's polyline DeleteHandle below shrinks mPos, so a
     // session pointing at the trailing vertex would crash on the
@@ -4650,12 +4875,23 @@ void LayoutPanel::FinalizeModel()
     }
     if (m_polyline_active && m_polyline_create_handle > 1) {
         Model *m = _newModel;
-        if (m != nullptr)
+        // dynamic_cast below returns null when _newModel isn't a polyline,
+        // but m_polyline_active was true. That state invariant (polyline-
+        // active <=> _newModel is a polyline) can drift when an
+        // in-progress create gets interrupted — e.g. selectedButton swaps
+        // mid-gesture, an error path nulls _newModel, or _newModel is
+        // re-assigned to a different model type without resetting
+        // m_polyline_active. Top Windows crash bucket as of 2026.08: 20
+        // reports across 2 reporters all hit the unguarded
+        // plm->ClearPolyLineCreate() below. Fall through to the normal
+        // state cleanup at the bottom of the function so we don't leave
+        // the polyline flags set.
+        PolyLineModel* plm = dynamic_cast<PolyLineModel*>(m);
+        if (m != nullptr && plm != nullptr)
         {
             xlights->AddTraceMessage("LayoutPanel::FinalizeModel Polyline deleting handle.");
             m->DeleteHandle(m_polyline_create_handle);
 
-            auto plm = dynamic_cast<PolyLineModel*>(m);
             plm->ClearPolyLineCreate(); // disable the auto-distribute node feature
             if (plm->GetNumHandles() < 2) {
                 // If we end up with less than 2 points then we destroy the polyline
@@ -4667,6 +4903,8 @@ void LayoutPanel::FinalizeModel()
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                               OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "FinalizeModel");
             }
+        } else if (m != nullptr) {
+            spdlog::warn("LayoutPanel::FinalizeModel: m_polyline_active true but _newModel is not a PolyLineModel (got '{}'); clearing polyline state.", m->GetName());
         }
     }
     m_moving_handle = false;
@@ -4677,10 +4915,11 @@ void LayoutPanel::FinalizeModel()
 
     if (_newModel != nullptr) {
         xlights->AddTraceMessage("LayoutPanel::FinalizeModel New model is not null.");
-        _newModel->GetBaseObjectScreenLocation().SetAxisTool(ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE);
+        _newModel->GetBaseObjectScreenLocation().SetAxisTool(handles::Tool::Translate);
         // cache the selected button as it may change during a download or some such event
         auto b = selectedButton;
         std::vector<DownloadedModelInfo> additionalModels;
+        std::vector<Model*> additionalModelObjects;
         glm::vec3 firstModelPos(0.0f);
         if (b != nullptr && (b->GetModelType() == "Import Custom" || b->GetModelType() == "Download"))
         {
@@ -4704,7 +4943,7 @@ void LayoutPanel::FinalizeModel()
             int heightmm = -1;
             int depthmm = -1;
 
-            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels);
+            _newModel = GetXlightsModel(_newModel, _lastXlightsModel, xlights, cancelled, b->GetModelType() == "Download", prog, 0, 99, modelPreview, widthmm, heightmm, depthmm, &additionalModels, &additionalModelObjects);
 
             // These statements ensure the Additional model and _newModel pointers are all ok and any unnecessary models is cleaned up
             if (_newModel != oldNewModel) {
@@ -4849,6 +5088,28 @@ void LayoutPanel::FinalizeModel()
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
         }
 
+        // Place additional models loaded from a multi-model xmodel file
+        if (!additionalModelObjects.empty()) {
+            constexpr float BATCH_PLACEMENT_PADDING = 20.0f;
+            constexpr float BATCH_PLACEMENT_MIN_OFFSET = 50.0f;
+
+            float previousWidth = std::max(_newModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+            float currentX = firstModelPos.x + previousWidth + BATCH_PLACEMENT_PADDING;
+
+            for (Model* extraModel : additionalModelObjects) {
+                if (extraModel == nullptr) continue;
+                std::string uniqueName = xlights->AllModels.GenerateModelName(extraModel->name);
+                extraModel->name = uniqueName;
+                extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(currentX, firstModelPos.y, firstModelPos.z));
+                extraModel->SetLayoutGroup(currentLayoutGroup == "All Models" ? "Default" : currentLayoutGroup);
+                xlights->AllModels.AddModel(extraModel);
+
+                float thisWidth = std::max(extraModel->GetRestorableMWidth(), BATCH_PLACEMENT_MIN_OFFSET);
+                currentX += thisWidth + BATCH_PLACEMENT_PADDING;
+            }
+            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "FinalizeModel");
+        }
+
         modelPreview->SetCursor(wxCURSOR_DEFAULT);
         modelPreview->SetAdditionalModel(nullptr);
         if ((b != nullptr && b->GetState() == 1) || selectedDmxModelType != "") {
@@ -4912,9 +5173,12 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
     int gSize = selectedTreeGroups.size();
     int smSize = selectedTreeSubModels.size();
     if (selectedBaseObject != nullptr && gSize == 0 && smSize == 0 && !event.ControlDown() && !event.RawControlDown()) {
-        int active_handle = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandle();
         if (!xlights->AbortRender()) return;
-        CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, std::to_string(active_handle));
+        const auto activeId = selectedBaseObject->GetBaseObjectScreenLocation().GetActiveHandleId();
+        const std::string undoTag = activeId
+            ? std::to_string(static_cast<int>(activeId->role)) + ":" + std::to_string(activeId->index)
+            : std::string("none");
+        CreateUndoPoint(editing_models ? "SingleModel" : "SingleObject", selectedBaseObject->name, undoTag);
 
         float scale = modelPreview->translateToBacking(1.0) * 20.0 * modelPreview->GetZoom(); //20 pixels at max speed, default zoom
         if (!modelPreview->Is3D()) {
@@ -4937,21 +5201,45 @@ void LayoutPanel::OnPreviewMotion3D(Motion3DEvent &event) {
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                           OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMotion3D");
         } else if (modelPreview->Is3D()) {
-            bool update_rgbeffects = false;
-            selectedBaseObject->MoveHandle3D(scale, active_handle, event.rotations, event.translations, update_rgbeffects);
-
-            last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-            last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
-            last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-            
-            SetupPropGrid(selectedBaseObject);
-            if (update_rgbeffects) {
-                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
+            // R-9: SpaceMouse path routes through a per-handle
+            // session instead of the legacy MoveHandle3D dispatch.
+            // The session caches the active handle so we don't
+            // re-resolve it every frame; reset it whenever the
+            // selection changes.
+            if (m_spaceMouseTarget != selectedBaseObject) {
+                m_spaceMouseSession.reset();
+                m_spaceMouseTarget = selectedBaseObject;
             }
-            xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                                          OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMotion3D");
+            if (!m_spaceMouseSession) {
+                m_spaceMouseSession = selectedBaseObject->BeginSpaceMouseSession();
+            }
+            if (m_spaceMouseSession) {
+                auto result = m_spaceMouseSession->Apply(scale, event.rotations, event.translations);
+                if (result == handles::SpaceMouseResult::NeedsInit) {
+                    selectedBaseObject->Setup();
+                }
+                if (result != handles::SpaceMouseResult::Unchanged) {
+                    selectedBaseObject->IncrementChangeCount();
+                }
+
+                last_centerpos = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                last_worldrotate = selectedBaseObject->GetBaseObjectScreenLocation().GetRotationAngles();
+                last_worldscale = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+
+                SetupPropGrid(selectedBaseObject);
+                if (result == handles::SpaceMouseResult::Dirty
+                    || result == handles::SpaceMouseResult::NeedsInit) {
+                    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::OnPreviewMotion3D");
+                }
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
+                                                              OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMotion3D");
+            }
         }
     } else {
+        // Drop any in-flight SpaceMouse session — selection lost
+        // focus or the user is now driving the camera.
+        m_spaceMouseSession.reset();
+        m_spaceMouseTarget = nullptr;
         modelPreview->OnMotion3DEvent(event);
     }
 }
@@ -5289,33 +5577,33 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                                 }
                                 last_centerpos = new_centerpos;
                             } else if (dragRole == handles::Role::AxisRing) {
-                                // Wrap-aware rotation delta. X is negated to match
-                                // RotateAboutPoint's handedness.
-                                glm::vec3 new_worldrotate = sloc.GetRotationAngles();
-                                glm::vec3 rotate_offset   = new_worldrotate - last_worldrotate;
-                                if (rotate_offset.x >  180.0f) rotate_offset.x -= 360.0f;
-                                if (rotate_offset.y >  180.0f) rotate_offset.y -= 360.0f;
-                                if (rotate_offset.z >  180.0f) rotate_offset.z -= 360.0f;
-                                if (rotate_offset.x < -180.0f) rotate_offset.x += 360.0f;
-                                if (rotate_offset.y < -180.0f) rotate_offset.y += 360.0f;
-                                if (rotate_offset.z < -180.0f) rotate_offset.z += 360.0f;
-                                rotate_offset.x = -rotate_offset.x;
-                                glm::vec3 active_handle_position = sloc.GetActiveHandlePosition();
-                                for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-                                    Model* mm = modelPreview->GetModels()[i];
-                                    if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
-                                        xlights->AbortRender();
-                                        mm->RotateAboutPoint(active_handle_position, rotate_offset);
+                                if (auto ri = m_dragSession->GetRotationInfo()) {
+                                    const float per_frame = ri->accumulated - last_worldrotate.x;
+                                    if (std::abs(per_frame) > 0.0f) {
+                                        glm::vec3 angle(0.0f);
+                                        switch (ri->rotationAxis) {
+                                            case handles::Axis::X: angle.x = -per_frame; break;
+                                            case handles::Axis::Y: angle.y =  per_frame; break;
+                                            case handles::Axis::Z: angle.z =  per_frame; break;
+                                        }
+                                        const glm::vec3 pivot = ri->pivot;
+                                        for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                                            Model* mm = modelPreview->GetModels()[i];
+                                            if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                                xlights->AbortRender();
+                                                mm->RotateAboutPoint(pivot, angle);
+                                            }
+                                        }
+                                        for (const auto& it : xlights->AllObjects) {
+                                            ViewObject* vo = it.second;
+                                            if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                                xlights->AbortRender();
+                                                vo->RotateAboutPoint(pivot, angle);
+                                            }
+                                        }
+                                        last_worldrotate.x = ri->accumulated;
                                     }
                                 }
-                                for (const auto& it : xlights->AllObjects) {
-                                    ViewObject* vo = it.second;
-                                    if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
-                                        xlights->AbortRender();
-                                        vo->RotateAboutPoint(active_handle_position, rotate_offset);
-                                    }
-                                }
-                                last_worldrotate = new_worldrotate;
                             } else if (dragRole == handles::Role::AxisCube) {
                                 glm::vec3 new_worldscale = sloc.GetScaleMatrix();
                                 if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
@@ -5417,8 +5705,17 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             BaseObject *obj = _newModel;
             if (obj == nullptr) {
                 obj = selectedBaseObject;
-                Model* m = dynamic_cast<Model*>(obj);
-                if (obj == nullptr || (!xlights->AllModels.IsModelValid(m) && _newModel != obj)) return;
+                if (obj == nullptr) return;
+                if (_newModel != obj) {
+                    // Validity check covers both Model and ViewObject
+                    // selections — the previously-selected object may
+                    // have been deleted out from under us.
+                    Model* m = dynamic_cast<Model*>(obj);
+                    ViewObject* vo = dynamic_cast<ViewObject*>(obj);
+                    const bool modelOk = (m != nullptr) && xlights->AllModels.IsModelValid(m);
+                    const bool viewOk  = (vo != nullptr) && (xlights->AllObjects[vo->GetName()] == vo);
+                    if (!modelOk && !viewOk) return;
+                }
             }
             // descriptor session takes the move stream when
             // active. This branch fires for the polyline "trail vertex
@@ -5450,8 +5747,15 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
             }
         }
         else {
+            // Validity covers both Model and ViewObject selections —
+            // hover handles work for whichever the user is editing.
             Model* m = dynamic_cast<Model*>(selectedBaseObject);
-            if (selectedBaseObject != nullptr && (_newModel == selectedBaseObject || xlights->AllModels.IsModelValid(m))) {
+            ViewObject* vo = dynamic_cast<ViewObject*>(selectedBaseObject);
+            const bool selectionStillValid = selectedBaseObject != nullptr &&
+                (_newModel == selectedBaseObject
+                    || (m != nullptr && xlights->AllModels.IsModelValid(m))
+                    || (vo != nullptr && xlights->AllObjects[vo->GetName()] == vo));
+            if (selectionStillValid) {
                 xlights->AddTraceMessage("LayoutPanel::OnPreviewMouseMove3D Moving but no model selected");
                 glm::vec3 ray_origin;
                 glm::vec3 ray_direction;
@@ -5462,27 +5766,17 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                 // handler can route by descriptor identity.
                 CursorType hoverCursor = CursorType::Default;
                 std::optional<handles::Id> hoverId;
-                if (m != nullptr) {
+                {
                     auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
-                    const auto legacyToolHover = sloc.GetAxisTool();
-                    handles::Tool hoverTool = handles::Tool::Translate;
-                    bool hoverToolSupported = false;
-                    switch (legacyToolHover) {
-                        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: hoverTool = handles::Tool::Translate;   hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     hoverTool = handles::Tool::Scale;       hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    hoverTool = handles::Tool::Rotate;      hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  hoverTool = handles::Tool::XYTranslate; hoverToolSupported = true; break;
-                        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   hoverTool = handles::Tool::Elevate;     hoverToolSupported = true; break;
-                        default: break;
-                    }
-                    if (hoverToolSupported) {
+                    const handles::Tool hoverTool = sloc.GetAxisTool();
+                    if (hoverTool != handles::Tool::None) {
                         const float zoom = modelPreview->GetCameraZoomForHandles();
                         const int hscale = modelPreview->GetHandleScale();
                         handles::ViewParams hoverView;
                         hoverView.axisArrowLength = sloc.GetAxisArrowLength(zoom, hscale);
                         hoverView.axisHeadLength  = sloc.GetAxisHeadLength(zoom, hscale);
                         hoverView.axisRadius      = sloc.GetAxisRadius(zoom, hscale);
-                        const auto hoverDescs = m->GetHandles(handles::ViewMode::ThreeD, hoverTool, hoverView);
+                        const auto hoverDescs = selectedBaseObject->GetHandles(handles::ViewMode::ThreeD, hoverTool, hoverView);
                         if (!hoverDescs.empty()) {
                             handles::ScreenProjection hoverProj{
                                 modelPreview->GetProjViewMatrix(),
@@ -5628,6 +5922,38 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                 xlights->SetStatusText(wxString::Format("x=%.2f y=%.2f",
                     m->GetBaseObjectScreenLocation().GetCenterPosition().x,
                     m->GetBaseObjectScreenLocation().GetCenterPosition().y));
+
+                // Multi-select propagation for 2D handle drags.
+                const int selectedModelCnt      = ModelsSelectedCount();
+                const int selectedViewObjectCnt = ViewObjectsSelectedCount();
+                const bool multiSel = (selectedModelCnt > 1 || selectedViewObjectCnt > 1);
+                if (multiSel && selectedBaseObject != nullptr) {
+                    const handles::Role dragRole = m_dragSession->GetHandleId().role;
+                    if (dragRole == handles::Role::Rotate) {
+                        if (auto ri = m_dragSession->GetRotationInfo()) {
+                            const float per_frame = ri->accumulated - last_worldrotate.x;
+                            if (std::abs(per_frame) > 0.0f) {
+                                glm::vec3 angle(0.0f);
+                                angle.z = per_frame;
+                                const glm::vec3 pivot = ri->pivot;
+                                for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                                    Model* mm = modelPreview->GetModels()[i];
+                                    if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                        mm->RotateAboutPoint(pivot, angle);
+                                    }
+                                }
+                                for (const auto& it : xlights->AllObjects) {
+                                    ViewObject* vo = it.second;
+                                    if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                        vo->RotateAboutPoint(pivot, angle);
+                                    }
+                                }
+                                last_worldrotate.x = ri->accumulated;
+                            }
+                        }
+                    }
+                }
+
                 xlights->GetOutputModelManager()->AddASAPWork(
                     OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
@@ -5826,7 +6152,7 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
         
         if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
-            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace A Model With This Model");
+            menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace Model(s) With This Model...");
         }
     }
 }
@@ -5845,6 +6171,11 @@ void LayoutPanel::AddBulkEditOptionsToMenu(wxMenu* mnuBulkEdit) {
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_TRANSPARENCY, "Transparency");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_BLACKTRANSPARENCY, "Black Transparency");
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_SHADOWMODELFOR, "Shadow Model For");
+
+        mnuBulkEdit->AppendSeparator();
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEX, "Rotate X");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEY, "Rotate Y");
+        mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_ROTATEZ, "Rotate Z");
 
         mnuBulkEdit->AppendSeparator();
         mnuBulkEdit->Append(ID_PREVIEW_BULKEDIT_CONTROLLERCONNECTION, "Controller Port");
@@ -5982,8 +6313,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             {
                 mnuViewPoint->Append(ID_PREVIEW_CAMERA_DELETE_BASE + i, xlights->viewpoint_mgr.GetCamera3D(i)->GetName());
             }
-            mnuViewPoint->AppendSeparator();
-            mnuViewPoint->Append(ID_PREVIEW_DELETEALLVIEWPOINTS3D, "Delete All");
             mnu.Append(ID_PREVIEW_DELETEVIEWPOINT3D, "Delete ViewPoint", mnuViewPoint, "");
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
@@ -6006,15 +6335,6 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
             mnu.Append(ID_PREVIEW_DELETEVIEWPOINT2D, "Delete ViewPoint", mnuViewPoint, "");
             mnuViewPoint->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
         }
-    }
-
-    bool has3dState = is_3d
-        || xlights->GetXmlSetting("LayoutMode3D", "0") == "1"
-        || xlights->viewpoint_mgr.GetNum3DCameras() > 0
-        || xlights->viewpoint_mgr.GetDefaultCamera3D() != nullptr;
-    if (has3dState) {
-        mnu.AppendSeparator();
-        mnu.Append(ID_PREVIEW_REVERT_TO_2D, "Revert to 2D Layout");
     }
 
     mnu.Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
@@ -6078,6 +6398,12 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
@@ -6258,15 +6584,29 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
                                                       OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
-        const Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr)
+        std::vector<const Model*> selectedModels;
+        for (const auto& m : modelPreview->GetModels()) {
+            if (m->Selected() || m->GroupSelected()) {
+                const Model* md = dynamic_cast<const Model*>(m);
+                if (md != nullptr)
+                    selectedModels.push_back(md);
+            }
+        }
+        if (selectedModels.empty()) {
+            const Model* md = dynamic_cast<const Model*>(selectedBaseObject);
+            if (md != nullptr)
+                selectedModels.push_back(md);
+        }
+        if (selectedModels.empty())
             return;
         XmlSerializer serializer;
-        wxString name = md->GetName();
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
-            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            pugi::xml_document doc = selectedModels.size() == 1
+                ? serializer.SerializeModel(selectedModels[0], true)
+                : serializer.SerializeModels(selectedModels, true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -6295,7 +6635,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             const int legacyHandle = selectedId->index + 1;
             CreateUndoPoint("SingleModel", md->name, std::to_string(legacyHandle + 0x4000));
             md->DeleteHandle(legacyHandle);
-            md->SelectHandle(-1);
+            md->SelectHandle();
             md->GetModelScreenLocation().SelectSegment(-1);
             md->Reinitialize();
             // SetupPropGrid(md);
@@ -6353,53 +6693,6 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
-        }
-    } else if (event.GetId() == ID_PREVIEW_REVERT_TO_2D) {
-        if (wxMessageBox("Reset to 2D layout? This will remove all 3D Viewpoints and reset all model positions. This cannot be undone. Are you sure?",
-                         "Revert to 2D Layout", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
-            while (xlights->viewpoint_mgr.GetNum3DCameras() > 0)
-                xlights->viewpoint_mgr.DeleteCamera3D(0);
-            xlights->viewpoint_mgr.ClearDefault3DCamera();
-
-            for (auto& [name, model] : xlights->AllModels) {
-                if (model->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
-                model->GetModelScreenLocation().SetWorldPos_Z(0.0f);
-                model->GetModelScreenLocation().SetRotateX(0.0f);
-                model->GetModelScreenLocation().SetRotateY(0.0f);
-            }
-
-            std::vector<std::string> toDelete;
-            for (const auto& [name, obj] : xlights->AllObjects) {
-                if (obj->GetDisplayAs() != DisplayAsType::Gridlines)
-                    toDelete.push_back(name);
-            }
-            for (const auto& name : toDelete)
-                xlights->AllObjects.Delete(name);
-
-            xlights->SetXmlSetting("LayoutMode3D", "0");
-            GetXLightsConfig()->Write("LayoutMode3D", false);
-
-            if (is_3d) {
-                is_3d = false;
-                CheckBox_3D->SetValue(false);
-                modelPreview->Set3D(false);
-                editing_models = true;
-                if (dynamic_cast<Model*>(selectedBaseObject) == nullptr)
-                    UnSelectAllModels();
-                Notebook_Objects->RemovePage(1);
-                obj_button->Enable(false);
-            }
-
-            SetDirtyHiLight(true);
-            xlights->GetOutputModelManager()->AddASAPWork(
-                OutputModelManager::WORK_VISUAL_CHANGE | OutputModelManager::WORK_RELOAD_OBJECTLIST,
-                "LayoutPanel::RevertTo2D");
-        }
-    } else if (event.GetId() == ID_PREVIEW_DELETEALLVIEWPOINTS3D) {
-        if (wxMessageBox("Are you sure you want to delete all 3D viewpoints?\n\nThis action cannot be undone.", "Confirm Delete All Viewpoints", wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION, this) == wxYES) {
-            while (xlights->viewpoint_mgr.GetNum3DCameras() > 0)
-                xlights->viewpoint_mgr.DeleteCamera3D(0);
-            SetDirtyHiLight(true);
         }
     } else if (is_3d) {
         long loadIdx = event.GetId() - ID_PREVIEW_CAMERA_LOAD_BASE;
@@ -7159,8 +7452,8 @@ Model* LayoutPanel::GetModelFromTreeItem(wxTreeListItem treeItem) {
 }
 
 // Select a Model in the tree, currently only selects top level model if found
-void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
-    if (modelToSelect != nullptr && !_filterString.IsEmpty() && !ModelMatchesFilter(modelToSelect)) {
+void LayoutPanel::SelectModelInTree(Model* modelToSelect, bool preserveFilter) {
+    if (!preserveFilter && modelToSelect != nullptr && !_filterString.IsEmpty() && !ModelMatchesFilter(modelToSelect)) {
         wxCommandEvent dummy;
         OnModelFilterCancelBtn(dummy);
     }
@@ -7176,6 +7469,7 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect) {
 
                 PlatformHandleSelectionChanged();
                 TreeListViewModels->EnsureVisible(item);
+                TreeListViewModels->GetView()->SetFocus();
                 break;
             }
         }
@@ -7188,8 +7482,8 @@ void LayoutPanel::UnSelectModelInTree(Model* modelToUnSelect) {
     modelToUnSelect->Selected(false);
     modelToUnSelect->Highlighted(false);
     modelToUnSelect->GroupSelected(false);
-    modelToUnSelect->SelectHandle(-1);
-    modelToUnSelect->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+    modelToUnSelect->SelectHandle();
+    modelToUnSelect->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 
     for ( wxTreeListItem item = TreeListViewModels->GetFirstItem();
           item.IsOk();
@@ -7238,6 +7532,49 @@ wxTreeListItem LayoutPanel::GetTreeItemFromModel(Model* model) {
 void LayoutPanel::UnSelectAllModelsInTree() {
     TreeListViewModels->UnselectAll();
     PlatformHandleSelectionChanged();
+}
+
+void LayoutPanel::FocusModelTree() {
+    TreeListViewModels->SetFocus();
+}
+
+std::string LayoutPanel::FindNextModelNameAfterDelete(const wxArrayString& deletedNames) const
+{
+    std::set<std::string> deleted;
+    for (const auto& n : deletedNames) deleted.insert(n.ToStdString());
+
+    // Use the first selected item's parent as the context so we find siblings correctly
+    // even when the item is a child of a group rather than a root-level item.
+    wxTreeListItem parent = TreeListViewModels->GetRootItem();
+    for (const auto& sel : selectedTreeModels) {
+        if (sel.IsOk()) {
+            wxTreeListItem p = TreeListViewModels->GetItemParent(sel);
+            if (p.IsOk()) parent = p;
+            break;
+        }
+    }
+
+    std::vector<std::string> ordered;
+    for (wxTreeListItem it = TreeListViewModels->GetFirstChild(parent); it.IsOk(); it = TreeListViewModels->GetNextSibling(it)) {
+        std::string name = TreeListViewModels->GetItemText(it).ToStdString();
+        if (!name.empty() && name.front() == '<') name = name.substr(1, name.size() - 2);
+        ordered.push_back(name);
+    }
+
+    int lastDeletedIdx = -1;
+    for (int i = 0; i < (int)ordered.size(); ++i)
+        if (deleted.count(ordered[i])) lastDeletedIdx = i;
+    if (lastDeletedIdx < 0) return "";
+
+    for (int i = lastDeletedIdx + 1; i < (int)ordered.size(); ++i) {
+        if (!deleted.count(ordered[i])) return ordered[i];
+    }
+
+    for (int i = lastDeletedIdx - 1; i >= 0; --i) {
+        if (!deleted.count(ordered[i])) return ordered[i];
+    }
+
+    return "";
 }
 
 // Get unique models from selected tree model group included those deeply nested
@@ -7304,8 +7641,8 @@ void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
         selectedBaseObject = model;
         highlightedBaseObject = model;
         selectedBaseObject->Highlighted(true);
-        selectedBaseObject->SelectHandle(-1);
-        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+        selectedBaseObject->SelectHandle();
+        selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         if (CheckBoxOverlap->GetValue() == true) {
             CheckModelForOverlaps(model);
         }
@@ -7313,8 +7650,8 @@ void LayoutPanel::SetTreeModelSelected(Model* model, bool isPrimary) {
         model->Selected(false);
         model->GroupSelected(true);
         model->Highlighted(true);
-        model->SelectHandle(-1);
-        model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        model->SelectHandle();
+        model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
     }
 }
 
@@ -7329,8 +7666,8 @@ void LayoutPanel::SetTreeGroupModelsSelected(Model* model, bool isPrimary) {
     for (const auto& m : groupModels) {
         m->GroupSelected(true);
         m->Highlighted(true);
-        model->SelectHandle(-1);
-        model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+        model->SelectHandle();
+        model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
     }
 }
 
@@ -7342,8 +7679,8 @@ void LayoutPanel::SetTreeSubModelSelected(Model* model, bool isPrimary) {
     }
     model->GroupSelected(true);
     model->Highlighted(true);
-    model->SelectHandle(-1);
-    model->GetBaseObjectScreenLocation().SetActiveHandle(-1);
+    model->SelectHandle();
+    model->GetBaseObjectScreenLocation().SetActiveHandle(std::nullopt);
 }
 
 void LayoutPanel::CheckModelForOverlaps(Model* model) {
@@ -8133,6 +8470,8 @@ void LayoutPanel::DeleteSelectedModels()
         }
 
         if (wxMessageBox("Are you sure you want to delete the folowing model(s)?:\n\n" + modelsToConfirm, "Confirm Delete?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+            std::string nextModel = FindNextModelNameAfterDelete(modelsToDelete);
+
             // we suspend deferred work because if the delete model pops a dialog then the ASAP work gets done prematurely
             xlights->GetOutputModelManager()->SuspendDeferredWork(true);
             xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
@@ -8162,12 +8501,14 @@ void LayoutPanel::DeleteSelectedModels()
             selectedBaseObject = nullptr;
 
             xlights->GetOutputModelManager()->SuspendDeferredWork(false);
+            xlights->GetOutputModelManager()->ClearSelectedModel();
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                           OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                           OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
                                                           OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
                                                           OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                                                          OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::DeleteSelectedModels");
+                                                          OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::DeleteSelectedModels",
+                                                          nullptr, nullptr, nextModel);
         }
     } else {
         wxBell();
@@ -8192,6 +8533,7 @@ void LayoutPanel::DeleteSelectedGroups()
 	}
 
 	if (wxMessageBox("Are you sure you want to delete the following group(s)?:\n\n" + groupsToConfirm, "Confirm Remove?", wxICON_QUESTION | wxYES_NO) == wxYES) {
+        std::string nextModel = FindNextModelNameAfterDelete(groupsToDelete);
 
 		CreateUndoPoint("All", wxJoin(groupsToDelete, ','));
 
@@ -8203,10 +8545,13 @@ void LayoutPanel::DeleteSelectedGroups()
 		}
 		UnSelectAllModels();
 
+        xlights->GetOutputModelManager()->ClearSelectedModel();
 		xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
                                                 OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                 OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER |
-                                                OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP");
+                                                OutputModelManager::WORK_RELOAD_MODELLIST |
+                                                OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnModelsPopup::ID_MNU_DELETE_MODEL_GROUP",
+                                                nullptr, nullptr, nextModel);
 	}
 }
 
@@ -8223,108 +8568,223 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+
 void LayoutPanel::ReplaceModel()
 {
     if (selectedBaseObject == nullptr) return;
+    Model* sourceModel = dynamic_cast<Model*>(selectedBaseObject);
+    if (sourceModel == nullptr) return;
 
-    Model* modelToReplaceItWith = dynamic_cast<Model*>(selectedBaseObject);
-
-    wxArrayString choices;
-
-    for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-    {
-        if (modelPreview->GetModels()[i]->GetName() != selectedBaseObject->GetName())
-        {
-            choices.Add(modelPreview->GetModels()[i]->GetName());
+    // Build alphabetised candidate list - everything in the preview except the source itself.
+    std::vector<std::string> candidates;
+    candidates.reserve(modelPreview->GetModels().size());
+    for (auto* m : modelPreview->GetModels()) {
+        if (m != nullptr && m != sourceModel) {
+            candidates.push_back(m->GetName());
         }
     }
+    if (candidates.empty()) {
+        wxMessageBox("There are no other models in the layout to replace.",
+                     "Replace Model", wxOK | wxICON_INFORMATION, this);
+        return;
+    }
+    std::sort(candidates.begin(), candidates.end());
 
-    wxSingleChoiceDialog dlg(this, "", "Select the model to replace with this model.", choices);
-    dlg.SetSelection(0);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
     OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) return;
 
-    if (dlg.ShowModal() == wxID_OK)
-    {
-        xlights->UnselectEffect(); // we do this just in case the effect is on the model we are deleting
-        xlights->AbortRender(); // we dont want to be rendering when we do this
+    auto targetNames = dlg.GetSelectedNames();
+    if (targetNames.empty()) return;
 
-        Model* replaceModel = nullptr;
-        for (size_t i = 0; i < modelPreview->GetModels().size(); i++)
-        {
-            if (modelPreview->GetModels()[i]->GetName() == dlg.GetStringSelection())
-            {
-                replaceModel = modelPreview->GetModels()[i];
-            }
-        }
+    const bool copyStartCh = dlg.CopyStartChannel();
+    const bool mergeSubs   = dlg.MergeSubmodels();
+    const bool copySizePos = dlg.CopySizePos();
 
-        if (replaceModel == nullptr) return;
+    xlights->UnselectEffect(); // in case an effect lives on one of the targets
+    xlights->AbortRender();
 
-        CreateUndoPoint("All", "", "");
+    // Suppress Model::Rename's "Save old name as alias?" prompt for the duration
+    // of this batch. Each target triggers several intermediate renames (clone
+    // temp-name, target trash-name, clone final-name) and the user didn't ask
+    // to rename anything - they asked to replace wholesale, so the alias
+    // question doesn't apply. Restore the previous setting after the batch so
+    // normal rename operations still obey the user's preference.
+    //
+    // Real RAII guard so the restore is resilient to any early return path
+    // (current or future) - the destructor fires on scope exit regardless of
+    // how we leave this function.
+    struct AliasBehaviorRestore {
+        xLightsFrame* frame;
+        wxString saved;
+        ~AliasBehaviorRestore() { frame->SetRenameModelAliasPromptBehavior(saved); }
+    } aliasGuard{ xlights, xlights->GetRenameModelAliasPromptBehavior() };
+    xlights->SetRenameModelAliasPromptBehavior("Always No");
 
-        // Prompt user to copy the target models start channel ...but only if
-        // they are not already the same and the new model uses a chaining start
-        // channel ... the theory being if you took time to set the start channel
-        // you probably want to keep it and so a prompt will just be annoying
-        if ((replaceModel->ModelStartChannel !=
-            modelToReplaceItWith->ModelStartChannel &&
-            wxString(modelToReplaceItWith->ModelStartChannel).StartsWith(">")) ||
-            (replaceModel->GetControllerName() != modelToReplaceItWith->GetControllerName() && (modelToReplaceItWith->GetControllerName() == "" || modelToReplaceItWith->GetControllerName() == NO_CONTROLLER)))
-        {
-            auto msg = wxString::Format("Should I copy the replaced models start channel '%s' to the replacement model whose start channel is currently '%s'?", replaceModel->ModelStartChannel, modelToReplaceItWith->ModelStartChannel);
-            if (wxMessageBox(msg, "Update Start Channel", wxYES_NO) == wxYES)
-            {
-                modelToReplaceItWith->SetStartChannel(replaceModel->ModelStartChannel);
+    // One undo snapshot for the whole batch so a single Ctrl-Z rolls it all back.
+    CreateUndoPoint("All", sourceModel->GetName(), "ReplaceModel");
 
-                modelToReplaceItWith->SetControllerProtocol(replaceModel->GetControllerProtocol());
-                modelToReplaceItWith->SetControllerPort(replaceModel->GetControllerPort());
-                modelToReplaceItWith->SetControllerName(replaceModel->GetControllerName());
-                modelToReplaceItWith->SetSmartRemote(replaceModel->GetSmartRemote());
-                modelToReplaceItWith->SetSmartRemoteType(replaceModel->GetSmartRemoteType());
-                modelToReplaceItWith->SetSRMaxCascade(replaceModel->GetSRMaxCascade());
-                modelToReplaceItWith->SetSRCascadeOnPort(replaceModel->GetSRCascadeOnPort());
-            }
-        }
-
-        if (replaceModel->GetNumSubModels() > 0 ) {
-            if (wxMessageBox("Merge The Submodels", "Merge The Submodels", wxYES_NO) == wxYES) {
-                for (int i = 0; i < replaceModel->GetNumSubModels(); ++i) {
-                    auto name{ replaceModel->GetSubModel(i)->Name() };
-                    if (modelToReplaceItWith->GetSubModel(name) != nullptr) {
-                        continue;
-                    }
-                    
-                    // Create SubModel using copy constructor
-                    const SubModel* sourceSubModel = dynamic_cast<const SubModel*>(replaceModel->GetSubModel(i));
-                    SubModel* sm = new SubModel(modelToReplaceItWith, sourceSubModel);
-                    modelToReplaceItWith->AddSubmodel(sm);
-                }
-            }
-        }
-
-        auto rmn = replaceModel->GetName();
-        auto riw = modelToReplaceItWith->GetName();
-
-        if (wxMessageBox("Use original size and position of " + rmn, "Use original size and position", wxYES_NO) == wxYES) {
-            modelToReplaceItWith->GetModelScreenLocation().SetRotation(replaceModel->GetModelScreenLocation().GetRotation());
-            modelToReplaceItWith->SetHcenterPos(replaceModel->GetHcenterPos());
-            modelToReplaceItWith->SetVcenterPos(replaceModel->GetVcenterPos());
-            modelToReplaceItWith->SetDcenterPos(replaceModel->GetDcenterPos());       
-            modelToReplaceItWith->SetHeight(replaceModel->GetHeight());       
-            modelToReplaceItWith->SetWidth(replaceModel->GetWidth());    
-            modelToReplaceItWith->SetDepth(replaceModel->GetDepth());    
-        }
-
-        xlights->AllModels.RenameInListOnly(dlg.GetStringSelection().ToStdString(), "Iamgoingtodeletethismodel");
-        replaceModel->Rename("Iamgoingtodeletethismodel");
-        xlights->AllModels.RenameInListOnly(modelToReplaceItWith->GetName(), dlg.GetStringSelection().ToStdString());
-        modelToReplaceItWith->Rename(dlg.GetStringSelection().ToStdString());
-        xlights->AllModels.Delete("Iamgoingtodeletethismodel");
-        xlights->ReplaceModelWithModelFixGroups(rmn, riw);
-        xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RGBEFFECTS_CHANGE |
-                                                      OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
-                                                      OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "ReplaceModel", nullptr, nullptr, dlg.GetStringSelection().ToStdString());
+    // Capture the source's XML ONCE. Each iteration builds a fresh clone from this
+    // snapshot so the original source stays intact across the whole batch.
+    CopyPasteBaseObject sourceXml;
+    sourceXml.SetBaseObject(sourceModel);
+    if (!sourceXml.IsOk()) {
+        wxMessageBox("Failed to serialize the source model; aborting.",
+                     "Replace Model", wxOK | wxICON_ERROR, this);
+        return; // aliasGuard destructor restores the behaviour
     }
+
+    int successCount = 0;
+    std::vector<std::string> failures;
+
+    for (const auto& targetName : targetNames) {
+        // Re-resolve the target from the model manager each iteration - names
+        // are stable but pointers may have changed due to earlier iterations.
+        Model* target = xlights->AllModels[targetName];
+        if (target == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        auto owned = sourceXml.GetBaseObjectXml();
+        pugi::xml_node nd = owned;
+        if (!nd) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        Model* clone = xlights->AllModels.CreateModel(nd);
+        if (clone == nullptr) {
+            failures.push_back(targetName);
+            continue;
+        }
+
+        // Park the clone under a temporary name that is GUARANTEED not to
+        // collide with any currently-registered model. The double-underscore
+        // prefix makes accidental user collisions extremely unlikely, but
+        // AllModels.AddModel() silently replaces (deletes!) a pre-existing
+        // model with the same name - so we still have to verify uniqueness
+        // before handing the name over. Same goes for trashName below.
+        auto uniqueTempName = [this](const std::string& base, int seedSuffix) {
+            std::string name = base + std::to_string(seedSuffix);
+            int suffix = seedSuffix;
+            while (xlights->AllModels[name] != nullptr) {
+                ++suffix;
+                name = base + std::to_string(suffix);
+            }
+            return name;
+        };
+        const std::string tmpNewName = uniqueTempName("__xl_rmm_new_", successCount);
+        clone->Rename(tmpNewName);
+        xlights->AllModels.AddModel(clone);
+
+        // Per-target carryovers. These match the semantics of the three Yes/No
+        // prompts in the existing single-replace flow (see ReplaceModel()).
+        if (copyStartCh) {
+            clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetControllerProtocol(target->GetControllerProtocol());
+            clone->SetControllerPort(target->GetControllerPort());
+            clone->SetControllerName(target->GetControllerName());
+            clone->SetSmartRemote(target->GetSmartRemote());
+            clone->SetSmartRemoteType(target->GetSmartRemoteType());
+            clone->SetSRMaxCascade(target->GetSRMaxCascade());
+            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+        }
+        if (mergeSubs) {
+            for (int i = 0; i < target->GetNumSubModels(); ++i) {
+                const auto smName = target->GetSubModel(i)->Name();
+                if (clone->GetSubModel(smName) != nullptr) {
+                    continue; // clone already has a submodel with this name - skip
+                }
+                const SubModel* srcSub = dynamic_cast<const SubModel*>(target->GetSubModel(i));
+                if (srcSub == nullptr) continue;
+                SubModel* sm = new SubModel(clone, srcSub);
+                clone->AddSubmodel(sm);
+            }
+        }
+        if (copySizePos) {
+            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
+            clone->SetHcenterPos(target->GetHcenterPos());
+            clone->SetVcenterPos(target->GetVcenterPos());
+            clone->SetDcenterPos(target->GetDcenterPos());
+            clone->SetHeight(target->GetHeight());
+            clone->SetWidth(target->GetWidth());
+            clone->SetDepth(target->GetDepth());
+        }
+
+        // Rename dance: swap the target out and the clone in under the target's
+        // original name, then delete the parked target. Mirrors the approach
+        // used by the existing single-replace path.
+        const std::string trashName = uniqueTempName("__xl_rmm_old_", successCount);
+        xlights->AllModels.RenameInListOnly(targetName, trashName);
+        target->Rename(trashName);
+        xlights->AllModels.RenameInListOnly(tmpNewName, targetName);
+        clone->Rename(targetName);
+        // If Delete fails, we'd otherwise leave the layout half-updated: the
+        // clone is now under targetName but the original is still sitting in
+        // the model list as trashName. Roll back the rename so the original
+        // is restored and the clone gets removed, then record the failure.
+        if (!xlights->AllModels.Delete(trashName)) {
+            spdlog::warn("ReplaceModel: failed to delete trashed target '{}', rolling back swap", trashName);
+            // Best-effort rollback. Worst case (also fails): record failure
+            // and continue — manual cleanup may be needed, but the partial-
+            // state we leave is no worse than before this rollback path.
+            xlights->AllModels.RenameInListOnly(targetName, tmpNewName);
+            clone->Rename(tmpNewName);
+            xlights->AllModels.RenameInListOnly(trashName, targetName);
+            target->Rename(targetName);
+            xlights->AllModels.Delete(tmpNewName); // remove the clone we couldn't swap in
+            failures.push_back(targetName);
+            continue;
+        }
+
+        ++successCount;
+    }
+
+    // Pass the source model name + replaced count as context so logs and any
+    // downstream observers can scope the change instead of seeing a bare
+    // "ReplaceModel" token.
+    const std::string workCtx = wxString::Format(
+        "ReplaceModel: source='%s' replaced=%d",
+        sourceModel->GetName(), successCount).ToStdString();
+    xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS |
+                                                  OutputModelManager::WORK_RGBEFFECTS_CHANGE |
+                                                  OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                                                  OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER,
+                                                  workCtx);
+
+    // Always show a confirmation so the user knows the operation finished,
+    // even when it was a silent full success. The icon makes the outcome
+    // obvious at a glance (info / warning / error).
+    if (successCount == static_cast<int>(targetNames.size()) && failures.empty()) {
+        wxMessageBox(
+            wxString::Format("Successfully replaced %d model%s.",
+                             successCount, successCount == 1 ? "" : "s"),
+            "Replace Model", wxOK | wxICON_INFORMATION, this);
+    } else if (successCount == 0) {
+        wxString msg = "No models were replaced.";
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_ERROR, this);
+    } else {
+        wxString msg = wxString::Format("Replaced %d of %zu model(s).",
+                                        successCount, targetNames.size());
+        if (!failures.empty()) {
+            msg += "\n\nFailed: ";
+            for (size_t i = 0; i < failures.size(); ++i) {
+                if (i > 0) msg += ", ";
+                msg += failures[i];
+            }
+        }
+        wxMessageBox(msg, "Replace Model", wxOK | wxICON_WARNING, this);
+    }
+
+    // aliasGuard goes out of scope here and restores the user's preference
 }
 
 void LayoutPanel::UnlinkSelectedModels()
@@ -8383,6 +8843,7 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
         event.Skip();
     } else {
         if (wxTheClipboard->Open()) {
+            xlights->AbortRender();
             CreateUndoPoint("All", selectedBaseObject == nullptr ? "" : selectedBaseObject->name);
 
             wxTextDataObject data;
@@ -8406,25 +8867,36 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
                     auto nz = (int)nd.attribute("WorldPosZ").as_double();
                     source_model_name = nd.attribute("name").as_string();
 
-                    bool moved = true;
-                    while (moved)
+                    constexpr float PASTE_PADDING = 20.0f; // extra gap between copies
+                    constexpr float PASTE_MIN_OFFSET = 80.0f; // guard against zero-width edge case
+                    constexpr int   PASTE_LOOP_MAX  = 500; // safety cap
+
+                    if (!copyData.IsViewObject())
                     {
-                        moved = false;
-                        // is there a model in the same location of the same type ... if so offset the pasting of the model
-                        for (const auto& it : xlights->AllModels)
+                        bool moved = true;
+                        int loopGuard = 0;
+                        bool hitCap = false;
+                        while (moved)
                         {
-                            if (nda == it.second->GetDisplayAs())
+                            if (loopGuard >= PASTE_LOOP_MAX) { hitCap = true; break; }
+                            ++loopGuard;
+                            moved = false;
+                            for (const auto& it : xlights->AllModels)
                             {
+                                if (nda != it.second->GetDisplayAs()) continue;
+
                                 auto pos = it.second->GetBaseObjectScreenLocation().GetWorldPosition();
-                                auto x = (int)pos.x;
-                                auto y = (int)pos.y;
-                                auto z = (int)pos.z;
-                                if (nx == x &&
-                                    ny == y &&
-                                    nz == z)
+                                float itWidth = it.second->GetRestorableMWidth();
+                                if (itWidth <= 0) itWidth = PASTE_MIN_OFFSET;
+                                float itHalf = itWidth * 0.5f;
+
+                                if ((int)pos.y == ny &&
+                                    (int)pos.z == nz &&
+                                    std::abs(static_cast<float>(nx) - pos.x) < itHalf)
                                 {
-                                    nx += 40;
-                                    SetXmlNodeAttribute(nd, "WorldPosX", fmt::format("{:6.4f}", (float)nx));
+                                    nx = static_cast<int>(pos.x + itWidth + PASTE_PADDING);
+                                    SetXmlNodeAttribute(nd, "WorldPosX",
+                                                        fmt::format("{:6.4f}", (float)nx));
                                     moved = true;
                                     break;
                                 }
@@ -8438,6 +8910,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (!editing_models)//dont paste model in View Object mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						Model *newModel = xlights->AllModels.CreateModel(nd);
 
@@ -8465,6 +8940,9 @@ void LayoutPanel::DoPaste(wxCommandEvent& event) {
 					{
 						if (editing_models)//dont paste view objects in model editing mode
 							return;
+
+						UnSelectAllModels();
+						UnSelectAllModelsInTree();
 
 						ViewObject *newViewObject = xlights->AllObjects.CreateObject(nd);
 						name = xlights->AllObjects.GenerateObjectName(newViewObject->name);
@@ -8886,15 +9364,29 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
                                                       OutputModelManager::WORK_RELOAD_PROPERTYGRID |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_MODEL_ASPECTRATIO", nullptr, nullptr, GetSelectedModelName());
     } else if (event.GetId() == ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL) {
-        const Model* md = dynamic_cast<Model*>(selectedBaseObject);
-        if (md == nullptr)
+        std::vector<const Model*> selectedModels;
+        for (const auto& m : modelPreview->GetModels()) {
+            if (m->Selected() || m->GroupSelected()) {
+                const Model* md = dynamic_cast<const Model*>(m);
+                if (md != nullptr)
+                    selectedModels.push_back(md);
+            }
+        }
+        if (selectedModels.empty()) {
+            const Model* md = dynamic_cast<const Model*>(selectedBaseObject);
+            if (md != nullptr)
+                selectedModels.push_back(md);
+        }
+        if (selectedModels.empty())
             return;
         XmlSerializer serializer;
-        wxString name = md->GetName();
-        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
+        wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
             ObtainAccessToURL(filename);
-            pugi::xml_document doc = serializer.SerializeModel(md, true);
+            pugi::xml_document doc = selectedModels.size() == 1
+                ? serializer.SerializeModel(selectedModels[0], true)
+                : serializer.SerializeModels(selectedModels, true);
             doc.save_file(ToStdString(filename).c_str());
         }
     } else if (event.GetId() == ID_PREVIEW_DELETE_ACTIVE) {
@@ -8922,7 +9414,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             const int legacyHandle = selectedId->index + 1;
             CreateUndoPoint("SingleModel", md->name, std::to_string(legacyHandle + 0x4000));
             md->DeleteHandle(legacyHandle);
-            md->SelectHandle(-1);
+            md->SelectHandle();
             md->GetModelScreenLocation().SelectSegment(-1);
             md->Reinitialize();
             //SetupPropGrid(md);
@@ -8988,6 +9480,12 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         BulkEditTagColour();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSIZE) {
         BulkEditPixelSize();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEX) {
+        BulkEditRotateX();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEY) {
+        BulkEditRotateY();
+    } else if (event.GetId() == ID_PREVIEW_BULKEDIT_ROTATEZ) {
+        BulkEditRotateZ();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_PIXELSTYLE) {
         BulkEditPixelStyle();
     } else if (event.GetId() == ID_PREVIEW_BULKEDIT_TRANSPARENCY) {
@@ -9230,6 +9728,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             newModelGroup->SetLayout("minimalGrid");
             newModelGroup->SetGridSize(400);
             newModelGroup->SetLayoutGroup(grp.ToStdString());
+            xlights->AbortRender();
             xlights->AllModels.AddModel(newModelGroup);
 
             xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
@@ -9258,6 +9757,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         }
 
         if (node) {
+            xlights->AbortRender();
             xlights->AllModels.AddModel(xlights->AllModels.CreateModel(node));
         }
         //model_grp_panel->UpdatePanel(name);
@@ -9388,8 +9888,9 @@ void LayoutPanel::PreviewSaveImage()
 	delete image;
 }
 
-void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit)
+std::string LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wxString const& layoutGroup, bool includeEmptyGroups, float srcPerUnit)
 {
+    std::string firstImported;
     float scaleFactor = 1.0f;
     if (srcPerUnit > 0.0f && RulerObject::GetRuler() != nullptr) {
         // srcPerUnit is already in metres/pixel (normalised in GetSourceRulerPerUnit).
@@ -9434,6 +9935,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             it2->GetModelNode().append_attribute("LayoutGroup") = layoutGroup.ToStdString();
             scaleModelNode(it2->GetModelNode());
             xlights->AllModels.createAndAddModel(it2->GetModelNode(), modelPreview->getWidth(), modelPreview->getHeight());
+            if (firstImported.empty()) firstImported = newName;
             spdlog::debug("Imported model '{}' as '{}'.", (const char*)it2->GetName().c_str(), (const char*)newName.c_str());
         }
     }
@@ -9477,6 +9979,7 @@ void LayoutPanel::ImportModelsFromPreview(std::list<impTreeItemData*> models, wx
             }
         }
     }
+    return firstImported;
 }
 
 void LayoutPanel::ImportModelsFromRGBEffects()
@@ -9501,7 +10004,7 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         if (lg == "All Models") lg = "Default";
 
         float srcPerUnit = dlg.GetSourceRulerPerUnit();
-        ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups(), srcPerUnit);
+        std::string firstImported = ImportModelsFromPreview(dlg.GetModelsInPreview(""), lg, dlg.GetIncludeEmptyGroups(), srcPerUnit);
 
         for (const auto& it : dlg.GetPreviews())
         {
@@ -9522,11 +10025,13 @@ void LayoutPanel::ImportModelsFromRGBEffects()
                 xlights->LayoutGroups.emplace(it.ToStdString(), std::move(grp));
                 AddPreviewChoice(it.ToStdString());
             }
-            ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
+            std::string name = ImportModelsFromPreview(dlg.GetModelsInPreview(it), it, dlg.GetIncludeEmptyGroups(), srcPerUnit);
+            if (firstImported.empty()) firstImported = name;
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects");
+                                                      OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects",
+                                                      nullptr, nullptr, firstImported);
     }
 }
 
@@ -9756,16 +10261,22 @@ void LayoutPanel::RenameCurrentPreview()
         if (!node.empty()) {
             node.mapped()->SetName(dlg.GetValue());
             node.key() = dlg.GetValue();
+            auto* rawGrp = node.mapped().get();
             xlights->LayoutGroups.insert(std::move(node));
+            if (rawGrp->GetMenuItem() != nullptr) {
+                rawGrp->GetMenuItem()->SetItemLabel(dlg.GetValue());
+            }
         }
     }
 
-     for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
+    for (size_t i = 0; i < ChoiceLayoutGroups->GetCount(); ++i) {
         if (ChoiceLayoutGroups->GetString(i) == currentLayoutGroup) {
             ChoiceLayoutGroups->SetString(i, dlg.GetValue());
             break;
         }
     }
+
+    model_grp_panel->RenamePreviewChoice(currentLayoutGroup, dlg.GetValue().ToStdString());
 
     currentLayoutGroup = dlg.GetValue();
 
@@ -10551,7 +11062,7 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
         if (selectedBaseObject != nullptr) {
             selectionLatched = true;
             highlightedBaseObject = selectedBaseObject;
-            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandle(CENTER_HANDLE);
+            selectedBaseObject->GetBaseObjectScreenLocation().SetActiveHandleToCentre();
         } else {
             UnSelectAllModels();
         }
@@ -10566,7 +11077,14 @@ void LayoutPanel::OnCheckBox_3DClick(wxCommandEvent& event)
     }
     obj_button->Enable(is_3d && ChoiceLayoutGroups->GetStringSelection() == "Default");
 
-    GetXLightsConfig()->Write("LayoutMode3D", is_3d);
+    auto* config = GetXLightsConfig();
+    config->Write("LayoutMode3D", is_3d);
+    wxString s = xlights->GetXmlSetting("LayoutMode3D", "");
+    wxString nv = is_3d ? "1" : "0";
+    if (s != nv) {
+        xlights->SetXmlSetting("LayoutMode3D", nv);
+        xlights->UnsavedRgbEffectsChanges = true;
+    }
     Refresh();
 }
 
@@ -10589,8 +11107,11 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown())) {
         // Let Control + A through
-        // Just a regular key ... If current focus is a control then we need to not process this
+        // Just a regular key ... If current focus is an input control then we need to not process this.
+        // Exclude the model tree view: it is not a text input, so layout bindings should still fire
+        // when a model was selected from the layout canvas (which programmatically moves focus there).
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
+            event.GetEventObject() != TreeListViewModels->GetView() &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL)) {
             return false;
         }

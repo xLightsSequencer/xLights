@@ -22,6 +22,7 @@
 // the start state. No `active_*` shared state across gestures.
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
@@ -105,6 +106,19 @@ public:
     // to drive UI feedback (highlight the dragged handle, show
     // axis label, etc.).
     [[nodiscard]] virtual Id GetHandleId() const = 0;
+
+    // Rotation sessions expose their accumulated angle so the
+    // frontend can propagate the per-frame delta to other selected
+    // models without relying on Euler-angle fields that not all
+    // screen location types update.
+    struct RotationInfo {
+        glm::vec3 pivot;        // world-space point to rotate around
+        Axis      rotationAxis; // actual axis of rotation
+        float     accumulated;  // signed degrees accumulated since drag start
+    };
+    [[nodiscard]] virtual std::optional<RotationInfo> GetRotationInfo() const {
+        return std::nullopt;
+    }
 };
 
 } // namespace handles

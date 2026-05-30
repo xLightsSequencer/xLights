@@ -39,7 +39,12 @@ std::optional<Hit> HitTest(
     const HitTestOptions& opts) {
 
     std::optional<Hit> best;
-    float bestDistSq = std::numeric_limits<float>::infinity();
+    // -ffast-math (set on the desktop Release build) implies
+    // -ffinite-math-only, under which the optimizer is allowed to
+    // assume no operand is infinity. With -O3 + LTO that turns this
+    // sentinel into 0 and the first valid hit fails `distSq < bestDistSq`
+    // — silently dropping every non-axis click. Use a finite sentinel.
+    float bestDistSq = std::numeric_limits<float>::max();
     bool  bestIsAxis = false;
     bool  bestIsSegment = false;
 
@@ -80,14 +85,21 @@ std::optional<Hit> HitTest(
             const glm::vec2 dvec = *projected - screenPoint;
             distSq = dvec.x * dvec.x + dvec.y * dvec.y;
         }
-        if (distSq > opts.handleTolerance * opts.handleTolerance) continue;
+        bool isAxis = (d.id.role == Role::AxisArrow ||
+                       d.id.role == Role::AxisCube  ||
+                       d.id.role == Role::AxisRing);
+        // Axis handles get their own (typically tighter) tolerance
+        // so they don't swallow body-drag taps when their head
+        // projects near the model surface. Falls back to the
+        // general handleTolerance when axisHandleTolerance is 0.
+        const float effectiveTol = (isAxis && opts.axisHandleTolerance > 0.0f)
+            ? opts.axisHandleTolerance
+            : opts.handleTolerance;
+        if (distSq > effectiveTol * effectiveTol) continue;
 
         // Prefer axis-style handles when configured. They typically
         // overlap with the body of the model in screen space, so
         // without this preference body-pick would frequently win.
-        bool isAxis = (d.id.role == Role::AxisArrow ||
-                       d.id.role == Role::AxisCube  ||
-                       d.id.role == Role::AxisRing);
         bool isSegment = (d.id.role == Role::Segment);
         if (opts.preferAxisHandles) {
             if (isAxis && !bestIsAxis) {

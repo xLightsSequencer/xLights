@@ -34,10 +34,16 @@ public:
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+    // SpaceMouse per-handle helpers. Public so the session class
+    // in the .cpp can call them without needing friend status.
+    void ApplySpaceMouseCenter(float scale, const glm::vec3& rot, const glm::vec3& mov);
+    void ApplySpaceMouseCurveCp(int segment, int cpIndex, float scale, const glm::vec3& mov);
+    void ApplySpaceMouseVertex(int vertexIndex, float scale, const glm::vec3& mov);
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
-    virtual void SelectHandle(int handle) override;
+    virtual void SelectHandle() override;
     virtual std::optional<handles::Id> GetSelectedHandleId() const override {
         return selected_handle;
     }
@@ -85,20 +91,28 @@ public:
     virtual float GetMDepth() const override;
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
-    virtual int GetDefaultHandle() const override { return END_HANDLE; }
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_XY_TRANS; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::XYTranslate; }
+    void SetActiveHandleToDefault() override {
+        // Legacy END_HANDLE = 2 → Vertex(index 1), the second
+        // vertex placed by polyline create. Lines up with what
+        // BeginCreate / GetActiveHandleId expect post-placement.
+        handles::Id id;
+        id.role = handles::Role::Vertex;
+        id.index = 1;
+        SetActiveHandle(std::optional<handles::Id>(id));
+    }
     virtual float GetYShear() const { return 0.0; }
-    virtual void SetActiveHandle(int handle) override;
     virtual void SetActiveHandle(const std::optional<handles::Id>& id) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
     int GetNumPoints() const { return num_points; }
     void SetNumPoints(int points) { num_points = points; }
-    // Legacy int setter — used by callers that still speak `int`. -1
-    // clears; vertex-style indices are mapped to `Role::Vertex`.
-    void SetSelectedHandle(int h);
+    // Direct setter for the visual-selection highlight. nullopt
+    // clears. Used by the property panel (segment / vertex spin
+    // edits) and by AddHandle to anchor the newly-inserted vertex.
+    void SetSelectedHandle(const std::optional<handles::Id>& id) { selected_handle = id; }
     void SetSelectedSegment(int s) { selected_segment = s; }
     glm::vec3 GetPoint(int i) const { return glm::vec3(mPos[i].x, mPos[i].y, mPos[i].z); }
     void SetPoint(int i, float x, float y, float z) { mPos[i].x = x; mPos[i].y = y; mPos[i].z = z; }

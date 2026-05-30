@@ -693,6 +693,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
     <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
@@ -925,6 +926,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\tabSequencer.cpp" />
@@ -1000,6 +1002,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColourData.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-core\utils\xlImage.cpp" />
     <ClCompile Include="..\src-core\utils\XsqFileScanner.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
@@ -1200,6 +1204,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\diagnostics\ShowFolderSearchDialog.h" />
     <ClInclude Include="..\src-core\utils\TempFileManager.h" />
     <ClInclude Include="..\src-core\utils\CurlManager.h" />
+    <ClInclude Include="..\src-core\utils\FloatChecks.h" />
+    <ClInclude Include="..\src-core\utils\AutoReleasePool.h" />
     <ClInclude Include="..\src-core\utils\ip_utils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutUtils.h" />
     <ClInclude Include="..\src-ui-wx\layout\LORPreview.h" />
@@ -1285,6 +1291,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
     <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
@@ -1387,6 +1394,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
@@ -1507,6 +1515,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\TimeLine.h" />
@@ -1588,6 +1597,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColourData.h" />
     <ClInclude Include="..\src-core\utils\xlImage.h" />
     <ClInclude Include="..\src-core\utils\Base64.h" />

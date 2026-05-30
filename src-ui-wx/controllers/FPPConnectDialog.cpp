@@ -1176,6 +1176,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         cancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
                         cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                         cancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        cancelled |= inst->SetInputUniversesBridge(c.front());
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {

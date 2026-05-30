@@ -1,11 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Dynamic UTType for `.xsq` files. Declared here (not via
-/// UTExportedTypeDeclarations in the Info.plist) because Save-As
-/// needs a content type for the file exporter but iPad doesn't
-/// yet own the `.xsq` document type — desktop does. `.xml` is
-/// the fallback so the file exporter never no-ops.
+/// Dynamic UTType lookup for `.xsq`. Resolves to the
+/// `org.xlights.sequence` UTType exported by the iPad app's
+/// Info.plist; `.xml` is a defensive fallback so the file
+/// exporter never no-ops if the lookup ever fails.
 let kXSQFileType: UTType =
     UTType(filenameExtension: "xsq") ?? .xml
 

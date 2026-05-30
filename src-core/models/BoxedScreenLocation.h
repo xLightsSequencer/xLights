@@ -36,7 +36,8 @@ public:
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
 
@@ -150,8 +151,7 @@ public:
     bool GetSupportsZScaling() const { return supportsZScaling; }
     void SetSupportsZScaling(bool b) { supportsZScaling = b; }
 
-    virtual int GetDefaultHandle() const override { return CENTER_HANDLE; }
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_SCALE; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::Scale; }
     float GetCentreX() const { return centerx; }
     float GetCentreY() const { return centery; }
     float GetCentreZ() const { return centerz; }

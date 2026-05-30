@@ -39,6 +39,7 @@ class OtherSettingsPanel: public wxPanel
 		wxCheckBox* CheckBox_PurgeDownloadCache;
 		wxCheckBox* CheckBox_RecycleTips;
 		wxCheckBox* CheckBox_ShowZoneIndicator;
+		wxCheckBox* CheckBox_UseCustomColorPicker;
 		wxCheckBox* ExcludeAudioCheckBox;
 		wxCheckBox* ExcludeVideosCheckBox;
 		wxCheckBox* GPURenderCheckbox;
@@ -91,6 +92,7 @@ class OtherSettingsPanel: public wxPanel
 		static const wxWindowID ID_CTRLPINGINTERVAL;
 		static const wxWindowID ID_CHECKBOX10;
 		static const wxWindowID ID_CHECKBOX11;
+		static const wxWindowID ID_CHECKBOX_CustomColorPicker;
 		//*)
 
 	private:

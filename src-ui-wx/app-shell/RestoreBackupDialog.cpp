@@ -325,6 +325,10 @@ void RestoreBackupDialog::PopulateLayoutList(wxString const& folder)
         auto idx = CheckListBoxLayout->Append(XLIGHTS_KEYBINDING_FILE);
         CheckListBoxLayout->Check(idx);
     }
+    if (FileExists(wxFileName(folder, XLIGHTS_PRESETS_FILE))) {
+        auto idx = CheckListBoxLayout->Append(XLIGHTS_PRESETS_FILE);
+        CheckListBoxLayout->Check(idx);
+    }
 
 }
 

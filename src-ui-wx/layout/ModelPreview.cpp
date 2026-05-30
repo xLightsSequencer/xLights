@@ -1219,9 +1219,10 @@ void ModelPreview::SetPointSize(wxDouble pointSize)
 }
 
 double ModelPreview::calcPixelSize(double i) {
-    double d = translateToBacking(i * currentPixelScaleFactor);
-    if (d < 1.0)
+    double d = mapLogicalToAbsolute(i * currentPixelScaleFactor);
+    if (d < 1.0) {
         d = 1.0;
+    }
     return d;
 }
 
@@ -1233,13 +1234,10 @@ double ModelPreview::getViewScale() const {
 }
 
 double ModelPreview::getBackingScaleFactor() const {
-#ifdef __APPLE__
-    // Metal Window are always 1:1 for drawing, the translateToBacking is to map
-    // mouse/window coords (which may not be 1:1), but that's not applicable here
-    return 1.0;
-#else
+    if (!drawingUsingLogicalSize()) {
+        return 1.0;
+    }
     return translateToBacking(1.0);
-#endif
 }
 
 bool ModelPreview::GetActive() const

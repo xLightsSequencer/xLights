@@ -14,6 +14,8 @@
 #include <log.h>
 #include <mutex>
 
+#include "utils/AutoReleasePool.h"
+
 #ifndef __WXOSX__
 
 #ifndef __WXOSX__
@@ -465,7 +467,10 @@ xLightsTimer::xLightsTimer() {}
 xLightsTimer::~xLightsTimer() {}
 void xLightsTimer::Stop() {wxTimer::Stop();}
 bool xLightsTimer::Start(int time, bool oneShot, const std::string& name) {return wxTimer::Start(time, oneShot);};
-void xLightsTimer::Notify() { RunInAutoReleasePool([this]() {wxTimer::Notify();});}
+void xLightsTimer::Notify() {
+    AutoReleasePool pool;
+    wxTimer::Notify();
+}
 int xLightsTimer::GetInterval() const { return wxTimer::GetInterval(); }
 void xLightsTimer::DoSendTimer() {};
 void xLightsTimer::SetName(const std::string& name) {_name = name;}

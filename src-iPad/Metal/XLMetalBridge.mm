@@ -15,10 +15,20 @@
 #include "../Bridge/iPadRenderContext.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "models/ModelGroup.h"
+#include "models/SubModel.h"
+#include "models/TerrainObject.h"
+#include "models/TerrainScreenLocation.h"
+#include "XmlSerializer/XmlSerializer.h"
+#include "models/Node.h"
+#include "models/RulerObject.h"
+#include <pugixml.hpp>
 #include "models/ViewObject.h"
 #include "models/ViewObjectManager.h"
 #include "render/ViewpointMgr.h"
 #include "models/ModelScreenLocation.h"
+#include "models/PolyPointScreenLocation.h"
+#include "models/PolyLineModel.h"
 #include "utils/VectorMath.h"
 #include "graphics/xlGraphicsContext.h"
 #include "models/handles/Handles.h"
@@ -29,13 +39,16 @@
 
 #import <CoreGraphics/CoreGraphics.h>
 #import <ImageIO/ImageIO.h>
+#import <UIKit/UIKit.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 #include <spdlog/spdlog.h>
 
 #define PIXEL_SIZE_ON_DIALOGS 2.0
@@ -54,17 +67,57 @@
     BOOL _isLayoutEditor;        // YES = LayoutEditor pane (selection / handles enabled)
     BOOL _showFirstPixel;        // J-2 — `highlightFirst` arg to DisplayModelOnWindow
     BOOL _showViewObjects;       // House Preview view-object visibility toggle
-    std::string _selectedModelName;  // J-2 — Layout Editor selection ring
+    std::string _selectedModelName;  // J-2 — Layout Editor selection ring (primary)
+    std::set<std::string> _extraSelectedModels;  // J-4 — multi-select secondary set
+    std::string _selectedGroupName;        // J-6 — sidebar group sync (members tinted)
+    std::string _selectedViewObjectName;   // J-6 — sidebar object sync (handles drawn)
+    std::string _selectedControllerName;   // J-31 — Controllers tab sync (members tinted)
     BOOL _showLayoutGrid;            // J-2 — Layout Editor 2D grid overlay
     BOOL _showLayoutBoundingBox;     // J-2 — Layout Editor canvas bbox
     BOOL _layoutOverlaysSeeded;      // first draw seeds from rgbeffects state
     BOOL _snapToGrid;                // J-2 — drag-to-move snap toggle
+    BOOL _uniformModifier;           // J-2 UX — toolbar Uniform toggle
+    NSInteger _lockAxis;             // J-2 UX — toolbar Lock Axis (0=Free, 1=X, 2=Y, 3=Z)
     BOOL _handleDragNeedsLatch;      // J-2 — true on first dragHandle call after a pick
+    // J-2 UX — 3D body-drag anchor. Latched on
+    // `beginBodyDrag3DForModel:` so subsequent drag updates can
+    // compute the world delta on a fixed plane chosen at drag-
+    // begin time. The plane is whichever of XY / XZ / YZ best
+    // matches the current camera (top-down → XZ, side → YZ,
+    // front → XY), so a drag from above slides the model along
+    // the floor (X+Z) instead of fighting the user's view.
+    // J-15 — three target-is-VO flags. When YES, the
+    // corresponding `_…ModelName` field is actually a VO name
+    // and the apply/end paths route to ViewObjectManager + mark
+    // the VO dirty rather than a Model.
+    BOOL _bodyDrag3DTargetIsVO;
+    BOOL _pinchScaleTargetIsVO;
+    BOOL _twistRotateTargetIsVO;
+    BOOL _bodyDrag3DActive;
+    glm::vec3 _bodyDrag3DSavedCenter;
+    glm::vec3 _bodyDrag3DAnchor;
+    glm::vec3 _bodyDrag3DPlanePoint;
+    glm::vec3 _bodyDrag3DPlaneNormal;
+    ModelScreenLocation::MSLPLANE _bodyDrag3DPlane;
+    std::string _bodyDrag3DModelName;
+    // J-2 UX — pinch-on-model = uniform scale.
+    BOOL _pinchScaleActive;
+    glm::vec3 _pinchScaleSavedScale;
+    std::string _pinchScaleModelName;
+    // J-2 UX — two-finger twist on model = rotate Z.
+    BOOL _twistRotateActive;
+    glm::vec3 _twistRotateSavedRotation;
+    std::string _twistRotateModelName;
     // When non-null, handle drags route through the descriptor
     // DragSession API. Applies to descriptor-implemented paths
     // (e.g. 3D-translate via axis arrows on Boxed); other paths
     // still consult the `_handleDragNeedsLatch` flag.
     std::unique_ptr<handles::DragSession> _dragSession;
+    // J-14 — when non-empty, the active drag session is on a
+    // ViewObject's screen location rather than a Model's. End-
+    // of-drag commits this name to the VO dirty set so save
+    // picks up the change. Cleared on session end.
+    std::string _dragSessionViewObjectName;
     handles::Id _dragSessionStartId;
     // Cached background image — loaded once per path change, reused across
     // frames. Texture ownership is manual because xlTexture has no
@@ -83,6 +136,9 @@
     NSString* _errorReason;
     BOOL _hasRenderedSuccessfully;
     std::set<std::string> _loggedReasons;
+    // J-30 — Submodel editor support. Skip the per-frame channel
+    // update so explicit `SetNodeColor` overrides stay visible.
+    BOOL _suppressChannelUpdate;
 }
 
 - (instancetype)initWithName:(NSString*)name {
@@ -116,8 +172,6 @@
 - (void)dealloc {
     delete _bgTexture;
     _bgTexture = nullptr;
-    [_errorReason release];
-    [super dealloc];
 }
 
 - (NSString*)errorReason {
@@ -136,7 +190,6 @@
 - (void)setErrorReasonInternal:(NSString*)reason {
     NSString* canonical = reason ?: @"";
     if (_errorReason && [_errorReason isEqualToString:canonical]) return;
-    [_errorReason release];
     _errorReason = [canonical copy];
     if (canonical.length > 0) {
         std::string s = std::string([canonical UTF8String]);
@@ -149,7 +202,6 @@
 
 - (void)clearErrorReason {
     if (_errorReason && _errorReason.length == 0) return;
-    [_errorReason release];
     _errorReason = nil;
 }
 
@@ -227,6 +279,40 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
     }
 }
 
+- (void)setSelectedGroup:(NSString*)name {
+    if (name == nil || name.length == 0) {
+        _selectedGroupName.clear();
+    } else {
+        _selectedGroupName = name.UTF8String;
+    }
+}
+
+- (void)setSelectedController:(NSString*)name {
+    if (name == nil || name.length == 0) {
+        _selectedControllerName.clear();
+    } else {
+        _selectedControllerName = name.UTF8String;
+    }
+}
+
+- (void)setSelectedViewObject:(NSString*)name {
+    if (name == nil || name.length == 0) {
+        _selectedViewObjectName.clear();
+    } else {
+        _selectedViewObjectName = name.UTF8String;
+    }
+}
+
+- (void)setExtraSelectedModels:(NSArray<NSString*>*)names {
+    _extraSelectedModels.clear();
+    if (names == nil) return;
+    for (NSString* n in names) {
+        if (n.length > 0) {
+            _extraSelectedModels.insert(std::string([n UTF8String]));
+        }
+    }
+}
+
 - (void)setShowLayoutGrid:(BOOL)show {
     _showLayoutGrid = show;
     _layoutOverlaysSeeded = YES; // explicit set wins over the rgbeffects seed
@@ -252,6 +338,26 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
 - (BOOL)snapToGrid {
     return _snapToGrid;
 }
+
+- (void)setUniformModifier:(BOOL)uniform {
+    _uniformModifier = uniform;
+}
+
+- (BOOL)uniformModifier {
+    return _uniformModifier;
+}
+
+- (void)setLockAxis:(NSInteger)axis {
+    // Clamp to valid range. Unknown values fall back to Free so
+    // the toolbar can't accidentally pin drags to an invalid axis.
+    if (axis < 0 || axis > 3) axis = 0;
+    _lockAxis = axis;
+}
+
+- (NSInteger)lockAxis {
+    return _lockAxis;
+}
+
 
 - (void)setShowFirstPixel:(BOOL)show {
     _showFirstPixel = show;
@@ -585,10 +691,13 @@ static bool AccumulateModelBounds(Model* m, float& minX, float& minY,
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx || !_preview) return NO;
 
-    float minX = std::numeric_limits<float>::infinity();
-    float minY = std::numeric_limits<float>::infinity();
-    float maxX = -std::numeric_limits<float>::infinity();
-    float maxY = -std::numeric_limits<float>::infinity();
+    // -ffast-math implies -ffinite-math-only on the iPadLib Release build
+    // (inherited from the project-level OTHER_CFLAGS). infinity() would
+    // fold to 0 and break the min/max accumulation. Use finite sentinels.
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxY = std::numeric_limits<float>::lowest();
     bool any = false;
     // Respect the active layout-group filter so Fit All matches what
     // the user actually sees — not every model in the show.
@@ -618,10 +727,11 @@ static bool AccumulateModelBounds(Model* m, float& minX, float& minY,
     }
     if (!visible) return NO;
 
-    float minX = std::numeric_limits<float>::infinity();
-    float minY = std::numeric_limits<float>::infinity();
-    float maxX = -std::numeric_limits<float>::infinity();
-    float maxY = -std::numeric_limits<float>::infinity();
+    // Finite sentinels — see fitAllModelsForDocument above.
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float maxY = std::numeric_limits<float>::lowest();
     if (!AccumulateModelBounds(target, minX, minY, maxX, maxY)) return NO;
     [self fitToBoundingBoxMinX:minX minY:minY maxX:maxX maxY:maxY ctx:rctx];
     return YES;
@@ -734,7 +844,10 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
                               ray_origin, ray_direction);
         Model* best = nullptr;
-        float bestDist = std::numeric_limits<float>::infinity();
+        // Finite sentinel — see fitAllModelsForDocument. infinity() folds
+        // to 0 under -ffast-math and the `dist < bestDist` check would
+        // reject every 3D hit, breaking tap-to-select on iPad Release.
+        float bestDist = std::numeric_limits<float>::max();
         for (Model* m : rctx->GetModelsForActivePreview()) {
             if (!m || isSubModel(m)) continue;
             float dist = 0.0f;
@@ -771,6 +884,81 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     return nil;
 }
 
+- (NSArray<NSString*>*)pickModelsInRect:(CGRect)rect
+                                viewSize:(CGSize)viewSize
+                             forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_preview || !doc) return out;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return out;
+
+    auto isSubModel = [](Model* m) {
+        return m && m->GetDisplayAs() == DisplayAsType::SubModel;
+    };
+
+    // Convert UIKit points → window pixels. ScreenLocation::
+    // IsContained expects window pixels in the same Y-down
+    // convention as touch coords (it flips Y internally before
+    // calling the projection math), matching desktop mouse
+    // coords. Normalize so x1 ≤ x2, y1 ≤ y2 — `IsContained`
+    // doesn't sort its bounds and a backwards drag would return
+    // empty otherwise.
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    int x1 = (int)std::round((double)CGRectGetMinX(rect) * scale);
+    int y1 = (int)std::round((double)CGRectGetMinY(rect) * scale);
+    int x2 = (int)std::round((double)CGRectGetMaxX(rect) * scale);
+    int y2 = (int)std::round((double)CGRectGetMaxY(rect) * scale);
+    if (x1 > x2) std::swap(x1, x2);
+    if (y1 > y2) std::swap(y1, y2);
+
+    auto models = rctx->GetModelsForActivePreview();
+
+    if (_preview->Is3D()) {
+        // Gather candidates that are 2D-contained, then drop the
+        // ones beyond the foreground depth cutoff. Mirrors
+        // `LayoutPanel::SelectAllInBoundingRect`'s 3D branch.
+        struct Cand { Model* m; float depth; };
+        std::vector<Cand> candidates;
+        candidates.reserve(models.size());
+        const glm::mat4& pv = _preview->GetProjViewMatrix();
+        for (Model* m : models) {
+            if (!m || isSubModel(m)) continue;
+            if (!m->IsContained(_preview.get(), x1, y1, x2, y2)) continue;
+            glm::vec4 c = pv * glm::vec4(
+                m->GetBaseObjectScreenLocation().GetWorldPosition(), 1.0f);
+            if (c.w > 0.0f) candidates.push_back({m, c.w});
+        }
+        if (candidates.empty()) return out;
+        std::sort(candidates.begin(), candidates.end(),
+                  [](const Cand& a, const Cand& b) { return a.depth < b.depth; });
+        // Depth cutoff: first gap > 40 % of the nearest depth.
+        const float gapThreshold = candidates.front().depth * 0.4f;
+        float cutoff = candidates.back().depth;
+        for (size_t i = 1; i < candidates.size(); ++i) {
+            if (candidates[i].depth - candidates[i - 1].depth > gapThreshold) {
+                cutoff = candidates[i - 1].depth;
+                break;
+            }
+        }
+        for (const auto& c : candidates) {
+            if (c.depth <= cutoff) {
+                [out addObject:[NSString stringWithUTF8String:c.m->GetName().c_str()]];
+            }
+        }
+        return out;
+    }
+
+    // 2D path — straight axis-aligned overlap.
+    for (Model* m : models) {
+        if (!m || isSubModel(m)) continue;
+        if (m->IsContained(_preview.get(), x1, y1, x2, y2)) {
+            [out addObject:[NSString stringWithUTF8String:m->GetName().c_str()]];
+        }
+    }
+    return out;
+}
+
 - (NSInteger)pickHandleAtScreenPoint:(CGPoint)point
                             viewSize:(CGSize)viewSize
                          forDocument:(XLSequenceDocument*)doc {
@@ -788,34 +976,16 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     if (loc.IsLocked()) return -1;
     if (m->IsFromBase()) return -1;
 
-    int handle = NO_HANDLE;
     if (_preview->Is3D()) {
-        handles::Tool newApiTool = handles::Tool::Translate;
-        bool toolSupportedByNewApi = false;
-        switch (loc.GetAxisTool()) {
-            case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE:
-                newApiTool = handles::Tool::Translate;
-                toolSupportedByNewApi = true;
-                break;
-            case ModelScreenLocation::MSLTOOL::TOOL_SCALE:
-                newApiTool = handles::Tool::Scale;
-                toolSupportedByNewApi = true;
-                break;
-            case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:
-                newApiTool = handles::Tool::Rotate;
-                toolSupportedByNewApi = true;
-                break;
-            default:
-                break;
-        }
+        const handles::Tool currentTool = loc.GetAxisTool();
         const float zoom = _preview->GetCameraZoomForHandles();
         const int hscale = _preview->GetHandleScale();
         handles::ViewParams view;
         view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
         view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
         view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
-        auto descriptors = toolSupportedByNewApi
-            ? m->GetHandles(handles::ViewMode::ThreeD, newApiTool, view)
+        auto descriptors = (currentTool != handles::Tool::None)
+            ? m->GetHandles(handles::ViewMode::ThreeD, currentTool, view)
             : std::vector<handles::Descriptor>{};
         if (!descriptors.empty()) {
             handles::ScreenProjection proj;
@@ -830,12 +1000,27 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
             };
             handles::HitTestOptions opts;
             opts.handleTolerance     = 60.0f;  // touch slop in pixels
+            opts.axisHandleTolerance = 28.0f;  // tighter on the X/Y/Z gizmos
+                                                // — their heads project near the
+                                                // model body in top-down / side
+                                                // views and a 60pt halo would
+                                                // swallow body-drag taps.
             opts.preferAxisHandles   = true;
             opts.ignoreNonEditable   = true;
             if (auto hit = handles::HitTest(descriptors, proj, touchPx, opts)) {
                 handles::WorldRay startRay;
                 TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
                                       startRay.origin, startRay.direction);
+                // Refresh `active_plane` from the current camera
+                // angles for PolyPoint vertex/segment drags. The
+                // session reads this on construction to pick which
+                // world plane to project drags onto — without the
+                // refresh the plane stays at whatever
+                // `InitializeLocation` (or a prior camera) seeded,
+                // and post-orbit drags slide along the wrong axis.
+                if (dynamic_cast<PolyPointScreenLocation*>(&loc)) {
+                    loc.RefreshActivePlaneFromCamera(_preview.get());
+                }
                 auto session = m->BeginDrag(hit->id, startRay);
                 if (session) {
                     _dragSession = std::move(session);
@@ -902,15 +1087,8 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     // CentreCycle / non-axis selectionOnly descriptors trigger the
     // tool cycle; axis / segment / draggable descriptors are drag
     // targets and a tap on them is a no-op.
-    handles::Tool centerTool = handles::Tool::Translate;
-    switch (loc.GetAxisTool()) {
-        case ModelScreenLocation::MSLTOOL::TOOL_TRANSLATE: centerTool = handles::Tool::Translate;   break;
-        case ModelScreenLocation::MSLTOOL::TOOL_SCALE:     centerTool = handles::Tool::Scale;       break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ROTATE:    centerTool = handles::Tool::Rotate;      break;
-        case ModelScreenLocation::MSLTOOL::TOOL_XY_TRANS:  centerTool = handles::Tool::XYTranslate; break;
-        case ModelScreenLocation::MSLTOOL::TOOL_ELEVATE:   centerTool = handles::Tool::Elevate;     break;
-        default: return NO;
-    }
+    const handles::Tool centerTool = loc.GetAxisTool();
+    if (centerTool == handles::Tool::None) return NO;
     const float zoom = _preview->GetCameraZoomForHandles();
     const int hscale = _preview->GetHandleScale();
     handles::ViewParams view;
@@ -945,28 +1123,334 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     return YES;
 }
 
+- (BOOL)cycleAxisToolForSelectedModelForDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return NO;
+    if (!_preview->Is3D()) return NO;
+    if (_selectedModelName.empty()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[_selectedModelName];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+    if (loc.IsLocked()) return NO;
+    loc.AdvanceAxisTool();
+    return YES;
+}
+
+#pragma mark - J-4 multi-select align / distribute / match
+
+namespace {
+// Translate `model` so the named edge / centre matches `target`.
+// Returns true if the move actually shifted anything (so the
+// caller can avoid marking pristine models dirty).
+bool ApplyAlign(Model* model, const std::string& edge, float target) {
+    auto& loc = model->GetModelScreenLocation();
+    if (loc.IsLocked()) return false;
+    if (model->IsFromBase()) return false;
+    float current = 0.0f;
+    bool isH = false, isV = false, isD = false;
+    if (edge == "left")        { current = loc.GetLeft();        isH = true; }
+    else if (edge == "right")  { current = loc.GetRight();       isH = true; }
+    else if (edge == "centerH"){ current = loc.GetHcenterPos();  isH = true; }
+    else if (edge == "top")    { current = loc.GetTop();         isV = true; }
+    else if (edge == "bottom") { current = loc.GetBottom();      isV = true; }
+    else if (edge == "ground") { current = loc.GetBottom();      isV = true; }
+    else if (edge == "centerV"){ current = loc.GetVcenterPos();  isV = true; }
+    else if (edge == "front")  { current = loc.GetFront();       isD = true; }
+    else if (edge == "back")   { current = loc.GetBack();        isD = true; }
+    else if (edge == "centerD"){ current = loc.GetDcenterPos();  isD = true; }
+    else return false;
+    const float delta = target - current;
+    if (std::fabs(delta) < 1e-4f) return false;
+    if (isH) loc.SetHcenterPos(loc.GetHcenterPos() + delta);
+    if (isV) loc.SetVcenterPos(loc.GetVcenterPos() + delta);
+    if (isD) loc.SetDcenterPos(loc.GetDcenterPos() + delta);
+    return true;
+}
+
+float ReadAlignReference(Model* model, const std::string& edge) {
+    auto& loc = model->GetModelScreenLocation();
+    if (edge == "left")        return loc.GetLeft();
+    if (edge == "right")       return loc.GetRight();
+    if (edge == "centerH")     return loc.GetHcenterPos();
+    if (edge == "top")         return loc.GetTop();
+    if (edge == "bottom")      return loc.GetBottom();
+    if (edge == "centerV")     return loc.GetVcenterPos();
+    if (edge == "front")       return loc.GetFront();
+    if (edge == "back")        return loc.GetBack();
+    if (edge == "centerD")     return loc.GetDcenterPos();
+    // `ground` is leader-less; the caller substitutes 0.
+    return 0.0f;
+}
+} // namespace
+
+- (BOOL)alignModels:(NSArray<NSString*>*)names
+            toLeader:(NSString*)leader
+                  by:(NSString*)edge
+         forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0 || edge.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    const std::string edgeStr = edge.UTF8String;
+    // `ground` is leader-less: every selected model's bottom snaps
+    // to Y = 0, including whichever model the user picked as the
+    // multi-select leader. All other edges still need a leader to
+    // read the reference value from.
+    const bool isGround = (edgeStr == "ground");
+    float target = 0.0f;
+    std::string leaderStd;
+    if (isGround) {
+        target = 0.0f;
+    } else {
+        if (leader.length == 0) return NO;
+        Model* leaderModel = rctx->GetModelManager()[leader.UTF8String];
+        if (!leaderModel) return NO;
+        target = ReadAlignReference(leaderModel, edgeStr);
+        leaderStd = leader.UTF8String;
+    }
+    rctx->AbortRender(5000);
+    BOOL anyMoved = NO;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        if (!isGround && nm == leaderStd) continue;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        if (ApplyAlign(m, edgeStr, target)) {
+            rctx->MarkLayoutModelDirty(nm);
+            anyMoved = YES;
+        }
+    }
+    return anyMoved;
+}
+
+- (BOOL)distributeModels:(NSArray<NSString*>*)names
+                     axis:(NSString*)axis
+              forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count < 3 || axis.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    rctx->AbortRender(5000);
+    const std::string axisStr = axis.UTF8String;
+    enum class A { H, V, D } which;
+    if      (axisStr == "horizontal") which = A::H;
+    else if (axisStr == "vertical")   which = A::V;
+    else if (axisStr == "depth")      which = A::D;
+    else return NO;
+
+    // Collect editable models with their centre on the chosen axis.
+    struct Entry { Model* m; std::string name; float pos; };
+    std::vector<Entry> entries;
+    entries.reserve(names.count);
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        auto& loc = m->GetModelScreenLocation();
+        if (loc.IsLocked() || m->IsFromBase()) continue;
+        float pos = 0.0f;
+        switch (which) {
+            case A::H: pos = loc.GetHcenterPos(); break;
+            case A::V: pos = loc.GetVcenterPos(); break;
+            case A::D: pos = loc.GetDcenterPos(); break;
+        }
+        entries.push_back({m, nm, pos});
+    }
+    if (entries.size() < 3) return NO;
+    std::sort(entries.begin(), entries.end(),
+              [](const Entry& a, const Entry& b) { return a.pos < b.pos; });
+
+    const float lo = entries.front().pos;
+    const float hi = entries.back().pos;
+    const float step = (hi - lo) / static_cast<float>(entries.size() - 1);
+    BOOL anyMoved = NO;
+    for (size_t i = 1; i + 1 < entries.size(); ++i) {
+        const float target = lo + step * static_cast<float>(i);
+        const float delta  = target - entries[i].pos;
+        if (std::fabs(delta) < 1e-4f) continue;
+        auto& loc = entries[i].m->GetModelScreenLocation();
+        switch (which) {
+            case A::H: loc.SetHcenterPos(loc.GetHcenterPos() + delta); break;
+            case A::V: loc.SetVcenterPos(loc.GetVcenterPos() + delta); break;
+            case A::D: loc.SetDcenterPos(loc.GetDcenterPos() + delta); break;
+        }
+        rctx->MarkLayoutModelDirty(entries[i].name);
+        anyMoved = YES;
+    }
+    return anyMoved;
+}
+
+- (BOOL)matchSizeOfModels:(NSArray<NSString*>*)names
+                  toLeader:(NSString*)leader
+                 dimension:(NSString*)dim
+               forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0 || leader.length == 0 || dim.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* leaderModel = rctx->GetModelManager()[leader.UTF8String];
+    if (!leaderModel) return NO;
+    rctx->AbortRender(5000);
+    auto& leaderLoc = leaderModel->GetModelScreenLocation();
+    const float tw = leaderLoc.GetMWidth();
+    const float th = leaderLoc.GetMHeight();
+    const float td = leaderLoc.GetMDepth();
+    const std::string dimStr = dim.UTF8String;
+    const bool wantW = (dimStr == "width"  || dimStr == "all");
+    const bool wantH = (dimStr == "height" || dimStr == "all");
+    const bool wantD = (dimStr == "depth"  || dimStr == "all");
+    if (!wantW && !wantH && !wantD) return NO;
+    BOOL anyResized = NO;
+    const std::string leaderStd = leader.UTF8String;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        if (nm == leaderStd) continue;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        auto& loc = m->GetModelScreenLocation();
+        if (loc.IsLocked() || m->IsFromBase()) continue;
+        bool changed = false;
+        if (wantW && std::fabs(loc.GetMWidth() - tw)  > 1e-4f) { loc.SetMWidth(tw);  changed = true; }
+        if (wantH && std::fabs(loc.GetMHeight() - th) > 1e-4f) { loc.SetMHeight(th); changed = true; }
+        if (wantD && std::fabs(loc.GetMDepth() - td)  > 1e-4f) { loc.SetMDepth(td);  changed = true; }
+        if (changed) {
+            rctx->MarkLayoutModelDirty(nm);
+            anyResized = YES;
+        }
+    }
+    return anyResized;
+}
+
+- (BOOL)flipModels:(NSArray<NSString*>*)names
+              axis:(NSString*)axis
+       forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0 || axis.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return NO;
+    rctx->AbortRender(5000);
+    const std::string axisStr = axis.UTF8String;
+    const bool horizontal = (axisStr == "horizontal");
+    const bool vertical   = (axisStr == "vertical");
+    if (!horizontal && !vertical) return NO;
+    BOOL anyFlipped = NO;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        if (m->GetBaseObjectScreenLocation().IsLocked() || m->IsFromBase()) continue;
+        if (horizontal) {
+            m->FlipHorizontal(false);
+        } else {
+            m->FlipVertical(false);
+        }
+        rctx->MarkLayoutModelDirty(nm);
+        anyFlipped = YES;
+    }
+    return anyFlipped;
+}
+
+- (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
+                           forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!doc || names.count == 0) return out;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return out;
+    rctx->AbortRender(5000);
+    auto& mgr = rctx->GetModelManager();
+
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        Model* src = mgr[n.UTF8String];
+        if (!src) continue;
+        // Skip ModelGroup duplicates — their member references are
+        // ambiguous (do they share members with the source, or do
+        // we deep-copy?). Defer until the use case is concrete.
+        if (src->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+
+        // Round-trip the source through the same serializer the
+        // save path uses so per-type attributes are preserved.
+        XmlSerializer serializer;
+        pugi::xml_document srcDoc = serializer.SerializeModel(src);
+        pugi::xml_node docRoot = srcDoc.document_element();
+        if (!docRoot) continue;
+        pugi::xml_node modelNode = docRoot.first_child();
+        if (!modelNode) continue;
+
+        const std::string newName = mgr.GenerateModelName(src->GetName());
+        if (modelNode.attribute("name")) modelNode.remove_attribute("name");
+        modelNode.append_attribute("name") = newName.c_str();
+        // Strip controller mapping so the duplicate doesn't fight
+        // for channels — desktop's Paste flow does the same.
+        if (modelNode.attribute("Controller")) modelNode.remove_attribute("Controller");
+        if (modelNode.attribute("StartChannel")) modelNode.remove_attribute("StartChannel");
+        if (auto cc = modelNode.child("ControllerConnection")) modelNode.remove_child(cc);
+
+        Model* dup = mgr.CreateModel(modelNode);
+        if (!dup) continue;
+        dup->SetControllerName("");
+        dup->SetStartChannel("");
+        dup->name = newName;
+        dup->Lock(false);
+        dup->AddOffset(50.0, 50.0, 0.0);
+        mgr.AddModel(dup);
+        rctx->MarkLayoutModelDirty(newName);
+        [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
+    }
+    return out;
+}
+
 - (void)endHandleDragForDocument:(XLSequenceDocument*)doc {
     _handleDragNeedsLatch = NO;
+    if (iPadRenderContext* abortCtx = ContextFromDoc(doc)) abortCtx->AbortRender(5000);
 
     // If a descriptor session is active, commit + drop. Maps
     // DirtyField bits onto the dirty layout-models set so save
     // picks up the change.
     if (_dragSession) {
         auto result = _dragSession->Commit();
-        if (handles::HasDirty(result.dirty, handles::DirtyField::Position) ||
+        const bool geometryDirty =
+            handles::HasDirty(result.dirty, handles::DirtyField::Position) ||
             handles::HasDirty(result.dirty, handles::DirtyField::Dimensions) ||
             handles::HasDirty(result.dirty, handles::DirtyField::Rotation) ||
             handles::HasDirty(result.dirty, handles::DirtyField::Endpoint) ||
             handles::HasDirty(result.dirty, handles::DirtyField::Vertex) ||
             handles::HasDirty(result.dirty, handles::DirtyField::Curve) ||
-            handles::HasDirty(result.dirty, handles::DirtyField::Shear)) {
+            handles::HasDirty(result.dirty, handles::DirtyField::Shear);
+        if (geometryDirty) {
             iPadRenderContext* rctx = ContextFromDoc(doc);
-            if (rctx && !result.modelName.empty()) {
+            // J-14 — view-object handle drag commits to the VO
+            // dirty set. The screen-location's CreateDragSession
+            // populates `result.modelName` with the VO name, but
+            // we tracked it separately at session start so the
+            // dispatch is unambiguous.
+            if (rctx && !_dragSessionViewObjectName.empty()) {
+                rctx->MarkLayoutViewObjectDirty(_dragSessionViewObjectName);
+                if (ViewObject* vo = rctx->GetAllObjects().GetViewObject(_dragSessionViewObjectName)) {
+                    vo->IncrementChangeCount();
+                    vo->ReloadModel();
+                }
+            } else if (rctx && !result.modelName.empty()) {
                 rctx->MarkLayoutModelDirty(result.modelName);
+                // PolyPoint-style models (Poly Line, MultiPoint)
+                // recompute node positions in `InitModel` from
+                // per-segment counts and mPos[]. Without an
+                // explicit Reinitialize the nodes stay distributed
+                // along the pre-drag geometry — visible as lights
+                // not following a moved vertex. Desktop achieves
+                // the same via WORK_MODELS_CHANGE_REQUIRING_RERENDER
+                // queued from LayoutPanel; the iPad bridge runs the
+                // re-init directly since we have no work queue.
+                Model* m = rctx->GetModelManager()[result.modelName];
+                if (m && dynamic_cast<PolyPointScreenLocation*>(&m->GetModelScreenLocation())) {
+                    m->Reinitialize();
+                }
             }
         }
         _dragSession.reset();
         _dragSessionStartId = handles::Id{};
+        _dragSessionViewObjectName.clear();
         return;
     }
 
@@ -988,6 +1472,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         viewSize:(CGSize)viewSize
      forDocument:(XLSequenceDocument*)doc {
     if (!_preview || !doc) return NO;
+    if (iPadRenderContext* abortCtx = ContextFromDoc(doc)) abortCtx->AbortRender(5000);
 
     // if a new-API session is active, route through it.
     // Ignores `handleIndex` (the new path identifies the handle
@@ -996,11 +1481,49 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         handles::WorldRay ray;
         TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
                               ray.origin, ray.direction);
-        auto result = _dragSession->Update(ray, handles::Modifier::None);
+
+        // Lock Axis: project the world ray onto an axis-aligned
+        // line through the model's centre. The underlying session
+        // then sees a constrained cursor, no per-session
+        // awareness needed.
+        if (_lockAxis != 0 && !_selectedModelName.empty()) {
+            iPadRenderContext* rctx = ContextFromDoc(doc);
+            if (rctx) {
+                Model* m = rctx->GetModelManager()[_selectedModelName];
+                if (m) {
+                    auto& loc = m->GetModelScreenLocation();
+                    const glm::vec3 c(loc.GetHcenterPos(), loc.GetVcenterPos(), loc.GetDcenterPos());
+                    switch (_lockAxis) {
+                        case 1: ray.origin.y = c.y; ray.origin.z = c.z; break;  // X
+                        case 2: ray.origin.x = c.x; ray.origin.z = c.z; break;  // Y
+                        case 3: ray.origin.x = c.x; ray.origin.y = c.y; break;  // Z
+                        default: break;
+                    }
+                }
+            }
+        }
+
+        // Uniform: OR Shift into the modifier so existing
+        // session classes (which already interpret Shift as
+        // "uniform scale" / "aspect lock") work unchanged.
+        handles::Modifier mods = handles::Modifier::None;
+        if (_uniformModifier) mods = mods | handles::Modifier::Shift;
+
+        auto result = _dragSession->Update(ray, mods);
         if (result == handles::UpdateResult::Updated ||
             result == handles::UpdateResult::NeedsInit) {
             iPadRenderContext* rctx = ContextFromDoc(doc);
             if (rctx) rctx->MarkLayoutModelDirty(_selectedModelName);
+            // PolyPoint-style models keep their light positions in
+            // `Nodes[]` and only recompute them in `InitModel`. Live
+            // dragging a vertex without re-init leaves the lights
+            // anchored to the pre-drag mPos[] until the user
+            // releases. Mirrors desktop's per-frame
+            // WORK_MODELS_CHANGE_REQUIRING_RERENDER queueing.
+            Model* m = rctx ? rctx->GetModelManager()[_selectedModelName] : nullptr;
+            if (m && dynamic_cast<PolyPointScreenLocation*>(&m->GetModelScreenLocation())) {
+                m->Reinitialize();
+            }
         }
         return YES;
     }
@@ -1008,6 +1531,333 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     // No-op without an active descriptor session.
     (void)handleIndex;
     return NO;
+}
+
+// J-13 — view-object hit-test. Mirrors `pickModelAtScreenPoint`
+// but searches `ViewObjectManager`. Returns the topmost hit
+// (last-drawn = visually on top).
+- (nullable NSString*)pickViewObjectAtScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                       forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return nil;
+    ViewObjectManager& vm = rctx->GetAllObjects();
+
+    if (_preview->Is3D()) {
+        glm::vec3 ray_origin, ray_direction;
+        TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                              ray_origin, ray_direction);
+        ViewObject* best = nullptr;
+        // Finite sentinel — see hitTestModelAtPoint above. Same -ffast-math
+        // hazard breaks 3D view-object hit-test in Release.
+        float bestDist = std::numeric_limits<float>::max();
+        for (auto it = vm.begin(); it != vm.end(); ++it) {
+            ViewObject* vo = it->second;
+            if (!vo) continue;
+            float dist = 0.0f;
+            if (vo->GetObjectScreenLocation().HitTest3D(
+                    ray_origin, ray_direction, dist) && dist < bestDist) {
+                best = vo;
+                bestDist = dist;
+            }
+        }
+        return best ? [NSString stringWithUTF8String:best->GetName().c_str()] : nil;
+    }
+
+    // 2D path — box-test the unprojected world point.
+    float worldX = 0, worldY = 0, denom = 0;
+    if (![self unprojectScreenPoint:point toWorldX:&worldX worldY:&worldY
+                          worldDenom:&denom forContext:rctx]) {
+        return nil;
+    }
+    ViewObject* topMost = nullptr;
+    for (auto it = vm.begin(); it != vm.end(); ++it) {
+        ViewObject* vo = it->second;
+        if (!vo) continue;
+        auto& loc = vo->GetObjectScreenLocation();
+        float cx = loc.GetHcenterPos();
+        float cy = loc.GetVcenterPos();
+        float halfW = std::max(1.0f, loc.GetMWidth() * 0.5f);
+        float halfH = std::max(1.0f, loc.GetMHeight() * 0.5f);
+        if (worldX >= cx - halfW && worldX <= cx + halfW &&
+            worldY >= cy - halfH && worldY <= cy + halfH) {
+            topMost = vo;  // keep walking — later entries draw later (on top)
+        }
+    }
+    return topMost ? [NSString stringWithUTF8String:topMost->GetName().c_str()] : nil;
+}
+
+// J-14 — handle-based endpoint drag for view objects.
+// Descriptor-pipeline hit-test against the SELECTED VO's
+// screen-location handles. On a hit, opens a `_dragSession`
+// via the screen location's `CreateDragSession` factory,
+// stashes the VO name in `_dragSessionViewObjectName` so
+// `endHandleDragForDocument:` knows to mark the VO dirty
+// instead of a model. Returns 0 on hit (the legacy index is
+// unused by the new descriptor path), -1 on miss.
+- (NSInteger)pickViewObjectHandleAtScreenPoint:(CGPoint)point
+                                       viewSize:(CGSize)viewSize
+                                    forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return -1;
+    if (_selectedViewObjectName.empty()) return -1;
+    if (_selectedViewObjectName == "2D Background") return -1;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return -1;
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(_selectedViewObjectName);
+    if (!vo) return -1;
+    auto& loc = vo->GetObjectScreenLocation();
+    if (loc.IsLocked() || vo->IsFromBase()) return -1;
+
+    // Descriptor mode used both for 2D and 3D (the screen
+    // location decides which set of handles to emit). Translate
+    // tool is the only one meaningful for view-object endpoints
+    // and bbox handles — Rotate / Scale ride a separate gizmo
+    // we don't expose on the VO surface yet.
+    const float zoom = _preview->GetCameraZoomForHandles();
+    const int hscale = _preview->GetHandleScale();
+    handles::ViewParams view;
+    view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
+    view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
+    view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+
+    auto mode = _preview->Is3D() ? handles::ViewMode::ThreeD
+                                   : handles::ViewMode::TwoD;
+    auto descriptors = loc.GetHandles(mode, handles::Tool::Translate, view);
+    if (descriptors.empty()) return -1;
+
+    handles::ScreenProjection proj;
+    proj.projViewMatrix = _preview->GetProjViewMatrix();
+    proj.viewportWidth  = _canvas->getWidth();
+    proj.viewportHeight = _canvas->getHeight();
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    glm::vec2 touchPx{
+        static_cast<float>(point.x * scaleFactor),
+        static_cast<float>(point.y * scaleFactor)
+    };
+    handles::HitTestOptions opts;
+    opts.handleTolerance     = 60.0f;
+    opts.axisHandleTolerance = 28.0f;
+    opts.preferAxisHandles   = true;
+    opts.ignoreNonEditable   = true;
+
+    auto hit = handles::HitTest(descriptors, proj, touchPx, opts);
+    if (!hit) return -1;
+
+    handles::WorldRay startRay;
+    TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                          startRay.origin, startRay.direction);
+    auto session = loc.CreateDragSession(_selectedViewObjectName, hit->id, startRay);
+    if (!session) return -1;
+    _dragSession = std::move(session);
+    _dragSessionStartId = hit->id;
+    _dragSessionViewObjectName = _selectedViewObjectName;
+    return 0;
+}
+
+// J-13 — 2D drag-to-move for view objects. Math mirrors
+// `moveModel:byDeltaDX:dY:viewSize:forDocument:` exactly; just
+// targets `ViewObjectManager` and marks the VO dirty rather
+// than the model.
+- (BOOL)moveViewObject:(NSString*)name
+              byDeltaDX:(CGFloat)dx
+                     dY:(CGFloat)dy
+               viewSize:(CGSize)viewSize
+            forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return NO;
+    if (_preview->Is3D()) return NO;
+
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(name.UTF8String);
+    if (!vo) return NO;
+    auto& loc = vo->GetObjectScreenLocation();
+    if (loc.IsLocked() || vo->IsFromBase()) return NO;
+
+    rctx->AbortRender(5000);
+    int canvasW = _canvas->getWidth();
+    int canvasH = _canvas->getHeight();
+    if (canvasW <= 0 || canvasH <= 0) return NO;
+
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    double dxPx = (double)dx * scale;
+    double dyPx = -(double)dy * scale;
+
+    PreviewCamera& cam = _preview->Get2DCamera();
+    int virtualW = 0, virtualH = 0;
+    _preview->GetVirtualCanvasSize(virtualW, virtualH);
+    float scale2d = 1.0f;
+    if (virtualW != 0 && virtualH != 0) {
+        float scale2dh = (float)canvasH / (float)virtualH;
+        float scale2dw = (float)canvasW / (float)virtualW;
+        scale2d = std::min(scale2dh, scale2dw);
+    }
+    float denom = cam.GetZoom() * scale2d;
+    if (denom == 0.0f) return NO;
+    float worldDX = (float)dxPx / denom;
+    float worldDY = (float)dyPx / denom;
+
+    float newH = loc.GetHcenterPos() + worldDX;
+    float newV = loc.GetVcenterPos() + worldDY;
+
+    if (_snapToGrid) {
+        float spacing = (float)std::max((long)1, rctx->GetDisplay2DGridSpacing());
+        newH = std::round(newH / spacing) * spacing;
+        newV = std::round(newV / spacing) * spacing;
+    }
+
+    vo->SetHcenterPos(newH);
+    vo->SetVcenterPos(newV);
+    vo->IncrementChangeCount();
+    rctx->MarkLayoutViewObjectDirty(name.UTF8String);
+    return YES;
+}
+
+// J-13 — Terrain heightmap edit. Unproject the touch into world
+// XZ space, find the nearest grid point in the terrain's
+// (u,v) coordinate system, then raise/lower it by `delta`.
+// `brushRadiusPoints > 0` applies a cosine falloff to neighbours
+// within the radius for a smoother deformation.
+- (BOOL)editTerrainHeight:(NSString*)terrainName
+              atScreenPoint:(CGPoint)point
+                  viewSize:(CGSize)viewSize
+                     delta:(float)delta
+        brushRadiusPoints:(CGFloat)brushRadiusPoints
+               forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !terrainName || terrainName.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return NO;
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(terrainName.UTF8String);
+    auto* terrain = dynamic_cast<TerrainObject*>(vo);
+    if (!terrain) return NO;
+    if (terrain->GetBaseObjectScreenLocation().IsLocked() || terrain->IsFromBase()) return NO;
+
+    rctx->AbortRender(5000);
+
+    // Unproject the touch into world XY. Terrain lives on the
+    // ground plane in 2D mode (XZ in 3D, but we treat it the same
+    // — the screen-location centerpos / dims define its 2D
+    // footprint), so the world XY result maps directly onto its
+    // (u,v) grid.
+    float worldX = 0, worldY = 0, denom = 0;
+    if (_preview->Is3D()) {
+        // 3D ray cast onto Y=center plane.
+        glm::vec3 ray_origin, ray_direction;
+        TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                              ray_origin, ray_direction);
+        // Plane through the terrain's centre with normal +Y.
+        auto& tloc = terrain->GetObjectScreenLocation();
+        glm::vec3 center(tloc.GetHcenterPos(), tloc.GetVcenterPos(), tloc.GetDcenterPos());
+        glm::vec3 planeNormal(0, 1, 0);
+        float denomR = glm::dot(ray_direction, planeNormal);
+        if (std::fabs(denomR) < 1e-6f) return NO;
+        float tHit = glm::dot(center - ray_origin, planeNormal) / denomR;
+        if (tHit < 0) return NO;
+        glm::vec3 hit = ray_origin + ray_direction * tHit;
+        worldX = hit.x;
+        worldY = hit.z;
+    } else {
+        if (![self unprojectScreenPoint:point toWorldX:&worldX worldY:&worldY
+                              worldDenom:&denom forContext:rctx]) {
+            return NO;
+        }
+    }
+
+    auto& tloc = terrain->GetObjectScreenLocation();
+    float cx = tloc.GetHcenterPos();
+    float cy = tloc.GetVcenterPos();
+    float halfW = std::max(1.0f, tloc.GetMWidth() * 0.5f);
+    float halfH = std::max(1.0f, tloc.GetMHeight() * 0.5f);
+    // Reject taps outside the terrain footprint.
+    if (worldX < cx - halfW || worldX > cx + halfW ||
+        worldY < cy - halfH || worldY > cy + halfH) return NO;
+
+    int spacing = std::max(1, terrain->GetSpacing());
+    int gridW = std::max(1, terrain->GetWidth());
+    int gridD = std::max(1, terrain->GetDepth());
+    int numU = gridW / spacing + 1;
+    int numV = gridD / spacing + 1;
+
+    // Normalize touch into (u,v) grid coords (0..numU-1, 0..numV-1).
+    float u = ((worldX - (cx - halfW)) / (2.0f * halfW)) * (numU - 1);
+    float v = ((worldY - (cy - halfH)) / (2.0f * halfH)) * (numV - 1);
+    int iu = (int)std::round(u);
+    int iv = (int)std::round(v);
+    if (iu < 0 || iu >= numU || iv < 0 || iv >= numV) return NO;
+
+    // Read existing point heights. TerrainScreenLocation stores
+    // them as a comma-delimited string in its `PointData` attr.
+    auto& screenLoc = dynamic_cast<TerrainScreenLocation&>(terrain->GetBaseObjectScreenLocation());
+    std::string data = screenLoc.GetDataAsString();
+    // Parse into a heights array.
+    std::vector<float> heights;
+    heights.reserve(numU * numV);
+    {
+        size_t start = 0;
+        while (start <= data.size()) {
+            size_t comma = data.find(',', start);
+            std::string token = data.substr(start, comma - start);
+            heights.push_back(std::strtof(token.c_str(), nullptr));
+            if (comma == std::string::npos) break;
+            start = comma + 1;
+        }
+    }
+    while ((int)heights.size() < numU * numV) heights.push_back(0.0f);
+
+    auto idxFor = [&](int u_, int v_) { return v_ * numU + u_; };
+
+    // Brush radius in grid steps. Convert points → world via the
+    // active 2D zoom (same denom as moveViewObject) when in 2D;
+    // 3D mode just uses a small fixed grid radius for now.
+    int radiusGrid = 0;
+    if (brushRadiusPoints > 0 && !_preview->Is3D()) {
+        double scale = _canvas->getScaleFactor();
+        if (scale <= 0) scale = 1.0;
+        int canvasW = _canvas->getWidth();
+        int canvasH = _canvas->getHeight();
+        PreviewCamera& cam = _preview->Get2DCamera();
+        int virtualW = 0, virtualH = 0;
+        _preview->GetVirtualCanvasSize(virtualW, virtualH);
+        float s2d = 1.0f;
+        if (virtualW != 0 && virtualH != 0 && canvasW > 0 && canvasH > 0) {
+            s2d = std::min((float)canvasH / virtualH, (float)canvasW / virtualW);
+        }
+        float pxToWorld = 1.0f / (cam.GetZoom() * s2d);
+        float radiusWorld = (float)(brushRadiusPoints * scale) * pxToWorld;
+        radiusGrid = std::max(0, (int)std::round(radiusWorld / (float)spacing));
+    }
+
+    if (radiusGrid <= 0) {
+        heights[idxFor(iu, iv)] += delta;
+    } else {
+        // Cosine falloff: full delta at centre, 0 at radius.
+        for (int dv = -radiusGrid; dv <= radiusGrid; ++dv) {
+            for (int du = -radiusGrid; du <= radiusGrid; ++du) {
+                int nu = iu + du;
+                int nv = iv + dv;
+                if (nu < 0 || nu >= numU || nv < 0 || nv >= numV) continue;
+                float dist = std::sqrt((float)(du*du + dv*dv));
+                if (dist > (float)radiusGrid) continue;
+                float falloff = 0.5f * (1.0f + std::cos((float)M_PI * dist / (float)radiusGrid));
+                heights[idxFor(nu, nv)] += delta * falloff;
+            }
+        }
+    }
+
+    // Re-serialize the heights.
+    std::string out;
+    out.reserve(heights.size() * 6);
+    for (size_t i = 0; i < heights.size(); ++i) {
+        if (i > 0) out += ',';
+        out += std::to_string(heights[i]);
+    }
+    screenLoc.SetDataFromString(out);
+    terrain->IncrementChangeCount();
+    terrain->ReloadModel();
+    rctx->MarkLayoutViewObjectDirty(terrainName.UTF8String);
+    return YES;
 }
 
 - (BOOL)moveModel:(NSString*)name
@@ -1025,6 +1875,7 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     auto& loc = m->GetModelScreenLocation();
     if (loc.IsLocked()) return NO;
 
+    rctx->AbortRender(5000);
     int canvasW = _canvas->getWidth();
     int canvasH = _canvas->getHeight();
     if (canvasW <= 0 || canvasH <= 0) return NO;
@@ -1074,6 +1925,922 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
     return YES;
 }
 
+- (BOOL)beginBodyDrag3DForModel:(NSString*)name
+                   atScreenPoint:(CGPoint)point
+                        viewSize:(CGSize)viewSize
+                     forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !name || name.length == 0) return NO;
+    if (!_preview->Is3D()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[name.UTF8String];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+    if (loc.IsLocked()) return NO;
+
+    // Choose the drag plane (XY / XZ / YZ) from the current camera
+    // angles so a top-down view drags along the floor, a side view
+    // drags vertically, etc. SetActivePlane keeps it on the screen
+    // location for any downstream code (e.g. handle gizmos).
+    loc.RefreshActivePlaneFromCamera(_preview.get());
+    const auto plane = loc.GetActivePlane();
+    const glm::vec3 center(loc.GetHcenterPos(),
+                            loc.GetVcenterPos(),
+                            loc.GetDcenterPos());
+    glm::vec3 planePt{0.0f}, planeN{0.0f};
+    switch (plane) {
+        case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+            planeN = glm::vec3(0.0f, 1.0f, 0.0f);
+            planePt = glm::vec3(0.0f, center.y, 0.0f);
+            break;
+        case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+            planeN = glm::vec3(1.0f, 0.0f, 0.0f);
+            planePt = glm::vec3(center.x, 0.0f, 0.0f);
+            break;
+        case ModelScreenLocation::MSLPLANE::XY_PLANE:
+        default:
+            planeN = glm::vec3(0.0f, 0.0f, 1.0f);
+            planePt = glm::vec3(0.0f, 0.0f, center.z);
+            break;
+    }
+
+    glm::vec3 origin, dir;
+    TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                          origin, dir);
+    glm::vec3 hit;
+    if (!VectorMath::GetPlaneIntersect(origin, dir, planePt, planeN, hit)) {
+        // Camera nearly parallel to plane — body-drag can't define
+        // a delta. Fall back to camera orbit by reporting failure.
+        return NO;
+    }
+    _bodyDrag3DActive       = YES;
+    _bodyDrag3DSavedCenter  = center;
+    _bodyDrag3DAnchor       = hit;
+    _bodyDrag3DPlane        = plane;
+    _bodyDrag3DPlanePoint   = planePt;
+    _bodyDrag3DPlaneNormal  = planeN;
+    _bodyDrag3DModelName    = name.UTF8String;
+    return YES;
+}
+
+- (BOOL)dragBody3DToScreenPoint:(CGPoint)point
+                        viewSize:(CGSize)viewSize
+                     forDocument:(XLSequenceDocument*)doc {
+    if (!_bodyDrag3DActive || !_preview || !doc) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    rctx->AbortRender(5000);
+    // J-15 — branch by target. ModelScreenLocation is the base;
+    // we just need a reference to the right one.
+    ModelScreenLocation* locPtr = nullptr;
+    if (_bodyDrag3DTargetIsVO) {
+        if (!rctx->HasViewObjectManager()) return NO;
+        ViewObject* vo = rctx->GetAllObjects().GetViewObject(_bodyDrag3DModelName);
+        if (!vo) return NO;
+        locPtr = &vo->GetObjectScreenLocation();
+    } else {
+        Model* m = rctx->GetModelManager()[_bodyDrag3DModelName];
+        if (!m) return NO;
+        locPtr = &m->GetModelScreenLocation();
+    }
+    auto& loc = *locPtr;
+    if (loc.IsLocked()) return NO;
+
+    glm::vec3 origin, dir;
+    TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                          origin, dir);
+    glm::vec3 hit;
+    if (!VectorMath::GetPlaneIntersect(origin, dir, _bodyDrag3DPlanePoint,
+                                         _bodyDrag3DPlaneNormal, hit)) {
+        // Ray rotated parallel mid-drag — just hold position.
+        return NO;
+    }
+    const glm::vec3 delta = hit - _bodyDrag3DAnchor;
+
+    // Only the two in-plane axes move; the perpendicular one
+    // keeps its saved value so the model stays on the chosen plane.
+    glm::vec3 newCenter = _bodyDrag3DSavedCenter;
+    switch (_bodyDrag3DPlane) {
+        case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+            newCenter.x += delta.x;
+            newCenter.z += delta.z;
+            break;
+        case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+            newCenter.y += delta.y;
+            newCenter.z += delta.z;
+            break;
+        case ModelScreenLocation::MSLPLANE::XY_PLANE:
+        default:
+            newCenter.x += delta.x;
+            newCenter.y += delta.y;
+            break;
+    }
+
+    // Toolbar Lock Axis: clamp the named axis back to saved.
+    if (_lockAxis == 1 /*X*/) newCenter.x = _bodyDrag3DSavedCenter.x;
+    else if (_lockAxis == 2 /*Y*/) newCenter.y = _bodyDrag3DSavedCenter.y;
+    else if (_lockAxis == 3 /*Z*/) newCenter.z = _bodyDrag3DSavedCenter.z;
+
+    if (_snapToGrid) {
+        const float spacing = (float)std::max((long)1, rctx->GetDisplay2DGridSpacing());
+        newCenter.x = std::round(newCenter.x / spacing) * spacing;
+        newCenter.y = std::round(newCenter.y / spacing) * spacing;
+        newCenter.z = std::round(newCenter.z / spacing) * spacing;
+    }
+
+    loc.SetHcenterPos(newCenter.x);
+    loc.SetVcenterPos(newCenter.y);
+    loc.SetDcenterPos(newCenter.z);
+    if (_bodyDrag3DTargetIsVO) {
+        rctx->MarkLayoutViewObjectDirty(_bodyDrag3DModelName);
+    } else {
+        rctx->MarkLayoutModelDirty(_bodyDrag3DModelName);
+    }
+    return YES;
+}
+
+- (void)endBodyDrag3D {
+    _bodyDrag3DActive = NO;
+    _bodyDrag3DModelName.clear();
+    _bodyDrag3DTargetIsVO = NO;
+}
+
+- (BOOL)setHoveredHandleAtScreenPoint:(CGPoint)point
+                              viewSize:(CGSize)viewSize
+                           forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || _selectedModelName.empty()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[_selectedModelName];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+
+    // Build the descriptor set for the current tool (mirrors
+    // pickHandle's selection of TwoD vs ThreeD).
+    const handles::Tool tool = loc.GetAxisTool();
+    if (tool == handles::Tool::None) {
+        return [self clearHoveredHandleForDocument:doc];
+    }
+
+    handles::ViewParams view;
+    if (_preview->Is3D()) {
+        const float zoom = _preview->GetCameraZoomForHandles();
+        const int hscale = _preview->GetHandleScale();
+        view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
+        view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
+        view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+    }
+    const auto descs = m->GetHandles(
+        _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD,
+        tool, view);
+    if (descs.empty()) {
+        // No descriptors means no possible hover target — clear.
+        return [self clearHoveredHandleForDocument:doc];
+    }
+
+    handles::ScreenProjection proj;
+    proj.projViewMatrix = _preview->GetProjViewMatrix();
+    proj.viewportWidth  = _canvas->getWidth();
+    proj.viewportHeight = _canvas->getHeight();
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    glm::vec2 touchPx{
+        static_cast<float>(point.x * scaleFactor),
+        static_cast<float>(point.y * scaleFactor)
+    };
+    handles::HitTestOptions opts;
+    // Hover tolerance is tighter than touch — a Pencil tip lands
+    // within a few points, a trackpad pointer is pixel-precise.
+    opts.handleTolerance = 14.0f;
+    opts.preferAxisHandles = true;
+    auto hit = handles::HitTest(descs, proj, touchPx, opts);
+
+    std::optional<handles::Id> newHover = hit ? std::optional<handles::Id>(hit->id) : std::nullopt;
+    if (newHover == loc.GetHighlightedHandleId()) return NO;
+    loc.MouseOverHandle(newHover);
+    return YES;
+}
+
+// World-space (x, y, z) → UIKit screen point (top-left origin,
+// in points not pixels). Returns NO when the point is behind the
+// camera, the canvas dimensions are invalid, or the point falls
+// outside the viewport plus `marginPt`.
+- (BOOL)projectWorldPoint:(glm::vec3)world
+              toViewPoint:(CGPoint*)outPt
+                marginPts:(CGFloat)marginPt {
+    if (!_preview || !_canvas || !outPt) return NO;
+    const glm::vec4 clip = _preview->GetProjViewMatrix() * glm::vec4(world, 1.0f);
+    if (clip.w <= 0.0f) return NO;
+    const glm::vec3 ndc = glm::vec3(clip) / clip.w;
+    const int w = _canvas->getWidth();
+    const int h = _canvas->getHeight();
+    if (w <= 0 || h <= 0) return NO;
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    const CGFloat px = (ndc.x * 0.5 + 0.5) * static_cast<double>(w) / scaleFactor;
+    const CGFloat py = (1.0 - (ndc.y * 0.5 + 0.5)) * static_cast<double>(h) / scaleFactor;
+    const CGFloat widthPt  = static_cast<double>(w) / scaleFactor;
+    const CGFloat heightPt = static_cast<double>(h) / scaleFactor;
+    if (px < -marginPt || px > widthPt + marginPt ||
+        py < -marginPt || py > heightPt + marginPt) return NO;
+    *outPt = CGPointMake(px, py);
+    return YES;
+}
+
+- (nullable NSValue*)screenAnchorPointForModel:(NSString*)modelName
+                                    forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName || modelName.length == 0) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[modelName.UTF8String];
+    if (!m) return nil;
+    auto& loc = m->GetModelScreenLocation();
+    // Bottom-centre in world coords. The action bar used to anchor
+    // to the top, but every gizmo handle (Y axis arrow, rotate
+    // ring, shear puck) lives at or above the model's top edge —
+    // bottom is the only side that's consistently clear.
+    const glm::vec3 anchor(loc.GetHcenterPos(),
+                            loc.GetVcenterPos() - loc.GetMHeight() * 0.5f,
+                            loc.GetDcenterPos());
+    CGPoint pt;
+    if (![self projectWorldPoint:anchor toViewPoint:&pt marginPts:80.0]) {
+        return nil;
+    }
+    return [NSValue valueWithCGPoint:pt];
+}
+
+- (nullable NSString*)createModelOfType:(NSString*)type
+                           atScreenPoint:(CGPoint)point
+                                viewSize:(CGSize)viewSize
+                             forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !type || type.length == 0) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return nil;
+
+    // J-18.5 — abort any in-flight render before adding a new
+    // Model to the manager; render workers hold raw Model*
+    // references and racing them produces hard-to-reproduce
+    // crashes. Mirrors the desktop's AbortRender() guard in
+    // LayoutPanel before model creation.
+    rctx->AbortRender(5000);
+    Model* m = rctx->GetModelManager().CreateDefaultModel(type.UTF8String, "1");
+    if (!m) return nil;
+
+    auto& loc = m->GetModelScreenLocation();
+
+    // Mirror desktop's create flow exactly:
+    //   `InitializeLocation` calls `FindPlaneIntersection`, which
+    //   picks the best world plane (XZ floor / XY wall / YZ side)
+    //   based on the current camera angles, then unprojects the
+    //   touch onto that plane and sets `worldPos_x/y/z`. This is
+    //   why desktop placement of, say, icicles along a roof line
+    //   naturally follows the roof's screen-space slope — the
+    //   click projects onto the XY wall at Z=0, so a drag along
+    //   the roof in screen coords produces a sloped line in
+    //   world coords. Hard-coding the XZ floor would always land
+    //   on Y=0 regardless of where the user clicked.
+    //
+    // Desktop's mouseX/mouseY are window-pixel coords; convert
+    // the UIKit point through the canvas's scale factor.
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    const int px = static_cast<int>(point.x * scaleFactor);
+    const int py = static_cast<int>(point.y * scaleFactor);
+    int initHandle = 0;
+    std::vector<NodeBaseClassPtr> emptyNodes;
+    loc.InitializeLocation(initHandle, px, py, emptyNodes, _preview.get());
+
+    std::string layoutGroup = rctx->GetActiveLayoutGroup();
+    if (layoutGroup.empty() || layoutGroup == "All Models") {
+        layoutGroup = "Default";
+    }
+    m->SetLayoutGroup(layoutGroup);
+    m->SetControllerName("");
+
+    rctx->GetModelManager().AddModel(m);
+    rctx->MarkLayoutModelDirty(m->GetName());
+    rctx->GetModelManager().RecalcStartChannels();
+
+    // Start the placement `BeginCreate` session so subsequent
+    // `dragHandle` calls size the model as the user drags. If the
+    // user lifts without dragging, `endHandleDrag` commits the
+    // session and the model stays at whatever `InitializeLocation`
+    // left it at — same as desktop's tap-without-drag behaviour.
+    handles::WorldRay startRay;
+    TouchPointToWorldRay(point, scaleFactor, _preview.get(),
+                          startRay.origin, startRay.direction);
+    auto session = loc.BeginCreate(
+        m->GetName(), startRay,
+        _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD);
+    if (session) {
+        _dragSession = std::move(session);
+        _dragSessionStartId = _dragSession->GetHandleId();
+    }
+
+    return [NSString stringWithUTF8String:m->GetName().c_str()];
+}
+
++ (BOOL)xmodelFileIsMultiModel:(NSString*)path {
+    if (!path || path.length == 0) return NO;
+    pugi::xml_document xdoc;
+    pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
+    if (!parseRes) return NO;
+    pugi::xml_node root = xdoc.document_element();
+    if (!root) return NO;
+    return std::string_view(root.name()) == "models";
+}
+
+- (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
+                                        atScreenPoint:(CGPoint)point
+                                             viewSize:(CGSize)viewSize
+                                    targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                          forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !path || path.length == 0) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return nil;
+
+    // Parse the .xmodel XML before creating anything — failing
+    // late would leak a stub model into the show.
+    pugi::xml_document xdoc;
+    pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
+    if (!parseRes) return nil;
+    pugi::xml_node root = xdoc.document_element();
+    if (!root) return nil;
+
+    rctx->AbortRender(5000);
+    // CreateDefaultModelFromSavedModelNode wants a baseline Model*
+    // to mutate / replace. Use "Custom" — the import path swaps it
+    // out for the deserialized type anyway, so the placeholder
+    // choice only matters in the very narrow paths where the
+    // function preserves baseline state (start channel, layout
+    // group, hcenter/vcenter — we override those below).
+    Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+    if (!baseline) return nil;
+    bool cancelled = false;
+    Model* imported = baseline->CreateDefaultModelFromSavedModelNode(
+        baseline, root, rctx->GetModelManager(), cancelled);
+    if (cancelled || !imported) {
+        delete baseline;
+        return nil;
+    }
+
+    // J-4 (import) — match the show's ruler when the imported
+    // xmodel carries real-world dimensions but the deserializer
+    // didn't already apply them. Two file shapes to handle:
+    //   - New format (recent desktop saves): `<dimensions
+    //     units="mm" width=N height=N depth=N>` child element.
+    //     `XmlDeserializingModelFactory::DeserializeModel(...,
+    //     importing=true)` already calls ApplyDimensions for this
+    //     path, which sets `modelMgr.SetUsedRuler()`.
+    //   - Legacy format (most catalog-downloaded files +
+    //     hand-authored exports): `widthmm` / `heightmm` /
+    //     `depthmm` attributes on the root element. The
+    //     deserializer doesn't see these. Apply them here so the
+    //     imported model lands at its real-world size in the
+    //     current show's units instead of whatever world-unit
+    //     scale the original author saved.
+    if (!rctx->GetModelManager().UsedRuler() && RulerObject::GetRuler() != nullptr) {
+        const float widthmm  = static_cast<float>(std::strtod(
+            root.attribute("widthmm").as_string("0"), nullptr));
+        const float heightmm = static_cast<float>(std::strtod(
+            root.attribute("heightmm").as_string("0"), nullptr));
+        const float depthmm  = static_cast<float>(std::strtod(
+            root.attribute("depthmm").as_string("0"), nullptr));
+        if (widthmm > 0 && heightmm > 0) {
+            imported->ApplyDimensions("mm", widthmm, heightmm, depthmm);
+        }
+    }
+
+    // Position via InitializeLocation so the imported model lands
+    // under the touch point rather than at whatever world coords
+    // the .xmodel saved (which is typically the original author's
+    // show coordinate, often off-screen for us).
+    auto& loc = imported->GetModelScreenLocation();
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    const int px = static_cast<int>(point.x * scaleFactor);
+    const int py = static_cast<int>(point.y * scaleFactor);
+    int initHandle = 0;
+    std::vector<NodeBaseClassPtr> emptyNodes;
+    loc.InitializeLocation(initHandle, px, py, emptyNodes, _preview.get());
+
+    std::string layoutGroup;
+    if (targetLayoutGroup && targetLayoutGroup.length > 0) {
+        layoutGroup = targetLayoutGroup.UTF8String;
+    } else {
+        layoutGroup = rctx->GetActiveLayoutGroup();
+    }
+    if (layoutGroup.empty() || layoutGroup == "All Models") {
+        layoutGroup = "Default";
+    }
+    imported->SetLayoutGroup(layoutGroup);
+    // NO_CONTROLLER triggers ReworkStartChannel auto-assign so the
+    // imported model doesn't collide with an existing one's
+    // start-channel range. Matches desktop's GetXlightsModel
+    // (LayoutPanel.cpp ~4629).
+    imported->SetControllerName(NO_CONTROLLER, true);
+
+    rctx->GetModelManager().AddModel(imported);
+    rctx->MarkLayoutModelDirty(imported->GetName());
+
+    NSMutableArray<NSString*>* names = [NSMutableArray array];
+    [names addObject:[NSString stringWithUTF8String:imported->GetName().c_str()]];
+
+    // PR #6365 — multi-model xmodel: if the root is `<models>`,
+    // load every additional `<model>` sibling and place each to
+    // the right of the previous one with a small gap. Mirrors
+    // desktop's `LayoutPanel::FinalizeModel` batch-placement
+    // loop (LayoutPanel.cpp:4972). The primary already occupies
+    // index 0; siblings start at root.first_child().next_sibling().
+    if (std::string_view(root.name()) == "models") {
+        constexpr float BATCH_PLACEMENT_PADDING    = 20.0f;
+        constexpr float BATCH_PLACEMENT_MIN_OFFSET = 50.0f;
+        const float originX = imported->GetHcenterPos();
+        const float originY = imported->GetVcenterPos();
+        const float originZ = imported->GetDcenterPos();
+        float previousWidth = std::max(imported->GetRestorableMWidth(),
+                                        BATCH_PLACEMENT_MIN_OFFSET);
+        float currentX = originX + previousWidth + BATCH_PLACEMENT_PADDING;
+
+        for (pugi::xml_node child = root.first_child().next_sibling();
+             child;
+             child = child.next_sibling()) {
+            Model* extraBaseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+            if (!extraBaseline) continue;
+            bool extraCancelled = false;
+            Model* extra = extraBaseline->CreateDefaultModelFromSavedModelNode(
+                extraBaseline, child, rctx->GetModelManager(), extraCancelled);
+            if (extraCancelled || !extra) {
+                delete extraBaseline;
+                continue;
+            }
+            extra->GetModelScreenLocation().SetWorldPosition(
+                glm::vec3(currentX, originY, originZ));
+            extra->SetLayoutGroup(layoutGroup);
+            extra->SetControllerName(NO_CONTROLLER, true);
+
+            // GenerateModelName uniquifies if the show already has
+            // a model with this name — matches desktop's
+            // FinalizeModel:4982.
+            std::string unique = rctx->GetModelManager().GenerateModelName(extra->GetName());
+            extra->SetName(unique);
+
+            rctx->GetModelManager().AddModel(extra);
+            rctx->MarkLayoutModelDirty(extra->GetName());
+            [names addObject:[NSString stringWithUTF8String:extra->GetName().c_str()]];
+
+            const float thisWidth = std::max(extra->GetRestorableMWidth(),
+                                              BATCH_PLACEMENT_MIN_OFFSET);
+            currentX += thisWidth + BATCH_PLACEMENT_PADDING;
+        }
+    }
+
+    rctx->GetModelManager().RecalcStartChannels();
+    return names;
+}
+
+- (BOOL)modelUsesPolyPointLocation:(NSString*)name
+                       forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[name.UTF8String];
+    if (!m) return NO;
+    return dynamic_cast<PolyPointScreenLocation*>(&m->GetModelScreenLocation()) != nullptr;
+}
+
+- (BOOL)appendVertexToPolyline:(NSString*)name
+                  atScreenPoint:(CGPoint)point
+                       viewSize:(CGSize)viewSize
+                    forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[name.UTF8String];
+    if (!m) return NO;
+    auto* poly = dynamic_cast<PolyPointScreenLocation*>(&m->GetModelScreenLocation());
+    if (!poly) return NO;
+    if (poly->IsLocked()) return NO;
+
+    // Commit whatever the previous tap/drag left open (the
+    // BeginCreate session from the first vertex, or the
+    // BeginExtend session from the previous appended vertex).
+    // Inlined instead of calling -endHandleDragForDocument:
+    // because that path resets `active_axis` to NO_AXIS when no
+    // session is active — but `AddHandle` below relies on the
+    // axis InitializeLocation seeded for plane projection, so
+    // wiping it asserts inside `DragHandle`.
+    if (_dragSession) {
+        auto result = _dragSession->Commit();
+        if (handles::HasDirty(result.dirty, handles::DirtyField::Position) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Dimensions) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Rotation) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Endpoint) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Vertex) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Curve) ||
+            handles::HasDirty(result.dirty, handles::DirtyField::Shear)) {
+            if (!result.modelName.empty()) {
+                rctx->MarkLayoutModelDirty(result.modelName);
+            }
+        }
+        _dragSession.reset();
+        _dragSessionStartId = handles::Id{};
+        _dragSessionViewObjectName.clear();
+    }
+
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    const int px = static_cast<int>(point.x * scaleFactor);
+    const int py = static_cast<int>(point.y * scaleFactor);
+
+    // CreateDefaultModel for a polyline initialises num_points=2
+    // with mPos[0] and mPos[1] both at (0,0,0). On the FIRST
+    // append after create the placeholder vertex 1 still equals
+    // vertex 0 — promote it to the tap position rather than
+    // appending a third vertex (otherwise the zero-length
+    // segment 0→1 burns light nodes at the origin). On
+    // subsequent appends the placeholder has moved, so a normal
+    // AddHandle is correct.
+    bool promotePlaceholder = false;
+    if (poly->GetNumPoints() == 2) {
+        const glm::vec3 p0 = poly->GetPoint(0);
+        const glm::vec3 p1 = poly->GetPoint(1);
+        if (p0.x == p1.x && p0.y == p1.y && p0.z == p1.z) {
+            promotePlaceholder = true;
+        }
+    }
+    if (promotePlaceholder) {
+        // AddHandle appends vertex 2 at the tap, then drop the
+        // coincident vertex 1; net effect: vertex 1 moves to the
+        // tap projection while preserving AddHandle's plane logic.
+        // num_points stays at 2 so no per-segment growth is needed.
+        poly->AddHandle(_preview.get(), px, py);
+        poly->DeleteHandle(1);
+    } else {
+        poly->AddHandle(_preview.get(), px, py);
+        // Match desktop's polyline-create flow
+        // (LayoutPanel.cpp:4117-4120): a PolyLineModel keeps a
+        // per-segment vector (`_polyLineSizes`) that must grow
+        // when a vertex is added. Without it, `InitModel`
+        // re-distributes lights based on a stale segment count
+        // and nothing renders along the new path until the user
+        // touches the model again. MultiPoint has no per-segment
+        // array, so the dynamic_cast skip is fine there.
+        if (auto* polyModel = dynamic_cast<PolyLineModel*>(m)) {
+            polyModel->AddHandle();
+        }
+    }
+    m->Reinitialize();
+    const int newIdx = poly->GetNumPoints() - 1;
+    if (newIdx <= 0) return NO;
+
+    // Refresh active_plane from the camera before opening the
+    // extension session so the new-vertex drag uses the plane
+    // that matches the current view (top-down → XZ, side → YZ,
+    // front → XY) instead of whatever InitializeLocation seeded
+    // at first-vertex create time.
+    poly->RefreshActivePlaneFromCamera(_preview.get());
+
+    // Start an extension session on the new vertex so a follow-on
+    // drag through `dragHandle:toScreenPoint:` sizes that segment.
+    // Tap-without-drag leaves the vertex where AddHandle put it
+    // (the next endHandleDragForDocument call commits cleanly).
+    handles::WorldRay startRay;
+    TouchPointToWorldRay(point, scaleFactor, _preview.get(),
+                          startRay.origin, startRay.direction);
+    auto session = poly->BeginExtend(
+        m->GetName(), startRay,
+        _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD,
+        newIdx);
+    if (session) {
+        _dragSession = std::move(session);
+        _dragSessionStartId = _dragSession->GetHandleId();
+    }
+
+    rctx->MarkLayoutModelDirty(m->GetName());
+    rctx->GetModelManager().RecalcStartChannels();
+    return YES;
+}
+
+- (NSArray<NSDictionary*>*)modelLabelAnchorsForDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return @[];
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return @[];
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    const auto models = rctx->GetModelsForActivePreview();
+    OutputManager* om = &rctx->GetOutputManager();
+    for (Model* m : models) {
+        if (!m || m->GetDisplayAs() == DisplayAsType::SubModel) continue;
+        auto& loc = m->GetModelScreenLocation();
+        // Anchor at the model's centre (not its top) so labels sit
+        // inside the model body, which reads better when many
+        // labels share screen space.
+        const glm::vec3 anchor(loc.GetHcenterPos(),
+                                loc.GetVcenterPos(),
+                                loc.GetDcenterPos());
+        CGPoint pt;
+        if (![self projectWorldPoint:anchor toViewPoint:&pt marginPts:0.0]) {
+            continue;
+        }
+        NSString* name = [NSString stringWithUTF8String:m->GetName().c_str()];
+        // J-2 model-info parity — controller + connection-port range
+        // when assigned, start-channel string otherwise. Matches
+        // desktop's `ModelPreview::DrawModelNames` info-line shape
+        // so the iPad overlay reads the same when both panes are
+        // visible.
+        std::string info;
+        std::string const ctrlName = m->GetControllerName();
+        if (!ctrlName.empty() && ctrlName != "No Controller") {
+            info = ctrlName;
+            std::string const range = m->GetControllerConnectionPortRangeString();
+            if (!range.empty()) info += ": " + range;
+        } else if (om) {
+            info = m->GetStartChannelInDisplayFormat(om);
+        }
+        NSString* infoNS = info.empty()
+            ? @""
+            : [NSString stringWithUTF8String:info.c_str()];
+        [out addObject:@{
+            @"name":   name,
+            @"info":   infoNS,
+            @"anchor": [NSValue valueWithCGPoint:pt]
+        }];
+    }
+    return out;
+}
+
+- (BOOL)clearHoveredHandleForDocument:(XLSequenceDocument*)doc {
+    if (!doc || _selectedModelName.empty()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[_selectedModelName];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+    if (!loc.GetHighlightedHandleId().has_value()) return NO;
+    loc.MouseOverHandle(std::nullopt);
+    return YES;
+}
+
+- (nullable NSDictionary*)inspectHandleAtScreenPoint:(CGPoint)point
+                                            viewSize:(CGSize)viewSize
+                                         forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || _selectedModelName.empty()) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[_selectedModelName];
+    if (!m) return nil;
+    auto& loc = m->GetModelScreenLocation();
+
+    // Use Translate as the lookup tool — vertex / segment / curve-
+    // control descriptors are not tool-gated, only axis-gizmo
+    // descriptors are. Tool::Translate is the safe lookup choice.
+    handles::ViewParams view;
+    if (_preview->Is3D()) {
+        const float zoom = _preview->GetCameraZoomForHandles();
+        const int hscale = _preview->GetHandleScale();
+        view.axisArrowLength = loc.GetAxisArrowLength(zoom, hscale);
+        view.axisHeadLength  = loc.GetAxisHeadLength(zoom, hscale);
+        view.axisRadius      = loc.GetAxisRadius(zoom, hscale);
+    }
+    const auto descs = m->GetHandles(
+        _preview->Is3D() ? handles::ViewMode::ThreeD : handles::ViewMode::TwoD,
+        handles::Tool::Translate, view);
+    if (descs.empty()) return nil;
+
+    handles::ScreenProjection proj;
+    proj.projViewMatrix = _preview->GetProjViewMatrix();
+    proj.viewportWidth  = _canvas->getWidth();
+    proj.viewportHeight = _canvas->getHeight();
+    double scaleFactor = _canvas->getScaleFactor();
+    if (scaleFactor <= 0) scaleFactor = 1.0;
+    glm::vec2 touchPx{
+        static_cast<float>(point.x * scaleFactor),
+        static_cast<float>(point.y * scaleFactor)
+    };
+    handles::HitTestOptions opts;
+    opts.handleTolerance = 28.0f;  // long-press is finger-driven; looser slop
+    auto hit = handles::HitTest(descs, proj, touchPx, opts);
+    if (!hit) return nil;
+
+    NSString* name = [NSString stringWithUTF8String:m->GetName().c_str()];
+    switch (hit->id.role) {
+        case handles::Role::Vertex:
+            return @{
+                @"type"        : @"vertex",
+                @"modelName"   : name,
+                @"vertexIndex" : @(hit->id.index),
+            };
+        case handles::Role::Segment: {
+            const bool curved = loc.HasCurve(hit->id.index);
+            return @{
+                @"type"         : @"segment",
+                @"modelName"    : name,
+                @"segmentIndex" : @(hit->id.index),
+                @"hasCurve"     : @(curved),
+            };
+        }
+        case handles::Role::CurveControl:
+            return @{
+                @"type"         : @"curve_control",
+                @"modelName"    : name,
+                @"segmentIndex" : @(hit->id.segment),
+            };
+        default:
+            return nil;
+    }
+}
+
+
+- (BOOL)beginPinchScaleForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[name.UTF8String];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+    if (loc.IsLocked()) return NO;
+    _pinchScaleActive    = YES;
+    _pinchScaleSavedScale = loc.GetScaleMatrix();
+    _pinchScaleModelName  = name.UTF8String;
+    return YES;
+}
+
+- (BOOL)applyPinchScaleFactor:(CGFloat)factor forDocument:(XLSequenceDocument*)doc {
+    if (!_pinchScaleActive || !doc || _pinchScaleModelName.empty()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    rctx->AbortRender(5000);
+    ModelScreenLocation* locPtr = nullptr;
+    if (_pinchScaleTargetIsVO) {
+        if (!rctx->HasViewObjectManager()) return NO;
+        ViewObject* vo = rctx->GetAllObjects().GetViewObject(_pinchScaleModelName);
+        if (!vo) return NO;
+        locPtr = &vo->GetObjectScreenLocation();
+    } else {
+        Model* m = rctx->GetModelManager()[_pinchScaleModelName];
+        if (!m) return NO;
+        locPtr = &m->GetModelScreenLocation();
+    }
+    auto& loc = *locPtr;
+    if (loc.IsLocked()) return NO;
+    const float f = std::clamp(static_cast<float>(factor), 0.05f, 50.0f);
+    loc.SetScaleMatrix(_pinchScaleSavedScale * f);
+    if (_pinchScaleTargetIsVO) {
+        rctx->MarkLayoutViewObjectDirty(_pinchScaleModelName);
+    } else {
+        rctx->MarkLayoutModelDirty(_pinchScaleModelName);
+    }
+    return YES;
+}
+
+- (void)endPinchScale {
+    _pinchScaleActive = NO;
+    _pinchScaleModelName.clear();
+    _pinchScaleTargetIsVO = NO;
+}
+
+- (BOOL)beginTwistRotateForModel:(NSString*)name forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[name.UTF8String];
+    if (!m) return NO;
+    auto& loc = m->GetModelScreenLocation();
+    if (loc.IsLocked()) return NO;
+    _twistRotateActive       = YES;
+    _twistRotateSavedRotation = loc.GetRotationAngles();
+    _twistRotateModelName     = name.UTF8String;
+    return YES;
+}
+
+- (BOOL)applyTwistRotationRadians:(CGFloat)radians forDocument:(XLSequenceDocument*)doc {
+    if (!_twistRotateActive || !doc || _twistRotateModelName.empty()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx) return NO;
+    rctx->AbortRender(5000);
+    ModelScreenLocation* locPtr = nullptr;
+    if (_twistRotateTargetIsVO) {
+        if (!rctx->HasViewObjectManager()) return NO;
+        ViewObject* vo = rctx->GetAllObjects().GetViewObject(_twistRotateModelName);
+        if (!vo) return NO;
+        locPtr = &vo->GetObjectScreenLocation();
+    } else {
+        Model* m = rctx->GetModelManager()[_twistRotateModelName];
+        if (!m) return NO;
+        locPtr = &m->GetModelScreenLocation();
+    }
+    auto& loc = *locPtr;
+    if (loc.IsLocked()) return NO;
+    // UIRotationGestureRecognizer reports clockwise as positive;
+    // negate to match the "scene follows the fingers" convention
+    // used by the camera-rotate path.
+    const float degrees = -static_cast<float>(radians) * 180.0f / static_cast<float>(M_PI);
+    const glm::vec3 newRot{_twistRotateSavedRotation.x,
+                            _twistRotateSavedRotation.y,
+                            _twistRotateSavedRotation.z + degrees};
+    loc.SetRotation(newRot);
+    if (_twistRotateTargetIsVO) {
+        rctx->MarkLayoutViewObjectDirty(_twistRotateModelName);
+    } else {
+        rctx->MarkLayoutModelDirty(_twistRotateModelName);
+    }
+    return YES;
+}
+
+- (void)endTwistRotate {
+    _twistRotateActive = NO;
+    _twistRotateModelName.clear();
+    _twistRotateTargetIsVO = NO;
+}
+
+// J-15 — view-object equivalents of the model 3D-gesture entry
+// points. Each grabs the screen location from the active VO,
+// latches the right saved state, and flags the target as VO so
+// the shared apply/end methods route correctly.
+- (BOOL)beginBodyDrag3DForViewObject:(NSString*)name
+                        atScreenPoint:(CGPoint)point
+                             viewSize:(CGSize)viewSize
+                          forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !name || name.length == 0) return NO;
+    if (!_preview->Is3D()) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return NO;
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(name.UTF8String);
+    if (!vo) return NO;
+    auto& loc = vo->GetObjectScreenLocation();
+    if (loc.IsLocked() || vo->IsFromBase()) return NO;
+
+    loc.RefreshActivePlaneFromCamera(_preview.get());
+    const auto plane = loc.GetActivePlane();
+    const glm::vec3 center(loc.GetHcenterPos(),
+                            loc.GetVcenterPos(),
+                            loc.GetDcenterPos());
+    glm::vec3 planePt{0.0f}, planeN{0.0f};
+    switch (plane) {
+        case ModelScreenLocation::MSLPLANE::XZ_PLANE:
+            planeN = glm::vec3(0.0f, 1.0f, 0.0f);
+            planePt = glm::vec3(0.0f, center.y, 0.0f);
+            break;
+        case ModelScreenLocation::MSLPLANE::YZ_PLANE:
+            planeN = glm::vec3(1.0f, 0.0f, 0.0f);
+            planePt = glm::vec3(center.x, 0.0f, 0.0f);
+            break;
+        case ModelScreenLocation::MSLPLANE::XY_PLANE:
+        default:
+            planeN = glm::vec3(0.0f, 0.0f, 1.0f);
+            planePt = glm::vec3(0.0f, 0.0f, center.z);
+            break;
+    }
+    glm::vec3 origin, dir;
+    TouchPointToWorldRay(point, _canvas->getScaleFactor(), _preview.get(),
+                          origin, dir);
+    glm::vec3 hit;
+    if (!VectorMath::GetPlaneIntersect(origin, dir, planePt, planeN, hit)) {
+        return NO;
+    }
+    _bodyDrag3DActive       = YES;
+    _bodyDrag3DTargetIsVO   = YES;
+    _bodyDrag3DSavedCenter  = center;
+    _bodyDrag3DAnchor       = hit;
+    _bodyDrag3DPlane        = plane;
+    _bodyDrag3DPlanePoint   = planePt;
+    _bodyDrag3DPlaneNormal  = planeN;
+    _bodyDrag3DModelName    = name.UTF8String;
+    return YES;
+}
+
+- (BOOL)beginPinchScaleForViewObject:(NSString*)name
+                           forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return NO;
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(name.UTF8String);
+    if (!vo) return NO;
+    auto& loc = vo->GetObjectScreenLocation();
+    if (loc.IsLocked() || vo->IsFromBase()) return NO;
+    _pinchScaleActive      = YES;
+    _pinchScaleTargetIsVO  = YES;
+    _pinchScaleSavedScale  = loc.GetScaleMatrix();
+    _pinchScaleModelName   = name.UTF8String;
+    return YES;
+}
+
+- (BOOL)beginTwistRotateForViewObject:(NSString*)name
+                           forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !name || name.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasViewObjectManager()) return NO;
+    ViewObject* vo = rctx->GetAllObjects().GetViewObject(name.UTF8String);
+    if (!vo) return NO;
+    auto& loc = vo->GetObjectScreenLocation();
+    if (loc.IsLocked() || vo->IsFromBase()) return NO;
+    _twistRotateActive        = YES;
+    _twistRotateTargetIsVO    = YES;
+    _twistRotateSavedRotation = loc.GetRotationAngles();
+    _twistRotateModelName     = name.UTF8String;
+    return YES;
+}
+
 - (void)drawModelsForDocument:(XLSequenceDocument*)doc atMS:(int)frameMS pointSize:(float)pointSize {
     // Reset any stale banner from the previous frame; each path below
     // (early return, info-banner, or successful draw) sets the correct
@@ -1097,8 +2864,12 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         return;
     }
 
-    // Set channel data on all models for this frame
-    ctx->SetModelColors(frameMS);
+    // Set channel data on all models for this frame, unless the
+    // submodel-editor pane has asked us to keep its manual
+    // `SetNodeColor` overrides intact.
+    if (!_suppressChannelUpdate) {
+        ctx->SetModelColors(frameMS);
+    }
 
     // Set current frame time so models can query it
     _preview->SetCurrentFrameTime(frameMS);
@@ -1226,26 +2997,87 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         // ColorManager.h:141-142.
         static const xlColor sLayoutDefaultColor = xlLIGHT_GREY;
         static const xlColor sLayoutSelectedColor = xlYELLOW;
+        // J-10 — group-member tint when a ModelGroup is picked in
+        // the sidebar. Yellow for both primary selection and group
+        // members — cyan didn't differentiate well against grey
+        // at pixel sizes 1–2 (the common case). The sidebar
+        // selection still owns the active gizmo so the user can
+        // tell them apart by handles, not by colour.
+        static const xlColor& sLayoutGroupMemberColor = sLayoutSelectedColor;
+        // Resolve the selected group's flat member set once per
+        // frame. Two buckets so we can highlight differently:
+        //   - selectedGroupMembers: top-level Models that should
+        //     render fully tinted yellow.
+        //   - selectedGroupSubmodelsByParent: parent Model* →
+        //     submodels that belong to the group. After the main
+        //     loop, those submodels are rendered as a selection
+        //     overlay so only their node ranges light up (matches
+        //     desktop's behaviour for submodel-only groups).
+        std::set<const Model*> selectedGroupMembers;
+        std::map<const Model*, std::vector<Model*>> selectedGroupSubmodelsByParent;
+        if (_isLayoutEditor && !_selectedGroupName.empty()) {
+            Model* grpModel = ctx->GetModelManager()[_selectedGroupName];
+            if (grpModel && grpModel->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                auto* grp = static_cast<ModelGroup*>(grpModel);
+                for (Model* m : grp->GetFlatModels(true, false)) {
+                    if (!m) continue;
+                    if (auto* sm = dynamic_cast<SubModel*>(m)) {
+                        if (Model* parent = sm->GetParent()) {
+                            selectedGroupSubmodelsByParent[parent].push_back(m);
+                        }
+                    } else {
+                        selectedGroupMembers.insert(m);
+                    }
+                }
+            }
+        }
+        // J-31 — Controllers tab sidebar sync. Same tint bucket
+        // as group members; selection drives which models on the
+        // active preview belong to the picked controller. Models
+        // ride the same `selectedGroupMembers` set so a single
+        // tint rule handles both surfaces.
+        if (_isLayoutEditor && !_selectedControllerName.empty()) {
+            for (Model* m : ctx->GetModelsForActivePreview()) {
+                if (!m) continue;
+                if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+                if (m->GetDisplayAs() == DisplayAsType::SubModel) continue;
+                if (m->GetControllerName() == _selectedControllerName) {
+                    selectedGroupMembers.insert(m);
+                }
+            }
+        }
         for (const auto& [model, z] : keyed) {
             const xlColor* useColor = nullptr;
             if (_isLayoutEditor) {
-                bool isSel = (!_selectedModelName.empty() &&
-                              model->GetName() == _selectedModelName);
+                const bool isPrimary = (!_selectedModelName.empty() &&
+                                          model->GetName() == _selectedModelName);
+                const bool isExtra = (!isPrimary &&
+                                       _extraSelectedModels.count(model->GetName()) > 0);
+                const bool isGroupMember = (!isPrimary && !isExtra &&
+                                             selectedGroupMembers.count(model) > 0);
+                const bool isSel = isPrimary || isExtra;
                 model->Selected(isSel);
                 // 3D gizmo: subclass `DrawHandles` only paints the
                 // centre sphere + axis gizmo when `active_handle`
-                // has a value. Latch CentreCycle on select so the
-                // user sees a gizmo, and clear on deselect.
+                // has a value. Latch CentreCycle on the PRIMARY
+                // only (so multi-select doesn't draw N gizmos),
+                // and clear on deselect.
                 auto& sloc = model->GetModelScreenLocation();
-                if (isSel) {
+                if (isPrimary) {
                     if (!sloc.GetActiveHandleId().has_value()) {
-                        sloc.SetActiveHandle(CENTER_HANDLE);
+                        sloc.SetActiveHandleToCentre();
                     }
                 } else if (sloc.GetActiveHandleId().has_value()) {
-                    sloc.SetActiveHandle(NO_HANDLE);
+                    sloc.SetActiveHandle(std::nullopt);
                     sloc.SetActiveAxis(ModelScreenLocation::MSLAXIS::NO_AXIS);
                 }
-                useColor = isSel ? &sLayoutSelectedColor : &sLayoutDefaultColor;
+                if (isSel) {
+                    useColor = &sLayoutSelectedColor;
+                } else if (isGroupMember) {
+                    useColor = &sLayoutGroupMemberColor;
+                } else {
+                    useColor = &sLayoutDefaultColor;
+                }
             }
             // Pass the current 2D/3D state rather than a hardcoded true —
             // it drives PrepareToDraw's draw_3d flag (which controls
@@ -1264,6 +3096,30 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
                                          /* boundingBox */ nullptr);
         }
 
+        // J-10 — submodel-only group overlay. After every parent
+        // has rendered in default grey, paint each group-member
+        // submodel on top of its parent so only the submodel's
+        // node range lights up yellow. SubModels share their
+        // parent's screen location and have their own `Nodes`
+        // vector — `DisplayModelOnWindow` iterates the SubModel's
+        // nodes only, producing the desired isolated highlight.
+        if (_isLayoutEditor && !selectedGroupSubmodelsByParent.empty()) {
+            for (const auto& [parent, submodels] : selectedGroupSubmodelsByParent) {
+                for (Model* sm : submodels) {
+                    if (!sm) continue;
+                    sm->Selected(false);
+                    sm->DisplayModelOnWindow(_preview.get(), graphicsCtx, solidProg, transparentProg,
+                                              is3d,
+                                              /* color */ &sLayoutSelectedColor,
+                                              /* allowSelected */ false,
+                                              /* wiring */ false,
+                                              /* highlightFirst */ false,
+                                              /* highlightpixel */ 0,
+                                              /* boundingBox */ nullptr);
+                }
+            }
+        }
+
         // View objects (house meshes, ground images, gridlines, terrain).
         // Only the Default layout group owns view objects (desktop hard-
         // codes their layout_group to "Default"); named groups skip the
@@ -1272,9 +3128,18 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
             auto& allObjects = ctx->GetAllObjects();
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;
-                if (vo) {
-                    vo->Draw(_preview.get(), graphicsCtx, solidVOProg, transparentVOProg, false);
-                }
+                if (!vo) continue;
+                // J-6 (sidebar canvas sync) — when the Objects tab
+                // has a pick, render that object with
+                // `allowSelected=true` so its ScreenLocation
+                // handles draw. `Selected(true)` lights the
+                // selection ring inside the object's `Draw`.
+                const bool isSel = (_isLayoutEditor &&
+                                     !_selectedViewObjectName.empty() &&
+                                     vo->GetName() == _selectedViewObjectName);
+                vo->Selected(isSel);
+                vo->Draw(_preview.get(), graphicsCtx, solidVOProg, transparentVOProg,
+                         isSel);
             }
         }
 
@@ -1345,6 +3210,13 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
         // && allowSelected` (Model.cpp:3254). Both conditions are met
         // for the LayoutEditor pane via the loop above, so no extra
         // bridge-side rendering is needed here.
+        //
+        // Model-name + model-info labels render as a SwiftUI overlay
+        // above the Metal canvas — see `ModelLabelsOverlay` in
+        // LayoutEditorView.swift and `modelLabelAnchorsForDocument:`
+        // below for the data feed. That route avoids spinning up an
+        // xlVertexTextureAccumulator + font atlas per frame just for
+        // a handful of labels.
     }
 
     // Finish and present. `_errorReason` reflects this frame's state:
@@ -1420,6 +3292,119 @@ static void TouchPointToWorldRay(const CGPoint& p, double scale,
                        /* smoothScale */ true,
                        brightness, alpha);
     });
+}
+
+// MARK: - J-30 Submodel editor support
+
+- (void)setSuppressChannelUpdate:(BOOL)suppress {
+    _suppressChannelUpdate = suppress;
+}
+- (BOOL)suppressChannelUpdate {
+    return _suppressChannelUpdate;
+}
+
+- (void)setSingleModelMode:(BOOL)single {
+    _isModelPreview = single;
+}
+- (BOOL)singleModelMode {
+    return _isModelPreview;
+}
+
+- (NSInteger)nodeNearPoint:(CGPoint)point
+                   onModel:(NSString*)modelName
+                  viewSize:(CGSize)viewSize
+               forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName) return 0;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return 0;
+    if (_preview->Is3D()) return 0;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return 0;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    std::string s = m->GetNodeNear(_preview.get(), p, false);
+    if (s.empty()) return 0;
+    char* endp = nullptr;
+    long v = std::strtol(s.c_str(), &endp, 10);
+    if (endp == s.c_str() || v <= 0) return 0;
+    return (NSInteger)v;
+}
+
+- (NSArray<NSNumber*>*)nodesInRect:(CGRect)rect
+                           onModel:(NSString*)modelName
+                          viewSize:(CGSize)viewSize
+                       forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSNumber*>* out = [NSMutableArray array];
+    if (!_preview || !doc || !modelName) return out;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return out;
+    if (_preview->Is3D()) return out;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return out;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint a{(int)std::round(CGRectGetMinX(rect) * scale),
+              (int)std::round(CGRectGetMinY(rect) * scale)};
+    xlPoint b{(int)std::round(CGRectGetMaxX(rect) * scale),
+              (int)std::round(CGRectGetMaxY(rect) * scale)};
+    std::vector<int> hits = m->GetNodesInBoundingBox(_preview.get(), a, b);
+    for (int n : hits) {
+        if (n > 0) [out addObject:@(n)];
+    }
+    return out;
+}
+
+- (BOOL)setSubmodelHighlightedNodes:(NSArray<NSNumber*>*)highlighted
+                            onModel:(NSString*)modelName
+                        forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !modelName) return NO;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return NO;
+    std::set<int> selected;
+    for (NSNumber* n in highlighted) {
+        if (![n isKindOfClass:[NSNumber class]]) continue;
+        int v = n.intValue;
+        if (v >= 1) selected.insert(v);
+    }
+    // High-contrast palette so the user can tell selected from
+    // unselected at a glance on a tablet from arm's length:
+    // saturated yellow for "in this row" (pops against the
+    // black canvas + ignores the small dot size), very dim grey
+    // for everything else (still visible so the user knows where
+    // the model extends but clearly de-emphasised).
+    const xlColor highlightColor(255, 232, 0);
+    const xlColor dimColor(28, 28, 32);
+    uint32_t nn = m->GetNodeCount();
+    for (uint32_t i = 0; i < nn; ++i) {
+        // SetNodeColor uses 0-based indices; `selected` is 1-based
+        // to match the desktop range strings + GetNodeNear output.
+        if (selected.count((int)(i + 1))) {
+            m->SetNodeColor(i, highlightColor);
+        } else {
+            m->SetNodeColor(i, dimColor);
+        }
+    }
+    m->IncrementChangeCount();
+    return YES;
+}
+
+- (BOOL)clearSubmodelHighlightsOnModel:(NSString*)modelName
+                           forDocument:(XLSequenceDocument*)doc {
+    if (!doc || !modelName) return NO;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return NO;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return NO;
+    const xlColor base(0, 0, 0);
+    uint32_t nn = m->GetNodeCount();
+    for (uint32_t i = 0; i < nn; ++i) {
+        m->SetNodeColor(i, base);
+    }
+    return YES;
 }
 
 @end

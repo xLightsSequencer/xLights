@@ -30,14 +30,6 @@
 #define MODEL_NEEDS_INIT      1
 #define MODEL_UPDATE_RGBEFFECTS 2
 
-// Lower 20 bits reserved to store handle positions and these
-// constants are modifiers to indicate special handles
-#define HANDLE_MASK    0x00FFFFF
-#define HANDLE_SEGMENT 0x1000000
-#define HANDLE_AXIS    0x0200000
-#define HANDLE_CP0     0x0400000
-#define HANDLE_CP1     0x0800000
-
 class IModelPreview;
 class PreviewCamera;
 
@@ -49,6 +41,7 @@ class PreviewCamera;
 #include "../utils/CursorType.h"
 #include "handles/Handles.h"
 #include "handles/DragSession.h"
+#include "handles/SpaceMouseSession.h"
 
 // Match helpers for std::optional<handles::Id>. Used by DrawHandles
 // to colour highlighted handles, by GetHandles emission to gate per-
@@ -71,38 +64,6 @@ inline bool IsAxisHandle(const std::optional<handles::Id>& h, handles::Axis axis
            h->axis == axis;
 }
 
-// Adapter between descriptor Ids (the source of truth for
-// active/selected/highlighted state) and the bit-packed `int`
-// representation. Only the SpaceMouse path
-// (`LayoutPanel::OnPreviewMotion3D` → `GetActiveHandle()` →
-// `MoveHandle3D(int)`) still relies on the int form. Subclass
-// `SetActiveHandle(int)` overrides exist for legacy int callers
-// (model-init, deselect via NO_HANDLE, etc.). Hot paths (hover,
-// click, drag session creation, draw) speak `handles::Id`
-// natively and never touch this function. Sunsets with R-9.
-inline int HandleIdToLegacyHandle(const handles::Id& id) {
-    switch (id.role) {
-        case handles::Role::CentreCycle:
-            return CENTER_HANDLE;
-        case handles::Role::Endpoint:
-            return id.index;     // already CENTER_HANDLE / START_HANDLE / END_HANDLE
-        case handles::Role::Vertex:
-            return id.index + 1; // PolyPoint: vertex idx 0..N-1 → handle 1..N
-        case handles::Role::CurveControl:
-            return (id.index == 0 ? HANDLE_CP0 : HANDLE_CP1) | (id.segment & HANDLE_MASK);
-        case handles::Role::Shear:
-            return SHEAR_HANDLE;
-        case handles::Role::AxisArrow:
-        case handles::Role::AxisCube:
-        case handles::Role::AxisRing:
-            // `DrawAxisTool` colours each axis arrow yellow when
-            // `highlighted_handle == HANDLE_AXIS + axis_index`. Map
-            // the descriptor's axis through so hover lights it up.
-            return HANDLE_AXIS + static_cast<int>(id.axis);
-        default:
-            return NO_HANDLE;
-    }
-}
 #include "Node.h"
 #include <glm/mat4x4.hpp>
 #include <glm/mat3x3.hpp>
@@ -139,15 +100,6 @@ public:
         Y_AXIS,
         Z_AXIS,
         NO_AXIS
-    };
-
-    enum class MSLTOOL {
-        TOOL_TRANSLATE,
-        TOOL_SCALE,
-        TOOL_ROTATE,
-        TOOL_XY_TRANS,
-        TOOL_ELEVATE,
-        TOOL_NONE
     };
 
     MSLAXIS NextAxis(MSLAXIS axis);
@@ -205,15 +157,25 @@ public:
 
 
     // SpaceMouse 6-DOF input. Mouse-driven gizmo drags go through the
-    // descriptor session API (`CreateDragSession` + `BeginCreate`) and
-    // never hit this path.
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) = 0;
+    // descriptor session API (`CreateDragSession` + `BeginCreate`)
+    // and never hit this path. `id` identifies which body handle
+    // the SpaceMouse is acting on (typically CentreCycle for a
+    // whole-model translate+rotate). Default impl returns nullptr;
+    // each ScreenLocation subclass overrides to wire up its own
+    // handle-specific math.
+    virtual std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& /*id*/) {
+        return nullptr;
+    }
     virtual void MouseDown(bool value) { mouse_down = value; }
 
     virtual bool Rotate(MSLAXIS axis, float factor) = 0;
     virtual bool Scale(const glm::vec3& factor) = 0;
 
-    virtual void SelectHandle(int handle) {}
+    // Clear any selected sub-handle (the visual highlight on a
+    // PolyPoint vertex / curve control point). Only PolyPoint
+    // tracks selected_handle; other screen locations no-op.
+    virtual void SelectHandle() {}
     // Id-returning accessor, mirrors GetActiveHandleId(). Only
     // PolyPoint stores a separate selected_handle; everywhere else
     // returns nullopt.
@@ -328,7 +290,6 @@ public:
     void SetOutputModelManager(OutputModelManager* omm) { _outputModelManager = omm; }
     void AddASAPWork(uint32_t work, const std::string& from);
     void SetDefaultMatrices() const;  // for models that draw themselves
-    virtual void SetActiveHandle(int handle);
     // Axis-gizmo roles (AxisArrow / AxisCube / AxisRing) are modifiers
     // on the current body handle — storing one would break
     // `IsRole(active_handle, …)` checks in subclass GetHandles and
@@ -343,31 +304,44 @@ public:
         highlighted_handle.reset();
         SetAxisTool(axis_tool);
     }
-    // int view for callers that still pattern-match on CENTER_HANDLE
-    // / START_HANDLE / etc. Internal storage is descriptor-based.
-    int GetActiveHandle() const {
-        return active_handle ? HandleIdToLegacyHandle(*active_handle) : NO_HANDLE;
+    // "Select the body" — the new-Id form of the legacy
+    // `SetActiveHandle(CENTER_HANDLE)` call. Defaults to a
+    // CentreCycle Id; TwoPointScreenLocation overrides to use
+    // Endpoint(CENTER) since TwoPoint's body marker has always
+    // been the centre sphere between START and END.
+    virtual void SetActiveHandleToCentre() {
+        handles::Id id;
+        id.role = handles::Role::CentreCycle;
+        SetActiveHandle(std::optional<handles::Id>(id));
     }
+    // "Select the default handle after model creation" — replaces
+    // the legacy `SetActiveHandle(GetDefaultHandle())` pattern.
+    // Most models (Boxed / Terrain): same as the centre body. Two-
+    // and Three-Point default to the END endpoint sphere so the
+    // freshly-placed model's gizmo lands on the drag target.
+    // PolyPoint defaults to vertex 1 (the second vertex), matching
+    // its legacy END_HANDLE meaning.
+    virtual void SetActiveHandleToDefault() { SetActiveHandleToCentre(); }
     const std::optional<handles::Id>& GetActiveHandleId() const { return active_handle; }
     virtual void SetActiveAxis(MSLAXIS axis);
     MSLAXIS GetActiveAxis() const { return active_axis; }
     virtual void AdvanceAxisTool()
     {
         switch (axis_tool) {
-        case MSLTOOL::TOOL_TRANSLATE:
-            axis_tool = MSLTOOL::TOOL_SCALE;
+        case handles::Tool::Translate:
+            axis_tool = handles::Tool::Scale;
             break;
-        case MSLTOOL::TOOL_SCALE:
-            axis_tool = MSLTOOL::TOOL_ROTATE;
+        case handles::Tool::Scale:
+            axis_tool = handles::Tool::Rotate;
             break;
-        case MSLTOOL::TOOL_ROTATE:
+        case handles::Tool::Rotate:
         default:
-            axis_tool = MSLTOOL::TOOL_TRANSLATE;
+            axis_tool = handles::Tool::Translate;
             break;
         }
     }
-    virtual void SetAxisTool(MSLTOOL mode) { axis_tool = mode; }
-    MSLTOOL GetAxisTool() const { return axis_tool; }
+    virtual void SetAxisTool(handles::Tool mode) { axis_tool = mode; }
+    handles::Tool GetAxisTool() const { return axis_tool; }
     // Ray-plane intersection helper. Builds a constraint plane based
     // on `axis_tool` + `active_axis` + `active_plane` (and an optional
     // `planePoint` to anchor the plane through), intersects the cursor
@@ -377,9 +351,9 @@ public:
                     glm::vec3& outIntersect,
                     glm::vec3 planePoint = glm::vec3(0.0f));
     void TranslateVector(glm::vec3& point) const;
-    virtual int GetDefaultHandle() const { return CENTER_HANDLE; }
-    virtual MSLTOOL GetDefaultTool() const { return MSLTOOL::TOOL_TRANSLATE; }
+    virtual handles::Tool GetDefaultTool() const { return handles::Tool::Translate; }
     virtual void MouseOverHandle(std::optional<handles::Id> handle);
+    const std::optional<handles::Id>& GetHighlightedHandleId() const { return highlighted_handle; }
     int GetNumSelectableHandles() const { return mSelectableHandles; }
     virtual bool IsXYTransHandle() const { return false; }
     virtual bool IsElevationHandle() const { return false; }
@@ -389,7 +363,19 @@ public:
 
     MSLPLANE GetPreferredSelectionPlane() { return preferred_selection_plane; }
     void SetPreferredSelectionPlane( MSLPLANE plane ) { preferred_selection_plane = plane; }
+    MSLPLANE GetActivePlane() const { return active_plane; }
     void SetActivePlane( MSLPLANE plane ) { active_plane = plane; }
+    // Choose the best world plane (XY / XZ / YZ) for projecting a
+    // drag based on the camera angles, then write it to
+    // `active_plane`. Sessions that read `GetActivePlane()` (e.g.
+    // PolyPointCreationSession) will then constrain drags to the
+    // plane most aligned with the current view. Caller should
+    // invoke right before opening a drag session.
+    void RefreshActivePlaneFromCamera(IModelPreview* preview) {
+        if (!preview) return;
+        bool rotate = false;
+        active_plane = GetBestIntersection(preferred_selection_plane, rotate, preview);
+    }
     void FindPlaneIntersection( int x, int y, IModelPreview* preview );
     void CreateWithDepth(bool b) {
         createWithDepth = b;
@@ -423,13 +409,12 @@ public:
     // about-point math) get an on-demand answer via GetHandles().
     // The `active_handle_pos` field remains for DrawHandles' own
     // gizmo math, where it's recomputed locally each frame.
-    // Id-keyed: iterates GetHandles() and matches by Id directly,
-    // bypassing HandleIdToLegacyHandle. Returns (0,0,0) for nullopt or
-    // an Id not present in the descriptor list.
+    // Id-keyed: iterates GetHandles() and matches by Id directly.
+    // Returns (0,0,0) for nullopt or an Id not present in the
+    // descriptor list.
     glm::vec3 GetHandlePositionById(const std::optional<handles::Id>& id) const;
     glm::vec3 GetActiveHandlePosition() const { return GetHandlePositionById(active_handle); }
-    virtual glm::vec3 GetHandlePosition(int handle) const;
-    glm::vec3 GetRotationAngles() const { return angles; }
+    glm::vec3 GetRotationAngles() const { return glm::vec3(rotatex, rotatey, rotatez); }
     glm::mat4 GetModelMatrix() const { return ModelMatrix; }
 
 protected:
@@ -452,13 +437,6 @@ protected:
     mutable glm::vec3 aabb_min = glm::vec3(0.0f);
     mutable glm::vec3 aabb_max = glm::vec3(0.0f);
 
-    // SpaceMouse 6-DOF baseline state. `saved_size` + `saved_scale`
-    // get latched in `AdjustRenderSize`; `saved_rotate` likewise.
-    // Read by `MoveHandle3D(scale, rot, mov)` to compute deltas from
-    // the baseline. Dies with the SpaceMouse migration.
-    glm::vec3 saved_size = glm::vec3(0.0f);
-    glm::vec3 saved_scale = glm::vec3(1.0f);
-    glm::vec3 saved_rotate = glm::vec3(0.0);
     glm::vec3 angles = glm::vec3(0.0);
 
     mutable bool draw_3d = false;
@@ -468,7 +446,7 @@ protected:
     std::optional<handles::Id> active_handle;
     std::optional<handles::Id> highlighted_handle;
     MSLAXIS active_axis = MSLAXIS::NO_AXIS;
-    MSLTOOL axis_tool = MSLTOOL::TOOL_TRANSLATE;
+    handles::Tool axis_tool = handles::Tool::Translate;
     int tool_size = 1;
     bool _hasX2 = false;
     bool supportsZScaling = false;

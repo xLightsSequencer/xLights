@@ -52,7 +52,7 @@ CopyFormat1::CopyFormat1(const std::string& data)
     // parse the header line
     wxArrayString cols = wxSplit(lines[0], '\t');
 
-    if (cols.size() != 7) {
+    if (cols.size() < 7) {
         // not the right number of columns in the header
         return;
     }
@@ -261,7 +261,7 @@ CopyFormat1Effect::CopyFormat1Effect(const std::string& data, bool pasteByCell)
     wxArrayString cols = wxSplit(data, '\t');
 
     if (!pasteByCell) {
-        if (cols.size() != 8) {
+        if (cols.size() < 8) {
             // not the right number of columns
             return;
         }

@@ -58,6 +58,7 @@ public:
 
 	void UpdatePanel(const std::string& group);
 	void AddPreviewChoice(const std::string& name);
+	void RenamePreviewChoice(const std::string& oldName, const std::string& newName);
 	std::string GetGroupName() const { return mGroup; }
 
 	//(*Declarations(ModelGroupPanel)
