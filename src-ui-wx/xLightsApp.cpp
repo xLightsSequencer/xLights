@@ -605,11 +605,6 @@ bool xLightsApp::OnInit()
 #endif
 
     spdlog::info("******* OnInit: XLights started.");
-#ifdef __WXMSW__
-    if (!IsSuppressDarkMode()) {
-        MSWEnableDarkMode();
-    }
-#endif
 #ifdef __WXGTK__
     // On Linux (GTK), wxWidgets 3.3 defaults to EGL for GL canvases (even on X11).
     // EGL surface creation fails in virtual GPU environments (virgl/Parallels, QEMU).
@@ -631,6 +626,12 @@ bool xLightsApp::OnInit()
     GetResourcesDirectory(); // bootstrap GetResourcesDir() with wx-dependent path lookup
     InitializeXLightsConfig();
     DumpConfig();
+
+#ifdef __WXMSW__
+    if (!IsSuppressDarkMode()) {
+        MSWEnableDarkMode();
+    }
+#endif
 
     // Stash the remembered show folder so show-folder special.options is applied
     // before the frame is constructed. InitialiseLogging() only knew the exe folder;
