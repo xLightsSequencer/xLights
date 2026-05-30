@@ -19,6 +19,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  buttons, per-path description labels, and a description text editor (#5871).
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
+    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
+                                 are added as DDP with auto-size/auto-layout.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
                                  filtered, checkbox list of targets (fixes #4462).
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
