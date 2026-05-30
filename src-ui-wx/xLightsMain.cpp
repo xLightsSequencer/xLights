@@ -4606,7 +4606,7 @@ std::string xLightsFrame::PackageDebugFiles(bool showDialog)
 
 static void AddLogFile(const wxString& CurrentDir, const wxString& fileName, wxDebugReport& report)
 {
-    wxString const filename = GetLogFilePath().string();
+    wxString const filename = wxString::FromUTF8((GetLogFileFolder() / fileName.ToStdString()).string());
 
     if (FileExists(filename)) {
         report.AddFile(filename, fileName);
