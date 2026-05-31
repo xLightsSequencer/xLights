@@ -11,9 +11,12 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
-
     -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
                                  start-channel references instead of resetting them to absolute channels.
+    -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
+                                 Same node-index translation on Faces effect if using Faces effect on a SubModel.
+    -enh (derwin12)              Sketch effect path management: multi-select, Delete key, Move Up/Down
+                                 buttons, per-path description labels, and a description text editor (#5871).
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
@@ -39,6 +42,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
+    -bug (derwin12)              Package Log Files: fix duplicate primary log in zip; rolled log now included.
     -bug (derwin12)              Fix lasso selection corrupting State/Faces effect values (#5783)
     -bug (derwin12)              Better handle multi chord MIDI tracks (#6434)
     -bug (Neil)                  Fix edit display elements eye-icon for HiDPI (#5015)

@@ -47,11 +47,6 @@ void StateEffect::OnMetadataLoaded() {
 std::list<std::string> StateEffect::CheckEffectSettings(const SettingsMap& settings, AudioManager* media, Model* model, Effect* eff, bool renderCache) {
     std::list<std::string> res = RenderableEffect::CheckEffectSettings(settings, media, model, eff, renderCache);
 
-    SubModel* sm = dynamic_cast<SubModel*>(model);
-    if (sm != nullptr) {
-        res.push_back(fmt::format("    ERR: State effect on SubModel will not render properly. Model '{}', Start {}", model->GetFullName(), FORMATTIME(eff->GetStartTimeMS())));
-    }
-
     // -Buffer not rotated
     std::string bufferTransform = settings.Get("B_CHOICE_BufferTransform", "None");
 
@@ -88,6 +83,11 @@ std::list<std::string> StateEffect::GetStates(Model* cls, std::string model) {
         Model* m = cls;
         if (cls->GetDisplayAs() == DisplayAsType::ModelGroup) {
             m = ((ModelGroup*)cls)->GetFirstModel();
+        } else if (cls->GetDisplayAs() == DisplayAsType::SubModel) {
+            SubModel* sm = dynamic_cast<SubModel*>(cls);
+            if (sm != nullptr) {
+                m = sm->GetParent();
+            }
         }
 
         if (m != nullptr) {
@@ -171,6 +171,20 @@ void StateEffect::RenderState(RenderBuffer& buffer,
     }
 
     const Model* model_info = buffer.GetModel();
+    const SubModel* subModel = nullptr;
+    if (model_info->GetDisplayAs() == DisplayAsType::SubModel) {
+        subModel = dynamic_cast<const SubModel*>(model_info);
+        if (subModel == nullptr) return;
+        model_info = subModel->GetParent();
+        if (model_info == nullptr) return;
+    }
+    auto toLocalNode = [&](int parentIdx) -> int {
+        if (subModel == nullptr) return parentIdx;
+        const auto& nim = subModel->GetNodeIndexMap();
+        auto mapped = nim.find(parentIdx);
+        return (mapped != nim.end()) ? mapped->second : -1;
+    };
+
     std::string definition = faceDefinition;
     bool found = true;
     std::map<std::string, std::map<std::string, std::string>>::const_iterator it = model_info->GetStateInfo().find(definition);
@@ -439,7 +453,8 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                         auto nodeIt = nodeMap.find(definition);
                         if (nodeIt != nodeMap.end()) {
                             for (const auto it : findNodeKey(nodeIt->second, statename)) {
-                                buffer.SetNodePixel(it, color, true);
+                                int localIdx = toLocalNode(it);
+                                if (localIdx >= 0) buffer.SetNodePixel(localIdx, color, true);
                             }
                         }
                     } else {
@@ -448,7 +463,8 @@ void StateEffect::RenderState(RenderBuffer& buffer,
                                 for (size_t n = 0; n < model_info->GetNodeCount(); n++) {
                                     std::string nn = model_info->GetNodeName(n, true);
                                     if (nn == valstr) {
-                                        buffer.SetNodePixel(n, color, true);
+                                        int localIdx = toLocalNode(n);
+                                        if (localIdx >= 0) buffer.SetNodePixel(localIdx, color, true);
                                     }
                                 }
                             }

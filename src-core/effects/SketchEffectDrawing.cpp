@@ -9,6 +9,42 @@
 
 namespace
 {
+    std::string encodeHex(const std::string& input)
+    {
+        static const char hex[] = "0123456789ABCDEF";
+        std::string output;
+        output.reserve(input.size() * 2);
+        for (unsigned char c : input) {
+            output.push_back(hex[(c >> 4) & 0x0F]);
+            output.push_back(hex[c & 0x0F]);
+        }
+        return output;
+    }
+
+    std::string decodeHex(const std::string& input)
+    {
+        if (input.size() % 2 != 0)
+            return std::string();
+
+        auto hexValue = [](char c) -> int {
+            if (c >= '0' && c <= '9') return c - '0';
+            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+            return -1;
+        };
+
+        std::string output;
+        output.reserve(input.size() / 2);
+        for (size_t i = 0; i < input.size(); i += 2) {
+            const int hi = hexValue(input[i]);
+            const int lo = hexValue(input[i + 1]);
+            if (hi < 0 || lo < 0)
+                return std::string();
+            output.push_back(static_cast<char>((hi << 4) | lo));
+        }
+        return output;
+    }
+
     double bezier(double t, double start, double control1, double control2, double end)
     {
         double u = 1 - t;
@@ -589,6 +625,8 @@ SketchEffectSketch SketchEffectSketch::SketchFromString(const std::string& sketc
                     } else {
                         path->closePath(false, SketchCanvasPathState::LineToNewPoint);
                     }
+                } else if (pathComponents_str.at(0) == 'D') {
+                    path->SetDescription(decodeHex(pathComponents_str.substr(1)));
                 }
             }
         } catch (...) {
@@ -617,6 +655,8 @@ std::string SketchEffectSketch::toString() const
 
         auto startPt(segments[0]->StartPoint());
         stream << startPt.x << ',' << startPt.y << ';';
+        if (!path->GetDescription().empty())
+            stream << 'D' << encodeHex(path->GetDescription()) << ';';
         for (size_t ii = 0; ii < segments.size(); ++ii) {
             std::shared_ptr<SketchCubicBezier> cubic;
             std::shared_ptr<SketchQuadraticBezier> quadratic;

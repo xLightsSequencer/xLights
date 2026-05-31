@@ -5,12 +5,16 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <wx/image.h>
 #include <wx/panel.h>
 
 class wxButton;
 class wxListBox;
+class wxStaticText;
+class wxTextCtrl;
+class wxFocusEvent;
 
 class SketchAssistPanel : public wxPanel,
                           public ISketchCanvasParent
@@ -55,13 +59,24 @@ private:
     void OnButton_ImportSketch(wxCommandEvent& event);
     void OnButton_ExportSketch(wxCommandEvent& event);
     void OnButton_ImportSVG(wxCommandEvent& event);
+    void OnButton_MovePathUp(wxCommandEvent& event);
+    void OnButton_MovePathDown(wxCommandEvent& event);
 
     void OnListBox_PathSelected(wxCommandEvent& event);
+    void OnListBox_KeyDown(wxKeyEvent& event);
+    void OnTextCtrl_PathDescription(wxCommandEvent& event);
+    void OnTextCtrl_PathDescriptionEnter(wxCommandEvent& event);
+    void OnTextCtrl_PathDescriptionKillFocus(wxFocusEvent& event);
     void OnListBox_ContextMenu(wxContextMenuEvent& event);
     void OnPopupCommand(wxCommandEvent& event);
 
     void updateBgImage();
     void populatePathListBoxFromSketch();
+    bool DeleteSelectedPaths();
+    std::vector<int> GetSelectedPathIndices() const;
+    void UpdatePathDescriptionEditorFromSelection();
+    void UpdatePathLabels();
+    void UpdatePathActionButtons();
     bool canContinuePath() const;
 
     bool areSame(double a, double b, float eps) const;
@@ -80,12 +95,22 @@ private:
     wxButton* m_importSketchBtn = nullptr;
     wxButton* m_exportSketchBtn = nullptr;
     wxButton* m_importSVGBtn = nullptr;
+    wxButton* m_movePathUpBtn = nullptr;
+    wxButton* m_movePathDownBtn = nullptr;
 
     wxListBox* m_pathsListBox = nullptr;
+    wxStaticText* m_pathsHeaderLabel = nullptr;
+    wxStaticText* m_pathDescriptionLabel = nullptr;
+    wxTextCtrl* m_pathDescriptionText = nullptr;
+    bool m_ignoreDescriptionTextEvent = false;
+    std::string m_lastCommittedPathDescription;
     static long ID_MENU_Delete;
     static long ID_MENU_Reverse;
     static long ID_MENU_MoveUp;
     static long ID_MENU_MoveDown;
+    static long ID_MENU_MoveToTop;
+    static long ID_MENU_MoveToBottom;
+    static long ID_MENU_SortByDescription;
 
     wxString m_bgImagePath;
     wxImage m_bgImage;
