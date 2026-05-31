@@ -11,6 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
+    -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
+                                 start-channel references instead of resetting them to absolute channels.
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
     -enh (derwin12)              Sketch effect path management: multi-select, Delete key, Move Up/Down
