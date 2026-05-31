@@ -5568,8 +5568,18 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     std::string relocated;
-    for (const auto& [orig, resolved] : _sequenceElements.GetSequenceMedia().GetImageRelocations()) {
-        relocated += orig + " -> " + resolved + "\n";
+    {
+        constexpr int MAX_RELOC_DISPLAY = 15;
+        const auto& relocations = _sequenceElements.GetSequenceMedia().GetImageRelocations();
+        int shown = 0;
+        for (const auto& [orig, resolved] : relocations) {
+            if (shown >= MAX_RELOC_DISPLAY) {
+                relocated += "... and " + std::to_string((int)relocations.size() - MAX_RELOC_DISPLAY) + " more (not shown)\n";
+                break;
+            }
+            relocated += orig + " -> " + resolved + "\n";
+            ++shown;
+        }
     }
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
