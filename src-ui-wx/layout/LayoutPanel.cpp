@@ -4808,15 +4808,21 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // each additional sibling into additionalModelObjects so FinalizeModel can
             // place them alongside the primary model.
             if (additionalModelObjects != nullptr && strcmp(root.name(), "models") == 0) {
-                pugi::xml_node primaryNode = root.first_child();
-                if (primaryNode) {
-                    float wx = primaryNode.attribute("WorldPosX").as_float(0.0f);
-                    float wy = primaryNode.attribute("WorldPosY").as_float(0.0f);
-                    float wz = primaryNode.attribute("WorldPosZ").as_float(0.0f);
-                    model->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(wx, wy, wz));
-                }
+                auto applyWorldPos = [](Model* m, const pugi::xml_node& n) {
+                    m->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(
+                        n.attribute("WorldPosX").as_float(0.0f),
+                        n.attribute("WorldPosY").as_float(0.0f),
+                        n.attribute("WorldPosZ").as_float(0.0f)));
+                };
 
-                for (pugi::xml_node child = root.first_child().next_sibling(); child; child = child.next_sibling()) {
+                pugi::xml_node primaryNode = root.first_child();
+                while (primaryNode && primaryNode.type() != pugi::node_element)
+                    primaryNode = primaryNode.next_sibling();
+                if (primaryNode)
+                    applyWorldPos(model, primaryNode);
+
+                for (pugi::xml_node child = primaryNode ? primaryNode.next_sibling() : pugi::xml_node(); child; child = child.next_sibling()) {
+                    if (child.type() != pugi::node_element) continue;
                     bool extraCancelled = false;
                     xlights->GetOutputModelManager()->DisableASAPWork(true);
                     Model* extraModel = xlights->AllModels.CreateDefaultModel("Custom", "1");
@@ -4828,10 +4834,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     if (!extraModel->HasIndividualStartChannels()) {
                         extraModel->SetControllerName(NO_CONTROLLER, true);
                     }
-                    float wx = child.attribute("WorldPosX").as_float(0.0f);
-                    float wy = child.attribute("WorldPosY").as_float(0.0f);
-                    float wz = child.attribute("WorldPosZ").as_float(0.0f);
-                    extraModel->GetBaseObjectScreenLocation().SetWorldPosition(glm::vec3(wx, wy, wz));
+                    applyWorldPos(extraModel, child);
                     additionalModelObjects->push_back(extraModel);
                 }
             }
@@ -4998,16 +5001,18 @@ void LayoutPanel::FinalizeModel()
                 glm::vec3 primaryOrigPos = _newModel->GetBaseObjectScreenLocation().GetWorldPosition();
                 float anchorX = primaryOrigPos.x;
                 float anchorY = primaryOrigPos.y;
+                float anchorZ = primaryOrigPos.z;
                 for (Model* em : additionalModelObjects) {
                     if (em == nullptr) continue;
                     glm::vec3 ep = em->GetBaseObjectScreenLocation().GetWorldPosition();
                     anchorX = std::min(anchorX, ep.x);
                     anchorY = std::min(anchorY, ep.y);
+                    anchorZ = std::min(anchorZ, ep.z);
                 }
-                multiModelAnchor = glm::vec3(anchorX, anchorY, 0.0f);
+                multiModelAnchor = glm::vec3(anchorX, anchorY, anchorZ);
                 glm::vec3 adjustedPos(pos.x + (primaryOrigPos.x - anchorX),
                                       pos.y + (primaryOrigPos.y - anchorY),
-                                      pos.z);
+                                      pos.z + (primaryOrigPos.z - anchorZ));
                 if (_newModel->GetDisplayAs() == DisplayAsType::PolyLine) {
                     _newModel->SetPosition(adjustedPos.x, adjustedPos.y);
                 } else {
