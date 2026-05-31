@@ -354,11 +354,8 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
 
     mediaDirectories.clear();
-    if (!xLightsApp::mediaDir.IsNull()) {
-        std::string mds = xLightsApp::mediaDir.ToStdString();
-        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), mds) == mediaDirectories.end())
-            mediaDirectories.push_back(mds);
-    }
+    if (!xLightsApp::mediaDir.IsNull())
+        mediaDirectories.push_back(xLightsApp::mediaDir.ToStdString());
     {
         wxString mediaDirConfig;
         config->Read("MediaDir", &mediaDirConfig);
@@ -371,7 +368,11 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
             }
         }
     }
-    mediaDirectories.push_back(ToStdString(CurrentDir));
+    {
+        std::string curDir = ToStdString(CurrentDir);
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), curDir) == mediaDirectories.end())
+            mediaDirectories.push_back(curDir);
+    }
 
     long fseqLinkFlag = 0;
     config->Read("FSEQLinkFlag", &fseqLinkFlag);
