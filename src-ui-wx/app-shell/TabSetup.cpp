@@ -25,6 +25,7 @@
 #include <thread>
 
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "layout/LayoutPanel.h"
 #include "render/SequenceFile.h"
 #ifdef __WXOSX__
@@ -351,8 +352,26 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     } else {
         wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
     }
-    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
-        mediaDirectories.push_back(CurrentDir);
+
+    mediaDirectories.clear();
+    if (!xLightsApp::mediaDir.IsNull())
+        mediaDirectories.push_back(xLightsApp::mediaDir.ToStdString());
+    {
+        wxString mediaDirConfig;
+        config->Read("MediaDir", &mediaDirConfig);
+        if (!mediaDirConfig.empty()) {
+            wxArrayString entries = wxSplit(mediaDirConfig, '|', '\0');
+            for (auto& d : entries) {
+                std::string dstd = d.ToStdString();
+                if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end())
+                    mediaDirectories.push_back(dstd);
+            }
+        }
+    }
+    {
+        std::string curDir = ToStdString(CurrentDir);
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), curDir) == mediaDirectories.end())
+            mediaDirectories.push_back(curDir);
     }
 
     long fseqLinkFlag = 0;
