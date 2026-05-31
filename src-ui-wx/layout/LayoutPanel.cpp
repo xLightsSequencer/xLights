@@ -4808,10 +4808,11 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // The deserialized model object has _controllerName="" (C++ default), not
             // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
             // point rather than auto-assigning it, leaving it stuck at channel 1.
-            // Models with individual start channels on import are exempt - ie: moving heads strands
-            if (!model->HasIndividualStartChannels()) {
+            // Models with individual start channels and models using @/> model-relative
+            // references are exempt — those are intentional and must be preserved.
+            const std::string& sc = model->GetModelStartChannel();
+            if (!model->HasIndividualStartChannels() && (sc.empty() || (sc[0] != '@' && sc[0] != '>')))
                 model->SetControllerName(NO_CONTROLLER, true);
-            }
 
             // For multi-model xmodel files (<models> root with multiple children), load
             // each additional sibling into additionalModelObjects so FinalizeModel can
@@ -4826,9 +4827,9 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     extraModel->SetStartChannel("1");
                     extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
                     if (extraCancelled || extraModel == nullptr) continue;
-                    if (!extraModel->HasIndividualStartChannels()) {
+                    const std::string& extraSc = extraModel->GetModelStartChannel();
+                    if (!extraModel->HasIndividualStartChannels() && (extraSc.empty() || (extraSc[0] != '@' && extraSc[0] != '>')))
                         extraModel->SetControllerName(NO_CONTROLLER, true);
-                    }
                     additionalModelObjects->push_back(extraModel);
                 }
             }

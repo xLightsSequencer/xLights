@@ -12,6 +12,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.10  May ??, 2026
 
+    -bug (cybercop23)                 Importing a multi-model xmodel file now preserves @Model:N and >Model:N
+                                 start-channel references instead of resetting them to absolute channels.
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
