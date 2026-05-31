@@ -14437,8 +14437,15 @@ NSString* fppTypeString(FPP_TYPE t) {
         return [NSString stringWithUTF8String:info.mediaFile.c_str()];
     }
 
-    std::filesystem::path raw(info.mediaFile);
-    std::string basename = raw.filename().string();
+    // Extract the basename treating BOTH '/' and '\' as separators: a
+    // sequence authored on Windows stores "B:\Music\song.mp3", and
+    // std::filesystem on iOS parses with the POSIX format where '\' is
+    // an ordinary character, so .filename() would return the whole
+    // string instead of "song.mp3" (mirrors desktop ManageMediaPanel).
+    auto sepPos = info.mediaFile.find_last_of("/\\");
+    std::string basename = (sepPos == std::string::npos)
+                               ? info.mediaFile
+                               : info.mediaFile.substr(sepPos + 1);
     for (const auto& folder : _context->GetMediaFolders()) {
         std::string candidate = folder + "/" + basename;
         if (FileExists(candidate)) {
