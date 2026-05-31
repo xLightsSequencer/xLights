@@ -4056,8 +4056,8 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     }
 
     if (model != nullptr) {
-        // Preserve individual start channels (@Model:chan references) — ModelStartChannel
-        // must survive because ComputeStringStartChannel(0) returns it directly.
+        // Preserve model-relative start channels (@Model:chan and >Model:chan references) --
+        // ModelStartChannel must survive because ComputeStringStartChannel(0) returns it directly.
         const std::string& importedSc = model->GetModelStartChannel();
         if (!model->HasIndividualStartChannels() && (importedSc.empty() || (importedSc[0] != '@' && importedSc[0] != '>')))
             model->SetStartChannel(sc);

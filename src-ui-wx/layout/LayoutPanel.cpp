@@ -4809,7 +4809,7 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
             // NO_CONTROLLER, which causes ReworkStartChannel to treat it as a fixed reference
             // point rather than auto-assigning it, leaving it stuck at channel 1.
             // Models with individual start channels and models using @/> model-relative
-            // references are exempt — those are intentional and must be preserved.
+            // references are exempt - those are intentional and must be preserved.
             const std::string& sc = model->GetModelStartChannel();
             if (!model->HasIndividualStartChannels() && (sc.empty() || (sc[0] != '@' && sc[0] != '>')))
                 model->SetControllerName(NO_CONTROLLER, true);
