@@ -10,6 +10,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.11  June ??, 2026
+
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
