@@ -12,6 +12,7 @@
 
 #include "effects/BufferStyles.h"
 #include "effects/EffectManager.h"
+#include "import_export/LOREdit.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "render/Effect.h"
@@ -27,6 +28,8 @@
 #include <spdlog/spdlog.h>
 
 #include <cstdio>
+#include <cstdlib>
+#include <regex>
 
 void MapXLightsEffects(EffectLayer* target, EffectLayer* src,
                        std::vector<EffectLayer*>& mapped, bool eraseExisting,
@@ -207,5 +210,281 @@ void MapXLightsEffects(Element* target,
     for (size_t x = 0; x < el->GetEffectLayerCount(); ++x) {
         target->GetEffectLayer(x)->SetLayerName(el->GetEffectLayer(x)->GetLayerName());
         MapXLightsEffects(target->GetEffectLayer(x), el->GetEffectLayer(x), mapped, eraseExisting, xsqPkg, lock, mapping, cr, mappingModelType);
+    }
+}
+
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el, const LOREdit& lorEdit, const std::string& model, Model* m, int frequency, int offset, bool eraseExisting)
+{
+    if (el == nullptr)
+        return;
+
+    if (eraseExisting)
+        el->DeleteAllEffects();
+
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
+
+    auto st = lorEdit.GetSequencingType(model);
+
+    if (st == loreditType::CHANNELS) {
+        auto effects = lorEdit.GetChannelEffects(model, 0, m, offset);
+
+        for (const auto& it : effects) {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock)
+                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(model, layer, offset);
+
+        for (const auto& it : effects) {
+            if (!el->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    el->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, Model* m, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (nl == nullptr)
+        return;
+
+    if (eraseExisting)
+        nl->DeleteAllEffects();
+
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
+
+    auto st = lorEdit.GetSequencingType(mapping);
+
+    if (st == loreditType::CHANNELS) {
+        auto effects = lorEdit.GetChannelEffects(mapping, node, m, offset);
+
+        for (const auto& it : effects) {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock)
+                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
+
+        for (const auto& it : effects) {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (eraseExisting)
+        layer->DeleteAllEffects();
+
+    Model* m = layer->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(layer->GetParentElement()->GetModelName());
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
+
+    static const std::regex regex(R"(\[(\d+),(\d+),(\d+)\]\[(.*)\])");
+    std::smatch mm;
+    if (std::regex_search(mapping, mm, regex)) {
+        int const row = (int)std::strtol(mm[1].str().c_str(), nullptr, 10);
+        int const col = (int)std::strtol(mm[2].str().c_str(), nullptr, 10);
+        int const color = (int)std::strtol(mm[3].str().c_str(), nullptr, 10);
+        std::string strColor = mm[4].str();
+        std::string name = mm.prefix().str() + mm.suffix().str();
+
+        auto effects = lorEdit.GetChannelEffects(name, row, col, color, offset);
+
+        for (auto& it : effects) {
+            if (!layer->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                LOREdit::setNodeColor(strColor, it);
+                std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock)
+                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    layer->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl, int nodes, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (nl == nullptr)
+        return;
+
+    if (eraseExisting)
+        nl->DeleteAllEffects();
+
+    Model* m = nl->GetParentElement()->GetSequenceElements()->GetRenderContext()->GetModel(nl->GetParentElement()->GetModelName());
+    bool channelBlock = (m != nullptr && m->GetDisplayAs() == DisplayAsType::ChannelBlock);
+
+    auto st = lorEdit.GetSequencingType(mapping);
+
+    if (st == loreditType::CHANNELS) {
+        auto effects = lorEdit.GetChannelEffects(mapping, node, nodes, offset);
+
+        for (const auto& it : effects) {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                // for channel blocks we always use white as the colour comes from the channel block
+                if (channelBlock)
+                    palette = "C_BUTTON_Palette1=#ffffff,C_CHECKBOX_Palette1=1";
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        // pixel effects on a node ... not useful but whatever
+        auto effects = lorEdit.GetTrackEffects(mapping, 0, offset);
+
+        for (const auto& it : effects) {
+            if (!nl->HasEffectsInTimeRange(it.startMS, it.endMS)) {
+                std::string palette = it.GetPalette();
+                std::string ef = it.GetxLightsEffect();
+                if (ef != "") {
+                    std::string settings = it.GetSettings(palette);
+                    nl->AddEffect(0, ef, settings, palette, it.startMS, it.endMS, false, false);
+                }
+            }
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, Element* model, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = model->GetSequenceElements()->GetRenderContext()->GetModel(model->GetModelName());
+
+    if (st == loreditType::CHANNELS) {
+        if (m->GetNodeCount() == 1) {
+            MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+        } else {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1) {
+                MapS5ChannelEffects(effectManager, 0, model->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+            } else {
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++) {
+                    NodeLayer* nl = model->GetNodeEffectLayer(i);
+                    if (nl != nullptr) {
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
+            if ((int)model->GetEffectLayerCount() < i + 1) {
+                model->AddEffectLayer();
+            }
+            MapS5(effectManager, i, model->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
+
+    if (st == loreditType::CHANNELS) {
+        if (se->GetNodeLayerCount() == 1) {
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
+        } else {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1) {
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), 1, lorEdit, mapping, frequency, offset, eraseExisting);
+            } else {
+                int nodes = se->GetNodeLayerCount();
+                for (int i = 0; i < nodes; i++) {
+                    NodeLayer* nl = se->GetNodeEffectLayer(i);
+                    if (nl != nullptr) {
+                        MapS5ChannelEffects(effectManager, i, nl, nodes, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
+            if ((int)se->GetEffectLayerCount() < i + 1) {
+                se->AddEffectLayer();
+            }
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
+    }
+}
+
+void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)
+{
+    if (dynamic_cast<StrandElement*>(se) != nullptr) {
+        return MapS5Effects(effectManager, dynamic_cast<StrandElement*>(se), lorEdit, mapping, frequency, offset, eraseExisting);
+    }
+
+    auto st = lorEdit.GetSequencingType(mapping);
+    Model* m = se->GetSequenceElements()->GetRenderContext()->GetModel(se->GetModelName());
+
+    if (st == loreditType::CHANNELS) {
+        if (m->GetNodeCount() == 1) {
+            MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+        } else {
+            int lr, lc;
+            lorEdit.GetModelChannels(mapping, lr, lc);
+
+            if (lr == 1 && lc == 1) {
+                MapS5ChannelEffects(effectManager, 0, se->GetEffectLayer(0), m, lorEdit, mapping, frequency, offset, eraseExisting);
+            } else {
+                for (uint32_t i = 0; i < m->GetNodeCount(); i++) {
+                    NodeLayer* nl = se->GetNodeEffectLayer(i);
+                    if (nl != nullptr) {
+                        MapS5ChannelEffects(effectManager, i, nl, m, lorEdit, mapping, frequency, offset, eraseExisting);
+                    }
+                }
+            }
+        }
+    } else if (st == loreditType::TRACKS) {
+        for (int i = 0; i < lorEdit.GetModelLayers(mapping); i++) {
+            if ((int)se->GetEffectLayerCount() < i + 1) {
+                se->AddEffectLayer();
+            }
+            MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
+        }
     }
 }

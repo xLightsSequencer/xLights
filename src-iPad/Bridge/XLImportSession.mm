@@ -767,17 +767,112 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
     if (_loreditMode) {
-        // The `.loredit` discovery / mapping flow is wired (source list,
-        // destination tree, AutoMapper, MapHints) but the effect-synthesis
-        // apply path — the iPad equivalent of desktop MapS5 / MapS5Effects /
-        // MapS5ChannelEffects — is not yet ported. Fail loudly rather than
-        // silently doing nothing so the gap is visible to the caller.
-        if (outError) {
-            *outError = [NSError errorWithDomain:@"XLImportSession" code:13
-                          userInfo:@{ NSLocalizedDescriptionKey:
-                                      @"Applying LOR S5 (.loredit) effects is not yet supported on iPad. Mapping is available; effect import is coming in a later update." }];
+        // LOR S5 (.loredit) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportS5. Walks the same destination tree the .xsq path
+        // uses, but replays through the (now wx-free core) MapS5* family rather
+        // than MapXLightsEffects, because the source is a LOREdit reader, not a
+        // SequenceElements tree.
+        if (rc == nullptr || _loredit == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
         }
-        return NO;
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        const EffectManager& effectManager = rc->GetEffectManager();
+        int const frequency = targetSE.GetFrequency();
+        int const offset = 0; // iPad has no time-offset control yet; desktop's TimeAdjustSpinCtrl defaults to 0
+        bool const erase = eraseExisting ? true : false;
+
+        // Selected timing tracks → synthesized timing elements (mirrors the
+        // ImportS5 timing loop). In .loredit mode the entries carry no source
+        // TimingElement — the marks come from _loreditTimings.
+        for (const auto& track : _timingTracks) {
+            if (!track.selected) continue;
+            auto itTimings = _loreditTimings.find(track.name);
+            if (itTimings == _loreditTimings.end()) continue;
+
+            TimingElement* target = static_cast<TimingElement*>(
+                targetSE.AddElement(track.name, "timing", true, true, false, false, false));
+            char cnt = '1';
+            while (target == nullptr && cnt <= '9') {
+                target = static_cast<TimingElement*>(
+                    targetSE.AddElement(track.name + "-" + cnt, "timing", true, true, false, false, false));
+                ++cnt;
+            }
+            if (target == nullptr) {
+                spdlog::warn("XLImportSession::apply(loredit): could not add timing element '{}'", track.name);
+                continue;
+            }
+            if (target->GetEffectLayerCount() == 0) {
+                target->AddEffectLayer();
+            }
+            EffectLayer* targetLayer = target->GetEffectLayer(0);
+            for (const auto& t : itTimings->second) {
+                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+            }
+        }
+
+        // Mapped models → MapS5*. ri mirrors desktop ImportS5's model-loop
+        // index `i` (passed to the per-node MapS5ChannelEffects overload).
+        for (size_t ri = 0; ri < _destinationRoots.size(); ++ri) {
+            const auto& root = _destinationRoots[ri];
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(loredit): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+            Model* mdl = rc->GetModel(targetEl->GetModelName());
+
+            if (!root->_mapping.empty()) {
+                if (!LOREdit::IsNodeStrandMapping(root->_mapping)) {
+                    MapS5Effects(effectManager, targetEl, *_loredit, root->_mapping, frequency, offset, erase);
+                } else {
+                    MapS5ChannelEffects(effectManager, targetEl->GetEffectLayer(0), *_loredit, root->_mapping, frequency, offset, erase);
+                }
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+
+                if (!child->_mapping.empty() && ste != nullptr) {
+                    if (!LOREdit::IsNodeStrandMapping(child->_mapping)) {
+                        MapS5Effects(effectManager, ste, *_loredit, child->_mapping, frequency, offset, erase);
+                    } else {
+                        MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), *_loredit, child->_mapping, frequency, offset, erase);
+                    }
+                }
+
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* nodeNode = child->GetNthChild(n);
+                    if (nodeNode == nullptr || nodeNode->_mapping.empty()) continue;
+                    if (stre == nullptr) continue;
+                    NodeLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl == nullptr) continue;
+                    if (LOREdit::IsNodeStrandMapping(child->_mapping)) {
+                        MapS5ChannelEffects(effectManager, nl, *_loredit, child->_mapping, frequency, offset, erase);
+                    } else {
+                        auto st = _loredit->GetSequencingType(nodeNode->_mapping);
+                        if (st == loreditType::CHANNELS) {
+                            MapS5ChannelEffects(effectManager, (int)ri, nl, mdl, *_loredit, nodeNode->_mapping, frequency, offset, erase);
+                        } else if (st == loreditType::TRACKS) {
+                            MapS5(effectManager, 0, nl, *_loredit, nodeNode->_mapping, mdl, frequency, offset, erase);
+                        }
+                    }
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
     }
     if (rc == nullptr || _sourceElements == nullptr) {
         if (outError) {
