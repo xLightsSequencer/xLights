@@ -10,6 +10,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+
 2026.11  June ??, 2026
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
@@ -21,7 +22,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
-                                 filtered, checkbox list of targets (fixes #4462).
+                                 filtered, checkbox list of targets (#4462).
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
     -enh (heffneil)              Show Face/State/SubModel/Node count badges on the Model pane
@@ -35,14 +36,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (heffneil)              Layout copy/paste: smarter placement of the duplicate and only the new copy
                                  is selected after paste (#6192).
     -enh (derwin12)              Select Effects panel results are now sorted by time (#6389).
-    -enh (derwin12)              FPP Connect upload now also calls SetInputUniversesBridge so inputs match
-                                 the Controller upload path (#2747).
+    -enh (derwin12)              FPP Connect upload inputs match the way Controller upload works (#2747).
     -enh (derwin12)              Import Mapping switched back to checkboxes for lyric tracks; remembers the
                                  show-timeline setting (#6403).
     -enh (jessica12ryan)         RenderProgressDialog now stays on top of other windows (#6404).
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
+    -bug (derwin12)              Fix media relative paths when using temp showfolder
     -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
                                  start-channel references instead of resetting them to absolute channels.
     -bug (derwin12)              Package Log Files: fix duplicate primary log in zip; rolled log now included.
@@ -72,14 +73,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
-    -bug (derwin12)              Renaming a preview now updates all pick lists and the View menu (fixes #6430).
+    -bug (derwin12)              Renaming a preview now updates all pick lists and the View menu (#6430).
     -bug (derwin12)              Fix pivot point for rotating multiple objects (#6418)
     -bug (dkulp)                 Fix drag-and-drop of Video/Pictures/Glediator/Shader files onto the effect
                                  grid losing the filename
     -bug (dkulp)                 macOS: Video effect now renders rawvideo MOV files (rgb24/bgr24/rgba/bgra)
     -bug (derwin12)              Fix imports for both old and new xmodel formats (Layout import, Node Select
                                  Grid, SubModels dialog) (#6411).
-    -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397, #6400).
+    -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397).
     -bug (derwin12)              PolyLine division-by-zero produced NaN coords that crashed the macOS depth
                                  sort (#6407).
     -bug (derwin12)              Fix the model preview for PolyLine with Drops (#6208).
@@ -90,13 +91,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Shockwave effect: end time no longer exceeds the effect end time (#6398).
     -bug (derwin12)              Text effect: fix multi-line "color per word" rendering (#6393).
     -bug (derwin12)              Shape effect: fix browse-button enable/disable logic (#6390).
-    -bug (derwin12)              SubModels dialog: extra comma appearing after the wxSplit→Split switch
-                                 because of empty-string handling differences (#6377).
+    -bug (derwin12)              SubModels dialog: extra comma appearing (#6377).
     -bug (derwin12)              Don't flag embedded images as missing in the sequence checker (#6378).
     -bug (derwin12)              Color picker swatch panel: full repaint on resize fixes artifacts (#6376).
     -bug (AlexB)                 Keep individual start channels when importing models (#6384).
-    -bug (AlexB)                 Fix vendor catalog download issues — surface errors and use longer timeouts
-                                 for the large-file fetches (#6381).
+    -bug (AlexB)                 Fix vendor catalog download issues (#6381).
     -bug (dkulp)                 Avoid creating and destroying wxCursor objects on every mouse move across
                                  the grid canvases, color/value curve dialogs, and assist panels.
     -bug (dkulp)                 macOS: fix waveform cursor memory leak (cursors were never released).
