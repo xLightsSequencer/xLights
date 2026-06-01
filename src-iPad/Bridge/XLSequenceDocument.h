@@ -348,6 +348,8 @@ NS_ASSUME_NONNULL_BEGIN
 // reloadRows afterwards.
 - (void)collapseAllElements;
 - (void)expandAllElements;
+// SEQ-15: expand model elements that have effects (collapse the empty ones).
+- (void)expandElementsWithEffects;
 
 // B46: in-place rename of an effect layer's name (`EffectLayer::
 // SetLayerName`). Empty string clears the name. Returns NO if the
@@ -1988,6 +1990,9 @@ NS_ASSUME_NONNULL_BEGIN
 // the count removed. Dirties the sequence when anything was
 // removed.
 - (int)removeUnusedMedia;
+// MED-5: forget a single media entry by its stored path/value (even if still
+// referenced — user re-sources or re-imports). Dirties the sequence.
+- (BOOL)removeMediaAtPath:(NSString*)path NS_SWIFT_NAME(removeMedia(atPath:));
 
 // Video compatibility check (G32 — C5). Wraps
 // `MediaCompatibility::CheckVideoFile`: returns nil when the

@@ -5002,6 +5002,11 @@ class SequencerViewModel {
         document.expandAllElements()
         reloadRows()
     }
+    /// SEQ-15 — expand only model rows that have effects (collapse empty ones).
+    func expandElementsWithEffects() {
+        document.expandElementsWithEffects()
+        reloadRows()
+    }
 
     /// B10: snap every selected effect's start / end edges to the
     /// nearest active timing-track mark edge within ~1/2 of the

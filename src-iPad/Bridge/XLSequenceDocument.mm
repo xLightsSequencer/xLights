@@ -995,6 +995,20 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     se.PopulateRowInformation();
 }
 
+- (void)expandElementsWithEffects {
+    // SEQ-15 "Show All Effects": expand every model element that has effects
+    // (so all effects are visible) and collapse the empty ones to declutter.
+    auto& se = _context->GetSequenceElements();
+    size_t n = se.GetElementCount(se.GetCurrentView());
+    for (size_t i = 0; i < n; i++) {
+        Element* e = se.GetElement(i, se.GetCurrentView());
+        if (!e) continue;
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        e->SetCollapsed(!e->HasEffects());
+    }
+    se.PopulateRowInformation();
+}
+
 - (BOOL)renameLayerAtRow:(int)rowIndex name:(NSString*)newName {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer) return NO;
@@ -10993,6 +11007,17 @@ NSString* OptionalString(const std::string& s) {
     }
     if (removed > 0) bumpSequenceDirty(_context.get());
     return removed;
+}
+
+- (BOOL)removeMediaAtPath:(NSString*)path {
+    // MED-5: forget one embedded/cached media entry by its stored path/value
+    // (the same key GetAllMediaPaths / effect settings use), even if still
+    // referenced — the user re-sources it or re-imports. Mirrors removeUnusedMedia.
+    if (!_context || path.length == 0) return NO;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    media.RemoveMedia(std::string([path UTF8String]));
+    bumpSequenceDirty(_context.get());
+    return YES;
 }
 
 - (int)extractAllMediaOfType:(NSString*)typeFilter {

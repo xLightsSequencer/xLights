@@ -786,7 +786,15 @@ struct SequencerGridV2View: View {
                 editTimingTarget = nil
             }
         } message: { _ in
-            Text("Enter start and end times in seconds.")
+            // SEQ-18 — live duration readout as start/end are edited. (An
+            // editable Duration field + frame-stepped Steppers need an
+            // alert→sheet conversion — SwiftUI alerts can't host Steppers.)
+            let durMS = (Self.parseSeconds(editTimingEndText) ?? 0) - (Self.parseSeconds(editTimingStartText) ?? 0)
+            if durMS > 0 {
+                Text(String(format: "Enter start and end times in seconds. Duration: %.3f s", Double(durMS) / 1000.0))
+            } else {
+                Text("Enter start and end times in seconds.")
+            }
         }
         // B89 auto-label-marks alert.
         .alert("Auto-Label Marks",
@@ -1333,6 +1341,11 @@ struct SequencerGridV2View: View {
                         viewModel.expandAllElements()
                     } label: {
                         Label("Expand All", systemImage: "arrow.up.and.down")
+                    }
+                    Button {
+                        viewModel.expandElementsWithEffects()
+                    } label: {
+                        Label("Show All Effects", systemImage: "rectangle.expand.vertical")
                     }
                     // B81: hide / show every timing row at once.
                     let allHidden = viewModel.allTimingTracksHidden
