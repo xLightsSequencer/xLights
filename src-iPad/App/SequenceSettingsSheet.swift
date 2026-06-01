@@ -331,7 +331,7 @@ private struct TimingsTab: View {
         var label: String {
             switch self {
             case .xtiming:    return "xLights (.xtiming)"
-            case .lor:        return "LOR (.lms)"
+            case .lor:        return "LOR (.lms / .las)"
             case .papagayo:   return "Papagayo (.pgo)"
             case .srt:        return "Subtitles (.srt)"
             case .audacity:   return "Audacity Labels (.txt)"
@@ -373,7 +373,7 @@ private struct TimingsTab: View {
             .listStyle(.inset)
             .fileImporter(
                 isPresented: $importing,
-                allowedContentTypes: [importContentType],
+                allowedContentTypes: importContentTypes,
                 allowsMultipleSelection: false
             ) { result in
                 handleImport(result: result)
@@ -610,6 +610,15 @@ private struct TimingsTab: View {
         case .lsp:        return UTType(filenameExtension: "msq") ?? .data
         case .xlightsSeq: return UTType(filenameExtension: "xsq") ?? .xml
         }
+    }
+
+    // SEQ-7 — one extension per format, except LOR which accepts both .lms
+    // (musical) and .las (animation), matching desktop's ImportTimingElement.
+    private var importContentTypes: [UTType] {
+        if importFormat == .lor {
+            return [UTType(filenameExtension: "lms"), UTType(filenameExtension: "las")].compactMap { $0 }
+        }
+        return [importContentType]
     }
 
     private func handleImport(result: Result<[URL], Error>) {

@@ -1644,6 +1644,10 @@ struct SequencerGridV2View: View {
                     },
                     onHalveTimingMarks: {
                         _ = viewModel.halveTimingMarks(rowIndex: row.id)
+                    },
+                    canSelectMarks: !row.effects.isEmpty,
+                    onSelectMarks: {
+                        viewModel.selectAllEffectsInRow(rowIndex: row.id)
                     }
                 )
             }

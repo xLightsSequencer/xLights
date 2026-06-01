@@ -50,6 +50,10 @@ struct TimingRowHeader: View {
     /// B91: fires when the user picks "Halve Timing Marks" —
     /// splits every mark at its midpoint.
     var onHalveTimingMarks: (() -> Void)?
+    /// SEQ-19: fires when the user picks "Select All Marks" — multi-selects
+    /// every timing mark on this row. Gated by `canSelectMarks`.
+    var canSelectMarks: Bool = false
+    var onSelectMarks: (() -> Void)?
 
     // Active state is carried on `row.timing?.isActive` so a toggle
     // here flips the struct equality and re-runs the grid body —
@@ -217,6 +221,11 @@ struct TimingRowHeader: View {
                     Button { fire() } label: {
                         Label("Halve Timing Marks",
                                systemImage: "square.split.1x2")
+                    }
+                }
+                if canSelectMarks, let fire = onSelectMarks {
+                    Button { fire() } label: {
+                        Label("Select All Marks", systemImage: "checklist")
                     }
                 }
                 Button(role: .destructive) {

@@ -118,10 +118,12 @@ struct EffectPropertyView: View {
                                     currentPath: rawValue,
                                     onChoose: { writeValue($0) },
                                     onClear: { writeValue("") })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "fontpicker":
             FontpickerPropertyView(property: property,
                                     currentDesc: rawValue,
                                     onChange: { writeValue($0) })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "point2d":
             Point2DPropertyView(property: property,
                                   metadataPrefix: metadataPrefix)
