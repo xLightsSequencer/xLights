@@ -80,7 +80,7 @@ jobs:
         shell: powershell
         run: |
           if (Test-Path "C:\Android\android-sdk") {
-              Remove-Item -Recurlect -Force -Path "C:\Android\android-sdk"
+              Remove-Item -Recurse -Force -Path "C:\Android\android-sdk"
           }
 
       # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
