@@ -55,11 +55,10 @@ jobs:
 
     env:
       BUILD_DIR: cmake_ninja_openvino
-      # Release-only custom triplet (see ci_scripts/vcpkg-openvino/triplets) so
-      # vcpkg doesn't also build the huge OpenVINO debug tree, which overflows
-      # the runner disk. The nightly only ships a Release installer.
-      VCPKG_DEFAULT_TRIPLET: x64-windows-rel
-      VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}\ci_scripts\vcpkg-openvino\triplets
+      # Built-in release-only triplet so vcpkg doesn't also build the huge
+      # OpenVINO debug tree, which overflows the runner disk. The nightly only
+      # ships a Release installer.
+      VCPKG_DEFAULT_TRIPLET: x64-windows-release
       SCCACHE_GHA_ENABLED: "true"
       # vcpkg stores each compiled package in the GitHub Actions cache by content
       # hash, so only changed dependencies are rebuilt on later runs.
@@ -73,21 +72,32 @@ jobs:
           submodules: true
 
       # ── Free disk space ───────────────────────────────────────────────────
-      # The Android SDK ships preinstalled on the Windows runner (~several GB)
-      # and xLights never uses it. Delete it up front so the OpenVINO vcpkg
-      # build doesn't overflow the disk.
+      # The Android SDK/NDK ships preinstalled on the runner (~several GB) and
+      # xLights never uses it. Delete it up front to make room for the OpenVINO
+      # vcpkg build. Its location varies per runner, so resolve it from the
+      # standard env vars rather than assuming a fixed drive/path.
       - name: Free disk space (remove Android SDK)
         shell: pwsh
         run: |
-          $before = (Get-PSDrive C).Free / 1GB
-          foreach ($p in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, "C:\Android")) {
-            if ($p -and (Test-Path $p)) {
-              Write-Host "Removing $p"
+          $targets = @(
+            $env:ANDROID_SDK_ROOT, $env:ANDROID_HOME,
+            $env:ANDROID_NDK_ROOT, $env:ANDROID_NDK_HOME, $env:ANDROID_NDK
+          ) | Where-Object { $_ } | Select-Object -Unique
+          if (-not $targets) {
+            Write-Host "No Android SDK/NDK env vars set; nothing to remove."
+            return
+          }
+          foreach ($p in $targets) {
+            if (Test-Path $p) {
+              $drive = (Get-Item $p).PSDrive.Name
+              $free  = (Get-PSDrive $drive).Free / 1GB
+              Write-Host ("Removing {0} (drive {1}: {2:N1} GB free)" -f $p, $drive, $free)
               Remove-Item -Path $p -Recurse -Force -ErrorAction SilentlyContinue
+              Write-Host ("  -> {0}: now {1:N1} GB free" -f $drive, ((Get-PSDrive $drive).Free / 1GB))
+            } else {
+              Write-Host "Skipping $p (not present)"
             }
           }
-          $after = (Get-PSDrive C).Free / 1GB
-          Write-Host ("C: free {0:N1} GB -> {1:N1} GB" -f $before, $after)
 
       # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
       - name: Setup MSVC (x64)
@@ -184,8 +194,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
-            -DVCPKG_TARGET_TRIPLET=x64-windows-rel ^
-            -DVCPKG_OVERLAY_TRIPLETS=%CD%\ci_scripts\vcpkg-openvino\triplets ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows-release ^
             -DVCPKG_MANIFEST_DIR=%CD%\ci_scripts\vcpkg-openvino ^
             -DXLIGHTS_USE_VCPKG=ON ^
             -DXLIGHTS_USE_OPENVINO_GENAI=ON ^
@@ -238,7 +247,7 @@ jobs:
       - name: Copy OpenVINO runtime into bin
         shell: pwsh
         run: |
-          $inst = Join-Path $env:BUILD_DIR "vcpkg_installed\x64-windows-rel"
+          $inst = Join-Path $env:BUILD_DIR "vcpkg_installed\x64-windows-release"
           $dest = Join-Path $env:GITHUB_WORKSPACE "bin"
           New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
