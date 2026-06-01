@@ -284,8 +284,31 @@
 												<border>5</border>
 											</object>
 											<object class="sizeritem">
-												<object class="wxStaticText" name="wxID_ANY" variable="StaticTextBkgOffset" member="yes">
-													<label>Horiz: 0.00  Vert: 0.00</label>
+												<object class="wxBoxSizer" variable="OffsetDisplaySizer" member="no">
+													<orient>wxVERTICAL</orient>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticTextBkgOffset" member="yes">
+															<label>Horiz: 0.00</label>
+														</object>
+														<flag>0</flag>
+														<border>0</border>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticText" name="wxID_ANY" variable="StaticTextBkgVert" member="yes">
+															<label>Vert:  0.00</label>
+														</object>
+														<flag>0</flag>
+														<border>0</border>
+													</object>
+												</object>
+												<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+												<border>5</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_BKG_RESET" variable="BtnBkgReset" member="yes">
+													<label>Reset</label>
+													<tooltip>Reset image offset to zero</tooltip>
+													<handler function="OnBtnBkgReset" entry="EVT_BUTTON" />
 												</object>
 												<flag>wxALIGN_CENTER_VERTICAL</flag>
 												<border>0</border>
