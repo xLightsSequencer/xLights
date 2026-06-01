@@ -46,6 +46,7 @@
 #include "media/MediaCompatibility.h"
 #include "media/VideoReader.h"
 #include "render/ValueCurve.h"
+#include "import_export/ExportModels.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
@@ -14872,6 +14873,293 @@ NSString* fppTypeString(FPP_TYPE t) {
     }
     return @{@"outcomes": outcomes,
              @"cancelled": @(cancelledFlag)};
+}
+
+#pragma mark - IE-15 Export Models report
+
+- (BOOL)exportModelsReportToPath:(NSString*)path {
+    if (!_context || !path || !_context->IsSequenceLoaded() || !_context->HasModelManager()) {
+        return NO;
+    }
+    ObtainAccessToURL(path.UTF8String, /*enforceWritable=*/true);
+    return ::ExportModels(std::string(path.UTF8String),
+                          _context->GetModelManager(),
+                          _context->GetOutputManager())
+               ? YES
+               : NO;
+}
+
+@end
+
+// MARK: - Effect preset library (PRE-1)
+
+namespace {
+// Resolve a backslash-separated group path to a group node, or the
+// root when `path` is empty. Returns nullptr when a path segment is
+// missing or names a leaf preset rather than a group.
+EffectPresetGroup* ResolveGroup(EffectPresetManager& mgr, NSString* path) {
+    std::string p = path ? std::string([path UTF8String]) : std::string();
+    if (p.empty()) {
+        return &mgr.GetRoot();
+    }
+    EffectPresetItem* item = mgr.FindItemByPath(p, '\\');
+    if (item == nullptr || !item->IsGroup()) {
+        return nullptr;
+    }
+    return static_cast<EffectPresetGroup*>(item);
+}
+
+void CollectPresetTree(const EffectPresetGroup& group,
+                       const std::string& prefix,
+                       NSMutableArray* out) {
+    for (const auto& child : group.GetChildren()) {
+        std::string path = prefix.empty() ? child->GetName()
+                                          : prefix + "\\" + child->GetName();
+        if (child->IsGroup()) {
+            [out addObject:@{
+                @"path": [NSString stringWithUTF8String:path.c_str()],
+                @"isGroup": @YES,
+                @"layerCount": @0,
+                @"durationMS": @0,
+            }];
+            CollectPresetTree(static_cast<const EffectPresetGroup&>(*child),
+                              path, out);
+        } else {
+            const auto& preset = static_cast<const EffectPreset&>(*child);
+            [out addObject:@{
+                @"path": [NSString stringWithUTF8String:path.c_str()],
+                @"isGroup": @NO,
+                @"layerCount": @(preset.GetLayerCount()),
+                @"durationMS": @(preset.GetDurationMS()),
+            }];
+        }
+    }
+}
+
+std::vector<std::string> SplitOn(const std::string& s, char sep) {
+    std::vector<std::string> parts;
+    std::string cur;
+    for (char ch : s) {
+        if (ch == sep) {
+            parts.push_back(cur);
+            cur.clear();
+        } else {
+            cur.push_back(ch);
+        }
+    }
+    parts.push_back(cur);
+    return parts;
+}
+} // namespace
+
+@implementation XLSequenceDocument (EffectPresets)
+
+- (NSArray<NSDictionary*>*)presetTree {
+    NSMutableArray* out = [NSMutableArray array];
+    CollectPresetTree(_context->GetEffectPresetManager().GetRoot(), "", out);
+    return out;
+}
+
+- (BOOL)savePresetFromRows:(NSArray<NSNumber*>*)rows
+             effectIndices:(NSArray<NSNumber*>*)effectIndices
+                 groupPath:(NSString*)groupPath
+                      name:(NSString*)name {
+    std::string trimmedName = name ? std::string([name UTF8String]) : std::string();
+    if (trimmedName.empty()) return NO;
+    if (rows.count == 0 || rows.count != effectIndices.count) return NO;
+
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
+    if (parent == nullptr) return NO;
+
+    // Anchor rows so the lowest selected grid row becomes row 0 in the
+    // serialized blob — desktop ParseLayers / paste expect relative rows.
+    int minRow = INT_MAX;
+    for (NSNumber* r in rows) {
+        minRow = std::min(minRow, r.intValue);
+    }
+    if (minRow == INT_MAX) return NO;
+
+    std::string effectData;
+    int numEffects = 0;
+    for (NSUInteger i = 0; i < rows.count; ++i) {
+        int rowIndex = rows[i].intValue;
+        int effectIndex = effectIndices[i].intValue;
+        auto* layer = [self effectLayerForRow:rowIndex];
+        if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) {
+            continue;
+        }
+        Effect* e = layer->GetEffect(effectIndex);
+        if (!e) continue;
+        int relRow = rowIndex - minRow;
+        effectData += e->GetEffectName() + "\t" + e->GetSettingsAsString() + "\t" +
+                      e->GetPaletteAsString() + "\t" +
+                      std::to_string(e->GetStartTimeMS()) + "\t" +
+                      std::to_string(e->GetEndTimeMS()) + "\t" +
+                      std::to_string(relRow) + "\t-1000\tNO_PASTE_BY_CELL\tLAYER:0\n";
+        ++numEffects;
+    }
+    if (numEffects == 0) return NO;
+
+    std::string blob = "CopyFormat1\t0\t" + std::to_string(numEffects) +
+                       "\t0\t0\t-1\tNO_PASTE_BY_CELL\n" + effectData;
+
+    mgr.AddPreset(parent, trimmedName, blob,
+                  XLIGHTS_RGBEFFECTS_VERSION, xlights_version_string);
+    return YES;
+}
+
+- (BOOL)applyPresetAtPath:(NSString*)path
+                    toRow:(int)rowIndex
+                atStartMS:(int)startMS {
+    if (!path || rowIndex < 0) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPreset* preset = mgr.FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) return NO;
+
+    const std::string& blob = preset->GetSettings();
+    if (blob.empty()) return NO;
+
+    // Parse the CopyFormat1 effect lines into relative-offset records,
+    // then lay them out anchored at (rowIndex, startMS) the same way the
+    // clipboard paste does.
+    struct Rec { std::string name, settings, palette; int relRow; int start; int end; };
+    std::vector<Rec> recs;
+    int minStart = INT_MAX;
+    int minRow = INT_MAX;
+    for (const std::string& line : SplitOn(blob, '\n')) {
+        if (line.empty()) continue;
+        std::vector<std::string> f = SplitOn(line, '\t');
+        if (f.empty() || f[0] == "CopyFormat1" || f[0] == "CopyFormatAC" ||
+            f[0] == "None" || f.size() < 6) {
+            continue;
+        }
+        Rec r;
+        r.name = f[0];
+        r.settings = f[1];
+        r.palette = f[2];
+        r.start = (int)std::strtol(f[3].c_str(), nullptr, 10);
+        r.end = (int)std::strtol(f[4].c_str(), nullptr, 10);
+        r.relRow = (int)std::strtol(f[5].c_str(), nullptr, 10);
+        if (r.end <= r.start) continue;
+        minStart = std::min(minStart, r.start);
+        minRow = std::min(minRow, r.relRow);
+        recs.push_back(std::move(r));
+    }
+    if (recs.empty() || minStart == INT_MAX) return NO;
+
+    int rowCount = (int)_context->GetSequenceElements().GetRowInformationSize();
+    bool any = false;
+    for (const Rec& r : recs) {
+        int targetRow = rowIndex + (r.relRow - minRow);
+        if (targetRow < 0 || targetRow >= rowCount) continue;
+        auto* layer = [self effectLayerForRow:targetRow];
+        if (!layer) continue;
+        int targetStart = startMS + (r.start - minStart);
+        int targetEnd = targetStart + (r.end - r.start);
+        if (targetEnd <= targetStart) continue;
+        Effect* e = layer->AddEffect(0, r.name, r.settings, r.palette,
+                                     targetStart, targetEnd, EFFECT_NOT_SELECTED, false);
+        if (e) {
+            Element* element = layer->GetParentElement();
+            if (element) {
+                _context->RenderEffectForModel(element->GetModelName(),
+                                               targetStart, targetEnd, false);
+            }
+            any = true;
+        }
+    }
+    return any ? YES : NO;
+}
+
+- (BOOL)addPresetGroupNamed:(NSString*)name
+              inGroupAtPath:(NSString*)parentGroupPath {
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, parentGroupPath);
+    if (parent == nullptr || parent->HasChildNamed(n)) return NO;
+    mgr.AddGroup(parent, n);
+    return YES;
+}
+
+- (BOOL)renamePresetItemAtPath:(NSString*)path to:(NSString*)newName {
+    std::string n = newName ? std::string([newName UTF8String]) : std::string();
+    if (!path || n.empty()) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([path UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    EffectPresetGroup* parent = item->GetParent();
+    if (parent && parent->FindChildByName(n) != nullptr &&
+        parent->FindChildByName(n) != item) {
+        return NO; // sibling collision
+    }
+    mgr.RenameItem(item, n);
+    return YES;
+}
+
+- (BOOL)deletePresetItemAtPath:(NSString*)path {
+    if (!path) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([path UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    mgr.Remove(item);
+    return YES;
+}
+
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath {
+    if (!fromPath) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([fromPath UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    EffectPresetGroup* dest = ResolveGroup(mgr, toGroupPath);
+    if (dest == nullptr) return NO;
+    // Refuse moving a group into itself or one of its descendants.
+    for (EffectPresetGroup* g = dest; g != nullptr; g = g->GetParent()) {
+        if (g == item) return NO;
+    }
+    if (dest->HasChildNamed(item->GetName())) return NO;
+    mgr.MoveItem(item, dest);
+    return YES;
+}
+
+- (BOOL)importPresetsFromPath:(NSString*)xmlPath
+              intoGroupAtPath:(NSString*)groupPath {
+    if (!xmlPath) return NO;
+    std::string p = [xmlPath UTF8String];
+    ObtainAccessToURL(p, false);
+    if (!FileExists(p)) return NO;
+
+    pugi::xml_document doc;
+    if (!doc.load_file(p.c_str())) return NO;
+
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
+    if (parent == nullptr) return NO;
+
+    // Accept either a bare <effects> fragment or a full rgbeffects doc
+    // (<xrgb>/<xlights> with an <effects> child).
+    pugi::xml_node effectsNode = doc.child("effects");
+    if (!effectsNode) {
+        pugi::xml_node root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) effectsNode = root.child("effects");
+    }
+    if (!effectsNode) return NO;
+    mgr.ImportFromXml(effectsNode, parent);
+    return YES;
+}
+
+- (BOOL)exportPresetsToPath:(NSString*)path {
+    if (!path) return NO;
+    std::string p = [path UTF8String];
+    ObtainAccessToURL(p, true);
+    return _context->GetEffectPresetManager().SaveJsonFile(p) ? YES : NO;
+}
+
+- (BOOL)savePresets {
+    return _context->SaveEffectPresets() ? YES : NO;
 }
 
 @end

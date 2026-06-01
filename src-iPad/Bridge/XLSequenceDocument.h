@@ -2735,6 +2735,97 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
                     progress:(nullable id<XLFPPUploadProgress>)progress
     NS_SWIFT_NAME(uploadFseq(_:toFPPInstances:progress:));
 
+// IE-15 — write the Models report workbook (Models / Groups /
+// Controllers / Totals sheets) to `path` as a .xlsx, using the
+// document's ModelManager + OutputManager. Mirrors the desktop
+// File > Export Models. Returns NO if the document has no models or
+// the workbook couldn't be written. Caller should hand `path` a
+// temp .xlsx URL and then share it.
+- (BOOL)exportModelsReportToPath:(NSString*)path
+    NS_SWIFT_NAME(exportModelsReport(toPath:));
+
+@end
+
+// MARK: - Effect preset library (PRE-1)
+//
+// Persistent, hierarchical effect-preset store backed by the shared
+// core EffectPresetManager owned by iPadRenderContext. Presets live in
+// `<showFolder>/xlights_effectpresets.json` (desktop format) so they
+// round-trip cross-platform. All mutating methods leave the in-memory
+// tree updated but DO NOT write to disk — call `savePresets` to
+// persist (the view model batches this after an undo-able op).
+@interface XLSequenceDocument (EffectPresets)
+
+// Pre-order flat snapshot of the preset tree. Each entry:
+//   "path"       — NSString, backslash-separated full path (the key
+//                  used by every other preset method).
+//   "isGroup"    — NSNumber(BOOL).
+//   "layerCount" — NSNumber(int), grid rows the preset spans (0 for groups).
+//   "durationMS" — NSNumber(int), total ms covered (0 for groups).
+- (NSArray<NSDictionary*>*)presetTree;
+
+// Capture the effects identified by parallel `rows` / `effectIndices`
+// arrays into a new preset named `name` under `groupPath` (empty =
+// root). Serializes to the desktop CopyFormat1 blob so the preset
+// round-trips with desktop. Returns NO if the selection is empty, the
+// name is blank, or `groupPath` doesn't resolve to a group.
+- (BOOL)savePresetFromRows:(NSArray<NSNumber*>*)rows
+             effectIndices:(NSArray<NSNumber*>*)effectIndices
+                 groupPath:(NSString*)groupPath
+                      name:(NSString*)name
+    NS_SWIFT_NAME(savePreset(fromRows:effectIndices:groupPath:name:));
+
+// Apply the preset at `path` onto `rowIndex`, anchoring its earliest
+// effect at `startMS`. Multi-effect / multi-row presets lay their
+// remaining effects out relative to that anchor (same model trail as
+// desktop paste). Returns NO if the path isn't a preset or the row is
+// invalid. Routes through the same AddEffect path the clipboard uses.
+- (BOOL)applyPresetAtPath:(NSString*)path
+                    toRow:(int)rowIndex
+                atStartMS:(int)startMS
+    NS_SWIFT_NAME(applyPreset(atPath:toRow:atStartMS:));
+
+// Create an empty group named `name` under `parentGroupPath` (empty =
+// root). Returns NO on blank name, missing parent, or name collision.
+- (BOOL)addPresetGroupNamed:(NSString*)name
+              inGroupAtPath:(NSString*)parentGroupPath
+    NS_SWIFT_NAME(addPresetGroup(named:inGroupPath:));
+
+// Rename the preset / group at `path`. Returns NO if the path doesn't
+// resolve or the new name collides with a sibling.
+- (BOOL)renamePresetItemAtPath:(NSString*)path
+                            to:(NSString*)newName
+    NS_SWIFT_NAME(renamePreset(atPath:to:));
+
+// Delete the preset / group (recursive) at `path`. Returns NO if the
+// path doesn't resolve.
+- (BOOL)deletePresetItemAtPath:(NSString*)path
+    NS_SWIFT_NAME(deletePreset(atPath:));
+
+// Move the item at `fromPath` into the group at `toGroupPath` (empty =
+// root). Returns NO if either path fails to resolve, the destination
+// isn't a group, or the move would place a group inside itself.
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath
+    NS_SWIFT_NAME(movePreset(fromPath:toGroupPath:));
+
+// Import an effects-tree XML file (a desktop `xlights_rgbeffects.xml`
+// or exported `<effects>` fragment) into `groupPath` (empty = root).
+// Returns NO on parse failure or missing group.
+- (BOOL)importPresetsFromPath:(NSString*)xmlPath
+                  intoGroupAtPath:(NSString*)groupPath
+    NS_SWIFT_NAME(importPresets(fromPath:intoGroupPath:));
+
+// Export the whole preset library to a JSON file at `path` (desktop
+// JSON format). Returns NO on write failure.
+- (BOOL)exportPresetsToPath:(NSString*)path
+    NS_SWIFT_NAME(exportPresets(toPath:));
+
+// Persist the in-memory preset tree to
+// `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns
+// NO on write failure of the main file.
+- (BOOL)savePresets;
+
 @end
 
 NS_ASSUME_NONNULL_END

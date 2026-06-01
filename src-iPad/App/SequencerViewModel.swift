@@ -129,6 +129,10 @@ class SequencerViewModel {
     var findReplacePresented: Bool = false
     /// SEQ-2 — toggled by the Edit ▸ Color Replace menu item.
     var colorReplacePresented: Bool = false
+    /// PRE-1 — toggled by the Effects ▸ Presets… command and the
+    /// effect context-menu "Manage Presets…" entry; cleared by the
+    /// browser sheet's Done button.
+    var presetBrowserPresented: Bool = false
     // F-4 playback speed. Desktop exposes 0.25/0.5/0.75/1.0/1.5/2/3/4x
     // — we match that set in the Playback menu. Applied to the
     // AVAudioEngine time-pitch unit via the bridge on `play()`, and
@@ -1161,6 +1165,7 @@ class SequencerViewModel {
         reloadAltTracks()
         reloadRows()
         reloadTagPositions()
+        reloadPresets()                 // PRE-1
         syncClipboardFromPasteboard()   // B99
         loadAvailableEffects()
         // Initial load uses a modest sample count; grid re-requests
@@ -2997,104 +3002,196 @@ class SequencerViewModel {
         undoManager.setActionName("Edit Description")
     }
 
-    // MARK: - Effect presets (B19, session-only)
+    // MARK: - Effect presets (PRE-1, persistent)
 
-    /// Snapshot of an effect's type + settings + palette. Session-
-    /// only for now — persistence is Phase C work. Identity is
-    /// `name` (preset name chosen by the user).
-    struct EffectPreset: Identifiable, Hashable {
-        let id: UUID
-        var name: String
-        let effectName: String
-        let settings: String
-        let palette: String
+    /// One node in the persistent preset tree, mirroring the bridge's
+    /// `presetTree()` dictionaries. `path` is the backslash-separated
+    /// key every mutating call uses; `name` is the trailing component
+    /// for display; `depth` (group nesting level) drives indentation in
+    /// the browser. Leaf presets carry `layerCount` / `durationMS`.
+    struct PresetTreeItem: Identifiable, Hashable {
+        let path: String
+        let isGroup: Bool
+        let layerCount: Int
+        let durationMS: Int
+
+        var id: String { path }
+        var name: String {
+            if let last = path.split(separator: "\\").last { return String(last) }
+            return path
+        }
+        var depth: Int {
+            path.isEmpty ? 0 : path.filter { $0 == "\\" }.count
+        }
     }
 
-    /// Session-only preset store. Cleared on app launch; a future
-    /// Phase C `EffectPresetManager` will persist to disk. Exposed
-    /// for the effect context menu to list + apply.
-    var presets: [EffectPreset] = []
+    /// Backing store for the persistent preset library, rebuilt from
+    /// the bridge whenever the tree changes. SwiftUI views read this;
+    /// every mutation funnels through the methods below so the on-disk
+    /// JSON + this snapshot stay in sync.
+    var presetTree: [PresetTreeItem] = []
 
-    /// Capture the selected effect's current settings as a named
-    /// preset. No-ops if nothing is selected or the name is blank.
+    /// Backslash-separated group paths only (for "save into group"
+    /// pickers). Always includes the empty-string root, presented as
+    /// "(Top Level)" by the UI.
+    var presetGroupPaths: [String] {
+        [""] + presetTree.filter { $0.isGroup }.map { $0.path }
+    }
+
+    /// Rebuild `presetTree` from the bridge. Called after every preset
+    /// mutation and at sequence open.
+    func reloadPresets() {
+        let raw = document.presetTree()
+        presetTree = raw.compactMap { dict in
+            guard let path = dict["path"] as? String,
+                  let isGroup = dict["isGroup"] as? NSNumber else { return nil }
+            let layers = (dict["layerCount"] as? NSNumber)?.intValue ?? 0
+            let dur = (dict["durationMS"] as? NSNumber)?.intValue ?? 0
+            return PresetTreeItem(path: path, isGroup: isGroup.boolValue,
+                                   layerCount: layers, durationMS: dur)
+        }
+    }
+
+    /// Persist the in-memory preset tree to disk, then refresh the
+    /// snapshot. Called by every mutating preset op.
+    private func commitPresets() {
+        _ = document.savePresets()
+        reloadPresets()
+    }
+
+    /// Capture the current selection (single or multi) as a named
+    /// preset under `groupPath` (empty = top level). Serializes to the
+    /// desktop CopyFormat1 blob so the preset round-trips with desktop.
+    /// No-ops if nothing is selected or the name is blank.
     @discardableResult
-    func saveSelectedEffectAsPreset(name: String) -> Bool {
+    func saveSelectedEffectAsPreset(name: String, groupPath: String = "") -> Bool {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        guard let sel = selectedEffect else { return false }
-        let row = Int32(sel.rowIndex)
-        let idx = Int32(sel.effectIndex)
-        let effectName = document.effectName(forRow: row, at: idx)
-        let settings = document.effectSettingsString(forRow: row, at: idx)
-        let palette = document.effectPaletteString(forRow: row, at: idx)
-        let preset = EffectPreset(id: UUID(), name: trimmed,
-                                    effectName: effectName,
-                                    settings: settings, palette: palette)
-        // Replace an existing preset with the same name — matches
-        // desktop's overwrite-on-save behaviour.
-        if let existing = presets.firstIndex(where: { $0.name == trimmed }) {
-            presets[existing] = preset
-        } else {
-            presets.append(preset)
-        }
-        return true
-    }
-
-    /// Apply `preset` to every selected effect. If the preset's
-    /// effect type matches the target's type the settings + palette
-    /// replace the target's wholesale; otherwise the effect is
-    /// deleted and a new one of the preset's type is added at the
-    /// same time range. Registered as a single undo step.
-    @discardableResult
-    func applyPreset(_ preset: EffectPreset) -> Bool {
         let targets: [EffectSelection]
         if selectedEffects.count > 1 {
             targets = Array(selectedEffects)
         } else if let one = selectedEffect {
             targets = [one]
         } else { return false }
-        undoManager.beginUndoGrouping()
-        for sel in targets {
-            let row = Int32(sel.rowIndex)
-            let idx = Int32(sel.effectIndex)
-            let currentName = document.effectName(forRow: row, at: idx)
-            if currentName == preset.effectName {
-                applySettingsTransform(selection: sel) { _, _ in
-                    Self.parseSettingsString(preset.settings)
-                }
-                // applySettingsTransform re-uses the target's existing
-                // palette; override it by calling replaceEffectSettings
-                // once more with the preset's palette so colour
-                // customisations travel with the preset.
-                _ = document.replaceEffectSettings(preset.settings,
-                                                     palette: preset.palette,
-                                                     inRow: row, atIndex: idx)
-            } else {
-                // Different effect type — delete + re-add. Preserves
-                // [startMS, endMS] so the replacement sits in the
-                // same slot.
-                let startMS = sel.startTimeMS
-                let endMS = sel.endTimeMS
-                deleteEffect(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
-                _ = document.addEffect(toRow: row, name: preset.effectName,
-                                         settings: preset.settings,
-                                         palette: preset.palette,
-                                         startMS: Int32(startMS),
-                                         endMS: Int32(endMS))
-            }
+        let rows = targets.map { NSNumber(value: $0.rowIndex) }
+        let idxs = targets.map { NSNumber(value: $0.effectIndex) }
+        guard document.savePreset(fromRows: rows, effectIndices: idxs,
+                                  groupPath: groupPath, name: trimmed) else {
+            return false
         }
-        undoManager.endUndoGrouping()
-        undoManager.setActionName("Apply Preset \(preset.name)")
-        refreshSelectedEffectSettings()
-        reloadRows()
+        commitPresets()
         return true
     }
 
-    /// Remove a preset from the session store. The UI's "Manage
-    /// Presets…" sheet will drive this once we have one; exposed
-    /// now so tests can prune.
-    func deletePreset(_ preset: EffectPreset) {
-        presets.removeAll { $0.id == preset.id }
+    /// Apply the preset at `path` to every selected effect, anchoring
+    /// it at each target's start. Registered as a single undo step.
+    /// Returns false if the path isn't a preset or nothing is selected.
+    @discardableResult
+    func applyPreset(atPath path: String) -> Bool {
+        var targets: [EffectSelection]
+        if selectedEffects.count > 1 {
+            targets = Array(selectedEffects)
+        } else if let one = selectedEffect {
+            targets = [one]
+        } else { return false }
+        // Delete + re-apply per target. Process high index first within
+        // each row so a delete doesn't shift the indices of targets we
+        // haven't handled yet. startMS comes from the selection snapshot
+        // (not re-read), so the apply anchors at the right time.
+        targets.sort {
+            if $0.rowIndex != $1.rowIndex { return $0.rowIndex > $1.rowIndex }
+            return $0.effectIndex > $1.effectIndex
+        }
+        undoManager.beginUndoGrouping()
+        var any = false
+        for sel in targets {
+            let startMS = sel.startTimeMS
+            deleteEffect(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
+            if document.applyPreset(atPath: path,
+                                     toRow: Int32(sel.rowIndex),
+                                     atStartMS: Int32(startMS)) {
+                any = true
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Apply Preset")
+        refreshSelectedEffectSettings()
+        reloadRows()
+        return any
+    }
+
+    /// Apply the preset at `path` onto a specific cell (used by the
+    /// browser's "apply to play position" affordance). Single undo
+    /// step. Does not require a current selection.
+    @discardableResult
+    func applyPreset(atPath path: String, toRow rowIndex: Int, startMS: Int) -> Bool {
+        undoManager.beginUndoGrouping()
+        let ok = document.applyPreset(atPath: path,
+                                       toRow: Int32(rowIndex),
+                                       atStartMS: Int32(startMS))
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Apply Preset")
+        reloadRows()
+        return ok
+    }
+
+    /// Create an empty preset group named `name` under `parentPath`
+    /// (empty = top level).
+    @discardableResult
+    func addPresetGroup(named name: String, inGroupPath parentPath: String = "") -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard document.addPresetGroup(named: trimmed, inGroupPath: parentPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Rename the preset / group at `path` to `newName`.
+    @discardableResult
+    func renamePreset(atPath path: String, to newName: String) -> Bool {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard document.renamePreset(atPath: path, to: trimmed) else { return false }
+        commitPresets()
+        return true
+    }
+
+    /// Delete the preset / group (recursive) at `path`.
+    @discardableResult
+    func deletePreset(atPath path: String) -> Bool {
+        guard document.deletePreset(atPath: path) else { return false }
+        commitPresets()
+        return true
+    }
+
+    /// Move the item at `fromPath` into the group at `toGroupPath`
+    /// (empty = top level).
+    @discardableResult
+    func movePreset(fromPath: String, toGroupPath: String) -> Bool {
+        guard document.movePreset(fromPath: fromPath, toGroupPath: toGroupPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Import a desktop effects-tree XML (rgbeffects.xml or an
+    /// exported `<effects>` fragment) into `groupPath`.
+    @discardableResult
+    func importPresets(fromPath xmlPath: String, intoGroupPath groupPath: String = "") -> Bool {
+        guard document.importPresets(fromPath: xmlPath, intoGroupPath: groupPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Export the whole preset library to a JSON file (desktop format).
+    @discardableResult
+    func exportPresets(toPath path: String) -> Bool {
+        document.exportPresets(toPath: path)
     }
 
     // MARK: - Randomize / Reset (B15)

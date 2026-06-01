@@ -52,7 +52,7 @@
     <ClCompile Include="..\src-ui-wx\sequencer\EffectIconPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectListDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\effects\EffectPresetManager.cpp" />
+    <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
@@ -180,7 +180,8 @@
     <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
     <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\effects\CharMapDialog.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp">
@@ -1408,7 +1409,7 @@
     <ClInclude Include="..\src-ui-wx\sequencer\EffectIconPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectListDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsPanel.h" />
-    <ClInclude Include="..\src-ui-wx\effects\EffectPresetManager.h" />
+    <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
@@ -1535,7 +1536,8 @@
     <ClInclude Include="..\src-ui-wx\model\PathGenerationDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
-    <ClInclude Include="..\src-ui-wx\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\effects\CharMapDialog.h" />

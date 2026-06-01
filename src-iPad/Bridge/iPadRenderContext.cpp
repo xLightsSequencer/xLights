@@ -43,6 +43,7 @@
 
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
+#include <globals.h>
 #include <log.h>
 
 #include <algorithm>
@@ -306,6 +307,51 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         if (root) loadPaletteFrom(root);
     }
 
+    // PRE-1 — load the persistent effect preset library. Prefer the
+    // desktop JSON file so presets round-trip cross-platform; fall back
+    // to the legacy <effects> node embedded in xlights_rgbeffects.xml
+    // (migration path, matching xLightsFrame::LoadEffectsFile). The
+    // version stamp is needed so a later SaveEffectPresets writes a
+    // current-format file.
+    _effectPresetManager.Reset();
+    std::string presetsPath = showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, false);
+    if (_effectPresetManager.LoadJsonFile(presetsPath)) {
+        spdlog::info("iPadRenderContext: Loaded effect presets from {}", presetsPath);
+    } else if (result) {
+        auto root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) {
+            auto effectsNode = root.child("effects");
+            if (effectsNode) {
+                _effectPresetManager.Load(effectsNode);
+                spdlog::info("iPadRenderContext: Migrated effect presets from {} (<effects> node)", rgbPath);
+            }
+        }
+    }
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+
+    return true;
+}
+
+bool iPadRenderContext::SaveEffectPresets() {
+    if (_showDir.empty())
+        return false;
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+    std::string backupPath = _showDir + "/" + XLIGHTS_PRESETS_FILE_BACKUP;
+    ObtainAccessToURL(backupPath, true);
+    _effectPresetManager.SaveJsonFile(backupPath); // best-effort
+
+    std::string presetsPath = _showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, true);
+    if (!_effectPresetManager.SaveJsonFile(presetsPath)) {
+        spdlog::warn("iPadRenderContext: failed to save effect presets to {}", presetsPath);
+        return false;
+    }
     return true;
 }
 

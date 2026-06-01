@@ -12,8 +12,10 @@
 
 #include <vector>
 #include <map>
+#include <string>
+#include <string_view>
+#include <cstdlib>
 #include "Color.h"
-#include <wx/wx.h>
 #include <pugixml.hpp>
 
 class Model;
@@ -49,22 +51,22 @@ struct LOREditEffect
     // If this is not the case then set the source Min/Max to the range that does map to the targetMin/Max and the conversion will
     // clamp original values outside the supported range to the largest practical in the target
     static float Rescale(float original, float sourceMin, float sourceMax, float targetMin, float targetMax);
-    static wxString RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax);
-    static wxString RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax);
+    static std::string RescaleWithRangeI(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax);
+    static std::string RescaleWithRangeF(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax);
     std::string GetBlend() const;
-    static std::string SafeGetStringParm(const wxArrayString& arr, int param)
+    static std::string SafeGetStringParm(const std::vector<std::string>& arr, int param)
     {
         if (param < (int)arr.size())
             return arr[param];
         return "";
     }
-    static int SafeGetIntParm(const wxArrayString& arr, int param)
+    static int SafeGetIntParm(const std::vector<std::string>& arr, int param)
     {
         if (param < (int)arr.size())
-            return wxAtoi(arr[param]);
+            return (int)std::strtol(arr[param].c_str(), nullptr, 10);
         return 0;
     }
-    static bool SafeGetBoolParm(const wxArrayString& arr, int param)
+    static bool SafeGetBoolParm(const std::vector<std::string>& arr, int param)
     {
         if (param < (int)arr.size())
             return arr[param] == "True";

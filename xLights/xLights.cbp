@@ -323,8 +323,8 @@
 		<Unit filename="../src-ui-wx/sequencer/EffectListDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.h" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.cpp" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.h" />
+		<Unit filename="../src-core/effects/EffectPresetManager.cpp" />
+		<Unit filename="../src-core/effects/EffectPresetManager.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
@@ -370,8 +370,10 @@
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.cpp" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/ExportModels.cpp" />
+		<Unit filename="../src-core/import_export/ExportModels.h" />
+		<Unit filename="../src-core/import_export/LOREdit.cpp" />
+		<Unit filename="../src-core/import_export/LOREdit.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />

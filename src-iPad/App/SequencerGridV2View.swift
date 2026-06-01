@@ -280,6 +280,7 @@ struct SequencerGridV2View: View {
     @State private var savePresetRequested: Bool = false
     @State private var savePresetName: String = ""
 
+
     /// B47 insert-N-layers prompt state.
     @State private var insertLayersTargetRow: Int? = nil
     @State private var insertLayersCountText: String = "3"
@@ -586,10 +587,17 @@ struct SequencerGridV2View: View {
                 Button("Reset \(n) Effects", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                ForEach(viewModel.presets) { preset in
+                Button("Save \(n) as Preset…") {
+                    savePresetName = ""
+                    savePresetRequested = true
+                }
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name) to \(n)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Deselect All") {
                     viewModel.clearSelection()
@@ -656,9 +664,9 @@ struct SequencerGridV2View: View {
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                // B19 — session-only effect presets. Save captures
-                // the current effect; apply replaces settings on
-                // every selected effect.
+                // PRE-1 — persistent effect presets. Save captures the
+                // current selection into the on-disk library; apply
+                // drops the chosen preset onto every selected effect.
                 Button("Edit Description…") {
                     editDescriptionText = viewModel.effectDescription(
                         rowIndex: target.rowIndex,
@@ -671,10 +679,13 @@ struct SequencerGridV2View: View {
                     savePresetName = ""
                     savePresetRequested = true
                 }
-                ForEach(viewModel.presets) { preset in
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Delete", role: .destructive) {
                     viewModel.deleteEffect(rowIndex: target.rowIndex,
@@ -1098,7 +1109,11 @@ struct SequencerGridV2View: View {
             }
             Button("Cancel", role: .cancel) { savePresetName = "" }
         } message: {
-            Text("Saves the current effect's settings + palette under a name you can re-apply to other effects in this session.")
+            Text("Saves the current selection to the show's preset library (xlights_effectpresets.json) so you can re-apply it later and on desktop.")
+        }
+        // PRE-1 preset library browser.
+        .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
+            PresetBrowserSheet(viewModel: viewModel)
         }
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,

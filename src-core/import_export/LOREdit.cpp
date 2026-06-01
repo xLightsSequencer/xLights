@@ -10,13 +10,14 @@
 
 #include "LOREdit.h"
 
-#include <wx/wx.h>
-#include <wx/uri.h>
-#include <wx/regex.h>
+#include <regex>
+#include <cstdlib>
+#include <cctype>
+
+#include <spdlog/fmt/fmt.h>
 
 #include "render/RenderUtils.h"
-#include "UtilFunctions.h"
-#include "shared/utils/wxUtilities.h"
+#include "utils/string_utils.h"
 #include "models/Model.h"
 
 #include "effects/SpiralsEffect.h"
@@ -31,7 +32,7 @@
 #include "effects/SnowflakesEffect.h"
 #include "effects/RippleEffect.h"
 
-#include <log.h>
+#include <spdlog/spdlog.h>
 
 // Current working assumptions
 //
@@ -39,6 +40,54 @@
 // There can be multiple tracks
 // Each effect on a track can have a left/right side
 // Channels have rows and columns but i dont know how they work
+
+namespace {
+    int loreAtoi(const std::string& s) {
+        return (int)std::strtol(s.c_str(), nullptr, 10);
+    }
+
+    double loreAtof(const std::string& s) {
+        return std::strtod(s.c_str(), nullptr);
+    }
+
+    // Mirrors wxString::IsNumber — true for an optionally-signed integer
+    // or decimal, with no other characters.
+    bool isNumber(const std::string& s) {
+        if (s.empty()) return false;
+        size_t i = 0;
+        if (s[i] == '+' || s[i] == '-') ++i;
+        bool digits = false;
+        bool dot = false;
+        for (; i < s.size(); ++i) {
+            char c = s[i];
+            if (c == '.') {
+                if (dot) return false;
+                dot = true;
+            } else if (c >= '0' && c <= '9') {
+                digits = true;
+            } else {
+                return false;
+            }
+        }
+        return digits;
+    }
+
+    // Minimal URL percent-decode, matching the wxURI::Unescape that the
+    // text effect's encoded label needs.
+    std::string unescapeURI(const std::string& in) {
+        std::string out;
+        out.reserve(in.size());
+        for (size_t i = 0; i < in.size(); ++i) {
+            if (in[i] == '%' && i + 2 < in.size() && isHexChar(in[i + 1]) && isHexChar(in[i + 2])) {
+                out += HexToChar(in[i + 1], in[i + 2]);
+                i += 2;
+            } else {
+                out += in[i];
+            }
+        }
+        return out;
+    }
+}
 
 std::string LOREditEffect::GetPalette() const
 {
@@ -60,16 +109,16 @@ std::string LOREditEffect::GetPalette() const
     std::string palette;
 
     int cnum = 0;
-    wxArrayString c = wxSplit(effectSettings[0], ';');
+    std::vector<std::string> c = Split(effectSettings[0], ';');
     for (int i = 0; i < (int)c.size(); i++)
     {
-        wxString n = wxString::Format("%d", cnum + 1);
+        std::string n = fmt::format("{}", cnum + 1);
 
-        wxArrayString cc = wxSplit(c[i], ',');
+        std::vector<std::string> cc = Split(c[i], ',');
         if (cc.size() == 2)
         {
-            wxString c1 = cc[0].substr(2); // drop transparency
-            wxString active = cc[1];
+            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string active = cc[1];
 
             palette += ",C_BUTTON_Palette" + n + "=#" + c1;
             if (active == "1")
@@ -80,9 +129,9 @@ std::string LOREditEffect::GetPalette() const
         }
         else if (cc.size() == 3)
         {
-            wxString c1 = cc[0].substr(2); // drop transparency
-            wxString c2 = cc[1].substr(2); // drop transparency
-            wxString active = cc[2];
+            std::string c1 = cc[0].substr(2); // drop transparency
+            std::string c2 = cc[1].substr(2); // drop transparency
+            std::string active = cc[2];
 
             if (c1 == c2)
             {
@@ -105,16 +154,16 @@ std::string LOREditEffect::GetPalette() const
         else
         {
             // Not sure what the last value is so ignoring it
-            //int unknown1 = wxAtoi(c[i]);
+            //int unknown1 = loreAtoi(c[i]);
             break;
         }
     }
 
-    int sparkle = wxAtoi(otherSettings[2]);
+    int sparkle = loreAtoi(otherSettings[2]);
 
     if (sparkle > 0)
     {
-        palette += ",C_SLIDER_SparkleFrequency=" + wxString::Format("%d", sparkle);
+        palette += ",C_SLIDER_SparkleFrequency=" + fmt::format("{}", sparkle);
     }
 
     if (type == loreditType::TRACKS)
@@ -126,11 +175,11 @@ std::string LOREditEffect::GetPalette() const
         else if (startIntensity == endIntensity)
         {
             // need to set brightness
-            palette += ",C_SLIDER_Brightness=" + wxString::Format("%d", startIntensity);
+            palette += ",C_SLIDER_Brightness=" + fmt::format("{}", startIntensity);
         }
         else
         {
-            palette += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=" + wxString::Format("%d", startIntensity) + "|P2=" + wxString::Format("%d", endIntensity) + "|RV=TRUE|";
+            palette += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Ramp|Min=0.00|Max=400.00|P1=" + fmt::format("{}", startIntensity) + "|P2=" + fmt::format("{}", endIntensity) + "|RV=TRUE|";
         }
     }
 
@@ -155,7 +204,7 @@ std::string LOREditEffect::GetxLightsEffect() const
     if (effectType == "singleblock") return "SingleStrand";
     if (effectType == "countdown") return "Text"; // we dont support countdown
 
-    return wxString(effectType).Capitalize();
+    return Capitalise(effectType);
 }
 
 // Used to rescale a parameter to a broader scale.
@@ -171,43 +220,43 @@ float LOREditEffect::Rescale(float original, float sourceMin, float sourceMax, f
     return ((original - sourceMin) / (sourceMax - sourceMin))*(targetMax - targetMin) + targetMin;
 }
 
-wxString LOREditEffect::RescaleWithRangeI(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax)
+std::string LOREditEffect::RescaleWithRangeI(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
 {
-    if (r.Contains("R"))
+    if (Contains(r, "R"))
     {
         // it is a range
-        wxArrayString rr = wxSplit(r, 'R');
-        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetRealMin) +
-            "|Max=" + wxString::Format("%.2f", targetRealMax) +
-            "|P1=" + wxString::Format("%.2f", Rescale(wxAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-            "|P2=" + wxString::Format("%.2f", Rescale(wxAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+        std::vector<std::string> rr = Split(r, 'R');
+        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
+            "|Max=" + fmt::format("{:.2f}", targetRealMax) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
             "|RV=TRUE|";
-        return wxString::Format("%d", (int)Rescale(wxAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax));
+        return fmt::format("{}", (int)Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax));
     }
     else
     {
         vc = "";
-        return wxString::Format("%d", (int)Rescale(wxAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+        return fmt::format("{}", (int)Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
     }
 }
 
-wxString LOREditEffect::RescaleWithRangeF(wxString r, wxString vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, wxString& vc, float targetRealMin, float targetRealMax)
+std::string LOREditEffect::RescaleWithRangeF(const std::string& r, const std::string& vcName, float sourceMin, float sourceMax, float targetMin, float targetMax, std::string& vc, float targetRealMin, float targetRealMax)
 {
-    if (r.Contains("R"))
+    if (Contains(r, "R"))
     {
         // it is a range
-        wxArrayString rr = wxSplit(r, 'R');
-        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + wxString::Format("%.2f", targetRealMin) +
-            "|Max=" + wxString::Format("%.2f", targetRealMax) +
-            "|P1=" + wxString::Format("%.2f", Rescale(wxAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
-            "|P2=" + wxString::Format("%.2f", Rescale(wxAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
+        std::vector<std::string> rr = Split(r, 'R');
+        vc = "," + vcName + "=Active=TRUE|Id=ID_" + vcName.substr(2) + "|Type=Ramp|Min=" + fmt::format("{:.2f}", targetRealMin) +
+            "|Max=" + fmt::format("{:.2f}", targetRealMax) +
+            "|P1=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[0]), sourceMin, sourceMax, targetMin, targetMax)) +
+            "|P2=" + fmt::format("{:.2f}", Rescale(loreAtof(rr[1]), sourceMin, sourceMax, targetMin, targetMax)) +
             "|RV=TRUE|";
     }
     else
     {
         vc = "";
     }
-    return wxString::Format("%.1f", Rescale(wxAtof(r), sourceMin, sourceMax, targetMin, targetMax));
+    return fmt::format("{:.1f}", Rescale(loreAtof(r), sourceMin, sourceMax, targetMin, targetMax));
 }
 
 std::string LOREditEffect::GetBlend() const
@@ -230,24 +279,23 @@ std::string LOREditEffect::GetBlend() const
 
 std::string LOREditEffect::GetSettings(std::string& palette) const
 {
-    
+
 
     if (effectType == "INTENSITY") {
         // intensity ramp 0-100
-        return wxString::Format("E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", endIntensity, startIntensity).ToStdString();
+        return fmt::format("E_TEXTCTRL_Eff_On_End={},E_TEXTCTRL_Eff_On_Start={}", endIntensity, startIntensity);
     }
     if (effectType == "DMX_INTENSITY") {
-        return wxString::Format("E_VALUECURVE_DMX1=Active=TRUE|Id=ID_VALUECURVE_DMX1|Type=Ramp|Min=0.00|Max=255.00|P1=%d|P2=%d|RV=TRUE|", startIntensity, endIntensity).ToStdString();
+        return fmt::format("E_VALUECURVE_DMX1=Active=TRUE|Id=ID_VALUECURVE_DMX1|Type=Ramp|Min=0.00|Max=255.00|P1={}|P2={}|RV=TRUE|", startIntensity, endIntensity);
     }
     if (effectType == "SHIMMER") {
-        return wxString::Format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End=%d,E_TEXTCTRL_Eff_On_Start=%d", endIntensity, startIntensity).ToStdString();
+        return fmt::format("E_CHECKBOX_On_Shimmer=1,E_TEXTCTRL_Eff_On_End={},E_TEXTCTRL_Eff_On_Start={}", endIntensity, startIntensity);
     }
     if (effectType == "TWINKLE") {
         return "E_SLIDER_Twinkle_Count=48";
     }
 
     if (effectSettings.size() == 0) {
-        wxASSERT(false);
         return "";
     }
 
@@ -257,24 +305,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
 
     std::string settings;
-    auto parms = wxSplit(effectSettings[1], ',');
+    auto parms = Split(effectSettings[1], ',');
     if (et == "butterfly") {
-        wxString style = parms[0];
-        wxString chunks = parms[1];
-        wxString vcChunks;
+        std::string style = parms[0];
+        std::string chunks = parms[1];
+        std::string vcChunks;
         // VC bounds come from the effect's statics populated via Butterfly.json at startup.
         chunks = RescaleWithRangeI(chunks, "E_VALUECURVE_Butterfly_Chunks", 1, 10, 1, 10, vcChunks, ButterflyEffect::sChunksMin, ButterflyEffect::sChunksMax);
-        wxString skip = parms[2];
-        wxString vcSkip;
+        std::string skip = parms[2];
+        std::string vcSkip;
         skip = RescaleWithRangeI(skip, "E_VALUECURVE_Butterfly_Skip", 2, 10, 2, 10, vcSkip, ButterflyEffect::sSkipMin, ButterflyEffect::sSkipMax);
-        wxString direction = parms[3];
-        wxString hue = parms[4];
-        wxString vcHue;
+        std::string direction = parms[3];
+        std::string hue = parms[4];
+        std::string vcHue;
         hue = RescaleWithRangeI(hue, "C_VALUECURVE_Color_HueAdjust", 0, 359, -100, 100, vcHue, -100, 100);
-        wxString speed = parms[5];
-        wxString vcSpeed;
+        std::string speed = parms[5];
+        std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Butterfly_Speed", 0, 50, 0, 50, vcSpeed, ButterflyEffect::sSpeedMin, ButterflyEffect::sSpeedMax);
-        wxString colours = parms[6];
+        std::string colours = parms[6];
 
         if (style == "linear") {
             settings += ",E_SLIDER_Butterfly_Style=1";
@@ -288,8 +336,8 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         else if (style == "corner") {
             settings += ",E_SLIDER_Butterfly_Style=5";
         }
-        settings += ",E_CHOICE_Butterfly_Colors=" + colours.Capitalize();
-        settings += ",E_CHOICE_Butterfly_Direction=" + direction.Capitalize();
+        settings += ",E_CHOICE_Butterfly_Colors=" + Capitalise(colours);
+        settings += ",E_CHOICE_Butterfly_Direction=" + Capitalise(direction);
         settings += ",E_SLIDER_Butterfly_Chunks=" + chunks;
         settings += vcChunks;
         settings += ",E_SLIDER_Butterfly_Skip=" + skip;
@@ -304,8 +352,8 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "colorwash") {
         //full, full, none, 12
-        wxString horizontalFade = parms[0];
-        wxString verticalFade = parms[1];
+        std::string horizontalFade = parms[0];
+        std::string verticalFade = parms[1];
 
         if (horizontalFade == "full") {
         }
@@ -339,24 +387,24 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "spirals") {
         // 1, left_to_right, 20, 50, 0, False, none, 12
-        wxString repeat = parms[0];
-        wxString vcRepeat;
+        std::string repeat = parms[0];
+        std::string vcRepeat;
         repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Spirals_Count", 1, 5, 1, 5, vcRepeat, SpiralsEffect::sCountMin, SpiralsEffect::sCountMax);
-        wxString direction = parms[1];
-        wxString rotation = parms[2];
-        rotation = wxString::Format("%.2f", wxAtof(rotation) / 60.0);
-        wxString vcRotation;
+        std::string direction = parms[1];
+        std::string rotation = parms[2];
+        rotation = fmt::format("{:.2f}", loreAtof(rotation) / 60.0);
+        std::string vcRotation;
         rotation = RescaleWithRangeF(rotation, "E_VALUECURVE_Spirals_Rotation", 0, 50, 0, 50, vcRotation, SpiralsEffect::sRotationMin, SpiralsEffect::sRotationMax);
-        rotation = wxString::Format("%d", (int)(wxAtof(rotation) * 10.0));
-        wxString thickness = parms[3];
-        wxString vcThickness;
+        rotation = fmt::format("{}", (int)(loreAtof(rotation) * 10.0));
+        std::string thickness = parms[3];
+        std::string vcThickness;
         thickness = RescaleWithRangeI(thickness, "E_VALUECURVE_Spirals_Thickness", 0, 100, 0, 100, vcThickness, SpiralsEffect::sThicknessMin, SpiralsEffect::sThicknessMax);
-        // wxString thicknessChange = parms[4]; //unused
-        wxString blend = parms[5];
-        wxString show3d = parms[6];
-        wxString speed = parms[7];
-        speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
-        wxString vcSpeed;
+        // std::string thicknessChange = parms[4]; //unused
+        std::string blend = parms[5];
+        std::string show3d = parms[6];
+        std::string speed = parms[7];
+        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        std::string vcSpeed;
         if (direction == "right_to_left") {
             speed = RescaleWithRangeF(speed, "E_VALUECURVE_Spirals_Movement", 0, 50, 0, -50, vcSpeed, SpiralsEffect::sMovementMin, SpiralsEffect::sMovementMax);
         }
@@ -393,19 +441,19 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "bars") {
         // down,2,False,False,8,0
-        wxString direction = parms[0];
-        wxString repeat = parms[1];
-        wxString vcRepeat;
+        std::string direction = parms[0];
+        std::string repeat = parms[1];
+        std::string vcRepeat;
         // VC bounds come from the effect's statics populated via Bars.json at startup.
         repeat = RescaleWithRangeI(repeat, "E_VALUECURVE_Bars_BarCount", 1, 5, 1, 5, vcRepeat, BarsEffect::sBarCountMin, BarsEffect::sBarCountMax);
-        wxString highlight = parms[2];
-        wxString show3d = parms[3];
-        wxString speed = parms[4];
-        speed = wxString::Format("%d", (int)(wxAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
-        wxString vcSpeed;
+        std::string highlight = parms[2];
+        std::string show3d = parms[3];
+        std::string speed = parms[4];
+        speed = fmt::format("{}", (int)(loreAtof(speed) / (20.0 / ((float)(endMS - startMS) / 1000.0))));
+        std::string vcSpeed;
         speed = RescaleWithRangeF(speed, "E_VALUECURVE_Bars_Cycles", 0, 50, 0, 30, vcSpeed, BarsEffect::sCyclesMin, BarsEffect::sCyclesMax);
-        wxString centre = parms[5];
-        wxString vcCentre;
+        std::string centre = parms[5];
+        std::string vcCentre;
         centre = RescaleWithRangeI(centre, "E_VALUECURVE_Bars_Center", -50, 50, -100, 100, vcCentre, BarsEffect::sCenterMin, BarsEffect::sCenterMax);
 
         settings += ",E_SLIDER_Bars_BarCount=" + repeat;
@@ -439,12 +487,12 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "countdown") {
         // 0,Arial,75,7
-        wxString seconds = parms[0];
-        wxString font = parms[1];
-        wxString fontSize = parms[2];
-        wxString vcCrap;
+        std::string seconds = parms[0];
+        std::string font = parms[1];
+        std::string fontSize = parms[2];
+        std::string vcCrap;
         fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        wxString position = parms[3];
+        std::string position = parms[3];
         position = RescaleWithRangeI(position, "IGNORE", -50, 50, -200, 200, vcCrap, -1, -1);
 
         settings += ",E_TEXTCTRL_Text=" + seconds;
@@ -469,14 +517,14 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "curtain") {
         // center,open,0,once_at_speed,12
-        wxString edge = parms[0];
-        wxString movement = parms[1];
-        wxString swag = parms[2];
-        wxString vcSwag;
+        std::string edge = parms[0];
+        std::string movement = parms[1];
+        std::string swag = parms[2];
+        std::string vcSwag;
         swag = RescaleWithRangeF(swag, "E_VALUECURVE_Curtain_Swag", 0, 10, 0, 10, vcSwag, CurtainEffect::sSwagMin, CurtainEffect::sSwagMax);
-        wxString repeat = parms[3];
-        wxString speed = parms[4];
-        wxString vcSpeed;
+        std::string repeat = parms[3];
+        std::string speed = parms[4];
+        std::string vcSpeed;
         // Curtain_Speed's pre-migration range was (0, 10) post-divisor. Write the VC in
         // that legacy form — UpgradeValueCurve rescales it to the new (0, 100) pre-divisor
         // form on the first sequence load. Keeping the literal here avoids a second rescale
@@ -484,7 +532,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         speed = RescaleWithRangeF(speed, "E_VALUECURVE_Curtain_Speed", 0, 50, 0, 10, vcSpeed, 0, 10);
 
         settings += ",E_CHOICE_Curtain_Edge=" + edge;
-        movement.Replace("_", " ");
+        Replace(movement, "_", " ");
         settings += ",E_CHOICE_Curtain_Effect=" + movement;
         settings += ",E_SLIDER_Curtain_Swag=" + swag;
         settings += vcSwag;
@@ -506,11 +554,11 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "fire") {
         //50,0
-        wxString height = parms[0];
-        wxString vcHeight;
+        std::string height = parms[0];
+        std::string vcHeight;
         height = RescaleWithRangeI(height, "E_VALUECURVE_Fire_Height", 10, 100, 0, 100, vcHeight, FireEffect::sHeightMin, FireEffect::sHeightMax);
-        wxString hueShift = parms[1];
-        wxString vcHueShift;
+        std::string hueShift = parms[1];
+        std::string vcHueShift;
         hueShift = RescaleWithRangeI(hueShift, "E_VALUECURVE_Fire_HueShift", 0, 359, 0, 100, vcHueShift, FireEffect::sHueShiftMin, FireEffect::sHueShiftMax);
 
         settings += ",E_SLIDER_Fire_Height=" + height;
@@ -520,17 +568,17 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "fireworks") {
         // 10,50,2,30,normal,continuous
-        wxString explosionRate = parms[0];
-        wxString vcCrap;
+        std::string explosionRate = parms[0];
+        std::string vcCrap;
         explosionRate = RescaleWithRangeI(explosionRate, "IGNORE", 1, 95, 1, 50, vcCrap, -1, -1);
-        wxString particles = parms[1];
+        std::string particles = parms[1];
         particles = RescaleWithRangeI(particles, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
-        wxString velocity = parms[2];
+        std::string velocity = parms[2];
         velocity = RescaleWithRangeI(velocity, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
-        wxString fade = parms[3];
+        std::string fade = parms[3];
         fade = RescaleWithRangeI(fade, "IGNORE", 1, 100, 1, 100, vcCrap, -1, -1);
-        // wxString pattern = parms[4]; // not used
-        // wxString rateChange = parms[5]; // not used
+        // std::string pattern = parms[4]; // not used
+        // std::string rateChange = parms[5]; // not used
         settings += ",E_SLIDER_Fireworks_Explosions=" + explosionRate;
         settings += ",E_SLIDER_Fireworks_Count=" + particles;
         settings += ",E_SLIDER_Fireworks_Fade=" + fade;
@@ -538,20 +586,20 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "garland") {
         // 3,34,once_at_speed,12,bottom_to_top
-        wxString type = parms[0];
-        wxString vcCrap;
+        std::string type = parms[0];
+        std::string vcCrap;
         type = RescaleWithRangeI(type, "IGNORE", 0, 4, 0, 4, vcCrap, -1, -1);
-        wxString spacing = parms[1];
-        wxString vcSpacing;
+        std::string spacing = parms[1];
+        std::string vcSpacing;
         spacing = RescaleWithRangeI(spacing, "E_VALUECURVE_Garlands_Spacing", 0, 100, 1, 100, vcSpacing, GarlandsEffect::sSpacingMin, GarlandsEffect::sSpacingMax);
-        wxString repeat = parms[2];
-        wxString speed = parms[3];
-        wxString vcSpeed;
+        std::string repeat = parms[2];
+        std::string speed = parms[3];
+        std::string vcSpeed;
         // Garlands_Cycles pre-migration range was (0, 20) post-divisor. Write the VC in
         // that legacy form — UpgradeValueCurve rescales it to the new (0, 200) pre-divisor
         // form with divisor 10 on the first sequence load.
         speed = RescaleWithRangeF(speed, "E_VALUECURVE_Garlands_Cycles", 0, 50, 0, 20, vcSpeed, 0, 20);
-        wxString fill = parms[4];
+        std::string fill = parms[4];
 
         settings += ",E_SLIDER_Garlands_Type=" + type;
 
@@ -581,57 +629,57 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         else if (repeat == "once_fit_to_duration") {
             settings += ",E_TEXTCTRL_Garlands_Cycles=1.0";
         }
-    } 
+    }
     else if (et == "marquee") {
         //4,1,1,12
         //spacing,filled space,size,speed
-        wxString spacing = parms[0];
-        wxString filledspace = parms[1];
-        wxString size = parms[2];
-        wxString speed = parms[4];
-        wxString vcSpacing;
+        std::string spacing = parms[0];
+        std::string filledspace = parms[1];
+        std::string size = parms[2];
+        std::string speed = parms[4];
+        std::string vcSpacing;
         spacing = RescaleWithRangeI(spacing, "E_SLIDER_Marquee_Skip_Size", 1, 20, 1, 20, vcSpacing, MarqueeEffect::sSkipSizeMin, MarqueeEffect::sSkipSizeMax);
         settings += ",E_SLIDER_Marquee_Skip_Size=" + spacing;
         settings += vcSpacing;
 
-        wxString vcBandSize;
+        std::string vcBandSize;
         filledspace = RescaleWithRangeI(filledspace, "E_SLIDER_Marquee_Band_Size", 1, 100, 1, 100, vcBandSize, MarqueeEffect::sBandSizeMin, MarqueeEffect::sBandSizeMax);
         settings += ",E_SLIDER_Marquee_Band_Size=" + filledspace;
         settings += vcBandSize;
 
-        wxString vcSize;
+        std::string vcSize;
         size = RescaleWithRangeI(size, "E_SLIDER_Marquee_Thickness", 1, 20, 1, 20, vcSize, MarqueeEffect::sThicknessMin, MarqueeEffect::sThicknessMax);
         settings += ",E_SLIDER_Marquee_Thickness=" + size;
         settings += vcSize;
 
-        wxString vcSpeed;
+        std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_SLIDER_Marquee_Speed", 1, 50, 1, 50, vcSpeed, MarqueeEffect::sSpeedMin, MarqueeEffect::sSpeedMax);
         settings += ",E_SLIDER_Marquee_Speed=" + speed;
         settings += vcSpeed;
     }
     else if (et == "meteors") {
         // rainbow,10,25,down,0,12
-        wxString colourScheme = parms[0];
-        wxString count = parms[1];
-        wxString vcCount;
+        std::string colourScheme = parms[0];
+        std::string count = parms[1];
+        std::string vcCount;
         count = RescaleWithRangeI(count, "E_VALUECURVE_Meteors_Count", 1, 100, 1, 100, vcCount, MeteorsEffect::sCountMin, MeteorsEffect::sCountMax);
-        wxString length = parms[2];
-        wxString vcLength;
+        std::string length = parms[2];
+        std::string vcLength;
         length = RescaleWithRangeI(length, "E_VALUECURVE_Meteors_Length", 1, 100, 1, 100, vcLength, MeteorsEffect::sLengthMin, MeteorsEffect::sLengthMax);
-        wxString effect = parms[3];
-        wxString swirl = parms[4];
-        wxString vcSwirl;
+        std::string effect = parms[3];
+        std::string swirl = parms[4];
+        std::string vcSwirl;
         swirl = RescaleWithRangeI(swirl, "E_VALUECURVE_Meteors_Swirl_Intensity", 0, 20, 0, 20, vcSwirl, MeteorsEffect::sSwirlMin, MeteorsEffect::sSwirlMax);
-        wxString speed = parms[5];
-        wxString vcSpeed;
+        std::string speed = parms[5];
+        std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Meteors_Speed", 1, 50, 1, 50, vcSpeed, MeteorsEffect::sSpeedMin, MeteorsEffect::sSpeedMax);
 
-        settings += ",E_CHOICE_Meteors_Type=" + colourScheme.Lower();
+        settings += ",E_CHOICE_Meteors_Type=" + Lower(colourScheme);
         settings += ",E_SLIDER_Meteors_Count=" + count;
         settings += vcCount;
         settings += ",E_SLIDER_Meteors_Length=" + length;
         settings += vcLength;
-        settings += ",E_CHOICE_Meteors_Effect=" + effect.Capitalize();
+        settings += ",E_CHOICE_Meteors_Effect=" + Capitalise(effect);
         settings += ",E_SLIDER_Meteors_Swirl_Intensity=" + swirl;
         settings += vcSwirl;
         settings += ",E_SLIDER_Meteors_Speed=" + speed;
@@ -639,9 +687,9 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "movie") {
         // xxx.avi,True,False
-        wxString file = parms[0];
-        wxString scale = parms[1];
-        wxString fullLength = parms[2];
+        std::string file = parms[0];
+        std::string scale = parms[1];
+        std::string fullLength = parms[2];
 
         settings += ",E_FILEPICKERCTRL_Video_Filename=" + file;
 
@@ -660,24 +708,26 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "picture") {
         // file.jpg,True,none,0,10,19,12
-        wxString file = parms[0];
-        wxString scale = parms[1];
-        wxString movement = parms[2];
-        wxString x = parms[3];
-        wxString vcCrap;
+        std::string file = parms[0];
+        std::string scale = parms[1];
+        std::string movement = parms[2];
+        std::string x = parms[3];
+        std::string vcCrap;
         x = RescaleWithRangeI(x, "IGNORE", -50, 50, -100, 100, vcCrap, -1, -1);
-        wxString peekabooHoldTime = parms[4]; // not used
+        std::string peekabooHoldTime = parms[4]; // not used
         peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        wxString wiggle = parms[5]; // not used
+        std::string wiggle = parms[5]; // not used
         wiggle = RescaleWithRangeI(wiggle, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        wxString speed = parms[6];
+        std::string speed = parms[6];
         speed = RescaleWithRangeF(speed, "IGNORE", 0, 50, 0, 20, vcCrap, -1, -1);
 
-        while (file.Contains("%")) {
-            int pos = file.Find("%");
-            if (pos < (int)file.Length() - 2) {
+        size_t pos;
+        while ((pos = file.find('%')) != std::string::npos) {
+            if (pos + 2 < file.size()) {
                 char c = HexToChar(file[pos + 1], file[pos + 2]);
-                file.Replace(file.substr(pos, 3), wxString(c));
+                file.replace(pos, 3, std::string(1, c));
+            } else {
+                break;
             }
         }
 
@@ -689,7 +739,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
             settings += ",E_CHOICE_Scaling=No Scaling";
         }
 
-        movement.Replace("_", "-");
+        Replace(movement, "_", "-");
         if (movement == "peekaboo-bottom") {
             movement = "peekaboo";
         }
@@ -709,17 +759,19 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // file.jpg,71,104,0,R32R0R1.00,100,100,100,100,FFFF
         // file.jpg,58,136,0,0         ,100,100,100,100,FFFF,0
 
-        wxString file = parms[0];
-        wxString scaleX = parms[1];
-        //wxString scaleY = parms[2];
-        wxString movementLeft = parms[3];
-        wxString movementTop = parms[4];
+        std::string file = parms[0];
+        std::string scaleX = parms[1];
+        //std::string scaleY = parms[2];
+        std::string movementLeft = parms[3];
+        std::string movementTop = parms[4];
 
-        while (file.Contains("%")) {
-            int pos = file.Find("%");
-            if (pos < (int)file.Length() - 2) {
+        size_t pos;
+        while ((pos = file.find('%')) != std::string::npos) {
+            if (pos + 2 < file.size()) {
                 char c = HexToChar(file[pos + 1], file[pos + 2]);
-                file.Replace(file.substr(pos, 3), wxString(c));
+                file.replace(pos, 3, std::string(1, c));
+            } else {
+                break;
             }
         }
 
@@ -727,32 +779,32 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         settings += ",E_CHOICE_Scaling=No Scaling";
 
         settings += ",E_CHOICE_Pictures_Direction=vector";
-        if (movementLeft.Contains("R")) 
+        if (Contains(movementLeft, "R"))
         {
-            wxArrayString rr = wxSplit(movementLeft, 'R');
+            std::vector<std::string> rr = Split(movementLeft, 'R');
             settings += ",E_SLIDER_PicturesXC=" + rr[1];
             settings += ",E_SLIDER_PicturesEndXC=" + rr[2];
-        } else if (movementLeft.IsNumber()) {
+        } else if (isNumber(movementLeft)) {
             settings += ",E_SLIDER_PicturesXC=" + movementLeft;
             settings += ",E_SLIDER_PicturesEndXC=" + movementLeft;
         }
-        if (movementTop.Contains("R")) {
-            wxArrayString rr = wxSplit(movementTop, 'R');
+        if (Contains(movementTop, "R")) {
+            std::vector<std::string> rr = Split(movementTop, 'R');
             settings += ",E_SLIDER_PicturesYC=" + rr[1];
             settings += ",E_SLIDER_PicturesEndYC=" + rr[2];
-        } else if (movementTop.IsNumber()) {
+        } else if (isNumber(movementTop)) {
             settings += ",E_SLIDER_PicturesYC=" + movementTop;
             settings += ",E_SLIDER_PicturesEndYC=" + movementTop;
         }
-        if (scaleX.Contains("R")) {
-            wxArrayString rr = wxSplit(scaleX, 'R');
+        if (Contains(scaleX, "R")) {
+            std::vector<std::string> rr = Split(scaleX, 'R');
             settings += ",E_SLIDER_Pictures_StartScale=" + rr[1];
             settings += ",E_SLIDER_Pictures_EndScale=" + rr[2];
-        } else if (scaleX.IsNumber()) {
+        } else if (isNumber(scaleX)) {
             settings += ",E_SLIDER_Pictures_StartScale=" + scaleX;
             settings += ",E_SLIDER_Pictures_EndScale=" + scaleX;
         }
-        
+
         settings += ",E_TEXTCTRL_Pictures_Speed=1.0";
     }
     else if (et == "spinner") {
@@ -762,45 +814,44 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         // MAX: pinwheel_1, color_per_arm,   10,       100,           32,   50,        10,    32,   200,    200,  50,  50
         // pinwheel_1,color_per_arm,10,15,0,0,5,15,200,200,-24,0
 
-        // wxString style = parms[0]; // unused
-        // wxString colour_mode = parms[1]; //unused
-        wxString arms = parms[2];
-        wxString vcCrap;
+        // std::string style = parms[0]; // unused
+        // std::string colour_mode = parms[1]; //unused
+        std::string arms = parms[2];
+        std::string vcCrap;
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
-        wxString armwidth = parms[3];
-        wxString vcArmWidth;
+        std::string armwidth = parms[3];
+        std::string vcArmWidth;
         armwidth = RescaleWithRangeI(armwidth, "E_VALUECURVE_Pinwheel_Thickness", 0, 100, 0, 100, vcArmWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
-        // wxString innerRadius = parms[4]; // not used
-        wxString bend = parms[5];
-        wxString vcBend;
+        // std::string innerRadius = parms[4]; // not used
+        std::string bend = parms[5];
+        std::string vcBend;
         bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", 0, 50, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
-        // wxString curvature = parms[6]; // not used
-        wxString speed = parms[7];
-        wxString vcSpeed;
+        // std::string curvature = parms[6]; // not used
+        std::string speed = parms[7];
+        std::string vcSpeed;
         bool ccw = false;
         // need to do some funkiness with the ranges as we dont support negative numbers
-        if (wxAtoi(speed) < 0)
+        if (loreAtoi(speed) < 0)
         {
             ccw = true;
             speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, 0, 100, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
-            speed = wxString::Format("%d", 50 - wxAtoi(speed)).ToStdString();
+            speed = fmt::format("{}", 50 - loreAtoi(speed));
         }
         else             {
             speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", -32, 32, -50, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
         }
-        wxASSERT(wxAtoi(speed) >= 0);
 
-        wxString length = parms[8];
-        wxString vcLength;
+        std::string length = parms[8];
+        std::string vcLength;
         length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
 
-        // wxString height = parms[9]; //unused
+        // std::string height = parms[9]; //unused
 
-        wxString x = parms[10];
-        wxString vcX;
+        std::string x = parms[10];
+        std::string vcX;
         x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
-        wxString y = parms[11];
-        wxString vcY;
+        std::string y = parms[11];
+        std::string vcY;
         y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
 
         settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
@@ -827,28 +878,28 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     else if (et == "pinwheel") {
         // 3,1,6,color_per_arm,True,12,100,10,-23
 
-        wxString arms = parms[0];
-        wxString vcCrap;
+        std::string arms = parms[0];
+        std::string vcCrap;
         arms = RescaleWithRangeI(arms, "IGNORE", 1, 10, 1, 10, vcCrap, -1, -1);
-        wxString width = parms[1];
-        wxString vcWidth;
+        std::string width = parms[1];
+        std::string vcWidth;
         width = RescaleWithRangeI(width, "E_VALUECURVE_Pinwheel_Thickness", 1, 10, 0, 100, vcWidth, PinwheelEffect::sThicknessMin, PinwheelEffect::sThicknessMax);
-        wxString bend = parms[2];
-        wxString vcBend;
+        std::string bend = parms[2];
+        std::string vcBend;
         bend = RescaleWithRangeI(bend, "E_VALUECURVE_Pinwheel_Twist", -10, 10, -360, 360, vcBend, PinwheelEffect::sTwistMin, PinwheelEffect::sTwistMax);
-        // wxString colour = parms[3]; // not used
-        wxString CCW = parms[4];
-        wxString speed = parms[5];
-        wxString vcSpeed;
+        // std::string colour = parms[3]; // not used
+        std::string CCW = parms[4];
+        std::string speed = parms[5];
+        std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Pinwheel_Speed", 0, 50, 0, 50, vcSpeed, PinwheelEffect::sSpeedMin, PinwheelEffect::sSpeedMax);
-        wxString length = parms[6];
-        wxString vcLength;
+        std::string length = parms[6];
+        std::string vcLength;
         length = RescaleWithRangeI(length, "E_VALUECURVE_Pinwheel_ArmSize", 1, 100, 0, 400, vcLength, PinwheelEffect::sArmSizeMin, PinwheelEffect::sArmSizeMax);
-        wxString x = parms[7];
-        wxString vcX;
+        std::string x = parms[7];
+        std::string vcX;
         x = RescaleWithRangeI(x, "E_VALUECURVE_PinwheelXC", -50, 50, -100, 100, vcX, PinwheelEffect::sXCMin, PinwheelEffect::sXCMax);
-        wxString y = parms[8];
-        wxString vcY;
+        std::string y = parms[8];
+        std::string vcY;
         y = RescaleWithRangeI(y, "E_VALUECURVE_PinwheelYC", -50, 50, -100, 100, vcY, PinwheelEffect::sYCMin, PinwheelEffect::sYCMax);
 
         settings += ",E_SLIDER_Pinwheel_Arms=" + arms;
@@ -874,18 +925,18 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "snowflakes") {
         //5,1,0,12,60
-        wxString count = parms[0];
-        wxString vcCount;
+        std::string count = parms[0];
+        std::string vcCount;
         count = RescaleWithRangeI(count, "E_VALUECURVE_Snowflakes_Count", 1, 20, 1, 20, vcCount, SnowflakesEffect::sCountMin, SnowflakesEffect::sCountMax);
-        wxString type = parms[1];
-        wxString vcCrap;
+        std::string type = parms[1];
+        std::string vcCrap;
         type = RescaleWithRangeI(type, "IGNORE", 0, 5, 0, 5, vcCrap, -1, -1);
-        wxString direction = parms[2]; // not used
+        std::string direction = parms[2]; // not used
         direction = RescaleWithRangeI(direction, "IGNORE", -8, 8, -8, 8, vcCrap, -1, -1);
-        wxString speed = parms[3];
-        wxString vcSpeed;
+        std::string speed = parms[3];
+        std::string vcSpeed;
         speed = RescaleWithRangeI(speed, "E_VALUECURVE_Snowflakes_Speed", 0, 50, 0, 50, vcSpeed, SnowflakesEffect::sSpeedMin, SnowflakesEffect::sSpeedMax);
-        wxString accumulation = parms[4];
+        std::string accumulation = parms[4];
         accumulation = RescaleWithRangeI(accumulation, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
 
         settings += ",E_SLIDER_Snowflakes_Count=" + count;
@@ -904,25 +955,25 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "text") {
         //Hello%26nbsp%3B%20Keith,50,left,0,10,0,4,True
-        wxString text = wxURI::Unescape(parms[0]);
-        text.Replace("&gt;", ">");
-        text.Replace("&lt;", "<");
-        text.Replace("&nbsp;", " ");
-        text.Replace("&amp;", "&");
-        wxString fontSize = parms[1];
-        wxString vcCrap;
+        std::string text = unescapeURI(parms[0]);
+        Replace(text, "&gt;", ">");
+        Replace(text, "&lt;", "<");
+        Replace(text, "&nbsp;", " ");
+        Replace(text, "&amp;", "&");
+        std::string fontSize = parms[1];
+        std::string vcCrap;
         fontSize = RescaleWithRangeI(fontSize, "IGNORE", 0, 149, 0, 149, vcCrap, -1, -1);
-        wxString movement = parms[2];
-        wxString position = parms[3];
+        std::string movement = parms[2];
+        std::string position = parms[3];
         position = RescaleWithRangeI(position, "IGNORE", -50, 49, -200, 200, vcCrap, -1, -1);
-        wxString peekabooHoldTime = parms[4]; // unused
+        std::string peekabooHoldTime = parms[4]; // unused
         peekabooHoldTime = RescaleWithRangeI(peekabooHoldTime, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
-        wxString bounce = parms[5]; // unused
+        std::string bounce = parms[5]; // unused
         bounce = RescaleWithRangeI(bounce, "IGNORE", 0, 99, 0, 99, vcCrap, -1, -1);
-        wxString speed = parms[6];
+        std::string speed = parms[6];
         speed = RescaleWithRangeI(speed, "IGNORE", 0, 50, 0, 50, vcCrap, -1, -1);
         if (parms.size() > 7) {
-            // wxString unknown1 = parms[7]; // unused
+            // std::string unknown1 = parms[7]; // unused
         }
 
         settings += ",E_TEXTCTRL_Text=" + text;
@@ -951,13 +1002,13 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     }
     else if (et == "twinkle") {
         // 50,25,twinkle,random
-        wxString rate = parms[0];
-        wxString vcCrap;
+        std::string rate = parms[0];
+        std::string vcCrap;
         rate = RescaleWithRangeI(rate, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        wxString density = parms[1];
+        std::string density = parms[1];
         density = RescaleWithRangeI(density, "IGNORE", 0, 100, 0, 100, vcCrap, -1, -1);
-        wxString mode = parms[2];
-        wxString layout = parms[3];
+        std::string mode = parms[2];
+        std::string layout = parms[3];
 
         settings += ",E_SLIDER_Twinkle_Count=" + density;
         settings += ",E_SLIDER_Twinkle_Steps=" + rate;
@@ -984,7 +1035,7 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
     } else if (et == "ripple") {
         // I actually think some of these should be shockwaves
         // Mix_Average|0|0|full|20|lightorama_ripple:FFFF8000,1;FF800080,1;FF0000FF,0;FFFF0000,1;FFFFFFFF,0;FF00FF00,1:circle,21,47,46,50,0,0,37,False,50|lightorama_none::
-        wxString vcCrap;
+        std::string vcCrap;
         auto type = SafeGetStringParm(parms, 0);
         auto repeatcount = SafeGetStringParm(parms, 1);    // 1-20 -> 1-30
         repeatcount = RescaleWithRangeI(repeatcount, "IGNORE", 1, 20, 1 /*RIPPLE_CYCLES_MIN*/, RippleEffect::sCyclesMax, vcCrap, -1, -1); // not using min because i dont want it to scale to 0
@@ -1030,16 +1081,15 @@ std::string LOREditEffect::GetSettings(std::string& palette) const
         spdlog::warn("Wave effects I have never seen enough samples to truly decode the settings.");
     }
     else {
-        spdlog::warn("S5 conversion for {} not created yet.", (const char*)et.c_str());
-        wxASSERT(false);
+        spdlog::warn("S5 conversion for {} not created yet.", et);
     }
 
-    wxString blend = GetBlend();
+    std::string blend = GetBlend();
     settings += ",T_CHOICE_LayerMethod=" + blend;
 
-    int blendPos = wxAtoi(otherSettings[1]);
+    int blendPos = loreAtoi(otherSettings[1]);
     if (left && blendPos > 0) {
-        settings += ",T_SLIDER_EffectLayerMix=" + wxString::Format("%d", blendPos);
+        settings += ",T_SLIDER_EffectLayerMix=" + fmt::format("{}", blendPos);
     }
 
     return settings;
@@ -1109,12 +1159,12 @@ std::map<int, std::string> LOREdit::GetModelStrands(const std::string& model) co
             for (pugi::xml_node prop = e.first_child(); prop; prop = prop.next_sibling()) {
                 if (std::string_view(prop.name()) == "PropClass") {
                     if (std::string_view(prop.attribute("Name").as_string()) == model) {
-                        wxString const grid = prop.attribute("ChannelGrid").as_string();
-                        if(grid.IsEmpty()) return { { 1, "" } };
-                        wxArrayString strands = wxSplit(grid, ';');
+                        std::string const grid = prop.attribute("ChannelGrid").as_string();
+                        if(grid.empty()) return { { 1, "" } };
+                        std::vector<std::string> strands = Split(grid, ';');
                         int strandCnts = 1;
                         std::map<int, std::string> strandMap;
-                        for (wxString const& strand: strands) {
+                        for (std::string const& strand: strands) {
                             strandMap[strandCnts] = GetColor(strand);
                             strandCnts++;
                         }
@@ -1400,15 +1450,15 @@ void LOREdit::GetLayers(const std::string& settings, int& ll1, int& ll2)
 {
     ll1 = 0;
     ll2 = 0;
-    auto ss = wxSplit(settings, '|');
+    auto ss = Split(settings, '|');
 
     if (ss.size() >= 7)
     {
-        if (ss[5].StartsWith("lightorama_") && !ss[5].StartsWith("lightorama_none"))
+        if (StartsWith(ss[5], "lightorama_") && !StartsWith(ss[5], "lightorama_none"))
         {
             ll1 = 1;
         }
-        if (ss[6].StartsWith("lightorama_") && !ss[6].StartsWith("lightorama_none"))
+        if (StartsWith(ss[6], "lightorama_") && !StartsWith(ss[6], "lightorama_none"))
         {
             ll2 = 1;
         }
@@ -1441,12 +1491,12 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
         }
         effect.type = loreditType::TRACKS;
 
-        wxString s = ef.attribute("settings").as_string();
-        auto ss = wxSplit(s, '|');
-        
+        std::string s = ef.attribute("settings").as_string();
+        auto ss = Split(s, '|');
+
         if (ss.size() >= 7)
         {
-            wxString es;
+            std::string es;
             if (left)
             {
                 es = ss[5];
@@ -1455,32 +1505,32 @@ std::vector<LOREditEffect> LOREdit::AddEffects(pugi::xml_node track, bool left, 
             {
                 es = ss[6];
             }
-            auto ees = wxSplit(es, ':');
+            auto ees = Split(es, ':');
 
             if (ees.size() > 0)
             {
-                if (ees[0].StartsWith("lightorama_"))
+                if (StartsWith(ees[0], "lightorama_"))
                 {
-                    if (!ees[0].StartsWith("lightorama_none"))
+                    if (!StartsWith(ees[0], "lightorama_none"))
                     {
-                        effect.effectType = ees[0].AfterFirst('_');
+                        effect.effectType = AfterFirst(ees[0], '_');
                         for (auto it2 : ees)
                         {
-                            if (!it2.StartsWith("lightorama_"))
+                            if (!StartsWith(it2, "lightorama_"))
                             {
-                                effect.effectSettings.push_back(it2.ToStdString());
+                                effect.effectSettings.push_back(it2);
                             }
                         }
                     }
                 }
             }
-            effect.otherSettings.push_back(ss[0].ToStdString()); // blend
-            effect.otherSettings.push_back(ss[1].ToStdString());
-            effect.otherSettings.push_back(ss[2].ToStdString());
-            effect.otherSettings.push_back(ss[3].ToStdString());
-            effect.otherSettings.push_back(ss[4].ToStdString());
+            effect.otherSettings.push_back(ss[0]); // blend
+            effect.otherSettings.push_back(ss[1]);
+            effect.otherSettings.push_back(ss[2]);
+            effect.otherSettings.push_back(ss[3]);
+            effect.otherSettings.push_back(ss[4]);
             if (ss.size() == 8) {
-                effect.otherSettings.push_back(ss[7].ToStdString());
+                effect.otherSettings.push_back(ss[7]);
             }
             else                 {
                 effect.otherSettings.push_back("");
@@ -1634,7 +1684,7 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 
     if (m == nullptr)
     {
-        wxASSERT(false); return res;
+        return res;
     }
 
     int rows = 0;
@@ -1656,8 +1706,8 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
     int bufx = -1;
     int bufy = -1;
     if (channels != 1) {
-        wxASSERT(rows == mh);
-        wxASSERT(cols == mw);
+        (void)mw;
+        (void)mh;
 
         if (coords.size() != 0) {
             bufx = coords[0].x;
@@ -1877,7 +1927,7 @@ std::vector<LOREditEffect> LOREdit::GetChannelEffects(const std::string& model, 
 
 std::string LOREdit::GetColor(const std::string& settings)
 {
-    wxArrayString const savedUploadItems = wxSplit(settings, ',');
+    std::vector<std::string> const savedUploadItems = Split(settings, ',');
     if (savedUploadItems.size() == 6)
         return savedUploadItems[5];
     return "";
@@ -1885,11 +1935,8 @@ std::string LOREdit::GetColor(const std::string& settings)
 
 bool LOREdit::IsNodeStrandMapping(const std::string& mapping)
 {
-    static wxRegEx regex("\\[(\\d+),(\\d+),(\\d+)\\]", wxRE_ADVANCED | wxRE_NEWLINE);
-    if (regex.Matches(mapping)) {
-        return true;
-    }
-    return false;
+    static const std::regex regex("\\[([0-9]+),([0-9]+),([0-9]+)\\]");
+    return std::regex_search(mapping, regex);
 }
 
 void LOREdit::setNodeColor(const std::string& color, LOREditEffect & effect)

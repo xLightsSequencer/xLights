@@ -6,6 +6,7 @@
 #include "import_export/AutoMapper.h"
 #include "import_export/BasicImportMappingNode.h"
 #include "import_export/EffectMapper.h"
+#include "import_export/LOREdit.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
@@ -17,6 +18,7 @@
 #include "render/SequencePackage.h"
 #include "utils/string_utils.h"
 
+#include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
@@ -129,6 +131,21 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // Destination tree — owned root holders. Each root corresponds to
     // a top-level model on the active sequence.
     std::vector<std::unique_ptr<BasicImportMappingNode>> _destinationRoots;
+
+    // LOR S5 `.loredit` source state. When the picked file is a
+    // `.loredit` the source isn't an xLights SequenceElements tree —
+    // it's an effect-level LOR document parsed by the wx-free core
+    // LOREdit reader. We keep the parsed document + reader alive so the
+    // discovery list (and a future apply path mirroring desktop
+    // ImportS5 / MapS5*) can query it. `_loreditMode` flips the bridge
+    // into this branch; the destination tree + AutoMapper / MapHints
+    // flow is shared with the `.xsq` path unchanged.
+    bool _loreditMode;
+    pugi::xml_document _loreditDoc;
+    std::unique_ptr<LOREdit> _loredit;
+    // Timing-track name -> begin/end pairs, prefetched at load so the
+    // (deferred) apply path doesn't need to re-walk the document.
+    std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> _loreditTimings;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -261,6 +278,109 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         TimingElement* existing = targetSE.GetTimingElement(entry.name);
         entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
         // Mirrors desktop: preselect when not already in target.
+        entry.selected = !entry.alreadyExists;
+        _timingTracks.push_back(entry);
+    }
+}
+
+#pragma mark - LOR S5 (.loredit) source loading
+
+- (BOOL)loadLOREditSourceAtPath:(NSString*)path
+                          error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    // Mirrors desktop xLightsFrame::ImportS5 — load the raw LOR document
+    // with pugixml and hand it to the core reader at the active
+    // sequence's frequency.
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse LOR S5 .loredit file." }];
+        }
+        return NO;
+    }
+
+    // Reset any prior `.xsq` source state — the two modes are mutually
+    // exclusive within one session.
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+
+    _loreditDoc.reset();
+    _loreditDoc = std::move(doc);
+    _loredit = std::make_unique<LOREdit>(_loreditDoc, rc->GetSequenceElements().GetFrequency());
+    _loreditMode = true;
+
+    [self rebuildAvailableSourcesFromLOREdit];
+    [self rebuildTimingTracksFromLOREdit];
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromLOREdit {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_loredit == nullptr) return;
+
+    auto addSource = [&](const std::string& name, const std::string& type) {
+        AvailableSource src;
+        src.displayName = name;
+        src.canonicalName = Lower(Trim(name));
+        src.modelType = type;
+        _availableSources.push_back(src);
+    };
+
+    // Whole-prop (track / channel) sources — these map onto a
+    // destination model and replay through the desktop MapS5* path.
+    for (const auto& m : _loredit->GetModelsWithEffects()) {
+        addSource(m, "Model");
+    }
+    // Per-node strand/channel sources (`Name[r,c,col][color]`) — these
+    // map onto a single node layer (IsNodeStrandMapping == true).
+    for (const auto& n : _loredit->GetNodesWithEffects()) {
+        addSource(n, "Node");
+    }
+}
+
+- (void)rebuildTimingTracksFromLOREdit {
+    _timingTracks.clear();
+    _loreditTimings.clear();
+    if (_loredit == nullptr) return;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return;
+
+    SequenceElements& targetSE = rc->GetSequenceElements();
+    for (const auto& name : _loredit->GetTimingTracks()) {
+        auto timings = _loredit->GetTimings(name, 0);
+        if (timings.empty()) continue;
+        _loreditTimings[name] = timings;
+
+        TimingTrackEntry entry;
+        entry.name = name;
+        entry.sourceElement = nullptr; // synthesized on apply, not copied from a source element
+        TimingElement* existing = targetSE.GetTimingElement(name);
+        entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
         entry.selected = !entry.alreadyExists;
         _timingTracks.push_back(entry);
     }
@@ -646,6 +766,19 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                   convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
+    if (_loreditMode) {
+        // The `.loredit` discovery / mapping flow is wired (source list,
+        // destination tree, AutoMapper, MapHints) but the effect-synthesis
+        // apply path — the iPad equivalent of desktop MapS5 / MapS5Effects /
+        // MapS5ChannelEffects — is not yet ported. Fail loudly rather than
+        // silently doing nothing so the gap is visible to the caller.
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:13
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Applying LOR S5 (.loredit) effects is not yet supported on iPad. Mapping is available; effect import is coming in a later update." }];
+        }
+        return NO;
+    }
     if (rc == nullptr || _sourceElements == nullptr) {
         if (outError) {
             *outError = [NSError errorWithDomain:@"XLImportSession" code:10

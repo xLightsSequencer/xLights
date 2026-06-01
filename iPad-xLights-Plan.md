@@ -95,6 +95,23 @@ variants in `libdbg-ios/`.
   [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md).
 - **Phase B-77 — MIDI Import Notes.** Deprioritized; low desktop use
   and no concrete iPad request open.
+- **Phase IE-4 — LOR S5 `.loredit` import (discovery landed).** The
+  effect-level LOR reader (`LOREdit.{h,cpp}`) was moved into the
+  wx-free core (`src-core/import_export/`) so both desktop and iPad
+  link the same parser; the desktop `ImportS5` path now uses the
+  relocated core class. On iPad, `XLImportSession` gained a
+  `loadLOREditSource(atPath:)` branch that parses the `.loredit` with
+  the core reader and populates the same available-source list +
+  timing tracks the `.xsq` path builds, so the existing mapping tree
+  + AutoMapper / MapHints flow is reused; `ImportEffectsView`
+  `allowedTypes` now includes `.loredit`. **Remaining:** the
+  effect-synthesis apply path — the iPad analogue of desktop
+  `MapS5` / `MapS5Effects` / `MapS5ChannelEffects` (which build
+  effects from `LOREditEffect::GetxLightsEffect` / `GetSettings` /
+  `GetPalette` onto target `EffectLayer*` / `NodeLayer*`, resolving
+  node coords via `Model::GetNodeCoords`). Until that lands,
+  `-applyImportWithEraseExisting:lock:error:` returns an error for a
+  `.loredit` source.
 - **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
   until a vendor request lands.
 - **3 deferred Phase B items** (B16 drag-from-palette ghost,

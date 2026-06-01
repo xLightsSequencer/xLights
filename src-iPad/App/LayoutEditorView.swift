@@ -1,6 +1,30 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// IE-15 — Excel workbook UTType for the Models report export.
+/// Falls back to a generic binary UTI so the exporter still
+/// presents a picker on devices that don't know the file type.
+let kXLSXFileType: UTType = UTType(filenameExtension: "xlsx") ?? .data
+
+/// IE-15 — FileDocument wrapper for the Models report (.xlsx).
+/// The bridge writes the workbook to a temp path; this hands the
+/// already-written bytes to SwiftUI's `.fileExporter` to copy to
+/// the user's chosen destination. Mirrors `XTimingExportDoc`.
+struct ModelsReportExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kXLSXFileType] }
+    static var writableContentTypes: [UTType] { [kXLSXFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
 /// J-5 (sidebar tabs) — Layout Editor left-pane roster picker.
 /// Controllers tab is intentionally omitted in J-5; iPad doesn't
 /// yet have a controller editor and surfacing the tab with no UI
@@ -205,6 +229,14 @@ struct LayoutEditorView: View {
     @State private var newPreviewSheetVisible: Bool = false
     @State private var newPreviewName: String = ""
     @State private var newPreviewError: String? = nil
+    /// IE-15 — Models report (.xlsx) export. The bridge writes the
+    /// workbook to a temp path, then `.fileExporter` copies it to
+    /// the user's pick (same temp-path → fileExporter pattern as the
+    /// timing-track / fseq exports).
+    @State private var modelsReportExportDoc: ModelsReportExportDoc? = nil
+    @State private var showingModelsReportExporter: Bool = false
+    @State private var modelsReportDefaultName: String = "Models.xlsx"
+    @State private var modelsReportError: String? = nil
     /// J-31 — Controllers tab filter + cached list. The cache is
     /// rebuilt on `.task` / `.onChange(of: showFolderLoaded)` /
     /// after layout-save (controllers are stored in the output
@@ -786,6 +818,15 @@ struct LayoutEditorView: View {
         } message: {
             Text(saveErrorMessage ?? "")
         }
+        // IE-15 — Models report (.xlsx) export wiring is bundled
+        // into a ViewModifier so the outer body's chain stays within
+        // Swift's type-checker budget (same approach as the other
+        // bundled modifiers below).
+        .modifier(ModelsReportExportModifier(
+            showingExporter: $showingModelsReportExporter,
+            exportDoc: $modelsReportExportDoc,
+            defaultFilename: modelsReportDefaultName,
+            error: $modelsReportError))
         .modifier(ControllerActionAlertModifier(
             message: $pendingControllerActionAlert))
         .modifier(ControllerDeleteAlertModifier(
@@ -1557,9 +1598,38 @@ struct LayoutEditorView: View {
             .menuStyle(.borderlessButton)
             .accessibilityLabel("Preview and sort menu")
             Spacer(minLength: 0)
+            // IE-15 — export the Models report (.xlsx). Mirrors the
+            // desktop File > Export Models. Disabled until a show is
+            // loaded so we never write an empty workbook.
+            Button {
+                startModelsReportExport()
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+            }
+            .buttonStyle(.borderless)
+            .disabled(!viewModel.isShowFolderLoaded)
+            .accessibilityLabel("Export models report")
             Text("(\(filteredModelNames.count)\(modelNames.count != filteredModelNames.count ? " of \(modelNames.count)" : ""))")
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// IE-15 — write the Models report workbook to a temp `.xlsx`
+    /// and hand the path to SwiftUI's `.fileExporter`. The bridge
+    /// builds the workbook from the document's ModelManager +
+    /// OutputManager; the exporter then copies the bytes to the
+    /// user's chosen destination.
+    private func startModelsReportExport() {
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "Models-\(UUID().uuidString).xlsx").path
+        guard viewModel.document.exportModelsReport(toPath: tempPath) else {
+            modelsReportError = "Couldn't build the models report."
+            return
+        }
+        modelsReportExportDoc = ModelsReportExportDoc(sourcePath: tempPath)
+        modelsReportDefaultName = "Models.xlsx"
+        showingModelsReportExporter = true
     }
 
     /// Bridges return `[[AnyHashable: Any]]` for arrays of
@@ -9177,6 +9247,37 @@ private struct AddViewObjectSheet: View {
 /// J-31 — Controllers Upload / Visualize placeholder alert.
 /// Extracted into a modifier so the outer body's modifier chain
 /// stays within Swift's type-checker budget.
+/// IE-15 — Models report (.xlsx) export: `.fileExporter` for the
+/// temp workbook plus a failure alert. Bundled into one modifier so
+/// the outer LayoutEditorView body chain stays inside Swift's
+/// type-checker budget (same approach as the controller modifiers).
+private struct ModelsReportExportModifier: ViewModifier {
+    @Binding var showingExporter: Bool
+    @Binding var exportDoc: ModelsReportExportDoc?
+    let defaultFilename: String
+    @Binding var error: String?
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingExporter,
+                document: exportDoc,
+                contentType: kXLSXFileType,
+                defaultFilename: defaultFilename
+            ) { _ in
+                exportDoc = nil
+            }
+            .alert("Export failed",
+                   isPresented: Binding(
+                        get: { error != nil },
+                        set: { if !$0 { error = nil } })) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(error ?? "")
+            }
+    }
+}
+
 private struct ControllerActionAlertModifier: ViewModifier {
     @Binding var message: String?
 

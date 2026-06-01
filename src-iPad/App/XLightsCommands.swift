@@ -101,6 +101,13 @@ struct XLSequencerCommands: Commands {
                 viewModel.colorReplacePresented = true
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            // PRE-1 — persistent effect preset library.
+            Button("Effect Presets…") {
+                viewModel.presetBrowserPresented = true
+            }
+            .keyboardShortcut("p", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
         }
         CommandGroup(replacing: .pasteboard) {
             Button("Copy") { viewModel.copySelectedEffect() }

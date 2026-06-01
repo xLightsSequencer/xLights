@@ -140,7 +140,7 @@ struct ImportEffectsView: View {
             Text("Pick a sequence to import effects from.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Text(".xsq / .xsqz xLights sequences and .sup SuperStar files are supported.")
+            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, and .loredit LOR S5 exports are supported.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -357,7 +357,14 @@ struct ImportEffectsView: View {
         defer { if started { url.stopAccessingSecurityScopedResource() } }
         guard let session else { return }
         do {
-            try session.loadSourceSequence(atPath: url.path)
+            if ext == "loredit" {
+                // LOR S5 effect-level export — parsed by the core LOREdit
+                // reader. Shares the same mapping panes / AutoMapper flow as
+                // `.xsq`; only the source-discovery entry point differs.
+                try session.loadLOREditSource(atPath: url.path)
+            } else {
+                try session.loadSourceSequence(atPath: url.path)
+            }
             mode = .xsq
             sourcePath = url.path
             refreshSnapshots()
@@ -484,6 +491,8 @@ struct ImportEffectsView: View {
         if let zip = UTType(filenameExtension: "zip") { types.append(zip) }
         types.append(.xml)  // legacy .xml sequences
         if let sup = UTType(filenameExtension: "sup") { types.append(sup) }
+        // LOR S5 effect-level export (parsed by the core LOREdit reader).
+        if let loredit = UTType(filenameExtension: "loredit") { types.append(loredit) }
         return types
     }()
 }

@@ -23,6 +23,7 @@
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
 #include "effects/EffectManager.h"
+#include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
 #include "models/ModelManager.h"
 #include "models/OutputModelManager.h"
@@ -116,6 +117,18 @@ public:
     unsigned int GetModelGeneration() const override { return _modelManager ? _modelManager->GetModelGeneration() : 0; }
     EffectManager& GetEffectManager() override { return _effectManager; }
     OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
+
+    // PRE-1 — persistent effect preset library. Mirrors
+    // xLightsFrame::_effectPresetManager. Loaded at show-folder load
+    // (JSON file with XML-effects-node fallback) and saved back to
+    // `<showDir>/xlights_effectpresets.json` (+ .jbkp backup) so
+    // presets round-trip with the desktop format. The bridge funnels
+    // every preset mutation through this manager.
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
+    // Persist the preset library to disk. Writes the backup copy first
+    // (best-effort), then the main JSON file. Returns false on write
+    // failure of the main file.
+    bool SaveEffectPresets();
 
     bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
@@ -602,6 +615,7 @@ private:
     std::unique_ptr<ModelManager> _modelManager;
     std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
+    EffectPresetManager _effectPresetManager;
     SequenceElements _sequenceElements;
     SequenceViewManager _viewsManager;
     std::unique_ptr<SequenceFile> _sequenceFile;

@@ -22,7 +22,7 @@
 #include <pugixml.hpp>
 
 #include "../import_export/LMSImportChannelMapDialog.h"
-#include "LOREdit.h"
+#include "import_export/LOREdit.h"
 #include "../import_export/SuperStarImportDialog.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"

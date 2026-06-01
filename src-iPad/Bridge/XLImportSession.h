@@ -137,6 +137,20 @@ NS_ASSUME_NONNULL_BEGIN
                   convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)error;
 
+// Parse a LOR S5 `.loredit` source at `path` using the wx-free core
+// LOREdit reader (the same reader the desktop's ImportS5 uses). Builds
+// the available source list (props with effects + per-node/strand
+// channels) and the importable timing tracks, then reuses the shared
+// destination tree + AutoMapper / MapHints mapping flow. Returns a
+// non-nil error on parse failure.
+//
+// Note: discovery + mapping are wired; the effect-synthesis apply path
+// (the iPad analogue of desktop MapS5*) is not yet ported, so
+// -applyImportWithEraseExisting:lock:error: returns an error for a
+// `.loredit` source.
+- (BOOL)loadLOREditSourceAtPath:(NSString*)path
+                          error:(NSError**)error NS_SWIFT_NAME(loadLOREditSource(atPath:));
+
 @end
 
 NS_ASSUME_NONNULL_END
