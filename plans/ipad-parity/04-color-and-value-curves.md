@@ -4,6 +4,7 @@ _Scope: gap-analysis Area 15 (Color, Palettes & Value Curves) — per-parameter 
 
 > **Status (2026-06-01) — landed (build-verified, `xLights-iPadLib` + `xLights-iPad` app):**
 > - ✅ **COL-2** — per-parameter value-curve bulk edit. Added "Apply Value Curve to N Other Selected" to `PropertyContextMenu`'s value-curve block (gated on `isMultiEffectSelection`), reusing the existing generic `applyValueToAllSelected(_:forKey:)` with the VC key; the serialised curve is re-read at tap time. Chose the context-menu path over a new long-press gesture (the VC menu already exists, so it's less code + parity with non-VC properties). The numeric half of BE-4 was already wired via the scalar "Apply to N Other Selected".
+> - ✅ **COL-3** — palette **Reverse / Shift Left / Shift Right** in the palette menu, implemented as a per-slot `C_BUTTON_`/`C_CHECKBOX_PaletteN` reorder over the selected effect (no fragile palette-string parsing; each slot write is its own undo step).
 
 ## Current parity
 

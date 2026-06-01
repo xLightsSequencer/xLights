@@ -151,6 +151,27 @@ variants in `libdbg-ios/`.
   is medium — the `.fileExporter` re-prompt loop / nil-folder fallback;
   **CTL-4** (FPP-proxy validation) is **blocked** — iPad has no proxy
   upload or proxy-IP source yet. See `plans/ipad-parity/0{4,5,7},12`.
+- **Easy-wins batch (cross-theme, code-verified sweep, 2026-06-01).**
+  Eight more small parity items, all build-verified (iPad-lib + app):
+  - **FX-5b** (03) — font-picker bulk-edit (`.propertyContextMenu`).
+  - **FX-5** (03) — checkbox Set Checked/Unchecked + file-picker Apply
+    Filename Only in `PropertyContextMenu`.
+  - **SEQ-7** (01) — timing import already had LOR/Papagayo/Audacity;
+    added LOR `.las`.
+  - **SEQ-19** (01) — "Select All Marks" in the timing row menu.
+  - **COL-3** (04) — palette Reverse / Shift (per-slot reorder).
+  - **SEQ-15** (01) — "Show All Effects" (new bridge
+    `expandElementsWithEffects`).
+  - **MED-5** (02) — per-item Remove of embedded media (new bridge
+    `removeMediaAtPath:` + swipe/confirm).
+  - **SEQ-18** (01, *partial*) — live Duration readout in the Edit-Timing
+    alert; the editable Duration field + frame-stepped Steppers it also
+    wanted need an alert→sheet conversion (SwiftUI alerts can't host
+    Steppers) — deferred as a medium follow-up.
+  The sweep's verify also correctly **downgraded** several plan-labeled-S
+  items (SEQ-34 reverse, TIM-4 word breakdown, MED-3/6, FX-15, TIM-6,
+  COL-8 → medium; **FX-16 blocked** — Buffer W/H missing on *both*
+  platforms, not an iPad gap).
 - **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
   until a vendor request lands.
 - **3 deferred Phase B items** (B16 drag-from-palette ghost,
