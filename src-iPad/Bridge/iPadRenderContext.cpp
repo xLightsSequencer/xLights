@@ -10,6 +10,8 @@
 
 #include "iPadRenderContext.h"
 
+#include <CoreFoundation/CoreFoundation.h>
+
 #include "render/Element.h"
 #include "render/EffectLayer.h"
 #include "render/Effect.h"
@@ -72,6 +74,13 @@ iPadRenderContext::iPadRenderContext()
     //     iPad users don't need desktop-scale undo depth anyway.
     _renderCache.SetMaximumSizeMB(50);
     _sequenceElements.get_undo_mgr().SetMaxSteps(50);
+
+    // Render cache defaults OFF on iPad (see ReadRenderCacheMode): it trades
+    // memory + disk for re-render speed, and both are scarce here. The user
+    // can opt into "Locked Only" / "Enabled" via the Folder Config picker;
+    // EnsureRenderEngine re-reads it before every render so changes take
+    // effect without a restart.
+    _renderCache.Enable(ReadRenderCacheMode());
 }
 
 iPadRenderContext::~iPadRenderContext() {
@@ -1763,6 +1772,46 @@ TimingElement* iPadRenderContext::AddTimingElement(const std::string& name,
     return e;
 }
 
+bool iPadRenderContext::IsLowDefinitionRender() const {
+    // Opt-in app preference, default OFF = full-definition render — matches the
+    // desktop, whose "Low Definition Render" preference also defaults off, and
+    // keeps the final FSEQ output full-resolution. Reads the same UserDefaults
+    // store the SwiftUI toggle writes via @AppStorage("render.lowDefinition").
+    // When off, per-model Low-Def Factors are inert (exactly like desktop with
+    // the pref off); on is a deliberate memory-relief escape hatch for huge
+    // shows on 4 GB devices.
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.lowDefinition"),
+                                                    kCFPreferencesCurrentApplication);
+    bool on = (v != nullptr) && CFGetTypeID(v) == CFBooleanGetTypeID()
+              && CFBooleanGetValue((CFBooleanRef)v);
+    if (v) CFRelease(v);
+    return on;
+}
+
+std::string iPadRenderContext::ReadRenderCacheMode() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMode"). Default "Disabled": the render cache
+    // trades extra memory + disk to speed re-renders, and iPad is tight on
+    // both — desktop defaults to the milder "Locked Only", but iPad starts
+    // fully off. Valid values map straight to RenderCache::Enable.
+    std::string mode = "Disabled";
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMode"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFStringGetTypeID()) {
+            char buf[32] = { 0 };
+            if (CFStringGetCString((CFStringRef)v, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                std::string s(buf);
+                if (s == "Locked Only" || s == "Enabled" || s == "Disabled") {
+                    mode = s;
+                }
+            }
+        }
+        CFRelease(v);
+    }
+    return mode;
+}
+
 bool iPadRenderContext::AbortRender(int maxTimeMs) {
     // Mirror the desktop's xLightsFrame::AbortRender contract: signal
     // every in-flight render job to bail and then BLOCK until they
@@ -1808,6 +1857,10 @@ void iPadRenderContext::EnsureRenderEngine() {
     if (!_renderEngine) {
         _renderEngine = std::make_unique<RenderEngine>(*this, *_jobPool, _renderCache);
     }
+    // Re-read the render-cache mode each render kickoff so the Folder Config
+    // picker takes effect without an app restart (the engine itself is long-
+    // lived). RenderEngine checks _renderCache.IsEnabled() per effect.
+    _renderCache.Enable(ReadRenderCacheMode());
 }
 
 void iPadRenderContext::RenderAll() {

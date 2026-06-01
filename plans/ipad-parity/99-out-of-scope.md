@@ -177,7 +177,6 @@ version would fight the platform and add no user value.
 | Zoom To Cursor (pref) | Preferences | No mouse cursor on iPad; pinch-zoom always centers on the gesture centroid (the touch equivalent), unconditionally. A toggle would have no alternative. |
 | Auto Show House Preview (pref) | Preferences | iPad has no floating/auto-appearing preview window; the house preview is an embedded pane or an explicitly-opened detached scene, governed by iPadOS scene lifecycle. |
 | GPU Rendering (pref) | Preferences | The iPad render context is already configured for the device's capabilities; there is no meaningful CPU-vs-GPU toggle, and forcing CPU would only hurt. |
-| Low Definition Render (pref) | `iPadRenderContext::IsLowDefinitionRender()` | Hard-coded `true` as a deliberate memory/perf constraint for 4 GB devices; a user toggle would risk OOM on large models. |
 | Shaders on Background Threads (pref) | Preferences | Already hidden on macOS/Linux; iPad runs ShaderEffect single-threaded on Metal via ANGLE by design, so background-thread shader rendering doesn't apply. |
 | Effect status / hover tooltip | Sequencer grid | Touch UI has no hover/cursor state or status bar; hover tooltips and cursor-zone feedback don't translate to a finger-driven grid. |
 | Bulk upload ESC cancel | Controllers: upload | No physical ESC key in the touch idiom; replace with an on-screen Cancel button when the bulk dialog is built. |
@@ -231,10 +230,13 @@ specific capability is built or a device constraint lifts:
   Export Codec / Bitrate* preferences all become in-scope together if an
   AVAssetWriter-based H.264/H.265 encoder fed by the Metal canvas is built. This
   is net-new work with no shared-core reuse, not a wiring task.
-- **Full-definition render on Pro devices** — *Low Definition Render* and *GPU
-  Rendering* are hard-locked for the 4 GB memory floor today. If memory headroom
-  on Pro-class iPads allows full-def GPU compute, these could become user
-  preferences.
+- **GPU Rendering toggle** — render now defaults to **full-definition** on every
+  iPad (`iPadRenderContext::IsLowDefinitionRender()` reads the opt-in
+  `render.lowDefinition` app pref, default OFF), so *Low Definition Render* is
+  already a shipped user preference — a memory-relief escape hatch, not a lock.
+  Only the desktop *GPU Rendering* CPU-vs-GPU toggle remains without an iPad
+  analogue; it could become a preference if a meaningful compute-path choice ever
+  exists on-device.
 - **Named iPad layout presets** — the *Perspectives* family could be
   re-conceived as native named layout presets (which panes detached, sidebar
   widths). That is net-new SwiftUI layout-state design, not a port of the wxAUI

@@ -77,6 +77,39 @@ All entries below are **build-verified** (`xLights-iPadLib` + the `xLights-iPad`
 app); on-device verification is the standing follow-up. Detail lives in the
 matching `plans/ipad-parity/` theme doc.
 
+- **Render cache now defaults OFF, and is user-selectable (RC-1).** The shared
+  `RenderCache` was running on iPad at its raw constructor default — `_enabled`
+  is a `std::string`, the ctor does `_enabled = true` (a 1-char `'\x01'`), and
+  `IsEnabled()` is `!= "Disabled"` — so it behaved as full **"Enabled"** (caches
+  *every* cache-supporting effect), more aggressive than the desktop's
+  **"Locked Only"** default, and with no way for the user to change it. The cache
+  trades extra memory + on-disk frames for re-render speed, and both are scarce on
+  iPad. Now `iPadRenderContext::ReadRenderCacheMode()` reads
+  `@AppStorage("render.cacheMode")` via CFPreferences and feeds
+  `RenderCache::Enable("Disabled" | "Locked Only" | "Enabled")` — applied in the
+  ctor and re-applied on every `EnsureRenderEngine()` so the picker is live (no
+  restart). **Default "Disabled."** 3-way picker in **Folder Config → Rendering**
+  (next to Low-Definition Render). Disk cap unchanged (`SetMaximumSizeMB(50)`).
+  *Root cause:* the desktop sets the mode from config at startup
+  (`xLightsMain.cpp` reads `xLightsEnableRenderCache`, default "Locked Only");
+  the iPad never called `Enable()`, so the unintended ctor default leaked through.
+  *Follow-up:* PREF-9 should relocate the picker into the unified Preferences shell
+  and optionally expose the size cap; watch re-render latency on big sequences with
+  the cache off ("Locked Only" is the middle ground). Plan docs 00/09/11 updated.
+- **Full-definition render is now the default.** `iPadRenderContext::IsLowDefinitionRender()`
+  was hard-coded `true`, forcing every iPad render into reduced-resolution
+  effect buffers — pixelated output on large/high-res props and FSEQ that
+  didn't match desktop fidelity. It now reads an opt-in app preference
+  (`render.lowDefinition`, CFPreferences key written by an `@AppStorage` toggle
+  in Folder Config → **Rendering**), **default OFF = full-definition**, matching
+  the desktop. Low-def stays available as a deliberate memory-relief escape
+  hatch for very large shows on 4 GB devices. *Root cause:* the constant was a
+  blanket 4 GB-device safety default that silently degraded output on all
+  devices; *follow-up:* the same pref should surface in the unified Preferences
+  shell (PREF-1) when it lands, and large-show OOM under full-def is now the
+  memory-pressure case to watch. Plan docs 05/09/11/12/99 updated; the frozen
+  `_raw-gap-analysis.md` / `_reconciliation.md` snapshots still describe the old
+  hard-coded behavior by design (audit trail).
 - **Import / Export theme (08).** Fixed the iPad-app link by extracting the
   timing importers to wx-free core (new `src-core/utils/ZipUtils`, relocated
   `Vixen3`, new `src-core/import_export/TimingImport.cpp`); XLights/Vixen3

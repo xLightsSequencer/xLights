@@ -135,7 +135,11 @@ public:
     TimingElement* AddTimingElement(const std::string& name,
                                     const std::string& subType = "") override;
     void SuspendAutoSave(bool) override {}
-    bool IsLowDefinitionRender() const override { return true; }
+    // Opt-in app preference (default OFF = full-definition render). See the
+    // .cpp — reads the `render.lowDefinition` UserDefaults key the SwiftUI
+    // toggle writes. Defaulting off matches desktop and keeps final FSEQ output
+    // full-resolution; on is a deliberate memory-relief escape hatch.
+    bool IsLowDefinitionRender() const override;
 
     // Rendering
     void RenderAll();
@@ -720,7 +724,17 @@ private:
 
     // Ensures the render engine + its pool are ready before using them
     // from a preview render path (before `RenderAll` has been called).
+    // Also re-applies the render-cache mode app preference on every call
+    // so the Folder Config picker takes effect without an app restart.
     void EnsureRenderEngine();
+
+    // Reads the `render.cacheMode` app preference (written by the Folder
+    // Config → Rendering picker via @AppStorage) and returns one of the
+    // RenderCache::Enable values: "Disabled" | "Locked Only" | "Enabled".
+    // Defaults to "Disabled": the render cache trades memory + disk to
+    // speed re-renders, and both are scarce on iPad — desktop defaults to
+    // the milder "Locked Only", but iPad starts fully off.
+    std::string ReadRenderCacheMode() const;
 
     // Re-allocates `_sequenceData` only when the sequence's shape
     // (numChannels / numFrames / frameTime) has actually changed.

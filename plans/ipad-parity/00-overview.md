@@ -15,10 +15,12 @@ the desktop `src-ui-wx/` enumerated **1112 features across 23 functional areas**
 
 | Status | Count | Share | Meaning |
 |--------|------:|------:|---------|
-| **Implemented** | **525** | 47% | At functional parity (often via a touch idiom) |
-| **Partial** | **223** | 20% | Present but with real gaps |
-| **Missing** | **295** | 27% | Absent but portable |
+| **Implemented** | **560** | 50% | At functional parity (often via a touch idiom) |
+| **Partial** | **206** | 19% | Present but with real gaps |
+| **Missing** | **277** | 25% | Absent but portable |
 | **Out-of-scope** | **69** | 6% | Not applicable / not viable on iPad (reason given) |
+
+> **Counts re-tallied as of 2026-06-01** (after the import/export, quick-wins, and easy-wins batches landed). The **1,112-feature / 23-area baseline** is the 2026-04-23 code-level gap analysis in [`_raw-gap-analysis.md`](_raw-gap-analysis.md), which still sums to 525/223/295/69; since then **+35 features moved to implemented** (13 from missing, 22 from partial) plus 5 missing→partial. Each `NN-*.md` theme doc's ✅ status callout carries the detail.
 
 ### The key finding: the core sequencer is already mature
 
@@ -28,18 +30,18 @@ done. Of the **84 P0-priority features**, the **3 P0 gaps are now closed**
 P0 table below); they were narrow fixes, not architecture work. The strongest
 areas are exactly the ones a sequencer lives or dies on:
 
-- **Effects (Area 14): 55/70 implemented, 0 missing, 0 out-of-scope.** Every one
-  of the 55 effects renders through the *same* shared `src-core` engine; the 14
-  partials are panel-level dynamic-UI polish, not rendering.
+- **Effects (Area 14): 61/70 implemented, 0 missing, 0 out-of-scope.** Every one
+  of the 55 effects renders through the *same* shared `src-core` engine; the 8
+  remaining partials are panel-level dynamic-UI polish, not rendering.
 - **Render/FSEQ (Area 19): 28/41**, the highest-parity area — the iPad runs the
   identical shared RenderEngine / JobPool / RenderCache / FSEQFile.
-- **Sequencer editing/grid/rows (Areas 2/11/13): 101/171 implemented** — the
+- **Sequencer editing/grid/rows (Areas 2/11/13): 110/171 implemented** — the
   highest-implemented-share theme. Select/move/resize/align, clipboard, layers,
   Display Elements, and the full Views CRUD are all wired.
 - **Layout model creation & properties (Areas 6/7): 76/126** — model creation
   for 16 types, full per-type property editor, multi-select edit, groups, view
   objects, 2D/3D, ARKit Map-from-Lights.
-- **Timing/audio (Areas 12/17): 54/92** — the entire Metal waveform stack, every
+- **Timing/audio (Areas 12/17): 58/92** — the entire Metal waveform stack, every
   band/stem/vocal filter, on-device onset/tempo/chord/pitch analyzers, HTDemucs
   stems, and the lyric-breakdown pipeline.
 
@@ -50,12 +52,12 @@ bridge wiring over shared core that already exists**, not new algorithms:
 
 | Cluster | Areas | Why it's behind |
 |---------|-------|-----------------|
-| **Import / Export** | 16 (5/41 impl) | Second-weakest area. Channel-map polish, ~8 legacy/competitor importers, report exporters. Converters often live in `src-ui-wx` and need a core home. |
+| **Import / Export** | 16 (6/41 impl) | Among the weakest areas (most IE work landed as partials, not full feature rows). Channel-map polish, ~8 legacy/competitor importers, report exporters. Converters often live in `src-ui-wx` and need a core home. |
 | **Preferences** | 20 (9/77 impl) | No unified Settings surface yet; ~40 missing rows, but most are single `@AppStorage` toggles over already-shared setters. |
 | **Automation-as-commands** | 22 (0/58 impl, 28 partial) | The *operations* exist as bridge methods; what's missing is one JSON command dispatcher to invoke them by name. |
-| **Presets / Jukebox** | 23 (2/28 impl) | Lowest-parity area. Preset tree + Jukebox panel — the data model is nearly portable already. |
+| **Presets / Jukebox** | 23 (9/28 impl) | PRE-1's persistent preset library landed (was 2/28); the remaining Jukebox panel + preset-tree polish are nearly portable already. |
 | **Submodels / Faces / States** | 8 (9/43 impl) | Weakest layout sub-area; needs a touch node-select grid (the keystone) to lift Faces/States/SubModels at once. |
-| **Layout model management** | 6 (35/68 impl) | Node-layout/wiring views, group sort/membership convenience, model copy/paste, custom-model grid transforms. |
+| **Layout model management** | 6 (36/68 impl) | Node-layout/wiring views, group sort/membership convenience, model copy/paste, custom-model grid transforms. |
 
 The throughline: **almost nothing here is a new algorithm.** The core is shared
 and linked by both apps. The work is SwiftUI views, ObjC++ bridge wrappers, and
@@ -155,6 +157,7 @@ and are corrected here where the live code had already moved ahead.
 | **IE-12** | 08 | **Update Aliases from mapping** — bridge `updateModelAliasesFromMapping` loops `_destinationRoots` and `Model::AddAlias`(source name) on each mapped model (idempotent; marks dirty so `saveLayoutChanges` persists); "Update Aliases" button. Top-level models only (submodel guard deferred). | ✅ |
 | **Selected-only Color Replace** | 01 | Completes SEQ-2 with a **"Selected effects only"** toggle. Vetted-safe **sync-on-demand**: bridge `replaceColour(from:to:atRows:effectIndices:)` / `usedColours(atRows:…)` mirror the Swift selection into core `Selected` flags only for the op, then `UnSelectAllEffects` (never left dirty; `SetSelected` doesn't dirty the doc; grid draws selection from the Swift set). | ✅ |
 | **TOOLS-1b** | 09/13 | **Purge Render Cache** — `iPadRenderContext::PurgeRenderCache()` (→ `RenderCache::Purge`) + bridge `purgeRenderCache` + Tools-menu entry. | ✅ |
+| **RC-1** | 09/11 | **Render-cache mode pref** — `ReadRenderCacheMode()` reads `@AppStorage("render.cacheMode")` (CFPreferences) → `RenderCache::Enable("Disabled"/"Locked Only"/"Enabled")`, re-applied each `EnsureRenderEngine()`. 3-way picker in **Folder Config → Rendering**, **default "Disabled"** (memory + disk are scarce on iPad vs desktop's "Locked Only" default). | ✅ |
 | **TOOL-8** | 13 | **Help-menu parity** — added the missing **Zoom Room Help** + **Donate** links (`XLOpenURL`). | ✅ |
 | **IE-2 persistence** | 08 | Import-option toggles (erase / lock / convert-render-style) now persist across launches via `@AppStorage`. | ✅ |
 | **PRE-1** | 10 | **Persistent effect preset library** (the keystone). `EffectPresetManager` relocated to wx-free `src-core/effects` (shared desktop↔iPad); `iPadRenderContext` loads/saves `xlights_effectpresets.json` (desktop format); bridge (`presetTree`/`savePreset`/`applyPreset`/group/rename/delete/move/import/export) + new `PresetBrowserSheet`; session-only presets retired. Implemented in a worktree agent + merged. | ✅ iPad + desktop |
