@@ -242,7 +242,14 @@ int xLightsImportTreeModel::Compare(const wxDataViewItem& item1, const wxDataVie
             } else {
                 return NumberAwareStringCompareRev(node1->_node, node2->_node);
             }
-        } else if (node1->_strand != "" && node2->_strand != "") { // dont sort the submodels
+        } else if (node1->_strand != "" && node2->_strand != "") {
+            if (_sortSubmodelsByName) {
+                if (ascending) {
+                    return NumberAwareStringCompare(node1->_strand, node2->_strand);
+                } else {
+                    return NumberAwareStringCompareRev(node1->_strand, node2->_strand);
+                }
+            }
             int idx1 = findChildIndex(node1->GetParent(), node1->_strand);
             int idx2 = findChildIndex(node2->GetParent(), node2->_strand);
             return idx1 - idx2;
@@ -519,6 +526,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARSELECTED = wxNewId()
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
+const long xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
 
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
@@ -748,6 +756,12 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.AppendSeparator();
+        if (_dataModel->_sortSubmodelsByName) {
+            mnuLayer.Append(ID_MNU_SORT_SUBMODELS_BY_NAME, "Reset Submodel Sort");
+        } else {
+            mnuLayer.Append(ID_MNU_SORT_SUBMODELS_BY_NAME, "Sort Submodels By Name");
+        }
+        mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_MNU_CLEARALL, "Clear All");
         mnuLayer.Append(ID_MNU_CLEARSELECTED, "Clear Selected");
         mnuLayer.AppendSeparator();
@@ -781,6 +795,9 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         ClearAll();
     } else if (id == ID_MNU_ADD_EMPTY_GROUP) {
         AddEmptyGroup();
+    } else if (id == ID_MNU_SORT_SUBMODELS_BY_NAME) {
+        _dataModel->_sortSubmodelsByName = !_dataModel->_sortSubmodelsByName;
+        _dataModel->Resort();
     }
 }
 

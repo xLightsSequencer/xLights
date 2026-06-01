@@ -396,6 +396,8 @@ public:
     bool _hideUnmapped = false;
     void SetHideUnmapped(bool h) { _hideUnmapped = h; }
 
+    bool _sortSubmodelsByName = false;
+
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
 private:
@@ -618,6 +620,7 @@ protected:
         static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
+        static const long ID_MNU_SORT_SUBMODELS_BY_NAME;
 
 	private:
         wxString FindTab(wxString &line);
