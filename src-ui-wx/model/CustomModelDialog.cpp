@@ -71,6 +71,13 @@ const long CustomModelDialog::ID_BUTTON_CustomModelZoomOut = wxNewId();
 const long CustomModelDialog::ID_FILEPICKERCTRL1 = wxNewId();
 const long CustomModelDialog::ID_SLIDER_CUSTOM_LIGHTNESS = wxNewId();
 const long CustomModelDialog::ID_BITMAPBUTTON_CUSTOM_BKGRD = wxNewId();
+const long CustomModelDialog::ID_BUTTON_BKG_LEFT = wxNewId();
+const long CustomModelDialog::ID_BUTTON_BKG_RIGHT = wxNewId();
+const long CustomModelDialog::ID_BUTTON_BKG_UP = wxNewId();
+const long CustomModelDialog::ID_BUTTON_BKG_DOWN = wxNewId();
+const long CustomModelDialog::ID_BUTTON_BKG_RESET = wxNewId();
+
+static constexpr float kBkgOffsetStep = 0.25f;
 const long CustomModelDialog::ID_CHECKBOX_AUTO_NUMBER = wxNewId();
 const long CustomModelDialog::ID_CHECKBOX_AUTO_INCREMENT = wxNewId();
 const long CustomModelDialog::ID_SPINCTRL_NEXT_CHANNEL = wxNewId();
@@ -443,6 +450,33 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) :
 	BitmapButtonCustomBkgrd->SetDefault();
 	BitmapButtonCustomBkgrd->SetMinSize(wxSize(24,-1));
 	FlexGridSizer1->Add(BitmapButtonCustomBkgrd, 1, wxTOP|wxBOTTOM|wxRIGHT, 5);
+	StaticTextBkgLabel = new wxStaticText(this, wxID_ANY, _("Image offset (cells):"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	FlexGridSizer1->Add(StaticTextBkgLabel, 0, wxLEFT|wxTOP, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL, 5);
+	wxBoxSizer* BkgOffsetSizer = new wxBoxSizer(wxHORIZONTAL);
+	BtnBkgLeft = new wxButton(this, ID_BUTTON_BKG_LEFT, _T("←"), wxDefaultPosition, wxSize(28,-1), 0, wxDefaultValidator, _T("ID_BUTTON_BKG_LEFT"));
+	BtnBkgLeft->SetToolTip(_("Move image left"));
+	BkgOffsetSizer->Add(BtnBkgLeft, 0, wxRIGHT, 2);
+	BtnBkgUp = new wxButton(this, ID_BUTTON_BKG_UP, _T("↑"), wxDefaultPosition, wxSize(28,-1), 0, wxDefaultValidator, _T("ID_BUTTON_BKG_UP"));
+	BtnBkgUp->SetToolTip(_("Move image up"));
+	BkgOffsetSizer->Add(BtnBkgUp, 0, wxRIGHT, 2);
+	BtnBkgDown = new wxButton(this, ID_BUTTON_BKG_DOWN, _T("↓"), wxDefaultPosition, wxSize(28,-1), 0, wxDefaultValidator, _T("ID_BUTTON_BKG_DOWN"));
+	BtnBkgDown->SetToolTip(_("Move image down"));
+	BkgOffsetSizer->Add(BtnBkgDown, 0, wxRIGHT, 2);
+	BtnBkgRight = new wxButton(this, ID_BUTTON_BKG_RIGHT, _T("→"), wxDefaultPosition, wxSize(28,-1), 0, wxDefaultValidator, _T("ID_BUTTON_BKG_RIGHT"));
+	BtnBkgRight->SetToolTip(_("Move image right"));
+	BkgOffsetSizer->Add(BtnBkgRight, 0, wxRIGHT, 5);
+	wxBoxSizer* OffsetDisplaySizer = new wxBoxSizer(wxVERTICAL);
+	StaticTextBkgOffset = new wxStaticText(this, wxID_ANY, _T("Horiz: 0.00"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	OffsetDisplaySizer->Add(StaticTextBkgOffset, 0, 0, 0);
+	StaticTextBkgVert = new wxStaticText(this, wxID_ANY, _T("Vert:  0.00"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
+	OffsetDisplaySizer->Add(StaticTextBkgVert, 0, 0, 0);
+	BkgOffsetSizer->Add(OffsetDisplaySizer, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 5);
+	BtnBkgReset = new wxButton(this, ID_BUTTON_BKG_RESET, _("Reset"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_BKG_RESET"));
+	BtnBkgReset->SetToolTip(_("Reset image offset to zero"));
+	BkgOffsetSizer->Add(BtnBkgReset, 0, wxALIGN_CENTER_VERTICAL, 0);
+	FlexGridSizer1->Add(BkgOffsetSizer, 0, wxBOTTOM|wxLEFT, 5);
+	FlexGridSizer1->Add(-1,-1,1, wxALL, 5);
 	StaticBoxSizer2->Add(FlexGridSizer1, 1, wxEXPAND, 5);
 	Sizer2->Add(StaticBoxSizer2, 1, wxEXPAND, 5);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Auto Numbering"));
@@ -522,7 +556,14 @@ CustomModelDialog::CustomModelDialog(wxWindow* parent, OutputManager* om) :
 	Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnButtonOkClick);
 	Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnButtonCancelClick);
 	Connect(ID_NOTEBOOK1, wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)&CustomModelDialog::OnNotebook1PageChanged);
+	Connect(ID_BUTTON_BKG_LEFT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnBtnBkgLeft);
+	Connect(ID_BUTTON_BKG_RIGHT, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnBtnBkgRight);
+	Connect(ID_BUTTON_BKG_UP, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnBtnBkgUp);
+	Connect(ID_BUTTON_BKG_DOWN, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnBtnBkgDown);
+	Connect(ID_BUTTON_BKG_RESET, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&CustomModelDialog::OnBtnBkgReset);
 	//*)
+
+    UpdateBkgOffsetVisibility();
 
     name = "";
 
@@ -699,6 +740,7 @@ void CustomModelDialog::Setup(CustomModel* m)
     //}
     UpdatePreview();
     ValidateWindow();
+    UpdateBkgOffsetVisibility();
 }
 
 // make grid the size specified by the spin controls
@@ -1084,10 +1126,54 @@ void CustomModelDialog::UpdateBackground()
     {
         if (*r != nullptr)
         {
-            (*r)->UpdateSize(*grid, bkgrd_active, lightness);
+            (*r)->UpdateSize(*grid, bkgrd_active, lightness, _bkg_offset_x, _bkg_offset_y);
         }
         ++r;
     }
+}
+
+void CustomModelDialog::UpdateBkgOffsetLabel()
+{
+    StaticTextBkgOffset->SetLabel(wxString::Format(_("Horiz: %.2f"), _bkg_offset_x));
+    StaticTextBkgVert->SetLabel(wxString::Format(_("Vert:  %.2f"), _bkg_offset_y));
+}
+
+void CustomModelDialog::UpdateBkgOffsetVisibility()
+{
+    bool show = (bkg_image != nullptr);
+    StaticTextBkgLabel->Show(show);
+    BtnBkgLeft->Show(show);
+    BtnBkgUp->Show(show);
+    BtnBkgDown->Show(show);
+    BtnBkgRight->Show(show);
+    StaticTextBkgOffset->Show(show);
+    StaticTextBkgVert->Show(show);
+    BtnBkgReset->Show(show);
+    Layout();
+}
+
+void CustomModelDialog::ApplyBkgOffsetDelta(float dx, float dy)
+{
+    // Offsets are intentionally transient — not saved with the model
+    _bkg_offset_x += dx;
+    _bkg_offset_y += dy;
+    UpdateBkgOffsetLabel();
+    UpdateBackground();
+    GetActiveGrid()->Refresh();
+}
+
+void CustomModelDialog::OnBtnBkgLeft(wxCommandEvent& event)  { ApplyBkgOffsetDelta(-kBkgOffsetStep, 0.0f); }
+void CustomModelDialog::OnBtnBkgRight(wxCommandEvent& event) { ApplyBkgOffsetDelta( kBkgOffsetStep, 0.0f); }
+void CustomModelDialog::OnBtnBkgUp(wxCommandEvent& event)    { ApplyBkgOffsetDelta(0.0f, -kBkgOffsetStep); }
+void CustomModelDialog::OnBtnBkgDown(wxCommandEvent& event)  { ApplyBkgOffsetDelta(0.0f,  kBkgOffsetStep); }
+
+void CustomModelDialog::OnBtnBkgReset(wxCommandEvent& event)
+{
+    _bkg_offset_x = 0.0f;
+    _bkg_offset_y = 0.0f;
+    UpdateBkgOffsetLabel();
+    UpdateBackground();
+    GetActiveGrid()->Refresh();
 }
 
 void CustomModelDialog::OnBitmapButtonCustomBkgrdClick(wxCommandEvent& event)
@@ -2707,6 +2793,7 @@ void CustomModelDialog::OnFilePickerCtrl1FileChanged(wxFileDirPickerEvent& event
         UpdateBackground();
         GetActiveGrid()->Refresh();
     }
+    UpdateBkgOffsetVisibility();
 }
 
 void CustomModelDialog::OnGridLabelRightClick(wxGridEvent& event)

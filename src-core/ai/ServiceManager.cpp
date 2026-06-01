@@ -14,6 +14,9 @@
 #if defined(__APPLE__) && defined(__arm64__)
 #include "ai/AppleIntelligence.h"
 #endif
+#ifdef HAVE_OPENVINO_GENAI
+#include "ai/OpenVINOService.h"
+#endif
 
 #include "utils/string_utils.h"
 
@@ -67,6 +70,9 @@ ServiceManager::ServiceManager(IServiceSettingsStore* store, const std::string& 
     m_services.push_back(makeBuiltin(new ollama(this)));
     m_services.push_back(makeBuiltin(new gemini(this)));
     m_services.push_back(makeBuiltin(new GenericClient(this)));
+#ifdef HAVE_OPENVINO_GENAI
+    m_services.push_back(makeBuiltin(new OpenVINOService(this)));
+#endif
     
     if (!pluginDir.empty()) {
         loadPlugins(pluginDir);

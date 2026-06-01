@@ -66,6 +66,66 @@ phase:
   picking, multi-object pivot) — already covered by
   [`future-layout-editing.md`](future-layout-editing.md).
 
+## 2026-05-31 desktop deltas — iPad parity triage
+
+Reviewed the desktop commits from the last 48h. Most touch desktop-only
+surfaces (layout editor start-channel/replace dialogs, controller
+mDNS, log packaging, dark-mode, scripts, BatchRender Freeze/Thaw) or
+are pure `src-core/` effect/render changes that render identically on
+iPad (States-on-SubModels `FacesEffect`/`StateEffect`/`SubModel`, the
+Sketch description `D<hex>` token round-trip, crash guards). Three
+landed on the iPad side in the same review:
+
+- **xmodel import: preserve individual + @/> start channels (#6447).**
+  Desktop's `GetXlightsModel` was updated so importing a model with
+  individual start channels (moving-head strands) or a model-relative
+  `@Model:chan` / `>Model:chan` reference no longer forces
+  `NO_CONTROLLER` (which would auto-reassign and wipe the reference).
+  The iPad import (`XLMetalBridge.mm` `importXmodelFromPath…`) was
+  calling `SetControllerName(NO_CONTROLLER, true)` *unconditionally* —
+  it had neither the original `HasIndividualStartChannels()` exemption
+  nor the new @/> one. Added the same guard at both the primary and
+  multi-model-sibling call sites.
+- **Multi-model xmodel: preserve relative positions (#6438).** Desktop
+  `FinalizeModel` now keeps the author's relative WorldPos layout
+  instead of spreading siblings horizontally. The iPad sibling loop
+  still used the old `BATCH_PLACEMENT_PADDING` horizontal spread (the
+  exact code desktop replaced). Reworked it to anchor the primary at
+  the touch point (unchanged iPad idiom) and offset each sibling by its
+  file-space `WorldPos` delta from the primary, so relative layout is
+  preserved. Reads `WorldPosX/Y/Z` straight off each `<model>` node
+  (deserialization overwrites position with the default).
+- **Media relink: split basename on both / and \\.** Desktop
+  `ManageMediaPanel` was fixed to extract a basename treating both
+  separators so Windows-authored `B:\…\f.png` paths resolve on
+  macOS/Linux. iPad's `findMediaFileForInfo`
+  (`XLSequenceDocument.mm`) had the identical defect — it used
+  `std::filesystem::path::filename()`, which on iOS leaves `\` as an
+  ordinary character, so the media-folder basename match never hit for
+  Windows paths (the `FixFile` fallback only covers the show dir).
+  Now splits on `"/\\"` like the desktop helper.
+
+Desktop-only / N/A:
+
+- **Rename preview updates pick lists + View menu (#6430).** N/A
+  today: iPad can *create* a preview/layout group
+  (`LayoutEditorView` `newPreviewSheet` → `createLayoutGroup` →
+  `AddNamedLayoutGroup`, and it already refreshes `layoutGroups()` +
+  auto-switches afterward) but has **no rename** path at all. When
+  iPad gains preview rename, mirror the desktop fix: after the rename,
+  refresh every preview/layout-group picker (the layout-group picker
+  sheets, the active-group selector, and any model-property
+  layout-group field) the same way `createLayoutGroup` already does,
+  so stale names don't linger in the pick lists.
+- **BatchRenderDialog Freeze/Thaw optimization.** wx-only redraw
+  suppression around the checklist box; SwiftUI batches view updates
+  automatically, so there is no analog to port even though iPad has a
+  batch-render surface.
+- Layout-editor-only (start-channel relative preservation UI side,
+  multi-target Replace-Model dialog, multi-model import position UI):
+  covered by [`future-layout-editing.md`](future-layout-editing.md)
+  except the import-position behavior already handled above.
+
 ## Phase E — Sequence management polish
 
 - **Sequence Settings → Data Layers tab.** Image-data layers

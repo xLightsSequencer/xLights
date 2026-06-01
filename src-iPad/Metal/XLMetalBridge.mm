@@ -2337,8 +2337,12 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     // NO_CONTROLLER triggers ReworkStartChannel auto-assign so the
     // imported model doesn't collide with an existing one's
     // start-channel range. Matches desktop's GetXlightsModel
-    // (LayoutPanel.cpp ~4629).
-    imported->SetControllerName(NO_CONTROLLER, true);
+    // (LayoutPanel.cpp ~4629). Models with individual start channels
+    // (e.g. moving-head strands) and model-relative @/> start-channel
+    // references are intentional and must be preserved (#6447).
+    const std::string& sc = imported->GetModelStartChannel();
+    if (!imported->HasIndividualStartChannels() && (sc.empty() || (sc[0] != '@' && sc[0] != '>')))
+        imported->SetControllerName(NO_CONTROLLER, true);
 
     rctx->GetModelManager().AddModel(imported);
     rctx->MarkLayoutModelDirty(imported->GetName());
@@ -2346,25 +2350,32 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     NSMutableArray<NSString*>* names = [NSMutableArray array];
     [names addObject:[NSString stringWithUTF8String:imported->GetName().c_str()]];
 
-    // PR #6365 — multi-model xmodel: if the root is `<models>`,
-    // load every additional `<model>` sibling and place each to
-    // the right of the previous one with a small gap. Mirrors
-    // desktop's `LayoutPanel::FinalizeModel` batch-placement
-    // loop (LayoutPanel.cpp:4972). The primary already occupies
-    // index 0; siblings start at root.first_child().next_sibling().
+    // PR #6365 / #6438 — multi-model xmodel: if the root is
+    // `<models>`, load every additional `<model>` sibling. Preserve
+    // the author's relative layout (#6438): each sibling keeps its
+    // file-space WorldPos offset from the primary, anchored to
+    // wherever the primary landed under the touch point. Desktop's
+    // `LayoutPanel::FinalizeModel` does the same via a min-corner
+    // anchor; here the primary is the anchor since we already pinned
+    // it to the touch point above. The primary occupies index 0;
+    // siblings follow it in document order.
     if (std::string_view(root.name()) == "models") {
-        constexpr float BATCH_PLACEMENT_PADDING    = 20.0f;
-        constexpr float BATCH_PLACEMENT_MIN_OFFSET = 50.0f;
-        const float originX = imported->GetHcenterPos();
-        const float originY = imported->GetVcenterPos();
-        const float originZ = imported->GetDcenterPos();
-        float previousWidth = std::max(imported->GetRestorableMWidth(),
-                                        BATCH_PLACEMENT_MIN_OFFSET);
-        float currentX = originX + previousWidth + BATCH_PLACEMENT_PADDING;
+        pugi::xml_node primaryNode = root.first_child();
+        while (primaryNode && primaryNode.type() != pugi::node_element)
+            primaryNode = primaryNode.next_sibling();
 
-        for (pugi::xml_node child = root.first_child().next_sibling();
+        const glm::vec3 primaryNew(imported->GetHcenterPos(),
+                                   imported->GetVcenterPos(),
+                                   imported->GetDcenterPos());
+        const glm::vec3 primaryFilePos(
+            primaryNode.attribute("WorldPosX").as_float(0.0f),
+            primaryNode.attribute("WorldPosY").as_float(0.0f),
+            primaryNode.attribute("WorldPosZ").as_float(0.0f));
+
+        for (pugi::xml_node child = primaryNode ? primaryNode.next_sibling() : pugi::xml_node();
              child;
              child = child.next_sibling()) {
+            if (child.type() != pugi::node_element) continue;
             Model* extraBaseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
             if (!extraBaseline) continue;
             bool extraCancelled = false;
@@ -2374,10 +2385,17 @@ float ReadAlignReference(Model* model, const std::string& edge) {
                 delete extraBaseline;
                 continue;
             }
+            const glm::vec3 sibFilePos(
+                child.attribute("WorldPosX").as_float(0.0f),
+                child.attribute("WorldPosY").as_float(0.0f),
+                child.attribute("WorldPosZ").as_float(0.0f));
             extra->GetModelScreenLocation().SetWorldPosition(
-                glm::vec3(currentX, originY, originZ));
+                primaryNew + (sibFilePos - primaryFilePos));
             extra->SetLayoutGroup(layoutGroup);
-            extra->SetControllerName(NO_CONTROLLER, true);
+            // Same individual / @/> start-channel exemption as the primary (#6447).
+            const std::string& esc = extra->GetModelStartChannel();
+            if (!extra->HasIndividualStartChannels() && (esc.empty() || (esc[0] != '@' && esc[0] != '>')))
+                extra->SetControllerName(NO_CONTROLLER, true);
 
             // GenerateModelName uniquifies if the show already has
             // a model with this name — matches desktop's
@@ -2388,10 +2406,6 @@ float ReadAlignReference(Model* model, const std::string& edge) {
             rctx->GetModelManager().AddModel(extra);
             rctx->MarkLayoutModelDirty(extra->GetName());
             [names addObject:[NSString stringWithUTF8String:extra->GetName().c_str()]];
-
-            const float thisWidth = std::max(extra->GetRestorableMWidth(),
-                                              BATCH_PLACEMENT_MIN_OFFSET);
-            currentX += thisWidth + BATCH_PLACEMENT_PADDING;
         }
     }
 
