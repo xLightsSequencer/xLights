@@ -127,6 +127,8 @@ class SequencerViewModel {
     var currentFindIndex: Int = -1
     /// Toggled by ⌘F (XLightsCommands) and by `Done` in the sheet.
     var findReplacePresented: Bool = false
+    /// SEQ-2 — toggled by the Edit ▸ Color Replace menu item.
+    var colorReplacePresented: Bool = false
     // F-4 playback speed. Desktop exposes 0.25/0.5/0.75/1.0/1.5/2/3/4x
     // — we match that set in the Playback menu. Applied to the
     // AVAudioEngine time-pitch unit via the bridge on `play()`, and
@@ -2183,6 +2185,12 @@ class SequencerViewModel {
 
     // MARK: - Background Rendering
 
+    /// TOOLS-1b — drop the on-disk render cache for this sequence.
+    func purgeRenderCache() {
+        guard isSequenceLoaded else { return }
+        document.purgeRenderCache()
+    }
+
     func startBackgroundRender() {
         guard isSequenceLoaded else { return }
 
@@ -2519,6 +2527,15 @@ class SequencerViewModel {
             // the show's ViewpointMgr. Populated by Phase D-3's
             // ViewpointMgr bridging at show-load time.
             return document.perPreviewCameraNames()
+        case "audioTracks":
+            // FX-3: alt audio tracks (e.g. HTDemucs stems) the VU Meter
+            // / Music effects can analyze. Sequence-level, so resolved
+            // without a selected effect. Index -1 (the main track) is
+            // implicit in the effect's own default; the choice lists the
+            // named alternates.
+            let n = document.altTrackCount()
+            guard n > 0 else { return [] }
+            return (0..<n).map { document.altTrackDisplayName(at: $0) }
         default:
             break
         }
@@ -3715,10 +3732,63 @@ class SequencerViewModel {
         return added
     }
 
+    /// IE-1 additional timing-import formats. Each forwards to the
+    /// matching bridge method (which runs the shared core processor)
+    /// and reloads rows on success. Same return semantics as the LOR /
+    /// Papagayo importers above.
+    @discardableResult
+    func importSRTTiming(path: String) -> Int {
+        let added = Int(document.importSRTTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importAudacityTiming(path: String) -> Int {
+        let added = Int(document.importAudacityTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importElevenLabsTiming(path: String) -> Int {
+        let added = Int(document.importElevenLabsTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importVixen3Timing(path: String) -> Int {
+        let added = Int(document.importVixen3Timing(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importLSPTiming(path: String) -> Int {
+        let added = Int(document.importLSPTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importXLightsSequenceTiming(path: String) -> Int {
+        let added = Int(document.importXLightsSequenceTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
     /// B75: export the given timing row to `path` as `.xtiming`.
     @discardableResult
     func exportTimingTrack(rowIndex: Int, path: String) -> Bool {
         return document.exportTimingTrack(atRow: Int32(rowIndex), toPath: path)
+    }
+
+    /// TIM-3: export multiple timing rows to one `.xtiming` (`<timings>`).
+    @discardableResult
+    func exportTimingTracks(rowIndices: [Int], path: String) -> Bool {
+        return document.exportTimingTracks(atRows: rowIndices.map { NSNumber(value: $0) },
+                                           toPath: path)
     }
 
     /// B49: export the model at `rowIndex` as a Falcon Player v2
@@ -4157,6 +4227,124 @@ class SequencerViewModel {
             }
         }
         setMultiSelection(hits)
+    }
+
+    /// SEQ-3: select every effect on every non-timing (model/strand/
+    /// submodel/node) row across the whole sequence. Timing-track marks
+    /// are not effects and are excluded, so this is also the practical
+    /// "Select All (no timing)". Bound to ⌘A in the Edit menu.
+    func selectAllEffects() {
+        var hits: Set<EffectSelection> = []
+        for (rIdx, row) in rows.enumerated() {
+            if row.timing != nil { continue }
+            for (eIdx, e) in row.effects.enumerated() {
+                hits.insert(.init(rowIndex: rIdx, effectIndex: eIdx,
+                                   name: e.name,
+                                   startTimeMS: e.startTimeMS,
+                                   endTimeMS: e.endTimeMS))
+            }
+        }
+        setMultiSelection(hits)
+    }
+
+    /// True when any non-timing row has at least one effect to select.
+    var hasAnyEffectToSelect: Bool {
+        rows.contains { $0.timing == nil && !$0.effects.isEmpty }
+    }
+
+    // MARK: - Color Replace (SEQ-2)
+
+    /// One captured (row, effectIndex, palette-string) for undo.
+    private struct PaletteSnapshot { let row: Int; let idx: Int; let pal: String }
+
+    /// The current effect selection as (row, effectIndex) pairs — the
+    /// multi-select set, or the single selected effect when no multi
+    /// selection is active. Empty when nothing is selected.
+    private func currentSelectionPairs() -> [(row: Int, idx: Int)] {
+        if !selectedEffects.isEmpty {
+            return selectedEffects.map { ($0.rowIndex, $0.effectIndex) }
+        }
+        if let s = selectedEffect { return [(s.rowIndex, s.effectIndex)] }
+        return []
+    }
+
+    /// True when at least one effect is selected (drives the Color
+    /// Replace "selected only" toggle availability).
+    var hasEffectSelection: Bool { !currentSelectionPairs().isEmpty }
+
+    /// Distinct colours currently used, for the Color Replace "from"
+    /// picker. `selectedOnly` scopes to the current selection via the
+    /// bridge's sync-on-demand path.
+    func usedColours(selectedOnly: Bool = false) -> [String] {
+        guard selectedOnly else { return document.usedColours(selectedOnly: false) }
+        let pairs = currentSelectionPairs()
+        guard !pairs.isEmpty else { return [] }
+        return document.usedColours(atRows: pairs.map { NSNumber(value: $0.row) },
+                                    effectIndices: pairs.map { NSNumber(value: $0.idx) })
+    }
+
+    /// SEQ-2: replace `from` colour with `to`. `selectedOnly` scopes to
+    /// the current selection via the bridge's sync-on-demand path (the
+    /// iPad keeps selection in Swift, mirrored into the core flags only
+    /// for the op, then cleared). The core `ReplaceColours` records into
+    /// the core undo manager, which the iPad's Foundation Cmd-Z does not
+    /// drive, so we register a palette-snapshot undo here. Returns the
+    /// number of effects changed.
+    @discardableResult
+    func replaceColour(from: String, to: String, selectedOnly: Bool = false) -> Int {
+        guard !from.isEmpty, !to.isEmpty else { return 0 }
+        let pairs = currentSelectionPairs()
+        if selectedOnly && pairs.isEmpty { return 0 }
+        // Snapshot the in-scope effects' palettes so undo restores exactly
+        // the ones the replace changes.
+        var before: [PaletteSnapshot] = []
+        if selectedOnly {
+            for p in pairs {
+                before.append(PaletteSnapshot(row: p.row, idx: p.idx,
+                    pal: document.currentPaletteString(forRow: Int32(p.row), at: Int32(p.idx))))
+            }
+        } else {
+            for (r, row) in rows.enumerated() where row.timing == nil {
+                for i in row.effects.indices {
+                    before.append(PaletteSnapshot(row: r, idx: i,
+                        pal: document.currentPaletteString(forRow: Int32(r), at: Int32(i))))
+                }
+            }
+        }
+        let count: Int
+        if selectedOnly {
+            count = Int(document.replaceColour(from: from, to: to,
+                                               atRows: pairs.map { NSNumber(value: $0.row) },
+                                               effectIndices: pairs.map { NSNumber(value: $0.idx) }))
+        } else {
+            count = Int(document.replaceColour(from: from, to: to, selectedOnly: false))
+        }
+        guard count > 0 else { return 0 }
+        reloadRows()
+        let changed = before.filter {
+            document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)) != $0.pal
+        }
+        registerPaletteRestoreUndo(changed, actionName: "Replace Color")
+        return count
+    }
+
+    /// Register a Foundation undo that restores the given palette
+    /// snapshot; the undo captures the current palettes first and
+    /// re-registers itself so redo re-applies — a symmetric pair.
+    private func registerPaletteRestoreUndo(_ snap: [PaletteSnapshot], actionName: String) {
+        guard !snap.isEmpty else { return }
+        undoManager.registerUndo(withTarget: self) { vm in
+            let inverse = snap.map {
+                PaletteSnapshot(row: $0.row, idx: $0.idx,
+                                pal: vm.document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)))
+            }
+            for s in snap {
+                _ = vm.document.applyPaletteString(s.pal, toRow: Int32(s.row), at: Int32(s.idx))
+            }
+            vm.reloadRows()
+            vm.registerPaletteRestoreUndo(inverse, actionName: actionName)
+        }
+        undoManager.setActionName(actionName)
     }
 
     // MARK: - Split (B12)

@@ -102,7 +102,17 @@
                 },
                 "dynamicOptions": {
                     "type": "string",
-                    "description": "Source for dynamically populated options (e.g. 'faces', 'states')"
+                    "description": "Source for dynamically populated options (e.g. 'faces', 'states', 'timingTracks', 'lyricTimingTracks', 'audioTracks')"
+                },
+                "dynamicLabel": {
+                    "type": "object",
+                    "description": "FX-4b: value-driven label override. The row label is chosen by the live value of the controlling sibling 'property' via 'map', falling back to 'defaultLabel'. Mirrors desktop custom-panel SetLabel calls.",
+                    "required": ["property", "map"],
+                    "properties": {
+                        "property": { "type": "string", "description": "Controlling sibling property id" },
+                        "map": { "type": "object", "description": "Controlling value -> label text" },
+                        "defaultLabel": { "type": "string", "description": "Label when no map entry matches" }
+                    }
                 },
                 "separator": {
                     "type": "boolean",
@@ -225,10 +235,26 @@
                             "type": "array",
                             "description": "List of values, any of which matches"
                         },
+                        "notOneOf": {
+                            "type": "array",
+                            "description": "List of values; matches when the property value is NOT among them"
+                        },
+                        "greaterThan": {
+                            "description": "Numeric threshold; matches when the property value is greater"
+                        },
+                        "startsWith": {
+                            "type": "string",
+                            "description": "Matches when the property value begins with this prefix"
+                        },
                         "any": {
                             "type": "array",
                             "items": { "type": "string" },
                             "description": "List of property ids; rule triggers if ANY are true/checked"
+                        },
+                        "allOf": {
+                            "type": "array",
+                            "description": "FX-14: compound AND — list of sub-conditions (each a 'when'-shaped object). Met iff every sub-condition is met.",
+                            "items": { "type": "object" }
                         }
                     }
                 },

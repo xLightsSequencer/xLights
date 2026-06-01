@@ -625,7 +625,8 @@ struct EffectMetadataPanel: View {
                         }
                         EffectPropertyView(property: prop,
                                            metadataPrefix: metadata.settingKeyPrefix,
-                                           ruleDisabled: !isPropertyEnabledByRules(prop))
+                                           ruleDisabled: !isPropertyEnabledByRules(prop),
+                                           displayLabelOverride: dynamicLabelOverride(for: prop))
                     }
                 case .group(let group):
                     groupView(group: group)
@@ -668,7 +669,8 @@ struct EffectMetadataPanel: View {
                         }
                         EffectPropertyView(property: prop,
                                            metadataPrefix: metadata.settingKeyPrefix,
-                                           ruleDisabled: !isPropertyEnabledByRules(prop))
+                                           ruleDisabled: !isPropertyEnabledByRules(prop),
+                                           displayLabelOverride: dynamicLabelOverride(for: prop))
                     }
                 }
             }
@@ -754,6 +756,19 @@ struct EffectMetadataPanel: View {
         return true
     }
 
+    /// FX-4b: resolve a property's dynamic label from the live value of
+    /// its controlling sibling property (e.g. Adjust's Value1 label
+    /// becomes "Adjust by:" / "Minimum:" per the Action choice). Returns
+    /// nil when the property has no `dynamicLabel`, so callers fall back
+    /// to the static `label`.
+    private func dynamicLabelOverride(for prop: PropertyMetadata) -> String? {
+        guard let dyn = prop.dynamicLabel else { return nil }
+        if let v = propertyValue(forId: dyn.property), let mapped = dyn.map[v] {
+            return mapped
+        }
+        return dyn.defaultLabel
+    }
+
     /// Returns the current string value of the property whose id is `propId`
     /// within this metadata, falling back to the metadata default.
     private func propertyValue(forId propId: String) -> String? {
@@ -764,6 +779,13 @@ struct EffectMetadataPanel: View {
     }
 
     private func evaluateCondition(_ when: VisibilityRuleMetadata.WhenCondition) -> Bool {
+        // `allOf` (FX-14): compound AND — met iff every sub-condition is
+        // met. Recurses through the same evaluator so each sub-condition
+        // uses its own property/operator. Mirrors the desktop
+        // JsonEffectPanel allOf path.
+        if let allOf = when.allOf, !allOf.isEmpty {
+            return allOf.allSatisfy { evaluateCondition($0) }
+        }
         // `any`: OR across a list of checkbox-style properties. Matches
         // JsonEffectPanel.cpp:1521-1530 — conditionMet iff any listed
         // property is truthy.

@@ -126,6 +126,9 @@ public:
 
     // Rendering
     void RenderAll();
+    // TOOLS-1b: drop all on-disk render-cache items for this sequence
+    // (mirrors desktop xLightsFrame::OnMenuItem_PurgeRenderCacheSelected).
+    void PurgeRenderCache() { _renderCache.Purge(&_sequenceElements, true); }
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
     bool IsRenderDone();

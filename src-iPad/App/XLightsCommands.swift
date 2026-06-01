@@ -22,6 +22,14 @@ import SwiftUI
 struct XLSequencerCommands: Commands {
     let viewModel: SequencerViewModel
 
+    /// Builds an Undo/Redo menu title that appends the pending action
+    /// name when one is set (e.g. "Undo Move Effect"), falling back to
+    /// the bare verb when nothing is undoable or no name was assigned.
+    private func undoMenuTitle(_ verb: String, _ enabled: Bool, _ actionName: String) -> String {
+        guard enabled, !actionName.isEmpty else { return verb }
+        return "\(verb) \(actionName)"
+    }
+
     var body: some Commands {
         // File menu — replacing the default "New Item" / "Save Item"
         // groups so our items live where users expect them on iPadOS.
@@ -58,11 +66,22 @@ struct XLSequencerCommands: Commands {
         // (Cut intentionally omitted; disabled-but-bound shortcuts
         // still swallow key events.)
         CommandGroup(replacing: .undoRedo) {
-            Button("Undo") { viewModel.undo() }
+            // Surface the descriptive action name (set at the ~26
+            // setActionName call sites) so the menu reads "Undo Move
+            // Effect" rather than a bare "Undo" — matches desktop and
+            // the platform convention. Falls back to the bare verb
+            // when no named action is pending.
+            Button(undoMenuTitle("Undo", viewModel.undoManager.canUndo,
+                                  viewModel.undoManager.undoActionName)) {
+                viewModel.undo()
+            }
                 .keyboardShortcut("z", modifiers: [.command])
                 .disabled(!viewModel.undoManager.canUndo)
 
-            Button("Redo") { viewModel.redo() }
+            Button(undoMenuTitle("Redo", viewModel.undoManager.canRedo,
+                                  viewModel.undoManager.redoActionName)) {
+                viewModel.redo()
+            }
                 .keyboardShortcut("z", modifiers: [.command, .shift])
                 .disabled(!viewModel.undoManager.canRedo)
         }
@@ -75,6 +94,12 @@ struct XLSequencerCommands: Commands {
                 viewModel.findReplacePresented = true
             }
             .keyboardShortcut("f", modifiers: [.command])
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // SEQ-2 — whole-sequence Color Replace.
+            Button("Color Replace…") {
+                viewModel.colorReplacePresented = true
+            }
             .disabled(!viewModel.isSequenceLoaded)
         }
         CommandGroup(replacing: .pasteboard) {
@@ -97,6 +122,13 @@ struct XLSequencerCommands: Commands {
                 .disabled(viewModel.selectedEffect == nil)
 
             Divider()
+
+            // SEQ-3 — select every effect across all model rows. ⌘A
+            // yields to text-field select-all while a field is first
+            // responder, so this only fires in the grid context.
+            Button("Select All") { viewModel.selectAllEffects() }
+                .keyboardShortcut("a", modifiers: [.command])
+                .disabled(!viewModel.hasAnyEffectToSelect)
 
             Button("Delete") { viewModel.deleteSelectedEffects() }
                 .keyboardShortcut(.delete, modifiers: [])
@@ -313,6 +345,15 @@ struct XLSequencerCommands: Commands {
             Button("View Log…") {
                 viewModel.showingLogViewer = true
             }
+
+            Divider()
+
+            // TOOLS-1b — Purge Render Cache. Frees disk/iCloud quota;
+            // the next render repopulates.
+            Button("Purge Render Cache") {
+                viewModel.purgeRenderCache()
+            }
+            .disabled(!viewModel.isSequenceLoaded)
         }
 
         // Playback menu.
@@ -510,6 +551,17 @@ struct XLSequencerCommands: Commands {
             }
             Button("xLights Website") {
                 XLOpenURL("https://xlights.org")
+            }
+
+            Divider()
+
+            // TOOL-8 — Help-menu parity: the two desktop support links
+            // that were missing (Help_Zoom / Help_Donate handlers).
+            Button("Zoom Room Help") {
+                XLOpenURL("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09")
+            }
+            Button("Donate…") {
+                XLOpenURL("https://www.paypal.com/donate/?hosted_button_id=BB6366BT755H6")
             }
         }
     }

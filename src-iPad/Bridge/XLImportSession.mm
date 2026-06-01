@@ -552,6 +552,42 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     }
 }
 
+- (int)loadMapHintsFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return 0;
+    std::vector<ImportMappingNode*> roots;
+    roots.reserve(_destinationRoots.size());
+    for (const auto& r : _destinationRoots) roots.push_back(r.get());
+    std::unordered_set<const ImportMappingNode*> noSelection;
+    auto hints = LoadMapHintsFile(std::string(path.UTF8String));
+    for (const auto& h : hints) {
+        AutoMapper::Run(roots, _availableSources, *rc,
+                        AutoMapper::MatchRegex, AutoMapper::MatchRegex, AutoMapper::MatchNorm,
+                        h.toRegex, h.fromModel, h.applyTo,
+                        /*selectOnly=*/false, noSelection);
+    }
+    return (int)hints.size();
+}
+
+- (int)updateModelAliasesFromMapping {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return 0;
+    int added = 0;
+    // Top-level model aliases only (the clear, high-value case): alias
+    // the mapped source MODEL name onto the destination model. The
+    // submodel/strand alias guard the desktop applies is deferred.
+    for (const auto& root : _destinationRoots) {
+        if (!root->HasMapping() || root->_mapping.empty()) continue;
+        Model* m = rc->GetModel(root->_model);
+        if (m == nullptr) continue;
+        m->AddAlias(root->_mapping);
+        rc->MarkLayoutModelDirty(root->_model);
+        ++added;
+    }
+    return added;
+}
+
 - (void)runAutoMapSelectedTargets:(NSArray<NSNumber*>*)selectedNodeIDs
                           sources:(NSArray<NSString*>*)selectedSourceDisplayNames {
     iPadRenderContext* rc = RawRenderContext(_document);
@@ -607,6 +643,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
 
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
+                  convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
     if (rc == nullptr || _sourceElements == nullptr) {
@@ -664,6 +701,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     std::vector<EffectLayer*> mapped;
     bool erase = eraseExisting ? true : false;
     bool lockFlag = lock ? true : false;
+    bool convertRender = convertRenderStyle ? true : false;
 
     // Timing-track copy. Mirrors desktop: if a target timing element with
     // the same name exists with no effects, reuse it; otherwise add a new
@@ -709,7 +747,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
             EffectLayer* dst = target->GetEffectLayer(l);
             std::vector<EffectLayer*> mapped2;
             MapXLightsEffects(dst, src, mapped2, erase, xsqPkg, lockFlag,
-                              mapping, /*convertRender=*/false, mappingModelType);
+                              mapping, /*convertRender=*/convertRender, mappingModelType);
         }
     }
 
@@ -728,7 +766,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
             MapXLightsEffects(targetEl, root->_mapping, *_sourceElements,
                               elementMap, layerMap, mapped, erase,
                               xsqPkg, lockFlag, mapping,
-                              /*convertRender=*/false, mappingModelType);
+                              /*convertRender=*/convertRender, mappingModelType);
         }
 
         // Child rows — submodels then strands. Index in the bridge
@@ -745,7 +783,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                 MapXLightsEffects(ste, child->_mapping, *_sourceElements,
                                   elementMap, layerMap, mapped, erase,
                                   xsqPkg, lockFlag, mapping,
-                                  /*convertRender=*/false, mappingModelType);
+                                  /*convertRender=*/convertRender, mappingModelType);
             }
 
             // Per-node grandchildren — only meaningful when the child

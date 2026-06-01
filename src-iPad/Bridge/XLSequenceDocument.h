@@ -125,6 +125,11 @@ NS_ASSUME_NONNULL_BEGIN
 // checkpoint. Safe to call with no sequence open — no-op.
 - (void)clearUndoHistory;
 
+// TOOLS-1b — Purge Render Cache (Tools menu): drop all on-disk
+// render-cache items for the current sequence. Frees disk/iCloud
+// quota; the next render repopulates. No-op if no sequence is open.
+- (void)purgeRenderCache NS_SWIFT_NAME(purgeRenderCache());
+
 // Save to a new path (Save As / Export). `path` must end in `.xsq`;
 // the caller is responsible for obtaining security-scoped access
 // to the destination via `-obtainAccessToPath:…` before calling.
@@ -408,6 +413,25 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)importPapagayoTimingFromPath:(NSString*)path
     NS_SWIFT_NAME(importPapagayoTiming(fromPath:));
 
+// IE-1 additional timing-import formats. Each routes through the
+// matching `SequenceFile::Process*({path}, iPadRenderContext)` core
+// processor (already wx-free and shared with desktop) and follows the
+// same post-import "activate the newest track" behavior as the LOR /
+// Papagayo importers above. Each returns the number of tracks added
+// (0 on parse failure).
+- (int)importSRTFromPath:(NSString*)path
+    NS_SWIFT_NAME(importSRTTiming(fromPath:));
+- (int)importAudacityTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importAudacityTiming(fromPath:));
+- (int)importElevenLabsTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importElevenLabsTiming(fromPath:));
+- (int)importVixen3TimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importVixen3Timing(fromPath:));
+- (int)importLSPTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importLSPTiming(fromPath:));
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importXLightsSequenceTiming(fromPath:));
+
 // B78 import lyrics: replace the target timing element's layers
 // with a single phrase layer populated from `phrases`. Each non-
 // empty phrase gets one mark spanning its slice of
@@ -431,6 +455,14 @@ NS_ASSUME_NONNULL_BEGIN
 // `path` before calling.
 - (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path
     NS_SWIFT_NAME(exportTimingTrack(atRow:toPath:));
+
+// TIM-3: multi-track export. Writes the timing tracks at the given row
+// indices into one `.xtiming` document using the `<timings>` wrapper
+// (each track a `<timing>` child) — mirrors desktop SelectTimingsDialog
+// multi-export. Non-timing / invalid rows are skipped. Returns YES if
+// at least one track was written.
+- (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path
+    NS_SWIFT_NAME(exportTimingTracks(atRows:toPath:));
 
 // B49: export the rendered channel data for the row's model as a
 // compressed FSEQ v2 `.eseq` sub-sequence — the format Falcon
@@ -824,6 +856,40 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)applyPaletteString:(NSString*)paletteString
                      toRow:(int)rowIndex
                    atIndex:(int)effectIndex;
+
+// SEQ-2 Color Replace. `usedColours…` returns the distinct colours
+// currently in use (desktop-serialised "#RRGGBB" strings) for the
+// "replace from" picker (mirrors `SequenceElements::GetUsedColours`).
+// `replaceColourFrom:to:selectedOnly:` rewrites every matching colour
+// across effect palettes and returns the number of effects changed
+// (`SequenceElements::ReplaceColours`). The replace records undo in
+// the CORE undo manager (separate from the iPad's Foundation undo), so
+// the Swift caller registers its own palette-snapshot undo.
+// NOTE: `selectedOnly` uses the CORE effect-Selected flags; the iPad
+// passes NO (whole sequence) because iPad selection isn't synced to
+// those flags yet.
+- (NSArray<NSString*>*)usedColoursSelectedOnly:(BOOL)selectedOnly
+    NS_SWIFT_NAME(usedColours(selectedOnly:));
+- (int)replaceColourFrom:(NSString*)fromColour
+                      to:(NSString*)toColour
+            selectedOnly:(BOOL)selectedOnly
+    NS_SWIFT_NAME(replaceColour(from:to:selectedOnly:));
+
+// SEQ-2 selected-scope variants. Because the iPad keeps selection in
+// Swift (not the core Effect Selected flags), these take the selected
+// (row, effectIndex) pairs and mirror them into the core flags only for
+// the duration of the op (sync-on-demand), clearing them afterward —
+// so a later whole-sequence op is never silently scoped. Safe: the grid
+// draws selection from the Swift set and SetSelected doesn't dirty the
+// document.
+- (NSArray<NSString*>*)usedColoursAtRows:(NSArray<NSNumber*>*)rows
+                            effectIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(usedColours(atRows:effectIndices:));
+- (int)replaceColourFrom:(NSString*)fromColour
+                      to:(NSString*)toColour
+                  atRows:(NSArray<NSNumber*>*)rows
+           effectIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(replaceColour(from:to:atRows:effectIndices:));
 
 // Value-curve preset load / save (G36 — C6). `.xvc` files are the
 // same XML format desktop reads/writes

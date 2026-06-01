@@ -1059,6 +1059,12 @@ struct SequencerGridV2View: View {
                 .environment(viewModel)
                 .presentationDetents([.medium, .large])
         }
+        // SEQ-2 whole-sequence Color Replace sheet (Edit ▸ Color Replace).
+        .sheet(isPresented: Bindable(viewModel).colorReplacePresented) {
+            ColorReplaceSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
         // B70 rename-timing-mark alert.
         .alert("Rename Mark",
                isPresented: Binding(

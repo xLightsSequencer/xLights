@@ -1,0 +1,101 @@
+# iPad Parity Plan 09 — File & Sequence Lifecycle, Render/FSEQ & Tools Menu
+
+_Scope: gap-analysis Area 1 (File & Sequence Lifecycle), Area 19 (Render Engine & FSEQ Export), Area 3 (Tools Menu). Backup/restore family, FSEQ format/compression options, batch-render scope + selection helpers, Cleanup File Locations, FPP-Connect selection helpers, and the multi-controller XLSX connections workbook._
+
+> **Status (2026-06-01) — landed & build-verified:** ✅ **TOOLS-1b (Purge Render Cache)** — `iPadRenderContext::PurgeRenderCache()` (→ `RenderCache::Purge(&seqElements, true)`, mirroring `OnMenuItem_PurgeRenderCacheSelected`) + bridge `purgeRenderCache` + view-model passthrough + **Tools ▸ Purge Render Cache** menu item.
+
+## Current parity
+
+Per the Summary table: **Area 1** is 41 features (17 implemented / 5 partial / 16 missing / 3 out-of-scope) — strong on the core New/Open/Save/Close/autosave/Sequence-Settings lifecycle, weak on the entire backup/restore family. **Area 19** is 41 features (28 / 7 / 5 / 1 out-of-scope) and is the highest-parity area in the whole report: the iPad runs the *identical* shared `src-core` RenderEngine/JobPool/RenderCache/FSEQFile through `iPadRenderContext`, so the gaps are peripheral (FSEQ format choice, determinate progress, multi-format export). **Area 3** is 27 features (6 / 8 / 6 / 7 out-of-scope) — Check Sequence, Package, FPP Connect, Batch Render and View Log are wired, but Cleanup File Locations, the XLSX connections workbook, and several selection helpers are missing or partial. HinksPix and Lua/Python automation are the genuinely out-of-scope items.
+
+## Approach
+
+This theme is overwhelmingly **bridge-wrapper + SwiftUI** work over already-linked `src-core`, not new algorithms. Three reuse patterns dominate:
+
+1. **Pure file ops in Swift.** Backup/restore and Cleanup File Locations are `FileManager` copy/move operations. The desktop logic lives in `src-ui-wx/xLightsMain.cpp` (`DoBackup`/`CopyFiles`/`CleanupSequenceFileLocations`) — wx-UI code, *not* core — so we reimplement the small loops in Swift over the existing bridge primitives (`moveFileToShowFolder:`, `copyFileToMediaFolder:`, `makeRelativePath:` at `XLSequenceDocument.h:50/57/68`) plus security-scoped bookmark writes. No core extraction strictly required.
+2. **Expose an existing core argument.** FSEQ version/compression is already fully supported by `FSEQFile::createFSEQFile(fn, version, CompressionType, level, …)` (`src-core/render/FSEQFile.h:55`); `iPadRenderContext::WriteFseq` just hardcodes V2/zstd/level-2/sparse. The work is a settings store + a bridge parameter + a picker.
+3. **Loop an existing per-item bridge call.** The XLSX connections workbook loops the per-controller `ExportAsCSV` (`ControllerUploadData.h:317`, already wrapped by `exportWiringCSVForController:`/`exportWiringJSONForController:` at `XLSequenceDocument.h:2511`) across all of `controllersListSummary` (`:2153`); FPP/Batch selection helpers loop the existing discovery + fseq enumeration.
+
+UI follows native touch idioms: backup/restore as sheets, FSEQ format as a Render-tab/Folder-Config picker, selection helpers as toolbar menu buttons (Select All/None/Failed) rather than right-click submenus, and the XLSX/CSV/Effects exports hand off to the iOS share sheet.
+
+The two genuinely-shared-core render gaps (determinate render progress, FSEQ format) are small; the broad multi-format export (LOR/Vixen/HLS/GIF/video) and Data Layers are deferred because their writers/importers are wx-coupled (`TabConvert.cpp`, `SeqFileUtilities.cpp`) and the value on a tablet authoring workflow is low.
+
+## Work breakdown
+
+### Phase 1 — P0 / P1
+
+| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
+|----|-----------|---------------|-------------|--------|------|
+| `BKP-1` | Backup (F10) | Swift `BackupService` that, after a working-file save, copies `.xsq/.xml/.xbkp/.json/.xmap` (under a size cap) from the show folder into `Backup/<timestamp>/`, preserving relative subpaths. Pure `FileManager` + existing security-scoped write access; reuse `makeRelativePath:`. Add a "Back Up Show Files" entry to `FolderConfigView`/Tools menu + a progress + done summary. **Reuse note:** if a ZIP (`.xsqz`-style) backup variant is wanted, do **not** roll a new zipper — the core `SequencePackage` (`src-core/render/SequencePackage.h:68`, `Pack()` over minizip, already used by the iPad's `openPackagedSequence:` read path) is wx-free and linkable into `xLights-iPadLib`; wrap its `Pack()` in a bridge call rather than reimplementing zip in Swift. The default snapshot stays a plain folder copy (matches desktop F10). | `xLightsMain.cpp:3297 DoBackup` / `:3414 CopyFiles`; reuse `SequencePackage::Pack` | M | — |
+| `BKP-2` | Restore Backup | SwiftUI `RestoreBackupSheet`: list `Backup/<timestamp>/` subfolders, let user pick a snapshot + which files, copy back into the show folder, then reload. Gate on sequence closed (match desktop). Pure file/UI over `BackupService`. | `xLightsMain.cpp` restore path | M | `BKP-1` |
+| `FSEQ-1` | FSEQ file write (V1/V2) + FSEQ version/compression preference | Add a `fseqVersion`/`compression`/`level`/`sparse` settings store (Folder Config or Sequence-Settings Render tab picker: V1, V2 Uncompressed, V2 ZLIB, V2 ZSTD, sparse on/off). Add params to a new `writeFseq(toPath:version:compression:level:sparse:)` bridge overload that forwards to `FSEQFile::createFSEQFile`; `iPadRenderContext::WriteFseq` reads the stored choice instead of hardcoding. | `FSEQVersionChoice` (Folder Config) → `FSEQFile.h:55 createFSEQFile` | S | — |
+| `FPP-1` | FPP Connect per-instance FSEQ type selector | Add an FSEQ type/version control to `FPPConnectSheet.InstanceConfig` (currently auto-picks codec per target) and thread the choice through `applyConfigToFPP:`/`uploadFseq:`. Reuses `FSEQ-1`'s format plumbing. | desktop FPP Connect FSEQ-type column | M | `FSEQ-1` |
+| `FPP-2` | FPP Connect Re-Discover + sequence selection helpers | Add a Re-Discover toolbar button calling the existing `discoverFPPInstances`; add Select All / Clear / **Select Failed Uploads** to the fseq list (loop over the already-enumerated fseq set + last-upload result). Touch-menu, not right-click. | desktop FPP Connect right-click menu | S | — |
+| `XLSX-1` | Export Controller Connections (XLSX) — multi-controller workbook | New `exportAllControllerConnections` Swift flow: loop `controllersListSummary` (`:2153`), call `exportWiringCSVForController:` per controller, and assemble either a libxlsxwriter workbook (in-tree, wx-free — add a bridge method building one block/sheet per controller with smart-remote shading) or a combined multi-sheet CSV. Hand to share sheet. Prefer XLSX via bridge since `ExportAsCSV`/`ExportSettings` are core. | `ExportEffects.cpp` / `ControllerModelDialog.cpp` (libxlsxwriter) | L | — |
+| `LIFE-1` | Save As show-folder guard | Add the desktop validation that warns when the Save-As target is outside the show directory; reuse `makeRelativePath:`/`IsInShowOrMediaFolder` to detect, surface a confirm. Small hardening of existing `saveSequenceAs:`. | `SaveSequence` show-dir check | S | — |
+| `LIFE-2` | Select Show Folder validation + Cmd-N/Cmd-O mid-session shortcuts | Add a "looks like a show folder" heuristic + warning to `FolderConfigView` commit; wire Cmd-N/Cmd-O hardware shortcuts that reach the picker flows mid-session. | `xLightsMain` folder-switch warnings | S | — |
+| `LIFE-4` | Stale security-scoped bookmark reprompt | When a persisted security-scoped bookmark goes stale (e.g. the user moved/renamed the show or media folder in Files, or iCloud relocated it), `ObtainAccessToURL(...)` returns `false`. Today that surfaces as a silent open/save failure. Add a detect-and-reprompt path: on the `ObtainAccessToURL` failure, present a "re-select this folder" picker so a fresh bookmark is minted and persisted, then retry the op. Small hardening shared by every file flow (open/save/backup/cleanup). | `ObtainAccessToURL` failure path (`ExternalHooksMacOS`/`xlMacUtils.swift`) | S | — |
+
+### Phase 2 — P2
+
+| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
+|----|-----------|---------------|-------------|--------|------|
+| `CLEAN-1` | Cleanup File Locations | SwiftUI `CleanupFileLocationsSheet` reimplementing `CleanupSequenceFileLocations`/`CleanupRGBEffectsFileLocations` in Swift over `moveFileToShowFolder:`/`copyFileToMediaFolder:`/`makeRelativePath:`. Move external-referenced media into the show/media folder and rewrite refs. Watch iOS sandbox/bookmark semantics on move. | `xLightsMain.cpp:6380 CleanupSequenceFileLocations` | M | — |
+| `BR-1` | Batch Render folder scope + filter | Add a recursive-vs-current-directory toggle and a subfolder picker to `BatchRenderSheet` (SequenceScanner already walks the tree); match desktop's Backup/dotfile skip. **Already shipped (do not re-plan):** `BatchRenderSheet` already has the seq/fseq **date columns** (`SequenceDatesLabel`), the **sort modes** (`SequenceSortOrder`, persisted via `.batchRender`), and the **"Out of date only"** filter (`outOfDateOnly` → `isFseqUpToDate`). This item is only the dir-scope/subfolder filter, not those. **Deliberately OUT:** a per-batch **Force-HD** override is *not* added — HD/low-def precision tracks the sequence's own settings, not a per-batch toggle (and `IsLowDefinitionRender()` is pinned true on iPad for memory safety); don't re-introduce it here. | `BatchRenderSheet.swift:41/42/49/132` (shipped); desktop Batch Render dir filter | S | — |
+| `BR-2` | Batch Render selection helpers + Select-From-FPP-Playlist | Add Select None / Highlighted / Deselect-Highlighted; add "Select From FPP Playlist" that reuses `discoverFPPInstances` + reads a chosen playlist's item list and auto-checks matching sequences. | desktop Batch Render selection menu | M | `FPP-2` |
+| `RENDER-1` | Determinate render progress | Surface the already-aggregated `renderProgressFraction` (`XLSequenceDocument.h:1572`, from core `RenderProgressInfo`) as a determinate bar in the sequencer chrome (today it's a spinner; fraction only used in Batch Render). Optional per-model breakdown sheet. | `RenderProgressDialog` | M | — |
+| `RENDER-2` | Render selected time slice (all models) | New bridge `renderTimeSlice(startMS:endMS:)` iterating the render tree over the frame range (engine already supports a frame range; today `renderRangeForRow` is per-row only). Wire to a waveform "Render Selected Region" action. | `RenderTimeSlice` (waveform) | S | — |
+| `FPP-3` | FPP Connect device-list management | Add-FPP-by-IP (new bridge manual-add path), explicit Re-Discover (shared with `FPP-2`), sort, and bulk Select All/None/Subnet over the existing discovery list. | desktop FPP device tree | M | `FPP-2` |
+| `XLSX-2` | Controller-connection export field options | Column-picker sheet feeding `ExportSettings::GetSettings` (shared core) into the per-controller `ExportAsCSV` call used by `XLSX-1`. | `ExportSettings` column options | S | `XLSX-1` |
+| `EXP-1` | Export Effects (CSV) | Swift walk over existing effect-enumeration bridge (`effectNamesForRow:`/`effectStartTimesForRow:`/`effectSettingsForRow:`/`visibleRowCount`) writing a CSV to the share sheet — all data already bridged. | `xLightsMain.cpp ExportEffects/ExportElement` | M | — |
+| `BKP-3` | Backup-on-launch / backup-on-save toggles + Alternate Backup | Add toggles in Folder Config that trigger `BackupService`; Alternate Backup picks/remembers an alternate iCloud/Files dir and reuses the copy logic. | desktop Backup prefs / F11 | M | `BKP-1` |
+| `RC-1` | Render cache mode preference | Expose Enabled / Locked-Effects-Only / Disabled over the already-instantiated `RenderCache` (`iPadRenderContext.h:610`); add to settings. | desktop render-cache mode | M | — |
+
+### Phase 3 — P3
+
+| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
+|----|-----------|---------------|-------------|--------|------|
+| `TOOLS-1` | Purge Download Cache | Bridge method calling shared `CachedFileDownloader::ClearCache` + a Tools menu entry. Trivial disk hygiene. | `xLightsMain.cpp:7523` (`CachedFileDownloader::GetDefaultCache().ClearCache()`) | S | — |
+| `TOOLS-1b` | Purge Render Cache | Sibling to `TOOLS-1`: a user-invokable "Purge Render Cache" Tools entry. Trivial bridge call to the already-instantiated `RenderCache` (`iPadRenderContext.h:610`) purge — desktop does `_renderCache.Purge(&_sequenceElements, true)`. Wrap as a bridge method and add a Tools menu entry. | `xLightsMain.cpp:7827` (`OnMenuItem_PurgeRenderCacheSelected` → `RenderCache::Purge`); menu `:1135` | S | — |
+| `CHK-1` | Check Sequence per-check disable toggles | Persisted suppression store + a `DesktopCheckCallbacks`-equivalent bridge feeding the shared `SequenceCheckerCallbacks::IsCheckOptionDisabled` hook. | `CheckSequenceSheet` filter chips | S | — |
+| `RENDER-3` | Render-complete status / haptic | Time the render, show a transient "Rendered in N s" status + optional haptic when a batch completes. | desktop render bell | S | `RENDER-1` |
+| `EXPORT-RH` | Row-heading export: selected-effects-only + render-then-export | Add "Selected Model Effects" restriction and a render-then-export wrapper on the existing `exportModelAsFSEQ` row-heading menu. | desktop row-heading Export variants | S | — |
+| `RC-2` | Render cache directory & max-size | Surface `RenderCache::SetMaximumSizeMB`/`EnforceMaximumSize`; a sensible fixed cap may suffice on iPad. | desktop render-cache size | M | `RC-1` |
+| `LIFE-3` | Sequence-Settings Adjust Milliseconds / duration | Bridge wrapper over core duration/shift routine + a Render/Info-tab control to add/remove leading/trailing ms. | desktop Add Milliseconds | M | — |
+| `RENDER-4` | JobPool requeue redesign (deadlock fix) — *shared-core, deferred* | Shared-core refactor of the RenderEngine/JobPool: workers currently *block* waiting on frames produced by other models, so a contended (heavily cross-model-dependent) sequence can deadlock if all pool threads block at once. The fix replaces block-on-dependency with **re-enqueue** (release the worker, requeue the job when its dependency lands). Benefits both clients. iPad's current workaround is brute-force thread oversubscription (`poolThreads = max(24, hw*2)` at `iPadRenderContext.cpp:1754-1760`) so a blocked worker never exhausts the pool — robust but wasteful, and not a true fix. Desktop-scope engine work; iPad inherits it for free. | shared core `JobPool`/`RenderEngine`; `iPadRenderContext.cpp:1754` workaround | L | — |
+
+## Quick wins (Rollup C — partial, cheap, high-leverage)
+
+- **`FSEQ-1`** (FSEQ version/compression preference): `createFSEQFile` already takes all variant args; "small bridge+UI change" per the analysis. Unblocks `FPP-1`. **(S)**
+- **`FPP-2`** (FPP Re-Discover + Select Failed Uploads): "small add: a toolbar button calling runner.discover()"; the Select-Failed-Uploads helper has natural value after a partial upload. **(S)**
+- **`BR-1`** (Batch Render folder scope): SequenceScanner already walks the tree — "a small Swift-side addition." **(S)**
+- **`RENDER-2`** (all-models time slice): "the shared engine already supports a frame range, so wiring is light." **(S)**
+- **`TOOLS-1`** (Purge Download Cache): shared `ClearCache` exists; "just a small bridge method + a menu item." **(S)**
+- **`TOOLS-1b`** (Purge Render Cache): the iPad already owns a `RenderCache`; the desktop action is a one-line `RenderCache::Purge` — a bridge method + a Tools entry. **(S)**
+- **`LIFE-1`** (Save As guard): one validation check on the existing Save-As path. **(S)**
+
+`FSEQ-1` is the single highest-leverage early item: small, unblocks the FPP per-instance FSEQ selector, and closes a P1/P2 pair.
+
+## Out of scope for this theme
+
+Full reasons live in the master out-of-scope doc (Rollup B); one-liners here so this plan is self-contained:
+
+- **Revert To… versioned backups** — macOS-only `NSFileVersion` revision API; iOS has no equivalent on-disk version browser for sandboxed files.
+- **Export House Preview Video** — desktop encoder is wx-only + FFmpeg encode (not in core); a native AVAssetWriter exporter is net-new XL work with no shared-core reuse.
+- **Open New xLights Instance** — iOS apps are single-process; cannot spawn a second independent instance.
+- **HinksPix Export (+ Controllers / Playlists / Schedule tabs, SD-card output)** — primary output writes to removable SD/USB (no iOS raw-drive API) on proprietary non-open firmware (outside the FPP/ESPixelStick scope).
+- **Run Scripts (Lua / Python) + script-library management** — App Store guideline 2.5.2 forbids downloading/executing code that changes app behavior.
+- **fseq_convert standalone tool** — no user-facing CLI/shell in the iOS sandbox; the underlying FSEQFile conversion is shared if ever needed in-app.
+- _(Render multi-format export — LOR/Vixen/HLS/LSP/GIF/video — and imported Data Layers/ISEQ are deferred rather than out-of-scope: writers/importers are wx-coupled and value is low; track in the plan, not here.)_
+- _(External-change watcher for `rgbeffects` (the old "L-6" item) is **deferred / aspirational**, not a parity gap: a code grep found **no** `wxFileSystemWatcher` or rgbeffects-reload watcher on the desktop, so there is nothing to match. It would only matter for iCloud multi-device editing — low value; revisit only if multi-device conflict reports appear.)_
+
+## Risks / open questions
+
+- **Sandbox/bookmark semantics on file move.** Backup/Restore/Cleanup all move or copy within the security-scoped show folder. `FileManager` moves across bookmark scopes can fail silently; need to verify `ObtainAccessToURL(..., enforceWritable:true)` covers the `Backup/<timestamp>/` subdir creation and that a failed coordinated write surfaces a user-visible error. (The *stale*-bookmark case — folder moved/renamed out from under us — is now tracked as a discrete item, `LIFE-4`, rather than just a risk.)
+- **libxlsxwriter from the bridge.** `XLSX-1` assumes libxlsxwriter (in-tree, wx-free) is linkable into `xLights-iPadLib`; confirm it is already in the iPad lib link set, otherwise fall back to a combined multi-sheet CSV (lower-fidelity but no link risk).
+- **Backup size cap on iPad.** Desktop caps copied-file size; iCloud-evicted files may need download-before-copy (`FileExists()` triggers iCloud download) — define behavior for partially-evicted show folders.
+- **High-definition render constraint.** `iPadRenderContext::IsLowDefinitionRender()` is hardcoded true for memory safety; any future Force-HD toggle for batch/FPP export (Area 3, marked missing not out-of-scope) needs memory guards before exposure — out of this phase set but noted as a dependency for full-res FSEQ.
+- **FSEQ V1/uncompressed file size.** Exposing V1/uncompressed in `FSEQ-1` can produce very large files on a memory-constrained device; consider warning when a non-default heavy format is chosen.
+- **Determinate progress fidelity.** `renderProgressFraction` is a coarse aggregate; a per-model breakdown sheet may need additional `RenderProgressInfo` surfacing from the bridge — verify granularity before promising the desktop-style per-model dialog.
+- **JobPool deadlock (standing shared-core risk).** RenderEngine workers block waiting on frames from other models, so a heavily cross-model-dependent sequence can deadlock if every pool thread blocks at once. The iPad mitigates this only by oversubscribing the pool (`max(24, hw*2)` threads, `iPadRenderContext.cpp:1754-1760`), which makes deadlock improbable but not impossible and burns memory. The real fix is the `RENDER-4` requeue redesign; until it lands this remains a latent crash/hang risk on pathological sequences for both clients.
+- **Memory-pressure handling under-tested (standing risk).** Beyond the hardcoded `IsLowDefinitionRender()` 4 GB low-def-render lock, the Phase-A memory-pressure handling is in place but not stress-validated; external-tester reports on large sequences are effectively the first real stress signal. Treat OOM/jetsam on big shows as an expected early-feedback area, not a solved problem — relevant to any item that raises peak memory (Force-HD, V1/uncompressed FSEQ, oversubscribed render pool).

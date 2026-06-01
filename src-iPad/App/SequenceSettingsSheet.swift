@@ -280,9 +280,11 @@ private struct MetadataTab: View {
 
 /// Phase E follow-up — central management of timing tracks. Per-row
 /// rename/delete already exists on the row-header long-press menu;
-/// this tab adds bulk import (.xtiming, .lms, .pgo), per-track
-/// `.xtiming` export, and a single-place overview of every timing
-/// track in the sequence.
+/// this tab adds bulk import (.xtiming, LOR .lms, Papagayo .pgo,
+/// .srt, Audacity .txt, ElevenLabs .json, Vixen 3 .tim, LSP .msq,
+/// and timing tracks from an xLights .xsq), per-track `.xtiming`
+/// export, and a single-place overview of every timing track in the
+/// sequence.
 private struct TimingsTab: View {
     @Environment(SequencerViewModel.self) var viewModel
 
@@ -299,6 +301,10 @@ private struct TimingsTab: View {
     @State private var importFormat: ImportFormat = .xtiming
     @State private var exportTarget: TimingRow?
     @State private var exportDoc: XTimingFile?
+    // TIM-3 multi-track export.
+    @State private var showingMultiExportPicker = false
+    @State private var multiExportSelection: Set<Int> = []
+    @State private var multiExportDoc: MultiXTimingFile?
 
     // Settings is itself presented as a sheet, so the app-level
     // `.sheet(isPresented: viewModel.showingAddTimingTrack)` can't
@@ -311,19 +317,32 @@ private struct TimingsTab: View {
 
     private enum ImportFormat: String, CaseIterable, Identifiable {
         case xtiming, lor, papagayo
+        case srt, audacity, elevenLabs, vixen3, lsp, xlightsSeq
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .xtiming:  return "xLights (.xtiming)"
-            case .lor:      return "LOR (.lms)"
-            case .papagayo: return "Papagayo (.pgo)"
+            case .xtiming:    return "xLights (.xtiming)"
+            case .lor:        return "LOR (.lms)"
+            case .papagayo:   return "Papagayo (.pgo)"
+            case .srt:        return "Subtitles (.srt)"
+            case .audacity:   return "Audacity Labels (.txt)"
+            case .elevenLabs: return "ElevenLabs (.json)"
+            case .vixen3:     return "Vixen 3 (.tim)"
+            case .lsp:        return "LSP (.msq)"
+            case .xlightsSeq: return "xLights sequence (.xsq)"
             }
         }
         var ext: String {
             switch self {
-            case .xtiming:  return "xtiming"
-            case .lor:      return "lms"
-            case .papagayo: return "pgo"
+            case .xtiming:    return "xtiming"
+            case .lor:        return "lms"
+            case .papagayo:   return "pgo"
+            case .srt:        return "srt"
+            case .audacity:   return "txt"
+            case .elevenLabs: return "json"
+            case .vixen3:     return "tim"
+            case .lsp:        return "msq"
+            case .xlightsSeq: return "xsq"
             }
         }
     }
@@ -373,6 +392,64 @@ private struct TimingsTab: View {
                 AddTimingTrackSheet()
                     .environment(viewModel)
             }
+            // TIM-3 multi-track export: pick tracks, then export one .xtiming.
+            .sheet(isPresented: $showingMultiExportPicker) {
+                multiExportPicker
+            }
+            .fileExporter(
+                isPresented: Binding(
+                    get: { multiExportDoc != nil },
+                    set: { if !$0 { multiExportDoc = nil } }
+                ),
+                document: multiExportDoc,
+                contentType: kXTimingFileType,
+                defaultFilename: "Timings"
+            ) { _ in
+                multiExportDoc = nil
+            }
+    }
+
+    // TIM-3 — multi-select sheet listing every timing track; Export
+    // writes the checked ones into a single `<timings>` .xtiming.
+    @ViewBuilder
+    private var multiExportPicker: some View {
+        NavigationStack {
+            List {
+                ForEach(timingRows) { tr in
+                    Button {
+                        if multiExportSelection.contains(tr.id) {
+                            multiExportSelection.remove(tr.id)
+                        } else {
+                            multiExportSelection.insert(tr.id)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: multiExportSelection.contains(tr.id)
+                                  ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(.tint)
+                            Text(tr.name)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("Export Timing Tracks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { showingMultiExportPicker = false }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Export") {
+                        let rows = timingRows.map(\.id).filter { multiExportSelection.contains($0) }
+                        multiExportDoc = MultiXTimingFile(rowIndices: rows, viewModel: viewModel)
+                        showingMultiExportPicker = false
+                    }
+                    .disabled(multiExportSelection.isEmpty)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -383,6 +460,14 @@ private struct TimingsTab: View {
                     showingAddTimingTrackLocal = true
                 } label: {
                     Label("Add Timing Track…", systemImage: "plus.circle.fill")
+                }
+                if !timingRows.isEmpty {
+                    Button {
+                        multiExportSelection = Set(timingRows.map(\.id))
+                        showingMultiExportPicker = true
+                    } label: {
+                        Label("Export Multiple Tracks…", systemImage: "square.and.arrow.up.on.square")
+                    }
                 }
                 if timingRows.isEmpty {
                     Text("No timing tracks. Add one above, or use the Import button below.")
@@ -449,9 +534,15 @@ private struct TimingsTab: View {
 
     private var importContentType: UTType {
         switch importFormat {
-        case .xtiming:  return kXTimingFileType
-        case .lor:      return UTType(filenameExtension: "lms") ?? .xml
-        case .papagayo: return UTType(filenameExtension: "pgo") ?? .text
+        case .xtiming:    return kXTimingFileType
+        case .lor:        return UTType(filenameExtension: "lms") ?? .xml
+        case .papagayo:   return UTType(filenameExtension: "pgo") ?? .text
+        case .srt:        return UTType(filenameExtension: "srt") ?? .text
+        case .audacity:   return UTType(filenameExtension: "txt") ?? .plainText
+        case .elevenLabs: return UTType(filenameExtension: "json") ?? .json
+        case .vixen3:     return UTType(filenameExtension: "tim") ?? .xml
+        case .lsp:        return UTType(filenameExtension: "msq") ?? .data
+        case .xlightsSeq: return UTType(filenameExtension: "xsq") ?? .xml
         }
     }
 
@@ -463,9 +554,15 @@ private struct TimingsTab: View {
                                               enforceWritable: false)
         let added: Int
         switch importFormat {
-        case .xtiming:  added = viewModel.importXTiming(path: url.path)
-        case .lor:      added = viewModel.importLorTiming(path: url.path)
-        case .papagayo: added = viewModel.importPapagayoTiming(path: url.path)
+        case .xtiming:    added = viewModel.importXTiming(path: url.path)
+        case .lor:        added = viewModel.importLorTiming(path: url.path)
+        case .papagayo:   added = viewModel.importPapagayoTiming(path: url.path)
+        case .srt:        added = viewModel.importSRTTiming(path: url.path)
+        case .audacity:   added = viewModel.importAudacityTiming(path: url.path)
+        case .elevenLabs: added = viewModel.importElevenLabsTiming(path: url.path)
+        case .vixen3:     added = viewModel.importVixen3Timing(path: url.path)
+        case .lsp:        added = viewModel.importLSPTiming(path: url.path)
+        case .xlightsSeq: added = viewModel.importXLightsSequenceTiming(path: url.path)
         }
         if added > 0 { viewModel.reloadRows() }
     }
@@ -547,6 +644,36 @@ private struct XTimingFile: FileDocument {
             return nil
         }
         self.suggestedName = suggestedName
+        self.payload = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        throw CocoaError(.featureUnsupported)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: payload)
+    }
+}
+
+/// TIM-3 — exports multiple timing tracks into one `<timings>` .xtiming.
+private struct MultiXTimingFile: FileDocument {
+    static var readableContentTypes: [UTType] { [kXTimingFileType] }
+    static var writableContentTypes: [UTType] { [kXTimingFileType] }
+
+    let payload: Data
+
+    @MainActor
+    init?(rowIndices: [Int], viewModel: SequencerViewModel) {
+        guard !rowIndices.isEmpty else { return nil }
+        let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("xtiming")
+        defer { try? FileManager.default.removeItem(at: tmp) }
+        guard viewModel.exportTimingTracks(rowIndices: rowIndices, path: tmp.path),
+              let data = try? Data(contentsOf: tmp) else {
+            return nil
+        }
         self.payload = data
     }
 

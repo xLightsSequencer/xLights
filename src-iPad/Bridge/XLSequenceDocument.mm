@@ -532,6 +532,11 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     _context->GetSequenceElements().get_undo_mgr().Clear();
 }
 
+- (void)purgeRenderCache {
+    if (!_context) return;
+    _context->PurgeRenderCache();
+}
+
 - (BOOL)saveSequenceAs:(NSString*)path {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (path.length == 0) return NO;
@@ -1155,6 +1160,62 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return countAfter - countBefore;
 }
 
+// IE-1 — shared body for the file-based timing importers. Runs the
+// supplied processor block, then mirrors the LOR/Papagayo importers'
+// post-import behavior (activate the newest imported track). Returns
+// the number of timing tracks added.
+- (int)importTimingVia:(void (^)(SequenceFile* sf))process {
+    if (!process) return 0;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return 0;
+    int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
+    process(sf);
+    int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
+    if (countAfter > countBefore) {
+        _context->GetSequenceElements().DeactivateAllTimingElements();
+        TimingElement* te = _context->GetSequenceElements().GetTimingElement(countAfter - 1);
+        if (te) te->SetActive(true);
+        _context->GetSequenceElements().PopulateRowInformation();
+    }
+    return countAfter - countBefore;
+}
+
+- (int)importSRTFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessSRT({ p }, self->_context.get()); }];
+}
+
+- (int)importAudacityTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessAudacityTimingFiles({ p }, self->_context.get()); }];
+}
+
+- (int)importElevenLabsTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessElevenLabsTimingFiles({ p }, self->_context.get()); }];
+}
+
+- (int)importVixen3TimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessVixen3Timing({ p }, self->_context.get()); }];
+}
+
+- (int)importLSPTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessLSPTiming({ p }, self->_context.get()); }];
+}
+
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessXLightsTiming({ p }, self->_context.get()); }];
+}
+
 - (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path {
     if (!path || path.length == 0) return NO;
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
@@ -1180,6 +1241,39 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     NSError* err = nil;
     if (![data writeToFile:path options:NSDataWritingAtomic error:&err]) {
         NSLog(@"exportTimingTrack failed: %@", err);
+        return NO;
+    }
+    return YES;
+}
+
+- (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path {
+    if (!path || path.length == 0 || rowIndices.count == 0) return NO;
+    // `<timings>` wrapper holding one `<timing>` per selected track —
+    // same per-track envelope as exportTimingTrackAtRow:.
+    std::string doc;
+    doc.reserve(4096);
+    doc += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    doc += std::string("<timings SourceVersion=\"") + xlights_version_string + "\">\n";
+    int written = 0;
+    for (NSNumber* n in rowIndices) {
+        auto* row = _context->GetSequenceElements().GetRowInformation(n.intValue);
+        if (!row || !row->element) continue;
+        if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) continue;
+        TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+        if (!te) continue;
+        doc += "<timing name=\"" + XmlSafe(te->GetName()) + "\" ";
+        doc += "subType=\"" + te->GetSubType() + "\" ";
+        doc += std::string("SourceVersion=\"") + xlights_version_string + "\">\n";
+        doc += te->GetExport();
+        doc += "</timing>\n";
+        ++written;
+    }
+    doc += "</timings>\n";
+    if (written == 0) return NO;
+    NSData* data = [NSData dataWithBytes:doc.data() length:doc.size()];
+    NSError* err = nil;
+    if (![data writeToFile:path options:NSDataWritingAtomic error:&err]) {
+        NSLog(@"exportTimingTracks failed: %@", err);
         return NO;
     }
     return YES;
@@ -8565,6 +8659,66 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
         [out appendFormat:@"%s,", v.c_str()];
     }
     return out;
+}
+
+- (NSArray<NSString*>*)usedColoursSelectedOnly:(BOOL)selectedOnly {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    std::vector<std::string> used = _context->GetSequenceElements().GetUsedColours(selectedOnly ? true : false);
+    for (const auto& c : used) {
+        [out addObject:[NSString stringWithUTF8String:c.c_str()]];
+    }
+    return out;
+}
+
+- (int)replaceColourFrom:(NSString*)fromColour to:(NSString*)toColour selectedOnly:(BOOL)selectedOnly {
+    if (!_context || fromColour.length == 0 || toColour.length == 0) return 0;
+    return _context->GetSequenceElements().ReplaceColours(
+        _context.get(),
+        std::string([fromColour UTF8String]),
+        std::string([toColour UTF8String]),
+        selectedOnly ? true : false);
+}
+
+// SEQ-2 selected-scope (sync-on-demand): the iPad keeps selection in
+// Swift, so before a selectedOnly core op we mirror the given
+// (row, effectIndex) pairs into the core Effect Selected flags, run
+// the op, then clear them again — the core selection is never left
+// dirty. SetSelected does not IncrementChangeCount and the grid draws
+// selection from the Swift set, so this has no dirty/render side-effect.
+- (void)pushCoreSelectionAtRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    _context->GetSequenceElements().UnSelectAllEffects();
+    NSUInteger n = MIN(rows.count, indices.count);
+    for (NSUInteger i = 0; i < n; ++i) {
+        EffectLayer* layer = [self effectLayerForRow:[rows[i] intValue]];
+        if (!layer) continue;
+        int idx = [indices[i] intValue];
+        if (idx < 0 || idx >= (int)layer->GetEffectCount()) continue;
+        Effect* e = layer->GetEffect(idx);
+        if (e) e->SetSelected(EFFECT_SELECTED);
+    }
+}
+
+- (NSArray<NSString*>*)usedColoursAtRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    [self pushCoreSelectionAtRows:rows effectIndices:indices];
+    std::vector<std::string> used = _context->GetSequenceElements().GetUsedColours(true);
+    _context->GetSequenceElements().UnSelectAllEffects();
+    for (const auto& c : used) [out addObject:[NSString stringWithUTF8String:c.c_str()]];
+    return out;
+}
+
+- (int)replaceColourFrom:(NSString*)fromColour to:(NSString*)toColour atRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    if (!_context || fromColour.length == 0 || toColour.length == 0) return 0;
+    [self pushCoreSelectionAtRows:rows effectIndices:indices];
+    int n = _context->GetSequenceElements().ReplaceColours(
+        _context.get(),
+        std::string([fromColour UTF8String]),
+        std::string([toColour UTF8String]),
+        /*selectedOnly=*/true);
+    _context->GetSequenceElements().UnSelectAllEffects();
+    return n;
 }
 
 - (BOOL)applyPaletteString:(NSString*)paletteString

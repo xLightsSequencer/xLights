@@ -107,13 +107,34 @@ NS_ASSUME_NONNULL_BEGIN
 // must be writable. Returns NO on write failure.
 - (BOOL)saveMapHintsToPath:(NSString*)path;
 
+// IE-3: load a specific `.xmaphint` file and apply its regex hints to
+// the destination tree — the same `MatchRegex` AutoMapper pass that the
+// show-dir scan runs in `runAutoMap`, but for one user-picked file.
+// Returns the number of hint entries applied (0 if none / load failed).
+// (The legacy `.xmap` / `.xjmap` formats are wx-bound and would need a
+// new core MappingIO module — tracked separately, not here.)
+- (int)loadMapHintsFromPath:(NSString*)path
+    NS_SWIFT_NAME(loadMapHints(fromPath:));
+
+// IE-12: add each mapped source model name as an alias on its
+// destination model so future imports auto-map without re-mapping.
+// Mirrors the desktop "Update Aliases". `Model::AddAlias` is idempotent
+// (dedups / lowercases / rejects self-name), so this can be called
+// repeatedly. Marks affected models dirty so `saveLayoutChanges`
+// persists the aliases. Returns the number of aliases added.
+- (int)updateModelAliasesFromMapping
+    NS_SWIFT_NAME(updateModelAliasesFromMapping());
+
 // Apply the current mappings to the host document's sequence. Runs
 // EffectMapper for each mapped row, registers undo on the document,
-// triggers a grid reload. `eraseExisting` and `lock` are the
-// import-options-sheet toggles. Returns NO if no mappings exist or
-// the source sequence wasn't loaded.
+// triggers a grid reload. `eraseExisting`, `lock`, and
+// `convertRenderStyle` are the import-options-sheet toggles
+// (`convertRenderStyle` maps to the `convertRender` arg of
+// `MapXLightsEffects` — converts per-model render style on import).
+// Returns NO if no mappings exist or the source sequence wasn't loaded.
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
+                  convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)error;
 
 @end

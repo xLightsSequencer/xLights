@@ -38,9 +38,34 @@ struct ImportEffectsView: View {
     @State private var rowExpansion: Set<Int> = []
     @State private var showingFilePicker = false
     @State private var importError: String?
-    @State private var eraseExisting = false
-    @State private var lockEffects = false
+    // IE-2 — persist the import-option toggles across launches (mirrors
+    // desktop's persisted import options, e.g. ImportEffectsRenderStyle).
+    @AppStorage("import.eraseExisting") private var eraseExisting = false
+    @AppStorage("import.lockEffects") private var lockEffects = false
+    @AppStorage("import.convertRenderStyle") private var convertRenderStyle = false
+    // IE-9 — incremental filters over the source / destination lists.
+    // High leverage on large shows where the model count is in the
+    // hundreds. Pure-SwiftUI over the existing snapshot arrays.
+    @State private var sourceSearch = ""
+    @State private var destSearch = ""
+
+    private var filteredSources: [XLImportAvailableSource] {
+        guard !sourceSearch.isEmpty else { return availableSources }
+        return availableSources.filter {
+            $0.displayName.localizedCaseInsensitiveContains(sourceSearch)
+        }
+    }
+
+    private var filteredDestinationRows: [XLImportMappingRow] {
+        guard !destSearch.isEmpty else { return destinationRows }
+        return destinationRows.filter {
+            $0.model.localizedCaseInsensitiveContains(destSearch)
+                || $0.mapping.localizedCaseInsensitiveContains(destSearch)
+        }
+    }
     @State private var showingSaveHints = false
+    @State private var showingLoadHints = false      // IE-3
+    @State private var resultMessage: String?        // IE-3 / IE-12 result alert
     @State private var showingTimingPopover = false
 
     var body: some View {
@@ -140,22 +165,45 @@ struct ImportEffectsView: View {
         }
     }
 
+    // IE-9 reusable filter field for the source / destination panes.
+    @ViewBuilder
+    private func searchField(_ text: Binding<String>, prompt: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField(prompt, text: text)
+                .textFieldStyle(.plain)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            if !text.wrappedValue.isEmpty {
+                Button { text.wrappedValue = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+    }
+
     private var sourcePane: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("Source")
                     .font(.headline)
                 Spacer()
-                Text("\(availableSources.count)")
+                Text(sourceSearch.isEmpty
+                     ? "\(availableSources.count)"
+                     : "\(filteredSources.count)/\(availableSources.count)")
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
+            searchField($sourceSearch, prompt: "Filter source models")
             Divider()
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(availableSources, id: \.displayName) { src in
+                    ForEach(filteredSources, id: \.displayName) { src in
                         let isSelected = selectedSourceDisplay == src.displayName
                         HStack {
                             Text(src.displayName)
@@ -189,10 +237,11 @@ struct ImportEffectsView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
+            searchField($destSearch, prompt: "Filter destination models")
             Divider()
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(destinationRows, id: \.nodeID) { row in
+                    ForEach(filteredDestinationRows, id: \.nodeID) { row in
                         DestinationRowView(row: row,
                                             depth: 0,
                                             selectedID: $selectedDestNodeID,
@@ -228,10 +277,14 @@ struct ImportEffectsView: View {
                 }
                 Button("Save Hints…") { showingSaveHints = true }
                     .disabled(mappedCount == 0)
+                Button("Load Hints…") { showingLoadHints = true }   // IE-3
+                Button("Update Aliases") { updateAliases() }        // IE-12
+                    .disabled(mappedCount == 0)
             }
             HStack(spacing: 16) {
                 Toggle("Erase existing", isOn: $eraseExisting)
                 Toggle("Lock imported", isOn: $lockEffects)
+                Toggle("Convert render style", isOn: $convertRenderStyle)
                 Spacer()
             }
             .toggleStyle(.switch)
@@ -248,9 +301,43 @@ struct ImportEffectsView: View {
                 importError = err.localizedDescription
             }
         }
+        // IE-3 — load a user-picked .xmaphint and apply its regex hints.
+        .fileImporter(isPresented: $showingLoadHints,
+                      allowedContentTypes: [UTType(filenameExtension: "xmaphint") ?? .xml],
+                      allowsMultipleSelection: false) { result in
+            loadHints(result: result)
+        }
+        .alert("Import",
+               isPresented: Binding(get: { resultMessage != nil },
+                                    set: { if !$0 { resultMessage = nil } })) {
+            Button("OK", role: .cancel) { resultMessage = nil }
+        } message: {
+            Text(resultMessage ?? "")
+        }
     }
 
     // MARK: - Actions
+
+    // IE-12 — alias each mapped source name onto its destination model.
+    private func updateAliases() {
+        guard let session else { return }
+        let n = Int(session.updateModelAliasesFromMapping())
+        resultMessage = "\(n) alias\(n == 1 ? "" : "es") added. Future imports of these models will auto-map."
+    }
+
+    // IE-3 — apply a chosen .xmaphint file's regex hints to the tree.
+    private func loadHints(result: Result<[URL], Error>) {
+        guard let session else { return }
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        let needs = url.startAccessingSecurityScopedResource()
+        defer { if needs { url.stopAccessingSecurityScopedResource() } }
+        _ = XLSequenceDocument.obtainAccess(toPath: url.path, enforceWritable: false)
+        let applied = Int(session.loadMapHints(fromPath: url.path))
+        refreshSnapshots()
+        resultMessage = applied > 0
+            ? "Applied \(applied) hint\(applied == 1 ? "" : "s") from the file."
+            : "No hints were applied (the file may be empty or none matched the source)."
+    }
 
     private func loadSource(url: URL) {
         let ext = url.pathExtension.lowercased()
@@ -306,7 +393,8 @@ struct ImportEffectsView: View {
         guard let session else { return }
         do {
             try session.applyImport(withEraseExisting: eraseExisting,
-                                     lock: lockEffects)
+                                     lock: lockEffects,
+                                     convertRenderStyle: convertRenderStyle)
             viewModel.reloadRows()
             onDismiss()
         } catch {
