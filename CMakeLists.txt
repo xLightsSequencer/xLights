@@ -694,11 +694,24 @@ endif()
 # in StemSeparator.cpp is already suppressed — no per-block define needed.
 #
 # Usage:
-#   cmake -DXLIGHTS_USE_ORT=ON      # ONNX Runtime (vcpkg: onnxruntime[directml])
-#   cmake -DXLIGHTS_USE_OPENVINO=ON # OpenVINO     (vcpkg: openvino)
+#   cmake -DXLIGHTS_USE_ORT=ON               # ONNX Runtime (vcpkg: onnxruntime[directml])
+#   cmake -DXLIGHTS_USE_OPENVINO=ON          # OpenVINO Runtime — stem separation only
+#   cmake -DXLIGHTS_USE_OPENVINO_GENAI=ON    # OpenVINO Runtime + GenAI:
+#                                            #   stem separation, image generation (SD),
+#                                            #   speech-to-text with alignment (Whisper)
+#
+# XLIGHTS_USE_OPENVINO_GENAI implies XLIGHTS_USE_OPENVINO; you do not need both.
+#
+# Prerequisites for XLIGHTS_USE_OPENVINO_GENAI:
+#   vcpkg install openvino openvino-genai      (or install OpenVINO 2024.4+)
+#   Models must be exported with optimum-cli:
+#     optimum-cli export openvino --model stabilityai/stable-diffusion-v1-5 sd-v1-5-ov/
+#     optimum-cli export openvino --model openai/whisper-base whisper-base-ov/
+#   Paths are configured in xLights > Preferences > Services > OpenVINO (local).
 
-option(XLIGHTS_USE_ORT      "Enable ONNX Runtime stem separation" ON)
-option(XLIGHTS_USE_OPENVINO "Enable OpenVINO stem separation"     OFF)
+option(XLIGHTS_USE_ORT           "Enable ONNX Runtime stem separation"                  ON)
+option(XLIGHTS_USE_OPENVINO      "Enable OpenVINO stem separation"                      OFF)
+option(XLIGHTS_USE_OPENVINO_GENAI "Enable OpenVINO GenAI: image gen + speech-to-text"   OFF)
 
 if(XLIGHTS_USE_ORT)
     find_package(onnxruntime CONFIG
@@ -734,11 +747,25 @@ if(XLIGHTS_USE_ORT)
     target_compile_definitions(xLights PRIVATE HAVE_ORT)
 endif()
 
-if(XLIGHTS_USE_OPENVINO)
+if(XLIGHTS_USE_OPENVINO OR XLIGHTS_USE_OPENVINO_GENAI)
+    # OpenVINO Runtime is required for stem separation and as a base for GenAI.
+    # Install via vcpkg: vcpkg install "openvino[cpu,auto,ir,onnx]"
     find_package(OpenVINO REQUIRED COMPONENTS Runtime)
     target_link_libraries(xLights PRIVATE openvino::runtime)
     target_compile_definitions(xLights PRIVATE HAVE_OPENVINO)
-    message(STATUS "Stem separation: OpenVINO enabled")
+
+    if(XLIGHTS_USE_OPENVINO_GENAI)
+        # OpenVINOGenAI is a separate package from the core OpenVINO Runtime.
+        # Install via the overlay port: vcpkg install openvino-genai
+        #   (requires vcpkg-configuration.json to point at ports/ overlay directory)
+        # Or install via the official OpenVINO toolkit installer / pip install openvino-genai.
+        find_package(OpenVINOGenAI REQUIRED)
+        target_link_libraries(xLights PRIVATE openvino::genai)
+        target_compile_definitions(xLights PRIVATE HAVE_OPENVINO_GENAI)
+        message(STATUS "OpenVINO: Runtime + GenAI enabled (stem separation, image gen, speech-to-text)")
+    else()
+        message(STATUS "Stem separation: OpenVINO Runtime enabled")
+    endif()
 endif()
 
 

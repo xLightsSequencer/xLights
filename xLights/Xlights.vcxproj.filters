@@ -1134,6 +1134,12 @@
     <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp">
       <Filter>ai</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\ai\OpenVINOImageGenerator.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\ai\OpenVINOService.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\effectpanels\DMXPanel.cpp">
       <Filter>effectpanels</Filter>
     </ClCompile>
@@ -2522,6 +2528,12 @@
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\OpenVINOImageGenerator.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\OpenVINOService.h">
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\effectpanels\DMXPanel.h">

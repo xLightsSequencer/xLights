@@ -445,6 +445,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\ai\ollama.cpp" />
     <ClCompile Include="..\src-core\ai\OpenAIAPI.cpp" />
     <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenVINOImageGenerator.cpp" />
+    <ClCompile Include="..\src-core\ai\OpenVINOService.cpp" />
     <ClCompile Include="..\src-core\ai\ServiceManager.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIColorPaletteDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\ai\AIImageDialog.cpp" />
@@ -1060,6 +1062,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\ai\ollama.h" />
     <ClInclude Include="..\src-core\ai\OpenAIAPI.h" />
     <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h" />
+    <ClInclude Include="..\src-core\ai\OpenVINOImageGenerator.h" />
+    <ClInclude Include="..\src-core\ai\OpenVINOService.h" />
     <ClInclude Include="..\src-core\ai\ServiceManager.h" />
     <ClInclude Include="..\src-core\ai\ServiceProperty.h" />
     <ClInclude Include="..\src-ui-wx\ai\AIColorPaletteDialog.h" />
