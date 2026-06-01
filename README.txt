@@ -11,7 +11,8 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.11  June ??, 2026
-
+    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
+                                 are added as DDP with auto-size/auto-layout.
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
@@ -19,8 +20,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  buttons, per-path description labels, and a description text editor (#5871).
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
-    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
-                                 are added as DDP with auto-size/auto-layout.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
                                  filtered, checkbox list of targets (fixes #4462).
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
