@@ -228,6 +228,77 @@
 										<border>5</border>
 										<option>1</option>
 									</object>
+									<object class="sizeritem">
+										<object class="wxStaticText" name="wxID_ANY" variable="StaticTextBkgLabel" member="no">
+											<label>Image offset (cells):</label>
+										</object>
+										<flag>wxLEFT|wxTOP</flag>
+										<border>5</border>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
+									<object class="sizeritem">
+										<object class="wxBoxSizer" variable="BkgOffsetSizer" member="no">
+											<orient>wxHORIZONTAL</orient>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_BKG_LEFT" variable="BtnBkgLeft" member="yes">
+													<label>←</label>
+													<tooltip>Move image left</tooltip>
+													<minsize>28,-1</minsize>
+													<handler function="OnBtnBkgLeft" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxRIGHT</flag>
+												<border>2</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_BKG_UP" variable="BtnBkgUp" member="yes">
+													<label>↑</label>
+													<tooltip>Move image up</tooltip>
+													<minsize>28,-1</minsize>
+													<handler function="OnBtnBkgUp" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxRIGHT</flag>
+												<border>2</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_BKG_DOWN" variable="BtnBkgDown" member="yes">
+													<label>↓</label>
+													<tooltip>Move image down</tooltip>
+													<minsize>28,-1</minsize>
+													<handler function="OnBtnBkgDown" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxRIGHT</flag>
+												<border>2</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxButton" name="ID_BUTTON_BKG_RIGHT" variable="BtnBkgRight" member="yes">
+													<label>→</label>
+													<tooltip>Move image right</tooltip>
+													<minsize>28,-1</minsize>
+													<handler function="OnBtnBkgRight" entry="EVT_BUTTON" />
+												</object>
+												<flag>wxRIGHT</flag>
+												<border>5</border>
+											</object>
+											<object class="sizeritem">
+												<object class="wxStaticText" name="wxID_ANY" variable="StaticTextBkgOffset" member="yes">
+													<label>Horiz: 0.00  Vert: 0.00</label>
+												</object>
+												<flag>wxALIGN_CENTER_VERTICAL</flag>
+												<border>0</border>
+											</object>
+										</object>
+										<flag>wxBOTTOM|wxLEFT</flag>
+										<border>5</border>
+									</object>
+									<object class="spacer">
+										<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+										<border>5</border>
+										<option>1</option>
+									</object>
 								</object>
 								<flag>wxEXPAND</flag>
 								<border>5</border>
