@@ -55,7 +55,11 @@ jobs:
 
     env:
       BUILD_DIR: cmake_ninja_openvino
-      VCPKG_DEFAULT_TRIPLET: x64-windows
+      # Release-only custom triplet (see ci_scripts/vcpkg-openvino/triplets) so
+      # vcpkg doesn't also build the huge OpenVINO debug tree, which overflows
+      # the runner disk. The nightly only ships a Release installer.
+      VCPKG_DEFAULT_TRIPLET: x64-windows-rel
+      VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}\ci_scripts\vcpkg-openvino\triplets
       SCCACHE_GHA_ENABLED: "true"
       # vcpkg stores each compiled package in the GitHub Actions cache by content
       # hash, so only changed dependencies are rebuilt on later runs.
@@ -67,6 +71,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+
+      # ── Free disk space ───────────────────────────────────────────────────
+      # The Android SDK ships preinstalled on the Windows runner (~several GB)
+      # and xLights never uses it. Delete it up front so the OpenVINO vcpkg
+      # build doesn't overflow the disk.
+      - name: Free disk space (remove Android SDK)
+        shell: pwsh
+        run: |
+          $before = (Get-PSDrive C).Free / 1GB
+          foreach ($p in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, "C:\Android")) {
+            if ($p -and (Test-Path $p)) {
+              Write-Host "Removing $p"
+              Remove-Item -Path $p -Recurse -Force -ErrorAction SilentlyContinue
+            }
+          }
+          $after = (Get-PSDrive C).Free / 1GB
+          Write-Host ("C: free {0:N1} GB -> {1:N1} GB" -f $before, $after)
 
       # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
       - name: Setup MSVC (x64)
@@ -163,7 +184,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
-            -DVCPKG_TARGET_TRIPLET=x64-windows ^
+            -DVCPKG_TARGET_TRIPLET=x64-windows-rel ^
+            -DVCPKG_OVERLAY_TRIPLETS=%CD%\ci_scripts\vcpkg-openvino\triplets ^
             -DVCPKG_MANIFEST_DIR=%CD%\ci_scripts\vcpkg-openvino ^
             -DXLIGHTS_USE_VCPKG=ON ^
             -DXLIGHTS_USE_OPENVINO_GENAI=ON ^
@@ -216,7 +238,7 @@ jobs:
       - name: Copy OpenVINO runtime into bin
         shell: pwsh
         run: |
-          $inst = Join-Path $env:BUILD_DIR "vcpkg_installed\x64-windows"
+          $inst = Join-Path $env:BUILD_DIR "vcpkg_installed\x64-windows-rel"
           $dest = Join-Path $env:GITHUB_WORKSPACE "bin"
           New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
