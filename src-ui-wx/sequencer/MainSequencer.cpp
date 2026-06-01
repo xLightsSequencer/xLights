@@ -1672,6 +1672,7 @@ bool MainSequencer::CopySelectedEffects() {
             DisplayError("Unable to copy data to clipboard.", this);
         }
         wxTheClipboard->Close();
+        PanelRowHeadings->SetCanPaste(true);
         return true;
     }
     return false;
