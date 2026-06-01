@@ -443,6 +443,7 @@ public:
     bool IsSequenceDataValid() const
     { return _seqData.IsValidData(); }
     std::string GetPresetIconFilename(const std::string& preset) const;
+    std::string GetPresetIconFilename(const std::string& preset, const std::string& dir) const;
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(SequenceFile& xml_file);
@@ -1589,6 +1590,7 @@ public:
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
+    void WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir);
 
     // Render effects into a list of xlImage frames. Used for preset GIF generation
     // and shader preview thumbnails. The model, sequence data, and elements must

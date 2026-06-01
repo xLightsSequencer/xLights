@@ -236,14 +236,35 @@ void EffectTreeDialog::InitItems(EffectPresetManager& manager)
     }
 
     TreeCtrl1->DeleteChildren(treeRootID);
-    TreeCtrl1->SetItemData(treeRootID, new MyTreeItemData(&_presetManager->GetRoot()));
+    _baseRootID = wxTreeItemId();
+    _basePresetManager.Reset();
 
+    // Load presets from base show folder if one is configured
+    std::string baseDir = xLightParent->GetOutputManager()->GetBaseShowDir();
+    if (!baseDir.empty()) {
+        wxFileName basePresetsFile;
+        basePresetsFile.AssignDir(baseDir);
+        basePresetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+        if (_basePresetManager.LoadJsonFile(basePresetsFile.GetFullPath().ToStdString()) &&
+            !_basePresetManager.GetRoot().GetChildren().empty()) {
+            _baseRootID = TreeCtrl1->AppendItem(treeRootID, "From Base", -1, -1,
+                new MyTreeItemData(&_basePresetManager.GetRoot()));
+            TreeCtrl1->SetItemHasChildren(_baseRootID);
+            TreeCtrl1->SetItemBold(_baseRootID, true);
+            AddTreeElementsRecursive(_basePresetManager.GetRoot(), _baseRootID);
+        }
+    }
+
+    TreeCtrl1->SetItemData(treeRootID, new MyTreeItemData(&_presetManager->GetRoot()));
     AddTreeElementsRecursive(_presetManager->GetRoot(), treeRootID);
 
     // Purge preview gifs that are invalid
     PurgeDanglingGifs();
 
     TreeCtrl1->Expand(treeRootID);
+    if (_baseRootID.IsOk()) {
+        TreeCtrl1->Expand(_baseRootID);
+    }
 
     ValidateWindow();
 }
@@ -264,6 +285,37 @@ void EffectTreeDialog::AddTreeElementsRecursive(EffectPresetGroup& group, wxTree
             wxString displayName = name + " [" + ParseLayers(name, preset->GetSettings()) + ", " + ParseDuration(name, preset->GetSettings()) + "ms]";
             TreeCtrl1->AppendItem(curGroupID, displayName, -1, -1, new MyTreeItemData(child.get()));
         }
+    }
+}
+
+bool EffectTreeDialog::IsInBaseSection(wxTreeItemId id) const
+{
+    if (!_baseRootID.IsOk() || !id.IsOk())
+        return false;
+    wxTreeItemId current = id;
+    while (current.IsOk() && current != treeRootID) {
+        if (current == _baseRootID)
+            return true;
+        current = TreeCtrl1->GetItemParent(current);
+    }
+    return false;
+}
+
+void EffectTreeDialog::PromptAndSaveBasePresets()
+{
+    std::string baseDir = xLightParent->GetOutputManager()->GetBaseShowDir();
+    if (baseDir.empty())
+        return;
+
+    if (wxMessageBox("Save changes to base show folder presets?", "Base Show Folder Presets",
+                     wxYES_NO | wxICON_QUESTION, this) != wxYES)
+        return;
+
+    wxFileName f;
+    f.AssignDir(baseDir);
+    f.SetFullName(_(XLIGHTS_PRESETS_FILE));
+    if (!_basePresetManager.SaveJsonFile(f.GetFullPath().ToStdString())) {
+        DisplayError(wxString::Format("Unable to save presets to %s", f.GetFullPath()), this);
     }
 }
 
@@ -394,7 +446,10 @@ void EffectTreeDialog::OnbtNewPresetClick(wxCommandEvent& event)
     TreeCtrl1->SelectItem(newitemID, true);
     TreeCtrl1->EnsureVisible(newitemID);
     GenerateGifImage(newitemID, true);
-    EffectsFileDirty();
+    if (IsInBaseSection(newitemID))
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 }
 
@@ -579,7 +634,10 @@ void EffectTreeDialog::OnbtUpdateClick(wxCommandEvent& event)
 
     TreeCtrl1->SetItemText(itemID, StripLayers(name) + " [" + ParseLayers(StripLayers(name), preset->GetSettings()) + ", " + ParseDuration(StripLayers(name), preset->GetSettings()) + "ms]");
 
-    EffectsFileDirty();
+    if (IsInBaseSection(itemID))
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 
     GenerateGifImage(itemID, true);
@@ -612,7 +670,10 @@ void EffectTreeDialog::OnbtRenameClick(wxCommandEvent& event)
 
     TreeCtrl1->SetItemText(itemID, newName);
     GenerateGifImage(itemID, true);
-    EffectsFileDirty();
+    if (IsInBaseSection(itemID))
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 }
 
@@ -637,10 +698,14 @@ void EffectTreeDialog::DeleteSelectedItem()
 
     MyTreeItemData* selData = (MyTreeItemData*)TreeCtrl1->GetItemData(itemID);
     EffectPresetItem* item = selData->GetItem();
+    bool wasInBase = IsInBaseSection(itemID);
 
     TreeCtrl1->Delete(itemID);
     _presetManager->Remove(item);
-    EffectsFileDirty();
+    if (wasInBase)
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 }
 
@@ -685,7 +750,10 @@ void EffectTreeDialog::OnbtAddGroupClick(wxCommandEvent& event)
     TreeCtrl1->Expand(parentID);
     TreeCtrl1->SelectItem(itemID);
     TreeCtrl1->EnsureVisible(itemID);
-    EffectsFileDirty();
+    if (IsInBaseSection(itemID))
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 }
 
@@ -704,7 +772,7 @@ void EffectTreeDialog::OnTreeCtrl1BeginDrag(wxTreeEvent& event)
 {
     wxTreeItemId draggedItem = TreeCtrl1->GetSelection();
 
-    if (draggedItem.IsOk() && draggedItem != treeRootID) {
+    if (draggedItem.IsOk() && draggedItem != treeRootID && draggedItem != _baseRootID) {
         wxString drag = "EffectPresetOrGroup";
         wxTextDataObject my_data(drag);
         wxDropSource dragSource(this);
@@ -796,6 +864,10 @@ void EffectTreeDialog::OnbtImportClick(wxCommandEvent& event)
             // if on an effect then add it to the same parent
             insertPoint = TreeCtrl1->GetItemParent(id);
         }
+
+        // Don't insert into the base show folder section
+        if (IsInBaseSection(insertPoint))
+            insertPoint = treeRootID;
 
         wxString fDir = OpenDialog->GetDirectory();
         wxArrayString files;
@@ -1109,7 +1181,7 @@ wxString EffectTreeDialog::generatePresetName(wxTreeItemId itemID)
         MyTreeItemData* itemData = (MyTreeItemData*)TreeCtrl1->GetItemData(itemID);
         if (itemData != nullptr) {
             EffectPresetItem* item = itemData->GetItem();
-            if (item->IsGroup())
+            if (item == nullptr || item->IsGroup())
                 return wxString();
             presetName = item->GetName();
             wxTreeItemId parentID = TreeCtrl1->GetItemParent(itemID);
@@ -1119,9 +1191,12 @@ wxString EffectTreeDialog::generatePresetName(wxTreeItemId itemID)
 
             while (parentID != treeRootID) {
                 MyTreeItemData* parData = (MyTreeItemData*)TreeCtrl1->GetItemData(parentID);
-                if (parData != nullptr) {
-                    presetName.Prepend("/");
-                    presetName.Prepend(parData->GetItem()->GetName());
+                if (parData != nullptr && parData->GetItem() != nullptr) {
+                    wxString pName = parData->GetItem()->GetName();
+                    if (!pName.IsEmpty()) {
+                        presetName.Prepend("/");
+                        presetName.Prepend(pName);
+                    }
                 }
                 parentID = TreeCtrl1->GetItemParent(parentID);
             }
@@ -1135,7 +1210,11 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
     StopGifImage();
     wxString const fullName = generatePresetName(itemID);
     if (!fullName.IsEmpty()) {
-        std::string filePath = xLightParent->GetPresetIconFilename(fullName);
+        bool inBase = IsInBaseSection(itemID);
+        std::string baseDir = inBase ? xLightParent->GetOutputManager()->GetBaseShowDir() : "";
+        std::string filePath = inBase
+            ? xLightParent->GetPresetIconFilename(fullName.ToStdString(), baseDir)
+            : xLightParent->GetPresetIconFilename(fullName.ToStdString());
 
         if (!FileExists(filePath) || regenerate) {
             wxWindowDisabler disableAll;
@@ -1144,7 +1223,10 @@ void EffectTreeDialog::GenerateGifImage(wxTreeItemId itemID, bool regenerate)
                             .Text("Generating Effect Preview...")
                             .Icon(wxArtProvider::GetIcon(wxART_MAKE_ART_ID_FROM_STR(_T("xlART_EFFECTS")),wxART_OTHER, wxSize(64, 64))));
 
-            xLightParent->WriteGIFForPreset(fullName);
+            if (inBase)
+                xLightParent->WriteGIFForPreset(fullName.ToStdString(), _basePresetManager, baseDir);
+            else
+                xLightParent->WriteGIFForPreset(fullName.ToStdString());
         }
         LoadGifImage(filePath);
     }
@@ -1222,7 +1304,10 @@ void EffectTreeDialog::DeleteGifImage(wxTreeItemId itemID)
     StopGifImage();
     wxString const fullName = generatePresetName(itemID);
     if (!fullName.IsEmpty()) {
-        std::string filePath = xLightParent->GetPresetIconFilename(fullName);
+        bool inBase = IsInBaseSection(itemID);
+        std::string filePath = inBase
+            ? xLightParent->GetPresetIconFilename(fullName.ToStdString(), xLightParent->GetOutputManager()->GetBaseShowDir())
+            : xLightParent->GetPresetIconFilename(fullName.ToStdString());
 
         if (FileExists(filePath)) {
             wxRemoveFile(filePath);
@@ -1450,6 +1535,7 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
                 EffectPresetGroup* dstParentGroup = dstParentData->AsGroup();
 
                 // Now Perform the move / rgbeffects updates
+                bool dropInBase = IsInBaseSection(srcItemId);
                 std::vector<std::string> priorGifFiles;
 
                 if (TreeCtrl1->GetItemParent(srcItemId) != dstParentId) {
@@ -1500,7 +1586,10 @@ void EffectTreeDialog::OnDropEffect(wxCommandEvent& event) {
 
                 TreeCtrl1->SelectItem(newId);
                 TreeCtrl1->EnsureVisible(newId);
-                EffectsFileDirty();
+                if (dropInBase)
+                    PromptAndSaveBasePresets();
+                else
+                    EffectsFileDirty();
                 ValidateWindow();
             }
             break;
@@ -1535,6 +1624,15 @@ wxDragResult EffectTreeDialogTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wx
             wxTreeItemId srcItem = _tree->GetSelection();
 
             if (srcItem == targetItem) {
+                return wxDragNone;
+            }
+
+            // Block cross-section drags (base ↔ local)
+            bool srcInBase = _owner->IsInBaseSection(srcItem);
+            bool dstInBase = _owner->IsInBaseSection(targetItem);
+            if (srcInBase != dstInBase) {
+                UpdateItemFeedback(wxTreeItemId());
+                _lastDragOverItem = wxTreeItemId();
                 return wxDragNone;
             }
 
@@ -1740,7 +1838,10 @@ void EffectTreeDialog::MoveNode(wxTreeItemId& srcItemId, wxTreeItemId& dstItemId
         TreeCtrl1->SelectItem(dstItemId);
         TreeCtrl1->EnsureVisible(dstItemId);
     }
-    EffectsFileDirty();
+    if (IsInBaseSection(newId))
+        PromptAndSaveBasePresets();
+    else
+        EffectsFileDirty();
     ValidateWindow();
 }
 
