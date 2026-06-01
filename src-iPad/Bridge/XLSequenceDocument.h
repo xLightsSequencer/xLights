@@ -432,6 +432,20 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)importXLightsSequenceTimingFromPath:(NSString*)path
     NS_SWIFT_NAME(importXLightsSequenceTiming(fromPath:));
 
+// Vixen3 (.tim) and xLights (.xsq/.xml) imports support per-track
+// selection. The …TrackNames query enumerates the importable timing
+// tracks (so the caller can present a multi-select sheet); the matching
+// import-with-selectedIndices then imports just those (empty = all).
+// The no-selection variants above delegate to these with an empty list.
+- (NSArray<NSString*>*)vixen3TimingTrackNamesFromPath:(NSString*)path
+    NS_SWIFT_NAME(vixen3TimingTrackNames(fromPath:));
+- (int)importVixen3TimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(importVixen3Timing(fromPath:selectedIndices:));
+- (NSArray<NSString*>*)xLightsTimingTrackNamesFromPath:(NSString*)path
+    NS_SWIFT_NAME(xLightsTimingTrackNames(fromPath:));
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(importXLightsSequenceTiming(fromPath:selectedIndices:));
+
 // B78 import lyrics: replace the target timing element's layers
 // with a single phrase layer populated from `phrases`. Each non-
 // empty phrase gets one mark spanning its slice of

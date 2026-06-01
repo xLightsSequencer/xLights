@@ -306,6 +306,15 @@ private struct TimingsTab: View {
     @State private var multiExportSelection: Set<Int> = []
     @State private var multiExportDoc: MultiXTimingFile?
 
+    // Multi-select import for Vixen3 (.tim) / xLights (.xsq) sequences, which
+    // can hold several timing tracks. Discover the names, let the user choose
+    // which to import (matches the desktop wxMultiChoiceDialog).
+    @State private var showingMultiImportPicker = false
+    @State private var importTrackNames: [String] = []
+    @State private var importTrackSelection: Set<Int> = []
+    @State private var importPendingPath: String? = nil
+    @State private var importPendingIsVixen3 = false
+
     // Settings is itself presented as a sheet, so the app-level
     // `.sheet(isPresented: viewModel.showingAddTimingTrack)` can't
     // open on top of it (iOS only allows one sheet per ancestor
@@ -396,6 +405,10 @@ private struct TimingsTab: View {
             .sheet(isPresented: $showingMultiExportPicker) {
                 multiExportPicker
             }
+            // Multi-select import: pick which Vixen3/xLights timing tracks to bring in.
+            .sheet(isPresented: $showingMultiImportPicker) {
+                multiImportPicker
+            }
             .fileExporter(
                 isPresented: Binding(
                     get: { multiExportDoc != nil },
@@ -447,6 +460,59 @@ private struct TimingsTab: View {
                         showingMultiExportPicker = false
                     }
                     .disabled(multiExportSelection.isEmpty)
+                }
+            }
+        }
+    }
+
+    // Multi-select sheet listing the timing tracks found in the chosen
+    // Vixen3/xLights file; Import brings in the checked ones (empty = none).
+    @ViewBuilder
+    private var multiImportPicker: some View {
+        NavigationStack {
+            List {
+                ForEach(Array(importTrackNames.enumerated()), id: \.offset) { idx, name in
+                    Button {
+                        if importTrackSelection.contains(idx) {
+                            importTrackSelection.remove(idx)
+                        } else {
+                            importTrackSelection.insert(idx)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: importTrackSelection.contains(idx)
+                                  ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(.tint)
+                            Text(name)
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .navigationTitle("Import Timing Tracks")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        showingMultiImportPicker = false
+                        importPendingPath = nil
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Import") {
+                        if let path = importPendingPath {
+                            let indices = importTrackNames.indices.filter { importTrackSelection.contains($0) }
+                            if importPendingIsVixen3 {
+                                viewModel.importVixen3Timing(path: path, selectedIndices: indices)
+                            } else {
+                                viewModel.importXLightsSequenceTiming(path: path, selectedIndices: indices)
+                            }
+                        }
+                        showingMultiImportPicker = false
+                        importPendingPath = nil
+                    }
+                    .disabled(importTrackSelection.isEmpty)
                 }
             }
         }
@@ -552,6 +618,31 @@ private struct TimingsTab: View {
         defer { if needsAccess { url.stopAccessingSecurityScopedResource() } }
         _ = XLSequenceDocument.obtainAccess(toPath: url.path,
                                               enforceWritable: false)
+
+        // Vixen3 / xLights sequences can hold several timing tracks: offer a
+        // multi-select picker when there's more than one. obtainAccess above
+        // persists a security-scoped bookmark, so the file stays reachable for
+        // the deferred import performed from the picker.
+        if importFormat == .vixen3 || importFormat == .xlightsSeq {
+            let names = importFormat == .vixen3
+                ? viewModel.vixen3TimingTrackNames(path: url.path)
+                : viewModel.xLightsTimingTrackNames(path: url.path)
+            if names.count > 1 {
+                importTrackNames = names
+                importTrackSelection = Set(names.indices)
+                importPendingPath = url.path
+                importPendingIsVixen3 = (importFormat == .vixen3)
+                showingMultiImportPicker = true
+                return
+            }
+            // 0 or 1 track: import directly (empty selection imports all).
+            let added = importFormat == .vixen3
+                ? viewModel.importVixen3Timing(path: url.path, selectedIndices: [])
+                : viewModel.importXLightsSequenceTiming(path: url.path, selectedIndices: [])
+            if added > 0 { viewModel.reloadRows() }
+            return
+        }
+
         let added: Int
         switch importFormat {
         case .xtiming:    added = viewModel.importXTiming(path: url.path)
@@ -560,9 +651,8 @@ private struct TimingsTab: View {
         case .srt:        added = viewModel.importSRTTiming(path: url.path)
         case .audacity:   added = viewModel.importAudacityTiming(path: url.path)
         case .elevenLabs: added = viewModel.importElevenLabsTiming(path: url.path)
-        case .vixen3:     added = viewModel.importVixen3Timing(path: url.path)
         case .lsp:        added = viewModel.importLSPTiming(path: url.path)
-        case .xlightsSeq: added = viewModel.importXLightsSequenceTiming(path: url.path)
+        case .vixen3, .xlightsSeq: added = 0 // handled above
         }
         if added > 0 { viewModel.reloadRows() }
     }

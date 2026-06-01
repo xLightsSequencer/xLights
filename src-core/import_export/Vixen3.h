@@ -10,14 +10,25 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/colour.h>
-#include <wx/gdicmn.h>
+#include "utils/Color.h"
+
 #include <pugixml.hpp>
 
 #include <list>
 #include <map>
+#include <vector>
+#include <string>
 #include <cmath>
 #include <cstdint>
+
+// 2D point for Vixen level curves — wx-free replacement for wxRealPoint
+// used while this importer lived in src-ui-wx.
+struct VixenPoint
+{
+    VixenPoint(double X, double Y) : x(X), y(Y) { }
+    double x;
+    double y;
+};
 
 struct VixenTiming
 {
@@ -29,8 +40,8 @@ struct VixenTiming
 
 struct VixenColor
 {
-    VixenColor(wxColor c, float p) : color(c), position(p) { }
-    wxColor color;
+    VixenColor(xlColor c, float p) : color(c), position(p) { }
+    xlColor color;
     float position;
 
     bool operator<(const VixenColor& a) const
@@ -55,7 +66,7 @@ public:
     std::string type;
     std::map<std::string, std::string> settings;
     std::vector<std::vector<VixenColor>> palette;
-    std::vector<wxRealPoint> levelCurve;
+    std::vector<VixenPoint> levelCurve;
 
     static constexpr const std::uint32_t KNOWN_COLOR[] = {
         0x00000000, /* 000 - Empty */

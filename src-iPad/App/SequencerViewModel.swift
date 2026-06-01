@@ -3875,6 +3875,35 @@ class SequencerViewModel {
         return added
     }
 
+    /// Timing-track names available in a Vixen3 (.tim) file, for the
+    /// multi-select import picker. Vixen3/xLights imports support choosing
+    /// which tracks to bring in (mirrors the desktop wxMultiChoiceDialog).
+    func vixen3TimingTrackNames(path: String) -> [String] {
+        return document.vixen3TimingTrackNames(fromPath: path)
+    }
+
+    @discardableResult
+    func importVixen3Timing(path: String, selectedIndices: [Int]) -> Int {
+        let added = Int(document.importVixen3Timing(fromPath: path,
+                                                    selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    /// Timing-track names available in an xLights (.xsq/.xml) sequence, for
+    /// the multi-select import picker.
+    func xLightsTimingTrackNames(path: String) -> [String] {
+        return document.xLightsTimingTrackNames(fromPath: path)
+    }
+
+    @discardableResult
+    func importXLightsSequenceTiming(path: String, selectedIndices: [Int]) -> Int {
+        let added = Int(document.importXLightsSequenceTiming(fromPath: path,
+                                                             selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
     /// B75: export the given timing row to `path` as `.xtiming`.
     @discardableResult
     func exportTimingTrack(rowIndex: Int, path: String) -> Bool {

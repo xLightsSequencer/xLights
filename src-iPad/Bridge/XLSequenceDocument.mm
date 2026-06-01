@@ -1200,9 +1200,27 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 }
 
 - (int)importVixen3TimingFromPath:(NSString*)path {
+    return [self importVixen3TimingFromPath:path selectedIndices:@[]];
+}
+
+- (NSArray<NSString*>*)vixen3TimingTrackNamesFromPath:(NSString*)path {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (!path || path.length == 0) return result;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return result;
+    std::string p([path UTF8String]);
+    for (const std::string& n : sf->GetVixen3TimingTrackNames(p)) {
+        [result addObject:[NSString stringWithUTF8String:n.c_str()]];
+    }
+    return result;
+}
+
+- (int)importVixen3TimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices {
     if (!path || path.length == 0) return 0;
     std::string p([path UTF8String]);
-    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessVixen3Timing({ p }, self->_context.get()); }];
+    std::vector<int> idx;
+    for (NSNumber* n in indices) idx.push_back(n.intValue);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessVixen3Timing(p, idx, self->_context.get()); }];
 }
 
 - (int)importLSPTimingFromPath:(NSString*)path {
@@ -1212,9 +1230,27 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 }
 
 - (int)importXLightsSequenceTimingFromPath:(NSString*)path {
+    return [self importXLightsSequenceTimingFromPath:path selectedIndices:@[]];
+}
+
+- (NSArray<NSString*>*)xLightsTimingTrackNamesFromPath:(NSString*)path {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (!path || path.length == 0) return result;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return result;
+    std::string p([path UTF8String]);
+    for (const std::string& n : sf->GetXLightsTimingTrackNames(p, _context.get())) {
+        [result addObject:[NSString stringWithUTF8String:n.c_str()]];
+    }
+    return result;
+}
+
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices {
     if (!path || path.length == 0) return 0;
     std::string p([path UTF8String]);
-    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessXLightsTiming({ p }, self->_context.get()); }];
+    std::vector<int> idx;
+    for (NSNumber* n in indices) idx.push_back(n.intValue);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessXLightsTiming(p, idx, self->_context.get()); }];
 }
 
 - (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path {

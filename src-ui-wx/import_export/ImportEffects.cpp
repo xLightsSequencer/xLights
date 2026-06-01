@@ -40,7 +40,7 @@
 #include "render/SequenceMedia.h"
 #include "utils/ExternalHooks.h"
 #include "render/SequencePackage.h"
-#include "Vixen3.h"
+#include "import_export/Vixen3.h"
 #include "effects/BarsEffect.h"
 #include "effects/ButterflyEffect.h"
 #include "effects/CurtainEffect.h"
