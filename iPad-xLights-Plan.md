@@ -95,23 +95,41 @@ variants in `libdbg-ios/`.
   [`phase-j-layout-editor.md`](plans/phase-j-layout-editor.md).
 - **Phase B-77 — MIDI Import Notes.** Deprioritized; low desktop use
   and no concrete iPad request open.
-- **Phase IE-4 — LOR S5 `.loredit` import (discovery landed).** The
-  effect-level LOR reader (`LOREdit.{h,cpp}`) was moved into the
-  wx-free core (`src-core/import_export/`) so both desktop and iPad
-  link the same parser; the desktop `ImportS5` path now uses the
-  relocated core class. On iPad, `XLImportSession` gained a
-  `loadLOREditSource(atPath:)` branch that parses the `.loredit` with
-  the core reader and populates the same available-source list +
-  timing tracks the `.xsq` path builds, so the existing mapping tree
-  + AutoMapper / MapHints flow is reused; `ImportEffectsView`
-  `allowedTypes` now includes `.loredit`. **Remaining:** the
-  effect-synthesis apply path — the iPad analogue of desktop
-  `MapS5` / `MapS5Effects` / `MapS5ChannelEffects` (which build
-  effects from `LOREditEffect::GetxLightsEffect` / `GetSettings` /
-  `GetPalette` onto target `EffectLayer*` / `NodeLayer*`, resolving
-  node coords via `Model::GetNodeCoords`). Until that lands,
-  `-applyImportWithEraseExisting:lock:error:` returns an error for a
-  `.loredit` source.
+- **Phase IE-1 (full) — timing-import core extraction.** The LSP /
+  xLights / Vixen3 / ElevenLabs `SequenceFile::Process*` timing
+  importers lived in `src-ui-wx` (not compiled into the iPad app), so
+  the app failed to link. Moved them into wx-free core: new
+  `src-core/utils/ZipUtils` (minizip wrapper), relocated
+  `Vixen3.{h,cpp}`, and a new `src-core/import_export/TimingImport.cpp`.
+  XLights/Vixen3 timing imports are now two-step (discovery + indexed
+  import) with the track chooser hosted per UI — desktop
+  `wxMultiChoiceDialog`, iPad multi-select sheet.
+- **Phase IE-4 — LOR S5 `.loredit` import (discovery + apply, done).**
+  The effect-level LOR reader (`LOREdit.{h,cpp}`) is in wx-free core,
+  and the 7 `MapS5*` apply functions were moved to core `EffectMapper`.
+  On iPad, `XLImportSession` `_loreditMode` loads `.loredit` into the
+  shared mapping / AutoMapper / MapHints flow AND applies effects
+  (mirrors desktop `ImportS5`); `ImportEffectsView` accepts `.loredit`.
+- **Phase IE-25 — Vixen 3 `.tim` effect import.** `MapVixen3` /
+  `MapVixen3Effects` moved to core `EffectMapper`; `XLImportSession`
+  `_vixen3Mode` mirrors desktop `ImportVixen3` (timing synthesis via
+  core `AddVixenMarksToLayer`, effects via `MapVixen3*`). `.tim` routes
+  as an effect source in `ImportEffectsView`; the Settings → Timings
+  tab keeps the timing-only `.tim` path. Fixed a latent sticky
+  import-mode-flag bug (loaders now reset all modes) while wiring this.
+- **Phase IE-7 — import dispatch + warnings.** `.piz` added to the
+  importer; new `XLImportSession` source-metadata accessors;
+  non-blocking FPS-mismatch (after load) and missing-media (after
+  apply) warnings.
+- **Phase IE-15 — Export Models XLSX (done).** wx-free core
+  `ExportModels` (libxlsxwriter) + bridge + Layout-editor action;
+  `-lxlsxwriter` added to the `xLights-iPad` link flags (committed in
+  the `macOS` submodule) so the app links.
+
+  All of the above are build-verified across desktop + `xLights-iPadLib`
+  + the `xLights-iPad` app (core boundary-check clean; IE-25/IE-7
+  adversarially reviewed). On-device verification with real
+  `.loredit` / `.tim` / `.msq` / `.xsq` files + XLSX content is pending.
 - **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
   until a vendor request lands.
 - **3 deferred Phase B items** (B16 drag-from-palette ghost,
