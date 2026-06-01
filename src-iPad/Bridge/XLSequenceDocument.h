@@ -2619,6 +2619,10 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //                         configuring — the iPad sheet hides the Pixel
 //                         Hat/Cape toggle in that case.
 - (NSArray<NSDictionary*>*)discoverFPPInstances;
+// CTL-5 — discovery seeded with user-entered forced IPs/hostnames (broadcast
+// discovery still runs alongside). Empty array == plain broadcast discovery.
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs
+    NS_SWIFT_NAME(discoverFPPInstances(withForcedAddresses:));
 
 // Drop the internal `std::list<FPP*>` and free every instance. Call
 // when the FPP Connect sheet dismisses so the next open re-discovers

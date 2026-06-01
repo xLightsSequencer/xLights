@@ -14281,6 +14281,10 @@ NSString* fppTypeString(FPP_TYPE t) {
 } // namespace
 
 - (NSArray<NSDictionary*>*)discoverFPPInstances {
+    return [self discoverFPPInstancesWithForcedAddresses:@[]];
+}
+
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs {
     for (FPP* f : _fppInstances) delete f;
     _fppInstances.clear();
 
@@ -14296,6 +14300,11 @@ NSString* fppTypeString(FPP_TYPE t) {
     DiscoveryDelegate defaultDelegate;
     Discovery discovery(&om, &defaultDelegate);
     std::list<std::string> forcedAddresses;
+    for (NSString* ip in forcedIPs) {
+        if (ip.length > 0) forcedAddresses.push_back(std::string([ip UTF8String]));
+    }
+    // broadcastPing defaults to true, so broadcast discovery still runs
+    // alongside any user-supplied forced IPs (CTL-5 "Add FPP by IP").
     FPP::PrepareDiscovery(discovery, forcedAddresses);
     discovery.Discover();
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);

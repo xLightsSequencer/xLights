@@ -486,6 +486,9 @@ class SequencerViewModel {
     // fixed interval, metronome, FPP, audio analysis (Onsets /
     // Tempo / Chords), and AI Lyrics.
     var showingAddTimingTrack = false
+    /// AUTO-3: set when "Speech to Lyrics…" is chosen from a timing row's
+    /// context menu, so the Add-Timing sheet opens pre-selected on AI Lyrics.
+    var pendingSpeechToLyricsRowIndex: Int?
     // Tools → Package Sequence. Two-toggle option sheet (Include
     // Audio / Include Videos) then `SequencePackage::Pack` on a
     // background queue; result handed to the system share sheet.
@@ -3995,6 +3998,18 @@ class SequencerViewModel {
         let row = rows[rowIndex]
         guard row.timing != nil, row.layerIndex == 0 else { return false }
         return row.effects.contains(where: { !$0.name.isEmpty })
+    }
+
+    /// AUTO-3: gates the timing-row "Speech to Lyrics…" menu entry — a timing
+    /// row exists, audio is loaded, and a Speech-to-Text AI service is
+    /// configured. Mirrors AddTimingTrackSheet's canOfferAILyrics guard.
+    func canSpeechToLyrics(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == 0 else { return false }
+        let audioPath = document.sequenceAudioFilePath() ?? ""
+        guard !audioPath.isEmpty else { return false }
+        return XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilitySpeech2Text)
     }
 
     /// B84 (per-mark): break a single phrase mark into per-word

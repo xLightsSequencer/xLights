@@ -9,6 +9,7 @@
  **************************************************************/
 
 #import "XLAIServices.h"
+#import "XLAIServiceProperty+Internal.h"
 #import "XLiPadServiceSettingsStore.h"
 
 #include "ai/ServiceManager.h"

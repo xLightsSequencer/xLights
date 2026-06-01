@@ -277,6 +277,11 @@ struct LayoutEditorView: View {
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
     @State private var addMemberSheetVisible: Bool = false
+    // LAY-11 — "Add selection to existing group(s)": the models captured from
+    // the multi-selection and the groups the user checks in the chooser sheet.
+    @State private var addToGroupSheetVisible: Bool = false
+    @State private var addToGroupModels: [String] = []
+    @State private var addToGroupPicked: Set<String> = []
     @State private var pendingDeleteGroupName: String? = nil
 
     /// J-16 (group rename) — rename-sheet visibility + target.
@@ -763,6 +768,46 @@ struct LayoutEditorView: View {
                                            modelName: payload.modelName,
                                            w: w, h: h, d: d, locations: locs)
                                    })
+        }
+        .sheet(isPresented: $addToGroupSheetVisible) {
+            NavigationStack {
+                List {
+                    if groupNames.isEmpty {
+                        Text("No groups in this layout yet. Use \u{201C}Create New Group\u{2026}\u{201D} first.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(groupNames, id: \.self) { g in
+                            Button {
+                                if addToGroupPicked.contains(g) {
+                                    addToGroupPicked.remove(g)
+                                } else {
+                                    addToGroupPicked.insert(g)
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: addToGroupPicked.contains(g)
+                                          ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(.tint)
+                                    Text(g)
+                                    Spacer()
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+                .navigationTitle("Add \(addToGroupModels.count) Model\(addToGroupModels.count == 1 ? "" : "s") to Group")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancel") { addToGroupSheetVisible = false }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Add") { handleAddSelectionToGroups() }
+                            .disabled(addToGroupPicked.isEmpty)
+                    }
+                }
+            }
         }
         .sheet(isPresented: $renameModelSheetVisible) {
             if let oldName = pendingRenameModelOldName {
@@ -2781,6 +2826,7 @@ struct LayoutEditorView: View {
                         onFlip: { axis in performFlip(axis: axis) },
                         onDuplicate: { performDuplicate(of: Array(viewModel.layoutEditorSelection)) },
                         onGroup: { newGroupFromSelectionPrompt() },
+                        onAddToGroup: { addSelectionToGroupPrompt() },
                         onClear: {
                             viewModel.layoutEditorSelection.removeAll()
                             viewModel.layoutEditorSelectedModel = nil
@@ -3029,6 +3075,31 @@ struct LayoutEditorView: View {
             hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
         }
         addMemberSheetVisible = false
+    }
+
+    /// LAY-11 — capture the current multi-selection and open the
+    /// "Add to existing group(s)" chooser.
+    private func addSelectionToGroupPrompt() {
+        addToGroupModels = Array(viewModel.layoutEditorSelection)
+        addToGroupPicked = []
+        addToGroupSheetVisible = true
+    }
+
+    /// LAY-11 — add every captured model to each checked group. Each
+    /// add fires its own (idempotent) bridge call; the UX presents it as
+    /// one batch. Mirrors handleAddMembers' dirty/refresh pattern.
+    private func handleAddSelectionToGroups() {
+        for group in addToGroupPicked {
+            for model in addToGroupModels {
+                _ = viewModel.document.addModel(model, toGroup: group)
+            }
+        }
+        if !addToGroupPicked.isEmpty && !addToGroupModels.isEmpty {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            refreshModelList()
+        }
+        addToGroupSheetVisible = false
     }
 
     /// J-7 — delete-group confirmation "Delete" callback.
@@ -11889,6 +11960,7 @@ private struct MultiSelectActionBar: View {
     let onFlip: (String) -> Void
     let onDuplicate: () -> Void
     let onGroup: () -> Void
+    let onAddToGroup: () -> Void
     let onClear: () -> Void
 
     private var canDistribute: Bool { selection.count >= 3 }
@@ -11983,8 +12055,17 @@ private struct MultiSelectActionBar: View {
             .buttonStyle(.plain)
             .foregroundStyle(.white)
 
-            Button {
-                onGroup()
+            Menu {
+                Button {
+                    onGroup()
+                } label: {
+                    Label("Create New Group…", systemImage: "plus.square.on.square")
+                }
+                Button {
+                    onAddToGroup()
+                } label: {
+                    Label("Add to Group…", systemImage: "rectangle.stack.badge.plus")
+                }
             } label: {
                 Label("Group", systemImage: "square.stack.3d.up")
                     .font(.caption.weight(.medium))

@@ -147,6 +147,23 @@ struct PropertyContextMenu: ViewModifier {
                 Label("Paste Value Curve",
                       systemImage: "doc.on.clipboard")
             }
+
+            // COL-2 — push this property's value curve to every other
+            // effect in the multi-selection. Reuses the generic
+            // applyValueToAllSelected path (E_ keys are filtered per
+            // target on the view-model side, so a Brightness curve won't
+            // leak onto an unrelated effect type). The serialised curve is
+            // re-read at tap time, not at menu-build time.
+            if viewModel.isMultiEffectSelection {
+                Button {
+                    let fresh = viewModel.settingValue(forKey: vcKey,
+                                                       defaultValue: "")
+                    viewModel.applyValueToAllSelected(fresh, forKey: vcKey)
+                } label: {
+                    Label("Apply Value Curve to \(viewModel.selectedEffects.count - 1) Other Selected",
+                          systemImage: "square.stack.3d.up.fill")
+                }
+            }
         }
     }
 }

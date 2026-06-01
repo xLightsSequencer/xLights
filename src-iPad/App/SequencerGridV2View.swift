@@ -1622,6 +1622,13 @@ struct SequencerGridV2View: View {
                         startXTimingExport(rowIndex: row.id,
                                              trackName: row.timing?.elementName ?? row.displayName)
                     },
+                    canSpeechToLyrics: viewModel.canSpeechToLyrics(rowIndex: row.id),
+                    onSpeechToLyrics: {
+                        // Reuse the unified Add-Timing flow's AI-Lyrics path
+                        // (mirrors desktop, which also creates a new track).
+                        viewModel.pendingSpeechToLyricsRowIndex = row.id
+                        viewModel.showingAddTimingTrack = true
+                    },
                     onImportLyrics: {
                         importLyricsTargetRow = row.id
                         importLyricsText = ""

@@ -105,6 +105,12 @@ struct AddTimingTrackSheet: View {
             }
         }
         .onAppear {
+            // AUTO-3: when opened from a timing row's "Speech to Lyrics…"
+            // menu, start on the AI-Lyrics type and clear the one-shot flag.
+            if viewModel.pendingSpeechToLyricsRowIndex != nil {
+                selectedType = .aiLyrics
+                viewModel.pendingSpeechToLyricsRowIndex = nil
+            }
             // Pick a sensible default — Audio Onsets when audio is
             // loaded but the user just opened the sheet from a non-
             // audio context, otherwise Empty. Either way, the user

@@ -130,6 +130,27 @@ variants in `libdbg-ios/`.
   + the `xLights-iPad` app (core boundary-check clean; IE-25/IE-7
   adversarially reviewed). On-device verification with real
   `.loredit` / `.tim` / `.msq` / `.xsq` files + XLSX content is pending.
+- **Quick-wins batch (cross-theme P1, 2026-06-01).** Five small,
+  self-contained parity items, all build-verified (iPad-lib + app):
+  - **COL-2** (theme 04) — value-curve bulk edit: "Apply Value Curve to
+    N Other Selected" in `PropertyContextMenu`, reusing the generic
+    `applyValueToAllSelected`.
+  - **AUTO-3** (theme 12) — "Speech to Lyrics…" timing row-menu entry,
+    routing through the existing `generateAILyricTrack`.
+  - **LAY-11** (theme 05) — "Add to Group…" multi-pick chooser on the
+    layout multi-select bar (existing `addModel:toGroup:`).
+  - **AI-1** (theme 12) — AI image style-preset Pickers, exposing the
+    generator's `GetProperties`/`SetProperty` through `XLAIImageSession`
+    (+ shared `XLAIServiceProperty+Internal.h`).
+  - **CTL-5** (theme 07) — FPP Connect Add-by-IP + Re-Discover (forced
+    addresses through `discoverFPPInstances`, persisted in UserDefaults).
+  Three sibling candidates were **reclassified, not done** after
+  checking the actual iPad code: **LAY-9** (Make-Start-Channels-Valid)
+  is medium — the Models tab is read-only and needs new per-model action
+  UI + validation bridge methods; **LIFE-1** (Save-As show-folder guard)
+  is medium — the `.fileExporter` re-prompt loop / nil-folder fallback;
+  **CTL-4** (FPP-proxy validation) is **blocked** — iPad has no proxy
+  upload or proxy-IP source yet. See `plans/ipad-parity/0{4,5,7},12`.
 - **Phase I-5 — `.lms`/`.las`.** Distant third format; parked
   until a vendor request lands.
 - **3 deferred Phase B items** (B16 drag-from-palette ghost,

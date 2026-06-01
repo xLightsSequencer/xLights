@@ -2,6 +2,10 @@
 
 **Scope:** Gap-analysis Area 21 (AI Features) and Area 22 (Automation, Scripting & REST API). The unifying theme: most of the heavy lifting already lives in shared `src-core/` (the `ai/ServiceManager` + providers; the operations behind every automation command). What's missing is the *surface* — SwiftUI editing affordances on top of the AI flows, and an in-process command-dispatch layer on top of `XLSequenceDocument`. The dead transport (CLI/argv, HTTP listener port, Python, xlDo) is explicitly out of scope.
 
+> **Status (2026-06-01) — landed (build-verified, `xLights-iPad` app):**
+> - ✅ **AUTO-3** — "Speech to Lyrics…" entry in the timing row-header context menu (gated on audio loaded + a Speech-to-Text service via `canSpeechToLyrics(rowIndex:)`), routing through the existing `generateAILyricTrack` by opening the unified Add-Timing sheet pre-selected on AI Lyrics (`pendingSpeechToLyricsRowIndex`).
+> - ✅ **AI-1** — AI image style presets. New `XLAIImageSession.imageProperties()` / `setStringProperty:value:` expose the generator's `GetProperties()` / `SetProperty()` via a shared `XLAIServiceProperty+Internal.h` converter; `AIImageGenerationSheet` renders Choice properties (e.g. Style) as Pickers, refreshed on service change.
+
 ---
 
 ## Current parity

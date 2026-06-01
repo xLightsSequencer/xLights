@@ -37,6 +37,12 @@ struct TimingRowHeader: View {
     var canSubdivide: Bool = false
     /// B75: fires when the user picks "Export Timing Track…".
     var onExportTimingTrack: (() -> Void)?
+    /// AUTO-3: fires when the user picks "Speech to Lyrics…" (AI audio
+    /// transcription). Gated by `canSpeechToLyrics` — audio is loaded and a
+    /// Speech-to-Text AI service is configured. Declared before
+    /// `onImportLyrics` to match the call-site argument order.
+    var canSpeechToLyrics: Bool = false
+    var onSpeechToLyrics: (() -> Void)?
     /// B78: fires when the user picks "Import Lyrics…".
     var onImportLyrics: (() -> Void)?
     /// B89: fires when the user picks "Auto-Label Marks…".
@@ -187,6 +193,12 @@ struct TimingRowHeader: View {
                     Button { fire() } label: {
                         Label("Export Timing Track…",
                                systemImage: "square.and.arrow.up")
+                    }
+                }
+                if canSpeechToLyrics, let fire = onSpeechToLyrics {
+                    Button { fire() } label: {
+                        Label("Speech to Lyrics…",
+                               systemImage: "waveform.circle")
                     }
                 }
                 if let fire = onImportLyrics {

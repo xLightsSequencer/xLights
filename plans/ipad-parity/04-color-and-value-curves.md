@@ -2,6 +2,9 @@
 
 _Scope: gap-analysis Area 15 (Color, Palettes & Value Curves) — per-parameter single-curve bulk-edit, palette-manipulation toolbar (reverse/shift/lock), recent/CSS color swatches, sequence-wide color replace + a "used colours" dropper panel, palette-apply-to-selection, and the Color Manager theme editor._
 
+> **Status (2026-06-01) — landed (build-verified, `xLights-iPadLib` + `xLights-iPad` app):**
+> - ✅ **COL-2** — per-parameter value-curve bulk edit. Added "Apply Value Curve to N Other Selected" to `PropertyContextMenu`'s value-curve block (gated on `isMultiEffectSelection`), reusing the existing generic `applyValueToAllSelected(_:forKey:)` with the VC key; the serialised curve is re-read at tap time. Chose the context-menu path over a new long-press gesture (the VC menu already exists, so it's less code + parity with non-VC properties). The numeric half of BE-4 was already wired via the scalar "Apply to N Other Selected".
+
 ## Current parity
 
 Area 15 has **39 features: 22 implemented, 5 partial, 9 missing, 3 out-of-scope.** The high-value core is already at parity: the 8-slot palette grid, per-swatch native `ColorPicker`, the full ColorCurve editor (gradient + 9 spatial/temporal modes), and the complete Value Curve editor (all 23 types, custom points, reverse/flip/wrap, time offset, music/timing binding, `.xvc` presets, clipboard) all round-trip byte-for-byte with desktop through the shared `XLValueCurve`/`XLColorCurve` wrappers. Brightness/Contrast/HSV-adjust, Chroma Key, and Sparkles (incl. music + color + value-curve) ride on the shared `Color.json` metadata. The work that remains is almost entirely SwiftUI affordances and a few thin bridge wrappers over already-shipping `src-core` ops — no new color math.
