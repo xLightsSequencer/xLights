@@ -13,6 +13,7 @@
 #include "effects/BufferStyles.h"
 #include "effects/EffectManager.h"
 #include "import_export/LOREdit.h"
+#include "import_export/Vixen3.h"
 #include "models/Model.h"
 #include "models/ModelGroup.h"
 #include "render/Effect.h"
@@ -450,6 +451,52 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
             MapS5(effectManager, i, se->GetEffectLayer(i), lorEdit, mapping, m, frequency, offset, eraseExisting);
         }
     }
+}
+
+void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName, long offset, int frameMS, bool eraseExisting)
+{
+    if (eraseExisting) {
+        for (const auto& it : model->GetEffectLayers()) {
+            it->DeleteAllEffects();
+        }
+    }
+
+    auto effects = vixen.GetEffects(modelName);
+
+    for (const auto& it : effects) {
+        long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
+        long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
+
+        // Vixen can have multiple effects in one time slot so add layers as needed
+        EffectLayer* layer = nullptr;
+        for (const auto& el : model->GetEffectLayers()) {
+            if (!el->HasEffectsInTimeRange(s, e)) {
+                layer = el;
+                break;
+            }
+        }
+
+        if (layer == nullptr)
+            layer = model->AddEffectLayer();
+
+        // now we need to create the effect
+        std::string newpalette = it.GetPalette();
+        std::string newsettings = it.GetSettings();
+        std::string type = it.GetXLightsType();
+        if (type != "") {
+            if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0) {
+                spdlog::debug("Vixen 3 import {} -> {} is not a valid effect.", it.type, type);
+            } else {
+                layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
+            }
+        }
+    }
+}
+
+void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const std::string& mapping, long offset, int frameMS, bool eraseExisting)
+{
+    spdlog::debug("Creating effects on model {} from {}", model->GetFullName(), mapping);
+    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
 }
 
 void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)

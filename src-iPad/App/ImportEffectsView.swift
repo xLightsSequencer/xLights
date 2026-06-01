@@ -38,6 +38,11 @@ struct ImportEffectsView: View {
     @State private var rowExpansion: Set<Int> = []
     @State private var showingFilePicker = false
     @State private var importError: String?
+    // IE-7 — non-blocking pre/post-import warnings. `loadWarning` (FPS / version
+    // mismatch) appears after the source loads and just informs; `applyWarning`
+    // (missing source media) appears after Apply and dismisses the sheet on ack.
+    @State private var loadWarning: String?
+    @State private var applyWarning: String?
     // IE-2 — persist the import-option toggles across launches (mirrors
     // desktop's persisted import options, e.g. ImportEffectsRenderStyle).
     @AppStorage("import.eraseExisting") private var eraseExisting = false
@@ -101,6 +106,22 @@ struct ImportEffectsView: View {
             .alert("Import Error", isPresented: errorBinding,
                    presenting: importError) { _ in
                 Button("OK", role: .cancel) { importError = nil }
+            } message: { msg in
+                Text(msg)
+            }
+            .alert("Frame Rate Differs", isPresented: Binding(
+                       get: { loadWarning != nil },
+                       set: { if !$0 { loadWarning = nil } }),
+                   presenting: loadWarning) { _ in
+                Button("OK", role: .cancel) { loadWarning = nil }
+            } message: { msg in
+                Text(msg)
+            }
+            .alert("Missing Media", isPresented: Binding(
+                       get: { applyWarning != nil },
+                       set: { if !$0 { applyWarning = nil } }),
+                   presenting: applyWarning) { _ in
+                Button("OK", role: .cancel) { applyWarning = nil; onDismiss() }
             } message: { msg in
                 Text(msg)
             }
@@ -362,14 +383,33 @@ struct ImportEffectsView: View {
                 // reader. Shares the same mapping panes / AutoMapper flow as
                 // `.xsq`; only the source-discovery entry point differs.
                 try session.loadLOREditSource(atPath: url.path)
+            } else if ext == "tim" {
+                // Vixen 3 effect-level export — parsed by the core Vixen3
+                // reader (needs the sibling SystemConfig.xml). Shares the
+                // mapping panes with `.xsq`; only source discovery differs.
+                // (The Settings → Timings tab handles `.tim` as timing-only.)
+                try session.loadVixen3Source(atPath: url.path)
             } else {
                 try session.loadSourceSequence(atPath: url.path)
             }
             mode = .xsq
             sourcePath = url.path
             refreshSnapshots()
+            checkSourceWarnings()
         } catch {
             importError = error.localizedDescription
+        }
+    }
+
+    // IE-7 — surface a non-blocking FPS-mismatch notice after the source loads
+    // (mirrors desktop's pre-import frame-rate warning). Only `.xsq`/package
+    // sources expose a frequency; `.loredit`/`.tim` report 0 and are skipped.
+    private func checkSourceWarnings() {
+        guard let session else { return }
+        let src = session.sourceFrequency()
+        let tgt = session.targetFrequency()
+        if src > 0 && tgt > 0 && src != tgt {
+            loadWarning = "This sequence was created at \(src) FPS but the current sequence runs at \(tgt) FPS. Imported effect timings will be snapped to the current frame rate."
         }
     }
 
@@ -403,7 +443,21 @@ struct ImportEffectsView: View {
                                      lock: lockEffects,
                                      convertRenderStyle: convertRenderStyle)
             viewModel.reloadRows()
-            onDismiss()
+            // IE-7 — the source's missing-media list is only populated by the
+            // SequencePackage media walk that runs during an `.xsq`/package
+            // apply, so surface it now. (`.loredit`/`.tim` carry no package
+            // media, so this is empty for them — which correctly means "no
+            // warning, dismiss normally".) Defer the dismiss until the user
+            // acknowledges, otherwise onDismiss() closes the sheet first and
+            // the alert never shows.
+            let missing = session.sourceMissingMedia()
+            if !missing.isEmpty {
+                let shown = missing.prefix(10).joined(separator: "\n")
+                let more = missing.count > 10 ? "\n…and \(missing.count - 10) more" : ""
+                applyWarning = "Effects were imported, but \(missing.count) media file\(missing.count == 1 ? "" : "s") referenced by the source could not be found:\n\(shown)\(more)\n\nAdd them to your show or media folder and re-import to restore those effects' media."
+            } else {
+                onDismiss()
+            }
         } catch {
             importError = error.localizedDescription
         }
@@ -493,6 +547,10 @@ struct ImportEffectsView: View {
         if let sup = UTType(filenameExtension: "sup") { types.append(sup) }
         // LOR S5 effect-level export (parsed by the core LOREdit reader).
         if let loredit = UTType(filenameExtension: "loredit") { types.append(loredit) }
+        // Vixen 3 effect-level export (parsed by the core Vixen3 reader).
+        if let tim = UTType(filenameExtension: "tim") { types.append(tim) }
+        // xLights package (zip-based, like .xsqz) — handled by SequencePackage.
+        if let piz = UTType(filenameExtension: "piz") { types.append(piz) }
         return types
     }()
 }

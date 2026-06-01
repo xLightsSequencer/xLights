@@ -3102,53 +3102,11 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
     return true;
 }
 
-void MapVixen3(Element* model, const Vixen3& vixen, const wxString& modelName, long offset, int frameMS, bool eraseExisting)
-{
-    if (eraseExisting) {
-        for (const auto& it : model->GetEffectLayers()) {
-            it->DeleteAllEffects();
-        }
-    }
-
-    auto effects = vixen.GetEffects(modelName.ToStdString());
-
-    for (const auto& it : effects) {
-        long s = Vixen3::ConvertTiming(it.start + offset, frameMS);
-        long e = Vixen3::ConvertTiming(it.end + offset, frameMS);
-
-        // Vixen can have multiple effects in one time slot so add layers as needed
-        EffectLayer* layer = nullptr;
-        for (const auto& it : model->GetEffectLayers()) {
-            if (!it->HasEffectsInTimeRange(s, e)) {
-                layer = it;
-                break;
-            }
-        }
-
-        if (layer == nullptr)
-            layer = model->AddEffectLayer();
-
-        // now we need to create the effect
-        std::string newpalette = it.GetPalette();
-        std::string newsettings = it.GetSettings();
-        std::string type = it.GetXLightsType();
-        if (type != "") {
-            if (layer->GetParentElement()->GetSequenceElements()->GetEffectManager().GetEffectIndex(type) < 0) {
-    spdlog::debug("Vixen 3 import {} -> {} is not a valid effect.", it.type, type);
-            } else {
-                layer->AddEffect(0, type, newsettings, newpalette, s, e, false, false);
-            }
-        }
-    }
-}
-
-void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const wxString& mapping, long offset, int frameMS, bool eraseExisting)
-{
-
-    spdlog::debug("Creating effects on model {} from {}",
-                  model->GetFullName(), mapping.ToStdString());
-    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
-}
+// MapVixen3 / MapVixen3Effects were moved to wx-free core
+// src-core/import_export/EffectMapper.{h,cpp} (beside MapXLightsEffects /
+// MapS5*) so the iPad app can reuse them. Declared in
+// import_export/EffectMapper.h (already included above). The call sites in
+// ImportVixen3 below pass std::string mappings, which bind directly.
 
 bool xLightsFrame::ImportVixen3(const wxFileName& filename)
 {

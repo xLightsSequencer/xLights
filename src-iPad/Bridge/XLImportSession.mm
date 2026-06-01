@@ -7,6 +7,7 @@
 #include "import_export/BasicImportMappingNode.h"
 #include "import_export/EffectMapper.h"
 #include "import_export/LOREdit.h"
+#include "import_export/Vixen3.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
@@ -146,6 +147,14 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // Timing-track name -> begin/end pairs, prefetched at load so the
     // (deferred) apply path doesn't need to re-walk the document.
     std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> _loreditTimings;
+
+    // Vixen 3 `.tim` EFFECT source state (IE-25). Like `.loredit`, the source
+    // is a wx-free core reader (Vixen3) rather than an xLights tree; kept alive
+    // so discovery + the apply branch can query its effects / timings.
+    // `_vixen3Mode` selects the Vixen3 effect branch — distinct from the
+    // timing-only `.tim` path used by Settings → Timings (XLSequenceDocument).
+    bool _vixen3Mode;
+    std::unique_ptr<Vixen3> _vixen3;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -244,6 +253,14 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _sourceFile = std::move(file);
     _sourceElements = std::move(elements);
 
+    // This is an `.xsq` source — clear any prior `.loredit` / `.tim` mode so a
+    // source switch within one session doesn't apply through the wrong branch.
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+
     [self rebuildAvailableSources];
     [self rebuildTimingTracks];
     return YES;
@@ -330,6 +347,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _loreditDoc.reset();
     _loreditDoc = std::move(doc);
     _loredit = std::make_unique<LOREdit>(_loreditDoc, rc->GetSequenceElements().GetFrequency());
+    _vixen3Mode = false;
+    _vixen3.reset();
     _loreditMode = true;
 
     [self rebuildAvailableSourcesFromLOREdit];
@@ -383,6 +402,110 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
         entry.selected = !entry.alreadyExists;
         _timingTracks.push_back(entry);
+    }
+}
+
+#pragma mark - Vixen 3 (.tim) effect source loading
+
+- (BOOL)loadVixen3SourceAtPath:(NSString*)path
+                         error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    // Mirrors desktop xLightsFrame::ImportVixen3 — the Vixen3 reader parses the
+    // .tim XML and resolves the sibling SystemConfig.xml for the effect data.
+    auto vixen = std::make_unique<Vixen3>(pathStr);
+    if (!vixen->IsSystemFound()) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:14
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"SystemConfig.xml could not be found next to the .tim file — Vixen 3 effect import is not possible without it." }];
+        }
+        return NO;
+    }
+
+    // Reset any prior `.xsq` and `.loredit` source state — the modes are
+    // mutually exclusive within one session.
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+
+    _vixen3 = std::move(vixen);
+    _vixen3Mode = true;
+
+    [self rebuildAvailableSourcesFromVixen3];
+    [self rebuildTimingTracksFromVixen3];
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromVixen3 {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_vixen3 == nullptr) return;
+
+    // Whole-model effect sources. A model whose first effect is a "Data"
+    // marker is a timing track (handled in rebuildTimingTracksFromVixen3), not
+    // an effect source — mirror desktop ImportVixen3's split.
+    for (const auto& m : _vixen3->GetModelsWithEffects()) {
+        auto effects = _vixen3->GetEffects(m.first);
+        if (!effects.empty() && effects.front().type == "Data") continue;
+        AvailableSource src;
+        src.displayName = m.first;
+        src.canonicalName = Lower(Trim(m.first));
+        src.modelType = "Model";
+        _availableSources.push_back(src);
+    }
+}
+
+- (void)rebuildTimingTracksFromVixen3 {
+    _timingTracks.clear();
+    if (_vixen3 == nullptr) return;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return;
+    SequenceElements& targetSE = rc->GetSequenceElements();
+
+    auto addTimingTrack = [&](const std::string& name) {
+        TimingTrackEntry entry;
+        entry.name = name;
+        entry.sourceElement = nullptr; // marks synthesized from _vixen3 on apply
+        TimingElement* existing = targetSE.GetTimingElement(name);
+        entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
+        entry.selected = !entry.alreadyExists;
+        _timingTracks.push_back(entry);
+    };
+
+    // Models whose first effect is a "Data" marker are timing tracks.
+    for (const auto& m : _vixen3->GetModelsWithEffects()) {
+        auto effects = _vixen3->GetEffects(m.first);
+        if (!effects.empty() && effects.front().type == "Data") {
+            addTimingTrack(m.first);
+        }
+    }
+    // Phrase / word / phoneme timing tracks.
+    for (const auto& name : _vixen3->GetTimings()) {
+        addTimingTrack(name);
     }
 }
 
@@ -759,6 +882,32 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     return WriteMapHintsFile(path.UTF8String, entries) ? YES : NO;
 }
 
+#pragma mark - Source metadata (IE-7)
+
+- (NSString*)sourceVersion {
+    if (_sourceFile == nullptr) return nil;
+    const std::string& v = _sourceFile->GetVersion();
+    return v.empty() ? nil : [NSString stringWithUTF8String:v.c_str()];
+}
+
+- (NSInteger)sourceFrequency {
+    return _sourceFile != nullptr ? (NSInteger)_sourceFile->GetFrequency() : 0;
+}
+
+- (NSInteger)targetFrequency {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    return rc != nullptr ? (NSInteger)rc->GetSequenceElements().GetFrequency() : 0;
+}
+
+- (NSArray<NSString*>*)sourceMissingMedia {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (_sourcePackage == nullptr) return result;
+    for (const std::string& m : _sourcePackage->GetMissingMedia()) {
+        [result addObject:[NSString stringWithUTF8String:m.c_str()]];
+    }
+    return result;
+}
+
 #pragma mark - Apply
 
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
@@ -867,6 +1016,99 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                             MapS5(effectManager, 0, nl, *_loredit, nodeNode->_mapping, mdl, frequency, offset, erase);
                         }
                     }
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
+    if (_vixen3Mode) {
+        // Vixen 3 (.tim) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportVixen3. Walks the same destination tree as the
+        // .xsq / .loredit paths but replays through the (now wx-free core)
+        // MapVixen3* family.
+        if (rc == nullptr || _vixen3 == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        const EffectManager& effectManager = rc->GetEffectManager();
+        int const freq = targetSE.GetFrequency();
+        int const frameMS = (freq > 0) ? (1000 / freq) : 50;
+        long const offset = 0; // iPad has no time-offset control; desktop's TimeAdjustSpinCtrl defaults to 0
+        bool const erase = eraseExisting ? true : false;
+
+        // Selected timing tracks (mirror desktop ImportVixen3 timing loop). The
+        // marks come straight from the live _vixen3 reader.
+        for (const auto& track : _timingTracks) {
+            if (!track.selected) continue;
+
+            TimingElement* target = static_cast<TimingElement*>(
+                targetSE.AddElement(track.name, "timing", true, true, false, false, false));
+            char cnt = '1';
+            while (target == nullptr && cnt <= '9') {
+                target = static_cast<TimingElement*>(
+                    targetSE.AddElement(track.name + "-" + cnt, "timing", true, true, false, false, false));
+                ++cnt;
+            }
+            if (target == nullptr) {
+                spdlog::warn("XLImportSession::apply(vixen3): could not add timing element '{}'", track.name);
+                continue;
+            }
+            if (target->GetEffectLayerCount() == 0) {
+                target->AddEffectLayer();
+            }
+
+            if (_vixen3->GetTimingType(track.name) == "Phrase") {
+                AddVixenMarksToLayer(_vixen3->GetTimings(track.name), target->GetEffectLayer(0), frameMS);
+                EffectLayer* wordLayer = target->AddEffectLayer();
+                AddVixenMarksToLayer(_vixen3->GetRelatedTiming(track.name, "Word"), wordLayer, frameMS);
+                EffectLayer* phonemeLayer = target->AddEffectLayer();
+                AddVixenMarksToLayer(_vixen3->GetRelatedTiming(track.name, "Phoneme"), phonemeLayer, frameMS);
+            } else {
+                AddVixenMarksToLayer(_vixen3->GetTimings(track.name), target->GetEffectLayer(0), frameMS);
+            }
+        }
+
+        // Mapped models → MapVixen3*.
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(vixen3): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+
+            if (!root->_mapping.empty()) {
+                MapVixen3Effects(effectManager, targetEl, *_vixen3, root->_mapping, offset, frameMS, erase);
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+
+                if (!child->_mapping.empty() && ste != nullptr) {
+                    MapVixen3Effects(effectManager, ste, *_vixen3, child->_mapping, offset, frameMS, erase);
+                }
+
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* nodeNode = child->GetNthChild(n);
+                    if (nodeNode == nullptr || nodeNode->_mapping.empty()) continue;
+                    if (stre == nullptr) continue;
+                    NodeLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl == nullptr) continue;
+                    // Desktop ImportVixen3 passes the parent MODEL element here
+                    // (not the node layer) — preserve that behavior (G7).
+                    MapVixen3(targetEl, *_vixen3, nodeNode->_mapping, offset, frameMS, erase);
                 }
             }
         }

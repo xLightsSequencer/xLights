@@ -142,14 +142,30 @@ NS_ASSUME_NONNULL_BEGIN
 // the available source list (props with effects + per-node/strand
 // channels) and the importable timing tracks, then reuses the shared
 // destination tree + AutoMapper / MapHints mapping flow. Returns a
-// non-nil error on parse failure.
-//
-// Note: discovery + mapping are wired; the effect-synthesis apply path
-// (the iPad analogue of desktop MapS5*) is not yet ported, so
-// -applyImportWithEraseExisting:lock:error: returns an error for a
-// `.loredit` source.
+// non-nil error on parse failure. Discovery, mapping, AND the effect-synthesis
+// apply path (the iPad analogue of desktop MapS5*) are all wired.
 - (BOOL)loadLOREditSourceAtPath:(NSString*)path
                           error:(NSError**)error NS_SWIFT_NAME(loadLOREditSource(atPath:));
+
+// Load a Vixen 3 `.tim` file as an EFFECT-import source (IE-25 — the iPad
+// analogue of desktop xLightsFrame::ImportVixen3). Parses the .tim + sibling
+// SystemConfig.xml via the wx-free core Vixen3 reader and populates the shared
+// available/destination tree; apply replays through core MapVixen3*. Returns a
+// non-nil error if SystemConfig.xml is missing or the file can't be parsed.
+// (Distinct from the timing-only `.tim` path in XLSequenceDocument used by the
+// Settings → Timings tab.)
+- (BOOL)loadVixen3SourceAtPath:(NSString*)path
+                         error:(NSError**)error NS_SWIFT_NAME(loadVixen3Source(atPath:));
+
+// IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
+// an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).
+// `sourceFrequency` is frames-per-second. `sourceMissingMedia` is only
+// populated after the media walk that runs during apply, so query it
+// post-apply (it is empty at discovery time).
+- (nullable NSString*)sourceVersion;
+- (NSInteger)sourceFrequency;
+- (NSInteger)targetFrequency;
+- (NSArray<NSString*>*)sourceMissingMedia;
 
 @end
 
