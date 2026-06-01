@@ -285,7 +285,7 @@ The themed plans bake touch idioms (long-press menus, two-finger marquee, inline
 action bars, drag-rectangle paint) into individual functional items, but a few
 touch/Pencil concerns are **cross-cutting** and don't belong to any one theme.
 They are gathered here as standing principles, open design questions, and a
-genuine accessibility gap. (Source: `plans/phase-j-touch-ux.md`.) **OV-1.**
+genuine accessibility gap (from the retired MVP phase plans). **OV-1.**
 
 ### Design principles (apply to every touch/Pencil item across the set)
 

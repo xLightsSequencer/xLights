@@ -1,9 +1,11 @@
 # iPad Parity Plan Reconciliation
 
+> Note: the MVP-era plans referenced below have since been retired; this reconciliation is kept for historical context (the files live in git history).
+
 This document maps **every item from the prior iPad plans** (the master tracker
-`iPad-xLights-Plan.md`, the `gap-analysis-2026-04-23.md`, the various
-`plans/future-*.md` and `plans/phase-*.md` sub-plans, `plans/followups.md`,
-`plans/README.md`, and the Android feasibility study) onto the **new themed
+`iPad-xLights-Plan.md`, the retired gap-analysis dataset, the various
+retired `future-*` and `phase-*` sub-plans, the retired follow-ups list,
+the retired plan index, and the Android feasibility study) onto the **new themed
 plan set** in `plans/ipad-parity/` (docs `00-overview.md` … `12-ai-and-automation.md`,
 `99-out-of-scope.md`, and the `_raw-gap-analysis.md` dataset).
 
@@ -23,7 +25,7 @@ Each prior item was classified as one of:
 | **hard-miss-oos** | Genuinely out of scope; belongs in `99-out-of-scope.md`. |
 
 > **Note on the two big upstream summaries:** the `iPad-xLights-Plan.md` master
-> tracker and `gap-analysis-2026-04-23.md` use slightly different conventions
+> tracker and the retired gap-analysis dataset use slightly different conventions
 > for the same items (e.g. O-7, O-8). Where both reference a feature, the fix
 > list below de-duplicates so the target doc gets **one** enriched item.
 
@@ -34,22 +36,22 @@ Each prior item was classified as one of:
 | Source file | covered | covered-needs-detail | missing | stale | platform-handled | hard-miss-oos | total |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `iPad-xLights-Plan.md` (master tracker) | 9 | 9 | 6 | 2 | 0 | 2 | 28 |
-| `gap-analysis-2026-04-23.md` | 110 | 16 | 18 | 20 | 4 | 13 | 181 |
-| `followups.md` | 1 | 5 | 3 | 11 | 0 | 0 | 20 |
-| `future-controller-upload.md` | 0 | 9 | 6 | 5 | 0 | 1 | 21 |
-| `future-aux-panels.md` | 9 | 10 | 2 | 4 | 0 | 1 | 26 |
-| `future-custom-models.md` | 5 | 11 | 2 | 12 | 0 | 1 | 31 |
-| `future-effect-presets.md` | 6 | 1 | 0 | 1 | 0 | 0 | 8 |
-| `future-help-diagnostics.md` | 3 | 2 | 5 | 1 | 2 | 5 | 18 |
-| `future-imports-exports.md` | 14 | 8 | 1 | 0 | 0 | 1 | 24 |
-| `future-layout-editing.md` | 3 | 3 | 0 | 7 | 0 | 1 | 14 |
-| `future-pictures-frame-editor.md` | 0 | 3 | 2 | 0 | 0 | 1 | 6 |
-| `future-preferences.md` | 6 | 11 | 11 | 4 | 0 | 6 | 38 |
-| `phase-b-grid-parity.md` | 2 | 2 | 1 | 1 | 0 | 0 | 6 |
-| `phase-i-import-effects.md` | 2 | 3 | 0 | 3 | 0 | 0 | 8 |
-| `phase-j-layout-editor.md` | 9 | 6 | 2 | 6 | 0 | 1 | 24 |
-| `phase-j-touch-ux.md` | 0 | 1 | 7 | 1 | 0 | 0 | 9 |
-| `README.md` (plan index) | 21 | 8 | 4 | 1 | 0 | 6 | 40 |
+| retired gap-analysis dataset | 110 | 16 | 18 | 20 | 4 | 13 | 181 |
+| retired follow-ups list | 1 | 5 | 3 | 11 | 0 | 0 | 20 |
+| retired future-controller-upload plan | 0 | 9 | 6 | 5 | 0 | 1 | 21 |
+| retired future-aux-panels plan | 9 | 10 | 2 | 4 | 0 | 1 | 26 |
+| retired future-custom-models plan | 5 | 11 | 2 | 12 | 0 | 1 | 31 |
+| retired future-effect-presets plan | 6 | 1 | 0 | 1 | 0 | 0 | 8 |
+| retired future-help-diagnostics plan | 3 | 2 | 5 | 1 | 2 | 5 | 18 |
+| retired future-imports-exports plan | 14 | 8 | 1 | 0 | 0 | 1 | 24 |
+| retired future-layout-editing plan | 3 | 3 | 0 | 7 | 0 | 1 | 14 |
+| retired future-pictures-frame-editor plan | 0 | 3 | 2 | 0 | 0 | 1 | 6 |
+| retired future-preferences plan | 6 | 11 | 11 | 4 | 0 | 6 | 38 |
+| retired phase-b-grid-parity plan | 2 | 2 | 1 | 1 | 0 | 0 | 6 |
+| retired phase-i-import-effects plan | 2 | 3 | 0 | 3 | 0 | 0 | 8 |
+| retired phase-j-layout-editor plan | 9 | 6 | 2 | 6 | 0 | 1 | 24 |
+| retired phase-j-touch-ux plan | 0 | 1 | 7 | 1 | 0 | 0 | 9 |
+| retired plan index | 21 | 8 | 4 | 1 | 0 | 6 | 40 |
 | `android-port-feasibility.md` | 2 | 0 | 0 | 3 | 0 | 4 | 9 |
 | **TOTAL** | **202** | **108** | **70** | **82** | **6** | **44** | **512** |
 
@@ -99,7 +101,7 @@ Tip-of-the-Day feature, UpdaterDialog) should *also* get explicit rows in
 
 The new plan set bakes touch idioms (long-press menus, two-finger marquee,
 inline action bars) into individual functional items, but tracks **none** of the
-cross-cutting touch+Pencil UX items from `phase-j-touch-ux.md` as discrete work.
+cross-cutting touch+Pencil UX items from the retired phase-j touch-UX plan as discrete work.
 None of these appear anywhere in `plans/ipad-parity/` outside the raw dataset:
 
 - **Multi-select body drag** (move the whole selection by a delta — verified
@@ -141,7 +143,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   open design questions (Pencil pressure prototype; Sketch-mode polyline create;
   3D precision-camera mode — cross-ref the deferred SpaceMouse item in 99;
   Pencil-button visibility policy) and the accessibility/VoiceOver audit as a
-  standing cross-cutting concern. — `phase-j-touch-ux.md`; `00-overview.md ~L83`
+  standing cross-cutting concern. — `00-overview.md ~L83`
   already states "native touch idioms over literal ports". — **OV-1**.
 - **(DETAIL) iOS dependency list / build-link confidence** — Record the concrete
   `lib-ios/` contents: `libxlsxwriter.a` IS present (resolves the open
@@ -164,7 +166,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   "Convert To Effect" entry. Note the other half (Promote-Node-Effects) already
   shipped 2026-04-28. — `xLightsFrame::DoConvertDataRowToEffects`
   `tabSequencer.cpp:4173`, menu `RowHeading.cpp:541`; `_raw-gap-analysis.md:703`
-  (Missing P3/L). + also `phase-b-grid-parity.md` B56. — **SEQ-33**.
+  (Missing P3/L). + also the retired phase-b grid-parity plan's B56. — **SEQ-33**.
 - **B3 Effect::Reverse() wrapper** — Add a small (S) per-effect "Reverse" action
   (reverse settings/value-curves in time) if iPad lacks it; desktop exposes via
   keybinding. — `RenderableEffect`/`Effect` reverse semantics; no bridge in
@@ -172,7 +174,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
 - **(DETAIL) Model-tree sort submenu — exact "11 options"** — SEQ-13/LAY-12
   enumerate ~6-8 strategies; the prior plan pins the count at **eleven**. Open
   the desktop LayoutPanel sort submenu and enumerate all 11; preserve "11" as
-  the acceptance checklist count. — `future-aux-panels.md` (model-tree sort). —
+  the acceptance checklist count. — from the retired MVP phase plans (model-tree sort). —
   enrich **SEQ-13** (+ LAY-12).
 - **(DETAIL) 16-menu context-menu parity sweep** — the prior plan calls out a
   16-menu right-click parity sweep; the new plans distribute context-menus
@@ -189,12 +191,12 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   is a viable iOS-native alternative to relocating wx `LoadMIDIFile`; (3)
   acceptance: pick .mid via `.fileImporter`, choose target timing track, marks
   land at note-on times **with note-name labels**. — `LoadMIDIFile`
-  `tabSequencer.cpp`; `phase-b-grid-parity.md` B77 + master tracker B-77. —
+  `tabSequencer.cpp`; the retired phase-b grid-parity plan's B77 + master tracker B-77. —
   enrich **TIM-7**.
 - **IO-24 LyricUserDictDialog (custom phoneme dictionary)** — *Note:* TIM-10
   already covers the phoneme user-dictionary editor (`LyricUserDictDialog.cpp` +
   `PhonemeDictionary::InsertPhoneme/RemovePhoneme`, user_dictionary read at
-  `iPadRenderContext.cpp ~1677`). The `future-imports-exports.md` row flagging
+  `iPadRenderContext.cpp ~1677`). The retired future-imports-exports plan's row flagging
   IO-24 as "missing" is **superseded by TIM-10** — verify TIM-10 references
   LyricUserDictDialog by name; no new item needed. — reconcile under **TIM-10**.
 - **(DETAIL) A-5 Audio scrub during drag** — verify whether iPad scrubs audio on
@@ -217,7 +219,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   sections instead of a flat scroll in `ShaderDynamicParamsView`; shared-core
   change (benefits desktop too); deferred until a real pack trips it. —
   `src-core/effects/ShaderEffect.cpp:1549`; reported by master tracker, EI-6,
-  and `followups.md` G2-c. — **FX-13**.
+  and the retired follow-ups list's G2-c. — **FX-13**.
 - **O-12 RemapDMXChannelsDialog — full grid + .xdmxmap CSV** — Add a dedicated
   item (or expand FX-6): full From/To/Scale/Offset/Invert grid (48 rows) across
   selected DMX effects, with **.xdmxmap CSV load/save**. iPad has only a reduced
@@ -230,13 +232,13 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
 - **BE-3 BulkEditFontPickerDialog** — Add `fontpicker` to FX-5's enumerated
   bulk-apply control types (apply one font to N Text effects); verify the iPad
   Text effect has a font picker at all. — `src-ui-wx/sequencer/BulkEditFontPickerDialog.cpp`.
-  + also `future-aux-panels.md` BE-3. — enrich **FX-5** (call it **FX-5b**).
+  + also the retired future-aux-panels plan's BE-3. — enrich **FX-5** (call it **FX-5b**).
 - **U-18 BufferSizeDialog** — Verify the Buffer inspector tab covers custom W/H
   buffer sizing; if not, add a small (P3) custom buffer-size entry. —
   `src-ui-wx/sequencer/BufferSizeDialog.cpp`. — **FX-16**.
 - **Pictures/GIF per-frame TIMING editor (G6)** — Add an FX item: author
   per-frame durations / frame selection for animated-GIF Pictures (the headline
-  of `future-pictures-frame-editor.md`). FX-11 is read-only preview, FX-12 is
+  of the retired future-pictures-frame-editor plan). FX-11 is read-only preview, FX-12 is
   paint — **neither** is a frame-timing editor. Carry the deferral rationale
   (niche; desktop impl is poor and due for redesign — co-design once, land on
   both, consider moving per-frame-timing into `src-core` `AnimatedImageData`). —
@@ -262,7 +264,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   waypoint canvas is the G3+ piece, can land incrementally as an upgrade of that
   row using the proven Sketch/Morph inline-custom-row template. — enrich **FX-9**.
 - **(DETAIL) EI-5 Pictures GIF editor blocking dependency** — note FX-11/FX-12
-  inherit the desktop-redesign block (`plans/future-pictures-frame-editor.md`).
+  inherit the desktop-redesign block (the GIF frame-timing editor work).
   — enrich FX-11/FX-12.
 
 ### → `04-color-and-value-curves.md`
@@ -277,7 +279,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   defers it "unless a broader Preferences screen lands" — record the
   tester-demand rationale so the downgrade is a conscious decision. —
   `src-ui-wx/color/ColorManager.cpp` + `ColorManagerSettingsPanel.cpp`;
-  `future-preferences.md` PR-3. — enrich **COL-10**.
+  the retired future-preferences plan's PR-3. — enrich **COL-10**.
 - **(DETAIL) MA-11 ModelDimmingCurveDialog 4 modes** — reflect the 4-mode
   structure (Single B/G, Single Curve File, RGB per-channel, RGB Curve Files) +
   per-channel visualisation panels in COL-11 (editor exists; COL-11 only adds
@@ -298,7 +300,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   so `VendorBrowserSheet` can fetch behind-login catalog content. Trigger:
   catalog starts gating models behind accounts. — `XLVendorCatalog.mm:145`
   (zero auth refs); `VendorCatalog.cpp` routes all fetches anonymous. Reported by
-  master tracker + phase-j-layout-editor. — **LAY-36**.
+  the master tracker + the retired phase-j layout-editor plan. — **LAY-36**.
 - **LA-11 Model locking** — Add a small (S) per-model lock toggle (prevent
   moves/edits) with tree + property-grid lock indicator. — `Model::IsLocked/Lock`
   in `src-core/models/Model`; no toggle in src-iPad LayoutEditorView. — **LAY-37**.
@@ -326,7 +328,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   audit (parallel roster+inspector path so non-gesture editing works). —
   `LayoutEditorView.swift:2378/932`; `DisplayElementsSheet.swift:527` proves the
   EditMode pattern exists. — **LAY-41**.
-- **(DETAIL) LAY-25 ImportPreviewsModels scope decision** — phase-j listed
+- **(DETAIL) LAY-25 ImportPreviewsModels scope decision** — the retired phase-j plan listed
   ImportPreviewsModelsDialog out-of-scope; LAY-25 promotes it to in-scope P2/L.
   Reconcile the scope decision (don't assume out-of-scope). Also preserve the
   S-pro one-liner "copy model layout from another show". — enrich **LAY-25**.
@@ -356,7 +358,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   Monitor, Full xLights Control) and serial Port/Speed/Prefix/Postfix detail.
   *(Target overlaps 07; place the controller half in 07/CTL-1/2 — see that doc.)*
 - **(DETAIL) S-pro residual: multi-target Replace-Model + relative-start-channel
-  preservation UI** — carry forward from the retiring `future-layout-editing.md`:
+  preservation UI** — carry forward from the retired future-layout-editing plan:
   (1) multi-target Replace-Model dialog; (2) relative-start-channel preservation
   UI (editing-side counterpart to the #6447 import fix). P3. — enrich LAY items.
 
@@ -372,7 +374,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   `highlighted_handle` directly); per-subclass DrawHandles inline math already
   descriptor-driven. Gates on first consumer needing per-axis styling. —
   `src-core/models/ModelScreenLocation.cpp`; reported by master tracker +
-  followups R-8b. — **LAY-32-int**.
+  the retired follow-ups list's R-8b. — **LAY-32-int**.
 - **Multi-select body drag (Touch UX)** — Add: bridge must capture a per-selected
   offset table at drag-begin and apply the delta to ALL selected models on
   update+commit (mirror align/distribute/match-size per-model undo). Desktop ref
@@ -423,13 +425,13 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   Save/Load presets, embedded preview, ChannelTracker overlap-merge. Flag the
   core `TestFunctions`→channel-frame-generator extraction as the prerequisite
   (why it's XL). — `src-ui-wx/setup/PixelTestDialog.cpp`; `_raw-gap-analysis.md:248`.
-  Reported by master tracker, gap-analysis, future-controller-upload, README. —
+  Reported by the master tracker and several retired MVP plans. —
   **CTL-20**.
 - **O-7 Discover HTTP-scan-with-auth + DiscoveryAuthDialog** — Add a P4/P3 item:
   HTTP-scan discovery for Falcon / Pixlite16 / Twinkly + a DiscoveryAuthDialog
   credential prompt. Bonjour + UDP broadcast + mismatch-resolution already
   shipped (J-31). — `src-ui-wx/setup/DiscoveryAuthDialog.cpp`,
-  `DiscoveryHelpers.cpp`. Reported by master tracker + phase-j O-7. — **CTL-21**.
+  `DiscoveryHelpers.cpp`. Reported by master tracker + the retired phase-j plan's O-7. — **CTL-21**.
 - **O-8 ControllerConnectionDialog (legacy add wizard)** — Add a note (likely
   superseded by the native Add Ethernet/Serial/Null flow): either document as
   superseded-by-descriptor-Add, or list as low-priority. — `ControllerConnectionDialog.cpp`.
@@ -482,7 +484,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   PowerDMX `:1385-1404`); iPad behavior is to filter non-FPP fppType out of the
   sheet (or disable with a "Use desktop xLights" hint). Distinct from CTL-7's
   BaseController immediate-output path. — enrich **CTL-7** + 99.
-- **(DETAIL) CTL-15 Sort controllers — SAFETY rationale (CONFLICT)** — phase-j /
+- **(DETAIL) CTL-15 Sort controllers — SAFETY rationale (CONFLICT)** — the retired phase-j plan /
   master tracker **deliberately dropped** controller sort because list order
   drives start-channel assignment and a stray sort tap silently re-channels every
   model with no undo. CTL-15 proposes re-adding it. Either gate behind a confirm
@@ -532,8 +534,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   on-open mismatch resolver shown when a loaded sequence references models not in
   the current layout (remap mismatched elements). Note the alias half already
   shipped (IE-12 only covers writing aliases). — `src-ui-wx/diagnostics/
-  SeqElementMismatchDialog.cpp`. Reported by master tracker + gap-analysis +
-  future-imports-exports. — **IE-26**.
+  SeqElementMismatchDialog.cpp`. Reported by the master tracker and several retired MVP plans. — **IE-26**.
 - **(DETAIL) IE-5 — `.las` extension + LegacySequenceReader naming + parked
   priority** — confirm `.las` (LOR animation, no audio) is handled alongside
   `.lms` via the same `ReadLorFile` path; note the target-filename decision
@@ -627,8 +628,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   multi-select, with four Select-All buttons. This is a selection FILTER (the raw
   dataset misreads it as an add-picker). Overlaps SEQ-3 global Select-All but is
   a filtered superset. — `src-ui-wx/sequencer/SelectPanel.cpp`;
-  `_raw-gap-analysis.md:194`. Reported by gap-analysis AP-3, followups #6389,
-  README. — **VIEW-7**.
+  `_raw-gap-analysis.md:194`. Reported by several retired MVP plans (AP-3, follow-up #6389). — **VIEW-7**.
 - **AP-6 TopEffectsPanel — recently-used quick-bar** — Add a small (P3) item or
   fold into VIEW-1: an auto-populated "recently/most-used effects" quick-access
   strip (distinct from VIEW-1's full palette/dropper icon upgrade). —
@@ -641,7 +641,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
 - **(DETAIL) B16 drag-from-palette — record deliberate deferral** — note near
   VIEW-1: the live-ghost drag-from-palette is deliberately NOT ported (tap-to-arm
   + tap-to-place is the chosen touch idiom; revisit only if users ask for
-  drag-cancel mid-gesture). — `phase-b-grid-parity.md` B16. — enrich **VIEW-1**.
+  drag-cancel mid-gesture). — the retired phase-b grid-parity plan's B16. — enrich **VIEW-1**.
 - **(DETAIL) AP-1 SearchPanel — affordances + priority** — VIEW-4 omits the
   desktop affordances: Model-name filter dropdown, **Regex toggle**, results LIST
   (value + [start,end] + effectName + model + live count), and a **Select-All
@@ -667,7 +667,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
   inclusion toggles (~80 checkboxes) controlling which effect types the
   random-fill (SEQ-26) can pick. Without it the iPad random generator has no way
   to exclude effects. — `RandomEffectsSettingsPanel.cpp` (`OnEffectCheckBoxClick`).
-  Reported by master tracker PR-7 + future-preferences. — **PREF-20**.
+  Reported by master tracker PR-7 + the retired future-preferences plan. — **PREF-20**.
 - **PR-4 DoubleClickMode** — Add (name explicitly): effect-grid double-click
   behavior mode. iPad uses double-tap but has no settable mode. Low value on
   touch; record port-vs-drop decision. — `EffectsGridSettingsPanel.cpp`. — **PREF-21**.
@@ -691,7 +691,7 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
 - **PR-8 multi-MediaDirs list** — Verify FolderConfigView supports a LIST of
   media directories (not just one); if not, add the multi-dir list editor. —
   `SequenceFileSettingsPanel.cpp`. — **PREF-28**.
-- **Custom KeyBindings editor (CONFLICT)** — README marks it a hard miss; the raw
+- **Custom KeyBindings editor (CONFLICT)** — the retired plan index marks it a hard miss; the raw
   dataset (`:79`) marks it Missing-but-feasible P3 (a remap UI over the shared
   KeyBindings core); `99` does NOT list it. **Decide:** either add a P3
   KeyBindings-editor item here, OR add it to 99 with the gesture rationale.
@@ -719,14 +719,14 @@ Each bullet: **`<item code+name>`** — *spec to incorporate* — `code evidence
 ### → `12-ai-and-automation.md`
 
 - *(no new missing items)* — AI Image/Palette/Services, Lua engine (AUTO-7/8),
-  REST→dispatcher (AUTO-1) all covered. **One CONFLICT to resolve:** the existing
-  `future-help-diagnostics.md` and `README.md` classify Run Scripts / Lua as a
+  REST→dispatcher (AUTO-1) all covered. **One CONFLICT to resolve:** the
+  retired future-help-diagnostics plan and plan index classify Run Scripts / Lua as a
   hard-miss, but AUTO-7/AUTO-8 make interpreted Lua in-scope and **AUTO-11
   proposes GitHub download of community scripts** — which `99 §1` explicitly
   rules out. Reconcile AUTO-11 against the 99 ruling (downloading community
-  scripts is the prohibited behavior). Update the stale README/help "no plans for
+  scripts is the prohibited behavior). Update the stale retired "no plans for
   Lua" framing (the JIT concern is moot — iPad Lua is interpreted). — enrich
-  **AUTO-11** + README/help note.
+  **AUTO-11** + that retired note.
 
 ### → `13-help-diagnostics-tools.md` (NEW DOC — create)
 
@@ -893,7 +893,7 @@ re-plan them.
 
 **Superseded by a newer decision (not a literal port):**
 - Disk-persistent presets — *promoted* from "in-session is enough" deferral to a
-  Phase-1 keystone (PRE-1..4). Lua scripting — *upgraded* from README hard-miss to
+  Phase-1 keystone (PRE-1..4). Lua scripting — *upgraded* from the retired plan index's hard-miss to
   in-scope interpreted Lua (AUTO-7/8). EffectAssist Window-mode toggle (EA-4) —
   out-of-scope (inline inspector rows). B-1 Undo bridge — kept Foundation
   UndoManager, labels-only (SEQ-1). AP-3 SelectPanel sort-by-time (#6389) — folds

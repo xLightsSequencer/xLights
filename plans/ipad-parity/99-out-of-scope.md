@@ -189,7 +189,7 @@ version would fight the platform and add no user value.
 | Tip Of The Day feature | `TipOfTheDayDialog.cpp` | The desktop onboarding "tip of the day" modal (curated tips with difficulty levels + recycle) is a low-value desktop-onboarding idiom; iPadOS onboarding leans on contextual hints and the App Store description rather than a startup tips modal. The two related prefs below are downstream of this. |
 | Tip Of The Day minimum level (pref) | Preferences | No Tip Of The Day feature on iPad; a minimum-difficulty choice has nothing to govern. |
 | Tip Of The Day recycle tips (pref) | Preferences | No tips feature on iPad, so there are no seen-tips to recycle. |
-| Wiring-diagram Print (WV-6) | `WiringDialog.cpp:751-763` (`ID_MNU_PRINT` → `wxPrinter` + `WiringPrintout`) | Per-model wiring diagram print routes through `wxPrinter`/`wxPrintData`, a desktop print-dialog construct. Printing is a weak iPad need; the native idiom is to render the wiring diagram to a PNG and hand it to `UIActivityViewController` → Save / Share / AirPrint. Build the *share-PNG* path if/when the wiring diagram itself is ported (it lives in `future-custom-models.md`). |
+| Wiring-diagram Print (WV-6) | `WiringDialog.cpp:751-763` (`ID_MNU_PRINT` → `wxPrinter` + `WiringPrintout`) | Per-model wiring diagram print routes through `wxPrinter`/`wxPrintData`, a desktop print-dialog construct. Printing is a weak iPad need; the native idiom is to render the wiring diagram to a PNG and hand it to `UIActivityViewController` → Save / Share / AirPrint. Build the *share-PNG* path if/when the wiring diagram itself is ported. |
 | Controller-layout / model-preview Print (O-15) | `LayoutPanel.cpp:10088-10167` (`Printout : wxPrintout` over `ModelPreview` + `wxPrinter`) | The layout/preview print path is a `wxPrintout` subclass driven by `wxPrinter`/`wxPrintDialogData`. iPad has no `wxPrinter`; route a captured layout/preview image through `UIActivityViewController` → AirPrint instead of porting the print dialog. |
 | Check for Updates / UpdaterDialog | `UpdaterDialog` (Help menu) | App distribution and updates are handled by the App Store (and TestFlight for pre-release). There is no in-app self-update flow to build; the desktop version-check + downloader has no iPad analogue. |
 
@@ -271,8 +271,8 @@ resolved as **in-scope or portable** during reconciliation; recorded so they are
 not re-added to this doc.
 
 - **PR #6311 "ctrls tab to Layout" (select models by controller / port)** — the
-  opaque "controller-source-tree" entry deferred in
-  `phase-j-layout-editor.md:150` is this *closed* desktop PR: a Layout-panel tab
+  opaque "controller-source-tree" entry deferred in the retired MVP layout-editor
+  phase plan is this *closed* desktop PR: a Layout-panel tab
   that groups/selects models by their assigned controller and port (incl. shadow
   models). It is a portable model-selection/navigation aid with full shared-core
   backing (`OutputManager` / `UDController` port maps), **not** a platform block.
