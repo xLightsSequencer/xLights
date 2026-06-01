@@ -76,27 +76,11 @@ jobs:
       # xLights never uses it. Delete it up front to make room for the OpenVINO
       # vcpkg build. Its location varies per runner, so resolve it from the
       # standard env vars rather than assuming a fixed drive/path.
-      - name: Free disk space (remove Android SDK)
-        shell: pwsh
+      - name: Remove Android SDK to free space
+        shell: powershell
         run: |
-          $targets = @(
-            $env:ANDROID_SDK_ROOT, $env:ANDROID_HOME,
-            $env:ANDROID_NDK_ROOT, $env:ANDROID_NDK_HOME, $env:ANDROID_NDK
-          ) | Where-Object { $_ } | Select-Object -Unique
-          if (-not $targets) {
-            Write-Host "No Android SDK/NDK env vars set; nothing to remove."
-            return
-          }
-          foreach ($p in $targets) {
-            if (Test-Path $p) {
-              $drive = (Get-Item $p).PSDrive.Name
-              $free  = (Get-PSDrive $drive).Free / 1GB
-              Write-Host ("Removing {0} (drive {1}: {2:N1} GB free)" -f $p, $drive, $free)
-              Remove-Item -Path $p -Recurse -Force -ErrorAction SilentlyContinue
-              Write-Host ("  -> {0}: now {1:N1} GB free" -f $drive, ((Get-PSDrive $drive).Free / 1GB))
-            } else {
-              Write-Host "Skipping $p (not present)"
-            }
+          if (Test-Path "C:\Android\android-sdk") {
+              Remove-Item -Recurlect -Force -Path "C:\Android\android-sdk"
           }
 
       # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
