@@ -28,6 +28,13 @@ struct FolderConfigView: View {
     // match exactly: "Disabled" | "Locked Only" | "Enabled".
     @AppStorage("render.cacheMode") private var renderCacheMode: String = "Disabled"
 
+    // FSEQ-1 — `iPadRenderContext::ReadFseqCompression()` /
+    // `ReadFseqCompressionLevel()` read these same keys via CFPreferences and
+    // feed `FSEQFile::createFSEQFile`. Compression values must match exactly:
+    // "zstd" | "zlib" | "none"; level is the zstd level 1..22.
+    @AppStorage("fseq.compression") private var fseqCompression: String = "zstd"
+    @AppStorage("fseq.compressionLevel") private var fseqCompressionLevel: Int = 2
+
     enum PickerMode: Identifiable {
         case showFolder
         case addMediaFolder
@@ -194,6 +201,23 @@ struct FolderConfigView: View {
                             Button("Choose FSEQ Folder…") {
                                 pickerMode = .fseqFolder
                             }
+                        }
+
+                        // FSEQ-1 — compression format for written FSEQ files.
+                        VStack(alignment: .leading, spacing: 6) {
+                            Picker("Compression", selection: $fseqCompression) {
+                                Text("Zstd (default)").tag("zstd")
+                                Text("Zlib").tag("zlib")
+                                Text("None").tag("none")
+                            }
+                            if fseqCompression == "zstd" {
+                                Stepper(value: $fseqCompressionLevel, in: 1...22) {
+                                    Text("Zstd Level: \(fseqCompressionLevel)")
+                                }
+                            }
+                            Text("Compression shrinks the FSEQ at some render-time cost. Zstd is fastest and the desktop default (level 1 = fast/larger, 22 = slow/smaller); Zlib is slightly smaller but slower; None is uncompressed. Takes effect on the next save/render.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 } header: {

@@ -270,6 +270,10 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            XLDockAllCommands(viewModel: viewModel)
+
+            Divider()
+
             Button("Edit Display Elements…") {
                 viewModel.showingDisplayElements = true
             }
@@ -361,6 +365,13 @@ struct XLSequencerCommands: Commands {
                 viewModel.purgeRenderCache()
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            // TOOLS-1 — Purge Download Cache. Vendor catalog, palette/model
+            // images, shader/model downloads live in the shared file cache.
+            // Independent of any open sequence.
+            Button("Purge Download Cache") {
+                viewModel.purgeDownloadCache()
+            }
         }
 
         // Playback menu.
@@ -721,6 +732,43 @@ private struct XLInspectorDetachCommands: View {
                                    modifiers: tab.menuShortcut.modifiers)
                 .disabled(!viewModel.isSequenceLoaded)
             }
+        }
+    }
+}
+
+// VIEW-3 — "Dock All Windows" docks every detached preview / inspector
+// scene in one action; "Reset Pane Sizes" clears the persisted
+// preview-height / inspector-width so the panes return to their default
+// proportions (the @AppStorage bindings in SequencerView observe the
+// keys and re-lay-out when they're removed).
+private struct XLDockAllCommands: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    private var anythingDetached: Bool {
+        viewModel.housePreviewDetached
+            || viewModel.modelPreviewDetached
+            || !viewModel.detachedInspectorTabs.isEmpty
+    }
+
+    var body: some View {
+        Button("Dock All Windows") {
+            if viewModel.housePreviewDetached {
+                dismissWindow(id: "house-preview")
+            }
+            if viewModel.modelPreviewDetached {
+                dismissWindow(id: "model-preview")
+            }
+            for tab in InspectorTab.allCases
+            where viewModel.detachedInspectorTabs.contains(tab.rawValue) {
+                dismissWindow(id: "inspector-tab", value: tab)
+            }
+        }
+        .disabled(!anythingDetached)
+
+        Button("Reset Pane Sizes") {
+            UserDefaults.standard.removeObject(forKey: "previewPaneHeight")
+            UserDefaults.standard.removeObject(forKey: "inspectorPaneWidth")
         }
     }
 }

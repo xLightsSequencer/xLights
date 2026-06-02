@@ -77,6 +77,52 @@ All entries below are **build-verified** (`xLights-iPadLib` + the `xLights-iPad`
 app); on-device verification is the standing follow-up. Detail lives in the
 matching `plans/ipad-parity/` theme doc.
 
+- **Cross-theme quick-wins batch 2 — BR-1 + LAY-29 (2026-06-02).** Build-verified
+  green (`xLights-iPadLib`, Debug) + core boundary-check clean.
+  - **BR-1 (09)** — Batch Render *Include subfolders* toggle.
+    `SequenceScanner.scan(showFolder:recursiveSubfolders:)` now takes a scope
+    arg; `@AppStorage("batchRender.includeSubfolders")` (default on) re-scans on
+    change.
+  - **LAY-29 (05/06)** — DMX *Generate Node Names* button in the node-names
+    editor → bridge `generateNodeNamesForModel:` → `DmxModel::GenerateNodeNames()`
+    (guarded on `IsDMXModel()`); fills the rows for review before Save.
+  - *Deferred after verify-first (not clean S items):* FX-15 (decode-check
+    false-positive risk), RENDER-2 (needs waveform-selection UI + RenderRange
+    core), VIEW-7 (needs effect-enumeration bridge), LAY-26 (no core layout-group
+    delete/rename), COL-8 (redundant with native ColorPicker), MED-6 (media
+    manager is referenced-media-only). **The standalone easy-win seam is
+    thinning** — remaining parity increasingly needs new bridge/core work, not
+    pure SwiftUI wiring.
+
+- **Cross-theme quick-wins batch 1 — 9 parity items across 9 themes (2026-06-02).**
+  Build-verified green (`xLights-iPadLib`, Debug). Spread deliberately across
+  themes rather than concentrated in one area:
+  - **TOOLS-1 (09/13)** — Tools ▸ *Purge Download Cache* →
+    `CachedFileDownloader::ClearCache` via `iPadRenderContext::PurgeDownloadCache`.
+  - **FSEQ-1 (09)** — *FSEQ compression* preference (zstd/zlib/none + zstd level)
+    in Folder Config ▸ FSEQ Files; `ReadFseqCompression()` feeds
+    `FSEQFile::createFSEQFile` (was hardcoded zstd/2).
+  - **LIFE-1 (09)** — non-blocking *Saved-Outside-Show-Folder* warning after
+    Save-As (`pathIs(inShowOrMediaFolder:)`).
+  - **TIM-5 (02)** — *Divide Timing Marks by N* (÷2/3/4/6/8), generalizing
+    `halveTimingMarks`.
+  - **TIM-9 (02)** — *Remove Phonemes Only* bridge `removePhonemesAtRow:` (keeps
+    phrase + words, lock-guarded); the remove entry becomes a submenu.
+  - **LAY-1 (05/06)** — DMX/moving-head model creation: 8 `Dmx*` tags added to
+    `availableModelTypesForCreation` (single-point boxed, existing tap-to-place).
+  - **VIEW-1 (10)** — effect dropper now renders per-effect *icons* (shared
+    `EffectIconCache` BGRA bitmaps) ahead of the label.
+  - **VIEW-3 (10)** — View ▸ *Dock All Windows* + *Reset Pane Sizes*.
+  - **CTL-27 (07)** — FPP Connect done view surfaces desktop's final status
+    string (Complete / had errors or warnings / Cancelled).
+  - *Corrections:* CTL-5, COL-2, COL-3, SEQ-19, LAY-37 were found **already
+    implemented** in the live tree; theme-doc statuses flipped to ✅. Root cause:
+    plan snapshot predated the live code (the recurring verify-first lesson).
+  - *Follow-ups (runtime-unverified):* FSEQ compression round-trip, the timing
+    divide/remove-phoneme edits, DMX placement, and dropper-icon rendering all
+    need on-device confirmation. CTL-27 only covers the final status string —
+    intermediate per-sequence "Preparing/Checking FSEQ" labels are still a gap.
+
 - **Crash fix: throwing `fs::exists` in media relocation (2026.10).** Active
   2026.10 bucket (`f7172bc3e2`, build 2403286). `CopyIntoRoot` (the shared
   Move-to-Show / Copy-to-Media helper) called `fs::exists()` with the throwing

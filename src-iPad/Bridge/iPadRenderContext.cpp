@@ -45,6 +45,7 @@
 
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
+#include "utils/CachedFileDownloader.h"
 #include <globals.h>
 #include <log.h>
 
@@ -1817,6 +1818,48 @@ std::string iPadRenderContext::ReadRenderCacheMode() const {
     return mode;
 }
 
+void iPadRenderContext::PurgeDownloadCache() {
+    CachedFileDownloader::GetDefaultCache().ClearCache();
+}
+
+std::string iPadRenderContext::ReadFseqCompression() const {
+    // @AppStorage("fseq.compression"). Default "zstd" — fastest and the
+    // desktop default; "zlib" is slightly smaller; "none" is uncompressed.
+    std::string mode = "zstd";
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("fseq.compression"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFStringGetTypeID()) {
+            char buf[16] = { 0 };
+            if (CFStringGetCString((CFStringRef)v, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                std::string s(buf);
+                if (s == "zstd" || s == "zlib" || s == "none") {
+                    mode = s;
+                }
+            }
+        }
+        CFRelease(v);
+    }
+    return mode;
+}
+
+int iPadRenderContext::ReadFseqCompressionLevel() const {
+    // @AppStorage("fseq.compressionLevel"). zstd level 1..22, default 2.
+    int level = 2;
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("fseq.compressionLevel"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+            int n = 0;
+            if (CFNumberGetValue((CFNumberRef)v, kCFNumberIntType, &n) && n >= 1 && n <= 22) {
+                level = n;
+            }
+        }
+        CFRelease(v);
+    }
+    return level;
+}
+
 bool iPadRenderContext::AbortRender(int maxTimeMs) {
     // Mirror the desktop's xLightsFrame::AbortRender contract: signal
     // every in-flight render job to bail and then BLOCK until they
@@ -2508,8 +2551,18 @@ bool iPadRenderContext::WriteFseq(const std::string& path) {
         return false;
     }
 
-    std::unique_ptr<FSEQFile> file(FSEQFile::createFSEQFile(
-        path, 2, FSEQFile::CompressionType::zstd, 2));
+    // FSEQ-1 — honor the Folder Config → Rendering compression preference.
+    FSEQFile::CompressionType ct = FSEQFile::CompressionType::zstd;
+    int level = ReadFseqCompressionLevel();
+    const std::string comp = ReadFseqCompression();
+    if (comp == "zlib") {
+        ct = FSEQFile::CompressionType::zlib;
+        level = -99; // level applies only to zstd; use the format default
+    } else if (comp == "none") {
+        ct = FSEQFile::CompressionType::none;
+        level = -99;
+    }
+    std::unique_ptr<FSEQFile> file(FSEQFile::createFSEQFile(path, 2, ct, level));
     if (!file) {
         spdlog::error("WriteFseq: failed to create FSEQ file at {}", path);
         return false;

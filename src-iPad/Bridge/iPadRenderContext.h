@@ -146,6 +146,11 @@ public:
     // TOOLS-1b: drop all on-disk render-cache items for this sequence
     // (mirrors desktop xLightsFrame::OnMenuItem_PurgeRenderCacheSelected).
     void PurgeRenderCache() { _renderCache.Purge(&_sequenceElements, true); }
+    // TOOLS-1: drop the shared downloaded-file cache (vendor catalog,
+    // palette/model images, shader/model downloads). Frees disk/iCloud
+    // quota; the next catalog/download repopulates. Defined in the .cpp
+    // so the CachedFileDownloader header stays out of this header.
+    void PurgeDownloadCache();
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
     bool IsRenderDone();
@@ -735,6 +740,13 @@ private:
     // speed re-renders, and both are scarce on iPad — desktop defaults to
     // the milder "Locked Only", but iPad starts fully off.
     std::string ReadRenderCacheMode() const;
+
+    // FSEQ-1 — FSEQ export format preferences, written by the Folder
+    // Config → Rendering pickers via @AppStorage. Compression returns
+    // one of "zstd" | "zlib" | "none" (default "zstd"); level is the
+    // zstd compression level 1..22 (default 2, ignored for zlib/none).
+    std::string ReadFseqCompression() const;
+    int ReadFseqCompressionLevel() const;
 
     // Re-allocates `_sequenceData` only when the sequence's shape
     // (numChannels / numFrames / frameTime) has actually changed.

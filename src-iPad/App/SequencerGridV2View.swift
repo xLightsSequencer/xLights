@@ -1620,6 +1620,10 @@ struct SequencerGridV2View: View {
                     onRemoveWordsAndPhonemes: {
                         _ = viewModel.removeWordsAndPhonemes(rowIndex: row.id)
                     },
+                    canRemovePhonemes: viewModel.canRemovePhonemes(rowIndex: row.id),
+                    onRemovePhonemes: {
+                        _ = viewModel.removePhonemes(rowIndex: row.id)
+                    },
                     canMakeVariable: viewModel.timingTrackIsFixed(rowIndex: row.id),
                     onMakeVariable: {
                         _ = viewModel.makeTimingTrackVariable(rowIndex: row.id)
@@ -1657,6 +1661,9 @@ struct SequencerGridV2View: View {
                     },
                     onHalveTimingMarks: {
                         _ = viewModel.halveTimingMarks(rowIndex: row.id)
+                    },
+                    onDivideTimingMarks: { divisor in
+                        _ = viewModel.divideTimingMarks(byN: divisor, rowIndex: row.id)
                     },
                     canSelectMarks: !row.effects.isEmpty,
                     onSelectMarks: {

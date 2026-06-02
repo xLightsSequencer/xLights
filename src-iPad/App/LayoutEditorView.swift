@@ -2077,6 +2077,9 @@ struct LayoutEditorView: View {
                     onCommitIndexedNames: { kind, names in
                         commitIndexedNames(modelName: name, kind: kind, names: names)
                     },
+                    onGenerateNodeNames: { modelName in
+                        viewModel.document.generateNodeNames(forModel: modelName)
+                    },
                     onDeleteSubModel: { submodelName in
                         deleteSubModel(modelName: name, submodelName: submodelName)
                     },
@@ -2951,6 +2954,15 @@ struct LayoutEditorView: View {
         case "Window Frame":return "Window Frame"
         case "Candy Canes": return "Candy Canes"
         case "Channel Block": return "Channel Block"
+        // LAY-1 — DMX / moving-head family.
+        case "DmxFloodArea":    return "DMX Flood Area"
+        case "DmxFloodlight":   return "DMX Floodlight"
+        case "DmxGeneral":      return "DMX General"
+        case "DmxMovingHead":   return "DMX Moving Head"
+        case "DmxMovingHeadAdv":return "DMX Moving Head Adv"
+        case "DmxServo":        return "DMX Servo"
+        case "DmxServo3d":      return "DMX Servo 3D"
+        case "DmxSkull":        return "DMX Skull"
         default:            return type
         }
     }
@@ -3834,6 +3846,9 @@ private struct LayoutEditorPropertiesView: View {
     let onRenameRequest: () -> Void
     let onCommitAliases: (_ aliases: [String]) -> Void
     let onCommitIndexedNames: (_ kind: ModelDataKind, _ names: [String]) -> Void
+    // LAY-29: returns auto-generated node names for the given model (DMX);
+    // empty when not applicable.
+    let onGenerateNodeNames: (_ modelName: String) -> [String]
     let onDeleteSubModel: (_ submodelName: String) -> Void
     let onAddSubModel: (_ submodelName: String) -> String?
     let onRenameSubModel: (_ oldName: String, _ newName: String) -> Bool
@@ -4205,6 +4220,9 @@ private struct LayoutEditorPropertiesView: View {
                                  initial: entries(for: kind),
                                  commit: onCommitAliases)
             } else if kind == .strands || kind == .nodes {
+                // LAY-29 — DMX models can auto-generate their node labels.
+                let displayAs = (summary["displayAs"] as? String) ?? ""
+                let isDmx = displayAs.contains("Dmx") || displayAs.contains("DMX")
                 IndexedNamesEditorSheet(
                     modelName: modelName,
                     title: kind.title,
@@ -4214,7 +4232,10 @@ private struct LayoutEditorPropertiesView: View {
                     initial: entries(for: kind),
                     commit: { names in
                         onCommitIndexedNames(kind, names)
-                    })
+                    },
+                    generate: (kind == .nodes && isDmx)
+                        ? { onGenerateNodeNames(modelName) }
+                        : nil)
             } else if kind == .submodels {
                 SubModelListSheet(
                     modelName: modelName,
@@ -5666,6 +5687,9 @@ private struct IndexedNamesEditorSheet: View {
     let placeholderFor: (Int) -> String
     let initial: [String]
     let commit: (_ names: [String]) -> Void
+    /// LAY-29: when non-nil, a "Generate" toolbar button appears that
+    /// replaces the editable rows with auto-generated names (DMX models).
+    var generate: (() -> [String])? = nil
 
     @State private var names: [String] = []
     @Environment(\.dismiss) private var dismiss
@@ -5701,6 +5725,16 @@ private struct IndexedNamesEditorSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                }
+                if let generate {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            let generated = generate()
+                            if !generated.isEmpty { names = generated }
+                        } label: {
+                            Label("Generate", systemImage: "wand.and.stars")
+                        }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {

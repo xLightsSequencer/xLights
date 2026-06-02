@@ -1259,6 +1259,15 @@ struct FPPConnectSheet: View {
                            cancelled: Bool,
                            failures: [String]) -> some View {
         VStack(spacing: 16) {
+            // CTL-27 — desktop status-bar parity: surface the same final
+            // outcome string FPPConnectDialog shows ("FPP Connect Upload
+            // Complete" / "…had errors or warnings" / "…Cancelled").
+            Text(cancelled
+                 ? "FPP Connect Upload Cancelled"
+                 : (failed > 0 ? "FPP Connect Upload had errors or warnings"
+                               : "FPP Connect Upload Complete"))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(cancelled || failed > 0 ? .orange : .green)
             Image(systemName: cancelled
                   ? "exclamationmark.triangle"
                   : (failed > 0 ? "exclamationmark.circle" : "checkmark.circle.fill"))

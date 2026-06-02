@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EffectPaletteView: View {
     @Environment(SequencerViewModel.self) var viewModel
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -29,23 +30,45 @@ struct EffectPaletteView: View {
 
                 ForEach(viewModel.availableEffects, id: \.self) { name in
                     Button(action: { viewModel.selectPaletteEffect(name) }) {
-                        Text(name)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                viewModel.selectedPaletteEffect == name
-                                    ? Color.accentColor.opacity(0.3)
-                                    : Color.gray.opacity(0.2)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        HStack(spacing: 4) {
+                            // VIEW-1 — show the effect's icon (same BGRA bitmap
+                            // the Metal grid uses) ahead of the label so the
+                            // dropper reads visually, like the desktop toolbar.
+                            if let icon = iconImage(for: name) {
+                                Image(icon, scale: displayScale,
+                                      label: Text(name))
+                                    .resizable()
+                                    .interpolation(.high)
+                                    .frame(width: 18, height: 18)
+                            }
+                            Text(name)
+                                .font(.caption2)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            viewModel.selectedPaletteEffect == name
+                                ? Color.accentColor.opacity(0.3)
+                                : Color.gray.opacity(0.2)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(name)
                 }
             }
             .padding(.horizontal)
         }
         .frame(height: 36)
         .background(.bar)
+    }
+
+    /// VIEW-1 — fetch the cached effect icon as a `CGImage` (nil if the
+    /// effect has no compiled-in icon data).
+    private func iconImage(for name: String) -> CGImage? {
+        let bucket = EffectIconCache.bucket(forDesiredPx: 18 * displayScale)
+        return EffectIconCache.shared.image(for: name,
+                                             bucket: bucket,
+                                             document: viewModel.document)
     }
 }

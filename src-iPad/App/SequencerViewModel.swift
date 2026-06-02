@@ -2199,6 +2199,12 @@ class SequencerViewModel {
         document.purgeRenderCache()
     }
 
+    /// TOOLS-1 — drop the shared downloaded-file cache. Independent of any
+    /// loaded sequence (vendor catalog, images, model/shader downloads).
+    func purgeDownloadCache() {
+        document.purgeDownloadCache()
+    }
+
     func startBackgroundRender() {
         guard isSequenceLoaded else { return }
 
@@ -4212,6 +4218,44 @@ class SequencerViewModel {
         return split
     }
 
+    /// TIM-5 — divide every mark on a timing row into `divisor` equal pieces by
+    /// inserting `divisor - 1` evenly-spaced splits. Generalizes
+    /// `halveTimingMarks` (divisor 2). Walks marks in reverse so earlier index
+    /// positions stay valid; marks too short to split that finely are skipped.
+    /// One undo step for the whole operation.
+    @discardableResult
+    func divideTimingMarks(byN divisor: Int, rowIndex: Int) -> Int {
+        guard divisor > 1 else { return 0 }
+        guard rowIndex >= 0, rowIndex < rows.count else { return 0 }
+        let row = rows[rowIndex]
+        guard row.timing != nil else { return 0 }
+        let count = row.effects.count
+        guard count > 0 else { return 0 }
+        undoManager.beginUndoGrouping()
+        var split = 0
+        for i in stride(from: count - 1, through: 0, by: -1) {
+            let m = row.effects[i]
+            let span = m.endTimeMS - m.startTimeMS
+            // Need at least 1 ms per resulting piece for the splits to land
+            // strictly between the mark's start and end.
+            guard span >= divisor else { continue }
+            let step = span / divisor
+            // Insert from the last interior boundary backwards so the running
+            // mark index `i` keeps referring to the head piece each time.
+            for j in stride(from: divisor - 1, through: 1, by: -1) {
+                let atMS = m.startTimeMS + step * j
+                if atMS > m.startTimeMS && atMS < m.endTimeMS {
+                    if splitTimingMark(rowIndex: rowIndex, markIndex: i, atMS: atMS) {
+                        split += 1
+                    }
+                }
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Divide Timing Marks")
+        return split
+    }
+
     /// B90: toggle the `-shimmer` suffix on a timing mark's label.
     /// Convenience op — adds the suffix if missing, strips it if
     /// present. Passes through `renameTimingMark` so undo reuses
@@ -4987,6 +5031,26 @@ class SequencerViewModel {
         let row = rows[rowIndex]
         guard row.timing != nil, row.layerIndex == 0 else { return false }
         return Int(document.rowLayerCount(at: Int32(rowIndex))) > 1
+    }
+
+    /// TIM-9 — strip just the phoneme layer (layer 2+), keeping the phrase and
+    /// word layers.
+    @discardableResult
+    func removePhonemes(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        guard rows[rowIndex].timing != nil else { return false }
+        if !document.removePhonemes(atRow: Int32(rowIndex)) { return false }
+        reloadRows()
+        return true
+    }
+
+    /// True when the phrase row has a phoneme layer (3+ layers) to strip.
+    /// Gates the "Remove Phonemes Only" menu entry.
+    func canRemovePhonemes(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == 0 else { return false }
+        return Int(document.rowLayerCount(at: Int32(rowIndex))) > 2
     }
 
     /// B57: global expand / collapse. `collapseAllModels` folds
@@ -6619,7 +6683,10 @@ struct SequenceEntry: Hashable, Identifiable {
 /// dot-folder so iOS / iCloud / xLights metadata doesn't clutter the list.
 /// Returns entries sorted by relative path so subfolder mates cluster.
 enum SequenceScanner {
-    static func scan(showFolder: String) -> [SequenceEntry] {
+    /// BR-1: `recursiveSubfolders` controls scope — `true` (default) walks the
+    /// whole tree under the show folder; `false` lists only the show folder's
+    /// own `.xsq` files (subfolders are not descended into).
+    static func scan(showFolder: String, recursiveSubfolders: Bool = true) -> [SequenceEntry] {
         guard !showFolder.isEmpty else { return [] }
         let root = URL(fileURLWithPath: showFolder)
         let fm = FileManager.default
@@ -6638,7 +6705,7 @@ enum SequenceScanner {
                 let isDir = resourceValues?.isDirectory ?? false
                 if isDir {
                     if name.caseInsensitiveCompare("Backup") == .orderedSame { continue }
-                    stack.append(child)
+                    if recursiveSubfolders { stack.append(child) }
                 } else if name.lowercased().hasSuffix(".xsq") {
                     let rel = relativePath(of: child, under: root)
                     let mtime = resourceValues?.contentModificationDate

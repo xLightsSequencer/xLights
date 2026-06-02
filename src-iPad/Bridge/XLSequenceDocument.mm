@@ -49,6 +49,7 @@
 #include "import_export/ExportModels.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/ViewObject.h"
@@ -536,6 +537,11 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 - (void)purgeRenderCache {
     if (!_context) return;
     _context->PurgeRenderCache();
+}
+
+- (void)purgeDownloadCache {
+    if (!_context) return;
+    _context->PurgeDownloadCache();
 }
 
 - (BOOL)saveSequenceAs:(NSString*)path {
@@ -1429,6 +1435,30 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         }
     }
     while (te->GetEffectLayerCount() > 1) {
+        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
+    }
+    se.PopulateRowInformation();
+    return YES;
+}
+
+- (BOOL)removePhonemesAtRow:(int)rowIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
+    TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+    if (!te) return NO;
+    // Need a phoneme layer (index 2) to strip; keep phrase (0) + words (1).
+    if (te->GetEffectLayerCount() <= 2) return NO;
+    // Lock guard — refuse if any phoneme mark (layer 2+) is locked.
+    for (int k = (int)te->GetEffectLayerCount() - 1; k > 1; --k) {
+        EffectLayer* ck = te->GetEffectLayer(k);
+        if (!ck) continue;
+        for (auto&& eff : ck->GetAllEffects()) {
+            if (eff && eff->IsLocked()) return NO;
+        }
+    }
+    while (te->GetEffectLayerCount() > 2) {
         te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
     }
     se.PopulateRowInformation();
@@ -4122,6 +4152,18 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         @"Circle",
         @"Cube",
         @"Custom",
+        // LAY-1 — DMX / moving-head model family. Each tag matches a case
+        // in CreateDefaultModel and creates a single-point boxed model that
+        // the existing tap-to-place flow commits immediately (none use a
+        // poly-point location).
+        @"DmxFloodArea",
+        @"DmxFloodlight",
+        @"DmxGeneral",
+        @"DmxMovingHead",
+        @"DmxMovingHeadAdv",
+        @"DmxServo",
+        @"DmxServo3d",
+        @"DmxSkull",
         @"Icicles",
         @"Image",
         @"Matrix",
@@ -4233,6 +4275,19 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     m->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(modelName.UTF8String));
     return YES;
+}
+
+- (NSArray<NSString*>*)generateNodeNamesForModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return @[];
+    Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m || !m->IsDMXModel()) return @[];
+    DmxModel* dmx = dynamic_cast<DmxModel*>(m);
+    if (!dmx) return @[];
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    for (const std::string& name : dmx->GenerateNodeNames()) {
+        [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
 }
 
 // J-22 — Faces / States / Dimming nested-dictionary helpers.

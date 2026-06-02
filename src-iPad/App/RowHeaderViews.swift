@@ -26,6 +26,10 @@ struct TimingRowHeader: View {
     /// layer has extra sub-layers to strip.
     var canRemoveWordsAndPhonemes: Bool = false
     var onRemoveWordsAndPhonemes: (() -> Void)?
+    /// TIM-9: "Remove Phonemes Only" — strips just the phoneme layer,
+    /// keeping the phrase + word layers. Shown when a phoneme layer exists.
+    var canRemovePhonemes: Bool = false
+    var onRemovePhonemes: (() -> Void)?
     /// B76: surfaced as "Make Variable" on fixed-interval timing
     /// tracks. Nil hides the entry.
     var canMakeVariable: Bool = false
@@ -50,6 +54,9 @@ struct TimingRowHeader: View {
     /// B91: fires when the user picks "Halve Timing Marks" —
     /// splits every mark at its midpoint.
     var onHalveTimingMarks: (() -> Void)?
+    /// TIM-5: fires with the divisor when the user picks a "Divide Timing
+    /// Marks" option — splits every mark into N equal pieces.
+    var onDivideTimingMarks: ((_ divisor: Int) -> Void)?
     /// SEQ-19: fires when the user picks "Select All Marks" — multi-selects
     /// every timing mark on this row. Gated by `canSelectMarks`.
     var canSelectMarks: Bool = false
@@ -166,9 +173,25 @@ struct TimingRowHeader: View {
                     }
                 }
                 if canRemoveWordsAndPhonemes, let fire = onRemoveWordsAndPhonemes {
-                    Button(role: .destructive) { fire() } label: {
-                        Label("Remove Words / Phonemes",
-                               systemImage: "rectangle.stack.badge.minus")
+                    if canRemovePhonemes, let firePh = onRemovePhonemes {
+                        Menu {
+                            Button(role: .destructive) { fire() } label: {
+                                Label("Remove Words & Phonemes",
+                                       systemImage: "rectangle.stack.badge.minus")
+                            }
+                            Button(role: .destructive) { firePh() } label: {
+                                Label("Remove Phonemes Only",
+                                       systemImage: "rectangle.badge.minus")
+                            }
+                        } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
+                    } else {
+                        Button(role: .destructive) { fire() } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
                     }
                 }
                 if canMakeVariable, let fire = onMakeVariable {
@@ -221,6 +244,18 @@ struct TimingRowHeader: View {
                     Button { fire() } label: {
                         Label("Halve Timing Marks",
                                systemImage: "square.split.1x2")
+                    }
+                }
+                if let fire = onDivideTimingMarks {
+                    Menu {
+                        Button("÷2") { fire(2) }
+                        Button("÷3") { fire(3) }
+                        Button("÷4") { fire(4) }
+                        Button("÷6") { fire(6) }
+                        Button("÷8") { fire(8) }
+                    } label: {
+                        Label("Divide Timing Marks…",
+                               systemImage: "square.split.2x2")
                     }
                 }
                 if canSelectMarks, let fire = onSelectMarks {

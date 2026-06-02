@@ -130,6 +130,11 @@ NS_ASSUME_NONNULL_BEGIN
 // quota; the next render repopulates. No-op if no sequence is open.
 - (void)purgeRenderCache NS_SWIFT_NAME(purgeRenderCache());
 
+// TOOLS-1 — Purge Download Cache (Tools menu): drop the shared
+// downloaded-file cache (vendor catalog, images, model/shader
+// downloads). Independent of any loaded sequence.
+- (void)purgeDownloadCache NS_SWIFT_NAME(purgeDownloadCache());
+
 // Save to a new path (Save As / Export). `path` must end in `.xsq`;
 // the caller is responsible for obtaining security-scoped access
 // to the destination via `-obtainAccessToPath:…` before calling.
@@ -380,6 +385,12 @@ NS_ASSUME_NONNULL_BEGIN
 // BreakdownPhrases.
 - (BOOL)removeWordsAndPhonemesAtRow:(int)rowIndex
     NS_SWIFT_NAME(removeWordsAndPhonemes(atRow:));
+
+// TIM-9: drop just the phoneme layer (layer 2+), keeping the phrase
+// (0) and word (1) layers. Rejected if the element has fewer than 3
+// layers (no phoneme layer to strip) or if any phoneme mark is locked.
+- (BOOL)removePhonemesAtRow:(int)rowIndex
+    NS_SWIFT_NAME(removePhonemes(atRow:));
 
 // B76: timing-track fixed-vs-variable accessors. Fixed tracks carry
 // a non-zero `mFixed` interval (milliseconds-per-mark) that
@@ -1139,6 +1150,12 @@ NS_ASSUME_NONNULL_BEGIN
                  names:(NSArray<NSString*>*)names;
 - (BOOL)setNodeNames:(NSString*)modelName
                names:(NSArray<NSString*>*)names;
+
+// LAY-29: auto-generate node names for a DMX model (mirrors the desktop
+// "Generate Node Names" action). Returns the generated label per node, or
+// an empty array if the model is unknown or not a DMX model. Does NOT
+// commit — the caller fills the editor so the user can review/edit first.
+- (NSArray<NSString*>*)generateNodeNamesForModel:(NSString*)modelName;
 
 // J-18 pass 4 — remove a submodel by name from its parent.
 // Routes through Model::RemoveSubModel which deletes the
