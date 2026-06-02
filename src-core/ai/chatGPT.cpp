@@ -48,8 +48,8 @@ std::vector<ServiceProperty> chatGPT::GetProperties() const {
     }
     props.push_back({ ServiceProperty::Kind::Secret, "ChatGPT.Token", "Bearer Token", "ChatGPT",
                      "Your ChatGPT Bearer Token (masked for security)", {}, token });
-    props.push_back({ ServiceProperty::Kind::String, "ChatGPT.Model", "Model", "ChatGPT", {}, {}, model });
-    props.push_back({ ServiceProperty::Kind::String, "ChatGPT.ImgModel", "Image Model", "ChatGPT", {}, {}, image_model });
+    props.push_back(makeModelProperty("ChatGPT.Model", "Model", "ChatGPT", model));
+    props.push_back(makeModelProperty("ChatGPT.ImgModel", "Image Model", "ChatGPT", image_model));
     return props;
 }
 
@@ -65,6 +65,7 @@ void chatGPT::SetProperty(const std::string& id, bool value) {
 void chatGPT::SetProperty(const std::string& id, const std::string& value) {
     if (id == "ChatGPT.Token") {
         token = value;
+        clearModelCache(); // a different key may expose a different model list
     } else if (id == "ChatGPT.Model") {
         model = value;
     } else if (id == "ChatGPT.ImgModel") {

@@ -55,6 +55,18 @@ public:
     // Returns all capabilities this service supports (regardless of enabled state)
     [[nodiscard]] virtual std::list<aiType::TYPE> GetTypes() const = 0;
 
+    // True if this service can enumerate the models it offers from its server
+    // (e.g. an OpenAI-compatible GET /v1/models). When true, the host UI can
+    // present the model settings as a dropdown populated by GetAvailableModels().
+    [[nodiscard]] virtual bool SupportsModelListing() const { return false; }
+
+    // Fetch the list of model ids the server offers. This is a (synchronous)
+    // network call; implementations cache the result. When forceRefresh is
+    // false and a list has already been fetched the cached list is returned
+    // without hitting the network. Returns an empty list when unsupported,
+    // not yet configured, or the request fails.
+    [[nodiscard]] virtual std::vector<std::string> GetAvailableModels(bool forceRefresh = false) const { return {}; }
+
     [[nodiscard]] virtual std::pair<std::string, bool> CallLLM(const std::string& prompt) const = 0;
     [[nodiscard]] virtual std::pair<std::string, bool> TestLLM() const { return CallLLM("Hello"); }
 

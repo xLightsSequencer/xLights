@@ -173,6 +173,7 @@ std::pair<std::string, bool> serviceNameFromPropertyId(NSString* propertyId) {
 
 @synthesize available = _available;
 @synthesize enabled = _enabled;
+@synthesize supportsModelListing = _supportsModelListing;
 
 - (instancetype)initFromService:(aiBase*)service {
     self = [super init];
@@ -180,6 +181,7 @@ std::pair<std::string, bool> serviceNameFromPropertyId(NSString* propertyId) {
         _name = [nsFromStd(service->GetLLMName()) copy];
         _available = service->IsAvailable() ? YES : NO;
         _enabled   = service->IsEnabled()   ? YES : NO;
+        _supportsModelListing = service->SupportsModelListing() ? YES : NO;
 
         NSMutableArray<NSString*>* caps = [NSMutableArray array];
         for (auto t : service->GetTypes()) {
@@ -319,6 +321,30 @@ std::pair<std::string, bool> serviceNameFromPropertyId(NSString* propertyId) {
     [self applyPropertyId:propertyId handler:^(aiBase* service, const std::string& id) {
         service->SetProperty(id, (int)value);
     }];
+}
+
+- (void)refreshModelsForService:(NSString*)serviceName
+                     completion:(void (^)(NSArray<NSString*>* models))completion {
+    if (completion == nil) return;
+    if (!_manager || serviceName.length == 0) {
+        dispatch_async(dispatch_get_main_queue(), ^{ completion(@[]); });
+        return;
+    }
+
+    aiBase* service = _manager->getService(stdFromNS(serviceName));
+    if (!service || !service->SupportsModelListing()) {
+        dispatch_async(dispatch_get_main_queue(), ^{ completion(@[]); });
+        return;
+    }
+
+    // GetAvailableModels(true) runs a synchronous libcurl request. Hop to a
+    // utility queue so the SwiftUI view stays responsive, then marshal back.
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        auto models = service->GetAvailableModels(true);
+        NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:models.size()];
+        for (auto const& m : models) [out addObject:nsFromStd(m)];
+        dispatch_async(dispatch_get_main_queue(), ^{ completion([out copy]); });
+    });
 }
 
 - (void)testServiceAsync:(NSString*)serviceName

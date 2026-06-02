@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the
+                                 model list from the server and present model settings as a dropdown,
+                                 including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
     -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width

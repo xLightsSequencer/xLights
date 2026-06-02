@@ -24,6 +24,26 @@ protected:
     std::string transcribe_model = "gpt-4o-transcribe";
     std::string token;
 
+    // Cached model list from GET {base_url}/models. Mutable so the const
+    // GetAvailableModels()/GetProperties() can populate/read it. _modelsFetched
+    // tracks "we already tried" so a failed/empty fetch isn't retried on every
+    // GetProperties() call (iPad rebuilds the settings sheet per redraw).
+    mutable std::vector<std::string> _cachedModels;
+    mutable bool _modelsFetched = false;
+
+    // Drop the cached model list so the next GetAvailableModels() re-queries.
+    // Call whenever a credential/endpoint change invalidates the list.
+    void clearModelCache() const {
+        _cachedModels.clear();
+        _modelsFetched = false;
+    }
+
+    // Build a model-picker property: a Choice populated from the cached model
+    // list when one is available, otherwise a free-text String so the user can
+    // type a model name before the list has been fetched.
+    [[nodiscard]] ServiceProperty makeModelProperty(const std::string& id, const std::string& label,
+                                                    const std::string& category, const std::string& current) const;
+
 public:
     explicit OpenAIAPI(ServiceManager* sm) :
         aiBase(sm) {
@@ -32,6 +52,9 @@ public:
         aiBase(sm), base_url(std::move(base_url_)), model(std::move(model_)), image_model(std::move(image_model_)), transcribe_model(std::move(transcribe_model_)), token(std::move(token_)) {
     }
     ~OpenAIAPI() override = default;
+
+    [[nodiscard]] bool SupportsModelListing() const override { return true; }
+    [[nodiscard]] std::vector<std::string> GetAvailableModels(bool forceRefresh = false) const override;
 
     [[nodiscard]] std::pair<std::string, bool> CallLLM(const std::string& prompt) const override;
 
