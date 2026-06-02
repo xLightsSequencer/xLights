@@ -1668,12 +1668,13 @@ std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
     if (!model->IsActive()) {
         name = "<" + name + ">";
     }
-    // Show a padlock next to locked models (skip groups/submodels — they
-    // don't have a meaningful per-instance lock on the layout).
+    // Show a padlock immediately before locked model names so the indicator
+    // is always at the same position relative to the name text (skip groups
+    // and submodels — they don't have a meaningful per-instance lock).
     if (model->GetDisplayAs() != DisplayAsType::ModelGroup &&
         model->GetDisplayAs() != DisplayAsType::SubModel &&
         model->GetBaseObjectScreenLocation().IsLocked()) {
-        name += " \xF0\x9F\x94\x92"; // U+1F512 LOCK
+        name = "\xF0\x9F\x94\x92 " + name; // U+1F512 LOCK
     }
     return name;
 }
@@ -8844,6 +8845,10 @@ void LayoutPanel::LockSelectedModels(bool lock)
         model->Lock(lock);
     }
 
+    // Refresh the tree synchronously so the padlock indicator on each row
+    // appears the moment Lock/Unlock is invoked, then schedule the usual
+    // RGB-effects save for persistence.
+    ReloadModelList();
     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::LockSelectedModels");
 }
 
