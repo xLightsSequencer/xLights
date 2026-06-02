@@ -14,7 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.11  June ??, 2026
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp)
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
-    -enh (cybercop)              Add ability to more bkgrnd image in Model Data (#5506)
+    -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using curor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)

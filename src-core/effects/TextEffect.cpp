@@ -1638,9 +1638,9 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
     int txtwidth = text_len;
-    int txtheight = char_height;
+    int txtheight = numLines * (char_height + 1) - 1;
     int totwidth = buffer.BufferWi + text_len;
-    int totheight = buffer.BufferHt + numLines * (char_height + 1) - 1;
+    int totheight = buffer.BufferHt + txtheight;
 
     if (vertical)         {
         totwidth = buffer.BufferWi + char_width;
