@@ -10064,7 +10064,8 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects",
+                                                      OutputModelManager::WORK_RELOAD_MODELLIST |
+                                                      OutputModelManager::WORK_FOCUS_MODELTREE, "LayoutPanel::ImportModelsFromRGBEffects",
                                                       nullptr, nullptr, firstImported);
     }
 }
