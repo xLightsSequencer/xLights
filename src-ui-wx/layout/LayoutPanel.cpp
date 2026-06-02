@@ -1852,7 +1852,9 @@ int LayoutPanel::AddModelToTree(Model *model, wxTreeListItem* parent, bool expan
         wxASSERT(false);
     }
 
-    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, TreeModelName(model, fullName),
+    // FromUTF8 so the embedded padlock glyph (U+1F512) renders correctly on
+    // Windows where the default wxString conversion uses CP1252, not UTF-8.
+    wxTreeListItem item = TreeListViewModels->AppendItem(*parent, wxString::FromUTF8(TreeModelName(model, fullName)),
                                                          LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Closed),
                                                          LayoutUtils::GetModelTreeIcon(DisplayAsTypeToString(model->GetDisplayAs()), LayoutUtils::GroupMode::Opened),
                                                          new ModelTreeData(model, nativeOrder, fullName));
