@@ -2021,6 +2021,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             Element* e = mSequenceElements->GetElement(i, view);
             e->SetCollapsed(true);
         }
+        for (int i = 0; i < mSequenceElements->GetNumberOfTimingElements(); ++i) {
+            mSequenceElements->GetTimingElement(i)->SetCollapsed(true);
+        }
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(GetParent(), eventRowHeaderChanged);
     } else if (id == ID_ROW_MNU_TOGGLE_NODES) {
