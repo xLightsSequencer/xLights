@@ -1668,10 +1668,12 @@ bool MainSequencer::CopySelectedEffects() {
         dataPresent = GetSelectedEffectsData(copy_data);
     }
     if (dataPresent && !copy_data.IsEmpty() && wxTheClipboard != nullptr && wxTheClipboard->Open()) {
-        if (!wxTheClipboard->SetData(new wxTextDataObject(copy_data))) {
-            DisplayError("Unable to copy data to clipboard.", this);
-        }
+        bool ok = wxTheClipboard->SetData(new wxTextDataObject(copy_data));
         wxTheClipboard->Close();
+        if (!ok) {
+            DisplayError("Unable to copy data to clipboard.", this);
+            return false;
+        }
         PanelRowHeadings->SetCanPaste(true);
         return true;
     }
