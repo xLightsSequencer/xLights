@@ -311,8 +311,29 @@ final class FPPConnectRunner {
     private var task: Task<Void, Never>?
     private var pollTask: Task<Void, Never>?
 
+    /// CTL-5 — user-entered FPP IPs/hostnames that weren't auto-discovered,
+    /// persisted across launches. Broadcast discovery still runs alongside.
+    private(set) var forcedIPs: [String] = []
+    private static let forcedIPsKey = "FPPConnectForcedIPs"
+
     init(document: XLSequenceDocument) {
         self.document = document
+        self.forcedIPs = UserDefaults.standard.stringArray(forKey: Self.forcedIPsKey) ?? []
+    }
+
+    /// CTL-5 — append a forced IP (deduped), persist, and re-run discovery.
+    func addForcedIP(_ ip: String) {
+        let trimmed = ip.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !forcedIPs.contains(trimmed) else { return }
+        forcedIPs.append(trimmed)
+        UserDefaults.standard.set(forcedIPs, forKey: Self.forcedIPsKey)
+        discover()
+    }
+
+    /// CTL-5 — forget a forced IP (persists; does not auto-rediscover).
+    func removeForcedIP(_ ip: String) {
+        forcedIPs.removeAll { $0 == ip }
+        UserDefaults.standard.set(forcedIPs, forKey: Self.forcedIPsKey)
     }
 
     func discover() {
@@ -323,8 +344,8 @@ final class FPPConnectRunner {
             // inside the detached task so we can return them cleanly
             // across the actor boundary (Swift 6 won't allow
             // [AnyHashable: Any] to cross).
-            let parsed: [FPPInstance] = await Task.detached(priority: .userInitiated) { [document] in
-                let raw = document.discoverFPPInstances()
+            let parsed: [FPPInstance] = await Task.detached(priority: .userInitiated) { [document, forcedIPs] in
+                let raw = document.discoverFPPInstances(withForcedAddresses: forcedIPs)
                 return raw.compactMap { entry -> FPPInstance? in
                     guard let dict = entry as? [String: Any] else { return nil }
                     return FPPInstance(dict: dict)
@@ -618,6 +639,9 @@ struct FPPConnectSheet: View {
     /// bridge call lands.
     @State private var newPlaylistTargetUUID: String? = nil
     @State private var newPlaylistName: String = ""
+    /// CTL-5 — drives the "Add FPP by IP" alert and its text field.
+    @State private var showingAddFPPByIP = false
+    @State private var addFPPIPText = ""
 
     var body: some View {
         NavigationStack {
@@ -718,6 +742,33 @@ struct FPPConnectSheet: View {
     @ViewBuilder
     private func selectionView(runner: FPPConnectRunner) -> some View {
         List {
+            Section {
+                Button {
+                    runner.discover()
+                } label: {
+                    Label("Re-Discover", systemImage: "arrow.clockwise")
+                }
+                Button {
+                    addFPPIPText = ""
+                    showingAddFPPByIP = true
+                } label: {
+                    Label("Add FPP by IP…", systemImage: "plus.circle")
+                }
+                ForEach(runner.forcedIPs, id: \.self) { ip in
+                    HStack {
+                        Image(systemName: "network").foregroundStyle(.secondary)
+                        Text(ip)
+                        Spacer()
+                    }
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            runner.removeForcedIP(ip)
+                        } label: { Label("Remove", systemImage: "trash") }
+                    }
+                }
+            } footer: {
+                Text("Add an FPP / ESPixelStick that isn't auto-discovered (e.g. on a different subnet). Broadcast discovery still runs.")
+            }
             Section("FPP Instances") {
                 if runner.instances.isEmpty {
                     ContentUnavailableView("No FPP instances found",
@@ -803,6 +854,27 @@ struct FPPConnectSheet: View {
             .padding(.vertical, 8)
             .background(.bar)
         }
+        .alert("Add FPP by IP", isPresented: $showingAddFPPByIP) {
+            TextField("IP address or hostname", text: $addFPPIPText)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Cancel", role: .cancel) { addFPPIPText = "" }
+            Button("Add") {
+                let ip = addFPPIPText.trimmingCharacters(in: .whitespaces)
+                addFPPIPText = ""
+                if isValidIPOrHostname(ip) { runner.addForcedIP(ip) }
+            }
+        } message: {
+            Text("Enter an FPP / ESPixelStick address that wasn't auto-discovered. Broadcast discovery still runs too.")
+        }
+    }
+
+    /// CTL-5 — light validation mirroring desktop's IsIPValidOrHostname:
+    /// dotted IPv4 digits, or a hostname (alphanumerics, dots, hyphens).
+    private func isValidIPOrHostname(_ s: String) -> Bool {
+        guard !s.isEmpty else { return false }
+        return s.range(of: "^[0-9.]+$|^[A-Za-z0-9][A-Za-z0-9.\\-]*$",
+                       options: .regularExpression) != nil
     }
 
     @State private var showOnlyReady: Bool = false
@@ -1187,6 +1259,15 @@ struct FPPConnectSheet: View {
                            cancelled: Bool,
                            failures: [String]) -> some View {
         VStack(spacing: 16) {
+            // CTL-27 — desktop status-bar parity: surface the same final
+            // outcome string FPPConnectDialog shows ("FPP Connect Upload
+            // Complete" / "…had errors or warnings" / "…Cancelled").
+            Text(cancelled
+                 ? "FPP Connect Upload Cancelled"
+                 : (failed > 0 ? "FPP Connect Upload had errors or warnings"
+                               : "FPP Connect Upload Complete"))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(cancelled || failed > 0 ? .orange : .green)
             Image(systemName: cancelled
                   ? "exclamationmark.triangle"
                   : (failed > 0 ? "exclamationmark.circle" : "checkmark.circle.fill"))

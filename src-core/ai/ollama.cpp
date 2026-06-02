@@ -9,11 +9,58 @@
 
 #include <log.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
 bool ollama::IsAvailable() const {
     return !host.empty() && !_enabledTypes.empty();
+}
+
+std::vector<std::string> ollama::GetAvailableModels(bool forceRefresh) const {
+    if (!forceRefresh && _modelsFetched) {
+        return _cachedModels;
+    }
+
+    // Mark as attempted up front so a failed/empty fetch isn't repeated on
+    // every subsequent GetProperties() call.
+    _modelsFetched = true;
+    _cachedModels.clear();
+
+    if (host.empty()) {
+        return _cachedModels;
+    }
+
+    // Ollama lists locally-pulled models at GET /api/tags:
+    //   { "models": [ { "name": "llama3.2:latest", ... }, ... ] }
+    std::string const url = (https ? "https://" : "http://") + host + ":" + std::to_string(port_num) + "/api/tags";
+
+    int responseCode = 0;
+    std::string const response = CurlManager::HTTPSGet(url, "", "", 15, {}, &responseCode);
+
+    if (responseCode != 200) {
+        spdlog::warn("ollama: model list request failed ({}): {}", responseCode, response);
+        return _cachedModels;
+    }
+
+    try {
+        nlohmann::json const root = nlohmann::json::parse(response);
+        if (root.contains("models") && root["models"].is_array()) {
+            for (auto const& m : root["models"]) {
+                if (m.contains("name") && m["name"].is_string()) {
+                    _cachedModels.push_back(m["name"].get<std::string>());
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        spdlog::error("ollama: failed to parse model list: {}", e.what());
+        _cachedModels.clear();
+        return _cachedModels;
+    }
+
+    std::sort(_cachedModels.begin(), _cachedModels.end());
+    spdlog::debug("ollama: fetched {} model(s)", _cachedModels.size());
+    return _cachedModels;
 }
 
 void ollama::SaveSettings() const {
@@ -53,7 +100,18 @@ std::vector<ServiceProperty> ollama::GetProperties() const {
     props.push_back({ ServiceProperty::Kind::String, "ollama.Host", "Host", "ollama", {}, {}, host });
     props.push_back({ ServiceProperty::Kind::Int, "ollama.Port", "Port", "ollama", {}, {}, port_num });
     props.push_back({ ServiceProperty::Kind::Bool, "ollama.Https", "Https", "ollama", {}, {}, https });
-    props.push_back({ ServiceProperty::Kind::String, "ollama.Model", "Model", "ollama", {}, {}, model });
+    if (_cachedModels.empty()) {
+        // No model list yet — let the user type one.
+        props.push_back({ ServiceProperty::Kind::String, "ollama.Model", "Model", "ollama", {}, {}, model });
+    } else {
+        std::vector<std::string> choices = _cachedModels;
+        // Keep the current model selectable even if it isn't (or is no longer)
+        // pulled on the server.
+        if (!model.empty() && std::find(choices.begin(), choices.end(), model) == choices.end()) {
+            choices.insert(choices.begin(), model);
+        }
+        props.push_back({ ServiceProperty::Kind::Choice, "ollama.Model", "Model", "ollama", {}, choices, model });
+    }
     return props;
 }
 
@@ -66,18 +124,21 @@ void ollama::SetProperty(const std::string& id, bool value) {
     }
     if (id == "ollama.Https") {
         https = value;
+        clearModelCache(); // endpoint changed
     }
 }
 
 void ollama::SetProperty(const std::string& id, int value) {
     if (id == "ollama.Port") {
         port_num = value;
+        clearModelCache(); // endpoint changed
     }
 }
 
 void ollama::SetProperty(const std::string& id, const std::string& value) {
     if (id == "ollama.Host") {
         host = value;
+        clearModelCache(); // endpoint changed
     } else if (id == "ollama.Model") {
         model = value;
     }

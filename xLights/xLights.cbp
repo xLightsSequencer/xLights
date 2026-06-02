@@ -323,8 +323,8 @@
 		<Unit filename="../src-ui-wx/sequencer/EffectListDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTimingDialog.h" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.cpp" />
-		<Unit filename="../src-ui-wx/effects/EffectPresetManager.h" />
+		<Unit filename="../src-core/effects/EffectPresetManager.cpp" />
+		<Unit filename="../src-core/effects/EffectPresetManager.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
@@ -370,8 +370,10 @@
 		<Unit filename="../src-ui-wx/app-shell/KeyBindings.h" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.cpp" />
-		<Unit filename="../src-ui-wx/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/ExportModels.cpp" />
+		<Unit filename="../src-core/import_export/ExportModels.h" />
+		<Unit filename="../src-core/import_export/LOREdit.cpp" />
+		<Unit filename="../src-core/import_export/LOREdit.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />
@@ -598,8 +600,8 @@
 		<Unit filename="../src-ui-wx/model/ViewpointDialog.h" />
 		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ViewsModelsPanel.h" />
-		<Unit filename="../src-ui-wx/import_export/Vixen3.cpp" />
-		<Unit filename="../src-ui-wx/import_export/Vixen3.h" />
+		<Unit filename="../src-core/import_export/Vixen3.cpp" />
+		<Unit filename="../src-core/import_export/Vixen3.h" />
 		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.cpp" />
 		<Unit filename="../src-ui-wx/import_export/VsaImportDialog.h" />
 		<Unit filename="../src-ui-wx/model/WiringDialog.cpp" />
@@ -722,7 +724,7 @@
 		<Unit filename="../src-core/controllers/WebSocketClient.h" />
 		<Unit filename="../src-ui-wx/import_export/ExportEffects.cpp" />
 		<Unit filename="../src-ui-wx/import_export/ImportEffects.cpp" />
-		<Unit filename="../src-ui-wx/import_export/TimingImport.cpp" />
+		<Unit filename="../src-core/import_export/TimingImport.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.cpp" />
 		<Unit filename="../src-core/effects/AdjustEffect.h" />
 		<Unit filename="../src-core/effects/BarsEffect.cpp" />
@@ -1377,6 +1379,8 @@
 		<Unit filename="../src-core/utils/nanosvg_xl.h" />
 		<Unit filename="../src-core/utils/string_utils.cpp" />
 		<Unit filename="../src-core/utils/string_utils.h" />
+		<Unit filename="../src-core/utils/ZipUtils.cpp" />
+		<Unit filename="../src-core/utils/ZipUtils.h" />
 		<Unit filename="../src-core/utils/FileUtils.cpp" />
 		<Unit filename="../src-core/utils/FileUtils.h" />
 		<Unit filename="../src-core/utils/NodeUtils.cpp" />

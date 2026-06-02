@@ -33,6 +33,16 @@ class ollama : public aiBase {
     int port_num{ 11434 };
     bool https{ false };
 
+    // Cached model list from GET /api/tags. Mutable so the const
+    // GetAvailableModels()/GetProperties() can populate/read it.
+    mutable std::vector<std::string> _cachedModels;
+    mutable bool _modelsFetched = false;
+
+    void clearModelCache() const {
+        _cachedModels.clear();
+        _modelsFetched = false;
+    }
+
 	public:
 
 	explicit ollama(ServiceManager* frame) :
@@ -57,6 +67,9 @@ class ollama : public aiBase {
 	[[nodiscard]] std::list<aiType::TYPE> GetTypes() const override {
         return std::list({ aiType::TYPE::PROMPT, aiType::TYPE::COLORPALETTES });
     }
+
+    [[nodiscard]] bool SupportsModelListing() const override { return true; }
+    [[nodiscard]] std::vector<std::string> GetAvailableModels(bool forceRefresh = false) const override;
 
     [[nodiscard]] AIColorPalette GenerateColorPalette(const std::string& prompt) const override;
 };

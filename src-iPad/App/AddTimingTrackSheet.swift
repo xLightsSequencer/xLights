@@ -24,6 +24,7 @@ struct AddTimingTrackSheet: View {
     private enum TimingType: String, CaseIterable, Identifiable {
         case empty
         case fixed25, fixed50, fixed100
+        case fixedCustom
         case metronome
         case fppCommands, fppEffects
         case audioOnsets, audioTempo, audioChords
@@ -36,6 +37,12 @@ struct AddTimingTrackSheet: View {
 
     @State private var selectedType: TimingType = .empty
     @State private var trackName: String = "Timing"
+
+    // Fixed (custom interval) parameter — an arbitrary plain fixed
+    // timing track, the desktop NewTimingDialog "Fixed Timing" path
+    // beyond the 25/50/100 ms presets. Seeded to the sequence frame
+    // interval so the default is frame-aligned.
+    @State private var fixedCustomIntervalMS: Int = 50
 
     // Metronome-specific parameters.
     @State private var metronomeIntervalMS: Int = 500
@@ -98,6 +105,12 @@ struct AddTimingTrackSheet: View {
             }
         }
         .onAppear {
+            // AUTO-3: when opened from a timing row's "Speech to Lyrics…"
+            // menu, start on the AI-Lyrics type and clear the one-shot flag.
+            if viewModel.pendingSpeechToLyricsRowIndex != nil {
+                selectedType = .aiLyrics
+                viewModel.pendingSpeechToLyricsRowIndex = nil
+            }
             // Pick a sensible default — Audio Onsets when audio is
             // loaded but the user just opened the sheet from a non-
             // audio context, otherwise Empty. Either way, the user
@@ -120,6 +133,7 @@ struct AddTimingTrackSheet: View {
                 Text("Fixed 25 ms").tag(TimingType.fixed25)
                 Text("Fixed 50 ms").tag(TimingType.fixed50)
                 Text("Fixed 100 ms").tag(TimingType.fixed100)
+                Text("Fixed (custom interval)…").tag(TimingType.fixedCustom)
                 Text("Metronome…").tag(TimingType.metronome)
                 Text("FPP Commands").tag(TimingType.fppCommands)
                 Text("FPP Effects").tag(TimingType.fppEffects)
@@ -158,6 +172,8 @@ struct AddTimingTrackSheet: View {
     @ViewBuilder
     private var typeParamsSection: some View {
         switch selectedType {
+        case .fixedCustom:
+            fixedCustomParamsSection
         case .metronome:
             metronomeParamsSection
         case .aiLyrics:
@@ -166,6 +182,26 @@ struct AddTimingTrackSheet: View {
             lrclibParamsSection
         default:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private var fixedCustomParamsSection: some View {
+        Section {
+            HStack {
+                Text("Interval")
+                Spacer()
+                TextField("ms", value: $fixedCustomIntervalMS, format: .number)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(minWidth: 80)
+                Text("ms").foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Interval")
+        } footer: {
+            Text("A timing mark every \(fixedCustomIntervalMS) ms from the start of the sequence to the end. The interval is rounded to the nearest frame.")
+                .font(.caption)
         }
     }
 
@@ -356,6 +392,8 @@ struct AddTimingTrackSheet: View {
             return false
         }
         switch selectedType {
+        case .fixedCustom:
+            return fixedCustomIntervalMS > 0
         case .metronome:
             if metronomeIntervalMS <= 0 { return false }
             if metronomeUseRandomRange,
@@ -383,7 +421,7 @@ struct AddTimingTrackSheet: View {
         // default" — preserves user-typed names but updates the
         // placeholder cleanly.
         let knownDefaults: Set<String> = [
-            "Timing", "25ms", "50ms", "100ms", "Metronome",
+            "Timing", "25ms", "50ms", "100ms", "Fixed", "Metronome",
             "FPP Commands", "FPP Effects",
             "Onsets", "Tempo", "Chords", "AutoGen", "Lyrics"
         ]
@@ -413,6 +451,7 @@ struct AddTimingTrackSheet: View {
         case .fixed25:      return "25ms"
         case .fixed50:      return "50ms"
         case .fixed100:     return "100ms"
+        case .fixedCustom:  return "Fixed"
         case .metronome:    return "Metronome"
         case .fppCommands:  return "FPP Commands"
         case .fppEffects:   return "FPP Effects"
@@ -430,6 +469,7 @@ struct AddTimingTrackSheet: View {
         case .fixed25:      return "A timing mark every 25 ms from the start of the sequence to the end."
         case .fixed50:      return "A timing mark every 50 ms from the start of the sequence to the end."
         case .fixed100:     return "A timing mark every 100 ms from the start of the sequence to the end."
+        case .fixedCustom:  return "A plain timing track with marks at a custom fixed interval you specify, from the start of the sequence to the end."
         case .metronome:    return "Timing marks at a custom interval, optionally with cycling labels."
         case .fppCommands:  return "FPP Commands track — events the Falcon Player can run during playback."
         case .fppEffects:   return "FPP Effects track — events that trigger pixel effects on FPP-managed shows."
@@ -456,6 +496,8 @@ struct AddTimingTrackSheet: View {
             commitFixed(intervalMS: 50, name: name, action: "Add Fixed Timing Track")
         case .fixed100:
             commitFixed(intervalMS: 100, name: name, action: "Add Fixed Timing Track")
+        case .fixedCustom:
+            commitFixed(intervalMS: fixedCustomIntervalMS, name: name, action: "Add Fixed Timing Track")
         case .metronome:
             commitMetronome(name: name)
         case .fppCommands:

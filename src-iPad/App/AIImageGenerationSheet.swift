@@ -24,6 +24,9 @@ struct AIImageGenerationSheet: View {
     @State private var selectedService: String = ""
 
     @State private var session: XLAIImageSession? = nil
+    // AI-1 — the selected generator's style/choice properties (e.g. Apple
+    // Intelligence / Gemini image styles), rendered as Pickers.
+    @State private var styleProperties: [XLAIServiceProperty] = []
     @State private var prompt: String = ""
 
     @State private var status: Status = .idle
@@ -60,9 +63,12 @@ struct AIImageGenerationSheet: View {
                         .onChange(of: selectedService) { _, newValue in
                             session = XLAIImageSession.session(forService: newValue)
                             resetResult()
+                            refreshStyleProperties()
                         }
                     }
                 }
+
+                styleSection
 
                 Section {
                     TextEditor(text: $prompt)
@@ -157,6 +163,35 @@ struct AIImageGenerationSheet: View {
         }
         if !selectedService.isEmpty && session == nil {
             session = XLAIImageSession.session(forService: selectedService)
+        }
+        refreshStyleProperties()
+    }
+
+    /// AI-1 — pull the current generator's tunable properties (only Choice
+    /// properties are rendered, e.g. the style preset).
+    private func refreshStyleProperties() {
+        styleProperties = session?.imageProperties() ?? []
+    }
+
+    @ViewBuilder
+    private var styleSection: some View {
+        let choices = styleProperties.filter { $0.kind == .choice && !$0.choices.isEmpty }
+        if !choices.isEmpty {
+            Section("Style") {
+                ForEach(choices, id: \.propertyId) { prop in
+                    Picker(prop.label.isEmpty ? "Style" : prop.label,
+                           selection: Binding(
+                            get: { prop.stringValue },
+                            set: { newValue in
+                                session?.setStringProperty(prop.propertyId, value: newValue)
+                                refreshStyleProperties()
+                            })) {
+                        ForEach(prop.choices, id: \.self) { choice in
+                            Text(choice).tag(choice)
+                        }
+                    }
+                }
+            }
         }
     }
 

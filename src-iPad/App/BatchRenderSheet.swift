@@ -39,6 +39,9 @@ struct BatchRenderSheet: View {
     @State private var selected: Set<String> = []
     @State private var runner: BatchRenderRunner?
     @State private var outOfDateOnly: Bool = false
+    // BR-1: scope toggle — recurse subfolders (default) vs. show folder only.
+    // Persisted app-wide so the choice sticks between sessions.
+    @AppStorage("batchRender.includeSubfolders") private var includeSubfolders: Bool = true
     @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.batchRender)
 
     /// What the list actually shows — filter then sort. Selection still
@@ -101,11 +104,19 @@ struct BatchRenderSheet: View {
             if runner == nil {
                 runner = BatchRenderRunner(document: viewModel.document)
             }
-            let folder = viewModel.showFolderPath ?? ""
-            entries = SequenceScanner.scan(showFolder: folder)
-            selected = BatchRenderSelections.load(showFolder: folder)
-                .intersection(Set(entries.map(\.relativePath)))
+            reloadEntries()
         }
+        .onChange(of: includeSubfolders) { _, _ in
+            reloadEntries()
+        }
+    }
+
+    private func reloadEntries() {
+        let folder = viewModel.showFolderPath ?? ""
+        entries = SequenceScanner.scan(showFolder: folder,
+                                       recursiveSubfolders: includeSubfolders)
+        selected = BatchRenderSelections.load(showFolder: folder)
+            .intersection(Set(entries.map(\.relativePath)))
     }
 
     private var isRunning: Bool {
@@ -130,6 +141,7 @@ struct BatchRenderSheet: View {
             List {
                 Section {
                     Toggle("Out of date only", isOn: $outOfDateOnly)
+                    Toggle("Include subfolders", isOn: $includeSubfolders)
                     HStack {
                         Button("Select All") { selectAllVisible() }
                         Spacer()

@@ -23,6 +23,7 @@
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
 #include "effects/EffectManager.h"
+#include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
 #include "models/ModelManager.h"
 #include "models/OutputModelManager.h"
@@ -117,15 +118,39 @@ public:
     EffectManager& GetEffectManager() override { return _effectManager; }
     OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
 
+    // PRE-1 — persistent effect preset library. Mirrors
+    // xLightsFrame::_effectPresetManager. Loaded at show-folder load
+    // (JSON file with XML-effects-node fallback) and saved back to
+    // `<showDir>/xlights_effectpresets.json` (+ .jbkp backup) so
+    // presets round-trip with the desktop format. The bridge funnels
+    // every preset mutation through this manager.
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
+    // Persist the preset library to disk. Writes the backup copy first
+    // (best-effort), then the main JSON file. Returns false on write
+    // failure of the main file.
+    bool SaveEffectPresets();
+
     bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
     TimingElement* AddTimingElement(const std::string& name,
                                     const std::string& subType = "") override;
     void SuspendAutoSave(bool) override {}
-    bool IsLowDefinitionRender() const override { return true; }
+    // Opt-in app preference (default OFF = full-definition render). See the
+    // .cpp — reads the `render.lowDefinition` UserDefaults key the SwiftUI
+    // toggle writes. Defaulting off matches desktop and keeps final FSEQ output
+    // full-resolution; on is a deliberate memory-relief escape hatch.
+    bool IsLowDefinitionRender() const override;
 
     // Rendering
     void RenderAll();
+    // TOOLS-1b: drop all on-disk render-cache items for this sequence
+    // (mirrors desktop xLightsFrame::OnMenuItem_PurgeRenderCacheSelected).
+    void PurgeRenderCache() { _renderCache.Purge(&_sequenceElements, true); }
+    // TOOLS-1: drop the shared downloaded-file cache (vendor catalog,
+    // palette/model images, shader/model downloads). Frees disk/iCloud
+    // quota; the next catalog/download repopulates. Defined in the .cpp
+    // so the CachedFileDownloader header stays out of this header.
+    void PurgeDownloadCache();
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
     bool IsRenderDone();
@@ -599,6 +624,7 @@ private:
     std::unique_ptr<ModelManager> _modelManager;
     std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
+    EffectPresetManager _effectPresetManager;
     SequenceElements _sequenceElements;
     SequenceViewManager _viewsManager;
     std::unique_ptr<SequenceFile> _sequenceFile;
@@ -703,7 +729,24 @@ private:
 
     // Ensures the render engine + its pool are ready before using them
     // from a preview render path (before `RenderAll` has been called).
+    // Also re-applies the render-cache mode app preference on every call
+    // so the Folder Config picker takes effect without an app restart.
     void EnsureRenderEngine();
+
+    // Reads the `render.cacheMode` app preference (written by the Folder
+    // Config → Rendering picker via @AppStorage) and returns one of the
+    // RenderCache::Enable values: "Disabled" | "Locked Only" | "Enabled".
+    // Defaults to "Disabled": the render cache trades memory + disk to
+    // speed re-renders, and both are scarce on iPad — desktop defaults to
+    // the milder "Locked Only", but iPad starts fully off.
+    std::string ReadRenderCacheMode() const;
+
+    // FSEQ-1 — FSEQ export format preferences, written by the Folder
+    // Config → Rendering pickers via @AppStorage. Compression returns
+    // one of "zstd" | "zlib" | "none" (default "zstd"); level is the
+    // zstd compression level 1..22 (default 2, ignored for zlib/none).
+    std::string ReadFseqCompression() const;
+    int ReadFseqCompressionLevel() const;
 
     // Re-allocates `_sequenceData` only when the sequence's shape
     // (numChannels / numFrames / frameTime) has actually changed.

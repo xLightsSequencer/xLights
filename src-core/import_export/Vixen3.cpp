@@ -11,12 +11,14 @@
 #include "Vixen3.h"
 
 #include <list>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
+#include <filesystem>
+#include <algorithm>
 
-#include <wx/wx.h>
-#include <wx/file.h>
-#include <wx/filename.h>
-#include <log.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/fmt.h>
+#include "utils/string_utils.h"
 #include "utils/ExternalHooks.h"
 
 double CorrectForGamma(double value)
@@ -27,12 +29,12 @@ double CorrectForGamma(double value)
         return 12.92 * value;
 }
 
-wxColour ConvertXYZToColour(double x, double y, double z)
+xlColor ConvertXYZToColour(double x, double y, double z)
 {
-    return wxColour(std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.032406 + y * -0.015372 + z * -0.004986))),
-                    std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * -0.009689 + y * +0.018758 + z * +0.000415))),
-                    std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.000557 + y * -0.002040 + z * +0.010570)))
-                   );
+    return xlColor((uint8_t)std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.032406 + y * -0.015372 + z * -0.004986))),
+                   (uint8_t)std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * -0.009689 + y * +0.018758 + z * +0.000415))),
+                   (uint8_t)std::max(0.0, std::min(255.0, 255.0 * CorrectForGamma(x * +0.000557 + y * -0.002040 + z * +0.010570)))
+                  );
 }
 
 std::string BoolToIntStr (std::string str)
@@ -48,29 +50,29 @@ std::string VixenEffect::GetPalette() const
     std::string res;
 
     for (int i = 0; i < (int)palette.size(); i++) {
-        wxString n = wxString::Format("%d", i + 1);
+        std::string n = std::to_string(i + 1);
 
         if (res != "")
             res += ",";
 
         if (palette[i].size() == 1) {
-            res += "C_BUTTON_Palette" + n + "=#" + wxString::Format("%02x%02x%02x",
-                    palette[i][0].color.Red(), palette[i][0].color.Green(), palette[i][0].color.Blue());
+            res += "C_BUTTON_Palette" + n + "=#" + fmt::format("{:02x}{:02x}{:02x}",
+                    (int)palette[i][0].color.Red(), (int)palette[i][0].color.Green(), (int)palette[i][0].color.Blue());
             res += ",C_CHECKBOX_Palette" + n + "=1";
         // Break buttefly gradient into individual colors
         } else if (type == "ButterflyData") {
             for (int ii = 0; ii < (int)palette[i].size(); ii++) {
-                wxString nn = wxString::Format("%d", ii + 1);
+                std::string nn = std::to_string(ii + 1);
                 if (res != "")
                     res += ",";
-                res += "C_BUTTON_Palette" + nn + "=#" + wxString::Format("%02x%02x%02x", palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                res += "C_BUTTON_Palette" + nn + "=#" + fmt::format("{:02x}{:02x}{:02x}", (int)palette[i][ii].color.Red(), (int)palette[i][ii].color.Green(), (int)palette[i][ii].color.Blue());
                 res += ",C_CHECKBOX_Palette" + nn + "=1";
             }
         } else {
             res += "C_BUTTON_Palette" + n + "=Active=TRUE|Id=ID_BUTTON_Palette" + n + "|Values=";
             for (int ii = 0; ii < (int)palette[i].size(); ii++) {
-                res += wxString::Format("x=%.3f^c=#%02x%02x%02x",
-                       palette[i][ii].position, palette[i][ii].color.Red(), palette[i][ii].color.Green(), palette[i][ii].color.Blue());
+                res += fmt::format("x={:.3f}^c=#{:02x}{:02x}{:02x}",
+                       palette[i][ii].position, (int)palette[i][ii].color.Red(), (int)palette[i][ii].color.Green(), (int)palette[i][ii].color.Blue());
                 if (ii != (int)palette[i].size() - 1)
                     res += ";";
             }
@@ -83,7 +85,7 @@ std::string VixenEffect::GetPalette() const
     if (type == "PulseData" && levelCurve.size() > 2) {
         res += ",C_VALUECURVE_Brightness=Active=TRUE|Id=ID_VALUECURVE_Brightness|Type=Custom|Min=0.00|Max=400.00|RV=TRUE|Values=";
         for (int i = 0; i < (int)levelCurve.size(); i++) {
-            res += wxString::Format("%.2f:", levelCurve[i].x / 100) + wxString::Format("%.2f", levelCurve[i].y / 100 / 4);
+            res += fmt::format("{:.2f}:", levelCurve[i].x / 100) + fmt::format("{:.2f}", levelCurve[i].y / 100 / 4);
             if (i != (int)levelCurve.size() - 1)
                 res += ";";
         }
@@ -96,7 +98,7 @@ std::string VixenEffect::GetSettings() const
 {
     std::string res;
     if (type == "AlternatingData") {
-        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + settings.at("GroupLevel");       
+        res = "B_CHOICE_BufferStyle=Single Line,E_SLIDER_Marquee_Band_Size=" + settings.at("GroupLevel");
     }
     else if (type == "AudioData") {}
     else if (type == "BarsData") {
@@ -126,13 +128,13 @@ std::string VixenEffect::GetSettings() const
         res += "E_CHECKBOX_Bars_3D=" + settings.at("Show3D") +
                ",E_CHECKBOX_Bars_Highlight=" + settings.at("Highlight") +
                ",E_CHOICE_Bars_Direction=" + dir +
-               ",E_SLIDER_Bars_BarCount=" + wxString::Format("%d", std::min(wxAtoi(settings.at("Repeat")), 5)) +
+               ",E_SLIDER_Bars_BarCount=" + std::to_string(std::min((int)std::strtol(settings.at("Repeat").c_str(), nullptr, 10), 5)) +
                ",E_TEXTCTRL_Bars_Cycles=" + settings.at("Speed");
     }
     else if (type == "ButterflyData") {
         res = "E_SLIDER_Butterfly_Chunks=" + settings.at("BackgroundChunks") +
               ",E_SLIDER_Butterfly_Skip=" + settings.at("BackgroundSkips") +
-              ",E_SLIDER_Butterfly_Style=" + wxString(settings.at("ButterflyType")).AfterFirst('e').ToStdString() +
+              ",E_SLIDER_Butterfly_Style=" + AfterFirst(settings.at("ButterflyType"), 'e') +
               ",E_CHOICE_Butterfly_Direction=" + (settings.at("Direction") == "Forward" ? "0" : "1") +
               ",E_CHOICE_Butterfly_Colors=" + (settings.at("ColorScheme") == "Gradient" ? "Palette" : "Rainbow");
     }
@@ -148,8 +150,8 @@ std::string VixenEffect::GetSettings() const
     else if (type == "PulseData") {
         // Only two points, set them as start and end intensity.  If more than two, a brightness curve will be generated
         if (levelCurve.size() == 2) {
-            res = "E_TEXTCTRL_Eff_On_Start=" + wxString::Format("%d", wxRound(levelCurve[0].y)) +
-                  ",E_TEXTCTRL_Eff_On_End=" + wxString::Format("%d", wxRound(levelCurve[1].y));
+            res = "E_TEXTCTRL_Eff_On_Start=" + std::to_string((int)std::lround(levelCurve[0].y)) +
+                  ",E_TEXTCTRL_Eff_On_End=" + std::to_string((int)std::lround(levelCurve[1].y));
         }
     }
     else if (type == "TwinkleData") {
@@ -157,7 +159,7 @@ std::string VixenEffect::GetSettings() const
               ",E_SLIDER_Twinkle_Count=" + settings.at("AverageCoverage");
     }
     else if (type == "SetLevelData") {}
-    else if (type == "SpinData") {}  
+    else if (type == "SpinData") {}
     else if (type == "SpiralData") {}
     else if (type == "SpirographData") {}
     else if (type == "TextData") {}
@@ -185,18 +187,18 @@ std::string VixenEffect::GetSettings() const
         } else {
             chase = "From Middle";
         }
-        
+
         res = "E_CHOICE_Chase_Type1=" + chase;
         if (transform != "")
             res = res + ",B_CHOICE_BufferTransform=" + transform;
-                
+
         if (settings.at("WipeMovement") == "Count")
             res = res + ",E_TEXTCTRL_Chase_Rotations=" + settings.at("PassCount");
     }
     else if (type == "NutcrackerModuleData") {
         std::string nc = settings.at("CurrentEffect");
         std::string fit = BoolToIntStr(settings.at("FitToTime"));  // Not sure this can be mapped
-        int speed = wxAtoi(settings.at("Speed")); // Max of 20
+        int speed = (int)std::strtol(settings.at("Speed").c_str(), nullptr, 10); // Max of 20
 
         // V3 Nutcracker wasn't spatially aware so switch render style
         if (settings.at("StringOrienation") == "Vertical") {
@@ -206,7 +208,7 @@ std::string VixenEffect::GetSettings() const
         }
 
         if (nc == "Bars") {
-            int i = wxAtoi(settings.at("Bars_Direction"));
+            int i = (int)std::strtol(settings.at("Bars_Direction").c_str(), nullptr, 10);
             std::string dir = "up";
             if (i == 1) dir = "down";
             else if (i == 2) dir = "expand";
@@ -226,7 +228,7 @@ std::string VixenEffect::GetSettings() const
         } else if (nc == "Butterfly") {
             res += ",E_Butterfly_Chunks=" + settings.at("Butterfly_BkgrdChunks") +
                    ",E_Butterfly_Skip=" + settings.at("Butterfly_BkgrdSkip") +
-                   ",E_SLIDER_Butterfly_Speed=" + wxString::Format("%d", speed * 5) + // max 100
+                   ",E_SLIDER_Butterfly_Speed=" + std::to_string(speed * 5) + // max 100
                    ",E_SLIDER_Butterfly_Style=" + settings.at("Butterfly_Style") +
                    ",E_CHOICE_Butterfly_Direction=" + settings.at("Butterfly_Direction") +
                    ",E_CHOICE_Butterfly_Colors=" + (settings.at("Butterfly_Colors") == "0" ? std::string("Rainbow") : std::string("Palette"));
@@ -235,7 +237,7 @@ std::string VixenEffect::GetSettings() const
                    ",E_CHECKBOX_ColorWash_HFade=" + BoolToIntStr(settings.at("ColorWash_FadeHorizontal")) +
                    ",E_CHECKBOX_ColorWash_VFade=" + BoolToIntStr(settings.at("ColorWash_FadeVertical"));
         } else if (nc == "Curtain") {
-            int i = wxAtoi(settings.at("Curtain_Edge"));
+            int i = (int)std::strtol(settings.at("Curtain_Edge").c_str(), nullptr, 10);
             std::string edge = "left";
             if (i == 1) edge = "center";
             else if (i == 2) edge = "right";
@@ -243,7 +245,7 @@ std::string VixenEffect::GetSettings() const
             else if (i == 4) edge = "middle";
             else if (i == 5) edge = "top";
 
-            i = wxAtoi(settings.at("Curtain_Effect"));
+            i = (int)std::strtol(settings.at("Curtain_Effect").c_str(), nullptr, 10);
             std::string effect = "open";
             if (i == 1) effect = "close";
             else if (i == 2) effect = "open then close";
@@ -257,7 +259,7 @@ std::string VixenEffect::GetSettings() const
                    ",E_SLIDER_Fire_HueShift=" + settings.at("Fire_Hue");
         } else if (nc == "Fireworks") {
             res += ",E_SLIDER_Fireworks_Count=" + settings.at("Fireworks_Particles") +
-                   ",E_SLIDER_Fireworks_Explosions=" + wxString::Format("%d", (wxAtoi(settings.at("Fireworks_Explosions")) / 2)) +
+                   ",E_SLIDER_Fireworks_Explosions=" + std::to_string((int)std::strtol(settings.at("Fireworks_Explosions").c_str(), nullptr, 10) / 2) +
                    ",E_SLIDER_Fireworks_Fade=" + settings.at("Fireworks_Fade") +
                    ",E_SLIDER_Fireworks_Velocity=" + settings.at("Fireworks_Fade");
         } else if (nc == "Garlands") {
@@ -268,20 +270,20 @@ std::string VixenEffect::GetSettings() const
         } else if (nc == "Life") {
             res += ",E_SLIDER_Life_Count=" + settings.at("Life_CellsToStart") +
                    ",E_SLIDER_Life_Seed=" + settings.at("Life_Type") +
-                   ",E_SLIDER_Life_Speed=" + wxString::Format("%d", wxRound(speed * 1.5)); // max 30
+                   ",E_SLIDER_Life_Speed=" + std::to_string((int)std::lround(speed * 1.5)); // max 30
         } else if (nc == "Meteors") {
-            int i = wxAtoi(settings.at("Meteor_Colors"));
+            int i = (int)std::strtol(settings.at("Meteor_Colors").c_str(), nullptr, 10);
             std::string colors = "Rainbow";
             if (i == 1) colors = "Range";
             else if (i == 2) colors = "Palette";
             res += ",E_CHOICE_Meteors_Type=" + colors +
                    ",E_SLIDER_Meteors_Count=" + settings.at("Meteor_Count") +
                    ",E_SLIDER_Meteors_Length=" + settings.at("Meteor_TrailLength") +
-                   ",E_SLIDER_Meteors_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+                   ",E_SLIDER_Meteors_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Movie") {
             res += ",E_FILEPICKERCTRL_Video_Filename=" + settings.at("Movie_DataPath");
         } else if (nc == "Picture") {
-            int i = wxAtoi(settings.at("Picture_Direction"));
+            int i = (int)std::strtol(settings.at("Picture_Direction").c_str(), nullptr, 10);
             std::string dir = "left";
             if (i == 1) dir = "right";
             else if (i == 2) dir = "up";
@@ -296,19 +298,19 @@ std::string VixenEffect::GetSettings() const
             else if (i == 11) dir = "peekaboo 180";
             else if (i == 12) dir = "peekaboo 270";
             else if (i == 13) dir = "wiggle";
-            res += ",E_CHOICE_Pictures_Direction=" + dir + 
+            res += ",E_CHOICE_Pictures_Direction=" + dir +
                    ",E_TEXTCTRL_Pictures_Filename=" + settings.at("Picture_FileName") +
                    ",E_TEXTCTRL_Pictures_Speed=" + settings.at("Picture_GifSpeed");
         } else if (nc == "PictureTile") {
             res += ",E_TEXTCTRL_Pictures_Filename=" + settings.at("PictureTile_FileName");
         } else if (nc == "Snowflakes") {
-            res += ",E_SLIDER_Snowflakes_Count=" + wxString::Format("%d", wxAtoi(settings.at("Snowflakes_Max")) * 5) + // max 20 in V3 / 100 in xLights
-                   ",E_SLIDER_Snowflakes_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)) + // max 50
+            res += ",E_SLIDER_Snowflakes_Count=" + std::to_string((int)std::strtol(settings.at("Snowflakes_Max").c_str(), nullptr, 10) * 5) + // max 20 in V3 / 100 in xLights
+                   ",E_SLIDER_Snowflakes_Speed=" + std::to_string((int)std::lround(speed * 2.5)) + // max 50
                    ",E_SLIDER_Snowflakes_Type=" + settings.at("Snowflakes_Type");
         } else if (nc == "Snowstorm") {
             res += ",E_SLIDER_Snowstorm_Count=" + settings.at("Snowstorm_MaxFlakes") +
                    ",E_SLIDER_Snowstorm_Length=" + settings.at("Snowstorm_TrailLength") +
-                   ",E_SLIDER_Snowstorm_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+                   ",E_SLIDER_Snowstorm_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Spirals") {
             res += ",E_CHECKBOX_Spirals_3D=" + BoolToIntStr(settings.at("Spirals_3D")) +
                    ",E_CHECKBOX_Spirals_Blend=" + BoolToIntStr(settings.at("Spirals_Blend")) +
@@ -317,9 +319,9 @@ std::string VixenEffect::GetSettings() const
             res += ",E_SLIDER_Spirograph_R=" + settings.at("Spirograph_ROuter") +
                    ",E_SLIDER_Spirograph_d=" + settings.at("Spirograph_Distance") +
                    ",E_SLIDER_Spirograph_r=" + settings.at("Spirograph_RInner") +
-                   ",E_TEXTCTRL_Spirograph_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+                   ",E_TEXTCTRL_Spirograph_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Text") {
-            int i = wxAtoi(settings.at("Picture_Direction"));
+            int i = (int)std::strtol(settings.at("Picture_Direction").c_str(), nullptr, 10);
             std::string dir = "left";
             if (i == 1) dir = "right";
             else if (i == 2) dir = "up";
@@ -328,10 +330,10 @@ std::string VixenEffect::GetSettings() const
             res += ",E_CHECKBOX_TextToCenter=" + BoolToIntStr(settings.at("Text_CenterStop")) +
                    ",E_CHOICE_Text_Dir=" + dir +
                    ",E_TEXTCTRL_Text=" + settings.at("Text_Line1") + "\n" + settings.at("Text_Line2") + "\n" + settings.at("Text_Line3") + "\n" + settings.at("Text_Line4") +
-                   ",E_TEXTCTRL_Text_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+                   ",E_TEXTCTRL_Text_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Tree") {
             res += ",E_SLIDER_Tree_Branches=" + settings.at("Tree_Branches") +
-                   ",E_SLIDER_Tree_Speed=" + wxString::Format("%d", wxRound(speed * 2.5)); // max 50
+                   ",E_SLIDER_Tree_Speed=" + std::to_string((int)std::lround(speed * 2.5)); // max 50
         } else if (nc == "Twinkles") {
             res += ",E_CHECKBOX_Twinkle_Strobe=1" + BoolToIntStr(settings.at("Twinkles_Strobe")) +
                    ",E_CHOICE_Twinkle_Style=Old Render Method" +
@@ -345,7 +347,7 @@ std::string VixenEffect::GetSettings() const
 
 std::string VixenEffect::GetXLightsType() const
 {
-    
+
 
     if (type == "AlternatingData") return "Marquee";
     if (type == "BarsData") return "Bars";
@@ -419,7 +421,7 @@ std::string VixenEffect::GetXLightsType() const
     if (type == "WaveData") return "Wave";
     if (type == "WipeData") return "Single Strand";
 
-    spdlog::warn("Vixen3: Unknown effect {} ... inserting an off effect.", (const char*)type.c_str());
+    spdlog::warn("Vixen3: Unknown effect {} ... inserting an off effect.", type);
 
     return "Off";
 }
@@ -441,7 +443,7 @@ void Vixen3::ProcessNode(pugi::xml_node n, std::map<std::string, std::string>& m
 
 Vixen3::Vixen3(const std::string& filename, const std::string& system)
 {
-    
+
 
     _filename = filename;
     _systemFile = system;
@@ -449,21 +451,20 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
     _systemFound = true;
     if (system == "" || !FileExists(_systemFile))
     {
-        wxFileName seq(_filename);
-        _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-        spdlog::debug("Looking for Vixen SystemConfig in {}", (const char*)_systemFile.c_str());
+        std::filesystem::path seqPath = std::filesystem::path(_filename).parent_path();
+        _systemFile = (seqPath / "SystemConfig.xml").string();
+        spdlog::debug("Looking for Vixen SystemConfig in {}", _systemFile);
 
         if (!FileExists(_systemFile))
         {
-            _systemFile = seq.GetPath() + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-            spdlog::debug("Looking for Vixen SystemConfig in {}", (const char*)_systemFile.c_str());
+            _systemFile = (seqPath / "SystemData" / "SystemConfig.xml").string();
+            spdlog::debug("Looking for Vixen SystemConfig in {}", _systemFile);
         }
 
         if (!FileExists(_systemFile))
         {
-            int lastFolder = seq.GetPath().Last(wxFileName::GetPathSeparator());
-            _systemFile = seq.GetPath().Left(lastFolder) + wxFileName::GetPathSeparator() + "SystemData" + wxFileName::GetPathSeparator() + "SystemConfig.xml";
-            spdlog::debug("Looking for Vixen SystemConfig in {}", (const char*)_systemFile.c_str());
+            _systemFile = (seqPath.parent_path() / "SystemData" / "SystemConfig.xml").string();
+            spdlog::debug("Looking for Vixen SystemConfig in {}", _systemFile);
         }
 
         if (!FileExists(_systemFile))
@@ -531,21 +532,21 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                     {
                                         if (std::string_view(nnnnn.name()) == "d3p1:duration")
                                         {
-                                            auto markTime = wxString(nnnnn.text().get());
-                                            if (markTime.StartsWith("PT"))
+                                            std::string markTime = nnnnn.text().get();
+                                            if (StartsWith(markTime, "PT"))
                                             {
-                                                markTime = markTime.AfterFirst('T');
+                                                markTime = AfterFirst(markTime, 'T');
                                             }
                                             float mins = 0;
-                                            if (markTime.Contains('M'))
+                                            if (Contains(markTime, "M"))
                                             {
-                                                mins = wxAtof(markTime.BeforeFirst('M'));
-                                                markTime = markTime.AfterFirst('M');
+                                                mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
+                                                markTime = AfterFirst(markTime, 'M');
                                             }
                                             float secs = 0;
-                                            if (markTime.EndsWith("S"))
+                                            if (EndsWith(markTime, "S"))
                                             {
-                                                secs = wxAtof(markTime.BeforeLast('S'));
+                                                secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
                                             }
                                             float mt = mins * 60.0 + secs;
                                             timing.push_back(VixenTiming(last, mt, ""));
@@ -593,48 +594,48 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             {
                                                 if (std::string_view(nnnnnn.name()) == "d2p1:StartTime")
                                                 {
-                                                    wxString markTime = nnnnnn.text().get();
-                                                    if (markTime.StartsWith("PT"))
+                                                    std::string markTime = nnnnnn.text().get();
+                                                    if (StartsWith(markTime, "PT"))
                                                     {
-                                                        markTime = markTime.AfterFirst('T');
+                                                        markTime = AfterFirst(markTime, 'T');
                                                     }
 
                                                     float mins = 0;
-                                                    if (markTime.Contains("M"))
+                                                    if (Contains(markTime, "M"))
                                                     {
-                                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                                        markTime = markTime.AfterFirst('M');
+                                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
+                                                        markTime = AfterFirst(markTime, 'M');
                                                     }
 
                                                     float secs = 0;
-                                                    if (markTime.EndsWith("S"))
+                                                    if (EndsWith(markTime, "S"))
                                                     {
-                                                        markTime = markTime.BeforeLast('S');
-                                                        secs = wxAtof(markTime);
+                                                        markTime = BeforeLast(markTime, 'S');
+                                                        secs = std::strtod(markTime.c_str(), nullptr);
                                                     }
 
                                                     end = mins * 60 + secs;
                                                 }
                                                 else if (std::string_view(nnnnnn.name()) == "d2p1:Duration")
                                                 {
-                                                    wxString markTime = nnnnnn.text().get();
-                                                    if (markTime.StartsWith("PT"))
+                                                    std::string markTime = nnnnnn.text().get();
+                                                    if (StartsWith(markTime, "PT"))
                                                     {
-                                                        markTime = markTime.AfterFirst('T');
+                                                        markTime = AfterFirst(markTime, 'T');
                                                     }
 
                                                     float mins = 0;
-                                                    if (markTime.Contains("M"))
+                                                    if (Contains(markTime, "M"))
                                                     {
-                                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                                        markTime = markTime.AfterFirst('M');
+                                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
+                                                        markTime = AfterFirst(markTime, 'M');
                                                     }
 
                                                     float secs = 0;
-                                                    if (markTime.EndsWith("S"))
+                                                    if (EndsWith(markTime, "S"))
                                                     {
-                                                        markTime = markTime.BeforeLast('S');
-                                                        secs = wxAtof(markTime);
+                                                        markTime = BeforeLast(markTime, 'S');
+                                                        secs = std::strtod(markTime.c_str(), nullptr);
                                                     }
 
                                                     duration = mins * 60 + secs;
@@ -651,10 +652,6 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                 {
                                                     timing.push_back(VixenTiming(last, end, ""));
                                                     last = end;
-                                                }
-                                                else
-                                                {
-                                                    //wxASSERT(false);
                                                 }
                                             }
                                             else
@@ -673,14 +670,6 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                         timing.push_back(VixenTiming(s, e, label));
                                                         last = e;
                                                     }
-                                                    else
-                                                    {
-                                                        //wxASSERT(false);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    //wxASSERT(false);
                                                 }
                                             }
                                         }
@@ -690,7 +679,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
 
                             if (name == "")
                             {
-                                name = wxString::Format("Unnamed %d", unnamed++).ToStdString();
+                                name = "Unnamed " + std::to_string(unnamed++);
                             }
                             _timingData[name] = timing;
                             _timingType[name] = type;
@@ -715,41 +704,41 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                 }
                                 else if (std::string_view(nnnn.name()) == "StartTime")
                                 {
-                                    wxString markTime = nnnn.text().get();
-                                    if (markTime.StartsWith("PT"))
+                                    std::string markTime = nnnn.text().get();
+                                    if (StartsWith(markTime, "PT"))
                                     {
-                                        markTime = markTime.AfterFirst('T');
+                                        markTime = AfterFirst(markTime, 'T');
                                     }
                                     float mins = 0;
-                                    if (markTime.Contains('M'))
+                                    if (Contains(markTime, "M"))
                                     {
-                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                        markTime = markTime.AfterFirst('M');
+                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
+                                        markTime = AfterFirst(markTime, 'M');
                                     }
                                     float secs = 0;
-                                    if (markTime.EndsWith("S"))
+                                    if (EndsWith(markTime, "S"))
                                     {
-                                        secs = wxAtof(markTime.BeforeLast('S'));
+                                        secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
                                     }
                                     start = mins * 60.0 + secs;
                                 }
                                 else if (std::string_view(nnnn.name()) == "TimeSpan")
                                 {
-                                    wxString markTime = nnnn.text().get();
-                                    if (markTime.StartsWith("PT"))
+                                    std::string markTime = nnnn.text().get();
+                                    if (StartsWith(markTime, "PT"))
                                     {
-                                        markTime = markTime.AfterFirst('T');
+                                        markTime = AfterFirst(markTime, 'T');
                                     }
                                     float mins = 0;
-                                    if (markTime.Contains('M'))
+                                    if (Contains(markTime, "M"))
                                     {
-                                        mins = wxAtof(markTime.BeforeFirst('M'));
-                                        markTime = markTime.AfterFirst('M');
+                                        mins = std::strtod(BeforeFirst(markTime, 'M').c_str(), nullptr);
+                                        markTime = AfterFirst(markTime, 'M');
                                     }
                                     float secs = 0;
-                                    if (markTime.EndsWith("S"))
+                                    if (EndsWith(markTime, "S"))
                                     {
-                                        secs = wxAtof(markTime.BeforeLast('S'));
+                                        secs = std::strtod(BeforeLast(markTime, 'S').c_str(), nullptr);
                                     }
                                     duration = mins * 60.0 + secs;
                                 }
@@ -780,8 +769,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             }
                             else
                             {
-                                spdlog::warn("Vixen3: model not found for effect. {}", (const char*)modelId.c_str());
-                                wxASSERT(false);
+                                spdlog::warn("Vixen3: model not found for effect. {}", modelId);
                             }
                         }
                     }
@@ -820,35 +808,35 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
             auto es = effectSettings.find(e->effectSettingsId);
             if (es != effectSettings.end())
             {
-                wxString colorHandling;
+                std::string colorHandling;
                 std::vector<std::vector<VixenColor>> palleteStatic;
                 std::vector<std::vector<VixenColor>> palleteDefault;
-                
-                e->type = wxString(es->second.attribute("i:type").as_string()).AfterFirst(':').ToStdString();
+
+                e->type = AfterFirst(es->second.attribute("i:type").as_string(), ':');
                 for (pugi::xml_node n = es->second.first_child(); n; n = n.next_sibling())
                 {
-                    wxString nName(n.name());
+                    std::string nName = n.name();
                     if (nName == "TargetPositioning" && n.first_child()) {
                         e->settings[std::string(n.name())] = n.text().get();
-                    } else if (nName.StartsWith("d2p1:") && n.first_child()) {
-                        wxString nm = nName.AfterFirst(':');
+                    } else if (StartsWith(nName, "d2p1:") && n.first_child()) {
+                        std::string nm = AfterFirst(nName, ':');
 
                         if (nm == "NutcrackerData") {
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nn.first_child()) {
                                     // Process color palette
                                     if (nm2 == "Palette") {
                                         std::vector<int> knownColor;
                                         for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
-                                            wxString nm3 = wxString(nnn.name()).AfterFirst(':');
+                                            std::string nm3 = AfterFirst(nnn.name(), ':');
                                             if (nnn.first_child()) {
                                                 if (nm3 == "_colors") {
                                                     for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
-                                                        wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
+                                                        std::string nm4 = AfterFirst(nnnn.name(), ':');
                                                         if (nm4 == "Color") {
                                                             for (pugi::xml_node nnnnn = nnnn.first_child(); nnnnn; nnnnn = nnnnn.next_sibling()) {
-                                                                wxString nm5 = wxString(nnnnn.name()).AfterFirst(':');
+                                                                std::string nm5 = AfterFirst(nnnnn.name(), ':');
                                                                 if (nm5 == "knownColor") {
                                                                     // Finally, got the color
                                                                     knownColor.push_back(nnnnn.text().as_int());
@@ -859,14 +847,14 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                 } else if (nm3 == "_colorsActive") {
                                                     auto index = 0;
                                                     for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
-                                                        wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
+                                                        std::string nm4 = AfterFirst(nnnn.name(), ':');
                                                         if (nm4 == "boolean") {
                                                             if (std::string_view(nnnn.text().get()) == "true") {
                                                                 uint32_t argb = VixenEffect::KNOWN_COLOR[knownColor.at(index)];
                                                                 char r = (argb & 0x00FF0000) >> 16;
                                                                 char g = (argb & 0x0000FF00) >> 8;
                                                                 char b = (argb & 0x000000FF);
-                                                                palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                                                palleteDefault.push_back({ VixenColor(xlColor((uint8_t)r, (uint8_t)g, (uint8_t)b), 0) });
                                                             }
                                                         }
                                                         index++;
@@ -875,12 +863,12 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                             }
                                         }
                                     } else {
-                                        e->settings[nm2.ToStdString()] = nn.text().get();
+                                        e->settings[nm2] = nn.text().get();
                                     }
                                 }
                             }
                         } else {
-                            e->settings[nm.ToStdString()] = n.text().get();
+                            e->settings[nm] = n.text().get();
                         }
 
                         // Color for SetLevel
@@ -889,18 +877,18 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                             int g = 0;
                             int b = 0;
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "_r") {
-                                    r = 255.0 * wxAtof(nn.text().get());
+                                    r = 255.0 * std::strtod(nn.text().get(), nullptr);
                                 }
                                 else if (nm2 == "_g") {
-                                    g = 255.0 * wxAtof(nn.text().get());
+                                    g = 255.0 * std::strtod(nn.text().get(), nullptr);
                                 }
                                 else if (nm2 == "_b") {
-                                    b = 255.0 * wxAtof(nn.text().get());
+                                    b = 255.0 * std::strtod(nn.text().get(), nullptr);
                                 }
                             }
-                            palleteDefault.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                            palleteDefault.push_back({ VixenColor(xlColor((uint8_t)r, (uint8_t)g, (uint8_t)b), 0) });
                         }
 
                         // ColorHandling known values:
@@ -917,7 +905,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // MeterColorGradient: VetricalMeter VUMeter Waveform
                         else if (nm == "ColorGradient" || nm == "Gradient" || nm == "HeadColor" || nm == "FillColor" || nm == "MeterColorGradient") {
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "_colors") {
                                     palleteDefault.push_back(ProcessColorData(nn));
                                 }
@@ -932,17 +920,17 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // ColorGradients->ColorGradient:            Fireworks
                         else if (nm == "Colors" || nm == "GradientColors" || nm == "ColorGradients") {
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "_colors") {
                                     palleteDefault.push_back(ProcessColorData(nn));
                                 } else if (nm2 == "ColorGradient" || nm2 == "GradientLevelPair") {
                                     for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
-                                        wxString nm3 = wxString(nnn.name()).AfterFirst(':');
+                                        std::string nm3 = AfterFirst(nnn.name(), ':');
                                         if (nm3 == "_colors") {
                                             palleteDefault.push_back(ProcessColorData(nnn));
                                         } else if (nm3 == "ColorGradient") {
                                             for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
-                                                wxString nm4 = wxString(nnnn.name()).AfterFirst(':');
+                                                std::string nm4 = AfterFirst(nnnn.name(), ':');
                                                 if (nm4 == "_colors") {
                                                     palleteDefault.push_back(ProcessColorData(nnnn));
                                                 }
@@ -957,14 +945,14 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // Twinkle
                         else if (nm == "StaticColor") {
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "value") {
                                     unsigned long argb;
-                                    wxString(nn.text().get()).ToULong(&argb);
+                                    argb = std::strtoul(nn.text().get(), nullptr, 10);
                                     char r = (argb & 0x00FF0000) >> 16;
                                     char g = (argb & 0x0000FF00) >> 8;
                                     char b = (argb & 0x000000FF);
-                                    palleteStatic.push_back({ VixenColor(wxColor(r, g, b), 0) });
+                                    palleteStatic.push_back({ VixenColor(xlColor((uint8_t)r, (uint8_t)g, (uint8_t)b), 0) });
                                 }
                             }
                         }
@@ -972,10 +960,10 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                         // Brightness curve
                         else if (nm == "LevelCurve") {
                             for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-                                wxString nm2 = wxString(nn.name()).AfterFirst(':');
+                                std::string nm2 = AfterFirst(nn.name(), ':');
                                 if (nm2 == "Points") {
                                     for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
-                                        wxString nm3 = wxString(nnn.name()).AfterFirst(':');
+                                        std::string nm3 = AfterFirst(nnn.name(), ':');
                                         if (nm3 == "PointPair") {
                                             double x = 0;
                                             double y = 0;
@@ -987,7 +975,7 @@ Vixen3::Vixen3(const std::string& filename, const std::string& system)
                                                     y = nnnn.text().as_int();
                                                 }
                                             }
-                                            e->levelCurve.push_back(wxRealPoint(x, y));
+                                            e->levelCurve.push_back(VixenPoint(x, y));
                                         }
                                     }
                                 }
@@ -1010,7 +998,7 @@ std::vector<VixenColor> Vixen3::ProcessColorData(pugi::xml_node n)
     std::vector<VixenColor> vColor;
 
     for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
-        wxString nm3 = wxString(nn.name()).AfterFirst(':');
+        std::string nm3 = AfterFirst(nn.name(), ':');
         if (nm3 == "ColorPoint") {
             double x = 0;
             double y = 0;
@@ -1018,20 +1006,20 @@ std::vector<VixenColor> Vixen3::ProcessColorData(pugi::xml_node n)
             double position = 0;
 
             for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
-                wxString nm4 = wxString(nnn.name()).AfterFirst(':');
+                std::string nm4 = AfterFirst(nnn.name(), ':');
                 if (nm4 == "_color") {
                     for (pugi::xml_node nnnn = nnn.first_child(); nnnn; nnnn = nnnn.next_sibling()) {
-                        wxString nm5 = wxString(nnnn.name()).AfterFirst(':');
+                        std::string nm5 = AfterFirst(nnnn.name(), ':');
                         if (nm5 == "_x") {
-                            x = wxAtof(nnnn.text().get());
+                            x = std::strtod(nnnn.text().get(), nullptr);
                         } else if (nm5 == "_y") {
-                            y = wxAtof(nnnn.text().get());
+                            y = std::strtod(nnnn.text().get(), nullptr);
                         } else if (nm5 == "_z") {
-                            z = wxAtof(nnnn.text().get());
+                            z = std::strtod(nnnn.text().get(), nullptr);
                         }
                     }
                 } else if (nm4 == "_position") {
-                    position = wxAtof(nnn.text().get());
+                    position = std::strtod(nnn.text().get(), nullptr);
                 }
             }
             vColor.push_back(VixenColor(ConvertXYZToColour(x, y, z), position));
@@ -1090,7 +1078,7 @@ std::list<VixenTiming> Vixen3::GetTimings(const std::string& timing) const
     {
         return _timingData.at(timing);
     }
-    
+
     std::list<VixenTiming> empty;
     return empty;
 }
@@ -1101,7 +1089,7 @@ std::list<VixenEffect> Vixen3::GetEffects(const std::string& model) const
     {
         return _effectData.at(model);
     }
-    
+
     std::list<VixenEffect> empty;
     return empty;
 }

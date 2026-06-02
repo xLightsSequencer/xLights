@@ -69,6 +69,15 @@ public:
     const std::string& GetXLightsVersion() const { return _xLightsVersion; }
     void SetXLightsVersion(const std::string& ver) { _xLightsVersion = ver; }
 
+    // Number of grid rows this preset spans (CopyFormat1 row range).
+    // Mirrors EffectTreeDialog::ParseLayers. Returns 0 for an empty /
+    // unparseable settings blob.
+    int GetLayerCount() const;
+    // Total duration (ms) the preset's effects cover (max end - min
+    // start). Mirrors EffectTreeDialog::ParseDuration. Returns 0 for an
+    // empty / unparseable settings blob.
+    int GetDurationMS() const;
+
 private:
     std::string _settings;
     std::string _version;

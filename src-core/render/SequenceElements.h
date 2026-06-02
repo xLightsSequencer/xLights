@@ -161,6 +161,7 @@ public:
     std::string GetViewName(int view) const;
 
     void SetViewsManager(SequenceViewManager* viewsManager);
+    SequenceViewManager* GetViewsManager() const { return _viewsManager; }
     std::string GetViewModels(const std::string &viewName) const;
 
     void SortElements();

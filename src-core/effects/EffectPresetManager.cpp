@@ -9,31 +9,58 @@
  **************************************************************/
 
 #include "effects/EffectPresetManager.h"
-#include "UtilFunctions.h"
-#include "shared/utils/wxUtilities.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/BaseSerializingVisitor.h"
 
-#include <wx/tokenzr.h>
-#include <wx/filename.h>
+#include <spdlog/fmt/fmt.h>
 
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <list>
 
-// Local helper — strips forbidden filename characters from a name.
-// Mirrors EffectTreeDialog::FixName; will be unified in a later step.
-static bool FixPresetName(std::string& name)
+namespace {
+// Characters wxWidgets forbids in Windows filenames (wxPATH_WIN). Kept as a
+// literal so the core stays wx-free while preserving cross-platform parity
+// with the desktop name fixup this manager replaced.
+constexpr const char* kForbiddenFilenameChars = "/\\?*:|\"<>";
+
+// Strips forbidden filename characters from a name. Returns true if the name
+// changed. Mirrors the old EffectTreeDialog::FixName behaviour.
+bool FixPresetName(std::string& name)
 {
-    std::string forbiddenChars = wxFileName::GetForbiddenChars(wxPATH_WIN).ToStdString();
-    wxString wxName(name);
-    for (const auto& ch : forbiddenChars) {
-        wxName.Replace(wxString(ch), wxEmptyString);
+    std::string cleaned;
+    cleaned.reserve(name.size());
+    for (char ch : name) {
+        if (std::strchr(kForbiddenFilenameChars, ch) == nullptr) {
+            cleaned.push_back(ch);
+        }
     }
-    bool changed = (wxName != name);
-    name = wxName.ToStdString();
+    bool changed = (cleaned != name);
+    name = std::move(cleaned);
     return changed;
 }
+
+// Split `s` on `separator`. The preset paths fed to FindItemByPath use no
+// escaping, so a plain split matches the wxSplit behaviour previously relied
+// upon.
+std::vector<std::string> SplitString(const std::string& s, char separator)
+{
+    std::vector<std::string> parts;
+    std::string current;
+    for (char ch : s) {
+        if (ch == separator) {
+            parts.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(ch);
+        }
+    }
+    parts.push_back(current);
+    return parts;
+}
+} // namespace
 
 // ===========================================================================
 // EffectPreset
@@ -76,6 +103,105 @@ nlohmann::json EffectPreset::ToJson() const
         {"version", _version},
         {"xLightsVersion", _xLightsVersion}
     };
+}
+
+namespace {
+int ToInt(const std::string& s)
+{
+    return (int)std::strtol(s.c_str(), nullptr, 10);
+}
+} // namespace
+
+// Ported from EffectTreeDialog::ParseLayers. The "AC" variant is not
+// represented separately here — iPad/desktop callers that want the
+// "N - AC" label can reconstruct it; this returns the raw row count.
+int EffectPreset::GetLayerCount() const
+{
+    if (_settings.empty())
+        return 0;
+
+    if (_settings.find('\t') != std::string::npos) {
+        int start = 9999;
+        int end = -1;
+        bool cf1 = false;
+
+        for (const std::string& line : SplitString(_settings, '\n')) {
+            std::vector<std::string> efdata = SplitString(line, '\t');
+            if (efdata.empty())
+                continue;
+            if (efdata[0] == "CopyFormat1") {
+                cf1 = true;
+            } else if (efdata[0] == "CopyFormatAC") {
+                if (efdata.size() > 8) {
+                    start = ToInt(efdata[7]);
+                    end = ToInt(efdata[8]);
+                }
+                break;
+            } else {
+                if (cf1 && efdata.size() > 5 && efdata[0] != "None") {
+                    int row = ToInt(efdata[5]);
+                    if (row < start) start = row;
+                    if (row > end) end = row;
+                } else if (!cf1 && efdata.size() > 2 && efdata[0] != "None") {
+                    int row = ToInt(efdata[efdata.size() - 2]);
+                    if (row < start) start = row;
+                    if (row > end) end = row;
+                }
+            }
+        }
+        return (end != -1) ? (end - start + 1) : 0;
+    }
+
+    // effect1,effect2,blend,settings ...
+    std::vector<std::string> efdata = SplitString(_settings, ',');
+    if (efdata.size() < 2)
+        return 0;
+    int res = 0;
+    if (efdata[0] != "None") res++;
+    if (efdata[1] != "None") res++;
+    return res;
+}
+
+// Ported from EffectTreeDialog::ParseDuration.
+int EffectPreset::GetDurationMS() const
+{
+    if (_settings.empty())
+        return 0;
+
+    int minstart = 99999999;
+    int maxend = -99999999;
+
+    if (_settings.find('\t') != std::string::npos) {
+        for (const std::string& line : SplitString(_settings, '\n')) {
+            std::vector<std::string> efdata = SplitString(line, '\t');
+            if (efdata.empty())
+                continue;
+            if (efdata[0] == "CopyFormat1") {
+                // nothing to do
+            } else if (efdata.size() > 10 && efdata[0] == "CopyFormatAC") {
+                int start = ToInt(efdata[9]);
+                int end = ToInt(efdata[10]);
+                minstart = std::min(start, minstart);
+                maxend = std::max(end, maxend);
+                break;
+            } else if (efdata.size() > 4 && efdata[0] != "None") {
+                int start = ToInt(efdata[3]);
+                int end = ToInt(efdata[4]);
+                minstart = std::min(start, minstart);
+                maxend = std::max(end, maxend);
+            }
+        }
+    } else {
+        std::vector<std::string> efdata = SplitString(_settings, ',');
+        if (efdata.size() < 5)
+            return 0;
+        minstart = ToInt(efdata[3]);
+        maxend = ToInt(efdata[4]);
+    }
+
+    if (minstart == 99999999)
+        return 0;
+    return maxend - minstart;
 }
 
 // ===========================================================================
@@ -353,13 +479,13 @@ void EffectPresetManager::CollectPresetPaths(const EffectPresetGroup& group,
 EffectPresetItem* EffectPresetManager::FindItemByPath(const std::string& path,
                                                        char separator) const
 {
-    wxArrayString parts = wxSplit(path, separator);
+    std::vector<std::string> parts = SplitString(path, separator);
     if (parts.empty())
         return nullptr;
 
     const EffectPresetGroup* current = &_root;
     for (size_t i = 0; i < parts.size(); ++i) {
-        std::string partName = parts[i].ToStdString();
+        const std::string& partName = parts[i];
         EffectPresetItem* found = current->FindChildByName(partName);
         if (found == nullptr)
             return nullptr;
@@ -503,7 +629,7 @@ bool EffectPresetManager::FixGroupNames(EffectPresetGroup& group)
             children.push_back(std::make_pair(name, 0));
         } else {
             int childUniqueIdx = existingItem->second + 1;
-            std::string newName = wxString::Format("%s %d", name, childUniqueIdx).ToStdString();
+            std::string newName = fmt::format("{} {}", name, childUniqueIdx);
             child->SetName(newName);
             existingItem->second = childUniqueIdx;
             anyFixed = true;
