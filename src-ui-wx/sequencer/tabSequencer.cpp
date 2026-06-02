@@ -3179,6 +3179,14 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
+    // CloseSequence() runs on paths (e.g. show-folder setup) that fire before
+    // the sequencer tab is built, leaving these panel pointers null. Calling
+    // through a null EffectsPanel1 faults inside SetDefaultEffectValues (its
+    // own guard can't help once 'this' is null) — guard at the call site, as
+    // the rest of CloseSequence() already does for its panels.
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr || bufferPanel == nullptr || colorPanel == nullptr) {
+        return;
+    }
     EffectsPanel1->SetDefaultEffectValues(); // set ALL the panel defaults
     
     // Now do the explicits to set to what we want for the default state

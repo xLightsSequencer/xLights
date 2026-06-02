@@ -14,6 +14,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.11  June ??, 2026
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
+                                 (div-by-zero produced NaN paint coordinates).
+    -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
+                                 fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
