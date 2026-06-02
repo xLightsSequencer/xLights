@@ -10,8 +10,9 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-
 2026.11  June ??, 2026
+    -enh (heffneil)              Layout model tree shows a padlock indicator next to locked models so you
+                                 can see which models are protected from edits at a glance.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
 2026.10  May 31, 2026

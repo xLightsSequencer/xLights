@@ -204,7 +204,8 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(BoxedScreenLocation& loc,
     else if ("Locked" == name) {
         loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                        OutputModelManager::WORK_RELOAD_PROPERTYGRID, "BoxedScreenLocation::OnPropertyGridChange::Locked");
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "BoxedScreenLocation::OnPropertyGridChange::Locked");
         return 0;
     }
     return 0;
@@ -375,7 +376,8 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(TwoPointScreenLocation& l
     else if ("Locked" == name) {
         loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                        OutputModelManager::WORK_RELOAD_PROPERTYGRID, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "TwoPointScreenLocation::OnPropertyGridChange::Locked");
         return 0;
     }
     return 0;
@@ -610,7 +612,8 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
     else if ("Locked" == name) {
         loc.SetLocked(event.GetValue().GetBool());
         loc.AddASAPWork(OutputModelManager::WORK_VISUAL_CHANGE |
-                        OutputModelManager::WORK_RELOAD_PROPERTYGRID, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
+                        OutputModelManager::WORK_RELOAD_PROPERTYGRID |
+                        OutputModelManager::WORK_RELOAD_MODELLIST, "PolyPointScreenLocation::OnPropertyGridChange::Locked");
         return 0;
     }
     return 0;

@@ -1665,14 +1665,17 @@ void LayoutPanel::refreshObjectList() {
 std::string LayoutPanel::TreeModelName(const Model* model, bool fullname)
 {
     std::string name = fullname ? model->GetFullName() : model->name;
-    if (model->IsActive())
-    {
-        return name;
+    if (!model->IsActive()) {
+        name = "<" + name + ">";
     }
-    else
-    {
-        return "<" + name + ">";
+    // Show a padlock next to locked models (skip groups/submodels — they
+    // don't have a meaningful per-instance lock on the layout).
+    if (model->GetDisplayAs() != DisplayAsType::ModelGroup &&
+        model->GetDisplayAs() != DisplayAsType::SubModel &&
+        model->GetBaseObjectScreenLocation().IsLocked()) {
+        name += " \xF0\x9F\x94\x92"; // U+1F512 LOCK
     }
+    return name;
 }
 
 void LayoutPanel::FreezeTreeListView() {
