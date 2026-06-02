@@ -3138,7 +3138,11 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         // Only the Default layout group owns view objects (desktop hard-
         // codes their layout_group to "Default"); named groups skip the
         // loop entirely. Also gated on the "View Objects" toggle.
-        if (_showViewObjects && ctx->ActivePreviewShowsViewObjects()) {
+        // HasViewObjectManager: GetAllObjects() dereferences the _viewObjectManager
+        // unique_ptr (J-7), which is null until LoadShowFolder runs — this draw can
+        // fire on launch before a folder is restored. Every other GetViewObject call
+        // site already guards; this one didn't, hence the crash here.
+        if (_showViewObjects && ctx->ActivePreviewShowsViewObjects() && ctx->HasViewObjectManager()) {
             auto& allObjects = ctx->GetAllObjects();
             for (auto it = allObjects.begin(); it != allObjects.end(); ++it) {
                 ViewObject* vo = it->second;

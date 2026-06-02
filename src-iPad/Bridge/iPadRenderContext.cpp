@@ -1597,7 +1597,11 @@ std::string CopyIntoRoot(const std::string& file,
 
     namespace fs = std::filesystem;
     fs::path src(file);
-    if (!fs::exists(src)) return "";
+    // Use the error_code fs::exists overloads throughout: the throwing overload
+    // can raise filesystem_error on iOS sandbox/permission edge cases, and the
+    // app has no handler, so it terminates (per CLAUDE.md filesystem guidance).
+    std::error_code existsEc;
+    if (!fs::exists(src, existsEc) || existsEc) return "";
 
     // Normalise subdir: strip leading separator. Desktop's callers
     // pass both "/Images" and "Images"; the trailing concat either way
@@ -1626,12 +1630,13 @@ std::string CopyIntoRoot(const std::string& file,
         std::string stem = src.stem().string();
         std::string ext  = src.extension().string();
         int n = 1;
-        while (fs::exists(target) && !FilesMatchBytes(src, target)) {
+        std::error_code targetEc;
+        while (fs::exists(target, targetEc) && !FilesMatchBytes(src, target)) {
             target = dir / (stem + "_" + std::to_string(n++) + ext);
         }
     }
 
-    if (!fs::exists(target)) {
+    if (!fs::exists(target, ec)) {
         fs::copy_file(src, target, fs::copy_options::none, ec);
         if (ec) {
             spdlog::error("iPadRenderContext: Copy {} -> {} failed: {}",

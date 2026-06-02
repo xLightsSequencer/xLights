@@ -77,6 +77,27 @@ All entries below are **build-verified** (`xLights-iPadLib` + the `xLights-iPad`
 app); on-device verification is the standing follow-up. Detail lives in the
 matching `plans/ipad-parity/` theme doc.
 
+- **Crash fix: throwing `fs::exists` in media relocation (2026.10).** Active
+  2026.10 bucket (`f7172bc3e2`, build 2403286). `CopyIntoRoot` (the shared
+  Move-to-Show / Copy-to-Media helper) called `fs::exists()` with the throwing
+  overload at three spots; on an iOS sandbox/permission edge case it raises
+  `filesystem_error`, which the app doesn't catch → `std::terminate`. Symbol
+  pinned via the build's dSYM + the `2026.10` git tag (line 1574 had drifted to
+  a `constexpr` on HEAD after a +99-line commit landed post-release). Switched
+  all three to the `std::error_code` overload, per CLAUDE.md's filesystem rule
+  and the `create_directories(dir, ec)` already in the same function.
+
+- **Crash fix: null view-object manager during layout draw.** Top active 2026.10
+  iPad crash bucket (`65ac1e1e74`, 3 reporters incl. the release build).
+  `XLMetalBridge drawModelsForDocument` called `ctx->GetAllObjects()` —
+  which dereferences the `_viewObjectManager` unique_ptr (J-7) — gated only on
+  `_showViewObjects && ActivePreviewShowsViewObjects()`. `_viewObjectManager` is
+  null until `LoadShowFolder` runs, so the layout/preview draw firing on launch
+  before a folder is restored faulted at `XLMetalBridge.mm:3143`. *Root cause:*
+  every other `_viewObjectManager` access (iPadRenderContext.cpp:1065/1098/1140/
+  1165) guards with `!_viewObjectManager`; this draw path didn't. Added
+  `&& ctx->HasViewObjectManager()` to the gate, matching the documented invariant.
+
 - **Render cache now defaults OFF, and is user-selectable (RC-1).** The shared
   `RenderCache` was running on iPad at its raw constructor default — `_enabled`
   is a `std::string`, the ctor does `_enabled = true` (a 1-char `'\x01'`), and
