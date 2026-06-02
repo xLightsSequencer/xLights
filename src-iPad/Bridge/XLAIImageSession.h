@@ -12,6 +12,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "XLAIServices.h"   // XLAIServiceProperty
+
 NS_ASSUME_NONNULL_BEGIN
 
 // One-shot image-generation session. Owns the underlying C++
@@ -44,6 +46,15 @@ NS_ASSUME_NONNULL_BEGIN
       completion:(void (^)(NSData* _Nullable pngData,
                            NSString* _Nullable error))completion
     NS_SWIFT_NAME(generate(_:completion:));
+
+// AI-1 — the image generator's tunable properties (e.g. the Style choice on
+// Apple Intelligence / Gemini), for rendering a SwiftUI picker. Empty when the
+// generator exposes none. `setStringProperty:value:` forwards a Choice/String
+// selection back to the generator (persisted by the backend's SetProperty).
+- (NSArray<XLAIServiceProperty*>*)imageProperties
+    NS_SWIFT_NAME(imageProperties());
+- (void)setStringProperty:(NSString*)propertyId value:(NSString*)value
+    NS_SWIFT_NAME(setStringProperty(_:value:));
 
 @end
 

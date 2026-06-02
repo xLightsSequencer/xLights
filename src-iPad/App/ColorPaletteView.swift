@@ -116,6 +116,16 @@ struct ColorPaletteView: View {
         } label: {
             Label("Copy Palette String", systemImage: "doc.on.doc")
         }
+        Divider()
+        Button { reversePalette() } label: {
+            Label("Reverse Colors", systemImage: "arrow.left.arrow.right")
+        }
+        Button { shiftPaletteLeft() } label: {
+            Label("Shift Left", systemImage: "arrow.left")
+        }
+        Button { shiftPaletteRight() } label: {
+            Label("Shift Right", systemImage: "arrow.right")
+        }
     }
 
     private func currentPaletteString() -> String {
@@ -133,6 +143,40 @@ struct ColorPaletteView: View {
             at: Int32(sel.effectIndex))
         // Kick the view-model's settings cache so SwiftUI redraws.
         viewModel.refreshSelectedEffectSettings()
+    }
+
+    // COL-3 — palette slot reorder (Reverse / Shift). Operates per-slot on the
+    // selected effect's C_BUTTON_/C_CHECKBOX_PaletteN settings, so it needs no
+    // palette-string parsing (which would be fragile with serialized
+    // ColorCurves). Each slot write is its own undo step.
+    private func paletteSlots() -> [(button: String, check: String)] {
+        (1...8).map { slot in
+            (viewModel.settingValue(forKey: "C_BUTTON_Palette\(slot)", defaultValue: ""),
+             viewModel.settingValue(forKey: "C_CHECKBOX_Palette\(slot)", defaultValue: ""))
+        }
+    }
+
+    private func writePaletteSlots(_ slots: [(button: String, check: String)]) {
+        for (i, s) in slots.enumerated() {
+            let slot = i + 1
+            viewModel.setSettingValue(s.button, forKey: "C_BUTTON_Palette\(slot)")
+            viewModel.setSettingValue(s.check, forKey: "C_CHECKBOX_Palette\(slot)")
+        }
+        viewModel.refreshSelectedEffectSettings()
+    }
+
+    private func reversePalette() { writePaletteSlots(Array(paletteSlots().reversed())) }
+
+    private func shiftPaletteLeft() {
+        var s = paletteSlots()
+        if s.count > 1 { s.append(s.removeFirst()) }
+        writePaletteSlots(s)
+    }
+
+    private func shiftPaletteRight() {
+        var s = paletteSlots()
+        if s.count > 1 { s.insert(s.removeLast(), at: 0) }
+        writePaletteSlots(s)
     }
 
     private struct SlotRef: Identifiable { let id: Int }

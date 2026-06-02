@@ -125,6 +125,11 @@ NS_ASSUME_NONNULL_BEGIN
 // checkpoint. Safe to call with no sequence open — no-op.
 - (void)clearUndoHistory;
 
+// TOOLS-1b — Purge Render Cache (Tools menu): drop all on-disk
+// render-cache items for the current sequence. Frees disk/iCloud
+// quota; the next render repopulates. No-op if no sequence is open.
+- (void)purgeRenderCache NS_SWIFT_NAME(purgeRenderCache());
+
 // Save to a new path (Save As / Export). `path` must end in `.xsq`;
 // the caller is responsible for obtaining security-scoped access
 // to the destination via `-obtainAccessToPath:…` before calling.
@@ -343,6 +348,8 @@ NS_ASSUME_NONNULL_BEGIN
 // reloadRows afterwards.
 - (void)collapseAllElements;
 - (void)expandAllElements;
+// SEQ-15: expand model elements that have effects (collapse the empty ones).
+- (void)expandElementsWithEffects;
 
 // B46: in-place rename of an effect layer's name (`EffectLayer::
 // SetLayerName`). Empty string clears the name. Returns NO if the
@@ -408,6 +415,39 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)importPapagayoTimingFromPath:(NSString*)path
     NS_SWIFT_NAME(importPapagayoTiming(fromPath:));
 
+// IE-1 additional timing-import formats. Each routes through the
+// matching `SequenceFile::Process*({path}, iPadRenderContext)` core
+// processor (already wx-free and shared with desktop) and follows the
+// same post-import "activate the newest track" behavior as the LOR /
+// Papagayo importers above. Each returns the number of tracks added
+// (0 on parse failure).
+- (int)importSRTFromPath:(NSString*)path
+    NS_SWIFT_NAME(importSRTTiming(fromPath:));
+- (int)importAudacityTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importAudacityTiming(fromPath:));
+- (int)importElevenLabsTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importElevenLabsTiming(fromPath:));
+- (int)importVixen3TimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importVixen3Timing(fromPath:));
+- (int)importLSPTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importLSPTiming(fromPath:));
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path
+    NS_SWIFT_NAME(importXLightsSequenceTiming(fromPath:));
+
+// Vixen3 (.tim) and xLights (.xsq/.xml) imports support per-track
+// selection. The …TrackNames query enumerates the importable timing
+// tracks (so the caller can present a multi-select sheet); the matching
+// import-with-selectedIndices then imports just those (empty = all).
+// The no-selection variants above delegate to these with an empty list.
+- (NSArray<NSString*>*)vixen3TimingTrackNamesFromPath:(NSString*)path
+    NS_SWIFT_NAME(vixen3TimingTrackNames(fromPath:));
+- (int)importVixen3TimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(importVixen3Timing(fromPath:selectedIndices:));
+- (NSArray<NSString*>*)xLightsTimingTrackNamesFromPath:(NSString*)path
+    NS_SWIFT_NAME(xLightsTimingTrackNames(fromPath:));
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(importXLightsSequenceTiming(fromPath:selectedIndices:));
+
 // B78 import lyrics: replace the target timing element's layers
 // with a single phrase layer populated from `phrases`. Each non-
 // empty phrase gets one mark spanning its slice of
@@ -431,6 +471,14 @@ NS_ASSUME_NONNULL_BEGIN
 // `path` before calling.
 - (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path
     NS_SWIFT_NAME(exportTimingTrack(atRow:toPath:));
+
+// TIM-3: multi-track export. Writes the timing tracks at the given row
+// indices into one `.xtiming` document using the `<timings>` wrapper
+// (each track a `<timing>` child) — mirrors desktop SelectTimingsDialog
+// multi-export. Non-timing / invalid rows are skipped. Returns YES if
+// at least one track was written.
+- (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path
+    NS_SWIFT_NAME(exportTimingTracks(atRows:toPath:));
 
 // B49: export the rendered channel data for the row's model as a
 // compressed FSEQ v2 `.eseq` sub-sequence — the format Falcon
@@ -824,6 +872,40 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)applyPaletteString:(NSString*)paletteString
                      toRow:(int)rowIndex
                    atIndex:(int)effectIndex;
+
+// SEQ-2 Color Replace. `usedColours…` returns the distinct colours
+// currently in use (desktop-serialised "#RRGGBB" strings) for the
+// "replace from" picker (mirrors `SequenceElements::GetUsedColours`).
+// `replaceColourFrom:to:selectedOnly:` rewrites every matching colour
+// across effect palettes and returns the number of effects changed
+// (`SequenceElements::ReplaceColours`). The replace records undo in
+// the CORE undo manager (separate from the iPad's Foundation undo), so
+// the Swift caller registers its own palette-snapshot undo.
+// NOTE: `selectedOnly` uses the CORE effect-Selected flags; the iPad
+// passes NO (whole sequence) because iPad selection isn't synced to
+// those flags yet.
+- (NSArray<NSString*>*)usedColoursSelectedOnly:(BOOL)selectedOnly
+    NS_SWIFT_NAME(usedColours(selectedOnly:));
+- (int)replaceColourFrom:(NSString*)fromColour
+                      to:(NSString*)toColour
+            selectedOnly:(BOOL)selectedOnly
+    NS_SWIFT_NAME(replaceColour(from:to:selectedOnly:));
+
+// SEQ-2 selected-scope variants. Because the iPad keeps selection in
+// Swift (not the core Effect Selected flags), these take the selected
+// (row, effectIndex) pairs and mirror them into the core flags only for
+// the duration of the op (sync-on-demand), clearing them afterward —
+// so a later whole-sequence op is never silently scoped. Safe: the grid
+// draws selection from the Swift set and SetSelected doesn't dirty the
+// document.
+- (NSArray<NSString*>*)usedColoursAtRows:(NSArray<NSNumber*>*)rows
+                            effectIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(usedColours(atRows:effectIndices:));
+- (int)replaceColourFrom:(NSString*)fromColour
+                      to:(NSString*)toColour
+                  atRows:(NSArray<NSNumber*>*)rows
+           effectIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(replaceColour(from:to:atRows:effectIndices:));
 
 // Value-curve preset load / save (G36 — C6). `.xvc` files are the
 // same XML format desktop reads/writes
@@ -1908,6 +1990,9 @@ NS_ASSUME_NONNULL_BEGIN
 // the count removed. Dirties the sequence when anything was
 // removed.
 - (int)removeUnusedMedia;
+// MED-5: forget a single media entry by its stored path/value (even if still
+// referenced — user re-sources or re-imports). Dirties the sequence.
+- (BOOL)removeMediaAtPath:(NSString*)path NS_SWIFT_NAME(removeMedia(atPath:));
 
 // Video compatibility check (G32 — C5). Wraps
 // `MediaCompatibility::CheckVideoFile`: returns nil when the
@@ -2539,6 +2624,10 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //                         configuring — the iPad sheet hides the Pixel
 //                         Hat/Cape toggle in that case.
 - (NSArray<NSDictionary*>*)discoverFPPInstances;
+// CTL-5 — discovery seeded with user-entered forced IPs/hostnames (broadcast
+// discovery still runs alongside). Empty array == plain broadcast discovery.
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs
+    NS_SWIFT_NAME(discoverFPPInstances(withForcedAddresses:));
 
 // Drop the internal `std::list<FPP*>` and free every instance. Call
 // when the FPP Connect sheet dismisses so the next open re-discovers
@@ -2668,6 +2757,97 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
               toFPPInstances:(NSArray<NSDictionary*>*)targets
                     progress:(nullable id<XLFPPUploadProgress>)progress
     NS_SWIFT_NAME(uploadFseq(_:toFPPInstances:progress:));
+
+// IE-15 — write the Models report workbook (Models / Groups /
+// Controllers / Totals sheets) to `path` as a .xlsx, using the
+// document's ModelManager + OutputManager. Mirrors the desktop
+// File > Export Models. Returns NO if the document has no models or
+// the workbook couldn't be written. Caller should hand `path` a
+// temp .xlsx URL and then share it.
+- (BOOL)exportModelsReportToPath:(NSString*)path
+    NS_SWIFT_NAME(exportModelsReport(toPath:));
+
+@end
+
+// MARK: - Effect preset library (PRE-1)
+//
+// Persistent, hierarchical effect-preset store backed by the shared
+// core EffectPresetManager owned by iPadRenderContext. Presets live in
+// `<showFolder>/xlights_effectpresets.json` (desktop format) so they
+// round-trip cross-platform. All mutating methods leave the in-memory
+// tree updated but DO NOT write to disk — call `savePresets` to
+// persist (the view model batches this after an undo-able op).
+@interface XLSequenceDocument (EffectPresets)
+
+// Pre-order flat snapshot of the preset tree. Each entry:
+//   "path"       — NSString, backslash-separated full path (the key
+//                  used by every other preset method).
+//   "isGroup"    — NSNumber(BOOL).
+//   "layerCount" — NSNumber(int), grid rows the preset spans (0 for groups).
+//   "durationMS" — NSNumber(int), total ms covered (0 for groups).
+- (NSArray<NSDictionary*>*)presetTree;
+
+// Capture the effects identified by parallel `rows` / `effectIndices`
+// arrays into a new preset named `name` under `groupPath` (empty =
+// root). Serializes to the desktop CopyFormat1 blob so the preset
+// round-trips with desktop. Returns NO if the selection is empty, the
+// name is blank, or `groupPath` doesn't resolve to a group.
+- (BOOL)savePresetFromRows:(NSArray<NSNumber*>*)rows
+             effectIndices:(NSArray<NSNumber*>*)effectIndices
+                 groupPath:(NSString*)groupPath
+                      name:(NSString*)name
+    NS_SWIFT_NAME(savePreset(fromRows:effectIndices:groupPath:name:));
+
+// Apply the preset at `path` onto `rowIndex`, anchoring its earliest
+// effect at `startMS`. Multi-effect / multi-row presets lay their
+// remaining effects out relative to that anchor (same model trail as
+// desktop paste). Returns NO if the path isn't a preset or the row is
+// invalid. Routes through the same AddEffect path the clipboard uses.
+- (BOOL)applyPresetAtPath:(NSString*)path
+                    toRow:(int)rowIndex
+                atStartMS:(int)startMS
+    NS_SWIFT_NAME(applyPreset(atPath:toRow:atStartMS:));
+
+// Create an empty group named `name` under `parentGroupPath` (empty =
+// root). Returns NO on blank name, missing parent, or name collision.
+- (BOOL)addPresetGroupNamed:(NSString*)name
+              inGroupAtPath:(NSString*)parentGroupPath
+    NS_SWIFT_NAME(addPresetGroup(named:inGroupPath:));
+
+// Rename the preset / group at `path`. Returns NO if the path doesn't
+// resolve or the new name collides with a sibling.
+- (BOOL)renamePresetItemAtPath:(NSString*)path
+                            to:(NSString*)newName
+    NS_SWIFT_NAME(renamePreset(atPath:to:));
+
+// Delete the preset / group (recursive) at `path`. Returns NO if the
+// path doesn't resolve.
+- (BOOL)deletePresetItemAtPath:(NSString*)path
+    NS_SWIFT_NAME(deletePreset(atPath:));
+
+// Move the item at `fromPath` into the group at `toGroupPath` (empty =
+// root). Returns NO if either path fails to resolve, the destination
+// isn't a group, or the move would place a group inside itself.
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath
+    NS_SWIFT_NAME(movePreset(fromPath:toGroupPath:));
+
+// Import an effects-tree XML file (a desktop `xlights_rgbeffects.xml`
+// or exported `<effects>` fragment) into `groupPath` (empty = root).
+// Returns NO on parse failure or missing group.
+- (BOOL)importPresetsFromPath:(NSString*)xmlPath
+                  intoGroupAtPath:(NSString*)groupPath
+    NS_SWIFT_NAME(importPresets(fromPath:intoGroupPath:));
+
+// Export the whole preset library to a JSON file at `path` (desktop
+// JSON format). Returns NO on write failure.
+- (BOOL)exportPresetsToPath:(NSString*)path
+    NS_SWIFT_NAME(exportPresets(toPath:));
+
+// Persist the in-memory preset tree to
+// `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns
+// NO on write failure of the main file.
+- (BOOL)savePresets;
 
 @end
 

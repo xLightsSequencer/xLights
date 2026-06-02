@@ -107,14 +107,65 @@ NS_ASSUME_NONNULL_BEGIN
 // must be writable. Returns NO on write failure.
 - (BOOL)saveMapHintsToPath:(NSString*)path;
 
+// IE-3: load a specific `.xmaphint` file and apply its regex hints to
+// the destination tree — the same `MatchRegex` AutoMapper pass that the
+// show-dir scan runs in `runAutoMap`, but for one user-picked file.
+// Returns the number of hint entries applied (0 if none / load failed).
+// (The legacy `.xmap` / `.xjmap` formats are wx-bound and would need a
+// new core MappingIO module — tracked separately, not here.)
+- (int)loadMapHintsFromPath:(NSString*)path
+    NS_SWIFT_NAME(loadMapHints(fromPath:));
+
+// IE-12: add each mapped source model name as an alias on its
+// destination model so future imports auto-map without re-mapping.
+// Mirrors the desktop "Update Aliases". `Model::AddAlias` is idempotent
+// (dedups / lowercases / rejects self-name), so this can be called
+// repeatedly. Marks affected models dirty so `saveLayoutChanges`
+// persists the aliases. Returns the number of aliases added.
+- (int)updateModelAliasesFromMapping
+    NS_SWIFT_NAME(updateModelAliasesFromMapping());
+
 // Apply the current mappings to the host document's sequence. Runs
 // EffectMapper for each mapped row, registers undo on the document,
-// triggers a grid reload. `eraseExisting` and `lock` are the
-// import-options-sheet toggles. Returns NO if no mappings exist or
-// the source sequence wasn't loaded.
+// triggers a grid reload. `eraseExisting`, `lock`, and
+// `convertRenderStyle` are the import-options-sheet toggles
+// (`convertRenderStyle` maps to the `convertRender` arg of
+// `MapXLightsEffects` — converts per-model render style on import).
+// Returns NO if no mappings exist or the source sequence wasn't loaded.
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
+                  convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)error;
+
+// Parse a LOR S5 `.loredit` source at `path` using the wx-free core
+// LOREdit reader (the same reader the desktop's ImportS5 uses). Builds
+// the available source list (props with effects + per-node/strand
+// channels) and the importable timing tracks, then reuses the shared
+// destination tree + AutoMapper / MapHints mapping flow. Returns a
+// non-nil error on parse failure. Discovery, mapping, AND the effect-synthesis
+// apply path (the iPad analogue of desktop MapS5*) are all wired.
+- (BOOL)loadLOREditSourceAtPath:(NSString*)path
+                          error:(NSError**)error NS_SWIFT_NAME(loadLOREditSource(atPath:));
+
+// Load a Vixen 3 `.tim` file as an EFFECT-import source (IE-25 — the iPad
+// analogue of desktop xLightsFrame::ImportVixen3). Parses the .tim + sibling
+// SystemConfig.xml via the wx-free core Vixen3 reader and populates the shared
+// available/destination tree; apply replays through core MapVixen3*. Returns a
+// non-nil error if SystemConfig.xml is missing or the file can't be parsed.
+// (Distinct from the timing-only `.tim` path in XLSequenceDocument used by the
+// Settings → Timings tab.)
+- (BOOL)loadVixen3SourceAtPath:(NSString*)path
+                         error:(NSError**)error NS_SWIFT_NAME(loadVixen3Source(atPath:));
+
+// IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
+// an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).
+// `sourceFrequency` is frames-per-second. `sourceMissingMedia` is only
+// populated after the media walk that runs during apply, so query it
+// post-apply (it is empty at discovery time).
+- (nullable NSString*)sourceVersion;
+- (NSInteger)sourceFrequency;
+- (NSInteger)targetFrequency;
+- (NSArray<NSString*>*)sourceMissingMedia;
 
 @end
 

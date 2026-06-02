@@ -1146,7 +1146,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-        OutputModelManager::WORK_SAVE_NETWORKS
+        OutputModelManager::WORK_SAVE_NETWORKS |
+        OutputModelManager::WORK_FOCUS_MODELTREE
     );
     if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE) {
         logger_work->debug("    WORK_NETWORK_CHANNELSCHANGE.");
@@ -1358,7 +1359,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
-        layoutPanel->FocusModelTree();
+        if (work & OutputModelManager::WORK_FOCUS_MODELTREE) {
+            layoutPanel->FocusModelTree();
+        }
     }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
         logger_work->debug("    WORK_REDRAW_LAYOUTPREVIEW.");

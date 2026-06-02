@@ -127,6 +127,12 @@ class SequencerViewModel {
     var currentFindIndex: Int = -1
     /// Toggled by ⌘F (XLightsCommands) and by `Done` in the sheet.
     var findReplacePresented: Bool = false
+    /// SEQ-2 — toggled by the Edit ▸ Color Replace menu item.
+    var colorReplacePresented: Bool = false
+    /// PRE-1 — toggled by the Effects ▸ Presets… command and the
+    /// effect context-menu "Manage Presets…" entry; cleared by the
+    /// browser sheet's Done button.
+    var presetBrowserPresented: Bool = false
     // F-4 playback speed. Desktop exposes 0.25/0.5/0.75/1.0/1.5/2/3/4x
     // — we match that set in the Playback menu. Applied to the
     // AVAudioEngine time-pitch unit via the bridge on `play()`, and
@@ -480,6 +486,9 @@ class SequencerViewModel {
     // fixed interval, metronome, FPP, audio analysis (Onsets /
     // Tempo / Chords), and AI Lyrics.
     var showingAddTimingTrack = false
+    /// AUTO-3: set when "Speech to Lyrics…" is chosen from a timing row's
+    /// context menu, so the Add-Timing sheet opens pre-selected on AI Lyrics.
+    var pendingSpeechToLyricsRowIndex: Int?
     // Tools → Package Sequence. Two-toggle option sheet (Include
     // Audio / Include Videos) then `SequencePackage::Pack` on a
     // background queue; result handed to the system share sheet.
@@ -1159,6 +1168,7 @@ class SequencerViewModel {
         reloadAltTracks()
         reloadRows()
         reloadTagPositions()
+        reloadPresets()                 // PRE-1
         syncClipboardFromPasteboard()   // B99
         loadAvailableEffects()
         // Initial load uses a modest sample count; grid re-requests
@@ -2183,6 +2193,12 @@ class SequencerViewModel {
 
     // MARK: - Background Rendering
 
+    /// TOOLS-1b — drop the on-disk render cache for this sequence.
+    func purgeRenderCache() {
+        guard isSequenceLoaded else { return }
+        document.purgeRenderCache()
+    }
+
     func startBackgroundRender() {
         guard isSequenceLoaded else { return }
 
@@ -2519,6 +2535,15 @@ class SequencerViewModel {
             // the show's ViewpointMgr. Populated by Phase D-3's
             // ViewpointMgr bridging at show-load time.
             return document.perPreviewCameraNames()
+        case "audioTracks":
+            // FX-3: alt audio tracks (e.g. HTDemucs stems) the VU Meter
+            // / Music effects can analyze. Sequence-level, so resolved
+            // without a selected effect. Index -1 (the main track) is
+            // implicit in the effect's own default; the choice lists the
+            // named alternates.
+            let n = document.altTrackCount()
+            guard n > 0 else { return [] }
+            return (0..<n).map { document.altTrackDisplayName(at: $0) }
         default:
             break
         }
@@ -2980,104 +3005,196 @@ class SequencerViewModel {
         undoManager.setActionName("Edit Description")
     }
 
-    // MARK: - Effect presets (B19, session-only)
+    // MARK: - Effect presets (PRE-1, persistent)
 
-    /// Snapshot of an effect's type + settings + palette. Session-
-    /// only for now — persistence is Phase C work. Identity is
-    /// `name` (preset name chosen by the user).
-    struct EffectPreset: Identifiable, Hashable {
-        let id: UUID
-        var name: String
-        let effectName: String
-        let settings: String
-        let palette: String
+    /// One node in the persistent preset tree, mirroring the bridge's
+    /// `presetTree()` dictionaries. `path` is the backslash-separated
+    /// key every mutating call uses; `name` is the trailing component
+    /// for display; `depth` (group nesting level) drives indentation in
+    /// the browser. Leaf presets carry `layerCount` / `durationMS`.
+    struct PresetTreeItem: Identifiable, Hashable {
+        let path: String
+        let isGroup: Bool
+        let layerCount: Int
+        let durationMS: Int
+
+        var id: String { path }
+        var name: String {
+            if let last = path.split(separator: "\\").last { return String(last) }
+            return path
+        }
+        var depth: Int {
+            path.isEmpty ? 0 : path.filter { $0 == "\\" }.count
+        }
     }
 
-    /// Session-only preset store. Cleared on app launch; a future
-    /// Phase C `EffectPresetManager` will persist to disk. Exposed
-    /// for the effect context menu to list + apply.
-    var presets: [EffectPreset] = []
+    /// Backing store for the persistent preset library, rebuilt from
+    /// the bridge whenever the tree changes. SwiftUI views read this;
+    /// every mutation funnels through the methods below so the on-disk
+    /// JSON + this snapshot stay in sync.
+    var presetTree: [PresetTreeItem] = []
 
-    /// Capture the selected effect's current settings as a named
-    /// preset. No-ops if nothing is selected or the name is blank.
+    /// Backslash-separated group paths only (for "save into group"
+    /// pickers). Always includes the empty-string root, presented as
+    /// "(Top Level)" by the UI.
+    var presetGroupPaths: [String] {
+        [""] + presetTree.filter { $0.isGroup }.map { $0.path }
+    }
+
+    /// Rebuild `presetTree` from the bridge. Called after every preset
+    /// mutation and at sequence open.
+    func reloadPresets() {
+        let raw = document.presetTree()
+        presetTree = raw.compactMap { dict in
+            guard let path = dict["path"] as? String,
+                  let isGroup = dict["isGroup"] as? NSNumber else { return nil }
+            let layers = (dict["layerCount"] as? NSNumber)?.intValue ?? 0
+            let dur = (dict["durationMS"] as? NSNumber)?.intValue ?? 0
+            return PresetTreeItem(path: path, isGroup: isGroup.boolValue,
+                                   layerCount: layers, durationMS: dur)
+        }
+    }
+
+    /// Persist the in-memory preset tree to disk, then refresh the
+    /// snapshot. Called by every mutating preset op.
+    private func commitPresets() {
+        _ = document.savePresets()
+        reloadPresets()
+    }
+
+    /// Capture the current selection (single or multi) as a named
+    /// preset under `groupPath` (empty = top level). Serializes to the
+    /// desktop CopyFormat1 blob so the preset round-trips with desktop.
+    /// No-ops if nothing is selected or the name is blank.
     @discardableResult
-    func saveSelectedEffectAsPreset(name: String) -> Bool {
+    func saveSelectedEffectAsPreset(name: String, groupPath: String = "") -> Bool {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        guard let sel = selectedEffect else { return false }
-        let row = Int32(sel.rowIndex)
-        let idx = Int32(sel.effectIndex)
-        let effectName = document.effectName(forRow: row, at: idx)
-        let settings = document.effectSettingsString(forRow: row, at: idx)
-        let palette = document.effectPaletteString(forRow: row, at: idx)
-        let preset = EffectPreset(id: UUID(), name: trimmed,
-                                    effectName: effectName,
-                                    settings: settings, palette: palette)
-        // Replace an existing preset with the same name — matches
-        // desktop's overwrite-on-save behaviour.
-        if let existing = presets.firstIndex(where: { $0.name == trimmed }) {
-            presets[existing] = preset
-        } else {
-            presets.append(preset)
-        }
-        return true
-    }
-
-    /// Apply `preset` to every selected effect. If the preset's
-    /// effect type matches the target's type the settings + palette
-    /// replace the target's wholesale; otherwise the effect is
-    /// deleted and a new one of the preset's type is added at the
-    /// same time range. Registered as a single undo step.
-    @discardableResult
-    func applyPreset(_ preset: EffectPreset) -> Bool {
         let targets: [EffectSelection]
         if selectedEffects.count > 1 {
             targets = Array(selectedEffects)
         } else if let one = selectedEffect {
             targets = [one]
         } else { return false }
-        undoManager.beginUndoGrouping()
-        for sel in targets {
-            let row = Int32(sel.rowIndex)
-            let idx = Int32(sel.effectIndex)
-            let currentName = document.effectName(forRow: row, at: idx)
-            if currentName == preset.effectName {
-                applySettingsTransform(selection: sel) { _, _ in
-                    Self.parseSettingsString(preset.settings)
-                }
-                // applySettingsTransform re-uses the target's existing
-                // palette; override it by calling replaceEffectSettings
-                // once more with the preset's palette so colour
-                // customisations travel with the preset.
-                _ = document.replaceEffectSettings(preset.settings,
-                                                     palette: preset.palette,
-                                                     inRow: row, atIndex: idx)
-            } else {
-                // Different effect type — delete + re-add. Preserves
-                // [startMS, endMS] so the replacement sits in the
-                // same slot.
-                let startMS = sel.startTimeMS
-                let endMS = sel.endTimeMS
-                deleteEffect(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
-                _ = document.addEffect(toRow: row, name: preset.effectName,
-                                         settings: preset.settings,
-                                         palette: preset.palette,
-                                         startMS: Int32(startMS),
-                                         endMS: Int32(endMS))
-            }
+        let rows = targets.map { NSNumber(value: $0.rowIndex) }
+        let idxs = targets.map { NSNumber(value: $0.effectIndex) }
+        guard document.savePreset(fromRows: rows, effectIndices: idxs,
+                                  groupPath: groupPath, name: trimmed) else {
+            return false
         }
-        undoManager.endUndoGrouping()
-        undoManager.setActionName("Apply Preset \(preset.name)")
-        refreshSelectedEffectSettings()
-        reloadRows()
+        commitPresets()
         return true
     }
 
-    /// Remove a preset from the session store. The UI's "Manage
-    /// Presets…" sheet will drive this once we have one; exposed
-    /// now so tests can prune.
-    func deletePreset(_ preset: EffectPreset) {
-        presets.removeAll { $0.id == preset.id }
+    /// Apply the preset at `path` to every selected effect, anchoring
+    /// it at each target's start. Registered as a single undo step.
+    /// Returns false if the path isn't a preset or nothing is selected.
+    @discardableResult
+    func applyPreset(atPath path: String) -> Bool {
+        var targets: [EffectSelection]
+        if selectedEffects.count > 1 {
+            targets = Array(selectedEffects)
+        } else if let one = selectedEffect {
+            targets = [one]
+        } else { return false }
+        // Delete + re-apply per target. Process high index first within
+        // each row so a delete doesn't shift the indices of targets we
+        // haven't handled yet. startMS comes from the selection snapshot
+        // (not re-read), so the apply anchors at the right time.
+        targets.sort {
+            if $0.rowIndex != $1.rowIndex { return $0.rowIndex > $1.rowIndex }
+            return $0.effectIndex > $1.effectIndex
+        }
+        undoManager.beginUndoGrouping()
+        var any = false
+        for sel in targets {
+            let startMS = sel.startTimeMS
+            deleteEffect(rowIndex: sel.rowIndex, effectIndex: sel.effectIndex)
+            if document.applyPreset(atPath: path,
+                                     toRow: Int32(sel.rowIndex),
+                                     atStartMS: Int32(startMS)) {
+                any = true
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Apply Preset")
+        refreshSelectedEffectSettings()
+        reloadRows()
+        return any
+    }
+
+    /// Apply the preset at `path` onto a specific cell (used by the
+    /// browser's "apply to play position" affordance). Single undo
+    /// step. Does not require a current selection.
+    @discardableResult
+    func applyPreset(atPath path: String, toRow rowIndex: Int, startMS: Int) -> Bool {
+        undoManager.beginUndoGrouping()
+        let ok = document.applyPreset(atPath: path,
+                                       toRow: Int32(rowIndex),
+                                       atStartMS: Int32(startMS))
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Apply Preset")
+        reloadRows()
+        return ok
+    }
+
+    /// Create an empty preset group named `name` under `parentPath`
+    /// (empty = top level).
+    @discardableResult
+    func addPresetGroup(named name: String, inGroupPath parentPath: String = "") -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard document.addPresetGroup(named: trimmed, inGroupPath: parentPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Rename the preset / group at `path` to `newName`.
+    @discardableResult
+    func renamePreset(atPath path: String, to newName: String) -> Bool {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        guard document.renamePreset(atPath: path, to: trimmed) else { return false }
+        commitPresets()
+        return true
+    }
+
+    /// Delete the preset / group (recursive) at `path`.
+    @discardableResult
+    func deletePreset(atPath path: String) -> Bool {
+        guard document.deletePreset(atPath: path) else { return false }
+        commitPresets()
+        return true
+    }
+
+    /// Move the item at `fromPath` into the group at `toGroupPath`
+    /// (empty = top level).
+    @discardableResult
+    func movePreset(fromPath: String, toGroupPath: String) -> Bool {
+        guard document.movePreset(fromPath: fromPath, toGroupPath: toGroupPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Import a desktop effects-tree XML (rgbeffects.xml or an
+    /// exported `<effects>` fragment) into `groupPath`.
+    @discardableResult
+    func importPresets(fromPath xmlPath: String, intoGroupPath groupPath: String = "") -> Bool {
+        guard document.importPresets(fromPath: xmlPath, intoGroupPath: groupPath) else {
+            return false
+        }
+        commitPresets()
+        return true
+    }
+
+    /// Export the whole preset library to a JSON file (desktop format).
+    @discardableResult
+    func exportPresets(toPath path: String) -> Bool {
+        document.exportPresets(toPath: path)
     }
 
     // MARK: - Randomize / Reset (B15)
@@ -3715,10 +3832,92 @@ class SequencerViewModel {
         return added
     }
 
+    /// IE-1 additional timing-import formats. Each forwards to the
+    /// matching bridge method (which runs the shared core processor)
+    /// and reloads rows on success. Same return semantics as the LOR /
+    /// Papagayo importers above.
+    @discardableResult
+    func importSRTTiming(path: String) -> Int {
+        let added = Int(document.importSRTTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importAudacityTiming(path: String) -> Int {
+        let added = Int(document.importAudacityTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importElevenLabsTiming(path: String) -> Int {
+        let added = Int(document.importElevenLabsTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importVixen3Timing(path: String) -> Int {
+        let added = Int(document.importVixen3Timing(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importLSPTiming(path: String) -> Int {
+        let added = Int(document.importLSPTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    @discardableResult
+    func importXLightsSequenceTiming(path: String) -> Int {
+        let added = Int(document.importXLightsSequenceTiming(fromPath: path))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    /// Timing-track names available in a Vixen3 (.tim) file, for the
+    /// multi-select import picker. Vixen3/xLights imports support choosing
+    /// which tracks to bring in (mirrors the desktop wxMultiChoiceDialog).
+    func vixen3TimingTrackNames(path: String) -> [String] {
+        return document.vixen3TimingTrackNames(fromPath: path)
+    }
+
+    @discardableResult
+    func importVixen3Timing(path: String, selectedIndices: [Int]) -> Int {
+        let added = Int(document.importVixen3Timing(fromPath: path,
+                                                    selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
+    /// Timing-track names available in an xLights (.xsq/.xml) sequence, for
+    /// the multi-select import picker.
+    func xLightsTimingTrackNames(path: String) -> [String] {
+        return document.xLightsTimingTrackNames(fromPath: path)
+    }
+
+    @discardableResult
+    func importXLightsSequenceTiming(path: String, selectedIndices: [Int]) -> Int {
+        let added = Int(document.importXLightsSequenceTiming(fromPath: path,
+                                                             selectedIndices: selectedIndices.map { NSNumber(value: $0) }))
+        if added > 0 { reloadRows() }
+        return added
+    }
+
     /// B75: export the given timing row to `path` as `.xtiming`.
     @discardableResult
     func exportTimingTrack(rowIndex: Int, path: String) -> Bool {
         return document.exportTimingTrack(atRow: Int32(rowIndex), toPath: path)
+    }
+
+    /// TIM-3: export multiple timing rows to one `.xtiming` (`<timings>`).
+    @discardableResult
+    func exportTimingTracks(rowIndices: [Int], path: String) -> Bool {
+        return document.exportTimingTracks(atRows: rowIndices.map { NSNumber(value: $0) },
+                                           toPath: path)
     }
 
     /// B49: export the model at `rowIndex` as a Falcon Player v2
@@ -3799,6 +3998,18 @@ class SequencerViewModel {
         let row = rows[rowIndex]
         guard row.timing != nil, row.layerIndex == 0 else { return false }
         return row.effects.contains(where: { !$0.name.isEmpty })
+    }
+
+    /// AUTO-3: gates the timing-row "Speech to Lyrics…" menu entry — a timing
+    /// row exists, audio is loaded, and a Speech-to-Text AI service is
+    /// configured. Mirrors AddTimingTrackSheet's canOfferAILyrics guard.
+    func canSpeechToLyrics(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == 0 else { return false }
+        let audioPath = document.sequenceAudioFilePath() ?? ""
+        guard !audioPath.isEmpty else { return false }
+        return XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilitySpeech2Text)
     }
 
     /// B84 (per-mark): break a single phrase mark into per-word
@@ -4157,6 +4368,124 @@ class SequencerViewModel {
             }
         }
         setMultiSelection(hits)
+    }
+
+    /// SEQ-3: select every effect on every non-timing (model/strand/
+    /// submodel/node) row across the whole sequence. Timing-track marks
+    /// are not effects and are excluded, so this is also the practical
+    /// "Select All (no timing)". Bound to ⌘A in the Edit menu.
+    func selectAllEffects() {
+        var hits: Set<EffectSelection> = []
+        for (rIdx, row) in rows.enumerated() {
+            if row.timing != nil { continue }
+            for (eIdx, e) in row.effects.enumerated() {
+                hits.insert(.init(rowIndex: rIdx, effectIndex: eIdx,
+                                   name: e.name,
+                                   startTimeMS: e.startTimeMS,
+                                   endTimeMS: e.endTimeMS))
+            }
+        }
+        setMultiSelection(hits)
+    }
+
+    /// True when any non-timing row has at least one effect to select.
+    var hasAnyEffectToSelect: Bool {
+        rows.contains { $0.timing == nil && !$0.effects.isEmpty }
+    }
+
+    // MARK: - Color Replace (SEQ-2)
+
+    /// One captured (row, effectIndex, palette-string) for undo.
+    private struct PaletteSnapshot { let row: Int; let idx: Int; let pal: String }
+
+    /// The current effect selection as (row, effectIndex) pairs — the
+    /// multi-select set, or the single selected effect when no multi
+    /// selection is active. Empty when nothing is selected.
+    private func currentSelectionPairs() -> [(row: Int, idx: Int)] {
+        if !selectedEffects.isEmpty {
+            return selectedEffects.map { ($0.rowIndex, $0.effectIndex) }
+        }
+        if let s = selectedEffect { return [(s.rowIndex, s.effectIndex)] }
+        return []
+    }
+
+    /// True when at least one effect is selected (drives the Color
+    /// Replace "selected only" toggle availability).
+    var hasEffectSelection: Bool { !currentSelectionPairs().isEmpty }
+
+    /// Distinct colours currently used, for the Color Replace "from"
+    /// picker. `selectedOnly` scopes to the current selection via the
+    /// bridge's sync-on-demand path.
+    func usedColours(selectedOnly: Bool = false) -> [String] {
+        guard selectedOnly else { return document.usedColours(selectedOnly: false) }
+        let pairs = currentSelectionPairs()
+        guard !pairs.isEmpty else { return [] }
+        return document.usedColours(atRows: pairs.map { NSNumber(value: $0.row) },
+                                    effectIndices: pairs.map { NSNumber(value: $0.idx) })
+    }
+
+    /// SEQ-2: replace `from` colour with `to`. `selectedOnly` scopes to
+    /// the current selection via the bridge's sync-on-demand path (the
+    /// iPad keeps selection in Swift, mirrored into the core flags only
+    /// for the op, then cleared). The core `ReplaceColours` records into
+    /// the core undo manager, which the iPad's Foundation Cmd-Z does not
+    /// drive, so we register a palette-snapshot undo here. Returns the
+    /// number of effects changed.
+    @discardableResult
+    func replaceColour(from: String, to: String, selectedOnly: Bool = false) -> Int {
+        guard !from.isEmpty, !to.isEmpty else { return 0 }
+        let pairs = currentSelectionPairs()
+        if selectedOnly && pairs.isEmpty { return 0 }
+        // Snapshot the in-scope effects' palettes so undo restores exactly
+        // the ones the replace changes.
+        var before: [PaletteSnapshot] = []
+        if selectedOnly {
+            for p in pairs {
+                before.append(PaletteSnapshot(row: p.row, idx: p.idx,
+                    pal: document.currentPaletteString(forRow: Int32(p.row), at: Int32(p.idx))))
+            }
+        } else {
+            for (r, row) in rows.enumerated() where row.timing == nil {
+                for i in row.effects.indices {
+                    before.append(PaletteSnapshot(row: r, idx: i,
+                        pal: document.currentPaletteString(forRow: Int32(r), at: Int32(i))))
+                }
+            }
+        }
+        let count: Int
+        if selectedOnly {
+            count = Int(document.replaceColour(from: from, to: to,
+                                               atRows: pairs.map { NSNumber(value: $0.row) },
+                                               effectIndices: pairs.map { NSNumber(value: $0.idx) }))
+        } else {
+            count = Int(document.replaceColour(from: from, to: to, selectedOnly: false))
+        }
+        guard count > 0 else { return 0 }
+        reloadRows()
+        let changed = before.filter {
+            document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)) != $0.pal
+        }
+        registerPaletteRestoreUndo(changed, actionName: "Replace Color")
+        return count
+    }
+
+    /// Register a Foundation undo that restores the given palette
+    /// snapshot; the undo captures the current palettes first and
+    /// re-registers itself so redo re-applies — a symmetric pair.
+    private func registerPaletteRestoreUndo(_ snap: [PaletteSnapshot], actionName: String) {
+        guard !snap.isEmpty else { return }
+        undoManager.registerUndo(withTarget: self) { vm in
+            let inverse = snap.map {
+                PaletteSnapshot(row: $0.row, idx: $0.idx,
+                                pal: vm.document.currentPaletteString(forRow: Int32($0.row), at: Int32($0.idx)))
+            }
+            for s in snap {
+                _ = vm.document.applyPaletteString(s.pal, toRow: Int32(s.row), at: Int32(s.idx))
+            }
+            vm.reloadRows()
+            vm.registerPaletteRestoreUndo(inverse, actionName: actionName)
+        }
+        undoManager.setActionName(actionName)
     }
 
     // MARK: - Split (B12)
@@ -4671,6 +5000,11 @@ class SequencerViewModel {
     }
     func expandAllElements() {
         document.expandAllElements()
+        reloadRows()
+    }
+    /// SEQ-15 — expand only model rows that have effects (collapse empty ones).
+    func expandElementsWithEffects() {
+        document.expandElementsWithEffects()
         reloadRows()
     }
 

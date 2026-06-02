@@ -280,6 +280,7 @@ struct SequencerGridV2View: View {
     @State private var savePresetRequested: Bool = false
     @State private var savePresetName: String = ""
 
+
     /// B47 insert-N-layers prompt state.
     @State private var insertLayersTargetRow: Int? = nil
     @State private var insertLayersCountText: String = "3"
@@ -586,10 +587,17 @@ struct SequencerGridV2View: View {
                 Button("Reset \(n) Effects", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                ForEach(viewModel.presets) { preset in
+                Button("Save \(n) as Preset…") {
+                    savePresetName = ""
+                    savePresetRequested = true
+                }
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name) to \(n)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Deselect All") {
                     viewModel.clearSelection()
@@ -656,9 +664,9 @@ struct SequencerGridV2View: View {
                 Button("Reset to Defaults", role: .destructive) {
                     viewModel.resetSelectedEffectsToDefaults()
                 }
-                // B19 — session-only effect presets. Save captures
-                // the current effect; apply replaces settings on
-                // every selected effect.
+                // PRE-1 — persistent effect presets. Save captures the
+                // current selection into the on-disk library; apply
+                // drops the chosen preset onto every selected effect.
                 Button("Edit Description…") {
                     editDescriptionText = viewModel.effectDescription(
                         rowIndex: target.rowIndex,
@@ -671,10 +679,13 @@ struct SequencerGridV2View: View {
                     savePresetName = ""
                     savePresetRequested = true
                 }
-                ForEach(viewModel.presets) { preset in
+                ForEach(viewModel.presetTree.filter { !$0.isGroup }) { preset in
                     Button("Apply Preset: \(preset.name)") {
-                        _ = viewModel.applyPreset(preset)
+                        _ = viewModel.applyPreset(atPath: preset.path)
                     }
+                }
+                Button("Manage Presets…") {
+                    viewModel.presetBrowserPresented = true
                 }
                 Button("Delete", role: .destructive) {
                     viewModel.deleteEffect(rowIndex: target.rowIndex,
@@ -775,7 +786,15 @@ struct SequencerGridV2View: View {
                 editTimingTarget = nil
             }
         } message: { _ in
-            Text("Enter start and end times in seconds.")
+            // SEQ-18 — live duration readout as start/end are edited. (An
+            // editable Duration field + frame-stepped Steppers need an
+            // alert→sheet conversion — SwiftUI alerts can't host Steppers.)
+            let durMS = (Self.parseSeconds(editTimingEndText) ?? 0) - (Self.parseSeconds(editTimingStartText) ?? 0)
+            if durMS > 0 {
+                Text(String(format: "Enter start and end times in seconds. Duration: %.3f s", Double(durMS) / 1000.0))
+            } else {
+                Text("Enter start and end times in seconds.")
+            }
         }
         // B89 auto-label-marks alert.
         .alert("Auto-Label Marks",
@@ -1059,6 +1078,12 @@ struct SequencerGridV2View: View {
                 .environment(viewModel)
                 .presentationDetents([.medium, .large])
         }
+        // SEQ-2 whole-sequence Color Replace sheet (Edit ▸ Color Replace).
+        .sheet(isPresented: Bindable(viewModel).colorReplacePresented) {
+            ColorReplaceSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
         // B70 rename-timing-mark alert.
         .alert("Rename Mark",
                isPresented: Binding(
@@ -1092,7 +1117,11 @@ struct SequencerGridV2View: View {
             }
             Button("Cancel", role: .cancel) { savePresetName = "" }
         } message: {
-            Text("Saves the current effect's settings + palette under a name you can re-apply to other effects in this session.")
+            Text("Saves the current selection to the show's preset library (xlights_effectpresets.json) so you can re-apply it later and on desktop.")
+        }
+        // PRE-1 preset library browser.
+        .sheet(isPresented: Bindable(viewModel).presetBrowserPresented) {
+            PresetBrowserSheet(viewModel: viewModel)
         }
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,
@@ -1312,6 +1341,11 @@ struct SequencerGridV2View: View {
                         viewModel.expandAllElements()
                     } label: {
                         Label("Expand All", systemImage: "arrow.up.and.down")
+                    }
+                    Button {
+                        viewModel.expandElementsWithEffects()
+                    } label: {
+                        Label("Show All Effects", systemImage: "rectangle.expand.vertical")
                     }
                     // B81: hide / show every timing row at once.
                     let allHidden = viewModel.allTimingTracksHidden
@@ -1601,6 +1635,13 @@ struct SequencerGridV2View: View {
                         startXTimingExport(rowIndex: row.id,
                                              trackName: row.timing?.elementName ?? row.displayName)
                     },
+                    canSpeechToLyrics: viewModel.canSpeechToLyrics(rowIndex: row.id),
+                    onSpeechToLyrics: {
+                        // Reuse the unified Add-Timing flow's AI-Lyrics path
+                        // (mirrors desktop, which also creates a new track).
+                        viewModel.pendingSpeechToLyricsRowIndex = row.id
+                        viewModel.showingAddTimingTrack = true
+                    },
                     onImportLyrics: {
                         importLyricsTargetRow = row.id
                         importLyricsText = ""
@@ -1616,6 +1657,10 @@ struct SequencerGridV2View: View {
                     },
                     onHalveTimingMarks: {
                         _ = viewModel.halveTimingMarks(rowIndex: row.id)
+                    },
+                    canSelectMarks: !row.effects.isEmpty,
+                    onSelectMarks: {
+                        viewModel.selectAllEffectsInRow(rowIndex: row.id)
                     }
                 )
             }

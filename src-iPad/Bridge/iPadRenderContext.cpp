@@ -10,6 +10,8 @@
 
 #include "iPadRenderContext.h"
 
+#include <CoreFoundation/CoreFoundation.h>
+
 #include "render/Element.h"
 #include "render/EffectLayer.h"
 #include "render/Effect.h"
@@ -43,6 +45,7 @@
 
 #include <pugixml.hpp>
 #include "utils/FileUtils.h"
+#include <globals.h>
 #include <log.h>
 
 #include <algorithm>
@@ -71,6 +74,13 @@ iPadRenderContext::iPadRenderContext()
     //     iPad users don't need desktop-scale undo depth anyway.
     _renderCache.SetMaximumSizeMB(50);
     _sequenceElements.get_undo_mgr().SetMaxSteps(50);
+
+    // Render cache defaults OFF on iPad (see ReadRenderCacheMode): it trades
+    // memory + disk for re-render speed, and both are scarce here. The user
+    // can opt into "Locked Only" / "Enabled" via the Folder Config picker;
+    // EnsureRenderEngine re-reads it before every render so changes take
+    // effect without a restart.
+    _renderCache.Enable(ReadRenderCacheMode());
 }
 
 iPadRenderContext::~iPadRenderContext() {
@@ -306,6 +316,51 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         if (root) loadPaletteFrom(root);
     }
 
+    // PRE-1 — load the persistent effect preset library. Prefer the
+    // desktop JSON file so presets round-trip cross-platform; fall back
+    // to the legacy <effects> node embedded in xlights_rgbeffects.xml
+    // (migration path, matching xLightsFrame::LoadEffectsFile). The
+    // version stamp is needed so a later SaveEffectPresets writes a
+    // current-format file.
+    _effectPresetManager.Reset();
+    std::string presetsPath = showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, false);
+    if (_effectPresetManager.LoadJsonFile(presetsPath)) {
+        spdlog::info("iPadRenderContext: Loaded effect presets from {}", presetsPath);
+    } else if (result) {
+        auto root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) {
+            auto effectsNode = root.child("effects");
+            if (effectsNode) {
+                _effectPresetManager.Load(effectsNode);
+                spdlog::info("iPadRenderContext: Migrated effect presets from {} (<effects> node)", rgbPath);
+            }
+        }
+    }
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+
+    return true;
+}
+
+bool iPadRenderContext::SaveEffectPresets() {
+    if (_showDir.empty())
+        return false;
+    if (_effectPresetManager.GetVersion().empty()) {
+        _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
+    }
+    std::string backupPath = _showDir + "/" + XLIGHTS_PRESETS_FILE_BACKUP;
+    ObtainAccessToURL(backupPath, true);
+    _effectPresetManager.SaveJsonFile(backupPath); // best-effort
+
+    std::string presetsPath = _showDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(presetsPath, true);
+    if (!_effectPresetManager.SaveJsonFile(presetsPath)) {
+        spdlog::warn("iPadRenderContext: failed to save effect presets to {}", presetsPath);
+        return false;
+    }
     return true;
 }
 
@@ -1542,7 +1597,11 @@ std::string CopyIntoRoot(const std::string& file,
 
     namespace fs = std::filesystem;
     fs::path src(file);
-    if (!fs::exists(src)) return "";
+    // Use the error_code fs::exists overloads throughout: the throwing overload
+    // can raise filesystem_error on iOS sandbox/permission edge cases, and the
+    // app has no handler, so it terminates (per CLAUDE.md filesystem guidance).
+    std::error_code existsEc;
+    if (!fs::exists(src, existsEc) || existsEc) return "";
 
     // Normalise subdir: strip leading separator. Desktop's callers
     // pass both "/Images" and "Images"; the trailing concat either way
@@ -1571,12 +1630,13 @@ std::string CopyIntoRoot(const std::string& file,
         std::string stem = src.stem().string();
         std::string ext  = src.extension().string();
         int n = 1;
-        while (fs::exists(target) && !FilesMatchBytes(src, target)) {
+        std::error_code targetEc;
+        while (fs::exists(target, targetEc) && !FilesMatchBytes(src, target)) {
             target = dir / (stem + "_" + std::to_string(n++) + ext);
         }
     }
 
-    if (!fs::exists(target)) {
+    if (!fs::exists(target, ec)) {
         fs::copy_file(src, target, fs::copy_options::none, ec);
         if (ec) {
             spdlog::error("iPadRenderContext: Copy {} -> {} failed: {}",
@@ -1717,6 +1777,46 @@ TimingElement* iPadRenderContext::AddTimingElement(const std::string& name,
     return e;
 }
 
+bool iPadRenderContext::IsLowDefinitionRender() const {
+    // Opt-in app preference, default OFF = full-definition render — matches the
+    // desktop, whose "Low Definition Render" preference also defaults off, and
+    // keeps the final FSEQ output full-resolution. Reads the same UserDefaults
+    // store the SwiftUI toggle writes via @AppStorage("render.lowDefinition").
+    // When off, per-model Low-Def Factors are inert (exactly like desktop with
+    // the pref off); on is a deliberate memory-relief escape hatch for huge
+    // shows on 4 GB devices.
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.lowDefinition"),
+                                                    kCFPreferencesCurrentApplication);
+    bool on = (v != nullptr) && CFGetTypeID(v) == CFBooleanGetTypeID()
+              && CFBooleanGetValue((CFBooleanRef)v);
+    if (v) CFRelease(v);
+    return on;
+}
+
+std::string iPadRenderContext::ReadRenderCacheMode() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMode"). Default "Disabled": the render cache
+    // trades extra memory + disk to speed re-renders, and iPad is tight on
+    // both — desktop defaults to the milder "Locked Only", but iPad starts
+    // fully off. Valid values map straight to RenderCache::Enable.
+    std::string mode = "Disabled";
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMode"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFStringGetTypeID()) {
+            char buf[32] = { 0 };
+            if (CFStringGetCString((CFStringRef)v, buf, sizeof(buf), kCFStringEncodingUTF8)) {
+                std::string s(buf);
+                if (s == "Locked Only" || s == "Enabled" || s == "Disabled") {
+                    mode = s;
+                }
+            }
+        }
+        CFRelease(v);
+    }
+    return mode;
+}
+
 bool iPadRenderContext::AbortRender(int maxTimeMs) {
     // Mirror the desktop's xLightsFrame::AbortRender contract: signal
     // every in-flight render job to bail and then BLOCK until they
@@ -1762,6 +1862,10 @@ void iPadRenderContext::EnsureRenderEngine() {
     if (!_renderEngine) {
         _renderEngine = std::make_unique<RenderEngine>(*this, *_jobPool, _renderCache);
     }
+    // Re-read the render-cache mode each render kickoff so the Folder Config
+    // picker takes effect without an app restart (the engine itself is long-
+    // lived). RenderEngine checks _renderCache.IsEnabled() per effect.
+    _renderCache.Enable(ReadRenderCacheMode());
 }
 
 void iPadRenderContext::RenderAll() {

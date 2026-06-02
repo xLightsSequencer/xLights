@@ -125,12 +125,11 @@ void EffectsPanel::OnRightDownChoice(wxMouseEvent& event)
 }
 
 void EffectsPanel::SetDefaultEffectValues(const wxString &name) {
-    // Top Windows crash bucket (13 reports / 4 reporters): crash on
-    // close-time teardown path OnClose -> CloseSequence ->
-    // ResetAllPanelDefaultSettings -> here. Null-check the managers
-    // defensively in case a teardown path leaves a stale EffectsPanel
-    // pointer at us; both are normally value members of xLightsFrame
-    // and shouldn't be null, but the cost is negligible.
+    // The close-time crash on this path (OnClose -> CloseSequence ->
+    // ResetAllPanelDefaultSettings) is actually a null EffectsPanel1 and is
+    // guarded at that call site; this null-manager check can't catch that
+    // (it would already have faulted reading the members). Kept as cheap
+    // belt-and-braces — the managers are value members of xLightsFrame.
     if (effectManager == nullptr || effectPanelManager == nullptr) {
         spdlog::warn("EffectsPanel::SetDefaultEffectValues called with null manager(s); skipping.");
         return;

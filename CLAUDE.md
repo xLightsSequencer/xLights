@@ -15,8 +15,11 @@ NOT a port — it's a second UI that shares the same wx-free C++ core
 (`src-core/`), render engine, effect manager, sequence file / elements,
 and audio manager as the desktop app. iPad-specific code lives in
 `src-iPad/` (SwiftUI views + view model, ObjC++ bridges,
-Metal canvases). The iPad app is pre-release and tracked in
-[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) + `plans/`.
+Metal canvases). The iPad app has **shipped to the App Store**; it is
+now in desktop-parity / ongoing-update mode (beyond MVP). Status and the
+per-theme parity plans live in
+[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) +
+[`plans/ipad-parity/`](plans/ipad-parity/).
 
 ### Desktop ↔ iPad parity (important)
 
@@ -37,10 +40,11 @@ PR whenever possible. Concretely:
   `EffectLayer` / `Element` / `SequenceElements`, the iPad bridge
   usually needs a matching wrapper. Follow the
   `NS_SWIFT_NAME(…)` convention already in `XLSequenceDocument.h`.
-- **Features iPad can't support** (e.g. controller setup, layout
-  editor, FFmpeg-only audio filters) are fine to leave desktop-only
-  — track them in the "Deferred / out of MVP" section of
-  `iPad-xLights-Plan.md` so we know why.
+- **Features iPad can't support** (e.g. FFmpeg-only audio filters,
+  raw serial/DMX output, proprietary-firmware controller uploads) are
+  fine to leave desktop-only — record them in
+  [`plans/ipad-parity/99-out-of-scope.md`](plans/ipad-parity/99-out-of-scope.md)
+  with the reason.
 - **Features iPad has that desktop doesn't** (rare so far — two-
   finger marquee, long-press menus, trackpad `allowedScrollTypesMask`)
   are fine; they're touch-idioms without desktop equivalents.
@@ -129,7 +133,7 @@ glob patterns (e.g., a new top-level subdirectory) require a new
 
 Keep description summary very brief (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** The iPad app has not shipped yet and its changelog would only clutter the desktop release notes. Instead, keep `iPad-xLights-Plan.md` (next to `README.txt`) up to date: move items from "pending" to "done" as they land, and record any landed-fix details (root cause, follow-ups) inside the matching phase entry. Changes that touch shared `src-core/` code *and* user-visible desktop behavior still belong in `README.txt`; the iPad-only side goes in the plan.
+**Do NOT add iPad-specific changes to `README.txt`.** `README.txt` is the **desktop** release-notes file; the iPad app tracks its own changes separately, so iPad-only entries would just clutter it. Instead, keep the iPad plans up to date: flip the matching `plans/ipad-parity/` theme doc's status callout (pending → ✅) as work lands, and add a one-line entry to the **"Recently landed"** log in `iPad-xLights-Plan.md` (with root cause / follow-ups for any landed fix). Changes that touch shared `src-core/` code *and* user-visible **desktop** behavior still belong in `README.txt`; the iPad-only side goes in the iPad plans.
 
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
@@ -235,8 +239,9 @@ Key patterns:
   via `XLGridMetalBridge` → `xlStandaloneMetalCanvas` →
   `xlMetalGraphicsContext`. The iPad grid is Metal-only; the
   desktop grid uses `xlGraphicsBase`'s OpenGL/Metal switch.
-- **Sub-plans**: `plans/phase-b-grid-parity.md` tracks the gap
-  analysis against desktop behavior. 
+- **Plans**: [`plans/ipad-parity/`](plans/ipad-parity/) holds the
+  per-theme parity gap analysis + status (see `00-overview.md` for the
+  cross-theme map). 
 
 ### Data Formats
 - `.xsq` — Sequence files (XML-based, can contain embedded images as base64)
