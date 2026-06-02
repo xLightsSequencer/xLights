@@ -16,7 +16,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
     -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
-    -bug (cybercop)              Fix model movement in layout using curor keys (#6459)
+    -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
 
 2026.10  May 31, 2026
