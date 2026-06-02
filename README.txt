@@ -12,15 +12,22 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+
+    -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
+    -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the
                                  model list from the server and present model settings as a dropdown,
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
+    -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
+    -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
     -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
                                  (div-by-zero produced NaN paint coordinates).
     -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
                                  fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
+                                 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
