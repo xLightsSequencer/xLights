@@ -12,8 +12,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
-    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
-                                 are added as DDP with auto-size/auto-layout.
+    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp)
+    -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
+    -enh (cybercop)              Add ability to more bkgrnd image in Model Data (#5506)
+    -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
+    -bug (cybercop)              Fix model movement in layout using curor keys (#6459)
+    -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
+
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
