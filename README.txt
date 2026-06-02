@@ -14,6 +14,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.11  June ??, 2026
     -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
 
+    -enh (dkulp)                 Export House Preview Video now uses AVFoundation (AVAssetWriter) on macOS for
+                                 H.264/H.265 MP4 exports, falling back to FFmpeg for other formats
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
     -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the

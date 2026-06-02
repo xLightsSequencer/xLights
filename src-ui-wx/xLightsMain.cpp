@@ -3824,12 +3824,12 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         if (audioMgr != nullptr) {
             videoExporter.setGetAudioCallback(audioLambda);
         }
-        auto videoLambda = [=, this](AVFrame* f, uint8_t* buf, int bufSize, unsigned frameIndex) {
+        auto videoLambda = [=, this](VideoWriterFrame& frame, unsigned frameIndex) {
             const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width * contentScaleFactor, height * contentScaleFactor);
             housePreview->Render(frameIndex * this->_seqData.FrameTime(), data, false);
-            return housePreview->getFrameForExport(width * contentScaleFactor, height * contentScaleFactor, f, buf, bufSize);
+            return housePreview->getFrameForExport(frame);
         };
         videoExporter.setGetVideoCallback(videoLambda);
 

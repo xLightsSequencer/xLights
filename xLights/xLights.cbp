@@ -590,10 +590,15 @@
 		<Unit filename="../src-ui-wx/media/VideoExporter.h" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.cpp" />
 		<Unit filename="../src-core/media/FFmpegVideoReader.h" />
+		<Unit filename="../src-core/media/FFmpegVideoWriter.cpp" />
+		<Unit filename="../src-core/media/FFmpegVideoWriter.h" />
 		<Unit filename="../src-core/media/VideoFrame.h" />
 		<Unit filename="../src-core/media/VideoReader.cpp" />
 		<Unit filename="../src-core/media/VideoReader.h" />
 		<Unit filename="../src-core/media/VideoReaderImpl.h" />
+		<Unit filename="../src-core/media/VideoWriter.cpp" />
+		<Unit filename="../src-core/media/VideoWriter.h" />
+		<Unit filename="../src-core/media/VideoWriterImpl.h" />
 		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.cpp" />
 		<Unit filename="../src-ui-wx/layout/ViewObjectPanel.h" />
 		<Unit filename="../src-ui-wx/model/ViewpointDialog.cpp" />

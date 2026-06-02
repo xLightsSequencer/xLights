@@ -125,7 +125,9 @@
     <ClCompile Include="..\src-ui-wx\media\VideoExporter.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VendorModelDialog.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\FFmpegVideoWriter.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\VideoWriter.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewsModelsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VSAFile.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VsaImportDialog.cpp" />
@@ -1479,9 +1481,12 @@
     <ClInclude Include="..\src-ui-wx\media\VideoExporter.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VendorModelDialog.h" />
     <ClInclude Include="..\src-core\media\FFmpegVideoReader.h" />
+    <ClInclude Include="..\src-core\media\FFmpegVideoWriter.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
+    <ClInclude Include="..\src-core\media\VideoWriter.h" />
+    <ClInclude Include="..\src-core\media\VideoWriterImpl.h" />
     <ClInclude Include="..\src-ui-wx\layout\ViewsModelsPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VSAFile.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VsaImportDialog.h" />

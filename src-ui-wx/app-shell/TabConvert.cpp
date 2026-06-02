@@ -45,7 +45,7 @@ extern "C"
 #include "xLightsMain.h"
 #include "render/FSEQFile.h"
 #include "sequencer/CopyFormat1.h"
-#include "media/VideoExporter.h"
+#include "media/FFmpegVideoWriter.h"  // my_av_log_callback
 
 #include <log.h>
 
