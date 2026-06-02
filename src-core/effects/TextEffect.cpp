@@ -1695,8 +1695,8 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         }
         break; // up
     case TEXTDIR_DOWN:
-        OffsetTop = center ? std::min(state / 8 - numLines * (char_height + 1) - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop, 0)
-                           : (state % ylimit / 8 - numLines * (char_height + 1) - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop);
+        OffsetTop = center ? std::min(state / 8 - txtheight - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop, 0)
+                           : (state % ylimit / 8 - txtheight - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop);
         if (norepeat && !center && state > (ylimit - (buffer.BufferHt / 2))) {
             OffsetTop = ylimit;
         }
