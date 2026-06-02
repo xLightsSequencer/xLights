@@ -3947,9 +3947,8 @@ wxBitmap xLightsImportChannelMapDialog::GenerateTimelineBitmap(int width, int he
     dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX)));
     dc.Clear();
     if (durationMS > 0 && !intervals.empty()) {
-        wxBrush hatchBrush(wxColour(70, 130, 180), wxBRUSHSTYLE_CROSSDIAG_HATCH);
         dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(hatchBrush);
+        dc.SetBrush(wxBrush(wxColour(70, 130, 180), wxBRUSHSTYLE_SOLID));
         for (const auto& [start, end] : intervals) {
             int x1 = static_cast<int>(static_cast<double>(start) / durationMS * width);
             int x2 = static_cast<int>(static_cast<double>(end) / durationMS * width);
