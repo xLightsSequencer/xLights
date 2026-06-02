@@ -526,7 +526,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARSELECTED = wxNewId()
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
-const long xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
 
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
@@ -756,7 +756,7 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_SHOWALLMAPPED, "Show All Mapped Models");
         mnuLayer.Append(ID_MNU_AUTOMAPSELECTED, "Auto Map Selected");
         mnuLayer.AppendSeparator();
-        if (_dataModel->_sortSubmodelsByName) {
+        if (_dataModel->GetSortSubmodelsByName()) {
             mnuLayer.Append(ID_MNU_SORT_SUBMODELS_BY_NAME, "Reset Submodel Sort");
         } else {
             mnuLayer.Append(ID_MNU_SORT_SUBMODELS_BY_NAME, "Sort Submodels By Name");
@@ -796,8 +796,7 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
     } else if (id == ID_MNU_ADD_EMPTY_GROUP) {
         AddEmptyGroup();
     } else if (id == ID_MNU_SORT_SUBMODELS_BY_NAME) {
-        _dataModel->_sortSubmodelsByName = !_dataModel->_sortSubmodelsByName;
-        _dataModel->Resort();
+        _dataModel->SetSortSubmodelsByName(!_dataModel->GetSortSubmodelsByName());
     }
 }
 
