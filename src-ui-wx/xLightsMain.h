@@ -1610,7 +1610,7 @@ private:
                                 SeqDataType *dataBuf, int startAddr, int modelSize,
                                 bool v2 = false); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
+        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality = false, bool forceProRes = false);
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,

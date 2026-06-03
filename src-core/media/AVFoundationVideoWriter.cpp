@@ -81,7 +81,8 @@ void AVFoundationVideoWriter::initialize()
     const bool hasAudio = !_videoOnly && _outParams.audioSampleRate > 0;
     _bridge = Bridge::CreateWriter(_path, _outParams.videoCodec,
                                    _outParams.width, _outParams.height, _outParams.fps,
-                                   _outParams.videoBitrate, hasAudio, _outParams.audioSampleRate,
+                                   _outParams.videoBitrate, _outParams.videoQuality,
+                                   hasAudio, _outParams.audioSampleRate,
                                    _outParams.cpuFrames, _outParams.inputChannels);
     if (_bridge == nullptr || !Bridge::IsValid(_bridge)) {
         throw std::runtime_error("VideoWriter - AVFoundation writer initialization failed");

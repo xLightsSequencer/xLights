@@ -20,6 +20,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  abstraction, using AVFoundation on macOS where possible (incl. bit-exact
                                  uncompressed .mov via AVAssetWriter passthrough at any size, alpha-preserving)
                                  and FFmpeg for AVI/MPEG-4
+    -enh (dkulp)                 Add "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless,
+                                 much smaller than uncompressed RGB, decodes on all platforms
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
     -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the

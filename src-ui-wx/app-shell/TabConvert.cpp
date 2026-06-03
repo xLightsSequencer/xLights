@@ -889,7 +889,7 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 
 
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
-                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed)
+                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes)
 {
     spdlog::debug("Writing model video.");
 
@@ -905,14 +905,17 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     const bool isAvi = EndsWith(filename, ".avi");
     const bool isMov = EndsWith(filename, ".mov");
 
-    // Codec policy (unchanged from the legacy direct-FFmpeg path):
-    //   .mov -> rawvideo when the row stride is 8-byte aligned (width % 8 == 0;
-    //           bit-exact and AVFoundation-readable), else ProRes 4444
-    //           (visually lossless, AVFoundation-decodable at any width).
-    //   .avi -> rawvideo (uncompressed; external tooling only).
-    //   else -> H.264 in mp4 (compressed = lossy, otherwise near-lossless).
-    // VideoWriter routes ProRes / H.264 to AVFoundation where possible and
-    // rawvideo to FFmpeg (AVAssetWriter cannot write rawvideo).
+    // Codec policy:
+    //   .mov forceProRes -> always ProRes 4444 (4:4:4, near-lossless, much
+    //                    smaller than rawvideo, decodes everywhere; AVFoundation
+    //                    on macOS / prores_ks on FFmpeg).
+    //   .mov          -> rawvideo when width%8==0 (bit-exact, AVFoundation BGRA
+    //                    passthrough), else ProRes 4444 — both AVFoundation-decodable.
+    //   .avi          -> rawvideo (uncompressed; external tooling only, FFmpeg).
+    //   .mp4 highQuality -> HEVC at a generous bitrate: AVFoundation-encodable,
+    //                    near-visually-lossless, much higher quality than the
+    //                    standard Compressed mode.
+    //   .mp4 else     -> H.264 (compressed = lossy).
     VideoWriterParams params;
     params.width = origwidth;
     params.height = origheight;
@@ -921,10 +924,21 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     params.inputChannels = 3;         // RGB24 from FillImage
     params.cpuFrames = true;          // frames are produced on the CPU
     params.lossless = !compressed;
-    if (isMov) {
+    if (isMov && forceProRes) {
+        params.videoCodec = "ProRes";
+        params.lossless = false;      // ProRes is its own near-lossless codec
+    } else if (isMov) {
         params.videoCodec = (origwidth % 8 == 0) ? "rawvideo" : "ProRes";
     } else if (isAvi) {
         params.videoCodec = "rawvideo";
+    } else if (highQuality) {
+        params.videoCodec = "H.265";
+        params.lossless = false;
+        // Constant-quality HEVC at the top of the scale (AVFoundation
+        // AVVideoQualityKey). Crisper than any average-bitrate target, which
+        // VideoToolbox undershoots on easy LED content. Not bit-exact (still
+        // 4:2:0), but the best lossy quality — between H.264 and rawvideo.
+        params.videoQuality = 1.0;
     } else {
         params.videoCodec = "H.264";
     }

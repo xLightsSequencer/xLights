@@ -194,21 +194,34 @@ void FFmpegVideoWriter::initialize()
             return c;
         };
 #endif
+        if (_outParams.lossless) {
+            // VideoToolbox H.264/H.265 cannot encode true lossless (its top
+            // quality is still 4:2:0 lossy); the software encoder (libx264 /
+            // libx265 at crf 0) can. The house preview never uses lossless, so
+            // this only affects the model-export "Uncompressed" path — where the
+            // user explicitly wants lossless and the frames are CPU-supplied.
+            const char* swName = (best == AV_CODEC_ID_H265) ? "libx265" : "libx264";
+            videoCodec = ::avcodec_find_encoder_by_name(swName);
+            if (videoCodec == nullptr) {
+                videoCodec = ::avcodec_find_encoder(best);
+            }
+        } else {
 #if defined(__APPLE__)
-        // Prefer the Apple hardware encoder on macOS. avcodec_find_encoder()
-        // returns whichever encoder FFmpeg registered first for the codec ID,
-        // which on builds that include libx264 ends up being software — an
-        // order of magnitude slower than VideoToolbox.
-        const char* hwName = (best == AV_CODEC_ID_H265) ? "hevc_videotoolbox" : "h264_videotoolbox";
-        videoCodec = ::avcodec_find_encoder_by_name(hwName);
-        if (videoCodec == nullptr) {
-            videoCodec = ::avcodec_find_encoder(best);
-        }
+            // Prefer the Apple hardware encoder on macOS. avcodec_find_encoder()
+            // returns whichever encoder FFmpeg registered first for the codec ID,
+            // which on builds that include libx264 ends up being software — an
+            // order of magnitude slower than VideoToolbox.
+            const char* hwName = (best == AV_CODEC_ID_H265) ? "hevc_videotoolbox" : "h264_videotoolbox";
+            videoCodec = ::avcodec_find_encoder_by_name(hwName);
+            if (videoCodec == nullptr) {
+                videoCodec = ::avcodec_find_encoder(best);
+            }
 #elif defined(_WIN32)
-        videoCodec = findWindowsEncoder(best);
+            videoCodec = findWindowsEncoder(best);
 #else
-        videoCodec = ::avcodec_find_encoder(best);
+            videoCodec = ::avcodec_find_encoder(best);
 #endif
+        }
         if (videoCodec == nullptr) {
             // try flipping back/forth to h264/h265 to see if that can be loaded
             best = (best == AV_CODEC_ID_H265 ? AV_CODEC_ID_H264 : AV_CODEC_ID_H265);
@@ -329,44 +342,58 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
     }
 
     if (codec->id == AV_CODEC_ID_H264 || codec->id == AV_CODEC_ID_H265) {
-        _videoCodecContext->color_range     = AVCOL_RANGE_JPEG;
+        // Full-range (JPEG) output matches the GPU house-preview's full-range
+        // sRGB pixels — but VideoToolbox rejects a full-range *software* YUV420P
+        // frame ("Could not get pixel format ... range 'pc'") and silently
+        // downgrades to mpeg4. CPU-frame callers therefore use limited (MPEG)
+        // range, matching the legacy WriteVideoModelFile behaviour.
+        _videoCodecContext->color_range     = _outParams.cpuFrames ? AVCOL_RANGE_MPEG : AVCOL_RANGE_JPEG;
         _videoCodecContext->color_primaries = AVCOL_PRI_BT709;
         _videoCodecContext->color_trc       = AVCOL_TRC_BT709;
         _videoCodecContext->colorspace      = AVCOL_SPC_BT709;
     }
 
-    if (codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+    // rawvideo (and some others) advertise no pix_fmts list (NULL), so guard the
+    // dereference — only the hardware encoders set pix_fmts[0] to VIDEOTOOLBOX.
+    if (codec->pix_fmts != nullptr && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
 #if defined(__APPLE__)
-        // Set up a VideoToolbox hardware frames context so the encoder can
-        // consume GPU-backed CVPixelBuffers directly (no CPU sws_scale).
-        int hwErr = ::av_hwdevice_ctx_create(&_hwDeviceCtx, AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
-                                             nullptr, nullptr, 0);
-        if (hwErr >= 0) {
-            _hwFramesCtx = ::av_hwframe_ctx_alloc(_hwDeviceCtx);
-            if (_hwFramesCtx) {
-                auto* frames = reinterpret_cast<AVHWFramesContext*>(_hwFramesCtx->data);
-                frames->format    = AV_PIX_FMT_VIDEOTOOLBOX;
-                frames->sw_format = AV_PIX_FMT_NV12;   // native CVPixelBuffer format
-                frames->width     = _outParams.width;
-                frames->height    = _outParams.height;
-                // Need at least enough buffers to cover our ring + whatever the
-                // encoder retains mid-flight. MAX_EXPORT_BUFFER_FRAMES is 20;
-                // double that to give slack for in-flight encoder references.
-                frames->initial_pool_size = MAX_EXPORT_BUFFER_FRAMES * 2;
-                hwErr = ::av_hwframe_ctx_init(_hwFramesCtx);
-                if (hwErr >= 0) {
-                    _videoCodecContext->pix_fmt       = AV_PIX_FMT_VIDEOTOOLBOX;
-                    _videoCodecContext->hw_frames_ctx = ::av_buffer_ref(_hwFramesCtx);
-                } else {
-                    spdlog::warn("VideoWriter - av_hwframe_ctx_init failed ({}), falling back to software pix_fmt", hwErr);
-                    ::av_buffer_unref(&_hwFramesCtx);
+        // A VideoToolbox hardware frames context lets the encoder consume
+        // GPU-backed CVPixelBuffers directly (zero-copy, no CPU sws_scale) — but
+        // it makes the frame-supply callback fill a CVPixelBuffer (nativeSurface)
+        // rather than an RGB buffer. Only GPU callers (house preview) can do
+        // that; CPU-frame callers (model export / transcoder) fill rgbBuffer, so
+        // for them we must stay on the software path (no hw frames) and let
+        // VideoToolbox upload the software frame itself.
+        if (!_outParams.cpuFrames) {
+            int hwErr = ::av_hwdevice_ctx_create(&_hwDeviceCtx, AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
+                                                 nullptr, nullptr, 0);
+            if (hwErr >= 0) {
+                _hwFramesCtx = ::av_hwframe_ctx_alloc(_hwDeviceCtx);
+                if (_hwFramesCtx) {
+                    auto* frames = reinterpret_cast<AVHWFramesContext*>(_hwFramesCtx->data);
+                    frames->format    = AV_PIX_FMT_VIDEOTOOLBOX;
+                    frames->sw_format = AV_PIX_FMT_NV12;   // native CVPixelBuffer format
+                    frames->width     = _outParams.width;
+                    frames->height    = _outParams.height;
+                    // Need at least enough buffers to cover our ring + whatever the
+                    // encoder retains mid-flight. MAX_EXPORT_BUFFER_FRAMES is 20;
+                    // double that to give slack for in-flight encoder references.
+                    frames->initial_pool_size = MAX_EXPORT_BUFFER_FRAMES * 2;
+                    hwErr = ::av_hwframe_ctx_init(_hwFramesCtx);
+                    if (hwErr >= 0) {
+                        _videoCodecContext->pix_fmt       = AV_PIX_FMT_VIDEOTOOLBOX;
+                        _videoCodecContext->hw_frames_ctx = ::av_buffer_ref(_hwFramesCtx);
+                    } else {
+                        spdlog::warn("VideoWriter - av_hwframe_ctx_init failed ({}), falling back to software pix_fmt", hwErr);
+                        ::av_buffer_unref(&_hwFramesCtx);
+                    }
                 }
+                if (_hwFramesCtx == nullptr) {
+                    ::av_buffer_unref(&_hwDeviceCtx);
+                }
+            } else {
+                spdlog::warn("VideoWriter - av_hwdevice_ctx_create(VideoToolbox) failed ({})", hwErr);
             }
-            if (_hwFramesCtx == nullptr) {
-                ::av_buffer_unref(&_hwDeviceCtx);
-            }
-        } else {
-            spdlog::warn("VideoWriter - av_hwdevice_ctx_create(VideoToolbox) failed ({})", hwErr);
         }
 #endif
         if (AV_CODEC_ID_H265 == codec->id) {
@@ -384,9 +411,16 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         ::av_opt_set_int(_videoCodecContext->priv_data, "prio_speed", 1, AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set_int(_videoCodecContext->priv_data, "frames_before", 0, AV_OPT_SEARCH_CHILDREN);
         if (_outParams.lossless) {
-            // Near-lossless VideoToolbox: max quality knob (value/FF_QP2LAMBDA/100 -> ~1.0).
+            // Near-lossless VideoToolbox (no true-lossless H.264/H.265 without
+            // libx264/5). Mirrors the old WriteVideoModelFile path: the constant-
+            // quality knob is honored on Apple Silicon; the Intel slice caps the
+            // bitrate instead.
+#if defined(__aarch64__)
             _videoCodecContext->flags |= AV_CODEC_FLAG_QSCALE;
-            _videoCodecContext->global_quality = (FF_QP2LAMBDA * 100) - 1;
+            _videoCodecContext->global_quality = (FF_QP2LAMBDA * 100) - 1;  // value/FF_QP2LAMBDA/100 -> ~1.0
+#else
+            _videoCodecContext->rc_max_rate = _videoCodecContext->bit_rate;
+#endif
         }
     } else if (codec->id == AV_CODEC_ID_RAWVIDEO) {
         // Uncompressed RGB. .mov needs pasp + fiel atoms in the stsd, which the
@@ -441,7 +475,7 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         _videoCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
     int status = ::avcodec_open2(_videoCodecContext, nullptr, nullptr);
-    if (status != 0 && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
+    if (status != 0 && codec->pix_fmts != nullptr && codec->pix_fmts[0] == AV_PIX_FMT_VIDEOTOOLBOX) {
         spdlog::warn("VideoWriter - VideoToolbox encoder failed to open, downgrading");
         // could not initialize hardware encoder, drop to ffmpeg mpeg4
         if (strcmp(codec->name, "hevc_videotoolbox") == 0) {
@@ -617,7 +651,10 @@ void FFmpegVideoWriter::initializeFrames()
         // Without this, sws_scale squeezes Y to 16-235 (studio swing) and the
         // exported video looks dark on players that treat it as full range.
         // Only meaningful for YUV outputs (H.264/H.265/ProRes), not rawvideo RGB.
-        if (outPfmt != AV_PIX_FMT_RGB24 && outPfmt != AV_PIX_FMT_BGR24) {
+        // CPU-frame callers tag the stream limited-range (above, to keep the
+        // VideoToolbox software encoder happy), so they keep sws's default
+        // limited-range conversion — the two must agree or colours shift.
+        if (!_outParams.cpuFrames && outPfmt != AV_PIX_FMT_RGB24 && outPfmt != AV_PIX_FMT_BGR24) {
             if (::sws_setColorspaceDetails(_swsContext,
                     ::sws_getCoefficients(SWS_CS_ITU709), 1,
                     ::sws_getCoefficients(SWS_CS_ITU709), 1,

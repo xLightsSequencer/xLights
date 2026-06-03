@@ -50,6 +50,7 @@ struct VideoWriterParams {
     int audioSampleRate = 0;       // 0 == no audio; assumes stereo otherwise
     std::string videoCodec;        // "H.264", "H.265", "MPEG-4", "ProRes", "rawvideo", "auto"
     int videoBitrate = 0;          // kbps; 0 lets the encoder choose / use constant quality
+    double videoQuality = 0.0;     // >0 (0..1): AVFoundation constant-quality (AVVideoQualityKey) instead of bitrate
     bool lossless = false;         // request lossless / near-lossless encoding where the codec supports it
     int inputChannels = 3;         // bytes per pixel the GetVideoFrameCb fills into rgbBuffer (3=RGB24, 4=RGBA)
     bool cpuFrames = false;        // true: GetVideoFrameCb fills the CPU rgbBuffer (no GPU nativeSurface)
