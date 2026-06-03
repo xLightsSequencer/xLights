@@ -38,6 +38,7 @@
 #include "render/FSEQFile.h"
 #include "sequencer/CopyFormat1.h"
 #include "media/VideoWriter.h"
+#include "render/ModelVideoExporter.h"
 
 #include <log.h>
 
@@ -784,67 +785,6 @@ void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, 
     }
 }
 
-static void RenderModelOnXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
-{
-    int outheight = image.GetHeight();
-    int outwidth = image.GetWidth();
-    uint8_t* imagedata = image.GetData();
-
-    int chs = model->GetChanCountPerNode();
-    uint8_t* ps = framedata + startAddr;
-
-    char r = model->GetChannelColorLetter(0);
-    int rr = 0, gg = 1, bb = 2;
-    if (r == 'G') gg = 0;
-    else if (r == 'B') bb = 0;
-    char g = model->GetChannelColorLetter(1);
-    if (g == 'R') rr = 1;
-    else if (g == 'B') bb = 1;
-    char b = model->GetChannelColorLetter(2);
-    if (b == 'R') rr = 2;
-    else if (b == 'G') gg = 2;
-
-    for (size_t i = 0; i < model->GetNodeCount(); i++) {
-        xlColor c = model->GetNodeColor(i);
-        std::vector<xlPoint> pts;
-        model->GetNodeCoords(i, pts);
-
-        for (const auto& it : pts) {
-            int xx = x + it.x;
-            int yy = y + it.y;
-            if (invert) yy = outheight - yy - 1;
-
-            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight) {
-                uint8_t* p = imagedata + (yy * outwidth + xx) * 4; // RGBA
-                if (chs == 1) {
-                    p[0] = c.Red();
-                    p[1] = c.Green();
-                    p[2] = c.Blue();
-                } else {
-                    p[0] = *(ps + rr);
-                    p[1] = *(ps + gg);
-                    p[2] = *(ps + bb);
-                }
-                p[3] = 255; // fully opaque
-            }
-        }
-        ps += chs;
-    }
-}
-
-static void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
-{
-    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        ModelGroup* mg = static_cast<ModelGroup*>(model);
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
-            int start = (*m)->GetFirstChannel() - startAddr;
-            RenderModelOnXlImage(image, *m, framedata, start, 0, 0, invert);
-        }
-    } else {
-        RenderModelOnXlImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
-    }
-}
-
 std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
     size_t numFrames, int frameTimeMs)
@@ -880,7 +820,7 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 
     for (size_t i = 0; i < numFrames; i++) {
         auto img = std::make_shared<xlImage>(width, height);
-        FillXlImage(*img, matrixModel, (uint8_t*)&seqData[i][0], 1, true);
+        ModelVideoExporter::FillXlImage(*img, matrixModel, (uint8_t*)&seqData[i][0], 1, true);
         result.push_back(img);
     }
 
@@ -891,91 +831,11 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
                                        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes)
 {
-    spdlog::debug("Writing model video.");
-
-    int origwidth = 0;
-    int origheight = 0;
-    model->GetBufferSize("Default", "2D", "None", origwidth, origheight, 0);
-    if (origwidth <= 0 || origheight <= 0) {
-        spdlog::error("   Model video has invalid dimensions {}x{}.", origwidth, origheight);
-        return;
-    }
-
-    const std::string filename = filenames.ToStdString();
-    const bool isAvi = EndsWith(filename, ".avi");
-    const bool isMov = EndsWith(filename, ".mov");
-
-    // Codec policy:
-    //   .mov forceProRes -> always ProRes 4444 (4:4:4, near-lossless, much
-    //                    smaller than rawvideo, decodes everywhere; AVFoundation
-    //                    on macOS / prores_ks on FFmpeg).
-    //   .mov          -> rawvideo when width%8==0 (bit-exact, AVFoundation BGRA
-    //                    passthrough), else ProRes 4444 — both AVFoundation-decodable.
-    //   .avi          -> rawvideo (uncompressed; external tooling only, FFmpeg).
-    //   .mp4 highQuality -> HEVC at a generous bitrate: AVFoundation-encodable,
-    //                    near-visually-lossless, much higher quality than the
-    //                    standard Compressed mode.
-    //   .mp4 else     -> H.264 (compressed = lossy).
-    VideoWriterParams params;
-    params.width = origwidth;
-    params.height = origheight;
-    params.fps = std::max(1u, 1000u / dataBuf->FrameTime());
-    params.audioSampleRate = 0;       // video only
-    params.inputChannels = 3;         // RGB24 from FillImage
-    params.cpuFrames = true;          // frames are produced on the CPU
-    params.lossless = !compressed;
-    if (isMov && forceProRes) {
-        params.videoCodec = "ProRes";
-        params.lossless = false;      // ProRes is its own near-lossless codec
-    } else if (isMov) {
-        params.videoCodec = (origwidth % 8 == 0) ? "rawvideo" : "ProRes";
-    } else if (isAvi) {
-        params.videoCodec = "rawvideo";
-    } else if (highQuality) {
-        params.videoCodec = "H.265";
-        params.lossless = false;
-        // Constant-quality HEVC at the top of the scale (AVFoundation
-        // AVVideoQualityKey). Crisper than any average-bitrate target, which
-        // VideoToolbox undershoots on easy LED content. Not bit-exact (still
-        // 4:2:0), but the best lossy quality — between H.264 and rawvideo.
-        params.videoQuality = 1.0;
-    } else {
-        params.videoCodec = "H.264";
-    }
-
-    const int rowBytes = origwidth * 3;
-    const unsigned lastFrame = (endFrame > startFrame) ? (endFrame - 1) : startFrame;
-
-    try {
-        VideoWriter writer(filename, params, /*videoOnly*/ true);
-
-        writer.setGetVideoCallback([&](VideoWriterFrame& vf, unsigned frameIndex) {
-            // Clamp tail over-reads: the FFmpeg encoder may pull a few frames
-            // past the requested count while flushing its pipeline.
-            unsigned dataIdx = startFrame + frameIndex;
-            if (dataIdx > lastFrame) {
-                dataIdx = lastFrame;
-            }
-            wxImage image(origwidth, origheight, true);
-            FillImage(image, model, (uint8_t*)&(*dataBuf)[dataIdx][0], startAddr, false);
-            const uint8_t* imgData = image.GetData();  // RGB24, top-down
-            // Flip vertically (model-video convention) into the tightly-packed buffer.
-            for (int y = 0; y < origheight; ++y) {
-                std::memcpy(vf.rgbBuffer + (size_t)y * rowBytes,
-                            imgData + (size_t)(origheight - 1 - y) * rowBytes,
-                            (size_t)rowBytes);
-            }
-            return true;
-        });
-
-        writer.initialize();
-        writer.exportFrames(static_cast<int>(endFrame - startFrame));
-        writer.completeExport();
-        spdlog::debug("Model video written successfully (via {}).",
-                      writer.usingAVFoundation() ? "AVFoundation" : "FFmpeg");
-    } catch (const std::exception& e) {
-        spdlog::error("Model video export failed: {}", e.what());
-    }
+    // The whole model->video export is wx-free and lives in src-core so the
+    // iPad app can reuse it; this is just the desktop entry point.
+    ModelVideoExporter::WriteModelVideo(filenames.ToStdString(), dataBuf,
+                                        startFrame, endFrame, model, startAddr,
+                                        compressed, highQuality, forceProRes);
 }
 
 std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const

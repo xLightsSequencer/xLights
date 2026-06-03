@@ -901,6 +901,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\render\RenderEngine.cpp" />
     <ClCompile Include="..\src-core\render\ViewpointMgr.cpp" />
     <ClCompile Include="..\src-ui-wx\render\RenderUI.cpp" />
+    <ClCompile Include="..\src-core\render\ModelVideoExporter.cpp" />
     <ClCompile Include="..\src-core\render\RenderBuffer.cpp" />
     <ClCompile Include="..\src-core\render\RenderCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenderCommandEvent.cpp" />
@@ -1494,6 +1495,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-core\render\ModelVideoExporter.h" />
     <ClInclude Include="..\src-core\render\RenderBuffer.h" />
     <ClInclude Include="..\src-core\render\RenderCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenderCommandEvent.h" />

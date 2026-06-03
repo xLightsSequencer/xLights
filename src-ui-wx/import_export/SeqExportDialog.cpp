@@ -94,9 +94,11 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.mp4"));
     ChoiceFormat->Append(_("High Quality Compressed Video, *.mp4"));
+#ifndef __APPLE__
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
-    ChoiceFormat->Append(_("Lossless RGB Video, *.mov"));
+#endif
     ChoiceFormat->Append(_("ProRes 4444 Video, *.mov"));
+    ChoiceFormat->Append(_("Lossless RGB Video, *.mov"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
     ChoiceFormat->Append(_("GIF Image, *.gif"));
 
