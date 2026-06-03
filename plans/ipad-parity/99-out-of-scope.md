@@ -62,12 +62,32 @@ removable card — or whose UI is a device picker — have nothing to act on.
 
 ---
 
-## 3. No bundled FFmpeg encode (video export / transcode)
+## 3. No bundled FFmpeg encode — transcode-on-import & GIF only
 
-The iPad library does not build the FFmpeg encode path; the bridge explicitly
-documents "iPad cannot transcode video — desktop-only." Any feature that encodes
-or muxes video, or configures codec/bitrate, has no pipeline behind it. (Decode
-goes through VideoToolbox automatically; only *encode* is missing.)
+> **Update (2026-06 — the AVFoundation `VideoWriter` landed):** the video *encode*
+> pipeline these items were blocked on **now exists in shared core** and **builds in
+> the iPad lib**: `src-core/media/VideoWriter` → `AVFoundationVideoWriter` +
+> `macOS/src-apple-core/media/AVFoundationVideoWriterBridge` (AVAssetWriter +
+> VideoToolbox). It covers **H.264 / H.265**, **ProRes 4444**, and **bit-exact
+> uncompressed `.mov` via passthrough** (`outputSettings:nil` + a BGRA
+> `sourceFormatHint` — verified bit-exact at any size, alpha-preserving) — wx-free
+> and FFmpeg-free, and on iPad `VideoWriter` selects the AVFoundation backend
+> unconditionally. So the **encode-side** video-export features (House Preview Video,
+> exportVideoPreview command, the Codec/Bitrate prefs) are **no longer out-of-scope**
+> — they become iPad **wiring tasks** (feed the Metal-preview frames into the core
+> `VideoWriter`, add a SwiftUI export sheet + bridge). Track them in
+> **09-file-lifecycle-render-tools** / **02-timing-and-audio**, not here. What stays
+> genuinely out of scope is narrower:
+
+The iPad library still does not bundle FFmpeg, so two things remain unavailable:
+
+1. **Transcode-on-import** — a *decode* limitation, not encode. `VideoTranscoder`
+   exists precisely to handle sources AVFoundation/VideoToolbox **cannot decode** (VP9 /
+   AV1 / odd profiles / some uncompressed AVI). iPad can't decode those in the first
+   place, so there is nothing to feed a re-encoder; iPad warns-and-skips (MED-3)
+   regardless of the encode side now existing.
+2. **GIF export and arbitrary-container/codec muxing** — AVAssetWriter has no GIF
+   encoder and only writes MP4/MOV with its supported codecs.
 
 **Why not just bundle the whole FFmpeg library on iPad?** Three compounding
 reasons: (1) **size** — a full static FFmpeg with the encoders/muxers xLights
@@ -76,20 +96,15 @@ single non-core feature; (2) **licensing** — the encoders xLights uses (x264 e
 al.) pull GPL/commercial-licensed components, which is a meaningful obligation to
 take on for App Store distribution; (3) **App Store review risk** — large
 vendored media stacks invite extra scrutiny and rejection risk. The native
-substitute, **AVAssetWriter + VideoToolbox encode**, covers **MP4/MOV (H.264 /
-H.265) only** — it has **no GIF encoder** and no arbitrary-container muxing, so
-even the in-scope-later path (see *Could be revisited if…*) is a partial
-replacement, not a drop-in. Note that *decode* via VideoToolbox already works for
-playback/import, so only the encode/transcode side is affected.
+substitute, **AVAssetWriter + VideoToolbox encode** (now built, see above),
+covers MP4/MOV + uncompressed `.mov` — it has **no GIF encoder** and no
+arbitrary-container muxing, so those stay out of scope. *Decode* via VideoToolbox
+already works for playback/import.
 
-| Feature | Desktop origin | Reason out-of-scope |
+| Feature | Desktop origin | Reason still out-of-scope |
 |---|---|---|
-| Export House Preview Video | `src-ui-wx/media/VideoExporter.cpp` | Desktop encoder is wx-only and uses FFmpeg encode. An AVAssetWriter exporter fed by the Metal house preview is net-new XL work with no shared-core reuse. |
-| Export rendered sequence as video | `src-ui-wx/media/VideoExporter` (GenericVideoExporter) | wx-UI desktop component relying on FFmpeg encode the iPad lib does not build. Would need an AVAssetWriter reimplementation; not a sequencing parity blocker. |
-| Incompatible-video conversion on import | VideoTranscoder / MediaCompatibility | Transcode path is desktop-only; no FFmpeg encode in the iPad lib. iPad should warn-and-skip rather than transcode in place. |
-| Command: exportVideoPreview | Automation / REST | Desktop encodes the preview to MP4/H.264 via FFmpeg. iPad does not bundle the encode path; on-device H.264 would need a separate AVFoundation/VideoToolbox encoder pipeline. |
-| Video Export Codec (pref) | Preferences | No video-export pipeline on iPad, so a codec choice has nothing to configure. |
-| Video Export Bitrate (pref) | Preferences | Same — no export pipeline, so there is no bitrate to set. |
+| Incompatible-video conversion on import | VideoTranscoder / MediaCompatibility | A *decode* limit: iPad can't decode the sources that need transcoding, so there's nothing to decode-then-re-encode (the encode side now exists, but is moot here). Warn-and-skip (MED-3). |
+| Render multi-format export — GIF | `TabConvert.cpp` | AVAssetWriter has no GIF encoder. |
 
 ---
 
@@ -225,11 +240,15 @@ today (often with a native partial substitute already shipping).
 A small number of items are out-of-scope *today* but could become in-scope if a
 specific capability is built or a device constraint lifts:
 
-- **Video export via AVAssetWriter** — *Export House Preview Video*, *Export
-  rendered sequence as video*, *Command: exportVideoPreview*, and the *Video
-  Export Codec / Bitrate* preferences all become in-scope together if an
-  AVAssetWriter-based H.264/H.265 encoder fed by the Metal canvas is built. This
-  is net-new work with no shared-core reuse, not a wiring task.
+- **Video export via AVAssetWriter** — ✅ **precondition met (2026-06).** The
+  AVAssetWriter-based H.264/H.265/ProRes/uncompressed encoder is now built in shared
+  core (`VideoWriter` → `AVFoundationVideoWriter`) and compiles in the iPad lib, so
+  *Export House Preview Video*, *Command: exportVideoPreview*, and the *Video Export
+  Codec / Bitrate* preferences are now **in-scope wiring tasks** (feed the Metal
+  preview frames into `VideoWriter` + a SwiftUI export sheet), tracked in the theme
+  plans — no longer "net-new with no shared-core reuse." (*Export rendered model
+  video* additionally needs its `wxImage`/`FillImage` frame production moved off wx;
+  the encoder half is done.)
 - **GPU Rendering toggle** — render now defaults to **full-definition** on every
   iPad (`iPadRenderContext::IsLowDefinitionRender()` reads the opt-in
   `render.lowDefinition` app pref, default OFF), so *Low Definition Render* is

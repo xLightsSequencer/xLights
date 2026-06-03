@@ -85,7 +85,7 @@ The two genuinely-shared-core render gaps (determinate render progress, FSEQ for
 Full reasons live in the master out-of-scope doc (Rollup B); one-liners here so this plan is self-contained:
 
 - **Revert To… versioned backups** — macOS-only `NSFileVersion` revision API; iOS has no equivalent on-disk version browser for sandboxed files.
-- **Export House Preview Video** — desktop encoder is wx-only + FFmpeg encode (not in core); a native AVAssetWriter exporter is net-new XL work with no shared-core reuse.
+- **Export House Preview Video** — ⬆ **now unblocked (2026-06).** The encoder moved to shared core (`src-core/media/VideoWriter` → `AVFoundationVideoWriter`, AVAssetWriter + VideoToolbox, H.264/H.265) and **builds in the iPad lib**. No longer "net-new with no shared-core reuse" — it's now a wiring task: feed the iPad Metal house-preview frames into `VideoWriter` (via the GPU `nativeSurface` CVPixelBuffer path or the CPU `rgbBuffer` path) + audio from the core `AudioManager`, add a SwiftUI export sheet + bridge. (Was: desktop encoder is wx-only + FFmpeg.)
 - **Open New xLights Instance** — iOS apps are single-process; cannot spawn a second independent instance.
 - **HinksPix Export (+ Controllers / Playlists / Schedule tabs, SD-card output)** — primary output writes to removable SD/USB (no iOS raw-drive API) on proprietary non-open firmware (outside the FPP/ESPixelStick scope).
 - **Run Scripts (Lua / Python) + script-library management** — App Store guideline 2.5.2 forbids downloading/executing code that changes app behavior.

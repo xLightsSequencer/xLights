@@ -77,6 +77,20 @@ All entries below are **build-verified** (`xLights-iPadLib` + the `xLights-iPad`
 app); on-device verification is the standing follow-up. Detail lives in the
 matching `plans/ipad-parity/` theme doc.
 
+- **Shared-core video encoder (`VideoWriter`) — unblocks iPad video export (2026-06-02).**
+  *Infrastructure, not yet an iPad feature.* The desktop `VideoExporter` (wx + FFmpeg)
+  was replaced by a backend-abstracted `src-core/media/VideoWriter` →
+  `AVFoundationVideoWriter` + `macOS/src-apple-core/media/AVFoundationVideoWriterBridge`
+  (AVAssetWriter + VideoToolbox): H.264/H.265, ProRes 4444, and **bit-exact uncompressed
+  `.mov` via passthrough** (verified bit-exact at any size, alpha-preserving) — all
+  wx-free and FFmpeg-free. **Builds in `xLights-iPadLib`** (on iPad `VideoWriter` selects
+  the AVFoundation backend unconditionally), with both a GPU `nativeSurface` (CVPixelBuffer)
+  and a CPU `rgbBuffer` frame-feed path. This removes the "no encode pipeline on iPad"
+  blocker: **Export House Preview Video / exportVideoPreview / Video Export Codec+Bitrate
+  prefs** drop from out-of-scope to **in-scope wiring tasks** (feed the Metal preview into
+  `VideoWriter` + a SwiftUI export sheet). Transcode-on-import stays out (a *decode* limit).
+  Reclassified in `99-out-of-scope.md` §3, `09-file-lifecycle-render-tools.md`,
+  `02-timing-and-audio.md`.
 - **Cross-theme quick-wins batch 2 — BR-1 + LAY-29 (2026-06-02).** Build-verified
   green (`xLights-iPadLib`, Debug) + core boundary-check clean.
   - **BR-1 (09)** — Batch Render *Include subfolders* toggle.

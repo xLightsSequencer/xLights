@@ -80,9 +80,9 @@ Both areas are already strong. **Area 12** is 50 features: 33 implemented, 9 par
 - **VAMP plugin beat/bar/key analysis & "Download VAMP plugins" prompt** — App Store forbids loading external Queen Mary `.dylib` plugins at runtime; on-device Apple analyzers (onsets/tempo/chords/pitch/SNClassify) are the substitute.
 - **VAMP plugin timing-track generation** — same dylib-host constraint (`xLightsVamp.h` is gated desktop-only).
 - **Polyphonic transcription** — depends on the VAMP polyphonic plugin (`DoPolyphonicTranscription` routes through VAMP), so the file-based Note Import in TIM-7 ships without it.
-- **Incompatible-video conversion on import** — `VideoTranscoder`/FFmpeg encode is desktop-only and not built into the iPad lib; iPad detects + warns (MED-3) rather than transcodes.
+- **Incompatible-video conversion on import** — out of scope for a *decode* reason, not encode: `VideoTranscoder` exists to handle sources VideoToolbox can't decode, and its FFmpeg **decode** half is desktop-only. (Its *encode* half now runs through the shared-core AVFoundation `VideoWriter`, but iPad can't decode the inputs that need transcoding, so the path is still moot.) iPad detects + warns (MED-3) rather than transcodes.
 - **Audio output device selection** — iOS routes audio via the OS (AVAudioSession / Control Center / AirPlay); there is nothing for an app-side device picker to enumerate.
-- **Export rendered sequence as video** — `GenericVideoExporter` is a wx component on the FFmpeg encode path; an AVAssetWriter reimplementation is net-new, not a parity wiring task.
+- **Export rendered sequence as video** — ⬆ **encoder now in shared core (2026-06):** `VideoExporter` was replaced by `src-core/media/VideoWriter` (AVFoundation H.264/H.265/ProRes/uncompressed), which builds in the iPad lib. The House-Preview video export is now a wiring task (see 09-file-lifecycle-render-tools). The *model* video export (`WriteVideoModelFile`) additionally needs its `wxImage`/`FillImage` frame production moved off wx before it can run on iPad; the encoder half is done.
 
 ## Risks / open questions
 

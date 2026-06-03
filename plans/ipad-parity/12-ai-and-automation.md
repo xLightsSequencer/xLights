@@ -79,7 +79,7 @@
 - **AI plugin DLL loading** — iOS App Store forbids loading executable code outside the signed bundle; `ServiceManager` is intentionally built with an empty plugin dir.
 - **HTTP/REST automation server (A/B port)** — marginal value on a sandboxed single-window touch app; *technically* possible via Network.framework, so flagged low-priority rather than hard-blocked. Natural replacement is App Intents/Shortcuts (unbuilt).
 - **Automation port preference (Disabled / Port A / Port B)** — only configures the nonexistent A/B listener; no argv on iPad.
-- **`exportVideoPreview`** — needs an FFmpeg/AVAssetWriter encode pipeline; a net-new video subsystem, not an automation gap.
+- **`exportVideoPreview`** — ⬆ the AVAssetWriter encode pipeline now exists in shared core (`VideoWriter`, builds on iPad), so this is no longer a net-new subsystem; it depends on Export House Preview Video being wired up first (09-file-lifecycle-render-tools), then becomes a thin command wrapper.
 - **`playJukebox` / `jukeboxButtonTooltips` / `jukeboxButtonEffectPresent`** — no Jukebox feature on iPad to drive (see Jukebox plan).
 - **`closexLights`** — iOS apps cannot programmatically `exit()`; OS owns lifecycle.
 - **Python scripting engine (pybind11 / CPython)** — App Store 2.5.2 + no Python lib in iOS deps; (deferred, high-risk) Lua is the only candidate scripting path, and only for bundled / in-app-authored scripts.

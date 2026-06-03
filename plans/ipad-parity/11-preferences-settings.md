@@ -91,7 +91,7 @@ These are the cheap, high-leverage early items — do them alongside PREF-1 to m
 - **xFade/xSchedule sync port** — desktop companion apps over shared-memory IPC; no counterpart on iOS.
 - **Suppress Dark Mode (Windows only)** — Windows-only; iPadOS follows system appearance per HIG.
 - **Hardware Video Decoding / Renderer / GPU Rendering / Shaders on Background Threads** — Apple uses VideoToolbox automatically; the render context is already device-tuned; ShaderEffect is single-threaded on Metal by design.
-- **Video Export Codec / Bitrate** — no on-device video-export pipeline (would need a future AVAssetWriter feature).
+- **Video Export Codec / Bitrate** — ⬆ the AVAssetWriter encode pipeline now exists in shared core (`VideoWriter`, builds on iPad), so these prefs become meaningful once Export House Preview Video is wired up (see 09-file-lifecycle-render-tools) — in-scope-pending-wiring rather than out-of-scope.
 - **Tip Of The Day min level / recycle** — no tips engine on iPad.
 - **Use custom color picker (experimental)** — iPad uses the native SwiftUI `ColorPicker`; no wx custom picker to switch to.
 
