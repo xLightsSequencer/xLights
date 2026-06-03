@@ -10,6 +10,14 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
+2026.11  June ??, 2026
+    -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
+                                 onto an already-mapped destination shows Replace / Add Additional prompt;
+                                 Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
+                                 New key-binding for Import Effects window.
+    -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
+                                 from saved map files when the model existed in the xLights layout but
+                                 not the current sequence.
 
 2026.11  June ??, 2026
     -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)

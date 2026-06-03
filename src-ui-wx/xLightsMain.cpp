@@ -7962,6 +7962,9 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         } else if (type == "COMMAND_PALETTE") {
             wxCommandEvent e;
             OnCommandPalette(e);
+        } else if (type == "IMPORT_EFFECTS") {
+            wxCommandEvent e;
+            OnMenuItemImportEffects(e);
         } else {
             return false;
         }

@@ -10,6 +10,7 @@
 
  //(*InternalHeaders(xLightsImportChannelMapDialog)
  #include <wx/settings.h>
+#include <wx/artprov.h>
 #include <wx/intl.h>
  #include <wx/string.h>
  //*)
@@ -209,6 +210,11 @@ bool xLightsImportTreeModel::GetAttr(const wxDataViewItem &item, unsigned int co
         set = true;
     }
 
+    if (node->_isStackDuplicate) {
+        attr.SetItalic(true);
+        set = true;
+    }
+
     if (col == 2 && node->_mapping.empty() && node->GetParent() == nullptr && node->HasMapping()) {
         bool expanded = _ctrl && _ctrl->IsExpanded(wxDataViewItem(const_cast<xLightsImportModelNode*>(node)));
         if (!expanded) {
@@ -347,17 +353,21 @@ void xLightsImportTreeModel::GetValue(wxVariant &variant,
     xLightsImportModelNode *parent = node->GetParent();
     switch (col)
     {
-        case 0:
+        case 0: {
+            wxString name;
             if (parent == nullptr) {
-                //variant = wxVariant(wxDataViewIconText(node->_model));
-                variant = wxVariant(node->_model);
-            } else if (node->GetChildCount() != 0 || "" == node->_node) {
-                //variant = wxVariant(wxDataViewIconText(node->_strand));
-                variant = wxVariant(node->_strand);
+                name = node->_model;
+            } else if (node->GetChildCount() != 0 || node->_node.empty()) {
+                name = node->_strand;
             } else {
-                variant = wxVariant(node->_node);
+                name = node->_node;
             }
+            if (node->_isStackDuplicate) {
+                name = "  + " + name;
+            }
+            variant = wxVariant(name);
             break;
+        }
         case 1:
             variant = wxVariant(node->_effectCount > 0 ? wxString::Format("%d", node->_effectCount) : "");
             break;
@@ -510,6 +520,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON7 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON6 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON2 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_BUTTON1 = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_BITMAPBUTTON_STASH = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_PANEL1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_STATICTEXT1 = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_TEXTCTRL1 = wxNewId();
@@ -535,6 +546,7 @@ BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
 //(*EventTable(xLightsImportChannelMapDialog)
 //*)
 END_EVENT_TABLE()
+
 
 xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* parent, const wxFileName& filename, bool allowTimingOffset, bool allowTimingTrack, bool allowColorChoice, bool allowCCRStrand, bool allowImportBlend, wxWindowID id, const wxPoint& pos, const wxSize& size) : xlights(parent)
 {
@@ -614,7 +626,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizerImportMedia->Add(ButtonImportOptions, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     Sizer1->Add(FlexGridSizerImportMedia, 1, wxALL|wxEXPAND, 1);
     TimingTrackPanel = new wxStaticBoxSizer(wxHORIZONTAL, Panel1, _("Timing Tracks"));
-    TimingTrackListBox = new wxCheckListBox(Panel1, ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
+    TimingTrackListBox = new wxCheckListBox(TimingTrackPanel->GetStaticBox(), ID_CHECKLISTBOX1, wxDefaultPosition, wxDefaultSize, 0, 0, wxLB_MULTIPLE|wxVSCROLL, wxDefaultValidator, _T("ID_CHECKLISTBOX1"));
     TimingTrackPanel->Add(TimingTrackListBox, 1, wxALL|wxEXPAND, 0);
     Sizer1->Add(TimingTrackPanel, 0, wxEXPAND | wxALL, 1);
     FlexGridSizer4 = new wxFlexGridSizer(0, 2, 0, 0);
@@ -649,11 +661,19 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizer8->Add(FlexGridSizer6, 1, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer2->Add(FlexGridSizer8, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer10 = new wxFlexGridSizer(0, 1, 0, 0);
+    FlexGridSizer10 = new wxFlexGridSizer(0, 2, 0, 4);
+    FlexGridSizer10->AddGrowableCol(0);
     Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer10->Add(Button02, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    FlexGridSizer10->Add(28, 1, 0, wxTOP | wxRIGHT, 5);
     Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button01, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
+    StashWarningButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_STASH,
+        wxArtProvider::GetBitmapBundle(wxART_WARNING, wxART_BUTTON),
+        wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW | wxBORDER_NONE);
+    StashWarningButton->SetToolTip("Stashed mappings exist — click to view");
+    StashWarningButton->Hide();
+    FlexGridSizer10->Add(StashWarningButton, 0, wxBOTTOM | wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer9->Add(FlexGridSizer10, 1, wxALIGN_LEFT, 5);
     FlexGridSizer2->Add(FlexGridSizer9, 1, wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer12 = new wxFlexGridSizer(0, 3, 0, 0);
@@ -692,6 +712,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     Connect(ID_BUTTON6, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnButton_UpdateAliasesClick);
     Connect(ID_BUTTON2, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::SaveMapping);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::LoadMapping);
+    Connect(ID_BITMAPBUTTON_STASH, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnStashWarningClick);
     Connect(ID_TEXTCTRL1, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnTextCtrl_FindFromText);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_BEGIN_DRAG, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableBeginDrag);
     Connect(ID_LISTCTRL1, wxEVT_COMMAND_LIST_ITEM_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnListCtrl_AvailableItemSelect);
@@ -989,6 +1010,31 @@ void xLightsImportChannelMapDialog::ClearAll() {
         }
     }
 
+    // Delete stacked duplicate rows — top-level and strand-level in one pass
+    auto& topChildren = _dataModel->GetChildren();
+    for (int i = (int)topChildren.GetCount() - 1; i >= 0; --i) {
+        xLightsImportModelNode* m = topChildren[i];
+        if (m->_isStackDuplicate) {
+            topChildren.RemoveAt(i);
+            _dataModel->ItemDeleted(wxDataViewItem(0), wxDataViewItem(m));
+            delete m;
+            continue;
+        }
+        wxDataViewItem modelItem(m);
+        auto& strandCh = m->GetChildren();
+        for (int j = (int)strandCh.GetCount() - 1; j >= 0; --j) {
+            xLightsImportModelNode* s = strandCh[j];
+            if (s->_isStackDuplicate) {
+                strandCh.RemoveAt(j);
+                _dataModel->ItemDeleted(modelItem, wxDataViewItem(s));
+                delete s;
+            }
+        }
+    }
+
+    _stashedMappings.clear();
+    UpdateStashWarning();
+
     TreeListCtrl_Mapping->Thaw();
     TreeListCtrl_Mapping->Refresh();
     MarkUsed();
@@ -1030,6 +1076,17 @@ void xLightsImportChannelMapDialog::ClearSelected() {
                             _dataModel->SetMappingExists(strandItem, true);
                         }
                     }
+                    // Remove stacked duplicate strand rows
+                    auto& strandCh = node->GetChildren();
+                    for (int j = (int)strandCh.GetCount() - 1; j >= 0; --j) {
+                        xLightsImportModelNode* s = strandCh[j];
+                        if (s->_isStackDuplicate) {
+                            wxDataViewItem sItem(s);
+                            strandCh.RemoveAt(j);
+                            _dataModel->ItemDeleted(item, sItem);
+                            delete s;
+                        }
+                    }
                     _dataModel->ValueChanged(item, 2);
                     _dataModel->SetMappingExists(item, true);
                 } else {
@@ -1037,9 +1094,13 @@ void xLightsImportChannelMapDialog::ClearSelected() {
                     _dataModel->ValueChanged(item, 2);
                 }
             } else {
-                node->ClearMapping();
-                _dataModel->ValueChanged(item, 2);
-                _dataModel->SetMappingExists(item, true);
+                if (node->_isStackDuplicate) {
+                    Unmap(item);
+                } else {
+                    node->ClearMapping();
+                    _dataModel->ValueChanged(item, 2);
+                    _dataModel->SetMappingExists(item, true);
+                }
             }
         }
     }
@@ -1709,6 +1770,20 @@ void xLightsImportChannelMapDialog::Map(const wxDataViewItem& item, const wxStri
 
 void xLightsImportChannelMapDialog::Unmap(const wxDataViewItem& item)
 {
+    xLightsImportModelNode* node = (xLightsImportModelNode*)item.GetID();
+    if (node && node->_isStackDuplicate) {
+        wxDataViewItem parentItem(node->GetParent());
+        if (node->GetParent() == nullptr) {
+            _dataModel->GetChildren().Remove(node);
+        } else {
+            node->GetParent()->GetChildren().Remove(node);
+        }
+        _dataModel->ItemDeleted(parentItem, item);
+        delete node;
+        _dirty = true;
+        MarkUsed();
+        return;
+    }
     _dirty = true;
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 2);
     TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(""), item, 3);
@@ -1840,11 +1915,34 @@ void xLightsImportChannelMapDialog::LoadMapping(wxCommandEvent& event)
 
 void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bool hideWarnings)
 {
-     
-
     _mappingFile = filepath;
-    _dataModel->ClearMapping();
-    _stashedMappings.clear();
+
+    if (!hideWarnings) {
+        bool hasMappings = !_stashedMappings.empty();
+        if (!hasMappings && _dataModel != nullptr) {
+            auto& children = _dataModel->GetChildren();
+            for (size_t i = 0; i < children.GetCount() && !hasMappings; ++i) {
+                if (children[i]->HasMapping())
+                    hasMappings = true;
+            }
+        }
+
+        if (hasMappings) {
+            wxMessageDialog prompt(this,
+                "What do you want to do with the existing mapped effects?",
+                "Load Mapping File",
+                wxYES_NO | wxCANCEL | wxCENTRE);
+            prompt.SetYesNoCancelLabels("Clear & Replace", "Merge", "Cancel");
+            int result = prompt.ShowModal();
+            if (result == wxID_CANCEL)
+                return;
+            if (result == wxID_YES) {
+                ClearAll();
+                _stashedMappings.clear();
+            }
+            // wxID_NO = Merge: proceed without clearing
+        }
+    }
 
     wxFileName fn(filepath);
     wxString const& ext { fn.GetExt().Lower() };
@@ -1895,6 +1993,56 @@ void xLightsImportChannelMapDialog::LoadMappingFile(wxString const& filepath, bo
 
     MarkUsed();
     TreeListCtrl_Mapping->Refresh();
+    UpdateStashWarning();
+}
+
+void xLightsImportChannelMapDialog::UpdateStashWarning()
+{
+    if (StashWarningButton == nullptr) return;
+    if (_stashedMappings.empty()) {
+        StashWarningButton->Hide();
+    } else {
+        StashWarningButton->SetToolTip(wxString::Format("%zu stashed mapping(s) — click to view", _stashedMappings.size()));
+        StashWarningButton->Show();
+    }
+    StashWarningButton->GetParent()->Layout();
+}
+
+void xLightsImportChannelMapDialog::OnStashWarningClick(wxCommandEvent& event)
+{
+    wxDialog dlg(this, wxID_ANY, "Stashed Mappings", wxDefaultPosition, wxSize(550, 400),
+                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* label = new wxStaticText(&dlg, wxID_ANY,
+        "These mappings were not applied because the destination was already mapped,\n"
+        "or the destination model was not found in the current sequence.");
+    sizer->Add(label, 0, wxALL, 8);
+
+    wxTextCtrl* text = new wxTextCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                      wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxHSCROLL);
+    wxFont mono = wxFont(wxFontInfo(12).Family(wxFONTFAMILY_TELETYPE));
+    text->SetFont(mono);
+
+    wxString content;
+    for (const auto& sm : _stashedMappings) {
+        wxString dest = wxString(sm->_model);
+        if (!sm->_strand.empty()) {
+            dest += " / " + wxString(sm->_strand);
+            if (!sm->_node.empty()) {
+                dest += " / " + wxString(sm->_node);
+            }
+        }
+        content += dest + "  →  " + wxString(sm->_mapping) + "\n";
+    }
+    text->SetValue(content);
+    sizer->Add(text, 1, wxALL | wxEXPAND, 8);
+
+    wxButton* closeBtn = new wxButton(&dlg, wxID_OK, "Close");
+    sizer->Add(closeBtn, 0, wxBOTTOM | wxRIGHT | wxALIGN_RIGHT, 8);
+
+    dlg.SetSizer(sizer);
+    dlg.ShowModal();
 }
 
 void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bool hideWarnings)
@@ -1965,13 +2113,6 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         }
     }
 
-    auto SetMapping = [&](wxString const& mapping, wxDataViewItem item, wxColor const& color) {
-        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
-        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
-        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
-    };
-
     //mappings
     auto mappings = data["mappings"].array();
     for (size_t i = 0; i < mappings.size(); ++i) {
@@ -1981,6 +2122,15 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         wxString const mapping = mappings.at(i).at("mapping").get<std::string>();
         wxColor color = wxColor(mappings.at(i).value("color", "#FFFFFF"));
         bool stashed = mappings.at(i).value("stashed", false);
+        bool stacked = mappings.at(i).value("stacked", false);
+
+        // Stacked entries: re-insert as a stacked duplicate below the last matching item
+        if (stacked && !mapping.empty()) {
+            wxDataViewItem baseItem = FindLastItem(model, strand, node);
+            if (baseItem.IsOk())
+                InsertStackDuplicate(baseItem, mapping.ToStdString(), findModelType(mapping.ToStdString()));
+            continue;
+        }
 
         Element *modelEl = mSequenceElements->GetElement(model.ToStdString());
 
@@ -2024,15 +2174,23 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
                 _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
             } else {
                 if (!mapping.empty()) {
-                    if (mni != nullptr) {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        SetMapping(mapping, item, color);
-                    } else if (msi != nullptr) {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                        SetMapping(mapping, item, color);
+                    xLightsImportModelNode* targetNode = mni != nullptr ? mni : (msi != nullptr ? msi : mi);
+                    auto resolveItem = [&]() {
+                        if (mni != nullptr) return FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                        if (msi != nullptr) return FindItem(model.ToStdString(), strand.ToStdString());
+                        return FindItem(model.ToStdString());
+                    };
+                    if (targetNode->_mapping.empty()) {
+                        ApplyMappingItem(mapping, resolveItem(), color);
+                    } else if (!targetNode->_mappingExists) {
+                        // existing mapping is invalid (red) — stash it and apply the new one
+                        _stashedMappings.emplace_back(new StashedMapping(
+                            wxString(targetNode->_model), wxString(targetNode->_strand), wxString(targetNode->_node),
+                            wxString(targetNode->_mapping), targetNode->_color));
+                        ApplyMappingItem(mapping, resolveItem(), color);
                     } else {
-                        wxDataViewItem item = FindItem(model.ToStdString());
-                        SetMapping(mapping, item, color);
+                        // destination already has a valid mapping — stash the incoming one
+                        _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
                     }
                 }
             }
@@ -2046,8 +2204,6 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
 
 void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bool hideWarnings)
 {
-    
-
     bool strandwarning{hideWarnings};
     bool modelwarning{hideWarnings};
 
@@ -2125,24 +2281,28 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
                 _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
             } else {
                 if (mapping != "") {
-                    if (mni != nullptr) {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant( findModelType(mapping)), item, 3);
-                    } else if (msi != nullptr) {
-                        wxDataViewItem item = FindItem(model.ToStdString(), strand.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
+                    xLightsImportModelNode* targetNode = mni != nullptr ? mni : (msi != nullptr ? msi : mi);
+                    auto resolveItem = [&]() {
+                        if (mni != nullptr) return FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
+                        if (msi != nullptr) return FindItem(model.ToStdString(), strand.ToStdString());
+                        return FindItem(model.ToStdString());
+                    };
+                    if (targetNode->_mapping.empty()) {
+                        ApplyMappingItem(mapping, resolveItem(), color);
+                    } else if (!targetNode->_mappingExists) {
+                        // existing mapping is invalid (red) — stash it and apply the new one
+                        _stashedMappings.emplace_back(new StashedMapping(
+                            wxString(targetNode->_model), wxString(targetNode->_strand), wxString(targetNode->_node),
+                            wxString(targetNode->_mapping), targetNode->_color));
+                        ApplyMappingItem(mapping, resolveItem(), color);
                     } else {
-                        wxDataViewItem item = FindItem(model.ToStdString());
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
-                        ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
-                        TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
+                        // destination already has a valid mapping — stack the incoming one
+                        wxDataViewItem baseItem = FindLastItem(model, strand, node);
+                        if (baseItem.IsOk()) {
+                            InsertStackDuplicate(baseItem, mapping.ToStdString(), findModelType(mapping.ToStdString()));
+                        } else {
+                            _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
+                        }
                     }
                 }
             }
@@ -2175,13 +2335,17 @@ void xLightsImportChannelMapDialog::SaveXMapMapping(wxString const& filename)
     wxFileOutputStream output(filename);
     wxTextOutputStream text(output);
     text.WriteString("false\n");
-    int modelcount = _dataModel->GetMappedChildCount();
-    text.WriteString(wxString::Format("%d\n", modelcount));
+    // Use unique model names in the header (stacked duplicates share a model name)
+    std::set<std::string> mappedModelNames;
     for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
         if (m->HasMapping()) {
-            text.WriteString(m->_model + "\n");
+            mappedModelNames.insert(m->_model);
         }
+    }
+    text.WriteString(wxString::Format("%d\n", mappedModelNames.size()));
+    for (const auto& mn : mappedModelNames) {
+        text.WriteString(mn + "\n");
     }
     for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
         xLightsImportModelNode* m = _dataModel->GetNthChild(i);
@@ -2249,8 +2413,7 @@ void xLightsImportChannelMapDialog::SaveXMapMapping(wxString const& filename)
     }
 
     for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it) {
-        Element *modelEl = mSequenceElements->GetElement((*it)->_model.ToStdString());
-        if (modelEl == nullptr) {
+        if (TreeContainsModel((*it)->_model.ToStdString()) == nullptr) {
             text.WriteString((*it)->_model
                 + "\t" + (*it)->_strand
                 + "\t" + (*it)->_node
@@ -2274,6 +2437,13 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
             nlohmann::json mapping;
 
             mapping["model"] = m->_model;
+            if (m->_isStackDuplicate) {
+                mapping["mapping"] = m->_mapping;
+                mapping["color"] = m->_color.GetAsString().ToStdString();
+                mapping["stacked"] = true;
+                allMappings.push_back(mapping);
+                continue;
+            }
             StashedMapping* sm = GetStashedMapping(m->_model, "", "");
             if (m->_mapping.empty() && sm != nullptr) {
                 mapping["mapping"] = sm->_mapping.ToStdString();
@@ -2287,6 +2457,16 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
             for (size_t j = 0; j < m->GetChildCount(); ++j) {
                 xLightsImportModelNode* s = m->GetNthChild(j);
                 if (s->HasMapping() || AnyStashedMappingExists(m->_model, s->_strand)) {
+                    if (s->_isStackDuplicate) {
+                        nlohmann::json smapping;
+                        smapping["model"] = m->_model;
+                        smapping["strand"] = s->_strand;
+                        smapping["mapping"] = s->_mapping;
+                        smapping["color"] = s->_color.GetAsString().ToStdString();
+                        smapping["stacked"] = true;
+                        allMappings.push_back(smapping);
+                        continue;
+                    }
                     sm = GetStashedMapping(m->_model, s->_strand, "");
 
                     nlohmann::json smapping;
@@ -2334,8 +2514,7 @@ void xLightsImportChannelMapDialog::SaveJSONMapping(wxString const& filename)
 
     //stashed mappings
     for (auto it = _stashedMappings.begin(); it != _stashedMappings.end(); ++it) {
-        Element *modelEl = mSequenceElements->GetElement((*it)->_model.ToStdString());
-        if (modelEl == nullptr) {
+        if (TreeContainsModel((*it)->_model.ToStdString()) == nullptr) {
             nlohmann::json mapping;
             mapping["model"] = (*it)->_model.ToStdString();
             mapping["strand"] = (*it)->_strand.ToStdString();
@@ -2864,31 +3043,33 @@ void xLightsImportChannelMapDialog::BulkMapSubmodelsStrands(const std::string& f
 
 void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarget, std::string availableModelName, std::string availableModelType) {
 
-    if (dropTarget.IsOk()) {
-        wxDataViewItemArray selectedItems;
-        TreeListCtrl_Mapping->GetSelections(selectedItems);
+    if (!dropTarget.IsOk()) return;
 
-        bool dropTargetIsSelected = false;
+    wxDataViewItemArray selectedItems;
+    TreeListCtrl_Mapping->GetSelections(selectedItems);
 
-        for (const auto& selItem : selectedItems) {
-            if (selItem == dropTarget) {
-                dropTargetIsSelected = true;
-                break;
-            }
+    bool dropTargetIsSelected = false;
+    for (const auto& selItem : selectedItems) {
+        if (selItem == dropTarget) {
+            dropTargetIsSelected = true;
+            break;
         }
+    }
 
-        wxDataViewItem lastSelected;
-        if (dropTargetIsSelected) {
-            for (const auto& selItem : selectedItems) {
-                Map(selItem, availableModelName, availableModelType);
-            }
-            lastSelected = selectedItems.Item(selectedItems.size() - 1);
-        } else {
-            Map(dropTarget, availableModelName, availableModelType);
-            lastSelected = dropTarget;
-        }
+    wxDataViewItemArray targetItems;
+    if (dropTargetIsSelected) {
+        targetItems = selectedItems;
+    } else {
+        targetItems.Add(dropTarget);
+    }
 
-        // if we are mapping a submodel and the shift key is down
+    bool wasStacked = false;
+    wxDataViewItem lastSelected;
+    if (!PromptAndApplyMapping(targetItems, availableModelName, availableModelType, lastSelected, &wasStacked))
+        return;
+
+    // Bulk mapping with shift key only applies in Replace mode
+    if (!wasStacked) {
         if (CountChar(availableModelName, '/') == 1 && wxGetKeyState(WXK_SHIFT)) {
             auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
             auto ss = mm->GetStrand(lastSelected);
@@ -2896,12 +3077,9 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
             if (ms[1] == ss) {
                 auto m = TreeListCtrl_Mapping->GetModel();
                 auto par = m->GetParent(lastSelected);
-                // strand names match ... so looks like we are ok for a batch mapping of submodels/strands
                 BulkMapSubmodelsStrands(ms[0], par);
             }
-        }
-        // if we are mapping nodes and the shift key is down
-        else if (CountChar(availableModelName, '/') == 2 && wxGetKeyState(WXK_SHIFT)) {
+        } else if (CountChar(availableModelName, '/') == 2 && wxGetKeyState(WXK_SHIFT)) {
             auto mm = ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel());
             auto nn = mm->GetNode(lastSelected);
             auto ns = wxSplit(availableModelName, '/');
@@ -2911,18 +3089,135 @@ void xLightsImportChannelMapDialog::HandleDropAvailable(wxDataViewItem dropTarge
                 BulkMapNodes(ns[0], par);
             }
         }
-
-        TreeListCtrl_Mapping->UnselectAll();
-
-        if (lastSelected.IsOk()) {
-            wxDataViewItem nextItem = GetNextTreeItem(lastSelected);
-            if (nextItem.IsOk()) {
-                TreeListCtrl_Mapping->Select(nextItem);
-                TreeListCtrl_Mapping->EnsureVisible(nextItem);
-            }
-        }
-        TreeListCtrl_Mapping->Refresh();
     }
+
+    TreeListCtrl_Mapping->UnselectAll();
+
+    if (lastSelected.IsOk()) {
+        wxDataViewItem nextItem = GetNextTreeItem(lastSelected);
+        if (nextItem.IsOk()) {
+            TreeListCtrl_Mapping->Select(nextItem);
+            TreeListCtrl_Mapping->EnsureVisible(nextItem);
+        }
+    }
+    TreeListCtrl_Mapping->Refresh();
+}
+
+void xLightsImportChannelMapDialog::InsertStackDuplicate(
+    const wxDataViewItem& afterItem,
+    const std::string& availableModelName,
+    const std::string& availableModelType)
+{
+    xLightsImportModelNode* target = (xLightsImportModelNode*)afterItem.GetID();
+    xLightsImportModelNode* parent = target->GetParent();
+
+    // Create new leaf node with same local identity but new mapping.
+    // isGroup=true → m_container=false (no expandable children).
+    xLightsImportModelNode* newNode = new xLightsImportModelNode(
+        parent,
+        wxString(target->_model),
+        wxString(availableModelName),
+        true,
+        target->_aliases,
+        availableModelType,
+        target->_groupModels,
+        target->_isSubmodel,
+        target->_modelClass,
+        target->_nodeCount,
+        *wxWHITE,
+        true,
+        wxString(availableModelType),
+        0
+    );
+    newNode->_strand = target->_strand;
+    newNode->_node = target->_node;
+    newNode->_group = false;
+    newNode->_isStackDuplicate = true;
+
+    auto& children = (parent == nullptr) ? _dataModel->GetChildren() : parent->GetChildren();
+    for (unsigned int i = 0; i < children.GetCount(); ++i) {
+        if (children[i] == target) {
+            children.Insert(newNode, i + 1);
+            _dataModel->ItemAdded(wxDataViewItem(parent), wxDataViewItem(newNode));
+            break;
+        }
+    }
+
+    _dirty = true;
+    MarkUsed();
+}
+
+wxDataViewItem xLightsImportChannelMapDialog::FindLastItem(
+    const wxString& model, const wxString& strand, const wxString& node)
+{
+    auto& topCh = _dataModel->GetChildren();
+    for (int k = (int)topCh.GetCount() - 1; k >= 0; --k) {
+        if (topCh[k]->_model != model.ToStdString()) continue;
+        if (strand.empty()) return wxDataViewItem(topCh[k]);
+        auto& stCh = topCh[k]->GetChildren();
+        for (int sk = (int)stCh.GetCount() - 1; sk >= 0; --sk) {
+            if (stCh[sk]->_strand != strand.ToStdString()) continue;
+            if (node.empty()) return wxDataViewItem(stCh[sk]);
+            auto& ndCh = stCh[sk]->GetChildren();
+            for (int nk = (int)ndCh.GetCount() - 1; nk >= 0; --nk) {
+                if (ndCh[nk]->_node == node.ToStdString())
+                    return wxDataViewItem(ndCh[nk]);
+            }
+            return wxDataViewItem(nullptr);
+        }
+        return wxDataViewItem(nullptr);
+    }
+    return wxDataViewItem(nullptr);
+}
+
+void xLightsImportChannelMapDialog::ApplyMappingItem(wxString const& mapping, wxDataViewItem item, wxColor const& color)
+{
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(mapping), item, 2);
+    ((xLightsImportTreeModel*)TreeListCtrl_Mapping->GetModel())->SetMappingExists(item, FindAvailableByName(mapping) >= 0);
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(color.GetAsString()), item, 4);
+    TreeListCtrl_Mapping->GetModel()->SetValue(wxVariant(findModelType(mapping)), item, 3);
+}
+
+bool xLightsImportChannelMapDialog::PromptAndApplyMapping(
+    const wxDataViewItemArray& targets,
+    const std::string& availName,
+    const std::string& modelType,
+    wxDataViewItem& lastApplied,
+    bool* wasAddedAsStack)
+{
+    bool anyAlreadyMapped = false;
+    for (const auto& tgt : targets) {
+        auto* n = (xLightsImportModelNode*)tgt.GetID();
+        if (!n->_mapping.empty()) {
+            anyAlreadyMapped = true;
+            break;
+        }
+    }
+
+    bool addAdditional = false;
+    if (anyAlreadyMapped) {
+        wxMessageDialog dlg(this,
+            "One or more selected items is already mapped.\n\nReplace the existing mapping, or add this as an additional stacked source?",
+            "Destination Already Mapped",
+            wxYES_NO | wxCANCEL | wxNO_DEFAULT);
+        dlg.SetYesNoCancelLabels("Replace", "Add Additional", "Cancel");
+        int result = dlg.ShowModal();
+        if (result == wxID_CANCEL) return false;
+        addAdditional = (result == wxID_NO);
+    }
+
+    if (wasAddedAsStack != nullptr) *wasAddedAsStack = addAdditional;
+
+    for (const auto& tgt : targets) {
+        auto* n = (xLightsImportModelNode*)tgt.GetID();
+        if (addAdditional && !n->_mapping.empty()) {
+            InsertStackDuplicate(tgt, availName, modelType);
+        } else {
+            Map(tgt, availName, modelType);
+        }
+        lastApplied = tgt;
+    }
+    return true;
 }
 
 #pragma endregion Drag and Drop
@@ -3784,13 +4079,12 @@ void xLightsImportChannelMapDialog::OnListCtrl_AvailableItemActivated(wxListEven
     wxDataViewItemArray mapItems;
     TreeListCtrl_Mapping->GetSelections(mapItems);
 
-    wxDataViewItem lastMapTo;
+    std::string availName = ListCtrl_Available->GetItemText(event.GetItem(), 1).ToStdString();
+    std::string modelType = findModelType(availName);
 
-    for (const auto& mapTo : mapItems) {
-        lastMapTo = mapTo;
-        std::string modelType = findModelType(ListCtrl_Available->GetItemText(event.GetItem(), 1).ToStdString());
-        Map(mapTo, ListCtrl_Available->GetItemText(event.GetItem(), 1).ToStdString(), modelType);
-    }
+    wxDataViewItem lastMapTo;
+    if (!PromptAndApplyMapping(mapItems, availName, modelType, lastMapTo))
+        return;
 
     wxDataViewItem nextMapTo = GetNextTreeItem(lastMapTo);
     TreeListCtrl_Mapping->UnselectAll();
