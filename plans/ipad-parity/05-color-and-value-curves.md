@@ -1,0 +1,217 @@
+# 05 · Color Panel, Palettes & Value/Color Curves
+
+> This theme is at **strong parity**. The **Brightness / Contrast / Hue /
+> Saturation / Value adjustment sliders are present on iPad**: those are plain
+> `controlType: "slider"` properties in `resources/effectmetadata/shared/Color.json`,
+> and the iPad Color tab renders the entire Color.json property list
+> generically via `EffectMetadataPanel` → `EffectPropertyView.sliderView`,
+> which also attaches a `ValueCurveButton` to every slider whose metadata
+> sets `valueCurve: true`. So all five HSV/brightness sliders **and their
+> value curves are present on iPad today.** The ValueCurve editor is
+> near-complete on iPad (23 types, P1–P4, range, wrap/real/offset,
+> timing/audio/filter, reverse, flip, copy/paste, load/save preset). The
+> ColorCurve gradient editor is present on iPad (9 modes, point add/move/
+> delete, position field, flip) but **lacks preset Load/Save/Export** that
+> desktop's `ColorCurveDialog` has. The remaining real gaps are mostly
+> sequencer-level **dropper panels** (Color Dropper / Value-Curve Dropper —
+> View-menu dockable panes with drag-to-slot, plus the F11
+> `COLOR_DROPPER_TOGGLE` keybinding) which iPad has no equivalent for, plus
+> a couple of palette-menu items (Update Palette to bulk-apply across
+> selection). iPad actually leads desktop on a few items: per-VC-preset
+> swipe-delete, in-dialog VC clipboard copy/paste, palette "Copy String",
+> and a ColorCurve position field.
+
+## Parity scorecard
+
+| Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Palette grid (8 slots) | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ColorCurveButton`×8 (`ColorPanel.cpp:280+`); iPad `ColorPaletteView` 8 rows. |
+| Per-slot enable checkbox (`C_CHECKBOX_PaletteN`) | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_CHECKBOX_Palette%d` (`ColorPanel.cpp:280`); iPad Toggle (`ColorPaletteView.swift:206`). |
+| Slot color picker (hex) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop left-click → `xlColourData` (`wxColorCurveButton.cpp:38`); iPad `ColorPicker` (`ColorPaletteView.swift:259`). |
+| Slot gradient mode (ColorCurve) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop right-click → `ColorCurveDialog` (`wxColorCurveButton.cpp:53`); iPad long-press / tap strip → `ColorCurveEditorSheet`. |
+| Palette menu: Update Palette (bulk-apply to selection) | menu | ✅ | ❌ | ipad-missing | P2 | easy | feasible | Desktop `ID_MNU_UPDATE`→`UpdateColor()` (`ColorPanel.cpp:1049,974`); applies panel palette to all selected effects. No iPad menu item. |
+| Palette menu: Save Palette | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_MNU_SAVE`→`SavePalette(false)`; iPad `savePaletteString(_:asName:nil)`. |
+| Palette menu: Save Palette As | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_MNU_SAVE_AS`; iPad `PaletteSaveAsSheet`. |
+| Palette menu: Load Saved Palette | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop loads from disk; iPad `PaletteLoadSheet` (swatch rows, swipe-delete). |
+| Palette: Delete saved palette | menu/gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ID_MNU_DELETE` (enabled only for custom on-disk palettes); iPad swipe-to-delete in `PaletteLoadSheet`. UX differs, function equal. |
+| Palette menu: Import from text | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_MNU_IMPORT`→`ImportPalette`; iPad `PaletteImportSheet` (validates + prefills from pasteboard). |
+| Palette menu: AI Generate Palette | menu | ✅ | ✅ | parity | P2 | medium | feasible | Both gated on AI ColorPalettes capability. Desktop `AIColorPaletteDialog`; iPad `AIPaletteGenerationSheet`. |
+| Palette: Copy palette string | menu | ❌ | ✅ | desktop-missing | P3 | easy | feasible | iPad menu "Copy Palette String" → `UIPasteboard` (`ColorPaletteView.swift:114`). No desktop menu item (no Copy in `OnBitmapButton_MenuPaletteClick`). |
+| Palette shift left | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_leftShiftColoursButton` (`ColorPanel.cpp:257`); iPad menu "Shift Left". |
+| Palette shift right | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_rightShiftColoursButton`; iPad menu "Shift Right". |
+| Palette reverse colors | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_reverseColoursButton`; iPad menu "Reverse Colors". |
+| Palette slots are drag-drop targets | gesture | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `ColourTextDropTarget` on each `ColorCurveButton` (`ColorPanel.cpp:167`) accepts drops from the dropper panels. iPad has no dropper panels to drag from; tap pickers replace the idiom. |
+| Chroma Key enable toggle | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_enableChromaCheck`; iPad `ChromaKeyRowView` (`C_CHECKBOX_Chroma`). |
+| Chroma Key color picker | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_COLOURPICKERCTRL_ChromaColour`, default `#000000`. |
+| Chroma Key sensitivity slider | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_ChromaSensitivity` 1..255 (`ColorPanel.cpp:374`). |
+| Sparkles frequency slider | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_SparkleFrequency` 0..200 (`ColorPanel.cpp:415`). |
+| Sparkles frequency value curve | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_sparkleFrequencyVC` + lock; iPad synthesises metadata + `ValueCurveButton` (`ColorPanelCustomRows.swift:128`). |
+| Sparkles reflect-music toggle | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_CHECKBOX_MusicSparkles`. |
+| Sparkles color picker | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_COLOURPICKERCTRL_SparklesColour`, default `#FFFFFF`. |
+| Sparkles / Brightness lock buttons | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `xlLockButton`s + `lockable:true` in Color.json prevent bulk-edit propagation. iPad has no lock-button concept anywhere. |
+| Brightness Level checkbox | panel | ✅ | ✅ | parity | P2 | easy | feasible | Legacy key `CHECKBOXBRIGHTNESSLEVEL` (no underscore). Desktop `_brightnessLevelCheck`; iPad `BrightnessLevelRowView`. |
+| Brightness slider (0–400%) | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_Brightness` standard slider in Color.json; iPad renders it via generic `sliderView`. |
+| Brightness value curve | panel | ✅ | ✅ | parity | P1 | easy | feasible | `valueCurve:true` → iPad `ValueCurveButton` auto-attaches (`EffectPropertyView.swift:315`). |
+| Contrast slider (−100..100) | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_Contrast` standard slider; rendered generically on iPad. |
+| Hue adjust slider (−100..100) | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_Color_HueAdjust`, in "Adjustment" section group; iPad renders section + slider. |
+| Hue adjust value curve | panel | ✅ | ✅ | parity | P1 | easy | feasible | `valueCurve:true` → VC button auto-attaches on iPad. |
+| Saturation adjust slider | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_Color_SaturationAdjust`. |
+| Saturation adjust value curve | panel | ✅ | ✅ | parity | P1 | easy | feasible | `valueCurve:true` → VC button on iPad. |
+| Value adjust slider | panel | ✅ | ✅ | parity | P1 | easy | feasible | `C_SLIDER_Color_ValueAdjust`. |
+| Value adjust value curve | panel | ✅ | ✅ | parity | P1 | easy | feasible | `valueCurve:true` → VC button on iPad. |
+| "Adjustment" collapsible section | panel | ✅ | ✅ | parity | P3 | easy | feasible | Color.json `groups[type=section]`; iPad `EffectMetadataPanel.groupView(section)` renders header + members. |
+| ValueCurve type selector (23 types) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad `XLValueCurve.availableTypes()` lists 23 (`XLValueCurve.mm:190`). |
+| ValueCurve custom-point canvas | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ValueCurvePanel`; iPad `ValueCurveCustomPointEditor` (`ValueCurveCanvases.swift`). |
+| ValueCurve P1–P4 sliders + text | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Per-type ranges via `XLValueCurve.range(forParameter:…)`; labels mirror desktop. |
+| ValueCurve min/max range fields | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad "Range" section (`ValueCurveEditor.swift:372`). |
+| ValueCurve wrap checkbox | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `CheckBox_WrapValues`; iPad Toggle "Wrap". |
+| ValueCurve real-values checkbox | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad Toggle "Real Values". |
+| ValueCurve time offset | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad "Time Offset (ms)" field. |
+| ValueCurve timing-track selector | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad picker via `dynamicOptions("timingTracks")`. |
+| ValueCurve audio-track field | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad TextField for Music/Inverted-Music/MusicTriggerFade. |
+| ValueCurve filter label + regex | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `CheckBox_FilterLabelRegex`; iPad TextField + Toggle. |
+| ValueCurve flip | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `Button_Flip`; iPad "Flip". |
+| ValueCurve reverse | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `Button_Reverse`; iPad "Reverse". |
+| ValueCurve load preset | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ButtonLoad` + preset bitmap row; iPad `ValueCurveLoadPresetSheet`. |
+| ValueCurve save-as preset | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop saves to `<show>/valuecurves/`; iPad `ValueCurveSaveAsSheet`. |
+| ValueCurve delete preset | dialog/gesture | ❌ | ✅ | desktop-missing | P3 | easy | feasible | iPad swipe-delete in load sheet (`deleteSavedValueCurve`). Desktop dialog has only a CLEAR-curve button, no per-preset delete (file managed in Finder). |
+| ValueCurve export-to-file | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ButtonExport` writes `.xvc` to an arbitrary path. iPad only saves into `<show>/valuecurves/`; no document-picker export. |
+| ValueCurve copy to clipboard | dialog | ❌ | ✅ | desktop-missing | P2 | easy | feasible | iPad "Copy" → `ValueCurveClipboard.wrap` → `UIPasteboard`. Desktop dialog has no copy. (Desktop drags between VC buttons via the dropper.) |
+| ValueCurve paste from clipboard | dialog | ❌ | ✅ | desktop-missing | P2 | easy | feasible | iPad "Paste" unwraps + replaces. No desktop dialog paste. |
+| ValueCurve undo of point edits | dialog | ✅ | 🟡 | ipad-missing | P3 | medium | feasible | Desktop `ValueCurvePanel::Undo()` per-point undo stack. iPad has no in-editor undo; sequence-level Foundation undo covers the whole curve write. |
+| ValueCurve preview strip | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop paints in panel; iPad `ValueCurvePreviewStrip`. |
+| ColorCurve editor: active toggle | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop dialog Ok=active; iPad "Use gradient" toggle (writes `Active=FALSE\|`). |
+| ColorCurve mode picker (9 modes) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `Choice1` "Blend Mode"; iPad `ColorCurveModePicker` (Time / 4 linear / 2 radial / 2 rotation) with per-effect enable. |
+| ColorCurve gradient point canvas | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ColorCurvePanel`; iPad `ColorCurveGradientStrip` (tap-add / drag-move / long-press-delete). |
+| ColorCurve point color picker | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `wxColourData`; iPad `ColorPicker` for selected point. |
+| ColorCurve point position field | dialog | ❌ | ✅ | desktop-missing | P3 | easy | feasible | iPad `ColorCurvePositionField` numeric x for selected point. Desktop moves points by drag only. |
+| ColorCurve delete point | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop double-click; iPad "Delete Point" / long-press. |
+| ColorCurve flip | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop "Flip Colours" (`ColorCurveDialog.cpp:131`); iPad "Flip Horizontally". |
+| ColorCurve load preset | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ButtonLoad` + preset bitmap row (`OnButtonPresetClick`). iPad sheet has no preset UI; needs `savedColorCurves` bridge + a `ColorCurveLoadSheet`. |
+| ColorCurve save-as preset | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop saves `.xcc` to `<show>/colorcurves/`. iPad has no save; needs `saveColorCurveSerialised` bridge + sheet. |
+| ColorCurve export-to-file | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ButtonExport`. iPad needs export bridge + document picker. |
+| ColorCurve: convert slot to plain color | context-menu | 🟡 | ✅ | parity | P3 | easy | feasible | iPad long-press → "Convert to Plain Colour" (`ColorPaletteView.swift:276`). Desktop achieves same via left-click color dialog (deactivates curve). Functionally equal; iPad is more explicit. |
+| ColorCurve: edit-as-gradient entry | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop right-click slot; iPad long-press → "Edit as Gradient". |
+| Color Replace dialog | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop Edit ▸ Color Replace → `ColourReplaceDialog` (`xLightsMain.cpp:1095`); iPad `ColorReplaceSheet` (`SequencerGridV2View.swift:1083`). |
+| Color Replace: existing-color dropdown | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ColoursList` owner-drawn combo; iPad picker from `usedColours()`. |
+| Color Replace: replacement color | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop color dialog; iPad `ColorPicker`. |
+| Color Replace: selected-effects-only | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `CheckBox_SelectedEffectsOnly`; iPad Toggle (only when selection exists). |
+| Color Replace: replace action | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Both undoable, no auto-render. iPad uses `replaceColour(from:to:…)` bridge. |
+| Color Dropper panel (View menu pane) | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop dockable `_coloursPanel` "Colours" pane (`tabSequencer.cpp:203`), toggled View ▸ Color Dropper (`ID_MNU_COLOURDROPPER`); drag colours onto slots. No iPad equivalent. |
+| Value-Curve Dropper panel (View menu pane) | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop dockable `_valueCurvesPanel` "Value Curves" pane (`tabSequencer.cpp:202`); drag VC presets onto sliders. No iPad equivalent (presets reached via in-editor sheet instead). |
+| `COLOR_DROPPER_TOGGLE` keybinding (F11) | shortcut | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `KeyBindings.cpp:124,377` toggles the Color Dropper pane. iPad has no dropper pane and the binding governs a panel that doesn't exist there. |
+| Palette size (Normal/Large) preference | preference | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop reads wxConfig `PaletteSize` (`ColorPanel.cpp:77`). iPad sizes fixed by SwiftUI; no user toggle. |
+| "Reset panel on effect change" preference | preference | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `BuildResetPanelRow` → wxConfig `xLightsResetColorPanel`. iPad doesn't reset panel state on effect change, so the toggle has nothing to govern (`EffectPropertyView.swift:247` renders nothing for `ResetPanelRow`). |
+| Recent-palettes dropdown | menu/panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `_colourList` (`ColourList` owner-drawn combo, `ColorPanel.cpp:330`) lists bundled + on-disk palettes inline. iPad only has the Load sheet. |
+| Color Replace: color-curve replacement target | dialog | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop `ColourReplaceDialog` carries a `ColorCurveButton _ccb` (`ColourReplaceDialog.h:28`, created `ColourReplaceDialog.cpp:137`, rendered `:78-79`) so the replacement can be a color curve. iPad `ColorReplaceSheet` only offers a plain replacement color. |
+| Common (CSS) named color swatches | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `xlColourPickerDialog` shows a 140-entry CSS named-color grid (`xlColourPickerDialog.cpp:32` `CSS_COLORS[]`, `:104` `CSS_COUNT=140`, `:266` `cssGrid`). iPad color picker has no named-swatch grid. |
+| Recent colors swatches (persisted) | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `xlColourPickerDialog` shows a persisted recent-color grid (`xlColourPickerDialog.cpp:280` recent swatch grid, `:281` `recentGrid`). iPad has no persisted recent-colors strip in the color picker. |
+
+## iPad gaps (desktop has, iPad missing)
+
+### P2
+
+- **ColorCurve presets (Load / Save / Export).** Desktop `ColorCurveDialog`
+  has `ButtonLoad`, a row of preset bitmap buttons (`OnButtonPresetClick`),
+  and `ButtonExport` writing `.xcc` to `<show>/colorcurves/`
+  (`src-ui-wx/color/ColorCurveDialog.cpp:131-140`). iPad
+  `ColorCurveEditorSheet` (`src-iPad/App/ColorCurveEditor.swift`) has **no
+  preset UI at all** — `grep -rn savedColorCurves src-iPad` returns nothing.
+  Work: add `savedColorCurves` / `saveColorCurveSerialised(_:asName:)` /
+  `deleteSavedColorCurve` to `XLSequenceDocument.h/.mm` (mirror the existing
+  `savedValueCurves` trio), and add a `ColorCurveLoadSheet` / `…SaveAsSheet`
+  pair modeled on `ValueCurvePresetSheets.swift`. The core (`ColorCurve`)
+  already serializes; this is pure bridge + SwiftUI. **Ease: medium.**
+
+- **ValueCurve export-to-file.** Desktop `ButtonExport`
+  (`ValueCurveDialog.cpp`, `OnButtonExportClick`) writes a `.xvc` to an
+  arbitrary user path. iPad only does "Save As Preset" into
+  `<show>/valuecurves/` (`saveValueCurveSerialised`). Work: a document-picker
+  export path (UIDocumentPicker / `.fileExporter`) wrapping the serialized
+  string. **Ease: medium.** Lower urgency since Copy-to-clipboard already
+  gives an escape hatch.
+
+- **Update Palette (bulk-apply to all selected effects).** Desktop
+  `ID_MNU_UPDATE` → `UpdateColor()` (`ColorPanel.cpp:974`) posts
+  `EVT_EFFECT_PALETTE_UPDATED`, applying the panel's palette to every
+  selected effect (with an "are you sure" guard for multi-select). iPad's
+  palette `…` menu (`ColorPaletteView.swift:84`) has Save/Save-As/Load/AI/
+  Import/Copy/Reverse/Shift but **no "Update Palette."** Work: add a menu
+  item that writes the current 8 slots across all selected effects' settings
+  in one undo step (extend the per-slot writer to iterate the selection).
+  **Ease: easy.**
+
+### P3
+
+- **Color Dropper & Value-Curve Dropper panes** (`tabSequencer.cpp:202-203`)
+  plus the **`COLOR_DROPPER_TOGGLE` F11 keybinding** (`KeyBindings.cpp:124`).
+  Dockable drag-source panels; the touch app replaces drag-from-panel with
+  tap pickers + in-editor preset sheets, so these are low value on iPad and
+  the F11 binding governs a panel that doesn't exist. Treat as a future
+  "colours-used quick palette" if desired, not a parity must.
+- **Per-slider lock buttons** (`lockable:true` + `xlLockButton`). Bulk-edit
+  propagation guard; iPad has no lock-button concept at all (cross-theme
+  gap, not Color-specific).
+- **Palette drag-drop targets**, **recent-palettes inline dropdown**,
+  **Palette size preference**, **Reset-panel-on-effect-change preference**,
+  **in-editor per-point VC undo** — all minor; see scorecard.
+- **Color Replace color-curve target.** Desktop `ColourReplaceDialog`
+  carries a `ColorCurveButton _ccb` (`ColourReplaceDialog.h:28`,
+  `ColourReplaceDialog.cpp:137`, `:78-79`) so the replacement can be a
+  color curve; iPad `ColorReplaceSheet` only offers a plain color.
+- **CSS named-color swatches** and **persisted recent-color swatches** in
+  the color picker. Desktop `xlColourPickerDialog` shows a 140-entry CSS
+  grid (`xlColourPickerDialog.cpp:32,104,266`) and a recent-color grid
+  (`:280-281`); the iPad picker has neither.
+
+## Desktop gaps (iPad has, desktop missing)
+
+### P2
+
+- **ValueCurve clipboard Copy / Paste.** iPad `ValueCurveEditorSheet` has
+  explicit "Copy"/"Paste" buttons (`ValueCurveEditor.swift:466-487`,
+  `ValueCurveClipboard`). The desktop `ValueCurveDialog` has no clipboard
+  buttons (it relies on dragging between VC buttons via the dropper). A
+  desktop clipboard copy/paste in the dialog would be a small win for users
+  who don't use the dropper panel. **Ease: easy** (wxClipboard + the same
+  `xlvc:v1:` envelope).
+
+### P3
+
+- **Palette: Copy palette string to clipboard.** iPad menu item
+  (`ColorPaletteView.swift:114`) has no desktop counterpart in
+  `OnBitmapButton_MenuPaletteClick` — desktop users must use Import's text
+  flow or the dropper. Adding `ID_MNU_COPY` is trivial.
+- **ValueCurve per-preset delete.** iPad swipe-deletes presets in the load
+  sheet (`deleteSavedValueCurve`). Desktop's dialog/panel only has a
+  CLEAR-curve button (`ValueCurvesPanel.cpp:134`), no per-file delete — users
+  manage `.xvc` files in Finder/Explorer.
+- **ColorCurve point position numeric field.** iPad `ColorCurvePositionField`
+  lets you type the selected point's x; desktop only drags on the canvas.
+
+## Infeasible / restricted on iPad
+
+- **`COLOR_DROPPER_TOGGLE` (F11)** — *infeasible as-is*: it toggles a
+  dockable wxAUI pane that has no iPad analog, and iPad has no hardware-key
+  requirement. Not a closed-firmware restriction — just no target.
+- Nothing in this theme is **restricted** (no controller-firmware coupling):
+  palettes, curves, chroma, sparkles, and color replace are all pure
+  `src-core` render-setting edits shared by both apps.
+- No FFmpeg / raw-serial / sandbox blockers apply here; every gap above is
+  bridge + SwiftUI work, not a platform limit.
+
+## Recommended sequencing
+
+1. **ColorCurve presets (Load/Save/Export) on iPad** — the single largest
+   true gap in this theme and the most-requested authoring affordance.
+   Bridge trio + two sheets, directly cloned from the already-working
+   ValueCurve preset code.
+2. **Update Palette menu item on iPad** — cheap, restores a real bulk-edit
+   workflow for multi-selected effects.
+3. **ValueCurve export-to-file on iPad** — rounds out preset I/O once the
+   ColorCurve preset bridge establishes the document-picker pattern.
+4. **Desktop ValueCurve clipboard copy/paste + palette Copy String** — small
+   reverse-parity wins that make cross-platform curve/palette sharing
+   symmetric.
+5. Defer the dropper panes, lock buttons, and panel-size/reset preferences —
+   low value on a touch UI; revisit only if users ask.

@@ -1,111 +1,215 @@
-# iPad Parity Plan — Import & Export (sequences & data)
+# 08 · Import & Export
 
-**Scope:** Gap-analysis Area 16 (Import / Export — sequences & data). Covers sequence/effect import (xLights, SuperStar, legacy/competitor formats), the channel-map dialog feature set, timing import/export, per-model and report exports, packaging, and vendor download.
+> Both apps link the same `src-core/import_export/`
+> (AutoMapper, EffectMapper, LOREdit, Vixen3, SuperStarImporter,
+> TimingImport, MapHintsIO, ExportModels, VendorCatalog), so the *logic*
+> for most import/export is already shared — the parity question is UI
+> surface + ObjC++ bridge exposure. The iPad's **effect-import** wizard
+> (`ImportEffectsView` + `XLImportSession`) is a true peer of the desktop
+> `xLightsImportChannelMapDialog`: two-pane mapping, Auto Map, alias
+> learning, save/load `.xmaphint`, timing-track selection, FPS/version
+> warnings, missing-media report, and the three import options
+> (erase/lock/convert-render). The iPad's **timing import** (in
+> `SequenceSettingsSheet`) is at full format parity with desktop (xtiming,
+> LOR lms/las, Papagayo pgo, SRT, Audacity txt, ElevenLabs json, Vixen3
+> tim w/ track-select, LSP msq, xLights xsq). The real gaps are: iPad
+> effect-import is missing the **legacy sequencer formats** (LMS/LAS/LPE,
+> HLS, Vixen2 vix, LSP msq-as-effects, VSA); iPad has **no video export**
+> (house-preview or per-model), **no multi-format per-model export**
+> (only `.eseq` FSEQ), **no Convert tool**, and **no HinksPix export**.
+> Map From Lights, AI Speech-to-Lyrics, online lyric search, preset
+> export, and package exclude-audio all exist on **both** platforms.
 
-> **Status (2026-06-01) — landed & build-verified (`xLights-iPadLib` Debug):**
-> - ✅ **IE-1** — six more timing-import formats wired end-to-end **and now fully linked into the iPad app** (build-verified `xLights-iPad` app, not just the lib): SRT `.srt`, Audacity `.txt`, ElevenLabs `.json`, Vixen 3 `.tim`, LSP `.msq`, and timing tracks from an xLights `.xsq`. New `XLSequenceDocument` bridge methods forward to a shared `importTimingVia:` helper over core `SequenceFile::Process*`; `SequencerViewModel` wrappers; `SequenceSettingsSheet` Timings-tab picker. LOR `.lms` + Papagayo `.pgo` were already wired.
->   - **Correction to the original plan/first cut:** `ProcessLSPTiming`/`ProcessXLightsTiming`/`ProcessVixen3Timing`/`ProcessElevenLabsTimingFiles` were **NOT** in core — they lived in `src-ui-wx/import_export/TimingImport.cpp`, which the iPad app doesn't compile. The first IE-1 cut linked clean as a static lib but the **iPad app failed to link** (`Undefined symbols: SequenceFile::ProcessLSPTiming` …). Only `ProcessSRT`/`ProcessAudacityTimingFiles` were genuinely core.
->   - **Fix (the timing-import core extraction):** (1) new wx-free `src-core/utils/ZipUtils.{h,cpp}` minizip wrapper (`ReadEntry`/`ReadFirstEntry`/`ListEntries`) — reusable by SequencePackage/FPP; (2) relocated + ported `Vixen3.{h,cpp}` → `src-core/import_export/` (wx-free: `xlColor`, `fmt::format`, `strtol`/`strtod`, `std::filesystem`, new `VixenPoint`); (3) moved the 4 `Process*` into a new wx-free `src-core/import_export/TimingImport.cpp` (LSP reads its `Sequence` entry via ZipUtils). XLights/Vixen3 are now **two-step** so each UI hosts its own track chooser: `GetXLightsTimingTrackNames`/`GetVixen3TimingTrackNames` discovery + `Process*(file, selectedIndices, ctx)` (empty selection = import all). Desktop rewired to `wxMultiChoiceDialog` (`tabSequencer.cpp`); iPad added a `multiImportPicker` multi-select sheet (+ discovery/indexed bridge methods + VM wrappers). Added `SequenceElements::GetViewsManager()` (the temp-load views manager is routed via `RenderContext::GetSequenceElements()`, null-safe for iPad). Project files updated (`.cbp`/`.vcxproj`/`.filters`); core boundary check clean; iPad-lib + desktop + iPad app all build green.
->   - *Remaining IE-1 work:* none for timing formats; full-sequence effect importers (IE-4/5/18/25, etc.) are separate items below. **Bonus:** Vixen3 is now wx-free core, which makes **IE-25** (full Vixen 3 `.tim` *effect* import) materially cheaper — the parser port it called for is already done.
-> - ✅ **IE-2** — import option **Convert Render Style**: threaded a `convertRenderStyle:` BOOL through `applyImportWithEraseExisting:lock:` to every `MapXLightsEffects(... convertRender: ...)` call site (was hardcoded `false`) + a "Convert render style" Toggle in `ImportEffectsView`. *Remaining:* persist the choice across launches (desktop key `ImportEffectsRenderStyle`, default false) — small `@AppStorage` follow-up.
-> - ✅ **IE-9 (find/filter)** — incremental search fields on both the Source and Destination panes of `ImportEffectsView` (filter `availableSources` by `displayName`; filter top-level `destinationRows` by `model`/`mapping`), with a clear-button and a "filtered/total" count. Pure SwiftUI over the existing snapshot arrays — no bridge/core change. *Deferred follow-up:* the tree-aware "Unmapped only" toggle (parent/child mapping semantics need design; search is the high-leverage part). *Note:* `XLImportMappingRow` has `model`/`strand`/`node`/`mapping` (no `displayName` — that's on the source type).
-> - ✅ **IE-3 (hint LOAD)** — "Load Hints…" button + `.fileImporter` (`.xmaphint`) → bridge `loadMapHintsFromPath:`, which reuses core `MapHintsIO::LoadMapHintsFile` + the same `AutoMapper` `MatchRegex` pass `runAutoMap` already runs over the show-dir scan. Returns/reports the number of hints applied. *Deferred:* `.xmap` (legacy text) / `.xjmap` (JSON) save+load — those serializers are wx-bound in `xLightsImportChannelMapDialog.cpp` and carry colour + stashed-mapping concepts the iPad node type lacks, so they need a new wx-free core `MappingIO` module (separate, larger effort).
-> - ✅ **IE-12 (update aliases from mapping)** — "Update Aliases" button → bridge `updateModelAliasesFromMapping` loops `XLImportSession._destinationRoots` and calls `Model::AddAlias`(raw source name) on each mapped target model, then `MarkLayoutModelDirty` so `saveLayoutChanges` persists into `xlights_rgbeffects.xml`. `AddAlias` is idempotent (dedups/lowercases/rejects self) so no alias getter was needed. *Deferred:* the desktop submodel/strand alias guard (top-level models only for v1).
-> - ✅ **IE-2 persistence** — the import-option toggles (erase existing / lock imported / convert render style) now persist across launches via `@AppStorage` (`import.eraseExisting` / `import.lockEffects` / `import.convertRenderStyle`).
->
-> **Larger items — landed via worktree agents + central merge (2026-06-01; build-verified, runtime pending):**
-> - ✅ **IE-4 (LOR S5 `.loredit` import) — discovery/source-load AND effect-apply slices both landed.** Source: `LOREdit` relocated to wx-free `src-core/import_export` (pugixml + `std::string` + `xlColor`; wx string/format/`wxSplit`/`wxAtoi`/`wxRegEx` converted — **no zip**); desktop `ImportS5` rewired to share it (parity); iPad `XLImportSession` loads `.loredit` into the existing mapping/auto-map flow and `ImportEffectsView` accepts `.loredit`.
->   - **Apply slice (now done):** the 7 `MapS5*` effect-apply functions (`MapS5`, three `MapS5ChannelEffects` overloads incl. the `wxRegEx`→`std::regex` one, three `MapS5Effects` overloads) moved from `src-ui-wx/import_export/ImportEffects.cpp` into wx-free core `src-core/import_export/EffectMapper.{h,cpp}` (beside `MapXLightsEffects`; `wxString`→`std::string`, `wxAtoi`→`strtol`). Desktop `ImportS5` call sites unchanged (`_mapping` was already `std::string`). The iPad `XLImportSession applyImportWithEraseExisting:` `_loreditMode` branch (previously a "not yet supported" stub) now mirrors desktop `ImportS5`: synthesizes selected timing tracks from `_loreditTimings`, then walks `_destinationRoots` calling `MapS5Effects`/`MapS5ChannelEffects`/`MapS5` per model/strand/node with the `LOREdit::IsNodeStrandMapping` + `GetSequencingType` gating. (iPad has no time-offset control yet → `offset = 0`; desktop's `TimeAdjustSpinCtrl` defaults to 0 anyway. The per-node grandchild overload mirrors desktop's use of the model-loop index — a documented desktop quirk kept for parity, not "fixed" iPad-only.)
->   - **Verified:** `xLights-iPadLib` + desktop `xLights` + `xLights-iPad` app all build green; core boundary-check clean. **Remaining:** `.loredit` **parse + apply correctness** needs on-device verification with a real S5 file. (**Scope correction recorded:** IE-5's `ReadLorFile` was the wrong function — that's the channel-data converter; the effect-level readers are `ImportLMS`/`ImportS5`/`LOREdit`. HLS/Vixen remain separate, lower-value.)
-> - ✅ **IE-15 (Export Models XLSX) — DONE (app now links).** New wx-free `src-core/import_export/ExportModels` (libxlsxwriter; data all core-resident), bridge `exportModelsReport(toPath:)`, and a Layout-editor export action. The `xLights-iPad` app target's `OTHER_LDFLAGS` now include `-lxlsxwriter` (committed in the **`macOS` submodule**, recorded in the superproject); the app builds + links. `.xlsx` content still needs on-device spot-check.
->
-> **IE-25 + IE-7 — landed (2026-06-01; build-verified across desktop + iPad-lib + iPad app; adversarially reviewed):**
-> - ✅ **IE-25 (Vixen 3 `.tim` *effect* import on iPad).** `MapVixen3` + `MapVixen3Effects` moved from `src-ui-wx/import_export/ImportEffects.cpp` into wx-free core `src-core/import_export/EffectMapper.{h,cpp}` (only `wxString`→`std::string`; palette/settings/type logic was already wx-free in the relocated `Vixen3`). New `_vixen3Mode` in `XLImportSession`: `loadVixen3SourceAtPath:` (errors if `SystemConfig.xml` is missing), `rebuildAvailableSourcesFromVixen3` (whole-model sources; "Data"-marker models → timing), `rebuildTimingTracksFromVixen3`, and an apply branch mirroring desktop `ImportVixen3` — synthesizes selected timing tracks via core `AddVixenMarksToLayer` (Phrase = 3 layers), then walks `_destinationRoots` calling `MapVixen3Effects`/`MapVixen3` per model/strand/node (node-grandchild passes the model element, mirroring the desktop quirk; `offset = 0`, `frameMS = 1000/freq`). `ImportEffectsView` routes `.tim` to `loadVixen3Source`. **`.tim` disambiguation:** the Settings → Timings tab keeps the timing-only `.tim` path (`XLSequenceDocument::ProcessVixen3Timing`); Import Effects owns the effect path — no collision (separate sheets/`fileImporter`s).
->   - **Fixed a latent bug found while wiring this (G4):** the mode flags were sticky — `loadSourceSequenceAtPath` never reset `_loreditMode`, so loading a `.loredit`/`.tim` then an `.xsq` would apply through the wrong branch. All three loaders now reset both `_loreditMode`/`_loredit` and `_vixen3Mode`/`_vixen3`. Also corrected the stale `XLImportSession.h` comment that claimed `.loredit` apply was "not yet ported".
-> - ✅ **IE-7 (import dispatch + warnings).** `.piz` added to `ImportEffectsView.allowedTypes` (flows through the existing `SequencePackage` path). New `XLImportSession` accessors `sourceVersion`/`sourceFrequency`/`targetFrequency`/`sourceMissingMedia`. Non-blocking **FPS-mismatch** alert after a source loads (mirrors desktop's pre-import frame-rate warning; skipped for `.loredit`/`.tim` which report 0 FPS) and a **missing-media** alert after Apply (deferred dismiss so it's seen; empty/correct for `.loredit`/`.tim` since they carry no package media). *Skipped:* `@AppStorage` last-import-dir — SwiftUI's `.fileImporter` has no initial-directory hook, so there's nothing to seed.
->   - **Adversarial review (19 agents, 15 raised → 4 confirmed):** no functional defects. Confirmed items were 2 mode-reset ordering/consistency nits, 1 "temporary→const-ref" pattern note (safe; matches desktop's identical call), and 1 over-flag (missing-media empty for `.loredit`/`.tim` is correct — they have no media walk; documented in a code comment).
+## Parity scorecard
 
-## Current parity
+| Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Import Effects from xLights `.xsq` / `.xml` (legacy) | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core. iPad `XLImportSession.loadSourceSequence(atPath:)`. |
+| Import Effects from xLights package `.xsqz` / `.zip` / `.piz` | menu | ✅ | ✅ | parity | P1 | easy | feasible | Both use `SequencePackage`; iPad allows these in the import picker. |
+| Import Effects from SuperStar `.sup` | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad `SuperStarImportView` (single-model form) vs desktop multi-model `SuperStarImportDialog`; shared `SuperStarImporter`. |
+| Import Effects from LOR S5 `.loredit` | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core `LOREdit`. iPad `loadLOREditSource(atPath:)`. |
+| Import Effects from Vixen 3 `.tim` (effect-level) | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core `Vixen3`. iPad `loadVixen3Source(atPath:)` (needs sibling SystemConfig.xml). |
+| Import Effects from LOR Music `.lms` | menu | ✅ | ❌ | ipad-missing | P1 | medium | feasible | Desktop `ImportLMS()` (`ImportEffects.cpp:1104`). No core LMS reader yet (parser lives in wx `ImportEffects.cpp`); needs core extraction + bridge. |
+| Import Effects from LOR Animation `.las` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Same code path as `.lms` (`ImportLMS` handles both). Follows LMS work. |
+| Import Effects from LOR Pixel Editor `.lpe` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportLPE()` (`ImportEffects.cpp:2984`). wx-bound parser; needs core extraction + bridge. |
+| Import Effects from HLS `.hlsIdata` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportHLS()` (`ImportEffects.cpp:949`). wx-bound; low frequency. |
+| Import Effects from Vixen 2.x `.vix` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVix()` (`ImportEffects.cpp:758`). Old format; superseded by Vixen 3. |
+| Import Effects from LSP 2.x `.msq` (as effects) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportLSP()` (`ImportEffects.cpp:3353`). Niche. (Note: LSP *timing-only* import IS on iPad.) |
+| Import Effects from VSA `.vsa` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVsa()` (`ImportEffects.cpp:3603`) + `VsaImportDialog`. Niche. |
+| Effect-import channel-mapping wizard (two-pane src/dest tree) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `xLightsImportChannelMapDialog`; iPad `ImportEffectsView` mapping panes + search filters. |
+| Auto Map (norm + aggressive + regex hints) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Shared `AutoMapper`. iPad `runAutoMap` / `runAutoMapSelectedTargets`. |
+| Update aliases from mapping (alias learning) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `updateModelAliasesFromMapping` mirrors desktop "Update Aliases". |
+| Save / load import hints (`.xmaphint`) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Shared `MapHintsIO`. iPad `saveMapHintsToPath:` / `loadMapHints(fromPath:)`. Legacy `.xmap`/`.xjmap` are wx-bound (desktop only). |
+| Effect-import timing-track selection | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad timing popover (multi-select w/ count); desktop tree. Shared logic. |
+| Effect-import: erase-existing option | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `applyImportWithEraseExisting:`. |
+| Effect-import: lock-imported option | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `lock:` arg. |
+| Effect-import: convert-render-style option | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `convertRenderStyle:` → core `MapXLightsEffects(convertRender)`. |
+| Effect-import: FPS / version mismatch warning | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `loadWarning` from `sourceFrequency`/`targetFrequency` (xsq/pkg only). |
+| Effect-import: missing-media report (post-apply) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `applyWarning` from `sourceMissingMedia` after the media walk. |
+| Import effects by mapping from any on-disk `.xsq` | menu | ✅ | ✅ | parity | P1 | easy | feasible | This IS the iPad Import Effects flow (file-picker → map). |
+| Open `.fseq` directly (FSEQ→effects round-trip) | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Open Sequence wildcard accepts `.fseq` (`SeqFileUtilities.cpp:262`). iPad only round-trips a matching FSEQ sidecar via `tryLoadFseq`, not as an open format. Low value. |
+| Open `.xbkp` backup directly | dialog/menu | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop Open wildcard accepts `.xbkp`. iPad only *recovers* `.xbkp` (promote→.xsq sheet, `XLightsApp.swift:193`), no direct open. |
+| Import timing track standalone (`.xtiming`) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SeqSettings + RowHeading; iPad `importXTiming(fromPath:)` in `SequenceSettingsSheet`. |
+| Import timing from LOR `.lms` / `.las` | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad `importLorTiming(fromPath:)`. |
+| Import timing from Papagayo `.pgo` | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `importPapagayoTiming(fromPath:)`. |
+| Import timing from SubRip `.srt` | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `importSRTTiming(fromPath:)`. |
+| Import timing from Audacity label `.txt` | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `importAudacityTiming(fromPath:)`. |
+| Import timing from ElevenLabs `.json` | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `importElevenLabsTiming(fromPath:)`. |
+| Import timing from Vixen 3 `.tim` (w/ track multi-select) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `vixen3TimingTrackNames` + `importVixen3Timing(fromPath:selectedIndices:)`. |
+| Import timing from LSP `.msq` | dialog | ✅ | ✅ | parity | P3 | easy | feasible | iPad `importLSPTiming(fromPath:)`. |
+| Import timing from xLights `.xsq` (w/ track multi-select) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `xLightsTimingTrackNames` + `importXLightsSequenceTiming(fromPath:selectedIndices:)`. |
+| Import lyrics (plain text → phrases, start/end range) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `LyricsDialog` (`RowHeading.cpp:693`) is text-based too; iPad `ImportLyricsSheet`. |
+| Online lyric search (LRCLIB → synced LRC) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop "Search for Lyrics Online…" (`RowHeading.cpp:641`, `LRCLIBSearchDialog`); iPad `LRCLIBClient` + LRClib in `AddTimingTrackSheet`. Shared `lrc::ParseLRC` / `XLLyricsImport`. |
+| AI Speech-to-Lyrics (audio → timed lyric track) | dialog | ✅ | ✅ | parity | P2 | hard | feasible | Desktop "AI Speech 2 Lyrics" (`RowHeading.cpp:636`, `GenerateLyricsDialog`); iPad on-device speech via `addLyricTimingTrack`. |
+| Convert sequence/channel data between formats (Convert tool) | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `ConvertDialog` (`xLightsMain.cpp:4261`) maps `_seqData` channel data across formats. No iPad UI; substantial bridge work, low demand. |
+| Export Effects to file (`<effects>` `.xsq` fragment) | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop Tools → Export Effects (`ExportEffects.cpp`, `xLightsMain.cpp:5790`). iPad lacks UI + bridge; core exists. |
+| Export Models report (`.xlsx`) | menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `ExportModels` (libxlsxwriter). iPad `exportModelsReport(toPath:)` from Layout Editor; desktop File → Export Models. |
+| Export single timing track (`.xtiming`) | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop RowHeading "Export" (pgo too); iPad `exportTimingTrack(atRow:toPath:)`. |
+| Export multiple timing tracks in one `.xtiming` (`<timings>`) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop SelectTimingsDialog multi-export; iPad `exportTimingTracks(atRows:toPath:)` ("Export Multiple Tracks"). |
+| Export timing track as Papagayo `.pgo` | context-menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop RowHeading `GetPapagayoExport` (`RowHeading.cpp:1668`). iPad only exports `.xtiming`. |
+| Export model rendered data as FSEQ/`.eseq` | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `SeqExportDialog` "xLights/FPP *.fseq"; iPad row "Export Model as FSEQ…" (`exportModelAsFSEQ`). |
+| Export model FSEQ over a sub-range | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Export Model (selected effects)" range; iPad "Export Model (Loop Range) as FSEQ…". Different range source (selection vs loop region). |
+| Export single model to LOR / Lcb / Vixen / LSP / HLS | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `SeqExportDialog` format list (`SeqExportDialog.cpp:87`). iPad per-model export is FSEQ-only. Niche legacy targets. |
+| Export single model as Video (mp4 / avi / mov) | context-menu/dialog | ✅ | ❌ | ipad-missing | P2 | hard | hard | Desktop `SeqExportDialog` Compressed/Uncompressed/Lossless video. iPad has no video-encode path wired for per-model export (would use `VideoWriter`/AVFoundation). |
+| Export single model as GIF | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `SeqExportDialog` "GIF Image". iPad has GIF write for previews but no per-model GIF export UI. |
+| Export single model for Minleon `.bin` | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `SeqExportDialog` Minleon. Niche hardware. |
+| Export House Preview Video (sequence + house layout) | menu | ✅ | ❌ | ipad-missing | P1 | hard | feasible | Desktop File → Export Video (`xLightsMain.cpp:3742`, `VideoExporter`). iPad has the `VideoWriter`/AVFoundation core (model-video path migrated onto it) but no house-preview-video UI/bridge. |
+| Export video: codec / quality selection | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop `SeqExportDialog` video variants. iPad would surface codec choice via `VideoWriter` once house-video UI lands. |
+| Batch render sequences → `.fseq` | sheet | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `BatchRenderDialog`; iPad `BatchRenderSheet`/`BatchRenderRunner` (home screen). Shared render loop + `writeFseq`. |
+| Batch render honors configured FSEQ folder | sheet | ✅ | ✅ | parity | P1 | easy | feasible | Both consult `FolderConfig.fseqFolder`, falling back to the `.xsq` dir. |
+| Write whole-sequence FSEQ (v2/zstd/sparse) | core/save | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `WriteFalconPiFile`; iPad `writeFseq(toPath:)`. Same format. |
+| FPP Connect (discover + upload FSEQ/media) | menu/sheet | ✅ | ✅ | parity | P1 | easy | feasible | Open firmware. Desktop Tools → FPP Connect; iPad `FPPConnectSheet`. iPad currently honors `uploadMedia` only (Outputs/Cape config persisted but deferred). |
+| Package Sequence for distribution (`.xsqz` + media) | menu/sheet | ✅ | ✅ | parity | P1 | easy | feasible | Shared `SequencePackage`. Desktop Tools → Package Sequence; iPad `PackageSequenceSheet`. |
+| Package: exclude audio / exclude videos | preference / toggle | ✅ | ✅ | parity | P2 | easy | feasible | Desktop = Preferences → Other Settings checkboxes (`OtherSettingsPanel.cpp:129`); iPad = in-sheet toggles. Surface differs; both honored at pack time. |
+| Export controller wiring as CSV | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsCSV`. Desktop Tools menu; iPad ControllerVisualize export menu. |
+| Export controller wiring as JSON | menu / context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `UDController::ExportAsJSON`. |
+| Export / import effect presets (library round-trip) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `EffectTreeDialog` Import/Export `.xpreset` (`EffectTreeDialog.cpp:774/873`); iPad `exportPresets`/`importPresets` (JSON / effects-tree XML). Both round-trip via shared preset blob. |
+| Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. (Windows/Linux desktop lacks it.) |
+| Export HinksPix configuration | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Desktop `HinksPixExportDialog` (`xLightsMain.cpp:6083`). Closed/proprietary controller firmware → IAP-gated, low priority. |
+| Import vendor model / vendor music (online catalog) | dialog | ✅ | 🟡 | parity | P2 | medium | feasible | Desktop `VendorModelDialog` / `VendorMusicDialog`; iPad `VendorBrowserSheet` + `XLVendorCatalog` (shared `VendorCatalog`). Model browser present; verify music-download breadth. |
+| Export Effects summary (CSV) | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ExportEffects.cpp:347-360`, handlers `xLightsMain.cpp:5790,5798,4593`. No iPad ExportEffects UI/bridge. |
+| Import media options (sequence package asset destinations) | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Core `SequencePackage::GetImportOptions` exists but is unused on iPad; desktop surfaces asset-destination choices on package import. No iPad UI. |
+| Available-models list with CCR-strand mode and Used marking | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog.cpp:537,575,674` (CCR strand mode + Used markers); iPad `ImportEffectsView.swift:209-247` lists models without CCR/Used. |
+| Map-tree right-click menu (expand/collapse/clear/add group) | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog` `OnRightDown` context menu; iPad `ImportEffectsView.swift:587-597` has chevron expand only, no context menu. |
+| Import timeline preview column | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportEffects.cpp` `GenerateTimelineBitmap` renders a per-row timeline; iPad `ImportEffectsView.swift` has no timeline column. |
+| Model-blending import toggle | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop per-model blend toggle `xLightsImportChannelMapDialog.cpp:538,593-594,1261`; iPad `XLSequenceDocument.h:228-229` exposes sequence-level blending only, not per-model on import. |
+| Model wiring remap generator | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ModelRemap.cpp` generates a wiring remap; no iPad `ModelRemap` symbol/UI. |
 
-Area 16 has **41 features: 5 implemented, 10 partial, 25 missing, 1 out-of-scope** — the second-weakest area in the entire app and a major gap cluster. The implemented base we build on is genuinely solid and all driven by shared `src-core`: xLights `.xsq`/`.xsqz` effect import with a real channel-map tree + Auto Map + `.xmaphint` hints (`XLImportSession`), SuperStar `.sup` import (`SuperStarImporter`), Package Sequence export (`SequencePackage::Pack`), per-model FSEQ/`.eseq` export, and vendor-model download. The 35 partial+missing rows split into three families: (1) channel-map dialog polish (save/load `.xmap`/`.xjmap`, find/filter, AI map, context menu, import-media options), (2) the eight legacy/competitor importers whose parsers still live in `src-ui-wx`, and (3) the report/batch exporters (Effects CSV, Models XLSX, Convert dialog).
+## iPad gaps (desktop has, iPad missing)
 
-## Approach
+### P1
 
-The KEY INSIGHT from the analysis holds: the converters that *are* in `src-core/import_export` and `src-core/render/SequenceFile.cpp` are already linked by the iPad app — the gap is **mapping UI + bridge wiring, not the converters**. This plan is deliberately ordered to exploit that:
+- **Import Effects from LOR Music `.lms`.** Desktop `xLightsFrame::ImportLMS`
+  (`src-ui-wx/import_export/ImportEffects.cpp:1104` / parser at `:1683`). The
+  LMS parser currently lives in the wx UI file (it builds the
+  `xLightsImportChannelMapDialog` model directly), so the blocker is
+  extracting an LMS reader into `src-core/import_export/` (peer of
+  `LOREdit`/`Vixen3`) and adding `XLImportSession.loadLMSSource(atPath:)`
+  that reuses the existing mapping/apply path. Once the reader is core,
+  `.las` (P2) comes for free (same `ImportLMS`). Ease: medium.
 
-- **Tier A — pure wiring over existing core (cheap, high-value).** Six of desktop's ten timing-import processors (`ProcessSRT`, `ProcessAudacityTimingFiles`, `ProcessElevenLabsTimingFiles`, `ProcessVixen3Timing`, `ProcessLSPTiming`, `ProcessXLightsTiming`) are already public on the core `SequenceFile` class — adding them is one bridge wrapper + one Swift picker branch each. The import-options `convertRender` flag is *already a parameter* on `MapXLightsEffects`; we just plumb a bridge arg. `MapHintsIO` already round-trips `.xmaphint`. These are S-effort wins that close many rows for almost no engineering.
-- **Tier B — SwiftUI over existing snapshot data.** Find/filter, Hide Unmapped, Auto Map Selected button surfacing, timeline column, model-blending toggle, and Update Aliases are pure SwiftUI (or a one-line bridge call) over data `XLImportSession` already exposes. Build them as native touch idioms: long-press context menus instead of right-click, inline `.searchable`/filter fields, a bottom inspector for import options.
-- **Tier C — port a converter or serializer into core, then wrap it.** The legacy importers (LOR LMS/S5, HLS, Vixen2/3, LSP, VSA, MusicXML) and the report exporters (Effects CSV, Models XLSX) need a `src-core` home for logic that lives in `src-ui-wx` today. The biggest single enabler is lifting the needed subset of `FileConverter.cpp` Read* methods into core. We sequence these by user value: LOR S5 (`.loredit`, current product) and LOR LMS first; HLS/Vixen2/VSA last.
-- **Funnel discipline:** every mutating import/export op goes through `SequencerViewModel` so undo registration + grid/row reload happen in one place, consistent with the rest of the app. New bridge methods follow the `NS_SWIFT_NAME(…)` convention on `XLSequenceDocument` / `XLImportSession`.
+- **Export House Preview Video.** Desktop File → Export Video
+  (`src-ui-wx/xLightsMain.cpp:3742` → `ExportVideoPreview` → `VideoExporter`).
+  The iPad already has the unified `VideoWriter`/AVFoundation encoder
+  (model-video export migrated onto it), so the missing piece is a
+  SwiftUI export sheet + a bridge that renders the house preview frame
+  buffer per frame and feeds `VideoWriter`. This is the single highest-
+  value export gap. Ease: hard (frame pump + progress + codec choice);
+  feasible given `VideoWriter`.
 
-Out-of-scope per the master doc: video/GIF effect export (no on-device transcode) and the legacy `.lpe`/`.vix`/`.hlsIdata`/`.vsa` low-value formats — see the bottom section.
+### P2
 
-## Work breakdown
+- **Export Effects to file.** Desktop Tools → Export Effects
+  (`src-ui-wx/import_export/ExportEffects.cpp`, handler `xLightsMain.cpp:5790`)
+  writes selected/all effects as an `<effects>` `.xsq` fragment for
+  re-import elsewhere. iPad needs a Tools entry + `XLSequenceDocument`
+  exporter wrapping the existing core. Ease: medium.
 
-### Phase 1 — P0 / P1
+- **Per-model Video export.** Desktop `SeqExportDialog`
+  (`src-ui-wx/import_export/SeqExportDialog.cpp:95-99`) offers Compressed
+  mp4 / Uncompressed mp4/avi / Lossless mov per model. iPad per-model
+  export is `.eseq` only. Same `VideoWriter` dependency as house-video;
+  best built together. Ease: hard.
 
-| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
-|----|-----------|---------------|-------------|--------|------|
-| `IE-1` | Import timing tracks from external files — close 6 of 10 formats | Add `.srt`, Audacity `.txt`, ElevenLabs `.json`, Vixen3 `.tim`, LSP `.msq`, xLights `.xsq` timing branches. Each = one bridge method on `XLSequenceDocument` (e.g. `importSRTFromPath:`, `importAudacityTimingFromPath:`) calling the already-public `SequenceFile::ProcessSRT` / `ProcessAudacityTimingFiles` / `ProcessElevenLabsTimingFiles` / `ProcessVixen3Timing` / `ProcessLSPTiming` / `ProcessXLightsTiming` (all in `src-core/render/SequenceFile.cpp`) + a Swift `ImportFormat` enum case in `SequenceSettingsSheet.handleImport`. No new core algorithms. | `src-ui-wx/import_export/TimingImport.cpp`; `src-core/render/SequenceFile.cpp` | S (per format; M total) | none — core is done |
-| `IE-2` | Import options: Convert Render Style | Add `convertRenderStyle:` param to `XLImportSession.applyImportWithEraseExisting:lock:` and pass it to the existing `convertRender` parameter on `MapXLightsEffects` (already in the core signature). Add the third toggle to `ImportEffectsView` options. **Persist the choice** across imports via `@AppStorage` mirroring the desktop config key `ImportEffectsRenderStyle` (default **false**). | `xLightsImportChannelMapDialog.cpp` (IsConvertRender) | S | none |
-| `IE-3` | Save / Load channel mapping (.xmaphint load, .xmap, .xjmap) | Wire **load** of `.xmaphint` into the session (call `LoadMapHintsFile`/`LoadMapHintsFromShowDir` from `MapHintsIO.h`, apply to tree). Add `.xmap` (legacy text) + `.xjmap` (JSON) save/load: move the SaveMapping/LoadMappingFile/Save+LoadJSONMapping serialization out of `xLightsImportChannelMapDialog.cpp` into a small `src-core/import_export/MappingIO.{h,cpp}` (it is plain text/JSON I/O over the mapping table), then expose `loadMappingFromPath:`/`saveMappingToPath:` on `XLImportSession`. SwiftUI: Save/Load buttons + `fileImporter`/`fileExporter`. | `xLightsImportChannelMapDialog.cpp` (SaveMapping/LoadMappingFile/LoadJSONMapping); `src-core/import_export/MapHintsIO.h` | M | none |
-| `IE-4` | Import LOR S5 sequence (.loredit) + map dialog | Port `LOREdit.cpp/.h` parser into `src-core/import_export/LOREdit.{cpp,h}` (XML-based, feasible — no wx in the parse logic). Add a bridge entry on `XLImportSession.loadSourceSequenceAtPath:` extension that detects `.loredit` and populates the same available/destination tree the `.xsq` path already builds, so the existing SwiftUI mapping pane is reused unchanged. Add `.loredit` to `ImportEffectsView.allowedTypes`. **Priority note:** `.loredit` is the *current* LOR (Light-O-Rama S5) product, so user value likely exceeds the P3/M a prior plan assigned — keep it here in Phase 1 at XL effort. This also resolves the prior "hoist `LOREdit` with LMS or defer" open question: `.loredit` rides with `IE-4` (its own `LOREdit` parser), while `.lms`/`.las` ride `FileConverter`/`IE-5` — they do **not** share an extraction. | `src-ui-wx/import_export/LOREdit.cpp` | XL | reuses `IE` mapping UI |
-| `IE-5` | Import LOR LMS/LAS sequence + grid map | Lift `ReadLorFile` + `CheckForVixenRGB` from `FileConverter.cpp:219` into a new core `src-core/import_export/LegacySequenceReader.{cpp,h}` (the single largest enabling chunk — also unblocks Phase 3 importers). Both `.lms` (LOR musical, with audio) **and `.las` (LOR animation, no audio)** are handled by the same `ReadLorFile` path — wire both extensions. Wrap in `XLImportSession`; render the strand/time-offset choices as a SwiftUI sheet (reimplement `LMSImportChannelMapDialog` as a native list, not a port). Note: LOR *timing* import already works via `ProcessLorTiming`; this is the full effect/channel import. **Naming decision:** new core file is `LegacySequenceReader` (a shared host for all `FileConverter` Read* importers), not a single-format `LmsImporter`. **Priority:** distant third format behind `.loredit` (S5) and `.xsq` — park until a vendor request lands. | `src-ui-wx/import_export/FileConverter.cpp:219` (ReadLorFile); `LMSImportChannelMapDialog.cpp` | L | depends on the core `LegacySequenceReader` extraction |
-| `IE-6` | Channel-map tree completeness | Verify the 3-deep tree (`XLImportMappingRow.children`: model → strand/submodel → node) actually renders in `ImportEffectsView` (the view comment claims top-level-only but the bridge builds depth-3 — confirm/fix the `OutlineGroup`). Add a per-row effect-count badge (`effectCount` already on the row) and surface multi-select map. Tap-to-select stays the touch idiom (no drag-drop needed). | `xLightsImportChannelMapDialog.cpp` (dataview) | M | none |
-| `IE-7` | Import Effects file picker dispatch + version warnings | Extend `ImportEffectsView.allowedTypes`/`loadSource` to add `.piz` (xLights package) and route new extensions (`.loredit`, `.lms` as they land). Surface the FPS/version/missing-asset migration warnings the desktop shows before mapping (read from the load result) in an alert. Add last-used-type/dir memory via `@AppStorage`. | `ImportEffects.cpp` dispatch; `SeqFileUtilities.cpp` | S | grows with `IE-4`/`IE-5` |
-| `IE-8` | Export timing track — add .pgo (Papagayo) | Add a core phoneme→`.pgo` writer (small) and a `format:` param to `XLSequenceDocument.exportTimingTrackAtRow:` so phoneme tracks can export `.pgo` alongside the existing `.xtiming`. Surface in the row-header menu + Sequence Settings export. | `src-ui-wx` Papagayo export path | S | none |
+- **Export Effects summary (CSV).** Desktop writes a CSV summary of
+  effects (`src-ui-wx/import_export/ExportEffects.cpp:347-360`, handlers
+  `xLightsMain.cpp:5790,5798,4593`). iPad has no ExportEffects UI/bridge.
 
-### Phase 2 — P2
+- **Import media options.** Core `SequencePackage::GetImportOptions`
+  lets the user pick asset destinations when importing a package; the
+  desktop surfaces it but the iPad leaves it unused. Needs a SwiftUI
+  options sheet + bridge.
 
-| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
-|----|-----------|---------------|-------------|--------|------|
-| `IE-9` | Find/filter source & target + Hide Unmapped | Pure SwiftUI: `.searchable` filter fields over `XLImportSession.availableSources()` / `destinationRows()` snapshots + a Hide-Unmapped toggle that filters rows with empty `mapping`. No bridge change. High leverage on large shows. | `xLightsImportChannelMapDialog.cpp` (filter boxes) | S | none |
-| `IE-10` | Map-tree context menu + Available-models CCR/Used | SwiftUI long-press context menu (iPad idiom for desktop right-click): Expand/Collapse All, Show All Mapped, Auto Map Selected (the `runAutoMapSelectedTargets:sources:` bridge method already exists — just surface it), Clear All/Selected, Add Empty Group (needs a `createModelGroup`-style call in the import context). Add the Map-CCR/strand flatten toggle (`SetCCROn/Off` bridge addition) and "Used" marking on already-mapped sources. | `xLightsImportChannelMapDialog.cpp` (OnRightDown menu) | M | none |
-| `IE-11` | AI-assisted mapping | Add an "AI Map" button to `ImportEffectsView`. Reuse the existing `XLAIServices` Mapping capability; port the `DoStructuredAIMapping`/`AIModelMap` prompt-builders out of `xLightsImportChannelMapDialog.cpp` into core (or reimplement against the bridge). Core AI plumbing already exists on iPad. | `xLightsImportChannelMapDialog.cpp` (DoStructuredAIMapping) | M | none |
-| `IE-12` | Update model aliases from mapping | Add an "Update Aliases" button that writes source-name → target aliases after mapping. The doc bridge already has `setModelAliases` (used by layout editor) — small bridge method iterating the mapped rows + a button. Makes subsequent auto-maps sticky. | `xLightsImportChannelMapDialog.cpp` (update aliases) | S | `IE-6` |
-| `IE-13` | Import media options (package asset destinations + folder mapping) | Two distinct surfaces. **(a) Package destinations:** when importing an `.xsqz`, surface `SequencePackage::GetImportOptions` (core) in a SwiftUI destinations sheet (faces/glediators/images/shaders/videos) instead of silently extracting to sandbox. **(b) Folder mapping:** reimplement `MediaImportOptionsDialog` (remap media-folder paths referenced by the imported sequence onto the local show/media folders) as a SwiftUI sheet — this is the path-remap step, distinct from the `.xsqz` asset-destination question above. Data models are reusable; build the option sheets + plumb into the package/media import branch. | `SeqFileUtilities.cpp` import-media flow; `src-ui-wx/media/MediaImportOptionsDialog.cpp` | M | none |
-| `IE-14` | Export Effects summary | Iterate `SequenceElements` via existing bridge row/effect accessors and deliver via `ShareLink`. All data is already core-readable. **Format reconciliation:** desktop Export Effects writes **`.xlsx`** (via `ExportEffects.cpp`), not CSV. Prefer matching desktop XLSX so the output is consistent with `IE-15`'s `libxlsxwriter` path (shares the same vendored writer + build-link verification). If the XLSX link proves troublesome on `xLights-iPadLib`, fall back to a Swift-side CSV builder as an explicit, documented simplification (CSV is trivially shareable and openable in Numbers). | `src-ui-wx/import_export/ExportEffects.cpp` | M | none |
-| `IE-15` | Export Models report (XLSX) | Add a core `ExportModels` helper using `libxlsxwriter` (already vendored & linking on iPad — `XLSequenceDocument.mm` includes minizip from it). Multi-sheet Models/Groups/Controllers/Totals over core Model/Controller data + a bridge call + `ShareLink`. | `src-ui-wx/import_export/ExportEffects.cpp` (ExportModels) | L | none |
-| `IE-16` | Import models/previews from another rgbeffects file | Model deserialization is core (`XmlSerializer`); reimplement the preview-selection + scaling UI (`ImportPreviewsModelsDialog`) as a SwiftUI sheet in the layout editor. Lets users reuse layouts across shows. | `LayoutPanel` ImportModelsFromRGBEffects | L | none |
-| `IE-17` | Import notes / MusicXML to timing | Port `MusicXML.cpp` parser into core (mostly XML parsing, feasible) + a `NoteImportDialog`-equivalent SwiftUI sheet that creates a timing track. Note iPad already has on-device pitch analysis (`detectPitchContour`) that partially overlaps. | `src-ui-wx/import_export/MusicXML.cpp` | L | none |
-| `IE-25` | Import Vixen 3 FULL sequence (.tim effect import) | The **biggest single P2 import.** `IE-1` only covers Vixen 3 `.tim` *timing* tracks; this is the full effect/channel import that maps each Vixen 3 effect to an xLights effect + palette. Port the `Vixen3` class (XML/pugixml parse over the `.tim` zip — `VixenTiming`/`VixenEffect`/`GetPalette`/`GetSettings`/`GetXLightsType`) into `src-core/import_export/Vixen3.{cpp,h}`; the `wxColor`/`wxString::Format` usage in the per-effect setting builders must be replaced with `xlColor` + `fmt::format`. Wrap in `XLImportSession` so the existing SwiftUI mapping pane (model list + offset) is reused; reuse `MapVixen3Effects` mapping logic (currently in `ImportEffects.cpp`). Carry the desktop "experimental, improvement relies on user feedback" caveat. Pull in if a vendor flags it. | `src-ui-wx/import_export/Vixen3.cpp`; `ImportEffects.cpp` (`ImportVixen3`/`MapVixen3Effects`) | L | reuses `IE` mapping UI |
-| `IE-26` | On-open model-mismatch resolver (Map Models) | The on-open mismatch resolver: when a loaded sequence references models not in the current layout, walk each mismatched element and offer per-model **Rename / Map-to-existing-model / Delete**, plus an "Add Alias" toggle so future opens auto-resolve. Reimplement `SeqElementMismatchDialog` (radio buttons + model `Choice` + alias checkbox) as a SwiftUI sheet driven by the bridge's missing-model list; route the resolution through `SequencerViewModel` (rename/map/delete + alias write) so it registers undo. The alias-write half already shipped (`IE-12` covers writing aliases from the *import* map dialog) — this is the distinct *open-time* resolver. | `src-ui-wx/diagnostics/SeqElementMismatchDialog.cpp`; `tabSequencer.cpp:591` (CheckForValidModels) | M | `IE-12` |
+### P3 (low value)
 
-### Phase 3 — P3
+- **Other effect-import formats** — `.lpe` (`ImportLPE`, `:2984`), `.hlsIdata`
+  (`ImportHLS`, `:949`), Vixen 2 `.vix` (`ImportVix`, `:758`), LSP `.msq`
+  as effects (`ImportLSP`, `:3353`), VSA `.vsa` (`ImportVsa`, `:3603`). Each
+  parser is wx-bound; would need core extraction + a bridge entry. Low
+  frequency / legacy. (Note: LSP/Vixen3 *timing-only* import already on
+  iPad.)
+- **Per-model LOR/Lcb/Vixen/LSP/HLS export, GIF export, Minleon `.bin`** —
+  all in desktop `SeqExportDialog`. iPad per-model export is FSEQ-only.
+- **Convert tool** — desktop `ConvertDialog` (`xLightsMain.cpp:4261`) maps
+  raw channel data between formats; substantial bridge, niche.
+- **Open `.fseq` / `.xbkp` directly** — desktop Open wildcard accepts both
+  (`SeqFileUtilities.cpp:262`). iPad round-trips an FSEQ sidecar
+  (`tryLoadFseq`) and recovers `.xbkp` (promote→`.xsq` sheet) but doesn't
+  open either as a first-class format.
+- **Export timing track as Papagayo `.pgo`** — desktop RowHeading
+  `GetPapagayoExport` (`RowHeading.cpp:1668`); iPad exports `.xtiming` only.
+- **Import-wizard refinements** — desktop's `xLightsImportChannelMapDialog`
+  has an available-models list with CCR-strand mode and Used markers
+  (`:537,575,674`), a map-tree right-click menu (expand/collapse/clear/add
+  group, `OnRightDown`), a per-row timeline preview column
+  (`GenerateTimelineBitmap`), and a per-model blending toggle (`:538,593-594,1261`).
+  iPad `ImportEffectsView.swift` lacks all four (`:209-247`, `:587-597`);
+  `XLSequenceDocument.h:228-229` exposes sequence-level blending only.
+- **Model wiring remap generator** — desktop `ModelRemap.cpp`; no iPad
+  equivalent.
 
-| ID | Feature(s) | What to build | Desktop ref | Effort | Deps |
-|----|-----------|---------------|-------------|--------|------|
-| `IE-18` | Legacy importers: HLS `.hlsIdata`, Vixen2 `.vix`, LSP `.msq` effect import, VSA `.vsa` | Once `LegacySequenceReader` (`IE-5`) is in core, lift `ReadHLSFile`/`ReadVixFile`/`LoadVixenProfile`/`ImportLSP` and the VSA parser into it; reuse the SwiftUI grid map sheet. Low user value (legacy formats) — do only on demand. | `FileConverter.cpp`; `VSAFile.cpp` | L each | `IE-5` |
-| `IE-19` | Import LOR Pixel Editor `.lpe` | Experimental desktop-only; `ImportLPE` is wx-bound. Low value — defer behind a feature flag if ever. | `ImportEffects.cpp` (ImportLPE) | L | `IE-5` |
-| `IE-20` | Per-model export to legacy formats (LOR/Vixen/LSP/HLS/Minleon) | Port the relevant `FileConverter`/`SeqExportDialog` Write* methods into core and add a format picker to the row-header export menu. **`SeqExportDialog`'s full format list (`ChoiceFormat`):** LOR `.lms`/`.las`, LOR Clipboard `.lcb` (v3), LOR S5 Clipboard `.lcb`, Vixen `.vix`, Vixen Routine `.vir`, LSP, HLS `.hlsnc`, xLights/FPP `.fseq` (**done**), FPP Sub-sequence `.eseq` + Compressed `.eseq` (**done**), Minleon NEC `.bin`. **VIDEO — encoder now shared-core, frame production still wx:** the encode half (`VideoWriter` → AVFoundation) builds on iPad and covers Compressed `.mp4` (H.264), Uncompressed `.mp4`, and Lossless RGB `.mov` (bit-exact uncompressed passthrough). But `WriteVideoModelFile`'s frame production (`FillImage`/`wxImage` in `TabConvert.cpp`) is still wx-coupled, so per-model video export isn't iPad-runnable until that moves to core. **Still hard out-of-scope:** Uncompressed `.avi` (no AVFoundation AVI muxer) and GIF `.gif` (no AVAssetWriter GIF encoder). **Multi-model picker:** add an `ExportModelSelect`-equivalent SwiftUI multi-model selection picker so a single export covers many models — a small standalone PR, since the per-model engine path (`exportModelAsFSEQAtRow:toPath:`) already exists. Desktop Export Models/Effects both route through `SeqExportDialog`. | `SeqExportDialog.cpp`; `ExportModelSelect.cpp`; `FileConverter.cpp` Write* | XL | `IE-5` |
-| `IE-21` | Import timings during New Sequence wizard | Add an Import-Timings step to `NewSequenceWizardView` reusing the `IE-1` timing importers. Low priority — users can import via Sequence Settings → Timings after creation. | `NewSequenceWizardView.swift` | S | `IE-1` |
-| `IE-22` | Import timeline preview column; model-blending toggle | Per-row mini-timeline bitmap (could use existing Metal grid primitives; `BuildMergedIntervals` would need a core home) + the import source model-blending toggle (`sequenceSupportsModelBlending` getter/setter already on the bridge — one toggle + plumb into applyImport). Pair the toggle with a **source-file blending-state label** that surfaces whether the *imported* sequence had model blending on (`SetModelBlending()`); the desktop control `CheckBox_Import_Blend_Mode` defaults **ON**, so match that default. Marginal value. | `ImportEffects.cpp` (GenerateTimelineBitmap); `xLightsImportChannelMapDialog.cpp:593` | M / S | `IE-6` |
-| `IE-23` | Download vendor music/lyric sequences; LOR S5 layout import; model wiring remap | Niche: vendor-music browser (reuse `XLVendorCatalog` networking), `ImportModelsFromLORS5`, `ModelRemap`. iPad's LRCLIB lyric search and ARKit Map-from-Lights partly cover the music/wiring needs from other angles. | `VendorMusicDialog.cpp`; `ModelRemap.cpp` | M–L each | none |
-| `IE-24` | Convert sequence file formats (batch converter) | The full `ConvertDialog` + `FileConverter` Read*/Write* engine. **Inputs (6):** `.fseq`, `.lms`, `.las`, `.vix`, `.gled` (Glediator), `.seq`, `.hlsidata`. **Outputs (9):** the export set above plus Lynx Conductor, Glediator, LedBlinky `.lwax`. **LOR Import Options block (omitted above, must port if `IE-24` ships):** *Map Empty Channels*, *Verbose Channel Map*, and a *Time Resolution* selector (25 / 50 / 100 ms). Large XL port, depends on the wx file/zip stack. Marginal for the iPad's sequencer/player use case — track but likely never port. | `ConvertDialog.cpp` | XL | `IE-5`, `IE-20` |
+## Desktop gaps (iPad has, desktop missing)
 
-## Quick wins (Rollup C — cheap, high-leverage, do first)
+For this theme there are **no true desktop-missing items**:
 
-- **`IE-1` (timing imports):** six formats, zero new algorithms — the `SequenceFile::Process*` processors are already public in core. Each format is one bridge wrapper + one picker branch. Biggest parity-per-effort ratio in the theme.
-- **`IE-2` (Convert Render Style):** literally one bridge param into an already-existing `MapXLightsEffects` argument plus one SwiftUI toggle. ~30 minutes.
-- **`IE-9` (find/filter + Hide Unmapped):** pure SwiftUI over snapshot arrays the bridge already returns; very valuable on large shows.
-- **`IE-10` Auto Map Selected button:** the `runAutoMapSelectedTargets:sources:` bridge method already exists and is unsurfaced — just add the button.
-- **`IE-12` (Update Aliases):** `setModelAliases` already on the bridge; small button.
-- **`IE-3` `.xmaphint` load:** `MapHintsIO::LoadMapHintsFile` already in core; only the apply-to-tree + a Load button are missing.
+- *Multi-track `.xtiming` export* — desktop has it (SelectTimingsDialog).
+- *Package exclude-audio* — desktop has it (Preferences → Other Settings).
+- *Preset library export* — desktop has it (`EffectTreeDialog` Export
+  `.xpreset`).
+- *Map From Lights* — desktop has it on macOS (`KLightMapperBridge`).
+- *AI Speech-to-Lyrics / online lyric search* — desktop has both.
 
-## Out of scope for this theme
+The only directional nuance: the iPad surfaces several of these more
+prominently (in-sheet toggles, dedicated wizard) while the desktop tucks
+them into preferences/dialogs — a UX-placement difference, not a missing
+capability. Map From Lights is desktop-missing on **Windows/Linux** (it's
+a macOS Continuity-Camera feature), but that is out of scope for an
+iPad↔macOS-desktop parity audit.
 
-(Reasons inline; the master out-of-scope doc, Rollup B, has the full list.)
+## Infeasible / restricted on iPad
 
-- **Video/GIF per-model export** — ⬆ encoder now in shared core (`VideoWriter` → AVFoundation, builds on iPad), but `WriteVideoModelFile`'s wx frame production (`FillImage`/`wxImage`) must move to core before per-model `.mp4`/`.mov` video export can run on iPad; `.avi` rawvideo and GIF stay out (no AVFoundation AVI/GIF encoder).
-- **Convert log / status dialog** (Area 16's lone out-of-scope row) — `ConvertLogDialog` is the status surface for the deferred Convert dialog; the iPad already has a live `LogViewerSheet` + per-import error alerts, so it is subsumed. Revisit only if `IE-24` ever ships.
-- **`.lpe` / `.vix` / `.hlsIdata` / `.vsa` full effect import** kept in Phase 3 but flagged low-value/legacy — port on demand only.
+- **HinksPix configuration export** — `restricted`. Closed/proprietary
+  controller firmware; IAP-gated, P3. Desktop `HinksPixExportDialog`.
+- **Per-model video/Minleon/LOR-binary exports** are *feasible* but low
+  priority; the video ones depend on the `VideoWriter` frame pump landing.
+- Nothing here is hard-blocked by iOS sandbox: file I/O goes through
+  `ObtainAccessToURL` security-scoped bookmarks, and audio/video encode
+  uses AVFoundation/`VideoWriter` rather than FFmpeg, so the desktop's
+  FFmpeg-only paths are not a wall for these export features.
 
-## Risks / open questions
+## Recommended sequencing
 
-- **`FileConverter.cpp` core extraction (`IE-5`) is the linchpin.** It currently depends on the wx file/zip stack; the risk is how much wx (`wxFileName`, `wxZipInputStream`) is entangled in the read paths. Mitigation: extract only the parse logic into `LegacySequenceReader`, leaving file/zip I/O to a thin caller that uses `std::filesystem` + the existing core zip helpers (`SequencePackage` already does zip in core). Scope this extraction as its own spike before committing to `IE-5`/`IE-18`/`IE-20`.
-- **Channel-map tree depth (`IE-6`):** the view comment says "top-level rows only" but the bridge builds a depth-3 tree — must confirm whether the SwiftUI `OutlineGroup` actually walks `children` before estimating effort. Could be a no-op fix or a real rework.
-- **`.xmap`/`.xjmap` round-trip fidelity (`IE-3`):** legacy `.xmap` is positional/text; ensure the core serializer matches the desktop byte format so maps round-trip between platforms.
-- **XLSX on iPad (`IE-15`):** `libxlsxwriter` links (minizip is already pulled in) but this needs a build-link verification on the `xLights-iPadLib` scheme before committing to the L estimate.
-- **AI mapping prompt parity (`IE-11`):** desktop prompt-builders are wx-bound; reimplementing against `XLAIServices` risks subtle divergence in mapping quality — validate against a known show before shipping.
-- **Migration-warning surfacing (`IE-7`):** confirm the core load path actually returns FPS/version/missing-asset diagnostics the bridge can read, or this needs a core diagnostic struct added.
-- **Auto Map false-positives (`IE-6`/`IE-9`/`IE-10`):** Auto Map matching on similar model names is a known source of wrong mappings, and the iPad's smaller review screen makes a bad map harder to spot than on desktop. Treat find/filter (`IE-9`), Hide-Unmapped, and the per-row effect-count badge (`IE-6`) as *mitigation* — the means to catch and correct false-positives — not mere convenience features; prioritize them alongside the Auto Map Selected surfacing (`IE-10`) rather than after it.
+1. **Extract a core LMS/LAS reader → iPad `.lms`/`.las` effect import (P1).**
+   Highest-demand missing import format; unblocks two formats at once and
+   reuses the entire existing mapping/apply/auto-map/hints flow.
+2. **House Preview Video export (P1).** Biggest export gap; the
+   `VideoWriter` encoder already exists, so the work is a render-frame
+   pump + export sheet (codec/quality + progress). Per-model video export
+   falls out of the same pump afterward.
+3. **Export Effects to file (P2).** Small, completes the import↔export
+   round trip; core `ExportEffects` already shared.
+4. **Remaining legacy effect-import formats (P2/P3)** — `.lpe`, `.hlsIdata`,
+   `.vix`, `.msq`, `.vsa` — only as user demand warrants; each needs core
+   parser extraction.
+5. **Convert tool / per-model LOR/Lcb/GIF/Minleon export / HinksPix
+   (P3/restricted)** — defer; niche or IAP-gated.

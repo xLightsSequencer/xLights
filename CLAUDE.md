@@ -42,9 +42,10 @@ PR whenever possible. Concretely:
   `NS_SWIFT_NAME(…)` convention already in `XLSequenceDocument.h`.
 - **Features iPad can't support** (e.g. FFmpeg-only audio filters,
   raw serial/DMX output, proprietary-firmware controller uploads) are
-  fine to leave desktop-only — record them in
-  [`plans/ipad-parity/99-out-of-scope.md`](plans/ipad-parity/99-out-of-scope.md)
-  with the reason.
+  fine to leave desktop-only — record them in the relevant
+  [`plans/ipad-parity/`](plans/ipad-parity/) theme doc's
+  *Infeasible / restricted* section (they roll up into the
+  Infeasible / Restricted lists in `00-overview.md`) with the reason.
 - **Features iPad has that desktop doesn't** (rare so far — two-
   finger marquee, long-press menus, trackpad `allowedScrollTypesMask`)
   are fine; they're touch-idioms without desktop equivalents.
@@ -133,7 +134,7 @@ glob patterns (e.g., a new top-level subdirectory) require a new
 
 Keep description summary very brief (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** `README.txt` is the **desktop** release-notes file; the iPad app tracks its own changes separately, so iPad-only entries would just clutter it. Instead, keep the iPad plans up to date: flip the matching `plans/ipad-parity/` theme doc's status callout (pending → ✅) as work lands, and add a one-line entry to the **"Recently landed"** log in `iPad-xLights-Plan.md` (with root cause / follow-ups for any landed fix). Changes that touch shared `src-core/` code *and* user-visible **desktop** behavior still belong in `README.txt`; the iPad-only side goes in the iPad plans.
+**Do NOT add iPad-specific changes to `README.txt`.** `README.txt` is the **desktop** release-notes file; the iPad app tracks its own changes separately, so iPad-only entries would just clutter it. Instead, keep the iPad plans up to date: update the matching feature's status in the relevant `plans/ipad-parity/` theme doc's parity scorecard (→ ✅ / 🟡) as work lands. Git history is the iPad changelog — there's no running landed-log to maintain. Changes that touch shared `src-core/` code *and* user-visible **desktop** behavior still belong in `README.txt`; the iPad-only side goes in the iPad plans.
 
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
@@ -240,8 +241,10 @@ Key patterns:
   `xlMetalGraphicsContext`. The iPad grid is Metal-only; the
   desktop grid uses `xlGraphicsBase`'s OpenGL/Metal switch.
 - **Plans**: [`plans/ipad-parity/`](plans/ipad-parity/) holds the
-  per-theme parity gap analysis + status (see `00-overview.md` for the
-  cross-theme map). 
+  per-theme parity scorecards (desktop/iPad status with `file:line`
+  evidence) — start at [`README.md`](plans/ipad-parity/README.md), and
+  see `00-overview.md` for the cross-theme map, the P1/P2 roadmap, and
+  reverse-parity candidates.
 
 ### Data Formats
 - `.xsq` — Sequence files (XML-based, can contain embedded images as base64)
