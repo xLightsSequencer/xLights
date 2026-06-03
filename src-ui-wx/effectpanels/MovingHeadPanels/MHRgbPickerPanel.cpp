@@ -341,25 +341,29 @@ int MHRgbPickerPanel::HitTest( wxPoint2DDouble& ptUI )
 wxPoint2DDouble MHRgbPickerPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
     // Normalise relative to the circle region (offset by circle_offset_x horizontally)
-    int circ_side = (int)(2.0 * center);
-    wxPoint o((int)circle_offset_x + BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(circ_side - 2 * BorderWidth - 2, circ_side - 2 * BorderWidth - 2);
+    double circ_side = 2.0 * center;
+    double ox = circle_offset_x + BorderWidth + 1;
+    double oy = BorderWidth + 1;
+    double szw = circ_side - 2 * BorderWidth - 2;
+    double szh = circ_side - 2 * BorderWidth - 2;
 
-    double x = double(pt.m_x - o.x) / sz.GetWidth();
-    double y = double(pt.m_y - o.y) / sz.GetHeight();
+    double x = (pt.m_x - ox) / szw;
+    double y = (pt.m_y - oy) / szh;
 
     return wxPoint2DDouble(x, 1. - y);
 }
 
 wxPoint2DDouble MHRgbPickerPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
-    int circ_side = (int)(2.0 * center);
-    wxPoint o((int)circle_offset_x + BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(circ_side - 2 * BorderWidth - 2, circ_side - 2 * BorderWidth - 2);
+    double circ_side = 2.0 * center;
+    double ox = circle_offset_x + BorderWidth + 1;
+    double oy = BorderWidth + 1;
+    double szw = circ_side - 2 * BorderWidth - 2;
+    double szh = circ_side - 2 * BorderWidth - 2;
 
-    double x = pt.m_x * sz.GetWidth();
-    double y = pt.m_y * sz.GetHeight();
-    return wxPoint2DDouble(o.x + x, o.y + (sz.GetHeight() - y));
+    double x = pt.m_x * szw;
+    double y = pt.m_y * szh;
+    return wxPoint2DDouble(ox + x, oy + (szh - y));
 }
 
 wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const

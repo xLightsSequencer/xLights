@@ -1252,7 +1252,7 @@ void MovingHeadPanel::UpdateColorPanel()
         }
     }
 
-    spdlog::info("MovingHeadPanel::UpdateColorPanel: wheel_active={} wheelPanel={} rgbPanel={} rgbSize={}x{}",
+    spdlog::debug("MovingHeadPanel::UpdateColorPanel: wheel_active={} wheelPanel={} rgbPanel={} rgbSize={}x{}",
         wheel_active,
         m_wheelColorPanel != nullptr ? "ok" : "null",
         m_rgbColorPanel != nullptr ? "ok" : "null",
@@ -2107,26 +2107,28 @@ void MovingHeadPanel::OnCheckBox_MHClick(wxCommandEvent& event)
     UpdateColorPanel();
 
     std::string last_mh {xlEMPTY_STRING};
+    bool all_same {true};
     for( int i = 1; i <= 8; ++i ) {
         wxString checkbox_ctrl = wxString::Format("IDD_CHECKBOX_MH%d", i);
         wxCheckBox* checkbox = (wxCheckBox*)(this->FindWindowByName(checkbox_ctrl));
         if( checkbox != nullptr ) {
             if( checkbox->IsChecked() ) {
+                wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
+                wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
+                std::string settings = mh_textbox->GetValue();
                 if( last_mh == xlEMPTY_STRING ) {
-                    wxString textbox_ctrl = wxString::Format("ID_TEXTCTRL_MH%d_Settings", i);
-                    wxTextCtrl* mh_textbox = (wxTextCtrl*)(this->FindWindowByName(textbox_ctrl));
-                    last_mh = mh_textbox->GetValue();
-                    spdlog::info("MovingHeadPanel::OnCheckBox_MHClick: first checked head MH{}, settings='{}'", i, last_mh);
+                    last_mh = settings;
+                } else if( last_mh != settings ) {
+                    all_same = false;
                     break;
                 }
             }
         }
     }
 
-    if( last_mh != xlEMPTY_STRING ) {
+    if( last_mh != xlEMPTY_STRING && all_same ) {
         RecallSettings(last_mh);
     } else {
-        spdlog::info("MovingHeadPanel::OnCheckBox_MHClick: no checked head with settings found");
         UpdateMHSettings();
         FireChangeEvent();
     }
@@ -2147,8 +2149,8 @@ bool MovingHeadPanel::IsHeadActive(int num)
 
 void MovingHeadPanel::RecallSettings(const std::string mh_settings)
 {
-    spdlog::info("MovingHeadPanel::RecallSettings: settings='{}'", mh_settings);
-    spdlog::info("MovingHeadPanel::RecallSettings: rgbPanel={} rgbSize={}x{} wheelPanel={} wheelSize={}x{}",
+    spdlog::debug("MovingHeadPanel::RecallSettings: settings length={}", mh_settings.length());
+    spdlog::debug("MovingHeadPanel::RecallSettings: rgbPanel={} rgbSize={}x{} wheelPanel={} wheelSize={}x{}",
         m_rgbColorPanel != nullptr ? "ok" : "null",
         m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetWidth() : -1,
         m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetHeight() : -1,
@@ -2220,7 +2222,7 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
         } else if( cmd_type == "PathScale VC" ) {
             UpdateValueCurve("PathScale", settings.c_str());
         } else if( cmd_type == "Color" ) {
-            spdlog::info("MovingHeadPanel::RecallSettings: Color settings='{}' rgbPanel={} rgbSize={}x{}", settings,
+            spdlog::debug("MovingHeadPanel::RecallSettings: Color rgbPanel={} rgbSize={}x{}",
                 m_rgbColorPanel != nullptr ? "ok" : "null",
                 m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetWidth() : -1,
                 m_rgbColorPanel != nullptr ? m_rgbColorPanel->GetSize().GetHeight() : -1);
@@ -2228,7 +2230,7 @@ void MovingHeadPanel::RecallSettings(const std::string mh_settings)
                 m_rgbColorPanel->SetColours(settings);
             }
         } else if( cmd_type == "Wheel" ) {
-            spdlog::info("MovingHeadPanel::RecallSettings: Wheel settings='{}' wheelPanel={} wheelSize={}x{}", settings,
+            spdlog::debug("MovingHeadPanel::RecallSettings: Wheel wheelPanel={} wheelSize={}x{}",
                 m_wheelColorPanel != nullptr ? "ok" : "null",
                 m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetWidth() : -1,
                 m_wheelColorPanel != nullptr ? m_wheelColorPanel->GetSize().GetHeight() : -1);
