@@ -399,7 +399,9 @@ private:
     void OnSplitterSashPosChanging(wxSplitterEvent& event);
     //*)
 
-    void OnCancel(wxCloseEvent& event);
+    void OnClose(wxCloseEvent& event);
+    void OnCancelButton(wxCommandEvent& event);
+    void ConfirmClose();
     void OnOK(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);

@@ -143,6 +143,9 @@ private:
     void OnChoiceColorDrawSelect(wxCommandEvent& event);
     //*)
 
+    void OnClose(wxCloseEvent& event);
+    void OnCancelButton(wxCommandEvent& event);
+    void ConfirmClose();
     void OnAddBtnPopup(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);

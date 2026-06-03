@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
 
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
     -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
