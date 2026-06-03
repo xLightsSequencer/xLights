@@ -88,8 +88,8 @@
 | Other ▸ Hardware Video Decoding (+ renderer) | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:93`. iPad uses AVFoundation/VideoToolbox automatically. |
 | Other ▸ GPU Rendering (Metal compute) | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:186`. macOS/Win only; hidden on Linux. iPad always uses Metal. |
 | Other ▸ Shaders on Background Threads | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:106`. Hidden on macOS/Linux already; Win-only. |
-| Other ▸ Video Export Codec | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:114` (Auto/H.264/H.265/MPEG-4). iPad has no video export today. |
-| Other ▸ Video Export Bitrate | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:122`. iPad has no video export today. |
+| Other ▸ Video Export Codec | preference | ✅ | ❌ | desktop-missing | P3 | hard | feasible | `OtherSettingsPanel.cpp:114` (Auto/H.264/H.265/MPEG-4). iPad has video export (✅ landed 2026-06-03) but picks codec **per-export** (per-model submenu / house-preview sheet), not via a global preference. |
+| Other ▸ Video Export Bitrate | preference | ✅ | ❌ | desktop-missing | P3 | hard | feasible | `OtherSettingsPanel.cpp:122`. iPad has video export but no explicit bitrate field — `VideoWriter` chooses (constant-quality for HEVC). |
 | Other ▸ Exclude Videos from Package | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `OtherSettingsPanel.cpp:129,266`; iPad `PackageSequenceSheet.swift:14,25,99-101`. |
 | Other ▸ Exclude Audio from Package | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `OtherSettingsPanel.cpp:132,265`; iPad `PackageSequenceSheet.swift:13,24,99-100`. |
 | Other ▸ Prompt Issues During Batch Render | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `OtherSettingsPanel.cpp:137`. iPad has Batch Render (`BatchRenderSheet`) but no prompt setting. |
@@ -251,8 +251,10 @@
 - **Hardware Video Decoding / renderer choice, GPU Rendering, Shaders on
   Background Threads** (`OtherSettingsPanel.cpp`): iPad always uses Metal +
   VideoToolbox automatically; these are platform-managed. *infeasible.*
-- **Video Export Codec / Bitrate** (`OtherSettingsPanel.cpp:114,122`): iPad has
-  no model-video export feature yet. *infeasible (today).*
+- **Video Export Codec / Bitrate** (`OtherSettingsPanel.cpp:114,122`): iPad now
+  has video export (house-preview + per-model, ✅ 2026-06-03) but selects codec
+  **per-export** rather than via a global preference, and has no explicit bitrate
+  field (`VideoWriter` chooses). *feasible as a pref, but per-export is the iPad idiom.*
 - **Use Custom Color Picker** (`OtherSettingsPanel.cpp:208`): iPad uses the
   native system ColorPicker. *infeasible (n/a).*
 - **Disable Key Acceleration / Zoom-To-Cursor / Double-Click Mode** (`View` &

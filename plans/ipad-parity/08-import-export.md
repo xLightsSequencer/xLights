@@ -115,12 +115,20 @@
   → `XLHousePreviewVideoExporter` (`src-iPad/Metal/`). Renders the house
   preview **offscreen** into a Metal texture at a chosen resolution
   (720/1080/4K/match preview) — independent of the on-screen pane size —
-  reads each frame back BGRA→RGB24, and feeds the core `VideoWriter`
-  (AVFoundation H.264 / HEVC). Runs on a background queue with a progress
-  sheet; the live preview skips drawing during export
-  (`iPadRenderContext::IsExportInProgress`) to avoid racing per-model
-  node colours. Offscreen support added to `iPadModelPreview`
-  (`SetOffscreenTarget`).
+  and feeds the core `VideoWriter` (AVFoundation H.264 / HEVC). The full
+  scene is rendered to match the live preview: models, **view objects**
+  (house mesh / ground / terrain), and the **2D background image**, framed
+  with the **live house-preview camera** (pan / rotation / 2D-3D mode,
+  snapshotted by the on-screen bridge via `iPadRenderContext::SetHousePreviewCamera`;
+  2D pan rescaled for the export resolution). GPU frame path: CoreImage
+  renders the Metal texture straight into the encoder's NV12 `CVPixelBuffer`
+  (no CPU readback), tagged `kCIImageColorSpace = DeviceRGB` so brightness/
+  gamma match the on-screen look (a `nil` color space lifts dimmed content).
+  Runs on a background queue with a progress sheet; the live preview skips
+  drawing during export (`iPadRenderContext::IsExportInProgress`) to avoid
+  racing per-model node colours. Offscreen support added to
+  `iPadModelPreview` (`SetOffscreenTarget`). Resolution + codec choice
+  persist via `@AppStorage`; output handed to the share sheet.
 
 ### P2
 

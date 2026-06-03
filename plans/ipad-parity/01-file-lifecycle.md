@@ -83,7 +83,7 @@
 | Cleanup File Locations | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Relocate all files under show folder. iPad's MediaRelocation enforces invariant at pick time → largely moot. |
 | Package Sequence (.xsqz) | menu/sheet | ✅ | ✅ | parity | P1 | easy | feasible | iPad sheet w/ Include Audio/Videos toggles → share sheet; shared `SequencePackage::Pack`. |
 | Package Log Files | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad bundles logs+MetricKit+show+seq+device sidecar → share. |
-| Export House Preview Video | menu | ✅ | ❌ | ipad-missing | P3 | hard | restricted | VideoWriter (AVFoundation) now in core; iPad bridge/UI not wired. Was infeasible (FFmpeg), now feasible-with-work. |
+| Export House Preview Video | menu | ✅ | ✅ | parity | P1 | hard | feasible | ✅ landed 2026-06-03. Tools → "Export House Preview…" (`ExportHousePreviewSheet`) → `XLHousePreviewVideoExporter` renders the house preview offscreen at a chosen resolution (models + view objects + 2D background, live camera/viewport, brightness-correct) → core `VideoWriter`. See theme 08. |
 | Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Vendor catalog browser; not built on iPad (vendor browser exists for models, not seq/lyrics). |
 | Check Sequence | menu/sheet | ✅ | ✅ | parity | P2 | easy | feasible | iPad CheckSequenceSheet (subset of checks, severity grouping, jump-to-effect). |
 | Effect Presets (persistent library) | menu/panel/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop checkable pane (`ShowHideEffectPresetsWindow`); iPad ⌘⇧P PresetBrowserSheet. |
@@ -142,10 +142,6 @@
 - **Data Layers tab** — desktop `Panel_DataLayers` tree importer. iPad absent. *Hard, P3.*
 - **Default Model Blending for new sequences** preference (`ModelBlendDefaultChoice`). iPad only sets
   blending per-sequence in the Render tab. *Easy, P3.*
-- **Export House Preview Video** (`src-ui-wx/xLightsMain.cpp:1049`, `ID_EXPORT_VIDEO`). Was infeasible
-  (FFmpeg); the new core `VideoWriter` (AVFoundation, per recent commits cb1855ba1/97b11e099) makes
-  this **feasible** now — but it's still substantial bridge + UI work and low priority. Mark
-  `restricted`→reconsider: actually *feasible/hard, P3*. iPad would render frames → `VideoWriter`.
 - **Download Sequences/Lyrics** (`ID_MNU_DOWNLOADSEQUENCES`). iPad has a vendor browser for models but
   not for sequences/lyrics. *Hard, P3.*
 - **Reopen last sequence on launch** — deliberately omitted on iPad to dodge the 20-second launch
@@ -188,9 +184,6 @@ These are iPad touch/cloud idioms with no desktop equivalent — most are *feasi
   no equivalent of a free-roaming whole-folder copy to arbitrary locations; users rely on the Files app
   / iCloud Drive versioning. *Infeasible.*  (A narrower in-show `Backup/` snapshot of just the active
   sequence is feasible and is the realistic substitute — see Restore Backup above.)
-- **Export House Preview Video** — historically infeasible (no FFmpeg encode on iPad). Now technically
-  feasible via the core `VideoWriter` AVFoundation path, but large scope and low priority; treat as
-  *feasible/hard, P3*, not a near-term item.
 - **iCloud download badges** — desktop-direction "gap" that is infeasible on desktop (no on-demand
   cloud materialization model).
 - *No controller-firmware items in this theme* — controller upload/config is covered by the outputs
