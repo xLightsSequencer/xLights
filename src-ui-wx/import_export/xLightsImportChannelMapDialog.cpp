@@ -665,7 +665,7 @@ xLightsImportChannelMapDialog::xLightsImportChannelMapDialog(xLightsFrame* paren
     FlexGridSizer10->AddGrowableCol(0);
     Button02 = new wxButton(Panel1, ID_BUTTON2, _("Save Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON2"));
     FlexGridSizer10->Add(Button02, 1, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 5);
-    FlexGridSizer10->Add(28, 1, 0, wxTOP | wxRIGHT, 5);
+    FlexGridSizer10->Add(FromDIP(28), 1, 0, wxTOP | wxRIGHT, 5);
     Button01 = new wxButton(Panel1, ID_BUTTON1, _("Load Map"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON1"));
     FlexGridSizer10->Add(Button01, 1, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND, 5);
     StashWarningButton = new wxBitmapButton(Panel1, ID_BITMAPBUTTON_STASH,
@@ -2175,19 +2175,15 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
             } else {
                 if (!mapping.empty()) {
                     xLightsImportModelNode* targetNode = mni != nullptr ? mni : (msi != nullptr ? msi : mi);
-                    auto resolveItem = [&]() {
-                        if (mni != nullptr) return FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        if (msi != nullptr) return FindItem(model.ToStdString(), strand.ToStdString());
-                        return FindItem(model.ToStdString());
-                    };
+                    wxDataViewItem targetItem(targetNode);
                     if (targetNode->_mapping.empty()) {
-                        ApplyMappingItem(mapping, resolveItem(), color);
+                        ApplyMappingItem(mapping, targetItem, color);
                     } else if (!targetNode->_mappingExists) {
                         // existing mapping is invalid (red) — stash it and apply the new one
                         _stashedMappings.emplace_back(new StashedMapping(
                             wxString(targetNode->_model), wxString(targetNode->_strand), wxString(targetNode->_node),
                             wxString(targetNode->_mapping), targetNode->_color));
-                        ApplyMappingItem(mapping, resolveItem(), color);
+                        ApplyMappingItem(mapping, targetItem, color);
                     } else {
                         // destination already has a valid mapping — stash the incoming one
                         _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
@@ -2282,19 +2278,15 @@ void xLightsImportChannelMapDialog::LoadXMapMapping(wxString const& filename, bo
             } else {
                 if (mapping != "") {
                     xLightsImportModelNode* targetNode = mni != nullptr ? mni : (msi != nullptr ? msi : mi);
-                    auto resolveItem = [&]() {
-                        if (mni != nullptr) return FindItem(model.ToStdString(), strand.ToStdString(), node.ToStdString());
-                        if (msi != nullptr) return FindItem(model.ToStdString(), strand.ToStdString());
-                        return FindItem(model.ToStdString());
-                    };
+                    wxDataViewItem targetItem(targetNode);
                     if (targetNode->_mapping.empty()) {
-                        ApplyMappingItem(mapping, resolveItem(), color);
+                        ApplyMappingItem(mapping, targetItem, color);
                     } else if (!targetNode->_mappingExists) {
                         // existing mapping is invalid (red) — stash it and apply the new one
                         _stashedMappings.emplace_back(new StashedMapping(
                             wxString(targetNode->_model), wxString(targetNode->_strand), wxString(targetNode->_node),
                             wxString(targetNode->_mapping), targetNode->_color));
-                        ApplyMappingItem(mapping, resolveItem(), color);
+                        ApplyMappingItem(mapping, targetItem, color);
                     } else {
                         // destination already has a valid mapping — stack the incoming one
                         wxDataViewItem baseItem = FindLastItem(model, strand, node);
@@ -3185,6 +3177,8 @@ bool xLightsImportChannelMapDialog::PromptAndApplyMapping(
     wxDataViewItem& lastApplied,
     bool* wasAddedAsStack)
 {
+    if (targets.empty()) return false;
+
     bool anyAlreadyMapped = false;
     for (const auto& tgt : targets) {
         auto* n = (xLightsImportModelNode*)tgt.GetID();
