@@ -389,12 +389,23 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
     SplitterWindow1->SetSashPosition(Panel3->GetBestSize().GetWidth());
     Center();
     SetEscapeId(wxID_CANCEL);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelFaceDialog::OnCancel);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelFaceDialog::OnCancel);
 
     _oldOutputToLights = _outputManager->IsOutputting();
     if (_oldOutputToLights) {
         _outputManager->StopOutput();
         SetConfigBool("OutputActive", false);
     }
+}
+
+void ModelFaceDialog::OnCancel(wxCloseEvent& event)
+{
+    if (wxMessageBox("Are you sure you want to close the Faces window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+    StopOutputToLights();
+    ModelFaceDialog::EndDialog(wxID_CANCEL);
 }
 
 ModelFaceDialog::~ModelFaceDialog()

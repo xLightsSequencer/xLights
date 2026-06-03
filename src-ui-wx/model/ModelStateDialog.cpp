@@ -298,6 +298,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 
     SetEscapeId(wxID_CANCEL);
     EnableCloseButton(false);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnCancel);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelStateDialog::OnCancel);
 
     ValidateWindow();
 
@@ -306,6 +308,15 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
         _outputManager->StopOutput();
         SetConfigBool("OutputActive", false);
     }
+}
+
+void ModelStateDialog::OnCancel(wxCloseEvent& event)
+{
+    if (wxMessageBox("Are you sure you want to close the States window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
+        return;
+    }
+    StopOutputToLights();
+    ModelStateDialog::EndDialog(wxID_CANCEL);
 }
 
 ModelStateDialog::~ModelStateDialog()
