@@ -298,8 +298,8 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
 
     SetEscapeId(wxID_CANCEL);
     EnableCloseButton(false);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnCancel);
-    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelStateDialog::OnCancel);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelStateDialog::OnClose);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelStateDialog::OnCancelButton);
 
     ValidateWindow();
 
@@ -310,13 +310,23 @@ ModelStateDialog::ModelStateDialog(wxWindow* parent, OutputManager* outputManage
     }
 }
 
-void ModelStateDialog::OnCancel(wxCloseEvent& event)
+void ModelStateDialog::ConfirmClose()
 {
     if (wxMessageBox("Are you sure you want to close the States window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
     StopOutputToLights();
     ModelStateDialog::EndDialog(wxID_CANCEL);
+}
+
+void ModelStateDialog::OnClose(wxCloseEvent& event)
+{
+    ConfirmClose();
+}
+
+void ModelStateDialog::OnCancelButton(wxCommandEvent& event)
+{
+    ConfirmClose();
 }
 
 ModelStateDialog::~ModelStateDialog()

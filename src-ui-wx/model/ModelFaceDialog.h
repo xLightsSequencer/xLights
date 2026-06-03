@@ -156,7 +156,9 @@ private:
     void OnButtonMoreClick(wxCommandEvent& event);
     //*)
 
-    void OnCancel(wxCloseEvent& event);
+    void OnClose(wxCloseEvent& event);
+    void OnCancelButton(wxCommandEvent& event);
+    void ConfirmClose();
     void OnAddBtnPopup(wxCommandEvent& event);
     void OnPreviewLeftUp(wxMouseEvent& event);
     void OnPreviewMouseLeave(wxMouseEvent& event);

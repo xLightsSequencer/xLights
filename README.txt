@@ -11,7 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.11  June ??, 2026
-    -enh (cybercop23)            Closing the Faces or States editor without saving now prompts for confirmation, matching the Submodels editor behavior.
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.

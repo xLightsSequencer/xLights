@@ -389,8 +389,8 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
     SplitterWindow1->SetSashPosition(Panel3->GetBestSize().GetWidth());
     Center();
     SetEscapeId(wxID_CANCEL);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelFaceDialog::OnCancel);
-    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelFaceDialog::OnCancel);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&ModelFaceDialog::OnClose);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&ModelFaceDialog::OnCancelButton);
 
     _oldOutputToLights = _outputManager->IsOutputting();
     if (_oldOutputToLights) {
@@ -399,13 +399,23 @@ ModelFaceDialog::ModelFaceDialog(wxWindow* parent, OutputManager* outputManager,
     }
 }
 
-void ModelFaceDialog::OnCancel(wxCloseEvent& event)
+void ModelFaceDialog::ConfirmClose()
 {
     if (wxMessageBox("Are you sure you want to close the Faces window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
     StopOutputToLights();
     ModelFaceDialog::EndDialog(wxID_CANCEL);
+}
+
+void ModelFaceDialog::OnClose(wxCloseEvent& event)
+{
+    ConfirmClose();
+}
+
+void ModelFaceDialog::OnCancelButton(wxCommandEvent& event)
+{
+    ConfirmClose();
 }
 
 ModelFaceDialog::~ModelFaceDialog()
