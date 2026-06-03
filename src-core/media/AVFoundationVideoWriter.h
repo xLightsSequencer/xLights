@@ -25,6 +25,9 @@
 
 #include "VideoWriterImpl.h"
 
+#include <cstdint>
+#include <vector>
+
 namespace AppleAVFoundationVideoWriterBridge {
     struct WriterHandle;
 }
@@ -47,6 +50,7 @@ public:
 
 private:
     AppleAVFoundationVideoWriterBridge::WriterHandle* _bridge = nullptr;
+    std::vector<uint8_t> _cpuBuf;  // staging buffer for the CPU-frame (rgbBuffer) path
 };
 
 #endif // __APPLE__

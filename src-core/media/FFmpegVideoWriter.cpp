@@ -25,11 +25,26 @@ extern "C"
 
 #include <algorithm>
 #include <cstring>
+#include <filesystem>
 #include <stdexcept>
 
 #ifdef min
 #undef min
 #endif
+
+namespace {
+std::string LowerExt(const std::string& path)
+{
+    std::string ext = std::filesystem::path(path).extension().string();
+    if (!ext.empty() && ext[0] == '.') {
+        ext.erase(0, 1);
+    }
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return std::tolower(c); });
+    return ext;
+}
+bool CodecIsProRes(const std::string& c) { return c.find("ProRes") != std::string::npos || c.find("prores") != std::string::npos; }
+bool CodecIsRaw(const std::string& c) { return c.find("rawvideo") != std::string::npos; }
+}
 
 // Log messages from libav*
 void my_av_log_callback(void* ptr, int level, const char* fmt, va_list vargs)
@@ -96,17 +111,38 @@ namespace
 FFmpegVideoWriter::FFmpegVideoWriter(const std::string& outPath, const VideoWriterParams& params, bool videoOnly) :
     VideoWriterImpl(outPath, params, videoOnly)
 {
-    _inPfmt = AV_PIX_FMT_RGB24;
+    _inPfmt = (_inParams.inputChannels == 4) ? AV_PIX_FMT_RGBA : AV_PIX_FMT_RGB24;
 
-    // MP4/MOV has some restrictions on width... apparently it's common
-    // with FFmpeg to just enforce even-number width and height
-    if (_outParams.width % 2)
-        ++_outParams.width;
-    if (_outParams.height % 2)
-        ++_outParams.height;
+    const std::string ext = LowerExt(_path);
+    const bool isAvi = (ext == "avi");
 
-    // We're outputing an H.264 / AAC MP4 file; most players only support profiles with 4:2:0 compression
-    _outPfmt = AV_PIX_FMT_YUV420P;
+    if (CodecIsProRes(_outParams.videoCodec)) {
+        // ProRes 4444: 10-bit YUVA 4:4:4:4, all-intra. Exact dimensions
+        // (no even rounding) so odd-sized models stay bit-faithful.
+        _outPfmt = AV_PIX_FMT_YUVA444P10LE;
+    } else if (CodecIsRaw(_outParams.videoCodec)) {
+        // Uncompressed RGB, exact dimensions. RGB24 for .mov (AVFoundation
+        // reads it natively), BGR24 for legacy .avi tooling.
+        _outPfmt = isAvi ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
+    } else {
+        // Compressed 4:2:0 (H.264/H.265/MPEG-4): chroma is half-resolution so
+        // dimensions must be even; the hardware encoders also reject anything
+        // below 16px, so scale tiny frames up (sws handles the resample).
+        if (_outParams.width % 2)
+            ++_outParams.width;
+        if (_outParams.height % 2)
+            ++_outParams.height;
+        if (_outParams.width < 16 || _outParams.height < 16) {
+            float scale = std::max(16.0F / _outParams.width, 16.0F / _outParams.height);
+            _outParams.width = static_cast<int>(_outParams.width * scale);
+            _outParams.height = static_cast<int>(_outParams.height * scale);
+            if (_outParams.width % 2)
+                ++_outParams.width;
+            if (_outParams.height % 2)
+                ++_outParams.height;
+        }
+        _outPfmt = AV_PIX_FMT_YUV420P;
+    }
 
     _getVideo = getVideo;
     _getAudio = getAudio;
@@ -195,6 +231,15 @@ void FFmpegVideoWriter::initialize()
         av_dict_set(&av_opts, "brand", "mp42", 0);
         av_dict_set(&av_opts, "movflags", "faststart+disable_chpl+write_colr", 0);
         status = ::avformat_alloc_output_context2(&_formatContext, nullptr, "mp4", _path.c_str());
+    } else if (CodecIsProRes(_outParams.videoCodec)) {
+        videoCodec = ::avcodec_find_encoder_by_name("prores_ks");
+        if (videoCodec == nullptr) {
+            videoCodec = ::avcodec_find_encoder(AV_CODEC_ID_PRORES);
+        }
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
+    } else if (CodecIsRaw(_outParams.videoCodec)) {
+        videoCodec = ::avcodec_find_encoder(AV_CODEC_ID_RAWVIDEO);
+        status = ::avformat_alloc_output_context2(&_formatContext, fmt, nullptr, _path.c_str());
     } else if (_outParams.videoCodec.find("MPEG-4") != std::string::npos){//good old MPEG4
         enum AVCodecID mp4codec = AV_CODEC_ID_MPEG4;
         videoCodec = ::avcodec_find_encoder(mp4codec);
@@ -268,6 +313,14 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
     _videoCodecContext->pix_fmt = static_cast<AVPixelFormat>(_outPfmt);
     _videoCodecContext->thread_count = 8;
 
+    const bool isMov = (LowerExt(_path) == "mov");
+    if (codec->id == AV_CODEC_ID_RAWVIDEO || codec->id == AV_CODEC_ID_PRORES) {
+        // All-intra, exact frames — no inter-frame prediction.
+        _videoCodecContext->gop_size = 1;
+        _videoCodecContext->has_b_frames = 0;
+        _videoCodecContext->max_b_frames = 0;
+    }
+
      if (AV_CODEC_ID_MPEG4 != codec->id || _outParams.videoBitrate != 0) {
         // _outParams.videoBitrate may be 0 which would allow the encoder to
         // "choose" or flip to constant quality using the crf parameter
@@ -330,16 +383,37 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         ::av_opt_set_int(_videoCodecContext->priv_data, "realtime", 0, AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set_int(_videoCodecContext->priv_data, "prio_speed", 1, AV_OPT_SEARCH_CHILDREN);
         ::av_opt_set_int(_videoCodecContext->priv_data, "frames_before", 0, AV_OPT_SEARCH_CHILDREN);
+        if (_outParams.lossless) {
+            // Near-lossless VideoToolbox: max quality knob (value/FF_QP2LAMBDA/100 -> ~1.0).
+            _videoCodecContext->flags |= AV_CODEC_FLAG_QSCALE;
+            _videoCodecContext->global_quality = (FF_QP2LAMBDA * 100) - 1;
+        }
+    } else if (codec->id == AV_CODEC_ID_RAWVIDEO) {
+        // Uncompressed RGB. .mov needs pasp + fiel atoms in the stsd, which the
+        // muxer only emits when these are populated before avcodec_open2.
+        if (isMov) {
+            _videoCodecContext->sample_aspect_ratio = AVRational{ 1, 1 };
+            _videoCodecContext->field_order = AV_FIELD_PROGRESSIVE;
+        }
+        ::av_opt_set(_videoCodecContext->priv_data, "qp", "0", AV_OPT_SEARCH_CHILDREN);
+        ::av_opt_set(_videoCodecContext->priv_data, "crf", "0", AV_OPT_SEARCH_CHILDREN);
+    } else if (codec->id == AV_CODEC_ID_PRORES) {
+        // ProRes 4444 (profile 4): all-intra, visually lossless, AVFoundation-decodable.
+        _videoCodecContext->sample_aspect_ratio = AVRational{ 1, 1 };
+        _videoCodecContext->field_order = AV_FIELD_PROGRESSIVE;
+        ::av_opt_set_int(_videoCodecContext->priv_data, "profile", 4, AV_OPT_SEARCH_CHILDREN);
     } else {
+        const char* crf = _outParams.lossless ? "0" : "18";
 #ifdef _WIN32
         std::string codecName = codec->name ? codec->name : "";
         bool isNvenc = (codecName.find("nvenc") != std::string::npos);
         bool isAmf   = (codecName.find("_amf")  != std::string::npos);
         bool isQsv   = (codecName.find("_qsv")  != std::string::npos);
+        const int q = _outParams.lossless ? 0 : 18;
         if (isNvenc) {
             if (_outParams.videoBitrate == 0) {
                 ::av_opt_set(_videoCodecContext->priv_data, "rc", "vbr", 0);
-                ::av_opt_set(_videoCodecContext->priv_data, "cq", "18", 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "cq", q, 0);
             }
             if (::av_opt_set(_videoCodecContext->priv_data, "preset", "p4", 0) != 0)
                 ::av_opt_set(_videoCodecContext->priv_data, "preset", "medium", 0);
@@ -347,20 +421,20 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
             ::av_opt_set(_videoCodecContext->priv_data, "quality", "quality", 0);
             if (_outParams.videoBitrate == 0) {
                 ::av_opt_set(_videoCodecContext->priv_data, "rc", "cqp", 0);
-                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_i", 18, 0);
-                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_p", 18, 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_i", q, 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "qp_p", q, 0);
             }
         } else if (isQsv) {
             ::av_opt_set(_videoCodecContext->priv_data, "preset", "medium", 0);
             if (_outParams.videoBitrate == 0)
-                ::av_opt_set_int(_videoCodecContext->priv_data, "global_quality", 18, 0);
+                ::av_opt_set_int(_videoCodecContext->priv_data, "global_quality", q, 0);
         } else {
             ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
-            ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
+            ::av_opt_set(_videoCodecContext->priv_data, "crf", crf, AV_OPT_SEARCH_CHILDREN);
         }
 #else
         ::av_opt_set(_videoCodecContext->priv_data, "preset", "fast", 0);
-        ::av_opt_set(_videoCodecContext->priv_data, "crf", "18", AV_OPT_SEARCH_CHILDREN);
+        ::av_opt_set(_videoCodecContext->priv_data, "crf", crf, AV_OPT_SEARCH_CHILDREN);
 #endif
     }
     if (_formatContext->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -453,6 +527,10 @@ bool FFmpegVideoWriter::initializeVideo(const AVCodec* codec)
         video_st->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
     } else if (AV_CODEC_ID_H264 == codec->id) {
         video_st->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
+    } else if (AV_CODEC_ID_RAWVIDEO == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
+    } else if (AV_CODEC_ID_PRORES == codec->id) {
+        video_st->codecpar->codec_tag = MKTAG('a', 'p', '4', 'h'); // ProRes 4444
     }
     video_st->disposition |= AV_DISPOSITION_DEFAULT;
     return true;
@@ -511,24 +589,25 @@ void FFmpegVideoWriter::initializeFrames()
         _videoFrames[x]->pts = 0LL;
         _videoFrames[x]->nb_samples = 0;
     }
-    // Software path only: build the RGB24 staging frame + sws colour converter.
-    // The hardware path renders straight into each frame's CVPixelBuffer.
-    // Note: _swsContext does not do any scaling in the case where we need to pad out
-    //       the width/height; may just get an extra black column or row
+    // Software path only: build the input (RGB24/RGBA) staging frame + sws
+    // converter. The hardware path renders straight into each frame's
+    // CVPixelBuffer. The staging frame is sized to the *input* frame; sws then
+    // scales/pixel-converts it into the (possibly larger, even) output frame —
+    // a plain colourspace pass when the dimensions already match.
     if (!useHwFrames) {
         _colorConversionFrame = ::av_frame_alloc();
-        _colorConversionFrame->width = _outParams.width;
-        _colorConversionFrame->height = _outParams.height;
+        _colorConversionFrame->width = _inParams.width;
+        _colorConversionFrame->height = _inParams.height;
         _colorConversionFrame->format = _inPfmt;
         status = ::av_frame_get_buffer(_colorConversionFrame, 1);
         if (status != 0) {
             throw std::runtime_error("VideoWriter - Error initializing color-conversion frame");
         }
-        int flags = SWS_FAST_BILINEAR; // doesn't matter too much since we're just doing a colorspace conversion
+        int flags = SWS_BICUBIC; // matters only when the output is scaled up (tiny models)
         AVPixelFormat inPfmt = static_cast<AVPixelFormat>(_inPfmt);
         AVPixelFormat outPfmt = static_cast<AVPixelFormat>(_outPfmt);
 
-        _swsContext = ::sws_getContext(_outParams.width, _outParams.height, inPfmt,
+        _swsContext = ::sws_getContext(_inParams.width, _inParams.height, inPfmt,
                                        _outParams.width, _outParams.height, outPfmt,
                                        flags, nullptr, nullptr, nullptr);
         if (_swsContext == nullptr) {
@@ -537,11 +616,14 @@ void FFmpegVideoWriter::initializeFrames()
         // Output full-range BT.709 YUV (Y: 0-255) to match the source sRGB pixels.
         // Without this, sws_scale squeezes Y to 16-235 (studio swing) and the
         // exported video looks dark on players that treat it as full range.
-        if (::sws_setColorspaceDetails(_swsContext,
-                ::sws_getCoefficients(SWS_CS_ITU709), 1,
-                ::sws_getCoefficients(SWS_CS_ITU709), 1,
-                0, 1 << 16, 1 << 16) < 0) {
-            spdlog::warn("VideoWriter - sws_setColorspaceDetails failed; export may have limited-range color");
+        // Only meaningful for YUV outputs (H.264/H.265/ProRes), not rawvideo RGB.
+        if (outPfmt != AV_PIX_FMT_RGB24 && outPfmt != AV_PIX_FMT_BGR24) {
+            if (::sws_setColorspaceDetails(_swsContext,
+                    ::sws_getCoefficients(SWS_CS_ITU709), 1,
+                    ::sws_getCoefficients(SWS_CS_ITU709), 1,
+                    0, 1 << 16, 1 << 16) < 0) {
+                spdlog::warn("VideoWriter - sws_setColorspaceDetails failed; export may have limited-range color");
+            }
         }
     }
     if (_audioCodecContext != nullptr) {

@@ -27,9 +27,10 @@
 
 // A frame the renderer is asked to fill. Exactly one of the two targets
 // is active per call:
-//   - nativeSurface == nullptr : write width*height*3 RGB24 bytes into
-//                                rgbBuffer (CPU path; all non-Apple
+//   - nativeSurface == nullptr : write width*height*inputChannels bytes
+//                                into rgbBuffer (CPU path; all non-Apple
 //                                backends and the Apple software path).
+//                                inputChannels is 3 (RGB24) or 4 (RGBA).
 //   - nativeSurface != nullptr : a CVPixelBufferRef (as void*) the
 //                                renderer fills directly, e.g. by
 //                                rendering its Metal capture texture into
@@ -47,8 +48,11 @@ struct VideoWriterParams {
     int height = 0;
     int fps = 0;                   // constant-rate input/output only
     int audioSampleRate = 0;       // 0 == no audio; assumes stereo otherwise
-    std::string videoCodec;        // "H.264", "H.265", "MPEG-4", "auto"
+    std::string videoCodec;        // "H.264", "H.265", "MPEG-4", "ProRes", "rawvideo", "auto"
     int videoBitrate = 0;          // kbps; 0 lets the encoder choose / use constant quality
+    bool lossless = false;         // request lossless / near-lossless encoding where the codec supports it
+    int inputChannels = 3;         // bytes per pixel the GetVideoFrameCb fills into rgbBuffer (3=RGB24, 4=RGBA)
+    bool cpuFrames = false;        // true: GetVideoFrameCb fills the CPU rgbBuffer (no GPU nativeSurface)
 };
 
 // Fill `frame` for the given output frame index. Return true if the CPU

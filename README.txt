@@ -16,6 +16,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 
     -enh (dkulp)                 Export House Preview Video now uses AVFoundation (AVAssetWriter) on macOS for
                                  H.264/H.265 MP4 exports, falling back to FFmpeg for other formats
+    -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
+                                 abstraction, using AVFoundation on macOS where possible (incl. bit-exact
+                                 uncompressed .mov via AVAssetWriter passthrough at any size, alpha-preserving)
+                                 and FFmpeg for AVI/MPEG-4
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
     -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
     -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the

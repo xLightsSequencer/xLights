@@ -9,7 +9,11 @@
  **************************************************************/
 
 #include "VideoTranscoder.h"
+#include "media/VideoWriter.h"
 
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <filesystem>
 
 extern "C" {
@@ -78,30 +82,6 @@ struct Cleanup {
         }
     }
 };
-
-// Drain any packets the encoder produced, muxing them into the output.
-// Returns empty string on success, error on failure. AVERROR_EOF / EAGAIN
-// are not errors.
-std::string DrainEncoder(AVCodecContext* encCtx, AVFormatContext* outCtx,
-                         AVStream* outStream, AVPacket* outPkt)
-{
-    for (;;) {
-        int ret = avcodec_receive_packet(encCtx, outPkt);
-        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-            return "";
-        }
-        if (ret < 0) {
-            return "encoder receive_packet failed: " + AvErr(ret);
-        }
-        av_packet_rescale_ts(outPkt, encCtx->time_base, outStream->time_base);
-        outPkt->stream_index = outStream->index;
-        ret = av_interleaved_write_frame(outCtx, outPkt);
-        av_packet_unref(outPkt);
-        if (ret < 0) {
-            return "write_frame failed: " + AvErr(ret);
-        }
-    }
-}
 
 } // namespace
 
@@ -196,365 +176,136 @@ std::string VideoTranscoder::Transcode(const std::string& inputPath,
         sourceHighBitDepth = desc->comp[0].depth > 8;
     }
 
-    // A 4:4:4 / 4:2:2 / high-bit / all-intra H.264·HEVC profile is the
-    // fingerprint of a lossless (or near-lossless) x264/x265 export — the
-    // author wanted maximum quality. We use that to *raise the encode
-    // quality*, not to pick the codec: these sources very often decode to
-    // plain 4:2:0 8-bit pixels anyway (x264/x265 lossless mode forces a
-    // 4:4:4 profile tag regardless of the actual chroma), and we can't
-    // reproduce true lossless H.264 because that re-creates the exact High
-    // 4:4:4 profile VideoToolbox can't decode at small sizes.
-    bool sourceHighQualityProfile = false;
-    {
-        const int p = c.decCtx->profile;
-        if (srcCodecId == AV_CODEC_ID_H264) {
-            sourceHighQualityProfile =
-                p == AV_PROFILE_H264_HIGH_444 ||
-                p == AV_PROFILE_H264_HIGH_444_PREDICTIVE ||
-                p == AV_PROFILE_H264_HIGH_444_INTRA ||
-                p == AV_PROFILE_H264_HIGH_422 ||
-                p == AV_PROFILE_H264_HIGH_422_INTRA ||
-                p == AV_PROFILE_H264_HIGH_10 ||
-                p == AV_PROFILE_H264_HIGH_10_INTRA ||
-                (p != AV_PROFILE_UNKNOWN && (p & AV_PROFILE_H264_INTRA) != 0);
-        } else if (srcCodecId == AV_CODEC_ID_HEVC) {
-            sourceHighQualityProfile = (p == AV_PROFILE_HEVC_REXT);
-        }
-    }
-    // When the H.264/HEVC route is taken below, encode near-lossless (low
-    // CRF / high VideoToolbox quality) for these high-quality sources.
-    const bool highQualityEncode = sourceHighQualityProfile;
+    // --- Choose the VideoWriter target -----------------------------------
+    // Lossless-needing sources (uncompressed / alpha / 4:4:4 / >8-bit) target
+    // rawvideo: on macOS VideoWriter encodes that as AVFoundation BGRA
+    // passthrough — bit-exact at ANY width and alpha-preserving (no more
+    // 8-aligned-width constraint or ProRes-for-odd-width fallback), and
+    // AVAssetReader reads it back. Everything else transcodes to HEVC.
+    // (If AVFoundation is unavailable the FFmpeg rawvideo path takes over.)
+    const bool needLossless = sourceHasAlpha || sourceIsUncompressed || sourceWideChroma || sourceHighBitDepth;
+    const int inputChannels = sourceHasAlpha ? 4 : 3;
 
-    // --- Open output (allocated before encoder selection so candidates can
-    //     read AVFMT_GLOBALHEADER before opening) -------------------------
-    ret = avformat_alloc_output_context2(&c.outCtx, nullptr, "mov", outputPath.c_str());
-    if (ret < 0 || !c.outCtx) {
-        return "Could not create output context: " + AvErr(ret);
-    }
-    AVStream* outStream = avformat_new_stream(c.outCtx, nullptr);
-    if (!outStream) return "avformat_new_stream failed";
-    bool needsGlobalHeader = (c.outCtx->oformat->flags & AVFMT_GLOBALHEADER) != 0;
-
-    AVCodecID outCodecId = AV_CODEC_ID_NONE;
-    const AVCodec* encoder = nullptr;
-    AVPixelFormat encPixFmt = AV_PIX_FMT_NONE;
-    bool useRawvideo = false; // last-resort fallback only; see below
-
-    // Configure + open `tryCtx` for `enc` of `codecId`. Returns true on
-    // success (caller keeps tryCtx, sets pixFmtOut). On failure tryCtx is
-    // freed so we can fall through to the next candidate — libx265, for
-    // example, refuses to encode anything smaller than 16x16 even though
-    // its by-name lookup succeeds.
-    auto tryConfigureAndOpen = [&](const AVCodec* enc, AVCodecID codecId,
-                                   AVCodecContext*& tryCtx,
-                                   AVPixelFormat& pixFmtOut) -> bool {
-        tryCtx = avcodec_alloc_context3(enc);
-        if (!tryCtx) return false;
-        tryCtx->width = width;
-        tryCtx->height = height;
-        tryCtx->time_base = av_inv_q(srcFrameRate);
-        tryCtx->framerate = srcFrameRate;
-        tryCtx->sample_aspect_ratio = AVRational{ 1, 1 };
-
-        if (codecId == AV_CODEC_ID_PRORES) {
-            // ProRes 4444: 10-bit YUVA 4:4:4:4, all-intra. Profile 4 = 4444.
-            pixFmtOut = AV_PIX_FMT_YUVA444P10LE;
-            tryCtx->pix_fmt = pixFmtOut;
-            tryCtx->gop_size = 1;
-            tryCtx->has_b_frames = 0;
-            tryCtx->max_b_frames = 0;
-            av_opt_set_int(tryCtx, "profile", 4, AV_OPT_SEARCH_CHILDREN);
-        } else {
-            std::string encName(enc->name);
-            bool isVideotoolbox = encName.find("videotoolbox") != std::string::npos;
-            // videotoolbox wants NV12; software encoders (libx264/libx265) want YUV420P.
-            pixFmtOut = isVideotoolbox ? AV_PIX_FMT_NV12 : AV_PIX_FMT_YUV420P;
-            tryCtx->pix_fmt = pixFmtOut;
-            tryCtx->gop_size = 30;
-            tryCtx->max_b_frames = 2;
-            if (isVideotoolbox) {
-                av_opt_set_int(tryCtx, "allow_sw", 1, AV_OPT_SEARCH_CHILDREN);
-#if defined(__aarch64__)
-                tryCtx->flags |= AV_CODEC_FLAG_QSCALE;
-                // global_quality maps to VideoToolbox's 0..1 quality knob
-                // (value/FF_QP2LAMBDA/100). 65 is ~visually lossless; bump it
-                // toward lossless for high-quality (4:4:4/intra) sources.
-                tryCtx->global_quality = FF_QP2LAMBDA * (highQualityEncode ? 85 : 65);
-#else
-                tryCtx->bit_rate = (int64_t)width * height * 4 * 8 * (highQualityEncode ? 2 : 1); // generous
-#endif
-            } else {
-                av_opt_set(tryCtx, "crf", highQualityEncode ? "12" : "18", AV_OPT_SEARCH_CHILDREN);
-                av_opt_set(tryCtx, "preset", highQualityEncode ? "slow" : "medium", AV_OPT_SEARCH_CHILDREN);
-            }
-        }
-
-        if (needsGlobalHeader) {
-            tryCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-        }
-
-        int openRet = avcodec_open2(tryCtx, enc, nullptr);
-        if (openRet < 0) {
-            spdlog::warn("Transcoder: encoder '{}' failed to open: {}",
-                         enc->name, AvErr(openRet));
-            avcodec_free_context(&tryCtx);
-            return false;
-        }
-        return true;
-    };
-
-    // AVFoundation's QuickTime rawvideo decoder requires the row stride to be
-    // a multiple of 8 bytes — for rgb24 (3 bytes/pixel) that means width must
-    // be a multiple of 8. When the source is uncompressed AND the width is
-    // 8-aligned, we can preserve true bit-exactness by passing through as
-    // rawvideo. Otherwise (uncompressed but unaligned, or carrying alpha) we
-    // route through ProRes 4444, which is visually lossless and AVFoundation-
-    // decodable at any width.
-    bool rawvideoStrideAligned = (width % 8) == 0;
-    bool rawvideoPreferred = sourceIsUncompressed && rawvideoStrideAligned;
-
-    if (rawvideoPreferred) {
-        useRawvideo = true;
-        outCodecId = AV_CODEC_ID_RAWVIDEO;
+    VideoWriterParams params;
+    params.width = width;
+    params.height = height;
+    params.fps = std::max(1, static_cast<int>(std::llround(av_q2d(srcFrameRate))));
+    params.audioSampleRate = 0;            // video only
+    params.inputChannels = inputChannels;
+    params.cpuFrames = true;
+    params.lossless = false;               // lossless-ness is conveyed by the codec choice
+    if (needLossless) {
+        params.videoCodec = "rawvideo";
     } else {
-        // Priority order:
-        //   1. prores_ks         — when source has alpha OR is uncompressed
-        //                          (alpha preserved; lossless-equivalent for
-        //                          uncompressed sources whose width isn't
-        //                          8-aligned and so can't ride the rawvideo
-        //                          fast path).
-        //   2. hevc_videotoolbox — macOS hardware HEVC
-        //   3. libx265           — software HEVC (cross-platform)
-        //   4. any HEVC encoder  — catches NVENC, QSV, VAAPI, etc.
-        //   5. h264_videotoolbox — macOS hardware H.264
-        //   6. libx264           — software H.264 (almost always available on Windows)
-        //   7. any H.264 encoder — catches NVENC, QSV, VAAPI, etc.
-        //   8. rawvideo          — last-resort fallback (not AVFoundation-decodable)
-        struct Candidate {
-            const char* name;        // null → generic find by id
-            AVCodecID id;
-            bool onlyIfNeedLossless; // skip unless the source pixel data needs lossless (alpha/4:4:4/>8-bit/uncompressed)
-        };
-        static constexpr Candidate kCandidates[] = {
-            { "prores_ks",         AV_CODEC_ID_PRORES, true  },
-            { "hevc_videotoolbox", AV_CODEC_ID_HEVC,   false },
-            { "libx265",           AV_CODEC_ID_HEVC,   false },
-            { nullptr,             AV_CODEC_ID_HEVC,   false },
-            { "h264_videotoolbox", AV_CODEC_ID_H264,   false },
-            { "libx264",           AV_CODEC_ID_H264,   false },
-            { nullptr,             AV_CODEC_ID_H264,   false },
-        };
-        // Route to ProRes when the *pixel data* genuinely carries more than
-        // lossy 4:2:0 8-bit can hold (alpha, real 4:4:4/4:2:2 chroma, >8-bit,
-        // or uncompressed) — H.264/HEVC would discard it. A mere 4:4:4
-        // *profile* on 4:2:0 8-bit pixels does not qualify; that's handled by
-        // highQualityEncode (low CRF) on the H.264/HEVC path instead.
-        bool needLossless = sourceHasAlpha || sourceIsUncompressed || sourceWideChroma || sourceHighBitDepth;
-        for (const auto& cand : kCandidates) {
-            if (cand.onlyIfNeedLossless && !needLossless) continue;
-            const AVCodec* tryEncoder = cand.name ? avcodec_find_encoder_by_name(cand.name)
-                                                  : avcodec_find_encoder(cand.id);
-            if (!tryEncoder) continue;
-            AVCodecContext* tryCtx = nullptr;
-            AVPixelFormat tryPixFmt = AV_PIX_FMT_NONE;
-            if (!tryConfigureAndOpen(tryEncoder, cand.id, tryCtx, tryPixFmt)) {
-                continue;
-            }
-            encoder = tryEncoder;
-            c.encCtx = tryCtx;
-            outCodecId = cand.id;
-            encPixFmt = tryPixFmt;
-            spdlog::debug("Transcoder: using encoder '{}'", encoder->name);
-            break;
-        }
-        if (!encoder) {
-            spdlog::warn("Transcoder: no AVFoundation-decodable encoder available, falling back to rawvideo "
-                         "(produced .mov may not be playable on macOS)");
-            useRawvideo = true;
-            outCodecId = AV_CODEC_ID_RAWVIDEO;
-        } else if (sourceHasAlpha && outCodecId != AV_CODEC_ID_PRORES) {
-            spdlog::warn("Transcoder: source has alpha but encoder '{}' will flatten it (prores_ks unavailable)",
-                         encoder->name);
-        }
+        params.videoCodec = "H.265";
     }
-    if (useRawvideo) {
-        encoder = avcodec_find_encoder(AV_CODEC_ID_RAWVIDEO);
-        if (!encoder) {
-            return "No rawvideo encoder available";
-        }
-        c.encCtx = avcodec_alloc_context3(encoder);
-        if (!c.encCtx) return "alloc encoder context failed";
-        c.encCtx->width = width;
-        c.encCtx->height = height;
-        c.encCtx->time_base = av_inv_q(srcFrameRate);
-        c.encCtx->framerate = srcFrameRate;
-        c.encCtx->sample_aspect_ratio = AVRational{ 1, 1 };
-        encPixFmt = AV_PIX_FMT_RGB24;
-        c.encCtx->pix_fmt = encPixFmt;
-        c.encCtx->field_order = AV_FIELD_PROGRESSIVE;
-        c.encCtx->gop_size = 1;
-        c.encCtx->has_b_frames = 0;
-        c.encCtx->max_b_frames = 0;
-        if (needsGlobalHeader) {
-            c.encCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-        }
-        ret = avcodec_open2(c.encCtx, encoder, nullptr);
-        if (ret < 0) {
-            return "Could not open rawvideo encoder: " + AvErr(ret);
-        }
-    }
-
-    ret = avcodec_parameters_from_context(outStream->codecpar, c.encCtx);
-    if (ret < 0) {
-        return "encoder parameters_from_context failed: " + AvErr(ret);
-    }
-    outStream->time_base = c.encCtx->time_base;
-    outStream->avg_frame_rate = srcFrameRate;
-    outStream->r_frame_rate = srcFrameRate;
-    if (outCodecId == AV_CODEC_ID_RAWVIDEO) {
-        outStream->codecpar->codec_tag = MKTAG('r', 'a', 'w', ' ');
-    } else if (outCodecId == AV_CODEC_ID_HEVC) {
-        outStream->codecpar->codec_tag = MKTAG('h', 'v', 'c', '1');
-    } else if (outCodecId == AV_CODEC_ID_H264) {
-        outStream->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
-    } else if (outCodecId == AV_CODEC_ID_PRORES) {
-        outStream->codecpar->codec_tag = MKTAG('a', 'p', '4', 'h');
-    }
-
-    ret = avio_open(&c.outCtx->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
-    if (ret < 0) {
-        return "Could not open output file: " + AvErr(ret);
-    }
-    ret = avformat_write_header(c.outCtx, nullptr);
-    if (ret < 0) {
-        return "Could not write header: " + AvErr(ret);
-    }
-
-    // --- Setup frames & swscale ------------------------------------------
-    c.decFrame = av_frame_alloc();
-    c.encFrame = av_frame_alloc();
-    c.inPkt = av_packet_alloc();
-    c.outPkt = av_packet_alloc();
-    if (!c.decFrame || !c.encFrame || !c.inPkt || !c.outPkt) {
-        return "frame/packet alloc failed";
-    }
-    c.encFrame->format = encPixFmt;
-    c.encFrame->width = width;
-    c.encFrame->height = height;
-    ret = av_frame_get_buffer(c.encFrame, 0);
-    if (ret < 0) return "av_frame_get_buffer failed: " + AvErr(ret);
-
-    // swscale will be created lazily after the first decoded frame so we
-    // know the actual decoder pixel format (some decoders pick a different
-    // format than codecpar advertises, e.g. paletted GIF -> rgb8).
-    AVPixelFormat swsSrcFmt = AV_PIX_FMT_NONE;
 
     long long totalFrames = 0;
     if (inStream->nb_frames > 0) {
         totalFrames = inStream->nb_frames;
     } else if (c.inCtx->duration > 0 && srcFrameRate.num > 0) {
-        totalFrames = (long long)((double)c.inCtx->duration / AV_TIME_BASE *
-                                  av_q2d(srcFrameRate));
+        totalFrames = static_cast<long long>(static_cast<double>(c.inCtx->duration) / AV_TIME_BASE * av_q2d(srcFrameRate));
+    }
+    if (totalFrames <= 0) {
+        totalFrames = 1;  // unknown: the writer holds the last decoded frame rather than truncating
     }
 
-    int64_t outPts = 0;
-    int frameCount = 0;
-    bool cancelled = false;
-    bool readDone = false;
+    // Decode plumbing (the encode half is now VideoWriter's job).
+    c.decFrame = av_frame_alloc();
+    c.inPkt = av_packet_alloc();
+    if (!c.decFrame || !c.inPkt) {
+        return "frame/packet alloc failed";
+    }
+    const AVPixelFormat rgbFmt = (inputChannels == 4) ? AV_PIX_FMT_RGBA : AV_PIX_FMT_RGB24;
+    AVPixelFormat swsSrcFmt = AV_PIX_FMT_NONE;
 
-    auto processDecoded = [&](AVFrame* src) -> std::string {
-        if (swsSrcFmt == AV_PIX_FMT_NONE) {
-            swsSrcFmt = (AVPixelFormat)src->format;
-            // Fast path: source already matches encoder input layout.
-            // Avoid building an sws_ctx so the data path is a plain copy.
-            if (swsSrcFmt != encPixFmt) {
-                c.sws = sws_getContext(width, height, swsSrcFmt,
-                                       width, height, encPixFmt,
-                                       SWS_POINT, nullptr, nullptr, nullptr);
-                if (!c.sws) return "sws_getContext failed";
+    bool decoderFlushed = false;
+    bool cancelled = false;
+    int framesEmitted = 0;
+    std::string runtimeError;
+
+    // Pull the next decoded frame into c.decFrame; false at EOF / on error.
+    auto decodeNext = [&]() -> bool {
+        for (;;) {
+            int r = avcodec_receive_frame(c.decCtx, c.decFrame);
+            if (r == 0) {
+                return true;
+            }
+            if (r == AVERROR_EOF) {
+                return false;
+            }
+            if (r != AVERROR(EAGAIN)) {
+                runtimeError = "decoder receive_frame failed: " + AvErr(r);
+                return false;
+            }
+            if (decoderFlushed) {
+                return false;
+            }
+            int rr = av_read_frame(c.inCtx, c.inPkt);
+            if (rr == AVERROR_EOF) {
+                avcodec_send_packet(c.decCtx, nullptr);  // flush
+                decoderFlushed = true;
+                continue;
+            }
+            if (rr < 0) {
+                runtimeError = "av_read_frame failed: " + AvErr(rr);
+                return false;
+            }
+            if (c.inPkt->stream_index != videoStreamIdx) {
+                av_packet_unref(c.inPkt);
+                continue;
+            }
+            int sr = avcodec_send_packet(c.decCtx, c.inPkt);
+            av_packet_unref(c.inPkt);
+            if (sr < 0 && sr != AVERROR(EAGAIN)) {
+                runtimeError = "decoder send_packet failed: " + AvErr(sr);
+                return false;
             }
         }
-
-        if (c.sws) {
-            int r = sws_scale(c.sws, src->data, src->linesize, 0, height,
-                              c.encFrame->data, c.encFrame->linesize);
-            if (r < 0) return "sws_scale failed: " + AvErr(r);
-        } else {
-            int r = av_frame_copy(c.encFrame, src);
-            if (r < 0) return "av_frame_copy failed: " + AvErr(r);
-        }
-
-        c.encFrame->pts = outPts++;
-        int r = avcodec_send_frame(c.encCtx, c.encFrame);
-        if (r < 0) return "encoder send_frame failed: " + AvErr(r);
-        std::string err = DrainEncoder(c.encCtx, c.outCtx, outStream, c.outPkt);
-        if (!err.empty()) return err;
-
-        ++frameCount;
-        if (progress && !progress(frameCount, (int)totalFrames)) {
-            cancelled = true;
-        }
-        return "";
     };
 
-    // --- Read / decode / encode loop -------------------------------------
-    while (!cancelled) {
-        ret = av_read_frame(c.inCtx, c.inPkt);
-        if (ret == AVERROR_EOF) {
-            readDone = true;
-        } else if (ret < 0) {
-            return "av_read_frame failed: " + AvErr(ret);
-        }
-
-        if (!readDone && c.inPkt->stream_index != videoStreamIdx) {
-            av_packet_unref(c.inPkt);
-            continue;
-        }
-
-        AVPacket* sendPkt = readDone ? nullptr : c.inPkt;
-        ret = avcodec_send_packet(c.decCtx, sendPkt);
-        if (ret < 0 && ret != AVERROR_EOF) {
-            av_packet_unref(c.inPkt);
-            return "decoder send_packet failed: " + AvErr(ret);
-        }
-        if (!readDone) av_packet_unref(c.inPkt);
-
-        for (;;) {
-            ret = avcodec_receive_frame(c.decCtx, c.decFrame);
-            if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) break;
-            if (ret < 0) {
-                return "decoder receive_frame failed: " + AvErr(ret);
+    try {
+        VideoWriter writer(outputPath, params, /*videoOnly*/ true);
+        writer.setQueryForCancelCallback([&]() { return cancelled; });
+        writer.setGetVideoCallback([&](VideoWriterFrame& vf, unsigned) {
+            if (!decodeNext()) {
+                return false;  // EOF / error: hold the previous frame
             }
-            std::string err = processDecoded(c.decFrame);
+            if (swsSrcFmt == AV_PIX_FMT_NONE) {
+                swsSrcFmt = static_cast<AVPixelFormat>(c.decFrame->format);
+                c.sws = sws_getContext(width, height, swsSrcFmt, width, height, rgbFmt,
+                                       SWS_BICUBIC, nullptr, nullptr, nullptr);
+            }
+            if (c.sws) {
+                uint8_t* dstData[4] = { vf.rgbBuffer, nullptr, nullptr, nullptr };
+                int dstLinesize[4] = { width * inputChannels, 0, 0, 0 };
+                sws_scale(c.sws, c.decFrame->data, c.decFrame->linesize, 0, height, dstData, dstLinesize);
+            }
             av_frame_unref(c.decFrame);
-            if (!err.empty()) return err;
-            if (cancelled) break;
+            ++framesEmitted;
+            if (progress && !progress(framesEmitted, static_cast<int>(totalFrames))) {
+                cancelled = true;
+            }
+            return true;
+        });
+
+        writer.initialize();
+        writer.exportFrames(static_cast<int>(totalFrames));
+
+        if (cancelled) {
+            std::error_code ec;
+            std::filesystem::remove(outputPath, ec);
+            return "Cancelled";
         }
-
-        if (readDone) break;
+        writer.completeExport();
+    } catch (const std::exception& e) {
+        return std::string("Transcode failed: ") + e.what();
     }
 
-    if (cancelled) {
-        avio_closep(&c.outCtx->pb);
-        std::error_code ec;
-        std::filesystem::remove(outputPath, ec);
-        return "Cancelled";
+    if (!runtimeError.empty()) {
+        return runtimeError;
     }
 
-    // Flush encoder
-    ret = avcodec_send_frame(c.encCtx, nullptr);
-    if (ret < 0 && ret != AVERROR_EOF) {
-        return "encoder flush send failed: " + AvErr(ret);
-    }
-    std::string err = DrainEncoder(c.encCtx, c.outCtx, outStream, c.outPkt);
-    if (!err.empty()) return err;
-
-    ret = av_write_trailer(c.outCtx);
-    if (ret < 0) {
-        return "av_write_trailer failed: " + AvErr(ret);
-    }
-
-    spdlog::debug("Transcoded {} -> {} ({} frames, {})", inputPath, outputPath,
-                  frameCount, encoder->name);
+    spdlog::debug("Transcoded {} -> {} ({} frames, {})", inputPath, outputPath, framesEmitted, params.videoCodec);
     return "";
 }
