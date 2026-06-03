@@ -54,17 +54,7 @@ MHColorWheelPanel::~MHColorWheelPanel()
 }
 
 void MHColorWheelPanel::OnSize(wxSizeEvent& event){
-    wxSize old_sz = GetSize();
-    if (old_sz.GetWidth() != old_sz.GetHeight()) {
-        if (old_sz.GetWidth() > 270) {
-            wxSize new_size = old_sz;
-            new_size.SetHeight(new_size.GetWidth());
-            SetMinSize(new_size);
-            SetSize(new_size);
-        }
-    }
     Refresh();
-    //skip the event.
     event.Skip();
 }
 
@@ -72,23 +62,22 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
 {
     wxAutoBufferedPaintDC pdc(this);
 
-    if ( !m_hsvBitmap->IsOk() )
-     return;
-
-    wxSize dcSize = pdc.GetSize();
-
     // Windows leaves artifacts in the clear area of the mask without this clear but
     // with the clear OSX doesn't look as nice because it paints a background
     #ifdef __WXMSW__
         pdc.Clear();
     #endif
 
-    if (m_hsvBitmap->GetSize() != dcSize) {
-        CreateHsvBitmap(dcSize);
+    wxRect wr = GetWheelRect();
+    wxSize squareSize(wr.GetSize());
+
+    if (!m_hsvBitmap->IsOk() || m_hsvBitmap->GetSize() != squareSize) {
+        CreateHsvBitmap(squareSize);
         CreateHsvBitmapMask();
+        RemapHandlesToFilters();
     }
 
-    pdc.DrawBitmap(*m_hsvBitmap, 0, 0, true);
+    pdc.DrawBitmap(*m_hsvBitmap, wr.x, wr.y, true);
 
     // draw color handles
     int handle = 1;
@@ -241,12 +230,21 @@ int MHColorWheelPanel::HitTest( wxPoint2DDouble& ptUI )
     return -1;
 }
 
-// Usable area rect: BorderWidth+1, BorderWidth+1, sz.GetWidth()-2*BorderWidth-2, sz.GetHeight()-2*BorderWidth-2;
+wxRect MHColorWheelPanel::GetWheelRect() const
+{
+    wxSize sz = GetSize();
+    int side = std::min(sz.GetWidth(), sz.GetHeight());
+    if (side < 50) side = 50;
+    int x = (sz.GetWidth()  - side) / 2;
+    int y = (sz.GetHeight() - side) / 2;
+    return wxRect(x, y, side, side);
+}
 
 wxPoint2DDouble MHColorWheelPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    wxRect wr = GetWheelRect();
+    wxPoint o(wr.x + BorderWidth + 1, wr.y + BorderWidth + 1);
+    wxSize sz(wr.width - 2 * BorderWidth - 2, wr.height - 2 * BorderWidth - 2);
 
     double x = double(pt.m_x - o.x) / sz.GetWidth();
     double y = double(pt.m_y - o.y) / sz.GetHeight();
@@ -256,8 +254,9 @@ wxPoint2DDouble MHColorWheelPanel::UItoNormalized(const wxPoint2DDouble& pt) con
 
 wxPoint2DDouble MHColorWheelPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    wxRect wr = GetWheelRect();
+    wxPoint o(wr.x + BorderWidth + 1, wr.y + BorderWidth + 1);
+    wxSize sz(wr.width - 2 * BorderWidth - 2, wr.height - 2 * BorderWidth - 2);
 
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
@@ -268,6 +267,21 @@ wxPoint MHColorWheelPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 {
     wxPoint2DDouble pt1 = NormalizedToUI(pt);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
+}
+
+void MHColorWheelPanel::RemapHandlesToFilters()
+{
+    wxRect wr = GetWheelRect();
+    for (auto& handle : m_handles) {
+        for (const auto& filter : m_filters) {
+            if (fabs(filter.color.hue        - handle.color.hue)        < 0.001 &&
+                fabs(filter.color.saturation - handle.color.saturation) < 0.001 &&
+                fabs(filter.color.value      - handle.color.value)      < 0.001) {
+                handle.pt = UItoNormalized(wxPoint2DDouble(wr.x + filter.x, wr.y + filter.y));
+                break;
+            }
+        }
+    }
 }
 
 void MHColorWheelPanel::CreateHsvBitmap(const wxSize& newSize)
@@ -309,9 +323,12 @@ void MHColorWheelPanel::CreateHsvBitmap(const wxSize& newSize)
 
 bool MHColorWheelPanel::insideColors(int x, int y, HSVValue& hsv)
 {
+    wxRect wr = GetWheelRect();
+    float bx = (float)x - wr.x;
+    float by = (float)y - wr.y;
     for (auto const& filter : m_filters) {
-        float xleg = (float)x - filter.x;
-        float yleg = (float)y - filter.y;
+        float xleg = bx - filter.x;
+        float yleg = by - filter.y;
         float hyp = sqrt(xleg * xleg + yleg * yleg);
         if( hyp <= filter.radius ) {  // inside a filter
             hsv = filter.color;
@@ -323,11 +340,12 @@ bool MHColorWheelPanel::insideColors(int x, int y, HSVValue& hsv)
 
 xlColor MHColorWheelPanel::GetPointColor(int x, int y)
 {
+    wxRect wr = GetWheelRect();
     HSVValue v;
     v.value = 1.0f;
     xlColor c;
-    float xleg = (float)x - center;
-    float yleg = (float)y - center;
+    float xleg = (float)x - wr.x - center;
+    float yleg = (float)y - wr.y - center;
     float hyp = sqrt(xleg * xleg + yleg * yleg);
     if( hyp <= radius ) {  // inside circle
         float phi = atan2(xleg, yleg) * 180.0f / PI + 630.0f;
@@ -371,20 +389,32 @@ std::string MHColorWheelPanel::GetColour()
 
 void MHColorWheelPanel::SetColours( const std::string& _colors )
 {
-    wxArrayString colors = wxSplit(_colors, ',');
-    unsigned long num_colors = colors.size() / 3;
+    m_handles.clear();
+    selected_point = -1;
+    active_handle = -1;
+
+    wxArrayString colorTokens = wxSplit(_colors, ',');
+    unsigned long num_colors = colorTokens.size() / 3;
     for( int i = 0; i < (int)num_colors; ++i ) {
-        double hue { wxAtof(colors[i*3]) };
-        double sat { wxAtof(colors[i*3+1]) };
-        double val { wxAtof(colors[i*3+2]) };
+        double hue { wxAtof(colorTokens[i*3]) };
+        double sat { wxAtof(colorTokens[i*3+1]) };
+        double val { wxAtof(colorTokens[i*3+2]) };
         HSVValue v(hue, sat, val);
-        double hyp {v.saturation * center};
-        double phi {v.hue * 360.0f * PI / 180.0f};
-        float x = cos(phi) * hyp + center;
-        float y = sin(phi) * hyp + center;
-        wxPoint2DDouble pt((int)x, (int)y);
-        wxPoint2DDouble pt2(UItoNormalized(pt));
-        pt2.m_y = 1.0 - pt2.m_y;
+        // Match the saved HSV to the nearest filter slot by color value
+        wxRect wr = GetWheelRect();
+        for (const auto& filter : m_filters) {
+            if (fabs(filter.color.hue - hue) < 0.001 &&
+                fabs(filter.color.saturation - sat) < 0.001 &&
+                fabs(filter.color.value - val) < 0.001) {
+                wxPoint2DDouble pt2 = UItoNormalized(wxPoint2DDouble(wr.x + filter.x, wr.y + filter.y));
+                m_handles.push_back(HandlePoint(pt2, v));
+                break;
+            }
+        }
+    }
+    if (!m_handles.empty()) {
+        active_handle = 0;
+        selected_point = 0;
     }
     Refresh();
 }
@@ -405,6 +435,10 @@ void MHColorWheelPanel::DefineColours( xlColorVector& _colors )
         colors = _colors;
         CreateHsvBitmap(wxSize(256, 256));
         CreateHsvBitmapMask();
+        m_handles.clear();
+        selected_point = -1;
+        active_handle = -1;
     }
+    Refresh();
 }
 

@@ -97,7 +97,7 @@ wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor
 
     wxGraphicsPath graphicsPath(gc->CreatePath());
     const auto& firstSegment(path->segments().front());
-    auto startPt = NormalizedToUI(firstSegment->StartPoint(), scaleFactor);
+    auto startPt = NormalizedToUI(firstSegment->StartPoint(), width, height);
     graphicsPath.MoveToPoint(startPt);
 
     for (const auto& segment : path->segments()) {
@@ -105,16 +105,16 @@ wxBitmap MHPathPresetBitmapButton::CreateImage( int w, int h, double scaleFactor
         std::shared_ptr<SketchCubicBezier> cubic;
 
         if (std::dynamic_pointer_cast<SketchLine>(segment) != nullptr) {
-            auto endPt = NormalizedToUI(segment->EndPoint(), scaleFactor);
+            auto endPt = NormalizedToUI(segment->EndPoint(), width, height);
             graphicsPath.AddLineToPoint(endPt);
         } else if ((quadratic = std::dynamic_pointer_cast<SketchQuadraticBezier>(segment)) != nullptr) {
-            auto ctrlPt = NormalizedToUI(quadratic->ControlPoint(), scaleFactor);
-            auto endPt = NormalizedToUI(quadratic->EndPoint(), scaleFactor);
+            auto ctrlPt = NormalizedToUI(quadratic->ControlPoint(), width, height);
+            auto endPt = NormalizedToUI(quadratic->EndPoint(), width, height);
             graphicsPath.AddQuadCurveToPoint(ctrlPt.m_x, ctrlPt.m_y, endPt.m_x, endPt.m_y);
         } else if ((cubic = std::dynamic_pointer_cast<SketchCubicBezier>(segment)) != nullptr) {
-            auto ctrlPt1 = NormalizedToUI(cubic->ControlPoint1(), scaleFactor);
-            auto ctrlPt2 = NormalizedToUI(cubic->ControlPoint2(), scaleFactor);
-            auto endPt = NormalizedToUI(cubic->EndPoint(), scaleFactor);
+            auto ctrlPt1 = NormalizedToUI(cubic->ControlPoint1(), width, height);
+            auto ctrlPt2 = NormalizedToUI(cubic->ControlPoint2(), width, height);
+            auto endPt = NormalizedToUI(cubic->EndPoint(), width, height);
             graphicsPath.AddCurveToPoint(ctrlPt1, ctrlPt2, endPt);
         }
     }
@@ -138,17 +138,16 @@ void MHPathPresetBitmapButton::SetBitmap(const wxBitmapBundle& bpm)
     wxBitmapButton::SetBitmap(bpm);
 }
 
-wxPoint2DDouble MHPathPresetBitmapButton::NormalizedToUI(const xlPointD& pt, double scaleFactor) const
+wxPoint2DDouble MHPathPresetBitmapButton::NormalizedToUI(const xlPointD& pt, float bmpWidth, float bmpHeight) const
 {
-    wxSize sz(GetSize());
-    double x = pt.x * sz.GetWidth() * scaleFactor;
-    double y = pt.y * sz.GetHeight() * scaleFactor;
-    return wxPoint2DDouble(x, + ((sz.GetHeight() * scaleFactor) - y));
+    double x = pt.x * bmpWidth;
+    double y = pt.y * bmpHeight;
+    return wxPoint2DDouble(x, bmpHeight - y);
 }
 
-wxPoint MHPathPresetBitmapButton::NormalizedToUI2(const xlPointD& pt, double scaleFactor) const
+wxPoint MHPathPresetBitmapButton::NormalizedToUI2(const xlPointD& pt, float bmpWidth, float bmpHeight) const
 {
-    wxPoint2DDouble pt1 = NormalizedToUI(pt, scaleFactor);
+    wxPoint2DDouble pt1 = NormalizedToUI(pt, bmpWidth, bmpHeight);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
 }
 

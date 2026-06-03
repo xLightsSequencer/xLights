@@ -54,17 +54,7 @@ MHRgbPickerPanel::~MHRgbPickerPanel()
 }
 
 void MHRgbPickerPanel::OnSize(wxSizeEvent& event){
-    wxSize old_sz = GetSize();
-    if( old_sz.GetWidth() != old_sz.GetHeight() ) {
-        if (old_sz.GetWidth() > 270) {
-            wxSize new_size = old_sz;
-            new_size.SetHeight(new_size.GetWidth() + 30);
-            SetMinSize(new_size);
-            SetSize(new_size);
-        }
-    }
     Refresh();
-    //skip the event.
     event.Skip();
 }
 
@@ -202,7 +192,7 @@ void MHRgbPickerPanel::OnLeftDown(wxMouseEvent& event) {
             // Place handle at the wheel position for this HSV (same maths as SetColours)
             double hyp = hsv.saturation * radius;
             double phi = hsv.hue * 360.0 * PI / 180.0;
-            double px  = std::cos(phi) * hyp + center;
+            double px  = std::cos(phi) * hyp + center + circle_offset_x;
             double py  = std::sin(phi) * hyp + center;
             wxPoint2DDouble ptWheel(px, py);
             wxPoint2DDouble ptNorm = UItoNormalized(ptWheel);
@@ -350,8 +340,10 @@ int MHRgbPickerPanel::HitTest( wxPoint2DDouble& ptUI )
 
 wxPoint2DDouble MHRgbPickerPanel::UItoNormalized(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    // Normalise relative to the circle region (offset by circle_offset_x horizontally)
+    int circ_side = (int)(2.0 * center);
+    wxPoint o((int)circle_offset_x + BorderWidth + 1, BorderWidth + 1);
+    wxSize sz(circ_side - 2 * BorderWidth - 2, circ_side - 2 * BorderWidth - 2);
 
     double x = double(pt.m_x - o.x) / sz.GetWidth();
     double y = double(pt.m_y - o.y) / sz.GetHeight();
@@ -361,8 +353,9 @@ wxPoint2DDouble MHRgbPickerPanel::UItoNormalized(const wxPoint2DDouble& pt) cons
 
 wxPoint2DDouble MHRgbPickerPanel::NormalizedToUI(const wxPoint2DDouble& pt) const
 {
-    wxPoint o(BorderWidth + 1, BorderWidth + 1);
-    wxSize sz(GetSize() - wxSize(2 * BorderWidth + 2, 2 * BorderWidth + 2));
+    int circ_side = (int)(2.0 * center);
+    wxPoint o((int)circle_offset_x + BorderWidth + 1, BorderWidth + 1);
+    wxSize sz(circ_side - 2 * BorderWidth - 2, circ_side - 2 * BorderWidth - 2);
 
     double x = pt.m_x * sz.GetWidth();
     double y = pt.m_y * sz.GetHeight();
@@ -377,11 +370,16 @@ wxPoint MHRgbPickerPanel::NormalizedToUI2(const wxPoint2DDouble& pt) const
 
 void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 {
-    center = (float)newSize.GetWidth() / 2.0f;
+    // Fit the circle in min(width, height - value-bar), centred horizontally
+    const int vbar_reserve = (int)v_size + 10;
+    float side = (float)std::min(newSize.GetWidth(),
+                                 std::max(50, newSize.GetHeight() - vbar_reserve));
+    circle_offset_x = (newSize.GetWidth() - side) / 2.0f;
+    center = side / 2.0f;
     radius = center - 10.0f;
 
-    v_left = center - radius;
-    v_top = radius * 2.0 + v_size;
+    v_left  = circle_offset_x + center - radius;
+    v_top   = side;
     v_width = radius * 2.0;
 
     if( m_hsvBitmap != nullptr ) {
@@ -415,14 +413,10 @@ void MHRgbPickerPanel::CreateHsvBitmap(const wxSize& newSize)
 
 bool MHRgbPickerPanel::insideColors(int x, int y)
 {
-    float xleg = (float)x - center;
+    float xleg = (float)x - (circle_offset_x + center);
     float yleg = (float)y - center;
     float hyp = sqrt(xleg * xleg + yleg * yleg);
-    if( hyp <= radius ) {  // inside circle
-        return true;
-    } else {
-        return false;
-    }
+    return hyp <= radius;
 }
 
 xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
@@ -430,7 +424,7 @@ xlColor MHRgbPickerPanel::GetPointColor(int x, int y)
     HSVValue v;
     v.value = 1.0f;
     xlColor c;
-    float xleg = (float)x - center;
+    float xleg = (float)x - (circle_offset_x + center);
     float yleg = (float)y - center;
     float hyp = sqrt(xleg * xleg + yleg * yleg);
     if( hyp <= radius ) {  // inside circle
@@ -487,7 +481,7 @@ void MHRgbPickerPanel::SetColours( const std::string& _colors )
         HSVValue v(hue, sat, val);
         double hyp {v.saturation * radius};
         double phi {v.hue * 360.0f * PI / 180.0f};
-        float x = cos(phi) * hyp + center;
+        float x = cos(phi) * hyp + center + circle_offset_x;
         float y = sin(phi) * hyp + center;
         wxPoint2DDouble pt((int)x, (int)y);
         wxPoint2DDouble pt2(UItoNormalized(pt));
