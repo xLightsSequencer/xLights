@@ -32,6 +32,7 @@
 #include "lyrics/PhonemeDictionary.h"
 #include "utils/xlImage.h"
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <memory>
@@ -153,7 +154,42 @@ public:
     void PurgeDownloadCache();
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
+
+    // Set while a house-preview video export renders offscreen on a background
+    // thread. The live on-screen preview skips drawing so it doesn't race the
+    // export over per-model node colours (both call SetModelColors).
+    void SetExportInProgress(bool v) { _exportInProgress.store(v); }
+    bool IsExportInProgress() const { return _exportInProgress.load(); }
     bool IsRenderDone();
+
+    // Live house-preview camera snapshot. The on-screen house-preview bridge
+    // publishes its 2D/3D cameras + active mode + canvas size here on every
+    // draw; the offscreen video exporter reads the latest so the rendered
+    // movie matches the user's current pan / rotation / 2D-3D framing (the
+    // 2D pan is in window pixels, so the exporter rescales it to the export
+    // resolution — see XLHousePreviewVideoExporter). canvasW/H are the live
+    // pane's drawable size at snapshot time. _hpCamValid stays false until the
+    // first house-preview draw, in which case the exporter falls back to a
+    // reset/fit camera.
+    void SetHousePreviewCamera(const PreviewCamera& cam2d, const PreviewCamera& cam3d,
+                               bool is3d, int canvasW, int canvasH) {
+        _hpCamera2d = cam2d;
+        _hpCamera3d = cam3d;
+        _hpCameraIs3d = is3d;
+        _hpCameraCanvasW = canvasW;
+        _hpCameraCanvasH = canvasH;
+        _hpCamValid = true;
+    }
+    bool GetHousePreviewCamera(PreviewCamera& cam2d, PreviewCamera& cam3d,
+                               bool& is3d, int& canvasW, int& canvasH) const {
+        if (!_hpCamValid) return false;
+        cam2d = _hpCamera2d;
+        cam3d = _hpCamera3d;
+        is3d = _hpCameraIs3d;
+        canvasW = _hpCameraCanvasW;
+        canvasH = _hpCameraCanvasH;
+        return true;
+    }
 
     // True when the most recent render had at least one job aborted
     // (via SignalAbort — typically from HandleMemoryWarning or an
@@ -645,6 +681,16 @@ private:
     long _display2DGridSpacing = 100;
     bool _display2DBoundingBox = false;
     bool _layoutMode3D = true;
+    std::atomic<bool> _exportInProgress{false};
+
+    // Live house-preview camera snapshot (see SetHousePreviewCamera). Published
+    // by the on-screen house-preview bridge, read by the offscreen exporter.
+    PreviewCamera _hpCamera2d{false};
+    PreviewCamera _hpCamera3d{true};
+    bool _hpCameraIs3d = false;
+    int _hpCameraCanvasW = 0;
+    int _hpCameraCanvasH = 0;
+    bool _hpCamValid = false;
 
     std::string _backgroundImage;
     int _backgroundBrightness = 100;

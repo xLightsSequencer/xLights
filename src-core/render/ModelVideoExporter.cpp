@@ -92,7 +92,8 @@ void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr
 bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
                      unsigned int startFrame, unsigned int endFrame,
                      Model* model, int startAddr,
-                     bool compressed, bool highQuality, bool forceProRes)
+                     bool compressed, bool highQuality, bool forceProRes,
+                     ProgressReportCb progress, QueryForCancelCb cancel)
 {
     spdlog::debug("Writing model video.");
 
@@ -149,6 +150,12 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
 
     try {
         VideoWriter writer(filename, params, /*videoOnly*/ true);
+        if (progress) {
+            writer.setProgressReportCallback(progress);
+        }
+        if (cancel) {
+            writer.setQueryForCancelCallback(cancel);
+        }
 
         writer.setGetVideoCallback([&](VideoWriterFrame& vf, unsigned frameIndex) {
             // Clamp tail over-reads: the FFmpeg encoder may pull a few frames

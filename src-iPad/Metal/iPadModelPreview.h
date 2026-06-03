@@ -111,6 +111,20 @@ public:
     // need this to be on, or they render off-screen.
     void SetCenter2D0(bool v) { _center2D0 = v; }
 
+    // Offscreen render mode (video export). When `tex` is non-null,
+    // StartDrawing renders into that MTLTexture instead of a CAMetalLayer
+    // drawable (so no layer / on-screen surface is required) and EndDrawing
+    // blits the result into `capture` (an MTLBuffer, BGRA8, width*4 bytes/row)
+    // via Commit(false, capture). Pass nullptr/nullptr to restore on-screen
+    // drawing. Pointers are held without ownership — the caller keeps the
+    // texture/buffer alive across the StartDrawing/EndDrawing pair. Typed as
+    // void* so the class layout is identical in ObjC and non-ObjC TUs; the
+    // .mm __bridge-casts them back to id<MTLTexture> / id<MTLBuffer>.
+    void SetOffscreenTarget(void* tex, void* capture) {
+        _offscreenTarget = tex;
+        _offscreenCapture = capture;
+    }
+
 private:
     std::string _name = "iPadPreview";
     xlStandaloneMetalCanvas* _canvas;
@@ -131,6 +145,8 @@ private:
     bool _isDrawing = false;
     bool _is3d = true;
     bool _center2D0 = false;
+    void* _offscreenTarget = nullptr;   // id<MTLTexture>, non-owning
+    void* _offscreenCapture = nullptr;  // id<MTLBuffer>, non-owning
     PreviewCamera _camera2d{false};
     PreviewCamera _camera3d{true};
     std::string _currentModel;  // empty = "render everything" (House Preview mode)

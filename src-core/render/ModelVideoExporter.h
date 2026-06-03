@@ -15,6 +15,8 @@
 // VideoWriter (AVFoundation on Apple, FFmpeg elsewhere). Shared by the
 // desktop (xLightsFrame::WriteVideoModelFile) and available to the iPad app.
 
+#include "media/VideoWriter.h"  // ProgressReportCb / QueryForCancelCb
+
 #include <cstdint>
 #include <string>
 
@@ -36,10 +38,14 @@ void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr
 //   .avi             -> rawvideo (uncompressed; FFmpeg)
 //   .mp4 highQuality -> HEVC constant-quality (near-visually-lossless)
 //   .mp4 else        -> H.264 (compressed = lossy)
-// Returns false on failure (also logged).
+// Returns false on failure (also logged). `progress` (0..100) and `cancel`
+// are optional hooks forwarded to the underlying VideoWriter — pass them to
+// drive a progress dialog / allow aborting a long encode.
 bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
                      unsigned int startFrame, unsigned int endFrame,
                      Model* model, int startAddr,
-                     bool compressed, bool highQuality, bool forceProRes);
+                     bool compressed, bool highQuality, bool forceProRes,
+                     ProgressReportCb progress = nullptr,
+                     QueryForCancelCb cancel = nullptr);
 
 } // namespace ModelVideoExporter

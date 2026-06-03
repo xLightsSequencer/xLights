@@ -13,6 +13,7 @@ let kXTimingFileType: UTType = UTType(filenameExtension: "xtiming") ?? .xml
 /// know the file type.
 let kESEQFileType: UTType = UTType(filenameExtension: "eseq") ?? .data
 
+
 /// File document wrapper for the Save / Export timing-track flow.
 /// Holds the bytes already-written to a temp path so SwiftUI's
 /// `.fileExporter` can copy them to the user's destination.
@@ -199,6 +200,56 @@ struct FSEQExportDoc: FileDocument {
     }
 }
 
+/// Bundles the `.xtiming` / `.eseq` `.fileExporter` modifiers + the video
+/// export progress overlay into a single `ViewModifier`. Folding them out of
+/// the main `body` keeps that already-large modifier chain under the Swift
+/// type-checker's complexity limit. (Video export itself hands off via the
+/// system share sheet, not a `.fileExporter` — stacking a third exporter on
+/// one view didn't reliably present.)
+private struct ExportFileExportersModifier: ViewModifier {
+    @Binding var showingXTimingExporter: Bool
+    @Binding var xtimingExportDoc: XTimingExportDoc?
+    let xtimingDefaultName: String
+    @Binding var showingFSEQExporter: Bool
+    @Binding var fseqExportDoc: FSEQExportDoc?
+    let fseqDefaultName: String
+    let videoExportInProgress: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingXTimingExporter,
+                document: xtimingExportDoc,
+                contentType: kXTimingFileType,
+                defaultFilename: xtimingDefaultName
+            ) { _ in xtimingExportDoc = nil }
+            .fileExporter(
+                isPresented: $showingFSEQExporter,
+                document: fseqExportDoc,
+                contentType: kESEQFileType,
+                defaultFilename: fseqDefaultName
+            ) { _ in fseqExportDoc = nil }
+            .overlay {
+                if videoExportInProgress {
+                    ZStack {
+                        Color.black.opacity(0.35).ignoresSafeArea()
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.large)
+                                .tint(.white)
+                            Text("Exporting video…")
+                                .foregroundStyle(.white)
+                                .font(.headline)
+                        }
+                        .padding(28)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    .transition(.opacity)
+                }
+            }
+    }
+}
+
 /// Six-region effects grid shell with synchronized scrolling. Placeholder
 /// content in each cell — the drawing (effects, timing marks, icons,
 /// transitions) comes in Phase B-3. This view exists to prove sticky-top
@@ -354,6 +405,11 @@ struct SequencerGridV2View: View {
     @State private var fseqExportDoc: FSEQExportDoc? = nil
     @State private var showingFSEQExporter: Bool = false
     @State private var fseqDefaultName: String = "Model.eseq"
+
+    /// Export-model-as-video state. The submenu fires with the codec
+    /// flags + extension; the bridge encodes to a temp file, then
+    /// `.fileExporter` copies it to the user's chosen destination.
+    @State private var videoExportInProgress: Bool = false
 
     /// B21 edit-timing dialog state. Fields are bound to seconds
     /// strings so users enter `5.25` and see `0.75` for duration;
@@ -858,26 +914,17 @@ struct SequencerGridV2View: View {
                                                   enforceWritable: false)
             _ = viewModel.importXTiming(path: path)
         }
-        // B75 .xtiming export.
-        .fileExporter(
-            isPresented: $showingXTimingExporter,
-            document: xtimingExportDoc,
-            contentType: kXTimingFileType,
-            defaultFilename: xtimingDefaultName
-        ) { _ in
-            // Nothing more to do — bridge already wrote the temp
-            // file; the exporter copied it to the user's pick.
-            xtimingExportDoc = nil
-        }
-        // B49 export model as Falcon Player `.eseq` sub-sequence.
-        .fileExporter(
-            isPresented: $showingFSEQExporter,
-            document: fseqExportDoc,
-            contentType: kESEQFileType,
-            defaultFilename: fseqDefaultName
-        ) { _ in
-            fseqExportDoc = nil
-        }
+        // B75/B49/video file exporters — bundled into one modifier so the
+        // main body's modifier chain stays within the Swift type-checker's
+        // complexity budget.
+        .modifier(ExportFileExportersModifier(
+            showingXTimingExporter: $showingXTimingExporter,
+            xtimingExportDoc: $xtimingExportDoc,
+            xtimingDefaultName: xtimingDefaultName,
+            showingFSEQExporter: $showingFSEQExporter,
+            fseqExportDoc: $fseqExportDoc,
+            fseqDefaultName: fseqDefaultName,
+            videoExportInProgress: videoExportInProgress))
         // B41 waveform filter picker.
         .confirmationDialog(
             "Waveform",
@@ -1209,6 +1256,33 @@ struct SequencerGridV2View: View {
         fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
         fseqDefaultName = "\(safeName).eseq"
         showingFSEQExporter = true
+    }
+
+    /// Encode the row's model to a temp video file (codec from the flags +
+    /// `ext`), then hand the path to `.fileExporter` for the user to place.
+    /// Synchronous — a single model's buffer is small, so encoding the whole
+    /// sequence is quick. (The slow, full-resolution house-preview export
+    /// runs off the main thread with progress; see ExportHousePreview.)
+    private func startVideoExport(rowIndex: Int, compressed: Bool, highQuality: Bool,
+                                  forceProRes: Bool, ext: String, label: String) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).\(ext)").path
+        videoExportInProgress = true
+        viewModel.exportModelAsVideo(
+            rowIndex: rowIndex, path: tempPath,
+            compressed: compressed, highQuality: highQuality, forceProRes: forceProRes,
+            completion: { success in
+                videoExportInProgress = false
+                guard success else { return }
+                // Hand the encoded file to the system share sheet ("Save to
+                // Files", AirDrop, …). Imperative presentation (not a stacked
+                // SwiftUI `.fileExporter`, which doesn't reliably present when
+                // several are chained on the same view).
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
     }
 
     /// B75: write the timing track to a temp `.xtiming` file and
@@ -1772,6 +1846,11 @@ struct SequencerGridV2View: View {
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
+                    },
+                    onExportModelVideo: { compressed, highQuality, forceProRes, ext, label in
+                        startVideoExport(rowIndex: row.id, compressed: compressed,
+                                         highQuality: highQuality, forceProRes: forceProRes,
+                                         ext: ext, label: label)
                     },
                     onConvertToPerModel: { allLayers in
                         viewModel.convertEffectsToPerModel(rowIndex: row.id,

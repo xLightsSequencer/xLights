@@ -493,6 +493,9 @@ class SequencerViewModel {
     // Audio / Include Videos) then `SequencePackage::Pack` on a
     // background queue; result handed to the system share sheet.
     var showingPackageSequence = false
+    // Tools → Export House Preview. Renders the house preview offscreen at a
+    // chosen resolution and encodes it to .mp4 (see ExportHousePreviewSheet).
+    var showingExportHousePreview = false
     // Tools → View Log. Reads the rotating spdlog file in
     // Library/Logs/xLights.log; level + logger + text filters
     // with optional follow-tail.
@@ -3938,6 +3941,48 @@ class SequencerViewModel {
             toPath: path,
             startMS: Int32(startMS ?? -1),
             endMS: Int32(endMS ?? -1))
+    }
+
+    /// Export the model at `rowIndex` as a video file. The codec is chosen by
+    /// the flags (see `XLSequenceDocument.exportModelAsVideo`): plain compressed
+    /// H.264 .mp4, `highQuality` HEVC .mp4, `forceProRes` ProRes 4444 .mov, or
+    /// (all false, .mov) lossless RGB. `startMS`/`endMS` nil => whole sequence.
+    /// The encode runs on a background queue; `completion` arrives on the main
+    /// actor (so the UI doesn't hang and AVAssetWriter doesn't invert the main
+    /// thread's priority).
+    func exportModelAsVideo(rowIndex: Int, path: String,
+                            compressed: Bool, highQuality: Bool, forceProRes: Bool,
+                            startMS: Int? = nil, endMS: Int? = nil,
+                            completion: @escaping (Bool) -> Void) {
+        document.exportModelAsVideo(
+            atRow: Int32(rowIndex),
+            toPath: path,
+            compressed: compressed,
+            highQuality: highQuality,
+            forceProRes: forceProRes,
+            startMS: Int32(startMS ?? -1),
+            endMS: Int32(endMS ?? -1),
+            completion: completion)
+    }
+
+    /// Layout preview canvas size (rgbeffects previewWidth × previewHeight) —
+    /// the "Match preview" option for house-preview video export.
+    func layoutPreviewSize() -> (width: Int, height: Int) {
+        return (Int(document.layoutPreviewWidth()), Int(document.layoutPreviewHeight()))
+    }
+
+    /// Export the house preview to `path` (.mp4) at `width`×`height`, rendered
+    /// offscreen at that exact size. The encode runs on a background queue;
+    /// `progress` (0..1) and `completion` arrive on the main actor.
+    func exportHousePreview(path: String, width: Int, height: Int, highQuality: Bool,
+                            progress: @escaping (Double) -> Void,
+                            completion: @escaping (Bool) -> Void) {
+        document.exportHousePreviewVideo(toPath: path,
+                                         width: Int32(width), height: Int32(height),
+                                         highQuality: highQuality,
+                                         startMS: -1, endMS: -1,
+                                         progress: progress,
+                                         completion: completion)
     }
 
     /// B76: convert a fixed-interval timing track to variable

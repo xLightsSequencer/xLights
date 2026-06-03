@@ -25,9 +25,9 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,169 |
-| **At parity** (both platforms) | 670 (**~57%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 318 |
-| **iPad-weaker** (partial on iPad) | 67 |
+| **At parity** (both platforms) | 672 (**~57%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 315 |
+| **iPad-weaker** (partial on iPad) | 68 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 114 |
 | Infeasible on iPad (platform limits) | 59 |
 | Restricted (closed-firmware / IAP) | 23 |
@@ -62,14 +62,14 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 58 | 72% | 14 | 3 | 6 | 1 |
 | 06 | [Layout: Models](06-layout-models-preview.md) | 135 | 77 | 57% | 39 | 12 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 76 | 51 | 67% | 19 | 3 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 70 | 43 | 61% | 23 | 4 | 0 | 1 |
+| 08 | [Import & Export](08-import-export.md) | 70 | 45 | 64% | 20 | 5 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 53 | 43 | 81% | 5 | 2 | 3 | 0 |
 | 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 47 | 56% | 32 | 5 | 0 | 7 |
 | 11 | [Preferences](11-preferences-settings.md) | 131 | 26 | 20% | 70 | 15 | 20 | 19 |
 | 12 | [AI](12-ai-automation-scripting.md) | 46 | 24 | 52% | 20 | 0 | 2 | 15 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 22 | 45% | 24 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 45 | 46% | 0 | 3 | 49 | 10 |
-| — | **Total** | **1,169** | **670** | **~57%** | **318** | **67** | **≈114** | **82** |
+| — | **Total** | **1,169** | **672** | **~57%** | **315** | **68** | **≈114** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -97,7 +97,11 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 | AC Toolbar - Fill tool | 02 | hard | hard | F key. Cell-range fill; hardest AC sub-piece. |
 | AC Toolbar - Cascade tool | 02 | hard | hard | H key. |
 | Bulk multi-controller upload | 07 | hard | feasible | Desktop OnMenuItemBulkControllerUploadSelected -> MultiControllerUploadDialog (all controllers + progress). iPad only si |
-| Export House Preview Video (sequence + house layout) | 08 | hard | feasible | iPad already has the VideoWriter/AVFoundation encoder (model-video migrated onto it); needs the house-preview bridge + UI. |
+
+> **Landed (2026-06-03):** Export House Preview Video — Tools → "Export House
+> Preview…" renders the preview offscreen at a chosen resolution via
+> `XLHousePreviewVideoExporter` → core `VideoWriter`. (Per-model video export
+> landed alongside it; see theme 08.)
 
 ## P2 iPad gaps (build next)
 
@@ -168,8 +172,7 @@ whole editing modality the iPad grid lacks).
 | Wiring View (model node wiring) | 06 | hard | feasible | Desktop ShowWiring (LayoutPanel.cpp:6159). iPad 'Visualize' is controller-level, not model wiring. |
 | Faces editor *(weaker)* | 06 | hard | feasible | iPad FaceStateEditorSheet edits faceInfo as attr key/value maps (fully bridged setFaceInfo/faceInfoForModel). Desktop Mo |
 | States editor *(weaker)* | 06 | hard | feasible | Same as Faces: iPad attr-map editor vs desktop ModelStateDialog node-grid UI. |
-| Export single model as Video (mp4 / avi / mov) | 08 | hard | hard | No per-model video-encode wired; would use VideoWriter/AVFoundation. Build with house-video. |
-| Export video: codec / quality selection | 08 | hard | feasible | Would surface via VideoWriter codec params once house-video lands. |
+| Export video: bitrate field *(weaker)* | 08 | medium | feasible | Per-model submenu + house-preview sheet pick codec/resolution; no explicit bitrate field (VideoWriter chooses). Codec/quality selection itself ✅ landed 2026-06-03. |
 | AC Lights toolbar toggle | 10 | hard | feasible | The AC-toolbar visibility toggle (not auto-color). iPad has no AC editing surface. |
 | Centralized Preferences dialog | 11 | hard | feasible | Desktop wxPreferencesEditor, 10 pages, Cmd+,. iPad splits into context sheets by design; the gap is 'no single entry poi |
 | Keyboard-shortcut rebinding editor | 11 | hard | feasible | Desktop editor is wired (File ▸ Key Bindings, 137 bindings, 4 scopes). iPad shortcuts are static in XLightsCommands.swift. |
@@ -374,8 +377,8 @@ reverse parity as "touch idiom").
 | Other - Hardware Video Decoding + renderer | 11 | iPad uses AVFoundation/VideoToolbox automatically. |
 | Other - GPU Rendering (Metal compute) | 11 | iPad always uses Metal. |
 | Other - Shaders on Background Threads | 11 | Hidden on macOS/Linux already; Windows-only. |
-| Other - Video Export Codec | 11 | iPad has no model-video export feature today. |
-| Other - Video Export Bitrate | 11 | iPad has no video export today. |
+| Other - Video Export Codec | 11 | iPad picks codec per-export (model submenu / house-preview sheet) rather than via a global preference default. |
+| Other - Video Export Bitrate | 11 | iPad has video export but no explicit bitrate field; VideoWriter chooses (constant-quality for HEVC). |
 | Other - Use Custom Color Picker | 11 | iPad uses native system ColorPicker. |
 | Effect Assist toggle (F8) | 11 | iPad has no Effect Assist panel. |
 | Perspectives panel (F12) | 11 | iPad has no perspectives feature. |
@@ -475,8 +478,9 @@ deepening of themes 06, 07, 08, and 10 — 32 surfaces in all.
 3. **Legacy importers** — extract the LOR `.lms`/`.las`, `.lpe`, HLS readers out
    of the wx UI into `src-core/import_export/` + a bridge (themes 08/13). Do the
    core extraction once; both `.lms` and `.las` come together.
-4. **Export House Preview Video** (theme 08) — now feasible via the existing
-   `VideoWriter`/AVFoundation encoder; brings per-model video export with it.
+4. ~~**Export House Preview Video** (theme 08)~~ ✅ **Done (2026-06-03)** —
+   offscreen `XLHousePreviewVideoExporter` → `VideoWriter`; per-model video
+   export landed with it.
 5. **Deep layout editors** (theme 06) — Node Layout, Wiring View, Viewpoint
    save/restore/delete, and finishing Faces/States to match desktop's node-grid.
 

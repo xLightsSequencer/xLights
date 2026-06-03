@@ -14,9 +14,11 @@
 > LOR lms/las, Papagayo pgo, SRT, Audacity txt, ElevenLabs json, Vixen3
 > tim w/ track-select, LSP msq, xLights xsq). The real gaps are: iPad
 > effect-import is missing the **legacy sequencer formats** (LMS/LAS/LPE,
-> HLS, Vixen2 vix, LSP msq-as-effects, VSA); iPad has **no video export**
-> (house-preview or per-model), **no multi-format per-model export**
-> (only `.eseq` FSEQ), **no Convert tool**, and **no HinksPix export**.
+> HLS, Vixen2 vix, LSP msq-as-effects, VSA); iPad now has **video export**
+> (house-preview *and* per-model, via the offscreen `XLHousePreviewVideoExporter`
+> and core `ModelVideoExporter` → `VideoWriter`), but still has **no Convert
+> tool** and **no HinksPix export**, and per-model non-video export stays
+> `.eseq`-only.
 > Map From Lights, AI Speech-to-Lyrics, online lyric search, preset
 > export, and package exclude-audio all exist on **both** platforms.
 
@@ -70,11 +72,11 @@
 | Export model rendered data as FSEQ/`.eseq` | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `SeqExportDialog` "xLights/FPP *.fseq"; iPad row "Export Model as FSEQ…" (`exportModelAsFSEQ`). |
 | Export model FSEQ over a sub-range | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Export Model (selected effects)" range; iPad "Export Model (Loop Range) as FSEQ…". Different range source (selection vs loop region). |
 | Export single model to LOR / Lcb / Vixen / LSP / HLS | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `SeqExportDialog` format list (`SeqExportDialog.cpp:87`). iPad per-model export is FSEQ-only. Niche legacy targets. |
-| Export single model as Video (mp4 / avi / mov) | context-menu/dialog | ✅ | ❌ | ipad-missing | P2 | hard | hard | Desktop `SeqExportDialog` Compressed/Uncompressed/Lossless video. iPad has no video-encode path wired for per-model export (would use `VideoWriter`/AVFoundation). |
+| Export single model as Video (mp4 / mov) | context-menu | ✅ | ✅ | parity | P2 | hard | hard | Desktop `SeqExportDialog` Compressed/HQ/ProRes/Lossless video. iPad row submenu "Export Model as Video ▸" (Compressed .mp4 / High Quality .mp4 / ProRes 4444 .mov / Lossless RGB .mov) → `exportModelAsVideo` → core `ModelVideoExporter::WriteModelVideo`. (AVI is desktop-only — no AVFoundation AVI decoder.) |
 | Export single model as GIF | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `SeqExportDialog` "GIF Image". iPad has GIF write for previews but no per-model GIF export UI. |
 | Export single model for Minleon `.bin` | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `SeqExportDialog` Minleon. Niche hardware. |
-| Export House Preview Video (sequence + house layout) | menu | ✅ | ❌ | ipad-missing | P1 | hard | feasible | Desktop File → Export Video (`xLightsMain.cpp:3742`, `VideoExporter`). iPad has the `VideoWriter`/AVFoundation core (model-video path migrated onto it) but no house-preview-video UI/bridge. |
-| Export video: codec / quality selection | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop `SeqExportDialog` video variants. iPad would surface codec choice via `VideoWriter` once house-video UI lands. |
+| Export House Preview Video (sequence + house layout) | menu | ✅ | ✅ | parity | P1 | hard | feasible | Desktop File → Export Video (`xLightsMain.cpp:3742`, `VideoExporter`). iPad Tools → "Export House Preview…" (`ExportHousePreviewSheet`) → `exportHousePreviewVideo` → `XLHousePreviewVideoExporter` renders the house preview **offscreen** at a chosen resolution (independent of the on-screen pane) and feeds core `VideoWriter`. |
+| Export video: codec / quality selection | dialog | ✅ | 🟡 | partial | P2 | hard | feasible | Desktop `SeqExportDialog` video variants. iPad: per-model submenu picks codec (Compressed/HQ/ProRes/Lossless); house-preview sheet picks resolution (720/1080/4K/match) + Compressed-vs-HQ. No explicit bitrate field (`VideoWriter` chooses). |
 | Batch render sequences → `.fseq` | sheet | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `BatchRenderDialog`; iPad `BatchRenderSheet`/`BatchRenderRunner` (home screen). Shared render loop + `writeFseq`. |
 | Batch render honors configured FSEQ folder | sheet | ✅ | ✅ | parity | P1 | easy | feasible | Both consult `FolderConfig.fseqFolder`, falling back to the `.xsq` dir. |
 | Write whole-sequence FSEQ (v2/zstd/sparse) | core/save | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `WriteFalconPiFile`; iPad `writeFseq(toPath:)`. Same format. |
@@ -108,14 +110,17 @@
   that reuses the existing mapping/apply path. Once the reader is core,
   `.las` (P2) comes for free (same `ImportLMS`). Ease: medium.
 
-- **Export House Preview Video.** Desktop File → Export Video
-  (`src-ui-wx/xLightsMain.cpp:3742` → `ExportVideoPreview` → `VideoExporter`).
-  The iPad already has the unified `VideoWriter`/AVFoundation encoder
-  (model-video export migrated onto it), so the missing piece is a
-  SwiftUI export sheet + a bridge that renders the house preview frame
-  buffer per frame and feeds `VideoWriter`. This is the single highest-
-  value export gap. Ease: hard (frame pump + progress + codec choice);
-  feasible given `VideoWriter`.
+- **Export House Preview Video.** ✅ **Landed.** Tools → "Export House
+  Preview…" (`ExportHousePreviewSheet`) → `XLSequenceDocument.exportHousePreviewVideo`
+  → `XLHousePreviewVideoExporter` (`src-iPad/Metal/`). Renders the house
+  preview **offscreen** into a Metal texture at a chosen resolution
+  (720/1080/4K/match preview) — independent of the on-screen pane size —
+  reads each frame back BGRA→RGB24, and feeds the core `VideoWriter`
+  (AVFoundation H.264 / HEVC). Runs on a background queue with a progress
+  sheet; the live preview skips drawing during export
+  (`iPadRenderContext::IsExportInProgress`) to avoid racing per-model
+  node colours. Offscreen support added to `iPadModelPreview`
+  (`SetOffscreenTarget`).
 
 ### P2
 
@@ -125,11 +130,12 @@
   re-import elsewhere. iPad needs a Tools entry + `XLSequenceDocument`
   exporter wrapping the existing core. Ease: medium.
 
-- **Per-model Video export.** Desktop `SeqExportDialog`
-  (`src-ui-wx/import_export/SeqExportDialog.cpp:95-99`) offers Compressed
-  mp4 / Uncompressed mp4/avi / Lossless mov per model. iPad per-model
-  export is `.eseq` only. Same `VideoWriter` dependency as house-video;
-  best built together. Ease: hard.
+- **Per-model Video export.** ✅ **Landed.** Row-heading submenu
+  "Export Model as Video ▸" (Compressed .mp4 / High Quality .mp4 /
+  ProRes 4444 .mov / Lossless RGB .mov) → `exportModelAsVideo` →
+  `RenderEngine::ExportModelData` + core `ModelVideoExporter::WriteModelVideo`,
+  then `.fileExporter`. AVI stays desktop-only (no AVFoundation AVI
+  decoder). Synchronous (a single model's buffer is small).
 
 - **Export Effects summary (CSV).** Desktop writes a CSV summary of
   effects (`src-ui-wx/import_export/ExportEffects.cpp:347-360`, handlers
@@ -190,8 +196,8 @@ iPad↔macOS-desktop parity audit.
 
 - **HinksPix configuration export** — `restricted`. Closed/proprietary
   controller firmware; IAP-gated, P3. Desktop `HinksPixExportDialog`.
-- **Per-model video/Minleon/LOR-binary exports** are *feasible* but low
-  priority; the video ones depend on the `VideoWriter` frame pump landing.
+- **Per-model video export** ✅ landed (row submenu → `ModelVideoExporter`).
+  Minleon/LOR-binary exports remain *feasible* but low priority.
 - Nothing here is hard-blocked by iOS sandbox: file I/O goes through
   `ObtainAccessToURL` security-scoped bookmarks, and audio/video encode
   uses AVFoundation/`VideoWriter` rather than FFmpeg, so the desktop's
@@ -202,10 +208,9 @@ iPad↔macOS-desktop parity audit.
 1. **Extract a core LMS/LAS reader → iPad `.lms`/`.las` effect import (P1).**
    Highest-demand missing import format; unblocks two formats at once and
    reuses the entire existing mapping/apply/auto-map/hints flow.
-2. **House Preview Video export (P1).** Biggest export gap; the
-   `VideoWriter` encoder already exists, so the work is a render-frame
-   pump + export sheet (codec/quality + progress). Per-model video export
-   falls out of the same pump afterward.
+2. ~~**House Preview Video export (P1).**~~ ✅ **Done** — offscreen
+   `XLHousePreviewVideoExporter` at chosen resolution + export sheet with
+   progress. Per-model video export ✅ done alongside it.
 3. **Export Effects to file (P2).** Small, completes the import↔export
    round trip; core `ExportEffects` already shared.
 4. **Remaining legacy effect-import formats (P2/P3)** — `.lpe`, `.hlsIdata`,

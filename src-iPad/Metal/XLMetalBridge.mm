@@ -2878,6 +2878,16 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         return;
     }
 
+    // A house-preview video export is rendering offscreen on a background
+    // thread. Skip the live draw so we don't race it over per-model node
+    // colours (both this path and the exporter call SetModelColors). The
+    // export is presented behind a blocking sheet, so the frozen preview
+    // isn't visible anyway.
+    if (ctx->IsExportInProgress()) {
+        [self setErrorReasonInternal:@"Exporting house preview…"];
+        return;
+    }
+
     // Set channel data on all models for this frame, unless the
     // submodel-editor pane has asked us to keep its manual
     // `SetNodeColor` overrides intact.
@@ -3235,6 +3245,19 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         // below for the data feed. That route avoids spinning up an
         // xlVertexTextureAccumulator + font atlas per frame just for
         // a handful of labels.
+    }
+
+    // Publish the live camera so a Tools → Export House Preview video
+    // (rendered offscreen on a background queue, with no access to this
+    // on-screen bridge) frames the movie the same way the user sees it —
+    // current pan, rotation, and 2D/3D mode. Only the true House Preview
+    // pane qualifies; the Model Preview and Layout Editor panes use their
+    // own framing and must not overwrite the house camera.
+    if (!_isModelPreview && !_isLayoutEditor) {
+        ctx->SetHousePreviewCamera(_preview->Get2DCamera(), _preview->Get3DCamera(),
+                                   _preview->Is3D() ? true : false,
+                                   _canvas ? _canvas->getWidth() : 0,
+                                   _canvas ? _canvas->getHeight() : 0);
     }
 
     // Finish and present. `_errorReason` reflects this frame's state:

@@ -40,6 +40,11 @@
 #include "media/VideoWriter.h"
 #include "render/ModelVideoExporter.h"
 
+#include <wx/progdlg.h>
+
+#include <atomic>
+#include <thread>
+
 #include <log.h>
 
 void xLightsFrame::ConversionError(const wxString& msg)
@@ -831,11 +836,36 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
                                        SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes)
 {
-    // The whole model->video export is wx-free and lives in src-core so the
-    // iPad app can reuse it; this is just the desktop entry point.
-    ModelVideoExporter::WriteModelVideo(filenames.ToStdString(), dataBuf,
-                                        startFrame, endFrame, model, startAddr,
-                                        compressed, highQuality, forceProRes);
+    // The encode itself is wx-free core (src-core/render/ModelVideoExporter).
+    // Run it on a worker thread and drive a wxProgressDialog on the main thread
+    // so the UI stays responsive and cancelable — mirroring the house-preview
+    // export's VideoExporter progress flow. Keeping the encode off the main
+    // thread also avoids the priority inversion AVAssetWriter's blocking finish
+    // would otherwise cause.
+    const std::string fn = filenames.ToStdString();
+    std::atomic<int> pct{ 0 };
+    std::atomic<bool> cancel{ false };
+    std::atomic<bool> done{ false };
+
+    std::thread worker([&]() {
+        ModelVideoExporter::WriteModelVideo(fn, dataBuf, startFrame, endFrame, model, startAddr,
+                                            compressed, highQuality, forceProRes,
+                                            [&pct](int p) { pct.store(p); },
+                                            [&cancel]() { return cancel.load(); });
+        done.store(true);
+    });
+
+    {
+        wxProgressDialog dlg(_("Export Model Video"), _("Exporting model video..."), 100, this,
+                             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT);
+        while (!done.load()) {
+            if (!dlg.Update(pct.load())) {
+                cancel.store(true);
+            }
+            wxMilliSleep(20);
+        }
+    }
+    worker.join();
 }
 
 std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const

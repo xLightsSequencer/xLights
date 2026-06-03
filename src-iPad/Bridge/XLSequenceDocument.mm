@@ -23,6 +23,8 @@
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
 #include "render/FSEQFile.h"
+#include "render/ModelVideoExporter.h"
+#import "XLHousePreviewVideoExporter.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
 #include "lyrics/PhonemeDictionary.h"
@@ -1400,6 +1402,196 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     }
     v2->finalize();
     return YES;
+}
+
+- (BOOL)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS {
+    if (!path || path.length == 0) return NO;
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) return NO;
+    const std::string modelName = row->element->GetName();
+    if (modelName.empty()) return NO;
+
+    Model* model = _context->GetModel(modelName);
+    if (!model) return NO;
+    // Model groups have no single buffer to export as video (desktop disables
+    // the menu for groups); guard here too.
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
+
+    RenderEngine* engine = _context->GetRenderEngine();
+    if (!engine) return NO;
+
+    SequenceData& fullData = _context->GetSequenceData();
+    if (fullData.NumFrames() == 0 || fullData.NumChannels() == 0) return NO;
+
+    auto exported = engine->ExportModelData(modelName, fullData);
+    if (!exported.data) return NO;
+    SequenceData& modelData = *exported.data;
+    const uint32_t totalFrames = (uint32_t)modelData.NumFrames();
+    if (totalFrames == 0) return NO;
+
+    const int frameTime = modelData.FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) return NO;
+
+    // startAddr matches desktop DoExportModel: the model's absolute start
+    // channel. WriteModelVideo indexes the rebased per-model buffer by
+    // (GetFirstChannel() - startAddr + 1).
+    const int startAddr = model->GetNumberFromChannelString(model->ModelStartChannel);
+
+    return ModelVideoExporter::WriteModelVideo([path UTF8String], &modelData,
+                                               startFrame, endFrame, model, startAddr,
+                                               compressed, highQuality, forceProRes)
+        ? YES : NO;
+}
+
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                     completion:(void (^)(BOOL))completion {
+    void (^finishNO)(void) = ^{
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(NO); });
+    };
+    if (!path || path.length == 0 || !_context) { finishNO(); return; }
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) { finishNO(); return; }
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) { finishNO(); return; }
+    const std::string modelName = row->element->GetName();
+    if (modelName.empty()) { finishNO(); return; }
+
+    Model* model = _context->GetModel(modelName);
+    if (!model || model->GetDisplayAs() == DisplayAsType::ModelGroup) { finishNO(); return; }
+
+    RenderEngine* engine = _context->GetRenderEngine();
+    if (!engine) { finishNO(); return; }
+
+    SequenceData& fullData = _context->GetSequenceData();
+    if (fullData.NumFrames() == 0 || fullData.NumChannels() == 0) { finishNO(); return; }
+
+    // Slice the per-model channel data on the main thread (reads the live
+    // _sequenceData) into a private copy; only the encode runs in the
+    // background, operating on that copy + immutable model geometry. A
+    // shared_ptr keeps the copy alive for the duration of the background block.
+    auto exported = engine->ExportModelData(modelName, fullData);
+    if (!exported.data) { finishNO(); return; }
+    std::shared_ptr<SequenceData> modelData(std::move(exported.data));
+    const uint32_t totalFrames = (uint32_t)modelData->NumFrames();
+    if (totalFrames == 0) { finishNO(); return; }
+
+    const int frameTime = modelData->FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) { finishNO(); return; }
+
+    const int startAddr = model->GetNumberFromChannelString(model->ModelStartChannel);
+    const std::string outPath = [path UTF8String];
+    const uint32_t sf = startFrame;
+    const uint32_t ef = endFrame;
+    const bool compressedB = compressed;
+    const bool hqB = highQuality;
+    const bool prB = forceProRes;
+
+    // Encode off the main thread — AVAssetWriter's Finish blocks on its own
+    // lower-QoS writer thread, which is a priority inversion (and a UI hang)
+    // when run on the main/user-interactive thread.
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        bool ok = ModelVideoExporter::WriteModelVideo(outPath, modelData.get(),
+                                                      sf, ef, model, startAddr,
+                                                      compressedB, hqB, prB);
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
+    });
+}
+
+- (void)exportHousePreviewVideoToPath:(NSString*)path
+                                width:(int)width
+                               height:(int)height
+                          highQuality:(BOOL)highQuality
+                              startMS:(int)startMS
+                                endMS:(int)endMS
+                             progress:(void (^)(double))progress
+                           completion:(void (^)(BOOL))completion {
+    void (^finishNO)(void) = ^{
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(NO); });
+    };
+    if (!path || path.length == 0 || width <= 0 || height <= 0 || !_context) {
+        finishNO();
+        return;
+    }
+
+    SequenceData& seqData = _context->GetSequenceData();
+    const uint32_t totalFrames = (uint32_t)seqData.NumFrames();
+    if (totalFrames == 0 || seqData.NumChannels() == 0) {
+        finishNO();
+        return;
+    }
+    const int frameTime = seqData.FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) {
+        finishNO();
+        return;
+    }
+
+    const BOOL is3d = _context->GetLayoutMode3D() ? YES : NO;
+    iPadRenderContext* rcPtr = _context.get();
+    void* rc = rcPtr;
+    NSString* outPath = [path copy];
+    const int w = width;
+    const int h = height;
+    const int sf = (int)startFrame;
+    const int ef = (int)endFrame;
+
+    // Stop the live on-screen preview from drawing while we render frames on
+    // the background thread (both mutate per-model node colours). Set on the
+    // main thread before dispatch so no live draw sneaks in, cleared in the
+    // completion. Encoding the full show at full resolution is slow, hence the
+    // background queue.
+    rcPtr->SetExportInProgress(true);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        BOOL ok = [XLHousePreviewVideoExporter exportToPath:outPath
+                                              renderContext:rc
+                                                      width:w
+                                                     height:h
+                                                       is3d:is3d
+                                                highQuality:highQuality
+                                                 startFrame:sf
+                                                   endFrame:ef
+                                                   progress:^(double f) {
+            if (progress) dispatch_async(dispatch_get_main_queue(), ^{ progress(f); });
+        }];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            rcPtr->SetExportInProgress(false);
+            if (completion) completion(ok);
+        });
+    });
+}
+
+- (int)layoutPreviewWidth {
+    return _context ? _context->GetPreviewWidth() : 0;
+}
+
+- (int)layoutPreviewHeight {
+    return _context ? _context->GetPreviewHeight() : 0;
 }
 
 - (BOOL)writeFseqToPath:(NSString*)path {

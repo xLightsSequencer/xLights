@@ -367,6 +367,13 @@ struct ModelRowHeader: View {
     /// window (desktop uses a frame selection).
     var hasLoopRegion: Bool = false
     var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
+    /// Export this row's model as a video file. The closure receives the
+    /// codec flags + file extension + a short label for the temp/default
+    /// filename. The outer view writes the temp file via
+    /// `SequencerViewModel.exportModelAsVideo` and presents `.fileExporter`.
+    /// Shown only on non-group model rows (desktop disables video export for
+    /// groups), matching the FSEQ entry's gating.
+    var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String) -> Void)?
     /// B55 — convert effects on the row's element to "Per Model"
     /// buffer styles. The closure decides scope (true = all layers
     /// of the model, false = just this row's layer); the outer view
@@ -580,6 +587,24 @@ struct ModelRowHeader: View {
                         Label("Export Model (Loop Range) as FSEQ…",
                                systemImage: "arrow.up.doc")
                     }
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
+                Menu {
+                    Button { fire(true, false, false, "mp4", "Compressed") } label: {
+                        Label("Compressed (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(true, true, false, "mp4", "High Quality") } label: {
+                        Label("High Quality (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(false, false, true, "mov", "ProRes 4444") } label: {
+                        Label("ProRes 4444 (.mov)", systemImage: "film.stack")
+                    }
+                    Button { fire(false, false, false, "mov", "Lossless RGB") } label: {
+                        Label("Lossless RGB (.mov)", systemImage: "film.stack")
+                    }
+                } label: {
+                    Label("Export Model as Video", systemImage: "film")
                 }
             }
             // B55 — model-scope variant on the model heading; layer-

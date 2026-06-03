@@ -338,6 +338,15 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Tools → Export House Preview. Renders the whole house
+            // preview offscreen at a chosen resolution (default 1080p)
+            // and encodes it to .mp4 — independent of the on-screen
+            // preview size.
+            Button("Export House Preview…") {
+                viewModel.showingExportHousePreview = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
             Divider()
 
             // EX-4 — Tools → FPP Connect. Discover FPP instances and

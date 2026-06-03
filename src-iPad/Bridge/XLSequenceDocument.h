@@ -507,6 +507,57 @@ NS_ASSUME_NONNULL_BEGIN
                        startMS:(int)startMS endMS:(int)endMS
     NS_SWIFT_NAME(exportModelAsFSEQ(atRow:toPath:startMS:endMS:));
 
+// Export the model at `rowIndex` as a video file (`path`'s extension picks
+// the container). The codec flags mirror desktop's DoExportModel:
+//   compressed=YES  -> H.264 .mp4 (lossy)        [highQuality NO, forceProRes NO]
+//   highQuality=YES -> HEVC .mp4 (constant-quality, near-lossless)
+//   forceProRes=YES -> ProRes 4444 .mov (4:4:4 near-lossless)
+//   all NO + .mov   -> Lossless RGB (rawvideo / ProRes by width)
+// Frame-range and render-currency semantics match exportModelAsFSEQ. Returns
+// NO for timing/group rows, when there's no rendered data, or on write
+// failure. Caller must `ObtainAccessToURL` on `path` first.
+- (BOOL)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+    NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:));
+
+// Async variant of the above. The (fast) per-model data slice happens on the
+// calling thread; the encode runs on a background queue so the UI doesn't hang
+// and AVAssetWriter's writer-thread wait doesn't invert the main thread's
+// priority. `completion` (success) is delivered on the main queue. Caller
+// must `ObtainAccessToURL` on `path` first.
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                     completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:completion:));
+
+// Export the house preview (all models of the active layout group) as an
+// H.264 / HEVC `.mp4` rendered offscreen at exactly `width`×`height` —
+// independent of any on-screen preview size. The 2D/3D projection follows the
+// show's saved layout mode. The encode runs on a background queue; `progress`
+// (0..1) and `completion` are delivered on the main queue. `startMS`/`endMS`
+// < 0 => whole sequence. Caller must `ObtainAccessToURL` on `path` first and
+// should present a blocking progress UI so nothing else renders the preview
+// (the model node colours are mutated per frame on the export thread).
+- (void)exportHousePreviewVideoToPath:(NSString*)path
+                                width:(int)width
+                               height:(int)height
+                          highQuality:(BOOL)highQuality
+                              startMS:(int)startMS
+                                endMS:(int)endMS
+                             progress:(nullable void (^)(double fraction))progress
+                           completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportHousePreviewVideo(toPath:width:height:highQuality:startMS:endMS:progress:completion:));
+
+// Layout preview canvas size (xlights_rgbeffects previewWidth/previewHeight) —
+// the coordinate space models are laid out in. The "Match preview" option for
+// house-preview video export uses these. 0 when no show is loaded.
+- (int)layoutPreviewWidth NS_SWIFT_NAME(layoutPreviewWidth());
+- (int)layoutPreviewHeight NS_SWIFT_NAME(layoutPreviewHeight());
+
 // Write the rendered sequence to `path` as a v2/zstd/sparse FSEQ matching
 // the format produced by desktop's xLightsFrame::WriteFalconPiFile. Returns
 // NO if no sequence is loaded, the path is empty, or the underlying write
