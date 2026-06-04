@@ -27,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
     -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
@@ -258,13 +259,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
                                 has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
                                 as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
-    -bug (derwin12)			    Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
-    -bug (derwin12)			    Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
-	-bug (derwin12)				Some WMA music files were hard crashing. (#6306)
-	-bug (derwin12) 			Restored the missing assets alert (#6276)
-	-bug (derwin12)				Fix in the lua script for batch rendering
-	-bug (derwin12)				Imported sequences placed media in inocrrect folder if sequence was not previously saved
-	-bug (derwin12)				Fix download model search (#6252)
+    -bug (derwin12)             Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
+    -bug (derwin12)             Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
+	  -bug (derwin12)             Some WMA music files were hard crashing. (#6306)
+	  -bug (derwin12)             Restored the missing assets alert (#6276)
+	  -bug (derwin12)             Fix in the lua script for batch rendering
+	  -bug (derwin12)             Imported sequences placed media in inocrrect folder if sequence was not previously saved
+	  -bug (derwin12)             Fix download model search (#6252)
     -bug (dkulp)                Circles effect: GPU (Metal) path was clearing non-circle pixels to (0,0,0,0), wiping
                                 the buffer's pre-existing contents. Now leaves background pixels untouched, matching
                                 the CPU and ISPC paths.
