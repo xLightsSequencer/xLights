@@ -276,6 +276,11 @@ private:
     void ButtUpStretchMultipleEffects(bool right);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const;
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
+    void ResetEffectMoveDragState();
+    int SnapCursorToTimingMark(int timeMS, int x) const;
+    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming);
+    void ApplyEffectMoveDrag();
+    void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);
     void StretchAllSelectedEffects(int deltaMS, bool offset) const;
     int GetRow(int y) const;
     void OnGridPopup(wxCommandEvent& event);
@@ -362,6 +367,27 @@ private:
     int mDropStartTimeMS;
     int mRightClickStartTimeMS;
     int mDropEndTimeMS;
+
+    // Ghost drag-to-move state
+    struct EffectMoveSnapshot {
+        Effect* effect;
+        EffectLayer* origLayer;
+        int origStartTimeMS;
+        int origEndTimeMS;
+        int origVisibleRow;
+    };
+    bool mEffectMoveDragging = false;
+    bool mEffectMoveDragThresholdExceeded = false;
+    bool mEffectMoveDragGroup = false;
+    int mEffectMoveDragStartX = 0;
+    int mEffectMoveDragStartY = 0;
+    int mEffectMoveAnchorRow = 0;
+    int mEffectMoveClickOffsetMS = 0;
+    Effect* mEffectMoveAnchorEffect = nullptr;
+    int mEffectMoveTargetRow = 0;
+    int mEffectMoveTargetDeltaMS = 0;
+    bool mEffectMoveHasCollision = false;
+    std::vector<EffectMoveSnapshot> mEffectMoveSnapshots;
 
     bool mCellRangeSelected;
     bool mPartialCellSelected;
