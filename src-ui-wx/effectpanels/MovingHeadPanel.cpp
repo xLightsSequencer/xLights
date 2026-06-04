@@ -559,6 +559,26 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
                 m_sketchCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, new_size.GetHeight()));
             }
         }
+        wxSize pos_sz = m_movingHeadCanvasPanel->GetSize();
+        if( pos_sz.GetWidth() != pos_sz.GetHeight() ) {
+            if( pos_sz.GetWidth() > 270 ) {
+                m_movingHeadCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, pos_sz.GetWidth()));
+            }
+        }
+        if( m_rgbColorPanel != nullptr ) {
+            wxSize rgb_sz = m_rgbColorPanel->GetSize();
+            if( rgb_sz.GetWidth() > 50 && rgb_sz.GetWidth() != rgb_sz.GetHeight() ) {
+                m_rgbColorPanel->SetMinSize(wxSize(wxDefaultCoord, rgb_sz.GetWidth()));
+                PanelColor->FitInside();
+            }
+        }
+        if( m_wheelColorPanel != nullptr ) {
+            wxSize wheel_sz = m_wheelColorPanel->GetSize();
+            if( wheel_sz.GetWidth() > 50 && wheel_sz.GetWidth() != wheel_sz.GetHeight() ) {
+                m_wheelColorPanel->SetMinSize(wxSize(wxDefaultCoord, wheel_sz.GetWidth()));
+                PanelColorWheel->FitInside();
+            }
+        }
     }
     if (!m_minSizeSet) {
         wxWindow* p = GetParent();

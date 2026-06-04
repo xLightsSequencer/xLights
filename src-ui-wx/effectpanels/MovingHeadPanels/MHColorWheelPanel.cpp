@@ -90,7 +90,8 @@ void MHColorWheelPanel::OnPaint(wxPaintEvent& /*event*/)
         pdc.DrawCircle(ptUI, handleRadius-1);
         pdc.DrawCircle(ptUI, handleRadius);
         pdc.DrawCircle(ptUI, handleRadius+1);
-        pdc.SetTextForeground(*wxBLACK);
+        double lum = (0.299 * c.red + 0.587 * c.green + 0.114 * c.blue) / 255.0;
+        pdc.SetTextForeground(lum > 0.5 ? *wxBLACK : *wxWHITE);
         wxString text = wxString::Format("%d", handle);
         pdc.DrawText(text, ptUI.x-4, ptUI.y-8);
         handle++;
