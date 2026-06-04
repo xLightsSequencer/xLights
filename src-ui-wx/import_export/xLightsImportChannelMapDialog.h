@@ -30,6 +30,7 @@
 //*)
 
 #include <map>
+#include <set>
 #include <vector>
 #include "Color.h"
 #include <wx/arrstr.h>
