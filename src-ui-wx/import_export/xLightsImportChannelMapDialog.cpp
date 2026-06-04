@@ -806,6 +806,8 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
     }
 }
 
+namespace {
+
 class ShowDisplayElementsDialog : public wxDialog {
     ViewsModelsPanel* _panel;
     std::function<void()> _onUpdate;
@@ -819,12 +821,6 @@ public:
         , _onUpdate(std::move(onUpdate))
     {
         _panel = new ViewsModelsPanel(xlights, this);
-
-        // Hidden choice satisfies the panel's internal view-selector pointer;
-        // it gets populated by PopulateViews() but is never shown to the user.
-        wxChoice* hiddenChoice = new wxChoice(_panel, wxID_ANY);
-        hiddenChoice->Hide();
-        _panel->SetViewChoice(hiddenChoice);
         _panel->SetSequenceElementsModelsViews(&xlights->GetSeqData(), seqElements, xlights->GetViewsManager());
         _panel->Initialize();
 
@@ -845,6 +841,8 @@ public:
         updateBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { _onUpdate(); });
     }
 };
+
+} // namespace
 
 void xLightsImportChannelMapDialog::EditDisplayElements()
 {
