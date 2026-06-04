@@ -96,6 +96,20 @@ msbuild -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 ```
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
+### CMake (cross-platform)
+In addition to the platform-native projects above, there is now a top-level
+**`CMakeLists.txt`** driving a cmake-based build (primarily used on Windows as
+an alternative to the `.sln`/`.vcxproj` files, generating into an out-of-source
+build directory).
+```bash
+cmake -S . -B build            # Configure
+cmake --build build            # Build
+```
+Source files are discovered automatically via `file(GLOB_RECURSE ...)` over the
+existing source directories, so most new files are picked up on the next
+configure with no manual edit — see [Adding New Source Files](#adding-new-source-files)
+for when a CMakeLists.txt edit *is* required.
+
 ### wxSmith Generated Code
 Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `src-ui-wx/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
 
@@ -116,8 +130,9 @@ existing directories. Note that Windows/Linux builds intentionally
 do not compile `src-iPad/`, so new iPad files never need to land in
 the `.cbp` / `.vcxproj` files.
 
-The top-level **`CMakeLists.txt`** (used for the `cmake_vs/` cmake-based
-VS build) uses `file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
+The top-level **`CMakeLists.txt`** (the cmake-based build, see
+[CMake (cross-platform)](#cmake-cross-platform)) uses
+`file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
 SRC_CORE ...)` to discover source files automatically from the
 directories listed in the glob patterns (e.g., `src-ui-wx/color/*.cpp`,
 `src-core/effects/*.cpp`). New files added inside those directories

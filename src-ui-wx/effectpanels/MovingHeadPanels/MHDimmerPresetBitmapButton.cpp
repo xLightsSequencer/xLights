@@ -73,15 +73,18 @@ wxBitmap MHDimmerPresetBitmapButton::CreateImage( int w, int h, double scaleFact
 
         wxGraphicsPath graphicsPath(gc->CreatePath());
         wxArrayString dimmers = wxSplit(mSettings, ',');
+        if (dimmers.size() < 2) {
+            return bmp;
+        }
         wxPoint2DDouble pt(wxAtof(dimmers[0]), wxAtof(dimmers[1]));
-        wxPoint2DDouble startPt(NormalizedToUI(pt, scaleFactor));
+        wxPoint2DDouble startPt(NormalizedToUI(pt, width, height));
         graphicsPath.MoveToPoint(startPt);
         size_t num_pts = dimmers.size() / 2;
         for( size_t i = 1; i < num_pts; ++i ) {
             double x { wxAtof(dimmers[i*2]) };
             double y { wxAtof(dimmers[i*2+1]) };
             wxPoint2DDouble pt(x , y);
-            wxPoint2DDouble endPt(NormalizedToUI(pt, scaleFactor));
+            wxPoint2DDouble endPt(NormalizedToUI(pt, width, height));
             graphicsPath.AddLineToPoint(endPt);
         }
         gc->DrawPath(graphicsPath);
@@ -100,17 +103,16 @@ void MHDimmerPresetBitmapButton::SetBitmap(const wxBitmapBundle& bpm)
     wxBitmapButton::SetBitmap(bpm);
 }
 
-wxPoint2DDouble MHDimmerPresetBitmapButton::NormalizedToUI(const wxPoint2DDouble& pt, double scaleFactor) const
+wxPoint2DDouble MHDimmerPresetBitmapButton::NormalizedToUI(const wxPoint2DDouble& pt, float bmpWidth, float bmpHeight) const
 {
-    wxSize sz(GetSize());
-    double x = pt.m_x * sz.GetWidth() * scaleFactor;
-    double y = pt.m_y * sz.GetHeight() * scaleFactor;
-    return wxPoint2DDouble(x, + ((sz.GetHeight() * scaleFactor) - y));
+    double x = pt.m_x * bmpWidth;
+    double y = pt.m_y * bmpHeight;
+    return wxPoint2DDouble(x, bmpHeight - y);
 }
 
-wxPoint MHDimmerPresetBitmapButton::NormalizedToUI2(const wxPoint2DDouble& pt, double scaleFactor) const
+wxPoint MHDimmerPresetBitmapButton::NormalizedToUI2(const wxPoint2DDouble& pt, float bmpWidth, float bmpHeight) const
 {
-    wxPoint2DDouble pt1 = NormalizedToUI(pt, scaleFactor);
+    wxPoint2DDouble pt1 = NormalizedToUI(pt, bmpWidth, bmpHeight);
     return wxPoint((int)pt1.m_x, (int)pt1.m_y);
 }
 

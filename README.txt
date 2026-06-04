@@ -12,11 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
-    -bug (cybercop23)            Sequencer Copy Layers/SubModels to Models now correctly copies all layers and
-                                 submodels even when the source model is collapsed or submodels are not expanded.
-                                 Also handles models with a large number of submodels.
-    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
-
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
     -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
                                  abstraction, using AVFoundation on macOS where possible (incl. bit-exact
@@ -31,6 +27,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
+    -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
@@ -38,6 +36,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (div-by-zero produced NaN paint coordinates).
     -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
                                  fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
+    -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
+                                 deleting combo can't repaint with a stale property (top macOS crash).
                                  
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
@@ -259,13 +259,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
                                 has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
                                 as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
-    -bug (derwin12)			    Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
-    -bug (derwin12)			    Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
-	-bug (derwin12)				Some WMA music files were hard crashing. (#6306)
-	-bug (derwin12) 			Restored the missing assets alert (#6276)
-	-bug (derwin12)				Fix in the lua script for batch rendering
-	-bug (derwin12)				Imported sequences placed media in inocrrect folder if sequence was not previously saved
-	-bug (derwin12)				Fix download model search (#6252)
+    -bug (derwin12)             Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
+    -bug (derwin12)             Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
+	  -bug (derwin12)             Some WMA music files were hard crashing. (#6306)
+	  -bug (derwin12)             Restored the missing assets alert (#6276)
+	  -bug (derwin12)             Fix in the lua script for batch rendering
+	  -bug (derwin12)             Imported sequences placed media in inocrrect folder if sequence was not previously saved
+	  -bug (derwin12)             Fix download model search (#6252)
     -bug (dkulp)                Circles effect: GPU (Metal) path was clearing non-circle pixels to (0,0,0,0), wiping
                                 the buffer's pre-existing contents. Now leaves background pixels untouched, matching
                                 the CPU and ISPC paths.

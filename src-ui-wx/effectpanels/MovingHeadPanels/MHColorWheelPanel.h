@@ -97,8 +97,10 @@ private:
     double center {0};
     double radius {0};
 
+    wxRect GetWheelRect() const;
     void CreateHsvBitmap(const wxSize& newSize);
     void CreateHsvBitmapMask();
+    void RemapHandlesToFilters();
     wxBitmap* m_hsvBitmap{ nullptr };
     wxMask* m_hsvMask{ nullptr };
     
