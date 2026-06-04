@@ -170,6 +170,13 @@ class EffectTreeDialog : public wxPanel
         void UpdateModeButtons();
         void OnDropEffect(wxCommandEvent& event);
 
+        EffectPresetManager _basePresetManager;
+        wxTreeItemId _baseRootID;
+        void PromptAndSaveBasePresets();
+
+public:
+        bool IsInBaseSection(wxTreeItemId id) const;
+
 };
 
 class MyTreeItemData : public wxTreeItemData

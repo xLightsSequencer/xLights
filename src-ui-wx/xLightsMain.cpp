@@ -7184,6 +7184,12 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
         _outputManager.SetAutoUpdateFromBaseShowDir(false);
         if (changed)
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetShowBaseShowFolder");
+
+        _effectPresetsInitialized = false;
+        if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+            EffectTreeDlg->InitItems(_effectPresetManager);
+            _effectPresetsInitialized = true;
+        }
     }
     ValidateWindow();
 }
@@ -9013,6 +9019,12 @@ void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
         StaticText_BaseShowDir->SetLabel(baseShowDir);
     }
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveSelectedControllerRows");
+
+    _effectPresetsInitialized = false;
+    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
 }
 
 void xLightsFrame::OnButton_ChangeBaseShowDirClick(wxCommandEvent& event)

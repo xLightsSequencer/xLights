@@ -870,9 +870,14 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
 
 std::string xLightsFrame::GetPresetIconFilename(const std::string& preset) const
 {
+    return GetPresetIconFilename(preset, showDirectory);
+}
+
+std::string xLightsFrame::GetPresetIconFilename(const std::string& preset, const std::string& dir) const
+{
     wxString filename = preset + ".gif";
     filename.Replace("/", "_");
-    return (showDirectory + GetPathSeparator() + "presets" + GetPathSeparator() + filename).ToStdString();
+    return (wxString(dir) + GetPathSeparator() + "presets" + GetPathSeparator() + filename).ToStdString();
 }
 
 void xLightsFrame::CreatePresetIcons()
@@ -953,13 +958,18 @@ void xLightsFrame::LoadPresetEffects(const CopyFormat1& pd)
 
 void xLightsFrame::WriteGIFForPreset(const std::string& preset)
 {
+    WriteGIFForPreset(preset, _effectPresetManager, showDirectory);
+}
+
+void xLightsFrame::WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir)
+{
     spdlog::debug("Writing preset GIF for {}.", (const char*)preset.c_str());
 
-    wxMkDir(showDirectory + "/presets", wxS_DIR_DEFAULT);
+    wxMkDir(wxString(presetDir) + "/presets", wxS_DIR_DEFAULT);
 
-    auto filename = GetPresetIconFilename(preset);
+    auto filename = GetPresetIconFilename(preset, presetDir);
 
-    EffectPreset* presetObj = _effectPresetManager.FindPresetByPath(preset, '/');
+    EffectPreset* presetObj = manager.FindPresetByPath(preset, '/');
 
     if (presetObj != nullptr) {
         wxString cp = presetObj->GetSettings();
