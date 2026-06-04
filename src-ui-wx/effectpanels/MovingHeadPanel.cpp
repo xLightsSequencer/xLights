@@ -789,6 +789,7 @@ void MovingHeadPanel::OnButtonSaveDimmerPresetClick(wxCommandEvent& event)
         wxArrayString dimmer_def;
         dimmer_def.Add(dimmer_text);
         SavePreset( dimmer_def, false, true );
+        PanelDimmer->FitInside();
         Layout();
         Refresh();
     }
