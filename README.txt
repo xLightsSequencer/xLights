@@ -12,8 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
-    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
-
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
     -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
                                  abstraction, using AVFoundation on macOS where possible (incl. bit-exact
@@ -28,6 +27,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
