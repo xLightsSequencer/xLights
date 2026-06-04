@@ -35,6 +35,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  (div-by-zero produced NaN paint coordinates).
     -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
                                  fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
+    -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
+                                 deleting combo can't repaint with a stale property (top macOS crash).
                                  
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
