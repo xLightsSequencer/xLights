@@ -37,7 +37,7 @@ MediaPickerCtrl::MediaPickerCtrl(wxWindow* parent, wxWindowID id,
     _preview = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
     _preview->SetMinSize(wxSize(32, 32));
     _preview->SetMaxSize(wxSize(48, 48));
-    sizer->Add(_preview, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
+    sizer->Add(_preview, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
 
     // Filename display (read-only)
     _pathCtrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString,
@@ -146,6 +146,7 @@ void MediaPickerCtrl::OnClearClick(wxCommandEvent& event) {
     _pathCtrl->SetValue(wxEmptyString);
     _preview->SetBitmap(wxNullBitmap);
     _preview->Refresh();
+    Layout();
 
     if (_linkedPicker) {
         _linkedPicker->SetPath(wxEmptyString);
@@ -175,11 +176,11 @@ void MediaPickerCtrl::UpdatePreview() {
 
     switch (_mediaType) {
         case MediaType::Image: {
-            if (media.HasImage(filepath)) {
-                auto entry = media.GetImage(filepath);
-                if (entry && entry->IsOk()) {
-                    thumb = entry->GetScaledImage(0, maxPx, maxPx, false);
-                }
+            // Call GetImage directly — HasImage misses embedded images that are in
+            // the cache under their original relative path but not yet resolved.
+            auto entry = media.GetImage(filepath);
+            if (entry && entry->IsOk()) {
+                thumb = entry->GetScaledImage(0, maxPx, maxPx, false);
             }
             break;
         }
@@ -210,4 +211,5 @@ void MediaPickerCtrl::UpdatePreview() {
         _preview->SetBitmap(wxNullBitmap);
     }
     _preview->Refresh();
+    Layout();
 }
