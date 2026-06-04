@@ -822,10 +822,10 @@ public:
 
         // Hidden choice satisfies the panel's internal view-selector pointer;
         // it gets populated by PopulateViews() but is never shown to the user.
-        wxChoice* hiddenChoice = new wxChoice(this, wxID_ANY);
+        wxChoice* hiddenChoice = new wxChoice(_panel, wxID_ANY);
         hiddenChoice->Hide();
         _panel->SetViewChoice(hiddenChoice);
-        _panel->SetSequenceElementsModelsViews(xlights->GetSeqData(), seqElements, xlights->GetViewsManager());
+        _panel->SetSequenceElementsModelsViews(&xlights->GetSeqData(), seqElements, xlights->GetViewsManager());
         _panel->Initialize();
 
         auto* mainSizer = new wxBoxSizer(wxVERTICAL);
@@ -861,7 +861,7 @@ void xLightsImportChannelMapDialog::EditDisplayElements()
 
 void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>& snapshot)
 {
-    int ms = _dataModel->GetChildCount();
+    int ms = static_cast<int>(_dataModel->GetChildCount());
     bool added = false;
 
     for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
