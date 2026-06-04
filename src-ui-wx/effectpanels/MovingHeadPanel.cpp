@@ -493,7 +493,7 @@ MovingHeadPanel::MovingHeadPanel(wxWindow* parent) : xlEffectPanel()
     m_sketchCanvasPanel->DrawGrid(true);
 
     m_rgbColorPanel = new MHRgbPickerPanel(this, PanelColor, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
-    FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxEXPAND);
+    FlexGridSizerColor->Add(m_rgbColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
     Notebook2->AddPage(PanelColor, _("Color"), true);
     PanelColor->Show();
     // Delete Colorwheel page
@@ -565,17 +565,22 @@ void MovingHeadPanel::OnResize(wxSizeEvent& event)
                 m_movingHeadCanvasPanel->SetMinSize(wxSize(wxDefaultCoord, pos_sz.GetWidth()));
             }
         }
+        const int MAX_COLOR_PANEL_SIZE = FromDIP(300);
         if( m_rgbColorPanel != nullptr ) {
-            wxSize rgb_sz = m_rgbColorPanel->GetSize();
-            if( rgb_sz.GetWidth() > 50 && rgb_sz.GetWidth() != rgb_sz.GetHeight() ) {
-                m_rgbColorPanel->SetMinSize(wxSize(wxDefaultCoord, rgb_sz.GetWidth()));
+            int avail = PanelColor->GetClientSize().GetWidth();
+            if( avail > 50 ) {
+                int sz = std::min(avail, MAX_COLOR_PANEL_SIZE);
+                m_rgbColorPanel->SetMinSize(wxSize(sz, sz));
+                m_rgbColorPanel->SetMaxSize(wxSize(sz, sz));
                 PanelColor->FitInside();
             }
         }
         if( m_wheelColorPanel != nullptr ) {
-            wxSize wheel_sz = m_wheelColorPanel->GetSize();
-            if( wheel_sz.GetWidth() > 50 && wheel_sz.GetWidth() != wheel_sz.GetHeight() ) {
-                m_wheelColorPanel->SetMinSize(wxSize(wxDefaultCoord, wheel_sz.GetWidth()));
+            int avail = PanelColorWheel->GetClientSize().GetWidth();
+            if( avail > 50 ) {
+                int sz = std::min(avail, MAX_COLOR_PANEL_SIZE);
+                m_wheelColorPanel->SetMinSize(wxSize(sz, sz));
+                m_wheelColorPanel->SetMaxSize(wxSize(sz, sz));
                 PanelColorWheel->FitInside();
             }
         }
@@ -1285,7 +1290,7 @@ void MovingHeadPanel::UpdateColorPanel()
         if( m_wheelColorPanel == nullptr) {
             m_wheelColorPanel = new MHColorWheelPanel(this, PanelColorWheel, wxID_ANY, wxDefaultPosition, wxSize(250, 250));
             m_wheelColorPanel->DefineColours(colors);
-            FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxEXPAND);
+            FlexGridSizerColorWheel->Add(m_wheelColorPanel, 0, wxALL | wxALIGN_CENTER_HORIZONTAL | wxALIGN_CENTER_VERTICAL);
             PanelColorWheel->Show();
         } else {
             // check if number of colors is still the same
