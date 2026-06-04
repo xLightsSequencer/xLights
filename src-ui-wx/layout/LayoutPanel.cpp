@@ -480,6 +480,7 @@ const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SWAP_START_END = wxNewId();
 const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
 const long LayoutPanel::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 
@@ -6185,7 +6186,10 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
-        
+        if (model->SupportsSwapStartEnd()) {
+            menu.Append(ID_PREVIEW_SWAP_START_END, "Swap Start/End")->Enable(!selectedBaseObject->IsFromBase() && !selectedBaseObject->IsLocked());
+        }
+
         if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
             menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace Model(s) With This Model...");
         }
@@ -6728,6 +6732,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
+        }
+    } else if (event.GetId() == ID_PREVIEW_SWAP_START_END) {
+        if (editing_models) {
+            Model* md = dynamic_cast<Model*>(selectedBaseObject);
+            if (md != nullptr && md->SupportsSwapStartEnd() && !md->IsLocked()) {
+                CreateUndoPoint("SingleModel", md->name);
+                md->SwapStartEnd();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+                                                              "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_SWAP_START_END");
+            }
         }
     } else if (is_3d) {
         long loadIdx = event.GetId() - ID_PREVIEW_CAMERA_LOAD_BASE;
@@ -9810,12 +9824,21 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         } else {
             objects_panel->PreviewObjectFlipH();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
+    } else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
         if (editing_models) {
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
+        }
+    } else if (event.GetId() == ID_PREVIEW_SWAP_START_END) {
+        if (editing_models) {
+            Model* md = dynamic_cast<Model*>(selectedBaseObject);
+            if (md != nullptr && md->SupportsSwapStartEnd() && !md->IsLocked()) {
+                CreateUndoPoint("SingleModel", md->name);
+                md->SwapStartEnd();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+                                                              "LayoutPanel::OnModelsPopup::ID_PREVIEW_SWAP_START_END");
+            }
         }
     }
 }

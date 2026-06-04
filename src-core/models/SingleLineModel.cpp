@@ -190,4 +190,8 @@ void SingleLineModel::InitLine() {
     }
 }
 
+void SingleLineModel::SwapStartEnd() {
+    screenLocation.SwapStartEnd();
+    IncrementChangeCount();
+}
 

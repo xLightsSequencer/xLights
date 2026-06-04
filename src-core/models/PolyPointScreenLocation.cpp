@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <spdlog/fmt/fmt.h>
@@ -1366,6 +1367,59 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
         }
     }
     return cpoint_data;
+}
+
+void PolyPointScreenLocation::SwapStartEnd() {
+    if (num_points < 2) return;
+
+    struct SegCurve {
+        bool has_curve;
+        float cp0x, cp0y, cp0z;
+        float cp1x, cp1y, cp1z;
+    };
+    std::vector<SegCurve> curves(num_points - 1, {false, 0, 0, 0, 0, 0, 0});
+    for (int i = 0; i < num_points - 1; ++i) {
+        curves[i].has_curve = mPos[i].has_curve;
+        if (mPos[i].has_curve && mPos[i].curve != nullptr) {
+            curves[i].cp0x = mPos[i].curve->get_cp0x();
+            curves[i].cp0y = mPos[i].curve->get_cp0y();
+            curves[i].cp0z = mPos[i].curve->get_cp0z();
+            curves[i].cp1x = mPos[i].curve->get_cp1x();
+            curves[i].cp1y = mPos[i].curve->get_cp1y();
+            curves[i].cp1z = mPos[i].curve->get_cp1z();
+        }
+    }
+
+    for (int i = 0; i < num_points - 1; ++i) {
+        mPos[i].has_curve = false;
+        if (mPos[i].curve != nullptr) {
+            delete mPos[i].curve;
+            mPos[i].curve = nullptr;
+        }
+    }
+
+    for (int i = 0; i < num_points / 2; ++i) {
+        int j = num_points - 1 - i;
+        std::swap(mPos[i].x, mPos[j].x);
+        std::swap(mPos[i].y, mPos[j].y);
+        std::swap(mPos[i].z, mPos[j].z);
+    }
+
+    // Segment direction is reversed, so cp0 and cp1 are swapped in the rebuilt curves.
+    for (int i = 0; i < num_points - 1; ++i) {
+        int oldSeg = num_points - 2 - i;
+        if (curves[oldSeg].has_curve) {
+            mPos[i].has_curve = true;
+            mPos[i].curve = new BezierCurveCubic3D();
+            mPos[i].curve->set_p0(mPos[i].x, mPos[i].y, mPos[i].z);
+            mPos[i].curve->set_p1(mPos[i + 1].x, mPos[i + 1].y, mPos[i + 1].z);
+            mPos[i].curve->set_cp0(curves[oldSeg].cp1x, curves[oldSeg].cp1y, curves[oldSeg].cp1z);
+            mPos[i].curve->set_cp1(curves[oldSeg].cp0x, curves[oldSeg].cp0y, curves[oldSeg].cp0z);
+            mPos[i].curve->UpdatePoints();
+        }
+    }
+
+    FixCurveHandles();
 }
 
 // ============================================================

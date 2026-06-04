@@ -161,6 +161,7 @@ public:
     void SetCurveDataFromString(const std::string& cpoint_data);
     std::string GetPointDataAsString() const;
     std::string GetCurveDataAsString() const;
+    void SwapStartEnd();
 
 protected:
     struct xlPolyPoint {
