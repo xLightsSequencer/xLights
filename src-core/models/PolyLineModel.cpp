@@ -185,6 +185,7 @@ void PolyLineModel::DeleteHandle(int handle_) {
 }
 
 void PolyLineModel::SwapStartEnd() {
+    if (GetModelScreenLocation().IsLocked() || IsFromBase()) return;
     screenLocation.SwapStartEnd();
 
     std::reverse(_polyLineSizes.begin(), _polyLineSizes.end());

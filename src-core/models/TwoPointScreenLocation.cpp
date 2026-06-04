@@ -601,6 +601,7 @@ bool TwoPointScreenLocation::Scale(const glm::vec3& factor) {
 }
 
 void TwoPointScreenLocation::SwapStartEnd() {
+    if (_locked) return;
     float newX = worldPos_x + x2;
     float newY = worldPos_y + y2;
     float newZ = worldPos_z + z2;

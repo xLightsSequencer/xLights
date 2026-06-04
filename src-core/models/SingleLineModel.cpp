@@ -191,6 +191,7 @@ void SingleLineModel::InitLine() {
 }
 
 void SingleLineModel::SwapStartEnd() {
+    if (GetModelScreenLocation().IsLocked() || IsFromBase()) return;
     screenLocation.SwapStartEnd();
     IncrementChangeCount();
 }

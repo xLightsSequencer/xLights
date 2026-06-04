@@ -1370,7 +1370,9 @@ std::string PolyPointScreenLocation::GetCurveDataAsString() const
 }
 
 void PolyPointScreenLocation::SwapStartEnd() {
+    if (_locked) return;
     if (num_points < 2) return;
+    std::unique_lock<std::mutex> locker(_mutex);
 
     struct SegCurve {
         bool has_curve;
