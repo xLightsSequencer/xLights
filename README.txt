@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -bug (cybercop23)            Sequencer Copy Layers/SubModels to Models now correctly copies all layers and submodels even when the source                          model is collapsed or its submodels are not expanded. Plus handle large number of submodels.
     -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation, matching the Submodels editor behavior.
 
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)

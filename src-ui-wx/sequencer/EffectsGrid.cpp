@@ -52,6 +52,7 @@
 #include "effects/VideoEffect.h"
 #include "models/Model.h"
 #include "utils/string_utils.h"
+#include "xLightsVersion.h"
 
 #include <cmath>
 #include <limits>
@@ -7785,29 +7786,68 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
     } else {
         Element* e = mSequenceElements->GetVisibleRowInformation(row_number)->element;
         mSequenceElements->UnSelectAllEffects();
-        for (int i = 0; i < (int)e->GetEffectLayerCount(); i++) {
-            e->GetEffectLayer(i)->SelectAllEffects();
-        }
         if (incSubModels) {
+            // Walk the element tree directly to build clipboard data.
             ModelElement* me = dynamic_cast<ModelElement*>(e);
             if (me == nullptr) {
-                SubModelElement* se = dynamic_cast<SubModelElement*>(e);
-                me = se->GetModelElement();
+                if (auto* se = dynamic_cast<SubModelElement*>(e)) me = se->GetModelElement();
             }
             if (me != nullptr) {
-                for (int s = 0; s < (int)me->GetSubModelCount(); ++s) {
-                    auto se = me->GetSubModel(s);
-                    if (se != nullptr) {
-                        for (int i = 0; i < (int)se->GetEffectLayerCount(); ++i) {
-                            if (se->GetEffectLayer(i)->GetEffectCount() > 0) {
-                                se->GetEffectLayer(i)->SelectAllEffects();
-                            }
+                int row = 0;
+                int numEffects = 0;
+                wxString effect_data;
+
+                // Main model layers
+                for (size_t j = 0; j < me->GetEffectLayerCount(); j++) {
+                    EffectLayer* el = me->GetEffectLayer(j);
+                    for (int x = 0; x < el->GetEffectCount(); x++) {
+                        Effect* ef = el->GetEffect(x);
+                        if (ef == nullptr) continue;
+                        effect_data += wxString(ef->GetEffectName()) + "\t" +
+                                       ef->GetSettingsAsString() + "\t" +
+                                       ef->GetPaletteAsString() + "\t" +
+                                       wxString::Format("%d\t%d\t%d\t-1000\tNO_PASTE_BY_CELL\tLAYER:%d\n",
+                                                        ef->GetStartTimeMS(), ef->GetEndTimeMS(), row, (int)j);
+                        numEffects++;
+                    }
+                    row++;
+                }
+
+                // Submodel layers
+                for (int s = 0; s < me->GetSubModelCount(); s++) {
+                    SubModelElement* se = me->GetSubModel(s);
+                    if (se == nullptr) continue;
+                    wxString smTag = wxString("\tSUBMODEL:") + se->GetName();
+                    for (size_t j = 0; j < se->GetEffectLayerCount(); j++) {
+                        EffectLayer* el = se->GetEffectLayer(j);
+                        for (int x = 0; x < el->GetEffectCount(); x++) {
+                            Effect* ef = el->GetEffect(x);
+                            if (ef == nullptr) continue;
+                            effect_data += wxString(ef->GetEffectName()) + "\t" +
+                                           ef->GetSettingsAsString() + "\t" +
+                                           ef->GetPaletteAsString() + "\t" +
+                                           wxString::Format("%d\t%d\t%d\t-1000\tNO_PASTE_BY_CELL",
+                                                            ef->GetStartTimeMS(), ef->GetEndTimeMS(), row) +
+                                           smTag + wxString::Format("\tLAYER:%d\n", (int)j);
+                            numEffects++;
                         }
+                        row++;
+                    }
+                }
+
+                if (numEffects > 0) {
+                    wxString copy_data = wxString::Format("CopyFormat1\t0\t%d\t0\t0\t-1000\tNO_PASTE_BY_CELL\tANCHOR_ROW:0\n", numEffects) +
+                                         effect_data + "END\n";
+                    if (wxTheClipboard != nullptr && wxTheClipboard->Open()) {
+                        wxTheClipboard->SetData(new wxTextDataObject(copy_data));
+                        wxTheClipboard->Close();
                     }
                 }
             }
-            ((MainSequencer*)mParent)->CopySelectedEffectsWithElementInfo();
         } else {
+            for (int i = 0; i < (int)e->GetEffectLayerCount(); i++) {
+                e->GetEffectLayer(i)->SelectAllEffects();
+            }
             ((MainSequencer*)mParent)->CopySelectedEffects();
         }
         mSequenceElements->UnSelectAllEffects();
@@ -7876,25 +7916,22 @@ void EffectsGrid::CopyModelEffectsToModels(int row_number) {
     for (const auto& sel : selections) {
         std::string target_name = sel.ToStdString();
 
-        // Re-scan visible rows each iteration since prior pastes may have changed row positions
-        int base_row = -1;
-        for (size_t r = 0; r < mSequenceElements->GetVisibleRowInformationSize(); ++r) {
-            Row_Information_Struct* tr = mSequenceElements->GetVisibleRowInformation(r);
-            if (tr && tr->element &&
-                tr->element->GetModelName() == target_name &&
-                tr->layerIndex == 0 &&
-                !tr->submodel &&
-                tr->strandIndex < 0) {
-                base_row = (int)r;
-                break;
-            }
-        }
-
-        if (base_row < 0)
+        ModelElement* target_me = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(target_name));
+        if (target_me == nullptr)
             continue;
 
-        PasteModelEffectsWithSubModelLayers(base_row);
+        PasteModelEffectsWithSubModelLayers(target_me);
     }
+
+    // Collapse submodels on all target models now that all pastes are done.
+    for (const auto& sel : selections) {
+        ModelElement* target_me = dynamic_cast<ModelElement*>(mSequenceElements->GetElement(sel.ToStdString()));
+        if (target_me != nullptr)
+            target_me->ShowStrands(false);
+    }
+    mSequenceElements->PopulateRowInformation();
+    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
+    wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
 void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
@@ -7908,7 +7945,7 @@ void EffectsGrid::PasteModelEffects(int row_number, bool allLayers) {
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
 }
 
-static bool ReadClipboardEffectData(wxArrayString& all_efdata) {
+static bool ReadClipboardEffectData(wxArrayString& all_efdata, wxString* raw_text = nullptr) {
     wxTextDataObject data;
     wxClipboard* cbd = wxClipboard::Get();
     if (!cbd || !cbd->Open())
@@ -7917,7 +7954,10 @@ static bool ReadClipboardEffectData(wxArrayString& all_efdata) {
     cbd->Close();
     if (!got)
         return false;
-    all_efdata = wxSplit(data.GetText(), '\n', wxT('\0'));
+    wxString text = data.GetText();
+    if (raw_text)
+        *raw_text = text;
+    all_efdata = wxSplit(text, '\n', wxT('\0'));
     if (all_efdata.size() < 2)
         return false;
     wxArrayString banner = wxSplit(all_efdata[0], '\t');
@@ -7995,11 +8035,25 @@ void EffectsGrid::PasteModelEffectsWithLayers(int row_number) {
 }
 
 void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
-    wxArrayString all_efdata;
-    if (!ReadClipboardEffectData(all_efdata)) {
-        PasteModelEffects(row_number, true);
+    Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row_number);
+    if (ri == nullptr || ri->element == nullptr)
         return;
+    ModelElement* me = dynamic_cast<ModelElement*>(ri->element);
+    if (me == nullptr) {
+        auto* se = dynamic_cast<SubModelElement*>(ri->element);
+        if (se != nullptr) me = se->GetModelElement();
     }
+    PasteModelEffectsWithSubModelLayers(me);
+}
+
+void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
+    if (me == nullptr)
+        return;
+
+    wxString raw_clipboard_text;
+    wxArrayString all_efdata;
+    if (!ReadClipboardEffectData(all_efdata, &raw_clipboard_text))
+        return;
 
     struct RowRange {
         int min_row = std::numeric_limits<int>::max();
@@ -8032,48 +8086,10 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
         }
     }
 
-    if (element_ranges.empty()) {
-        PasteModelEffects(row_number, true);
-        return;
-    }
-
-    // If clipboard has no SUBMODEL info, fall back to single-element paste-with-layers
-    bool hasSubModelInfo = false;
-    for (const auto& [ename, _] : element_ranges) {
-        if (!ename.empty()) {
-            hasSubModelInfo = true;
-            break;
-        }
-    }
-    if (!hasSubModelInfo) {
-        PasteModelEffectsWithLayers(row_number);
-        return;
-    }
-
-    Row_Information_Struct* row_info = mSequenceElements->GetVisibleRowInformation(row_number);
-    if (row_info == nullptr)
-        return;
-    int base_row = row_number - row_info->layerIndex;
-    Row_Information_Struct* base_row_info = mSequenceElements->GetVisibleRowInformation(base_row);
-    if (base_row_info == nullptr)
-        return;
-    Element* base_element = base_row_info->element;
-    if (base_element == nullptr)
+    if (element_ranges.empty())
         return;
 
-    ModelElement* me = dynamic_cast<ModelElement*>(base_element);
-    if (me == nullptr) {
-        auto* se = dynamic_cast<SubModelElement*>(base_element);
-        if (se != nullptr)
-            me = se->GetModelElement();
-    }
-    if (me == nullptr) {
-        PasteModelEffectsWithLayers(row_number);
-        return;
-    }
-
-    if (me->GetCollapsed())
-        me->SetCollapsed(false);
+    me->SetCollapsed(false);
     me->ShowStrands(true);
 
     xLightsApp::GetFrame()->AbortRender();
@@ -8144,8 +8160,21 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(int row_number) {
 
     mSequenceElements->PopulateRowInformation();
 
-    mDropRow = base_row;
-    ((MainSequencer*)mParent)->Paste(true);
+    // Find the model's absolute row
+    int base_abs_index = -1;
+    for (size_t r = 0; r < (size_t)mSequenceElements->GetRowInformationSize(); ++r) {
+        Row_Information_Struct* tr = mSequenceElements->GetRowInformation(r);
+        if (tr && tr->element == static_cast<Element*>(me) &&
+            tr->layerIndex == 0 && !tr->submodel && tr->strandIndex < 0) {
+            base_abs_index = tr->Index;
+            break;
+        }
+    }
+    if (base_abs_index < 0)
+        return;
+
+    mDropRow = base_abs_index - mSequenceElements->GetFirstVisibleModelRow();
+    Paste(raw_clipboard_text, xlights_version_string, true, true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
 
