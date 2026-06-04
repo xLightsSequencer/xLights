@@ -281,8 +281,10 @@ file(GLOB_RECURSE SRC_CORE
     src-core/media/Spectrogram.cpp
     src-core/media/StemSeparator.cpp
     src-core/media/TempoDetector.cpp
+    src-core/media/FFmpegVideoWriter.cpp
     src-core/media/VideoReader.cpp
     src-core/media/VideoTranscoder.cpp
+    src-core/media/VideoWriter.cpp
     src-core/media/kiss_fft/kiss_fft.c
     src-core/media/kiss_fft/tools/kiss_fftr.c
     src-core/models/*.cpp
@@ -300,6 +302,7 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp)
 elseif(APPLE)
+    list(APPEND SRC_CORE src-core/media/AVFoundationVideoWriter.cpp)
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
