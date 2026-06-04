@@ -43,6 +43,7 @@
 #include "utils/ExternalHooks.h"
 #include "media/MediaImportOptionsDialog.h"
 #include "layout/LayoutUtils.h"
+#include "layout/ViewsModelsPanel.h"
 #include "color/xlColourData.h"
 #include "utils/string_utils.h"
 #include "ai/aiBase.h"
@@ -527,6 +528,7 @@ const wxWindowID xLightsImportChannelMapDialog::ID_MNU_CLEARALL = wxNewId();
 const long xLightsImportChannelMapDialog::ID_MNU_AUTOMAPSELECTED = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_ADD_EMPTY_GROUP = wxNewId();
 const wxWindowID xLightsImportChannelMapDialog::ID_MNU_SORT_SUBMODELS_BY_NAME = wxNewId();
+const wxWindowID xLightsImportChannelMapDialog::ID_MNU_EDIT_DISPLAY_ELEMENTS = wxNewId();
 
 
 BEGIN_EVENT_TABLE(xLightsImportChannelMapDialog,wxDialog)
@@ -766,6 +768,8 @@ void xLightsImportChannelMapDialog::RightClickModels(wxDataViewEvent& event)
         mnuLayer.Append(ID_MNU_CLEARSELECTED, "Clear Selected");
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_MNU_ADD_EMPTY_GROUP, "Add Empty Group");
+        mnuLayer.AppendSeparator();
+        mnuLayer.Append(ID_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements...");
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&xLightsImportChannelMapDialog::OnPopupModels, nullptr, this);
         TreeListCtrl_Mapping->PopupMenu(&mnuLayer, event.GetPosition());
     }
@@ -797,6 +801,90 @@ void xLightsImportChannelMapDialog::OnPopupModels(wxCommandEvent& event)
         AddEmptyGroup();
     } else if (id == ID_MNU_SORT_SUBMODELS_BY_NAME) {
         _dataModel->SetSortSubmodelsByName(!_dataModel->GetSortSubmodelsByName());
+    } else if (id == ID_MNU_EDIT_DISPLAY_ELEMENTS) {
+        EditDisplayElements();
+    }
+}
+
+namespace {
+
+class ShowDisplayElementsDialog : public wxDialog {
+    ViewsModelsPanel* _panel;
+    std::function<void()> _onUpdate;
+
+public:
+    ShowDisplayElementsDialog(xLightsImportChannelMapDialog* parent, xLightsFrame* xlights,
+                               SequenceElements* seqElements, std::function<void()> onUpdate)
+        : wxDialog(parent, wxID_ANY, "Edit Display Elements",
+                   wxDefaultPosition, wxSize(700, 550),
+                   wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+        , _onUpdate(std::move(onUpdate))
+    {
+        _panel = new ViewsModelsPanel(xlights, this);
+        _panel->SetSequenceElementsModelsViews(&xlights->GetSeqData(), seqElements, xlights->GetViewsManager());
+        _panel->Initialize();
+
+        auto* mainSizer = new wxBoxSizer(wxVERTICAL);
+        mainSizer->Add(_panel, 1, wxEXPAND | wxALL, 5);
+
+        auto* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+        btnSizer->AddStretchSpacer();
+        auto* updateBtn = new wxButton(this, wxID_ANY, "Update");
+        auto* doneBtn = new wxButton(this, wxID_OK, "Done");
+        btnSizer->Add(updateBtn, 0, wxRIGHT, 5);
+        btnSizer->Add(doneBtn, 0);
+        mainSizer->Add(btnSizer, 0, wxEXPAND | wxALL, 5);
+
+        SetSizer(mainSizer);
+        Layout();
+
+        updateBtn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { _onUpdate(); });
+    }
+};
+
+} // namespace
+
+void xLightsImportChannelMapDialog::EditDisplayElements()
+{
+    std::set<std::string> snapshot;
+    for (size_t i = 0; i < _dataModel->GetChildCount(); ++i) {
+        snapshot.insert(_dataModel->GetNthChild(i)->_model);
+    }
+
+    ShowDisplayElementsDialog dlg(this, xlights, mSequenceElements, [this, &snapshot]() {
+        AddNewMasterViewItems(snapshot);
+    });
+    dlg.ShowModal();
+}
+
+void xLightsImportChannelMapDialog::AddNewMasterViewItems(std::set<std::string>& snapshot)
+{
+    int ms = static_cast<int>(_dataModel->GetChildCount());
+    bool added = false;
+
+    for (size_t i = 0; i < mSequenceElements->GetElementCount(); ++i) {
+        Element* e = mSequenceElements->GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+
+        const std::string& name = e->GetName();
+        if (snapshot.count(name)) continue;
+
+        Model* m = xlights->GetModel(name);
+        if (m == nullptr) continue;
+
+        unsigned int prevCount = _dataModel->GetChildCount();
+        AddModel(m, ms);
+
+        for (unsigned int j = prevCount; j < _dataModel->GetChildCount(); ++j) {
+            _dataModel->ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(_dataModel->GetNthChild(j)));
+        }
+
+        snapshot.insert(name);
+        added = true;
+    }
+
+    if (added) {
+        TreeListCtrl_Mapping->Refresh();
     }
 }
 

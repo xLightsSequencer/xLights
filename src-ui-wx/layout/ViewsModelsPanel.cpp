@@ -1250,7 +1250,9 @@ void ViewsModelsPanel::SelectView(const std::string& view)
     _sequenceElements->SetTimingVisibility(view);
     PopulateModels();
     ListCtrlViews->SetChecked(_sequenceElements->GetCurrentView(), true);
-    _mainViewsChoice->SetStringSelection(view);
+    if (_mainViewsChoice != nullptr) {
+        _mainViewsChoice->SetStringSelection(view);
+    }
 
     _xlFrame->DoForceSequencerRefresh();
     ValidateWindow();
@@ -1314,7 +1316,9 @@ void ViewsModelsPanel::PopulateViews()
         ListCtrlViews->SetColumnWidth(0, 30);
     }
     ListCtrlViews->SetColumnWidth(1, wxLIST_AUTOSIZE);
-    _mainViewsChoice->SetSelection(_sequenceViewManager->GetSelectedViewIndex());
+    if (_mainViewsChoice != nullptr) {
+        _mainViewsChoice->SetSelection(_sequenceViewManager->GetSelectedViewIndex());
+    }
 }
 
 void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
@@ -1326,7 +1330,9 @@ void ViewsModelsPanel::AddViewToList(const wxString& viewName, bool isChecked)
     ListCtrlViews->SetChecked(_numViews, isChecked);
     _numViews++;
 
-    _mainViewsChoice->Append(viewName);
+    if (_mainViewsChoice != nullptr) {
+        _mainViewsChoice->Append(viewName);
+    }
 }
 
 static bool IsValidViewName(const std::string& name)

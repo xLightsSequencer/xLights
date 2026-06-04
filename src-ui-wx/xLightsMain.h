@@ -1605,6 +1605,8 @@ public:
     Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
     SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
     SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
+    SequenceData& GetSeqData() { return _seqData; }
+    const SequenceData& GetSeqData() const { return _seqData; }
 
 private:
 

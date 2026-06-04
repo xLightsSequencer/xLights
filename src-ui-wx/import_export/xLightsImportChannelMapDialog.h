@@ -623,6 +623,7 @@ protected:
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
         static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
+        static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
 
 	private:
         wxString FindTab(wxString &line);
@@ -660,6 +661,8 @@ protected:
         void ClearAll();
         void ClearSelected();
         void AddEmptyGroup();
+        void EditDisplayElements();
+        void AddNewMasterViewItems(std::set<std::string>& snapshot);
         void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnPopupModels(wxCommandEvent& event);
