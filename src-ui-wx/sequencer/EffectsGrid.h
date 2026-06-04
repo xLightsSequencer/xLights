@@ -276,6 +276,8 @@ private:
     void ButtUpStretchMultipleEffects(bool right);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const;
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
+    void ResetEffectMoveDragState();
+    int SnapCursorToTimingMark(int timeMS, int x) const;
     void UpdateEffectMoveDragState(int x, int y, bool snapToTiming);
     void ApplyEffectMoveDrag();
     void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);

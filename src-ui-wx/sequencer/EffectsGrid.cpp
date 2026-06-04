@@ -1900,12 +1900,7 @@ void EffectsGrid::ClearSelection() {
     mDragStartRow = 0;
     mDragStartX = -1;
     mDragStartY = -1;
-    mEffectMoveDragging = false;
-    mEffectMoveDragThresholdExceeded = false;
-    mEffectMoveDragGroup = false;
-    mEffectMoveHasCollision = false;
-    mEffectMoveSnapshots.clear();
-    mEffectMoveAnchorEffect = nullptr;
+    ResetEffectMoveDragState();
     UnselectEffect();
     mSelectedEffect = nullptr;
     mRangeCursorRow = mRangeStartRow;
@@ -3732,11 +3727,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                 mSelectedEffect = mEffectMoveAnchorEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
             }
-            mEffectMoveDragThresholdExceeded = false;
-            mEffectMoveDragGroup = false;
-            mEffectMoveHasCollision = false;
-            mEffectMoveSnapshots.clear();
-            mEffectMoveAnchorEffect = nullptr;
+            ResetEffectMoveDragState();
         } else if (mResizing) {
             if (mEffectLayer->GetParentElement()->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (MultipleEffectsSelected()) {
@@ -6659,12 +6650,7 @@ void EffectsGrid::CancelMouseOperations() {
     mResizingMode = EFFECT_RESIZE_NO;
     mDragThresholdExceeded = false;
     mResizeEffectIndex = -1;
-    mEffectMoveDragging = false;
-    mEffectMoveDragThresholdExceeded = false;
-    mEffectMoveDragGroup = false;
-    mEffectMoveHasCollision = false;
-    mEffectMoveSnapshots.clear();
-    mEffectMoveAnchorEffect = nullptr;
+    ResetEffectMoveDragState();
     static const wxCursor s_default(wxCURSOR_DEFAULT);
     SetCursor(s_default);
     mMouseOperationsCancelled = true;
@@ -7791,6 +7777,40 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const {
     }
 }
 
+void EffectsGrid::ResetEffectMoveDragState() {
+    mEffectMoveDragging = false;
+    mEffectMoveDragThresholdExceeded = false;
+    mEffectMoveDragGroup = false;
+    mEffectMoveHasCollision = false;
+    mEffectMoveSnapshots.clear();
+    mEffectMoveAnchorEffect = nullptr;
+}
+
+int EffectsGrid::SnapCursorToTimingMark(int timeMS, int x) const {
+    if (mSequenceElements->GetSelectedTimingRow() < 0) return timeMS;
+    EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+    if (tel == nullptr || tel->GetEffectCount() == 0) return timeMS;
+    int rawTime = mTimeline->GetRawTimeMSfromPosition(x);
+    int rawTimePlus = mTimeline->GetRawTimeMSfromPosition(x + 1);
+    int steps = 2;
+    while (rawTimePlus == rawTime && steps < 11) {
+        rawTimePlus = mTimeline->GetAbsoluteTimeMSfromPosition(x + steps);
+        ++steps;
+    }
+    int snapRange = (rawTimePlus - rawTime) * (10 / (steps - 1));
+    if (snapRange == 0) snapRange = 25;
+    int t1 = -1000, t2 = 100000000;
+    Effect* te = tel->GetEffectAtTime(timeMS);
+    if (te) { t1 = te->GetStartTimeMS(); t2 = te->GetEndTimeMS(); }
+    else {
+        te = tel->GetEffectBeforeTime(timeMS); if (te) t1 = te->GetEndTimeMS();
+        te = tel->GetEffectAfterTime(timeMS);  if (te) t2 = te->GetStartTimeMS();
+    }
+    if ((timeMS - t1) <= snapRange) return t1;
+    if ((t2 - timeMS) <= snapRange) return t2;
+    return timeMS;
+}
+
 void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming) {
     static const wxCursor s_noEntry(wxCURSOR_NO_ENTRY);
     static const wxCursor s_sizing(wxCURSOR_SIZING);
@@ -7804,37 +7824,8 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming) {
     int cursorTimeMS = mTimeline->GetAbsoluteTimeMSfromPosition(x);
 
     // Snap cursor to nearest timing mark (Ctrl inverts the global snap setting, same as Resize())
-    if ((xlights->GetSnapToTimingMarks() && !snapToTiming) || (!xlights->GetSnapToTimingMarks() && snapToTiming)) {
-        if (mSequenceElements->GetSelectedTimingRow() >= 0) {
-            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
-            if (tel != nullptr && tel->GetEffectCount() > 0) {
-                int rawTime = mTimeline->GetRawTimeMSfromPosition(x);
-                int rawTimePlus = mTimeline->GetRawTimeMSfromPosition(x + 1);
-                int steps = 2;
-                while (rawTimePlus == rawTime && steps < 11) {
-                    rawTimePlus = mTimeline->GetAbsoluteTimeMSfromPosition(x + steps);
-                    ++steps;
-                }
-                int snapRange = (rawTimePlus - rawTime) * (10 / (steps - 1));
-                if (snapRange == 0) snapRange = 25;
-                int t1 = -1000, t2 = 100000000;
-                Effect* te = tel->GetEffectAtTime(cursorTimeMS);
-                if (te != nullptr) {
-                    t1 = te->GetStartTimeMS();
-                    t2 = te->GetEndTimeMS();
-                } else {
-                    te = tel->GetEffectBeforeTime(cursorTimeMS);
-                    if (te) t1 = te->GetEndTimeMS();
-                    te = tel->GetEffectAfterTime(cursorTimeMS);
-                    if (te) t2 = te->GetStartTimeMS();
-                }
-                if ((cursorTimeMS - t1) <= snapRange)
-                    cursorTimeMS = t1;
-                else if ((t2 - cursorTimeMS) <= snapRange)
-                    cursorTimeMS = t2;
-            }
-        }
-    }
+    if ((xlights->GetSnapToTimingMarks() && !snapToTiming) || (!xlights->GetSnapToTimingMarks() && snapToTiming))
+        cursorTimeMS = SnapCursorToTimingMark(cursorTimeMS, x);
 
     int anchorOrigStart = 0;
     for (auto& snap : mEffectMoveSnapshots) {
