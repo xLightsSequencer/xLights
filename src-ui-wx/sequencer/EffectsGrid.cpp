@@ -7795,7 +7795,8 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
             if (me != nullptr) {
                 int row = 0;
                 int numEffects = 0;
-                wxString effect_data;
+                std::string effect_data;
+                effect_data.reserve(64 * 1024);
 
                 // Main model layers
                 for (size_t j = 0; j < me->GetEffectLayerCount(); j++) {
@@ -7803,11 +7804,20 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                     for (int x = 0; x < el->GetEffectCount(); x++) {
                         Effect* ef = el->GetEffect(x);
                         if (ef == nullptr) continue;
-                        effect_data += wxString(ef->GetEffectName()) + "\t" +
-                                       ef->GetSettingsAsString() + "\t" +
-                                       ef->GetPaletteAsString() + "\t" +
-                                       wxString::Format("%d\t%d\t%d\t-1000\tNO_PASTE_BY_CELL\tLAYER:%d\n",
-                                                        ef->GetStartTimeMS(), ef->GetEndTimeMS(), row, (int)j);
+                        effect_data += ef->GetEffectName();
+                        effect_data += '\t';
+                        effect_data += ef->GetSettingsAsString();
+                        effect_data += '\t';
+                        effect_data += ef->GetPaletteAsString();
+                        effect_data += '\t';
+                        effect_data += std::to_string(ef->GetStartTimeMS());
+                        effect_data += '\t';
+                        effect_data += std::to_string(ef->GetEndTimeMS());
+                        effect_data += '\t';
+                        effect_data += std::to_string(row);
+                        effect_data += "\t-1000\tNO_PASTE_BY_CELL\tLAYER:";
+                        effect_data += std::to_string((int)j);
+                        effect_data += '\n';
                         numEffects++;
                     }
                     row++;
@@ -7817,18 +7827,28 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                 for (int s = 0; s < me->GetSubModelCount(); s++) {
                     SubModelElement* se = me->GetSubModel(s);
                     if (se == nullptr) continue;
-                    wxString smTag = wxString("\tSUBMODEL:") + se->GetName();
+                    std::string smTag = "\tSUBMODEL:" + se->GetName();
                     for (size_t j = 0; j < se->GetEffectLayerCount(); j++) {
                         EffectLayer* el = se->GetEffectLayer(j);
                         for (int x = 0; x < el->GetEffectCount(); x++) {
                             Effect* ef = el->GetEffect(x);
                             if (ef == nullptr) continue;
-                            effect_data += wxString(ef->GetEffectName()) + "\t" +
-                                           ef->GetSettingsAsString() + "\t" +
-                                           ef->GetPaletteAsString() + "\t" +
-                                           wxString::Format("%d\t%d\t%d\t-1000\tNO_PASTE_BY_CELL",
-                                                            ef->GetStartTimeMS(), ef->GetEndTimeMS(), row) +
-                                           smTag + wxString::Format("\tLAYER:%d\n", (int)j);
+                            effect_data += ef->GetEffectName();
+                            effect_data += '\t';
+                            effect_data += ef->GetSettingsAsString();
+                            effect_data += '\t';
+                            effect_data += ef->GetPaletteAsString();
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetStartTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(ef->GetEndTimeMS());
+                            effect_data += '\t';
+                            effect_data += std::to_string(row);
+                            effect_data += "\t-1000\tNO_PASTE_BY_CELL";
+                            effect_data += smTag;
+                            effect_data += "\tLAYER:";
+                            effect_data += std::to_string((int)j);
+                            effect_data += '\n';
                             numEffects++;
                         }
                         row++;
@@ -7836,10 +7856,13 @@ void EffectsGrid::CopyModelEffects(int row_number, bool allLayers, bool incSubMo
                 }
 
                 if (numEffects > 0) {
-                    wxString copy_data = wxString::Format("CopyFormat1\t0\t%d\t0\t0\t-1000\tNO_PASTE_BY_CELL\tANCHOR_ROW:0\n", numEffects) +
-                                         effect_data + "END\n";
+                    std::string copy_data = "CopyFormat1\t0\t";
+                    copy_data += std::to_string(numEffects);
+                    copy_data += "\t0\t0\t-1000\tNO_PASTE_BY_CELL\tANCHOR_ROW:0\n";
+                    copy_data += effect_data;
+                    copy_data += "END\n";
                     if (wxTheClipboard != nullptr && wxTheClipboard->Open()) {
-                        wxTheClipboard->SetData(new wxTextDataObject(copy_data));
+                        wxTheClipboard->SetData(new wxTextDataObject(wxString(copy_data)));
                         wxTheClipboard->Close();
                     }
                 }
@@ -8177,9 +8200,6 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
     Paste(raw_clipboard_text, xlights_version_string, true, true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
-
-    wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
-    wxPostEvent(GetParent(), eventRowHeaderChanged);
 }
 
 void EffectsGrid::DuplicateSelectedEffects() {
