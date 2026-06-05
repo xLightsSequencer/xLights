@@ -600,6 +600,19 @@ bool TwoPointScreenLocation::Scale(const glm::vec3& factor) {
     return true;
 }
 
+void TwoPointScreenLocation::SwapStartEnd() {
+    if (_locked) return;
+    float newX = worldPos_x + x2;
+    float newY = worldPos_y + y2;
+    float newZ = worldPos_z + z2;
+    x2 = -x2;
+    y2 = -y2;
+    z2 = -z2;
+    worldPos_x = newX;
+    worldPos_y = newY;
+    worldPos_z = newZ;
+}
+
 void TwoPointScreenLocation::UpdateBoundingBox(const std::vector<NodeBaseClassPtr> &Nodes)
 {
     aabb_min = glm::vec3(0.0f, -BB_OFF, -BB_OFF);

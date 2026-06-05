@@ -30,6 +30,8 @@ class SingleLineModel : public ModelWithScreenLocation<TwoPointScreenLocation>
         using Model::NodesPerString; // bring NodesPerString(int) into scope
         virtual bool SupportsExportAsCustom() const override { return true; }
         virtual bool SupportsWiringView() const override { return false; }
+        virtual bool SupportsSwapStartEnd() const override { return true; }
+        virtual void SwapStartEnd() override;
 
         void Accept(BaseObjectVisitor& visitor) const override { return visitor.Visit(*this); }
 
