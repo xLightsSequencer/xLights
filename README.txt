@@ -12,16 +12,23 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
+    -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
+                                command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
     -enh (charlie)              Song Structure Regions: divide the sequencer timeline into named, colored sections
                                 (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
-    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port
+    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
+    -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
     -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
-    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
     -enh (cybercop23)            Add Cycles parameter (1-10) to Custom value curves to allow replication
+    -enh (derwin12)              Add right click to swap start/end nodes (#5450)
+    -enh (cybercob23)            In sequence import, add right click option to sort submodels within a model (#4636)
+    -enh (agfazio)               Add drag/drop effects in sequencer
+    -enh (derwin12)              Clean up MH UI to show and refresh the presets on all the panels
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
     -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
                                  abstraction, using AVFoundation on macOS where possible (incl. bit-exact
@@ -36,11 +43,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
+    -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
     -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
     -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
+    -bug (cybercop23)            Prompt before exiting a changed faces/states window (#6470)
     -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
                                  (div-by-zero produced NaN paint coordinates).
     -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
