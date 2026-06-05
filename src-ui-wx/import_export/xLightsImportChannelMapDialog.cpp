@@ -2127,8 +2127,11 @@ void xLightsImportChannelMapDialog::LoadJSONMapping(wxString const& filename, bo
         // Stacked entries: re-insert as a stacked duplicate below the last matching item
         if (stacked && !mapping.empty()) {
             wxDataViewItem baseItem = FindLastItem(model, strand, node);
-            if (baseItem.IsOk())
+            if (baseItem.IsOk()) {
                 InsertStackDuplicate(baseItem, mapping.ToStdString(), findModelType(mapping.ToStdString()));
+            } else {
+                _stashedMappings.emplace_back(new StashedMapping(model, strand, node, mapping, color));
+            }
             continue;
         }
 

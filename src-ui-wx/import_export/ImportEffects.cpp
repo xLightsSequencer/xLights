@@ -386,10 +386,10 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             }
 
             if (target == nullptr) {
-                target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), false, false, false));
+                target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName(), "timing", true, tel->GetCollapsed(), tel->GetActive(), false, false));
                 char cnt = '1';
                 while (target == nullptr) {
-                    target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), false, false, false));
+                    target = static_cast<TimingElement*>(_sequenceElements.AddElement(tel->GetName() + "-" + cnt++, "timing", true, tel->GetCollapsed(), tel->GetActive(), false, false));
                 }
             }
 
@@ -2847,8 +2847,6 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
 
 void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting, int startLayer = 0)
 {
-    static
-
     int layer = startLayer;
     if (LPEHasEffects(input_xml, mapping, 0, true)) {
         if ((int)model->GetEffectLayerCount() < layer + 1)
