@@ -339,6 +339,14 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
     } else {
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+        if (ri != nullptr && ri->element != nullptr && ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
+            return;
+        }
+
         // Double-clicked on empty cell -> show the circular effect wheel!
         int startTime = selectedTimeMS;
         int endTime = selectedTimeMS + 1000; // default 1 second
