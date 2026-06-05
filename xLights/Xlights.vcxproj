@@ -796,6 +796,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\WaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -1394,6 +1395,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\WaveEffect.h" />
     <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />

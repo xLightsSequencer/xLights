@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\src-ui-wx\import_export\ExportEffects.cpp" />
@@ -55,6 +55,7 @@
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsPanel.cpp" />
     <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -1418,6 +1419,7 @@
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsPanel.h" />
     <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />

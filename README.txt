@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
     -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)

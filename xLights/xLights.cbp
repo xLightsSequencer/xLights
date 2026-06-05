@@ -327,6 +327,8 @@
 		<Unit filename="../src-core/effects/EffectPresetManager.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/EmailDialog.cpp" />

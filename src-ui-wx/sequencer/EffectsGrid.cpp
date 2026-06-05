@@ -26,6 +26,8 @@
 #include "render/EffectLayer.h"
 #include "sequencer/EffectTimingDialog.h"
 #include "EffectsGrid.h"
+#include "EffectWheelDialog.h"
+#include "BufferPanel.h"
 #include "lyrics/LyricBreakdown.h"
 #include "MainSequencer.h"
 #include "render/PixelBuffer.h"
@@ -335,8 +337,60 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
     } else {
-        if (update_time > -1) {
-            UpdateTimePosition(update_time);
+        // Double-clicked on empty cell -> show the circular effect wheel!
+        int startTime = selectedTimeMS;
+        int endTime = selectedTimeMS + 1000; // default 1 second
+
+        // A. If a cell range is selected, and double-click was within it, use that range
+        if (mCellRangeSelected && row >= GetStartRow() && row <= GetEndRow() &&
+            selectedTimeMS >= GetMSFromColumn(GetStartColumn()) && selectedTimeMS <= GetMSFromColumn(GetEndColumn())) {
+            startTime = GetMSFromColumn(GetStartColumn());
+            endTime = GetMSFromColumn(GetEndColumn());
+        }
+        // B. Snapping to timing marks
+        else if (mSequenceElements->GetSelectedTimingRow() >= 0) {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel != nullptr) {
+                Effect* te = tel->GetEffectAtTime(selectedTimeMS);
+                if (te != nullptr) {
+                    startTime = te->GetStartTimeMS();
+                    endTime = te->GetEndTimeMS();
+                }
+            }
+        }
+
+        // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        std::vector<const KeyBinding*> effectBindings;
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
+        if (ms != nullptr) {
+            for (const auto& kb : ms->keyBindings.GetBindings()) {
+                if (!kb.IsDisabled() && kb.GetType() == "EFFECT" && kb.InScope(KBSCOPE::Sequence)) {
+                    effectBindings.push_back(&kb);
+                    if (effectBindings.size() >= 18) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        bool effectDropped = false;
+        if (!effectBindings.empty()) {
+            EffectWheelDialog dlg(this, effectBindings);
+            dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
+            if (dlg.ShowModal() == wxID_OK) {
+                const KeyBinding* selectedKb = dlg.GetSelectedKeyBinding();
+                if (selectedKb != nullptr) {
+                    DropEffectAt(row, selectedKb->GetEffectName(), selectedKb->GetEffectString(), selectedKb->GetEffectDataVersion(), startTime, endTime);
+                    effectDropped = true;
+                }
+            }
+        }
+
+        if (!effectDropped) {
+            // Fallback to updating the playhead if no effect was dropped or no keybindings are configured
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
         }
     }
 }
@@ -1819,6 +1873,57 @@ void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectNam
     wxCommandEvent eventDropped(EVT_EFFECTFILE_DROPPED);
     eventDropped.SetString(effectName + "|" + filename);
     wxPostEvent(GetParent(), eventDropped);
+}
+
+void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std::string& effectSettings, const std::string& effectVersion, int startTime, int endTime) {
+    if (row < 0 || row >= (int)mSequenceElements->GetVisibleRowInformationSize()) return;
+
+    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+    if (el == nullptr || el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) return;
+
+    xlights->UnselectEffect();
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    el->SelectEffectsInTimeRange(startTime, endTime);
+    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+
+    Effect* effect = el->AddEffect(0, effectName, effectSettings, "", startTime, endTime, EFFECT_SELECTED, false);
+
+    if (effect != nullptr) {
+        if (xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
+            xlights->GetEffectManager().GetEffect(effectName)->needToAdjustSettings(effectVersion)) {
+            xlights->GetEffectManager().GetEffect(effectName)->adjustSettings(effectVersion, effect, false);
+        }
+
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
+        
+        mDropRow = row;
+        ProcessDroppedEffect(effect);
+
+        if (xlights->GetBufferPanel() != nullptr) {
+            Model* modelFull = xlights->AllModels[el->GetParentElement()->GetFullName()];
+            Model* modelName = xlights->AllModels[el->GetParentElement()->GetModelName()];
+            if (modelFull != nullptr) {
+                xlights->GetBufferPanel()->UpdateBufferStyles(modelFull);
+            }
+            if (modelName != nullptr) {
+                xlights->GetBufferPanel()->UpdateCamera(modelName);
+            }
+        }
+
+        if (!xlights->IsRenderSuspended()) {
+            xlights->RenderEffectForModel(el->GetParentElement()->GetModelName(), startTime, endTime);
+        }
+
+        xlights->SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                  effect->GetEffectName(), effect->GetSettings(),
+                                  effect->GetPaletteMap(), effect->GetStartTimeMS(),
+                                  effect->GetEndTimeMS(), false);
+    }
+
+    xlights->GetMainSequencer()->PanelRowHeadings->Refresh(false);
+    xlights->GetMainSequencer()->PanelEffectGrid->Refresh(false);
 }
 
 int MapHitLocationToEffectSelection(HitLocation location) {
