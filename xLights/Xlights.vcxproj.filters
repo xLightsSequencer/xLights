@@ -713,6 +713,8 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp">
       <Filter>render</Filter>
     </ClCompile>
