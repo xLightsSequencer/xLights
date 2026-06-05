@@ -82,7 +82,7 @@ wxString locationSortCol = "ip";
 class FppSeqClientData : public wxClientData {
 public:
     FppSeqClientData(const wxString& path) : m_path(path) {}
-    wxString GetPath() const { return m_path; }
+    const wxString& GetPath() const { return m_path; }
 private:
     wxString m_path;
 };
@@ -311,11 +311,20 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
 
 wxString FPPConnectDialog::GetItemPath(wxTreeListItem item) const {
     if (item.IsOk()) {
-        auto* data = static_cast<FppSeqClientData*>(CheckListBox_Sequences->GetItemData(item));
+        auto* clientData = CheckListBox_Sequences->GetItemData(item);
+        auto* data = dynamic_cast<FppSeqClientData*>(clientData);
         if (data) {
             return data->GetPath();
         }
-        return CheckListBox_Sequences->GetItemText(item);
+        wxString text = CheckListBox_Sequences->GetItemText(item);
+#ifdef __WXMAC__
+        // If there's no client data, strip prefix (either tag + space or EM space + space)
+        int firstSpace = text.Find(' ');
+        if (firstSpace != wxNOT_FOUND && firstSpace <= 3) {
+            return text.Mid(firstSpace + 1);
+        }
+#endif
+        return text;
     }
     return "";
 }
@@ -330,7 +339,7 @@ wxString FPPConnectDialog::GetSequenceTagEmoji(const wxString& xsqPath, const wx
         return ToWXString(tag) + " ";
     }
     // Return an EM space (U+2003) followed by a normal space to align untagged items
-    return wxString::FromUTF8("\xE2\x80\x83 ");
+    return wxString(wxUniChar(0x2003)) + " ";
 #endif
     return "";
 }
