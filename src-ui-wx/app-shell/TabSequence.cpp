@@ -2427,7 +2427,13 @@ void xLightsFrame::ExportAllSongRegions() {
             safeName = wxString::Format("region_%zu", i + 1);
         }
 
-        wxString outputPath = outputDir + wxFileName::GetPathSeparator() + safeName + ".xsq";
+        wxFileName outFile(outputDir, safeName + ".xsq");
+        int suffix = 2;
+        while (outFile.FileExists()) {
+            outFile.SetName(safeName + wxString::Format("_%d", suffix++));
+        }
+
+        wxString outputPath = outFile.GetFullPath();
 
         progress.Update(exported, wxString::Format("Exporting: %s", wxString::FromUTF8(region.name)));
         if (progress.WasCancelled()) {
