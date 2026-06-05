@@ -137,11 +137,10 @@ std::string GetSFSymbolForEffect(const std::string& effectName)
 // Hash-based color generation matching the native rebuild approach
 wxColour GetColorForEffect(const std::string& effectName)
 {
-    int hash = 0;
+    unsigned int hash = 0;
     for (char c : effectName) {
-        hash = hash * 31 + static_cast<int>(c);
+        hash = hash * 31u + static_cast<unsigned char>(c);
     }
-    hash = std::abs(hash);
 
     double hue = (hash % 360) / 360.0;
     double sat = 0.7;
