@@ -36,6 +36,7 @@
 
 inline bool ObtainAccessToURL(const std::string &path, bool enforceWritable = false) { return true; }
 inline bool IsFromAppStore() { return false; }
+inline std::string GetFileTagEmoji(const std::string &path) { return ""; }
 
 inline bool FileExists(const std::string &s, bool waitForDownload = true) {
     std::error_code ec;

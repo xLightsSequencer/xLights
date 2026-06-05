@@ -79,6 +79,14 @@ wxString locationSortCol = "ip";
 #define SORT_SEQ_TIME_COL 1
 #define SORT_SEQ_MEDIA_COL 2
 
+class FppSeqClientData : public wxClientData {
+public:
+    FppSeqClientData(const wxString& path) : m_path(path) {}
+    wxString GetPath() const { return m_path; }
+private:
+    wxString m_path;
+};
+
 BEGIN_EVENT_TABLE(FPPConnectDialog,wxDialog)
 	//(*EventTable(FPPConnectDialog)
 	//*)
@@ -299,6 +307,32 @@ FPPConnectDialog::FPPConnectDialog(wxWindow* parent, OutputManager* outputManage
     Layout();
 
     UpdateSeqCount();
+}
+
+wxString FPPConnectDialog::GetItemPath(wxTreeListItem item) const {
+    if (item.IsOk()) {
+        auto* data = static_cast<FppSeqClientData*>(CheckListBox_Sequences->GetItemData(item));
+        if (data) {
+            return data->GetPath();
+        }
+        return CheckListBox_Sequences->GetItemText(item);
+    }
+    return "";
+}
+
+wxString FPPConnectDialog::GetSequenceTagEmoji(const wxString& xsqPath, const wxString& fseqPath) const {
+#ifdef __WXMAC__
+    std::string tag = GetFileTagEmoji(ToUTF8(xsqPath));
+    if (tag.empty() && !fseqPath.empty()) {
+        tag = GetFileTagEmoji(ToUTF8(fseqPath));
+    }
+    if (!tag.empty()) {
+        return ToWXString(tag) + " ";
+    }
+    // Return an EM space (U+2003) followed by a normal space to align untagged items
+    return wxString::FromUTF8("\xE2\x80\x83 ");
+#endif
+    return "";
 }
 
 void FPPConnectDialog::UpdateSeqCount()
@@ -800,7 +834,7 @@ void FPPConnectDialog::SequenceSelector(const std::string regexKey) {
             auto const& fseqName = fseqFile.GetFullPath();
             auto item = CheckListBox_Sequences->GetFirstItem();
             while (item.IsOk()) {
-                if (CheckListBox_Sequences->GetItemText(item) == fseqName) {
+                if (GetItemPath(item) == fseqName) {
                     CheckListBox_Sequences->CheckItem(item);
                     break;
                 }
@@ -905,14 +939,15 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
 
                 bool found = false;
                 for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
-                    if (fseqName == CheckListBox_Sequences->GetItemText(item)) {
+                    if (fseqName == GetItemPath(item)) {
                         found = true;
                     }
                 }
 
                 if (!found) {
+                    wxString tag = GetSequenceTagEmoji(filename, fseqName);
                     wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
-                        fseqName);
+                        tag + fseqName, -1, -1, new FppSeqClientData(fseqName));
 
                     DisplayDateModified(fseqName, item);
                     if (mediaName != "") {
@@ -936,14 +971,15 @@ void FPPConnectDialog::LoadSequencesFromFolder(wxString const& dir) const
         // The eseq may already be in the list
         bool found = false;
         for (auto item = CheckListBox_Sequences->GetFirstItem(); !found && item.IsOk(); item = CheckListBox_Sequences->GetNextItem(item)) {
-            if (filename == CheckListBox_Sequences->GetItemText(item)) {
+            if (filename == GetItemPath(item)) {
                 found = true;
             }
         }
 
         if (!found) {
+            wxString tag = GetSequenceTagEmoji(filename, filename);
             wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
-                                                                        filename);
+                                                                        tag + filename, -1, -1, new FppSeqClientData(filename));
 
             DisplayDateModified(filename, item);
             DisplayPixelCount(filename, item);
@@ -989,13 +1025,15 @@ void FPPConnectDialog::LoadSequences()
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
         bool found = false;
         while (item.IsOk()) {
-            if (v == CheckListBox_Sequences->GetItemText(item)) {
+            if (v == GetItemPath(item)) {
                 found = true;
             }
             item = CheckListBox_Sequences->GetNextItem(item);
         }
         if (!found && FileExists(v)) {
-            wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(), v);
+            wxString tag = GetSequenceTagEmoji("", v);
+            wxTreeListItem item = CheckListBox_Sequences->AppendItem(CheckListBox_Sequences->GetRootItem(),
+                                                                        tag + v, -1, -1, new FppSeqClientData(v));
             DisplayDateModified(v, item);
             DisplayPixelCount(v, item);
             try {
@@ -1025,7 +1063,7 @@ void FPPConnectDialog::LoadSequences()
         }
         wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
         while (item.IsOk()) {
-            if (curSeq == CheckListBox_Sequences->GetItemText(item)) {
+            if (curSeq == GetItemPath(item)) {
                 CheckListBox_Sequences->CheckItem(item);
                 break;
             }
@@ -1042,7 +1080,7 @@ void FPPConnectDialog::LoadSequences()
 
             wxTreeListItem item = CheckListBox_Sequences->GetFirstItem();
             while (item.IsOk()) {
-                if (savedUploadItems.Index(CheckListBox_Sequences->GetItemText(item)) != wxNOT_FOUND) {
+                if (savedUploadItems.Index(GetItemPath(item)) != wxNOT_FOUND) {
                     CheckListBox_Sequences->CheckItem(item);
                 }
                 item = CheckListBox_Sequences->GetNextItem(item);
@@ -1222,7 +1260,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 inst->updateProgress(0, true);
             }
             seqCountUploaded++;
-            wxString fseqRaw = CheckListBox_Sequences->GetItemText(item);
+            wxString fseqRaw = GetItemPath(item);
             std::string fseq = ToUTF8(fseqRaw);
             std::string media = ToUTF8(CheckListBox_Sequences->GetItemText(item, 2));
 
@@ -1551,7 +1589,7 @@ void FPPConnectDialog::SaveSettings(bool onlyInsts)
                 if (selected != "") {
                     selected += ",";
                 }
-                selected += CheckListBox_Sequences->GetItemText(item);
+                selected += GetItemPath(item);
             }
             item = CheckListBox_Sequences->GetNextItem(item);
         }

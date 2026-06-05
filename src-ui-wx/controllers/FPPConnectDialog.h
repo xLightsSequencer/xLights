@@ -103,6 +103,8 @@ class FPPConnectDialog: public wxDialog
 
         void LoadSequencesFromFolder(wxString const& dir) const;
         void LoadSequences();
+        wxString GetSequenceTagEmoji(const wxString& xsqPath, const wxString& fseqPath) const;
+        wxString GetItemPath(wxTreeListItem item) const;
         void PopulateFPPInstanceList(wxProgressDialog *prgs = nullptr);
         void AddInstanceRow(const FPP &inst);
         wxPanel *AddInstanceHeader(const std::string &h, const std::string &tt = std::string());
