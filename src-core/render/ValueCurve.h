@@ -86,6 +86,7 @@ public:
 class ValueCurve
 {
     std::list<vcSortablePoint> _values;
+    std::list<vcSortablePoint> _baseCustomValues;
     std::string _type;
     std::string _id;
     std::string _timingTrack;
@@ -132,6 +133,7 @@ public:
     static void SetSequenceElements(SequenceElements* se) { __sequenceElements = se; }
     static SequenceElements* GetSequenceElements() { return __sequenceElements; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
+    std::vector<double> GetTimingMarkOffsets(long startMS, long endMS) const;
 
     void SetAudioTrack(const std::string& name) { _audioTrackName = name; }
     std::string GetAudioTrack() const { return _audioTrackName; }
@@ -213,4 +215,5 @@ public:
     void Flip();
     void ConvertDivider(int oldDivider, int newDivider);
     void ScaleAndOffsetValues(float scale, int offset);
+    void ReconstructBaseCustomValues();
 };
