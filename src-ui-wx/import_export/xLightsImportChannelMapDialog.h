@@ -14,6 +14,7 @@
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/dataview.h>
+#include <wx/bmpbuttn.h>
 
 //(*Headers(xLightsImportChannelMapDialog)
 #include <wx/button.h>
