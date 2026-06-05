@@ -12,6 +12,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
+    -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
+                                command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
     -enh (charlie)              Song Structure Regions: divide the sequencer timeline into named, colored sections
                                 (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
@@ -290,8 +293,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -change (dkulp)             Render engine cleanup: removed the main-thread effect render queue and all the
                                 wx CallAfter / drain plumbing that supported it. No effect now needs main-thread
                                 dispatch.
-    -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
-                                command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
 
 2026.07  April 28, 2026
     -enh (MrPierreB)            Add node animation playback to SubModels dialog.
