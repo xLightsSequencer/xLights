@@ -68,6 +68,8 @@
 #define EFFECT_RESIZE_MOVE 3
 #define EFFECT_RESIZE_LEFT_EDGE 4
 #define EFFECT_RESIZE_RIGHT_EDGE 5
+#define EFFECT_RESIZE_FADE_IN 6
+#define EFFECT_RESIZE_FADE_OUT 7
 #define TIMING_ALPHA (0x60)
 #define DRAG_THRESHOLD 3
 
@@ -1758,6 +1760,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     bool out_of_bounds = rowIndex < 0 || (rowIndex >= (int)mSequenceElements->GetVisibleRowInformationSize());
 
     if (mResizing) {
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
         // Resize() will check threshold for MOVE operations internally
         // For edge resizing, Resize() allows immediate response
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
@@ -1955,10 +1959,12 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     case HitLocation::LEFT:
     case HitLocation::LEFT_EDGE:
     case HitLocation::LEFT_EDGE_DISCONNECT:
+    case HitLocation::FADE_IN_HANDLE:
         return EFFECT_LT_SELECTED;
     case HitLocation::RIGHT:
     case HitLocation::RIGHT_EDGE:
     case HitLocation::RIGHT_EDGE_DISCONNECT:
+    case HitLocation::FADE_OUT_HANDLE:
         return EFFECT_RT_SELECTED;
     case HitLocation::CENTER:
         return EFFECT_SELECTED;
@@ -1966,7 +1972,7 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     return EFFECT_NOT_SELECTED;
 }
 
-Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType) {
+Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType, int y) {
     
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
@@ -1985,7 +1991,25 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
 
         if (effectLayer->IsFixedTimingLayer()) {
             selectionType = HitLocation::NONE;
-        } else if (!eff->IsLocked()) {
+        } else {
+            double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+            int durationMS = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+
+            bool checkFadeIn = (fadeInTime > 0.0 && durationMS > 0);
+            bool checkFadeOut = (fadeOutTime > 0.0 && durationMS > 0);
+
+            int inTransitionEnd = startPos + (int)(std::min(fadeInTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            int outTransitionStart = endPos - (int)(std::min(fadeOutTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+
+            int yRowTop = row * DEFAULT_ROW_HEADING_HEIGHT;
+            bool yNearTop = (y != -1 && abs(y - (yRowTop + 4)) <= 6);
+
+            if (!eff->IsLocked() && yNearTop && checkFadeIn && abs(position - inTransitionEnd) <= 6) {
+                selectionType = HitLocation::FADE_IN_HANDLE;
+            } else if (!eff->IsLocked() && yNearTop && checkFadeOut && abs(position - outTransitionStart) <= 6) {
+                selectionType = HitLocation::FADE_OUT_HANDLE;
+            } else if (!eff->IsLocked()) {
             if ((endPos - startPos) < 8) {
                 // too small to really differentiate, just
                 // provide ability to make the effect larger
@@ -2013,6 +2037,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
             selectionType = HitLocation::CENTER;
         }
     }
+}
     return eff;
 }
 
@@ -2072,7 +2097,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     int effectIndex;
     HitLocation selectionType;
     int time = mTimeline->GetRawTimeMSfromPosition(event.GetX());
-    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType);
+    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType, event.GetY());
     bool wasSelectedForGroupDrag = (selectedEffect != nullptr &&
                                     selectedEffect->GetSelected() != EFFECT_NOT_SELECTED &&
                                     selectionType == HitLocation::CENTER &&
@@ -2086,6 +2111,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::LEFT_EDGE:
         case HitLocation::LEFT_EDGE_DISCONNECT:
+        case HitLocation::FADE_IN_HANDLE:
             selectedTimeMS = selectedEffect->GetStartTimeMS();
             break;
         case HitLocation::LEFT:
@@ -2100,6 +2126,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::RIGHT_EDGE:
         case HitLocation::RIGHT_EDGE_DISCONNECT:
+        case HitLocation::FADE_OUT_HANDLE:
             selectedTimeMS = selectedEffect->GetEndTimeMS();
             break;
         }
@@ -2197,6 +2224,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 mResizing = true;
                 mDragThresholdExceeded = false;
                 mResizeEffectIndex = effectIndex;
+                mDragEndX = event.GetX();
+                mDragEndY = event.GetY();
                 CaptureMouse();
                 Draw();
             }
@@ -3924,6 +3953,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                             sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                         }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
+                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+                            RaiseSelectedEffectChanged(effect, false);
+                        }
                     }
                 }
             }
@@ -4109,6 +4141,18 @@ void EffectsGrid::Resize(int position, bool offset, bool control) {
                 }
             }
         }
+    }
+
+    if ((wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) && mResizingMode != EFFECT_RESIZE_MOVE && mResizingMode != EFFECT_RESIZE_NO) {
+        if (new_time != -1) {
+            ResizeSingleEffectMS(new_time);
+        } else {
+            ResizeSingleEffect(position);
+        }
+        if (mSequenceElements->get_undo_mgr().ChangeCaptured()) {
+            mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+        }
+        return;
     }
 
     if (new_time != -1) {
@@ -6492,6 +6536,28 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
         return;
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
+
+    if (wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+        if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
+            mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), effect);
+            mStartFadeInSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            mStartFadeOutSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        }
+        int durationMS = effect->GetEndTimeMS() - effect->GetStartTimeMS();
+        if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_IN) {
+            double deltaSec = (double)(time - mStartResizeTimeMS) / 1000.0;
+            double newFadeInSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeInSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadein", wxString::Format("%.2f", newFadeInSec).ToStdString());
+        } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+            double deltaSec = (double)(mStartResizeTimeMS - time) / 1000.0;
+            double newFadeOutSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeOutSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadeout", wxString::Format("%.2f", newFadeOutSec).ToStdString());
+        }
+        SetEffectStatusText(effect);
+        Draw();
+        return;
+    }
+
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
@@ -6581,13 +6647,21 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
 
     int time = mTimeline->GetRawTimeMSfromPosition(x);
     HitLocation selectionType = HitLocation::NONE;
-    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType);
+    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType, y);
     if (eff != nullptr) {
         mResizeEffectIndex = effectIndex;
         switch (selectionType) {
         case HitLocation::NONE:
             SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
+            break;
+        case HitLocation::FADE_IN_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_IN;
+            break;
+        case HitLocation::FADE_OUT_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_OUT;
             break;
         case HitLocation::LEFT_EDGE_DISCONNECT:
             SetCursor(s_pointLeft);
@@ -6676,11 +6750,22 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const {
 
         wxString disabledStr = eff->IsEffectRenderDisabled() ? "DISABLED" : "";
 
-        wxString e = wxString::Format("start: %s end: %s duration: %s%s %s %s %s",
+        wxString fadeInfo = "";
+        double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+        double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        if (fadeInTime > 0) {
+            fadeInfo += wxString::Format(" fadein: %.2fs", fadeInTime);
+        }
+        if (fadeOutTime > 0) {
+            fadeInfo += wxString::Format(" fadeout: %.2fs", fadeOutTime);
+        }
+
+        wxString e = wxString::Format("start: %s end: %s duration: %s%s%s %s %s %s",
                                       FORMATTIME(eff->GetStartTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()),
                                       columnInfo,
+                                      fadeInfo,
                                       eff->GetEffectName(),
                                       eff->GetDescription(),
                                       disabledStr);
@@ -7420,6 +7505,31 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVer
         backgrounds->AddRectAsTriangles(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
         backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
+
+    int centerY = y1 + 2;
+    auto drawDiamond = [&](int cx, int cy, int size, const xlColor& color) {
+        int szBorder = size + 1;
+        backgrounds->AddVertex(cx, cy - szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx, cy + szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+
+        backgrounds->AddVertex(cx, cy - size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+        backgrounds->AddVertex(cx, cy + size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+    };
+
+    if (inTransitionEnd > 0) {
+        drawDiamond(inTransitionEnd, centerY, 4, xlGREEN);
+    }
+    if (outTransitionStart > 0) {
+        drawDiamond(outTransitionStart, centerY, 4, xlRED);
+    }
 }
 
 void EffectsGrid::DrawTimingEffects(int row) {
@@ -7653,6 +7763,8 @@ void EffectsGrid::Draw() {
             ctx->drawLines(va, xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES));
             delete va;
         }
+
+
     }
     FinishDrawing(ctx);
 }
