@@ -497,35 +497,43 @@ void ValueCurveDialog::SetSliderMinMax() {
     if (min == MINVOID) {
         Slider_Parameter1->SetMin(_vc->GetMin());
         Slider_Parameter1->SetMax(_vc->GetMax());
+        Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
     } else {
         Slider_Parameter1->SetMin(min);
         Slider_Parameter1->SetMax(max);
+        Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
     }
 
     ValueCurve::GetRangeParm2(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter2->SetMin(_vc->GetMin());
         Slider_Parameter2->SetMax(_vc->GetMax());
+        Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
     } else {
         Slider_Parameter2->SetMin(min);
         Slider_Parameter2->SetMax(max);
+        Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
     }
 
     ValueCurve::GetRangeParm3(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter3->SetMin(_vc->GetMin());
         Slider_Parameter3->SetMax(_vc->GetMax());
+        Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
     } else {
         Slider_Parameter3->SetMin(min);
         Slider_Parameter3->SetMax(max);
+        Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
     }
     ValueCurve::GetRangeParm4(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter4->SetMin(_vc->GetMin());
         Slider_Parameter4->SetMax(_vc->GetMax());
+        Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
     } else {
         Slider_Parameter4->SetMin(min);
         Slider_Parameter4->SetMax(max);
+        Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
     }
 }
 
@@ -658,6 +666,7 @@ void ValueCurveDialog::OnChoice1Select(wxCommandEvent& event) {
         SetParameter100(3, 1);
         SetParameter100(4, 0);
     } else if (type == "Custom") {
+        SetParameter(1, 1.0f);
         // If there are no points add some
         if (_vc->GetPoints().size() == 0) {
             _vc->SetValueAt(0.0, 0.5);
@@ -705,7 +714,7 @@ float ValueCurvePanel::ToNormalised(float y) {
 }
 
 void ValueCurvePanel::mouseLeftDClick(wxMouseEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
         float x, y;
         Convert(x, y, event);
 
@@ -726,7 +735,7 @@ void ValueCurvePanel::mouseLeftDClick(wxMouseEvent& event) {
     }
 }
 void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
         float x, y;
         Convert(x, y, event);
         _grabbedPoint = x;
@@ -746,13 +755,13 @@ void ValueCurvePanel::mouseLeftDown(wxMouseEvent& event) {
     }
 }
 void ValueCurvePanel::mouseCaptureLost(wxMouseCaptureLostEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
         // lets not do anything
     }
     Refresh();
 }
 void ValueCurvePanel::mouseLeftUp(wxMouseEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0 && HasCapture()) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0 && HasCapture()) {
         float x, y;
         Convert(x, y, event);
         if (y < 0.0f) {
@@ -778,7 +787,7 @@ void ValueCurvePanel::Delete() {
 }
 
 void ValueCurvePanel::mouseEnter(wxMouseEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
         SetCursor(wxCURSOR_CROSS);
         mouseMoved(event);
     }
@@ -789,7 +798,7 @@ void ValueCurvePanel::mouseLeave(wxMouseEvent& event) {
 }
 
 void ValueCurvePanel::mouseMoved(wxMouseEvent& event) {
-    if (_type == "Custom" && _timeOffset == 0) {
+    if (_type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
         static const wxCursor s_hand(wxCURSOR_HAND);
         static const wxCursor s_cross(wxCURSOR_CROSS);
 
@@ -934,9 +943,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter1Text(wxCommandEvent& event) {
 }
 
 void ValueCurveDialog::OnSlider_Parameter1CmdSliderUpdated(wxScrollEvent& event) {
+    int val = Slider_Parameter1->GetValue();
     UpdateLinkedTextCtrl(event);
-    float i = Slider_Parameter1->GetValue();
-    _vc->SetParameter1(i);
+    _vc->SetParameter1(val);
     _vcp->Refresh();
 }
 
@@ -952,9 +961,9 @@ void ValueCurveDialog::OnTextCtrl_Parameter2Text(wxCommandEvent& event) {
 }
 
 void ValueCurveDialog::OnSlider_Parameter2CmdSliderUpdated(wxScrollEvent& event) {
+    int val = Slider_Parameter2->GetValue();
     UpdateLinkedTextCtrl(event);
-    float i = Slider_Parameter2->GetValue();
-    _vc->SetParameter2(i);
+    _vc->SetParameter2(val);
     _vcp->Refresh();
 }
 
@@ -973,13 +982,13 @@ void ValueCurveDialog::OnTextCtrl_Parameter3Text(wxCommandEvent& event) {
 }
 
 void ValueCurveDialog::OnSlider_Parameter3CmdSliderUpdated(wxScrollEvent& event) {
+    int val = Slider_Parameter3->GetValue();
     UpdateLinkedTextCtrl(event);
-    float i = Slider_Parameter3->GetValue();
     float low, high;
     ValueCurve::GetRangeParm3(Choice1->GetStringSelection().ToStdString(), low, high);
     if (low == MINVOID && IsStartEndLevelType(_vc->GetType()))
         _vc->SetStartEndLevelActive(true);
-    _vc->SetParameter3(i);
+    _vc->SetParameter3(val);
     _vcp->Refresh();
 }
 
@@ -998,13 +1007,13 @@ void ValueCurveDialog::OnTextCtrl_Parameter4Text(wxCommandEvent& event) {
 }
 
 void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event) {
+    int val = Slider_Parameter4->GetValue();
     UpdateLinkedTextCtrl(event);
-    float i = Slider_Parameter4->GetValue();
     float low, high;
     ValueCurve::GetRangeParm4(Choice1->GetStringSelection().ToStdString(), low, high);
     if (low == MINVOID && IsStartEndLevelType(_vc->GetType()))
         _vc->SetStartEndLevelActive(true);
-    _vc->SetParameter4(i);
+    _vc->SetParameter4(val);
     _vcp->Refresh();
 }
 
@@ -1012,9 +1021,10 @@ void ValueCurveDialog::OnSlider_Parameter4CmdSliderUpdated(wxScrollEvent& event)
 
 void ValueCurvePanel::DrawTiming(wxAutoBufferedPaintDC& pdc, long timeMS) {
     wxSize s = GetSize();
+    float w = s.GetWidth() - 2 * X_VC_MARGIN;
     long interval = _end - _start;
     float pos = (float)(timeMS - _start) / (float)interval;
-    int x = pos * s.GetWidth() + X_VC_MARGIN;
+    int x = pos * w + X_VC_MARGIN;
 
     pdc.SetPen(*wxBLUE);
     pdc.DrawLine(x, 0, x, s.GetHeight());
@@ -1054,16 +1064,43 @@ void ValueCurvePanel::Paint(wxPaintEvent& event) {
 
     pdc.SetBrush(*wxTRANSPARENT_BRUSH);
     if (_vc != nullptr) {
-        pdc.SetPen(wxPen(*wxGREEN, 2, wxPENSTYLE_LONG_DASH));
+        if (_type == "Custom" && std::lround(_vc->GetParameter1()) > 1) {
+            pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_LONG_DASH));
+        } else {
+            pdc.SetPen(wxPen(*wxGREEN, 2, wxPENSTYLE_LONG_DASH));
+        }
         std::list<vcSortablePoint> pts = _vc->GetPoints();
+        std::vector<double> offsets;
+        int cycles = 1;
+        if (_type == "Custom" && std::lround(_vc->GetParameter1()) > 1) {
+            offsets = _vc->GetTimingMarkOffsets(_start, _end);
+            cycles = std::lround(_vc->GetParameter1());
+            if (cycles < 1) cycles = 1;
+            if (cycles > 10) cycles = 10;
+        }
+
+        auto alignX = [&offsets, cycles](double val) -> double {
+            if (cycles > 1 && !offsets.empty()) {
+                int j = (int)(val * cycles);
+                if (j >= cycles) j = cycles - 1;
+                if (j < 0) j = 0;
+                double frac = (val * cycles) - j;
+                if (j < (int)offsets.size() - 1) {
+                    return offsets[j] + frac * (offsets[j+1] - offsets[j]);
+                } else {
+                    return 1.0;
+                }
+            }
+            return val;
+        };
 
         if (pts.size() > 1) {
             std::list<vcSortablePoint>::iterator last = pts.begin();
             for (auto p = ++pts.begin(); p != pts.end(); ++p) {
-                double x = p->x;
-                x += (double)_timeOffset / 100.0;
+                double x = alignX(p->x);
+                double lastx = alignX(last->x);
 
-                double lastx = last->x;
+                x += (double)_timeOffset / 100.0;
                 lastx += (double)_timeOffset / 100.0;
 
                 if (x > 1.0 && lastx <= 1.0) {
@@ -1107,7 +1144,8 @@ void ValueCurvePanel::Paint(wxPaintEvent& event) {
 
         pdc.SetPen(wxPen(*wxRED, 2, wxPENSTYLE_SOLID));
         for (auto it = pts.begin(); it != pts.end(); ++it) {
-            double x = it->x;
+            double x = alignX(it->x);
+
             x += (double)_timeOffset / 100.0;
             if (x > 1.0) {
                 x -= 1.0;
@@ -1115,7 +1153,7 @@ void ValueCurvePanel::Paint(wxPaintEvent& event) {
             pdc.DrawRectangle((x * w) - 2 + X_VC_MARGIN, th - (it->y * h) - 2 - Y_VC_MARGIN, 5, 5);
         }
 
-        if (_grabbedPoint != -1 && _type == "Custom" && _timeOffset == 0) {
+        if (_grabbedPoint != -1 && _type == "Custom" && std::lround(_vc->GetParameter1()) == 1 && _timeOffset == 0) {
             pdc.SetPen(wxPen(*wxBLUE, 2, wxPENSTYLE_SOLID));
             pdc.DrawRectangle((_grabbedPoint * w) - 2 + X_VC_MARGIN, th - (_vc->GetValueAt(_grabbedPoint, 0, 1) * h) - 2 - Y_VC_MARGIN, 5, 5);
         }
@@ -1134,6 +1172,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter1->GetMin() != min || Slider_Parameter1->GetMax() != max)
         Slider_Parameter1->SetRange(min, max);
+    Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
 
     ValueCurve::GetRangeParm2(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1142,6 +1181,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter2->GetMin() != min || Slider_Parameter2->GetMax() != max)
         Slider_Parameter2->SetRange(min, max);
+    Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
 
     ValueCurve::GetRangeParm3(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1150,6 +1190,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter3->GetMin() != min || Slider_Parameter3->GetMax() != max)
         Slider_Parameter3->SetRange(min, max);
+    Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
 
     ValueCurve::GetRangeParm4(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1158,10 +1199,11 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter4->GetMin() != min || Slider_Parameter4->GetMax() != max)
         Slider_Parameter4->SetRange(min, max);
+    Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
 
     if (type == "Custom") {
-        Slider_Parameter1->Disable();
-        TextCtrl_Parameter1->Disable();
+        Slider_Parameter1->Enable();
+        TextCtrl_Parameter1->Enable();
         Slider_Parameter2->Disable();
         TextCtrl_Parameter2->Disable();
         Slider_Parameter3->Disable();
@@ -1339,11 +1381,10 @@ void ValueCurveDialog::ValidateWindow() {
         StaticText_P4->SetLabel("N/A");
         _vc->SetParameter4(0);
     } else if (type == "Custom") {
-        StaticText_P1->SetLabel("N/A");
+        StaticText_P1->SetLabel("Cycles");
         StaticText_P2->SetLabel("N/A");
         StaticText_P3->SetLabel("N/A");
         StaticText_P4->SetLabel("N/A");
-        _vc->SetParameter1(0);
         _vc->SetParameter2(0);
         _vc->SetParameter3(0);
         _vc->SetParameter4(0);
@@ -1365,7 +1406,8 @@ void ValueCurveDialog::ValidateWindow() {
         type == "Timing Track Toggle" ||
         type == "Timing Track Fade Fixed" ||
         type == "Timing Track Fade Proportional" ||
-        type == "Exponential Down") {
+        type == "Exponential Down" ||
+        (type == "Custom" && _vc->GetParameter1() > 1.0f)) {
         Button_Reverse->Enable(false);
     } else {
         Button_Reverse->Enable();
@@ -1380,7 +1422,8 @@ void ValueCurveDialog::ValidateWindow() {
         type == "Timing Track Toggle" ||
         type == "Timing Track Fade Fixed" ||
         type == "Timing Track Fade Proportional" ||
-        type == "Decaying Sine") {
+        type == "Decaying Sine" ||
+        (type == "Custom" && _vc->GetParameter1() > 1.0f)) {
         Button_Flip->Enable(false);
     } else {
         Button_Flip->Enable();
@@ -1424,10 +1467,10 @@ void ValueCurveDialog::ValidateWindow() {
 
 void ValueCurveDialog::OnChar(wxKeyEvent& event) {
     wxChar uc = event.GetUnicodeKey();
-    if (_vc->GetType() == "Custom" && Slider_TimeOffset->GetValue() == 0 && (int)uc == (int)WXK_DELETE && _vcp->HasSelected()) {
+    if (_vc->GetType() == "Custom" && std::lround(_vc->GetParameter1()) == 1 && Slider_TimeOffset->GetValue() == 0 && (int)uc == (int)WXK_DELETE && _vcp->HasSelected()) {
         _vcp->SaveUndoSelected();
         _vcp->Delete();
-    } else if (_vc->GetType() == "Custom" && Slider_TimeOffset->GetValue() == 0 && (uc == 'Z' || uc == 'z') && event.ControlDown() && _vcp->IsDirty()) {
+    } else if (_vc->GetType() == "Custom" && std::lround(_vc->GetParameter1()) == 1 && Slider_TimeOffset->GetValue() == 0 && (uc == 'Z' || uc == 'z') && event.ControlDown() && _vcp->IsDirty()) {
         _vcp->Undo();
     } else {
         event.Skip();
@@ -1640,7 +1683,7 @@ void ValueCurveDialog::OnSlider_TimeOffsetCmdSliderUpdated(wxScrollEvent& event)
         TextCtrl_TimeOffset->SetValue(s);
     }
     _vc->SetTimeOffset(i);
-    _vcp->SetTimeOffset(Slider_TimeOffset->GetValue());
+    _vcp->SetTimeOffset(i);
     _vcp->Refresh();
 }
 

@@ -21,6 +21,7 @@
 #include <log.h>
 
 #include <cassert>
+#include <algorithm>
 #include <cerrno>
 #include <charconv>
 #include <cstring>
@@ -163,6 +164,8 @@ void ValueCurve::GetRangeParm1(const std::string& type, float& low, float &high)
 
     if (type == "Custom")
     {
+        low = 1;
+        high = 10;
     }
     else if (type == "Flat")
     {
@@ -564,6 +567,10 @@ void ValueCurve::Reverse()
         {
             it.x = 1.0 - it.x;
         }
+        _values.sort();
+        if (_parameter1 == 1.0f) {
+            _baseCustomValues = _values;
+        }
     }
     else if (_type == "Ramp")
     {
@@ -638,6 +645,9 @@ void ValueCurve::Flip()
         for (auto& it : _values)
         {
             it.y = 1.0 - it.y;
+        }
+        if (_parameter1 == 1.0f) {
+            _baseCustomValues = _values;
         }
     }
     else if (_type == "Ramp" || _type == "Saw Tooth" || _type == "Square" || _type == "Random")
@@ -875,6 +885,11 @@ void ValueCurve::ConvertChangedScale(float newmin, float newmax)
         for (auto& it : _values)
         {
             it.y = (it.y - _min) * newrange / oldrange + newmin;
+        }
+        if (_parameter1 == 1.0f) {
+            _baseCustomValues = _values;
+        } else {
+            ReconstructBaseCustomValues();
         }
     }
 }
@@ -1350,6 +1365,37 @@ void ValueCurve::RenderType()
             _values.push_back(vcSortablePoint(i, Safe01(y), (lastwrapped != wrapped)));
         }
     }
+    else if (_type == "Custom")
+    {
+        if (_parameter1 < 1.0f) {
+            _parameter1 = 1.0f;
+        } else if (_parameter1 > 10.0f) {
+            _parameter1 = 10.0f;
+        }
+        int cycles = std::round(_parameter1);
+        if (cycles < 1) cycles = 1;
+        if (cycles > 10) cycles = 10;
+
+        if (cycles == 1) {
+            if (_baseCustomValues.empty() && !_values.empty()) {
+                _baseCustomValues = _values;
+            } else if (!_baseCustomValues.empty()) {
+                _values = _baseCustomValues;
+            }
+        } else {
+            if (_baseCustomValues.empty() && !_values.empty()) {
+                _baseCustomValues = _values;
+            }
+            _values.clear();
+            for (int i = 0; i < cycles; ++i) {
+                for (const auto& pt : _baseCustomValues) {
+                    float newX = (pt.x + i) / (float)cycles;
+                    _values.push_back(vcSortablePoint(newX, pt.y, pt.wrapped));
+                }
+            }
+            _values.sort();
+        }
+    }
     _values.sort();
 }
 
@@ -1375,8 +1421,17 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     RenderType();
 }
 
+void ValueCurve::ClearCachedOffsets()
+{
+    _cachedTimingTrack.clear();
+    _cachedStartMS = -1;
+    _cachedEndMS = -1;
+    _cachedOffsets.clear();
+}
+
 void ValueCurve::SetDefault(float min, float max, int divisor)
 {
+    ClearCachedOffsets();
     _type = "Flat";
     if (min != MINVOIDF)
     {
@@ -1423,6 +1478,7 @@ ValueCurve::ValueCurve(const std::string& s)
 
 void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
 {
+    ClearCachedOffsets();
     if (s == "")
     {
         SetDefault(0, 100);
@@ -1526,6 +1582,11 @@ void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
 
             if (oldmin != MINVOIDF) _min = oldmin;
             if (oldmax != MAXVOIDF) _max = oldmax;
+        }
+
+        if (_type == "Custom")
+        {
+            ReconstructBaseCustomValues();
         }
 
         RenderType();
@@ -1671,6 +1732,10 @@ void ValueCurve::LoadXVC(const std::string& fn)
             }
 
             SetActive(true);
+            if (_type == "Custom")
+            {
+                ReconstructBaseCustomValues();
+            }
         }
         else
         {
@@ -1882,6 +1947,45 @@ int ValueCurve::GetSubsequentTimingMark(const std::string& timingTrack, int time
     return -1;
 }
 
+std::vector<double> ValueCurve::GetTimingMarkOffsets(long startMS, long endMS) const {
+    std::vector<double> offsets;
+    if (_timingTrack.empty()) {
+        return offsets;
+    }
+    if (__sequenceElements == nullptr) {
+        return offsets;
+    }
+    auto te = __sequenceElements->GetTimingElement(_timingTrack);
+    if (te == nullptr) {
+        return offsets;
+    }
+    auto el = te->GetEffectLayer(0);
+    if (el == nullptr) {
+        return offsets;
+    }
+
+    offsets.push_back(0.0);
+    for (int i = 0; i < el->GetEffectCount(); ++i) {
+        Effect* e = el->GetEffect(i);
+        long tStart = e->GetStartTimeMS();
+        long tEnd = e->GetEndTimeMS();
+        if (tStart > startMS && tStart < endMS) {
+            offsets.push_back((double)(tStart - startMS) / (endMS - startMS));
+        }
+        if (tEnd > startMS && tEnd < endMS) {
+            offsets.push_back((double)(tEnd - startMS) / (endMS - startMS));
+        }
+    }
+    offsets.push_back(1.0);
+
+    std::sort(offsets.begin(), offsets.end());
+    offsets.erase(std::unique(offsets.begin(), offsets.end(), [](double a, double b) {
+        return std::abs(a - b) < 1e-5;
+    }), offsets.end());
+
+    return offsets;
+}
+
 float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
@@ -2050,14 +2154,46 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
         if (offset < 0.0f) offset = 0.0;
         if (offset > 1.0f) offset = 1.0;
 
-        offset += (float)_timeOffset / 100;
-        if (offset > 1.0) offset -= 1.0;
+        float alignedOffset = offset;
+        if (_type == "Custom" && _parameter1 > 1.0f && !_timingTrack.empty()) {
+            if (_cachedTimingTrack != _timingTrack || _cachedStartMS != startMS || _cachedEndMS != endMS) {
+                _cachedOffsets = GetTimingMarkOffsets(startMS, endMS);
+                _cachedTimingTrack = _timingTrack;
+                _cachedStartMS = startMS;
+                _cachedEndMS = endMS;
+            }
+            int cycles = std::round(_parameter1);
+            if (cycles < 1) cycles = 1;
+            if (cycles > 10) cycles = 10;
+            if (cycles > 1 && _cachedOffsets.size() > 1) {
+                int j = 0;
+                auto it = std::upper_bound(_cachedOffsets.begin(), _cachedOffsets.end(), (double)offset);
+                if (it == _cachedOffsets.end()) {
+                    j = (int)_cachedOffsets.size() - 2;
+                } else {
+                    j = std::distance(_cachedOffsets.begin(), it) - 1;
+                    if (j < 0) j = 0;
+                }
+                double o_j = _cachedOffsets[j];
+                double o_j1 = _cachedOffsets[j+1];
+                double frac = 0.0;
+                if (o_j1 > o_j) {
+                    frac = (offset - o_j) / (o_j1 - o_j);
+                }
+                alignedOffset = (j + frac) / (float)cycles;
+                if (alignedOffset > 1.0f) alignedOffset = 1.0f;
+            }
+        }
+
+        float queryOffset = alignedOffset + (float)_timeOffset / 100;
+        if (queryOffset > 1.0) queryOffset -= 1.0;
+        if (queryOffset < 0.0) queryOffset = 0.0;
 
         vcSortablePoint last = _values.front();
         auto it = _values.begin();
         ++it;
 
-        while (it != _values.end() && it->x < offset) {
+        while (it != _values.end() && it->x < queryOffset) {
             last = *it;
             ++it;
         }
@@ -2070,14 +2206,14 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
             res = it->y;
         }
         else {
-            if (it->x == offset) {
+            if (it->x == queryOffset) {
                 res = it->y;
             }
             else if (it->IsWrapped()) {
                 res = it->y;
             }
             else {
-                res = last.y + (it->y - last.y) * (offset - last.x) / (it->x - last.x);
+                res = last.y + (it->y - last.y) * (queryOffset - last.x) / (it->x - last.x);
             }
         }
     }
@@ -2121,6 +2257,10 @@ void ValueCurve::DeletePoint(float offset)
             }
             ++it;
         }
+    }
+
+    if (_type == "Custom" && _parameter1 == 1.0f) {
+        _baseCustomValues = _values;
     }
 }
 
@@ -2168,6 +2308,10 @@ void ValueCurve::SetValueAt(float offset, float value, bool force)
     }
     _values.push_back(vcSortablePoint(offset, value, false));
     _values.sort();
+
+    if (_type == "Custom" && _parameter1 == 1.0f) {
+        _baseCustomValues = _values;
+    }
 }
 
 void ValueCurve::SetWrap(bool wrap)
@@ -2248,8 +2392,12 @@ void ValueCurve::SetPointAt(float x, float y)
     for (auto& it : _values) {
         if (it.x == x) {
             it.y = y;
-            return;
+            break;
         }
+    }
+
+    if (_type == "Custom" && _parameter1 == 1.0f) {
+        _baseCustomValues = _values;
     }
 }
 
@@ -2277,6 +2425,11 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
         }
         for (auto& it : _values) {
             it.y = ScaleVal(it.y, range);
+        }
+        if (_parameter1 == 1.0f) {
+            _baseCustomValues = _values;
+        } else {
+            ReconstructBaseCustomValues();
         }
     } else if (_type == "Flat") {
         parametersToScale.push_back(1);
@@ -2315,4 +2468,32 @@ void ValueCurve::ScaleAndOffsetValues(float scale, int offset)
             break;
         }
     }    
+}
+
+void ValueCurve::ReconstructBaseCustomValues() {
+    _baseCustomValues.clear();
+    int totalPoints = _values.size();
+    float cycles = _parameter1;
+    if (cycles < 1.0f) cycles = 1.0f;
+    if (cycles > 10.0f) cycles = 10.0f;
+    int c = std::round(cycles);
+    if (c < 1) c = 1;
+    if (c > 10) c = 10;
+
+    if (c == 1 || totalPoints == 0) {
+        _baseCustomValues = _values;
+    } else {
+        int N = totalPoints / c;
+        if (N < 2) N = 2; // custom curves always have at least 2 points (0.0 and 1.0)
+        
+        int count = 0;
+        for (const auto& pt : _values) {
+            if (count >= N) break;
+            float newX = pt.x * c;
+            if (newX > 1.0f) newX = 1.0f;
+            _baseCustomValues.push_back(vcSortablePoint(newX, pt.y, pt.wrapped));
+            count++;
+        }
+        _baseCustomValues.sort();
+    }
 }
