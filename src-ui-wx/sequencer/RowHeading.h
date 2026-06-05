@@ -110,6 +110,7 @@ private:
     static const long ID_ROW_MNU_COPY_ROW;
     static const long ID_ROW_MNU_COPY_MODEL;
     static const long ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS;
+    static const long ID_ROW_MNU_COPY_MODEL_TO_MODELS;
     static const long ID_ROW_MNU_PASTE_ROW;
     static const long ID_ROW_MNU_PASTE_MODEL;
     static const long ID_ROW_MNU_RENDERENABLE_ALL;
@@ -135,6 +136,7 @@ private:
     static const long ID_ROW_MNU_EXPORT_TIMING_TRACK;
     static const long ID_ROW_MNU_UNFIX_TIMING_TRACK;
     static const long ID_ROW_MNU_IMPORT_LYRICS;
+    static const long ID_ROW_MNU_SEARCH_LYRICS_ONLINE;
     static const long ID_ROW_MNU_AI_LYRICS;
     static const long ID_ROW_MNU_BREAKDOWN_TIMING_PHRASES;
     static const long ID_ROW_MNU_BREAKDOWN_TIMING_WORDS;
@@ -147,6 +149,9 @@ private:
     static const long ID_ROW_MNU_GENERATE_FROM_ONSETS;
     static const long ID_ROW_MNU_GENERATE_FROM_TEMPO;
     static const long ID_ROW_MNU_GENERATE_FROM_CHORDS;
+    static const long ID_ROW_MNU_CREATE_SONG_REGIONS;
 
     static const long ID_ROW_MNU_SETLAYERNAME;
+    static const long ID_ROW_MNU_HIDE_UNUSED_SUBMODELS;
+    static const long ID_ROW_MNU_SHOW_ALL_SUBMODELS;
 };

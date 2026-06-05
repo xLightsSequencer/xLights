@@ -19,6 +19,13 @@ set(XL_LIB  ${CMAKE_SOURCE_DIR}/lib)
 
 if(MSVC)
     add_compile_options("/utf-8")
+    # /MP — compile multiple source files in parallel within a single project.
+    # The old .vcxproj had this; without it cmake builds are significantly slower.
+    # Omit when a compiler launcher (sccache/ccache) is active because those
+    # tools manage their own parallelism and /MP conflicts with them.
+    if(NOT CMAKE_CXX_COMPILER_LAUNCHER)
+        add_compile_options("/MP")
+    endif()
     # Pin the runtime library so every .obj in the build uses the same CRT.
     # Visual Studio is a multi-config generator: CMAKE_BUILD_TYPE is empty at
     # configure time, so use a generator expression to pick MD vs MDd per config.
@@ -106,11 +113,39 @@ endif()
 find_package(OpenGL REQUIRED)
 
 # ─── FFmpeg ─────────────────────────────────────────────────────────────────
+# vcpkg's FFmpeg port does not ship FFMPEGConfig.cmake so find_package(FFMPEG)
+# in config mode fails. Use find_path / find_library for both paths — the vcpkg
+# toolchain adds installed/ to CMAKE_PREFIX_PATH so the vcpkg-installed headers
+# and libs are found automatically without extra hints.
 if(XLIGHTS_USE_VCPKG)
-    # vcpkg FFmpeg uses variables, not imported targets.
-    find_package(FFMPEG REQUIRED)
-    set(FFMPEG_INCLUDE_DIR "${FFMPEG_INCLUDE_DIRS}")
-    set(FFMPEG_LIBS ${FFMPEG_LIBRARIES})
+    # _VCPKG_INSTALLED_DIR is set by vcpkg.cmake to the installed/ root.
+    # Build an explicit hint so find_path/find_library don't depend on
+    # CMAKE_PREFIX_PATH propagation order.
+    if(DEFINED _VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_vcpkg_triplet_dir "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    elseif(DEFINED ENV{VCPKG_ROOT} AND DEFINED VCPKG_TARGET_TRIPLET)
+        set(_vcpkg_triplet_dir "$ENV{VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}")
+    else()
+        set(_vcpkg_triplet_dir "")
+    endif()
+
+    find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
+        HINTS "${_vcpkg_triplet_dir}/include"
+        NO_DEFAULT_PATH)
+    if(NOT FFMPEG_INCLUDE_DIR)
+        message(FATAL_ERROR "FFmpeg headers not found in '${_vcpkg_triplet_dir}/include'."
+                            " Run: vcpkg install ffmpeg[avcodec,avformat,avfilter,avutil,swscale,swresample]")
+    endif()
+    foreach(_ff avcodec avformat avutil avfilter swscale swresample)
+        string(TOUPPER ${_ff} _FF_UPPER)
+        find_library(${_FF_UPPER}_LIB NAMES ${_ff}
+            HINTS "${_vcpkg_triplet_dir}/lib"
+            NO_DEFAULT_PATH)
+        if(NOT ${_FF_UPPER}_LIB)
+            message(FATAL_ERROR "FFmpeg lib '${_ff}' not found in '${_vcpkg_triplet_dir}/lib'.")
+        endif()
+        list(APPEND FFMPEG_LIBS ${${_FF_UPPER}_LIB})
+    endforeach()
 else()
     find_path(FFMPEG_INCLUDE_DIR libavcodec/avcodec.h
         HINTS ${XL_INC}/ffmpeg-6/include
@@ -189,11 +224,14 @@ else()
     find_path(CURL_INCLUDE_DIR curl/curl.h
         HINTS ${XL_INC}
         PATHS /usr/include /usr/local/include)
-    # On Windows the vendored file is a MinGW .dll.a — not usable by MSVC.
-    # Look for a proper .lib; if absent, skip linking (project may use WinHTTP).
     find_library(CURL_LIB NAMES libcurl_msvc curl libcurl curl_imp libcurl_a
         HINTS ${XL_LIB}/windows64
         PATHS /usr/lib /usr/local/lib)
+    # The vcxproj links via #pragma comment(lib,"libcurl.dll.a") which MSVC accepts.
+    # Fall back to the same vendored file when no .lib variant is found.
+    if(NOT CURL_LIB AND MSVC AND EXISTS "${XL_LIB}/windows64/libcurl.dll.a")
+        set(CURL_LIB "${XL_LIB}/windows64/libcurl.dll.a")
+    endif()
     if(CURL_LIB)
         set(CURL_LINK_TARGET ${CURL_LIB})
     else()
@@ -222,7 +260,9 @@ file(GLOB_RECURSE SRC_CORE
     src-core/ai/*.cpp
     src-core/cad/*.cpp
     src-core/controllers/*.cpp
+	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
+    src-core/import_export/*.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
     src-core/graphics/xlGraphicsAccumulators.cpp
@@ -241,8 +281,10 @@ file(GLOB_RECURSE SRC_CORE
     src-core/media/Spectrogram.cpp
     src-core/media/StemSeparator.cpp
     src-core/media/TempoDetector.cpp
+    src-core/media/FFmpegVideoWriter.cpp
     src-core/media/VideoReader.cpp
     src-core/media/VideoTranscoder.cpp
+    src-core/media/VideoWriter.cpp
     src-core/media/kiss_fft/kiss_fft.c
     src-core/media/kiss_fft/tools/kiss_fftr.c
     src-core/models/*.cpp
@@ -260,6 +302,7 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_osx.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp)
 elseif(APPLE)
+    list(APPEND SRC_CORE src-core/media/AVFoundationVideoWriter.cpp)
     list(REMOVE_ITEM SRC_CORE
         ${CMAKE_SOURCE_DIR}/src-core/media/WindowsHardwareVideoReader.cpp
         ${CMAKE_SOURCE_DIR}/src-core/outputs/serial_win32.cpp
@@ -656,11 +699,24 @@ endif()
 # in StemSeparator.cpp is already suppressed — no per-block define needed.
 #
 # Usage:
-#   cmake -DXLIGHTS_USE_ORT=ON      # ONNX Runtime (vcpkg: onnxruntime[directml])
-#   cmake -DXLIGHTS_USE_OPENVINO=ON # OpenVINO     (vcpkg: openvino)
+#   cmake -DXLIGHTS_USE_ORT=ON               # ONNX Runtime (vcpkg: onnxruntime[directml])
+#   cmake -DXLIGHTS_USE_OPENVINO=ON          # OpenVINO Runtime — stem separation only
+#   cmake -DXLIGHTS_USE_OPENVINO_GENAI=ON    # OpenVINO Runtime + GenAI:
+#                                            #   stem separation, image generation (SD),
+#                                            #   speech-to-text with alignment (Whisper)
+#
+# XLIGHTS_USE_OPENVINO_GENAI implies XLIGHTS_USE_OPENVINO; you do not need both.
+#
+# Prerequisites for XLIGHTS_USE_OPENVINO_GENAI:
+#   vcpkg install openvino openvino-genai      (or install OpenVINO 2024.4+)
+#   Models must be exported with optimum-cli:
+#     optimum-cli export openvino --model stabilityai/stable-diffusion-v1-5 sd-v1-5-ov/
+#     optimum-cli export openvino --model openai/whisper-base whisper-base-ov/
+#   Paths are configured in xLights > Preferences > Services > OpenVINO (local).
 
-option(XLIGHTS_USE_ORT      "Enable ONNX Runtime stem separation" ON)
-option(XLIGHTS_USE_OPENVINO "Enable OpenVINO stem separation"     OFF)
+option(XLIGHTS_USE_ORT           "Enable ONNX Runtime stem separation"                  ON)
+option(XLIGHTS_USE_OPENVINO      "Enable OpenVINO stem separation"                      OFF)
+option(XLIGHTS_USE_OPENVINO_GENAI "Enable OpenVINO GenAI: image gen + speech-to-text"   OFF)
 
 if(XLIGHTS_USE_ORT)
     find_package(onnxruntime CONFIG
@@ -696,21 +752,52 @@ if(XLIGHTS_USE_ORT)
     target_compile_definitions(xLights PRIVATE HAVE_ORT)
 endif()
 
-if(XLIGHTS_USE_OPENVINO)
+if(XLIGHTS_USE_OPENVINO OR XLIGHTS_USE_OPENVINO_GENAI)
+    # OpenVINO Runtime is required for stem separation and as a base for GenAI.
+    # Install via vcpkg: vcpkg install "openvino[cpu,auto,ir,onnx]"
     find_package(OpenVINO REQUIRED COMPONENTS Runtime)
     target_link_libraries(xLights PRIVATE openvino::runtime)
     target_compile_definitions(xLights PRIVATE HAVE_OPENVINO)
-    message(STATUS "Stem separation: OpenVINO enabled")
+
+    if(XLIGHTS_USE_OPENVINO_GENAI)
+        # OpenVINOGenAI is a separate package from the core OpenVINO Runtime.
+        # Install via the overlay port: vcpkg install openvino-genai
+        #   (requires vcpkg-configuration.json to point at ports/ overlay directory)
+        # Or install via the official OpenVINO toolkit installer / pip install openvino-genai.
+        find_package(OpenVINOGenAI REQUIRED)
+        target_link_libraries(xLights PRIVATE openvino::genai)
+        target_compile_definitions(xLights PRIVATE HAVE_OPENVINO_GENAI)
+        message(STATUS "OpenVINO: Runtime + GenAI enabled (stem separation, image gen, speech-to-text)")
+    else()
+        message(STATUS "Stem separation: OpenVINO Runtime enabled")
+    endif()
 endif()
 
 
 # ─── Windows post-build: copy DLLs and resources to output dir ──────────────
 # Mirrors the PostBuildEvent in xLights/Xlights.vcxproj.
 if(WIN32)
+    # Use safe_copy_dlls.cmake so the copy is a no-op when the build output
+    # directory is the same as the source bin/ directory (happens on CI when
+    # Ninja builds directly into bin/).  Plain `copy` fails with "cannot copy
+    # file onto itself" in that case.
+    set(_SAFE_COPY "${CMAKE_SOURCE_DIR}/cmake/safe_copy_dlls.cmake")
     add_custom_command(TARGET xLights POST_BUILD
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin64\\*.dll\" \"$<TARGET_FILE_DIR:xLights>\\\""
-        COMMAND cmd /c "copy /Y \"${CMAKE_SOURCE_DIR}\\bin\\*.cfg\" \"$<TARGET_FILE_DIR:xLights>\\\""
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin64"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.dll"
+            -P "${_SAFE_COPY}"
+        COMMAND ${CMAKE_COMMAND}
+            "-DSRC_DIR=${CMAKE_SOURCE_DIR}/bin"
+            "-DDST_DIR=$<TARGET_FILE_DIR:xLights>"
+            "-DGLOB_PAT=*.cfg"
+            -P "${_SAFE_COPY}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_SOURCE_DIR}/resources/dictionaries"
             "$<TARGET_FILE_DIR:xLights>/dictionaries"

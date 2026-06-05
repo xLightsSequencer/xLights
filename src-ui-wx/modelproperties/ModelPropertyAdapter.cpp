@@ -241,6 +241,23 @@ protected:
     int m_tp = 0;
 };
 
+namespace {
+wxString FormatStrandNodeNamesLabel(const Model& m) {
+    const auto nodes = m.GetNodeCount();
+    return wxString::Format("Strand/Node Names (%u %s)",
+                            nodes, nodes == 1 ? "node" : "nodes");
+}
+wxString FormatFacesLabel(const Model& m) {
+    return wxString::Format("Faces (%zu)", m.GetFaceInfo().size());
+}
+wxString FormatStatesLabel(const Model& m) {
+    return wxString::Format("States (%zu)", m.GetStateInfo().size());
+}
+wxString FormatSubModelsLabel(const Model& m) {
+    return wxString::Format("SubModels (%d)", m.GetNumSubModels());
+}
+} // namespace
+
 class StartChannelProperty : public wxStringProperty {
 public:
     StartChannelProperty(Model* m, int strand, const wxString& label, const wxString& name,
@@ -389,15 +406,27 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
     grid->Append(new wxStringProperty("Description", "Description", _model.GetDescription()));
     grid->Append(new wxEnumProperty("Preview", "ModelLayoutGroup", LAYOUT_GROUPS, wxArrayInt(), layout_group_number));
 
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Strand/Node Names", "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatStrandNodeNamesLabel(_model),
+        "ModelStrandNodeNames", CLICK_TO_EDIT, 1));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Faces", "ModelFaces", CLICK_TO_EDIT, 2));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatFacesLabel(_model),
+        "ModelFaces", CLICK_TO_EDIT, 2));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Dimming Curves", "ModelDimmingCurves", CLICK_TO_EDIT, 3));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "States", "ModelStates", CLICK_TO_EDIT, 4));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatStatesLabel(_model),
+        "ModelStates", CLICK_TO_EDIT, 4));
     grid->LimitPropertyEditing(p);
-    p = grid->Append(new PopupDialogProperty(&_model, outputManager, "SubModels", "SubModels", CLICK_TO_EDIT, 5));
+    p = grid->Append(new PopupDialogProperty(
+        &_model, outputManager,
+        FormatSubModelsLabel(_model),
+        "SubModels", CLICK_TO_EDIT, 5));
     grid->LimitPropertyEditing(p);
     p = grid->Append(new PopupDialogProperty(&_model, outputManager, "Aliases", "Aliases", CLICK_TO_EDIT, 6));
     grid->LimitPropertyEditing(p);
@@ -505,6 +534,19 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
 
 void ModelPropertyAdapter::UpdateProperties(wxPropertyGridInterface* grid, OutputManager* outputManager) {
     UpdateTypeProperties(grid);
+
+    if (auto* pp = grid->GetPropertyByName("ModelStrandNodeNames")) {
+        pp->SetLabel(FormatStrandNodeNamesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelFaces")) {
+        pp->SetLabel(FormatFacesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("ModelStates")) {
+        pp->SetLabel(FormatStatesLabel(_model));
+    }
+    if (auto* pp = grid->GetPropertyByName("SubModels")) {
+        pp->SetLabel(FormatSubModelsLabel(_model));
+    }
 
     if (grid->GetPropertyByName("Controller") != nullptr) {
         grid->GetPropertyByName("Controller")->Enable(outputManager->GetAutoLayoutControllerNames().size() > 0);

@@ -12,12 +12,77 @@
 
 #include <curl/curl.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
 constexpr const char* completion_url = "/chat/completions";
 
 constexpr const char* transcriptions_url = "/audio/transcriptions";
+
+constexpr const char* models_url = "/models";
+
+std::vector<std::string> OpenAIAPI::GetAvailableModels(bool forceRefresh) const {
+    if (!forceRefresh && _modelsFetched) {
+        return _cachedModels;
+    }
+
+    // Mark as attempted up front so a failed/empty fetch isn't repeated on
+    // every subsequent GetProperties() call.
+    _modelsFetched = true;
+    _cachedModels.clear();
+
+    if (base_url.empty()) {
+        return _cachedModels;
+    }
+
+    std::vector<std::pair<std::string, std::string>> customHeaders;
+    if (!token.empty()) {
+        customHeaders.push_back({ "Authorization", "Bearer " + token });
+    }
+
+    int responseCode = 0;
+    std::string const response = CurlManager::HTTPSGet(base_url + models_url, "", "", 15, customHeaders, &responseCode);
+
+    if (responseCode != 200) {
+        spdlog::warn("{}: model list request failed ({}): {}", GetLLMName(), responseCode, response);
+        return _cachedModels;
+    }
+
+    try {
+        nlohmann::json const root = nlohmann::json::parse(response);
+        // OpenAI-compatible servers return { "data": [ { "id": "..." }, ... ] }.
+        if (root.contains("data") && root["data"].is_array()) {
+            for (auto const& m : root["data"]) {
+                if (m.contains("id") && m["id"].is_string()) {
+                    _cachedModels.push_back(m["id"].get<std::string>());
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        spdlog::error("{}: failed to parse model list: {}", GetLLMName(), e.what());
+        _cachedModels.clear();
+        return _cachedModels;
+    }
+
+    std::sort(_cachedModels.begin(), _cachedModels.end());
+    spdlog::debug("{}: fetched {} model(s)", GetLLMName(), _cachedModels.size());
+    return _cachedModels;
+}
+
+ServiceProperty OpenAIAPI::makeModelProperty(const std::string& id, const std::string& label,
+                                             const std::string& category, const std::string& current) const {
+    if (_cachedModels.empty()) {
+        return { ServiceProperty::Kind::String, id, label, category, {}, {}, current };
+    }
+    std::vector<std::string> choices = _cachedModels;
+    // Always keep the current selection in the list, even if the server didn't
+    // report it (custom/fine-tuned model, or the list hasn't been refreshed).
+    if (!current.empty() && std::find(choices.begin(), choices.end(), current) == choices.end()) {
+        choices.insert(choices.begin(), current);
+    }
+    return { ServiceProperty::Kind::Choice, id, label, category, {}, choices, current };
+}
 
 std::pair<std::string, bool> OpenAIAPI::CallLLM(const std::string& prompt) const {
     std::string bearerToken = token;
@@ -182,7 +247,10 @@ aiBase::AIColorPalette OpenAIAPI::GenerateColorPalette(const std::string& prompt
 }
 
 aiBase::AIImageGenerator* OpenAIAPI::createAIImageGenerator() const {
-    return new OpenAIImageGenerator(base_url, token, image_model);
+    // Hand the generator the server's model list so the image dialog can offer
+    // a dropdown. GetAvailableModels() uses the cached list when one was already
+    // fetched (e.g. from the Services preferences panel), else queries once here.
+    return new OpenAIImageGenerator(base_url, token, image_model, GetAvailableModels(false));
 }
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {

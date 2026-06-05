@@ -71,18 +71,25 @@ bool MatchNorm(const std::string& target, const std::string& candidate,
 bool MatchAggressive(const std::string& target, const std::string& candidate,
                      const std::string&, const std::string&,
                      const std::list<std::string>& aliases) {
-    if (StripPunctuation(Lower(Trim(target))) == StripPunctuation(candidate)) {
+    std::string strippedCandidate = StripPunctuation(candidate);
+    if (StripPunctuation(Lower(Trim(target))) == strippedCandidate) {
         return true;
     }
+    // OldName alias prefix — the rename history form. Plain string compare
+    // (no punctuation strip) so users with renames don't get over-matched.
     for (const auto& it : aliases) {
         if (Lower(Trim(it)) == "oldname:" + candidate) {
             return true;
         }
     }
+    // Plain alias match — try both punctuation-stripped and exact, so an
+    // alias "Mega Tree (Vendor)" can match a vendor candidate
+    // "megatreevendor" without the user needing to maintain a punctuation-
+    // free duplicate alias.
     for (const auto& it : aliases) {
-        if (Lower(Trim(it)) == candidate) {
-            return true;
-        }
+        std::string aliasNorm = Lower(Trim(it));
+        if (aliasNorm == candidate) return true;
+        if (StripPunctuation(aliasNorm) == strippedCandidate) return true;
     }
     return false;
 }
@@ -144,6 +151,11 @@ void Run(const std::vector<ImportMappingNode*>& roots,
                          (!model->IsGroup() && (mg == "B" || mg == "M"));
         if (!typeMatch) continue;
 
+        // Cache the layout model once per destination model so both the
+        // slashed-path strand-alias lookup and the fallback can use it
+        // without repeated map lookups.
+        Model* layoutModel = renderContext.GetModel(model->GetCoreModel());
+
         for (const auto& src : available) {
             if (selectMapAvail && !src.selected) continue;
             const std::string& availName = src.canonicalName;
@@ -155,7 +167,19 @@ void Run(const std::vector<ImportMappingNode*>& roots,
                     for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
                         auto* strand = model->GetNthChild(k);
                         if (strand == nullptr) continue;
-                        if (!lambda_strand(strand->GetCoreStrand(), parts[1], extra1, extra2, aliases)) {
+                        // Use the submodel's own aliases (from the layout) for
+                        // strand matching so that e.g. a submodel aliased
+                        // "15 spinners - all" correctly matches that part of
+                        // "SS Spinner Left/15 Spinners - All".
+                        std::list<std::string> strandAliases;
+                        if (layoutModel != nullptr) {
+                            Model* sm2 = layoutModel->GetSubModel(strand->GetCoreStrand());
+                            if (sm2 != nullptr) {
+                                strandAliases = sm2->GetAliases();
+                            }
+                        }
+                        const auto& strandAliasesToUse = strandAliases.empty() ? aliases : strandAliases;
+                        if (!lambda_strand(strand->GetCoreStrand(), parts[1], extra1, extra2, strandAliasesToUse)) {
                             continue;
                         }
                         if (parts.size() == 2) {
@@ -185,28 +209,6 @@ void Run(const std::vector<ImportMappingNode*>& roots,
             }
         }
 
-        // Fallback: if the model itself didn't get mapped but it has submodels, try
-        // matching available names against submodel aliases pulled from the user
-        // layout via RenderContext.
-        if (model->GetMapping().empty()) {
-            for (const auto& src : available) {
-                if (selectMapAvail && !src.selected) continue;
-                const std::string& availName = src.canonicalName;
-                Model* layoutModel = renderContext.GetModel(model->GetCoreModel());
-                if (layoutModel == nullptr) continue;
-                for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
-                    auto* sm = model->GetNthChild(k);
-                    if (sm == nullptr) continue;
-                    Model* sm2 = layoutModel->GetSubModel(sm->GetCoreStrand());
-                    if (sm2 == nullptr) continue;
-                    const auto& smAliases = sm2->GetAliases();
-                    if (smAliases.empty()) continue;
-                    if (lambda_model(sm->GetCoreStrand(), availName, extra1, extra2, smAliases)) {
-                        sm->Map(src.displayName, "Unknown");
-                    }
-                }
-            }
-        }
     }
 
     // Process selected submodels independently
@@ -240,6 +242,70 @@ void Run(const std::vector<ImportMappingNode*>& roots,
                                 break;
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void RunSubModelFallback(const std::vector<ImportMappingNode*>& roots,
+                         const std::vector<AvailableSource>& available,
+                         RenderContext& renderContext,
+                         bool selectOnly,
+                         const std::unordered_set<const ImportMappingNode*>& selectedTargets) {
+    bool selectMapAvail = false;
+    bool selectMapTarget = false;
+    if (selectOnly) {
+        for (const auto& a : available) {
+            if (a.selected) { selectMapAvail = true; break; }
+        }
+        selectMapTarget = !selectedTargets.empty();
+    }
+
+    for (auto* model : roots) {
+        if (model == nullptr) continue;
+        if (!model->GetMapping().empty()) continue;
+        if (selectMapTarget && selectedTargets.count(model) == 0) continue;
+
+        Model* layoutModel = renderContext.GetModel(model->GetCoreModel());
+
+        // Step 1: match unmapped submodels by name against non-slashed sources.
+        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+            auto* sm = model->GetNthChild(k);
+            if (sm == nullptr || !sm->GetMapping().empty()) continue;
+            const std::string smName = Lower(Trim(sm->GetCoreStrand()));
+            for (const auto& src : available) {
+                if (selectMapAvail && !src.selected) continue;
+                if (!sm->GetMapping().empty()) break;
+                const std::string& availName = src.canonicalName;
+                if (availName.find('/') != std::string::npos) continue;
+                if (smName == availName) {
+                    sm->Map(src.displayName, "Unknown");
+                }
+            }
+        }
+
+        // Step 2: match still-unmapped submodels by their layout aliases.
+        if (layoutModel == nullptr) continue;
+        for (unsigned int k = 0; k < model->GetChildCount(); ++k) {
+            auto* sm = model->GetNthChild(k);
+            if (sm == nullptr || !sm->GetMapping().empty()) continue;
+            Model* sm2 = layoutModel->GetSubModel(sm->GetCoreStrand());
+            if (sm2 == nullptr) continue;
+            const auto& smAliases = sm2->GetAliases();
+            if (smAliases.empty()) continue;
+            for (const auto& src : available) {
+                if (selectMapAvail && !src.selected) continue;
+                if (!sm->GetMapping().empty()) break;
+                const std::string& availName = src.canonicalName;
+                if (availName.find('/') != std::string::npos) continue;
+                const std::string strippedAvail = StripPunctuation(availName);
+                for (const auto& alias : smAliases) {
+                    std::string aliasNorm = Lower(Trim(alias));
+                    if (aliasNorm == availName || StripPunctuation(aliasNorm) == strippedAvail) {
+                        sm->Map(src.displayName, "Unknown");
+                        break;
                     }
                 }
             }

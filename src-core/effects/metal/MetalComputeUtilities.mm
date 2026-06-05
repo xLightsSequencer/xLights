@@ -35,17 +35,9 @@ MetalPixelBufferComputeData::MetalPixelBufferComputeData() {
     sparkleBuffer = nil;
     tmpBufferBlend = nil;
 }
-MetalPixelBufferComputeData::~MetalPixelBufferComputeData() {
-    if (sparkleBuffer != nil) {
-        [sparkleBuffer release];
-    }
-    if (tmpBufferBlend != nil) {
-        [tmpBufferBlend release];
-    }
-}
 
 bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, int effectPeriod, const std::vector<bool>& validLayers, int saveLayer, bool saveToPixels) {
-    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < 2048) {
+    if (pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         return false;
     }
     for (int l = validLayers.size() - 1; l >= 0; --l) {
@@ -58,13 +50,12 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
         
     if (!pixelBuffer->sparklesVector.empty()) {
         if (pixelBuffer->sparkles == &pixelBuffer->sparklesVector[0] && sparkleBuffer != nil) {
-            [sparkleBuffer release];
             sparkleBuffer = nil;
         }
         if (sparkleBuffer == nil) {
-            sparkleBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
+            sparkleBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithBytes:&pixelBuffer->sparklesVector[0]
                                              length:pixelBuffer->sparklesVector.size() * sizeof(uint16_t)
-                                            options:MTLResourceStorageModeShared] retain];
+                                            options:MTLResourceStorageModeShared];
             std::string name = pixelBuffer->GetModelName() + "SparkleBuffer";
             setLabel(sparkleBuffer, name);
             pixelBuffer->sparkles = static_cast<uint16_t*>(sparkleBuffer.contents);
@@ -72,7 +63,7 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
     }
     if (tmpBufferBlend == nil) {
         int len = pixelBuffer->layers[saveLayer]->buffer.GetNodeCount() * sizeof(uint32_t);
-        tmpBufferBlend = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        tmpBufferBlend = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
         setLabel(tmpBufferBlend, pixelBuffer->GetModelName() + "-BlendBuffer");
     }
     MetalRenderBufferComputeData *slRMRB = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&pixelBuffer->layers[saveLayer]->buffer);
@@ -354,18 +345,15 @@ bool MetalPixelBufferComputeData::doBlendLayers(PixelBufferClass *pixelBuffer, i
 bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, int layer, RenderBuffer *prevRB) {
     PixelBufferClass::LayerInfo *li = pixelBuffer->layers[layer];
     int ms = li->BufferHt * li->BufferWi;
-    if (ms < 1024) {
+    if (ms < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         li->maskSize = 0; // start with empty mask
         return false;
     }
     if (li->inMaskFactor < 1.0 || li->outMaskFactor < 1.0) {
         if (ms > li->maskMaxSize) {
             MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&li->buffer);
-            if (bd->maskBuffer) {
-                [bd->maskBuffer release];
-            }
             li->maskMaxSize = ms;
-            bd->maskBuffer= [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared] retain];
+            bd->maskBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:li->maskMaxSize options:MTLResourceStorageModeShared];
             std::string name = li->buffer.GetModelName() + "MaskBuffer-" + std::to_string(layer);
             setLabel(bd->maskBuffer, name);
             li->mask = static_cast<uint8_t*>(bd->maskBuffer.contents);
@@ -444,7 +432,7 @@ bool MetalPixelBufferComputeData::doTransitions(PixelBufferClass *pixelBuffer, i
     }
     return true;
 }
-bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer) {
+bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
     id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Map");
     if (commandBuffer == nil) {
@@ -471,12 +459,12 @@ bool MetalPixelBufferComputeData::doMap(id<MTLComputePipelineState> &f, Transiti
     return true;
 }
 
-bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB) {
+bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, RenderBuffer *prevRB) {
     id<MTLBuffer> bufferPrev = nil;
     if (prevRB) bufferPrev = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(prevRB)->getPixelBuffer();
     return doTransition(f, data, buffer, bufferPrev);
 }
-bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> &f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> &prev) {
+bool MetalPixelBufferComputeData::doTransition(id<MTLComputePipelineState> f, TransitionData &data, RenderBuffer *buffer, id<MTLBuffer> prev) {
     MetalRenderBufferComputeData *bd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(buffer);
     id<MTLCommandBuffer> commandBuffer = bd->getCommandBuffer("-Transition");
     if (commandBuffer == nil) {
@@ -535,32 +523,13 @@ MetalRenderBufferComputeData::MetalRenderBufferComputeData(RenderBuffer *rb, Met
     indexBuffer = nil;
     indexes = nullptr;
     indexesSize = 0;
+    cachedBlurKernel = nil;
+    cachedBlurRadius = 0;
 }
 MetalRenderBufferComputeData::~MetalRenderBufferComputeData() {
     pixelBufferData = nullptr;
-    @autoreleasepool {
-        if (commandBuffer != nil) {
-            [commandBuffer release];
-            --commandBufferCount;
-        }
-        if (pixelBuffer != nil) {
-            [pixelBuffer release];
-        }
-        if (pixelBufferCopy != nil) {
-            [pixelBufferCopy release];
-        }
-        if (pixelTexture != nil) {
-            [pixelTexture release];
-        }
-        if (maskBuffer != nil) {
-            [maskBuffer release];
-        }
-        if (indexBuffer != nil)  {
-            [indexBuffer release];
-        }
-        if (blendBuffer != nil) {
-            [blendBuffer release];
-        }
+    if (commandBuffer != nil) {
+        --commandBufferCount;
     }
 }
 
@@ -588,13 +557,12 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
         if (@available(macOS 11.0, *)) {
             MTLCommandBufferDescriptor *descriptor = [MTLCommandBufferDescriptor new];
             descriptor.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
-            commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBufferWithDescriptor:descriptor] retain];
-            [descriptor release];
+            commandBuffer = [MetalComputeUtilities::INSTANCE.commandQueue commandBufferWithDescriptor:descriptor];
         } else {
-            commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
+            commandBuffer = [MetalComputeUtilities::INSTANCE.commandQueue commandBuffer];
         }
 #else
-        commandBuffer = [[MetalComputeUtilities::INSTANCE.commandQueue commandBuffer] retain];
+        commandBuffer = [MetalComputeUtilities::INSTANCE.commandQueue commandBuffer];
 #endif
         std::string modelName = renderBuffer->GetModelName() + "-" + std::to_string(layer);
         if (!postfix.empty()) {
@@ -607,7 +575,6 @@ id<MTLCommandBuffer> MetalRenderBufferComputeData::getCommandBuffer(const std::s
 }
 void MetalRenderBufferComputeData::abortCommandBuffer() {
     @autoreleasepool {
-        [commandBuffer release];
         commandBuffer = nil;
         --commandBufferCount;
     }
@@ -615,7 +582,7 @@ void MetalRenderBufferComputeData::abortCommandBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getBlendBuffer() {
     if (blendBuffer == nil) {
         int len = renderBuffer->GetNodeCount() * sizeof(uint32_t);
-        blendBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared] retain];
+        blendBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:len options:MTLResourceStorageModeShared];
         setLabel(blendBuffer, renderBuffer->GetModelName() + "-WorkBuffer" + std::to_string(layer));
     }
     return blendBuffer;
@@ -628,7 +595,7 @@ id<MTLBuffer> MetalRenderBufferComputeData::getIndexBuffer() {
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBufferCopy() {
     if (pixelBufferCopy == nil) {
         int bufferSize = std::max((int)renderBuffer->GetPixelCount(), (int)pixelBufferSize) * 4;
-        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate] retain];
+        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModePrivate];
         std::string name = renderBuffer->GetModelName() + "PixelBufferCopy";
         setLabel(newBuffer, name);
         pixelBufferCopy = newBuffer;
@@ -650,10 +617,7 @@ void MetalRenderBufferComputeData::bufferResized() {
         }
     }
     if (indexesSize < indexCount) {
-        if (indexBuffer != nil) {
-            [indexBuffer release];
-        }
-        indexBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared] retain];
+        indexBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:(indexCount * sizeof(int32_t)) options:MTLResourceStorageModeShared];
         std::string name = renderBuffer->GetModelName() + "IndexBuffer";
         setLabel(indexBuffer, name);
         indexes = static_cast<int32_t*>(indexBuffer.contents);
@@ -675,6 +639,13 @@ void MetalRenderBufferComputeData::bufferResized() {
                     indexes[extraIdx++] = pidx;
                 }
             }
+        } else if (n->Coords.empty()) {
+            // Node with zero coords — treat the same as a node whose
+            // single coord is out-of-bounds (sentinel -1). Without
+            // this guard the `else if` below dereferences Coords[0]
+            // on an empty vector. Observed in a TestFlight crash
+            // when adding an effect to a row mid-state-update.
+            indexes[idx] = -1;
         } else if (n->Coords[0].bufY < 0 || n->Coords[0].bufY >= renderBuffer->BufferHt ||
                    n->Coords[0].bufX < 0 || n->Coords[0].bufX >= renderBuffer->BufferWi ) {
             indexes[idx] = -1;
@@ -688,18 +659,15 @@ void MetalRenderBufferComputeData::bufferResized() {
 
 id<MTLBuffer> MetalRenderBufferComputeData::getPixelBuffer(bool sendToGPU) {
     if (pixelBufferSize < renderBuffer->GetPixelCount()) {
-        if (pixelBuffer) {
-            [pixelBuffer release];
-        }
-        if (pixelBufferCopy) {
-            [pixelBufferCopy release];
-            pixelBufferCopy = nil;
-        }
         int bufferSize = renderBuffer->GetPixelCount() * 4;
-        id<MTLBuffer> newBuffer = [[MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared] retain];
+        id<MTLBuffer> newBuffer = [MetalComputeUtilities::INSTANCE.device newBufferWithLength:bufferSize options:MTLResourceStorageModeShared];
         std::string name = renderBuffer->GetModelName() + "PixelBuffer";
         setLabel(newBuffer, name);
+        // copy from the old buffer (which renderBuffer->pixels points into) before reassigning it
         memcpy(newBuffer.contents, renderBuffer->pixels, pixelBufferSize == 0 ? bufferSize : pixelBufferSize * 4);
+        if (pixelBufferCopy) {
+            pixelBufferCopy = nil;
+        }
         pixelBufferSize = renderBuffer->pixelVector.size();
         pixelBuffer = newBuffer;
         renderBuffer->pixels = static_cast<xlColor*>(pixelBuffer.contents);
@@ -734,7 +702,6 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
         || renderBuffer->BufferHt != pixelTextureSize.second)) {
      
         @autoreleasepool {
-            [pixelTexture release];
             pixelTexture = nil;
         }
         pixelTextureSize = { 0, 0 };
@@ -749,7 +716,7 @@ id<MTLTexture> MetalRenderBufferComputeData::getPixelTexture() {
             d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
             d.storageMode = MTLStorageModePrivate;
             // Create the texture from the device by using the descriptor
-            pixelTexture = [[MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d] retain];
+            pixelTexture = [MetalComputeUtilities::INSTANCE.device newTextureWithDescriptor:d];
             
             std::string name = renderBuffer->GetModelName() + "PixelTexture";
             NSString* mn = [NSString stringWithUTF8String:name.c_str()];
@@ -833,7 +800,6 @@ void MetalRenderBufferComputeData::waitForCompletion() {
 #else
             [commandBuffer waitUntilCompleted];
 #endif
-            [commandBuffer release];
             commandBuffer = nil;
             committed = false;
             --commandBufferCount;
@@ -841,12 +807,14 @@ void MetalRenderBufferComputeData::waitForCompletion() {
     }
 }
 bool MetalRenderBufferComputeData::blur(int radius) {
-    if ((renderBuffer->BufferHt < (radius * 2)) || (renderBuffer->BufferWi < (radius * 2)) || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < 1024)) {
+    if ((renderBuffer->BufferHt < (radius * 2))
+        || (renderBuffer->BufferWi < (radius * 2))
+        || ((renderBuffer->BufferWi * renderBuffer->BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         // Smallish buffer, overhead of sending to GPU will be more than the gain
         return false;
     }
-    if (renderBuffer->BufferHt > 16384 || renderBuffer->BufferWi > 16384) {
-        // max size of Textures on macOS
+    if ((NSUInteger)renderBuffer->BufferHt > MetalComputeUtilities::INSTANCE.maxTextureSize
+        || (NSUInteger)renderBuffer->BufferWi > MetalComputeUtilities::INSTANCE.maxTextureSize) {
         return false;
     }
     @autoreleasepool {
@@ -863,13 +831,23 @@ bool MetalRenderBufferComputeData::blur(int radius) {
         */
         //tent blur is closest to what is implemented on the C++/CPU side
         float r = (radius - 1) * 2 - 1;
-        MPSImageTent *gblur = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
-                                                     kernelWidth:r
-                                                    kernelHeight:r];
-        [gblur setEdgeMode:MPSImageEdgeModeClamp];
-        [gblur setLabel:@"Blur"];
+        // Reuse the cached kernel when the radius hasn't changed since the
+        // last frame — alloc/init of MPSImageTent triggers driver-side metallib
+        // parsing whose internal hash-table entries leak per-instance.
+        if (cachedBlurKernel != nil && cachedBlurRadius != radius) {
+            cachedBlurKernel = nil;
+        }
+        if (cachedBlurKernel == nil) {
+            cachedBlurKernel = [[MPSImageTent alloc] initWithDevice:MetalComputeUtilities::INSTANCE.device
+                                                        kernelWidth:r
+                                                       kernelHeight:r];
+            [(MPSImageTent*)cachedBlurKernel setEdgeMode:MPSImageEdgeModeClamp];
+            [(MPSImageTent*)cachedBlurKernel setLabel:@"Blur"];
+            cachedBlurRadius = radius;
+        }
+        MPSImageTent *gblur = (MPSImageTent*)cachedBlurKernel;
 
-        MPSCopyAllocator myAllocator = ^id <MTLTexture>( MPSKernel * __nonnull filter,
+        MPSCopyAllocator myAllocator = ^id <MTLTexture> __attribute__((ns_returns_retained)) ( MPSKernel * __nonnull filter,
                                                         __nonnull id <MTLCommandBuffer> cmdBuf,
                                                         __nonnull id <MTLTexture> sourceTexture)
         {
@@ -878,7 +856,9 @@ bool MetalRenderBufferComputeData::blur(int radius) {
                                                                                          width: sourceTexture.width
                                                                                         height: sourceTexture.height
                                                                                      mipmapped: NO];
-            [sourceTexture release];
+            // MPSCopyAllocator typedef declares sourceTexture as ns_consumed
+            // in the SDK; ARC balances the +1 the framework hands us via
+            // the implicit release on block exit.
             d.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
             return [cmdBuf.device newTextureWithDescriptor: d];
         };
@@ -887,7 +867,6 @@ bool MetalRenderBufferComputeData::blur(int radius) {
                                 inPlaceTexture:&pixelTexture
                          fallbackCopyAllocator:myAllocator];
         [commandBuffer popDebugGroup];
-        [gblur release];
         return ok;
     }
 }
@@ -951,7 +930,7 @@ bool MetalRenderBufferComputeData::rotoZoom(GPURenderUtils::RotoZoomSettings &se
     return true;
 }
 
-bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> &function, RotoZoomData &data) {
+bool MetalRenderBufferComputeData::callRotoZoomFunction(id<MTLComputePipelineState> function, RotoZoomData &data) {
     id<MTLCommandBuffer> commandBuffer = getCommandBuffer("-RotoZoom");
     if (commandBuffer == nil) {
         return false;
@@ -1013,15 +992,17 @@ MetalComputeUtilities::MetalComputeUtilities() {
     enabled = false;
     device = nil;
     dissolveBuffer = nil;
-    
+
+    // Static-init time has no thread autorelease pool, so autoreleased
+    // NSStrings/NSURLs created below would leak permanently.
+    @autoreleasepool {
 #if !TARGET_OS_IPHONE
     NSArray *devices = MTLCopyAllDevices();
     for (id d in devices) {
         if ([d isRemovable]) {
-            device = [d retain];
+            device = d;
         }
     }
-    [devices release];
 #endif
     if (device == nil) {
         device = MTLCreateSystemDefaultDevice();
@@ -1030,7 +1011,17 @@ MetalComputeUtilities::MetalComputeUtilities() {
         device = nil;
         return;
     }
-    
+
+    if ([device supportsFamily:MTLGPUFamilyApple10]) {
+        maxTextureSize = 32768; // A19/M5 and later (per Metal Feature Set Tables, Feb 2026)
+    } else if ([device supportsFamily:MTLGPUFamilyApple3] || [device supportsFamily:MTLGPUFamilyMac2]) {
+        maxTextureSize = 16384; // A9/M1 through A18/M4
+    } else if ([device supportsFamily:MTLGPUFamilyApple2]) {
+        maxTextureSize = 8192;  // A8
+    } else {
+        maxTextureSize = 4096;  // A7
+    }
+
     NSError *libraryError = NULL;
     NSString *libraryFile = [[NSBundle mainBundle] pathForResource:@"EffectComputeFunctions" ofType:@"metallib"];
     if (!libraryFile) {
@@ -1051,7 +1042,7 @@ MetalComputeUtilities::MetalComputeUtilities() {
         return;
     }
 #ifdef DEBUG
-    printf("CommandQueue: %p\n", (void*)commandQueue);
+    printf("CommandQueue: %p\n", (__bridge void*)commandQueue);
 #endif
     [commandQueue setLabel:@"MetalEffectCommandQueue"];
     enabled = true;
@@ -1123,11 +1114,12 @@ MetalComputeUtilities::MetalComputeUtilities() {
     blendFunctions[MixTypes::Mix_LeftRight] = new BlendFunctionInfo("LeftRightFunction",0, true);
     
     int bufferSize = DissolvePatternWidth * DissolvePatternHeight;
-    dissolveBuffer = [[device newBufferWithBytes:DissolveTransitonPattern
-                                          length:bufferSize
-                                         options:MTLResourceStorageModeShared] retain];
+    dissolveBuffer = [device newBufferWithBytes:DissolveTransitonPattern
+                                         length:bufferSize
+                                        options:MTLResourceStorageModeShared];
 
     [dissolveBuffer setLabel:@"DissolveTransitonPattern"];
+    } // @autoreleasepool
 }
 MetalComputeUtilities::~MetalComputeUtilities() {
     @autoreleasepool {
@@ -1143,28 +1135,25 @@ MetalComputeUtilities::~MetalComputeUtilities() {
         }
         blendFunctions.clear();
 
-        if (dissolveBuffer != nil) {
-            [dissolveBuffer release];
-            dissolveBuffer = nil;
-        }
+        dissolveBuffer = nil;
 
-        [xrotateFunction release];              xrotateFunction = nil;
-        [yrotateFunction release];              yrotateFunction = nil;
-        [zrotateFunction release];              zrotateFunction = nil;
-        [rotateBlankFunction release];          rotateBlankFunction = nil;
+        xrotateFunction = nil;
+        yrotateFunction = nil;
+        zrotateFunction = nil;
+        rotateBlankFunction = nil;
 
-        [getColorsFunction release];            getColorsFunction = nil;
-        [putColorsFunction release];            putColorsFunction = nil;
-        [adjustHSVFunction release];            adjustHSVFunction = nil;
-        [applySparklesFunction release];        applySparklesFunction = nil;
-        [brightnessContrastFunction release];   brightnessContrastFunction = nil;
-        [brightnessLevelFunction release];      brightnessLevelFunction = nil;
-        [firstLayerFadeFunction release];       firstLayerFadeFunction = nil;
-        [nonAlphaFadeFunction release];         nonAlphaFadeFunction = nil;
+        getColorsFunction = nil;
+        putColorsFunction = nil;
+        adjustHSVFunction = nil;
+        applySparklesFunction = nil;
+        brightnessContrastFunction = nil;
+        brightnessLevelFunction = nil;
+        firstLayerFadeFunction = nil;
+        nonAlphaFadeFunction = nil;
 
-        [commandQueue release]; commandQueue = nil;
-        [library release];      library = nil;
-        [device release];       device = nil;
+        commandQueue = nil;
+        library = nil;
+        device = nil;
     }
 }
 MetalComputeUtilities::TransitionInfo::TransitionInfo(int t) : type(t), reversed(false), function(nil) {
@@ -1172,17 +1161,9 @@ MetalComputeUtilities::TransitionInfo::TransitionInfo(int t) : type(t), reversed
 MetalComputeUtilities::TransitionInfo::TransitionInfo(const char *fn, int t, bool r) : type(t), reversed(r) {
     function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
 }
-MetalComputeUtilities::TransitionInfo::~TransitionInfo() {
-    [function release];
-    function = nil;
-}
 
 MetalComputeUtilities::BlendFunctionInfo::BlendFunctionInfo(const char *fn, int mtd, bool ni) : name(fn), mixTypeData(mtd), needIndexes(ni) {
     function = MetalComputeUtilities::INSTANCE.FindComputeFunction(fn);
-}
-MetalComputeUtilities::BlendFunctionInfo::~BlendFunctionInfo() {
-    [function release];
-    function = nil;
 }
 
 id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const char *name) {
@@ -1199,8 +1180,6 @@ id<MTLComputePipelineState> MetalComputeUtilities::FindComputeFunction(const cha
                                                                            options:MTLPipelineOptionNone
                                                                         reflection:nil
                                                                              error:&error];
-    [function release];
-    [desc release];
     if (!ps) {
         NSLog(@"Library error: %@", error);
     }

@@ -75,7 +75,7 @@ int EffectLayer::GetIndex() const
 
 Effect* EffectLayer::GetEffect(int index) const
 {
-    if(index < (int)mEffects.size()) {
+    if(index >= 0 && index < (int)mEffects.size()) {
         return mEffects[index];
     } else {
         return nullptr;

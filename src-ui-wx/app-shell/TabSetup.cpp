@@ -25,6 +25,7 @@
 #include <thread>
 
 #include "xLightsMain.h"
+#include "xLightsApp.h"
 #include "layout/LayoutPanel.h"
 #include "render/SequenceFile.h"
 #ifdef __WXOSX__
@@ -229,11 +230,9 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     }
     PreviewWindows.clear();
 
-    // remove any 3d viewpoints
-    viewpoint_mgr.Clear();
-
     // Check to see if any show directory files need to be saved
     CheckUnsavedChanges();
+    viewpoint_mgr.Clear();
 
     // Force re-initialization of Effect Presets panel when show directory changes.
     // If the panel is already visible, reload it immediately; otherwise defer until next show.
@@ -353,8 +352,26 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     } else {
         wxLog::SetActiveTarget(new wxLogStderr()); // write to stderr
     }
-    if (std::find(mediaDirectories.begin(), mediaDirectories.end(), CurrentDir) == mediaDirectories.end()) {
-        mediaDirectories.push_back(CurrentDir);
+
+    mediaDirectories.clear();
+    if (!xLightsApp::mediaDir.IsNull())
+        mediaDirectories.push_back(xLightsApp::mediaDir.ToStdString());
+    {
+        wxString mediaDirConfig;
+        config->Read("MediaDir", &mediaDirConfig);
+        if (!mediaDirConfig.empty()) {
+            wxArrayString entries = wxSplit(mediaDirConfig, '|', '\0');
+            for (auto& d : entries) {
+                std::string dstd = d.ToStdString();
+                if (std::find(mediaDirectories.begin(), mediaDirectories.end(), dstd) == mediaDirectories.end())
+                    mediaDirectories.push_back(dstd);
+            }
+        }
+    }
+    {
+        std::string curDir = ToStdString(CurrentDir);
+        if (std::find(mediaDirectories.begin(), mediaDirectories.end(), curDir) == mediaDirectories.end())
+            mediaDirectories.push_back(curDir);
     }
 
     long fseqLinkFlag = 0;
@@ -1129,7 +1146,8 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         OutputModelManager::WORK_RELOAD_OBJECTLIST |
         OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW |
         OutputModelManager::WORK_RELOAD_PROPERTYGRID |
-        OutputModelManager::WORK_SAVE_NETWORKS
+        OutputModelManager::WORK_SAVE_NETWORKS |
+        OutputModelManager::WORK_FOCUS_MODELTREE
     );
     if (work & OutputModelManager::WORK_NETWORK_CHANNELSCHANGE) {
         logger_work->debug("    WORK_NETWORK_CHANNELSCHANGE.");
@@ -1341,6 +1359,9 @@ void xLightsFrame::DoWork(uint32_t work, const std::string& type, BaseObject* m,
         logger_work->debug("    Selecting model '{}'.", (const char*)selectedModel.c_str());
         //SelectModel(selectModel);
         layoutPanel->SelectBaseObject(selectedModel);
+        if (work & OutputModelManager::WORK_FOCUS_MODELTREE) {
+            layoutPanel->FocusModelTree();
+        }
     }
     if (work & OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW) {
         logger_work->debug("    WORK_REDRAW_LAYOUTPREVIEW.");
@@ -2126,6 +2147,10 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
                 List_Controllers->SetItemText(cn, event.GetValue().GetString());
 
                 // This fixes up any start channels dependent on the controller name
+                // RenameController rewrites each affected model's start channel
+                // (Model::SetStartChannel → IncrementChangeCount), which can fire
+                // ModelGroup::CheckForChanges on a render thread; stop the renderer first.
+                AbortRender();
                 AllModels.RenameController(oldName, event.GetValue().GetString());
 
                 _outputModelManager.AddASAPWork(OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "xLightsFrame::OnControllerPropertyGridChange::ControllerName", nullptr);
@@ -2133,6 +2158,7 @@ void xLightsFrame::OnControllerPropertyGridChange(wxPropertyGridEvent& event) {
         } else if (name == "IP") {
             // This fixes up any start channels dependent on the controller IP
             if (ip_utils::IsIPValid(oldIP) && ip_utils::IsIPValid(controller->GetIP()) && _outputManager.GetControllers(oldIP).size() == 0) {
+                AbortRender();
                 AllModels.ReplaceIPInStartChannels(oldIP, controller->GetIP());
             }
         }
@@ -2340,7 +2366,13 @@ void xLightsFrame::DeleteSelectedControllers() {
         auto msg = wxString::Format("Are you sure you want to delete %d controllers.", (int)todel.size());
         if (wxMessageBox(msg, "Delete controller(s)", wxYES_NO) == wxYES) {
             waitForPingsToComplete();
+            // DeleteController rewrites start channels on every model that referenced
+            // this controller (Model::SetStartChannel → IncrementChangeCount); stop
+            // the renderer before mutating so ModelGroup::CheckForChanges can't fire
+            // on a render thread.
+            AbortRender();
             for (const auto& it : todel) {
+                AllModels.DeleteController(it);
                 _outputManager.DeleteController(it);
             }
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
@@ -2602,6 +2634,8 @@ void xLightsFrame::OnButtonControllerDeleteClick(wxCommandEvent& event)
     if (wxMessageBox("Are you sure you want delete this controller?", "Delete Controller", wxYES_NO, this) == wxYES) {
         auto name = Controllers_PropertyEditor->GetProperty("ControllerName")->GetValue().GetString();
         waitForPingsToComplete();
+        AbortRender();
+        AllModels.DeleteController(name);
         _outputManager.DeleteController(name);
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "DeleteSelectedControllers");
         _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANNELSCHANGE, "DeleteSelectedControllers");

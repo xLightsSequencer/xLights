@@ -11,9 +11,6 @@ public:
     MetalFanEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("FanEffect");
     }
-    ~MetalFanEffectData() {
-        if (fn) { [fn release]; }
-    }
 
     bool canRender() { return fn != nil; }
 
@@ -70,7 +67,7 @@ MetalFanEffect::~MetalFanEffect() {
 
 void MetalFanEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < 2048) {
+    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         FanEffect::Render(effect, SettingsMap, buffer);
         return;
     }

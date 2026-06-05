@@ -11,9 +11,6 @@ public:
     MetalBarsEffectData() {
         fn = MetalComputeUtilities::INSTANCE.FindComputeFunction("BarsEffect");
     }
-    ~MetalBarsEffectData() {
-        if (fn) { [fn release]; }
-    }
 
     bool canRender() { return fn != nil; }
 
@@ -70,7 +67,7 @@ MetalBarsEffect::~MetalBarsEffect() {
 
 void MetalBarsEffect::Render(Effect *effect, const SettingsMap &SettingsMap, RenderBuffer &buffer) {
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < 2048) {
+    if (rbcd == nullptr || !data->canRender() || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         BarsEffect::Render(effect, SettingsMap, buffer);
         return;
     }

@@ -490,6 +490,12 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mp4");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true);
+    } else if (Out3 == "Hig") {
+        // High Quality Compressed Video, *.mp4 — HEVC at a high bitrate (AVFoundation).
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mp4");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), true, /*highQuality*/ true);
     } else if (Out3 == "Unc") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         fullpath = oName.string();
@@ -499,6 +505,13 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mov");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false);
+    } else if (Out3 == "Pro") {
+        // ProRes 4444 Video, *.mov — 4:4:4 near-lossless, smaller than rawvideo
+        // (AVFoundation ProRes 4444 on macOS, prores_ks on FFmpeg elsewhere).
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mov");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false, /*highQuality*/ false, /*forceProRes*/ true);
     } else if (Out3 == "Min") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         oName.replace_extension(".bin");

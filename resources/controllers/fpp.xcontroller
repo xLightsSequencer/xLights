@@ -6,6 +6,7 @@
             <MaxSerialPort>1</MaxSerialPort>
             <MaxSerialPortChannels>4096</MaxSerialPortChannels>
             <MaxPixelPortChannels>0</MaxPixelPortChannels>
+            <OpenSourceFirmware/>
             <SupportsAutoLayout/>
             <SupportsUpload/>
             <SupportsAutoUpload/>
@@ -27,6 +28,7 @@
         </Variant>
     </Controller>
     <AbstractVariant Name="BaseFPPSettings">
+        <OpenSourceFirmware/>
         <SupportsPixelPortCommonSettings/>
         <SupportsPixelZigZag/>
         <MaxZigZag>600</MaxZigZag>

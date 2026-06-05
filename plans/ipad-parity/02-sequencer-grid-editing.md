@@ -1,0 +1,162 @@
+# 02 · Sequencer Grid & Effect Editing
+
+> The core single-/multi-effect editing surface is at strong parity. iPad's effect long-press menu, multi-select bulk menu, row-heading context menu, and timing-mark menu all share `src-core` ops with desktop and are real (not stubs). The two large desktop-only clusters are (1) the **entire AC/Auto-Color toolbar** (Off/On/Twinkle/Shimmer, Intensity, Ramp Up/Down/UpDown, Fill, Cascade, Foreground/Background, Select, Disabled) — zero references exist anywhere in `src-iPad`; and (2) the **user-customizable keybinding system** (`KeyBindingEditDialog`, plus hotkey-to-apply-effect / -preset / -setting). Smaller desktop-only row-heading gaps: Play model, Convert-To-Effect (render-down to a single effect), Copy Effects incl SubModels, Copy Layers/SubModels to Models, Enable Render on All Models, Delete Multiple Layers, Paste-By-Cell/Paste-By-Time toggle, double-click-to-play-effect, and move-effect-up/down-a-layer via Up/Down arrows. **Cut is intentionally absent on iPad** (no menu item, no shortcut), and the iPad Up/Down arrows do **selection navigation** (Effect Above/Below), not layer-moving. iPad-only conveniences for this theme: two-finger marquee, Pencil-tap/squeeze→undo, pointer-hover handle highlights, long-press fade-handle → transition-type picker, and per-timing-mark Split/Merge/Add-Here touch ops.
+
+## Parity scorecard
+
+| Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Copy effect | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop EffectsGrid.cpp:367; iPad SequencerGridV2View.swift:607 + ⌘C (XLightsCommands.swift:113). |
+| Cut effect | context-menu/shortcut | ✅ | ❌ | ipad-missing | P2 | easy | feasible | Desktop EffectsGrid.cpp:366. iPad **intentionally omits Cut** (XLightsCommands.swift:66-67 comment); no menu item, no ⌘X. |
+| Paste effect | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop EffectsGrid.cpp:368 (paste mode-dependent). iPad "Paste Here" SequencerGridV2View.swift:609 + ⌘V at play head. |
+| Delete effect | context-menu/key | ✅ | ✅ | parity | P1 | easy | feasible | Desktop EffectsGrid.cpp:369 / Delete key (MainSequencer.cpp:964). iPad SequencerGridV2View.swift:690 + Delete key. |
+| Duplicate effect | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop EffectsGrid.cpp:391 / ⌘D. iPad XLightsCommands.swift:127 → duplicateSelectedEffect (VM:5828). |
+| Edit timing (start/end seconds) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop "Timing" EffectsGrid.cpp:486 → EffectTimingDialog. iPad alert SequencerGridV2View.swift:632/765, live duration readout. |
+| Edit effect description | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:449. iPad SequencerGridV2View.swift:670. Both single + multi. |
+| Split effect at play marker | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Split" EffectsGrid.cpp:381. iPad SequencerGridV2View.swift:627 (splitSelectedEffectAtPlayMarker VM:4551). |
+| Create Timing from selected effect(s) | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop "Create Timing" effect menu EffectsGrid.cpp:386 + row "Create Timing From Effects". iPad in top-chrome menu SequencerGridV2View.swift:1307 (createTimingTrackFromEffects VM:4747), **not** in effect long-press menu. |
+| Reset effect to defaults | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:448. iPad SequencerGridV2View.swift:664 (resetSelectedEffectsToDefaults VM:3212). |
+| Lock / Unlock effect | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:450/451. iPad SequencerGridV2View.swift:649 + bulk:578. |
+| Disable / Enable render on effect | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:452/453. iPad SequencerGridV2View.swift:655 + bulk:581. |
+| Randomize effect settings | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Create Random Effects" EffectsGrid.cpp:443 (needs cell-range). iPad "Randomise Settings" SequencerGridV2View.swift:661 (existing effect). See also AC-fill-of-random below. |
+| Find / Find Next / Find Prev / Replace All | menu+context | ✅ | ✅ | parity | P2 | medium | feasible | Desktop EffectsGrid.cpp:545-548. iPad ⌘F → FindReplaceSheet (findNext/replaceAllFindMatches). iPad has no separate Find-Next/Prev menu items but the sheet provides them. |
+| Find Possible Source Effects (node row) | context-menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop EffectsGrid.cpp:476 (master-view, node rows). Niche debugging aid; no iPad bridge. |
+| Multi-select via marquee | gesture | ✅ | ✅ | parity | P1 | easy | feasible | Desktop click-drag rect. iPad two-finger drag → onMarqueeSelect (EffectsMetalGridView.swift:58-61). |
+| Select All effects (whole sequence) | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop ⌘A context-aware. iPad ⌘A XLightsCommands.swift:136 (selectAllEffects). |
+| Clear selection (Escape) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop Escape. iPad Escape XLightsCommands.swift:145. |
+| Select All in Row | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop RowHeading.cpp:587. iPad SequencerGridV2View.swift:638 + RowHeaderViews.swift:523. |
+| Select All in Model | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop RowHeading.cpp:588. iPad SequencerGridV2View.swift:641 + RowHeaderViews.swift:532. |
+| Select All in Column (time span) | context-menu | ❌ | ✅ | desktop-missing | P2 | easy | feasible | iPad-only SequencerGridV2View.swift:644 (selectAllEffectsInColumn VM:4401). Desktop's nearest is AC cell-range, not a true span-select across all rows. |
+| Align Start / End / Both / Centers / Match Duration | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop EffectsGrid.cpp:414-418. iPad SequencerGridV2View.swift:546-559. Multi-select. |
+| Shift-Align Start / End | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:419/420. iPad SequencerGridV2View.swift:561/564. |
+| Align to Closest Timing Mark | context-menu | ✅ | ✅ | parity | P1 | medium | feasible | Desktop EffectsGrid.cpp:421. iPad SequencerGridV2View.swift:567 (alignSelectedEffectsToTimingMarks VM:5081). |
+| Close Gap between selected | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop EffectsGrid.cpp:422. iPad SequencerGridV2View.swift:571 (closeGapInSelectedEffects VM:5133), gated on canCloseGapInSelection. |
+| Save current as Effect Preset | context-menu | ✅ | ✅ | parity | P1 | medium | feasible | Desktop "Effect Presets" EffectsGrid.cpp:442 → EffectTreeDialog. iPad "Save as Preset…" SequencerGridV2View.swift:678 (PRE-1 on-disk library). |
+| Apply Effect Preset | context-menu | ✅ | ✅ | parity | P1 | medium | feasible | Desktop submenu. iPad dynamic preset buttons SequencerGridV2View.swift:682 (applyPreset VM:3099) + Manage Presets → PresetBrowserSheet. |
+| AC: Disabled toggle | toolbar | ✅ | ❌ | ipad-missing | P2 | easy | hard | Desktop xLightsMain.cpp:852. Whole AC toolbar absent on iPad (no AC refs in src-iPad). |
+| AC: Select mode | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:854 (Shift+L). Needs cell-range grid model iPad lacks. |
+| AC: Off effect | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:855 (Delete). HandleACKey EffectsGrid.cpp. |
+| AC: On effect | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:856 (O). |
+| AC: Shimmer effect | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:857 (S). |
+| AC: Twinkle effect | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:858 (K). |
+| AC: Intensity style | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:860 (I). |
+| AC: Ramp Up style | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:861 (U). |
+| AC: Ramp Down style | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:862 (D). |
+| AC: Ramp Up/Down style | toolbar | ✅ | ❌ | ipad-missing | P1 | medium | hard | Desktop xLightsMain.cpp:863 (A). |
+| AC: Parm1 / Parm2 choices | toolbar | ✅ | ❌ | ipad-missing | P2 | medium | hard | Desktop ChoiceParm1/2 xLightsMain.cpp:820/836 (style intensity/level args). |
+| AC: Fill tool | toolbar | ✅ | ❌ | ipad-missing | P1 | hard | hard | Desktop xLightsMain.cpp:867 (F). Cell-range fill; biggest AC build. |
+| AC: Cascade tool | toolbar | ✅ | ❌ | ipad-missing | P1 | hard | hard | Desktop xLightsMain.cpp:868 (H). |
+| AC: Foreground mode | toolbar | ✅ | ❌ | ipad-missing | P2 | easy | hard | Desktop xLightsMain.cpp:870 (G). |
+| AC: Background mode | toolbar | ✅ | ❌ | ipad-missing | P2 | easy | hard | Desktop xLightsMain.cpp:871 (B). |
+| Paste By Cell mode toggle | toolbar | ✅ | 🟡 | ipad-weaker | P2 | medium | feasible | Desktop EditToolBar xLightsMain.cpp:816. iPad has no explicit toggle but auto-selects a paste-by-cell branch when a timing cell is active (SequencerViewModel.swift:5911 pasteEffect, :5918-5919 B14 auto paste-by-cell branch, :5389 activeTimingCell). Core PasteModelEffects supports cell mode. |
+| Paste By Time mode toggle | toolbar | ✅ | ❌ | ipad-missing | P2 | easy | feasible | Desktop xLightsMain.cpp:815 (default). iPad implicitly this mode. |
+| Nudge effect 1 ms (Ctrl+←/→) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop MoveSelectedEffectLeft/Right(…,control,…). iPad XLightsCommands.swift:172-181 (nudgeSelectedEffect ±1). |
+| Nudge effect 1 frame (Opt+←/→) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop alt-arrow. iPad XLightsCommands.swift:186-195 (by frameIntervalMS). |
+| Stretch effect end (Shift+←/→) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop MoveSelectedEffect*(shift,…). iPad XLightsCommands.swift:158-167 (stretchSelectedEffectEnd). |
+| Extend to previous / next effect (Shift+⌘+←/→) | shortcut | ✅ | ✅ | parity | P2 | easy | feasible | Desktop butt-up (Ctrl+Shift). iPad XLightsCommands.swift:203-212 (extendSelectedEffectTo*). |
+| Nudge to prev / next timing mark (Ctrl+PgUp/PgDn) | shortcut | ✅ | ✅ | parity | P2 | medium | feasible | Desktop Ctrl-arrow butt to timing. iPad XLightsCommands.swift:221-231 (nudgeSelectedEffectToTimingMark). |
+| Move effect up/down one layer (Up/Down arrow) | shortcut | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop MoveSelectedEffectUp/Down (MainSequencer.cpp:986-992). iPad Up/Down do **selection** (Effect Above/Below, XLightsCommands.swift:479-485), no layer-move op. |
+| Drag effect to another row/layer | gesture | ✅ | ✅ | parity | P1 | medium | feasible | Desktop drag. iPad onMoveEffectToRow (SequencerGridV2View.swift:1820). |
+| Drag effect to move / resize edges | gesture | ✅ | ✅ | parity | P1 | medium | feasible | Desktop edge/center drag. iPad onMoveEffect/onResizeEdge (SequencerGridV2View.swift:1816/1825). |
+| Drag shared edge between two adjacent effects | gesture | ✅ | ✅ | parity | P2 | medium | feasible | Desktop shared-boundary drag. iPad onResizeSharedEdge (SequencerGridV2View.swift:1829, resizeSharedEdge). |
+| Drag fade-in / fade-out handle (time) | gesture | ✅ | ✅ | parity | P1 | medium | feasible | Desktop fade handle. iPad fadeIn/fadeOut handle kinds (EffectsMetalGridView.swift:177) → onAdjustFade. |
+| Pick transition TYPE from fade handle | context-menu/gesture | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | iPad long-press fade handle → transition picker (SequencerGridV2View.swift:83-118, onRequestTransitionMenu:1848). Desktop sets type only via Blending panel, not the grid. |
+| Create effect: select palette + tap grid | gesture | 🟡 | ✅ | parity | P1 | hard | hard | Desktop drag-from-toolbar (EffectDropTarget). iPad tap palette (EffectPaletteView.swift:32 selectPaletteEffect) then tap empty cell (addEffectFromPaletteTap VM:5334). Different paradigm; both achieve placement. |
+| Random effect button (palette) | panel | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Random toolbar button. iPad EffectPaletteView.swift:14 (availableEffects.randomElement). |
+| Double-click effect to play | gesture | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop mouseLeftDClick → RaisePlayModelEffect (EffectsGrid.cpp:259/7600). iPad has no play-this-effect action. |
+| Undo / Redo (with action name) | menu/shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop ⌘Z/⌘⇧Z + named in context menu. iPad XLightsCommands.swift:68-87 (undoMenuTitle). |
+| User-customizable keybindings (editor) | preference/dialog | ✅ | ❌ | ipad-missing | P3 | hard | hard | Desktop KeyBindingEditDialog + KeyBindings system. iPad shortcuts are fixed in XLightsCommands.swift; no editor. |
+| Apply effect by hotkey | shortcut | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop keybinding type "EFFECT"/"PRESET"/"APPLYSETTING" (MainSequencer.cpp:628-664). iPad has no hotkey-to-apply. |
+| Insert Layer Above / Below | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:486/487. iPad RowHeaderViews.swift:627/632. |
+| Insert Multiple Layers Below | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:488. iPad RowHeaderViews.swift:638 → InsertLayersAlert. |
+| Delete Layer | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:491. iPad RowHeaderViews.swift:644 (confirm). |
+| Delete Multiple Layers | context-menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop RowHeading.cpp:492 (ID_ROW_MNU_DELETE_LAYERS). iPad only single "Delete Layer". |
+| Delete Unused Layers | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:506. iPad RowHeaderViews.swift:650 (count shown). |
+| Edit Layer Name | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop "Edit Layer Name" RowHeading.cpp:508. iPad "Rename Layer" RowHeaderViews.swift:622. |
+| Collapse/expand element layers (+/-) | panel | ✅ | ✅ | parity | P2 | easy | feasible | Desktop +/- + double-click. iPad +/- RowHeaderViews.swift:430 (rowIsElementCollapsed). |
+| Collapse All / Expand All (Models & Layers) | menu | ✅ | 🟡 | ipad-weaker | P2 | easy | feasible | Desktop has separate "Collapse All Models" and "Collapse All Layers" (RowHeading.cpp:536/537). iPad top-chrome "Collapse All"/"Expand All" (SequencerGridV2View.swift:1335-1343) is a single collapseAllElements via SetCollapsed only (XLSequenceDocument.mm:980-990), without the separate model-vs-layer distinction. |
+| Show All Effects | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop RowHeading.cpp:535. iPad SequencerGridV2View.swift:1345. |
+| Show/Hide Strands/Submodels on row | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Toggle Strands/Models" RowHeading.cpp:528/533. iPad RowHeaderViews.swift:658. |
+| Show/Hide Nodes on strand row | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Toggle Nodes" RowHeading.cpp:530. iPad RowHeaderViews.swift:675. |
+| Show All / Hide Unused Submodels | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop RowHeading.cpp:515/517. iPad RowHeaderViews.swift:665. |
+| Submodel/node expand chevron | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop chevron. iPad RowHeaderViews.swift:445. |
+| Cut / Copy Row effects | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:589/591. iPad RowHeaderViews.swift:548/553 (copyRow/cutRow VM:4936/4942). |
+| Cut / Copy Model effects (all layers) | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:590/592. iPad RowHeaderViews.swift:558/563 (copyModel VM:4949). |
+| Copy Effects incl SubModels | context-menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop RowHeading.cpp:593 (ID_ROW_MNU_COPY_MODEL_INCL_SUBMODELS). No iPad equivalent. |
+| Copy Layers/SubModels to Models | context-menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop RowHeading.cpp:594 (multi-model fan-out copy). No iPad equivalent. |
+| Paste at Row / Model | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:595/596. iPad "Paste" RowHeaderViews.swift:569 (pasteAtRow VM:5991, auto-inserts layers). |
+| Delete all effects on Row | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:601. iPad RowHeaderViews.swift:540 (confirm). |
+| Delete Model / SubModel / Strand / Node effects | context-menu | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop RowHeading.cpp:603-606 (4 scoped deletes). iPad has row-scoped delete only, not the SubModel/Strand/Node-scoped variants. |
+| Convert Effects to 'Per Model' (model & layer scope) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | Desktop RowHeading.cpp:609/610. iPad RowHeaderViews.swift:590/595 (convertEffectsToPerModel VM:2954). |
+| Convert To Effect (render-down to single effect) | context-menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop RowHeading.cpp:541/548/552 (ID_ROW_MNU_CONVERT_TO_EFFECTS). No iPad bridge. |
+| Promote Node Effects | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | Desktop RowHeading.cpp:557. iPad RowHeaderViews.swift:605 (promoteNodeEffects VM:2970). |
+| Disable/Enable render on Model | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:565/567. iPad RowHeaderViews.swift:611. |
+| Enable Render on All Models | context-menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop RowHeading.cpp:579 (ID_ROW_MNU_RENDERENABLE_ALL). No iPad item. |
+| Play Model (row heading) | context-menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop RowHeading.cpp:582 (ID_ROW_MNU_PLAY_MODEL) + double-click. No iPad equivalent. |
+| Export Model as FSEQ (+ loop-range) | context-menu | ✅ | 🟡 | ipad-weaker | P2 | medium | feasible | Desktop RowHeading.cpp:583/584 + selected-effects variants. iPad 'Export Model as FSEQ…' / '(Loop Range)…' (RowHeaderViews.swift:573-583) wraps exportModelAsFSEQ(atRow:toPath:startMS:endMS:); covers raw/rendered FSEQ but not every desktop variant. |
+| Export Selected Model Effects (FSEQ) | context-menu | ✅ | 🟡 | ipad-missing | P3 | medium | feasible | Desktop RowHeading.cpp:585/586. iPad exports whole model / loop range, not a selected-effects-only FSEQ. |
+| Rename Timing Track | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:621. iPad RowHeaderViews.swift:159. |
+| Delete Timing Track | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop RowHeading.cpp:622. iPad RowHeaderViews.swift:266. |
+| Make Timing Track Variable (unfix) | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop RowHeading.cpp:625. iPad "Make Variable" RowHeaderViews.swift:198. |
+| Breakdown Phrases (timing track) | context-menu | ✅ | ✅ | parity | P1 | hard | feasible | Desktop RowHeading.cpp:644 + effect menu EffectsGrid.cpp:504. iPad RowHeaderViews.swift:164. |
+| Breakdown Words (timing track) | context-menu | ✅ | ✅ | parity | P1 | hard | feasible | Desktop RowHeading.cpp:646 + EffectsGrid.cpp:509. iPad RowHeaderViews.swift:170. |
+| Breakdown This Phrase (per-mark) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | Desktop per-phrase EffectsGrid.cpp:504. iPad per-mark SequencerGridV2View.swift:745 (canBreakdownPhrase). |
+| Remove Words / Phonemes / Both | context-menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop RowHeading.cpp:649-656. iPad RowHeaderViews.swift:177-193. |
+| Halve Timing Marks | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop "Divide Timings" EffectsGrid.cpp:514. iPad "Halve Timing Marks" RowHeaderViews.swift:244. |
+| Divide Timing Marks by N (2/3/4/6/8) | context-menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop DivideTimingTrack. iPad RowHeaderViews.swift:250-255. |
+| Generate Subdivided Timing Track | context-menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop RowHeading.cpp:631. iPad RowHeaderViews.swift:204-213. |
+| Auto-Label Timing Marks | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Auto Label Timings" EffectsGrid.cpp:516. iPad RowHeaderViews.swift:238 / alert SequencerGridV2View.swift:800. |
+| Select Timing Marks (whole track) | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop RowHeading.cpp:630. iPad "Select All Marks" RowHeaderViews.swift:262. |
+| Add/Remove "-shimmer" suffix (timing mark) | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop EffectsGrid.cpp:519/520. iPad SequencerGridV2View.swift:721 (toggleShimmerSuffixOnMark). |
+| Split timing mark at play marker (per-mark) | context-menu | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | Desktop has TIMING_SPLIT keybinding (SplitTimingMark) but no per-mark right-click item. iPad SequencerGridV2View.swift:728 (splitTimingMark VM:3634). |
+| Merge timing mark with next (per-mark) | context-menu | ❌ | ✅ | desktop-missing | P3 | medium | feasible | iPad-only SequencerGridV2View.swift:736 (mergeTimingMarkWithNext VM:3662). Desktop merges by deleting a boundary, no explicit op. |
+| Add timing mark by tap / click | gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop click on selected timing row / TIMING_ADD. iPad "Add Mark Here" SequencerGridV2View.swift:756. |
+| Delete timing mark | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop delete. iPad SequencerGridV2View.swift:750 (deleteTimingMark). |
+| Two-finger marquee (touch idiom) | gesture | ❌ | ✅ | desktop-missing | P3 | easy | infeasible | iPad-only; desktop uses single-button drag rect. Touch idiom, no desktop need. |
+| Pencil double-tap / squeeze → undo | gesture | ❌ | ✅ | desktop-missing | P3 | easy | infeasible | iPad-only UIPencilInteraction (EffectsMetalGridView.swift:334-344). No desktop hardware. |
+| Pointer-hover handle highlight (Magic Keyboard) | gesture | 🟡 | ✅ | parity | P3 | easy | infeasible | iPad B30 hover (EffectsMetalGridView.swift:173). Desktop has mouse-move cursor feedback; equivalent idiom. |
+| Drag-create effect by dragging empty cell range | gesture | ✅ | ❌ | ipad-missing | P1 | medium | feasible | Desktop drags out a new effect across an empty cell range. iPad places effects via palette-tap then tap empty cell, with no drag-to-size creation. |
+| Ctrl-click / Shift-click additive multi-select | gesture | ✅ | 🟡 | ipad-weaker | P2 | medium | feasible | Desktop adds to/extends selection with modifier-clicks. iPad multi-selects via two-finger marquee and bulk menus but lacks additive modifier-click on individual effects. |
+| Paste As Layers mode (+ Alternate Paste) | context-menu | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad pasteAtRow auto-inserts layers (SequencerViewModel.swift:5991) but has no explicit Paste-As-Layers / Alternate-Paste mode (no PasteAsLayers/ALTERNATE_PASTE/alternatePaste refs in src-iPad). |
+| Undo step memory cap (low-memory hosts) | shared core | ✅ | ✅ | parity | P3 | easy | feasible | Shared `src-core` UndoManager: SetMaxSteps (UndoManager.h:152), EnforceMaxSteps (:159); iPad sets the cap via iPadRenderContext.cpp:77 (SetMaxSteps). |
+
+## iPad gaps (desktop has, iPad missing)
+
+### P1
+- **AC / Auto-Color toolbar (entire cluster)** — Select / Off / On / Shimmer / Twinkle / Intensity / Ramp Up / Ramp Down / Ramp Up-Down / Fill / Cascade + Parm1/Parm2 + Foreground/Background + Disabled. Desktop builds it in `xLightsMain.cpp:819-873` and drives it through `EffectsGrid::HandleACKey` / `DoACDraw` / `SetACSettings` (EffectsGrid.cpp:3290-3326). **Zero references anywhere in `src-iPad`.** AC works on a *cell-range* selection model (rows × timing columns) that the iPad grid does not implement — it tracks discrete selected effects, not a row/column cursor with `mRangeStartCol/mRangeEndCol`. iPad work: a new cell-range selection layer in `EffectsMetalGridView` + a SwiftUI AC mode bar + bridge methods wrapping the existing core AC ops (the rendering ops themselves are core and reusable). This is the single biggest editing gap; treat Fill/Cascade as the hardest sub-pieces. Ease hard; feasibility hard (UI redesign, not a platform limit).
+- **Drag-create effect by dragging an empty cell range** — Desktop drags out a new effect spanning the dragged time range on an empty layer. iPad only supports palette-tap-then-tap-empty-cell placement, with no drag-to-size creation. Work: add a drag-out gesture on empty cells in `EffectsMetalGridView` that creates an effect sized to the drag. Ease medium.
+
+### P2
+- **Move effect up/down a layer (Up/Down arrows)** — Desktop `MoveSelectedEffectUp/Down` (MainSequencer.cpp:986-992). iPad Up/Down are bound to selection navigation. Work: add `moveSelectedEffectToLayer(delta:)` to `SequencerViewModel` + bridge, and either a menu item or a modified-arrow binding (the modifier-less arrows are already taken). Ease medium.
+- **Play Model from row heading** — Desktop `ID_ROW_MNU_PLAY_MODEL` (RowHeading.cpp:582) + double-click. iPad has no per-model preview-play action. Work: bridge a "play this element from its first effect" path into `RaisePlayModelEffect`-equivalent on iPadRenderContext; add a row long-press item. Ease medium.
+- **Double-click effect to play** — Desktop `mouseLeftDClick → RaisePlayModelEffect` (EffectsGrid.cpp:259/7600). iPad has no play-this-effect gesture/menu. Work: add a "Play Effect" long-press item or double-tap handler. Ease medium.
+- **Paste By Cell / Paste By Time toggle** — Desktop EditToolBar toggles (xLightsMain.cpp:815/816); core `PasteModelEffects`/cell variants already exist. iPad always pastes by time. Work: a paste-mode preference + a toggle in the grid menu; reuse the existing core paste-by-cell path. Ease medium.
+- **Cut effect** — Desktop EffectsGrid.cpp:366. **iPad deliberately omits it** (XLightsCommands.swift:66-67: disabled-but-bound shortcuts swallow key events). If wanted, add a Cut menu item that does copy+delete without binding a swallowing ⌘X, or guard the shortcut. Ease easy. (Low urgency — copy+delete is available.)
+- **Ctrl-click / Shift-click additive multi-select** — Desktop extends or adds to the selection with modifier-clicks on individual effects. iPad relies on two-finger marquee and bulk menus and has no additive modifier-click on individual effects. Work: support modifier-click toggle/extend on effect taps. Ease medium.
+
+### P3
+- **Delete scoped effects: SubModel / Strand / Node** (RowHeading.cpp:603-606), **Convert To Effect** render-down (RowHeading.cpp:541/548/552), **Copy Effects incl SubModels** (RowHeading.cpp:593), **Copy Layers/SubModels to Models** (RowHeading.cpp:594), **Enable Render on All Models** (RowHeading.cpp:579), **Delete Multiple Layers** (RowHeading.cpp:492), **Export Selected Model Effects FSEQ** (RowHeading.cpp:585/586), **Find Possible Source Effects** (EffectsGrid.cpp:476). Each is a thin menu/bridge addition over existing core ops; low frequency.
+- **User-customizable keybindings + hotkey-to-apply-effect/preset/setting** — Desktop `KeyBindingEditDialog` + `KeyBindings` (MainSequencer.cpp:628-664). iPad shortcuts are hardcoded in `XLightsCommands.swift`. A keybinding editor on iPad is large and low-value vs the AC work; the hotkey-to-apply-effect path is feasible but niche.
+- **Paste As Layers mode (+ Alternate Paste)** — iPad `pasteAtRow` auto-inserts layers (SequencerViewModel.swift:5991) but exposes no explicit Paste-As-Layers / Alternate-Paste mode (no `PasteAsLayers`/`ALTERNATE_PASTE`/`alternatePaste` refs in src-iPad). Work: add an explicit paste-as-layers/alternate-paste option over the existing core paste path.
+
+## Desktop gaps (iPad has, desktop missing)
+
+### P2
+- **Select All in Column (true span-select across all rows)** — iPad `selectAllEffectsInColumn` (VM:4401, SequencerGridV2View.swift:644) selects every effect overlapping a time span across all model rows. Desktop's closest is the AC cell-range, which is a different selection model. Could be added to desktop's grid context menu over the same overlap query. Ease easy.
+
+### P3
+- **Per-mark Split / Merge timing-mark context items** — iPad exposes `splitTimingMark` (VM:3634) and `mergeTimingMarkWithNext` (VM:3662) as per-mark long-press items. Desktop has a `TIMING_SPLIT` keybinding but no right-click "Split/Merge this mark" entry. Adding to the desktop timing context menu would be a small parity add. Ease medium.
+- **Transition-type picker from the fade handle** — iPad long-press on a fade handle picks Fade/Wipe/etc. inline (TransitionPickerDialog). Desktop only sets transition type via the Blending panel combos. A desktop right-click-on-fade-handle shortcut would mirror it. Ease medium.
+
+## Infeasible / restricted on iPad
+
+- **Two-finger marquee, Pencil double-tap/squeeze→undo, pointer-hover handle highlights** — iPad-only touch/Pencil idioms with no desktop hardware analog; desktop already covers the same intent with mouse drag-rect and cursor feedback. Not gaps to "fix."
+- **No controller-firmware items in this theme** — Sequencer grid editing carries no controller-config/upload surface, so the open-source-firmware restriction does not apply here.
+- **AC toolbar is feasibility=hard, not infeasible** — it is a UI-architecture investment (cell-range selection model + AC mode bar), not a platform limitation; the underlying AC render ops are wx-free core and reusable.
+
+## Recommended sequencing
+
+1. **Cheap parity wins first (P2/P3, easy):** Cut menu item, Play-Model + double-tap-to-play-effect, Move-effect-up/down-a-layer, Paste-By-Cell toggle, Enable-Render-on-All-Models, Delete-Multiple-Layers, scoped SubModel/Strand/Node deletes, Convert-To-Effect, Copy-incl-SubModels. Each is a small `SequencerViewModel` method + bridge wrapper + one menu entry, reusing existing core ops.
+2. **Select All in Column on desktop** (the one easy reverse-parity item) — small grid-context-menu add.
+3. **AC toolbar** — the marquee feature for this theme. Build it in stages: (a) cell-range selection layer in `EffectsMetalGridView` mirroring desktop's `mRange*` cursor; (b) AC mode bar in SwiftUI + bridge to core AC ops for Off/On/Shimmer/Twinkle/Intensity/Ramp styles + Foreground/Background; (c) Fill and Cascade last (most complex). Defer until step 1-2 land, since it is the only hard, high-value item and benefits from the cell-range plumbing being designed deliberately.
+4. **Defer indefinitely:** user-customizable keybinding editor and hotkey-to-apply-effect (P3, hard, low value next to AC).

@@ -33,6 +33,18 @@
 #include "../OpenGLShaders.h"
 
 #include <log.h>
+#include <mutex>
+
+// ANGLE's Metal backend and the shared EGLImage/Metal device it imports
+// into are not thread-safe, and the size-1 GL context pool does not
+// actually serialize the Metal-side calls here (getBytes/replaceRegion
+// and texture creation don't require the GL context to be current). The
+// render engine runs ShaderEffect::Render on many worker threads at once
+// (per-model jobs plus per-sub-buffer parallel_for), so without this
+// lock one thread can create/replace a shared texture while others read
+// it via getBytes — a data race that crashes in createSharedTexture
+// (sig 5d9f29a77c). Serialize every interop touch through one mutex.
+static std::mutex sMetalInteropMutex;
 
 // -----------------------------------------------------------------------
 // SharedTexture — a texture that exists in both Metal and ANGLE GL,
@@ -62,7 +74,7 @@ static id<MTLDevice> getANGLEMetalDevice(EGLDisplay display) {
 static bool importTextureToGL(EGLDisplay display, id<MTLTexture> metalTex, SharedTexture& out) {
     const EGLAttrib imageAttribs[] = { EGL_NONE };
     EGLImage image = eglCreateImage(display, EGL_NO_CONTEXT, EGL_METAL_TEXTURE_ANGLE,
-                                    (EGLClientBuffer)(void*)metalTex, imageAttribs);
+                                    (EGLClientBuffer)(__bridge void*)metalTex, imageAttribs);
     if (image == EGL_NO_IMAGE) {
         spdlog::error("MetalShaderEffect: eglCreateImage failed: 0x{:X}", eglGetError());
         return false;
@@ -94,8 +106,8 @@ static bool importTextureToGL(EGLDisplay display, id<MTLTexture> metalTex, Share
 static void destroySharedTexture(EGLDisplay display, SharedTexture& tex) {
     if (tex.glTexture) { glDeleteTextures(1, &tex.glTexture); tex.glTexture = 0; }
     if (tex.eglImage != EGL_NO_IMAGE && display) { eglDestroyImage(display, tex.eglImage); tex.eglImage = EGL_NO_IMAGE; }
-    if (tex.metalTexture) { [tex.metalTexture release]; tex.metalTexture = nil; }
-    if (tex.metalBuffer) { [tex.metalBuffer release]; tex.metalBuffer = nil; }
+    tex.metalTexture = nil;
+    tex.metalBuffer = nil;
     tex.width = 0;
     tex.height = 0;
 }
@@ -114,7 +126,6 @@ static bool createSharedTexture(EGLDisplay display, int w, int h, SharedTexture&
     if (!metalTex) return false;
 
     if (!importTextureToGL(display, metalTex, out)) {
-        [metalTex release];
         return false;
     }
 
@@ -153,12 +164,11 @@ static bool createSharedTextureFromRenderBuffer(EGLDisplay display, void* gpuRen
     if (!metalTex) return false;
 
     if (!importTextureToGL(display, metalTex, out)) {
-        [metalTex release];
         return false;
     }
 
     out.metalTexture = metalTex;
-    out.metalBuffer = [pixelBuffer retain];
+    out.metalBuffer = pixelBuffer;
     out.width = w;
     out.height = h;
 
@@ -173,6 +183,10 @@ class MetalShaderEffectCache : public EffectRenderCache {
 public:
     MetalShaderEffectCache() {}
     virtual ~MetalShaderEffectCache() {
+        // Freeing the shared textures hits ANGLE/EGL + Metal, which can
+        // race a concurrent createSharedTexture on another render thread
+        // (sig 5d9f29a77c) — serialize through the same interop mutex.
+        std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
         EGLDisplay display = (EGLDisplay)GLContextManager::Instance().GetNativeDisplay();
         destroySharedTexture(display, sharedInputTex);
         destroySharedTexture(display, sharedOutputTex);
@@ -207,6 +221,7 @@ MetalShaderEffect::~MetalShaderEffect() {
 
 void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersInit, unsigned fbId) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
 
     // Recreate shared textures if the buffer was resized
@@ -241,6 +256,8 @@ void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersI
                                  buffer.BufferWi, buffer.BufferHt,
                                  cache->sharedInputTex.metalBuffer ? "zero-copy" : "Metal-copy",
                                  cache->sharedOutputTex.metalBuffer ? "zero-copy" : "Metal-copy");
+                    // Attach already done above; skip the per-frame re-attach below.
+                    return;
                 } else {
                     spdlog::warn("MetalShaderEffect: FBO incomplete (0x{:X}), falling back", status);
                     destroySharedTexture(display, cache->sharedInputTex);
@@ -253,11 +270,20 @@ void MetalShaderEffect::preparePixelTextures(RenderBuffer& buffer, bool shadersI
             }
         }
     }
+
+    // FBO is recreated per-frame in Render(), so re-attach the shared
+    // output texture each frame the interop path is active.
+    if (cache->useMetalInterop) {
+        LOG_GL_ERRORV(glBindFramebuffer(GL_FRAMEBUFFER, fbId));
+        LOG_GL_ERRORV(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                              GL_TEXTURE_2D, cache->sharedOutputTex.glTexture, 0));
+    }
 #endif
 }
 
 void MetalShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rbTex) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
     if (cache->useMetalInterop) {
         // If buffer-backed (zero-copy), pixels are already in the texture — just bind it.
@@ -277,6 +303,7 @@ void MetalShaderEffect::copyPixelDataToTexture(RenderBuffer& buffer, unsigned rb
 
 void MetalShaderEffect::copyPixelDataFromTexture(RenderBuffer& buffer) {
 #ifdef USE_GLES
+    std::lock_guard<std::mutex> interopLock(sMetalInteropMutex);
     auto* cache = getMetalCache(id, buffer);
     if (cache->useMetalInterop) {
         // If buffer-backed (zero-copy), result is already in pixels — just flush GL.

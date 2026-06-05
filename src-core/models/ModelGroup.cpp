@@ -474,15 +474,16 @@ void ModelGroup::SetLayout(const std::string& layout)
     
     // Update defaultBufferStyle based on layout
     defaultBufferStyle = layout;
-    if (layout.compare(0, 9, "Per Model") == 0) {
-        defaultBufferStyle = "Default";
-    }
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";
+    } else if (layout == "perModelDefault") {
+        defaultBufferStyle = PER_MODEL_DEFAULT;
     } else if (layout == "vertical") {
         defaultBufferStyle = VERT_PER_MODEL;
     } else if (layout == "horizontal") {
         defaultBufferStyle = HORIZ_PER_MODEL;
+    } else if (layout.compare(0, 9, "Per Model") == 0) {
+        defaultBufferStyle = "Default";
     }
 }
 
@@ -553,15 +554,17 @@ bool ModelGroup::RebuildBuffers() {
     
     std::string layout = m_layout;
     defaultBufferStyle = layout;
-    if (layout.compare(0, 9, "Per Model") == 0) {
-        layout = "Default";
-    }
     if (layout == "grid" || layout == "minimalGrid") {
         defaultBufferStyle = "Default";
+    } else if (layout == "perModelDefault") {
+        defaultBufferStyle = PER_MODEL_DEFAULT;
+        layout = "minimalGrid";
     } else if (layout == "vertical") {
         defaultBufferStyle = VERT_PER_MODEL;
     } else if (layout == "horizontal") {
         defaultBufferStyle = HORIZ_PER_MODEL;
+    } else if (layout.compare(0, 9, "Per Model") == 0) {
+        layout = "Default";
     }
     
     Nodes.clear();

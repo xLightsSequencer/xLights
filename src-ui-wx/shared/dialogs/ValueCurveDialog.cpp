@@ -790,6 +790,9 @@ void ValueCurvePanel::mouseLeave(wxMouseEvent& event) {
 
 void ValueCurvePanel::mouseMoved(wxMouseEvent& event) {
     if (_type == "Custom" && _timeOffset == 0) {
+        static const wxCursor s_hand(wxCURSOR_HAND);
+        static const wxCursor s_cross(wxCURSOR_CROSS);
+
         float x, y;
         Convert(x, y, event);
         if (y < 0.0f) {
@@ -799,9 +802,9 @@ void ValueCurvePanel::mouseMoved(wxMouseEvent& event) {
         }
 
         if (_vc->NearCustomPoint(x, y)) {
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
         } else {
-            SetCursor(wxCURSOR_CROSS);
+            SetCursor(s_cross);
         }
 
         if (HasCapture()) {

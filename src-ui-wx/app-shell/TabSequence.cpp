@@ -15,6 +15,11 @@
 #include "settings/XLightsConfigAdapter.h"
 #include <wx/wfstream.h>
 #include <wx/sstream.h>
+#include <wx/xml/xml.h>
+#include <wx/progdlg.h>
+#include <wx/dirdlg.h>
+#include <wx/filename.h>
+#include <wx/filedlg.h>
 
 #include <pugixml.hpp>
 
@@ -22,6 +27,11 @@
 #include "media/JukeboxPanel.h"
 #include "sequencer/SeqSettingsDialog.h"
 #include "render/SequenceFile.h"
+#include "render/SongStructureManager.h"
+#include "render/Effect.h"
+#include "render/EffectLayer.h"
+#include "render/Element.h"
+#include "media/AudioManager.h"
 #include "effects/RenderableEffect.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
@@ -53,6 +63,25 @@
 #include "sequencer/TopEffectsPanel.h"
 
 #include <log.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
+#endif
+
+static void LogMemoryUsage(const std::string& label)
+{
+#ifdef _WIN32
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        spdlog::debug("Memory [{}]: WorkingSet={}MB, Private={}MB",
+            label,
+            pmc.WorkingSetSize / (1024 * 1024),
+            pmc.PrivateUsage / (1024 * 1024));
+    }
+#endif
+}
 
 void xLightsFrame::DisplayXlightsFilename(const wxString& filename) const
 {
@@ -250,7 +279,7 @@ void xLightsFrame::LoadEffectsFile()
 
     // This is the earliest we can do the backup as now the settings node will be populated
     _backupDirectory = GetXmlSetting("backupDir", showDirectory);
-    ObtainAccessToURL(_backupDirectory);
+    ObtainAccessToURL(_backupDirectory, true);
     if (!wxDir::Exists(_backupDirectory)) {
         spdlog::warn("Backup Directory not Found ... switching to Show Directory.");
         _backupDirectory = showDirectory;
@@ -1294,9 +1323,10 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
     }
 
     if (wxGetKeyState(WXK_ESCAPE)) {
-        spdlog::debug("Batch render cancelled.");
+        spdlog::debug("Batch check sequence cancelled.");
+        _checkSequenceMode = false;
         EnableSequenceControls(true);
-        printf("Batch render cancelled.\n");
+        printf("Batch check sequence cancelled.\n");
 
         auto* config = GetXLightsConfig();
         if (config != nullptr) {
@@ -1315,6 +1345,7 @@ void xLightsFrame::OpenAndCheckSequence(const wxArrayString& origFilenames, bool
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Check Sequence Cancelled."));
         }
         return;
     }
@@ -1388,6 +1419,8 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     if (wxGetKeyState(WXK_ESCAPE))
     {
         spdlog::debug("Batch render cancelled.");
+        _lowDefinitionRender = _saveLowDefinitionRender;
+        _renderMode = false;
         EnableSequenceControls(true);
         printf("Batch render cancelled.\n");
 
@@ -1408,6 +1441,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
         }
         else {
             CloseSequence();
+            SetStatusText(_("Batch Render Cancelled."));
         }
         return;
     }
@@ -1434,7 +1468,9 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
     _renderMode = b;
 
     printf("Processing file %s\n", (const char *)seq.c_str());
-    spdlog::debug("Batch Render Processing file {}\n", seq.ToStdString());
+    spdlog::info("=== Batch Render [{} remaining] HWAccel={} File: {}",
+                 fileNames.size(), _hwVideoAccleration ? "ON" : "OFF", seq.ToStdString());
+    LogMemoryUsage("batch-render sequence start: " + seq.ToStdString());
     OpenSequence(seq, nullptr);
     EnableSequenceControls(false);
 
@@ -1471,6 +1507,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
         if (!aborted || alreadyRetried) {
             spdlog::info("Saving fseq file.");
+            LogMemoryUsage("batch-render fseq save: " + xlightsFilename.ToStdString());
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.");
@@ -1494,7 +1531,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
 
 void xLightsFrame::SaveSequence()
 {
-    
+    LogMemoryUsage("SaveSequence start: " + xlightsFilename.ToStdString());
 
     if (_seqData.NumFrames() == 0)
     {
@@ -1637,7 +1674,7 @@ void xLightsFrame::SaveSequence()
             GaugeSizer->Layout();
 
             spdlog::info("Saving fseq file.");
-
+            LogMemoryUsage("SaveSequence fseq save: " + xlightsFilename.ToStdString());
             SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
             WriteFalconPiFile(xlightsFilename);
             spdlog::info("fseq file done.", true);
@@ -1654,6 +1691,7 @@ void xLightsFrame::SaveSequence()
     }
     wxString display_name;
     if (mSaveFseqOnSave) {
+        LogMemoryUsage("SaveSequence fseq save (no render): " + xlightsFilename.ToStdString());
         SetStatusText(_("Saving ") + xlightsFilename + _(" ... Writing fseq."));
         WriteFalconPiFile(xlightsFilename, true);
         spdlog::info("fseq file done.");
@@ -1948,4 +1986,474 @@ void xLightsFrame::ColourChanged(wxCommandEvent& event)
     enableAllChildControls(_coloursPanel, true); // enable and disable otherwise if anything has been added while disabled wont be disabled.
     enableAllChildControls(_coloursPanel, _seqData.NumFrames() > 0 && !IsACActive());
     _coloursPanel->Thaw();
+}
+
+// ============================================================================
+// Song Structure Region Export
+// ============================================================================
+
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+
+namespace {
+
+using StringIntMap_local = std::unordered_map<std::string, int>;
+
+// Helper to add a child XML node with optional text content
+wxXmlNode* AddXmlChild(wxXmlNode* parent, const wxString& name, const wxString& content = wxEmptyString) {
+    wxXmlNode* node = new wxXmlNode(wxXML_ELEMENT_NODE, name);
+    if (!content.empty()) {
+        new wxXmlNode(node, wxXML_TEXT_NODE, "", content);
+    }
+    parent->AddChild(node);
+    return node;
+}
+
+// Write effects from a layer that overlap [regionStart, regionEnd), shifting times so regionStart becomes 0
+void WriteRegionEffects(wxXmlNode* layerNode, EffectLayer* layer, int regionStart, int regionEnd, int timeOffset,
+                        StringIntMap_local& colorPalettes, wxXmlNode* paletteNode,
+                        StringIntMap_local& effectStrings, wxXmlNode* effectDBNode, bool isTiming) {
+    std::vector<Effect*> effects = layer->GetAllEffectsByTime(regionStart, regionEnd);
+    for (Effect* effect : effects) {
+        int effStart = effect->GetStartTimeMS();
+        int effEnd = effect->GetEndTimeMS();
+
+        int clippedStart = std::max(effStart, regionStart);
+        int clippedEnd = std::min(effEnd, regionEnd);
+
+        int newStart = clippedStart - timeOffset;
+        int newEnd = clippedEnd - timeOffset;
+
+        if (isTiming) {
+            wxXmlNode* effectNode = AddXmlChild(layerNode, "Effect", effect->GetSettingsAsString());
+            effectNode->AddAttribute("label", effect->GetEffectName());
+            if (effect->GetProtected()) {
+                effectNode->AddAttribute("protected", "1");
+            }
+            effectNode->AddAttribute("startTime", wxString::Format("%d", newStart));
+            effectNode->AddAttribute("endTime", wxString::Format("%d", newEnd));
+        } else {
+            std::string effectString = effect->GetSettingsAsString();
+            int size = (int)effectStrings.size();
+            int ref = effectStrings[effectString] - 1;
+            if (ref == -1) {
+                ref = size;
+                effectStrings[effectString] = ref + 1;
+                AddXmlChild(effectDBNode, "Effect", effectString);
+            }
+
+            wxXmlNode* effectNode = AddXmlChild(layerNode, "Effect");
+            effectNode->AddAttribute("ref", wxString::Format("%d", ref));
+            effectNode->AddAttribute("name", XmlSafe(effect->GetEffectName()));
+            if (effect->GetProtected()) {
+                effectNode->AddAttribute("protected", "1");
+            }
+            effectNode->AddAttribute("startTime", wxString::Format("%d", newStart));
+            effectNode->AddAttribute("endTime", wxString::Format("%d", newEnd));
+
+            std::string paletteStr = effect->GetPaletteAsString();
+            int colorIndex = colorPalettes[paletteStr] - 1;
+            if (colorIndex == -1) {
+                colorIndex = (int)colorPalettes.size() - 1;
+                colorPalettes[paletteStr] = colorIndex + 1;
+                AddXmlChild(paletteNode, "ColorPalette", paletteStr);
+            }
+            effectNode->AddAttribute("palette", wxString::Format("%d", colorIndex));
+        }
+    }
+}
+
+bool ElementHasEffectsInRegion(Element* element, int startMS, int endMS) {
+    for (int j = 0; j < element->GetEffectLayerCount(); ++j) {
+        EffectLayer* layer = element->GetEffectLayer(j);
+        if (!layer->GetAllEffectsByTime(startMS, endMS).empty()) {
+            return true;
+        }
+    }
+    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        for (int s = 0; s < me->GetSubModelAndStrandCount(); ++s) {
+            SubModelElement* se = me->GetSubModel(s);
+            for (int j = 0; j < se->GetEffectLayerCount(); ++j) {
+                EffectLayer* layer = se->GetEffectLayer(j);
+                if (!layer->GetAllEffectsByTime(startMS, endMS).empty()) {
+                    return true;
+                }
+            }
+            StrandElement* strEl = dynamic_cast<StrandElement*>(se);
+            if (strEl != nullptr) {
+                for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+                    NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                    if (!nlayer->GetAllEffectsByTime(startMS, endMS).empty()) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+wxString SanitizeFilename(const wxString& name) {
+    wxString safe = name;
+    safe.Replace("/", "_");
+    safe.Replace("\\", "_");
+    safe.Replace(":", "_");
+    safe.Replace("*", "_");
+    safe.Replace("?", "_");
+    safe.Replace("\"", "_");
+    safe.Replace("<", "_");
+    safe.Replace(">", "_");
+    safe.Replace("|", "_");
+    return safe;
+}
+
+} // namespace
+
+std::string xLightsFrame::DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath) {
+    int regionDurationMS = endMS - startMS;
+    if (regionDurationMS <= 0) {
+        return "Invalid song region.";
+    }
+
+    wxFileName outputFile(outputPath);
+    wxString outputDir = outputFile.GetPath();
+    wxString outputBaseName = outputFile.GetName();
+
+    spdlog::info("ExportSongRegion: region '{}' from {} ms to {} ms -> '{}'",
+                 regionLabel, startMS, endMS, (const char*)outputPath.c_str());
+
+    // Step 1: Export trimmed audio
+    wxString newAudioPath;
+    AudioManager* audio = CurrentSeqXmlFile->GetMedia();
+    if (audio != nullptr) {
+        long rate = audio->GetRate();
+        long trackSize = audio->GetTrackSize();
+
+        long startSample = (long)((double)startMS * rate / 1000.0);
+        long endSample = (long)((double)endMS * rate / 1000.0);
+
+        if (startSample < 0) startSample = 0;
+        if (endSample > trackSize) endSample = trackSize;
+        if (startSample >= endSample) {
+            return "Audio region is empty.";
+        }
+
+        long numSamples = endSample - startSample;
+
+        float* leftData = audio->GetRawLeftDataPtr(startSample);
+        float* rightData = audio->GetRawRightDataPtr(startSample);
+
+        if (leftData == nullptr || rightData == nullptr) {
+            return "Audio data is not loaded.";
+        }
+
+        std::vector<float> leftRegion(leftData, leftData + numSamples);
+        std::vector<float> rightRegion(rightData, rightData + numSamples);
+
+        newAudioPath = outputDir + wxFileName::GetPathSeparator() + outputBaseName + ".m4a";
+
+        if (!AudioManager::EncodeAudio(leftRegion, rightRegion, rate, newAudioPath.ToStdString(), audio)) {
+            return "Failed to export audio file.";
+        }
+    }
+
+    // Step 2: Build new .xsq XML
+    wxXmlDocument doc;
+    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, "xsequence");
+    root->AddAttribute("BaseChannel", "0");
+    root->AddAttribute("ChanCtrlBasic", "0");
+    root->AddAttribute("ChanCtrlColor", "0");
+    root->AddAttribute("FixedPointTiming", "1");
+    root->AddAttribute("ModelBlending", _sequenceElements.SupportsModelBlending() ? "true" : "false");
+    doc.SetRoot(root);
+
+    wxXmlNode* head = AddXmlChild(root, "head");
+    AddXmlChild(head, "version", xlights_version_string);
+    AddXmlChild(head, "author", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR));
+    AddXmlChild(head, "author-email", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::AUTHOR_EMAIL));
+    AddXmlChild(head, "author-website", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::WEBSITE));
+    AddXmlChild(head, "song", wxString(regionLabel.empty() ? CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::SONG) : regionLabel));
+    AddXmlChild(head, "artist", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ARTIST));
+    AddXmlChild(head, "album", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::ALBUM));
+    AddXmlChild(head, "MusicURL", CurrentSeqXmlFile->GetHeaderInfo(HEADER_INFO_TYPES::URL));
+    AddXmlChild(head, "comment", wxString::Format("Exported from song region: %s", wxString::FromUTF8(regionLabel)));
+    AddXmlChild(head, "sequenceTiming", CurrentSeqXmlFile->GetSequenceTiming());
+    AddXmlChild(head, "sequenceType", CurrentSeqXmlFile->GetSequenceType());
+
+    if (!newAudioPath.empty()) {
+        wxFileName audioRelative(newAudioPath);
+        audioRelative.MakeRelativeTo(outputDir);
+        AddXmlChild(head, "mediaFile", audioRelative.GetFullPath());
+    } else {
+        AddXmlChild(head, "mediaFile", wxEmptyString);
+    }
+
+    AddXmlChild(head, "sequenceDuration", wxString::Format("%.3f", (double)regionDurationMS / 1000.0));
+    AddXmlChild(head, "imageDir", wxEmptyString);
+
+    AddXmlChild(root, "DataLayers");
+
+    StringIntMap_local colorPalettes;
+    wxXmlNode* paletteNode = AddXmlChild(root, "ColorPalettes");
+    StringIntMap_local effectStrings;
+    wxXmlNode* effectDBNode = AddXmlChild(root, "EffectDB");
+
+    wxXmlNode* displayNode = AddXmlChild(root, "DisplayElements");
+    wxXmlNode* elementsNode = AddXmlChild(root, "ElementEffects");
+
+    size_t numElements = _sequenceElements.GetElementCount();
+    for (size_t i = 0; i < numElements; ++i) {
+        Element* element = _sequenceElements.GetElement(i);
+        if (element == nullptr) continue;
+
+        bool include = false;
+        if (element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            include = true;
+        } else {
+            include = ElementHasEffectsInRegion(element, startMS, endMS);
+        }
+        if (!include) continue;
+
+        wxXmlNode* displayElemNode = AddXmlChild(displayNode, "Element");
+        displayElemNode->AddAttribute("collapsed", wxString::Format("%d", element->GetCollapsed()));
+        if (element->IsRenderDisabled()) {
+            displayElemNode->AddAttribute("RenderDisabled", "1");
+        }
+        bool isTiming = (element->GetType() == ElementType::ELEMENT_TYPE_TIMING);
+        displayElemNode->AddAttribute("type", isTiming ? "timing" : "model");
+        displayElemNode->AddAttribute("name", element->GetName());
+        if (isTiming) {
+            TimingElement* te = dynamic_cast<TimingElement*>(element);
+            displayElemNode->AddAttribute("visible", wxString::Format("%d", te->GetMasterVisible()));
+            displayElemNode->AddAttribute("views", te->GetViews());
+            displayElemNode->AddAttribute("active", wxString::Format("%d", te->GetActive()));
+            if (!te->GetSubType().empty()) {
+                displayElemNode->AddAttribute("subType", te->GetSubType());
+            }
+        } else {
+            displayElemNode->AddAttribute("visible", wxString::Format("%d", element->GetVisible()));
+        }
+
+        wxXmlNode* elemEffectsNode = AddXmlChild(elementsNode, "Element");
+        elemEffectsNode->AddAttribute("type", isTiming ? "timing" : "model");
+        elemEffectsNode->AddAttribute("name", element->GetName());
+
+        if (isTiming) {
+            TimingElement* tm = dynamic_cast<TimingElement*>(element);
+            if (tm->GetFixedTiming()) {
+                elemEffectsNode->AddAttribute("fixed", wxString::Format("%d", tm->GetFixedTiming()));
+                AddXmlChild(elemEffectsNode, "EffectLayer");
+            } else {
+                for (int j = 0; j < tm->GetEffectLayerCount(); ++j) {
+                    EffectLayer* layer = tm->GetEffectLayer(j);
+                    wxXmlNode* layerNode = AddXmlChild(elemEffectsNode, "EffectLayer");
+                    WriteRegionEffects(layerNode, layer, startMS, endMS, startMS,
+                                       colorPalettes, paletteNode, effectStrings, effectDBNode, true);
+                }
+            }
+        } else if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(element);
+
+            for (int j = 0; j < me->GetEffectLayerCount(); ++j) {
+                EffectLayer* layer = me->GetEffectLayer(j);
+                wxXmlNode* layerNode = AddXmlChild(elemEffectsNode, "EffectLayer");
+                if (!layer->GetLayerName().empty()) {
+                    layerNode->AddAttribute("layerName", layer->GetLayerName());
+                }
+                WriteRegionEffects(layerNode, layer, startMS, endMS, startMS,
+                                   colorPalettes, paletteNode, effectStrings, effectDBNode, false);
+            }
+
+            for (int strand = 0; strand < me->GetSubModelAndStrandCount(); ++strand) {
+                SubModelElement* se = me->GetSubModel(strand);
+                StrandElement* strEl = dynamic_cast<StrandElement*>(se);
+                wxXmlNode* strandLayerNode = nullptr;
+
+                for (int j = 0; j < se->GetEffectLayerCount(); ++j) {
+                    EffectLayer* layer = se->GetEffectLayer(j);
+                    if (layer->GetAllEffectsByTime(startMS, endMS).empty() && layer->GetLayerName().empty()) {
+                        continue;
+                    }
+
+                    wxXmlNode* eln = AddXmlChild(elemEffectsNode, strEl == nullptr ? "SubModelEffectLayer" : "Strand");
+                    if (strEl != nullptr) {
+                        eln->AddAttribute("index", wxString::Format("%d", strEl->GetStrand()));
+                        if (j == 0) strandLayerNode = eln;
+                    }
+                    if (!layer->GetLayerName().empty()) {
+                        eln->AddAttribute("layerName", layer->GetLayerName());
+                    }
+                    if (j > 0) {
+                        eln->AddAttribute("layer", wxString::Format("%d", j));
+                    }
+                    if (!se->GetName().empty()) {
+                        eln->AddAttribute("name", se->GetName());
+                    }
+                    WriteRegionEffects(eln, layer, startMS, endMS, startMS,
+                                       colorPalettes, paletteNode, effectStrings, effectDBNode, false);
+                }
+
+                if (strEl != nullptr) {
+                    for (int n = 0; n < strEl->GetNodeLayerCount(); n++) {
+                        NodeLayer* nlayer = strEl->GetNodeLayer(n);
+                        if (nlayer->GetAllEffectsByTime(startMS, endMS).empty()) continue;
+
+                        if (strandLayerNode == nullptr) {
+                            strandLayerNode = AddXmlChild(elemEffectsNode, "Strand");
+                            strandLayerNode->AddAttribute("index", wxString::Format("%d", strEl->GetStrand()));
+                            if (!se->GetName().empty()) {
+                                strandLayerNode->AddAttribute("name", se->GetName());
+                            }
+                        }
+                        wxXmlNode* nodeLayerNode = AddXmlChild(strandLayerNode, "Node");
+                        nodeLayerNode->AddAttribute("index", wxString::Format("%d", n));
+                        if (!nlayer->GetNodeName().empty()) {
+                            nodeLayerNode->AddAttribute("name", nlayer->GetNodeName());
+                        }
+                        WriteRegionEffects(nodeLayerNode, nlayer, startMS, endMS, startMS,
+                                           colorPalettes, paletteNode, effectStrings, effectDBNode, false);
+                    }
+                }
+            }
+        }
+    }
+
+    AddXmlChild(root, "TimingTags");
+    AddXmlChild(root, "lastView", "0");
+    AddXmlChild(root, "nextid", "1");
+
+    wxFileOutputStream fout(outputPath);
+    if (!fout.IsOk()) {
+        return "Failed to create output file.";
+    }
+    wxBufferedOutputStream* bout = new wxBufferedOutputStream(fout, 2 * 1024 * 1024);
+    if (!doc.Save(*bout)) {
+        delete bout;
+        return "Failed to write sequence file.";
+    }
+    delete bout;
+
+    spdlog::info("ExportSongRegion: successfully exported to '{}'", (const char*)outputPath.c_str());
+    return "";
+}
+
+void xLightsFrame::ExportSongRegion(int startMS, int endMS, const std::string& regionLabel) {
+    if (CurrentSeqXmlFile == nullptr) {
+        DisplayError("No sequence is open.", this);
+        return;
+    }
+
+    wxString defaultName = SanitizeFilename(regionLabel);
+    if (defaultName.empty()) {
+        defaultName = "exported_region";
+    }
+
+    wxFileDialog fd(this,
+                    "Export Song Region as New Sequence",
+                    CurrentDir,
+                    defaultName,
+                    "xLights Sequence (*.xsq)|*.xsq",
+                    wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (fd.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    wxString outputPath = fd.GetPath();
+    if (!outputPath.Lower().EndsWith(".xsq")) {
+        outputPath += ".xsq";
+    }
+
+    std::string err = DoExportSongRegion(startMS, endMS, regionLabel, outputPath);
+    if (!err.empty()) {
+        DisplayError(err, this);
+    } else {
+        SetStatusText(wxString::Format("Exported song region '%s' to %s", wxString::FromUTF8(regionLabel), outputPath));
+    }
+}
+
+void xLightsFrame::ExportAllSongRegions() {
+    if (CurrentSeqXmlFile == nullptr) {
+        DisplayError("No sequence is open.", this);
+        return;
+    }
+
+    SongStructureManager& ssm = _sequenceElements.GetSongStructureManager();
+    if (!ssm.HasRegions()) {
+        DisplayError("No song structure regions defined.", this);
+        return;
+    }
+
+    int namedCount = 0;
+    for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
+        if (!ssm.GetRegion(i).name.empty()) {
+            namedCount++;
+        }
+    }
+    if (namedCount == 0) {
+        DisplayError("No named song regions to export.", this);
+        return;
+    }
+
+    wxDirDialog dd(this,
+                   "Select Folder for Exported Sequences",
+                   CurrentDir,
+                   wxDD_DEFAULT_STYLE);
+
+    if (dd.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    wxString outputDir = dd.GetPath();
+
+    wxProgressDialog progress("Exporting Song Regions",
+                              "Starting export...",
+                              namedCount,
+                              this,
+                              wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME);
+    progress.Show();
+
+    int exported = 0;
+    int failed = 0;
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+        if (region.name.empty()) continue;
+
+        wxString safeName = SanitizeFilename(region.name);
+        if (safeName.empty()) {
+            safeName = wxString::Format("region_%zu", i + 1);
+        }
+
+        wxFileName outFile(outputDir, safeName + ".xsq");
+        int suffix = 2;
+        while (outFile.FileExists()) {
+            outFile.SetName(safeName + wxString::Format("_%d", suffix++));
+        }
+
+        wxString outputPath = outFile.GetFullPath();
+
+        progress.Update(exported, wxString::Format("Exporting: %s", wxString::FromUTF8(region.name)));
+        if (progress.WasCancelled()) {
+            break;
+        }
+
+        std::string err = DoExportSongRegion(region.startTimeMS, region.endTimeMS, region.name, outputPath);
+        if (!err.empty()) {
+            spdlog::error("ExportAllSongRegions: failed to export '{}': {}", region.name, err);
+            failed++;
+        } else {
+            exported++;
+        }
+    }
+
+    progress.Update(namedCount);
+
+    if (failed > 0) {
+        DisplayError(wxString::Format("Exported %d regions, %d failed. Check log for details.", exported, failed).ToStdString(), this);
+    } else {
+        SetStatusText(wxString::Format("Exported %d song regions to %s", exported, outputDir));
+    }
 }

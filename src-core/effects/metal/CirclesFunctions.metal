@@ -105,7 +105,7 @@ kernel void CirclesEffect(constant MetalCirclesData &data [[buffer(0)]],
         int   ii   = (int)dist;
 
         if (ii > data.maxRadius) {
-            result[index] = uchar4(0, 0, 0, 0);
+            // outside ring — leave buffer background untouched (matches CPU/ISPC)
             return;
         }
 
@@ -145,9 +145,8 @@ kernel void CirclesEffect(constant MetalCirclesData &data [[buffer(0)]],
         }
         if (sum >= 0.90f) {
             result[index] = circHsv2rgba(hsv.x, hsv.y, hsv.z);
-        } else {
-            result[index] = uchar4(0, 0, 0, 0);
         }
+        // below threshold — leave buffer background untouched (matches CPU/ISPC)
         return;
     }
 
@@ -202,5 +201,8 @@ kernel void CirclesEffect(constant MetalCirclesData &data [[buffer(0)]],
         hit = true;
     }
 
-    result[index] = hit ? outColor : uchar4(0, 0, 0, 0);
+    if (hit) {
+        result[index] = outColor;
+    }
+    // no hit — leave buffer background untouched (matches CPU/ISPC)
 }

@@ -24,6 +24,7 @@
             "type": "enum",
             "controlType": "choice",
             "options": [],
+            "dynamicOptions": "lyricTimingTracks",
             "default": ""
         },
         {
@@ -242,6 +243,24 @@
             "type": "xyCenter",
             "xProperty": "Text_XEnd",
             "yProperty": "Text_YEnd"
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "Text_Dir", "notEquals": "none" },
+            "enable": [ "TextToCenter", "TextNoRepeat" ]
+        },
+        {
+            "when": { "property": "Text_Dir", "equals": "none" },
+            "disable": [ "TextToCenter", "TextNoRepeat" ]
+        },
+        {
+            "when": { "property": "Text", "notEquals": "" },
+            "disable": [ "Text_File_Row", "Text_LyricTrack" ]
+        },
+        {
+            "when": { "property": "Text_File_Row", "notEquals": "" },
+            "disable": [ "Text_LyricTrack" ]
         }
     ]
 }

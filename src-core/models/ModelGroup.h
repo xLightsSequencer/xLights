@@ -95,6 +95,7 @@ class ModelGroup : public ModelWithScreenLocation<BoxedScreenLocation>
         int GetCentreMaxy() const { return maxy; }
         std::string GetLayout() const { return m_layout; }
         void SetLayout(const std::string& layout);
+        const std::string& GetDefaultBufferStyle() const { return defaultBufferStyle; }
         void SetGridSize(int size);
         void SetDefaultCamera(const std::string& camera);
         

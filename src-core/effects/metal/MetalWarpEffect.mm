@@ -27,13 +27,6 @@ public:
         functions[WarpEffect::WarpType::BANDED_SWIRL] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectBandedSwirl");
         functions[WarpEffect::WarpType::FLIP] = MetalComputeUtilities::INSTANCE.FindComputeFunction("WarpEffectFlip");
     }
-    ~MetalWarpEffectData() {
-        for (auto &f : functions) {
-            if (f != nil) {
-                [f release];
-            }
-        }
-    }
     bool requiresBufferCopy(WarpEffect::WarpType st) {
         switch (st) {
             case WarpEffect::WarpType::COPY:
@@ -150,7 +143,8 @@ void MetalWarpEffect::Render(Effect *effect, const SettingsMap &SettingsMap, Ren
     WarpEffect::WarpType Style = mapWarpType(warpType);
 
     //currently just  Styles 1-5 are GPU enabled, if smaller buffer, overhead of prep for GPU will be higher than benefit
-    if (rbcd == nullptr || !data->canRenderStyle(Style) || ((buffer.BufferWi * buffer.BufferHt) < 1024)) {
+    if (rbcd == nullptr || !data->canRenderStyle(Style)
+        || ((buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         WarpEffect::Render(effect, SettingsMap, buffer);
         return;
     }

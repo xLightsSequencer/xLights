@@ -237,6 +237,33 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
+			<object class="sizeritem">
+				<object class="wxStaticText" name="ID_STATICTEXT_PASTE_AS" variable="StaticTextPasteAs" member="yes">
+					<label>Paste As</label>
+				</object>
+				<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxChoice" name="ID_CHOICE_PASTE_AS" variable="PasteAsChoice" member="yes">
+					<content>
+						<item>Relative</item>
+						<item>Layers</item>
+					</content>
+					<selection>0</selection>
+					<tooltip>Relative: paste effects at the selected position. As Layers: paste preserving layer structure from copied effects.</tooltip>
+					<handler function="OnPasteAsChoiceSelect" entry="EVT_CHOICE" />
+				</object>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
+			<object class="spacer">
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<border>5</border>
+				<option>1</option>
+			</object>
 		</object>
 	</object>
 </wxsmith>

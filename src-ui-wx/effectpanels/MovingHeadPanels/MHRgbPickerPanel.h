@@ -82,6 +82,7 @@ private:
     std::vector<HandlePoint> m_handles;
     int selected_point {-1};
     int active_handle {-1};
+    double circle_offset_x {0};
     double center {0};
     double radius {0};
     double v_left {0};

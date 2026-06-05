@@ -106,6 +106,17 @@ static std::string CopyToDir(const std::string& srcPath, const std::string& targ
     return ToStdString(dest);
 }
 
+// Extract just the filename from a path, treating BOTH '/' and '\' as
+// separators regardless of the host OS. A sequence authored on Windows
+// stores paths like "B:\Foo\Bar\N.png"; on macOS/Linux wxFileName parses
+// with the native (Unix) format where '\' is an ordinary character, so
+// GetFullName() would return the whole string instead of "N.png".
+static wxString BaseFileName(const std::string& path) {
+    auto pos = path.find_last_of("/\\");
+    std::string name = (pos == std::string::npos) ? path : path.substr(pos + 1);
+    return wxString(name);
+}
+
 static wxString WildcardForMediaType(std::optional<MediaType> type) {
     if (!type.has_value()) {
         return "All Media Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tiff;*.tga;*.pcx;*.ico;"
@@ -1370,6 +1381,51 @@ void ManageMediaPanel::OnTreeContextMenu(wxDataViewEvent& event)
         }
     }
 
+    // Broken non-image media options (Shader, SVG, TextFile, BinaryFile, Video)
+    MediaType mtype = MediaTypeFromPath(path);
+    if (mtype != MediaType::Image && mtype != MediaType::Audio) {
+        std::shared_ptr<MediaCacheEntry> entry;
+        switch (mtype) {
+            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
+            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
+            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
+            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
+            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
+            default: break;
+        }
+        if (entry && !entry->IsOk()) {
+            wxString typeName = wxString(MediaTypeName(mtype));
+            if (menu.GetMenuItemCount() > 0)
+                menu.AppendSeparator();
+
+            wxMenuItem* reselectItem = menu.Append(wxID_ANY, "Re-select " + typeName + "...");
+            menu.Bind(wxEVT_MENU, [this, path, mtype](wxCommandEvent&) {
+                ReSelectMediaByType(path, mtype);
+            }, reselectItem->GetId());
+
+            int brokenCount = 0;
+            for (const auto& [p, pt] : _sequenceMedia->GetAllMediaPaths()) {
+                if (pt != mtype) continue;
+                std::shared_ptr<MediaCacheEntry> e;
+                switch (mtype) {
+                    case MediaType::Shader:     e = _sequenceMedia->GetShader(p); break;
+                    case MediaType::SVG:        e = _sequenceMedia->GetSVG(p); break;
+                    case MediaType::TextFile:   e = _sequenceMedia->GetTextFile(p); break;
+                    case MediaType::BinaryFile: e = _sequenceMedia->GetBinaryFile(p); break;
+                    case MediaType::Video:      e = _sequenceMedia->GetVideo(p); break;
+                    default: break;
+                }
+                if (e && !e->IsOk()) ++brokenCount;
+            }
+            if (brokenCount > 1) {
+                wxMenuItem* bulkItem = menu.Append(wxID_ANY, "Bulk Find " + typeName + "s...");
+                menu.Bind(wxEVT_MENU, [this, mtype](wxCommandEvent&) {
+                    BulkFindMediaByType(mtype);
+                }, bulkItem->GetId());
+            }
+        }
+    }
+
     if (menu.GetMenuItemCount() > 0)
         PopupMenu(&menu);
 }
@@ -1428,7 +1484,10 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                                    : (!_showDirectory.empty() &&
                                       !wxString(pickedPath).StartsWith(wxString(_showDirectory)));
 
-    std::string finalPath = pickedPath;   // path we will ultimately use in cache/effects
+    // finalAbsPath tracks the absolute file path before relativization.
+    // For the embed case it is cleared (no disk file to reference).
+    std::string finalPath = pickedPath;
+    std::string finalAbsPath = pickedPath;
 
     if (outsideFolders) {
         wxFileName fn(pickedPath);
@@ -1481,6 +1540,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
             _sequenceMedia->RenameImage(pickedPath, embeddedName);
             _sequenceMedia->EmbedImage(embeddedName);
             finalPath = embeddedName;
+            finalAbsPath = "";  // embedded — no on-disk path to pass to ForceRefreshEntry
         } else if (hasImported && sel == 1) {
             // Copy to ImportedMedia/<seqStem>/Images
             std::string newPath = CopyToDir(pickedPath, importedMediaDir);
@@ -1490,6 +1550,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                 return;
             }
             finalPath = newPath;
+            finalAbsPath = newPath;
         } else {
             // Copy to one of the folders
             std::string targetDir = copyTargets[sel - copyOffset];
@@ -1509,6 +1570,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
                 return;
             }
             finalPath = newPath;
+            finalAbsPath = newPath;
         }
     }
 
@@ -1516,6 +1578,7 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
     if (_xlFrame) {
         std::string rel = _xlFrame->MakeRelativePath(finalPath);
         if (!rel.empty()) finalPath = rel;
+        // finalAbsPath deliberately NOT relativized — stays absolute for ForceRefreshEntry
     }
 
     // --- Step 4: rename the broken cache entry to finalPath and update effects ---
@@ -1528,51 +1591,13 @@ void ManageMediaPanel::OnReSelectImage(const std::string& oldPath)
         }
     }
 
-    // Update every effect that referenced oldPath to point to finalPath
-    if (_sequenceElements != nullptr && finalPath != oldPath) {
-        auto scanLayer = [&](EffectLayer* layer) {
-            for (int k = 0; k < layer->GetEffectCount(); ++k) {
-                Effect* eff = layer->GetEffect(k);
-                const SettingsMap& settings = eff->GetSettings();
-                std::vector<std::string> keysToUpdate;
-                for (auto it = settings.begin(); it != settings.end(); ++it) {
-                    if (it->second == oldPath)
-                        keysToUpdate.push_back(it->first);
-                }
-                for (const auto& key : keysToUpdate)
-                    eff->SetSetting(key, finalPath);
-            }
-        };
+    UpdateEffectPaths(oldPath, finalPath);
 
-        for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
-            Element* e = _sequenceElements->GetElement(i);
-            if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
-            ModelElement* model = dynamic_cast<ModelElement*>(e);
-            if (!model) continue;
-
-            for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
-                scanLayer(model->GetEffectLayer(j));
-
-            for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
-                SubModelElement* sub = model->GetSubModel(j);
-                for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
-                    scanLayer(sub->GetEffectLayer(l));
-                if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                    StrandElement* strand = dynamic_cast<StrandElement*>(sub);
-                    if (strand) {
-                        for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
-                            scanLayer(strand->GetNodeLayer(k));
-                    }
-                }
-            }
-        }
-    }
-
-    // For external paths, force a reload from disk (removes stale cached data)
+    // For external (non-embedded) paths, use ForceRefreshEntry to bypass both the
+    // duplicate-path check and FixFile's stale caches.
     auto entry = _sequenceMedia->GetImage(finalPath);
     if (entry && !entry->IsEmbedded()) {
-        _sequenceMedia->RemoveImage(finalPath);
-        _sequenceMedia->GetImage(finalPath);
+        _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, MediaType::Image);
     }
 
     Populate(finalPath);
@@ -1647,10 +1672,11 @@ void ManageMediaPanel::OnBulkFindImages()
     // Scan broken images and try to find matches in the selected directory
     int found = 0;
     int notFound = 0;
+    std::string lastFixedPath;
     for (const auto& oldPath : brokenPaths) {
-        // Extract just the filename from the broken path
-        wxFileName fnOld(oldPath);
-        wxString nameToFind = fnOld.GetFullName();
+        // Extract just the filename from the broken path (handles Windows
+        // backslash paths even when running on macOS/Linux)
+        wxString nameToFind = BaseFileName(oldPath);
         if (nameToFind.IsEmpty()) { ++notFound; continue; }
 
         // Look for the file in the search directory (and subdirectories)
@@ -1680,6 +1706,7 @@ void ManageMediaPanel::OnBulkFindImages()
 
         std::string pickedPath = ToStdString(foundFile);
         std::string finalPath = pickedPath;
+        std::string finalAbsPath = pickedPath;  // absolute path, cleared for embed case
 
         if (outsideFolders) {
             wxFileName fn(pickedPath);
@@ -1698,11 +1725,13 @@ void ManageMediaPanel::OnBulkFindImages()
                 _sequenceMedia->RenameImage(pickedPath, embeddedName);
                 _sequenceMedia->EmbedImage(embeddedName);
                 finalPath = embeddedName;
+                finalAbsPath = "";  // embedded — no on-disk path
             } else if (outsideAction == 1) {
                 // Copy to ImportedMedia/<seqStem>/Images
                 std::string newPath = CopyToDir(pickedPath, bulkImportedMediaDir);
                 if (newPath.empty()) continue;  // skip this file on failure
                 finalPath = newPath;
+                finalAbsPath = newPath;
             } else {
                 // Copy to one of the target directories
                 std::string targetDir = copyTargets[outsideAction - 2];
@@ -1718,6 +1747,7 @@ void ManageMediaPanel::OnBulkFindImages()
                 }
                 if (newPath.empty()) continue;  // skip this file on failure
                 finalPath = newPath;
+                finalAbsPath = newPath;
             }
         }
 
@@ -1725,6 +1755,7 @@ void ManageMediaPanel::OnBulkFindImages()
         if (_xlFrame) {
             std::string rel = _xlFrame->MakeRelativePath(finalPath);
             if (!rel.empty()) finalPath = rel;
+            // finalAbsPath deliberately NOT relativized — stays absolute for ForceRefreshEntry
         }
 
         // Rename the broken cache entry and update effects
@@ -1734,52 +1765,16 @@ void ManageMediaPanel::OnBulkFindImages()
             }
         }
 
-        if (_sequenceElements != nullptr && finalPath != oldPath) {
-            auto scanLayer = [&](EffectLayer* layer) {
-                for (int k = 0; k < layer->GetEffectCount(); ++k) {
-                    Effect* eff = layer->GetEffect(k);
-                    const SettingsMap& settings = eff->GetSettings();
-                    std::vector<std::string> keysToUpdate;
-                    for (auto it = settings.begin(); it != settings.end(); ++it) {
-                        if (it->second == oldPath)
-                            keysToUpdate.push_back(it->first);
-                    }
-                    for (const auto& key : keysToUpdate)
-                        eff->SetSetting(key, finalPath);
-                }
-            };
+        UpdateEffectPaths(oldPath, finalPath);
 
-            for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
-                Element* e = _sequenceElements->GetElement(i);
-                if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
-                ModelElement* model = dynamic_cast<ModelElement*>(e);
-                if (!model) continue;
-
-                for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
-                    scanLayer(model->GetEffectLayer(j));
-
-                for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
-                    SubModelElement* sub = model->GetSubModel(j);
-                    for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
-                        scanLayer(sub->GetEffectLayer(l));
-                    if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
-                        StrandElement* strand = dynamic_cast<StrandElement*>(sub);
-                        if (strand) {
-                            for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
-                                scanLayer(strand->GetNodeLayer(k));
-                        }
-                    }
-                }
-            }
-        }
-
-        // Force reload for external paths
+        // For external (non-embedded) paths, use ForceRefreshEntry to bypass both the
+        // duplicate-path check and FixFile's stale caches.
         auto entry = _sequenceMedia->GetImage(finalPath);
         if (entry && !entry->IsEmbedded()) {
-            _sequenceMedia->RemoveImage(finalPath);
-            _sequenceMedia->GetImage(finalPath);
+            _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, MediaType::Image);
         }
 
+        lastFixedPath = finalPath;
         ++found;
     }
 
@@ -1788,7 +1783,222 @@ void ManageMediaPanel::OnBulkFindImages()
                                   "Not found: %d image(s)", found, notFound),
                  "Bulk Find Images", wxICON_INFORMATION | wxOK, this);
 
-    Populate();
+    Populate(lastFixedPath);
+}
+
+void ManageMediaPanel::UpdateEffectPaths(const std::string& oldPath, const std::string& newPath)
+{
+    if (_sequenceElements == nullptr || oldPath == newPath) return;
+
+    auto scanLayer = [&](EffectLayer* layer) {
+        for (int k = 0; k < layer->GetEffectCount(); ++k) {
+            Effect* eff = layer->GetEffect(k);
+            const SettingsMap& settings = eff->GetSettings();
+            std::vector<std::string> keysToUpdate;
+            for (auto it = settings.begin(); it != settings.end(); ++it) {
+                if (it->second == oldPath)
+                    keysToUpdate.push_back(it->first);
+            }
+            for (const auto& key : keysToUpdate)
+                eff->SetSetting(key, newPath);
+        }
+    };
+
+    for (int i = 0; i < (int)_sequenceElements->GetElementCount(); ++i) {
+        Element* e = _sequenceElements->GetElement(i);
+        if (e->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
+        ModelElement* model = dynamic_cast<ModelElement*>(e);
+        if (!model) continue;
+
+        for (int j = 0; j < (int)model->GetEffectLayerCount(); ++j)
+            scanLayer(model->GetEffectLayer(j));
+
+        for (int j = 0; j < (int)model->GetSubModelAndStrandCount(); ++j) {
+            SubModelElement* sub = model->GetSubModel(j);
+            for (int l = 0; l < (int)sub->GetEffectLayerCount(); ++l)
+                scanLayer(sub->GetEffectLayer(l));
+            if (sub->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+                StrandElement* strand = dynamic_cast<StrandElement*>(sub);
+                if (strand) {
+                    for (int k = 0; k < strand->GetNodeLayerCount(); ++k)
+                        scanLayer(strand->GetNodeLayer(k));
+                }
+            }
+        }
+    }
+}
+
+void ManageMediaPanel::OnReSelectShader(const std::string& oldPath)
+{
+    ReSelectMediaByType(oldPath, MediaType::Shader);
+}
+
+void ManageMediaPanel::OnBulkFindShaders()
+{
+    BulkFindMediaByType(MediaType::Shader);
+}
+
+// Generic re-select for any non-Image media type (no embed/ImportedMedia options).
+void ManageMediaPanel::ReSelectMediaByType(const std::string& oldPath, MediaType type)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    wxString typeName = wxString(MediaTypeName(type));
+    wxString defaultDir;
+    {
+        auto* config = GetXLightsConfig();
+        config->Read(LastDirConfigKey(type), &defaultDir);
+        if (defaultDir.empty()) {
+            wxFileName fn(oldPath);
+            if (fn.IsAbsolute() && fn.DirExists())
+                defaultDir = fn.GetPath();
+            else if (!_showDirectory.empty())
+                defaultDir = _showDirectory;
+        }
+    }
+    wxFileName fnOld(oldPath);
+
+    std::string pickedPath;
+    {
+        wxString wildcard = WildcardForMediaType(type) + "|All files (*.*)|*.*";
+        wxFileDialog dlg(this, "Re-select " + typeName + ": " + wxString(oldPath),
+                         defaultDir, fnOld.GetFullName(), wildcard,
+                         wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        if (dlg.ShowModal() != wxID_OK) return;
+        pickedPath = ToStdString(dlg.GetPath());
+        GetXLightsConfig()->Write(LastDirConfigKey(type), wxFileName(pickedPath).GetPath());
+    }
+
+    // finalAbsPath is the known absolute path of the replacement file.
+    // We keep it separate from finalPath (which may be relativized) so we can
+    // pass it to ForceRefreshEntry and bypass FixFile's stale caches.
+    std::string finalPath = pickedPath;
+    std::string finalAbsPath = pickedPath;
+
+    bool outsideFolders = _xlFrame ? !_xlFrame->IsInShowOrMediaFolder(pickedPath)
+                                   : (!_showDirectory.empty() &&
+                                      !wxString(pickedPath).StartsWith(wxString(_showDirectory)));
+    if (outsideFolders && !_showDirectory.empty()) {
+        const std::string sep(1, wxFileName::GetPathSeparator());
+        std::string subdir = SubdirForMediaType(type);
+        if (_xlFrame) {
+            std::string moved = _xlFrame->MoveToShowFolder(pickedPath, sep + subdir);
+            if (!moved.empty()) { finalPath = moved; finalAbsPath = moved; }
+        } else {
+            wxString dest = wxString(_showDirectory) + wxString(sep) + wxString(subdir);
+            if (!wxDirExists(dest)) wxMkdir(dest);
+            dest += wxString(sep) + wxFileName(pickedPath).GetFullName();
+            if (wxCopyFile(wxString(pickedPath), dest, false)) {
+                finalPath = ToStdString(dest);
+                finalAbsPath = finalPath;
+            }
+        }
+    }
+
+    if (_xlFrame) {
+        std::string rel = _xlFrame->MakeRelativePath(finalPath);
+        if (!rel.empty()) finalPath = rel;
+    }
+
+    if (finalPath != oldPath) {
+        if (!_sequenceMedia->RenameMedia(oldPath, finalPath))
+            _sequenceMedia->RemoveMedia(oldPath);
+    }
+
+    UpdateEffectPaths(oldPath, finalPath);
+    // Use ForceRefreshEntry instead of RemoveMedia+GetXxx: it bypasses both the
+    // duplicate-path check (which can suppress re-insertion of the key) and
+    // FixFile's stale positive/negative caches (which can resolve to old paths).
+    _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, type);
+    Populate(finalPath);
+}
+
+// Generic bulk find for any non-Image media type.
+void ManageMediaPanel::BulkFindMediaByType(MediaType type)
+{
+    if (_sequenceMedia == nullptr) return;
+
+    wxString typeName = wxString(MediaTypeName(type));
+
+    std::vector<std::string> brokenPaths;
+    for (const auto& [path, mtype] : _sequenceMedia->GetAllMediaPaths()) {
+        if (mtype != type) continue;
+        // Re-use GetAllMediaPaths result: load entry and check IsOk
+        // GetXxx() returns from cache; broken entries have IsOk()==false
+        std::shared_ptr<MediaCacheEntry> entry;
+        switch (type) {
+            case MediaType::Shader:     entry = _sequenceMedia->GetShader(path); break;
+            case MediaType::SVG:        entry = _sequenceMedia->GetSVG(path); break;
+            case MediaType::TextFile:   entry = _sequenceMedia->GetTextFile(path); break;
+            case MediaType::BinaryFile: entry = _sequenceMedia->GetBinaryFile(path); break;
+            case MediaType::Video:      entry = _sequenceMedia->GetVideo(path); break;
+            default: break;
+        }
+        if (entry && !entry->IsOk()) brokenPaths.push_back(path);
+    }
+    if (brokenPaths.empty()) return;
+
+    wxString defaultDir = _showDirectory.empty() ? wxString() : wxString(_showDirectory);
+    wxDirDialog dlg(this,
+                    "Select folder containing missing " + typeName.Lower(),
+                    defaultDir, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    std::string searchDir = ToStdString(dlg.GetPath());
+    ObtainAccessToURL(searchDir);
+    const std::string sep(1, wxFileName::GetPathSeparator());
+
+    int found = 0;
+    int notFound = 0;
+    std::string lastFixedPath;
+    for (const auto& oldPath : brokenPaths) {
+        wxString nameToFind = BaseFileName(oldPath);
+        if (nameToFind.IsEmpty()) { ++notFound; continue; }
+
+        wxString foundFile;
+        wxDir dir(searchDir);
+        if (dir.IsOpened()) {
+            wxString candidate = searchDir + sep + ToStdString(nameToFind);
+            if (wxFileExists(candidate)) {
+                foundFile = candidate;
+            } else {
+                wxArrayString results;
+                wxDir::GetAllFiles(searchDir, &results, nameToFind, wxDIR_FILES | wxDIR_DIRS);
+                if (!results.IsEmpty())
+                    foundFile = results[0];
+            }
+        }
+
+        if (foundFile.IsEmpty()) { ++notFound; continue; }
+
+        // finalAbsPath is the known absolute path; finalPath may be relativized below.
+        std::string finalAbsPath = ToStdString(foundFile);
+        std::string finalPath = finalAbsPath;
+
+        if (_xlFrame) {
+            std::string rel = _xlFrame->MakeRelativePath(finalPath);
+            if (!rel.empty()) finalPath = rel;
+        }
+
+        if (finalPath != oldPath) {
+            if (!_sequenceMedia->RenameMedia(oldPath, finalPath))
+                _sequenceMedia->RemoveMedia(oldPath);
+        }
+
+        UpdateEffectPaths(oldPath, finalPath);
+        _sequenceMedia->ForceRefreshEntry(finalPath, finalAbsPath, type);
+
+        lastFixedPath = finalPath;
+        ++found;
+    }
+
+    wxMessageBox(wxString::Format("Bulk find complete.\n\n"
+                                  "Found and updated: %d %s(s)\n"
+                                  "Not found: %d %s(s)",
+                                  found, typeName.Lower(), notFound, typeName.Lower()),
+                 "Bulk Find " + typeName, wxICON_INFORMATION | wxOK, this);
+
+    Populate(lastFixedPath);
 }
 
 void ManageMediaPanel::OnAddButtonClick(wxCommandEvent& event)

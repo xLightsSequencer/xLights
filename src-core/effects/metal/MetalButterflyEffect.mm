@@ -25,13 +25,6 @@ public:
         functions[9] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
         functions[10] = MetalComputeUtilities::INSTANCE.FindComputeFunction("ButterflyEffectPlasmaStyles");
     }
-    ~MetalButterflyEffectData() {
-        for (auto &f : functions) {
-            if (f != nil) {
-                [f release];
-            }
-        }
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }
@@ -92,7 +85,8 @@ void MetalButterflyEffect::Render(Effect *effect, const SettingsMap &SettingsMap
     int Style = SettingsMap.GetInt("SLIDER_Butterfly_Style", sStyleDefault);
 
     // if smaller buffer, overhead of prep for GPU will be higher than benefit
-    if (rbcd == nullptr || !data->canRenderStyle(Style) || ((buffer.BufferWi * buffer.BufferHt) < 2048)) {
+    if (rbcd == nullptr || !data->canRenderStyle(Style)
+        || ((buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold)) {
         ButterflyEffect::Render(effect, SettingsMap, buffer);
         return;
     }

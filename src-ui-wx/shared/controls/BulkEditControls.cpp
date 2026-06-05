@@ -64,17 +64,15 @@ BulkEditFontPicker::BulkEditFontPicker(wxWindow* parent, wxWindowID id, const wx
 }
 
 BulkEditColourPickerCtrl::BulkEditColourPickerCtrl(wxWindow* parent, wxWindowID id, const wxColour& initial, const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator, const wxString& name)
-    : wxColourPickerCtrl(parent, id, initial, pos, size, style, validator, name)
+    : xlColourPickerButton(parent, id, initial, pos, size, style, validator, name)
 {
     _supportsBulkEdit = true;
     ID_COLOURPICKER_BULKEDIT = wxNewId();
     Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
-    wxControl *c = this->GetPickerCtrl();
-    wxBitmapButton *b = dynamic_cast<wxBitmapButton*>(c);
-    if (b) {
-        b->SetBitmapMargins(0, 0);
+    wxControl* c = this->GetPickerCtrl();
+    if (c != nullptr) {
+        c->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
     }
-    this->GetPickerCtrl()->Connect(wxEVT_RIGHT_DOWN, (wxObjectEventFunction)&BulkEditColourPickerCtrl::OnRightDown, nullptr, this);
 }
 
 BulkEditTextCtrl::BulkEditTextCtrl(wxWindow *parent, wxWindowID id, wxString value, const wxPoint &pos, const wxSize &size, long style, const wxValidator &validator, const wxString &name) : wxTextCtrl(parent, id, value, pos, size, style, validator, name)
@@ -632,7 +630,7 @@ std::string BulkEditFontPicker::GetValue() const
 
 wxColour BulkEditColourPickerCtrl::GetValue() const
 {
-    return GetColour();
+    return GetColour();  // xlColourPickerButton::GetColour()
 }
 
 void BulkEditFontPicker::OnFontPickerPopup(wxCommandEvent& event)
@@ -1201,15 +1199,18 @@ void BulkEditTextCtrl::TextUpdate(bool force)
             {
             case BESLIDERTYPE::BE_INT:
             {
-                auto t = wxAtoi(GetValue());
-                if (s->GetValue() != t)
+                long lval = 0;
+                bool ok = GetValue().ToCLong(&lval);
+                auto t = static_cast<int>(lval);
+                if (!ok || s->GetValue() != t)
                 {
-                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t)
+                        if (s->GetValue() != t || !ok)
                         {
-                            ChangeValue(wxString::Format("%d", s->GetValue()));
+                            wxString corrected = wxString::Format("%d", s->GetValue());
+                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
                         }
                     }
                 }
@@ -1217,15 +1218,18 @@ void BulkEditTextCtrl::TextUpdate(bool force)
             break;
             case BESLIDERTYPE::BE_FLOAT1:
             {
-                auto t = wxAtof(GetValue()) * 10;
-                if (s->GetValue() != t)
+                double dval = 0.0;
+                bool ok = GetValue().ToCDouble(&dval);
+                auto t = static_cast<int>(dval * 10);
+                if (!ok || s->GetValue() != t)
                 {
-                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t)
+                        if (s->GetValue() != t || !ok)
                         {
-                            ChangeValue(wxString::Format("%.1f", (float)s->GetValue() / 10.0));
+                            wxString corrected = wxString::Format("%.1f", (float)s->GetValue() / 10.0);
+                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
                         }
                     }
                 }
@@ -1233,15 +1237,18 @@ void BulkEditTextCtrl::TextUpdate(bool force)
             break;
             case BESLIDERTYPE::BE_FLOAT2:
             {
-                auto t = wxAtof(GetValue()) * 100.0;
-                if (s->GetValue() != t)
+                double dval = 0.0;
+                bool ok = GetValue().ToCDouble(&dval);
+                auto t = static_cast<int>(dval * 100.0);
+                if (!ok || s->GetValue() != t)
                 {
-                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t)
+                        if (s->GetValue() != t || !ok)
                         {
-                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 100.0));
+                            wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 100.0);
+                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
                         }
                     }
                 }
@@ -1249,15 +1256,18 @@ void BulkEditTextCtrl::TextUpdate(bool force)
             break;
             case BESLIDERTYPE::BE_FLOAT360:
             {
-                auto t = wxAtof(GetValue()) * 360.0;
-                if (s->GetValue() != t)
+                double dval = 0.0;
+                bool ok = GetValue().ToCDouble(&dval);
+                auto t = static_cast<int>(dval * 360.0);
+                if (!ok || s->GetValue() != t)
                 {
-                    if (force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
+                    if (!ok || force || (s->GetMin() <= 0 && s->GetMax() >= 0) || t >= s->GetMin())
                     {
                         s->SetValue(t);
-                        if (s->GetValue() != t)
+                        if (s->GetValue() != t || !ok)
                         {
-                            ChangeValue(wxString::Format("%.2f", (float)s->GetValue() / 360.0));
+                            wxString corrected = wxString::Format("%.2f", (float)s->GetValue() / 360.0);
+                            if (!ok) SetValue(corrected); else ChangeValue(corrected);
                         }
                     }
                 }

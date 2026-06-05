@@ -27,6 +27,7 @@
 
 #include <log.h>
 
+#include <chrono>
 #include <map>
 #include <string>
 
@@ -130,14 +131,25 @@ class WVHRStatic
 public:
     WVHRStatic()
     {
-        
+
 
         HRESULT hr = S_OK;
 
 //#define THREADING COINIT_MULTITHREADED
 #define THREADING COINIT_APARTMENTTHREADED
 
-        SAFEEXEC(::CoInitializeEx(nullptr, THREADING | COINIT_SPEED_OVER_MEMORY | COINIT_DISABLE_OLE1DDE), "WHVD: Failed to initialise OLE EX");
+        spdlog::trace("WHVD: WVHRStatic init on thread {:#x} (APARTMENTTHREADED)", (uintptr_t)::GetCurrentThreadId());
+        HRESULT cohr = ::CoInitializeEx(nullptr, THREADING | COINIT_SPEED_OVER_MEMORY | COINIT_DISABLE_OLE1DDE);
+        if (FAILED(cohr) && cohr != RPC_E_CHANGED_MODE) {
+            spdlog::error("WHVD: CoInitializeEx failed on thread {:#x}: {:#08x}", (uintptr_t)::GetCurrentThreadId(), (unsigned)cohr);
+            hr = cohr;
+        } else {
+            if (cohr == S_FALSE) {
+                spdlog::trace("WHVD: COM already initialised on thread {:#x} (S_FALSE — reuse)", (uintptr_t)::GetCurrentThreadId());
+            } else if (cohr == RPC_E_CHANGED_MODE) {
+                spdlog::warn("WHVD: CoInitializeEx RPC_E_CHANGED_MODE on thread {:#x} — thread already has a different apartment model; MF calls may marshal or deadlock", (uintptr_t)::GetCurrentThreadId());
+            }
+        }
 
         // we test load all the dlls to make sure hardware video decoding is possible ... if any fail then we wont try to hardware decode
         // this does not protect us against internal differences but I am hoping it means we can load and run on older platforms
@@ -147,6 +159,7 @@ public:
             DYNAMICCALL("mfplat.dll", MFStartup, MF_VERSION COMMA MFSTARTUP_FULL, "WHVD: Failed to initialise Media Framework");
             if (SUCCEEDED(hr)) {
                 _ok = true;
+                spdlog::trace("WHVD: Media Foundation started OK on thread {:#x}", (uintptr_t)::GetCurrentThreadId());
             }
         }
     }
@@ -555,9 +568,9 @@ bool WindowsHardwareVideoReader::BitmapFromSample(IMFSample* sample, AVFrame* fr
     SAFEEXEC(pBuffer->Lock(&pBitmapData, nullptr, &cbBitmapData), "WHVD: Failed to lock buffer");
 
     if (FAILED(hr)) {
-        spdlog::error("Was reading video at {}ms", _curPos);
+        spdlog::error("WHVD: BitmapFromSample Lock failed at {}ms thread={:#x} hr={:#08x}", _curPos, (uintptr_t)::GetCurrentThreadId(), (unsigned)hr);
         HRESULT reason = _device->GetDeviceRemovedReason();
-        spdlog::error("Device removed reason {:#08x}x : {}", reason, (const char*)DecodeDXGIReason(reason).c_str());
+        spdlog::error("WHVD: Device removed reason {:#08x} : {}", (unsigned)reason, (const char*)DecodeDXGIReason(reason).c_str());
     }
 
     if (SUCCEEDED(hr)) {
@@ -626,9 +639,10 @@ std::string WindowsHardwareVideoReader::DecodeReadFlags(DWORD flags) const
 
 AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t gracetime)
 {
-    
+
     HRESULT hr = S_OK;
 
+    spdlog::trace("WHVD: GetNextFrame {} curPos={} duration={} thread={:#x}", timestampMS, _curPos, GetDuration(), (uintptr_t)::GetCurrentThreadId());
 #ifdef DETAILED_LOGGING
     spdlog::debug("WHVD: GetNextFrame {}.", timestampMS);
 #endif
@@ -660,13 +674,29 @@ AVFrame* WindowsHardwareVideoReader::GetNextFrame(uint32_t timestampMS, uint32_t
 #endif
         DWORD dwFlags = 0;
         LONGLONG currentTime;
-        SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
+        spdlog::trace("WHVD: ReadSample enter pos={}ms target={}ms thread={:#x}", _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
+        {
+            auto _rs_t0 = std::chrono::steady_clock::now();
+            SAFEEXEC(_reader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, &dwFlags, &currentTime, &sample), "WHVD: Failed to read frame");
+            auto _rs_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - _rs_t0).count();
+            if (_rs_ms > 500)
+                spdlog::warn("WHVD: ReadSample took {}ms (pos={}ms target={}ms thread={:#x}) — possible GPU stall or TDR", _rs_ms, _curPos, timestampMS, (uintptr_t)::GetCurrentThreadId());
+            else
+                spdlog::trace("WHVD: ReadSample exit {}ms hr={:#08x} flags={:#x}({})", _rs_ms, (unsigned)hr, dwFlags, DecodeReadFlags(dwFlags));
+        }
 
 #ifdef DETAILED_LOGGING
         spdlog::info("Read flags: {:#08x}x : {}", dwFlags, DecodeReadFlags(dwFlags));
 #endif
 
         if (FAILED(hr)) {
+            if (_device != nullptr) {
+                HRESULT removed = _device->GetDeviceRemovedReason();
+                if (FAILED(removed))
+                    spdlog::error("WHVD: D3D11 device removed: {:#08x} ({})", (unsigned)removed, DecodeMFError(removed));
+                else
+                    spdlog::warn("WHVD: ReadSample failed but D3D11 device still alive (removed=S_OK)");
+            }
             return nullptr;
         }
 

@@ -585,29 +585,36 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
 {
     if (mEffect == nullptr) return;
 
+    static const wxCursor s_paintBrush(wxCURSOR_PAINT_BRUSH);
+    static const wxCursor s_pencil(wxCURSOR_PENCIL);
+    static const wxCursor s_bullseye(wxCURSOR_BULLSEYE);
+    static const wxCursor s_hand(wxCURSOR_HAND);
+    static const wxCursor s_cross(wxCURSOR_CROSS);
+    static const wxCursor s_default(wxCURSOR_DEFAULT);
+
     int column =  GetCellFromPosition(mapLogicalToAbsolute(event.GetX()));
     int row = GetCellFromPosition(mapLogicalToAbsolute(event.GetY()));
     if (img_mode == IMAGE_SINGLE_FITS && column >= 0 && column < mColumns && row >= 0 && row < mRows) {
         if (mRightDown) {
-            SetCursor(wxCURSOR_PAINT_BRUSH);
+            SetCursor(s_paintBrush);
         } else {
             switch(mPaintMode) {
             case PAINT_PENCIL:
-                SetCursor(wxCURSOR_PENCIL);
+                SetCursor(s_pencil);
                 break;
             case PAINT_ERASER:
-                SetCursor(wxCURSOR_PAINT_BRUSH);
+                SetCursor(s_paintBrush);
                 break;
             case PAINT_EYEDROPPER:
-                SetCursor(wxCURSOR_BULLSEYE);
+                SetCursor(s_bullseye);
                 break;
             case PAINT_SELECTCOPY:
                 if (!mDragging) {
                     if (column >= mStartCol && column <= mEndCol && row >= mStartRow && row <= mEndRow) {
-                        SetCursor(wxCURSOR_HAND);
+                        SetCursor(s_hand);
                         mHoverSelection = true;
                     } else {
-                        SetCursor(wxCURSOR_CROSS);
+                        SetCursor(s_cross);
                         mHoverSelection = false;
                     }
                 }
@@ -653,7 +660,7 @@ void xlGridCanvasPictures::mouseMoved(wxMouseEvent& event)
             render();
         }
     } else {
-        SetCursor(wxCURSOR_DEFAULT);
+        SetCursor(s_default);
     }
 }
 

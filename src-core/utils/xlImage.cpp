@@ -265,32 +265,37 @@ AnimatedImageData LoadAnimatedGIFFromMemory(const uint8_t* data, size_t len) {
         std::copy(canvas.begin(), canvas.end(), saved.begin());
 
         // ---- Paint this frame's pixels onto both canvases ----
+        // For interlaced frames we must iterate every storage row (not clampH —
+        // a clipped storage range can still emit display rows that fall inside
+        // the canvas), so the per-row dispY check below does the bounds clip.
         if (!indices.empty() && clampW > 0 && clampH > 0) {
-            for (int row = 0; row < clampH; row++) {
-                // Map interlaced scan-line order back to natural order
-                int srcRow = row;
+            const int loopH = interlaced ? fh : clampH;
+            for (int row = 0; row < loopH; row++) {
+                // Map storage row to display row. For interlaced GIFs, LZW
+                // bytes are stored in pass order (0,8,16,…,4,12,…,2,6,…,1,3,…)
+                // so storage row N decodes to a different display row.
+                int dispRow = row;
                 if (interlaced) {
-                    // GIF interlace: pass1 rows 0,8,16,…; pass2 4,12,…; pass3 2,6,…; pass4 1,3,…
-                    // Compute the natural (display) row for the given storage row.
                     int cnt = 0;
                     const int starts[4] = {0, 4, 2, 1};
                     const int steps[4]  = {8, 8, 4, 2};
                     for (int p = 0; p < 4; p++) {
                         for (int r2 = starts[p]; r2 < fh; r2 += steps[p], cnt++) {
-                            if (cnt == row) { srcRow = r2; goto doneInterlace; }
+                            if (cnt == row) { dispRow = r2; goto doneInterlace; }
                         }
                     }
                     doneInterlace:;
                 }
-                if (srcRow >= fh) continue;
+                int dispY = fy + dispRow;
+                if (dispY < 0 || dispY >= cH) continue;
 
                 for (int col = 0; col < clampW; col++) {
-                    uint8_t idx = indices[(size_t)srcRow * fw + col];
+                    uint8_t idx = indices[(size_t)row * fw + col];
                     if (currTranspIdx >= 0 && idx == (uint8_t)currTranspIdx)
                         continue; // transparent pixel — leave canvas unchanged
 
                     const uint8_t* c = localPal[idx];
-                    size_t o = ((size_t)(fy + row) * cW + (fx + col)) * 4;
+                    size_t o = ((size_t)dispY * cW + (fx + col)) * 4;
                     canvas[o]   = c[0]; canvas[o+1] = c[1];
                     canvas[o+2] = c[2]; canvas[o+3] = 255;
                 }

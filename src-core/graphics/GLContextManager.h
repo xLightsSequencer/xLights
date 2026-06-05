@@ -65,7 +65,8 @@ public:
     ContextHandle AcquireContext();
 
     // Make the given context current on the calling thread.
-    void MakeCurrent(ContextHandle ctx);
+    // Returns false if the context handle is invalid or the driver rejects it.
+    bool MakeCurrent(ContextHandle ctx);
 
     // Release the context from the calling thread (unset current).
     // Does NOT return it to the pool — call ReleaseContext() for that.

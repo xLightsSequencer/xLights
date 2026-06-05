@@ -1,10 +1,10 @@
-// HTDemucs 4-stem source separation — Windows / Linux only.
-// On Apple the CoreML version in StemSeparator.mm is used instead.
-//
-// Two backends compiled via preprocessor:
-//   HAVE_OPENVINO  → OpenVINO ONNX inference   (cmake / Linux)
-//   HAVE_ORT       → ONNX Runtime + DirectML   (VS / Windows)
-#ifndef __APPLE__
+// HTDemucs 4-stem source separation. Three backends, selected by the
+// build:
+//   __APPLE__       → CoreML via macOS/src-apple-core bridge
+//   HAVE_OPENVINO   → OpenVINO (cmake / Linux)
+//   HAVE_ORT        → ONNX Runtime + DirectML (VS / Windows)
+// STFT preprocessing and chunk crossfade are shared across all three
+// backends (pure C++, no inference framework dependency).
 
 #include "StemSeparator.h"
 #include "AudioManager.h"
@@ -15,8 +15,12 @@
 #include <cstring>
 #include <vector>
 
+#ifdef __APPLE__
+#include "media/StemSeparatorBridge.h"
+#endif
+
 // ─────────────────────────────────────────────────────────────────────────────
-// STFT helpers — shared by both backends
+// STFT helpers — shared by all backends
 // ─────────────────────────────────────────────────────────────────────────────
 
 static constexpr int kSTFT_NFFT       = 4096;
@@ -97,11 +101,11 @@ void AppendOutputs(const float* src,
 // ─────────────────────────────────────────────────────────────────────────────
 // Backend-specific includes
 // ─────────────────────────────────────────────────────────────────────────────
-#ifdef HAVE_OPENVINO
+#if !defined(__APPLE__) && defined(HAVE_OPENVINO)
 #    include <openvino/openvino.hpp>
 #endif
 
-#ifdef HAVE_ORT
+#if !defined(__APPLE__) && defined(HAVE_ORT)
 #    include <onnxruntime_cxx_api.h>
 // Pragma only needed for the VS-native build; cmake links via target_link_libraries.
 #    if defined(_MSC_VER) && !defined(XLIGHTS_CMAKE_BUILD)
@@ -124,8 +128,96 @@ bool SeparateStems(AudioManager* audio,
     if (!audio || !audio->IsOk()) return false;
     if (modelPath.empty()) return false;
 
-// ── OpenVINO ──────────────────────────────────────────────────────────────────
-#if defined(HAVE_OPENVINO)
+// ── CoreML (Apple) ───────────────────────────────────────────────────────────
+#ifdef __APPLE__
+
+    long trackSize = audio->GetTrackSize();
+    long rate      = audio->GetRate();
+    if (trackSize <= 0 || rate <= 0) return false;
+
+    (void)audio->GetRawLeftDataPtr(trackSize - 1);
+    const float* srcL = audio->GetRawLeftDataPtr(0);
+    const float* srcR = audio->GetRawRightDataPtr(0);
+    if (!srcL) return false;
+    if (!srcR) srcR = srcL;
+
+    auto* model = AppleStemSeparatorBridge::LoadModel(modelPath);
+    if (!model) return false;
+
+    const long chunkFrames = opts.chunkSamples;
+    const long overlap = std::max<long>(0, std::min<long>(opts.overlapSamples, chunkFrames / 2));
+    const long stride = chunkFrames - overlap;
+    if (stride <= 0) {
+        AppleStemSeparatorBridge::DestroyModel(model);
+        return false;
+    }
+
+    out.drumsL.assign(trackSize, 0.0f);  out.drumsR.assign(trackSize, 0.0f);
+    out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
+    out.otherL.assign(trackSize, 0.0f);  out.otherR.assign(trackSize, 0.0f);
+    out.vocalsL.assign(trackSize, 0.0f); out.vocalsR.assign(trackSize, 0.0f);
+    out.sampleRate = rate;
+
+    kiss_fftr_cfg fftCfg = kiss_fftr_alloc(kSTFT_NFFT, 0, nullptr, nullptr);
+    if (!fftCfg) {
+        spdlog::error("SeparateStems: kiss_fftr_alloc failed");
+        AppleStemSeparatorBridge::DestroyModel(model);
+        return false;
+    }
+    auto hannWindow = MakeHannWindow(kSTFT_NFFT);
+    std::vector<float>        padded(kSTFT_PADDED_LEN, 0.0f);
+    std::vector<float>        frame(kSTFT_NFFT);
+    std::vector<kiss_fft_cpx> fftBuf(kSTFT_NFFT / 2 + 1);
+
+    std::vector<float> waveformBuf(2 * (size_t)chunkFrames);
+    std::vector<float> spectralBuf(4 * (size_t)kSTFT_BINS * (size_t)kSTFT_FRAMES);
+    std::vector<float> timeOutBuf(8 * (size_t)chunkFrames);
+
+    const long totalChunks = (trackSize + stride - 1) / stride;
+    long chunkIdx = 0;
+
+    for (long srcPos = 0; srcPos < trackSize; srcPos += stride) {
+        long validCount = std::min<long>(chunkFrames, trackSize - srcPos);
+
+        std::fill(waveformBuf.begin(), waveformBuf.end(), 0.0f);
+        std::memcpy(waveformBuf.data(),               srcL + srcPos, validCount * sizeof(float));
+        std::memcpy(waveformBuf.data() + chunkFrames, srcR + srcPos, validCount * sizeof(float));
+
+        std::fill(spectralBuf.begin(), spectralBuf.end(), 0.0f);
+        FillSpectralTensor(spectralBuf.data(), srcL, srcR, srcPos, validCount,
+                           fftCfg, hannWindow, padded, frame, fftBuf);
+
+        if (!AppleStemSeparatorBridge::RunChunk(
+                model,
+                waveformBuf.data(), (long)waveformBuf.size(),
+                spectralBuf.data(), (long)spectralBuf.size(),
+                timeOutBuf.data(), (long)timeOutBuf.size())) {
+            spdlog::error("SeparateStems: bridge inference failed at chunk {}", chunkIdx);
+            free(fftCfg);
+            AppleStemSeparatorBridge::DestroyModel(model);
+            return false;
+        }
+
+        AppendOutputs(timeOutBuf.data(), chunkFrames, validCount,
+                      srcPos, chunkIdx == 0 ? 0 : overlap,
+                      out.drumsL, out.drumsR, out.bassL, out.bassR,
+                      out.otherL, out.otherR, out.vocalsL, out.vocalsR);
+
+        chunkIdx++;
+        if (progress) {
+            int pct = (int)((chunkIdx * 100) / std::max<long>(1, totalChunks));
+            progress(std::min(100, pct));
+        }
+        if (srcPos + chunkFrames >= trackSize) break;
+    }
+
+    free(fftCfg);
+    AppleStemSeparatorBridge::DestroyModel(model);
+    spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
+    return true;
+
+// ── OpenVINO ─────────────────────────────────────────────────────────────────
+#elif defined(HAVE_OPENVINO)
 
     long trackSize = audio->GetTrackSize();
     long rate      = audio->GetRate();
@@ -228,7 +320,7 @@ bool SeparateStems(AudioManager* audio,
     spdlog::info("SeparateStems: completed {} chunks, {} frames", chunkIdx, trackSize);
     return true;
 
-// ── ONNX Runtime + DirectML ───────────────────────────────────────────────────
+// ── ONNX Runtime + DirectML ──────────────────────────────────────────────────
 #elif defined(HAVE_ORT)
 
     long trackSize = audio->GetTrackSize();
@@ -255,7 +347,6 @@ bool SeparateStems(AudioManager* audio,
     const int64_t waveformShape[] = {1, 2, (int64_t)chunkFrames};
     auto memInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
 
-    // Helper: create a session, optionally with the DirectML EP.
     auto makeSession = [&](bool withDML) {
         Ort::SessionOptions sopts;
         sopts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
@@ -275,7 +366,6 @@ bool SeparateStems(AudioManager* audio,
 
     Ort::Session session = makeSession(true);
 
-    // Query names and layout once (same for both DML and CPU sessions).
     Ort::AllocatorWithDefaultOptions allocator;
     auto inputName0  = session.GetInputNameAllocated(0, allocator);
     auto outputName0 = session.GetOutputNameAllocated(0, allocator);
@@ -289,7 +379,6 @@ bool SeparateStems(AudioManager* audio,
     const char* outputNames[] = {outputName0.get()};
     const long totalChunks = (trackSize + stride - 1) / stride;
 
-    // Run inference; if DirectML OOMs, rebuild the session on CPU and retry.
     for (int attempt = 0; attempt < 2; attempt++) {
         out.drumsL.assign(trackSize, 0.0f);  out.drumsR.assign(trackSize, 0.0f);
         out.bassL.assign(trackSize, 0.0f);   out.bassR.assign(trackSize, 0.0f);
@@ -371,11 +460,9 @@ bool SeparateStems(AudioManager* audio,
 
     return false;
 
-// ── No backend ────────────────────────────────────────────────────────────────
+// ── No backend ───────────────────────────────────────────────────────────────
 #else
     spdlog::warn("SeparateStems: no inference backend compiled");
     return false;
 #endif
 }
-
-#endif // !__APPLE__

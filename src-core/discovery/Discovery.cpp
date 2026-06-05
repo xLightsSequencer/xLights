@@ -39,6 +39,17 @@
 #include <dns_sd.h>
 #endif
 
+// On Windows (where Apple's dns_sd.h is normally absent) use the native
+// DNS-SD / mDNS API in <windns.h> instead. macOS uses dns_sd.h above and
+// Linux uses it too (via the avahi-compat-libdns_sd shim), so this path is
+// Windows-only.
+#if defined(_WIN32) && !defined(_DNS_SD_H)
+#define XL_USE_WINDNS 1
+#include <windns.h>
+#include <mutex>
+#include <memory>
+#endif
+
 #include <algorithm>
 #include <cctype>
 
@@ -140,6 +151,10 @@ Discovery::DatagramData::~DatagramData() {
 }
 
 
+#ifdef XL_USE_WINDNS
+struct WinMDNSState;
+#endif
+
 class BonjourData {
 public:
     BonjourData(const std::string &n, std::function<void(const std::string &ipAddress)>& callback);
@@ -153,6 +168,12 @@ public:
 
 #ifdef _DNS_SD_H
     std::list<DNSServiceRef> bonjourRefs;
+#elif defined(XL_USE_WINDNS)
+    std::shared_ptr<WinMDNSState> state;
+    std::shared_ptr<WinMDNSState>* browseCtx = nullptr;
+    std::wstring browseQuery; // backing storage for DNS_SERVICE_BROWSE_REQUEST::QueryName
+    DNS_SERVICE_CANCEL browseCancel{};
+    bool browsing = false;
 #endif
 };
 
@@ -186,6 +207,122 @@ static void BonjourBrowseCallBack(DNSServiceRef service, DNSServiceFlags flags, 
 }
 #endif
 
+#ifdef XL_USE_WINDNS
+namespace {
+typedef DNS_STATUS (WINAPI *PFN_DnsServiceBrowse)(PDNS_SERVICE_BROWSE_REQUEST, PDNS_SERVICE_CANCEL);
+typedef DNS_STATUS (WINAPI *PFN_DnsServiceBrowseCancel)(PDNS_SERVICE_CANCEL);
+typedef DNS_STATUS (WINAPI *PFN_DnsServiceResolve)(PDNS_SERVICE_RESOLVE_REQUEST, PDNS_SERVICE_CANCEL);
+typedef VOID (WINAPI *PFN_DnsServiceFreeInstance)(PDNS_SERVICE_INSTANCE);
+typedef VOID (WINAPI *PFN_DnsRecordListFree)(PDNS_RECORD, DNS_FREE_TYPE);
+
+struct WinDnsApi {
+    PFN_DnsServiceBrowse browse = nullptr;
+    PFN_DnsServiceBrowseCancel browseCancel = nullptr;
+    PFN_DnsServiceResolve resolve = nullptr;
+    PFN_DnsServiceFreeInstance freeInstance = nullptr;
+    PFN_DnsRecordListFree recordListFree = nullptr;
+    bool ok = false;
+};
+
+// The DnsService* DNS-SD functions only exist on Windows 10 1703+. Resolve
+// them dynamically so xLights still launches (just without mDNS discovery) on
+// older Windows where a static import would fail to load the whole process.
+const WinDnsApi& GetWinDnsApi() {
+    static const WinDnsApi api = []() {
+        WinDnsApi a;
+        if (HMODULE h = LoadLibraryW(L"dnsapi.dll")) {
+            a.browse = (PFN_DnsServiceBrowse)GetProcAddress(h, "DnsServiceBrowse");
+            a.browseCancel = (PFN_DnsServiceBrowseCancel)GetProcAddress(h, "DnsServiceBrowseCancel");
+            a.resolve = (PFN_DnsServiceResolve)GetProcAddress(h, "DnsServiceResolve");
+            a.freeInstance = (PFN_DnsServiceFreeInstance)GetProcAddress(h, "DnsServiceFreeInstance");
+            a.recordListFree = (PFN_DnsRecordListFree)GetProcAddress(h, "DnsRecordListFree");
+            a.ok = a.browse && a.browseCancel && a.resolve && a.freeInstance && a.recordListFree;
+        }
+        return a;
+    }();
+    return api;
+}
+}
+
+// Shared state between a BonjourData and its in-flight async DnsService
+// callbacks (which run on OS thread-pool threads). Held via shared_ptr by both
+// sides so it outlives the BonjourData until every outstanding resolve callback
+// has fired; `active` is cleared on teardown so those late callbacks become
+// no-ops instead of touching a destroyed object.
+struct WinMDNSState {
+    std::mutex mtx;
+    bool active = true;
+    std::vector<std::string> pendingIps;
+    std::set<std::wstring> seenInstances;
+};
+
+namespace {
+struct WinResolveCtx {
+    std::shared_ptr<WinMDNSState> state;
+    std::wstring name; // backing storage for DNS_SERVICE_RESOLVE_REQUEST::QueryName
+    DNS_SERVICE_CANCEL cancel{};
+};
+
+// Called once per DnsServiceResolve, on a thread-pool thread.
+void WinResolveCallback(DWORD status, PVOID context, PDNS_SERVICE_INSTANCE instance) {
+    std::unique_ptr<WinResolveCtx> ctx(static_cast<WinResolveCtx*>(context));
+    if (instance) {
+        if (status == ERROR_SUCCESS && instance->ip4Address) {
+            in_addr addr;
+            addr.S_un.S_addr = *instance->ip4Address;
+            char buf[INET_ADDRSTRLEN] = { 0 };
+            if (inet_ntop(AF_INET, &addr, buf, sizeof(buf)) != nullptr && strcmp(buf, "0.0.0.0") != 0) {
+                std::lock_guard<std::mutex> lk(ctx->state->mtx);
+                if (ctx->state->active) {
+                    ctx->state->pendingIps.emplace_back(buf);
+                }
+            }
+        }
+        GetWinDnsApi().freeInstance(instance);
+    }
+}
+
+// Called (possibly repeatedly) as DnsServiceBrowse finds service instances.
+void WinBrowseCallback(DWORD status, PVOID context, PDNS_RECORD records) {
+    auto state = *static_cast<std::shared_ptr<WinMDNSState>*>(context);
+    if (status == ERROR_SUCCESS) {
+        // DnsService* APIs are wide-only, so the records are always DNS_RECORDW
+        // regardless of the build's UNICODE setting.
+        for (auto* rec = (DNS_RECORDW*)records; rec != nullptr; rec = rec->pNext) {
+            if (rec->wType != DNS_TYPE_PTR || rec->Data.PTR.pNameHost == nullptr) {
+                continue;
+            }
+            std::wstring instance = rec->Data.PTR.pNameHost;
+            {
+                std::lock_guard<std::mutex> lk(state->mtx);
+                if (!state->active) {
+                    break;
+                }
+                if (!state->seenInstances.insert(instance).second) {
+                    continue; // already resolving/resolved this instance
+                }
+            }
+            auto* ctx = new WinResolveCtx();
+            ctx->state = state;
+            ctx->name = instance;
+            DNS_SERVICE_RESOLVE_REQUEST req{};
+            req.Version = DNS_QUERY_REQUEST_VERSION1;
+            req.QueryName = const_cast<PWSTR>(ctx->name.c_str());
+            req.pResolveCompletionCallback = WinResolveCallback;
+            req.pQueryContext = ctx;
+            DNS_STATUS s = GetWinDnsApi().resolve(&req, &ctx->cancel);
+            if (s != DNS_REQUEST_PENDING && s != ERROR_SUCCESS) {
+                delete ctx; // completion callback will not fire
+            }
+        }
+    }
+    if (records) {
+        GetWinDnsApi().recordListFree(records, DnsFreeRecordList);
+    }
+}
+}
+#endif
+
 BonjourData::BonjourData(const std::string &n, std::function<void(const std::string &ipAddress)>& callback) : serviceName(n) {
     callbacks.push_back(callback);
 #ifdef _DNS_SD_H
@@ -195,6 +332,29 @@ BonjourData::BonjourData(const std::string &n, std::function<void(const std::str
     if (kDNSServiceErr_NoError == err)  {
         bonjourRefs.push_back(serviceRef);
     }
+#elif defined(XL_USE_WINDNS)
+    const WinDnsApi& api = GetWinDnsApi();
+    if (!api.ok) {
+        return; // pre-1703 Windows: no mDNS, broadcast/multicast discovery still runs
+    }
+    state = std::make_shared<WinMDNSState>();
+    // mDNS browse wants the fully-qualified service type, e.g. "_fppd._udp.local"
+    browseQuery.assign(serviceName.begin(), serviceName.end()); // serviceName is ASCII
+    if (browseQuery.find(L".local") == std::wstring::npos) {
+        browseQuery += L".local";
+    }
+    browseCtx = new std::shared_ptr<WinMDNSState>(state);
+    DNS_SERVICE_BROWSE_REQUEST req{};
+    req.Version = DNS_QUERY_REQUEST_VERSION1;
+    req.pBrowseCallback = WinBrowseCallback;
+    req.pQueryContext = browseCtx;
+    req.QueryName = const_cast<PWSTR>(browseQuery.c_str());
+    DNS_STATUS s = api.browse(&req, &browseCancel);
+    browsing = (s == DNS_REQUEST_PENDING || s == ERROR_SUCCESS);
+    if (!browsing) {
+        delete browseCtx;
+        browseCtx = nullptr;
+    }
 #endif
 }
 BonjourData::~BonjourData() {
@@ -203,6 +363,23 @@ BonjourData::~BonjourData() {
         DNSServiceRefDeallocate(ref);
     }
     bonjourRefs.clear();
+#elif defined(XL_USE_WINDNS)
+    if (state) {
+        {
+            std::lock_guard<std::mutex> lk(state->mtx);
+            state->active = false; // make any late resolve callbacks no-ops
+        }
+        if (browsing) {
+            // After this returns the browse callback is no longer invoked, so it's
+            // safe to release the context holding our shared_ptr to the state.
+            GetWinDnsApi().browseCancel(&browseCancel);
+        }
+    }
+    delete browseCtx;
+    browseCtx = nullptr;
+    // Outstanding resolves still hold their own shared_ptr<WinMDNSState> via
+    // WinResolveCtx; the state stays alive until each completion callback fires
+    // (and frees its context), at which point it sees active==false and does nothing.
 #endif
 }
 void BonjourData::handleEvents() {
@@ -226,6 +403,21 @@ void BonjourData::handleEvents() {
                 DNSServiceProcessResult(ref);
             }
         }
+    }
+#elif defined(XL_USE_WINDNS)
+    // The Windows DnsService* APIs deliver results asynchronously on their own
+    // threads; here we just drain whatever IPs they've found and dispatch them
+    // on the discovery thread.
+    if (!state) {
+        return;
+    }
+    std::vector<std::string> ips;
+    {
+        std::lock_guard<std::mutex> lk(state->mtx);
+        ips.swap(state->pendingIps);
+    }
+    for (const auto& ip : ips) {
+        invokeCallbacks(ip);
     }
 #endif
 }

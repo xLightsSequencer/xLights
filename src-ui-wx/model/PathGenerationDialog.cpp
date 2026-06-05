@@ -583,6 +583,11 @@ void PathGenerationDialog::OnPanel1LeftDown(wxMouseEvent& event)
 
 void PathGenerationDialog::OnPanel1MouseMove(wxMouseEvent& event)
 {
+    static const wxCursor s_closedHand(wxCURSOR_CLOSED_HAND);
+    static const wxCursor s_openHand(wxCURSOR_OPEN_HAND);
+    static const wxCursor s_bullseye(wxCURSOR_BULLSEYE);
+    static const wxCursor s_cross(wxCURSOR_CROSS);
+
     auto pt = ConvertMousePosition(event.GetPosition());
 
     // selected so we need to move the selected point
@@ -614,20 +619,20 @@ void PathGenerationDialog::OnPanel1MouseMove(wxMouseEvent& event)
     {
         if (_selected >= 0 && event.m_leftDown)
         {
-            Panel1->SetCursor(wxCURSOR_CLOSED_HAND);
+            Panel1->SetCursor(s_closedHand);
         }
         else
         {
-            Panel1->SetCursor(wxCURSOR_OPEN_HAND);
+            Panel1->SetCursor(s_openHand);
         }
     }
     else if (overline >= 0)
     {
-        Panel1->SetCursor(wxCURSOR_BULLSEYE);
+        Panel1->SetCursor(s_bullseye);
     }
     else
     {
-        Panel1->SetCursor(wxCURSOR_CROSS);
+        Panel1->SetCursor(s_cross);
     }
 }
 

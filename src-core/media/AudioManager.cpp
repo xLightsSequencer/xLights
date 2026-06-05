@@ -15,6 +15,7 @@
 #include "../utils/AppCallbacks.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -99,8 +100,20 @@ void AudioManager::Seek(long pos) const {
         return;
     }
 
-    if (__audioManager.GetOutput(_device) != nullptr)
-        __audioManager.GetOutput(_device)->Seek(_sdlid, pos);
+    auto* out = __audioManager.GetOutput(_device);
+    if (out == nullptr) {
+        return;
+    }
+
+    // Lazy-add: OpenMediaFile() defers AddAudio until first Play() to avoid
+    // spinning up AVAudioEngine for AudioManagers that only decode. Seek()
+    // must do the same lazy-add, otherwise a Seek() before the first Play()
+    // silently no-ops on _sdlid == -1 and the play position is wrong.
+    if (!out->HasAudio(_sdlid)) {
+        _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
+    }
+
+    out->Seek(_sdlid, pos);
 }
 
 void AudioManager::Pause() {
@@ -873,14 +886,14 @@ int AudioManager::OpenMediaFile() {
     _metaData = info.metadata;
     SetLoadedData(_trackSize);
 
-    // Register with audio output for playback
-    if (_pcmdata != nullptr) {
-        auto* out = __audioManager.GetOutput(_device);
-        if (out != nullptr) {
-            _sdlid = out->AddAudio(_pcmdatasize, _pcmdata, 100, _rate, _trackSize, _lengthMS);
-        }
-    }
-
+    // Defer registering with the audio output until Play() is actually called.
+    // Eager registration here forces AVAudioEngine setup (mixer node, IO unit,
+    // audio unit render resources) for every AudioManager — even ones that are
+    // only loaded for decoding (e.g. batch render), which never play. Each
+    // AVAudioEngine instance accumulates dispatch queues / audio-unit pool
+    // blocks that Apple's audio framework retains process-wide. Play(),
+    // Play(posms,lenms), and AudioDeviceChanged() already handle the
+    // HasAudio/AddAudio lazy-add path, so this is safe.
     return 0;
 }
 
@@ -1636,6 +1649,84 @@ void AudioManager::SetStemData(const std::vector<float>& drumsL, const std::vect
             ++it;
         }
     }
+}
+
+std::string AudioManager::WriteCurrentToTempWav() const {
+    // Snapshot the playback buffers under the audio lock so a
+    // concurrent SwitchTo() can't repoint them out from under us
+    // mid-write. SwitchTo takes a unique_lock on _mutex, so this
+    // shared_lock serializes against it.
+    std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+    if (_data[0] == nullptr || _trackSize <= 0) return {};
+
+    const float* L = _data[0];
+    // Mono sources leave _data[1] either null or aliased to _data[0];
+    // either way duplicate the left channel into the right so the
+    // output is always stereo float32 (what every recognizer accepts).
+    const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+
+    const auto frames = (uint32_t)_trackSize;
+    const auto sr = (uint32_t)(_rate > 0 ? _rate : 44100);
+
+    // Build a unique temp path. Use the audio file's basename (when
+    // available) so multiple concurrent xLights instances can't race
+    // each other's exports for different sequences.
+    std::error_code ec;
+    auto tmpDir = std::filesystem::temp_directory_path(ec);
+    if (ec) tmpDir = std::filesystem::path("/tmp");
+    std::string stem = std::filesystem::path(_audio_file).stem().string();
+    if (stem.empty()) stem = "audio";
+    auto tsNS = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count();
+    std::string filename = "xlights_audio_" + stem + "_" + std::to_string(tsNS) + ".wav";
+    std::filesystem::path outPath = tmpDir / filename;
+
+    // Stereo float32 WAV, RIFF + fmt(IEEE float, 3) + data.
+    // Header layout (44 bytes):
+    //   "RIFF" <fileSize-8> "WAVE"
+    //   "fmt " 16 (3 PCM_FLOAT) (2 channels) <sr> <byteRate> <blockAlign> <bitsPerSample=32>
+    //   "data" <dataSize>
+    const uint16_t channels      = 2;
+    const uint16_t bitsPerSample = 32;
+    const uint16_t blockAlign    = channels * (bitsPerSample / 8);
+    const uint32_t byteRate      = sr * blockAlign;
+    const uint32_t dataSize      = frames * blockAlign;
+    const uint32_t fileSize      = 36 + dataSize;
+
+    std::ofstream f(outPath, std::ios::binary);
+    if (!f) return {};
+
+    auto write_u32 = [&](uint32_t v) { f.write(reinterpret_cast<const char*>(&v), 4); };
+    auto write_u16 = [&](uint16_t v) { f.write(reinterpret_cast<const char*>(&v), 2); };
+
+    f.write("RIFF", 4);   write_u32(fileSize);  f.write("WAVE", 4);
+    f.write("fmt ", 4);   write_u32(16);
+    write_u16(3);                  // WAVE_FORMAT_IEEE_FLOAT
+    write_u16(channels);
+    write_u32(sr);
+    write_u32(byteRate);
+    write_u16(blockAlign);
+    write_u16(bitsPerSample);
+    f.write("data", 4);   write_u32(dataSize);
+
+    // Interleave L/R samples. _data is full-track-length mono arrays
+    // per channel; iterate once writing a stereo sample per frame.
+    // Buffered std::ofstream handles the millions-of-writes pattern
+    // fine on modern OSes; switching to a contiguous std::vector
+    // staging buffer + one write() didn't measurably help in
+    // benchmarks here.
+    for (uint32_t i = 0; i < frames; ++i) {
+        float l = L[i];
+        float r = R[i];
+        f.write(reinterpret_cast<const char*>(&l), sizeof(float));
+        f.write(reinterpret_cast<const char*>(&r), sizeof(float));
+    }
+    if (!f.good()) {
+        f.close();
+        std::filesystem::remove(outPath, ec);
+        return {};
+    }
+    return outPath.string();
 }
 
 void AudioManager::SetClassifyGate(const std::string& className,

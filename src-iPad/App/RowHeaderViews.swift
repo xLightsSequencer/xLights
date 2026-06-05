@@ -26,6 +26,10 @@ struct TimingRowHeader: View {
     /// layer has extra sub-layers to strip.
     var canRemoveWordsAndPhonemes: Bool = false
     var onRemoveWordsAndPhonemes: (() -> Void)?
+    /// TIM-9: "Remove Phonemes Only" — strips just the phoneme layer,
+    /// keeping the phrase + word layers. Shown when a phoneme layer exists.
+    var canRemovePhonemes: Bool = false
+    var onRemovePhonemes: (() -> Void)?
     /// B76: surfaced as "Make Variable" on fixed-interval timing
     /// tracks. Nil hides the entry.
     var canMakeVariable: Bool = false
@@ -37,6 +41,12 @@ struct TimingRowHeader: View {
     var canSubdivide: Bool = false
     /// B75: fires when the user picks "Export Timing Track…".
     var onExportTimingTrack: (() -> Void)?
+    /// AUTO-3: fires when the user picks "Speech to Lyrics…" (AI audio
+    /// transcription). Gated by `canSpeechToLyrics` — audio is loaded and a
+    /// Speech-to-Text AI service is configured. Declared before
+    /// `onImportLyrics` to match the call-site argument order.
+    var canSpeechToLyrics: Bool = false
+    var onSpeechToLyrics: (() -> Void)?
     /// B78: fires when the user picks "Import Lyrics…".
     var onImportLyrics: (() -> Void)?
     /// B89: fires when the user picks "Auto-Label Marks…".
@@ -44,6 +54,13 @@ struct TimingRowHeader: View {
     /// B91: fires when the user picks "Halve Timing Marks" —
     /// splits every mark at its midpoint.
     var onHalveTimingMarks: (() -> Void)?
+    /// TIM-5: fires with the divisor when the user picks a "Divide Timing
+    /// Marks" option — splits every mark into N equal pieces.
+    var onDivideTimingMarks: ((_ divisor: Int) -> Void)?
+    /// SEQ-19: fires when the user picks "Select All Marks" — multi-selects
+    /// every timing mark on this row. Gated by `canSelectMarks`.
+    var canSelectMarks: Bool = false
+    var onSelectMarks: (() -> Void)?
 
     // Active state is carried on `row.timing?.isActive` so a toggle
     // here flips the struct equality and re-runs the grid body —
@@ -156,9 +173,25 @@ struct TimingRowHeader: View {
                     }
                 }
                 if canRemoveWordsAndPhonemes, let fire = onRemoveWordsAndPhonemes {
-                    Button(role: .destructive) { fire() } label: {
-                        Label("Remove Words / Phonemes",
-                               systemImage: "rectangle.stack.badge.minus")
+                    if canRemovePhonemes, let firePh = onRemovePhonemes {
+                        Menu {
+                            Button(role: .destructive) { fire() } label: {
+                                Label("Remove Words & Phonemes",
+                                       systemImage: "rectangle.stack.badge.minus")
+                            }
+                            Button(role: .destructive) { firePh() } label: {
+                                Label("Remove Phonemes Only",
+                                       systemImage: "rectangle.badge.minus")
+                            }
+                        } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
+                    } else {
+                        Button(role: .destructive) { fire() } label: {
+                            Label("Remove Words / Phonemes",
+                                   systemImage: "rectangle.stack.badge.minus")
+                        }
                     }
                 }
                 if canMakeVariable, let fire = onMakeVariable {
@@ -189,6 +222,12 @@ struct TimingRowHeader: View {
                                systemImage: "square.and.arrow.up")
                     }
                 }
+                if canSpeechToLyrics, let fire = onSpeechToLyrics {
+                    Button { fire() } label: {
+                        Label("Speech to Lyrics…",
+                               systemImage: "waveform.circle")
+                    }
+                }
                 if let fire = onImportLyrics {
                     Button { fire() } label: {
                         Label("Import Lyrics…",
@@ -205,6 +244,23 @@ struct TimingRowHeader: View {
                     Button { fire() } label: {
                         Label("Halve Timing Marks",
                                systemImage: "square.split.1x2")
+                    }
+                }
+                if let fire = onDivideTimingMarks {
+                    Menu {
+                        Button("÷2") { fire(2) }
+                        Button("÷3") { fire(3) }
+                        Button("÷4") { fire(4) }
+                        Button("÷6") { fire(6) }
+                        Button("÷8") { fire(8) }
+                    } label: {
+                        Label("Divide Timing Marks…",
+                               systemImage: "square.split.2x2")
+                    }
+                }
+                if canSelectMarks, let fire = onSelectMarks {
+                    Button { fire() } label: {
+                        Label("Select All Marks", systemImage: "checklist")
                     }
                 }
                 Button(role: .destructive) {
@@ -291,12 +347,17 @@ struct ModelRowHeader: View {
     /// B51 toggle element render-disabled flag.
     var elementRenderDisabled: Bool = false
     var onToggleRenderDisabled: (() -> Void)?
-    /// B53 / B54 row + model cut / copy. Paste is the global Cmd+V
-    /// already plumbed for multi-effect clipboards (B98).
+    /// B53 / B54 row + model cut / copy. Paste is also exposed on
+    /// the menu via `onPaste` (in addition to the global Cmd+V
+    /// plumbed in B98) — fires `pasteAtRow` so a multi-layer
+    /// clipboard auto-inserts layers in the destination, matching
+    /// desktop PR #6363.
     var onCopyRow: (() -> Void)?
     var onCutRow: (() -> Void)?
     var onCopyModel: (() -> Void)?
     var onCutModel: (() -> Void)?
+    var onPaste: (() -> Void)?
+    var hasClipboard: Bool = false
     /// B49 export rendered-channel data for this row's model as a
     /// Falcon Player `.eseq` sub-sequence. The closure receives
     /// `true` when the caller should restrict the export to the
@@ -306,6 +367,22 @@ struct ModelRowHeader: View {
     /// window (desktop uses a frame selection).
     var hasLoopRegion: Bool = false
     var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
+    /// Export this row's model as a video file. The closure receives the
+    /// codec flags + file extension + a short label for the temp/default
+    /// filename. The outer view writes the temp file via
+    /// `SequencerViewModel.exportModelAsVideo` and presents `.fileExporter`.
+    /// Shown only on non-group model rows (desktop disables video export for
+    /// groups), matching the FSEQ entry's gating.
+    var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String) -> Void)?
+    /// B55 — convert effects on the row's element to "Per Model"
+    /// buffer styles. The closure decides scope (true = all layers
+    /// of the model, false = just this row's layer); the outer view
+    /// owns the menu copy.
+    var onConvertToPerModel: ((_ allLayers: Bool) -> Void)?
+    /// B56 — coalesce identical node / strand effects up the
+    /// hierarchy. Only meaningful on ModelElement rows; outer view
+    /// gates visibility.
+    var onPromoteNodeEffects: (() -> Void)?
     /// B48 — delete every empty layer on this row's element.
     /// Shown only on the element's primary row (`layerIndex == 0`)
     /// and only when there's > 1 layer to begin with.
@@ -495,6 +572,11 @@ struct ModelRowHeader: View {
                            systemImage: "square.stack.3d.up.trianglebadge.exclamationmark")
                 }
             }
+            if hasClipboard, let fire = onPaste {
+                Button { fire() } label: {
+                    Label("Paste", systemImage: "doc.on.clipboard")
+                }
+            }
             if !isSubLayer && !isNodeRow, let fire = onExportModelFSEQ {
                 Button { fire(false) } label: {
                     Label("Export Model as FSEQ…",
@@ -505,6 +587,49 @@ struct ModelRowHeader: View {
                         Label("Export Model (Loop Range) as FSEQ…",
                                systemImage: "arrow.up.doc")
                     }
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
+                Menu {
+                    Button { fire(true, false, false, "mp4", "Compressed") } label: {
+                        Label("Compressed (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(true, true, false, "mp4", "High Quality") } label: {
+                        Label("High Quality (.mp4)", systemImage: "film")
+                    }
+                    Button { fire(false, false, true, "mov", "ProRes 4444") } label: {
+                        Label("ProRes 4444 (.mov)", systemImage: "film.stack")
+                    }
+                    Button { fire(false, false, false, "mov", "Lossless RGB") } label: {
+                        Label("Lossless RGB (.mov)", systemImage: "film.stack")
+                    }
+                } label: {
+                    Label("Export Model as Video", systemImage: "film")
+                }
+            }
+            // B55 — model-scope variant on the model heading; layer-
+            // scope variant on per-layer / submodel rows. Mirrors
+            // desktop's two RowHeading entries.
+            if let fire = onConvertToPerModel, !isNodeRow {
+                if !isSubLayer {
+                    Button { fire(true) } label: {
+                        Label("Convert Effects to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                } else {
+                    Button { fire(false) } label: {
+                        Label("Convert Effects on Layer to 'Per Model'",
+                               systemImage: "rectangle.compress.vertical")
+                    }
+                }
+            }
+            // B56 — only the model heading itself; promotion walks
+            // strands+nodes so it doesn't make sense on submodel /
+            // node rows.
+            if let fire = onPromoteNodeEffects, !isSubLayer, !isNodeRow {
+                Button { fire() } label: {
+                    Label("Promote Node Effects",
+                           systemImage: "arrow.up.to.line.compact")
                 }
             }
             if !isSubLayer && !isNodeRow, let fire = onToggleRenderDisabled {
@@ -520,7 +645,7 @@ struct ModelRowHeader: View {
             if !isNodeRow {
                 if onRenameLayer != nil {
                     Button {
-                        renameLayerText = document.rowLayerName(at: Int32(row.id)) ?? ""
+                        renameLayerText = document.rowLayerName(at: Int32(row.id))
                         showRenameLayer = true
                     } label: { Label("Rename Layer", systemImage: "pencil") }
                 }
@@ -561,6 +686,13 @@ struct ModelRowHeader: View {
                 } label: {
                     Label(showsChildren ? "Hide Strands/Submodels" : "Show Strands/Submodels",
                           systemImage: showsChildren ? "eye.slash" : "eye")
+                }
+                Button {
+                    document.setHideUnusedSubmodels(!document.hideUnusedSubmodels())
+                    onRowsChanged()
+                } label: {
+                    Label(document.hideUnusedSubmodels() ? "Show All Submodels" : "Hide Unused Submodels",
+                          systemImage: document.hideUnusedSubmodels() ? "eye" : "eye.slash")
                 }
             }
             if canToggleNodes {

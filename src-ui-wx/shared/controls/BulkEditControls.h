@@ -21,6 +21,7 @@
 #include "shared/utils/xlLockButton.h"
 #include <wx/filepicker.h>
 #include <wx/clrpicker.h>
+#include "color/xlColourPickerButton.h"
 
 class wxStaticText;
 
@@ -78,7 +79,7 @@ public:
     std::string GetValue() const;
 };
 
-class BulkEditColourPickerCtrl : public wxColourPickerCtrl
+class BulkEditColourPickerCtrl : public xlColourPickerButton
 {
 protected:
     long ID_COLOURPICKER_BULKEDIT;
@@ -91,9 +92,9 @@ public:
         const wxColour& initial = *wxBLACK,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
-        long style = wxFNTP_DEFAULT_STYLE,
+        long style = 0,
         const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxFontPickerCtrlNameStr);
+        const wxString& name = wxPanelNameStr);
     virtual ~BulkEditColourPickerCtrl() {}
     void OnRightDown(wxMouseEvent& event);
     void OnColourPickerPopup(wxCommandEvent& event);

@@ -1,0 +1,186 @@
+# 13 · Tools, Diagnostics & Help
+
+> **Status.** The desktop `Tools` menu (`Menu1` in
+> `xLightsMain.cpp:1098-1160`) has ~30 entries; the iPad `Tools`
+> `CommandMenu` (`XLightsCommands.swift:290-375`) exposes ~12. **Batch
+> Render**, **Export Models**, and effect-format **Convert/Import** all
+> exist on iPad — on a different surface (sequence-picker toolbar,
+> Layout-Editor, and the Import sheet respectively) rather than in the
+> Tools menu. iPad's **Tools → AI Services…** is the *AI-service-config*
+> panel (= desktop **Preferences → AI Services**), not the desktop
+> Tools → *Generate AI Image* / *Generate Lyrics From Data* tools — those
+> two distinct generators are missing or only effect-embedded on iPad.
+> The Help menu is near-parity on external links; iPad is missing **Tip
+> of the Day, Key Bindings, Content (F1), Check for Updates**, and a
+> "Download" item (it has the equivalent "xLights Website"). Remaining
+> real iPad gaps are the controller/hardware specialists (Pixel Test,
+> Bulk Upload, HinksPix, Export Controller Connections), the legacy
+> generators (2D Path, Custom Model generate/remap, Generate Lyrics From
+> Data, User Lyric Dictionary), file-sweep utilities (Cleanup File
+> Locations, Search Show Folders, Download Sequences), FFmpeg-bound
+> Prepare Audio, sandbox-blocked Run Scripts, and the two diagnostic
+> windows (Color Dropper, Find Effect Data). Diagnostics (spdlog
+> rotation, package-logs, crash auto-upload to the shared triage
+> endpoint) are at parity, with iPad slightly ahead via automatic
+> MetricKit capture + Settings opt-in.
+
+## Parity scorecard
+
+| Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
+|---|---|---|---|---|---|---|---|---|
+| Tools → Test (Pixel/Light Test) | menu | ✅ | ❌ | ipad-missing | P2 | hard | hard | `xLightsMain.cpp:1099`, `PixelTestDialog`. Direct controller output; no raw USB/serial/output-manager driving on iOS sandbox. Use FPP path instead. |
+| Tools → Check Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1102` / `CheckSequenceSheet.swift` (406 lines). Shared core `CheckSequence`, issues grouped by severity/section, tap row → jump grid+playhead. |
+| Tools → Cleanup File Locations | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1104`, `OnMenuItem_CleanupFileLocationsSelected` (5092→`6450`). Sweeps all media into show folder. iPad `MediaRelocation.swift` only prompts at import-time, not a global sweep. Needs bridge + sheet. |
+| Tools → Package Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1106` / `PackageSequenceSheet.swift`, `XLSequencePackager`. Builds `.xsqz` of sequence+media. |
+| Tools → Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1108`. Marketplace/community download. iPad would need a browser-style sheet + download-into-show-folder. |
+| Tools → Batch Render | menu (desktop) / picker toolbar (iPad) | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1111`; iPad `BatchRenderSheet.swift` (326) + `BatchRenderRunner.swift`, launched from sequence-picker toolbar (`XLightsApp.swift:1070,1122`). Real multi-seq queue. Surface differs, capability present. |
+| Tools → FPP Connect | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1113` / `FPPConnectSheet.swift` (1314), `FPPConnectMenuItem`. Discover FPP + upload `.fseq`. Open-firmware path. |
+| Tools → Bulk Controller Upload | menu | ✅ | ❌ | ipad-missing | P3 | hard | restricted | `xLightsMain.cpp:1115`. Batch firmware/config to many controllers; vendor-closed firmwares are IAP-gated. Open-firmware (FPP/WLED/ESPixelStick) subset is in-scope but low priority. |
+| Tools → HinksPix Export | menu | ✅ | ❌ | ipad-missing | P3 | medium | restricted | `xLightsMain.cpp:1117`, `HinksPixExportDialog`. HinksPix is closed firmware → restricted/IAP. |
+| Tools → Run Scripts | menu | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `xLightsMain.cpp:1119`. Executes user automation scripts; iOS sandbox forbids arbitrary script/process execution. |
+| Tools → Export Models | menu (desktop) / Layout Editor (iPad) | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1122`; iPad `exportModelsReport(toPath:)` (`XLSequenceDocument.mm:15005`) → `.xlsx`, surfaced in `LayoutEditorView.swift:1671`. Surface differs. |
+| Tools → Export Effects | menu | ✅ | ❌ | ipad-missing | P2 | easy | feasible | `xLightsMain.cpp:1124`. Effect-usage report export. No iPad equivalent; generic core, easy bridge + fileExporter. |
+| Tools → Export Controller Connections | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | `xLightsMain.cpp:1126`. CSV of controller/output mapping. Generic but model+output-manager bound; low demand on iPad. |
+| Tools → View Log | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1129` / `LogViewerSheet.swift` (275). Live tail with level/logger/text filter. Same spdlog file. |
+| Tools → Package Log Files | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1131` / `packageLogs()` + `XLLogPackager.mm`. iPad bundles logs+config+seq+device info+MetricKit; desktop bundles logs+config+seq. |
+| Tools → Purge Render Cache | menu | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1135` / `purgeRenderCache()`. |
+| Tools → Purge Download Cache | menu | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1133` (`iD_MNU_VENDORCACHEPURGE`) / `purgeDownloadCache()`. |
+| Tools → Crash xLights | menu (hidden in release) | 🟡 | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1137`; removed from menu unless `EnableCrash` special option set (`:2074-2079`). Debug-only; low value to port. |
+| Tools → Log Render State | menu (hidden in release) | 🟡 | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1139`; also removed unless `EnableCrash` set. Internal diagnostic dump. |
+| Tools → Generate 2D Path | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1142`. Procedural path-model generator; specialist dialog. |
+| Tools → Generate Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1144`, `GenerateCustomModelDialog`. Video/photo-driven custom-model builder; camera+dialog-heavy. |
+| Tools → Remap Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1146`. Node-index remap; specialist, dialog-heavy. |
+| Tools → Generate AI Image | menu (desktop) / effect-picker (iPad) | ✅ | 🟡 | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1148`, `AIImageDialog`. iPad `AIImageGenerationSheet.swift` exists but only reachable from `EffectFilenameBlockView.swift:135` (effect image picker), **no Tools-menu entry**. Add Tools button + standalone present. |
+| Media Manager → AI Generate Image | media panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop media manager has an `AI Generate…` button (`ManageMediaPanel.cpp:633` `_aiGenerateButton`, gated at `:718-719`/`:926` on image+hasAI, `:2237` `OnAIGenerateButtonClick` → `AIImageDialog` at `:2261`). iPad has the `AIImageGenerationSheet` but no media-manager AI-generate entry. |
+| Tools → Generate Lyrics From Data | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1150`, `GenerateLyricsDialog` (`OnMenuItem_GenerateLyricsSelected:7233`). Maps channel-data → face/phoneme tracks — *distinct* from iPad's AI speech-to-lyrics. Legacy; low demand. |
+| Tools → Convert | menu (desktop) / Import sheet (iPad) | ✅ | 🟡 | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1152`, `TabConvert`/`ConvertDialog`. iPad `ImportEffectsView.swift` already does `.xsq/.xsqz`, SuperStar `.sup`, LOR S5 `.loredit`, Vixen 3. Missing legacy formats (LMS/LSP/Vixen2/HLS/Glediator) + media transcode. |
+| Tools → Prepare Audio | menu | ✅ | ❌ | ipad-missing | P2 | hard | hard | `xLightsMain.cpp:1154` (`OnMenuItem_PrepareAudioSelected:8031`). Resample/normalize via FFmpeg; FFmpeg-bound core excluded from iPad build. AVFoundation reimpl possible but heavy. |
+| Tools → User Lyric Dictionary | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | `xLightsMain.cpp:1156`. Edit custom phoneme dictionary. iPad has lyric import/AI lyrics but no dictionary editor. |
+| Tools → Search for Show Folders | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1158`. Scans drive for show folders. iPad has Files.app integration; a scoped scan sheet would be straightforward. |
+| Tools → Import Effects | menu (Import on desktop) | ✅ | ✅ | parity | P1 | easy | feasible | desktop `Menu2`/`ID_IMPORT_EFFECTS` (`:1265`); iPad `ImportEffectsView.swift` (642). Mapping + render-style options on both. |
+| Tools → Edit Layout | menu (iPad) / Layout tab (desktop) | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | iPad `EditLayoutMenuItem` opens a detached `WindowGroup`. Desktop reaches Layout via the `Layout` notebook tab (`xLightsMain.cpp:997`), not a Tools menu item — surface difference, not a true capability gap. |
+| View → Windows → Color Dropper | menu (toggle) | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1204` (`ID_MNU_COLOURDROPPER`, checkable). Dockable eyedropper to sample preview colors. iPad preview has no color sampler; add a long-press/eyedropper gesture + bridge. |
+| View → Windows → Find Effect Data | menu (toggle) | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1218` (`ID_MNU_FINDDATA`), `FindDataPanel`. Query effects by property values. iPad Find/Replace (`FindReplaceSheet`) only searches *timing-mark labels* — not effect data. Needs a query builder sheet. |
+| Help → Tip of the Day | menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1269`, `TipOfTheDayDialog`. Could port as a sheet; low mobile engagement. |
+| Help → User Manual | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1271` → manual.xlights.org; iPad `XLightsCommands.swift:544`. |
+| Help → Zoom Room Help | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1273`; iPad `:578`. |
+| Help → Key Bindings | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1275`, `OnMenuItem_ShowKeybindingsSelected`. iPad relies on system ⌘-hold shortcut HUD; could add a sheet listing bindings. |
+| Help → Content (F1) | menu/shortcut | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1277` (`Content\tF1`). No F1 on iPad keyboards; could add a Help-sheet entry. |
+| Help → Forum | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1280`; iPad `:558`. |
+| Help → Video Tutorials | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1281` → videos.xlights.org; iPad `:547`. |
+| Help → Download / Website | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `Download` (`:1283`) opens xlights.org; iPad `xLights Website` (`:570`) opens same URL. Same target, different label; no "installer download" needed on App Store. |
+| Help → Release Notes | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1285`; iPad `:550` (version-pinned README.txt). |
+| Help → Issue Tracker | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1287`; iPad `:567`. |
+| Help → Facebook | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1289`; iPad `:561`. |
+| Help → Donate | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1291`; iPad `:581`. |
+| Help → Check for Updates | menu | 🟡 | ❌ | ipad-missing | P3 | easy | infeasible | `xLightsMain.cpp:1293`, item created **disabled** (`:1295 Enable(false)`). App Store manages iPad updates; in-app check not allowed. |
+| Help → About | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1296`, `OnAbout`; iPad `AboutSheet.swift` / `showingAbout`. |
+| Diagnostics: spdlog rotation | other | ✅ | ✅ | parity | P1 | easy | feasible | Same rotating-file config in core + `XLiPadInit.mm`. |
+| Diagnostics: crash capture + auto-upload | other | ✅ | ✅ | parity | P1 | easy | feasible | Desktop uploads to dankulp.com/crashUpload; iPad `XLDiagnosticUploader.swift` + MetricKit auto-stages & POSTs to the same endpoint, with Settings opt-in (`XLSendCrashReports`). iPad slightly ahead (automatic MetricKit). |
+
+## iPad gaps (desktop has, iPad missing)
+
+### P1
+None — every P1 Tools/Help/diagnostics surface is at parity (Check
+Sequence, Package Sequence, Batch Render, FPP Connect, View Log, Package
+Logs, Import Effects, all external Help links, About, crash capture).
+
+### P2
+- **Cleanup File Locations** — desktop `xLightsMain.cpp:1104` →
+  `OnMenuItem_CleanupFileLocationsSelected` (`:6450`) sweeps every
+  referenced media file under the show folder. iPad only relocates
+  per-file at import (`MediaRelocation.swift`). Work: a
+  `cleanupFileLocations` bridge op on `XLSequenceDocument` + a confirm
+  sheet listing what would move. Medium.
+- **Convert (full)** — desktop `TabConvert`/`ConvertDialog`
+  (`:1152`). iPad `ImportEffectsView` already covers `.xsq/.xsqz`,
+  SuperStar, LOR S5, Vixen 3; gap is the legacy formats
+  (LMS/LSP/Vixen2/HLS/Glediator/LCB) + media transcode. Add readers to
+  `XLImportSession` and entries to the import sheet. Medium.
+- **Generate AI Image (Tools entry)** — capability exists
+  (`AIImageGenerationSheet.swift`) but only from the effect filename
+  picker (`EffectFilenameBlockView.swift:135`). Add a Tools-menu button
+  that presents the same sheet standalone (write image to show folder).
+  Medium → mostly UI wiring.
+- **Export Effects** — `xLightsMain.cpp:1124`. Add
+  `exportEffectsReport(toPath:)` bridge (mirror of the existing
+  `exportModelsReport`) + a `.fileExporter`. Easy.
+- **Search for Show Folders** — `xLightsMain.cpp:1158`. Scoped
+  Files-app scan + results sheet. Medium.
+- **Download Sequences/Lyrics** — `xLightsMain.cpp:1108`. Browser-style
+  download sheet into the show folder. Medium.
+- **Prepare Audio** — `xLightsMain.cpp:1154`. FFmpeg-bound on desktop;
+  see Infeasible/restricted (AVFoundation reimpl is heavy). hard.
+- **Color Dropper** — desktop toggle `ID_MNU_COLOURDROPPER`
+  (`:1204`). Add an eyedropper gesture over the iPad preview + a bridge
+  to read the sampled pixel into the color panel. Medium.
+- **Find Effect Data** — desktop `FindDataPanel` (`:1218`). iPad
+  Find/Replace only covers timing labels; needs a property-query sheet
+  driven by a new `findEffectData(...)` bridge op. Medium.
+- **Key Bindings (Help)** — `xLightsMain.cpp:1275`. A sheet listing the
+  iPad's `CommandMenu` shortcuts. Medium.
+
+### P3
+- **Bulk Controller Upload** (restricted for closed firmware),
+  **HinksPix Export** (restricted), **Run Scripts** (infeasible),
+  **Export Controller Connections**, **Generate 2D Path**, **Generate
+  Custom Model**, **Remap Custom Model**, **Generate Lyrics From Data**,
+  **User Lyric Dictionary**, **Tip of the Day**, **Content (F1)**,
+  **Crash xLights** / **Log Render State** (hidden debug),
+  **Check for Updates** (infeasible),
+  **Media Manager → AI Generate Image** (`ManageMediaPanel.cpp:633`).
+  See scorecard for refs/reasons.
+
+## Desktop gaps (iPad has, desktop missing)
+
+- **Edit Layout in Tools menu** — iPad surfaces Layout via a Tools-menu
+  `EditLayoutMenuItem` opening a detached window; desktop only exposes
+  Layout through the `Layout` notebook tab (`xLightsMain.cpp:997`). This
+  is a surface/idiom difference, not a true capability gap — desktop
+  fully supports layout editing. P3, optional. (Adding a desktop Tools
+  entry that switches to the Layout tab would mirror the iPad path.)
+- **Automatic MetricKit crash staging + Settings opt-in** — iPad
+  `XLDiagnosticUploader.swift` auto-stages MetricKit payloads and POSTs
+  to the shared triage endpoint, honoring an `XLSendCrashReports`
+  toggle. Desktop relies on the user invoking Package Log Files. Not a
+  menu item; noted as iPad-ahead diagnostics. No desktop work proposed.
+
+## Infeasible / restricted on iPad
+
+- **Tools → Test / Pixel Test** — needs direct controller output
+  (raw USB/serial/output-manager driving); the iOS sandbox has no raw
+  device I/O. (hard, not strictly impossible via FPP, but not the same
+  feature.)
+- **Tools → Run Scripts** — iOS forbids executing arbitrary
+  scripts/processes. Infeasible.
+- **Tools → Prepare Audio** — desktop uses FFmpeg, which is excluded
+  from the iPad build (`project_ffmpeg_core_ipad_exclusion`). An
+  AVFoundation reimplementation is possible but substantial. (hard.)
+- **Tools → Bulk Controller Upload / HinksPix Export** — closed-firmware
+  controller config/upload is IAP-gated and low priority
+  (**restricted**, P3). The open-firmware subset (FPP/WLED/ESPixelStick)
+  of bulk upload is in-scope but deferred.
+- **Help → Check for Updates** — App Store owns iPad updates; an in-app
+  updater is not permitted. Infeasible (the desktop item is itself
+  disabled by default).
+- **Help → Content (F1)** — no F1 key on iPad keyboards; would need a
+  remapped Help sheet instead.
+
+## Recommended sequencing
+
+1. **Cheap parity wins first.** Add the **Generate AI Image** Tools-menu
+   entry (sheet already exists) and **Export Effects** (clone the working
+   `exportModelsReport` bridge). Both are low-risk, high-visibility.
+2. **Cleanup File Locations** — common housekeeping; one bridge op + a
+   confirm sheet; complements the existing per-file relocation.
+3. **Convert breadth** — extend `XLImportSession`/`ImportEffectsView`
+   with the remaining legacy readers so "Convert" reaches real parity.
+4. **Diagnostic windows** — Color Dropper (eyedropper gesture) and Find
+   Effect Data (property-query sheet); both are self-contained additions
+   that round out the Tools/View surface.
+5. **Help polish** — Key Bindings sheet, then Tip of the Day; defer
+   Content/F1 and Check-for-Updates (infeasible).
+6. **Defer** the controller-specialist (Bulk Upload, HinksPix, Export
+   Controller Connections), legacy generators (2D Path, Custom Model
+   gen/remap, Generate Lyrics From Data, User Dictionary), FFmpeg-bound
+   Prepare Audio, and sandbox-blocked Run Scripts — all P3/restricted.

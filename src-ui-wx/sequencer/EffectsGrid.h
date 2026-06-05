@@ -123,13 +123,19 @@ public:
     void PlayLoopedEffect(Effect* eff, bool loop);
 
     void DeleteSelectedEffects();
+    void FillRegionFromTimingMarks();
     void SetEffectsDescription();
     void ResetEffect();
     void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
+    void DropEffectAt(int row, const std::string& effectName, const std::string& effectSettings, const std::string& effectVersion, int startTime, int endTime);
     void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
+    void CopyModelEffectsToModels(int row_number);
     void PasteModelEffects(int row_number, bool allLayers);
+    void PasteModelEffectsWithLayers(int row_number);
+    void PasteModelEffectsWithSubModelLayers(int row_number);
+    void PasteModelEffectsWithSubModelLayers(ModelElement* me);
     Effect* GetSelectedEffect() const;
     int GetSelectedEffectCount(const std::string& effectName) const;
     bool AreAllSelectedEffectsOnTheSameElement() const;
@@ -155,7 +161,7 @@ public:
 
     int GetEffectRow(Effect* ef);
     Effect* OldPaste(const wxString &data, const wxString &pasteDataVer);
-    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false);
+    Effect* Paste(const wxString &data, const wxString &pasteDataVer, bool row_paste = false, bool layerMode = false);
     int GetStartColumn() { return mRangeStartCol < mRangeEndCol ? mRangeStartCol : mRangeEndCol; }
     int GetStartRow() { return mRangeStartRow < mRangeEndRow ? mRangeStartRow : mRangeEndRow; }
     int GetEndColumn() { return mRangeStartCol < mRangeEndCol ? mRangeEndCol : mRangeStartCol; }
@@ -244,6 +250,7 @@ private:
 
     void DrawTimingEffects(int row);
     void DrawEffects(xlGraphicsContext *ctx);
+    void DrawSongStructureOverlays(xlGraphicsContext *ctx);
     void DrawPlayMarker(xlGraphicsContext *ctx) const;
     bool AdjustDropLocations(int x, EffectLayer* el);
     void Resize(int position, bool offset, bool control);
@@ -273,6 +280,11 @@ private:
     void ButtUpStretchMultipleEffects(bool right);
     void GetRangeOfMovementForSelectedEffects(int &toLeft, int &toRight) const;
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
+    void ResetEffectMoveDragState();
+    int SnapCursorToTimingMark(int timeMS, int x) const;
+    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming);
+    void ApplyEffectMoveDrag();
+    void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);
     void StretchAllSelectedEffects(int deltaMS, bool offset) const;
     int GetRow(int y) const;
     void OnGridPopup(wxCommandEvent& event);
@@ -360,6 +372,27 @@ private:
     int mRightClickStartTimeMS;
     int mDropEndTimeMS;
 
+    // Ghost drag-to-move state
+    struct EffectMoveSnapshot {
+        Effect* effect;
+        EffectLayer* origLayer;
+        int origStartTimeMS;
+        int origEndTimeMS;
+        int origVisibleRow;
+    };
+    bool mEffectMoveDragging = false;
+    bool mEffectMoveDragThresholdExceeded = false;
+    bool mEffectMoveDragGroup = false;
+    int mEffectMoveDragStartX = 0;
+    int mEffectMoveDragStartY = 0;
+    int mEffectMoveAnchorRow = 0;
+    int mEffectMoveClickOffsetMS = 0;
+    Effect* mEffectMoveAnchorEffect = nullptr;
+    int mEffectMoveTargetRow = 0;
+    int mEffectMoveTargetDeltaMS = 0;
+    bool mEffectMoveHasCollision = false;
+    std::vector<EffectMoveSnapshot> mEffectMoveSnapshots;
+
     bool mCellRangeSelected;
     bool mPartialCellSelected;
     int mRangeStartCol;
@@ -413,6 +446,7 @@ private:
     static const long ID_GRID_MNU_SPLIT_EFFECT;
     static const long ID_GRID_MNU_DUPLICATE_EFFECT;
     static const long ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT;
+    static const long ID_GRID_MNU_FILL_REGION;
     EventPlayEffectArgs* playArgs = nullptr;
 
     const SequenceData *seqData = nullptr;

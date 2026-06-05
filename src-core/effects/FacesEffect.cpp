@@ -169,15 +169,25 @@ std::list<std::string> FacesEffect::CheckEffectSettings(const SettingsMap& setti
                 std::string picture = it2.second;
 
                 if (picture != "") {
-                    if (!FileExists(picture)) {
+                    // Face image paths are stored as user-picked at config
+                    // time on desktop — often absolute. Run FixFile so a
+                    // sequence moved between machines still resolves
+                    // through the show / media folders the way the
+                    // renderer does (PicturesEffect::Render goes through
+                    // SequenceMedia which FixFile-resolves). Without this
+                    // a Face effect that renders cleanly would still
+                    // false-positive "image file not found" because the
+                    // raw stored path doesn't exist on this machine.
+                    std::string resolved = FileUtils::FixFile(std::string(), picture);
+                    if (resolved.empty() || !FileExists(resolved)) {
                         res.push_back(fmt::format("    ERR: Face effect image file not found '{}'. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     } else if (!FileUtils::IsFileInShowDir(std::string(), picture)) {
                         res.push_back(fmt::format("    WARN: Faces effect image file '{}' not under show directory. Model '{}', Definition '{}', Start {}", picture, model->GetFullName(), definition, FORMATTIME(eff->GetStartTimeMS())));
                     }
 
-                    if (FileExists(picture)) {
+                    if (!resolved.empty() && FileExists(resolved)) {
                         xlImage i;
-                        i.LoadFromFile(picture);
+                        i.LoadFromFile(resolved);
                         if (i.IsOk()) {
                             int ih = i.GetHeight();
                             int iw = i.GetWidth();
@@ -862,16 +872,28 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
     }
 
     bool group = false;
+    const SubModel* subModel = nullptr;
     // if this is a submodel find the parent so we can find the face definition there
     if (model_info->GetDisplayAs() == DisplayAsType::SubModel) {
-        model_info = dynamic_cast<const SubModel*>(model_info)->GetParent();
+        subModel = dynamic_cast<const SubModel*>(model_info);
+        if (subModel == nullptr) return;
+        model_info = subModel->GetParent();
+        if (model_info == nullptr) return;
     } else if (model_info->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        model_info = dynamic_cast<const ModelGroup*>(model_info)->GetFirstModel();
+        auto* modelGroup = dynamic_cast<const ModelGroup*>(model_info);
+        if (modelGroup == nullptr) return;
+        model_info = modelGroup->GetFirstModel();
         group = true;
         if (model_info == nullptr) {
             return;
         }
     }
+    auto toLocalNode = [&](int parentIdx) -> int {
+        if (subModel == nullptr) return parentIdx;
+        const auto& nim = subModel->GetNodeIndexMap();
+        auto mapped = nim.find(parentIdx);
+        return (mapped != nim.end()) ? mapped->second : -1;
+    };
 
     if (cache->nodeNameCache.empty()) {
         for (size_t x = 0; x < model_info->GetNodeCount(); x++) {
@@ -1323,7 +1345,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
             const auto& nodeInfo = model_info->GetFaceInfoNodes().find(definition);
             if (nodeInfo != model_info->GetFaceInfoNodes().end() && nodeInfo->second.find(todo[t]) != nodeInfo->second.end()) {
                 for (const auto it : nodeInfo->second.find(todo[t])->second) {
-                    buffer.SetNodePixel(it, colors[t], true);
+                    int localIdx = toLocalNode(it);
+                    if (localIdx >= 0) buffer.SetNodePixel(localIdx, colors[t], true);
                 }
             }
         } else {
@@ -1332,8 +1355,8 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 if (type == 0) {
                     auto it2 = cache->nodeNameCache.find(valstr);
                     if (it2 != cache->nodeNameCache.end()) {
-                        int n = it2->second;
-                        buffer.SetNodePixel(n, colors[t], true);
+                        int localIdx = toLocalNode(it2->second);
+                        if (localIdx >= 0) buffer.SetNodePixel(localIdx, colors[t], true);
                     }
                 }
             }
@@ -1344,8 +1367,11 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                 const auto& sts = model_info->GetStateInfo().find(outlineState)->second;
                 if (findKey(sts, "CustomColors") == "1") {
                     if (findKey(sts, "Type") == "NodeRange") {
+                        const auto& stateNodes = model_info->GetStateInfoNodes();
+                        const auto outerIt = stateNodes.find(outlineState);
                         for (size_t i = 1; i <= 200; i++) {
-                            auto r = findKey(sts, fmt::format("s{:03d}", (int)i));
+                            const std::string k = fmt::format("s{:03d}", (int)i);
+                            auto r = findKey(sts, k);
                             auto c = findKey(sts, fmt::format("s{:03d}-Color", (int)i));
                             if (r != "") {
                                 xlColor colour = xlColor(c);
@@ -1353,12 +1379,13 @@ void FacesEffect::RenderFaces(RenderBuffer& buffer,
                                     colour = xlWHITE;
                                 }
                                 colour.alpha = ((int)alpha * colour.alpha) / 255;
-                                
-                                // use the nodes as it is faster
-                                if (model_info->GetStateInfoNodes().find(outlineState) != model_info->GetStateInfoNodes().end()) {
-                                    const std::string k2 = fmt::format("s{:03d}", (int)i);
-                                    for (const auto it : model_info->GetStateInfoNodes().find(outlineState)->second.find(k2)->second) {
-                                        buffer.SetNodePixel(it, colour, true);
+                                if (outerIt != stateNodes.end()) {
+                                    const auto innerIt = outerIt->second.find(k);
+                                    if (innerIt != outerIt->second.end()) {
+                                        for (const auto it : innerIt->second) {
+                                            int localIdx = toLocalNode(it);
+                                            if (localIdx >= 0) buffer.SetNodePixel(localIdx, colour, true);
+                                        }
                                     }
                                 }
                             }

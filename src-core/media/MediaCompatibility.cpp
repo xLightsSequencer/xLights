@@ -10,23 +10,26 @@
 
 #include "MediaCompatibility.h"
 
-#ifndef __APPLE__
+#ifdef __APPLE__
+#include "media/MediaCompatibilityBridge.h"
+#else
 // Non-Apple platforms: approximate AVFoundation's compatibility rules using
 // FFmpeg's demuxer/codec metadata. AVFoundation only reliably reads MOV/MP4
 // containers with a small set of video codecs; this catches the common
 // Mac-incompatible cases (AVI, WMV, legacy QuickTime codecs, animated GIFs,
 // Matroska/WebM) without needing AVFoundation itself.
-
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
-
 #include <set>
-#include <string>
+#endif
 
 std::string MediaCompatibility::CheckVideoFile(const std::string& filePath)
 {
+#ifdef __APPLE__
+    return AppleMediaCompatibility::CheckVideoFile(filePath);
+#else
     if (filePath.empty()) return "";
 
     AVFormatContext* fmt = nullptr;
@@ -82,10 +85,18 @@ std::string MediaCompatibility::CheckVideoFile(const std::string& filePath)
                "' not supported";
     }
     return "";
+#endif
 }
 
-std::string MediaCompatibility::CheckAudioFile(const std::string&) { return ""; }
+std::string MediaCompatibility::CheckAudioFile(const std::string& filePath)
+{
+#ifdef __APPLE__
+    return AppleMediaCompatibility::CheckAudioFile(filePath);
+#else
+    (void)filePath;
+    return "";
 #endif
+}
 
 std::vector<MediaCompatibilityIssue> MediaCompatibility::CheckSequenceMedia(
     const std::string& audioFile,

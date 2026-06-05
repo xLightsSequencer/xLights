@@ -22,7 +22,7 @@ constexpr const char* kDemucsDownloadURL =
 
 // HTDemucs ONNX model for OpenVINO inference.
 constexpr const char* kDemucsOnnxModelName = "htdemucs.onnx";
-constexpr const char* kDemucsOnnxDownloadURL = "https://huggingface.co/smank/htdemucs-onnx/blob/main/htdemucs.onnx";
+constexpr const char* kDemucsOnnxDownloadURL = "https://huggingface.co/smank/htdemucs-onnx/resolve/main/htdemucs.onnx";
 
 // Subdirectory under each root where models are stored.
 constexpr const char* kModelsSubdir = "ai-models";

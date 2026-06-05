@@ -86,6 +86,7 @@ void SequenceElements::Clear() {
     mChangeCount = 0;
     mMasterViewChangeCount++;
     mSequenceMedia.Clear();
+    mSongStructure.Clear();
     mColorPalettes.clear();
     mCurrentView = 0;
     supportsModelBlending = true;
@@ -772,6 +773,8 @@ bool SequenceElements::LoadSequencerFile(SequenceFile& xml_file, pugi::xml_docum
             }
         } else if (ename == "SequenceMedia") {
             mSequenceMedia.LoadFromXml(e);
+        } else if (ename == "SongStructure") {
+            mSongStructure.LoadFromXml(e);
         } else if (ename == "Jukebox") {
             LoadJukeboxButtons(e, xml_file.GetJukeboxButtons());
         } else if (ename == "ElementEffects") {
@@ -972,12 +975,14 @@ void SequenceElements::SetTimingVisibility(const std::string& name)
             }
             else {
                 te->SetVisible(false);
-                auto views = Split(te->GetViews(), ',');
-                for (size_t v = 0; v < views.size(); v++) {
-                    const std::string& viewName = views[v];
-                    if (name == viewName) {
-                        te->SetVisible(true);
-                        break;
+                if (te->GetMasterVisible()) {
+                    auto views = Split(te->GetViews(), ',');
+                    for (size_t v = 0; v < views.size(); v++) {
+                        const std::string& viewName = views[v];
+                        if (name == viewName) {
+                            te->SetVisible(true);
+                            break;
+                        }
                     }
                 }
             }
@@ -1137,6 +1142,7 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
     int& rowIndex,
     std::vector <Element*>& elements,
     bool submodel,
+    bool hideUnusedSubmodels,
     int nestDepth = 0)
 {
 
@@ -1197,15 +1203,17 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
                         addSubModelElement(selem, mRowInformation, rowIndex, elements, nestDepth);
                     }
                     else {
-                        addModelElement(melem, mRowInformation, rowIndex, elements, true, nestDepth + 1);
+                        addModelElement(melem, mRowInformation, rowIndex, elements, true, hideUnusedSubmodels, nestDepth + 1);
                     }
                 }
             }
         }
     }
     else if (elem->ShowStrands()) {
+        bool hideUnused = hideUnusedSubmodels && elem->HasEffects();
         for (int s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement* se = elem->GetSubModel(s);
+            if (hideUnused && !se->HasEffects()) continue;
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
                 m = 1;
@@ -1321,7 +1329,7 @@ void SequenceElements::PopulateRowInformation()
         if (elem != nullptr)
         {
             if (elem->GetVisible() && elem->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
-                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false);
+                addModelElement(dynamic_cast<ModelElement*>(elem), mRowInformation, rowIndex, mAllViews[MASTER_VIEW], false, mHideUnusedSubmodels);
             }
         }
     }
@@ -1710,7 +1718,6 @@ size_t SequenceElements::GetHiddenTimingCount() const
 
 void SequenceElements::HideAllTimingTracks(bool hide)
 {
-    // This only works on timing tracks in master views because of the way we manage timing tracks in non master views
     for (size_t i = 0; i < mAllViews[MASTER_VIEW].size(); i++) {
         Element* elem = mAllViews[MASTER_VIEW][i];
         TimingElement* te = dynamic_cast<TimingElement*>(elem);

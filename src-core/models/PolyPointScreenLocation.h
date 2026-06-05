@@ -30,19 +30,23 @@ public:
     virtual bool IsContained(IModelPreview* preview, int x1, int y1, int x2, int y2) const override;
     virtual bool HitTest(glm::vec3& ray_origin, glm::vec3& ray_direction) const override;
     virtual bool HitTest3D(glm::vec3& ray_origin, glm::vec3& ray_direction, float& intersection_distance) const override;
-    virtual CursorType CheckIfOverHandles(IModelPreview* preview, int& handle, int x, int y) const override;
-    virtual CursorType CheckIfOverHandles3D(glm::vec3& ray_origin, glm::vec3& ray_direction, int& handle, float zoom, int scale) const override;
 
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool fromBase) const override;
     virtual bool DrawHandles(xlGraphicsProgram *program, float zoom, int scale, bool drawBounding, bool fromBase) const override;
 
-    virtual int MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY) override;
-    virtual int MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z) override;
-    virtual int MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov) override;
+    [[nodiscard]] std::unique_ptr<handles::SpaceMouseSession>
+    BeginSpaceMouseSession(const std::optional<handles::Id>& id) override;
+    // SpaceMouse per-handle helpers. Public so the session class
+    // in the .cpp can call them without needing friend status.
+    void ApplySpaceMouseCenter(float scale, const glm::vec3& rot, const glm::vec3& mov);
+    void ApplySpaceMouseCurveCp(int segment, int cpIndex, float scale, const glm::vec3& mov);
+    void ApplySpaceMouseVertex(int vertexIndex, float scale, const glm::vec3& mov);
     virtual bool Rotate(MSLAXIS axis, float factor) override;
     virtual bool Scale(const glm::vec3& factor) override;
-    virtual void SelectHandle(int handle) override;
-    virtual int GetSelectedHandle() const override { return selected_handle; }
+    virtual void SelectHandle() override;
+    virtual std::optional<handles::Id> GetSelectedHandleId() const override {
+        return selected_handle;
+    }
     virtual int GetNumHandles() const override { return num_points; }
     virtual void SelectSegment(int segment) override;
     virtual int GetSelectedSegment() const override { return selected_segment; }
@@ -87,25 +91,77 @@ public:
     virtual float GetMDepth() const override;
     virtual void RotateAboutPoint(glm::vec3 position, glm::vec3 angle) override;
 
-    virtual int GetDefaultHandle() const override { return END_HANDLE; }
-    virtual MSLTOOL GetDefaultTool() const override { return MSLTOOL::TOOL_XY_TRANS; }
+    virtual handles::Tool GetDefaultTool() const override { return handles::Tool::XYTranslate; }
+    void SetActiveHandleToDefault() override {
+        // Legacy END_HANDLE = 2 → Vertex(index 1), the second
+        // vertex placed by polyline create. Lines up with what
+        // BeginCreate / GetActiveHandleId expect post-placement.
+        handles::Id id;
+        id.role = handles::Role::Vertex;
+        id.index = 1;
+        SetActiveHandle(std::optional<handles::Id>(id));
+    }
     virtual float GetYShear() const { return 0.0; }
-    virtual void SetActiveHandle(int handle) override;
+    virtual void SetActiveHandle(const std::optional<handles::Id>& id) override;
     virtual void AdvanceAxisTool() override;
-    virtual void SetAxisTool(MSLTOOL mode) override;
+    virtual void SetAxisTool(handles::Tool mode) override;
     virtual void SetActiveAxis(MSLAXIS axis) override;
 
     int GetNumPoints() const { return num_points; }
     void SetNumPoints(int points) { num_points = points; }
-    void SetSelectedHandle(int h) { selected_handle = h; }
+    // Direct setter for the visual-selection highlight. nullopt
+    // clears. Used by the property panel (segment / vertex spin
+    // edits) and by AddHandle to anchor the newly-inserted vertex.
+    void SetSelectedHandle(const std::optional<handles::Id>& id) { selected_handle = id; }
     void SetSelectedSegment(int s) { selected_segment = s; }
     glm::vec3 GetPoint(int i) const { return glm::vec3(mPos[i].x, mPos[i].y, mPos[i].z); }
     void SetPoint(int i, float x, float y, float z) { mPos[i].x = x; mPos[i].y = y; mPos[i].z = z; }
     void SetPoint(int i, const glm::vec3& p) { mPos[i].x = p.x; mPos[i].y = p.y; mPos[i].z = p.z; }
+    // Public helpers for the new DragSession API.
+    bool HasSegmentCurve(int segment) const { return segment >= 0 && segment < num_points && mPos[segment].curve != nullptr; }
+    glm::vec3 GetCurveCp0(int segment) const;
+    glm::vec3 GetCurveCp1(int segment) const;
+    void SetCurveCp0(int segment, const glm::vec3& world);
+    void SetCurveCp1(int segment, const glm::vec3& world);
+    void FixCurveHandlesPublic() { FixCurveHandles(); }
+    void ApplyAffineToAllHandles(glm::mat4& mat) { AdjustAllHandles(mat); }
+    float GetMinX() const { return minX; }
+    float GetMaxX() const { return maxX; }
+    float GetMinY() const { return minY; }
+    float GetMaxY() const { return maxY; }
+    void SetRotatePoint(const glm::vec3& p) { rotate_pt = p; }
+
+    // Logical world position of the currently-active sub-handle.
+    // Resolves CP0/CP1/CENTER/vertex from `active_handle`'s bit-packed
+    // value. Replaces the legacy `active_handle_pos` cache (which was
+    // only valid after DrawHandles had run).
+    glm::vec3 GetActiveSubHandleWorldPos() const;
+
+    [[nodiscard]] std::vector<handles::Descriptor> GetHandles(
+        handles::ViewMode mode, handles::Tool tool,
+        const handles::ViewParams& view = {}) const override;
+    std::unique_ptr<handles::DragSession> CreateDragSession(
+        const std::string& modelName,
+        const handles::Id& id,
+        const handles::WorldRay& startRay) override;
+    [[nodiscard]] std::unique_ptr<handles::DragSession> BeginCreate(
+        const std::string& modelName,
+        const handles::WorldRay& clickRay,
+        handles::ViewMode mode) override;
+    // polyline extension. Each click after the first
+    // appends a vertex (`AddHandle`) and starts a fresh drag on
+    // that new vertex. Caller is responsible for the AddHandle
+    // call; this just opens a drag session on the named index.
+    [[nodiscard]] std::unique_ptr<handles::DragSession> BeginExtend(
+        const std::string& modelName,
+        const handles::WorldRay& clickRay,
+        handles::ViewMode mode,
+        int vertexIndex);
     void SetDataFromString(const std::string& point_data);
     void SetCurveDataFromString(const std::string& cpoint_data);
     std::string GetPointDataAsString() const;
     std::string GetCurveDataAsString() const;
+    void SwapStartEnd();
 
 protected:
     struct xlPolyPoint {
@@ -125,7 +181,7 @@ protected:
     };
     mutable std::vector<xlPolyPoint> mPos;
     int num_points = 0;
-    int selected_handle = 0;
+    std::optional<handles::Id> selected_handle;
     mutable std::mutex _mutex;
     mutable float minX = 0.0f;
     mutable float minY = 0.0f;

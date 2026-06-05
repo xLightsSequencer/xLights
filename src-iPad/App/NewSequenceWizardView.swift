@@ -127,6 +127,14 @@ struct NewSequenceWizardView: View {
                     saveDoc = nil
                 }
             }
+            // Sequences belong in the show folder, not wherever the
+            // media file was sourced from. The system file picker
+            // would otherwise default to the directory of the most
+            // recently picked file (the music) — which on this app
+            // is often a configured media folder, not the show
+            // folder. Pin the picker to the show folder so the
+            // default location matches user expectations.
+            .fileDialogDefaultDirectory(showFolderURL)
         }
     }
 
@@ -339,6 +347,14 @@ struct NewSequenceWizardView: View {
             defaultSaveName = suggestedName + ".xsq"
             showingSaveExporter = true
         }
+    }
+
+    // Show folder as a URL for `.fileDialogDefaultDirectory`. Returns
+    // nil if the user hasn't picked a show folder yet — the picker
+    // then falls back to its system default location.
+    private var showFolderURL: URL? {
+        guard let path = viewModel.showFolderPath, !path.isEmpty else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
     }
 
     private var suggestedName: String {

@@ -55,11 +55,10 @@ void MovingHeadDimmerPanel::OnSize(wxSizeEvent& event){
     wxSize old_sz = GetSize();
     if( old_sz.GetHeight() != old_sz.GetWidth()/2 ) {
         old_sz.SetHeight(old_sz.GetWidth()/2);
-        SetMinSize(old_sz);
+        SetMinSize(wxSize(wxDefaultCoord, old_sz.GetHeight()));
         SetSize(old_sz);
     }
     Refresh();
-    //skip the event.
     event.Skip();
 }
 
@@ -97,7 +96,11 @@ void MovingHeadDimmerPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,1.0f)), NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)));
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)), NormalizedToUI2(wxPoint2DDouble(0.0f,0.0f)));
 
-    if (timingTrack_ != nullptr) {
+    // endTimeMs_ defaults to startTimeMs_ (both 0) and SetTimingTrack() can run
+    // without SetEffectTimeRange(), so the divisor below can be zero. A zero
+    // window would make xpos NaN; (int)NaN yields garbage coords that crash
+    // wxDC::DrawLine (Windows GDI access violation). Skip the markers instead.
+    if (timingTrack_ != nullptr && endTimeMs_ > startTimeMs_) {
         pdc.SetPen(*wxBLUE_PEN);
         if (timingTrack_->GetEffectLayerCount() > 0 ) {
             EffectLayer* el = timingTrack_->GetEffectLayer(0);
@@ -282,10 +285,13 @@ void MovingHeadDimmerPanel::OnMovingHeadLeftUp(wxMouseEvent& event)
 
 void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
 {
+    static const wxCursor s_hand(wxCURSOR_HAND);
+    static const wxCursor s_arrow(wxCURSOR_ARROW);
+
     wxAffineMatrix2D m;
     wxPoint2DDouble ptUI(m.TransformPoint(event.GetPosition()));
     if( m_mouseDown ) {
-        SetCursor(wxCURSOR_HAND);
+        SetCursor(s_hand);
         m_mousePos = UItoNormalized(ptUI);
         //SnapToLines(m_mousePos);
         if( active_handle != -1 ) {
@@ -313,9 +319,9 @@ void MovingHeadDimmerPanel::OnMovingHeadMouseMove(wxMouseEvent& event)
         Refresh();
     } else {
         if ( HitTest(ptUI) >= 0 ) {
-            SetCursor(wxCURSOR_HAND);
+            SetCursor(s_hand);
         } else {
-            SetCursor(wxCURSOR_ARROW);
+            SetCursor(s_arrow);
         }
     }
 }

@@ -19,6 +19,12 @@ class EffectLayer;
 class Element;
 class SequenceElements;
 class SequencePackage;
+class EffectManager;
+class Model;
+class StrandElement;
+class SubModelElement;
+class LOREdit;
+class Vixen3;
 
 // Copy effects from a source effect layer to a target effect layer, applying
 // import-time fixups (lock removal, duplicate-effect remap, embedded image
@@ -63,3 +69,48 @@ void MapXLightsEffects(Element* target, const std::string& name,
                        const std::map<std::string, std::string>& mapping,
                        bool convertRender,
                        const std::map<std::string, std::string>& mappingModelType);
+
+// LOR S5 effect-apply helpers. These translate the parsed S5 (`LOREdit`)
+// timeline for a given source `model`/`mapping` onto a target xLights
+// layer / node-layer / element, honoring CHANNELS vs TRACKS sequencing and
+// channel-block colouring. `frequency` is the sequence frame rate and
+// `offset` shifts every effect in time.
+void MapS5(const EffectManager& effect_manager, int layer, EffectLayer* el,
+           const LOREdit& lorEdit, const std::string& model, Model* m,
+           int frequency, int offset, bool eraseExisting);
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl,
+                         Model* m, const LOREdit& lorEdit, const std::string& mapping,
+                         int frequency, int offset, bool eraseExisting);
+
+void MapS5ChannelEffects(const EffectManager& effectManager, EffectLayer* layer,
+                         const LOREdit& lorEdit, const std::string& mapping,
+                         int frequency, int offset, bool eraseExisting);
+
+void MapS5ChannelEffects(const EffectManager& effectManager, int node, EffectLayer* nl,
+                         int nodes, const LOREdit& lorEdit, const std::string& mapping,
+                         int frequency, int offset, bool eraseExisting);
+
+void MapS5Effects(const EffectManager& effectManager, Element* model,
+                  const LOREdit& lorEdit, const std::string& mapping,
+                  int frequency, int offset, bool eraseExisting);
+
+void MapS5Effects(const EffectManager& effectManager, StrandElement* se,
+                  const LOREdit& lorEdit, const std::string& mapping,
+                  int frequency, int offset, bool eraseExisting);
+
+void MapS5Effects(const EffectManager& effectManager, SubModelElement* se,
+                  const LOREdit& lorEdit, const std::string& mapping,
+                  int frequency, int offset, bool eraseExisting);
+
+// Vixen 3 (.tim) effect-apply helpers. MapVixen3 reads the parsed Vixen3
+// effects for `modelName` and synthesizes xLights effects onto `model`'s
+// layers (adding layers to avoid time-range overlaps); `offset` shifts every
+// effect in time and `frameMS` is the sequence frame interval. MapVixen3Effects
+// is the logging wrapper the desktop / iPad call per mapped model / strand.
+void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName,
+               long offset, int frameMS, bool eraseExisting);
+
+void MapVixen3Effects(const EffectManager& effectManager, Element* model,
+                      const Vixen3& vixen, const std::string& mapping,
+                      long offset, int frameMS, bool eraseExisting);

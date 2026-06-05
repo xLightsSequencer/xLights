@@ -18,11 +18,6 @@ public:
         fnRadial    = MetalComputeUtilities::INSTANCE.FindComputeFunction("KaleidoscopeEffectRadial");
         fnTriangle  = MetalComputeUtilities::INSTANCE.FindComputeFunction("KaleidoscopeEffectTriangle");
     }
-    ~MetalKaleidoscopeEffectData() {
-        if (fnSquare2)  { [fnSquare2 release];  }
-        if (fnRadial)   { [fnRadial release];   }
-        if (fnTriangle) { [fnTriangle release]; }
-    }
 
     bool canRenderType(const std::string& type) {
         if (type == "Square 2") return fnSquare2 != nil;
@@ -111,7 +106,8 @@ void MetalKaleidoscopeEffect::Render(Effect *effect, const SettingsMap &Settings
     }
 
     MetalRenderBufferComputeData *rbcd = MetalRenderBufferComputeData::getMetalRenderBufferComputeData(&buffer);
-    if (rbcd == nullptr || !data->canRenderType(type) || (buffer.BufferWi * buffer.BufferHt) < 2048) {
+    if (rbcd == nullptr || !data->canRenderType(type)
+        || (buffer.BufferWi * buffer.BufferHt) < MetalComputeUtilities::INSTANCE.metalBufferSizeThreshold) {
         KaleidoscopeEffect::Render(effect, SettingsMap, buffer);
         return;
     }

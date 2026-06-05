@@ -10,6 +10,7 @@
 
 #include "xlColorCanvas.h"
 #include <algorithm>
+#include <cmath>
 
 BEGIN_EVENT_TABLE(xlColorCanvas, GRAPHICS_BASE_CLASS)
 EVT_PAINT(xlColorCanvas::render)
@@ -77,6 +78,11 @@ void xlColorCanvas::mouseDown(wxMouseEvent& event) {
         wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
         eventColor.SetClientData(&mHSV);
         GetParent()->ProcessWindowEvent(eventColor);
+    } else if (mDisplayType == xlColorCanvas::DisplayType::TYPE_WHEEL) {
+        ProcessWheelClick(mapLogicalToAbsolute(event.GetY()), mapLogicalToAbsolute(event.GetX()));
+        wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
+        eventColor.SetClientData(&mHSV);
+        GetParent()->ProcessWindowEvent(eventColor);
     }
     CaptureMouse();
     render();
@@ -91,6 +97,11 @@ void xlColorCanvas::mouseMoved(wxMouseEvent& event) {
             GetParent()->ProcessWindowEvent(eventColor);
         } else if (mDisplayType == xlColorCanvas::DisplayType::TYPE_PALETTE) {
             ProcessPaletteClick(mapLogicalToAbsolute(event.GetY()), mapLogicalToAbsolute(event.GetX()));
+            wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
+            eventColor.SetClientData(&mHSV);
+            GetParent()->ProcessWindowEvent(eventColor);
+        } else if (mDisplayType == xlColorCanvas::DisplayType::TYPE_WHEEL) {
+            ProcessWheelClick(mapLogicalToAbsolute(event.GetY()), mapLogicalToAbsolute(event.GetX()));
             wxCommandEvent eventColor(EVT_CP_PALETTE_CHANGED);
             eventColor.SetClientData(&mHSV);
             GetParent()->ProcessWindowEvent(eventColor);
@@ -219,6 +230,8 @@ void xlColorCanvas::render() {
 
     if (mDisplayType == xlColorCanvas::DisplayType::TYPE_SLIDER) {
         DrawSlider(ctx);
+    } else if (mDisplayType == xlColorCanvas::DisplayType::TYPE_WHEEL) {
+        DrawWheel(ctx);
     } else {
         DrawPalette(ctx);
     }
@@ -243,7 +256,7 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext* ctx) {
     double focus_col = 0;
 
     unsigned int vcount = (iXrange + 1) * (iYrange + 1) * 6;
-    if (background == nullptr || background->getCount() > vcount) {
+    if (background == nullptr || background->getCount() != vcount) {
         if (background) {
             delete background;
         }
@@ -353,6 +366,94 @@ void xlColorCanvas::DrawPalette(xlGraphicsContext* ctx) {
     delete va2;
 }
 
+void xlColorCanvas::ProcessWheelClick(int row, int col) {
+    static const double TWO_PI = 2.0 * std::acos(-1.0);
+    static const double PI     = std::acos(-1.0);
+
+    float cx     = mWindowWidth  / 2.0f;
+    float cy     = mWindowHeight / 2.0f;
+    float radius = std::min(cx, cy) * 0.95f;
+
+    float dx = col - cx;
+    float dy = row - cy;
+    float r  = std::sqrt(dx * dx + dy * dy);
+
+    double hue = (std::atan2((double)dy, (double)dx) + PI) / TWO_PI;
+    double sat = (double)(r / radius);
+    mHSV.hue        = std::max(0.0, std::min(1.0, hue));
+    mHSV.saturation = std::max(0.0, std::min(1.0, sat));
+    mRGB = mHSV;
+    render();
+}
+
+void xlColorCanvas::DrawWheel(xlGraphicsContext* ctx) {
+    // Full HSV disc: angle = hue, radius = saturation, brightness = mHSV.value
+    static const double TWO_PI = 2.0 * std::acos(-1.0);
+    static const double PI     = std::acos(-1.0);
+
+    int iYrange = (int)mWindowHeight - 1;
+    int iXrange = (int)mWindowWidth  - 1;
+
+    float cx     = mWindowWidth  / 2.0f;
+    float cy     = mWindowHeight / 2.0f;
+    float radius = std::min(cx, cy) * 0.95f;
+
+    unsigned int vcount = (unsigned int)(iXrange + 1) * (iYrange + 1) * 6;
+    // Invalidate on ANY size change (not just shrink) — a grown window would
+    // otherwise overrun a too-small buffer and corrupt the render.
+    if (background == nullptr || background->getCount() != vcount) {
+        if (background) delete background;
+        background = ctx->createVertexColorAccumulator();
+        background->PreAlloc(vcount);
+        for (int col = 0; col <= iXrange; col++) {
+            for (int row = 0; row <= iYrange; row++) {
+                background->AddRectAsTriangles(col, row, col + 1, row + 1, xlBLACK);
+            }
+        }
+        background->Finalize(false, true);
+    }
+
+    static const xlColor BG(48, 48, 48);
+    uint32_t idx = 0;
+
+    for (int col = 0; col <= iXrange; col++) {
+        float dx = (float)col - cx;
+        for (int row = 0; row <= iYrange; row++) {
+            float dy = (float)row - cy;
+            float r  = std::sqrt(dx * dx + dy * dy);
+            xlColor color;
+            if (r <= radius) {
+                double hue = (std::atan2((double)dy, (double)dx) + PI) / TWO_PI;
+                double sat = (double)(r / radius);
+                HSVValue hsv(hue, sat, mHSV.value);
+                color = hsv;
+            } else {
+                color = BG;
+            }
+            setSixVertices(background, color, idx);
+        }
+    }
+    background->FlushRange(0, vcount);
+    ctx->drawTriangles(background);
+
+    // Selection indicator: small square at current hue/sat position
+    float angle      = (float)(mHSV.hue * TWO_PI - PI);
+    float indicatorR = (float)(mHSV.saturation * radius);
+    float ix = cx + indicatorR * std::cos(angle);
+    float iy = cy + indicatorR * std::sin(angle);
+
+    float sz = 5.0f;
+    auto* va = ctx->createVertexAccumulator();
+    va->AddVertex(ix - sz, iy - sz);
+    va->AddVertex(ix + sz, iy - sz);
+    va->AddVertex(ix + sz, iy + sz);
+    va->AddVertex(ix - sz, iy + sz);
+    va->AddVertex(ix - sz, iy - sz);   // close
+    bool useDark = (mHSV.value > 0.55 && mHSV.saturation < 0.4);
+    ctx->drawLineStrip(va, useDark ? xlBLACK : xlWHITE);
+    delete va;
+}
+
 void xlColorCanvas::DrawSlider(xlGraphicsContext* ctx) {
     HSVValue hsv;
     xlColor color;
@@ -417,5 +518,25 @@ void xlColorCanvas::DrawSlider(xlGraphicsContext* ctx) {
     }
     ctx->drawTriangles(va);
     delete va;
+
+    // Horizontal position indicator
+    float indicatorY = 0;
+    switch (mDisplayMode) {
+    case MODE_HUE:        indicatorY = (float)((1.0 - mHSV.hue)        * (mWindowHeight - 1)); break;
+    case MODE_SATURATION: indicatorY = (float)((1.0 - mHSV.saturation) * (mWindowHeight - 1)); break;
+    case MODE_BRIGHTNESS: indicatorY = (float)((1.0 - mHSV.value)      * (mWindowHeight - 1)); break;
+    case MODE_RED:        indicatorY = (float)((1.0 - mRGB.red   / 255.0) * (mWindowHeight - 1)); break;
+    case MODE_GREEN:      indicatorY = (float)((1.0 - mRGB.green / 255.0) * (mWindowHeight - 1)); break;
+    case MODE_BLUE:       indicatorY = (float)((1.0 - mRGB.blue  / 255.0) * (mWindowHeight - 1)); break;
+    }
+    auto* ind = ctx->createVertexAccumulator();
+    ind->AddVertex(0,              indicatorY);
+    ind->AddVertex(mWindowWidth,   indicatorY);
+    // second line one pixel below for a 2-pixel thick marker
+    ind->AddVertex(0,              indicatorY + 1);
+    ind->AddVertex(mWindowWidth,   indicatorY + 1);
+    xlColor lineColor = (indicatorY < mWindowHeight * 0.5f) ? xlBLACK : xlWHITE;
+    ctx->drawLineStrip(ind, lineColor);
+    delete ind;
 }
 

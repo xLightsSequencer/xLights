@@ -17,10 +17,6 @@ struct EffectsMetalGridView: UIViewRepresentable {
     let metrics: GridMetrics
     let pixelsPerMS: CGFloat
     let selection: SequencerViewModel.EffectSelection?
-    /// B28 — prior-selection snapshot. When set, the grid paints a
-    /// subtle dimmed outline on that effect so users can compare
-    /// against what they were just editing.
-    var previousSelection: SequencerViewModel.EffectSelection? = nil
     /// Full selection set (B1 marquee multi-select). Every member is
     /// drawn with the selection bracket colour. When `count == 1` the
     /// single member coincides with `selection` and shows edge + fade
@@ -86,7 +82,6 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.metrics = metrics
         ctx.pixelsPerMS = pixelsPerMS
         ctx.selection = selection
-        ctx.previousSelection = previousSelection
         ctx.selectedEffects = selectedEffects
         ctx.activeDrag = activeDrag
         ctx.timingMarkTimesMS = timingMarkTimesMS
@@ -96,6 +91,18 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.stateLookup = stateLookup
         ctx.fadeProvider = fadeProvider
         ctx.iconProvider = iconProvider
+        // B25: refresh the bracket palette from the document's
+        // ColorManager-fed cache. Cheap — four C++ map lookups
+        // behind ObjC dispatch.
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0
+        document.bracketColor(forState: .default, outR: &r, outG: &g, outB: &b)
+        ctx.bracketDefault = (r, g, b)
+        document.bracketColor(forState: .selected, outR: &r, outG: &g, outB: &b)
+        ctx.bracketSelected = (r, g, b)
+        document.bracketColor(forState: .locked, outR: &r, outG: &g, outB: &b)
+        ctx.bracketLocked = (r, g, b)
+        document.bracketColor(forState: .disabled, outR: &r, outG: &g, outB: &b)
+        ctx.bracketDisabled = (r, g, b)
         ctx.onUpdateScrollX = { newX in scrollOffsetX = newX }
         ctx.onUpdateScrollY = { newY in scrollOffsetY = newY }
         ctx.onUserInteraction = onUserInteraction
@@ -122,7 +129,6 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var metrics = GridMetrics.standard
         var pixelsPerMS: CGFloat = 0.1
         var selection: SequencerViewModel.EffectSelection?
-        var previousSelection: SequencerViewModel.EffectSelection?   // B28
         /// B96: active momentum-scroll display link, if one is
         /// coasting. Invalidated when a new pan begins or the
         /// view tears down.
@@ -136,6 +142,14 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var stateLookup = EffectStateLookup()
         var fadeProvider: (Int, Int) -> (Float, Float) = { _, _ in (0, 0) }
         var iconProvider: (String, Int) -> Data? = { _, _ in nil }
+        // B25: per-state bracket colours sourced from the show folder's
+        // <colors> palette via XLSequenceDocument. Cached once per
+        // updateUIView pass — dirt cheap (4 bridge calls) and picks
+        // up palette edits on the next SwiftUI refresh.
+        var bracketDefault:  (CGFloat, CGFloat, CGFloat) = (0.75, 0.75, 0.75)
+        var bracketSelected: (CGFloat, CGFloat, CGFloat) = (0.80, 0.40, 1.00)
+        var bracketLocked:   (CGFloat, CGFloat, CGFloat) = (0.78, 0.00, 0.00)
+        var bracketDisabled: (CGFloat, CGFloat, CGFloat) = (0.78, 0.78, 0.00)
         var onUpdateScrollX: (CGFloat) -> Void = { _ in }
         var onUpdateScrollY: (CGFloat) -> Void = { _ in }
         var onUserInteraction: (() -> Void)?
@@ -235,7 +249,7 @@ struct EffectsMetalGridView: UIViewRepresentable {
 
         init(document: XLSequenceDocument) {
             self.document = document
-            self.bridge = XLGridMetalBridge(name: "ModelEffectsGrid")!
+            self.bridge = XLGridMetalBridge(name: "ModelEffectsGrid")
         }
     }
 }
@@ -247,6 +261,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
     weak var coordinator: EffectsMetalGridView.Coordinator?
     private var gestureDelegate: GestureDelegate?
     private weak var ownPan: UIPanGestureRecognizer?
+    /// Pinch recognizer (zoom). Disabled while the marquee long-
+    /// press owns the two-finger gesture so pinch can't fire mid-
+    /// marquee. Re-enabled on marquee end.
+    private weak var ownPinch: UIPinchGestureRecognizer?
     private let vFadeHitStrip: CGFloat = 7
     private let minIconWidth: CGFloat = 14
     private var pencilInteraction: UIPencilInteraction?
@@ -497,11 +515,13 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 }
                 let locked = c.stateLookup.isLocked(row.id, eIdx)
                 let disabled = c.stateLookup.isDisabled(row.id, eIdx)
+                // B25: ColorManager-sourced bracket palette so user-
+                // customised desktop colours show up here too.
                 let col: (CGFloat, CGFloat, CGFloat)
-                if disabled      { col = (0.45, 0.45, 0.45) }
-                else if isSel    { col = (1.00, 0.85, 0.25) }
-                else if locked   { col = (0.65, 0.80, 1.00) }
-                else             { col = (0.85, 0.85, 0.85) }
+                if disabled      { col = c.bracketDisabled }
+                else if isSel    { col = c.bracketSelected }
+                else if locked   { col = c.bracketLocked }
+                else             { col = c.bracketDefault }
                 let fadeIn: Float
                 let fadeOut: Float
                 if isDragged, let d = c.activeDrag {
@@ -535,7 +555,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                 vis.append(Visible(
                     rowId: d.srcRowId, effectIndex: d.effectIndex, name: effect.name,
                     x1: x1, x2: x2, top: top, bottom: bottom,
-                    stroke: (1, 0.85, 0.25),
+                    stroke: c.bracketSelected,
                     disabled: false, locked: false,
                     fadeInSec: d.liveFadeInSec, fadeOutSec: d.liveFadeOutSec))
             }
@@ -760,37 +780,6 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             if e.x2 - e.x1 > 10 {
                 bridge.drawText("🔒", atX: e.x2 - 12, y: e.top,
                                  fontSize: 9, r: 1, g: 1, b: 1, a: 1)
-            }
-        }
-
-        // B28: dotted outline on the previously-selected effect
-        // (desktop's "reference effect" indicator). Skip if it
-        // coincides with the current selection — no point dimming
-        // a bracket that's already solid.
-        if let prev = c.previousSelection,
-           !(prev.rowIndex == c.selection?.rowIndex
-             && prev.effectIndex == c.selection?.effectIndex) {
-            for e in vis where prev.rowIndex == e.rowId
-                               && prev.effectIndex == e.effectIndex {
-                // Single inset outline in a muted warm tone so it
-                // reads distinct from the blue selection bracket.
-                let inset: CGFloat = 1
-                bridge.beginLineBatch()
-                let (r, g, b): (CGFloat, CGFloat, CGFloat) = (0.95, 0.75, 0.25)
-                let a: CGFloat = 0.65
-                bridge.appendLineX1(e.x1 + inset, y1: e.top + inset,
-                                     x2: e.x2 - inset, y2: e.top + inset,
-                                     r: r, g: g, b: b, a: a)
-                bridge.appendLineX1(e.x1 + inset, y1: e.bottom - inset,
-                                     x2: e.x2 - inset, y2: e.bottom - inset,
-                                     r: r, g: g, b: b, a: a)
-                bridge.appendLineX1(e.x1 + inset, y1: e.top + inset,
-                                     x2: e.x1 + inset, y2: e.bottom - inset,
-                                     r: r, g: g, b: b, a: a)
-                bridge.appendLineX1(e.x2 - inset, y1: e.top + inset,
-                                     x2: e.x2 - inset, y2: e.bottom - inset,
-                                     r: r, g: g, b: b, a: a)
-                bridge.flushLineBatch()
             }
         }
 
@@ -1034,23 +1023,33 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         pan.allowedScrollTypesMask = .all
         addGestureRecognizer(pan)
         ownPan = pan
-        // B1: two-finger drag → marquee multi-select (matches iPad
-        // Numbers/Keynote). Coexists with the pinch recognizer below
-        // — when the user keeps their fingers at roughly constant
-        // distance this wins; when they spread/pinch, pinch wins.
-        // Minor scale jitter during a marquee is tolerable.
-        let marquee = UIPanGestureRecognizer(target: self,
-                                              action: #selector(onMarqueePan(_:)))
-        marquee.minimumNumberOfTouches = 2
-        marquee.maximumNumberOfTouches = 2
+        // B1: two-finger long-press + drag → marquee multi-select.
+        // Earlier (pre-2026-05-15) this was a two-finger
+        // UIPanGestureRecognizer, which raced with the one-finger
+        // pan when the second finger landed an instant after the
+        // first — observed as "sometimes scrolls, sometimes
+        // marquees, sometimes both". Switching to a long-press
+        // makes the marquee an explicit, distinct gesture: hold
+        // two fingers still for ~0.4s, then drag to extend the
+        // selection rect. Matches the layout-canvas pattern for
+        // consistency.
+        let marquee = UILongPressGestureRecognizer(
+            target: self,
+            action: #selector(onMarqueeLongPress(_:)))
+        marquee.numberOfTouchesRequired = 2
+        marquee.minimumPressDuration = 0.4
+        marquee.allowableMovement = 16
+        marquee.name = "marqueeLP"
         marquee.delegate = del
         addGestureRecognizer(marquee)
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(_:)))
         pinch.delegate = del
         addGestureRecognizer(pinch)
+        ownPinch = pinch
         let lp = UILongPressGestureRecognizer(target: self, action: #selector(onLongPress(_:)))
         lp.minimumPressDuration = 0.6
         lp.allowableMovement = 4
+        lp.name = "contextMenuLP"
         lp.delegate = del
         addGestureRecognizer(lp)
     }
@@ -1397,17 +1396,29 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         @objc func tick(_ link: CADisplayLink) { action() }
     }
 
-    // MARK: - B1 marquee select (two-finger drag)
+    // MARK: - B1 marquee select (two-finger long-press + drag)
 
-    @objc func onMarqueePan(_ g: UIPanGestureRecognizer) {
+    /// Two-finger long-press → drag. On `.began` we cancel any
+    /// in-flight one-finger pan (the user could have started a
+    /// one-finger scroll, then dropped a second finger and held)
+    /// and disable pinch so a spread mid-marquee doesn't fire a
+    /// zoom. Both are restored on end / cancel.
+    @objc func onMarqueeLongPress(_ g: UILongPressGestureRecognizer) {
         guard let c = coordinator else { return }
         switch g.state {
         case .began:
-            // Treat the midpoint of the two fingers as the marquee
-            // anchor. Stored in world coords so the rectangle stays
-            // put if the view's hScrollOffsetPx changes during the
-            // drag (currently unlikely — we don't scroll during
-            // marquee — but kept consistent with effect-drag math).
+            // Cancel a concurrent one-finger pan if it had begun
+            // (briefly drag-flag the recognizer off + on). The pan
+            // handler's .cancelled branch tidies up its own scroll
+            // state.
+            if let pan = ownPan, pan.state == .began || pan.state == .changed {
+                pan.isEnabled = false
+                pan.isEnabled = true
+            }
+            // Quiet pinch so a finger-spread during marquee can't
+            // also fire a zoom.
+            ownPinch?.isEnabled = false
+
             let p = g.location(in: self)
             c.marqueeStartWorld = CGPoint(x: p.x + c.scrollOffsetX,
                                            y: p.y + c.scrollOffsetY)
@@ -1420,6 +1431,7 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                                              y: p.y + c.scrollOffsetY)
             setNeedsDisplay()
         case .ended:
+            defer { ownPinch?.isEnabled = true }
             guard let start = c.marqueeStartWorld,
                   let end = c.marqueeCurrentWorld else {
                 c.marqueeStartWorld = nil
@@ -1435,11 +1447,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             c.marqueeStartWorld = nil
             c.marqueeCurrentWorld = nil
             setNeedsDisplay()
-            // Tiny rectangles (accidental two-finger taps) — leave
-            // existing selection alone. 6 px minimum in each axis.
             if rect.width < 6 && rect.height < 6 { return }
             c.onMarqueeSelect?(hits)
         case .cancelled, .failed:
+            ownPinch?.isEnabled = true
             c.marqueeStartWorld = nil
             c.marqueeCurrentWorld = nil
             setNeedsDisplay()
@@ -1865,7 +1876,17 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         func gestureRecognizerShouldBegin(_ g: UIGestureRecognizer) -> Bool {
             guard let v = owner else { return true }
             if g is UIPinchGestureRecognizer { return true }
-            if g is UILongPressGestureRecognizer {
+            if let lp = g as? UILongPressGestureRecognizer {
+                // Two long-presses live on this view: the marquee
+                // (two-finger, "marqueeLP") and the context menu
+                // (one-finger, "contextMenuLP"). The marquee never
+                // needs a hit-test — it can start anywhere on the
+                // grid (including over effects, since the user may
+                // want a rectangle that includes them as the
+                // anchor). The context-menu LP only begins when a
+                // single finger lands on an effect, matching
+                // desktop's right-click-on-effect behaviour.
+                if lp.name == "marqueeLP" { return true }
                 let p = g.location(in: v)
                 return v.hitTestEffect(at: p) != nil
             }

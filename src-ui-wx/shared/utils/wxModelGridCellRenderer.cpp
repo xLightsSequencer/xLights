@@ -46,10 +46,12 @@ void wxModelGridCellRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc,
     grid.DrawTextRectangle(dc, grid.GetCellValue(row, col), rect,  wxALIGN_CENTRE,  wxALIGN_CENTRE);
 }
 
-void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_)
+void wxModelGridCellRenderer::UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_, float offset_x_, float offset_y_)
 {
     draw_picture = draw_picture_;
     lightness = lightness_;
+    offset_x = offset_x_;
+    offset_y = offset_y_;
     DetermineGridSize(grid);
     CreateImage();
 }
@@ -81,7 +83,9 @@ void wxModelGridCellRenderer::CreateImage()
                 bmpDC.SetBackground(b);
                 bmpDC.SetPen(p);
                 bmpDC.DrawRectangle(0, 0, width, height);
-                bmpDC.DrawBitmap(bmp, 0, 0);
+                int ox = (int)(offset_x * cell_w);
+                int oy = (int)(offset_y * cell_h);
+                bmpDC.DrawBitmap(bmp, ox, oy);
             } else {
                 bmpDC.SelectObjectAsSource(wxNullBitmap);
             }
@@ -98,12 +102,14 @@ void wxModelGridCellRenderer::SetImage(wxImage* image_)
 void wxModelGridCellRenderer::DetermineGridSize(wxGrid& grid)
 {
     wxFont font = grid.GetDefaultCellFont();
+    cell_w = 2 * font.GetPixelSize().y;
+    cell_h = int(1.5f * (float)font.GetPixelSize().y);
     width = 0;
     height = 0;
     for (int c = 0; c < grid.GetNumberCols(); ++c) {
-        width += 2 * font.GetPixelSize().y;
+        width += cell_w;
     }
     for (int r = 0; r < grid.GetNumberRows(); ++r) {
-        height += int(1.5 * (float)font.GetPixelSize().y);
+        height += cell_h;
     }
 }

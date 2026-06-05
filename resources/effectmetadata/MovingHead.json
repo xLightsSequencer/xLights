@@ -87,7 +87,7 @@
             "controlType": "custom",
             "platform": "ipad",
             "default": "",
-            "description": "iPad-only fixture selection: eight toggles for Moving Head slots 1-8. Each toggle flips the matching MH*_Settings entry between active and empty. Position slider changes (Pan / Tilt / Offsets / Groupings / Cycles) automatically re-sync into every active fixture. Colour / Dimmer / Path authoring still requires desktop's Effect Assist panel."
+            "description": "iPad-only fixture selection: eight toggles for Moving Head slots 1-8. Each toggle flips the matching MH*_Settings entry between active and empty. Position slider changes (Pan / Tilt / Offsets / Groupings / Cycles) automatically re-sync into every active fixture. Colour, dimmer intensity, and path-clear authoring are now in their own tabs; full path waypoint editing still requires desktop's Effect Assist panel."
         },
         {
             "id": "MHIpadInfo",
@@ -97,6 +97,33 @@
             "platform": "ipad",
             "default": "",
             "description": "iPad-only explanatory banner for the Moving Head inspector."
+        },
+        {
+            "id": "MHColorRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad single-colour authoring: SwiftUI ColorPicker writes a single HSV triple into the active fixtures' Color: command."
+        },
+        {
+            "id": "MHDimmerRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad dimmer intensity authoring: a flat-ramp 0..100% slider that writes a constant Dimmer: command into the active fixtures."
+        },
+        {
+            "id": "MHPathRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad path authoring (read + clear). Full waypoint editing still requires desktop's Effect Assist; the iPad row shows the current Path: command and exposes a Clear action."
         },
         {
             "id": "MHPathScale",
@@ -225,7 +252,9 @@
             "tabs": [
                 {
                     "label": "Color",
-                    "properties": []
+                    "properties": [
+                        "MHColorRow"
+                    ]
                 },
                 {
                     "label": "ColorWheel",
@@ -254,11 +283,14 @@
                 },
                 {
                     "label": "Dimmer",
-                    "properties": []
+                    "properties": [
+                        "MHDimmerRow"
+                    ]
                 },
                 {
                     "label": "Pathing",
                     "properties": [
+                        "MHPathRow",
                         "MHPathDef",
                         "MHPathScale",
                         "MHTimeOffset",

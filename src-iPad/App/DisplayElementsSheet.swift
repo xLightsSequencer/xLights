@@ -45,6 +45,19 @@ struct DisplayElementsSheet: View {
     }
     @State private var confirmRemove: RemoveTarget? = nil
 
+    // Local "Add Timing Track" sheet state. iOS only allows one
+    // sheet per ancestor chain at a time — flipping
+    // `viewModel.showingAddTimingTrack` from inside this sheet would
+    // log "Currently, only presenting a single sheet is supported"
+    // because the app-level sheet can't open on top of us. A local
+    // @State + .sheet on this body stacks the new sheet correctly.
+    @State private var showingAddTimingTrackLocal = false
+
+    // Filter text for the Available pane (Master + user view). Reset
+    // automatically whenever an item is added so the cleared row
+    // doesn't leave a stale needle in the field.
+    @State private var availableFilter: String = ""
+
     var body: some View {
         NavigationStack {
             NavigationSplitView {
@@ -124,6 +137,13 @@ struct DisplayElementsSheet: View {
             Button("Cancel", role: .cancel) { confirmRemove = nil }
         } message: {
             Text(removeConfirmationMessage)
+        }
+        // Local "Add Timing Track" sheet — stacked on top of this
+        // sheet so iOS doesn't reject it the way the app-level
+        // viewModel.showingAddTimingTrack sheet would.
+        .sheet(isPresented: $showingAddTimingTrackLocal) {
+            AddTimingTrackSheet()
+                .environment(viewModel)
         }
     }
 
@@ -253,7 +273,7 @@ struct DisplayElementsSheet: View {
     // (with a confirmation warning when effects exist).
     private var masterViewDetail: some View {
         let members = model.masterMembers()
-        let available = model.masterAvailable()
+        let available = filtered(model.masterAvailable())
         return VStack(alignment: .leading, spacing: 0) {
             Text("Master View — models and timing tracks that this sequence can hold effects on. Adding a model brings it in from the show layout; removing deletes the element and any effects on it.")
                 .font(.caption)
@@ -273,7 +293,7 @@ struct DisplayElementsSheet: View {
                                 .font(.headline)
                             Spacer()
                             Button {
-                                textAlert = (.newTimingTrack, "")
+                                showingAddTimingTrackLocal = true
                             } label: {
                                 Label("Add Timing Track…",
                                       systemImage: "plus.rectangle")
@@ -288,9 +308,13 @@ struct DisplayElementsSheet: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
+                        filterField
+
                         List {
                             if available.isEmpty {
-                                Text("Every model in the show layout is already in this sequence.")
+                                Text(availableFilter.isEmpty
+                                     ? "Every model in the show layout is already in this sequence."
+                                     : "No matches for \"\(availableFilter)\".")
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
                             } else {
@@ -301,6 +325,7 @@ struct DisplayElementsSheet: View {
                                         Spacer()
                                         Button {
                                             _ = viewModel.document.addModel(toMasterView: item.name)
+                                            availableFilter = ""
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .foregroundStyle(.blue)
@@ -387,7 +412,11 @@ struct DisplayElementsSheet: View {
     // User view: two panes. "Available" (pool) on top with buttons to
     // add to the view; "Members" below with reorder + remove.
     private var userViewDetail: some View {
-        let membership = model.userViewMembership(viewIdx: selectedViewIdx)
+        let rawMembership = model.userViewMembership(viewIdx: selectedViewIdx)
+        let membership = DisplayElementsVM.Membership(
+            members: rawMembership.members,
+            available: filtered(rawMembership.available)
+        )
         return VStack(alignment: .leading, spacing: 0) {
             Text("\(model.views[safe: selectedViewIdx] ?? "") — pick which models and timing tracks appear when this view is active. Reorder members with drag handles.")
                 .font(.caption)
@@ -412,9 +441,13 @@ struct DisplayElementsSheet: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
 
+                        filterField
+
                         List {
                             if membership.available.isEmpty {
-                                Text("Every model and timing track is already in this view.")
+                                Text(availableFilter.isEmpty
+                                     ? "Every model and timing track is already in this view."
+                                     : "No matches for \"\(availableFilter)\".")
                                     .foregroundStyle(.secondary)
                                     .font(.caption)
                             } else {
@@ -425,6 +458,7 @@ struct DisplayElementsSheet: View {
                                         Spacer()
                                         Button {
                                             addItem(item)
+                                            availableFilter = ""
                                         } label: {
                                             Image(systemName: "plus.circle.fill")
                                                 .foregroundStyle(.blue)
@@ -621,6 +655,7 @@ struct DisplayElementsSheet: View {
         for item in items where item.kind == .model {
             _ = viewModel.document.addModel(toMasterView: item.name)
         }
+        availableFilter = ""
     }
 
     private func performDelete(idx: Int) {
@@ -653,6 +688,38 @@ struct DisplayElementsSheet: View {
     private func addAllAvailable() {
         let membership = model.userViewMembership(viewIdx: selectedViewIdx)
         for item in membership.available { addItem(item) }
+        availableFilter = ""
+    }
+
+    // Case-insensitive substring match against member names. An empty
+    // filter passes the list through untouched.
+    private func filtered(_ items: [DisplayElementsVM.Member]) -> [DisplayElementsVM.Member] {
+        let needle = availableFilter.trimmingCharacters(in: .whitespacesAndNewlines)
+        if needle.isEmpty { return items }
+        let lower = needle.lowercased()
+        return items.filter { $0.name.lowercased().contains(lower) }
+    }
+
+    private var filterField: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField("Filter models, groups, timings…", text: $availableFilter)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+            if !availableFilter.isEmpty {
+                Button {
+                    availableFilter = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 4)
     }
 
     private func removeItem(_ item: DisplayElementsVM.Member) {

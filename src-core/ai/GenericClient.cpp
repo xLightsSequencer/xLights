@@ -48,9 +48,9 @@ std::vector<ServiceProperty> GenericClient::GetProperties() const {
     }
     props.push_back({ ServiceProperty::Kind::String, "GenericClient.BaseURL", "Base URL", "GenericClient", {}, {}, base_url });
     props.push_back({ ServiceProperty::Kind::Secret, "GenericClient.APIKey", "API Key", "GenericClient", "Fake API key", {}, token });
-    props.push_back({ ServiceProperty::Kind::String, "GenericClient.Model", "Completion Model", "GenericClient", {}, {}, model });
-    props.push_back({ ServiceProperty::Kind::String, "GenericClient.ImageModel", "Image Model", "GenericClient", {}, {}, image_model });
-    props.push_back({ ServiceProperty::Kind::String, "GenericClient.TranscribeModel", "Transcribe Model", "GenericClient", {}, {}, transcribe_model });
+    props.push_back(makeModelProperty("GenericClient.Model", "Completion Model", "GenericClient", model));
+    props.push_back(makeModelProperty("GenericClient.ImageModel", "Image Model", "GenericClient", image_model));
+    props.push_back(makeModelProperty("GenericClient.TranscribeModel", "Transcribe Model", "GenericClient", transcribe_model));
     return props;
 }
 
@@ -66,8 +66,10 @@ void GenericClient::SetProperty(const std::string& id, bool value) {
 void GenericClient::SetProperty(const std::string& id, const std::string& value) {
     if (id == "GenericClient.BaseURL") {
         base_url = value;
+        clearModelCache(); // pointing at a different server changes the model list
     } else if (id == "GenericClient.APIKey") {
         token = value;
+        clearModelCache();
     } else if (id == "GenericClient.Model") {
         model = value;
     } else if (id == "GenericClient.ImageModel") {
