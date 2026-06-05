@@ -23,6 +23,8 @@
 #include "render/SequencePackage.h"
 #include "render/RenderEngine.h"
 #include "render/FSEQFile.h"
+#include "render/ModelVideoExporter.h"
+#import "XLHousePreviewVideoExporter.h"
 #include "utils/UtilFunctions.h"
 #include "utils/string_utils.h"
 #include "lyrics/PhonemeDictionary.h"
@@ -46,8 +48,10 @@
 #include "media/MediaCompatibility.h"
 #include "media/VideoReader.h"
 #include "render/ValueCurve.h"
+#include "import_export/ExportModels.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
+#include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
 #include "models/ViewObject.h"
@@ -532,6 +536,16 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
     _context->GetSequenceElements().get_undo_mgr().Clear();
 }
 
+- (void)purgeRenderCache {
+    if (!_context) return;
+    _context->PurgeRenderCache();
+}
+
+- (void)purgeDownloadCache {
+    if (!_context) return;
+    _context->PurgeDownloadCache();
+}
+
 - (BOOL)saveSequenceAs:(NSString*)path {
     if (!_context || !_context->IsSequenceLoaded()) return NO;
     if (path.length == 0) return NO;
@@ -989,6 +1003,20 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     se.PopulateRowInformation();
 }
 
+- (void)expandElementsWithEffects {
+    // SEQ-15 "Show All Effects": expand every model element that has effects
+    // (so all effects are visible) and collapse the empty ones to declutter.
+    auto& se = _context->GetSequenceElements();
+    size_t n = se.GetElementCount(se.GetCurrentView());
+    for (size_t i = 0; i < n; i++) {
+        Element* e = se.GetElement(i, se.GetCurrentView());
+        if (!e) continue;
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        e->SetCollapsed(!e->HasEffects());
+    }
+    se.PopulateRowInformation();
+}
+
 - (BOOL)renameLayerAtRow:(int)rowIndex name:(NSString*)newName {
     auto* layer = [self effectLayerForRow:rowIndex];
     if (!layer) return NO;
@@ -1155,6 +1183,98 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return countAfter - countBefore;
 }
 
+// IE-1 — shared body for the file-based timing importers. Runs the
+// supplied processor block, then mirrors the LOR/Papagayo importers'
+// post-import behavior (activate the newest imported track). Returns
+// the number of timing tracks added.
+- (int)importTimingVia:(void (^)(SequenceFile* sf))process {
+    if (!process) return 0;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return 0;
+    int countBefore = _context->GetSequenceElements().GetNumberOfTimingElements();
+    process(sf);
+    int countAfter = _context->GetSequenceElements().GetNumberOfTimingElements();
+    if (countAfter > countBefore) {
+        _context->GetSequenceElements().DeactivateAllTimingElements();
+        TimingElement* te = _context->GetSequenceElements().GetTimingElement(countAfter - 1);
+        if (te) te->SetActive(true);
+        _context->GetSequenceElements().PopulateRowInformation();
+    }
+    return countAfter - countBefore;
+}
+
+- (int)importSRTFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessSRT({ p }, self->_context.get()); }];
+}
+
+- (int)importAudacityTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessAudacityTimingFiles({ p }, self->_context.get()); }];
+}
+
+- (int)importElevenLabsTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessElevenLabsTimingFiles({ p }, self->_context.get()); }];
+}
+
+- (int)importVixen3TimingFromPath:(NSString*)path {
+    return [self importVixen3TimingFromPath:path selectedIndices:@[]];
+}
+
+- (NSArray<NSString*>*)vixen3TimingTrackNamesFromPath:(NSString*)path {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (!path || path.length == 0) return result;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return result;
+    std::string p([path UTF8String]);
+    for (const std::string& n : sf->GetVixen3TimingTrackNames(p)) {
+        [result addObject:[NSString stringWithUTF8String:n.c_str()]];
+    }
+    return result;
+}
+
+- (int)importVixen3TimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    std::vector<int> idx;
+    for (NSNumber* n in indices) idx.push_back(n.intValue);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessVixen3Timing(p, idx, self->_context.get()); }];
+}
+
+- (int)importLSPTimingFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessLSPTiming({ p }, self->_context.get()); }];
+}
+
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path {
+    return [self importXLightsSequenceTimingFromPath:path selectedIndices:@[]];
+}
+
+- (NSArray<NSString*>*)xLightsTimingTrackNamesFromPath:(NSString*)path {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (!path || path.length == 0) return result;
+    SequenceFile* sf = _context->GetSequenceFile();
+    if (!sf) return result;
+    std::string p([path UTF8String]);
+    for (const std::string& n : sf->GetXLightsTimingTrackNames(p, _context.get())) {
+        [result addObject:[NSString stringWithUTF8String:n.c_str()]];
+    }
+    return result;
+}
+
+- (int)importXLightsSequenceTimingFromPath:(NSString*)path selectedIndices:(NSArray<NSNumber*>*)indices {
+    if (!path || path.length == 0) return 0;
+    std::string p([path UTF8String]);
+    std::vector<int> idx;
+    for (NSNumber* n in indices) idx.push_back(n.intValue);
+    return [self importTimingVia:^(SequenceFile* sf) { sf->ProcessXLightsTiming(p, idx, self->_context.get()); }];
+}
+
 - (BOOL)exportTimingTrackAtRow:(int)rowIndex toPath:(NSString*)path {
     if (!path || path.length == 0) return NO;
     auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
@@ -1180,6 +1300,39 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     NSError* err = nil;
     if (![data writeToFile:path options:NSDataWritingAtomic error:&err]) {
         NSLog(@"exportTimingTrack failed: %@", err);
+        return NO;
+    }
+    return YES;
+}
+
+- (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path {
+    if (!path || path.length == 0 || rowIndices.count == 0) return NO;
+    // `<timings>` wrapper holding one `<timing>` per selected track —
+    // same per-track envelope as exportTimingTrackAtRow:.
+    std::string doc;
+    doc.reserve(4096);
+    doc += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    doc += std::string("<timings SourceVersion=\"") + xlights_version_string + "\">\n";
+    int written = 0;
+    for (NSNumber* n in rowIndices) {
+        auto* row = _context->GetSequenceElements().GetRowInformation(n.intValue);
+        if (!row || !row->element) continue;
+        if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) continue;
+        TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+        if (!te) continue;
+        doc += "<timing name=\"" + XmlSafe(te->GetName()) + "\" ";
+        doc += "subType=\"" + te->GetSubType() + "\" ";
+        doc += std::string("SourceVersion=\"") + xlights_version_string + "\">\n";
+        doc += te->GetExport();
+        doc += "</timing>\n";
+        ++written;
+    }
+    doc += "</timings>\n";
+    if (written == 0) return NO;
+    NSData* data = [NSData dataWithBytes:doc.data() length:doc.size()];
+    NSError* err = nil;
+    if (![data writeToFile:path options:NSDataWritingAtomic error:&err]) {
+        NSLog(@"exportTimingTracks failed: %@", err);
         return NO;
     }
     return YES;
@@ -1251,6 +1404,196 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (BOOL)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS {
+    if (!path || path.length == 0) return NO;
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) return NO;
+    const std::string modelName = row->element->GetName();
+    if (modelName.empty()) return NO;
+
+    Model* model = _context->GetModel(modelName);
+    if (!model) return NO;
+    // Model groups have no single buffer to export as video (desktop disables
+    // the menu for groups); guard here too.
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) return NO;
+
+    RenderEngine* engine = _context->GetRenderEngine();
+    if (!engine) return NO;
+
+    SequenceData& fullData = _context->GetSequenceData();
+    if (fullData.NumFrames() == 0 || fullData.NumChannels() == 0) return NO;
+
+    auto exported = engine->ExportModelData(modelName, fullData);
+    if (!exported.data) return NO;
+    SequenceData& modelData = *exported.data;
+    const uint32_t totalFrames = (uint32_t)modelData.NumFrames();
+    if (totalFrames == 0) return NO;
+
+    const int frameTime = modelData.FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) return NO;
+
+    // startAddr matches desktop DoExportModel: the model's absolute start
+    // channel. WriteModelVideo indexes the rebased per-model buffer by
+    // (GetFirstChannel() - startAddr + 1).
+    const int startAddr = model->GetNumberFromChannelString(model->ModelStartChannel);
+
+    return ModelVideoExporter::WriteModelVideo([path UTF8String], &modelData,
+                                               startFrame, endFrame, model, startAddr,
+                                               compressed, highQuality, forceProRes)
+        ? YES : NO;
+}
+
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                     completion:(void (^)(BOOL))completion {
+    void (^finishNO)(void) = ^{
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(NO); });
+    };
+    if (!path || path.length == 0 || !_context) { finishNO(); return; }
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) { finishNO(); return; }
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) { finishNO(); return; }
+    const std::string modelName = row->element->GetName();
+    if (modelName.empty()) { finishNO(); return; }
+
+    Model* model = _context->GetModel(modelName);
+    if (!model || model->GetDisplayAs() == DisplayAsType::ModelGroup) { finishNO(); return; }
+
+    RenderEngine* engine = _context->GetRenderEngine();
+    if (!engine) { finishNO(); return; }
+
+    SequenceData& fullData = _context->GetSequenceData();
+    if (fullData.NumFrames() == 0 || fullData.NumChannels() == 0) { finishNO(); return; }
+
+    // Slice the per-model channel data on the main thread (reads the live
+    // _sequenceData) into a private copy; only the encode runs in the
+    // background, operating on that copy + immutable model geometry. A
+    // shared_ptr keeps the copy alive for the duration of the background block.
+    auto exported = engine->ExportModelData(modelName, fullData);
+    if (!exported.data) { finishNO(); return; }
+    std::shared_ptr<SequenceData> modelData(std::move(exported.data));
+    const uint32_t totalFrames = (uint32_t)modelData->NumFrames();
+    if (totalFrames == 0) { finishNO(); return; }
+
+    const int frameTime = modelData->FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) { finishNO(); return; }
+
+    const int startAddr = model->GetNumberFromChannelString(model->ModelStartChannel);
+    const std::string outPath = [path UTF8String];
+    const uint32_t sf = startFrame;
+    const uint32_t ef = endFrame;
+    const bool compressedB = compressed;
+    const bool hqB = highQuality;
+    const bool prB = forceProRes;
+
+    // Encode off the main thread — AVAssetWriter's Finish blocks on its own
+    // lower-QoS writer thread, which is a priority inversion (and a UI hang)
+    // when run on the main/user-interactive thread.
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        bool ok = ModelVideoExporter::WriteModelVideo(outPath, modelData.get(),
+                                                      sf, ef, model, startAddr,
+                                                      compressedB, hqB, prB);
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
+    });
+}
+
+- (void)exportHousePreviewVideoToPath:(NSString*)path
+                                width:(int)width
+                               height:(int)height
+                          highQuality:(BOOL)highQuality
+                              startMS:(int)startMS
+                                endMS:(int)endMS
+                             progress:(void (^)(double))progress
+                           completion:(void (^)(BOOL))completion {
+    void (^finishNO)(void) = ^{
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(NO); });
+    };
+    if (!path || path.length == 0 || width <= 0 || height <= 0 || !_context) {
+        finishNO();
+        return;
+    }
+
+    SequenceData& seqData = _context->GetSequenceData();
+    const uint32_t totalFrames = (uint32_t)seqData.NumFrames();
+    if (totalFrames == 0 || seqData.NumChannels() == 0) {
+        finishNO();
+        return;
+    }
+    const int frameTime = seqData.FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) {
+        finishNO();
+        return;
+    }
+
+    const BOOL is3d = _context->GetLayoutMode3D() ? YES : NO;
+    iPadRenderContext* rcPtr = _context.get();
+    void* rc = rcPtr;
+    NSString* outPath = [path copy];
+    const int w = width;
+    const int h = height;
+    const int sf = (int)startFrame;
+    const int ef = (int)endFrame;
+
+    // Stop the live on-screen preview from drawing while we render frames on
+    // the background thread (both mutate per-model node colours). Set on the
+    // main thread before dispatch so no live draw sneaks in, cleared in the
+    // completion. Encoding the full show at full resolution is slow, hence the
+    // background queue.
+    rcPtr->SetExportInProgress(true);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        BOOL ok = [XLHousePreviewVideoExporter exportToPath:outPath
+                                              renderContext:rc
+                                                      width:w
+                                                     height:h
+                                                       is3d:is3d
+                                                highQuality:highQuality
+                                                 startFrame:sf
+                                                   endFrame:ef
+                                                   progress:^(double f) {
+            if (progress) dispatch_async(dispatch_get_main_queue(), ^{ progress(f); });
+        }];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            rcPtr->SetExportInProgress(false);
+            if (completion) completion(ok);
+        });
+    });
+}
+
+- (int)layoutPreviewWidth {
+    return _context ? _context->GetPreviewWidth() : 0;
+}
+
+- (int)layoutPreviewHeight {
+    return _context ? _context->GetPreviewHeight() : 0;
+}
+
 - (BOOL)writeFseqToPath:(NSString*)path {
     if (!_context || !path || path.length == 0) return NO;
     if (!_context->IsSequenceLoaded()) return NO;
@@ -1284,6 +1627,30 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         }
     }
     while (te->GetEffectLayerCount() > 1) {
+        te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
+    }
+    se.PopulateRowInformation();
+    return YES;
+}
+
+- (BOOL)removePhonemesAtRow:(int)rowIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return NO;
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return NO;
+    TimingElement* te = dynamic_cast<TimingElement*>(row->element);
+    if (!te) return NO;
+    // Need a phoneme layer (index 2) to strip; keep phrase (0) + words (1).
+    if (te->GetEffectLayerCount() <= 2) return NO;
+    // Lock guard — refuse if any phoneme mark (layer 2+) is locked.
+    for (int k = (int)te->GetEffectLayerCount() - 1; k > 1; --k) {
+        EffectLayer* ck = te->GetEffectLayer(k);
+        if (!ck) continue;
+        for (auto&& eff : ck->GetAllEffects()) {
+            if (eff && eff->IsLocked()) return NO;
+        }
+    }
+    while (te->GetEffectLayerCount() > 2) {
         te->RemoveEffectLayer((int)te->GetEffectLayerCount() - 1);
     }
     se.PopulateRowInformation();
@@ -3977,6 +4344,18 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         @"Circle",
         @"Cube",
         @"Custom",
+        // LAY-1 — DMX / moving-head model family. Each tag matches a case
+        // in CreateDefaultModel and creates a single-point boxed model that
+        // the existing tap-to-place flow commits immediately (none use a
+        // poly-point location).
+        @"DmxFloodArea",
+        @"DmxFloodlight",
+        @"DmxGeneral",
+        @"DmxMovingHead",
+        @"DmxMovingHeadAdv",
+        @"DmxServo",
+        @"DmxServo3d",
+        @"DmxSkull",
         @"Icicles",
         @"Image",
         @"Matrix",
@@ -4088,6 +4467,19 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     m->IncrementChangeCount();
     _context->MarkLayoutModelDirty(std::string(modelName.UTF8String));
     return YES;
+}
+
+- (NSArray<NSString*>*)generateNodeNamesForModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return @[];
+    Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m || !m->IsDMXModel()) return @[];
+    DmxModel* dmx = dynamic_cast<DmxModel*>(m);
+    if (!dmx) return @[];
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    for (const std::string& name : dmx->GenerateNodeNames()) {
+        [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
 }
 
 // J-22 — Faces / States / Dimming nested-dictionary helpers.
@@ -8567,6 +8959,66 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     return out;
 }
 
+- (NSArray<NSString*>*)usedColoursSelectedOnly:(BOOL)selectedOnly {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    std::vector<std::string> used = _context->GetSequenceElements().GetUsedColours(selectedOnly ? true : false);
+    for (const auto& c : used) {
+        [out addObject:[NSString stringWithUTF8String:c.c_str()]];
+    }
+    return out;
+}
+
+- (int)replaceColourFrom:(NSString*)fromColour to:(NSString*)toColour selectedOnly:(BOOL)selectedOnly {
+    if (!_context || fromColour.length == 0 || toColour.length == 0) return 0;
+    return _context->GetSequenceElements().ReplaceColours(
+        _context.get(),
+        std::string([fromColour UTF8String]),
+        std::string([toColour UTF8String]),
+        selectedOnly ? true : false);
+}
+
+// SEQ-2 selected-scope (sync-on-demand): the iPad keeps selection in
+// Swift, so before a selectedOnly core op we mirror the given
+// (row, effectIndex) pairs into the core Effect Selected flags, run
+// the op, then clear them again — the core selection is never left
+// dirty. SetSelected does not IncrementChangeCount and the grid draws
+// selection from the Swift set, so this has no dirty/render side-effect.
+- (void)pushCoreSelectionAtRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    _context->GetSequenceElements().UnSelectAllEffects();
+    NSUInteger n = MIN(rows.count, indices.count);
+    for (NSUInteger i = 0; i < n; ++i) {
+        EffectLayer* layer = [self effectLayerForRow:[rows[i] intValue]];
+        if (!layer) continue;
+        int idx = [indices[i] intValue];
+        if (idx < 0 || idx >= (int)layer->GetEffectCount()) continue;
+        Effect* e = layer->GetEffect(idx);
+        if (e) e->SetSelected(EFFECT_SELECTED);
+    }
+}
+
+- (NSArray<NSString*>*)usedColoursAtRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    [self pushCoreSelectionAtRows:rows effectIndices:indices];
+    std::vector<std::string> used = _context->GetSequenceElements().GetUsedColours(true);
+    _context->GetSequenceElements().UnSelectAllEffects();
+    for (const auto& c : used) [out addObject:[NSString stringWithUTF8String:c.c_str()]];
+    return out;
+}
+
+- (int)replaceColourFrom:(NSString*)fromColour to:(NSString*)toColour atRows:(NSArray<NSNumber*>*)rows effectIndices:(NSArray<NSNumber*>*)indices {
+    if (!_context || fromColour.length == 0 || toColour.length == 0) return 0;
+    [self pushCoreSelectionAtRows:rows effectIndices:indices];
+    int n = _context->GetSequenceElements().ReplaceColours(
+        _context.get(),
+        std::string([fromColour UTF8String]),
+        std::string([toColour UTF8String]),
+        /*selectedOnly=*/true);
+    _context->GetSequenceElements().UnSelectAllEffects();
+    return n;
+}
+
 - (BOOL)applyPaletteString:(NSString*)paletteString
                      toRow:(int)rowIndex
                    atIndex:(int)effectIndex {
@@ -10802,6 +11254,17 @@ NSString* OptionalString(const std::string& s) {
     }
     if (removed > 0) bumpSequenceDirty(_context.get());
     return removed;
+}
+
+- (BOOL)removeMediaAtPath:(NSString*)path {
+    // MED-5: forget one embedded/cached media entry by its stored path/value
+    // (the same key GetAllMediaPaths / effect settings use), even if still
+    // referenced — the user re-sources it or re-imports. Mirrors removeUnusedMedia.
+    if (!_context || path.length == 0) return NO;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    media.RemoveMedia(std::string([path UTF8String]));
+    bumpSequenceDirty(_context.get());
+    return YES;
 }
 
 - (int)extractAllMediaOfType:(NSString*)typeFilter {
@@ -14090,6 +14553,10 @@ NSString* fppTypeString(FPP_TYPE t) {
 } // namespace
 
 - (NSArray<NSDictionary*>*)discoverFPPInstances {
+    return [self discoverFPPInstancesWithForcedAddresses:@[]];
+}
+
+- (NSArray<NSDictionary*>*)discoverFPPInstancesWithForcedAddresses:(NSArray<NSString*>*)forcedIPs {
     for (FPP* f : _fppInstances) delete f;
     _fppInstances.clear();
 
@@ -14105,6 +14572,11 @@ NSString* fppTypeString(FPP_TYPE t) {
     DiscoveryDelegate defaultDelegate;
     Discovery discovery(&om, &defaultDelegate);
     std::list<std::string> forcedAddresses;
+    for (NSString* ip in forcedIPs) {
+        if (ip.length > 0) forcedAddresses.push_back(std::string([ip UTF8String]));
+    }
+    // broadcastPing defaults to true, so broadcast discovery still runs
+    // alongside any user-supplied forced IPs (CTL-5 "Add FPP by IP").
     FPP::PrepareDiscovery(discovery, forcedAddresses);
     discovery.Discover();
     FPP::MapToFPPInstances(discovery, _fppInstances, &om);
@@ -14718,6 +15190,293 @@ NSString* fppTypeString(FPP_TYPE t) {
     }
     return @{@"outcomes": outcomes,
              @"cancelled": @(cancelledFlag)};
+}
+
+#pragma mark - IE-15 Export Models report
+
+- (BOOL)exportModelsReportToPath:(NSString*)path {
+    if (!_context || !path || !_context->IsSequenceLoaded() || !_context->HasModelManager()) {
+        return NO;
+    }
+    ObtainAccessToURL(path.UTF8String, /*enforceWritable=*/true);
+    return ::ExportModels(std::string(path.UTF8String),
+                          _context->GetModelManager(),
+                          _context->GetOutputManager())
+               ? YES
+               : NO;
+}
+
+@end
+
+// MARK: - Effect preset library (PRE-1)
+
+namespace {
+// Resolve a backslash-separated group path to a group node, or the
+// root when `path` is empty. Returns nullptr when a path segment is
+// missing or names a leaf preset rather than a group.
+EffectPresetGroup* ResolveGroup(EffectPresetManager& mgr, NSString* path) {
+    std::string p = path ? std::string([path UTF8String]) : std::string();
+    if (p.empty()) {
+        return &mgr.GetRoot();
+    }
+    EffectPresetItem* item = mgr.FindItemByPath(p, '\\');
+    if (item == nullptr || !item->IsGroup()) {
+        return nullptr;
+    }
+    return static_cast<EffectPresetGroup*>(item);
+}
+
+void CollectPresetTree(const EffectPresetGroup& group,
+                       const std::string& prefix,
+                       NSMutableArray* out) {
+    for (const auto& child : group.GetChildren()) {
+        std::string path = prefix.empty() ? child->GetName()
+                                          : prefix + "\\" + child->GetName();
+        if (child->IsGroup()) {
+            [out addObject:@{
+                @"path": [NSString stringWithUTF8String:path.c_str()],
+                @"isGroup": @YES,
+                @"layerCount": @0,
+                @"durationMS": @0,
+            }];
+            CollectPresetTree(static_cast<const EffectPresetGroup&>(*child),
+                              path, out);
+        } else {
+            const auto& preset = static_cast<const EffectPreset&>(*child);
+            [out addObject:@{
+                @"path": [NSString stringWithUTF8String:path.c_str()],
+                @"isGroup": @NO,
+                @"layerCount": @(preset.GetLayerCount()),
+                @"durationMS": @(preset.GetDurationMS()),
+            }];
+        }
+    }
+}
+
+std::vector<std::string> SplitOn(const std::string& s, char sep) {
+    std::vector<std::string> parts;
+    std::string cur;
+    for (char ch : s) {
+        if (ch == sep) {
+            parts.push_back(cur);
+            cur.clear();
+        } else {
+            cur.push_back(ch);
+        }
+    }
+    parts.push_back(cur);
+    return parts;
+}
+} // namespace
+
+@implementation XLSequenceDocument (EffectPresets)
+
+- (NSArray<NSDictionary*>*)presetTree {
+    NSMutableArray* out = [NSMutableArray array];
+    CollectPresetTree(_context->GetEffectPresetManager().GetRoot(), "", out);
+    return out;
+}
+
+- (BOOL)savePresetFromRows:(NSArray<NSNumber*>*)rows
+             effectIndices:(NSArray<NSNumber*>*)effectIndices
+                 groupPath:(NSString*)groupPath
+                      name:(NSString*)name {
+    std::string trimmedName = name ? std::string([name UTF8String]) : std::string();
+    if (trimmedName.empty()) return NO;
+    if (rows.count == 0 || rows.count != effectIndices.count) return NO;
+
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
+    if (parent == nullptr) return NO;
+
+    // Anchor rows so the lowest selected grid row becomes row 0 in the
+    // serialized blob — desktop ParseLayers / paste expect relative rows.
+    int minRow = INT_MAX;
+    for (NSNumber* r in rows) {
+        minRow = std::min(minRow, r.intValue);
+    }
+    if (minRow == INT_MAX) return NO;
+
+    std::string effectData;
+    int numEffects = 0;
+    for (NSUInteger i = 0; i < rows.count; ++i) {
+        int rowIndex = rows[i].intValue;
+        int effectIndex = effectIndices[i].intValue;
+        auto* layer = [self effectLayerForRow:rowIndex];
+        if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) {
+            continue;
+        }
+        Effect* e = layer->GetEffect(effectIndex);
+        if (!e) continue;
+        int relRow = rowIndex - minRow;
+        effectData += e->GetEffectName() + "\t" + e->GetSettingsAsString() + "\t" +
+                      e->GetPaletteAsString() + "\t" +
+                      std::to_string(e->GetStartTimeMS()) + "\t" +
+                      std::to_string(e->GetEndTimeMS()) + "\t" +
+                      std::to_string(relRow) + "\t-1000\tNO_PASTE_BY_CELL\tLAYER:0\n";
+        ++numEffects;
+    }
+    if (numEffects == 0) return NO;
+
+    std::string blob = "CopyFormat1\t0\t" + std::to_string(numEffects) +
+                       "\t0\t0\t-1\tNO_PASTE_BY_CELL\n" + effectData;
+
+    mgr.AddPreset(parent, trimmedName, blob,
+                  XLIGHTS_RGBEFFECTS_VERSION, xlights_version_string);
+    return YES;
+}
+
+- (BOOL)applyPresetAtPath:(NSString*)path
+                    toRow:(int)rowIndex
+                atStartMS:(int)startMS {
+    if (!path || rowIndex < 0) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPreset* preset = mgr.FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) return NO;
+
+    const std::string& blob = preset->GetSettings();
+    if (blob.empty()) return NO;
+
+    // Parse the CopyFormat1 effect lines into relative-offset records,
+    // then lay them out anchored at (rowIndex, startMS) the same way the
+    // clipboard paste does.
+    struct Rec { std::string name, settings, palette; int relRow; int start; int end; };
+    std::vector<Rec> recs;
+    int minStart = INT_MAX;
+    int minRow = INT_MAX;
+    for (const std::string& line : SplitOn(blob, '\n')) {
+        if (line.empty()) continue;
+        std::vector<std::string> f = SplitOn(line, '\t');
+        if (f.empty() || f[0] == "CopyFormat1" || f[0] == "CopyFormatAC" ||
+            f[0] == "None" || f.size() < 6) {
+            continue;
+        }
+        Rec r;
+        r.name = f[0];
+        r.settings = f[1];
+        r.palette = f[2];
+        r.start = (int)std::strtol(f[3].c_str(), nullptr, 10);
+        r.end = (int)std::strtol(f[4].c_str(), nullptr, 10);
+        r.relRow = (int)std::strtol(f[5].c_str(), nullptr, 10);
+        if (r.end <= r.start) continue;
+        minStart = std::min(minStart, r.start);
+        minRow = std::min(minRow, r.relRow);
+        recs.push_back(std::move(r));
+    }
+    if (recs.empty() || minStart == INT_MAX) return NO;
+
+    int rowCount = (int)_context->GetSequenceElements().GetRowInformationSize();
+    bool any = false;
+    for (const Rec& r : recs) {
+        int targetRow = rowIndex + (r.relRow - minRow);
+        if (targetRow < 0 || targetRow >= rowCount) continue;
+        auto* layer = [self effectLayerForRow:targetRow];
+        if (!layer) continue;
+        int targetStart = startMS + (r.start - minStart);
+        int targetEnd = targetStart + (r.end - r.start);
+        if (targetEnd <= targetStart) continue;
+        Effect* e = layer->AddEffect(0, r.name, r.settings, r.palette,
+                                     targetStart, targetEnd, EFFECT_NOT_SELECTED, false);
+        if (e) {
+            Element* element = layer->GetParentElement();
+            if (element) {
+                _context->RenderEffectForModel(element->GetModelName(),
+                                               targetStart, targetEnd, false);
+            }
+            any = true;
+        }
+    }
+    return any ? YES : NO;
+}
+
+- (BOOL)addPresetGroupNamed:(NSString*)name
+              inGroupAtPath:(NSString*)parentGroupPath {
+    std::string n = name ? std::string([name UTF8String]) : std::string();
+    if (n.empty()) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, parentGroupPath);
+    if (parent == nullptr || parent->HasChildNamed(n)) return NO;
+    mgr.AddGroup(parent, n);
+    return YES;
+}
+
+- (BOOL)renamePresetItemAtPath:(NSString*)path to:(NSString*)newName {
+    std::string n = newName ? std::string([newName UTF8String]) : std::string();
+    if (!path || n.empty()) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([path UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    EffectPresetGroup* parent = item->GetParent();
+    if (parent && parent->FindChildByName(n) != nullptr &&
+        parent->FindChildByName(n) != item) {
+        return NO; // sibling collision
+    }
+    mgr.RenameItem(item, n);
+    return YES;
+}
+
+- (BOOL)deletePresetItemAtPath:(NSString*)path {
+    if (!path) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([path UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    mgr.Remove(item);
+    return YES;
+}
+
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath {
+    if (!fromPath) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([fromPath UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    EffectPresetGroup* dest = ResolveGroup(mgr, toGroupPath);
+    if (dest == nullptr) return NO;
+    // Refuse moving a group into itself or one of its descendants.
+    for (EffectPresetGroup* g = dest; g != nullptr; g = g->GetParent()) {
+        if (g == item) return NO;
+    }
+    if (dest->HasChildNamed(item->GetName())) return NO;
+    mgr.MoveItem(item, dest);
+    return YES;
+}
+
+- (BOOL)importPresetsFromPath:(NSString*)xmlPath
+              intoGroupAtPath:(NSString*)groupPath {
+    if (!xmlPath) return NO;
+    std::string p = [xmlPath UTF8String];
+    ObtainAccessToURL(p, false);
+    if (!FileExists(p)) return NO;
+
+    pugi::xml_document doc;
+    if (!doc.load_file(p.c_str())) return NO;
+
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetGroup* parent = ResolveGroup(mgr, groupPath);
+    if (parent == nullptr) return NO;
+
+    // Accept either a bare <effects> fragment or a full rgbeffects doc
+    // (<xrgb>/<xlights> with an <effects> child).
+    pugi::xml_node effectsNode = doc.child("effects");
+    if (!effectsNode) {
+        pugi::xml_node root = doc.child("xrgb");
+        if (!root) root = doc.child("xlights");
+        if (root) effectsNode = root.child("effects");
+    }
+    if (!effectsNode) return NO;
+    mgr.ImportFromXml(effectsNode, parent);
+    return YES;
+}
+
+- (BOOL)exportPresetsToPath:(NSString*)path {
+    if (!path) return NO;
+    std::string p = [path UTF8String];
+    ObtainAccessToURL(p, true);
+    return _context->GetEffectPresetManager().SaveJsonFile(p) ? YES : NO;
+}
+
+- (BOOL)savePresets {
+    return _context->SaveEffectPresets() ? YES : NO;
 }
 
 @end

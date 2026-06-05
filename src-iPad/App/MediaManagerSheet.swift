@@ -94,6 +94,8 @@ struct MediaManagerContent: View {
     var showsDoneButton: Bool = true
 
     @State private var items: [MediaInventoryItem] = []
+    // MED-5 — the media entry pending a per-item "Remove" confirmation.
+    @State private var removeTarget: MediaInventoryItem?
     @State private var didLoad = false
     @State private var renameTarget: MediaInventoryItem? = nil
     @State private var showingRemoveUnusedConfirm = false
@@ -131,52 +133,7 @@ struct MediaManagerContent: View {
                             }
                         }
                         ForEach(Self.typeOrder, id: \.self) { typeKey in
-                            let group = items.filter { $0.type == typeKey }
-                            if !group.isEmpty {
-                                Section {
-                                    ForEach(group) { item in
-                                        MediaInventoryRow(
-                                            item: item,
-                                            onEmbed: { embedOne(item) },
-                                            onExtract: { extractOne(item) },
-                                            onRename: { beginRename(item) },
-                                            onReplace: { beginReplace(item) })
-                                    }
-                                    // Bulk actions on the section
-                                    // footer — desktop has Embed All
-                                    // / Extract All per type on
-                                    // ManageMediaPanel. Only shown
-                                    // for embeddable types; even
-                                    // then, only when there's
-                                    // something to do.
-                                    if supportsBulk(typeKey) {
-                                        let embeddable = group.filter {
-                                            $0.isEmbeddable && !$0.isEmbedded
-                                        }
-                                        let extractable = group.filter {
-                                            $0.isEmbedded
-                                        }
-                                        if !embeddable.isEmpty {
-                                            Button {
-                                                bulkEmbed(typeKey)
-                                            } label: {
-                                                Label("Embed All (\(embeddable.count))",
-                                                      systemImage: "tray.and.arrow.down")
-                                            }
-                                        }
-                                        if !extractable.isEmpty {
-                                            Button {
-                                                bulkExtract(typeKey)
-                                            } label: {
-                                                Label("Extract All (\(extractable.count))",
-                                                      systemImage: "tray.and.arrow.up")
-                                            }
-                                        }
-                                    }
-                                } header: {
-                                    Text(sectionLabel(typeKey))
-                                }
-                            }
+                            mediaSection(typeKey)
                         }
                     }
                 }
@@ -225,6 +182,23 @@ struct MediaManagerContent: View {
                 set: { if !$0 { removedCount = nil } }
                )) {
             Button("OK", role: .cancel) { removedCount = nil }
+        }
+        .confirmationDialog(
+            "Remove Media?",
+            isPresented: Binding(
+                get: { removeTarget != nil },
+                set: { if !$0 { removeTarget = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: removeTarget
+        ) { target in
+            Button("Remove", role: .destructive) {
+                if viewModel.document.removeMedia(atPath: target.path) { reload() }
+                removeTarget = nil
+            }
+            Button("Cancel", role: .cancel) { removeTarget = nil }
+        } message: { target in
+            Text("Remove \u{201C}\(target.filename)\u{201D} from the sequence. If it is still used by an effect, that effect loses its media until you re-import. Embedded payloads are deleted; external files on disk are not touched.")
         }
         // E-4 relocation picker. `allowedContentTypes` is broad
         // (`.item`) because the user is telling us this IS the
@@ -283,6 +257,47 @@ struct MediaManagerContent: View {
     }
 
     // MARK: - Per-row + bulk embed / extract
+
+    // One media-type section (rows + bulk footer). Extracted from the body so
+    // the List ViewBuilder stays within the Swift type-checker's budget.
+    @ViewBuilder
+    private func mediaSection(_ typeKey: String) -> some View {
+        let group = items.filter { $0.type == typeKey }
+        if !group.isEmpty {
+            Section {
+                ForEach(group) { item in
+                    MediaInventoryRow(
+                        item: item,
+                        onEmbed: { embedOne(item) },
+                        onExtract: { extractOne(item) },
+                        onRename: { beginRename(item) },
+                        onReplace: { beginReplace(item) },
+                        onRemove: { removeTarget = item })
+                }
+                bulkMediaActions(typeKey, group: group)
+            } header: {
+                Text(sectionLabel(typeKey))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func bulkMediaActions(_ typeKey: String, group: [MediaInventoryItem]) -> some View {
+        if supportsBulk(typeKey) {
+            let embeddable = group.filter { $0.isEmbeddable && !$0.isEmbedded }
+            let extractable = group.filter { $0.isEmbedded }
+            if !embeddable.isEmpty {
+                Button { bulkEmbed(typeKey) } label: {
+                    Label("Embed All (\(embeddable.count))", systemImage: "tray.and.arrow.down")
+                }
+            }
+            if !extractable.isEmpty {
+                Button { bulkExtract(typeKey) } label: {
+                    Label("Extract All (\(extractable.count))", systemImage: "tray.and.arrow.up")
+                }
+            }
+        }
+    }
 
     private func embedOne(_ item: MediaInventoryItem) {
         if viewModel.document.embedMedia(atPath: item.path) {
@@ -409,6 +424,7 @@ struct MediaInventoryRow: View {
     let onExtract: () -> Void
     let onRename: () -> Void
     let onReplace: () -> Void
+    let onRemove: () -> Void
 
     var body: some View {
         HStack(spacing: 10) {
@@ -474,6 +490,12 @@ struct MediaInventoryRow: View {
                     }
                     .tint(.purple)
                 }
+            }
+            // MED-5 — forget this media entry (even if still referenced).
+            Button(role: .destructive) {
+                onRemove()
+            } label: {
+                Label("Remove", systemImage: "trash")
             }
         }
     }

@@ -8,7 +8,10 @@
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
 #include <xLightsMain.h>
+#include <xLightsApp.h>
 #include "utils/ExternalHooks.h"
+#include "utils/FileUtils.h"
+#include "render/SequenceMedia.h"
 
 #include <wx/button.h>
 #include <wx/listbox.h>
@@ -253,23 +256,61 @@ void SketchAssistPanel::SelectLastPath()
 
 void SketchAssistPanel::UpdateSketchBackground(const wxString& imagePath, int opacity)
 {
-    if (!wxFileExists(imagePath)) {
+    if (imagePath.IsEmpty()) {
         m_sketchCanvasPanel->clearBackgroundBitmap();
         m_bgImagePath = "";
         return;
     }
 
-    if (imagePath == m_bgImagePath && opacity == m_bitmapAlpha)
+    // Resolve relative paths against the show directory for filesystem files.
+    wxString resolvedPath = wxString(FileUtils::FixFile(
+        xLightsFrame::CurrentDir.ToStdString(), imagePath.ToStdString()));
+    if (resolvedPath.IsEmpty())
+        resolvedPath = imagePath;
+
+    if (resolvedPath == m_bgImagePath && opacity == m_bitmapAlpha)
         return;
 
-    wxImage img(imagePath);
-    if (!img.IsOk())
+    wxImage img;
+
+    if (wxFileExists(resolvedPath)) {
+        img = wxImage(resolvedPath);
+    } else {
+        // Not on disk — load from SequenceMedia (covers embedded images).
+        auto* xl = xLightsApp::GetFrame();
+        if (xl) {
+            auto& media = xl->GetSequenceElements().GetSequenceMedia();
+            auto entry = media.GetImage(imagePath.ToStdString());
+            if (entry && entry->IsOk()) {
+                auto frame = entry->GetFrame(0, false);
+                if (frame && frame->IsOk()) {
+                    int w = frame->GetWidth();
+                    int h = frame->GetHeight();
+                    auto* rgbData = static_cast<unsigned char*>(malloc(w * h * 3));
+                    auto* alphaData = static_cast<unsigned char*>(malloc(w * h));
+                    const uint8_t* src = frame->GetData();
+                    for (int i = 0; i < w * h; ++i) {
+                        rgbData[i * 3 + 0] = src[i * 4 + 0];
+                        rgbData[i * 3 + 1] = src[i * 4 + 1];
+                        rgbData[i * 3 + 2] = src[i * 4 + 2];
+                        alphaData[i]        = src[i * 4 + 3];
+                    }
+                    img = wxImage(w, h, rgbData, alphaData, false);
+                }
+            }
+        }
+    }
+
+    if (!img.IsOk()) {
+        m_sketchCanvasPanel->clearBackgroundBitmap();
+        m_bgImagePath = "";
         return;
+    }
 
     if (!img.HasAlpha())
         img.InitAlpha();
 
-    m_bgImagePath = imagePath;
+    m_bgImagePath = resolvedPath;
     m_bgImage = img;
     m_bitmapAlpha = static_cast<unsigned char>(opacity);
     updateBgImage();
@@ -339,7 +380,7 @@ void SketchAssistPanel::OnButton_ImportSketch(wxCommandEvent& event)
         if (data.contains("bitmapalpha") && data["bitmapalpha"].is_number_integer()) {
             bitmapAlpha = data["bitmapalpha"].get<int>();
         }
-        if (bgImagePath != "" && FileExists(bgImagePath)) {
+        if (!bgImagePath.empty()) {
             UpdateSketchBackground(bgImagePath, bitmapAlpha);
         }
         if (data.contains("sketchdata") && data["sketchdata"].is_string()) {

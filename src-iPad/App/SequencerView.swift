@@ -209,7 +209,15 @@ struct SequencerView: View {
             defaultFilename: saveAsDefaultName
         ) { result in
             if case .success(let url) = result {
-                _ = viewModel.saveSequenceAs(path: url.path)
+                if viewModel.saveSequenceAs(path: url.path) {
+                    // LIFE-1 — the file is already written by the exporter, so
+                    // this is an informational guard: warn (non-blocking) when
+                    // the new location is outside the show / media folders, so
+                    // the user knows it won't be auto-managed with the show.
+                    if !viewModel.document.pathIs(inShowOrMediaFolder: url.path) {
+                        saveAsOutsideWarning = url.path
+                    }
+                }
             }
             saveAsDoc = nil
         }
@@ -221,6 +229,15 @@ struct SequencerView: View {
             Button("OK", role: .cancel) { saveAsError = nil }
         } message: {
             Text(saveAsError ?? "")
+        }
+        .alert("Saved Outside Show Folder",
+               isPresented: Binding(
+                get: { saveAsOutsideWarning != nil },
+                set: { if !$0 { saveAsOutsideWarning = nil } }
+               )) {
+            Button("OK", role: .cancel) { saveAsOutsideWarning = nil }
+        } message: {
+            Text("The sequence was saved outside the show folder and configured media folders. It won't be automatically found or packaged with the show. Consider saving it inside the show folder.")
         }
         .alert("Output to Lights",
                isPresented: Binding(
@@ -266,6 +283,9 @@ struct SequencerView: View {
     @State private var saveAsDoc: XLSequenceExportDoc? = nil
     @State private var saveAsDefaultName: String = "Sequence.xsq"
     @State private var saveAsError: String? = nil
+    // LIFE-1 — non-nil holds the path of a Save-As that landed outside the
+    // show / media folders, driving an informational warning alert.
+    @State private var saveAsOutsideWarning: String? = nil
     @State private var outputAlertMessage: String? = nil
 
     // MARK: - Sequence Settings (E-3)

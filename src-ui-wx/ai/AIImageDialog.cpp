@@ -327,7 +327,10 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
         auto generatorProps = generator->GetProperties();
         if (!generatorProps.empty()) {
             aiBase::AIImageGenerator* gen = generator;
-            auto* grid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 60),
+            // Height scales with the number of rows so multi-property generators
+            // (e.g. OpenAI: Model + Size) aren't clipped.
+            int const gridHeight = static_cast<int>(generatorProps.size()) * 28 + 12;
+            auto* grid = new wxPropertyGrid(this, wxID_ANY, wxDefaultPosition, wxSize(-1, gridHeight),
                                             wxPG_SPLITTER_AUTO_CENTER | wxPG_DEFAULT_STYLE);
             grid->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, true);
             PropertyGridBuilder::Append(grid, generatorProps);
@@ -337,6 +340,12 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
                     [gen](const std::string& id, int v)                { gen->SetProperty(id, v); },
                     [gen](const std::string& id, const std::string& v) { gen->SetProperty(id, v); });
             });
+            // ParametersSizer is a 2-column grid (label | control). Put a label
+            // in column 0 and the property grid in column 1 — the growable
+            // column — so the dropdown gets full width instead of being squished
+            // into the narrow label column.
+            auto* optionsLabel = new wxStaticText(this, wxID_ANY, _T("Options"));
+            ParametersSizer->Add(optionsLabel, 1, wxALL | wxALIGN_CENTER_VERTICAL, 5);
             ParametersSizer->Add(grid, 1, wxALL | wxEXPAND, 5);
         }
 

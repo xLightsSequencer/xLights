@@ -30,6 +30,7 @@
 //*)
 
 #include <map>
+#include <set>
 #include <vector>
 #include "Color.h"
 #include <wx/arrstr.h>
@@ -396,12 +397,16 @@ public:
     bool _hideUnmapped = false;
     void SetHideUnmapped(bool h) { _hideUnmapped = h; }
 
+    bool GetSortSubmodelsByName() const { return _sortSubmodelsByName; }
+    void SetSortSubmodelsByName(bool sort) { _sortSubmodelsByName = sort; Resort(); }
+
     void SetCtrl(wxDataViewCtrl* ctrl) { _ctrl = ctrl; }
 
 private:
     xLightsImportModelNodePtrArray   m_children;
     wxDataViewItemArray _pendingAdditions;
     wxDataViewCtrl* _ctrl = nullptr;
+    bool _sortSubmodelsByName = false;
 };
 
 class StashedMapping
@@ -618,6 +623,8 @@ protected:
         static const wxWindowID ID_MNU_CLEARALL;
         static const long ID_MNU_AUTOMAPSELECTED_AVAIL;
         static const wxWindowID ID_MNU_ADD_EMPTY_GROUP;
+        static const wxWindowID ID_MNU_SORT_SUBMODELS_BY_NAME;
+        static const wxWindowID ID_MNU_EDIT_DISPLAY_ELEMENTS;
 
 	private:
         wxString FindTab(wxString &line);
@@ -655,6 +662,8 @@ protected:
         void ClearAll();
         void ClearSelected();
         void AddEmptyGroup();
+        void EditDisplayElements();
+        void AddNewMasterViewItems(std::set<std::string>& snapshot);
         void ShowAllMapped();
         void OnPopupTimingTracks(wxCommandEvent& event);
         void OnPopupModels(wxCommandEvent& event);

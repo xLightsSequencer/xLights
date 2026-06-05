@@ -10,10 +10,38 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.11  June ??, 2026
-    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols
-                                 per port (e.g. DMX-Open on port 1 and LOR on port 2).
 
+2026.11  June ??, 2026
+    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port
+    -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
+    -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
+    -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
+    -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
+                                 abstraction, using AVFoundation on macOS where possible (incl. bit-exact
+                                 uncompressed .mov via AVAssetWriter passthrough at any size, alpha-preserving)
+                                 and FFmpeg for AVI/MPEG-4
+    -enh (dkulp)                 Add "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless,
+                                 much smaller than uncompressed RGB, decodes on all platforms
+    -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
+    -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
+    -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the
+                                 model list from the server and present model settings as a dropdown,
+                                 including a model picker in the AI image generation dialog.
+    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
+                                 are added as DDP with auto-size/auto-layout.
+    -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
+    -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
+    -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
+    -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
+    -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
+    -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
+                                 (div-by-zero produced NaN paint coordinates).
+    -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
+                                 fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
+    -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
+                                 deleting combo can't repaint with a stale property (top macOS crash).
+                                 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
@@ -22,7 +50,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 FPP discovery now uses mDNS on Windows (native windns.h DNS-SD) in
                                  addition to the existing broadcast/multicast ping.
     -enh (heffneil)              Replace Model: new dialog replaces multiple models at once with a
-                                 filtered, checkbox list of targets (fixes #4462).
+                                 filtered, checkbox list of targets (#4462).
     -enh (dkulp)                 Convert Incompatible Videos now encodes near-lossless when the source was a
                                  high-quality video, near lossles.
     -enh (heffneil)              Show Face/State/SubModel/Node count badges on the Model pane
@@ -36,14 +64,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (heffneil)              Layout copy/paste: smarter placement of the duplicate and only the new copy
                                  is selected after paste (#6192).
     -enh (derwin12)              Select Effects panel results are now sorted by time (#6389).
-    -enh (derwin12)              FPP Connect upload now also calls SetInputUniversesBridge so inputs match
-                                 the Controller upload path (#2747).
+    -enh (derwin12)              FPP Connect upload inputs match the way Controller upload works (#2747).
     -enh (derwin12)              Import Mapping switched back to checkboxes for lyric tracks; remembers the
                                  show-timeline setting (#6403).
     -enh (jessica12ryan)         RenderProgressDialog now stays on top of other windows (#6404).
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
+    -bug (derwin12)              Fix media relative paths when using temp showfolder
     -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
                                  start-channel references instead of resetting them to absolute channels.
     -bug (derwin12)              Package Log Files: fix duplicate primary log in zip; rolled log now included.
@@ -73,14 +101,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix 3D Objects (Image/Mesh/Gridlines/Terrain/Ruler) handle picking on the
                                  Layout tab — selecting, dragging, and center-handle tool cycling now work
                                  again after the DragSession refactor.
-    -bug (derwin12)              Renaming a preview now updates all pick lists and the View menu (fixes #6430).
+    -bug (derwin12)              Renaming a preview now updates all pick lists and the View menu (#6430).
     -bug (derwin12)              Fix pivot point for rotating multiple objects (#6418)
     -bug (dkulp)                 Fix drag-and-drop of Video/Pictures/Glediator/Shader files onto the effect
                                  grid losing the filename
     -bug (dkulp)                 macOS: Video effect now renders rawvideo MOV files (rgb24/bgr24/rgba/bgra)
     -bug (derwin12)              Fix imports for both old and new xmodel formats (Layout import, Node Select
                                  Grid, SubModels dialog) (#6411).
-    -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397, #6400).
+    -bug (derwin12)              Re-Map Custom Model now handles the new xmodel format (#6397).
     -bug (derwin12)              PolyLine division-by-zero produced NaN coords that crashed the macOS depth
                                  sort (#6407).
     -bug (derwin12)              Fix the model preview for PolyLine with Drops (#6208).
@@ -91,13 +119,11 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (derwin12)              Shockwave effect: end time no longer exceeds the effect end time (#6398).
     -bug (derwin12)              Text effect: fix multi-line "color per word" rendering (#6393).
     -bug (derwin12)              Shape effect: fix browse-button enable/disable logic (#6390).
-    -bug (derwin12)              SubModels dialog: extra comma appearing after the wxSplit→Split switch
-                                 because of empty-string handling differences (#6377).
+    -bug (derwin12)              SubModels dialog: extra comma appearing (#6377).
     -bug (derwin12)              Don't flag embedded images as missing in the sequence checker (#6378).
     -bug (derwin12)              Color picker swatch panel: full repaint on resize fixes artifacts (#6376).
     -bug (AlexB)                 Keep individual start channels when importing models (#6384).
-    -bug (AlexB)                 Fix vendor catalog download issues — surface errors and use longer timeouts
-                                 for the large-file fetches (#6381).
+    -bug (AlexB)                 Fix vendor catalog download issues (#6381).
     -bug (dkulp)                 Avoid creating and destroying wxCursor objects on every mouse move across
                                  the grid canvases, color/value curve dialogs, and assist panels.
     -bug (dkulp)                 macOS: fix waveform cursor memory leak (cursors were never released).
@@ -236,13 +262,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                Fix EXC_BAD_ACCESS in MetalRenderBufferComputeData::bufferResized when a model
                                 has nodes with zero coordinates. Empty-coord nodes now use the same -1 sentinel
                                 as out-of-bounds single-coord nodes instead of dereferencing past end of vector.
-    -bug (derwin12)			    Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
-    -bug (derwin12)			    Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
-	-bug (derwin12)				Some WMA music files were hard crashing. (#6306)
-	-bug (derwin12) 			Restored the missing assets alert (#6276)
-	-bug (derwin12)				Fix in the lua script for batch rendering
-	-bug (derwin12)				Imported sequences placed media in inocrrect folder if sequence was not previously saved
-	-bug (derwin12)				Fix download model search (#6252)
+    -bug (derwin12)             Validate values for fadein/fadeout and add check for bad values in Check Sequence (#6297)
+    -bug (derwin12)             Fix Dimensions showing incorrectly in 2D vs 3D (#6294)
+	  -bug (derwin12)             Some WMA music files were hard crashing. (#6306)
+	  -bug (derwin12)             Restored the missing assets alert (#6276)
+	  -bug (derwin12)             Fix in the lua script for batch rendering
+	  -bug (derwin12)             Imported sequences placed media in inocrrect folder if sequence was not previously saved
+	  -bug (derwin12)             Fix download model search (#6252)
     -bug (dkulp)                Circles effect: GPU (Metal) path was clearing non-circle pixels to (0,0,0,0), wiping
                                 the buffer's pre-existing contents. Now leaves background pixels untouched, matching
                                 the CPU and ISPC paths.

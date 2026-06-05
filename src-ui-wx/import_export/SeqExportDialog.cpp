@@ -93,8 +93,11 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("HLS, Hinkle Lighte Sequencer *.hlsnc"));
     ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.mp4"));
-    ChoiceFormat->Append(_("Uncompressed Video, *.mp4"));
+    ChoiceFormat->Append(_("High Quality Compressed Video, *.mp4"));
+#ifndef __APPLE__
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
+#endif
+    ChoiceFormat->Append(_("ProRes 4444 Video, *.mov"));
     ChoiceFormat->Append(_("Lossless RGB Video, *.mov"));
     ChoiceFormat->Append(_("Minleon Network Effects Controller, *.bin"));
     ChoiceFormat->Append(_("GIF Image, *.gif"));
@@ -116,12 +119,13 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
 {
     if (isgroup) {
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.mp4")));
-        ChoiceFormat->Delete(ChoiceFormat->FindString(_("Uncompressed Video, *.mp4")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("High Quality Compressed Video, *.mp4")));
         int idx = ChoiceFormat->FindString(_("Uncompressed Video, *.avi"));
         if (idx != -1) {
             ChoiceFormat->Delete(idx);
         }
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Lossless RGB Video, *.mov")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("ProRes 4444 Video, *.mov")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Minleon Network Effects Controller, *.bin")));
     }
     ChoiceFormat->Delete(ChoiceFormat->FindString(_("LOR. *.lms or *.las")));
@@ -197,11 +201,13 @@ void SeqExportDialog::SetDefaultName()
         name.SetExt("fseq");
     } else if (fmt == "Compressed Video, *.mp4") {
         name.SetExt("mp4");
-    } else if (fmt == "Uncompressed Video, *.mp4") {
+    } else if (fmt == "High Quality Compressed Video, *.mp4") {
         name.SetExt("mp4");
     } else if (fmt == "Uncompressed Video, *.avi") {
         name.SetExt("avi");
     } else if (fmt == "Lossless RGB Video, *.mov") {
+        name.SetExt("mov");
+    } else if (fmt == "ProRes 4444 Video, *.mov") {
         name.SetExt("mov");
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         name.SetExt("bin");
@@ -246,10 +252,12 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Uncompressed Video, *.mp4") {
+    } else if (fmt == "High Quality Compressed Video, *.mp4") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Lossless RGB Video, *.mov") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Lossless RGB Video (*.mov)|*.mov", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "ProRes 4444 Video, *.mov") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "ProRes 4444 Video (*.mov)|*.mov", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Minleon Network Effects Controller, *.bin") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Minleon Networks Effects Controller (*.bin)|*.bin", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "GIF Image, *.gif") {

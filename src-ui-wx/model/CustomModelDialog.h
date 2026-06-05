@@ -72,6 +72,9 @@ class CustomModelDialog: public wxDialog
     void UpdatePreview(int width, int height, int depth, const std::vector<std::vector<std::vector<int>>>& modelData);
     void UpdatePreview();
     void ValidateWindow();
+    void UpdateBkgOffsetLabel();
+    void UpdateBkgOffsetVisibility();
+    void ApplyBkgOffsetDelta(float dx, float dy);
 	void CreateSubmodelFromLayer(int layer);
 	void CreateMinimalSubmodelFromLayer(int layer);
 	void CreateSubmodelFromColumn(int column);
@@ -141,6 +144,13 @@ class CustomModelDialog: public wxDialog
 		ImageFilePickerCtrl* FilePickerCtrl1;
 		wxBitmapButton* BitmapButtonCustomBkgrd;
 		wxBitmapButton* BitmapButtonCustomCopy;
+		wxButton* BtnBkgDown;
+		wxButton* BtnBkgLeft;
+		wxButton* BtnBkgReset;
+		wxButton* BtnBkgRight;
+		wxButton* BtnBkgUp;
+		wxStaticText* StaticTextBkgOffset;
+		wxStaticText* StaticTextBkgVert;
 		wxBitmapButton* BitmapButtonCustomCut;
 		wxBitmapButton* BitmapButtonCustomPaste;
 		wxButton* ButtonCancel;
@@ -195,6 +205,11 @@ class CustomModelDialog: public wxDialog
 		static const long ID_FILEPICKERCTRL1;
 		static const long ID_SLIDER_CUSTOM_LIGHTNESS;
 		static const long ID_BITMAPBUTTON_CUSTOM_BKGRD;
+		static const long ID_BUTTON_BKG_LEFT;
+		static const long ID_BUTTON_BKG_RIGHT;
+		static const long ID_BUTTON_BKG_UP;
+		static const long ID_BUTTON_BKG_DOWN;
+		static const long ID_BUTTON_BKG_RESET;
 		static const long ID_CHECKBOX_AUTO_NUMBER;
 		static const long ID_CHECKBOX_AUTO_INCREMENT;
 		static const long ID_SPINCTRL_NEXT_CHANNEL;
@@ -208,9 +223,12 @@ class CustomModelDialog: public wxDialog
 		//*)
 
 		std::string background_image;
-		wxImage* bkg_image;
+		wxImage* bkg_image = nullptr;
         bool bkgrd_active;
         int lightness;
+        float _bkg_offset_x = 0.0f;
+        float _bkg_offset_y = 0.0f;
+        wxStaticText* StaticTextBkgLabel = nullptr;
         bool autonumber = false;
         bool autoincrement = false;
         int next_channel = 1;
@@ -251,6 +269,11 @@ class CustomModelDialog: public wxDialog
 		void OnButton_ImportFromControllerClick(wxCommandEvent& event);
 		void OnCheckBox_Show_DuplicatesClick(wxCommandEvent& event);
 		void OnCheckBox_OutputToLightsClick(wxCommandEvent& event);
+		void OnBtnBkgLeft(wxCommandEvent& event);
+		void OnBtnBkgRight(wxCommandEvent& event);
+		void OnBtnBkgUp(wxCommandEvent& event);
+		void OnBtnBkgDown(wxCommandEvent& event);
+		void OnBtnBkgReset(wxCommandEvent& event);
 		//*)
 
 	    void OnTimer1Trigger(wxTimerEvent& event);

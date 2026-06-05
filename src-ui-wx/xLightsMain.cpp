@@ -3824,12 +3824,12 @@ bool xLightsFrame::ExportVideoPreview(wxString const& path)
         if (audioMgr != nullptr) {
             videoExporter.setGetAudioCallback(audioLambda);
         }
-        auto videoLambda = [=, this](AVFrame* f, uint8_t* buf, int bufSize, unsigned frameIndex) {
+        auto videoLambda = [=, this](VideoWriterFrame& frame, unsigned frameIndex) {
             const SequenceData::FrameData& frameData(this->_seqData[frameIndex]);
             const uint8_t* data = frameData[0];
             housePreview->captureNextFrame(width * contentScaleFactor, height * contentScaleFactor);
             housePreview->Render(frameIndex * this->_seqData.FrameTime(), data, false);
-            return housePreview->getFrameForExport(width * contentScaleFactor, height * contentScaleFactor, f, buf, bufSize);
+            return housePreview->getFrameForExport(frame);
         };
         videoExporter.setGetVideoCallback(videoLambda);
 
@@ -5568,8 +5568,18 @@ void xLightsFrame::ValidateEffectAssets()
     }
 
     std::string relocated;
-    for (const auto& [orig, resolved] : _sequenceElements.GetSequenceMedia().GetImageRelocations()) {
-        relocated += orig + " -> " + resolved + "\n";
+    {
+        constexpr int MAX_RELOC_DISPLAY = 15;
+        const auto& relocations = _sequenceElements.GetSequenceMedia().GetImageRelocations();
+        int shown = 0;
+        for (const auto& [orig, resolved] : relocations) {
+            if (shown >= MAX_RELOC_DISPLAY) {
+                relocated += "... and " + std::to_string((int)relocations.size() - MAX_RELOC_DISPLAY) + " more (not shown)\n";
+                break;
+            }
+            relocated += orig + " -> " + resolved + "\n";
+            ++shown;
+        }
     }
 
     if ((!_renderMode && !_checkSequenceMode) || _promptBatchRenderIssues) {
@@ -7174,6 +7184,12 @@ void xLightsFrame::SetShowBaseShowFolder(bool b)
         _outputManager.SetAutoUpdateFromBaseShowDir(false);
         if (changed)
             _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "SetShowBaseShowFolder");
+
+        _effectPresetsInitialized = false;
+        if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+            EffectTreeDlg->InitItems(_effectPresetManager);
+            _effectPresetsInitialized = true;
+        }
     }
     ValidateWindow();
 }
@@ -9003,6 +9019,12 @@ void xLightsFrame::SetBaseShowDir(const wxString& baseShowDir)
         StaticText_BaseShowDir->SetLabel(baseShowDir);
     }
     _outputModelManager.AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "MoveSelectedControllerRows");
+
+    _effectPresetsInitialized = false;
+    if (EffectTreeDlg != nullptr && m_mgr->GetPane("EffectPresets").IsShown()) {
+        EffectTreeDlg->InitItems(_effectPresetManager);
+        _effectPresetsInitialized = true;
+    }
 }
 
 void xLightsFrame::OnButton_ChangeBaseShowDirClick(wxCommandEvent& event)

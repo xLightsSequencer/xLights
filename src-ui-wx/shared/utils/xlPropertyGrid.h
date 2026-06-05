@@ -34,15 +34,25 @@ public:
     }
     
     void HideDeletingComboPopups() {
-        if (!m_deletedEditorObjects.empty()) {
-            for (auto o : m_deletedEditorObjects) {
-                wxComboCtrl *combo = dynamic_cast<wxComboCtrl*>(o);
-                if (combo) {
+        // HidePopup() pumps events (the popup's focus-loss drives an
+        // OnMeasureItem/OnComboItemPaint repaint, and an idle/clear can re-enter
+        // here). Re-entering while we iterate m_deletedEditorObjects would mutate
+        // the vector mid-walk and re-hide a half-destroyed combo -- the exact
+        // "deleted while painted" hazard this class exists to avoid. Guard it.
+        if (m_hidingComboPopups) {
+            return;
+        }
+        m_hidingComboPopups = true;
+        for (auto o : m_deletedEditorObjects) {
+            wxComboCtrl *combo = dynamic_cast<wxComboCtrl*>(o);
+            if (combo) {
+                if (combo->IsPopupShown()) {
                     combo->HidePopup();
-                    combo->Hide();
                 }
+                combo->Hide();
             }
         }
+        m_hidingComboPopups = false;
     }
     void OnIdle(wxIdleEvent& event) {
         HideDeletingComboPopups();
@@ -50,15 +60,9 @@ public:
     }
     virtual void Clear() override {
         HideDeletingComboPopups();
-        if (!m_deletedEditorObjects.empty()) {
-            for (auto o : m_deletedEditorObjects) {
-                wxComboCtrl *combo = dynamic_cast<wxComboCtrl*>(o);
-                if (combo) {
-                    combo->HidePopup();
-                    combo->Hide();
-                }
-            }
-        }
         wxPropertyGrid::Clear();
     }
+
+private:
+    bool m_hidingComboPopups = false;
 };

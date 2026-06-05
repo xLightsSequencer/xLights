@@ -369,8 +369,8 @@ SubModelsDialog::SubModelsDialog(wxWindow* parent, OutputManager* om) :
     Connect(ID_NOTEBOOK1, wxEVT_NOTEBOOK_PAGE_CHANGED, (wxObjectEventFunction)& SubModelsDialog::OnTypeNotebookPageChanged);
     Connect(wxID_ANY, EVT_SMDROP, (wxObjectEventFunction)&SubModelsDialog::OnDrop);
     Connect(ID_GRID1, wxEVT_GRID_CELL_CHANGED,(wxObjectEventFunction)&SubModelsDialog::OnNodesGridCellChange);
-    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
-    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancel);
+    Connect(wxID_ANY, wxEVT_CLOSE_WINDOW, (wxObjectEventFunction)&SubModelsDialog::OnClose);
+    Connect(wxID_CANCEL, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnCancelButton);
     Connect(wxID_OK, wxEVT_BUTTON, (wxObjectEventFunction)&SubModelsDialog::OnOK);
     Connect(ID_TEXTCTRL_NAME, wxEVT_COMMAND_TEXT_ENTER, (wxObjectEventFunction)&SubModelsDialog::ApplySubmodelName);
 
@@ -530,13 +530,23 @@ void SubModelsDialog::OnSubbufferSize(wxSizeEvent& event)
     subBufferPanel->Refresh();
 }
 
-void SubModelsDialog::OnCancel(wxCloseEvent& event)
+void SubModelsDialog::ConfirmClose()
 {
     if (wxMessageBox("Are you sure you want to close the Submodels window?", "Are you sure?", wxYES_NO | wxCENTER, this) == wxNO) {
         return;
     }
     StopAnimation();
     SubModelsDialog::EndDialog(wxID_CANCEL);
+}
+
+void SubModelsDialog::OnClose(wxCloseEvent& event)
+{
+    ConfirmClose();
+}
+
+void SubModelsDialog::OnCancelButton(wxCommandEvent& event)
+{
+    ConfirmClose();
 }
 
 void SubModelsDialog::OnOK(wxCommandEvent& event)

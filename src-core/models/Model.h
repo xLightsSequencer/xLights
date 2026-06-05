@@ -544,6 +544,8 @@ public:
     virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     {}
     virtual bool SupportsWiringView() const = 0;
+    virtual bool SupportsSwapStartEnd() const { return false; }
+    virtual void SwapStartEnd() {}
     size_t GetChannelCoords(std::vector<std::string>& choices);
     static bool ParseFaceElement(const std::string& str, std::vector<xlPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<xlPoint>& first_xy);

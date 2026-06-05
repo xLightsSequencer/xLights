@@ -31,8 +31,8 @@ protected:
     wxBitmap CreateImage( int w, int h, double scaleFactor );
 
 private:
-    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt, double scaleFactor) const;
-    [[nodiscard]] wxPoint NormalizedToUI2(const wxPoint2DDouble& pt, double scaleFactor) const;
+    [[nodiscard]] wxPoint2DDouble NormalizedToUI(const wxPoint2DDouble& pt, float bmpWidth, float bmpHeight) const;
+    [[nodiscard]] wxPoint NormalizedToUI2(const wxPoint2DDouble& pt, float bmpWidth, float bmpHeight) const;
 
     wxString(*GetStringFunction)();
     std::string mSettings;

@@ -294,6 +294,16 @@ struct ContentView: View {
             PackageSequenceSheet()
                 .environment(viewModel)
         }
+        // Tools → Export House Preview. Hosted at the root (like Package
+        // Sequence) so the option + progress sheet survives navigation and
+        // the final save hand-off runs against the root scene.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingExportHousePreview },
+            set: { viewModel.showingExportHousePreview = $0 }
+        )) {
+            ExportHousePreviewSheet()
+                .environment(viewModel)
+        }
         // H-6 / T-2 Tools → View Log. Same hosting rationale as
         // Package Sequence; the viewer is independent of any
         // particular open sequence.

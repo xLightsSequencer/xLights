@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -181,6 +182,38 @@ void PolyLineModel::DeleteHandle(int handle_) {
     }
     GetModelScreenLocation().DeleteHandle(handle);
     InitModel();
+}
+
+void PolyLineModel::SwapStartEnd() {
+    if (GetModelScreenLocation().IsLocked() || IsFromBase()) return;
+    screenLocation.SwapStartEnd();
+
+    std::reverse(_polyLineSizes.begin(), _polyLineSizes.end());
+    std::reverse(_polyLineSegDropSizes.begin(), _polyLineSegDropSizes.end());
+
+    // After reversing, what was the trailing edge of segment i becomes the
+    // leading edge of the corresponding reversed segment, and vice versa.
+    int n = (int)_polyLineSizes.size();
+    std::vector<float> newLead(n), newTrail(n);
+    for (int i = 0; i < n; ++i) {
+        int j = n - 1 - i;
+        newLead[j] = _polyTrailOffset[i];
+        newTrail[j] = _polyLeadOffset[i];
+    }
+    _polyLeadOffset = newLead;
+    _polyTrailOffset = newTrail;
+
+    std::reverse(_polyCorner.begin(), _polyCorner.end());
+    for (auto& corner : _polyCorner) {
+        if (corner == "Leading Segment")
+            corner = "Trailing Segment";
+        else if (corner == "Trailing Segment")
+            corner = "Leading Segment";
+    }
+
+    Nodes.clear();
+    InitModel();
+    IncrementChangeCount();
 }
 
 void PolyLineModel::InitModel()

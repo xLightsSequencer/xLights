@@ -278,6 +278,7 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS;
         static const long ID_PREVIEW_FLIP_HORIZONTAL;
         static const long ID_PREVIEW_FLIP_VERTICAL;
+        static const long ID_PREVIEW_SWAP_START_END;
         static const long ID_SET_CENTER_OFFSET;
 
 	public:

@@ -79,6 +79,7 @@ END_EVENT_TABLE()
 
 #include "graphics/xlMesh.h"
 #include "effects/OpenGLShaders.h"
+#include "media/VideoWriter.h"
 
 
 
@@ -688,7 +689,15 @@ void xlGLCanvas::FinishDrawing(xlGraphicsContext* ctx, bool display) {
     delete ctx;
 }
 
-bool xlGLCanvas::getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize) {
+bool xlGLCanvas::getFrameForExport(VideoWriterFrame& frame) {
+    // OpenGL has no zero-copy native surface; always fill the CPU RGB buffer.
+    const int w = frame.width;
+    const int h = frame.height;
+    uint8_t *buffer = frame.rgbBuffer;
+    const int bufferSize = frame.rgbBufferSize;
+    if (buffer == nullptr) {
+        return false;
+    }
     bool padWidth = (w % 2);
     bool padHeight = (h % 2);
     int widthWithPadding = padWidth ? (w + 1) : w;

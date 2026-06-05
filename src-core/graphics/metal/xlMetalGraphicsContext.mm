@@ -111,25 +111,32 @@ void xlMetalGraphicsContext::Commit(bool displayOnScreen, id<MTLBuffer> captureB
         @autoreleasepool {
             [encoder endEncoding];
             if (!displayOnScreen) {
-                int w = [target width];
-                int h = [target height];
-                int bytesPerRow = w * 4;
-                int bufferSize = bytesPerRow * h;
-                
-                MTLSize size = MTLSizeMake(w, h, 1);
-                id <MTLBlitCommandEncoder> blitCommandEncoder = [buffer blitCommandEncoder];
-                [blitCommandEncoder setLabel:@"CopyToCaptureBuffer"];
-                [blitCommandEncoder copyFromTexture:target
-                                        sourceSlice:0
-                                        sourceLevel:0
-                                       sourceOrigin:{0,0,0}
-                                         sourceSize:size
-                                           toBuffer:captureBuffer
-                                  destinationOffset:0
-                             destinationBytesPerRow:bytesPerRow
-                           destinationBytesPerImage:bufferSize];
-                [blitCommandEncoder endEncoding];
-                
+                // Offscreen render. When a capture buffer is supplied, blit the
+                // target into it for CPU readback. When it's nil, the caller
+                // wants the rendered `target` texture itself (e.g. to feed it to
+                // a CoreImage->CVPixelBuffer encode) — just commit + wait so the
+                // texture is finished, no readback copy.
+                if (captureBuffer != nil) {
+                    int w = [target width];
+                    int h = [target height];
+                    int bytesPerRow = w * 4;
+                    int bufferSize = bytesPerRow * h;
+
+                    MTLSize size = MTLSizeMake(w, h, 1);
+                    id <MTLBlitCommandEncoder> blitCommandEncoder = [buffer blitCommandEncoder];
+                    [blitCommandEncoder setLabel:@"CopyToCaptureBuffer"];
+                    [blitCommandEncoder copyFromTexture:target
+                                            sourceSlice:0
+                                            sourceLevel:0
+                                           sourceOrigin:{0,0,0}
+                                             sourceSize:size
+                                               toBuffer:captureBuffer
+                                      destinationOffset:0
+                                 destinationBytesPerRow:bytesPerRow
+                               destinationBytesPerImage:bufferSize];
+                    [blitCommandEncoder endEncoding];
+                }
+
                 [buffer commit];
                 [buffer waitUntilCompleted];
             } else {

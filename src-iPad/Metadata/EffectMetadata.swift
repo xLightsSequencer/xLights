@@ -46,6 +46,13 @@ struct PropertyMetadata: Codable {
     let lockable: Bool?
     let options: [String]?
     let dynamicOptions: String?
+    /// FX-4b: action-dependent label text. When present, the row's
+    /// label is chosen by the live value of `property` (a sibling
+    /// controlling property) via `map`, falling back to `default` (or
+    /// the static `label`). Mirrors desktop custom-panel `SetLabel`
+    /// calls (e.g. AdjustPanel renaming "Value 1" → "Adjust by:" per
+    /// Action). Additive + optional, so desktop ignores it until wired.
+    let dynamicLabel: DynamicLabelMetadata?
     let separator: Bool?
     let suppressIfDefault: Bool?
     let fileFilter: String?
@@ -80,7 +87,7 @@ struct PropertyMetadata: Codable {
         case id, label, tooltip, type, controlType
         case defaultValue = "default"
         case min, max, divisor, valueCurve, vcMin, vcMax, lockable
-        case options, dynamicOptions, separator, suppressIfDefault
+        case options, dynamicOptions, dynamicLabel, separator, suppressIfDefault
         case fileFilter, fileMessage, settingPrefix
         case fullWidth, expandToFill, growable, checkboxLabel, description
         case minX, maxX, defaultX, minY, maxY, defaultY
@@ -178,7 +185,20 @@ struct VisibilityRuleMetadata: Codable {
         let greaterThan: AnyCodable?
         let startsWith: String?
         let any: [String]?
+        /// FX-14: compound AND. When present, the condition is met iff
+        /// EVERY sub-condition is met (each sub-condition is itself a
+        /// WhenCondition keyed on its own `property`). Lets a rule gate
+        /// on two properties at once (e.g. Type == "Level Shape" AND
+        /// Shape ∈ {…}) — which a single-property `when` cannot express.
+        let allOf: [WhenCondition]?
     }
+}
+
+/// FX-4b: value-driven label override for a property row.
+struct DynamicLabelMetadata: Codable {
+    let property: String            // controlling sibling property id
+    let map: [String: String]       // controlling value → label text
+    let defaultLabel: String?       // fallback when no map entry matches
 }
 
 /// Type-erased Codable value. Used for fields whose JSON type can be string,

@@ -23,6 +23,7 @@
 #include "render/IRenderProgressSink.h"
 #include "render/ViewpointMgr.h"
 #include "effects/EffectManager.h"
+#include "effects/EffectPresetManager.h"
 #include "outputs/OutputManager.h"
 #include "models/ModelManager.h"
 #include "models/OutputModelManager.h"
@@ -31,6 +32,7 @@
 #include "lyrics/PhonemeDictionary.h"
 #include "utils/xlImage.h"
 
+#include <atomic>
 #include <list>
 #include <map>
 #include <memory>
@@ -117,18 +119,77 @@ public:
     EffectManager& GetEffectManager() override { return _effectManager; }
     OutputModelManager* GetOutputModelManager() override { return &_outputModelManager; }
 
+    // PRE-1 — persistent effect preset library. Mirrors
+    // xLightsFrame::_effectPresetManager. Loaded at show-folder load
+    // (JSON file with XML-effects-node fallback) and saved back to
+    // `<showDir>/xlights_effectpresets.json` (+ .jbkp backup) so
+    // presets round-trip with the desktop format. The bridge funnels
+    // every preset mutation through this manager.
+    EffectPresetManager& GetEffectPresetManager() { return _effectPresetManager; }
+    // Persist the preset library to disk. Writes the backup copy first
+    // (best-effort), then the main JSON file. Returns false on write
+    // failure of the main file.
+    bool SaveEffectPresets();
+
     bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
     TimingElement* AddTimingElement(const std::string& name,
                                     const std::string& subType = "") override;
     void SuspendAutoSave(bool) override {}
-    bool IsLowDefinitionRender() const override { return true; }
+    // Opt-in app preference (default OFF = full-definition render). See the
+    // .cpp — reads the `render.lowDefinition` UserDefaults key the SwiftUI
+    // toggle writes. Defaulting off matches desktop and keeps final FSEQ output
+    // full-resolution; on is a deliberate memory-relief escape hatch.
+    bool IsLowDefinitionRender() const override;
 
     // Rendering
     void RenderAll();
+    // TOOLS-1b: drop all on-disk render-cache items for this sequence
+    // (mirrors desktop xLightsFrame::OnMenuItem_PurgeRenderCacheSelected).
+    void PurgeRenderCache() { _renderCache.Purge(&_sequenceElements, true); }
+    // TOOLS-1: drop the shared downloaded-file cache (vendor catalog,
+    // palette/model images, shader/model downloads). Frees disk/iCloud
+    // quota; the next catalog/download repopulates. Defined in the .cpp
+    // so the CachedFileDownloader header stays out of this header.
+    void PurgeDownloadCache();
     void SetModelColors(int frameMS);
     SequenceData& GetSequenceData() { return _sequenceData; }
+
+    // Set while a house-preview video export renders offscreen on a background
+    // thread. The live on-screen preview skips drawing so it doesn't race the
+    // export over per-model node colours (both call SetModelColors).
+    void SetExportInProgress(bool v) { _exportInProgress.store(v); }
+    bool IsExportInProgress() const { return _exportInProgress.load(); }
     bool IsRenderDone();
+
+    // Live house-preview camera snapshot. The on-screen house-preview bridge
+    // publishes its 2D/3D cameras + active mode + canvas size here on every
+    // draw; the offscreen video exporter reads the latest so the rendered
+    // movie matches the user's current pan / rotation / 2D-3D framing (the
+    // 2D pan is in window pixels, so the exporter rescales it to the export
+    // resolution — see XLHousePreviewVideoExporter). canvasW/H are the live
+    // pane's drawable size at snapshot time. _hpCamValid stays false until the
+    // first house-preview draw, in which case the exporter falls back to a
+    // reset/fit camera.
+    void SetHousePreviewCamera(const PreviewCamera& cam2d, const PreviewCamera& cam3d,
+                               bool is3d, int canvasW, int canvasH) {
+        _hpCamera2d = cam2d;
+        _hpCamera3d = cam3d;
+        _hpCameraIs3d = is3d;
+        _hpCameraCanvasW = canvasW;
+        _hpCameraCanvasH = canvasH;
+        _hpCamValid = true;
+    }
+    bool GetHousePreviewCamera(PreviewCamera& cam2d, PreviewCamera& cam3d,
+                               bool& is3d, int& canvasW, int& canvasH) const {
+        if (!_hpCamValid) return false;
+        cam2d = _hpCamera2d;
+        cam3d = _hpCamera3d;
+        is3d = _hpCameraIs3d;
+        canvasW = _hpCameraCanvasW;
+        canvasH = _hpCameraCanvasH;
+        return true;
+    }
 
     // True when the most recent render had at least one job aborted
     // (via SignalAbort — typically from HandleMemoryWarning or an
@@ -599,6 +660,7 @@ private:
     std::unique_ptr<ModelManager> _modelManager;
     std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
+    EffectPresetManager _effectPresetManager;
     SequenceElements _sequenceElements;
     SequenceViewManager _viewsManager;
     std::unique_ptr<SequenceFile> _sequenceFile;
@@ -619,6 +681,16 @@ private:
     long _display2DGridSpacing = 100;
     bool _display2DBoundingBox = false;
     bool _layoutMode3D = true;
+    std::atomic<bool> _exportInProgress{false};
+
+    // Live house-preview camera snapshot (see SetHousePreviewCamera). Published
+    // by the on-screen house-preview bridge, read by the offscreen exporter.
+    PreviewCamera _hpCamera2d{false};
+    PreviewCamera _hpCamera3d{true};
+    bool _hpCameraIs3d = false;
+    int _hpCameraCanvasW = 0;
+    int _hpCameraCanvasH = 0;
+    bool _hpCamValid = false;
 
     std::string _backgroundImage;
     int _backgroundBrightness = 100;
@@ -703,7 +775,24 @@ private:
 
     // Ensures the render engine + its pool are ready before using them
     // from a preview render path (before `RenderAll` has been called).
+    // Also re-applies the render-cache mode app preference on every call
+    // so the Folder Config picker takes effect without an app restart.
     void EnsureRenderEngine();
+
+    // Reads the `render.cacheMode` app preference (written by the Folder
+    // Config → Rendering picker via @AppStorage) and returns one of the
+    // RenderCache::Enable values: "Disabled" | "Locked Only" | "Enabled".
+    // Defaults to "Disabled": the render cache trades memory + disk to
+    // speed re-renders, and both are scarce on iPad — desktop defaults to
+    // the milder "Locked Only", but iPad starts fully off.
+    std::string ReadRenderCacheMode() const;
+
+    // FSEQ-1 — FSEQ export format preferences, written by the Folder
+    // Config → Rendering pickers via @AppStorage. Compression returns
+    // one of "zstd" | "zlib" | "none" (default "zstd"); level is the
+    // zstd compression level 1..22 (default 2, ignored for zlib/none).
+    std::string ReadFseqCompression() const;
+    int ReadFseqCompressionLevel() const;
 
     // Re-allocates `_sequenceData` only when the sequence's shape
     // (numChannels / numFrames / frameTime) has actually changed.

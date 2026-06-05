@@ -15,6 +15,7 @@
 #include <thread>
 
 #include <wx/progdlg.h>
+#include <wx/choicdlg.h>
 #include <wx/utils.h>
 #include <wx/tokenzr.h>
 #include <wx/clipbrd.h>
@@ -3178,6 +3179,14 @@ void xLightsFrame::ResetPanelDefaultSettings(const std::string& effect, const Mo
     EffectsPanel1->SetDefaultEffectValues(effect);
 }
 void xLightsFrame::ResetAllPanelDefaultSettings() {
+    // CloseSequence() runs on paths (e.g. show-folder setup) that fire before
+    // the sequencer tab is built, leaving these panel pointers null. Calling
+    // through a null EffectsPanel1 faults inside SetDefaultEffectValues (its
+    // own guard can't help once 'this' is null) — guard at the call site, as
+    // the rest of CloseSequence() already does for its panels.
+    if (EffectsPanel1 == nullptr || blendingPanel == nullptr || bufferPanel == nullptr || colorPanel == nullptr) {
+        return;
+    }
     EffectsPanel1->SetDefaultEffectValues(); // set ALL the panel defaults
     
     // Now do the explicits to set to what we want for the default state
@@ -4108,9 +4117,33 @@ void xLightsFrame::ImportTimingElement()
             } else if (file1.GetExt().Lower() == "msq") {
                 CurrentSeqXmlFile->ProcessLSPTiming( filenames, this);
             } else if (file1.GetExt().Lower() == "xml" || file1.GetExt().Lower() == "xsq") {
-                CurrentSeqXmlFile->ProcessXLightsTiming( filenames, this);
+                for (const auto& fn : filenames) {
+                    std::vector<std::string> trackNames = CurrentSeqXmlFile->GetXLightsTimingTrackNames(fn, this);
+                    if (trackNames.empty()) continue;
+                    wxArrayString choices;
+                    for (const auto& n : trackNames) choices.Add(wxString(n));
+                    wxMultiChoiceDialog dlg(this, "Select timing tracks to import", "Import Timing Tracks", choices);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxArrayInt sel = dlg.GetSelections();
+                        std::vector<int> indices;
+                        for (size_t s = 0; s < sel.size(); ++s) indices.push_back(sel[s]);
+                        CurrentSeqXmlFile->ProcessXLightsTiming(fn, indices, this);
+                    }
+                }
             } else if (file1.GetExt().Lower() == "tim") {
-                CurrentSeqXmlFile->ProcessVixen3Timing(filenames, this);
+                for (const auto& fn : filenames) {
+                    std::vector<std::string> trackNames = CurrentSeqXmlFile->GetVixen3TimingTrackNames(fn);
+                    if (trackNames.empty()) continue;
+                    wxArrayString choices;
+                    for (const auto& n : trackNames) choices.Add(wxString(n));
+                    wxMultiChoiceDialog dlg(this, "Select timing tracks to import", "Import Timing Tracks", choices);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxArrayInt sel = dlg.GetSelections();
+                        std::vector<int> indices;
+                        for (size_t s = 0; s < sel.size(); ++s) indices.push_back(sel[s]);
+                        CurrentSeqXmlFile->ProcessVixen3Timing(fn, indices, this);
+                    }
+                }
             } else if (file1.GetExt().Lower() == "json") {
                 CurrentSeqXmlFile->ProcessElevenLabsTimingFiles(filenames, this);
             } else {

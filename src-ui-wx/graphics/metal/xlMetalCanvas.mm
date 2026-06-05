@@ -13,13 +13,7 @@
 
 #include "wx/osx/private.h"
 #include "../xlGraphicsBase.h"
-
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/avutil.h>
-}
+#include "media/VideoWriter.h"
 
 BEGIN_EVENT_TABLE(xlMetalCanvas, wxMetalCanvas)
     EVT_SIZE(xlMetalCanvas::Resized)
@@ -358,26 +352,33 @@ void xlMetalCanvas::captureNextFrame(int w, int h) {
 }
 
 
-extern void VideoToolboxCreateFrame(CIImage *image, AVFrame *f, id<MTLDevice> d);
+extern void VideoToolboxRenderToPixelBuffer(CIImage *image, CVPixelBufferRef buf, id<MTLDevice> d);
 
-bool xlMetalCanvas::getFrameForExport(int w, int h, AVFrame *f, uint8_t *buffer, int bufferSize) {
+bool xlMetalCanvas::getFrameForExport(VideoWriterFrame& frame) {
     if (captureBuffer == nullptr || captureBuffer->buffer == nil) {
         return true;
     }
     static CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    if (f->format == AV_PIX_FMT_VIDEOTOOLBOX) {
+
+    if (frame.nativeSurface != nullptr) {
+        // Zero-copy path: render the capture texture straight into the
+        // encoder-provided CVPixelBuffer (FFmpeg hw-frames pool or
+        // AVAssetWriter pixel-buffer pool).
         @autoreleasepool {
             NSMutableDictionary *dict = [[NSMutableDictionary alloc]init];
             [dict setObject:(__bridge id)colorSpace  forKey:kCIImageColorSpace];
-            
+
             CIImage *image = [CIImage imageWithMTLTexture:captureBuffer->target options:dict];
             CIImage *i2 = [image imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
-                        
-            VideoToolboxCreateFrame(i2, f, getMTLDevice());
+
+            VideoToolboxRenderToPixelBuffer(i2, (CVPixelBufferRef)frame.nativeSurface, getMTLDevice());
         }
         return false;
     }
+    const int w = frame.width;
+    const int h = frame.height;
+    uint8_t *buffer = frame.rgbBuffer;
+    const int bufferSize = frame.rgbBufferSize;
     // Fail fast if the caller-provided RGB buffer is too small.
     size_t requiredSize = (size_t)w * (size_t)h * 3;
     if (buffer == nullptr || bufferSize < 0 || (size_t)bufferSize < requiredSize) {

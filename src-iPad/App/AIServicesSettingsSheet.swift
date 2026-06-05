@@ -27,6 +27,10 @@ struct AIServicesSettingsSheet: View {
     @State private var testStatus: TestStatus = .idle
     @State private var testServiceName: String = ""
 
+    // Name of the service whose model list is currently being fetched, so the
+    // matching "Refresh model list" row can show a spinner / disable itself.
+    @State private var refreshingModelsFor: String? = nil
+
     private enum TestStatus: Equatable {
         case idle
         case running
@@ -86,6 +90,10 @@ struct AIServicesSettingsSheet: View {
                     id: \.propertyId) { prop in
                 row(for: prop)
             }
+
+            if service.supportsModelListing {
+                refreshModelsRow(for: service)
+            }
         } header: {
             HStack {
                 Text(service.name)
@@ -127,6 +135,22 @@ struct AIServicesSettingsSheet: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    @ViewBuilder
+    private func refreshModelsRow(for service: XLAIServiceInfo) -> some View {
+        Button {
+            refreshModels(for: service.name)
+        } label: {
+            HStack {
+                Label("Refresh model list", systemImage: "arrow.clockwise")
+                Spacer()
+                if refreshingModelsFor == service.name {
+                    ProgressView().controlSize(.small)
+                }
+            }
+        }
+        .disabled(refreshingModelsFor != nil)
     }
 
     // MARK: - Per-property row
@@ -301,6 +325,19 @@ struct AIServicesSettingsSheet: View {
                 if prop.kind == .string || prop.kind == .secret {
                     workingValues[prop.propertyId] = prop.stringValue
                 }
+            }
+        }
+    }
+
+    private func refreshModels(for serviceName: String) {
+        guard refreshingModelsFor == nil else { return }
+        refreshingModelsFor = serviceName
+        XLAIServices.shared().refreshModels(forService: serviceName) { _ in
+            Task { @MainActor in
+                refreshingModelsFor = nil
+                // Re-snapshot so the model rows pick up the freshly fetched
+                // Choice list (they switch from text fields to pickers).
+                reload()
             }
         }
     }

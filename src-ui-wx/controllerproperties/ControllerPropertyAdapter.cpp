@@ -392,6 +392,13 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
         std::list<std::string> variants = ControllerCaps::GetVariants(_controller.GetType(), _controller.GetVendor(), *it);
         _controller.SetVariant(variants.front());
 
+        // When switching to a player-only model default Active to xLights Only.
+        // The WORK_NETWORK_SETTING_CHANGE queued below refreshes the list.
+        ControllerCaps* newCaps = ControllerCaps::GetControllerConfig(&_controller);
+        if (newCaps && newCaps->IsPlayerOnly() && _controller.GetActive() == Controller::ACTIVESTATE::ACTIVE) {
+            _controller.SetActive("xLights Only");
+        }
+
         wxPGProperty* mp = propertyGrid->GetProperty("Model");
         wxPGProperty* vp = propertyGrid->GetProperty("Variant");
         AddVariants(vp);
@@ -463,6 +470,16 @@ void ControllerPropertyAdapter::ValidateProperties(OutputManager* om, wxProperty
             }
         }
         if (!isValid || !om->IsControllerNameUnique(name)) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+
+    p = propGrid->GetPropertyByName("Active");
+    if (p != nullptr) {
+        ControllerCaps* caps = ControllerCaps::GetControllerConfig(&_controller);
+        if (caps && caps->IsPlayerOnly() && _controller.GetActive() == Controller::ACTIVESTATE::ACTIVE) {
             p->SetBackgroundColour(*wxRED);
         } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));

@@ -15,8 +15,11 @@ NOT a port — it's a second UI that shares the same wx-free C++ core
 (`src-core/`), render engine, effect manager, sequence file / elements,
 and audio manager as the desktop app. iPad-specific code lives in
 `src-iPad/` (SwiftUI views + view model, ObjC++ bridges,
-Metal canvases). The iPad app is pre-release and tracked in
-[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) + `plans/`.
+Metal canvases). The iPad app has **shipped to the App Store**; it is
+now in desktop-parity / ongoing-update mode (beyond MVP). Status and the
+per-theme parity plans live in
+[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) +
+[`plans/ipad-parity/`](plans/ipad-parity/).
 
 ### Desktop ↔ iPad parity (important)
 
@@ -37,10 +40,12 @@ PR whenever possible. Concretely:
   `EffectLayer` / `Element` / `SequenceElements`, the iPad bridge
   usually needs a matching wrapper. Follow the
   `NS_SWIFT_NAME(…)` convention already in `XLSequenceDocument.h`.
-- **Features iPad can't support** (e.g. controller setup, layout
-  editor, FFmpeg-only audio filters) are fine to leave desktop-only
-  — track them in the "Deferred / out of MVP" section of
-  `iPad-xLights-Plan.md` so we know why.
+- **Features iPad can't support** (e.g. FFmpeg-only audio filters,
+  raw serial/DMX output, proprietary-firmware controller uploads) are
+  fine to leave desktop-only — record them in the relevant
+  [`plans/ipad-parity/`](plans/ipad-parity/) theme doc's
+  *Infeasible / restricted* section (they roll up into the
+  Infeasible / Restricted lists in `00-overview.md`) with the reason.
 - **Features iPad has that desktop doesn't** (rare so far — two-
   finger marquee, long-press menus, trackpad `allowedScrollTypesMask`)
   are fine; they're touch-idioms without desktop equivalents.
@@ -91,6 +96,20 @@ msbuild -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 ```
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
+### CMake (cross-platform)
+In addition to the platform-native projects above, there is now a top-level
+**`CMakeLists.txt`** driving a cmake-based build (primarily used on Windows as
+an alternative to the `.sln`/`.vcxproj` files, generating into an out-of-source
+build directory).
+```bash
+cmake -S . -B build            # Configure
+cmake --build build            # Build
+```
+Source files are discovered automatically via `file(GLOB_RECURSE ...)` over the
+existing source directories, so most new files are picked up on the next
+configure with no manual edit — see [Adding New Source Files](#adding-new-source-files)
+for when a CMakeLists.txt edit *is* required.
+
 ### wxSmith Generated Code
 Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `src-ui-wx/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
 
@@ -111,8 +130,9 @@ existing directories. Note that Windows/Linux builds intentionally
 do not compile `src-iPad/`, so new iPad files never need to land in
 the `.cbp` / `.vcxproj` files.
 
-The top-level **`CMakeLists.txt`** (used for the `cmake_vs/` cmake-based
-VS build) uses `file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
+The top-level **`CMakeLists.txt`** (the cmake-based build, see
+[CMake (cross-platform)](#cmake-cross-platform)) uses
+`file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
 SRC_CORE ...)` to discover source files automatically from the
 directories listed in the glob patterns (e.g., `src-ui-wx/color/*.cpp`,
 `src-core/effects/*.cpp`). New files added inside those directories
@@ -129,7 +149,7 @@ glob patterns (e.g., a new top-level subdirectory) require a new
 
 Keep description summary very brief (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** The iPad app has not shipped yet and its changelog would only clutter the desktop release notes. Instead, keep `iPad-xLights-Plan.md` (next to `README.txt`) up to date: move items from "pending" to "done" as they land, and record any landed-fix details (root cause, follow-ups) inside the matching phase entry. Changes that touch shared `src-core/` code *and* user-visible desktop behavior still belong in `README.txt`; the iPad-only side goes in the plan.
+**Do NOT add iPad-specific changes to `README.txt`.** `README.txt` is the **desktop** release-notes file; the iPad app tracks its own changes separately, so iPad-only entries would just clutter it. Instead, keep the iPad plans up to date: update the matching feature's status in the relevant `plans/ipad-parity/` theme doc's parity scorecard (→ ✅ / 🟡) as work lands. Git history is the iPad changelog — there's no running landed-log to maintain. Changes that touch shared `src-core/` code *and* user-visible **desktop** behavior still belong in `README.txt`; the iPad-only side goes in the iPad plans.
 
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
@@ -235,8 +255,11 @@ Key patterns:
   via `XLGridMetalBridge` → `xlStandaloneMetalCanvas` →
   `xlMetalGraphicsContext`. The iPad grid is Metal-only; the
   desktop grid uses `xlGraphicsBase`'s OpenGL/Metal switch.
-- **Sub-plans**: `plans/phase-b-grid-parity.md` tracks the gap
-  analysis against desktop behavior. 
+- **Plans**: [`plans/ipad-parity/`](plans/ipad-parity/) holds the
+  per-theme parity scorecards (desktop/iPad status with `file:line`
+  evidence) — start at [`README.md`](plans/ipad-parity/README.md), and
+  see `00-overview.md` for the cross-theme map, the P1/P2 roadmap, and
+  reverse-parity candidates.
 
 ### Data Formats
 - `.xsq` — Sequence files (XML-based, can contain embedded images as base64)

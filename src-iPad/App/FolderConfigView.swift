@@ -18,6 +18,22 @@ struct FolderConfigView: View {
     @State private var autoUpdateFromBase: Bool = false
     @State private var updateResult: BaseDirUpdateResult?
     @State private var reselectPrompt: ReselectPrompt?
+    // App-wide render preference (default OFF = full-definition render). Not
+    // per-sequence — `iPadRenderContext::IsLowDefinitionRender()` reads this
+    // same `render.lowDefinition` key via CFPreferences.
+    @AppStorage("render.lowDefinition") private var lowDefinitionRender: Bool = false
+    // App-wide render-cache mode (default "Disabled"). Not per-sequence —
+    // `iPadRenderContext::ReadRenderCacheMode()` reads this same `render.cacheMode`
+    // key via CFPreferences and feeds it to `RenderCache::Enable`. Values must
+    // match exactly: "Disabled" | "Locked Only" | "Enabled".
+    @AppStorage("render.cacheMode") private var renderCacheMode: String = "Disabled"
+
+    // FSEQ-1 — `iPadRenderContext::ReadFseqCompression()` /
+    // `ReadFseqCompressionLevel()` read these same keys via CFPreferences and
+    // feed `FSEQFile::createFSEQFile`. Compression values must match exactly:
+    // "zstd" | "zlib" | "none"; level is the zstd level 1..22.
+    @AppStorage("fseq.compression") private var fseqCompression: String = "zstd"
+    @AppStorage("fseq.compressionLevel") private var fseqCompressionLevel: Int = 2
 
     enum PickerMode: Identifiable {
         case showFolder
@@ -137,6 +153,32 @@ struct FolderConfigView: View {
                 }
 
                 Section {
+                    Toggle(isOn: $lowDefinitionRender) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Low Definition Render")
+                            Text("When on, large matrix/sphere models render effects into reduced-resolution buffers (which look blocky on high-resolution props) to lower memory use. Leave OFF for full-resolution output — the default, matching the desktop. Turn it on only if very large shows run out of memory. Applies when a sequence is opened.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Picker("Render Cache", selection: $renderCacheMode) {
+                            Text("Disabled").tag("Disabled")
+                            Text("Locked Only").tag("Locked Only")
+                            Text("Enabled").tag("Enabled")
+                        }
+                        Text("Caches rendered effect frames to disk so re-renders are faster. This costs both memory and disk, which are limited on iPad, so it's OFF by default. \"Locked Only\" caches just the effects you've locked (the desktop default); \"Enabled\" caches every supported effect. Takes effect on the next render.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Rendering")
+                } footer: {
+                    Text("App-wide settings (not saved in the sequence).")
+                }
+
+                Section {
                     Toggle("Save FSEQ on save", isOn: $fseqEnabled)
                     if fseqEnabled {
                         if let path = fseqFolderPath {
@@ -159,6 +201,23 @@ struct FolderConfigView: View {
                             Button("Choose FSEQ Folder…") {
                                 pickerMode = .fseqFolder
                             }
+                        }
+
+                        // FSEQ-1 — compression format for written FSEQ files.
+                        VStack(alignment: .leading, spacing: 6) {
+                            Picker("Compression", selection: $fseqCompression) {
+                                Text("Zstd (default)").tag("zstd")
+                                Text("Zlib").tag("zlib")
+                                Text("None").tag("none")
+                            }
+                            if fseqCompression == "zstd" {
+                                Stepper(value: $fseqCompressionLevel, in: 1...22) {
+                                    Text("Zstd Level: \(fseqCompressionLevel)")
+                                }
+                            }
+                            Text("Compression shrinks the FSEQ at some render-time cost. Zstd is fastest and the desktop default (level 1 = fast/larger, 22 = slow/smaller); Zlib is slightly smaller but slower; None is uncompressed. Takes effect on the next save/render.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 } header: {

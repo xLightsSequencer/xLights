@@ -443,6 +443,7 @@ public:
     bool IsSequenceDataValid() const
     { return _seqData.IsValidData(); }
     std::string GetPresetIconFilename(const std::string& preset) const;
+    std::string GetPresetIconFilename(const std::string& preset, const std::string& dir) const;
     void CreatePresetIcons();
     void ClearSequenceData();
     void LoadAudioData(SequenceFile& xml_file);
@@ -1589,6 +1590,7 @@ public:
     OutputManager* GetOutputManager() { return &_outputManager; };
     OutputModelManager* GetOutputModelManager() override { return&_outputModelManager; }
     void WriteGIFForPreset(const std::string& preset);
+    void WriteGIFForPreset(const std::string& preset, EffectPresetManager& manager, const std::string& presetDir);
 
     // Render effects into a list of xlImage frames. Used for preset GIF generation
     // and shader preview thumbnails. The model, sequence data, and elements must
@@ -1603,6 +1605,8 @@ public:
     Model* GetPresetModel() { EnsurePresetModel(); return _presetModel; }
     SequenceData& GetPresetSequenceData() { return _presetSequenceData; }
     SequenceElements& GetPresetSequenceElements() { return _presetSequenceElements; }
+    SequenceData& GetSeqData() { return _seqData; }
+    const SequenceData& GetSeqData() const { return _seqData; }
 
 private:
 
@@ -1610,7 +1614,7 @@ private:
                                 SeqDataType *dataBuf, int startAddr, int modelSize,
                                 bool v2 = false); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed); //.avi file
+        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality = false, bool forceProRes = false);
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
@@ -2074,6 +2078,7 @@ public:
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
+    BufferPanel* GetBufferPanel() const { return bufferPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
     void ValidatePanels();

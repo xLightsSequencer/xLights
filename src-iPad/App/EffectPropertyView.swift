@@ -15,6 +15,15 @@ struct EffectPropertyView: View {
     /// for the (rare) call sites that don't yet plumb a state through.
     var ruleDisabled: Bool = false
 
+    /// FX-4b: when non-nil, replaces the static `property.label` for this
+    /// row — used for action-dependent labels (computed by the parent,
+    /// which has the controlling sibling property's value).
+    var displayLabelOverride: String? = nil
+
+    /// The label to display: the dynamic override when present, else the
+    /// metadata's static label.
+    private var shownLabel: String { displayLabelOverride ?? property.label }
+
     private var settingKey: String { property.settingKey(prefix: metadataPrefix) }
     private var defaultValueString: String { property.defaultAsString() }
 
@@ -109,10 +118,12 @@ struct EffectPropertyView: View {
                                     currentPath: rawValue,
                                     onChoose: { writeValue($0) },
                                     onClear: { writeValue("") })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "fontpicker":
             FontpickerPropertyView(property: property,
                                     currentDesc: rawValue,
                                     onChange: { writeValue($0) })
+                .propertyContextMenu(property: property, prefix: metadataPrefix)
         case "point2d":
             Point2DPropertyView(property: property,
                                   metadataPrefix: metadataPrefix)
@@ -286,7 +297,7 @@ struct EffectPropertyView: View {
 
         return VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
-                Text(property.label)
+                Text(shownLabel)
                     .font(.caption)
                 Spacer()
                 // Editable value field — users can tap to type a precise

@@ -76,6 +76,11 @@ typedef NS_ENUM(NSInteger, XLAIPropertyKind) {
 @property (nonatomic, readonly) BOOL available;
 // True if any capability is currently enabled.
 @property (nonatomic, readonly) BOOL enabled;
+// True if the service can list its models from the server (OpenAI-style
+// GET /v1/models). When YES the UI can offer a "Refresh model list" action
+// — see -refreshModelsForService:completion: — after which the model
+// properties come back as XLAIPropertyKindChoice instead of free-text.
+@property (nonatomic, readonly) BOOL supportsModelListing;
 // Capabilities the service supports, as XLAICapability* strings (see below).
 @property (nonatomic, readonly, copy) NSArray<NSString*>* capabilities;
 @property (nonatomic, readonly, copy) NSArray<XLAIServiceProperty*>* properties;
@@ -129,6 +134,16 @@ extern NSString* const XLAICapabilitySpeech2Text;
     NS_SWIFT_NAME(setBoolProperty(_:value:));
 - (void)setIntProperty:(NSString*)propertyId value:(NSInteger)value
     NS_SWIFT_NAME(setIntProperty(_:value:));
+
+// Force-refresh the model list for the named service (OpenAI-style
+// GET /v1/models). The service must report supportsModelListing == YES.
+// The network request runs on a utility queue; completion fires on the
+// main queue with the fetched model ids (empty on failure / none found).
+// After completion, call allServices() again — the service's model
+// properties will now be XLAIPropertyKindChoice populated with these ids.
+- (void)refreshModelsForService:(NSString*)serviceName
+                     completion:(void (^)(NSArray<NSString*>* models))completion
+    NS_SWIFT_NAME(refreshModels(forService:completion:));
 
 // Test the named service by calling aiBase::TestLLM() (which sends a
 // "Hello" prompt). Network call runs on a utility queue; completion

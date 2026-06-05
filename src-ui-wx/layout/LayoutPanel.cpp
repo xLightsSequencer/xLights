@@ -480,6 +480,7 @@ const long LayoutPanel::ID_PREVIEW_LAYOUT_DXF_EXPORT = wxNewId();
 const long LayoutPanel::ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_HORIZONTAL = wxNewId();
 const long LayoutPanel::ID_PREVIEW_FLIP_VERTICAL = wxNewId();
+const long LayoutPanel::ID_PREVIEW_SWAP_START_END = wxNewId();
 const long LayoutPanel::ID_SET_CENTER_OFFSET = wxNewId();
 const long LayoutPanel::ID_TEXTCTRL_MODEL_FILTER = wxNewId();
 
@@ -6185,7 +6186,10 @@ void LayoutPanel::AddSingleModelOptionsToBaseMenu(wxMenu &menu) {
         menu.AppendSeparator();
         menu.Append(ID_PREVIEW_FLIP_HORIZONTAL, "Flip Horizontal")->Enable(!selectedBaseObject->IsFromBase());
         menu.Append(ID_PREVIEW_FLIP_VERTICAL, "Flip Vertical")->Enable(!selectedBaseObject->IsFromBase());
-        
+        if (model->SupportsSwapStartEnd()) {
+            menu.Append(ID_PREVIEW_SWAP_START_END, "Swap Start/End")->Enable(!selectedBaseObject->IsFromBase() && !selectedBaseObject->IsLocked());
+        }
+
         if ((selectedObjectCnt == 1) && (modelPreview->GetModels().size() > 1) && !selectedBaseObject->IsFromBase()) {
             menu.Append(ID_PREVIEW_REPLACEMODEL, "Replace Model(s) With This Model...");
         }
@@ -6728,6 +6732,16 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
+        }
+    } else if (event.GetId() == ID_PREVIEW_SWAP_START_END) {
+        if (editing_models) {
+            Model* md = dynamic_cast<Model*>(selectedBaseObject);
+            if (md != nullptr && md->SupportsSwapStartEnd() && !md->IsLocked()) {
+                CreateUndoPoint("SingleModel", md->name);
+                md->SwapStartEnd();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+                                                              "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_SWAP_START_END");
+            }
         }
     } else if (is_3d) {
         long loadIdx = event.GetId() - ID_PREVIEW_CAMERA_LOAD_BASE;
@@ -7504,7 +7518,6 @@ void LayoutPanel::SelectModelInTree(Model* modelToSelect, bool preserveFilter) {
 
                 PlatformHandleSelectionChanged();
                 TreeListViewModels->EnsureVisible(item);
-                TreeListViewModels->GetView()->SetFocus();
                 break;
             }
         }
@@ -9811,12 +9824,21 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         } else {
             objects_panel->PreviewObjectFlipH();
         }
-    }
-    else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
+    } else if (event.GetId() == ID_PREVIEW_FLIP_VERTICAL) {
         if (editing_models) {
             PreviewModelFlipV();
         } else {
             objects_panel->PreviewObjectFlipV();
+        }
+    } else if (event.GetId() == ID_PREVIEW_SWAP_START_END) {
+        if (editing_models) {
+            Model* md = dynamic_cast<Model*>(selectedBaseObject);
+            if (md != nullptr && md->SupportsSwapStartEnd() && !md->IsLocked()) {
+                CreateUndoPoint("SingleModel", md->name);
+                md->SwapStartEnd();
+                xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
+                                                              "LayoutPanel::OnModelsPopup::ID_PREVIEW_SWAP_START_END");
+            }
         }
     }
 }
@@ -10065,7 +10087,8 @@ void LayoutPanel::ImportModelsFromRGBEffects()
         }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE |
                                                       OutputModelManager::WORK_RELOAD_ALLMODELS |
-                                                      OutputModelManager::WORK_RELOAD_MODELLIST, "LayoutPanel::ImportModelsFromRGBEffects",
+                                                      OutputModelManager::WORK_RELOAD_MODELLIST |
+                                                      OutputModelManager::WORK_FOCUS_MODELTREE, "LayoutPanel::ImportModelsFromRGBEffects",
                                                       nullptr, nullptr, firstImported);
     }
 }
@@ -11142,11 +11165,8 @@ bool LayoutPanel::HandleLayoutKeyBinding(wxKeyEvent& event) {
     if ((!event.ControlDown() && !event.CmdDown() && !event.AltDown()) ||
         (k == 'A' && (event.ControlDown() || event.CmdDown()) && !event.AltDown())) {
         // Let Control + A through
-        // Just a regular key ... If current focus is an input control then we need to not process this.
-        // Exclude the model tree view: it is not a text input, so layout bindings should still fire
-        // when a model was selected from the layout canvas (which programmatically moves focus there).
+        // Just a regular key ... If current focus is a control then we need to not process this
         if (dynamic_cast<wxControl*>(event.GetEventObject()) != nullptr &&
-            event.GetEventObject() != TreeListViewModels->GetView() &&
             (k < 128 || k == WXK_NUMPAD_END || k == WXK_NUMPAD_HOME || k == WXK_NUMPAD_INSERT || k == WXK_HOME || k == WXK_END || k == WXK_NUMPAD_SUBTRACT || k == WXK_NUMPAD_DECIMAL)) {
             return false;
         }

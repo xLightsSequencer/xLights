@@ -96,7 +96,11 @@ void MovingHeadDimmerPanel::OnMovingHeadPaint(wxPaintEvent& /*event*/)
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,1.0f)), NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)));
     pdc.DrawLine(NormalizedToUI2(wxPoint2DDouble(1.0f,0.0f)), NormalizedToUI2(wxPoint2DDouble(0.0f,0.0f)));
 
-    if (timingTrack_ != nullptr) {
+    // endTimeMs_ defaults to startTimeMs_ (both 0) and SetTimingTrack() can run
+    // without SetEffectTimeRange(), so the divisor below can be zero. A zero
+    // window would make xpos NaN; (int)NaN yields garbage coords that crash
+    // wxDC::DrawLine (Windows GDI access violation). Skip the markers instead.
+    if (timingTrack_ != nullptr && endTimeMs_ > startTimeMs_) {
         pdc.SetPen(*wxBLUE_PEN);
         if (timingTrack_->GetEffectLayerCount() > 0 ) {
             EffectLayer* el = timingTrack_->GetEffectLayer(0);

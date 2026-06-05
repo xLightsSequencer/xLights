@@ -59,6 +59,7 @@ public:
     static const uint32_t WORK_RELOAD_MODELLIST = 0x4000;
     static const uint32_t WORK_REDRAW_LAYOUTPREVIEW = 0x8000;
     static const uint32_t WORK_UPDATE_NETWORK_PROPERTIES = 0x10000;
+    static const uint32_t WORK_FOCUS_MODELTREE = 0x20000;
 
     // Composite work constants for common multi-flag patterns
 
