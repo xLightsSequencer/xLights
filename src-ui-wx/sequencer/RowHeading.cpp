@@ -1742,9 +1742,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             if (el != nullptr && el->GetEffectCount() > 0) {
                 SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
 
-                if (ssm.HasRegions()) {
+                if (ssm.GetViewCount() > 0 || ssm.AnyViewHasRegions()) {
                     int result = wxMessageBox(
-                        "This will replace existing song structure regions. Continue?",
+                        "This will replace existing song structure views and regions. Continue?",
                         "Create Song Regions", wxYES_NO | wxICON_QUESTION, this);
                     if (result != wxYES) {
                         return;
