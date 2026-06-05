@@ -441,9 +441,14 @@ void VideoEffect::Render(RenderBuffer &buffer, std::string filename,
         bool vwidthEq = width == cache->_openedWidth;
         bool vheightEq = height == cache->_openedHeight;
         if (!vwidthEq || !vheightEq) {
-            // need to close and reopen video reader to the new size ... this is inefficient ... but lots of work to do to change video reader size dynamically
-            delete _videoreader;
-            _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+            // Try to retarget the existing reader to the new size first — recreating
+            // the AVURLAsset on every size change leaks ~48-byte FigAsset entries
+            // into MediaToolbox's process-global cache. Fall back to delete+new
+            // when the impl can't resize in place (FFmpeg today).
+            if (!_videoreader->Resize(width, height)) {
+                delete _videoreader;
+                _videoreader = new VideoReader(filename, width, height, aspectratio, false, true);
+            }
             cache->_openedWidth = width;
             cache->_openedHeight = height;
         }

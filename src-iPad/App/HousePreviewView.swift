@@ -9,10 +9,47 @@ import SwiftUI
 final class PreviewSettings {
     var is3D: Bool
     var showViewObjects: Bool
+    /// J-2 — Layout Editor overlay toggles. House / Model previews
+    /// don't touch these. Defaults are unset so the bridge's first
+    /// draw can seed from `xlights_rgbeffects.xml`.
+    var showLayoutGrid: Bool
+    var showLayoutBoundingBox: Bool
+    /// J-2 — Layout Editor snap-to-grid for drag-to-move. Off by
+    /// default so unaware users don't get unexpected stair-stepping.
+    var snapToGrid: Bool
+    /// J-2 — first-pixel highlight (cyan dot on each model's node 0).
+    /// Off by default; mirrors desktop's `_showFirstPixel`.
+    var showFirstPixel: Bool
+    /// J-2 (touch UX) — Layout Editor toolbar state. Replace
+    /// desktop's held-key modifiers (Shift / Ctrl).
+    /// `axisTool` is one of: "translate", "rotate", "scale",
+    /// "xy_trans", "elevate".
+    var axisTool: String
+    var uniformModifier: Bool
+    /// 0 = Free, 1 = X, 2 = Y, 3 = Z (matches MSLAXIS enum).
+    var lockAxis: Int
+    /// J-2 (touch UX) — model-name labels rendered as a SwiftUI
+    /// overlay above the Metal canvas. Off by default.
+    var showModelLabels: Bool
+    /// J-2 — Layout Editor info-line under each model label
+    /// (controller name + connection range, or start channel when
+    /// no controller is assigned). Mirrors desktop's
+    /// `_showModelInfo`. Requires `showModelLabels = true` to
+    /// surface; off by default.
+    var showModelInfo: Bool
 
     init(is3DDefault: Bool, showViewObjectsDefault: Bool) {
         self.is3D = is3DDefault
         self.showViewObjects = showViewObjectsDefault
+        self.showLayoutGrid = false
+        self.showLayoutBoundingBox = false
+        self.snapToGrid = false
+        self.showFirstPixel = false
+        self.axisTool = "translate"
+        self.uniformModifier = false
+        self.lockAxis = 0
+        self.showModelLabels = false
+        self.showModelInfo = false
     }
 }
 
@@ -70,8 +107,8 @@ struct HousePreviewView: View {
     }
 
     private func refreshLayoutGroups() {
-        layoutGroups = viewModel.document.layoutGroups() ?? ["Default"]
-        activeLayoutGroup = viewModel.document.activeLayoutGroup() ?? "Default"
+        layoutGroups = viewModel.document.layoutGroups()
+        activeLayoutGroup = viewModel.document.activeLayoutGroup()
         // Adopt desktop's last-used 3D/2D preference from
         // `<settings><LayoutMode3D>` on each show-folder load. Users
         // can still flip the toggle mid-session; we don't write back.
@@ -95,6 +132,7 @@ struct HousePreviewView: View {
 struct DetachedHousePreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -117,12 +155,18 @@ struct DetachedHousePreviewRoot: View {
             // F-1 restoration guard — if no token is waiting, this
             // scene was auto-restored by iPadOS on launch rather
             // than opened by the user. Dismiss ourselves so the
-            // app comes back to its main window only.
+            // app comes back to its main window only. Also open
+            // the sequencer scene first: when iPadOS picks this
+            // aux session as the connecting one (last-quit with
+            // House Preview open), the main session has already
+            // been destroyed by the AppDelegate cleanup and
+            // dismissing here would leave zero scenes.
             if viewModel.pendingDetachTokens.remove("house-preview") != nil {
                 viewModel.housePreviewDetached = true
             } else {
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "house-preview")
                 }
             }
@@ -196,6 +240,7 @@ struct ModelPreviewView: View {
 struct DetachedModelPreviewRoot: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Environment(\.dismissWindow) private var dismissWindow
+    @Environment(\.openWindow) private var openWindow
     @State private var suppressed: Bool = false
 
     var body: some View {
@@ -214,8 +259,11 @@ struct DetachedModelPreviewRoot: View {
             if viewModel.pendingDetachTokens.remove("model-preview") != nil {
                 viewModel.modelPreviewDetached = true
             } else {
+                // See DetachedHousePreviewRoot for why we open the
+                // sequencer first.
                 suppressed = true
                 DispatchQueue.main.async {
+                    openWindow(id: "sequencer")
                     dismissWindow(id: "model-preview")
                 }
             }
@@ -281,12 +329,28 @@ private struct PreviewContainer: View {
     private var supportsViewObjects: Bool { previewName == "HousePreview" }
     private var supportsIs3D: Bool { previewName == "HousePreview" }
 
+    @State private var status = PreviewStatus()
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             PreviewPaneView(previewName: previewName,
                             previewModelName: previewModelName,
                             controlsVisible: $controlsVisible,
-                            settings: settings)
+                            settings: settings,
+                            status: status)
+
+            // Diagnostic banner — surfaces the bridge's silent-fail
+            // reason after a short grace period so transient init
+            // states (drawable not sized yet, document just loaded)
+            // don't flicker the message. Empty preview-model case
+            // ("No model selected") shows on Model Preview as a
+            // helpful hint rather than a failure.
+            if let banner = status.bannerMessage {
+                PreviewDiagnosticBanner(message: banner,
+                                         hasRendered: status.hasRenderedSuccessfully)
+                    .allowsHitTesting(false)
+                    .padding(16)
+            }
 
             VStack(alignment: .trailing, spacing: 4) {
                 Button {
@@ -616,4 +680,84 @@ extension Notification.Name {
     /// delete). Carries `names: [String]` in userInfo. The overlay
     /// refreshes its menu from this.
     static let previewViewpointListChanged = Notification.Name("PreviewViewpointListChanged")
+    /// Phase J-2 — posted whenever a model on the Layout Editor
+    /// canvas has been moved by direct manipulation (drag),
+    /// keyboard nudge, or an undo restoring older state.
+    /// `object` follows the preview-name convention used by zoom /
+    /// reset / fit ("LayoutEditor"), so the bridge's coordinator
+    /// can listen and `setNeedsDisplay` on the canvas.
+    /// `userInfo["model"]` carries the affected model name; the
+    /// LayoutEditor side panel uses it to refresh its summary.
+    static let layoutEditorModelMoved = Notification.Name("LayoutEditorModelMoved")
+    /// Phase J-2 (touch UX) — long-press on a handle posts this
+    /// with `userInfo` matching the shape returned by
+    /// `XLMetalBridge.inspectHandleAtScreenPoint:` (keys: `type`,
+    /// `modelName`, plus the per-type indices).
+    static let layoutEditorContextMenu = Notification.Name("LayoutEditorContextMenu")
+    /// Phase J-3 (touch UX) — Pencil Pro squeeze on the canvas
+    /// asks the LayoutEditor to undo the last layout edit. Posted
+    /// by PreviewPaneView's UIPencilInteraction handler;
+    /// LayoutEditorView listens and calls its `performUndo()`.
+    /// No userInfo.
+    static let layoutEditorPencilUndo = Notification.Name("LayoutEditorPencilUndo")
+}
+
+/// Diagnostic banner painted over the preview pane when the bridge
+/// can't render. Two flavours:
+///
+/// - **Informational** ("No model selected", "No models in active
+///   preview") — shown as a muted hint when `hasRendered == true`,
+///   meaning the pane is drawing fine but there's nothing to show.
+/// - **Failure** ("No CAMetalLayer attached", "Drawable size 0x0
+///   (waiting for layout)", "Metal graphics context invalid (… see
+///   MetalDeviceManager log)") — shown as a warning when
+///   `hasRendered == false`, meaning the pane has never produced a
+///   frame on this device.
+///
+/// In either case the message is also written to spdlog, so iPad
+/// → Tools → Package Logs captures it for tester reports.
+private struct PreviewDiagnosticBanner: View {
+    let message: String
+    let hasRendered: Bool
+
+    /// Failure tone is a warning yellow / red; informational is the
+    /// muted secondary-on-dark scheme used elsewhere in the previews.
+    private var isFailure: Bool { !hasRendered }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: isFailure
+                  ? "exclamationmark.triangle.fill"
+                  : "info.circle.fill")
+                .foregroundStyle(isFailure ? .yellow : .white.opacity(0.8))
+                .imageScale(.medium)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isFailure ? "Preview unavailable" : "Preview")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.white)
+                Text(message)
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+                if isFailure {
+                    Text("Tools → Package Logs sends details for diagnosis.")
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.6))
+                        .padding(.top, 2)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(.black.opacity(0.7))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke((isFailure ? Color.yellow : .white).opacity(0.4),
+                                lineWidth: 0.5)
+                )
+        )
+        .frame(maxWidth: 380, alignment: .leading)
+    }
 }

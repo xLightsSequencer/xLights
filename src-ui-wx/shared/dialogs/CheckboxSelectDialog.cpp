@@ -116,16 +116,7 @@ void CheckboxSelectDialog::OnCheckListBox_ItemsToggled(wxCommandEvent& event)
 
 void CheckboxSelectDialog::ValidateWindow()
 {
-    wxArrayInt items;
-    CheckListBox_Items->GetCheckedItems(items);
-    if (items.Count() == 0)
-    {
-        Button_Ok->Enable(false);
-    }
-    else
-    {
-        Button_Ok->Enable(true);
-    }
+    Button_Ok->Enable(true);
 }
 
 void CheckboxSelectDialog::OnListRClick(wxContextMenuEvent& event)

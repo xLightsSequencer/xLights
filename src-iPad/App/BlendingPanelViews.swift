@@ -516,13 +516,15 @@ struct TransitionHeaderRowView: View {
     }
 
     /// The stored fade time is a plain decimal string; trim whitespace
-    /// and reject non-numeric input so the settings map doesn't get
-    /// garbage strings. Empty / "0" variants normalise to "0.00" which
-    /// matches desktop's suppress-zero fade behaviour.
+    /// and reject non-numeric or negative input so the settings map
+    /// doesn't get garbage strings. Empty / "0" / negative variants
+    /// normalise to "0.00" which matches desktop's BlendingPanel
+    /// ValidateWindow clamp.
     private func normalizeFade(_ s: String) -> String {
         let trimmed = s.trimmingCharacters(in: .whitespaces)
         if trimmed.isEmpty { return defaultFade }
-        if Double(trimmed) == nil { return defaultFade }
+        guard let d = Double(trimmed) else { return defaultFade }
+        if d < 0 { return defaultFade }
         return trimmed
     }
 }

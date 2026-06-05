@@ -158,7 +158,7 @@ struct MovingHeadColorRowView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.movingHeadCommand("Color",
                                                       forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
+                                                      atIndex: Int32(sel.effectIndex))
     }
 
     private var currentColor: Color {
@@ -243,7 +243,7 @@ struct MovingHeadDimmerRowView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.movingHeadCommand("Dimmer",
                                                       forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
+                                                      atIndex: Int32(sel.effectIndex))
     }
 
     /// Desktop dimmer ramps are x,y pairs over 0..1. We surface the
@@ -326,7 +326,7 @@ struct MovingHeadPathRowView: View {
         guard let sel = viewModel.selectedEffect else { return "" }
         return viewModel.document.movingHeadCommand("Path",
                                                       forRow: Int32(sel.rowIndex),
-                                                      atIndex: Int32(sel.effectIndex)) ?? ""
+                                                      atIndex: Int32(sel.effectIndex))
     }
 
     private func clearPath() {

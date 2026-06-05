@@ -6,6 +6,8 @@
 #include "import_export/AutoMapper.h"
 #include "import_export/BasicImportMappingNode.h"
 #include "import_export/EffectMapper.h"
+#include "import_export/LOREdit.h"
+#include "import_export/Vixen3.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
 #include "models/ModelManager.h"
@@ -17,6 +19,7 @@
 #include "render/SequencePackage.h"
 #include "utils/string_utils.h"
 
+#include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
@@ -35,12 +38,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     return doc != nil ? (iPadRenderContext*)[doc renderContext] : nullptr;
 }
 
-// The iPad-lib target compiles without ARC, so every NSString /
-// NSArray ivar set via direct `row->_field = autoreleasedValue` would
-// dangle as soon as the surrounding autorelease pool drained. We
-// retain on assignment and release in dealloc to keep these objects
-// alive across SwiftUI's redraw cycles.
-
 @implementation XLImportAvailableSource {
 @public
     NSString* _displayName;
@@ -58,12 +55,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     }
     return self;
 }
-- (void)dealloc {
-    [_displayName release];
-    [_canonicalName release];
-    [_modelType release];
-    [super dealloc];
-}
 - (NSString*)displayName { return _displayName; }
 - (NSString*)canonicalName { return _canonicalName; }
 - (NSString*)modelType { return _modelType; }
@@ -74,10 +65,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSString* _name;
     BOOL _alreadyExists;
     BOOL _selected;
-}
-- (void)dealloc {
-    [_name release];
-    [super dealloc];
 }
 - (NSString*)name { return _name; }
 - (BOOL)alreadyExists { return _alreadyExists; }
@@ -97,15 +84,6 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSInteger _effectCount;
     NSArray<XLImportMappingRow*>* _children;
 }
-- (void)dealloc {
-    [_model release];
-    [_strand release];
-    [_node release];
-    [_mapping release];
-    [_mappingModelType release];
-    [_children release];
-    [super dealloc];
-}
 - (intptr_t)nodeID { return _nodeID; }
 - (NSString*)model { return _model; }
 - (NSString*)strand { return _strand; }
@@ -119,11 +97,10 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
 @end
 
 @implementation XLImportSession {
-    // Plain pointer — the import sheet that owns this session is
+    // Unsafe-unretained: the import sheet that owns this session is
     // strictly shorter-lived than the host XLSequenceDocument, so
-    // there's no retain-cycle risk and no need for __weak (which the
-    // iPad-lib target doesn't compile with ARC).
-    XLSequenceDocument* _document;
+    // there's no retain-cycle risk and no need for __weak.
+    __unsafe_unretained XLSequenceDocument* _document;
 
     // Source-side state (the incoming sequence). Built lazily by
     // -loadSourceSequenceAtPath:. The SequencePackage owns the temp
@@ -155,6 +132,29 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // Destination tree — owned root holders. Each root corresponds to
     // a top-level model on the active sequence.
     std::vector<std::unique_ptr<BasicImportMappingNode>> _destinationRoots;
+
+    // LOR S5 `.loredit` source state. When the picked file is a
+    // `.loredit` the source isn't an xLights SequenceElements tree —
+    // it's an effect-level LOR document parsed by the wx-free core
+    // LOREdit reader. We keep the parsed document + reader alive so the
+    // discovery list (and a future apply path mirroring desktop
+    // ImportS5 / MapS5*) can query it. `_loreditMode` flips the bridge
+    // into this branch; the destination tree + AutoMapper / MapHints
+    // flow is shared with the `.xsq` path unchanged.
+    bool _loreditMode;
+    pugi::xml_document _loreditDoc;
+    std::unique_ptr<LOREdit> _loredit;
+    // Timing-track name -> begin/end pairs, prefetched at load so the
+    // (deferred) apply path doesn't need to re-walk the document.
+    std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> _loreditTimings;
+
+    // Vixen 3 `.tim` EFFECT source state (IE-25). Like `.loredit`, the source
+    // is a wx-free core reader (Vixen3) rather than an xLights tree; kept alive
+    // so discovery + the apply branch can query its effects / timings.
+    // `_vixen3Mode` selects the Vixen3 effect branch — distinct from the
+    // timing-only `.tim` path used by Settings → Timings (XLSequenceDocument).
+    bool _vixen3Mode;
+    std::unique_ptr<Vixen3> _vixen3;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -253,6 +253,14 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _sourceFile = std::move(file);
     _sourceElements = std::move(elements);
 
+    // This is an `.xsq` source — clear any prior `.loredit` / `.tim` mode so a
+    // source switch within one session doesn't apply through the wrong branch.
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+
     [self rebuildAvailableSources];
     [self rebuildTimingTracks];
     return YES;
@@ -289,6 +297,215 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         // Mirrors desktop: preselect when not already in target.
         entry.selected = !entry.alreadyExists;
         _timingTracks.push_back(entry);
+    }
+}
+
+#pragma mark - LOR S5 (.loredit) source loading
+
+- (BOOL)loadLOREditSourceAtPath:(NSString*)path
+                          error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    // Mirrors desktop xLightsFrame::ImportS5 — load the raw LOR document
+    // with pugixml and hand it to the core reader at the active
+    // sequence's frequency.
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse LOR S5 .loredit file." }];
+        }
+        return NO;
+    }
+
+    // Reset any prior `.xsq` source state — the two modes are mutually
+    // exclusive within one session.
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+
+    _loreditDoc.reset();
+    _loreditDoc = std::move(doc);
+    _loredit = std::make_unique<LOREdit>(_loreditDoc, rc->GetSequenceElements().GetFrequency());
+    _vixen3Mode = false;
+    _vixen3.reset();
+    _loreditMode = true;
+
+    [self rebuildAvailableSourcesFromLOREdit];
+    [self rebuildTimingTracksFromLOREdit];
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromLOREdit {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_loredit == nullptr) return;
+
+    auto addSource = [&](const std::string& name, const std::string& type) {
+        AvailableSource src;
+        src.displayName = name;
+        src.canonicalName = Lower(Trim(name));
+        src.modelType = type;
+        _availableSources.push_back(src);
+    };
+
+    // Whole-prop (track / channel) sources — these map onto a
+    // destination model and replay through the desktop MapS5* path.
+    for (const auto& m : _loredit->GetModelsWithEffects()) {
+        addSource(m, "Model");
+    }
+    // Per-node strand/channel sources (`Name[r,c,col][color]`) — these
+    // map onto a single node layer (IsNodeStrandMapping == true).
+    for (const auto& n : _loredit->GetNodesWithEffects()) {
+        addSource(n, "Node");
+    }
+}
+
+- (void)rebuildTimingTracksFromLOREdit {
+    _timingTracks.clear();
+    _loreditTimings.clear();
+    if (_loredit == nullptr) return;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return;
+
+    SequenceElements& targetSE = rc->GetSequenceElements();
+    for (const auto& name : _loredit->GetTimingTracks()) {
+        auto timings = _loredit->GetTimings(name, 0);
+        if (timings.empty()) continue;
+        _loreditTimings[name] = timings;
+
+        TimingTrackEntry entry;
+        entry.name = name;
+        entry.sourceElement = nullptr; // synthesized on apply, not copied from a source element
+        TimingElement* existing = targetSE.GetTimingElement(name);
+        entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
+        entry.selected = !entry.alreadyExists;
+        _timingTracks.push_back(entry);
+    }
+}
+
+#pragma mark - Vixen 3 (.tim) effect source loading
+
+- (BOOL)loadVixen3SourceAtPath:(NSString*)path
+                         error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    // Mirrors desktop xLightsFrame::ImportVixen3 — the Vixen3 reader parses the
+    // .tim XML and resolves the sibling SystemConfig.xml for the effect data.
+    auto vixen = std::make_unique<Vixen3>(pathStr);
+    if (!vixen->IsSystemFound()) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:14
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"SystemConfig.xml could not be found next to the .tim file — Vixen 3 effect import is not possible without it." }];
+        }
+        return NO;
+    }
+
+    // Reset any prior `.xsq` and `.loredit` source state — the modes are
+    // mutually exclusive within one session.
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+
+    _vixen3 = std::move(vixen);
+    _vixen3Mode = true;
+
+    [self rebuildAvailableSourcesFromVixen3];
+    [self rebuildTimingTracksFromVixen3];
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromVixen3 {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_vixen3 == nullptr) return;
+
+    // Whole-model effect sources. A model whose first effect is a "Data"
+    // marker is a timing track (handled in rebuildTimingTracksFromVixen3), not
+    // an effect source — mirror desktop ImportVixen3's split.
+    for (const auto& m : _vixen3->GetModelsWithEffects()) {
+        auto effects = _vixen3->GetEffects(m.first);
+        if (!effects.empty() && effects.front().type == "Data") continue;
+        AvailableSource src;
+        src.displayName = m.first;
+        src.canonicalName = Lower(Trim(m.first));
+        src.modelType = "Model";
+        _availableSources.push_back(src);
+    }
+}
+
+- (void)rebuildTimingTracksFromVixen3 {
+    _timingTracks.clear();
+    if (_vixen3 == nullptr) return;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return;
+    SequenceElements& targetSE = rc->GetSequenceElements();
+
+    auto addTimingTrack = [&](const std::string& name) {
+        TimingTrackEntry entry;
+        entry.name = name;
+        entry.sourceElement = nullptr; // marks synthesized from _vixen3 on apply
+        TimingElement* existing = targetSE.GetTimingElement(name);
+        entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
+        entry.selected = !entry.alreadyExists;
+        _timingTracks.push_back(entry);
+    };
+
+    // Models whose first effect is a "Data" marker are timing tracks.
+    for (const auto& m : _vixen3->GetModelsWithEffects()) {
+        auto effects = _vixen3->GetEffects(m.first);
+        if (!effects.empty() && effects.front().type == "Data") {
+            addTimingTrack(m.first);
+        }
+    }
+    // Phrase / word / phoneme timing tracks.
+    for (const auto& name : _vixen3->GetTimings()) {
+        addTimingTrack(name);
     }
 }
 
@@ -469,15 +686,13 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         NSString* t = [[NSString alloc] initWithUTF8String:src.modelType.c_str()];
         XLImportAvailableSource* row = [[XLImportAvailableSource alloc]
             initWithDisplay:d canonical:c modelType:t];
-        [d release]; [c release]; [t release];
         [arr addObject:row];
-        [row release];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (XLImportMappingRow*)snapshotRow:(BasicImportMappingNode*)node {
-    XLImportMappingRow* row = [[[XLImportMappingRow alloc] init] autorelease];
+    XLImportMappingRow* row = [[XLImportMappingRow alloc] init];
     row->_nodeID = (intptr_t)node;
     row->_model = [[NSString alloc] initWithUTF8String:node->_model.c_str()];
     row->_strand = [[NSString alloc] initWithUTF8String:node->_strand.c_str()];
@@ -492,17 +707,16 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         BasicImportMappingNode* child = node->GetNthChild(i);
         if (child) [kids addObject:[self snapshotRow:child]];
     }
-    row->_children = kids;  // owned (alloc/initWithCapacity), released in dealloc
+    row->_children = kids;
     return row;
 }
 
 - (NSArray<XLImportMappingRow*>*)destinationRows {
     NSMutableArray* arr = [[NSMutableArray alloc] initWithCapacity:_destinationRoots.size()];
     for (const auto& root : _destinationRoots) {
-        // snapshotRow returns autoreleased — array retains it on add.
         [arr addObject:[self snapshotRow:root.get()]];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (NSArray<XLImportTimingTrack*>*)timingTracks {
@@ -513,9 +727,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         row->_alreadyExists = t.alreadyExists ? YES : NO;
         row->_selected = t.selected ? YES : NO;
         [arr addObject:row];
-        [row release];
     }
-    return [arr autorelease];
+    return arr;
 }
 
 - (void)setTimingTrackImport:(NSString*)name enabled:(BOOL)enabled {
@@ -569,6 +782,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     AutoMapper::Run(roots, _availableSources, *rc,
                     AutoMapper::MatchAggressive, AutoMapper::MatchAggressive, AutoMapper::MatchAggressive,
                     "", "", "B", /*selectOnly=*/false, noSelection);
+    AutoMapper::RunSubModelFallback(roots, _availableSources, *rc, /*selectOnly=*/false, noSelection);
 
     // .xmaphint regex pass — pulls every hint file under
     // <showdir>/maphints/*.xmaphint and runs MatchRegex for each.
@@ -579,6 +793,42 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                         h.toRegex, h.fromModel, h.applyTo,
                         /*selectOnly=*/false, noSelection);
     }
+}
+
+- (int)loadMapHintsFromPath:(NSString*)path {
+    if (!path || path.length == 0) return 0;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return 0;
+    std::vector<ImportMappingNode*> roots;
+    roots.reserve(_destinationRoots.size());
+    for (const auto& r : _destinationRoots) roots.push_back(r.get());
+    std::unordered_set<const ImportMappingNode*> noSelection;
+    auto hints = LoadMapHintsFile(std::string(path.UTF8String));
+    for (const auto& h : hints) {
+        AutoMapper::Run(roots, _availableSources, *rc,
+                        AutoMapper::MatchRegex, AutoMapper::MatchRegex, AutoMapper::MatchNorm,
+                        h.toRegex, h.fromModel, h.applyTo,
+                        /*selectOnly=*/false, noSelection);
+    }
+    return (int)hints.size();
+}
+
+- (int)updateModelAliasesFromMapping {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return 0;
+    int added = 0;
+    // Top-level model aliases only (the clear, high-value case): alias
+    // the mapped source MODEL name onto the destination model. The
+    // submodel/strand alias guard the desktop applies is deferred.
+    for (const auto& root : _destinationRoots) {
+        if (!root->HasMapping() || root->_mapping.empty()) continue;
+        Model* m = rc->GetModel(root->_model);
+        if (m == nullptr) continue;
+        m->AddAlias(root->_mapping);
+        rc->MarkLayoutModelDirty(root->_model);
+        ++added;
+    }
+    return added;
 }
 
 - (void)runAutoMapSelectedTargets:(NSArray<NSNumber*>*)selectedNodeIDs
@@ -613,6 +863,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     AutoMapper::Run(roots, available, *rc,
                     AutoMapper::MatchAggressive, AutoMapper::MatchAggressive, AutoMapper::MatchAggressive,
                     "", "", "B", /*selectOnly=*/true, selectedTargets);
+    AutoMapper::RunSubModelFallback(roots, available, *rc, /*selectOnly=*/true, selectedTargets);
 }
 
 #pragma mark - Save hints
@@ -631,12 +882,240 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     return WriteMapHintsFile(path.UTF8String, entries) ? YES : NO;
 }
 
+#pragma mark - Source metadata (IE-7)
+
+- (NSString*)sourceVersion {
+    if (_sourceFile == nullptr) return nil;
+    const std::string& v = _sourceFile->GetVersion();
+    return v.empty() ? nil : [NSString stringWithUTF8String:v.c_str()];
+}
+
+- (NSInteger)sourceFrequency {
+    return _sourceFile != nullptr ? (NSInteger)_sourceFile->GetFrequency() : 0;
+}
+
+- (NSInteger)targetFrequency {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    return rc != nullptr ? (NSInteger)rc->GetSequenceElements().GetFrequency() : 0;
+}
+
+- (NSArray<NSString*>*)sourceMissingMedia {
+    NSMutableArray<NSString*>* result = [NSMutableArray array];
+    if (_sourcePackage == nullptr) return result;
+    for (const std::string& m : _sourcePackage->GetMissingMedia()) {
+        [result addObject:[NSString stringWithUTF8String:m.c_str()]];
+    }
+    return result;
+}
+
 #pragma mark - Apply
 
 - (BOOL)applyImportWithEraseExisting:(BOOL)eraseExisting
                                 lock:(BOOL)lock
+                  convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
+    if (_loreditMode) {
+        // LOR S5 (.loredit) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportS5. Walks the same destination tree the .xsq path
+        // uses, but replays through the (now wx-free core) MapS5* family rather
+        // than MapXLightsEffects, because the source is a LOREdit reader, not a
+        // SequenceElements tree.
+        if (rc == nullptr || _loredit == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        const EffectManager& effectManager = rc->GetEffectManager();
+        int const frequency = targetSE.GetFrequency();
+        int const offset = 0; // iPad has no time-offset control yet; desktop's TimeAdjustSpinCtrl defaults to 0
+        bool const erase = eraseExisting ? true : false;
+
+        // Selected timing tracks → synthesized timing elements (mirrors the
+        // ImportS5 timing loop). In .loredit mode the entries carry no source
+        // TimingElement — the marks come from _loreditTimings.
+        for (const auto& track : _timingTracks) {
+            if (!track.selected) continue;
+            auto itTimings = _loreditTimings.find(track.name);
+            if (itTimings == _loreditTimings.end()) continue;
+
+            TimingElement* target = static_cast<TimingElement*>(
+                targetSE.AddElement(track.name, "timing", true, true, false, false, false));
+            char cnt = '1';
+            while (target == nullptr && cnt <= '9') {
+                target = static_cast<TimingElement*>(
+                    targetSE.AddElement(track.name + "-" + cnt, "timing", true, true, false, false, false));
+                ++cnt;
+            }
+            if (target == nullptr) {
+                spdlog::warn("XLImportSession::apply(loredit): could not add timing element '{}'", track.name);
+                continue;
+            }
+            if (target->GetEffectLayerCount() == 0) {
+                target->AddEffectLayer();
+            }
+            EffectLayer* targetLayer = target->GetEffectLayer(0);
+            for (const auto& t : itTimings->second) {
+                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+            }
+        }
+
+        // Mapped models → MapS5*. ri mirrors desktop ImportS5's model-loop
+        // index `i` (passed to the per-node MapS5ChannelEffects overload).
+        for (size_t ri = 0; ri < _destinationRoots.size(); ++ri) {
+            const auto& root = _destinationRoots[ri];
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(loredit): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+            Model* mdl = rc->GetModel(targetEl->GetModelName());
+
+            if (!root->_mapping.empty()) {
+                if (!LOREdit::IsNodeStrandMapping(root->_mapping)) {
+                    MapS5Effects(effectManager, targetEl, *_loredit, root->_mapping, frequency, offset, erase);
+                } else {
+                    MapS5ChannelEffects(effectManager, targetEl->GetEffectLayer(0), *_loredit, root->_mapping, frequency, offset, erase);
+                }
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+
+                if (!child->_mapping.empty() && ste != nullptr) {
+                    if (!LOREdit::IsNodeStrandMapping(child->_mapping)) {
+                        MapS5Effects(effectManager, ste, *_loredit, child->_mapping, frequency, offset, erase);
+                    } else {
+                        MapS5ChannelEffects(effectManager, ste->GetEffectLayer(0), *_loredit, child->_mapping, frequency, offset, erase);
+                    }
+                }
+
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* nodeNode = child->GetNthChild(n);
+                    if (nodeNode == nullptr || nodeNode->_mapping.empty()) continue;
+                    if (stre == nullptr) continue;
+                    NodeLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl == nullptr) continue;
+                    if (LOREdit::IsNodeStrandMapping(child->_mapping)) {
+                        MapS5ChannelEffects(effectManager, nl, *_loredit, child->_mapping, frequency, offset, erase);
+                    } else {
+                        auto st = _loredit->GetSequencingType(nodeNode->_mapping);
+                        if (st == loreditType::CHANNELS) {
+                            MapS5ChannelEffects(effectManager, (int)ri, nl, mdl, *_loredit, nodeNode->_mapping, frequency, offset, erase);
+                        } else if (st == loreditType::TRACKS) {
+                            MapS5(effectManager, 0, nl, *_loredit, nodeNode->_mapping, mdl, frequency, offset, erase);
+                        }
+                    }
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
+    if (_vixen3Mode) {
+        // Vixen 3 (.tim) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportVixen3. Walks the same destination tree as the
+        // .xsq / .loredit paths but replays through the (now wx-free core)
+        // MapVixen3* family.
+        if (rc == nullptr || _vixen3 == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        const EffectManager& effectManager = rc->GetEffectManager();
+        int const freq = targetSE.GetFrequency();
+        int const frameMS = (freq > 0) ? (1000 / freq) : 50;
+        long const offset = 0; // iPad has no time-offset control; desktop's TimeAdjustSpinCtrl defaults to 0
+        bool const erase = eraseExisting ? true : false;
+
+        // Selected timing tracks (mirror desktop ImportVixen3 timing loop). The
+        // marks come straight from the live _vixen3 reader.
+        for (const auto& track : _timingTracks) {
+            if (!track.selected) continue;
+
+            TimingElement* target = static_cast<TimingElement*>(
+                targetSE.AddElement(track.name, "timing", true, true, false, false, false));
+            char cnt = '1';
+            while (target == nullptr && cnt <= '9') {
+                target = static_cast<TimingElement*>(
+                    targetSE.AddElement(track.name + "-" + cnt, "timing", true, true, false, false, false));
+                ++cnt;
+            }
+            if (target == nullptr) {
+                spdlog::warn("XLImportSession::apply(vixen3): could not add timing element '{}'", track.name);
+                continue;
+            }
+            if (target->GetEffectLayerCount() == 0) {
+                target->AddEffectLayer();
+            }
+
+            if (_vixen3->GetTimingType(track.name) == "Phrase") {
+                AddVixenMarksToLayer(_vixen3->GetTimings(track.name), target->GetEffectLayer(0), frameMS);
+                EffectLayer* wordLayer = target->AddEffectLayer();
+                AddVixenMarksToLayer(_vixen3->GetRelatedTiming(track.name, "Word"), wordLayer, frameMS);
+                EffectLayer* phonemeLayer = target->AddEffectLayer();
+                AddVixenMarksToLayer(_vixen3->GetRelatedTiming(track.name, "Phoneme"), phonemeLayer, frameMS);
+            } else {
+                AddVixenMarksToLayer(_vixen3->GetTimings(track.name), target->GetEffectLayer(0), frameMS);
+            }
+        }
+
+        // Mapped models → MapVixen3*.
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(vixen3): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+
+            if (!root->_mapping.empty()) {
+                MapVixen3Effects(effectManager, targetEl, *_vixen3, root->_mapping, offset, frameMS, erase);
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+
+                if (!child->_mapping.empty() && ste != nullptr) {
+                    MapVixen3Effects(effectManager, ste, *_vixen3, child->_mapping, offset, frameMS, erase);
+                }
+
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* nodeNode = child->GetNthChild(n);
+                    if (nodeNode == nullptr || nodeNode->_mapping.empty()) continue;
+                    if (stre == nullptr) continue;
+                    NodeLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl == nullptr) continue;
+                    // Desktop ImportVixen3 passes the parent MODEL element here
+                    // (not the node layer) — preserve that behavior (G7).
+                    MapVixen3(targetEl, *_vixen3, nodeNode->_mapping, offset, frameMS, erase);
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
     if (rc == nullptr || _sourceElements == nullptr) {
         if (outError) {
             *outError = [NSError errorWithDomain:@"XLImportSession" code:10
@@ -692,6 +1171,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     std::vector<EffectLayer*> mapped;
     bool erase = eraseExisting ? true : false;
     bool lockFlag = lock ? true : false;
+    bool convertRender = convertRenderStyle ? true : false;
 
     // Timing-track copy. Mirrors desktop: if a target timing element with
     // the same name exists with no effects, reuse it; otherwise add a new
@@ -737,7 +1217,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
             EffectLayer* dst = target->GetEffectLayer(l);
             std::vector<EffectLayer*> mapped2;
             MapXLightsEffects(dst, src, mapped2, erase, xsqPkg, lockFlag,
-                              mapping, /*convertRender=*/false, mappingModelType);
+                              mapping, /*convertRender=*/convertRender, mappingModelType);
         }
     }
 
@@ -756,7 +1236,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
             MapXLightsEffects(targetEl, root->_mapping, *_sourceElements,
                               elementMap, layerMap, mapped, erase,
                               xsqPkg, lockFlag, mapping,
-                              /*convertRender=*/false, mappingModelType);
+                              /*convertRender=*/convertRender, mappingModelType);
         }
 
         // Child rows — submodels then strands. Index in the bridge
@@ -773,7 +1253,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                 MapXLightsEffects(ste, child->_mapping, *_sourceElements,
                                   elementMap, layerMap, mapped, erase,
                                   xsqPkg, lockFlag, mapping,
-                                  /*convertRender=*/false, mappingModelType);
+                                  /*convertRender=*/convertRender, mappingModelType);
             }
 
             // Per-node grandchildren — only meaningful when the child

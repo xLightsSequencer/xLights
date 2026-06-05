@@ -397,6 +397,12 @@ public:
     std::vector<std::string> GetImagePaths() const;
     void RemoveUnusedImages();
 
+    std::vector<std::pair<std::string, std::string>> GetImageRelocations() const;
+    void RecordRelocation(const std::string& from, const std::string& to);
+    void ClearRelocations();
+
+    std::vector<std::string> GetShaderPaths() const;
+
     // === Type-specific retrieval (create-on-first-access, resolve via FileUtils::FixFile) ===
     std::shared_ptr<TextMediaCacheEntry> GetTextFile(const std::string& filepath);
     std::shared_ptr<SVGMediaCacheEntry> GetSVG(const std::string& filepath);
@@ -416,6 +422,13 @@ public:
     bool RenameMedia(const std::string& oldPath, const std::string& newPath);
     // Reload a non-embedded entry from disk (erases and re-creates the cache entry)
     bool ReloadMedia(const std::string& filepath);
+    // Force-insert a fresh entry at `filepath` with `resolvedPath` as its physical
+    // file path. Unlike GetXxx(), this always creates a new entry at `filepath` and
+    // never returns an existing entry that happens to share the same resolved path.
+    // Also removes any other cache entry whose resolved path equals `resolvedPath`
+    // to prevent the duplicate-path check from suppressing future GetXxx() calls.
+    // Use this after a re-select or bulk-find where the exact replacement file is known.
+    void ForceRefreshEntry(const std::string& filepath, const std::string& resolvedPath, MediaType type);
     size_t GetMediaCount() const;
     std::vector<std::pair<std::string, MediaType>> GetAllMediaPaths() const;
     // Returns {isEmbedded, isEmbeddable} for any media path across all caches
@@ -450,6 +463,8 @@ public:
 private:
     // Helper to resolve relative paths via FileUtils::FixFile
     static std::string ResolvePath(const std::string& filepath);
+
+    std::vector<std::pair<std::string, std::string>> _pendingRelocations;
 
     // Per-type caches
     std::map<std::string, std::shared_ptr<ImageCacheEntry>> _imageCache;

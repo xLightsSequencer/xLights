@@ -23,7 +23,7 @@ public:
 
     virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected) wxOVERRIDE;
 
-    void UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_);
+    void UpdateSize(wxGrid& grid, bool draw_picture_, int lightness_, float offset_x_ = 0.0f, float offset_y_ = 0.0f);
     void CreateImage();
     void SetImage(wxImage* image);
     void DetermineGridSize(wxGrid& grid);
@@ -34,6 +34,10 @@ private:
     wxMemoryDC bmpDC;
     int width;
     int height;
+    int cell_w = 1;
+    int cell_h = 1;
     bool draw_picture;
     int lightness;
+    float offset_x = 0.0f;
+    float offset_y = 0.0f;
 };

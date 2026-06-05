@@ -38,6 +38,20 @@ struct BatchRenderSheet: View {
     @State private var entries: [SequenceEntry] = []
     @State private var selected: Set<String> = []
     @State private var runner: BatchRenderRunner?
+    @State private var outOfDateOnly: Bool = false
+    // BR-1: scope toggle — recurse subfolders (default) vs. show folder only.
+    // Persisted app-wide so the choice sticks between sessions.
+    @AppStorage("batchRender.includeSubfolders") private var includeSubfolders: Bool = true
+    @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.batchRender)
+
+    /// What the list actually shows — filter then sort. Selection still
+    /// covers the full entries set (toggling the filter doesn't drop
+    /// previously-selected items), so `selected.count` may exceed
+    /// `visibleEntries.count`.
+    private var visibleEntries: [SequenceEntry] {
+        let filtered = outOfDateOnly ? entries.filter { !$0.isFseqUpToDate } : entries
+        return sortOrder.apply(filtered)
+    }
 
     var body: some View {
         NavigationStack {
@@ -67,6 +81,22 @@ struct BatchRenderSheet: View {
                         Button("Close") { dismiss() }
                     }
                 }
+                if isSelecting {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Picker("Sort By", selection: $sortOrder) {
+                                ForEach(SequenceSortOrder.allCases) { order in
+                                    Text(order.label).tag(order)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down")
+                        }
+                    }
+                }
+            }
+            .onChange(of: sortOrder) { _, newValue in
+                SequenceSortOrder.save(newValue, to: .batchRender)
             }
         }
         .interactiveDismissDisabled(isRunning)
@@ -74,15 +104,28 @@ struct BatchRenderSheet: View {
             if runner == nil {
                 runner = BatchRenderRunner(document: viewModel.document)
             }
-            let folder = viewModel.showFolderPath ?? ""
-            entries = SequenceScanner.scan(showFolder: folder)
-            selected = BatchRenderSelections.load(showFolder: folder)
-                .intersection(Set(entries.map(\.relativePath)))
+            reloadEntries()
         }
+        .onChange(of: includeSubfolders) { _, _ in
+            reloadEntries()
+        }
+    }
+
+    private func reloadEntries() {
+        let folder = viewModel.showFolderPath ?? ""
+        entries = SequenceScanner.scan(showFolder: folder,
+                                       recursiveSubfolders: includeSubfolders)
+        selected = BatchRenderSelections.load(showFolder: folder)
+            .intersection(Set(entries.map(\.relativePath)))
     }
 
     private var isRunning: Bool {
         if case .running = runner?.phase { return true }
+        return false
+    }
+
+    private var isSelecting: Bool {
+        if case .idle = runner?.phase { return !entries.isEmpty }
         return false
     }
 
@@ -97,15 +140,22 @@ struct BatchRenderSheet: View {
         } else {
             List {
                 Section {
+                    Toggle("Out of date only", isOn: $outOfDateOnly)
+                    Toggle("Include subfolders", isOn: $includeSubfolders)
                     HStack {
-                        Button("Select All") { selectAll() }
+                        Button("Select All") { selectAllVisible() }
                         Spacer()
-                        Button("Select None") { selectNone() }
-                            .disabled(selected.isEmpty)
+                        Button("Select None") { selectNoneVisible() }
+                            .disabled(visibleEntries.allSatisfy { !selected.contains($0.relativePath) })
                     }
                 }
-                Section("Sequences") {
-                    ForEach(entries) { entry in
+                Section(outOfDateOnly ? "Out-of-Date Sequences" : "Sequences") {
+                    if visibleEntries.isEmpty {
+                        Text("Nothing here — all sequences are up to date.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(visibleEntries) { entry in
                         Button {
                             toggle(entry)
                         } label: {
@@ -126,6 +176,7 @@ struct BatchRenderSheet: View {
                                             .lineLimit(1)
                                             .truncationMode(.middle)
                                     }
+                                    SequenceDatesLabel(entry: entry)
                                 }
                                 Spacer()
                             }
@@ -164,13 +215,17 @@ struct BatchRenderSheet: View {
         persistSelection()
     }
 
-    private func selectAll() {
-        selected = Set(entries.map(\.relativePath))
+    private func selectAllVisible() {
+        for entry in visibleEntries {
+            selected.insert(entry.relativePath)
+        }
         persistSelection()
     }
 
-    private func selectNone() {
-        selected.removeAll()
+    private func selectNoneVisible() {
+        for entry in visibleEntries {
+            selected.remove(entry.relativePath)
+        }
         persistSelection()
     }
 

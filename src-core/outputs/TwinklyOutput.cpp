@@ -356,17 +356,21 @@ bool TwinklyOutput::MakeCall(const std::string& method, const std::string& path,
     try {
         result = nlohmann::json::parse(httpResponse, nullptr, false);
         if (result.is_discarded()) {
-            spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
+            spdlog::error("Twinkly: Returned json is not valid: '{}'", httpResponse);
             return false;
         }
         // int32_t code;
-        if (!result.contains("code") && result.at("code").get<int>() != 1000) {
-            spdlog::error("Twinkly: Server returned: " + std::to_string(result.at("code").get<int>()));
+        if (!result.contains("code")) {
+            spdlog::error("Twinkly: Response missing 'code' field: '{}'", httpResponse);
             return false;
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        spdlog::error("Twinkly: JSON parse error: {}", e.what());
+        if (result.at("code").get<int>() != 1000) {
+            spdlog::error("Twinkly: Server returned error code: {}", result.at("code").get<int>());
+            return false;
+        }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Twinkly: Unexpected JSON structure in response: '{}'", httpResponse);
+        spdlog::error("Twinkly: JSON error: {}", e.what());
         return false;
     }
     return true;
@@ -695,24 +699,28 @@ bool TwinklyOutput::GetLayout(const std::string& ip, std::vector<std::tuple<floa
     try {
         jsonDoc = nlohmann::json::parse(httpResponse);
         // int32_t code;
-        if (!jsonDoc.contains("code") && jsonDoc.at("code").get<int>() != 1000) {
-            spdlog::error("Twinkly: Server returned: " + std::to_string(jsonDoc.at("code").get<int>()));
+        if (!jsonDoc.contains("code")) {
+            spdlog::error("Twinkly: Response missing 'code' field: '{}'", httpResponse);
             return false;
         }
-    } catch (const nlohmann::json::parse_error& e) {
-        spdlog::error("Twinkly: Returned json is not valid: " + httpResponse + "'");
-        spdlog::error("Twinkly: JSON parse error: {}", e.what());
+        if (jsonDoc.at("code").get<int>() != 1000) {
+            spdlog::error("Twinkly: Server returned error code: {}", jsonDoc.at("code").get<int>());
+            return false;
+        }
+
+        is3D = jsonDoc.at("source").get<std::string>() == "3d";
+
+        auto coords = jsonDoc.at("coordinates").array();
+
+        for (uint32_t i = 0; i < coords.size(); i++) {
+            auto v = coords.at(i);
+            // we invert Y as that is how it comes from Twinkly
+            result.push_back(std::tuple<float, float, float>(v["x"].get<float>(), 1.0 - v["y"].get<float>(), v["z"].get<float>()));
+        }
+    } catch (const nlohmann::json::exception& e) {
+        spdlog::error("Twinkly: Unexpected JSON structure in response: '{}'", httpResponse);
+        spdlog::error("Twinkly: JSON error: {}", e.what());
         return false;
-    }
-
-    is3D = jsonDoc.at("source").get<std::string>() == "3d";
-
-    auto coords = jsonDoc.at("coordinates").array();
-
-    for (uint32_t i = 0; i < coords.size(); i++) {
-        auto v = coords.at(i);
-        // we invert Y as that is how it comes from Twinkly
-        result.push_back(std::tuple<float, float, float>(v["x"].get<float>(), 1.0 - v["y"].get<float>(), v["z"].get<float>()));
     }
 
     return true;

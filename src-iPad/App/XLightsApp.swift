@@ -54,12 +54,17 @@ struct XLightsApp: App {
         // iPadRenderContext whose EffectManager needs the resources directory
         // to load effectmetadata JSON files.
         XLiPadInit.initialize()
+        XLDiagnosticUploader.shared.bootstrap()
         let vm = SequencerViewModel()
         vm.startMemoryMonitoring()
-        // Attempt to restore the previously-selected show folder + media
-        // folders via their persistent security-scoped bookmarks.
-        vm.restorePersistedShowFolder()
         _viewModel = State(initialValue: vm)
+        // restorePersistedShowFolder is deliberately NOT called here.
+        // It triggers ObtainAccessToURL + xlights_rgbeffects.xml parse +
+        // model construction + per-model FileExists, all synchronous. When
+        // the show folder lives in iCloud Drive that chain can wall-clock
+        // past iOS's 20-second launch watchdog (0x8BADF00D), killing the
+        // app before the first frame ever draws. The restore now runs from
+        // ContentView's `.task` modifier so launch completes first.
     }
 
     var body: some Scene {
@@ -98,9 +103,11 @@ struct XLightsApp: App {
                 // threads exit cleanly before the teardown race —
                 // otherwise they crash mid-frame on freed
                 // SequenceElements / SequenceData.
+                XLDiagnosticUploader.shared.endCurrentSession()
                 viewModel.shutdownForBackground()
             case .active:
-                break
+                XLDiagnosticUploader.shared.beginCurrentSession()
+                XLDiagnosticUploader.shared.kickoff()
             @unknown default:
                 break
             }
@@ -160,6 +167,16 @@ struct XLightsApp: App {
         }
         .defaultSize(width: 380, height: 620)
         .windowResizability(.contentSize)
+
+        // J-0 — Layout Editor scene. Opened from Tools → Edit Layout.
+        // Same token-guarded auto-restore protection as the F-1
+        // detached previews; see `LayoutEditorWindowRoot`.
+        WindowGroup("Edit Layout", id: "layout-editor") {
+            LayoutEditorWindowRoot()
+                .environment(viewModel)
+        }
+        .defaultSize(width: 1100, height: 720)
+        .windowResizability(.contentSize)
     }
 }
 
@@ -198,6 +215,10 @@ struct ContentView: View {
     /// presentations etc.).
     @State private var didRestoreDetachedScenes: Bool = false
 
+    /// Guards the deferred show-folder restore so it runs once even
+    /// across `.task` re-invocations (sheet present/dismiss cycles).
+    @State private var didKickoffShowFolderRestore: Bool = false
+
     /// G-3 — sequence URL handed to us by the system (Files /
     /// AirDrop / share sheet) before the show folder finished
     /// loading. Replayed via the
@@ -220,6 +241,11 @@ struct ContentView: View {
                     count: viewModel.brokenMediaCount,
                     onReview: { showMediaManager = true })
             }
+            if let msg = viewModel.fseqWriteSkippedMessage {
+                FseqSkippedBanner(message: msg) {
+                    viewModel.fseqWriteSkippedMessage = nil
+                }
+            }
             Group {
                 if !viewModel.isShowFolderLoaded {
                     ShowFolderSetupView(showFolderConfig: $showFolderConfig)
@@ -238,6 +264,114 @@ struct ContentView: View {
             FolderConfigView()
                 .environment(viewModel)
         }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAbout },
+            set: { viewModel.showingAbout = $0 }
+        )) {
+            AboutSheet()
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingCheckSequence },
+            set: { viewModel.showingCheckSequence = $0 }
+        )) {
+            CheckSequenceSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAIServices },
+            set: { viewModel.showingAIServices = $0 }
+        )) {
+            AIServicesSettingsSheet()
+        }
+        // EX-11 Tools → Package Sequence. Hosted here (not on the
+        // sequencer view) so the option sheet survives navigation
+        // and so the result hand-off to `XLPresentShareSheet`
+        // runs against the root scene's window scene.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingPackageSequence },
+            set: { viewModel.showingPackageSequence = $0 }
+        )) {
+            PackageSequenceSheet()
+                .environment(viewModel)
+        }
+        // Tools → Export House Preview. Hosted at the root (like Package
+        // Sequence) so the option + progress sheet survives navigation and
+        // the final save hand-off runs against the root scene.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingExportHousePreview },
+            set: { viewModel.showingExportHousePreview = $0 }
+        )) {
+            ExportHousePreviewSheet()
+                .environment(viewModel)
+        }
+        // H-6 / T-2 Tools → View Log. Same hosting rationale as
+        // Package Sequence; the viewer is independent of any
+        // particular open sequence.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingLogViewer },
+            set: { viewModel.showingLogViewer = $0 }
+        )) {
+            LogViewerSheet()
+        }
+        // EX-4 Tools → FPP Connect. Hosted at the root so the
+        // sheet survives sequence reloads (discovery isn't tied to
+        // the open sequence) and so the upload progress flow stays
+        // present even if the user backgrounds the sequencer.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingFPPConnect },
+            set: { viewModel.showingFPPConnect = $0 }
+        )) {
+            FPPConnectSheet()
+                .environment(viewModel)
+        }
+        // Unified Add Timing Track sheet. Driven by
+        // viewModel.showingAddTimingTrack so all call sites
+        // (Display Elements sheet, Settings → Timings tab, the
+        // row-heading long-press menus, the empty-space long-press
+        // below the last row) flip the same flag and present the
+        // same sheet.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingAddTimingTrack },
+            set: { viewModel.showingAddTimingTrack = $0 }
+        )) {
+            AddTimingTrackSheet()
+                .environment(viewModel)
+        }
+        // Phase A re-prompt UX. When a persisted security-scoped
+        // bookmark goes stale (iCloud eviction, iOS aging out the
+        // bookmark) `SequencerViewModel` queues an
+        // `AccessRepromptRequest` here instead of silently degrading
+        // to empty models / missing media. Bind `item:` to the
+        // observable so swipe-down ⇒ cancelReprompt (drains queue +
+        // surfaces the next stale path).
+        .sheet(item: Binding(
+            get: { viewModel.accessReprompt },
+            set: { newValue in
+                if newValue == nil { viewModel.cancelReprompt() }
+            })) { req in
+            AccessRepromptSheet(
+                request: req,
+                onPicked: { url in viewModel.acceptReprompt(pickedURL: url) },
+                onCancel: { viewModel.cancelReprompt() })
+        }
+        // Phase E follow-up — missing-model reconciliation. After
+        // `openSequence` succeeds, the bridge reports any model
+        // elements whose target model isn't in the show layout;
+        // surface the per-name prompt sheet here so the user can
+        // rename-with-alias (auto-remap future sequences) or delete
+        // each orphan. Swipe-down cancels without applying
+        // decisions.
+        .sheet(item: Binding(
+            get: { viewModel.missingModelPrompt },
+            set: { newValue in
+                if newValue == nil { viewModel.cancelMissingModelPrompt() }
+            })) { prompt in
+            MissingModelAliasSheet(
+                prompt: prompt,
+                availableModels: (viewModel.document.modelsAvailableInShowLayout() as [String]),
+                onCommit: { viewModel.applyMissingModelDecisions($0) },
+                onCancel: { viewModel.cancelMissingModelPrompt() })
+        }
         .onAppear {
             // Auto-open the dialog on first launch when nothing is configured.
             if !viewModel.isShowFolderLoaded && FolderConfig.showFolder == nil {
@@ -247,6 +381,20 @@ struct ContentView: View {
             // last main-close, honouring the user's working layout
             // without relying on iPadOS's broken auto-restoration.
             restoreDetachedScenesIfNeeded()
+        }
+        // Show-folder restore is deferred to here (instead of running
+        // synchronously in `XLightsApp.init`) so the first frame draws
+        // before we touch potentially-slow iCloud paths. The heavy work
+        // inside `restorePersistedShowFolder` (obtainAccess pre-flight,
+        // the C++ load, the recursive .xsq scan) now detaches onto a
+        // background task so this `.task` returns quickly even with a
+        // fully-evicted iCloud show folder — the launch UI stays
+        // responsive and `isShowFolderLoaded` flips when the background
+        // load completes.
+        .task {
+            guard !didKickoffShowFolderRestore else { return }
+            didKickoffShowFolderRestore = true
+            viewModel.restorePersistedShowFolder()
         }
         // G-3 — handle "Open in xLights" from Files / share sheets /
         // AirDrop. The system delivers a `file://` URL to the
@@ -553,7 +701,7 @@ struct ContentView: View {
     /// Run once per open: compare `.xbkp` mtime vs. `.xsq` and
     /// surface the recovery alert when the backup is newer.
     private func checkAutosaveRecovery() {
-        let path = viewModel.document.currentSequencePath() ?? ""
+        let path = viewModel.document.currentSequencePath()
         guard !path.isEmpty, path != lastCheckedSequencePath else { return }
         lastCheckedSequencePath = path
         let (has, when) = viewModel.hasRecoverableBackup()
@@ -610,6 +758,36 @@ struct MemoryWarningBanner: View {
     }
 }
 
+/// Banner shown after `saveSequence` skipped its fseq companion
+/// because the render had been aborted (memory pressure or an
+/// explicit cancel) before completing. The `.xsq` save itself still
+/// succeeded — the message just nudges the user to re-render +
+/// re-save once memory recovers so the fseq lands on disk.
+struct FseqSkippedBanner: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text(message)
+                .font(.caption)
+            Spacer()
+            Button {
+                onDismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption.weight(.semibold))
+            }
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.orange.opacity(0.9))
+    }
+}
+
 /// Banner shown at the top of the app when the just-opened
 /// sequence references media files that don't resolve on this
 /// device (missing files, evicted-from-iCloud, revoked bookmarks).
@@ -623,9 +801,14 @@ struct MissingMediaBanner: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
+            // "Has issues" covers both shapes: missing files (FileExists
+            // false) and codec-incompatible videos (AVFoundation can't
+            // decode — VP9, AV1, etc.). The Media Manager review sheet
+            // shows the per-entry `brokenReason` so the user knows
+            // which is which.
             Text(count == 1
-                 ? "1 media file is missing"
-                 : "\(count) media files are missing")
+                 ? "1 media file has issues"
+                 : "\(count) media files have issues")
                 .font(.caption)
             Spacer()
             Button("Review", action: onReview)
@@ -642,17 +825,37 @@ struct MissingMediaBanner: View {
 struct ShowFolderSetupView: View {
     @Binding var showFolderConfig: Bool
 
+    /// True when a show-folder path is persisted in `FolderConfig`
+    /// but the deferred restore hasn't reported back yet. We show a
+    /// "Loading…" affordance instead of the configure prompt so the
+    /// user understands the app is materializing their iCloud-backed
+    /// folder, not waiting on them to pick one.
+    private var isRestoring: Bool {
+        FolderConfig.showFolder != nil
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             Text("xLights")
                 .font(.largeTitle)
-            Text("Select your show folder to get started")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Button("Configure Folders…") {
-                showFolderConfig = true
+            if isRestoring {
+                ProgressView()
+                Text("Loading show folder…")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Text("Large iCloud-backed folders may take a few moments.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            } else {
+                Text("Select your show folder to get started")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Button("Configure Folders…") {
+                    showFolderConfig = true
+                }
+                .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
         }
     }
 }
@@ -727,14 +930,75 @@ struct UbiquityBadge: View {
     }
 }
 
+/// How a sequence list is ordered. Used by the picker's In-This-Show-Folder
+/// section and the Batch Render sheet's sequence list. Persisted per
+/// surface via the `Storage` keys — they have independent state so a user
+/// can sort the picker by Name while sorting Batch Render by Modified.
+enum SequenceSortOrder: String, CaseIterable, Identifiable {
+    case name
+    case modifiedDescending
+    case renderedDescending
+    case outOfDateFirst
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .name: return "Name"
+        case .modifiedDescending: return "Modified (Newest First)"
+        case .renderedDescending: return "Rendered (Newest First)"
+        case .outOfDateFirst: return "Out of Date First"
+        }
+    }
+
+    enum Storage: String {
+        case picker = "xl.sequencePickerSortOrder"
+        case batchRender = "xl.batchRenderSortOrder"
+    }
+
+    static func load(_ storage: Storage) -> SequenceSortOrder {
+        let raw = UserDefaults.standard.string(forKey: storage.rawValue) ?? ""
+        return SequenceSortOrder(rawValue: raw) ?? .name
+    }
+
+    static func save(_ value: SequenceSortOrder, to storage: Storage) {
+        UserDefaults.standard.set(value.rawValue, forKey: storage.rawValue)
+    }
+
+    func apply(_ entries: [SequenceEntry]) -> [SequenceEntry] {
+        switch self {
+        case .name:
+            return entries.sorted {
+                $0.relativePath.localizedStandardCompare($1.relativePath) == .orderedAscending
+            }
+        case .modifiedDescending:
+            return entries.sorted {
+                ($0.modificationDate ?? .distantPast) > ($1.modificationDate ?? .distantPast)
+            }
+        case .renderedDescending:
+            return entries.sorted {
+                ($0.fseqModificationDate ?? .distantPast) > ($1.fseqModificationDate ?? .distantPast)
+            }
+        case .outOfDateFirst:
+            return entries.sorted { lhs, rhs in
+                if lhs.isFseqUpToDate != rhs.isFseqUpToDate {
+                    return !lhs.isFseqUpToDate
+                }
+                return lhs.relativePath.localizedStandardCompare(rhs.relativePath) == .orderedAscending
+            }
+        }
+    }
+}
+
 struct SequencePickerView: View {
     @Environment(SequencerViewModel.self) var viewModel
     @Binding var showFolderConfig: Bool
 
-    @State private var recent: [RecentSequences.Entry] = RecentSequences.load()
+    @State private var recent: [RecentSequences.Entry] = []
     @State private var showingNewWizard: Bool = false
     @State private var showingBatchRender: Bool = false
     @State private var openErrorMessage: String? = nil
+    @State private var sortOrder: SequenceSortOrder = SequenceSortOrder.load(.picker)
 
     var body: some View {
         NavigationStack {
@@ -743,6 +1007,8 @@ struct SequencePickerView: View {
                     Section("Recent") {
                         ForEach(recent) { entry in
                             let status = ubiquityStatus(for: URL(fileURLWithPath: entry.path))
+                            let seqEntry = SequenceEntry.stat(path: entry.path,
+                                                               relativeTo: viewModel.showFolderPath)
                             Button {
                                 openWithDownloadIfNeeded(path: entry.path, status: status)
                             } label: {
@@ -756,6 +1022,7 @@ struct SequencePickerView: View {
                                             .foregroundStyle(.secondary)
                                             .lineLimit(1)
                                             .truncationMode(.middle)
+                                        SequenceDatesLabel(entry: seqEntry)
                                     }
                                     Spacer()
                                     UbiquityBadge(status: status)
@@ -763,8 +1030,9 @@ struct SequencePickerView: View {
                             }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
-                                    RecentSequences.remove(path: entry.path)
-                                    recent = RecentSequences.load()
+                                    RecentSequences.remove(path: entry.path,
+                                                            forShowFolder: viewModel.showFolderPath)
+                                    recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
                                 } label: {
                                     Label("Remove", systemImage: "xmark.bin")
                                 }
@@ -773,7 +1041,7 @@ struct SequencePickerView: View {
                     }
                 }
                 Section(recent.isEmpty ? "Sequences" : "In This Show Folder") {
-                    ForEach(viewModel.sequenceFiles) { entry in
+                    ForEach(sortOrder.apply(viewModel.sequenceFiles)) { entry in
                         let status = ubiquityStatus(for: URL(fileURLWithPath: entry.fullPath))
                         Button {
                             openWithDownloadIfNeeded(path: entry.fullPath, status: status)
@@ -790,6 +1058,7 @@ struct SequencePickerView: View {
                                             .lineLimit(1)
                                             .truncationMode(.middle)
                                     }
+                                    SequenceDatesLabel(entry: entry)
                                 }
                                 Spacer()
                                 UbiquityBadge(status: status)
@@ -820,29 +1089,44 @@ struct SequencePickerView: View {
                         }
                     }
                 }
-                if !recent.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Menu {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Picker("Sort By", selection: $sortOrder) {
+                            ForEach(SequenceSortOrder.allCases) { order in
+                                Text(order.label).tag(order)
+                            }
+                        }
+                        if !recent.isEmpty {
+                            Divider()
                             Button(role: .destructive) {
-                                RecentSequences.clear()
+                                RecentSequences.clear(forShowFolder: viewModel.showFolderPath)
                                 recent = []
                             } label: {
                                 Label("Clear Recent", systemImage: "clock.badge.xmark")
                             }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
                         }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
             .onAppear {
-                recent = RecentSequences.load()
+                recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
+            }
+            .onChange(of: sortOrder) { _, newValue in
+                SequenceSortOrder.save(newValue, to: .picker)
+            }
+            .onChange(of: viewModel.showFolderPath) { _, _ in
+                // Show-folder change via the folder-config sheet —
+                // swap the picker's recent list to the new show's
+                // entries so users don't see stale cross-show paths.
+                recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
             }
             .sheet(isPresented: $showingNewWizard) {
                 NewSequenceWizardView()
                     .environment(viewModel)
                     .onDisappear {
-                        recent = RecentSequences.load()
+                        recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
                     }
             }
             .sheet(isPresented: $showingBatchRender) {
@@ -880,8 +1164,8 @@ struct SequencePickerView: View {
             && !FileManager.default.fileExists(atPath: path) {
             let name = (path as NSString).lastPathComponent
             openErrorMessage = "\"\(name)\" no longer exists. It has been removed from Recent."
-            RecentSequences.remove(path: path)
-            recent = RecentSequences.load()
+            RecentSequences.remove(path: path, forShowFolder: viewModel.showFolderPath)
+            recent = RecentSequences.load(forShowFolder: viewModel.showFolderPath)
             return
         }
         guard status == .notDownloaded else {

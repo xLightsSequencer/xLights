@@ -29,6 +29,7 @@
 #include "shared/utils/wxUtilities.h"
 #include "../effects/ShaderDownloadDialog.h"
 #include "../media/ManageMediaPanel.h"
+#include "../sequencer/MainSequencer.h"
 #include "../media/ShaderPreviewGenerator.h"
 #include "../sequencer/BlendingPanel.h"
 #include "../xLightsApp.h"
@@ -268,6 +269,11 @@ void ShaderPanel::OnSelectClicked(wxCommandEvent& /*event*/) {
     // handler chain. Processing on `this` walks ShaderPanel's handlers then
     // propagates up to the parent and never reaches the bound handler.
     _hiddenFilePicker->ProcessWindowEvent(evt);
+
+    if (xl->GetMainSequencer() && xl->GetMainSequencer()->GetSelectedEffectCount("Shader") > 1) {
+        std::string id = FixIdForPanel("Effect", _hiddenFilePicker->GetName().ToStdString());
+        xl->GetMainSequencer()->ApplyEffectSettingToSelected("Shader", id + "_FN", selected, nullptr, "");
+    }
 }
 
 void ShaderPanel::OnClearClicked(wxCommandEvent& /*event*/) {

@@ -1,9 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\src-ui-wx\import_export\ExportEffects.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ImportEffects.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\TimingImport.cpp" />
+    <ClCompile Include="..\src-core\import_export\TimingImport.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BatchRenderDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\controls\BulkEditControls.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BulkEditSliderDialog.cpp" />
@@ -32,11 +32,14 @@
     <ClCompile Include="..\src-core\import_export\AutoMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
+    <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferSizeDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\ChannelLayoutDialog.cpp" />
     <ClCompile Include="..\src-core\utils\Color.cpp" />
+    <ClCompile Include="..\src-core\utils\ZipUtils.cpp" />
     <ClCompile Include="..\src-core\render\ColorCurve.cpp" />
     <ClCompile Include="..\src-ui-wx\color\ColorCurveDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\color\ColorPanel.cpp" />
@@ -50,8 +53,9 @@
     <ClCompile Include="..\src-ui-wx\sequencer\EffectIconPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectListDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsPanel.cpp" />
-    <ClCompile Include="..\src-ui-wx\effects\EffectPresetManager.cpp" />
+    <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -73,6 +77,7 @@
     <ClCompile Include="..\src-ui-wx\shared\dialogs\OptionChooser.cpp" />
     <ClCompile Include="..\src-core\outputs\TestPreset.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\PerspectivesPanel.cpp" />
+    <ClCompile Include="..\src-core\lyrics\LRCParser.cpp" />
     <ClCompile Include="..\src-core\lyrics\PhonemeDictionary.cpp" />
     <ClCompile Include="..\src-core\render\PixelBuffer.cpp">
       <Filter>render</Filter>
@@ -80,6 +85,9 @@
     <ClCompile Include="..\src-ui-wx\layout\PreviewPane.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\ModelVideoExporter.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\RenderBuffer.cpp">
@@ -91,6 +99,7 @@
     <ClCompile Include="..\src-ui-wx\app-shell\SaveChangesDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\SelectTimingsDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\SelectModelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqExportDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\SeqFileUtilities.cpp" />
@@ -120,7 +129,9 @@
     <ClCompile Include="..\src-ui-wx\media\VideoExporter.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VendorModelDialog.cpp" />
     <ClCompile Include="..\src-core\media\FFmpegVideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\FFmpegVideoWriter.cpp" />
     <ClCompile Include="..\src-core\media\VideoReader.cpp" />
+    <ClCompile Include="..\src-core\media\VideoWriter.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\ViewsModelsPanel.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VSAFile.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\VsaImportDialog.cpp" />
@@ -129,10 +140,13 @@
     <ClCompile Include="..\src-ui-wx\color\xlColorCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPicker.cpp" />
     <ClCompile Include="..\src-ui-wx\color\xlColorPickerFields.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerButton.cpp" />
+    <ClCompile Include="..\src-ui-wx\color\xlColourPickerDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xlGridCanvas.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFile.cpp">
       <Filter>render</Filter>
@@ -173,7 +187,8 @@
     <ClCompile Include="..\src-ui-wx\model\PathGenerationDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
-    <ClCompile Include="..\src-ui-wx\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
     <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\effects\CharMapDialog.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp">
@@ -377,7 +392,7 @@
     <ClCompile Include="..\src-core\effects\MorphEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\import_export\Vixen3.cpp" />
+    <ClCompile Include="..\src-core\import_export\Vixen3.cpp" />
     <ClCompile Include="..\src-core\effects\MusicEffect.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
@@ -698,6 +713,7 @@
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
+    <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp">
@@ -1066,7 +1082,8 @@
     <ClCompile Include="..\src-core\ai\claude.cpp">
       <Filter>ai</Filter>
     </ClCompile>
-    <ClCompile Include="..\src-ui-wx\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
+    <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
     <ClCompile Include="..\src-core\ai\ollama.cpp">
       <Filter>ai</Filter>
     </ClCompile>
@@ -1104,6 +1121,9 @@
       <Filter>XmlSerializer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
+    <ClCompile Include="..\src-core\models\handles\HitTest.cpp">
+      <Filter>Models\handles</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\DMX\DmxBeamAbility.cpp">
       <Filter>Models\DMX</Filter>
     </ClCompile>
@@ -1121,6 +1141,12 @@
       <Filter>ai</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\ai\OpenAIImageGenerator.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\ai\OpenVINOImageGenerator.cpp">
+      <Filter>ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\ai\OpenVINOService.cpp">
       <Filter>ai</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\effectpanels\DMXPanel.cpp">
@@ -1372,11 +1398,14 @@
     <ClInclude Include="..\src-core\import_export\EffectMapper.h" />
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
+    <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferSizeDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\ChannelLayoutDialog.h" />
     <ClInclude Include="..\src-core\utils\Color.h" />
+    <ClInclude Include="..\src-core\utils\ZipUtils.h" />
     <ClInclude Include="..\src-core\render\ColorCurve.h" />
     <ClInclude Include="..\src-ui-wx\color\ColorPanel.h" />
     <ClInclude Include="..\src-ui-wx\setup\ControllerConnectionDialog.h" />
@@ -1389,8 +1418,9 @@
     <ClInclude Include="..\src-ui-wx\sequencer\EffectIconPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectListDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsPanel.h" />
-    <ClInclude Include="..\src-ui-wx\effects\EffectPresetManager.h" />
+    <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
@@ -1401,6 +1431,7 @@
     <ClInclude Include="..\src-ui-wx\app-shell\KeyBindings.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutGroup.h" />
     <ClInclude Include="..\src-ui-wx\layout\LayoutPanel.h" />
+    <ClInclude Include="..\src-ui-wx\layout\ReplaceModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LMSImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\LorConvertDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricsDialog.h" />
@@ -1415,12 +1446,16 @@
     <ClInclude Include="..\src-core\utils\ExternalHooks.h" />
     <ClInclude Include="..\src-core\outputs\TestPreset.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\PerspectivesPanel.h" />
+    <ClInclude Include="..\src-core\lyrics\LRCParser.h" />
     <ClInclude Include="..\src-core\lyrics\PhonemeDictionary.h" />
     <ClInclude Include="..\src-core\render\PixelBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\layout\PreviewPane.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-core\render\ModelVideoExporter.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\RenderBuffer.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -1430,6 +1465,7 @@
     <ClInclude Include="..\src-ui-wx\app-shell\SaveChangesDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectPanel.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SelectTimingsDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\SelectModelDialog.h" />
     <ClInclude Include="..\src-ui-wx\diagnostics\SeqElementMismatchDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\SeqExportDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\SeqSettingsDialog.h" />
@@ -1454,9 +1490,12 @@
     <ClInclude Include="..\src-ui-wx\media\VideoExporter.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VendorModelDialog.h" />
     <ClInclude Include="..\src-core\media\FFmpegVideoReader.h" />
+    <ClInclude Include="..\src-core\media\FFmpegVideoWriter.h" />
     <ClInclude Include="..\src-core\media\VideoFrame.h" />
     <ClInclude Include="..\src-core\media\VideoReader.h" />
     <ClInclude Include="..\src-core\media\VideoReaderImpl.h" />
+    <ClInclude Include="..\src-core\media\VideoWriter.h" />
+    <ClInclude Include="..\src-core\media\VideoWriterImpl.h" />
     <ClInclude Include="..\src-ui-wx\layout\ViewsModelsPanel.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VSAFile.h" />
     <ClInclude Include="..\src-ui-wx\import_export\VsaImportDialog.h" />
@@ -1465,11 +1504,14 @@
     <ClInclude Include="..\src-ui-wx\color\xlColorCanvas.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPicker.h" />
     <ClInclude Include="..\src-ui-wx\color\xlColorPickerFields.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerButton.h" />
+    <ClInclude Include="..\src-ui-wx\color\xlColourPickerDialog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xlCustomControl.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\xlGridCanvas.h" />
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
       <Filter>render</Filter>
@@ -1510,7 +1552,8 @@
     <ClInclude Include="..\src-ui-wx\model\PathGenerationDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
-    <ClInclude Include="..\src-ui-wx\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\LOREdit.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\effects\CharMapDialog.h" />
@@ -1724,7 +1767,7 @@
     <ClInclude Include="..\src-core\controllers\ExportSettings.h">
       <Filter>Controllers</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\import_export\Vixen3.h" />
+    <ClInclude Include="..\src-core\import_export\Vixen3.h" />
     <ClInclude Include="..\src-core\effects\MorphEffect.h">
       <Filter>Effects</Filter>
     </ClInclude>
@@ -2046,6 +2089,7 @@
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SongStructureManager.h">
+    <ClInclude Include="..\src-core\render\SeqMediaMigration.h">
       <Filter>render</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\render\SequenceMedia.h">
@@ -2196,6 +2240,12 @@
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\utils\ip_utils.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\FloatChecks.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\utils\AutoReleasePool.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\sequencer\DuplicateDialog.h" />
@@ -2415,7 +2465,8 @@
     <ClInclude Include="..\src-core\ai\claude.h">
       <Filter>ai</Filter>
     </ClInclude>
-    <ClInclude Include="..\src-ui-wx\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
+    <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
     <ClInclude Include="..\src-core\ai\ollama.h">
       <Filter>ai</Filter>
     </ClInclude>
@@ -2471,6 +2522,15 @@
       <Filter>XmlSerializer</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
+    <ClInclude Include="..\src-core\models\handles\DragSession.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\handles\Handles.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\handles\HitTest.h">
+      <Filter>Models\handles</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\models\DMX\DmxBeamAbility.h">
       <Filter>Models\DMX</Filter>
     </ClInclude>
@@ -2487,6 +2547,12 @@
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\ai\OpenAIImageGenerator.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\OpenVINOImageGenerator.h">
+      <Filter>ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\ai\OpenVINOService.h">
       <Filter>ai</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\effectpanels\DMXPanel.h">
@@ -2798,6 +2864,9 @@
     </Filter>
     <Filter Include="Models\DMX">
       <UniqueIdentifier>{4fb623be-9694-497c-b76e-19e9b12e5991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Models\handles">
+      <UniqueIdentifier>{6f6c7a3a-7d1c-4c4e-9b3a-2e1c7c0d8f10}</UniqueIdentifier>
     </Filter>
     <Filter Include="Preferences">
       <UniqueIdentifier>{deb253e2-d6a8-4b5f-909d-9a98e9e667e1}</UniqueIdentifier>

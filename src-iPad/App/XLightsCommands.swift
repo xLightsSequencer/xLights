@@ -22,6 +22,14 @@ import SwiftUI
 struct XLSequencerCommands: Commands {
     let viewModel: SequencerViewModel
 
+    /// Builds an Undo/Redo menu title that appends the pending action
+    /// name when one is set (e.g. "Undo Move Effect"), falling back to
+    /// the bare verb when nothing is undoable or no name was assigned.
+    private func undoMenuTitle(_ verb: String, _ enabled: Bool, _ actionName: String) -> String {
+        guard enabled, !actionName.isEmpty else { return verb }
+        return "\(verb) \(actionName)"
+    }
+
     var body: some Commands {
         // File menu — replacing the default "New Item" / "Save Item"
         // groups so our items live where users expect them on iPadOS.
@@ -58,11 +66,22 @@ struct XLSequencerCommands: Commands {
         // (Cut intentionally omitted; disabled-but-bound shortcuts
         // still swallow key events.)
         CommandGroup(replacing: .undoRedo) {
-            Button("Undo") { viewModel.undo() }
+            // Surface the descriptive action name (set at the ~26
+            // setActionName call sites) so the menu reads "Undo Move
+            // Effect" rather than a bare "Undo" — matches desktop and
+            // the platform convention. Falls back to the bare verb
+            // when no named action is pending.
+            Button(undoMenuTitle("Undo", viewModel.undoManager.canUndo,
+                                  viewModel.undoManager.undoActionName)) {
+                viewModel.undo()
+            }
                 .keyboardShortcut("z", modifiers: [.command])
                 .disabled(!viewModel.undoManager.canUndo)
 
-            Button("Redo") { viewModel.redo() }
+            Button(undoMenuTitle("Redo", viewModel.undoManager.canRedo,
+                                  viewModel.undoManager.redoActionName)) {
+                viewModel.redo()
+            }
                 .keyboardShortcut("z", modifiers: [.command, .shift])
                 .disabled(!viewModel.undoManager.canRedo)
         }
@@ -75,6 +94,19 @@ struct XLSequencerCommands: Commands {
                 viewModel.findReplacePresented = true
             }
             .keyboardShortcut("f", modifiers: [.command])
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // SEQ-2 — whole-sequence Color Replace.
+            Button("Color Replace…") {
+                viewModel.colorReplacePresented = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // PRE-1 — persistent effect preset library.
+            Button("Effect Presets…") {
+                viewModel.presetBrowserPresented = true
+            }
+            .keyboardShortcut("p", modifiers: [.command, .shift])
             .disabled(!viewModel.isSequenceLoaded)
         }
         CommandGroup(replacing: .pasteboard) {
@@ -97,6 +129,13 @@ struct XLSequencerCommands: Commands {
                 .disabled(viewModel.selectedEffect == nil)
 
             Divider()
+
+            // SEQ-3 — select every effect across all model rows. ⌘A
+            // yields to text-field select-all while a field is first
+            // responder, so this only fires in the grid context.
+            Button("Select All") { viewModel.selectAllEffects() }
+                .keyboardShortcut("a", modifiers: [.command])
+                .disabled(!viewModel.hasAnyEffectToSelect)
 
             Button("Delete") { viewModel.deleteSelectedEffects() }
                 .keyboardShortcut(.delete, modifiers: [])
@@ -231,6 +270,10 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
+            XLDockAllCommands(viewModel: viewModel)
+
+            Divider()
+
             Button("Edit Display Elements…") {
                 viewModel.showingDisplayElements = true
             }
@@ -249,6 +292,95 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingImportEffects = true
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Check Sequence…") {
+                viewModel.showingCheckSequence = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // J-0 — Layout Editor (read-only in J-0; mutation lands in
+            // J-1+). Opens its own WindowGroup so the user can keep
+            // the sequencer visible alongside it on a 13" iPad.
+            // Disabled until a show folder loads — there's nothing to
+            // edit before models exist.
+            EditLayoutMenuItem(viewModel: viewModel)
+
+            Divider()
+
+            Button("AI Services…") {
+                viewModel.showingAIServices = true
+            }
+
+            Divider()
+
+            // Package Logs — bundles xLights logs, MetricKit
+            // diagnostics, the active show folder XML, the open
+            // sequence, and a device-info sidecar into a single
+            // zip and hands it to the system share sheet. Always
+            // enabled; useful even with no sequence loaded
+            // (TestFlight crash debugging).
+            Button("Package Logs…") {
+                Task { @MainActor in
+                    if let url = await viewModel.packageLogs() {
+                        XLPresentShareSheet(items: [url])
+                    }
+                }
+            }
+
+            // EX-11 — Tools → Package Sequence. Builds a `.xsqz`
+            // of the current sequence + media for sharing (mirrors
+            // desktop). Disabled until a sequence is loaded since
+            // there's nothing to package otherwise.
+            Button("Package Sequence…") {
+                viewModel.showingPackageSequence = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Export House Preview. Renders the whole house
+            // preview offscreen at a chosen resolution (default 1080p)
+            // and encodes it to .mp4 — independent of the on-screen
+            // preview size.
+            Button("Export House Preview…") {
+                viewModel.showingExportHousePreview = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // EX-4 — Tools → FPP Connect. Discover FPP instances and
+            // upload batch-rendered .fseq files. Show folder must be
+            // loaded so the sheet has fseqs to enumerate. The sheet is
+            // hosted on the sequencer window only, so pull that window
+            // to the front before flipping the flag — otherwise the
+            // menu fires from the Layout Editor window and the sheet
+            // never appears.
+            FPPConnectMenuItem(viewModel: viewModel)
+
+            Divider()
+
+            // H-6 / T-2 — Tools → View Log. Live log viewer for
+            // troubleshooting without leaving the device.
+            Button("View Log…") {
+                viewModel.showingLogViewer = true
+            }
+
+            Divider()
+
+            // TOOLS-1b — Purge Render Cache. Frees disk/iCloud quota;
+            // the next render repopulates.
+            Button("Purge Render Cache") {
+                viewModel.purgeRenderCache()
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // TOOLS-1 — Purge Download Cache. Vendor catalog, palette/model
+            // images, shader/model downloads live in the shared file cache.
+            // Independent of any open sequence.
+            Button("Purge Download Cache") {
+                viewModel.purgeDownloadCache()
+            }
         }
 
         // Playback menu.
@@ -405,6 +537,60 @@ struct XLSequencerCommands: Commands {
                 .disabled(!viewModel.isSequenceLoaded
                            || !viewModel.tagPositions.contains(where: { $0 >= 0 }))
         }
+
+        // Help menu — replaces the system default so About + the
+        // five external link items live where iPadOS users expect.
+        // URLs mirror desktop's `Help_*` handlers in xLightsMain.cpp;
+        // each opens via `UIApplication.shared.open` (system Safari)
+        // to match desktop's `wxLaunchDefaultBrowser` behaviour.
+        CommandGroup(replacing: .help) {
+            Button("About xLights…") {
+                viewModel.showingAbout = true
+            }
+
+            Divider()
+
+            Button("xLights Manual") {
+                XLOpenURL("https://manual.xlights.org/")
+            }
+            Button("Tutorial Videos") {
+                XLOpenURL("https://videos.xlights.org")
+            }
+            Button("Release Notes") {
+                XLOpenURL("https://raw.githubusercontent.com/xLightsSequencer/xLights/"
+                          + XLSequenceDocument.appVersion()
+                          + "/README.txt")
+            }
+
+            Divider()
+
+            Button("xLights Forum") {
+                XLOpenURL("https://nutcracker123.com/forum/")
+            }
+            Button("Facebook Group") {
+                XLOpenURL("https://www.facebook.com/groups/628061113896314/")
+            }
+
+            Divider()
+
+            Button("Issue Tracker") {
+                XLOpenURL("https://github.com/xLightsSequencer/xLights/issues")
+            }
+            Button("xLights Website") {
+                XLOpenURL("https://xlights.org")
+            }
+
+            Divider()
+
+            // TOOL-8 — Help-menu parity: the two desktop support links
+            // that were missing (Help_Zoom / Help_Donate handlers).
+            Button("Zoom Room Help") {
+                XLOpenURL("https://zoom.us/j/175801909?pwd=ZU1hNzM5bjJpOGZ1d1BOb1BzMUFndz09")
+            }
+            Button("Donate…") {
+                XLOpenURL("https://www.paypal.com/donate/?hosted_button_id=BB6366BT755H6")
+            }
+        }
     }
 
     /// KeyEquivalent for a single digit 0..9. Used by the numbered-
@@ -559,6 +745,43 @@ private struct XLInspectorDetachCommands: View {
     }
 }
 
+// VIEW-3 — "Dock All Windows" docks every detached preview / inspector
+// scene in one action; "Reset Pane Sizes" clears the persisted
+// preview-height / inspector-width so the panes return to their default
+// proportions (the @AppStorage bindings in SequencerView observe the
+// keys and re-lay-out when they're removed).
+private struct XLDockAllCommands: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.dismissWindow) private var dismissWindow
+
+    private var anythingDetached: Bool {
+        viewModel.housePreviewDetached
+            || viewModel.modelPreviewDetached
+            || !viewModel.detachedInspectorTabs.isEmpty
+    }
+
+    var body: some View {
+        Button("Dock All Windows") {
+            if viewModel.housePreviewDetached {
+                dismissWindow(id: "house-preview")
+            }
+            if viewModel.modelPreviewDetached {
+                dismissWindow(id: "model-preview")
+            }
+            for tab in InspectorTab.allCases
+            where viewModel.detachedInspectorTabs.contains(tab.rawValue) {
+                dismissWindow(id: "inspector-tab", value: tab)
+            }
+        }
+        .disabled(!anythingDetached)
+
+        Button("Reset Pane Sizes") {
+            UserDefaults.standard.removeObject(forKey: "previewPaneHeight")
+            UserDefaults.standard.removeObject(forKey: "inspectorPaneWidth")
+        }
+    }
+}
+
 private extension InspectorTab {
     /// ⌥⌘+letter bindings for "Open <tab> in New Window" menu items.
     var menuShortcut: (key: KeyEquivalent, modifiers: EventModifiers) {
@@ -568,5 +791,48 @@ private extension InspectorTab {
         case .blending: return ("b", [.command, .option])
         case .buffer:   return ("u", [.command, .option])
         }
+    }
+}
+
+/// J-0 — Tools → Edit Layout menu entry. Wrapped in its own View so
+/// it can read `@Environment(\.openWindow)` (only resolvable inside
+/// a View body, not directly in `Commands`). Insert + open follows
+/// the F-1 token pattern so iPadOS scene auto-restore doesn't pop
+/// the editor open on a launch the user didn't ask for.
+struct EditLayoutMenuItem: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Edit Layout…") {
+            viewModel.pendingDetachTokens.insert("layout-editor")
+            openWindow(id: "layout-editor")
+        }
+        .disabled(!viewModel.isShowFolderLoaded || viewModel.layoutEditorOpen)
+    }
+}
+
+/// Tools → FPP Connect menu entry. The sheet is hosted only in the
+/// sequencer WindowGroup, so when the Layout Editor window is in
+/// front we need to swap focus before flipping the flag. But
+/// `openWindow(id: "sequencer")` on iPadOS multi-instance WindowGroups
+/// spawns a second sequencer scene when one is already foreground
+/// (the SwiftUI API for "activate existing" is unreliable here), so
+/// we gate the openWindow call on `viewModel.layoutEditorOpen` — that
+/// flag is only true while a Layout Editor scene is alive. When no
+/// Layout Editor is open the sequencer must be the front window
+/// already, so we skip the switch and just flip the flag.
+struct FPPConnectMenuItem: View {
+    let viewModel: SequencerViewModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("FPP Connect…") {
+            if viewModel.layoutEditorOpen {
+                openWindow(id: "sequencer")
+            }
+            viewModel.showingFPPConnect = true
+        }
+        .disabled(!viewModel.isShowFolderLoaded)
     }
 }

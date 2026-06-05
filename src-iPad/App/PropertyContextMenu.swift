@@ -106,6 +106,35 @@ struct PropertyContextMenu: ViewModifier {
                 Label("Apply to \(viewModel.selectedEffects.count - 1) Other Selected",
                       systemImage: "square.stack.3d.up.fill")
             }
+            // FX-5 — explicit checked / unchecked for checkboxes (desktop's
+            // BulkEditCheckbox). The generic apply above only pushes the
+            // anchor's current state; these force a state directly.
+            if property.controlType == "checkbox" || property.controlType == "togglebutton" {
+                Button {
+                    viewModel.applyValueToAllSelected("1", forKey: settingKey)
+                } label: {
+                    Label("Set Checked on \(viewModel.selectedEffects.count - 1) Other Selected",
+                          systemImage: "checkmark.square")
+                }
+                Button {
+                    viewModel.applyValueToAllSelected("0", forKey: settingKey)
+                } label: {
+                    Label("Set Unchecked on \(viewModel.selectedEffects.count - 1) Other Selected",
+                          systemImage: "square")
+                }
+            }
+            // FX-5 — file pickers also get an "apply filename only" variant
+            // (desktop's BulkEditFilePicker), beside the full-path apply above;
+            // FixFile resolves the bare name against the show/media folders.
+            if property.controlType == "filepicker" && !current.isEmpty {
+                Button {
+                    viewModel.applyValueToAllSelected((current as NSString).lastPathComponent,
+                                                       forKey: settingKey)
+                } label: {
+                    Label("Apply Filename Only to \(viewModel.selectedEffects.count - 1) Other Selected",
+                          systemImage: "doc")
+                }
+            }
         }
 
         if property.valueCurve == true {
@@ -146,6 +175,23 @@ struct PropertyContextMenu: ViewModifier {
             } label: {
                 Label("Paste Value Curve",
                       systemImage: "doc.on.clipboard")
+            }
+
+            // COL-2 — push this property's value curve to every other
+            // effect in the multi-selection. Reuses the generic
+            // applyValueToAllSelected path (E_ keys are filtered per
+            // target on the view-model side, so a Brightness curve won't
+            // leak onto an unrelated effect type). The serialised curve is
+            // re-read at tap time, not at menu-build time.
+            if viewModel.isMultiEffectSelection {
+                Button {
+                    let fresh = viewModel.settingValue(forKey: vcKey,
+                                                       defaultValue: "")
+                    viewModel.applyValueToAllSelected(fresh, forKey: vcKey)
+                } label: {
+                    Label("Apply Value Curve to \(viewModel.selectedEffects.count - 1) Other Selected",
+                          systemImage: "square.stack.3d.up.fill")
+                }
             }
         }
     }

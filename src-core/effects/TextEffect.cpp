@@ -669,6 +669,9 @@ void DrawLabel(TextDrawingContext *dc,
             if ( idx == text.size() )
                 break;
 
+            if (perWord && !curLine.empty()) {
+                curPos++;
+            }
             curLine.clear();
         }
         else // not end of line
@@ -1334,9 +1337,9 @@ std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
     std::string word;
     for (auto c : text) {
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-            if (word != "") {
+            if (!word.empty()) {
                 res.push_back(word);
-                word = "";
+                word.clear();
             }
         }
         else {
@@ -1344,7 +1347,7 @@ std::vector<std::string> TextEffect::WordSplit(const std::string& text) const
         }
     }
 
-    if (word != "") {
+    if (!word.empty()) {
         res.push_back(word);
     }
 
@@ -1411,7 +1414,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     std::string filename = settings["FILEPICKERCTRL_Text_File"];
     std::string lyricTrack = settings["CHOICE_Text_LyricTrack"];
 
-    if (text == "") {
+    if (text.empty()) {
         if (!filename.empty()) {
             auto* seqMedia = buffer.GetSequenceMedia();
             std::string fileContent;
@@ -1524,7 +1527,7 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
     int PreOffsetLeft = OffsetLeft;
     int PreOffsetTop = OffsetTop;
 
-    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, max_line_length, char_width, char_height, vertical, rotate_90);
+    AddMotions(OffsetLeft, OffsetTop, settings, buffer, text.size(), endx, endy, pixelOffsets, PreOffsetLeft, PreOffsetTop, max_line_length, char_width, char_height, vertical, rotate_90, lines.size(), font->GetCapsHeight());
 
     if (rotate_90) {
         OffsetLeft += buffer.BufferWi / 2 - font->GetCapsHeight() / 2;
@@ -1612,9 +1615,12 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
                     line_offset_left += actual_width;
                 }
             }
+            if (perWord && !line.empty() && line_idx + 1 < lines.size()) {
+                curPos++;
+            }
             if (rotate_90) {
                 OffsetLeft += char_height + 1;
-                if (up) { 
+                if (up) {
                     OffsetTop = InitialOffsetTop;
                 }
             } else {
@@ -1625,15 +1631,16 @@ void TextEffect::RenderXLText(Effect* effect, const SettingsMap& settings, Rende
 }
 
 void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& settings, RenderBuffer &buffer,
-    int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90) const
+    int txtLen, int endx, int endy, bool pixelOffsets, int PreOffsetLeft, int PreOffsetTop, int text_len, int char_width, int char_height, bool vertical, bool rotate_90, int numLines, int caps_height) const
 {
+    if (caps_height < 0) caps_height = char_height;
     int tspeed = settings.GetInt("TEXTCTRL_Text_Speed", sSpeedDefault);
     int state = (buffer.curPeriod - buffer.curEffStartPer) * tspeed * buffer.frameTimeInMs / 50;
 
     int txtwidth = text_len;
-    int txtheight = char_height;
+    int txtheight = numLines * (char_height + 1) - 1;
     int totwidth = buffer.BufferWi + text_len;
-    int totheight = buffer.BufferHt + char_height;
+    int totheight = buffer.BufferHt + txtheight;
 
     if (vertical)         {
         totwidth = buffer.BufferWi + char_width;
@@ -1682,20 +1689,21 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         }
         break; // right
     case TEXTDIR_UP:
-        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        OffsetTop = center ? std::max(buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state % ylimit / 8 - PreOffsetTop);
         if (norepeat && !center && state > ylimit) {
             OffsetTop = -ylimit;
         }
         break; // up
     case TEXTDIR_DOWN:
-        OffsetTop = center ? std::min(state / 8 - (buffer.BufferHt / 2) - PreOffsetTop, 0):(state % ylimit / 8 - (buffer.BufferHt / 2) - PreOffsetTop);
+        OffsetTop = center ? std::min(state / 8 - txtheight - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop, 0)
+                           : (state % ylimit / 8 - txtheight - buffer.BufferHt / 2 + (caps_height * numLines) / 2 - PreOffsetTop);
         if (norepeat && !center && state > (ylimit - (buffer.BufferHt / 2))) {
             OffsetTop = ylimit;
         }
         break; // down
     case TEXTDIR_UPLEFT:
         OffsetLeft = center ? std::max(buffer.BufferWi - state / 8 + PreOffsetLeft,0):(buffer.BufferWi - state % xlimit / 8 + PreOffsetLeft);
-        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop,0):(buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        OffsetTop = center ? std::max(buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state / 8 - PreOffsetTop,0):(buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state % ylimit / 8 - PreOffsetTop);
         if (norepeat && !center && (state > ylimit || state > xlimit)) {
                 OffsetTop = -ylimit;
                 OffsetLeft= -xlimit;
@@ -1711,7 +1719,7 @@ void TextEffect::AddMotions(int& OffsetLeft, int& OffsetTop, const SettingsMap& 
         break; // down-left
     case TEXTDIR_UPRIGHT:
         OffsetLeft = center ? std::min(state / 8 - txtwidth + PreOffsetLeft,0):(state % xlimit / 8 - txtwidth + PreOffsetLeft);
-        OffsetTop = center ? std::max(buffer.BufferHt - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt - state % ylimit / 8 - PreOffsetTop);
+        OffsetTop = center ? std::max(buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state / 8 - PreOffsetTop, 0) : (buffer.BufferHt / 2 + (caps_height * numLines) / 2 - state % ylimit / 8 - PreOffsetTop);
         if (norepeat && !center && (state > ylimit || state > xlimit)) {
             OffsetLeft = xlimit + PreOffsetLeft;
             OffsetTop = -ylimit;

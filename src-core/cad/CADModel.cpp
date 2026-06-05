@@ -20,6 +20,8 @@
 
 void CADModel::LoadModel(Model* model, bool twoD, bool addNodeNumbers, bool addConnections)
 {
+	if (model == nullptr) return;
+	
 	float minX = FLT_MAX;
 	float minY = FLT_MAX;
 	float minZ = FLT_MAX;

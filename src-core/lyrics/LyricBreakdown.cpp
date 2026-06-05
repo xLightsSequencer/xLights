@@ -10,7 +10,6 @@
 
 #include "LyricBreakdown.h"
 
-#include <cassert>
 #include <string>
 #include <vector>
 
@@ -102,8 +101,12 @@ void BreakdownWord(EffectLayer* phoneme_layer, int start_time, int end_time,
         if (phoneme_end_time > end_time) {
             phoneme_end_time = end_time;
         }
-        assert(phoneme_start_time < phoneme_end_time);
 
+        // Phoneme end can land on (or before) the start when the per-phoneme
+        // interval rounds to less than one timing-track period — e.g. a short
+        // word with 3 phonemes at 50 fps gives ~10 ms each, all rounded to the
+        // same 20 ms frame boundary. Skip the effect in that case rather than
+        // adding a zero-length one.
         if (phoneme_end_time > phoneme_start_time) {
             Effect* ef = phoneme_layer->AddEffect(0, phoneme, "", "", phoneme_start_time, phoneme_end_time, EFFECT_NOT_SELECTED, false);
             undo_mgr.CaptureAddedEffect(phoneme_layer->GetParentElement()->GetName(), phoneme_layer->GetIndex(), ef->GetID());

@@ -1,14 +1,69 @@
-name: Windows CMake
+name: Windows CMake CI
+
+# Builds xLights with CMake + Ninja using the vendored libs (no vcpkg).
+# Ninja advantages over the VS generator:
+#   - CMAKE_CXX_COMPILER_LAUNCHER=sccache works natively (no cl.bat shim).
+#   - Faster configure and incremental builds.
+#   - Single-config — no /p:Configuration= indirection through MSBuild.
+#
+# curl: linked directly from the vendored lib\windows64\libcurl.dll.a
+#       (CMakeLists.txt falls back to it when no .lib is present).
 
 on:
-  schedule:
-    - cron: '0 5 * * *' # run at 5 AM UTC
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'ci_scripts/**'
+      - 'cmudict/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'resources/**'
+      - 'lib/windows/**'
+      - 'lib/windows64/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'xlDo/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/*.yml'
+      - '.github/ISSUE_TEMPLATE/*.md'
+      - 'build_scripts/**'
+      - 'ci_scripts/**'
+      - 'cmudict/**'
+      - 'documentation/**'
+      - 'download/**'
+      - 'resources/**'
+      - 'songs/**'
+      - 'TipOfDay/**'
+      - 'xlDo/**'
+      - '*.md'
+      - '*.yml'
+      - '*.txt'
+      - '*.docx'
+      - 'README.*'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+  
 jobs:
   cmake-windows:
-    name: CMake / Windows / MSVC x64
+    name: CMake / Ninja / Windows x64
     runs-on: windows-latest
+
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      BUILD_DIR: cmake_ninja
 
     steps:
       # ── Checkout ──────────────────────────────────────────────────────────
@@ -18,10 +73,33 @@ jobs:
           submodules: true
 
       # ── MSVC environment ──────────────────────────────────────────────────
-      - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v3
+      # Ninja drives cl.exe directly — the MSVC dev environment must be active.
+      - name: Setup MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
-      # ── wxWidgets (custom fork, built with nmake → lib/vc_x64_lib layout) ─
+      # ── ISPC ──────────────────────────────────────────────────────────────
+      - name: Install ISPC
+        uses: ispc/install-ispc-action@main
+        with:
+          version: 1.30.0
+
+      # ── sccache ───────────────────────────────────────────────────────────
+      # Ninja supports CMAKE_CXX_COMPILER_LAUNCHER natively — no cl.bat shim.
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Configure sccache
+        shell: bash
+        run: |
+          if ! sccache --zero-stats; then
+            echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+            echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+            sccache --stop-server 2>/dev/null || true
+          fi
+
+      # ── wxWidgets ─────────────────────────────────────────────────────────
       - name: Get wxWidgets HEAD SHA
         id: wx-sha
         shell: bash
@@ -35,14 +113,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}\wxWidgets
-          key: wxwidgets-msvc2022-x64-${{ steps.wx-sha.outputs.sha }}
+          key: wxwidgets-msvc2022-x64-ninja-${{ steps.wx-sha.outputs.sha }}
 
       - name: Checkout wxWidgets
         if: steps.cache-wx.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: xLightsSequencer/wxWidgets
-          path: wxWidgets          # relative → resolves to ${{ github.workspace }}\wxWidgets
+          path: wxWidgets
           submodules: recursive
 
       - name: Build wxWidgets (Release)
@@ -50,28 +128,31 @@ jobs:
         working-directory: ${{ github.workspace }}\wxWidgets
         run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
 
-      # ── ISPC ──────────────────────────────────────────────────────────────
-      - name: install ISPC
-        uses: ispc/install-ispc-action@main
-        with:
-          version: 1.30.0
-
       # ── Configure ─────────────────────────────────────────────────────────
-      - name: Configure
+      - name: Configure CMake
         shell: cmd
         run: |
-          cmake -S . -B cmake_vs ^
-            -G "Visual Studio 17 2022" -A x64 ^
+          cmake -S . -B %BUILD_DIR% ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
 
       # ── Build ─────────────────────────────────────────────────────────────
       - name: Build
         shell: cmd
-        run: cmake --build cmake_vs --config Release --parallel 8
+        run: cmake --build %BUILD_DIR% --parallel 8
 
-      - name: Upload xLights Exe
+      - name: sccache stats
+        run: sccache --show-stats
+
+      # ── Upload artifact ───────────────────────────────────────────────────
+      - name: Upload xLights exe
         uses: actions/upload-artifact@v4
         with:
           name: xLights_Exe
-          path: 'xLights\bin\Release\**'
+          path: bin\**
           retention-days: 7

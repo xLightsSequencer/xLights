@@ -287,7 +287,7 @@ protected:
 
     void sizeForRenderBuffer(const RenderBuffer& rb,
         bool& s_shadersInit,
-        unsigned& s_vertexArrayId, unsigned& s_vertexBufferId, unsigned& s_rbId, unsigned& s_fbId,
+        unsigned& s_vertexBufferId, unsigned& s_rbId,
         unsigned& s_rbTex, int& s_rbWidth, int& s_rbHeight);
 
     struct VertexTex

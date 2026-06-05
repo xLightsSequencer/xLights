@@ -223,9 +223,96 @@
             "description": "Selects which audio track drives this VU Meter. 'Main' uses the sequence's primary audio; additional tracks are listed if alternate audio tracks have been added in Sequence Settings.",
             "type": "enum",
             "controlType": "choice",
-            "options": [],
+            "dynamicOptions": "audioTracks",
             "default": "",
             "lockable": true
+        }
+    ],
+    "visibilityRules": [
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Spectrogram", "Spectrogram Peak", "Spectrogram Circle Line", "Spectrogram Line"
+            ] },
+            "enable": [ "VUMeter_LogarithmicX" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Volume Bars", "Waveform", "Frame Waveform", "On", "Color On", "Intensity Wave",
+                "Level Bar", "Level Random Bar", "Level Color", "Level Pulse", "Level Jump",
+                "Level Jump 100", "Level Pulse Color", "Timing Event Jump", "Note On",
+                "Note Level Bar", "Note Level Random Bar", "Note Level Pulse",
+                "Note Level Jump", "Note Level Jump 100", "Spectrogram Circle Line", "Level Shape"
+            ] },
+            "enable": [ "VUMeter_Gain" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Timing Event Spike", "Timing Event Sweep", "Timing Event Sweep 2",
+                "Timing Event Timed Sweep", "Timing Event Timed Sweep 2",
+                "Timing Event Alternate Timed Sweep", "Timing Event Alternate Timed Sweep 2",
+                "Timing Event Timed Chase To Middle", "Timing Event Timed Chase From Middle",
+                "Pulse", "Timing Event Color", "Timing Event Pulse", "Timing Event Bar",
+                "Timing Event Bar Bounce", "Timing Event Random Bar", "Timing Event Bars",
+                "Timing Event Jump 100", "Timing Event Pulse Color", "Timing Event Jump"
+            ] },
+            "enable": [ "VUMeter_TimingTrack", "Regex", "Filter" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Level Pulse", "Level Jump", "Level Jump 100", "Level Pulse Color", "Level Shape",
+                "Level Bar", "Level Random Bar", "Level Color", "Note Level Bar",
+                "Note Level Random Bar", "Spectrogram Peak", "Spectrogram Line",
+                "Spectrogram Circle Line", "Note Level Jump", "Note Level Jump 100",
+                "Note Level Pulse", "Timing Event Color", "Dominant Frequency Colour",
+                "Dominant Frequency Colour Gradient"
+            ] },
+            "enable": [ "VUMeter_Sensitivity" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Level Shape", "Spectrogram", "Spectrogram Line", "Spectrogram Circle Line",
+                "Spectrogram Peak"
+            ] },
+            "enable": [ "VUMeter_SlowDownFalls" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Spectrogram", "Spectrogram Line", "Spectrogram Circle Line", "Spectrogram Peak",
+                "Note On", "Note Level Bar", "Note Level Random Bar", "Note Level Jump",
+                "Note Level Jump 100", "Note Level Pulse", "Dominant Frequency Colour",
+                "Dominant Frequency Colour Gradient"
+            ] },
+            "enable": [ "VUMeter_StartNote", "VUMeter_EndNote" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Spectrogram", "Spectrogram Line", "Spectrogram Circle Line", "Spectrogram Peak",
+                "Level Shape"
+            ] },
+            "enable": [ "VUMeter_XOffset" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "oneOf": [
+                "Level Shape", "Spectrogram Circle Line", "Frame Waveform", "Waveform"
+            ] },
+            "enable": [ "VUMeter_YOffset" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "equals": "Level Shape" },
+            "enable": [ "VUMeter_Shape" ]
+        },
+        {
+            "when": { "property": "VUMeter_Type", "notOneOf": [
+                "On", "Color On", "Timing Event Color", "Level Color", "Note On"
+            ] },
+            "enable": [ "VUMeter_Bars" ]
+        },
+        {
+            "when": { "allOf": [
+                { "property": "VUMeter_Type", "equals": "Level Shape" },
+                { "property": "VUMeter_Shape", "equals": "SVG" }
+            ] },
+            "enable": [ "SVGFile" ]
         }
     ]
 }

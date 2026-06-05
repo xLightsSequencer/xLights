@@ -31,6 +31,9 @@ class BaseSerializingVisitor;
 #include "UtilFunctions.h"
 
 #include "../utils/xlPoint.h"
+#include "handles/Handles.h"
+#include "handles/DragSession.h"
+#include <memory>
 
 
 class DimmingCurve;
@@ -421,6 +424,7 @@ public:
     }
     void RemoveSubModel(const std::string& name);
     void RemoveAllSubModels();
+    void ClearRenderCaches();
     [[nodiscard]] std::list<int> ParseFaceNodes(std::string channels);
 
     virtual std::vector<PWMOutput> GetPWMOutputs() const;
@@ -477,6 +481,7 @@ public:
 
 
     virtual int NodeRenderOrder() { return 0; }
+    virtual bool UsesBufCoordsForModelPreview() const { return false; }
     float GetPreviewDimScale(IModelPreview* preview, int& w, int& h);
     void GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordStruct& it2, int w, int h, float scale);
     bool GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<float, float>>& coords);
@@ -487,8 +492,8 @@ public:
     virtual bool CleanupFileLocations(RenderContext* ctx) override;
     void AddASAPWork(uint32_t work, const std::string& from) override;
     std::list<std::string> GetFaceFiles(const std::list<std::string>& facesUsed, bool all = false, bool includeFaceName = false) const;
-    glm::vec3 MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects);
-    int GetSelectedHandle();
+
+    std::optional<handles::Id> GetSelectedHandleId();
     int GetNumHandles();
     int GetSelectedSegment();
     bool SupportsCurves();
@@ -539,6 +544,8 @@ public:
     virtual void ExportAsCustomXModel3D(BaseSerializingVisitor& visitor) const
     {}
     virtual bool SupportsWiringView() const = 0;
+    virtual bool SupportsSwapStartEnd() const { return false; }
+    virtual void SwapStartEnd() {}
     size_t GetChannelCoords(std::vector<std::string>& choices);
     static bool ParseFaceElement(const std::string& str, std::vector<xlPoint>& first_xy);
     static bool ParseStateElement(const std::string& str, std::vector<xlPoint>& first_xy);
@@ -745,6 +752,7 @@ public:
     void SetControllerReverse(int reverse) { _controllerConnection.SetReverse(reverse); }
     void SetControllerZigZag(int zigzag)  { _controllerConnection.SetZigZag(zigzag); }
     [[nodiscard]] bool RenameController(const std::string& oldName, const std::string& newName);
+    [[nodiscard]] bool DeleteController(const std::string& name);
 
     [[nodiscard]] std::string GetControllerName() const { return _controllerName; }
     [[nodiscard]] std::string GetControllerProtocol() const { return _controllerConnection.GetProtocol(); }
@@ -857,10 +865,11 @@ inline int Model::MapPhysicalStringToLogicalString(int string) const
 template <class ScreenLocation>
 class ModelWithScreenLocation : public Model {
 public:
-    virtual const ModelScreenLocation &GetModelScreenLocation() const { return screenLocation; }
-    virtual ModelScreenLocation &GetModelScreenLocation() { return screenLocation; }
-    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const { return screenLocation; }
-    virtual ModelScreenLocation &GetBaseObjectScreenLocation() { return screenLocation; }
+    virtual const ModelScreenLocation &GetModelScreenLocation() const override { return screenLocation; }
+    virtual ModelScreenLocation &GetModelScreenLocation() override { return screenLocation; }
+    virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return screenLocation; }
+    virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return screenLocation; }
+
 protected:
     ModelWithScreenLocation(const ModelManager &manager) : Model(manager) {}
     virtual ~ModelWithScreenLocation() {}

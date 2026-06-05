@@ -60,7 +60,7 @@ struct ShaderDynamicParamsView: View {
     /// schema-shaped so `JSONDecoder` handles it directly.
     private func loadProperties(for path: String) -> [PropertyMetadata] {
         guard !path.isEmpty else { return [] }
-        let json = viewModel.document.shaderDynamicPropertiesJson(forPath: path) ?? ""
+        let json = viewModel.document.shaderDynamicPropertiesJson(forPath: path)
         guard !json.isEmpty,
               let data = json.data(using: .utf8) else {
             return []

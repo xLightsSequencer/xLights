@@ -165,13 +165,12 @@ OutputManager::~OutputManager()
 #pragma region Save and Load
 bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
-    
-
     // Remove any existing outputs
     DeleteAllControllers();
 
     DeleteTestPreset();
 
+    _showDir = showdir;
     _filename = (std::filesystem::path(showdir) / GetNetworksFileName()).string();
     ObtainAccessToURL(_filename);
     FileExists(_filename, true);
@@ -191,6 +190,24 @@ bool OutputManager::Load(const std::string& showdir, bool syncEnabled) {
 
         _autoUpdateFromBaseShowDir = std::string_view(root.attribute("AutoUpdateFromBase").as_string("0")) == "1";
         _baseShowDir = root.attribute("BaseShowDir").as_string("");
+
+        // Fall back to the relative path when the stored absolute
+        // doesn't resolve — lets the base-folder link survive
+        // moving the show between machines (e.g. desktop ↔ iPad).
+        std::string baseRel = root.attribute("BaseShowDirRelative").as_string("");
+        std::error_code ec;
+        if (!baseRel.empty() && !showdir.empty() &&
+            (_baseShowDir.empty() || !std::filesystem::exists(_baseShowDir, ec))) {
+            std::error_code ec2;
+            std::filesystem::path resolved =
+                std::filesystem::weakly_canonical(
+                    std::filesystem::path(showdir) / baseRel, ec2);
+            std::error_code ec3;
+            if (!ec2 && std::filesystem::exists(resolved, ec3)) {
+                _baseShowDir = resolved.string();
+                _dirty = true;
+            }
+        }
 
         std::map<std::string, bool> multiip;
         for (pugi::xml_node e = root.first_child(); e; e = e.next_sibling()) {
@@ -425,6 +442,14 @@ void OutputManager::SaveToXML(pugi::xml_document& doc) {
 
     root.append_attribute("AutoUpdateFromBase") = _autoUpdateFromBaseShowDir ? "1" : "0";
     root.append_attribute("BaseShowDir") = _baseShowDir;
+
+    std::string baseRel;
+    if (!_baseShowDir.empty() && !_showDir.empty()) {
+        std::error_code ec;
+        auto rel = std::filesystem::relative(_baseShowDir, _showDir, ec);
+        if (!ec) baseRel = rel.generic_string();
+    }
+    root.append_attribute("BaseShowDirRelative") = baseRel;
 
     if (_syncUniverse != 0) {
         pugi::xml_node newNode = root.append_child("e131sync");

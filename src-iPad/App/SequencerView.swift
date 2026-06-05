@@ -1,11 +1,10 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Dynamic UTType for `.xsq` files. Declared here (not via
-/// UTExportedTypeDeclarations in the Info.plist) because Save-As
-/// needs a content type for the file exporter but iPad doesn't
-/// yet own the `.xsq` document type — desktop does. `.xml` is
-/// the fallback so the file exporter never no-ops.
+/// Dynamic UTType lookup for `.xsq`. Resolves to the
+/// `org.xlights.sequence` UTType exported by the iPad app's
+/// Info.plist; `.xml` is a defensive fallback so the file
+/// exporter never no-ops if the lookup ever fails.
 let kXSQFileType: UTType =
     UTType(filenameExtension: "xsq") ?? .xml
 
@@ -210,7 +209,15 @@ struct SequencerView: View {
             defaultFilename: saveAsDefaultName
         ) { result in
             if case .success(let url) = result {
-                _ = viewModel.saveSequenceAs(path: url.path)
+                if viewModel.saveSequenceAs(path: url.path) {
+                    // LIFE-1 — the file is already written by the exporter, so
+                    // this is an informational guard: warn (non-blocking) when
+                    // the new location is outside the show / media folders, so
+                    // the user knows it won't be auto-managed with the show.
+                    if !viewModel.document.pathIs(inShowOrMediaFolder: url.path) {
+                        saveAsOutsideWarning = url.path
+                    }
+                }
             }
             saveAsDoc = nil
         }
@@ -222,6 +229,15 @@ struct SequencerView: View {
             Button("OK", role: .cancel) { saveAsError = nil }
         } message: {
             Text(saveAsError ?? "")
+        }
+        .alert("Saved Outside Show Folder",
+               isPresented: Binding(
+                get: { saveAsOutsideWarning != nil },
+                set: { if !$0 { saveAsOutsideWarning = nil } }
+               )) {
+            Button("OK", role: .cancel) { saveAsOutsideWarning = nil }
+        } message: {
+            Text("The sequence was saved outside the show folder and configured media folders. It won't be automatically found or packaged with the show. Consider saving it inside the show folder.")
         }
         .alert("Output to Lights",
                isPresented: Binding(
@@ -267,6 +283,9 @@ struct SequencerView: View {
     @State private var saveAsDoc: XLSequenceExportDoc? = nil
     @State private var saveAsDefaultName: String = "Sequence.xsq"
     @State private var saveAsError: String? = nil
+    // LIFE-1 — non-nil holds the path of a Save-As that landed outside the
+    // show / media folders, driving an informational warning alert.
+    @State private var saveAsOutsideWarning: String? = nil
     @State private var outputAlertMessage: String? = nil
 
     // MARK: - Sequence Settings (E-3)
@@ -289,7 +308,7 @@ struct SequencerView: View {
         if viewModel.isDirty {
             _ = viewModel.saveSequence()
         }
-        let path = viewModel.document.currentSequencePath() ?? ""
+        let path = viewModel.document.currentSequencePath()
         if path.isEmpty {
             saveAsError = "Cannot Save As — the sequence hasn't been saved yet. Use the New wizard to establish a first location."
             return

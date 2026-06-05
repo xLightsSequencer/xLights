@@ -9,6 +9,7 @@
  **************************************************************/
 
 #include "OtherSettingsPanel.h"
+#include "color/xlColourData.h"
 
 //(*InternalHeaders(OtherSettingsPanel)
 #include <wx/checkbox.h>
@@ -58,6 +59,7 @@ const wxWindowID OtherSettingsPanel::ID_STATICTEXT7 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CTRLPINGINTERVAL = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX10 = wxNewId();
 const wxWindowID OtherSettingsPanel::ID_CHECKBOX11 = wxNewId();
+const wxWindowID OtherSettingsPanel::ID_CHECKBOX_CustomColorPicker = wxNewId();
 //*)
 
 BEGIN_EVENT_TABLE(OtherSettingsPanel,wxPanel)
@@ -203,6 +205,9 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     FlexGridSizer4->Add(CheckBox_ShowZoneIndicator, 1, wxALL, 5);
     StaticBoxSizer4->Add(FlexGridSizer4, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     GridBagSizer1->Add(StaticBoxSizer4, wxGBPosition(11, 0), wxGBSpan(2, 1), wxALL|wxEXPAND, 0);
+    CheckBox_UseCustomColorPicker = new wxCheckBox(this, ID_CHECKBOX_CustomColorPicker, _("Use custom color picker (experimental)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_CustomColorPicker"));
+    CheckBox_UseCustomColorPicker->SetValue(false);
+    GridBagSizer1->Add(CheckBox_UseCustomColorPicker, wxGBPosition(13, 0), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     SetSizer(GridBagSizer1);
 
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
@@ -225,6 +230,7 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     Connect(ID_CTRLPINGINTERVAL, wxEVT_SPINCTRLDOUBLE, (wxObjectEventFunction)&OtherSettingsPanel::OnSpinCtrlDoubleBitrateChange);
     Connect(ID_CHECKBOX10, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(ID_CHECKBOX11, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
+    Connect(ID_CHECKBOX_CustomColorPicker, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&OtherSettingsPanel::OnControlChanged);
     Connect(wxEVT_PAINT, (wxObjectEventFunction)&OtherSettingsPanel::OnPaint);
     //*)
 
@@ -245,6 +251,8 @@ OtherSettingsPanel::OtherSettingsPanel(wxWindow* parent, xLightsFrame* f, wxWind
     GPURenderCheckbox->Hide();
     MSWDisableComposited();
 #endif
+
+    TransferDataToWindow();
 }
 
 OtherSettingsPanel::~OtherSettingsPanel()
@@ -275,6 +283,7 @@ bool OtherSettingsPanel::TransferDataFromWindow() {
     frame->SetRecycleTips(!CheckBox_RecycleTips->GetValue());
     frame->SetEnablePositionZones(CheckBox_EnablePositionZones->GetValue());
     frame->SetShowZoneIndicator(CheckBox_ShowZoneIndicator->GetValue());
+    xlColourData::INSTANCE.SetUseCustomPicker(CheckBox_UseCustomColorPicker->IsChecked());
     return true;
 }
 
@@ -301,6 +310,7 @@ bool OtherSettingsPanel::TransferDataToWindow() {
     CheckBox_RecycleTips->SetValue(!frame->GetRecycleTips());
     CheckBox_EnablePositionZones->SetValue(frame->GetEnablePositionZones());
     CheckBox_ShowZoneIndicator->SetValue(frame->GetShowZoneIndicator());
+    CheckBox_UseCustomColorPicker->SetValue(xlColourData::INSTANCE.UseCustomPicker());
 
 // Remove attempt to sneak functionality into the windows build
 #ifndef __WXMSW__

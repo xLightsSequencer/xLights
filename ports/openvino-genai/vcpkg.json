@@ -1,0 +1,23 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "openvino-genai",
+  "version": "2026.1.0.0",
+  "description": "OpenVINO GenAI: C++ pipelines for generative AI (Text2Image, Whisper, LLM) on top of OpenVINO Runtime",
+  "homepage": "https://github.com/openvinotoolkit/openvino.genai",
+  "license": "Apache-2.0",
+  "supports": "!uwp & !x86",
+  "dependencies": [
+    {
+      "name": "openvino",
+      "features": ["cpu", "auto", "ir", "onnx"]
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

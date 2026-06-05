@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 xLights is a cross-platform (Windows/macOS/Linux) C++20 show sequencer for controlling lighting via USB/DMX/sACN/ArtNet/DDP. Built on wxWidgets 3.3 (custom fork). Companion apps (xSchedule, xCapture, xFade, xScanner) have been moved to their own repositories.
 
-**Minimum supported platforms:** macOS 11, Linux (Debian 12 / Ubuntu 24.04), Windows 8.
+**Minimum supported platforms:** macOS 10.15 (Catalina), Linux (Debian 12 / Ubuntu 24.04), Windows 8.
 
 ### iPad app
 
@@ -15,8 +15,11 @@ NOT a port — it's a second UI that shares the same wx-free C++ core
 (`src-core/`), render engine, effect manager, sequence file / elements,
 and audio manager as the desktop app. iPad-specific code lives in
 `src-iPad/` (SwiftUI views + view model, ObjC++ bridges,
-Metal canvases). The iPad app is pre-release and tracked in
-[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) + `plans/`.
+Metal canvases). The iPad app has **shipped to the App Store**; it is
+now in desktop-parity / ongoing-update mode (beyond MVP). Status and the
+per-theme parity plans live in
+[`iPad-xLights-Plan.md`](iPad-xLights-Plan.md) +
+[`plans/ipad-parity/`](plans/ipad-parity/).
 
 ### Desktop ↔ iPad parity (important)
 
@@ -37,10 +40,12 @@ PR whenever possible. Concretely:
   `EffectLayer` / `Element` / `SequenceElements`, the iPad bridge
   usually needs a matching wrapper. Follow the
   `NS_SWIFT_NAME(…)` convention already in `XLSequenceDocument.h`.
-- **Features iPad can't support** (e.g. controller setup, layout
-  editor, FFmpeg-only audio filters) are fine to leave desktop-only
-  — track them in the "Deferred / out of MVP" section of
-  `iPad-xLights-Plan.md` so we know why.
+- **Features iPad can't support** (e.g. FFmpeg-only audio filters,
+  raw serial/DMX output, proprietary-firmware controller uploads) are
+  fine to leave desktop-only — record them in the relevant
+  [`plans/ipad-parity/`](plans/ipad-parity/) theme doc's
+  *Infeasible / restricted* section (they roll up into the
+  Infeasible / Restricted lists in `00-overview.md`) with the reason.
 - **Features iPad has that desktop doesn't** (rare so far — two-
   finger marquee, long-press menus, trackpad `allowedScrollTypesMask`)
   are fine; they're touch-idioms without desktop equivalents.
@@ -91,6 +96,20 @@ msbuild -restore -m:10 xLights.sln -p:Configuration="Release" -p:Platform="x64"
 ```
 Open in Visual Studio (vcxproj files) or Code::Blocks.
 
+### CMake (cross-platform)
+In addition to the platform-native projects above, there is now a top-level
+**`CMakeLists.txt`** driving a cmake-based build (primarily used on Windows as
+an alternative to the `.sln`/`.vcxproj` files, generating into an out-of-source
+build directory).
+```bash
+cmake -S . -B build            # Configure
+cmake --build build            # Build
+```
+Source files are discovered automatically via `file(GLOB_RECURSE ...)` over the
+existing source directories, so most new files are picked up on the next
+configure with no manual edit — see [Adding New Source Files](#adding-new-source-files)
+for when a CMakeLists.txt edit *is* required.
+
 ### wxSmith Generated Code
 Some dialogs and panels use wxSmith (wxWidgets RAD tool). Generated code is delimited by `//(* ... //*)` guards in `.cpp`/`.h` files. **Any changes within these guards MUST also be reflected in the corresponding `.wxs` file** in `src-ui-wx/wxsmith/`. Otherwise the changes will be overwritten the next time the `.wxs` file is opened in wxSmith. If adding new controls, event handlers, or modifying existing ones inside the guards, update the `.wxs` XML to match.
 
@@ -111,15 +130,26 @@ existing directories. Note that Windows/Linux builds intentionally
 do not compile `src-iPad/`, so new iPad files never need to land in
 the `.cbp` / `.vcxproj` files.
 
+The top-level **`CMakeLists.txt`** (the cmake-based build, see
+[CMake (cross-platform)](#cmake-cross-platform)) uses
+`file(GLOB_RECURSE SRC_UI ...)` and `file(GLOB_RECURSE
+SRC_CORE ...)` to discover source files automatically from the
+directories listed in the glob patterns (e.g., `src-ui-wx/color/*.cpp`,
+`src-core/effects/*.cpp`). New files added inside those directories
+**do not** need a manual CMakeLists.txt edit — they are picked up on
+the next cmake configure. Only files placed **outside** the existing
+glob patterns (e.g., a new top-level subdirectory) require a new
+`file(GLOB ...)` or explicit `list(APPEND ...)` line in CMakeLists.txt.
+
 ### Release Notes
-`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single summary line with no code to the current release section:
+`README.txt` contains ongoing release notes at the top of the file. When implementing new features or fixing bugs, add a single very brief summary line with no code to the current release section:
 - **Enhancements**: `    -enh (author)                Description of the enhancement`
 - **Bug fixes**: `    -bug (author)                Description of the bug fix`
 - **Changes**: `    -change (author)             Description of the change`
 
-Keep descriptions concise (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
+Keep description summary very brief (1-2 lines). Indent continuation lines to align with the description start. If the release at the top has a concrete date with no ? in it, start a new release above it.
 
-**Do NOT add iPad-specific changes to `README.txt`.** The iPad app has not shipped yet and its changelog would only clutter the desktop release notes. Instead, keep `iPad-xLights-Plan.md` (next to `README.txt`) up to date: move items from "pending" to "done" as they land, and record any landed-fix details (root cause, follow-ups) inside the matching phase entry. Changes that touch shared `src-core/` code *and* user-visible desktop behavior still belong in `README.txt`; the iPad-only side goes in the plan.
+**Do NOT add iPad-specific changes to `README.txt`.** `README.txt` is the **desktop** release-notes file; the iPad app tracks its own changes separately, so iPad-only entries would just clutter it. Instead, keep the iPad plans up to date: update the matching feature's status in the relevant `plans/ipad-parity/` theme doc's parity scorecard (→ ✅ / 🟡) as work lands. Git history is the iPad changelog — there's no running landed-log to maintain. Changes that touch shared `src-core/` code *and* user-visible **desktop** behavior still belong in `README.txt`; the iPad-only side goes in the iPad plans.
 
 ### Verifying Changes
 After making code changes (especially during code reviews), always do a build to make sure nothing is broken. On macOS, use:
@@ -225,8 +255,11 @@ Key patterns:
   via `XLGridMetalBridge` → `xlStandaloneMetalCanvas` →
   `xlMetalGraphicsContext`. The iPad grid is Metal-only; the
   desktop grid uses `xlGraphicsBase`'s OpenGL/Metal switch.
-- **Sub-plans**: `plans/phase-b-grid-parity.md` tracks the gap
-  analysis against desktop behavior. 
+- **Plans**: [`plans/ipad-parity/`](plans/ipad-parity/) holds the
+  per-theme parity scorecards (desktop/iPad status with `file:line`
+  evidence) — start at [`README.md`](plans/ipad-parity/README.md), and
+  see `00-overview.md` for the cross-theme map, the P1/P2 roadmap, and
+  reverse-parity candidates.
 
 ### Data Formats
 - `.xsq` — Sequence files (XML-based, can contain embedded images as base64)
@@ -262,6 +295,42 @@ Core data types and algorithms should use standard C++ equivalents rather than w
 - **When wx constants suffice**: If a wx API accepts a wx constant directly (e.g. `*wxBLACK`, `*wxWHITE` for `SetTextForeground`), use the wx constant rather than converting an `xl*` constant through `xlColorToWxColour`.
 - **Exceptions**: xLights has nearly non-existent exception handling — do NOT use `std::stoi`, `std::stol`, `std::stod`, etc. as they throw on invalid input. Use `std::strtol`, `std::strtod` (and friends) instead. These return 0/default on bad input without throwing.
 - **File existence checks**: Use `FileExists()` from `ExternalHooks.h` instead of `std::filesystem::exists()` or `wxFile::Exists()` directly. On macOS, `FileExists()` triggers iCloud downloads for files that have been evicted to the cloud, which `std::filesystem::exists()` does not. For directory existence, use `std::filesystem::exists()` with the `std::error_code` overload (to avoid exceptions).
+
+## Objective-C++ Files: All Targets Use ARC
+
+Every Xcode target in this project sets `CLANG_ENABLE_OBJC_ARC = YES`: `xLights-Apple-core`, `xLights-core`, `xLights-macOSLib-UI`, `xLights-iPadLib`, `xLights-iPad`, and the desktop `xLights` app. Every `.mm` file in `src-apple-core/`, `src-core/`, `src-mac-ui/`, `src-ui-wx/`, `src-iPad/`, and `common/` compiles under ARC.
+
+**Do NOT write** `retain` / `release` / `autorelease` / `[obj release]; obj = nil;` / `[super dealloc]` in any `.mm` file. ARC manages all that. Manual retain/release is a compile error.
+
+### ARC rules
+
+- No `retain` / `release` / `autorelease` / `[super dealloc]`. An explicit `-dealloc` is only allowed when you need to clean up non-ObjC state (e.g. `delete _bgTexture` for a C++ object held in an ObjC ivar); never call `[super dealloc]`.
+- ObjC pointers in C++ classes/structs default to `__strong` and are retained on assignment / released on destruction — ARC understands C++ destructors. Just declare `id<MTLTexture> texture = nil;` in a C++ class and ARC handles it. Same applies to `std::vector<NSFoo*>`, `std::map`, and other STL containers — element types default to `__strong`.
+- Pass ObjC pointers **by value**, not by `id<…>&` reference. Reference-to-ObjC-pointer parameters default to `__autoreleasing` under ARC, which doesn't bind to `__strong` ivars at the call site. By-value passing also sidesteps a name-mangling hazard if the function is ever called across ARC↔MRC boundaries (see "wxWidgets boundary" below).
+- Use `[NSData dataWithBytes:…]`, `[NSString stringWithUTF8String:…]`, etc. freely — autorelease-pool semantics are managed by ARC.
+- For blocks that capture `self` via an ivar (`_foo->bar()`), prefer explicit `self->_foo->bar()` to silence `-Wimplicit-retain-self` when the retention is intentional.
+- Cross-language refcounting (Core Foundation ↔ ObjC) uses `CFBridgingRetain` / `CFBridgingRelease` and `__bridge` / `__bridge_retained` / `__bridge_transfer` casts. Casts between `id` and `void*` (e.g. for `printf("%p", obj)` or passing to a C API) require an explicit `(__bridge void*)obj`.
+- For blocks with `NS_RETURNS_RETAINED` typedef (like `MPSCopyAllocator`), annotate the block literal with `__attribute__((ns_returns_retained))` after the return type to match the typedef.
+- Avoid `__weak` for the long-lived parent reference pattern; prefer `__unsafe_unretained` when you have a documented lifetime guarantee, since `__weak` adds zero-out overhead and isn't needed without retain-cycle risk.
+
+### wxWidgets boundary
+
+wxWidgets is an external MRC library. The boundary between our ARC code and wx's MRC code carries two gotchas worth knowing:
+
+**+1 ownership transfer.** wxWidgets follows the classic Cocoa convention that when you pass an NSView to `wxWidgetCocoaImpl(this, view, …)`, you transfer your +1 ownership (from `alloc`/`init`) to wx — wx stores the pointer without an extra retain and balances with `[release]` in its destructor. Under ARC, the `__strong` local that holds the alloc/init result consumes that +1 and auto-releases at end of scope, so wx's later destructor `release` over-releases a deallocated view (zombie crash on the next autorelease pool drain). Fix at the boundary: call `CFBridgingRetain(view)` (discard the `CFTypeRef` return) right after `alloc`/`init` to add an extra retain that ARC won't release, restoring the +1 wx expects to own. This pattern is used in `wxMetalCanvas::Create` for `wxCustomMTKView`. Apply to any new site that hands an NSView/NSObject to wx with MRC-style ownership semantics.
+
+**Reference-param mangling.** If you ever declare a function shared between our ARC headers and wx-derived MRC code with a `id<…>&` or `NSFoo*&` parameter, ARC will implicitly qualify the reference as `__autoreleasing` while wx's MRC TU leaves it unqualified — these mangle to different symbols and link-fail. Either pass by value (preferred) or pin the qualifier with `__unsafe_unretained` in the declaration (recognized as a no-op under MRC).
+
+## Release Builds Use -ffast-math
+
+Release builds on macOS desktop **and iPad** are compiled with `-ffast-math` (`GCC_FAST_MATH = YES` plus an explicit `-ffast-math` in `OTHER_CFLAGS` on the project-level Release/Archive configs), at `-O3` with `LLVM_LTO=YES_THIN`. The `xLights-iPadLib` target inherits these via `$(inherited)`. This affects every `.cpp`/`.mm` file in `src-core/`, `src-ui-wx/`, and `src-iPad/`. Linux and Windows release builds may not set `-ffast-math` today, but write code that doesn't depend on it being absent.
+
+`-ffast-math` implies `-ffinite-math-only`, which licenses the optimizer to assume no operand is `inf`/`NaN`. Under `-O3` + LTO this breaks two patterns that look correct in source:
+
+- **`infinity()` as a "max-so-far" sentinel** — `float best = std::numeric_limits<float>::infinity()` gets folded to 0; the first `if (v < best)` comparison fails and the value is silently dropped. **Use `std::numeric_limits<float>::max()` (or `::lowest()` for `-inf`)** as the sentinel. The legacy idiom `1000000000.0f` already common in `LayoutPanel.cpp` is also fine. Same goes for `HUGE_VALF`, `INFINITY`, manual `1.0f/0.0f`.
+- **`std::isnan(x)` / `std::isinf(x)` / `std::isfinite(x)` as defensive guards** — these may be folded to constants (`false`/`false`/`true`) in Release, making the guard a no-op. **Use the portable `xl::isnan` / `xl::isinf` / `xl::isfinite` helpers in `src-core/utils/FloatChecks.h`** — they map to `__builtin_*` on clang/gcc (preserved under `-ffinite-math-only`) and to `std::*` on MSVC (which compiles with `/fp:precise`, not fast-math). Do **not** call `__builtin_isnan` etc. directly: MSVC doesn't have those builtins and the Windows build will fail.
+
+Don't write code that depends on `NaN` propagation, `-0.0` sign preservation, or `inf` arithmetic surviving — fast-math is allowed to reorder, fuse, or eliminate those. ISPC files (`*.ispc`) have their own compile flags and are not subject to this. Vendored third-party headers we've had to patch carry a `// xLights local patch:` comment marker — preserve those across upstream merges.
 
 ## Key Dependencies
 

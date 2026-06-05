@@ -169,6 +169,26 @@ struct XmlSerializer {
         return doc;
     }
 
+    // Serialize multiple models into a single XML document under one <models> root
+    pugi::xml_document SerializeModels(const std::vector<const Model*>& models, bool includeGroups = false) {
+        pugi::xml_document doc;
+
+        pugi::xml_node docNode = doc.append_child(XmlNodeKeys::ModelsNodeName);
+        docNode.append_attribute(XmlNodeKeys::TypeAttribute) = XmlNodeKeys::ExportedAttribute;
+
+        for (const Model* model : models) {
+            if (model == nullptr) continue;
+            XmlSerializingVisitor visitor{ docNode, includeGroups };
+            model->Accept(visitor);
+            if (includeGroups) {
+                XmlSerialize::SerializeModelGroupsForModel(model, docNode);
+                XmlSerialize::AddDimensions(docNode, model);
+            }
+        }
+
+        return doc;
+    }
+
     // Deserialize a single model from an XML document
     Model* DeserializeModel(const pugi::xml_document& doc, ModelManager& modelManager, bool importing) {
         pugi::xml_node root = doc.document_element();

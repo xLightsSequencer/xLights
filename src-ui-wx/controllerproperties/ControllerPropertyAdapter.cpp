@@ -13,6 +13,7 @@
 #include "OutputPropertyAdapters.h"
 
 #include <wx/settings.h>
+#include <wx/msgdlg.h>
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/advprops.h>
 
@@ -324,6 +325,15 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CHANGE, "Controller::HandlePropertyEvent::Monitor");
         return true;
     } else if (name == "AutoSize") {
+        if (event.GetValue().GetBool() && _controller.GetOutputCount() > 0 && _controller.GetProtocol() == OUTPUT_E131) {
+            int universeSize = _controller.GetFirstOutput()->GetChannels();
+            if (universeSize != 170 && universeSize != 510 && universeSize != 512) {
+                wxMessageBox(
+                    wxString::Format("The current Universe Size is %d.\n\nFor Auto Size to work correctly, you may need to update the Universe Size to a common value such as 510 or 512.", universeSize),
+                    "Universe Size Warning",
+                    wxOK | wxICON_WARNING);
+            }
+        }
         _controller.SetAutoSize(event.GetValue().GetBool(), outputModelManager);
         outputModelManager->AddASAPWork(OutputModelManager::WORK_NETWORK_CONFIG_CHANGE, "Controller::HandlePropertyEvent::AutoSize");
         outputModelManager->AddLayoutTabWork(OutputModelManager::WORK_CALCULATE_START_CHANNELS, "Controller::HandlePropertyEvent::AutoSize");
@@ -381,6 +391,13 @@ bool ControllerPropertyAdapter::HandlePropertyEvent(wxPropertyGridEvent& event, 
 
         std::list<std::string> variants = ControllerCaps::GetVariants(_controller.GetType(), _controller.GetVendor(), *it);
         _controller.SetVariant(variants.front());
+
+        // When switching to a player-only model default Active to xLights Only.
+        // The WORK_NETWORK_SETTING_CHANGE queued below refreshes the list.
+        ControllerCaps* newCaps = ControllerCaps::GetControllerConfig(&_controller);
+        if (newCaps && newCaps->IsPlayerOnly() && _controller.GetActive() == Controller::ACTIVESTATE::ACTIVE) {
+            _controller.SetActive("xLights Only");
+        }
 
         wxPGProperty* mp = propertyGrid->GetProperty("Model");
         wxPGProperty* vp = propertyGrid->GetProperty("Variant");
@@ -453,6 +470,16 @@ void ControllerPropertyAdapter::ValidateProperties(OutputManager* om, wxProperty
             }
         }
         if (!isValid || !om->IsControllerNameUnique(name)) {
+            p->SetBackgroundColour(*wxRED);
+        } else {
+            p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
+        }
+    }
+
+    p = propGrid->GetPropertyByName("Active");
+    if (p != nullptr) {
+        ControllerCaps* caps = ControllerCaps::GetControllerConfig(&_controller);
+        if (caps && caps->IsPlayerOnly() && _controller.GetActive() == Controller::ACTIVESTATE::ACTIVE) {
             p->SetBackgroundColour(*wxRED);
         } else {
             p->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));

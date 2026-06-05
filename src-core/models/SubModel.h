@@ -31,11 +31,11 @@ public:
 
     virtual const ModelScreenLocation &GetBaseObjectScreenLocation() const override { return parent->GetModelScreenLocation(); }
     virtual ModelScreenLocation &GetBaseObjectScreenLocation() override { return parent->GetModelScreenLocation(); };
-    virtual glm::vec3 MoveHandle3D(IModelPreview* preview, int handle, bool ShiftKeyPressed, bool CtrlKeyPressed, int mouseX, int mouseY, bool latch, bool scale_z, bool& update_rgbeffects) override {
-        return glm::vec3(0, 0, 0);
-    }
-    virtual glm::vec3 MoveHandle3D(float scale, int handle, glm::vec3 &rot, glm::vec3 &mov, bool& update_rgbeffects) override {
-        return glm::vec3(0, 0, 0);
+    std::unique_ptr<handles::SpaceMouseSession> BeginSpaceMouseSession() override {
+        // SubModels share their parent's screen location and don't
+        // have an independent 6-DOF identity. The SpaceMouse path
+        // never targets them directly; the parent handles it.
+        return nullptr;
     }
 
 
@@ -67,6 +67,8 @@ public:
 
     [[nodiscard]] FaceStateData const& GetFaceInfo() const override { return parent->faceInfo; };
     [[nodiscard]] FaceStateNodes const& GetFaceInfoNodes() const override { return parent->faceInfoNodes; };
+    [[nodiscard]] FaceStateData const& GetStateInfo() const override { return parent->stateInfo; };
+    [[nodiscard]] FaceStateNodes const& GetStateInfoNodes() const override { return parent->stateInfoNodes; };
 
     std::string GetSubModelLayout() const { return _layout; }
     std::string GetSubModelType() const { return _type; }
@@ -87,8 +89,8 @@ public:
     [[nodiscard]] bool IsRanges() const { return _isRanges; }
     [[nodiscard]] bool IsVertical() const { return _vert; }
     [[nodiscard]] bool IsXYBufferStyle();
+    [[nodiscard]] const std::map<int, int>& GetNodeIndexMap() const { return _nodeIndexMap; }
 
-    
     virtual void Setup() override;
 
 private:
@@ -109,15 +111,14 @@ private:
     std::vector<int> _nodeIndexes;
     std::set<int> _nodeIdx;
     unsigned int _startChannel = UINT32_MAX;
+    std::map<int, int> _nodeIndexMap;
 
     static std::vector<std::string> SUBMODEL_BUFFER_STYLES;
-
+    
     // variables only used for default buffer
     int _row = 0;
     int _col = 0;
     int _maxRow = 0;
     int _maxCol = 0;
-    std::map<int, int> _nodeIndexMap;
     std::vector<std::string> _ranges;
 };
-

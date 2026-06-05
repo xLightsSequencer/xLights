@@ -8,9 +8,7 @@
 class MSAATextureInfo;
 class DepthTextureInfo;
 class CaptureBufferInfo;
-extern "C" {
-   struct AVFrame;
-}
+struct VideoWriterFrame;
 class xlMetalCanvas : public wxMetalCanvas, public IMetalCanvas {
 public:
     xlMetalCanvas(wxWindow *parent,
@@ -53,7 +51,7 @@ public:
 #endif
 
     void captureNextFrame(int w, int h);
-    bool getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize);
+    bool getFrameForExport(VideoWriterFrame& frame);
     wxImage *GrabImage(wxSize size = wxSize(0,0));
 
     virtual void render() {};

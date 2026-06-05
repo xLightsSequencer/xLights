@@ -208,6 +208,22 @@ public:
     }
 
     bool Init(const char * vs, const char * fs) {
+#ifndef __APPLE__
+        // Bail if any required GL entry point didn't resolve. Top of stack
+        // for the Windows null-deref bucket (5 reports / 4 reporters on
+        // 2026.07) — wglGetProcAddress can leave a subset of these null if
+        // it's called before the GL context is fully current, and the old
+        // single-pointer guard let partial-loads through. The functions
+        // listed are the ones Init+CompileShader+CreateProgram below call.
+        if (glCreateShader == nullptr || glCreateProgram == nullptr ||
+            glCompileShader == nullptr || glAttachShader == nullptr ||
+            glLinkProgram == nullptr || glShaderSource == nullptr ||
+            glUseProgram == nullptr || glGetUniformLocation == nullptr ||
+            glDeleteShader == nullptr) {
+            OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "ShaderProgram::Init: GL entry points not loaded; skipping shader init.");
+            return false;
+        }
+#endif
         GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
         if (VertexShaderID != 0) {
             GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
@@ -352,8 +368,16 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
 
     bool valid = true;
 
-    LOG_GL_ERRORV(LoadGLFunctions());
-    
+    // Capture the return value (was being discarded by LOG_GL_ERRORV). On
+    // Windows, a partial wglGetProcAddress run can leave a subset of GL
+    // function pointers null; we don't want to attempt shader compilation
+    // in that state. The downstream ShaderProgram::Init re-checks specific
+    // pointers but this gives a single early-out + diagnostic.
+    if (!LoadGLFunctions()) {
+        OpenGLShaders::DoLogGLError(__FILE__, __LINE__, "InitializeSharedContext: LoadGLFunctions failed; GL entry points missing.");
+        return false;
+    }
+
     const GLubyte* str = glGetString(GL_VERSION);
     bool cp = str[0] > '3' || (str[0] == '3' && str[2] >= '3');
     
@@ -1238,7 +1262,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexAccumulator *vac, c
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumulator *vac, const xlColor &color, int start, int count) {
     xlOGL3VertexAccumulator *v = dynamic_cast<xlOGL3VertexAccumulator*>(vac);
-    if (v->getCount() == 0) {
+    if (!v || v->getCount() == 0) {
         return this;
     }
     int caps = enableCapabilities;
@@ -1685,12 +1709,18 @@ public:
         return ret;
     }
     void LoadBuffers() {
+        // Parse failed or produced no geometry — touching objects.GetAttrib()
+        // when the tinyobj reader is in a half-initialised state has been
+        // crashing the OpenGL render path on Windows. Bail before any deref.
+        if (!HasGeometry()) {
+            return;
+        }
         std::map<Index3, uint32_t, CompareIndex3> indexMap;
-        
+
         std::vector<MeshVertexInput> input;
         input.reserve(objects.GetAttrib().vertices.size());
         input.resize(1); // 0 position is ignored, indexMap[key] == 0 means not found yet
-        
+
         indexes.resize(0);
         lines.resize(0);
         wireFrame.resize(0);

@@ -22,6 +22,7 @@
 #include "models/Model.h"
 #include "UtilFunctions.h"
 #include "shared/utils/wxUtilities.h"
+#include "utils/FloatChecks.h"
 #include "utils/string_utils.h"
 
 // ========== BoxedScreenLocation ==========
@@ -529,11 +530,16 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
             auto o = name.find(" ", 12);
             wxASSERT(o != std::string::npos);
 
-            loc.SetSelectedHandle(wxAtoi(name.substr(12, o - 12)) - 1);
-
-            wxASSERT(loc.GetSelectedHandle() + 1 < (int)loc.GetNumPoints());
-
-            int h = loc.GetSelectedHandle();
+            // "REAL Segment N" — N is 1-based segment number; segment N
+            // joins point N-1 to point N. Set the visual-selection
+            // highlight on the corresponding vertex; the segment math
+            // below uses the parsed index directly.
+            int h = wxAtoi(name.substr(12, o - 12)) - 1;
+            handles::Id selId;
+            selId.role = handles::Role::Vertex;
+            selId.index = h - 1;
+            loc.SetSelectedHandle(selId);
+            wxASSERT(h + 1 < (int)loc.GetNumPoints());
             auto p1 = loc.GetPoint(h);
             auto p2 = loc.GetPoint(h + 1);
             float oldLen = RulerObject::UnMeasure(RulerObject::Measure(p1, p2));
@@ -544,11 +550,15 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
             float dy = diff.y * len / oldLen - diff.y;
             float dz = diff.z * len / oldLen - diff.z;
 
-            if (isnan(dx))
+            // xl::isnan: oldLen==0 produces NaN through the divide above,
+            // and std::isnan folds to `false` under -ffinite-math-only
+            // (Release -ffast-math) — without this guard, NaN propagates
+            // into every subsequent point's position and corrupts the model.
+            if (xl::isnan(dx))
                 dx = 1.0f;
-            if (isnan(dy))
+            if (xl::isnan(dy))
                 dy = 1.0f;
-            if (isnan(dz))
+            if (xl::isnan(dz))
                 dz = 1.0f;
 
             for (int i = h + 1; i < loc.GetNumPoints(); i++) {
@@ -562,7 +572,10 @@ int ScreenLocationPropertyHelper::OnPropertyGridChange(PolyPointScreenLocation& 
     }
     else if (name.length() > 6) {
         int h = wxAtoi(name.substr(6, name.length() - 6)) - 1;
-        loc.SetSelectedHandle(h);
+        handles::Id selId;
+        selId.role = handles::Role::Vertex;
+        selId.index = h - 1;
+        loc.SetSelectedHandle(selId);
         loc.SetSelectedSegment(-1);
         auto worldPos = loc.GetWorldPosition();
         auto pt = loc.GetPoint(h);

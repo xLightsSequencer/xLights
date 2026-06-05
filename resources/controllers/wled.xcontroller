@@ -1,5 +1,6 @@
 <Vendor Name="WLED">
     <AbstractVariant Name="BaseWLEDSettings">
+        <OpenSourceFirmware/>
         <!--SupportsPixelPortCommonSettings/-->
         <SupportsPixelPortDirection/>
         <SupportsPixelPortColourOrder/>

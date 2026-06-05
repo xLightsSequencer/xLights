@@ -37,6 +37,7 @@
 #include "../outputs/IPOutput.h"
 #include "../outputs/Output.h"
 #include "../outputs/OutputManager.h"
+#include "../utils/FloatChecks.h"
 #include "../utils/ip_utils.h"
 #include "../utils/NodeUtils.h"
 #include "../render/RenderContext.h"
@@ -179,6 +180,39 @@ bool Model::RenameController(const std::string& oldName, const std::string& newN
     if (StartsWith(ModelStartChannel, "!" + oldName)) {
         SetStartChannel("!" + newName + ModelStartChannel.substr(oldName.size() + 1));
         changed = true;
+    }
+    return changed;
+}
+
+bool Model::DeleteController(const std::string& name)
+{
+    bool changed = false;
+
+    if (_controllerName == name) {
+        // SetControllerName(NO_CONTROLLER) also clears the model
+        // chain + ctrl port + start channel. The start-channel
+        // clear sets it to "", which GetNumberFromChannelString
+        // can only resolve as "invalid → clamp to 1" with
+        // CouldComputeStartChannel=false, so reseat to "1"
+        // explicitly so the next RecalcStartChannels treats it as
+        // a valid starting point for re-numbering.
+        SetControllerName(NO_CONTROLLER, false);
+        SetStartChannel("1");
+        changed = true;
+    }
+
+    // Detach from a start channel that explicitly references the
+    // deleted controller ("!<name>:<channel>") so the model ends up
+    // fully unassigned rather than left pointing at a controller
+    // that no longer exists. Match by parsed controller token so we
+    // don't false-hit a longer name that shares the prefix.
+    std::string sc = Trim(ModelStartChannel);
+    if (StartsWith(sc, "!") && Contains(sc, ":")) {
+        std::string ref = Trim(BeforeFirst(AfterFirst(sc, '!'), ':'));
+        if (ref == name) {
+            SetStartChannel("1");
+            changed = true;
+        }
     }
     return changed;
 }
@@ -1198,6 +1232,15 @@ void Model::RemoveAllSubModels()
     }
 }
 
+void Model::ClearRenderCaches()
+{
+    for (auto* sm : subModels) {
+        if (sm != nullptr)
+            sm->ClearRenderCaches();
+    }
+    deleteUIObjects();
+}
+
 Model* Model::GetSubModel(const std::string& name) const
 {
     auto it = sortedSubModels.find(name);
@@ -2012,7 +2055,7 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
             int maxDimension = ((ModelGroup*)this)->GetGridSize();
             if (maxDimension != 0 && (maxX - minX > maxDimension || maxY - minY > maxDimension)) {
                 // we need to resize all the points by this amount
-                spdlog::warn("Model Group ({}), Actual Grid Size of {:.0f} exceeded the Max Grid Size of {}.",
+                spdlog::debug("Model Group ({}), Actual Grid Size of {:.0f} exceeded the Max Grid Size of {}; scaling to fit.",
                     (const char*)GetFullName().c_str(),
                     ((maxX - minX) > (maxY - minY) ? (maxX - minX) : (maxY - minY)),
                     maxDimension);
@@ -2440,7 +2483,11 @@ int Model::GetChanCountPerNode() const
 
 uint32_t Model::GetCoordCount(size_t nodenum) const
 {
-    return nodenum < Nodes.size() ? Nodes[nodenum]->Coords.size() : 0;
+    // Null-check Nodes[nodenum]: the slot can exist (in-range index) but
+    // point to a not-yet-initialised node when a model is being placed in
+    // the layout — _newModel can hit DisplayModelOnWindow before its node
+    // geometry has been populated.
+    return (nodenum < Nodes.size() && Nodes[nodenum]) ? Nodes[nodenum]->Coords.size() : 0;
 }
 
 int Model::GetNodeStringNumber(size_t nodenum) const
@@ -3024,7 +3071,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         size_t vcount = 0;
         for (const auto& it : Nodes) {
-            vcount += it.get()->Coords.size();
+            // Match the null/empty guards used in the depth-sort and
+            // node-walk branches below: a freshly-placed _newModel can
+            // reach here before its nodes have been populated.
+            if (!it) {
+                continue;
+            }
+            vcount += it->Coords.size();
         }
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             int f = pixelSize;
@@ -3050,12 +3103,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
         float modelPixelSize = pixelSize;
         // pixelSize is in world coordinate sizes, not model size.  Thus, we need to reverse the matrices to
-        // get the size to use for the pixelStyle 3/4 that use triangles.
-        // Use getBackingScaleFactor() rather than calcPixelSize() to avoid double-applying the
-        // view-matrix scale (scale2d) that is already applied by the camera transform.
-        // The factor of 2 converts from modelPixelSize (diameter in local coords) to a radius
-        // that, after ApplyModelViewMatrices (×scalex) and the ViewMatrix (×zoom×scale2d), equals
-        // half the GL_POINTS diameter: backingScale × pixelSize × zoom × scale2d / 2.
+        // get the size to use for the pixelStyle 3/4 that use triangles.       
         if (_pixelStyle == PIXEL_STYLE::PIXEL_STYLE_SOLID_CIRCLE || _pixelStyle == PIXEL_STYLE::PIXEL_STYLE_BLENDED_CIRCLE) {
             float x1 = -1, y1 = -1, z1 = -1;
             float x2 = 1, y2 = 1, z2 = 1;
@@ -3064,7 +3112,7 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
 
             glm::vec3 a = glm::vec3(x2, y2, z2) - glm::vec3(x1, y1, z1);
             float length = std::max(std::max(std::abs(a.x), std::abs(a.y)), std::abs(a.z));
-            modelPixelSize = 2.0f * (float)pixelSize * (float)preview->getBackingScaleFactor() / std::abs(length);
+            modelPixelSize = 2.0f * (float)preview->calcPixelSize(pixelSize) / std::abs(length);
         }
 
         int nodeRenderOrder = NodeRenderOrder();
@@ -3080,12 +3128,12 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             std::vector<std::pair<float, int>> keys;
             keys.reserve(NodeCount);
             for (int n = 0; n < (int)NodeCount; ++n) {
-                if (Nodes[n]->Coords.empty()) {
+                if (!Nodes[n] || Nodes[n]->Coords.empty()) {
                     continue;
                 }
                 const auto& c = Nodes[n]->Coords[0];
                 float z = axis.x * c.screenX + axis.y * c.screenY + axis.z * c.screenZ;
-                if (!std::isfinite(z)) {
+                if (!xl::isfinite(z)) {
                     z = 0.0f;
                 }
                 keys.emplace_back(z, n);
@@ -3094,6 +3142,11 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             // OpenGL convention) renders first — i.e. back-to-front.
             std::sort(keys.begin(), keys.end(),
                       [](const std::pair<float, int>& a, const std::pair<float, int>& b) {
+                          const bool af = xl::isfinite(a.first);
+                          const bool bf = xl::isfinite(b.first);
+                          if (!af && !bf) return false;
+                          if (!af) return false;
+                          if (!bf) return true;
                           return a.first < b.first;
                       });
             for (const auto& kv : keys) {
@@ -3101,6 +3154,13 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
             }
             cache->viewSortAxis = currentSortAxis;
         } else {
+            // Mirror the depth-sort branch's guard: nodes with null entries
+            // or empty Coords contribute no geometry. Without this, a fresh
+            // _newModel (Tree/Sphere/Cube subclasses override NodeRenderOrder
+            // to 1) being rendered from the ASAP-work queue during a 3D
+            // LayoutPanel drag will dereference Nodes[n]->Coords[0].bufX
+            // below before the model's nodes have their coords populated.
+            // Top Mac crash bucket as of 2026.08, 24+ reports.
             int first = 0;
             int last = NodeCount;
             int buffFirst = -1;
@@ -3111,9 +3171,18 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 if (left) {
                     n = first;
                     first++;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        // Skip over a leading run of empty-coord nodes when
+                        // looking ahead to flip direction; otherwise the peek
+                        // at Nodes[first]->Coords[0] could trip the same UB.
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3122,8 +3191,15 @@ void Model::DisplayModelOnWindow(IModelPreview* preview, xlGraphicsContext* ctx,
                 } else {
                     last--;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    // Same look-ahead protection for the tail-walk direction.
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
@@ -3287,7 +3363,6 @@ void Model::GetScreenLocation(float& sx, float& sy, const NodeBaseClass::CoordSt
         sy = ((sy * scale) + (h / 2));
         sx = (sx * scale) + (w / 2);
     } else {
-        // Must match DisplayEffectOnWindow's Translate(w/2 - ml*scale, h/2 - mb*scale)
         float ml, mb;
         GetMinScreenXY(ml, mb);
         ml += GetModelScreenLocation().RenderWi / 2;
@@ -3318,13 +3393,37 @@ std::string Model::GetNodeNear(IModelPreview* preview, xlPoint pt, bool flip)
     if (flip)
         py = h - pt.y;
 
+    // Pre-compute loop-invariant values to avoid O(n) GetMinScreenXY inside the O(n) node loop.
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
-        auto c = it.get()->Coords;
-        for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
-
+        for (const auto& it2 : it->Coords) {
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             if (sx >= (px - pointScale) && sx <= (px + pointScale) &&
                 sy >= (py - pointScale) && sy <= (py + pointScale)) {
                 return std::to_string(i);
@@ -3340,14 +3439,39 @@ bool Model::GetScreenLocations(IModelPreview* preview, std::map<int, std::pair<f
     int w, h;
     float scale = GetPreviewDimScale(preview, w, h);
 
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         if (c.size() != 1)
             return false;
         for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             coords[i] = std::make_pair(sx, sy);
         }
         ++i;
@@ -3379,13 +3503,37 @@ std::vector<int> Model::GetNodesInBoundingBox(IModelPreview* preview, xlPoint st
         endpy = tmp;
     }
 
+    const bool centerBased = GetModelScreenLocation().IsCenterBased();
+    const float renderWi = GetModelScreenLocation().RenderWi;
+    const float renderHt = GetModelScreenLocation().RenderHt;
+    const float vScaleFactor = GetModelScreenLocation().GetVScaleFactor();
+    float ml = 0.0f, mb = 0.0f;
+    if (centerBased) {
+        GetMinScreenXY(ml, mb);
+        ml += renderWi / 2.0f;
+        mb += renderHt / 2.0f;
+    }
+
     int i = 1;
     for (const auto& it : Nodes) {
         auto c = it.get()->Coords;
         for (const auto& it2 : c) {
-            float sx, sy;
-            GetScreenLocation(sx, sy, it2, w, h, scale);
-
+            float sx = it2.screenX;
+            float sy = it2.screenY;
+            if (!centerBased) {
+                sx -= renderWi / 2.0f;
+                sy *= vScaleFactor;
+                if (vScaleFactor < 0.0f) {
+                    sy += renderHt / 2.0f;
+                } else {
+                    sy -= renderHt / 2.0f;
+                }
+                sy = (sy * scale) + (h / 2.0f);
+                sx = (sx * scale) + (w / 2.0f);
+            } else {
+                sx = ((sx - ml) * scale) + (w / 2.0f);
+                sy = ((sy - mb) * scale) + (h / 2.0f);
+            }
             if (sx >= startpx && sx <= endpx &&
                 sy >= startpy && sy <= endpy) {
                 nodes.push_back(i);
@@ -3429,16 +3577,40 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
         int w, h;
         float scale = GetPreviewDimScale(preview, w, h);
 
+        const bool useBufCoords = UsesBufCoordsForModelPreview();
+
+        float ml, mb;
+        if (useBufCoords) {
+            ml = GetModelScreenLocation().RenderWi / 2.0f;
+            mb = GetModelScreenLocation().RenderHt / 2.0f;
+            float mnX = 1e30f, mxX = -1e30f, mnY = 1e30f, mxY = -1e30f;
+            for (const auto& nd : Nodes) {
+                for (const auto& co : nd->Coords) {
+                    mnX = std::min(mnX, (float)co.bufX);
+                    mxX = std::max(mxX, (float)co.bufX);
+                    mnY = std::min(mnY, (float)co.bufY);
+                    mxY = std::max(mxY, (float)co.bufY);
+                }
+            }
+            if (mxX > mnX || mxY > mnY) {
+                float nw = mxX - mnX, nh = mxY - mnY;
+                float adjX = nw > 0.001f ? float(w) * 0.95f / nw : 1e30f;
+                float adjY = nh > 0.001f ? float(h) * 0.95f / nh : 1e30f;
+                scale = std::min(adjX, adjY);
+                ml = (mnX + mxX) / 2.0f;
+                mb = (mnY + mxY) / 2.0f;
+            }
+        } else {
+            GetMinScreenXY(ml, mb);
+            ml += GetModelScreenLocation().RenderWi / 2;
+            mb += GetModelScreenLocation().RenderHt / 2;
+        }
+
         size_t NodeCount = Nodes.size();
         bool created = false;
 
         int renderWi = GetModelScreenLocation().RenderWi;
         int renderHi = GetModelScreenLocation().RenderHt;
-
-        float ml, mb;
-        GetMinScreenXY(ml, mb);
-        ml += GetModelScreenLocation().RenderWi / 2;
-        mb += GetModelScreenLocation().RenderHt / 2;
 
         auto cache = uiCaches[EFFECT_PREVIEW_CACHE];
         // Circle styles bake the radius (which depends on scale/w/h/backingScale) into the geometry,
@@ -3477,7 +3649,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // layer calculation and map to output
             unsigned int vcount = 0;
             for (const auto& it : Nodes) {
-                vcount += it.get()->Coords.size();
+                if (!it) {
+                    continue;
+                }
+                vcount += it->Coords.size();
             }
             if (vcount > maxVertexCount) {
                 maxVertexCount = vcount;
@@ -3497,16 +3672,26 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             int buffFirst = -1;
             int buffLast = -1;
             bool left = true;
-            
+
             int nodeRenderOrder = NodeRenderOrder();
             while (first < last) {
                 int n;
                 if (left) {
                     n = first;
                     ++first;
+                    // Same guard as the DisplayModelOnWindow counterpart:
+                    // a freshly-created model may have null Nodes[n] or
+                    // empty Coords until placement completes; the
+                    // Nodes[n]->Coords[0].bufX peeks below would deref UB.
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (nodeRenderOrder == 1) {
                         if (buffFirst == -1) {
                             buffFirst = Nodes[n]->Coords[0].bufX;
+                        }
+                        while (first < (int)NodeCount && (!Nodes[first] || Nodes[first]->Coords.empty())) {
+                            ++first;
                         }
                         if (first < (int)NodeCount && buffFirst != Nodes[first]->Coords[0].bufX) {
                             left = false;
@@ -3515,8 +3700,14 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 } else {
                     --last;
                     n = last;
+                    if (!Nodes[n] || Nodes[n]->Coords.empty()) {
+                        continue;
+                    }
                     if (buffLast == -1) {
                         buffLast = Nodes[n]->Coords[0].bufX;
+                    }
+                    while (last > 0 && (!Nodes[last - 1] || Nodes[last - 1]->Coords.empty())) {
+                        --last;
                     }
                     if (last > 0 && buffLast != Nodes[last - 1]->Coords[0].bufX) {
                         left = true;
@@ -3526,8 +3717,8 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
                 size_t CoordCount = GetCoordCount(n);
                 for (size_t c = 0; c < CoordCount; ++c) {
                     // draw node on screen
-                    float newsx = Nodes[n]->Coords[c].screenX;
-                    float newsy = Nodes[n]->Coords[c].screenY;
+                    float newsx = useBufCoords ? (float)Nodes[n]->Coords[c].bufX : Nodes[n]->Coords[c].screenX;
+                    float newsy = useBufCoords ? (float)Nodes[n]->Coords[c].bufY : Nodes[n]->Coords[c].screenY;
 
                     if (lastPixelStyle != Nodes[n]->model->_pixelStyle || lastPixelSize != Nodes[n]->model->pixelSize) {
                         if (cache->vica->getCount() && (lastPixelStyle == PIXEL_STYLE::PIXEL_STYLE_SQUARE ||
@@ -3612,10 +3803,10 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
             // cache has the model in model coordinates
             // we need to scale/translate/etc.... to world
             ctx->PushMatrix();
-            if (!GetModelScreenLocation().IsCenterBased()) {
-                // Non-center-based models (e.g. polylines) have screenX/Y in [0, RenderWi/RenderHt].
-                // The inner translate centers the model at origin, so the outer translate is just
-                // the panel center — no ml/mb offset needed (ml would shift it to lower-left).
+            if (useBufCoords) {
+                ctx->Translate(w / 2.0f - ml * scale, h / 2.0f - mb * scale, 0.0f);
+                ctx->Scale(scale, scale, 1.0);
+            } else if (!GetModelScreenLocation().IsCenterBased()) {
                 ctx->Translate(w / 2.0f, h / 2.0f, 0.0f);
                 ctx->Scale(scale, scale, 1.0);
                 ctx->Translate(-GetModelScreenLocation().RenderWi / 2.0,
@@ -3636,25 +3827,9 @@ void Model::DisplayEffectOnWindow(IModelPreview* preview, double pointSize)
     }
 }
 
-glm::vec3 Model::MoveHandle(IModelPreview* preview, int handle, bool ShiftKeyPressed, int mouseX, int mouseY, bool& update_rgbeffects)
+std::optional<handles::Id> Model::GetSelectedHandleId()
 {
-    if (GetModelScreenLocation().IsLocked() || IsFromBase())
-        return GetModelScreenLocation().GetHandlePosition(handle);
-
-    int i = GetModelScreenLocation().MoveHandle(preview, handle, ShiftKeyPressed, mouseX, mouseY);
-    if (i == MODEL_NEEDS_INIT) {
-        Setup();
-    } else if (i == MODEL_UPDATE_RGBEFFECTS) {
-        update_rgbeffects = true;
-    }
-    IncrementChangeCount();
-
-    return GetModelScreenLocation().GetHandlePosition(handle);
-}
-
-int Model::GetSelectedHandle()
-{
-    return GetModelScreenLocation().GetSelectedHandle();
+    return GetModelScreenLocation().GetSelectedHandleId();
 }
 
 int Model::GetNumHandles()
@@ -3881,7 +4056,11 @@ Model* Model::CreateDefaultModelFromSavedModelNode(Model* model, pugi::xml_node 
     }
 
     if (model != nullptr) {
-        model->SetStartChannel(sc);
+        // Preserve model-relative start channels (@Model:chan and >Model:chan references) --
+        // ModelStartChannel must survive because ComputeStringStartChannel(0) returns it directly.
+        const std::string& importedSc = model->GetModelStartChannel();
+        if (!model->HasIndividualStartChannels() && (importedSc.empty() || (importedSc[0] != '@' && importedSc[0] != '>')))
+            model->SetStartChannel(sc);
         model->SetHcenterPos(x);
         model->SetVcenterPos(y);
         model->SetLayoutGroup(lg);

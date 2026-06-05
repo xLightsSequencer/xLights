@@ -1,6 +1,7 @@
 <Vendor Name="ESPixelStick">
 	<Controller Name="ESPixelStick">
 		<Variant Name="" ID="ESPixelStick">
+			<OpenSourceFirmware/>
 			<SupportsPixelPortCommonSettings/>
 			<SupportsUpload/>
 			<MaxInputUniverses>8</MaxInputUniverses>
@@ -26,6 +27,7 @@
 		</Variant>
 	</Controller>
     <AbstractVariant Name="BaseESPixelStickV4Settings">
+		<OpenSourceFirmware/>
 		<SupportsFullxLightsControl/>
 		<SupportsDefaultBrightness/>
 		<SupportsDefaultGamma/>

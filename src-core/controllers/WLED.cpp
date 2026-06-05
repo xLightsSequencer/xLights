@@ -17,6 +17,7 @@
 #include "../models/ModelManager.h"
 #include "ControllerCaps.h"
 #include "../outputs/ControllerEthernet.h"
+#include "../discovery/Discovery.h"
 #include "UtilFunctions.h"
 #include "../utils/AppCallbacks.h"
 #include "../utils/string_utils.h"
@@ -76,6 +77,83 @@ struct WLEDOutput {
 };
 #pragma endregion
 
+#pragma region Discovery
+static void ProcessWLEDInfo(Discovery& discovery, const std::string& ip, const std::string& json) {
+    if (json.empty()) {
+        return;
+    }
+    // Non-throwing parse: an unexpected/garbage body must not take down discovery.
+    nlohmann::json info = nlohmann::json::parse(json, nullptr, false);
+    if (info.is_discarded()) {
+        return;
+    }
+    // Safe string extraction (never throws on an unexpected JSON shape).
+    auto getStr = [&info](const char* key) -> std::string {
+        auto const it = info.find(key);
+        if (it != info.end() && it->is_string()) {
+            return it->get<std::string>();
+        }
+        return "";
+    };
+
+    // WLED's /json/info always reports brand == "WLED". Require it as a positive
+    // identifier so devices that merely answer /json/info (e.g. an FPP instance)
+    // are not misclassified as WLED.
+    const std::string brand = getStr("brand");
+    const std::string name = getStr("name");
+    const std::string arch = getStr("arch");
+    const std::string ver = getStr("ver");
+    if (Lower(brand) != "wled" || name.empty() || arch.empty() || ver.empty()) {
+        spdlog::debug("WLED discovery: ignoring {} (brand='{}' name='{}' arch='{}' ver='{}')",
+                      ip, brand, name, arch, ver);
+        return;
+    }
+    spdlog::debug("WLED discovery: identified WLED at {} (name='{}' arch='{}' ver='{}')",
+                  ip, name, arch, ver);
+
+    DiscoveredData* cd = discovery.FindByIp(ip);
+    ControllerEthernet* ce = cd ? cd->controller : nullptr;
+    if (!ce) {
+        ce = new ControllerEthernet(discovery.GetOutputManager(), false);
+        ce->SetProtocol(OUTPUT_DDP);
+        ce->SetIP(ip);
+        if (!cd) {
+            cd = discovery.AddController(ce);
+        }
+    }
+
+    cd->hostname = name;
+    cd->SetDescription(name);
+    cd->SetVendor("WLED");
+    cd->SetModel("WLED");
+    const std::string larch = Lower(arch);
+    if (larch.find("esp32") != std::string::npos) {
+        cd->SetVariant("Generic ESP32");
+    } else if (larch.find("8266") != std::string::npos) {
+        cd->SetVariant("Generic ESP8266");
+    }
+    cd->version = ver;
+    cd->platform = "WLED";
+    cd->mode = "bridge";
+
+    ce->SetProtocol(OUTPUT_DDP);
+    ce->SetAutoSize(true, nullptr);
+    ce->SetAutoLayout(true);
+    ce->SetFullxLightsControl(true);
+}
+
+void WLED::PrepareDiscovery(Discovery& discovery) {
+    discovery.AddBonjour("_wled._tcp", [&discovery](const std::string& ip) {
+        discovery.AddCurl(ip, "/json/info", [&discovery, ip](int rc, const std::string& buffer, const std::string& err) {
+            if (rc == 200) {
+                ProcessWLEDInfo(discovery, ip, buffer);
+            }
+            return true;
+        });
+    });
+}
+#pragma endregion
+
 #pragma region Constructors and Destructors
 WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip, proxy), _vid(0) {
 
@@ -103,12 +181,7 @@ WLED::WLED(const std::string& ip, const std::string &proxy) : BaseController(ip,
 }
 
 WLED::~WLED() {
-
-    for (const auto& it : _pixelOutputs) {
-        delete it;
-    }
     _pixelOutputs.clear();
-
 }
 #pragma endregion
 
@@ -119,17 +192,17 @@ bool WLED::ParseOutputJSON(nlohmann::json const& jsonVal, int maxPort, Controlle
     _pixelOutputs.clear();
 
     for (int i = 1; i <= maxPort; i++) {
-        WLEDOutput* output = ExtractOutputJSON(jsonVal, i, caps, fullControl);
+        std::unique_ptr<WLEDOutput> output = ExtractOutputJSON(jsonVal, i, caps, fullControl);
         output->Dump();
-        _pixelOutputs.push_back(output);
+        _pixelOutputs.push_back(std::move(output));
     }
 
     return true;
 }
 
-WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl) {
+std::unique_ptr<WLEDOutput> WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, ControllerCaps* caps, bool fullControl) {
 
-    WLEDOutput* output = new WLEDOutput(port);
+    std::unique_ptr<WLEDOutput> output = std::make_unique<WLEDOutput>(port);
 
     if (!fullControl && jsonVal.contains("hw") && jsonVal.at("hw").contains("led") &&
         jsonVal.at("hw").at("led").contains("ins") &&
@@ -168,7 +241,7 @@ WLEDOutput* WLED::ExtractOutputJSON(nlohmann::json const& jsonVal, int port, Con
         output->pin = GetOutputPin(port, caps);
     }
 
-    return output;
+    return std::move(output);
 }
 
 void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const {
@@ -396,10 +469,10 @@ bool WLED::EncodeDirection(const std::string& direction) const {
     return Lower(direction) == "reverse";
 }
 
-WLEDOutput* WLED::FindPortData(int port) {
+WLEDOutput* WLED::FindPortData(int port) const {
     for (const auto& sd : _pixelOutputs) {
         if (sd->output == port) {
-            return sd;
+            return sd.get();
         }
     }
     assert(false);

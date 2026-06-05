@@ -21,13 +21,6 @@ public:
         functions[4] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PlasmaEffectStyle4");
         //functions[5] = MetalComputeUtilities::INSTANCE.FindComputeFunction("PlasmaEffectStyle5");
     }
-    ~MetalPlasmaEffectData() {
-        for (auto &f : functions) {
-            if (f != nil) {
-                [f release];
-            }
-        }
-    }
     bool canRenderStyle(int style) {
         return style < functions.size() && functions[style] != nil;
     }

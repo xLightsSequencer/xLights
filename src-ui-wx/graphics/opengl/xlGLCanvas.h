@@ -24,9 +24,7 @@
 
 class wxImage;
 
-extern "C" {
-   struct AVFrame;
-}
+struct VideoWriterFrame;
 
 class xlGLCanvas
     : public wxGLCanvas
@@ -61,7 +59,7 @@ class xlGLCanvas
 		// caller's responsibility to delete the image when done with it
 		wxImage *GrabImage( wxSize size = wxSize(0,0) );
         void captureNextFrame(int w, int h) {}
-        bool getFrameForExport(int w, int h, AVFrame *, uint8_t *buffer, int bufferSize);
+        bool getFrameForExport(VideoWriterFrame& frame);
 
         virtual void render() {};
     
