@@ -349,8 +349,9 @@ glm::mat4 VectorMath::rotMatrixFromXAxisToVector(const glm::vec3 &vector)
 
 glm::mat4 VectorMath::rotationMatrixFromXAxisToVector(const glm::vec3 &a)
 {
-    glm::vec3 v = glm::vec3(0, -a.z, a.y);
     float len = glm::length(a);
+    if (len == 0.0f) return glm::mat4(1.0f);
+    glm::vec3 v = glm::vec3(0, -a.z, a.y);
     float ax = a.x / len;
     float angle = acos(ax);
     if (ax > 0.9999f || angle == 0.0f) {

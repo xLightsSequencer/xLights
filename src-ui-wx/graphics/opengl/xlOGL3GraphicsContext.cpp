@@ -364,6 +364,8 @@ ShaderProgram normal3Program;
 ShaderProgram meshSolidProgram;
 ShaderProgram meshTextureProgram;
 
+static bool s_shadersInitialized = false;
+
 bool xlOGL3GraphicsContext::InitializeSharedContext() {
 
     bool valid = true;
@@ -701,6 +703,7 @@ bool xlOGL3GraphicsContext::InitializeSharedContext() {
                               );
     }
 
+    s_shadersInitialized = valid;
     return valid;
 }
 
@@ -1261,6 +1264,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexAccumulator *vac, c
     return this;
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexAccumulator *vac, const xlColor &color, int start, int count) {
+    if (!s_shadersInitialized) return this;
     xlOGL3VertexAccumulator *v = dynamic_cast<xlOGL3VertexAccumulator*>(vac);
     if (!v || v->getCount() == 0) {
         return this;
@@ -1333,6 +1337,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPoints(xlVertexColorAccumulator *v
 }
 
 xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorAccumulator *vac, int start, int count) {
+    if (!s_shadersInitialized) return this;
     if (vac->getCount() == 0) {
         return this;
     }
@@ -1497,6 +1502,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlTexture *texture,
     return drawTexture(&va, texture, brightness, alpha, 0, 6);
 }
 xlGraphicsContext* xlOGL3GraphicsContext::drawTexture(xlVertexTextureAccumulator *vac, xlTexture *texture, int brightness, uint8_t alpha, int start, int count) {
+    if (!s_shadersInitialized) return this;
     xlOGL3VertexTextureAccumulator *va = dynamic_cast<xlOGL3VertexTextureAccumulator*>(vac);
     xlGLTexture *t = (xlGLTexture*)texture;
 
@@ -1878,6 +1884,7 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawMeshTransparents(xlMesh *mesh, int
     return this;
 }
 void xlOGL3GraphicsContext::drawMesh(xlMesh *mesh, int brightness, bool useViewMatrix, bool transparents) {
+    if (!s_shadersInitialized) return;
     xlGLMesh *glm = (xlGLMesh*)mesh;
     if (glm->vbuffer == 0) {
         glm->LoadBuffers();

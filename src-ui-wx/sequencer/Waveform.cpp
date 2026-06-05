@@ -1087,9 +1087,10 @@ void Waveform::render()
     }
     ctx->SetViewport(0, 0, mWindowWidth, mWindowHeight);
 
-    if (mCurrentWaveView >= 0) {
-		DrawWaveView(ctx, views[mCurrentWaveView]);
-	}
+    int waveView = mCurrentWaveView;
+    if (waveView >= 0 && waveView < (int)views.size()) {
+        DrawWaveView(ctx, views[waveView]);
+    }
 
     FinishDrawing(ctx);
 }
