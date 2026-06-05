@@ -110,6 +110,12 @@ class ValueCurve
     static std::map<std::string, AudioManager*> __altAudioManagers;
     static SequenceElements* __sequenceElements;
 
+    std::string _cachedTimingTrack;
+    long _cachedStartMS = -1;
+    long _cachedEndMS = -1;
+    std::vector<double> _cachedOffsets;
+    void ClearCachedOffsets();
+
     void RenderType();
     void SetSerialisedValue(const std::string &k, const std::string &s);
     float SafeParameter(size_t p, float v);
@@ -174,7 +180,7 @@ public:
     void SetDivisor(float divisor) { _divisor = divisor; }
     bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
-    void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; }
+    void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; ClearCachedOffsets(); }
     void SetFilterLabelText(const std::string& filterLabelText) {
     	_filterLabelText = filterLabelText;
 		}

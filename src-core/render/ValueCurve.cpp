@@ -21,6 +21,7 @@
 #include <log.h>
 
 #include <cassert>
+#include <algorithm>
 #include <cerrno>
 #include <charconv>
 #include <cstring>
@@ -1368,9 +1369,12 @@ void ValueCurve::RenderType()
     {
         if (_parameter1 < 1.0f) {
             _parameter1 = 1.0f;
+        } else if (_parameter1 > 10.0f) {
+            _parameter1 = 10.0f;
         }
         int cycles = std::round(_parameter1);
         if (cycles < 1) cycles = 1;
+        if (cycles > 10) cycles = 10;
 
         if (cycles == 1) {
             if (_baseCustomValues.empty() && !_values.empty()) {
@@ -1417,8 +1421,17 @@ ValueCurve::ValueCurve(const std::string& id, float min, float max, const std::s
     RenderType();
 }
 
+void ValueCurve::ClearCachedOffsets()
+{
+    _cachedTimingTrack.clear();
+    _cachedStartMS = -1;
+    _cachedEndMS = -1;
+    _cachedOffsets.clear();
+}
+
 void ValueCurve::SetDefault(float min, float max, int divisor)
 {
+    ClearCachedOffsets();
     _type = "Flat";
     if (min != MINVOIDF)
     {
@@ -1465,6 +1478,7 @@ ValueCurve::ValueCurve(const std::string& s)
 
 void ValueCurve::Deserialise(const std::string& s, bool holdminmax)
 {
+    ClearCachedOffsets();
     if (s == "")
     {
         SetDefault(0, 100);
@@ -2142,18 +2156,26 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 
         float alignedOffset = offset;
         if (_type == "Custom" && _parameter1 > 1.0f && !_timingTrack.empty()) {
-            std::vector<double> offsets = GetTimingMarkOffsets(startMS, endMS);
+            if (_cachedTimingTrack != _timingTrack || _cachedStartMS != startMS || _cachedEndMS != endMS) {
+                _cachedOffsets = GetTimingMarkOffsets(startMS, endMS);
+                _cachedTimingTrack = _timingTrack;
+                _cachedStartMS = startMS;
+                _cachedEndMS = endMS;
+            }
             int cycles = std::round(_parameter1);
-            if (cycles > 1 && offsets.size() > 1) {
+            if (cycles < 1) cycles = 1;
+            if (cycles > 10) cycles = 10;
+            if (cycles > 1 && _cachedOffsets.size() > 1) {
                 int j = 0;
-                for (size_t idx = 0; idx < offsets.size() - 1; ++idx) {
-                    if (offset >= offsets[idx] && offset <= offsets[idx+1]) {
-                        j = idx;
-                        break;
-                    }
+                auto it = std::upper_bound(_cachedOffsets.begin(), _cachedOffsets.end(), (double)offset);
+                if (it == _cachedOffsets.end()) {
+                    j = (int)_cachedOffsets.size() - 2;
+                } else {
+                    j = std::distance(_cachedOffsets.begin(), it) - 1;
+                    if (j < 0) j = 0;
                 }
-                double o_j = offsets[j];
-                double o_j1 = offsets[j+1];
+                double o_j = _cachedOffsets[j];
+                double o_j1 = _cachedOffsets[j+1];
                 double frac = 0.0;
                 if (o_j1 > o_j) {
                     frac = (offset - o_j) / (o_j1 - o_j);
@@ -2453,8 +2475,10 @@ void ValueCurve::ReconstructBaseCustomValues() {
     int totalPoints = _values.size();
     float cycles = _parameter1;
     if (cycles < 1.0f) cycles = 1.0f;
+    if (cycles > 10.0f) cycles = 10.0f;
     int c = std::round(cycles);
     if (c < 1) c = 1;
+    if (c > 10) c = 10;
 
     if (c == 1 || totalPoints == 0) {
         _baseCustomValues = _values;
@@ -2465,7 +2489,7 @@ void ValueCurve::ReconstructBaseCustomValues() {
         int count = 0;
         for (const auto& pt : _values) {
             if (count >= N) break;
-            float newX = pt.x * cycles;
+            float newX = pt.x * c;
             if (newX > 1.0f) newX = 1.0f;
             _baseCustomValues.push_back(vcSortablePoint(newX, pt.y, pt.wrapped));
             count++;
