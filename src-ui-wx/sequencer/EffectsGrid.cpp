@@ -72,6 +72,9 @@
 #define EFFECT_RESIZE_FADE_OUT 7
 #define TIMING_ALPHA (0x60)
 #define DRAG_THRESHOLD 3
+#define FADE_HANDLE_CENTER_Y_OFFSET 4
+#define FADE_HANDLE_SIZE 4
+#define FADE_HANDLE_HIT_SLOP 6
 
 BEGIN_EVENT_TABLE(EffectsGrid, GRAPHICS_BASE_CLASS)
 EVT_MOTION(EffectsGrid::mouseMoved)
@@ -1999,15 +2002,21 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
             bool checkFadeIn = (fadeInTime > 0.0 && durationMS > 0);
             bool checkFadeOut = (fadeOutTime > 0.0 && durationMS > 0);
 
-            int inTransitionEnd = startPos + (int)(std::min(fadeInTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
-            int outTransitionStart = endPos - (int)(std::min(fadeOutTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            int inTransitionEnd = startPos;
+            if (checkFadeIn) {
+                inTransitionEnd = startPos + (int)(std::min(fadeInTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
+            int outTransitionStart = endPos;
+            if (checkFadeOut) {
+                outTransitionStart = endPos - (int)(std::min(fadeOutTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
 
             int yRowTop = row * DEFAULT_ROW_HEADING_HEIGHT;
-            bool yNearTop = (y != -1 && abs(y - (yRowTop + 4)) <= 6);
+            bool yNearTop = (y != -1 && abs(y - (yRowTop + FADE_HANDLE_CENTER_Y_OFFSET)) <= FADE_HANDLE_HIT_SLOP);
 
-            if (!eff->IsLocked() && yNearTop && checkFadeIn && abs(position - inTransitionEnd) <= 6) {
+            if (!eff->IsLocked() && yNearTop && checkFadeIn && abs(position - inTransitionEnd) <= FADE_HANDLE_HIT_SLOP) {
                 selectionType = HitLocation::FADE_IN_HANDLE;
-            } else if (!eff->IsLocked() && yNearTop && checkFadeOut && abs(position - outTransitionStart) <= 6) {
+            } else if (!eff->IsLocked() && yNearTop && checkFadeOut && abs(position - outTransitionStart) <= FADE_HANDLE_HIT_SLOP) {
                 selectionType = HitLocation::FADE_OUT_HANDLE;
             } else if (!eff->IsLocked()) {
             if ((endPos - startPos) < 8) {
@@ -7506,7 +7515,7 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVer
         backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
 
-    int centerY = y1 + 2;
+    int centerY = y1 - 2 + FADE_HANDLE_CENTER_Y_OFFSET;
     auto drawDiamond = [&](int cx, int cy, int size, const xlColor& color) {
         int szBorder = size + 1;
         backgrounds->AddVertex(cx, cy - szBorder, xlBLACK);
@@ -7525,10 +7534,10 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVer
     };
 
     if (inTransitionEnd > 0) {
-        drawDiamond(inTransitionEnd, centerY, 4, xlGREEN);
+        drawDiamond(inTransitionEnd, centerY, FADE_HANDLE_SIZE, xlGREEN);
     }
     if (outTransitionStart > 0) {
-        drawDiamond(outTransitionStart, centerY, 4, xlRED);
+        drawDiamond(outTransitionStart, centerY, FADE_HANDLE_SIZE, xlRED);
     }
 }
 
@@ -7763,8 +7772,6 @@ void EffectsGrid::Draw() {
             ctx->drawLines(va, xlights->color_mgr.GetColor(ColorManager::COLOR_GRID_DASHES));
             delete va;
         }
-
-
     }
     FinishDrawing(ctx);
 }
