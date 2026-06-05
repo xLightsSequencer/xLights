@@ -12,6 +12,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 
 2026.11  June ??, 2026
+    -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation (#6470)
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
     -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter

@@ -127,6 +127,7 @@ public:
     void ResetEffect();
     void SetEffectsTiming();
     void ProcessDroppedEffect(Effect* effect);
+    void DropEffectAt(int row, const std::string& effectName, const std::string& effectSettings, const std::string& effectVersion, int startTime, int endTime);
     void CutModelEffects(int row_number, bool allLayers);
     void CopyModelEffects(int row_number, bool allLayers, bool incSubModels = false);
     void CopyModelEffectsToModels(int row_number);
