@@ -1986,6 +1986,50 @@ std::vector<double> ValueCurve::GetTimingMarkOffsets(long startMS, long endMS) c
     return offsets;
 }
 
+std::vector<double> ValueCurve::GetTimingMarkOffsetsCached(long startMS, long endMS) {
+    if (_cachedTimingTrack != _timingTrack || _cachedStartMS != startMS || _cachedEndMS != endMS) {
+        _cachedOffsets = GetTimingMarkOffsets(startMS, endMS);
+        _cachedTimingTrack = _timingTrack;
+        _cachedStartMS = startMS;
+        _cachedEndMS = endMS;
+    }
+    return _cachedOffsets;
+}
+
+std::vector<double> ValueCurve::GetResampledOffsets(long startMS, long endMS, int cycles) {
+    if (cycles < 1) cycles = 1;
+    if (cycles > 10) cycles = 10;
+    std::vector<double> offsets = GetTimingMarkOffsetsCached(startMS, endMS);
+    std::vector<double> resampled(cycles + 1, 0.0);
+    resampled[cycles] = 1.0;
+    if (offsets.size() < 2) {
+        for (int i = 1; i < cycles; ++i) {
+            resampled[i] = (double)i / cycles;
+        }
+        return resampled;
+    }
+    for (int i = 1; i < cycles; ++i) {
+        double target = (double)i / cycles;
+        auto it = std::lower_bound(offsets.begin(), offsets.end(), target);
+        double val = 0.0;
+        if (it == offsets.end()) {
+            val = offsets.back();
+        } else if (it == offsets.begin()) {
+            val = offsets.front();
+        } else {
+            double val1 = *it;
+            double val2 = *(it - 1);
+            if (std::abs(val1 - target) < std::abs(val2 - target)) {
+                val = val1;
+            } else {
+                val = val2;
+            }
+        }
+        resampled[i] = std::max(resampled[i - 1], std::min(1.0, val));
+    }
+    return resampled;
+}
+
 float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 {
     float res = 0.0f;
@@ -2156,32 +2200,29 @@ float ValueCurve::GetValueAt(float offset, long startMS, long endMS)
 
         float alignedOffset = offset;
         if (_type == "Custom" && _parameter1 > 1.0f && !_timingTrack.empty()) {
-            if (_cachedTimingTrack != _timingTrack || _cachedStartMS != startMS || _cachedEndMS != endMS) {
-                _cachedOffsets = GetTimingMarkOffsets(startMS, endMS);
-                _cachedTimingTrack = _timingTrack;
-                _cachedStartMS = startMS;
-                _cachedEndMS = endMS;
-            }
             int cycles = std::round(_parameter1);
             if (cycles < 1) cycles = 1;
             if (cycles > 10) cycles = 10;
-            if (cycles > 1 && _cachedOffsets.size() > 1) {
-                int j = 0;
-                auto it = std::upper_bound(_cachedOffsets.begin(), _cachedOffsets.end(), (double)offset);
-                if (it == _cachedOffsets.end()) {
-                    j = (int)_cachedOffsets.size() - 2;
-                } else {
-                    j = std::distance(_cachedOffsets.begin(), it) - 1;
-                    if (j < 0) j = 0;
+            if (cycles > 1) {
+                std::vector<double> resampledOffsets = GetResampledOffsets(startMS, endMS, cycles);
+                if (resampledOffsets.size() > 1) {
+                    int j = 0;
+                    auto it = std::upper_bound(resampledOffsets.begin(), resampledOffsets.end(), (double)offset);
+                    if (it == resampledOffsets.end()) {
+                        j = (int)resampledOffsets.size() - 2;
+                    } else {
+                        j = std::distance(resampledOffsets.begin(), it) - 1;
+                        if (j < 0) j = 0;
+                    }
+                    double o_j = resampledOffsets[j];
+                    double o_j1 = resampledOffsets[j+1];
+                    double frac = 0.0;
+                    if (o_j1 > o_j) {
+                        frac = (offset - o_j) / (o_j1 - o_j);
+                    }
+                    alignedOffset = (j + frac) / (float)cycles;
+                    if (alignedOffset > 1.0f) alignedOffset = 1.0f;
                 }
-                double o_j = _cachedOffsets[j];
-                double o_j1 = _cachedOffsets[j+1];
-                double frac = 0.0;
-                if (o_j1 > o_j) {
-                    frac = (offset - o_j) / (o_j1 - o_j);
-                }
-                alignedOffset = (j + frac) / (float)cycles;
-                if (alignedOffset > 1.0f) alignedOffset = 1.0f;
             }
         }
 

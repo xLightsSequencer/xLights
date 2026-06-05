@@ -140,6 +140,8 @@ public:
     static SequenceElements* GetSequenceElements() { return __sequenceElements; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
     std::vector<double> GetTimingMarkOffsets(long startMS, long endMS) const;
+    std::vector<double> GetTimingMarkOffsetsCached(long startMS, long endMS);
+    std::vector<double> GetResampledOffsets(long startMS, long endMS, int cycles);
 
     void SetAudioTrack(const std::string& name) { _audioTrackName = name; }
     std::string GetAudioTrack() const { return _audioTrackName; }

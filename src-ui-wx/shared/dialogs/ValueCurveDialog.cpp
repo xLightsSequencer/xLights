@@ -35,6 +35,8 @@
 #include "render/SequenceElements.h"
 
 #include <log.h>
+#include <algorithm>
+#include <cmath>
 
 BEGIN_EVENT_TABLE(ValueCurvePanel, wxWindow)
 EVT_MOTION(ValueCurvePanel::mouseMoved)
@@ -490,6 +492,10 @@ void ValueCurveDialog::SetParameter(int p, float v) {
     SetTextCtrlsFromSliders();
 }
 
+static int computePageSize(double min, double max) {
+    return std::max(1, (int)std::round((max - min) / 10.0));
+}
+
 void ValueCurveDialog::SetSliderMinMax() {
     float min, max;
 
@@ -497,43 +503,43 @@ void ValueCurveDialog::SetSliderMinMax() {
     if (min == MINVOID) {
         Slider_Parameter1->SetMin(_vc->GetMin());
         Slider_Parameter1->SetMax(_vc->GetMax());
-        Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
+        Slider_Parameter1->SetPageSize(computePageSize(_vc->GetMin(), _vc->GetMax()));
     } else {
         Slider_Parameter1->SetMin(min);
         Slider_Parameter1->SetMax(max);
-        Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+        Slider_Parameter1->SetPageSize(computePageSize(min, max));
     }
 
     ValueCurve::GetRangeParm2(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter2->SetMin(_vc->GetMin());
         Slider_Parameter2->SetMax(_vc->GetMax());
-        Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
+        Slider_Parameter2->SetPageSize(computePageSize(_vc->GetMin(), _vc->GetMax()));
     } else {
         Slider_Parameter2->SetMin(min);
         Slider_Parameter2->SetMax(max);
-        Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+        Slider_Parameter2->SetPageSize(computePageSize(min, max));
     }
 
     ValueCurve::GetRangeParm3(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter3->SetMin(_vc->GetMin());
         Slider_Parameter3->SetMax(_vc->GetMax());
-        Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
+        Slider_Parameter3->SetPageSize(computePageSize(_vc->GetMin(), _vc->GetMax()));
     } else {
         Slider_Parameter3->SetMin(min);
         Slider_Parameter3->SetMax(max);
-        Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+        Slider_Parameter3->SetPageSize(computePageSize(min, max));
     }
     ValueCurve::GetRangeParm4(_vc->GetType(), min, max);
     if (min == MINVOID) {
         Slider_Parameter4->SetMin(_vc->GetMin());
         Slider_Parameter4->SetMax(_vc->GetMax());
-        Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((_vc->GetMax() - _vc->GetMin()) / 10.0)));
+        Slider_Parameter4->SetPageSize(computePageSize(_vc->GetMin(), _vc->GetMax()));
     } else {
         Slider_Parameter4->SetMin(min);
         Slider_Parameter4->SetMax(max);
-        Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+        Slider_Parameter4->SetPageSize(computePageSize(min, max));
     }
 }
 
@@ -1073,10 +1079,10 @@ void ValueCurvePanel::Paint(wxPaintEvent& event) {
         std::vector<double> offsets;
         int cycles = 1;
         if (_type == "Custom" && std::lround(_vc->GetParameter1()) > 1) {
-            offsets = _vc->GetTimingMarkOffsets(_start, _end);
             cycles = std::lround(_vc->GetParameter1());
             if (cycles < 1) cycles = 1;
             if (cycles > 10) cycles = 10;
+            offsets = _vc->GetResampledOffsets(_start, _end, cycles);
         }
 
         auto alignX = [&offsets, cycles](double val) -> double {
@@ -1172,7 +1178,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter1->GetMin() != min || Slider_Parameter1->GetMax() != max)
         Slider_Parameter1->SetRange(min, max);
-    Slider_Parameter1->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+    Slider_Parameter1->SetPageSize(computePageSize(min, max));
 
     ValueCurve::GetRangeParm2(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1181,7 +1187,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter2->GetMin() != min || Slider_Parameter2->GetMax() != max)
         Slider_Parameter2->SetRange(min, max);
-    Slider_Parameter2->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+    Slider_Parameter2->SetPageSize(computePageSize(min, max));
 
     ValueCurve::GetRangeParm3(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1190,7 +1196,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter3->GetMin() != min || Slider_Parameter3->GetMax() != max)
         Slider_Parameter3->SetRange(min, max);
-    Slider_Parameter3->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+    Slider_Parameter3->SetPageSize(computePageSize(min, max));
 
     ValueCurve::GetRangeParm4(type.ToStdString(), min, max);
     if (min == MINVOID)
@@ -1199,7 +1205,7 @@ void ValueCurveDialog::ValidateWindow() {
         max = _vc->GetMax();
     if (Slider_Parameter4->GetMin() != min || Slider_Parameter4->GetMax() != max)
         Slider_Parameter4->SetRange(min, max);
-    Slider_Parameter4->SetPageSize(std::max(1, (int)std::round((max - min) / 10.0)));
+    Slider_Parameter4->SetPageSize(computePageSize(min, max));
 
     if (type == "Custom") {
         Slider_Parameter1->Enable();
