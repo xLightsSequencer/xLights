@@ -29,11 +29,11 @@ BEGIN_EVENT_TABLE(EffectWheelDialog, wxDialog)
     EVT_MOTION(EffectWheelDialog::OnMouseMove)
     EVT_LEFT_DOWN(EffectWheelDialog::OnLeftDown)
     EVT_LEFT_UP(EffectWheelDialog::OnLeftUp)
-    EVT_KILL_FOCUS(EffectWheelDialog::OnKillFocus)
+    EVT_SHOW(EffectWheelDialog::OnShow)
 END_EVENT_TABLE()
 
 EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const KeyBinding*>& bindings)
-    : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxSTAY_ON_TOP)
+    : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxSTAY_ON_TOP | wxFRAME_SHAPED)
     , m_bindings(bindings)
     , m_selectedBinding(nullptr)
     , m_hoveredSector(-1)
@@ -41,24 +41,37 @@ EffectWheelDialog::EffectWheelDialog(wxWindow* parent, const std::vector<const K
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     int numSectors = m_bindings.size();
-    int sizeVal = 240;
-    m_innerRadius = 30;
-    m_outerRadius = 119;
+    int sizeVal = FromDIP(240);
+    m_innerRadius = FromDIP(30);
+    m_outerRadius = FromDIP(119);
 
     if (numSectors > 8) {
-        sizeVal = 320;
-        m_innerRadius = 45;
-        m_outerRadius = 159;
+        sizeVal = FromDIP(320);
+        m_innerRadius = FromDIP(45);
+        m_outerRadius = FromDIP(159);
     }
 
     m_center = wxPoint(sizeVal / 2, sizeVal / 2);
     SetClientSize(wxSize(sizeVal, sizeVal));
+
+    SetCircularShape(m_outerRadius);
 
     Connect(wxID_ANY, wxEVT_CHAR_HOOK, wxKeyEventHandler(EffectWheelDialog::OnKeyDown), nullptr, this);
 }
 
 void EffectWheelDialog::PositionAtMouse(const wxPoint& mousePos) {
     Move(mousePos - m_center);
+}
+
+void EffectWheelDialog::SetCircularShape(int radius) {
+    const int numPoints = 32;
+    std::vector<wxPoint> points(numPoints);
+    for (int i = 0; i < numPoints; ++i) {
+        double angle = i * 2.0 * M_PI / numPoints;
+        points[i].x = m_center.x + radius * cos(angle);
+        points[i].y = m_center.y + radius * sin(angle);
+    }
+    SetShape(wxRegion(points.size(), points.data()));
 }
 
 std::string EffectWheelDialog::GetEffectNameFromBinding(const KeyBinding* kb) {
@@ -110,8 +123,8 @@ void EffectWheelDialog::OnMouseMove(wxMouseEvent& event) {
 void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     wxAutoBufferedPaintDC dc(this);
     
-    // Transparent or solid dark background fill to cover garbage screen memory
-    dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE)));
+    // Clear background to a solid dark grey matching xLights grid dark theme
+    dc.SetBackground(wxBrush(wxColour(30, 30, 30)));
     dc.Clear();
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
@@ -129,6 +142,8 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
     gc->SetBrush(wxBrush(wxColour(30, 30, 30, 220)));
     gc->SetPen(wxPen(wxColour(255, 255, 255, 50), 2));
     gc->DrawEllipse(m_center.x - m_outerRadius, m_center.y - m_outerRadius, m_outerRadius * 2, m_outerRadius * 2);
+
+    int iconSize = FromDIP(24);
 
     for (int i = 0; i < numSectors; ++i) {
         double angle = i * sectorSizeRad - M_PI_2 - (sectorSizeRad / 2.0);
@@ -153,7 +168,7 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         double midAngle = angle + (sectorSizeRad / 2.0);
 
         // Put the icon near the outer edge to maximize circumference and avoid overlaps
-        double r_icon = m_outerRadius - 22.0;
+        double r_icon = m_outerRadius - FromDIP(22.0);
         int ix = m_center.x + r_icon * cos(midAngle);
         int iy = m_center.y + r_icon * sin(midAngle);
 
@@ -164,20 +179,20 @@ void EffectWheelDialog::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         RenderableEffect* re = effMgr.GetEffect(effectName);
         if (re) {
             const wxBitmapBundle& bundle = EffectIconCache::GetEffectIcon(re, 24);
-            wxBitmap bmp = bundle.GetBitmap(wxSize(24, 24));
+            wxBitmap bmp = bundle.GetBitmap(wxSize(iconSize, iconSize));
             if (bmp.IsOk()) {
                 // Draw icon centered at (ix, iy)
-                gc->DrawBitmap(bmp, ix - 12, iy - 12, 24, 24);
+                gc->DrawBitmap(bmp, ix - iconSize / 2, iy - iconSize / 2, iconSize, iconSize);
             }
         }
 
         // Draw Effect Name, slanted to follow the slice
         // Put the text at a radius centered in the gap between the inner cutout and the icon
-        double r_text = (m_innerRadius + r_icon - 12.0) / 2.0;
+        double r_text = (m_innerRadius + r_icon - FromDIP(12.0)) / 2.0;
         int tx = m_center.x + r_text * cos(midAngle);
         int ty = m_center.y + r_text * sin(midAngle);
 
-        gc->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL), wxColour(*wxWHITE));
+        gc->SetFont(wxFont(FromDIP(8), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL), wxColour(*wxWHITE));
         double tw, th;
         gc->GetTextExtent(effectName, &tw, &th);
 
@@ -206,8 +221,14 @@ void EffectWheelDialog::OnLeftDown(wxMouseEvent& event) {
     int clickedSector = GetSectorAtMouse(event.GetPosition());
     if (clickedSector >= 0) {
         m_selectedBinding = m_bindings[clickedSector];
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
         EndModal(wxID_OK);
     } else {
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
         EndModal(wxID_CANCEL);
     }
 }
@@ -215,14 +236,26 @@ void EffectWheelDialog::OnLeftDown(wxMouseEvent& event) {
 void EffectWheelDialog::OnLeftUp(wxMouseEvent& WXUNUSED(event)) {
 }
 
-void EffectWheelDialog::OnKillFocus(wxFocusEvent& WXUNUSED(event)) {
-    EndModal(wxID_CANCEL);
-}
-
 void EffectWheelDialog::OnKeyDown(wxKeyEvent& event) {
     if (event.GetKeyCode() == WXK_ESCAPE) {
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
         EndModal(wxID_CANCEL);
     } else {
         event.Skip();
     }
+}
+
+void EffectWheelDialog::OnShow(wxShowEvent& event) {
+    if (event.IsShown()) {
+        if (!HasCapture()) {
+            CaptureMouse();
+        }
+    } else {
+        if (HasCapture()) {
+            ReleaseMouse();
+        }
+    }
+    event.Skip();
 }

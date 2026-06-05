@@ -1,12 +1,12 @@
 #pragma once
 
 /***************************************************************
- * This source files comes from the xLights project
+ * This source file comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
- * See the github commit history for a record of contributing
+ * See the GitHub commit history for a record of contributing
  * developers.
- * Copyright claimed based on commit dates recorded in Github
+ * Copyright claimed based on commit dates recorded in GitHub
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
@@ -29,11 +29,12 @@ private:
     void OnMouseMove(wxMouseEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
-    void OnKillFocus(wxFocusEvent& event);
     void OnKeyDown(wxKeyEvent& event);
+    void OnShow(wxShowEvent& event);
 
     int GetSectorAtMouse(const wxPoint& pos);
     std::string GetEffectNameFromBinding(const KeyBinding* kb);
+    void SetCircularShape(int radius);
 
     std::vector<const KeyBinding*> m_bindings;
     const KeyBinding* m_selectedBinding;

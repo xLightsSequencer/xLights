@@ -361,7 +361,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
 
         // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
         std::vector<const KeyBinding*> effectBindings;
-        MainSequencer* ms = (MainSequencer*)mParent;
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
         if (ms != nullptr) {
             for (const auto& kb : ms->keyBindings.GetBindings()) {
                 if (!kb.IsDisabled() && kb.GetType() == "EFFECT" && kb.InScope(KBSCOPE::Sequence)) {
@@ -373,6 +373,7 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
 
+        bool effectDropped = false;
         if (!effectBindings.empty()) {
             EffectWheelDialog dlg(this, effectBindings);
             dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
@@ -380,10 +381,13 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
                 const KeyBinding* selectedKb = dlg.GetSelectedKeyBinding();
                 if (selectedKb != nullptr) {
                     DropEffectAt(row, selectedKb->GetEffectName(), selectedKb->GetEffectString(), selectedKb->GetEffectDataVersion(), startTime, endTime);
+                    effectDropped = true;
                 }
             }
-        } else {
-            // Fallback to updating the playhead if no keybindings are configured
+        }
+
+        if (!effectDropped) {
+            // Fallback to updating the playhead if no effect was dropped or no keybindings are configured
             if (update_time > -1) {
                 UpdateTimePosition(update_time);
             }
@@ -1887,14 +1891,25 @@ void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std
     Effect* effect = el->AddEffect(0, effectName, effectSettings, "", startTime, endTime, EFFECT_SELECTED, false);
 
     if (effect != nullptr) {
+        if (xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
+            xlights->GetEffectManager().GetEffect(effectName)->needToAdjustSettings(effectVersion)) {
+            xlights->GetEffectManager().GetEffect(effectName)->adjustSettings(effectVersion, effect, false);
+        }
+
         mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
         
         mDropRow = row;
         ProcessDroppedEffect(effect);
 
         if (xlights->GetBufferPanel() != nullptr) {
-            xlights->GetBufferPanel()->UpdateBufferStyles(xlights->AllModels[el->GetParentElement()->GetFullName()]);
-            xlights->GetBufferPanel()->UpdateCamera(xlights->AllModels[el->GetParentElement()->GetModelName()]);
+            Model* modelFull = xlights->AllModels[el->GetParentElement()->GetFullName()];
+            Model* modelName = xlights->AllModels[el->GetParentElement()->GetModelName()];
+            if (modelFull != nullptr) {
+                xlights->GetBufferPanel()->UpdateBufferStyles(modelFull);
+            }
+            if (modelName != nullptr) {
+                xlights->GetBufferPanel()->UpdateCamera(modelName);
+            }
         }
 
         if (!xlights->IsRenderSuspended()) {
