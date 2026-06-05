@@ -86,6 +86,7 @@ public:
 class ValueCurve
 {
     std::list<vcSortablePoint> _values;
+    std::list<vcSortablePoint> _baseCustomValues;
     std::string _type;
     std::string _id;
     std::string _timingTrack;
@@ -108,6 +109,12 @@ class ValueCurve
     static AudioManager* __audioManager;
     static std::map<std::string, AudioManager*> __altAudioManagers;
     static SequenceElements* __sequenceElements;
+
+    std::string _cachedTimingTrack;
+    long _cachedStartMS = -1;
+    long _cachedEndMS = -1;
+    std::vector<double> _cachedOffsets;
+    void ClearCachedOffsets();
 
     void RenderType();
     void SetSerialisedValue(const std::string &k, const std::string &s);
@@ -132,6 +139,9 @@ public:
     static void SetSequenceElements(SequenceElements* se) { __sequenceElements = se; }
     static SequenceElements* GetSequenceElements() { return __sequenceElements; }
     static std::string GetValueCurveFolder(const std::string& showFolder);
+    std::vector<double> GetTimingMarkOffsets(long startMS, long endMS) const;
+    std::vector<double> GetTimingMarkOffsetsCached(long startMS, long endMS);
+    std::vector<double> GetResampledOffsets(long startMS, long endMS, int cycles);
 
     void SetAudioTrack(const std::string& name) { _audioTrackName = name; }
     std::string GetAudioTrack() const { return _audioTrackName; }
@@ -172,7 +182,7 @@ public:
     void SetDivisor(float divisor) { _divisor = divisor; }
     bool IsRealValue() const { return _realValues; }
     int GetPointCount() const { return _values.size(); }
-    void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; }
+    void SetTimingTrack(const std::string& timingTrack) { _timingTrack = timingTrack; ClearCachedOffsets(); }
     void SetFilterLabelText(const std::string& filterLabelText) {
     	_filterLabelText = filterLabelText;
 		}
@@ -213,4 +223,5 @@ public:
     void Flip();
     void ConvertDivider(int oldDivider, int newDivider);
     void ScaleAndOffsetValues(float scale, int offset);
+    void ReconstructBaseCustomValues();
 };

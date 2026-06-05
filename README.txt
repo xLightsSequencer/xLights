@@ -24,6 +24,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
     -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
+    -enh (cybercop23)            Add Cycles parameter (1-10) to Custom value curves to allow replication
     -enh (derwin12)              Add right click to swap start/end nodes (#5450)
     -enh (cybercob23)            In sequence import, add right click option to sort submodels within a model (#4636)
     -enh (agfazio)               Add drag/drop effects in sequencer
