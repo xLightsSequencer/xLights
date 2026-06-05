@@ -458,6 +458,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\PythonRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp" />
+    <ClCompile Include="..\src-ui-wx\CommandPaletteDialog.cpp" />
     <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
     <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
@@ -1082,6 +1083,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\automation\automation.h" />
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h" />
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteDialog.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteHelper.h" />
     <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
     <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />

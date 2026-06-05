@@ -101,6 +101,7 @@
 #include "render/SequencePackage.h"
 #include "automation/ScriptsDialog.h"
 #include "app-shell/TipOfTheDayDialog.h"
+#include "CommandPaletteDialog.h"
 #include "diagnostics/CheckSequenceReport.h"
 
 #include "ai/aiType.h"
@@ -1740,6 +1741,7 @@ public:
     void SetPasteByTime();
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
+    void OnCommandPalette(wxCommandEvent& event);
 
 private:
     std::map<std::string, std::string> _xmlSettings;

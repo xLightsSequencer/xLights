@@ -247,6 +247,8 @@
 		<Unit filename="../src-ui-wx/model/ChannelLayoutDialog.h" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.h" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.cpp" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.h" />
 		<Unit filename="../src-core/diagnostics/CheckSequenceReport.cpp" />
 		<Unit filename="../src-core/diagnostics/CheckSequenceReport.h" />
 		<Unit filename="../src-core/diagnostics/SequenceChecker.cpp" />

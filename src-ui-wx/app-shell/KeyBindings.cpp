@@ -160,6 +160,7 @@ static  std::vector<std::pair<std::string, KBSCOPE>> KeyBindingTypes =
     { "JUKEBOX_BTN_4", KBSCOPE::Sequence },
     { "JUKEBOX_BTN_5", KBSCOPE::Sequence },
     { "FPP_CONNECT", KBSCOPE::All },
+    { "COMMAND_PALETTE", KBSCOPE::All },
     { "FILTER_SEQUENCER", KBSCOPE::Sequence },
     { "ALTERNATE_PASTE", KBSCOPE::Sequence }
 };
@@ -294,7 +295,8 @@ static  std::vector<std::pair<std::string, std::string>> keyBindingTips = {
     { "JUKEBOX_BTN_4", "Jukebox Button 4." },
     { "JUKEBOX_BTN_5", "Jukebox Button 5." },
     { "FPP_CONNECT", "Run FPP Connect" },
-    { "ALTERNATE_PASTE", "Paste effects using the opposite of the configured 'Paste As' mode (Relative vs As Layers)." },
+    { "COMMAND_PALETTE", "Open the command palette." },
+    { "ALTERNATE_PASTE", "Paste effects using the opposite of the configured 'Paste As' mode (Relative vs As Layers)." }
 };
 
 const std::vector<KeyBinding> DefaultBindings =
@@ -338,6 +340,7 @@ const std::vector<KeyBinding> DefaultBindings =
     KeyBinding("", true, "JUKEBOX_BTN_4", true, true),
     KeyBinding("", true, "JUKEBOX_BTN_5", true, true),
     KeyBinding("", true, "FPP_CONNECT", true, true),
+    KeyBinding(std::string("K"), false, "COMMAND_PALETTE", true, false, true),
 
     KeyBinding("s", false, "SAVE_CURRENT_TAB", true),
     KeyBinding("", true, "SAVE_SEQUENCE", true),
