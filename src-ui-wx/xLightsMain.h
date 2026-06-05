@@ -1651,6 +1651,12 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }
+
+    // Song Structure Region export
+    std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
+    void ExportSongRegion(int startMS, int endMS, const std::string& regionLabel);
+    void ExportAllSongRegions();
+
     TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "") override;
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);

@@ -149,6 +149,7 @@ private:
     static const long ID_ROW_MNU_GENERATE_FROM_ONSETS;
     static const long ID_ROW_MNU_GENERATE_FROM_TEMPO;
     static const long ID_ROW_MNU_GENERATE_FROM_CHORDS;
+    static const long ID_ROW_MNU_CREATE_SONG_REGIONS;
 
     static const long ID_ROW_MNU_SETLAYERNAME;
     static const long ID_ROW_MNU_HIDE_UNUSED_SUBMODELS;

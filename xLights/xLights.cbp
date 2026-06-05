@@ -1251,6 +1251,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
+		<Unit filename="../src-core/render/SongStructureManager.cpp" />
+		<Unit filename="../src-core/render/SongStructureManager.h" />
 		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />
