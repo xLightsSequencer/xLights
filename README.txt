@@ -28,6 +28,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
+    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
     -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
     -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
