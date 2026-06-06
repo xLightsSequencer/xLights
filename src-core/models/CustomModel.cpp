@@ -658,37 +658,27 @@ void CustomModel::InitCustomMatrix() {
     uint32_t height = _locations[0].size();
     uint32_t width = _locations[0][0].size();
 
-    // find the maximum node
     int maxval = 0;
-    for (const auto& l : _locations) {
-		for (const auto& r : l) {
-			for (const auto& c : r) {
-				if (c >= 0) {
-					maxval = std::max(maxval, c);
-				}
-			}
-		}
-	}
-
     int minRow = (int)height - 1, maxRow = 0;
     int minCol = (int)width - 1, maxCol = 0;
     int minLayer = (int)depth - 1, maxLayer = 0;
-    if (maxval > 0) {
-        for (size_t l = 0; l < _locations.size(); ++l) {
-            for (size_t r = 0; r < _locations[l].size(); ++r) {
-                for (size_t c = 0; c < _locations[l][r].size(); ++c) {
-                    if (_locations[l][r][c] > 0) {
-                        if ((int)r < minRow) minRow = (int)r;
-                        if ((int)r > maxRow) maxRow = (int)r;
-                        if ((int)c < minCol) minCol = (int)c;
-                        if ((int)c > maxCol) maxCol = (int)c;
-                        if ((int)l < minLayer) minLayer = (int)l;
-                        if ((int)l > maxLayer) maxLayer = (int)l;
-                    }
+    for (size_t l = 0; l < _locations.size(); ++l) {
+        for (size_t r = 0; r < _locations[l].size(); ++r) {
+            for (size_t c = 0; c < _locations[l][r].size(); ++c) {
+                int val = _locations[l][r][c];
+                if (val > 0) {
+                    maxval = std::max(maxval, val);
+                    if ((int)r < minRow) minRow = (int)r;
+                    if ((int)r > maxRow) maxRow = (int)r;
+                    if ((int)c < minCol) minCol = (int)c;
+                    if ((int)c > maxCol) maxCol = (int)c;
+                    if ((int)l < minLayer) minLayer = (int)l;
+                    if ((int)l > maxLayer) maxLayer = (int)l;
                 }
             }
         }
-    } else {
+    }
+    if (maxval == 0) {
         minRow = 0; maxRow = (int)height - 1;
         minCol = 0; maxCol = (int)width - 1;
         minLayer = 0; maxLayer = (int)depth - 1;
