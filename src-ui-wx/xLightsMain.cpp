@@ -1298,6 +1298,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
     OutputTimer.SetOwner(this, ID_TIMER_OutputTimer);
+    OutputTimer.SetName("OutputTimer");
     AutoSaveTimer.SetOwner(this, ID_TIMER_AutoSave);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
     RenderStatusTimer.SetOwner(this, ID_TIMER_RENDERSTATUS);
