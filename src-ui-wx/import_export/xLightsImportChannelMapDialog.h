@@ -14,6 +14,7 @@
 #include <wx/treelist.h>
 #include <wx/treectrl.h>
 #include <wx/dataview.h>
+#include <wx/bmpbuttn.h>
 
 //(*Headers(xLightsImportChannelMapDialog)
 #include <wx/button.h>
@@ -288,6 +289,7 @@ public:     // public to avoid getters/setters
     int _height = 0;
     int _effectCount = 0;
     std::string _mappingModelType;
+    bool _isStackDuplicate = false;
 
     // TODO/FIXME:
     // the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
@@ -537,6 +539,7 @@ class xLightsImportChannelMapDialog: public wxDialog
         xLightsImportTreeModel *_dataModel;
 
 		//(*Declarations(xLightsImportChannelMapDialog)
+		wxBitmapButton* StashWarningButton;
 		wxButton* ButtonImportOptions;
 		wxButton* Button_AIMap;
 		wxButton* Button_AutoMap;
@@ -586,6 +589,7 @@ class xLightsImportChannelMapDialog: public wxDialog
 protected:
 
 		//(*Identifiers(xLightsImportChannelMapDialog)
+		static const wxWindowID ID_BITMAPBUTTON_STASH;
 		static const wxWindowID ID_SPINCTRL1;
 		static const wxWindowID ID_CHECKBOX1;
 		static const wxWindowID ID_CHECKBOX11;
@@ -684,6 +688,12 @@ protected:
         void DoAIAutoMap(bool select);
 
 
+        void UpdateStashWarning();
+        void OnStashWarningClick(wxCommandEvent& event);
+        void InsertStackDuplicate(const wxDataViewItem& afterItem, const std::string& availableModelName, const std::string& availableModelType);
+        wxDataViewItem FindLastItem(const wxString& model, const wxString& strand, const wxString& node);
+        void ApplyMappingItem(wxString const& mapping, wxDataViewItem item, wxColor const& color);
+        bool PromptAndApplyMapping(const wxDataViewItemArray& targets, const std::string& availName, const std::string& modelType, wxDataViewItem& lastApplied, bool* wasAddedAsStack = nullptr);
         void LoadXMapMapping(wxString const& filename, bool hideWarnings);
         void LoadJSONMapping(wxString const& filename, bool hideWarnings);
         void loadMapHintsFile(wxString const& filename);
