@@ -128,7 +128,7 @@ bool xLightsTimer::Start(int time/* = -1*/, bool oneShot/* = wxTIMER_CONTINUOUS*
     }
     else
     {
-        spdlog::info("Resetting timer {} as thread already exists.", (const char*)_name.c_str());
+        spdlog::debug("Resetting timer {} as thread already exists.", (const char*)_name.c_str());
         Stop();
         _t->Reset(time, oneShot, _name);
     }
