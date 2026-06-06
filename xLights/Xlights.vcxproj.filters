@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\src-ui-wx\import_export\ExportEffects.cpp" />
@@ -55,6 +55,7 @@
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsPanel.cpp" />
     <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="..\src-ui-wx\xLightsApp.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\xLightsMain.cpp" />
+    <ClCompile Include="..\src-ui-wx\CommandPaletteDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\xLightsTimer.cpp" />
     <ClCompile Include="..\src-core\render\SequenceFile.cpp">
@@ -709,6 +711,9 @@
       <Filter>sequencer</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SequenceElements.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\SongStructureManager.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp">
@@ -1418,6 +1423,7 @@
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsPanel.h" />
     <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
@@ -1508,6 +1514,8 @@
     <ClInclude Include="..\src-ui-wx\xLightsApp.h" />
     <ClInclude Include="..\src-ui-wx\import_export\xLightsImportChannelMapDialog.h" />
     <ClInclude Include="..\src-ui-wx\xLightsMain.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteDialog.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteHelper.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LRCLIBSearchDialog.h" />
     <ClInclude Include="..\src-core\xLightsVersion.h" />
     <ClInclude Include="..\src-core\render\SequenceFile.h">
@@ -2085,6 +2093,7 @@
     <ClInclude Include="..\src-core\render\SequenceElements.h">
       <Filter>render</Filter>
     </ClInclude>
+    <ClInclude Include="..\src-core\render\SongStructureManager.h">
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h">
       <Filter>render</Filter>
     </ClInclude>

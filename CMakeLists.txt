@@ -408,6 +408,7 @@ endif()
 file(GLOB_RECURSE SRC_UI
     src-ui-wx/xLightsApp.cpp
     src-ui-wx/xLightsMain.cpp
+    src-ui-wx/CommandPaletteDialog.cpp
     src-ui-wx/ai/*.cpp
     src-ui-wx/app-shell/*.cpp
     src-ui-wx/automation/*.cpp
@@ -435,6 +436,14 @@ file(GLOB_RECURSE SRC_UI
     src-ui-wx/shared/utils/*.cpp
     src-ui-wx/support/*.cpp
 )
+
+# macOS-only Objective-C++ helper for the command palette (SF Symbols / colors).
+# Must be appended after the glob: file(GLOB) does not evaluate generator
+# expressions, so a $<...> entry inside the glob above would be silently dropped.
+if(APPLE)
+    enable_language(OBJCXX)
+    list(APPEND SRC_UI ${CMAKE_SOURCE_DIR}/src-ui-wx/CommandPaletteHelper_mac.mm)
+endif()
 
 # Vendored third-party sources
 set(SRC_DEPS

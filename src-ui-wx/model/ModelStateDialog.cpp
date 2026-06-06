@@ -1311,16 +1311,25 @@ void ModelStateDialog::ImportStates(const wxString & filename)
         pugi::xml_node root = doc.document_element();
         bool stateFound = false;
 
-        for (pugi::xml_node n : root.children("stateInfo"))
-        {
-            std::map<std::string, std::map<std::string, std::string> > stateInfo;
-            XmlSerialize::DeserializeStateInfo(n, stateInfo);
-            if (stateInfo.size() == 0)
-            {
-                continue;
+        // New format: <models><model>...<stateInfo/></model></models>
+        // Old format: <custommodel>...<stateInfo/></custommodel>
+        auto processStateInfoChildren = [&](pugi::xml_node parent) {
+            for (pugi::xml_node n : parent.children("stateInfo")) {
+                std::map<std::string, std::map<std::string, std::string>> stateInfo;
+                XmlSerialize::DeserializeStateInfo(n, stateInfo);
+                if (stateInfo.size() == 0)
+                    continue;
+                stateFound = true;
+                AddStates(stateInfo);
             }
-            stateFound = true;
-            AddStates(stateInfo);
+        };
+
+        std::string_view rootName = root.name();
+        if (rootName == "models") {
+            for (pugi::xml_node model : root.children("model"))
+                processStateInfoChildren(model);
+        } else {
+            processStateInfoChildren(root);
         }
         overRide = false;
         showDialog = true;

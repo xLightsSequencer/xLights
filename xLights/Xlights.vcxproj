@@ -458,6 +458,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\automation\LuaRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\PythonRunner.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\xLightsAutomations.cpp" />
+    <ClCompile Include="..\src-ui-wx\CommandPaletteDialog.cpp" />
     <ClCompile Include="..\src-core\diagnostics\CheckSequenceReport.cpp" />
     <ClCompile Include="..\src-core\diagnostics\SequenceChecker.cpp" />
     <ClCompile Include="..\src-core\models\ControllerConnection.cpp" />
@@ -796,6 +797,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\effects\WaveEffect.cpp" />
     <ClCompile Include="..\src-core\effects\EffectPresetManager.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectTreeDialog.cpp" />
+    <ClCompile Include="..\src-ui-wx\sequencer\EffectWheelDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\ExportModelSelect.cpp" />
     <ClCompile Include="..\src-ui-wx\import_export\FileConverter.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.cpp" />
@@ -930,6 +932,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\lyrics\LyricBreakdown.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RowHeading.cpp" />
     <ClCompile Include="..\src-core\render\SequenceElements.cpp" />
+    <ClCompile Include="..\src-core\render\SongStructureManager.cpp" />
     <ClCompile Include="..\src-core\render\SeqMediaMigration.cpp" />
     <ClCompile Include="..\src-core\render\SequenceMedia.cpp" />
     <ClCompile Include="..\src-core\render\TextDrawingContext.cpp" />
@@ -1080,6 +1083,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\automation\automation.h" />
     <ClInclude Include="..\src-ui-wx\automation\LuaRunner.h" />
     <ClInclude Include="..\src-ui-wx\automation\PythonRunner.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteDialog.h" />
+    <ClInclude Include="..\src-ui-wx\CommandPaletteHelper.h" />
     <ClInclude Include="..\src-core\diagnostics\CheckSequenceReport.h" />
     <ClInclude Include="..\src-core\diagnostics\SequenceChecker.h" />
     <ClInclude Include="..\src-core\models\ControllerConnection.h" />
@@ -1394,6 +1399,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\effects\WaveEffect.h" />
     <ClInclude Include="..\src-core\effects\EffectPresetManager.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectTreeDialog.h" />
+    <ClInclude Include="..\src-ui-wx\sequencer\EffectWheelDialog.h" />
     <ClInclude Include="..\src-ui-wx\import_export\ExportModelSelect.h" />
     <ClInclude Include="..\src-ui-wx\import_export\FileConverter.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\FlickerFreeBitmapButton.h" />
@@ -1526,6 +1532,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\lyrics\LyricBreakdown.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RowHeading.h" />
     <ClInclude Include="..\src-core\render\SequenceElements.h" />
+    <ClInclude Include="..\src-core\render\SongStructureManager.h" />
     <ClInclude Include="..\src-core\render\SeqMediaMigration.h" />
     <ClInclude Include="..\src-core\render\SequenceMedia.h" />
     <ClInclude Include="..\src-core\render\TextDrawingContext.h" />

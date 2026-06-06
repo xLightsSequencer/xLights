@@ -247,6 +247,8 @@
 		<Unit filename="../src-ui-wx/model/ChannelLayoutDialog.h" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.cpp" />
 		<Unit filename="../src-ui-wx/effects/CharMapDialog.h" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.cpp" />
+		<Unit filename="../src-ui-wx/CommandPaletteDialog.h" />
 		<Unit filename="../src-core/diagnostics/CheckSequenceReport.cpp" />
 		<Unit filename="../src-core/diagnostics/CheckSequenceReport.h" />
 		<Unit filename="../src-core/diagnostics/SequenceChecker.cpp" />
@@ -327,6 +329,8 @@
 		<Unit filename="../src-core/effects/EffectPresetManager.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectTreeDialog.h" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.cpp" />
+		<Unit filename="../src-ui-wx/sequencer/EffectWheelDialog.h" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.cpp" />
 		<Unit filename="../src-ui-wx/sequencer/EffectsPanel.h" />
 		<Unit filename="../src-ui-wx/app-shell/EmailDialog.cpp" />
@@ -1249,6 +1253,8 @@
 		<Unit filename="../src-ui-wx/sequencer/RowHeading.h" />
 		<Unit filename="../src-core/render/SequenceElements.cpp" />
 		<Unit filename="../src-core/render/SequenceElements.h" />
+		<Unit filename="../src-core/render/SongStructureManager.cpp" />
+		<Unit filename="../src-core/render/SongStructureManager.h" />
 		<Unit filename="../src-core/render/SeqMediaMigration.cpp" />
 		<Unit filename="../src-core/render/SeqMediaMigration.h" />
 		<Unit filename="../src-core/render/SequenceMedia.cpp" />

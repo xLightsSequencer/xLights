@@ -453,7 +453,7 @@ void MapS5Effects(const EffectManager& effectManager, StrandElement* se, const L
     }
 }
 
-void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName, long offset, int frameMS, bool eraseExisting)
+void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName, long offset, int frameMS, bool eraseExisting, int startLayer)
 {
     if (eraseExisting) {
         for (const auto& it : model->GetEffectLayers()) {
@@ -469,9 +469,9 @@ void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName
 
         // Vixen can have multiple effects in one time slot so add layers as needed
         EffectLayer* layer = nullptr;
-        for (const auto& el : model->GetEffectLayers()) {
-            if (!el->HasEffectsInTimeRange(s, e)) {
-                layer = el;
+        for (size_t li = startLayer; li < model->GetEffectLayerCount(); ++li) {
+            if (!model->GetEffectLayer(li)->HasEffectsInTimeRange(s, e)) {
+                layer = model->GetEffectLayer(li);
                 break;
             }
         }
@@ -493,10 +493,10 @@ void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName
     }
 }
 
-void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const std::string& mapping, long offset, int frameMS, bool eraseExisting)
+void MapVixen3Effects(const EffectManager& effectManager, Element* model, const Vixen3& vixen, const std::string& mapping, long offset, int frameMS, bool eraseExisting, int startLayer)
 {
     spdlog::debug("Creating effects on model {} from {}", model->GetFullName(), mapping);
-    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting);
+    MapVixen3(model, vixen, mapping, offset, frameMS, eraseExisting, startLayer);
 }
 
 void MapS5Effects(const EffectManager& effectManager, SubModelElement* se, const LOREdit& lorEdit, const std::string& mapping, int frequency, int offset, bool eraseExisting)

@@ -101,6 +101,7 @@
 #include "render/SequencePackage.h"
 #include "automation/ScriptsDialog.h"
 #include "app-shell/TipOfTheDayDialog.h"
+#include "CommandPaletteDialog.h"
 #include "diagnostics/CheckSequenceReport.h"
 
 #include "ai/aiType.h"
@@ -1651,6 +1652,12 @@ public:
 
     void EnableSequenceControls(bool enable);
     SequenceElements& GetSequenceElements() override { return _sequenceElements; }
+
+    // Song Structure Region export
+    std::string DoExportSongRegion(int startMS, int endMS, const std::string& regionLabel, const wxString& outputPath);
+    void ExportSongRegion(int startMS, int endMS, const std::string& regionLabel);
+    void ExportAllSongRegions();
+
     TimingElement* AddTimingElement(const std::string& name, const std::string &subType = "") override;
     void DeleteTimingElement(const std::string& name);
     void RenameTimingElement(const std::string& old_name, const std::string& new_name);
@@ -1734,6 +1741,7 @@ public:
     void SetPasteByTime();
     void ShowSequenceSettings();
     bool HandleAllKeyBinding(wxKeyEvent& event);
+    void OnCommandPalette(wxCommandEvent& event);
 
 private:
     std::map<std::string, std::string> _xmlSettings;
@@ -2078,6 +2086,7 @@ public:
     bool FilesMatch(const std::string & file1, const std::string & file2) const;
     ColorPanel* GetColorPanel() const { return colorPanel; }
     JukeboxPanel* GetJukeboxPanel() const { return jukeboxPanel; }
+    BufferPanel* GetBufferPanel() const { return bufferPanel; }
 
     std::string GetEffectTextFromWindows(std::string &palette) const;
     void ValidatePanels();

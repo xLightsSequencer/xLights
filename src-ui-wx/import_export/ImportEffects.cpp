@@ -1,4 +1,4 @@
-﻿/***************************************************************
+/***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
  * https://github.com/xLightsSequencer/xLights
@@ -421,14 +421,32 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                EffectLayer* srcSingle = layerMap[m->_mapping];
+                Element* srcEl = elementMap[m->_mapping];
+                if (srcEl == nullptr)
+                    srcEl = se.GetElement(m->_mapping);
+                if (srcSingle != nullptr) {
+                    EffectLayer* newLayer = model->AddEffectLayer();
+                    MapXLightsEffects(newLayer, srcSingle, mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                } else if (srcEl != nullptr) {
+                    for (size_t x = 0; x < srcEl->GetEffectLayerCount(); ++x) {
+                        EffectLayer* newLayer = model->AddEffectLayer();
+                        newLayer->SetLayerName(srcEl->GetEffectLayer(x)->GetLayerName());
+                        MapXLightsEffects(newLayer, srcEl->GetEffectLayer(x), mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                    }
+                }
             } else {
                 MapXLightsEffects(model, m->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
             }
         }
 
         int str = 0;
+        int prevStr = 0;
         for (size_t j = 0; j < m->GetChildCount(); j++) {
             xLightsImportModelNode* s = m->GetNthChild(j);
+            int effectiveStr = s->_isStackDuplicate ? prevStr : str;
 
             if ("" != s->_mapping) {
                 if (model == nullptr) {
@@ -437,9 +455,26 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                 if (model == nullptr) {
                     spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                 } else {
-                    SubModelElement* ste = model->GetSubModel(str);
+                    SubModelElement* ste = model->GetSubModel(effectiveStr);
                     if (ste != nullptr) {
-                        MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
+                        if (s->_isStackDuplicate) {
+                            ste->AddEffectLayer(); // empty separator before stacked mapping
+                            EffectLayer* srcSingle = layerMap[s->_mapping];
+                            Element* srcEl = elementMap[s->_mapping];
+                            if (srcEl == nullptr)
+                                srcEl = se.GetElement(s->_mapping);
+                            if (srcSingle != nullptr) {
+                                EffectLayer* newLayer = ste->AddEffectLayer();
+                                MapXLightsEffects(newLayer, srcSingle, mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                            } else if (srcEl != nullptr) {
+                                for (size_t x = 0; x < srcEl->GetEffectLayerCount(); ++x) {
+                                    EffectLayer* newLayer = ste->AddEffectLayer();
+                                    MapXLightsEffects(newLayer, srcEl->GetEffectLayer(x), mapped, false, xsqPkg, lock, mapping, convertRender, mappingModelType);
+                                }
+                            }
+                        } else {
+                            MapXLightsEffects(ste, s->_mapping, se, elementMap, layerMap, mapped, dlg.CheckBox_EraseExistingEffects->GetValue(), xsqPkg, lock, mapping, convertRender, mappingModelType);
+                        }
                     }
                 }
             }
@@ -452,7 +487,7 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     if (model == nullptr) {
                         spdlog::error("Attempt to add model {} during xLights import failed.", (const char*)modelName.c_str());
                     } else {
-                        SubModelElement* ste = model->GetSubModel(str);
+                        SubModelElement* ste = model->GetSubModel(effectiveStr);
                         StrandElement* stre = dynamic_cast<StrandElement*>(ste);
                         if (stre != nullptr) {
                             NodeLayer* nl = stre->GetNodeLayer(n, true);
@@ -463,7 +498,10 @@ void xLightsFrame::ImportXLights(SequenceElements& se, const std::vector<Element
                     }
                 }
             }
-            str++;
+            if (!s->_isStackDuplicate) {
+                prevStr = str;
+                str++;
+            }
         }
     }
 
@@ -885,7 +923,12 @@ void xLightsFrame::ImportVix(const wxFileName& filename)
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during Vixen import failed.", modelName);
             } else {
-                MapVixChannelInformation(this, model->GetEffectLayer(0),
+                EffectLayer* targetLayer = model->GetEffectLayer(0);
+                if (m->_isStackDuplicate) {
+                    model->AddEffectLayer(); // empty separator before stacked mapping
+                    targetLayer = model->AddEffectLayer();
+                }
+                MapVixChannelInformation(this, targetLayer,
                                          VixSeqData, frameTime, numFrames,
                                          m->_mapping,
                                          unsortedChannels,
@@ -1817,8 +1860,13 @@ bool xLightsFrame::ImportLMS(pugi::xml_document& input_xml, const wxFileName& fi
                 if (std::find(dlg.ccrNames.begin(), dlg.ccrNames.end(), m->_mapping) != dlg.ccrNames.end()) {
                     MapCCR(dlg.GetChannelNames(), model, m, mc, input_xml, effectManager, dlg.CheckBox_EraseExistingEffects->GetValue());
                 } else {
+                    EffectLayer* targetLayer = model->GetEffectLayer(0);
+                    if (m->_isStackDuplicate) {
+                        model->AddEffectLayer(); // empty separator before stacked mapping
+                        targetLayer = model->AddEffectLayer();
+                    }
                     MapChannelInformation(effectManager,
-                                          model->GetEffectLayer(0), input_xml,
+                                          targetLayer, input_xml,
                                           m->_mapping,
                                           m->_color, *mc, dlg.CheckBox_EraseExistingEffects->GetValue());
                 }
@@ -2797,12 +2845,12 @@ void MapLPE(const EffectManager& effect_manager, int i, EffectLayer* layer, cons
     }
 }
 
-void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting)
+void MapLPEEffects(const EffectManager& effectManager, Element* model, const pugi::xml_document& input_xml, const wxString& mapping, int frequency, bool eraseExisting, int startLayer = 0)
 {
-    static 
-
-    int layer = 0;
+    int layer = startLayer;
     if (LPEHasEffects(input_xml, mapping, 0, true)) {
+        if ((int)model->GetEffectLayerCount() < layer + 1)
+            model->AddEffectLayer();
         spdlog::debug("Creating effects on model {} layer {} from {} layer 0 left hand side",
                       model->GetFullName(), layer + 1, mapping.ToStdString());
         MapLPE(effectManager, 0, model->GetEffectLayer(layer), input_xml, mapping, true, frequency, eraseExisting);
@@ -2913,10 +2961,16 @@ bool xLightsFrame::ImportS5(pugi::xml_document& input_xml, const wxFileName& fil
                 if (model == nullptr) {
                     spdlog::error("Attempt to add model {} during S5 import failed.", modelName);
                 } else {
-                    if (!LOREdit::IsNodeStrandMapping(m->_mapping))
+                    if (!LOREdit::IsNodeStrandMapping(m->_mapping)) {
                         MapS5Effects(effectManager, model, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
-                    else
-                        MapS5ChannelEffects(effectManager, model->GetEffectLayer(0), lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    } else {
+                        EffectLayer* targetLayer = model->GetEffectLayer(0);
+                        if (m->_isStackDuplicate) {
+                            model->AddEffectLayer(); // empty separator before stacked mapping
+                            targetLayer = model->AddEffectLayer();
+                        }
+                        MapS5ChannelEffects(effectManager, targetLayer, lorEdit, m->_mapping, CurrentSeqXmlFile->GetFrequency(), offset, dlg.CheckBox_EraseExistingEffects->GetValue());
+                    }
                 }
             }
 
@@ -3051,6 +3105,10 @@ bool xLightsFrame::ImportLPE(pugi::xml_document& input_xml, const wxFileName& fi
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during LPE import failed.", modelName);
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                int startLayer = (int)model->GetEffectLayerCount();
+                MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), false, startLayer);
             } else {
                 MapLPEEffects(effectManager, model, input_xml, m->_mapping, CurrentSeqXmlFile->GetFrequency(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }
@@ -3200,6 +3258,10 @@ AT THIS POINT IT JUST BRINGS IN THE EFFECTS. WE MAKE NO EFFORT TO GET THE SETTIN
             }
             if (model == nullptr) {
                 spdlog::error("Attempt to add model {} during Vixen 3 import failed.", modelName);
+            } else if (m->_isStackDuplicate) {
+                model->AddEffectLayer(); // empty separator before stacked mapping
+                int startLayer = (int)model->GetEffectLayerCount();
+                MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), false, startLayer);
             } else {
                 MapVixen3Effects(effectManager, model, vixen, m->_mapping, offset, CurrentSeqXmlFile->GetFrameMS(), dlg.CheckBox_EraseExistingEffects->GetValue());
             }

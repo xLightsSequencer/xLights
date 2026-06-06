@@ -26,11 +26,14 @@
 #include "render/EffectLayer.h"
 #include "sequencer/EffectTimingDialog.h"
 #include "EffectsGrid.h"
+#include "EffectWheelDialog.h"
+#include "BufferPanel.h"
 #include "lyrics/LyricBreakdown.h"
 #include "MainSequencer.h"
 #include "render/PixelBuffer.h"
 #include "RowHeading.h"
 #include "render/SequenceElements.h"
+#include "render/SongStructureManager.h"
 #include "TimeLine.h"
 #include "sequencer/AutoLabelDialog.h"
 #include "shared/utils/BitmapCache.h"
@@ -65,8 +68,13 @@
 #define EFFECT_RESIZE_MOVE 3
 #define EFFECT_RESIZE_LEFT_EDGE 4
 #define EFFECT_RESIZE_RIGHT_EDGE 5
+#define EFFECT_RESIZE_FADE_IN 6
+#define EFFECT_RESIZE_FADE_OUT 7
 #define TIMING_ALPHA (0x60)
 #define DRAG_THRESHOLD 3
+#define FADE_HANDLE_CENTER_Y_OFFSET 4
+#define FADE_HANDLE_SIZE 4
+#define FADE_HANDLE_HIT_SLOP 6
 
 BEGIN_EVENT_TABLE(EffectsGrid, GRAPHICS_BASE_CLASS)
 EVT_MOTION(EffectsGrid::mouseMoved)
@@ -124,6 +132,7 @@ const long EffectsGrid::ID_GRID_MNU_CLOSE_GAP = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_SPLIT_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_DUPLICATE_EFFECT = wxNewId();
 const long EffectsGrid::ID_GRID_MNU_CREATE_TIMING_FROM_EFFECT = wxNewId();
+const long EffectsGrid::ID_GRID_MNU_FILL_REGION = wxNewId();
 
 int findDataEffect::GetStrand() const {
     if (nl != nullptr) {
@@ -335,8 +344,68 @@ void EffectsGrid::mouseLeftDClick(wxMouseEvent& event) {
             }
         }
     } else {
-        if (update_time > -1) {
-            UpdateTimePosition(update_time);
+        Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(row);
+        if (ri != nullptr && ri->element != nullptr && ri->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
+            return;
+        }
+
+        // Double-clicked on empty cell -> show the circular effect wheel!
+        int startTime = selectedTimeMS;
+        int endTime = selectedTimeMS + 1000; // default 1 second
+
+        // A. If a cell range is selected, and double-click was within it, use that range
+        if (mCellRangeSelected && row >= GetStartRow() && row <= GetEndRow() &&
+            selectedTimeMS >= GetMSFromColumn(GetStartColumn()) && selectedTimeMS <= GetMSFromColumn(GetEndColumn())) {
+            startTime = GetMSFromColumn(GetStartColumn());
+            endTime = GetMSFromColumn(GetEndColumn());
+        }
+        // B. Snapping to timing marks
+        else if (mSequenceElements->GetSelectedTimingRow() >= 0) {
+            EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
+            if (tel != nullptr) {
+                Effect* te = tel->GetEffectAtTime(selectedTimeMS);
+                if (te != nullptr) {
+                    startTime = te->GetStartTimeMS();
+                    endTime = te->GetEndTimeMS();
+                }
+            }
+        }
+
+        // C. Fetch sequencer-scoped EFFECT keybindings, limit to 18
+        std::vector<const KeyBinding*> effectBindings;
+        MainSequencer* ms = dynamic_cast<MainSequencer*>(mParent);
+        if (ms != nullptr) {
+            for (const auto& kb : ms->keyBindings.GetBindings()) {
+                if (!kb.IsDisabled() && kb.GetType() == "EFFECT" && kb.InScope(KBSCOPE::Sequence)) {
+                    effectBindings.push_back(&kb);
+                    if (effectBindings.size() >= 18) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        bool effectDropped = false;
+        if (!effectBindings.empty()) {
+            EffectWheelDialog dlg(this, effectBindings);
+            dlg.PositionAtMouse(ClientToScreen(event.GetPosition()));
+            if (dlg.ShowModal() == wxID_OK) {
+                const KeyBinding* selectedKb = dlg.GetSelectedKeyBinding();
+                if (selectedKb != nullptr) {
+                    DropEffectAt(row, selectedKb->GetEffectName(), selectedKb->GetEffectString(), selectedKb->GetEffectDataVersion(), startTime, endTime);
+                    effectDropped = true;
+                }
+            }
+        }
+
+        if (!effectDropped) {
+            // Fallback to updating the playhead if no effect was dropped or no keybindings are configured
+            if (update_time > -1) {
+                UpdateTimePosition(update_time);
+            }
         }
     }
 }
@@ -392,6 +461,15 @@ void EffectsGrid::rightClick(wxMouseEvent& event) {
         wxMenuItem* menu_duplicate = mnuLayer.Append(ID_GRID_MNU_DUPLICATE_EFFECT, "Duplicate");
         if (mSelectedEffect == nullptr) {
             menu_duplicate->Enable(false);
+        }
+
+        wxMenuItem* menu_fillRegion = mnuLayer.Append(ID_GRID_MNU_FILL_REGION, "Fill Region from Timing Marks");
+        {
+            bool canFillRegion = mSelectedEffect != nullptr
+                && GetActiveTimingElement() != nullptr
+                && mSequenceElements != nullptr
+                && mSequenceElements->GetSongStructureManager().HasRegions();
+            menu_fillRegion->Enable(canFillRegion);
         }
 
         // Undo
@@ -1104,6 +1182,9 @@ void EffectsGrid::OnGridPopup(wxCommandEvent& event) {
     } else if (id == ID_GRID_MNU_DUPLICATE_EFFECT) {
         spdlog::debug("OnGridPopup - DUPLICATE_EFFECT");
         DuplicateSelectedEffects();
+    } else if (id == ID_GRID_MNU_FILL_REGION) {
+        spdlog::debug("OnGridPopup - FILL_REGION");
+        FillRegionFromTimingMarks();
     } else if (id == ID_GRID_MNU_PRESETS) {
         spdlog::debug("OnGridPopup - PRESETS");
 
@@ -1682,6 +1763,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     bool out_of_bounds = rowIndex < 0 || (rowIndex >= (int)mSequenceElements->GetVisibleRowInformationSize());
 
     if (mResizing) {
+        mDragEndX = event.GetX();
+        mDragEndY = event.GetY();
         // Resize() will check threshold for MOVE operations internally
         // For edge resizing, Resize() allows immediate response
         Resize(event.GetX(), event.AltDown(), event.ControlDown());
@@ -1821,6 +1904,57 @@ void EffectsGrid::CreateEffectForFile(int x, int y, const std::string& effectNam
     wxPostEvent(GetParent(), eventDropped);
 }
 
+void EffectsGrid::DropEffectAt(int row, const std::string& effectName, const std::string& effectSettings, const std::string& effectVersion, int startTime, int endTime) {
+    if (row < 0 || row >= (int)mSequenceElements->GetVisibleRowInformationSize()) return;
+
+    EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(row);
+    if (el == nullptr || el->GetParentElement()->GetType() == ElementType::ELEMENT_TYPE_TIMING) return;
+
+    xlights->UnselectEffect();
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    el->SelectEffectsInTimeRange(startTime, endTime);
+    el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
+
+    Effect* effect = el->AddEffect(0, effectName, effectSettings, "", startTime, endTime, EFFECT_SELECTED, false);
+
+    if (effect != nullptr) {
+        if (xlights->GetEffectManager().GetEffect(effectName) != nullptr &&
+            xlights->GetEffectManager().GetEffect(effectName)->needToAdjustSettings(effectVersion)) {
+            xlights->GetEffectManager().GetEffect(effectName)->adjustSettings(effectVersion, effect, false);
+        }
+
+        mSequenceElements->get_undo_mgr().CaptureAddedEffect(el->GetParentElement()->GetModelName(), el->GetIndex(), effect->GetID());
+        
+        mDropRow = row;
+        ProcessDroppedEffect(effect);
+
+        if (xlights->GetBufferPanel() != nullptr) {
+            Model* modelFull = xlights->AllModels[el->GetParentElement()->GetFullName()];
+            Model* modelName = xlights->AllModels[el->GetParentElement()->GetModelName()];
+            if (modelFull != nullptr) {
+                xlights->GetBufferPanel()->UpdateBufferStyles(modelFull);
+            }
+            if (modelName != nullptr) {
+                xlights->GetBufferPanel()->UpdateCamera(modelName);
+            }
+        }
+
+        if (!xlights->IsRenderSuspended()) {
+            xlights->RenderEffectForModel(el->GetParentElement()->GetModelName(), startTime, endTime);
+        }
+
+        xlights->SetEffectControls(effect->GetParentEffectLayer()->GetParentElement()->GetFullName(),
+                                  effect->GetEffectName(), effect->GetSettings(),
+                                  effect->GetPaletteMap(), effect->GetStartTimeMS(),
+                                  effect->GetEndTimeMS(), false);
+    }
+
+    xlights->GetMainSequencer()->PanelRowHeadings->Refresh(false);
+    xlights->GetMainSequencer()->PanelEffectGrid->Refresh(false);
+}
+
 int MapHitLocationToEffectSelection(HitLocation location) {
     switch (location) {
     case HitLocation::NONE:
@@ -1828,10 +1962,12 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     case HitLocation::LEFT:
     case HitLocation::LEFT_EDGE:
     case HitLocation::LEFT_EDGE_DISCONNECT:
+    case HitLocation::FADE_IN_HANDLE:
         return EFFECT_LT_SELECTED;
     case HitLocation::RIGHT:
     case HitLocation::RIGHT_EDGE:
     case HitLocation::RIGHT_EDGE_DISCONNECT:
+    case HitLocation::FADE_OUT_HANDLE:
         return EFFECT_RT_SELECTED;
     case HitLocation::CENTER:
         return EFFECT_SELECTED;
@@ -1839,7 +1975,7 @@ int MapHitLocationToEffectSelection(HitLocation location) {
     return EFFECT_NOT_SELECTED;
 }
 
-Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType) {
+Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocation& selectionType, int y) {
     
     EffectLayer* effectLayer = mSequenceElements->GetVisibleEffectLayer(row);
 
@@ -1858,7 +1994,31 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
 
         if (effectLayer->IsFixedTimingLayer()) {
             selectionType = HitLocation::NONE;
-        } else if (!eff->IsLocked()) {
+        } else {
+            double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+            int durationMS = eff->GetEndTimeMS() - eff->GetStartTimeMS();
+
+            bool checkFadeIn = (fadeInTime > 0.0 && durationMS > 0);
+            bool checkFadeOut = (fadeOutTime > 0.0 && durationMS > 0);
+
+            int inTransitionEnd = startPos;
+            if (checkFadeIn) {
+                inTransitionEnd = startPos + (int)(std::min(fadeInTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
+            int outTransitionStart = endPos;
+            if (checkFadeOut) {
+                outTransitionStart = endPos - (int)(std::min(fadeOutTime * 1000.0 / (double)durationMS, 1.0) * (double)(endPos - startPos));
+            }
+
+            int yRowTop = row * DEFAULT_ROW_HEADING_HEIGHT;
+            bool yNearTop = (y != -1 && abs(y - (yRowTop + FADE_HANDLE_CENTER_Y_OFFSET)) <= FADE_HANDLE_HIT_SLOP);
+
+            if (!eff->IsLocked() && yNearTop && checkFadeIn && abs(position - inTransitionEnd) <= FADE_HANDLE_HIT_SLOP) {
+                selectionType = HitLocation::FADE_IN_HANDLE;
+            } else if (!eff->IsLocked() && yNearTop && checkFadeOut && abs(position - outTransitionStart) <= FADE_HANDLE_HIT_SLOP) {
+                selectionType = HitLocation::FADE_OUT_HANDLE;
+            } else if (!eff->IsLocked()) {
             if ((endPos - startPos) < 8) {
                 // too small to really differentiate, just
                 // provide ability to make the effect larger
@@ -1886,6 +2046,7 @@ Effect* EffectsGrid::GetEffectAtRowAndTime(int row, int ms, int& index, HitLocat
             selectionType = HitLocation::CENTER;
         }
     }
+}
     return eff;
 }
 
@@ -1945,7 +2106,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
     int effectIndex;
     HitLocation selectionType;
     int time = mTimeline->GetRawTimeMSfromPosition(event.GetX());
-    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType);
+    Effect* selectedEffect = GetEffectAtRowAndTime(row, time, effectIndex, selectionType, event.GetY());
     bool wasSelectedForGroupDrag = (selectedEffect != nullptr &&
                                     selectedEffect->GetSelected() != EFFECT_NOT_SELECTED &&
                                     selectionType == HitLocation::CENTER &&
@@ -1959,6 +2120,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::LEFT_EDGE:
         case HitLocation::LEFT_EDGE_DISCONNECT:
+        case HitLocation::FADE_IN_HANDLE:
             selectedTimeMS = selectedEffect->GetStartTimeMS();
             break;
         case HitLocation::LEFT:
@@ -1973,6 +2135,7 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             break;
         case HitLocation::RIGHT_EDGE:
         case HitLocation::RIGHT_EDGE_DISCONNECT:
+        case HitLocation::FADE_OUT_HANDLE:
             selectedTimeMS = selectedEffect->GetEndTimeMS();
             break;
         }
@@ -2070,6 +2233,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 mResizing = true;
                 mDragThresholdExceeded = false;
                 mResizeEffectIndex = effectIndex;
+                mDragEndX = event.GetX();
+                mDragEndY = event.GetY();
                 CaptureMouse();
                 Draw();
             }
@@ -3797,6 +3962,9 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
                             sendRenderEvent(mEffectLayer->GetParentElement()->GetModelName(), min, max);
                         }
                         RaisePlayModelEffect(mEffectLayer->GetParentElement(), effect, false);
+                        if (event.ShiftDown() || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+                            RaiseSelectedEffectChanged(effect, false);
+                        }
                     }
                 }
             }
@@ -3982,6 +4150,18 @@ void EffectsGrid::Resize(int position, bool offset, bool control) {
                 }
             }
         }
+    }
+
+    if ((wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) && mResizingMode != EFFECT_RESIZE_MOVE && mResizingMode != EFFECT_RESIZE_NO) {
+        if (new_time != -1) {
+            ResizeSingleEffectMS(new_time);
+        } else {
+            ResizeSingleEffect(position);
+        }
+        if (mSequenceElements->get_undo_mgr().ChangeCaptured()) {
+            mSequenceElements->get_undo_mgr().SetCaptureUndo(false);
+        }
+        return;
     }
 
     if (new_time != -1) {
@@ -6365,6 +6545,28 @@ void EffectsGrid::ResizeSingleEffectMS(int timems) {
         return;
 
     int time = mTimeline->RoundToMultipleOfPeriod(timems, mSequenceElements->GetFrequency());
+
+    if (wxGetKeyState(WXK_SHIFT) || mResizingMode == EFFECT_RESIZE_FADE_IN || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+        if (mSequenceElements->get_undo_mgr().GetCaptureUndo()) {
+            mSequenceElements->get_undo_mgr().CaptureModifiedEffect(mEffectLayer->GetParentElement()->GetModelName(), mEffectLayer->GetIndex(), effect);
+            mStartFadeInSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+            mStartFadeOutSec = effect->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        }
+        int durationMS = effect->GetEndTimeMS() - effect->GetStartTimeMS();
+        if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_IN) {
+            double deltaSec = (double)(time - mStartResizeTimeMS) / 1000.0;
+            double newFadeInSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeInSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadein", wxString::Format("%.2f", newFadeInSec).ToStdString());
+        } else if (mResizingMode == EFFECT_RESIZE_RIGHT || mResizingMode == EFFECT_RESIZE_RIGHT_EDGE || mResizingMode == EFFECT_RESIZE_FADE_OUT) {
+            double deltaSec = (double)(mStartResizeTimeMS - time) / 1000.0;
+            double newFadeOutSec = std::max(0.0, std::min((double)durationMS / 1000.0, mStartFadeOutSec + deltaSec));
+            effect->SetSetting("T_TEXTCTRL_Fadeout", wxString::Format("%.2f", newFadeOutSec).ToStdString());
+        }
+        SetEffectStatusText(effect);
+        Draw();
+        return;
+    }
+
     if (mResizingMode == EFFECT_RESIZE_LEFT || mResizingMode == EFFECT_RESIZE_LEFT_EDGE) {
         int minimumTime = mEffectLayer->GetMinimumStartTimeMS(mResizeEffectIndex, mResizingMode == EFFECT_RESIZE_LEFT, mSequenceElements->GetMinPeriod());
         // User has dragged left side to the right side exit
@@ -6454,13 +6656,21 @@ void EffectsGrid::RunMouseOverHitTests(int rowIndex, int x, int y) {
 
     int time = mTimeline->GetRawTimeMSfromPosition(x);
     HitLocation selectionType = HitLocation::NONE;
-    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType);
+    Effect* eff = GetEffectAtRowAndTime(rowIndex, time, effectIndex, selectionType, y);
     if (eff != nullptr) {
         mResizeEffectIndex = effectIndex;
         switch (selectionType) {
         case HitLocation::NONE:
             SetCursor(s_default);
             mResizingMode = EFFECT_RESIZE_NO;
+            break;
+        case HitLocation::FADE_IN_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_IN;
+            break;
+        case HitLocation::FADE_OUT_HANDLE:
+            SetCursor(s_sizeWE);
+            mResizingMode = EFFECT_RESIZE_FADE_OUT;
             break;
         case HitLocation::LEFT_EDGE_DISCONNECT:
             SetCursor(s_pointLeft);
@@ -6549,11 +6759,22 @@ void EffectsGrid::SetEffectStatusText(Effect* eff) const {
 
         wxString disabledStr = eff->IsEffectRenderDisabled() ? "DISABLED" : "";
 
-        wxString e = wxString::Format("start: %s end: %s duration: %s%s %s %s %s",
+        wxString fadeInfo = "";
+        double fadeInTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadein");
+        double fadeOutTime = eff->GetSettings().GetDouble("T_TEXTCTRL_Fadeout");
+        if (fadeInTime > 0) {
+            fadeInfo += wxString::Format(" fadein: %.2fs", fadeInTime);
+        }
+        if (fadeOutTime > 0) {
+            fadeInfo += wxString::Format(" fadeout: %.2fs", fadeOutTime);
+        }
+
+        wxString e = wxString::Format("start: %s end: %s duration: %s%s%s %s %s %s",
                                       FORMATTIME(eff->GetStartTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS()),
                                       FORMATTIME(eff->GetEndTimeMS() - eff->GetStartTimeMS()),
                                       columnInfo,
+                                      fadeInfo,
                                       eff->GetEffectName(),
                                       eff->GetDescription(),
                                       disabledStr);
@@ -7293,6 +7514,31 @@ void EffectsGrid::DrawFadeHints(Effect* e, int x1, int y1, int x2, int y2, xlVer
         backgrounds->AddRectAsTriangles(outTransitionStart, y1, inTransitionEnd, y1 + 2, xlYELLOW);
         backgrounds->AddRectAsTriangles(outTransitionStart, y1 + 2, inTransitionEnd, y1 + 3, xlBLACK);
     }
+
+    int centerY = y1 - 2 + FADE_HANDLE_CENTER_Y_OFFSET;
+    auto drawDiamond = [&](int cx, int cy, int size, const xlColor& color) {
+        int szBorder = size + 1;
+        backgrounds->AddVertex(cx, cy - szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx, cy + szBorder, xlBLACK);
+        backgrounds->AddVertex(cx + szBorder, cy, xlBLACK);
+        backgrounds->AddVertex(cx - szBorder, cy, xlBLACK);
+
+        backgrounds->AddVertex(cx, cy - size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+        backgrounds->AddVertex(cx, cy + size, color);
+        backgrounds->AddVertex(cx + size, cy, color);
+        backgrounds->AddVertex(cx - size, cy, color);
+    };
+
+    if (inTransitionEnd > 0) {
+        drawDiamond(inTransitionEnd, centerY, FADE_HANDLE_SIZE, xlGREEN);
+    }
+    if (outTransitionStart > 0) {
+        drawDiamond(outTransitionStart, centerY, FADE_HANDLE_SIZE, xlRED);
+    }
 }
 
 void EffectsGrid::DrawTimingEffects(int row) {
@@ -7509,6 +7755,7 @@ void EffectsGrid::Draw() {
 
         DrawLines(ctx);
         DrawEffects(ctx);
+        DrawSongStructureOverlays(ctx);
         DrawEffectMoveDragOverlay(ctx);
         DrawPlayMarker(ctx);
 
@@ -8550,4 +8797,164 @@ void EffectsGrid::DuplicateSelectedEffects() {
             }
         }
     }
+}
+
+void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
+    if (mSequenceElements == nullptr || mTimeline == nullptr) return;
+    const SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    if (!ssm.HasRegions()) return;
+
+    int width = getWidth();
+
+    ctx->enableBlending();
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+
+        int x1 = mTimeline->GetPositionFromTimeMS(region.startTimeMS);
+        int x2 = mTimeline->GetPositionFromTimeMS(region.endTimeMS);
+
+        if (x2 < 0 || x1 > width) continue;
+        x1 = std::max(0, x1);
+        x2 = std::min(width, x2);
+        if (x2 <= x1) continue;
+
+        uint8_t r = (region.colorARGB >> 16) & 0xFF;
+        uint8_t g = (region.colorARGB >> 8) & 0xFF;
+        uint8_t b = region.colorARGB & 0xFF;
+
+        xlColor overlayColor(r, g, b, 18);
+
+        xlVertexAccumulator* va = ctx->createVertexAccumulator();
+        va->AddRectAsTriangles(x1, 0, x2, mWindowHeight);
+        ctx->drawTriangles(va, overlayColor);
+        delete va;
+    }
+
+    if (ssm.GetRegionCount() >= 2) {
+        for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
+            int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
+            int xPos = mTimeline->GetPositionFromTimeMS(boundaryTimeMS);
+            if (xPos >= 0 && xPos <= width) {
+                xlVertexAccumulator* va = ctx->createVertexAccumulator();
+                va->AddVertex(xPos, 0);
+                va->AddVertex(xPos, mWindowHeight);
+                xlColor lineColor(255, 255, 255, 40);
+                ctx->drawLines(va, lineColor);
+                delete va;
+            }
+        }
+    }
+
+    ctx->disableBlending();
+}
+
+void EffectsGrid::FillRegionFromTimingMarks() {
+    Effect* sourceEffect = mSelectedEffect;
+    if (sourceEffect == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No source effect");
+        return;
+    }
+
+    EffectLayer* el = sourceEffect->GetParentEffectLayer();
+    if (el == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No parent effect layer");
+        return;
+    }
+
+    SongStructureManager& ssm = mSequenceElements->GetSongStructureManager();
+    const SongStructureRegion* region = ssm.GetRegionAtTime(sourceEffect->GetStartTimeMS());
+    if (region == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No song structure region at time {}", sourceEffect->GetStartTimeMS());
+        return;
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Region '{}' [{}-{} ms]",
+        region->name, region->startTimeMS, region->endTimeMS);
+
+    Element* timingElement = GetActiveTimingElement();
+    if (timingElement == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No active timing element");
+        return;
+    }
+
+    TimingElement* te = dynamic_cast<TimingElement*>(timingElement);
+    if (te == nullptr) {
+        return;
+    }
+
+    EffectLayer* timingLayer = nullptr;
+    for (int i = te->GetEffectLayerCount() - 1; i >= 0; i--) {
+        EffectLayer* tl = te->GetEffectLayer(i);
+        if (tl != nullptr && tl->GetEffectCount() > 0) {
+            timingLayer = tl;
+            break;
+        }
+    }
+
+    if (timingLayer == nullptr) {
+        spdlog::debug("FillRegionFromTimingMarks: No timing layer with marks found");
+        return;
+    }
+
+    std::string effectName = xlights->GetEffectManager().GetEffectName(sourceEffect->GetEffectIndex());
+    std::string settings = sourceEffect->GetSettingsAsString();
+    std::string palette = sourceEffect->GetPaletteAsString();
+    long sourceStart = sourceEffect->GetStartTimeMS();
+    long sourceEnd = sourceEffect->GetEndTimeMS();
+    long sourceDuration = sourceEnd - sourceStart;
+
+    mSequenceElements->get_undo_mgr().CreateUndoStep();
+
+    int effectsCreated = 0;
+
+    for (int i = 0; i < timingLayer->GetEffectCount(); i++) {
+        Effect* timingMark = timingLayer->GetEffect(i);
+        long markStart = timingMark->GetStartTimeMS();
+        long markEnd = timingMark->GetEndTimeMS();
+
+        if (markEnd <= region->startTimeMS || markStart >= region->endTimeMS) {
+            continue;
+        }
+
+        if (markStart < region->startTimeMS) {
+            markStart = region->startTimeMS;
+        }
+
+        // Skip the timing mark that overlaps with the source effect
+        if (markStart < sourceEnd && markEnd > sourceStart) {
+            continue;
+        }
+
+        long newStart = mTimeline->RoundToMultipleOfPeriod(markStart, mSequenceElements->GetFrequency());
+        long newEnd = mTimeline->RoundToMultipleOfPeriod(newStart + sourceDuration, mSequenceElements->GetFrequency());
+
+        if (newEnd > region->endTimeMS) {
+            newEnd = mTimeline->RoundToMultipleOfPeriod(region->endTimeMS, mSequenceElements->GetFrequency());
+        }
+
+        if (newEnd <= newStart) continue;
+
+        if (el->HasEffectsInTimeRange(newStart, newEnd)) {
+            continue;
+        }
+
+        Effect* newEffect = el->AddEffect(0, effectName, settings, palette,
+            newStart, newEnd, EFFECT_NOT_SELECTED, false);
+        if (newEffect != nullptr) {
+            mSequenceElements->get_undo_mgr().CaptureAddedEffect(
+                el->GetParentElement()->GetName(), el->GetIndex(), newEffect->GetID());
+            effectsCreated++;
+        }
+    }
+
+    if (effectsCreated == 0) {
+        mSequenceElements->get_undo_mgr().CancelLastStep();
+    }
+
+    spdlog::debug("FillRegionFromTimingMarks: Created {} effects in region '{}'",
+        effectsCreated, region->name);
+
+    sendRenderDirtyEvent();
+    ForceRefresh();
 }

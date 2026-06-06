@@ -90,6 +90,10 @@ class AIImageDialog: public wxDialog
         
         void UpdateSizeLabel();
         void ShowInteractiveCrop();
+        // Re-lay-out children, growing the dialog only when content needs more
+        // room — never shrinking it (replaces SetSizeHints(), which snapped the
+        // dialog down to its minimum fit on every generate).
+        void RelayoutGrowOnly();
 };
 
 // Helper class for interactive crop selection
