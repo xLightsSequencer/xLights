@@ -250,7 +250,7 @@ AIImageDialog::AIImageDialog(wxWindow* parent, aiBase* service, wxWindowID id)
     ParametersSizer->AddGrowableRow(0);
     StaticText1 = new wxStaticText(this, ID_STATICTEXT1, _T("Prompt"), wxDefaultPosition, wxDefaultSize, 0, _T("ID_STATICTEXT1"));
     ParametersSizer->Add(StaticText1, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    PromptBox = new wxTextCtrl(this, ID_PROMPT, wxEmptyString, wxDefaultPosition, wxSize(400,50), wxTE_MULTILINE|wxVSCROLL, wxDefaultValidator, _T("ID_PROMPT"));
+    PromptBox = new wxTextCtrl(this, ID_PROMPT, wxEmptyString, wxDefaultPosition, wxSize(400,90), wxTE_MULTILINE|wxVSCROLL, wxDefaultValidator, _T("ID_PROMPT"));
     PromptBox->SetFocus();
     PromptBox->SetHelpText(_T("Enter a prompt"));
     ParametersSizer->Add(PromptBox, 1, wxALL|wxEXPAND, 2);
@@ -369,8 +369,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
         ImagePanel->Hide();
         ErrorText->SetValue("Generating image....");
         ErrorText->Show();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
 
         generator->generateImage(PromptBox->GetValue().ToStdString(), [this](aiBase::AIImageResult res) {
             CallAfter([this, res = std::move(res)]() mutable {
@@ -391,8 +390,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
                     UpdateSizeLabel();
                     ImagePanel->Show();
                     ErrorText->Hide();
-                    MainSizer->SetSizeHints(this);
-                    Center();
+                    RelayoutGrowOnly();
                     SaveButton->Enable();
                     ResizeButton->Enable();
                     CropButton->Disable();  // Will be enabled when user makes a selection
@@ -401,8 +399,7 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
                     ImagePanel->Hide();
                     ErrorText->SetValue(res.error);
                     ErrorText->Show();
-                    MainSizer->SetSizeHints(this);
-                    Center();
+                    RelayoutGrowOnly();
                     SaveButton->Disable();
                     ResizeButton->Disable();
                     CropButton->Disable();
@@ -416,6 +413,25 @@ void AIImageDialog::OnGenerateButtonClick(wxCommandEvent& event)
 void AIImageDialog::OnResize(wxSizeEvent& event) {
     OnSize(event);
     Refresh();
+}
+
+void AIImageDialog::RelayoutGrowOnly() {
+    // Re-flow children at the current size, then enlarge the dialog only if the
+    // content needs more room.  The handlers used to call
+    // MainSizer->SetSizeHints(this), which resizes the window down to the
+    // minimum fit every time — so each Generate (which first hides the image
+    // panel) snapped the dialog smaller.  Growing-only keeps whatever size the
+    // user/last-image established and never shrinks on generate.
+    Layout();
+    const wxSize fit = MainSizer->ComputeFittingWindowSize(this);
+    const wxSize cur = GetSize();
+    SetMinSize(fit);  // floor for manual resizing; doesn't force a shrink
+    const wxSize target(std::max(cur.GetWidth(), fit.GetWidth()),
+                        std::max(cur.GetHeight(), fit.GetHeight()));
+    if (target != cur) {
+        SetSize(target);
+    }
+    Layout();
 }
 
 void AIImageDialog::UpdateSizeLabel() {
@@ -572,8 +588,7 @@ void AIImageDialog::OnResizeButtonClick(wxCommandEvent& event)
     cropPanel->SetImage(_currentImage);
     cropPanel->ClearSelection();
     UpdateSizeLabel();
-    MainSizer->SetSizeHints(this);
-    Center();
+    RelayoutGrowOnly();
 }
 
 void AIImageDialog::OnCropButtonClick(wxCommandEvent& event)
@@ -591,8 +606,7 @@ void AIImageDialog::OnCropButtonClick(wxCommandEvent& event)
         cropPanel->SetImage(_currentImage);
         cropPanel->ClearSelection();
         UpdateSizeLabel();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
     }
 }
 
@@ -603,8 +617,7 @@ void AIImageDialog::OnResetButtonClick(wxCommandEvent& event)
         cropPanel->SetImage(_currentImage);
         cropPanel->ClearSelection();
         UpdateSizeLabel();
-        MainSizer->SetSizeHints(this);
-        Center();
+        RelayoutGrowOnly();
     }
 }
 
