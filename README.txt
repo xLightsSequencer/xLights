@@ -14,12 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
                                  Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
-                                 New key-binding for Import Effects window.
-    -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
-                                 from saved map files when the model existed in the xLights layout but
-                                 not the current sequence.
-
-2026.11  June ??, 2026
+                                 New key-binding for Import Effects window.                            
     -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
     -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
                                 command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
@@ -52,6 +47,10 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
     -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
+                                 from saved map files when the model existed in the xLights layout but
+                                 not the current sequence.
+    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)        
     -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
     -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
     -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
