@@ -15,6 +15,7 @@
 #include <map>
 #include <string>
 #include <list>
+#include <vector>
 
 #define MINVOID -91234
 #define MAXVOID 91234
