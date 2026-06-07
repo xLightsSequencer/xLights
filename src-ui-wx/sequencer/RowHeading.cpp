@@ -326,6 +326,50 @@ void RowHeading::SetWidth(int w)
 
 void RowHeading::mouseMove(wxMouseEvent& event)
 {
+    if (_rowDragging) {
+        int cursorY = std::max(0, event.GetY());
+        int view = mSequenceElements->GetCurrentView();
+        int visCount = (int)mSequenceElements->GetVisibleRowInformationSize();
+        int elemCount = (int)mSequenceElements->GetElementCount(view);
+
+        struct TopLevelBlock { int viewIdx; int blockStartY; int blockEndY; };
+        std::vector<TopLevelBlock> blocks;
+        for (int r = 0; r < visCount; ++r) {
+            auto* ri = mSequenceElements->GetVisibleRowInformation(r);
+            if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
+                if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
+                int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+                blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
+            }
+        }
+
+        _rowDragTargetBefore = elemCount;
+        _rowDragIndicatorY = visCount * DEFAULT_ROW_HEADING_HEIGHT;
+        for (const auto& b : blocks) {
+            if (cursorY < (b.blockStartY + b.blockEndY) / 2) {
+                _rowDragTargetBefore = b.viewIdx;
+                _rowDragIndicatorY = b.blockStartY;
+                break;
+            }
+            _rowDragTargetBefore = b.viewIdx + 1;
+            _rowDragIndicatorY = b.blockEndY;
+        }
+
+        static const wxCursor s_hand(wxCURSOR_HAND);
+        SetCursor(s_hand);
+        Refresh(false);
+        return;
+    }
+
+    if (_rowDragSourceIdx >= 0 && !_rowDragging) {
+        int dy = event.GetY() - _rowDragStart.y;
+        if (dy > FromDIP(5) || dy < -FromDIP(5)) {
+            _rowDragging = true;
+            if (!HasCapture()) CaptureMouse();
+            return;
+        }
+    }
+
     ProcessTooltip(event);
 
     if (_dragging) {
@@ -337,14 +381,38 @@ void RowHeading::mouseMove(wxMouseEvent& event)
     auto size = GetSize();
     if (HasCapture() || (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth())) {
         SetCursor(s_sizeWE);
-    }
-    else {
+    } else {
         SetCursor(s_arrow);
     }
 }
 
 void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
+    if (_rowDragging) {
+        if (HasCapture()) ReleaseMouse();
+        _rowDragging = false;
+
+        if (_rowDragSourceIdx >= 0) {
+            int view = mSequenceElements->GetCurrentView();
+            int elemCount = (int)mSequenceElements->GetElementCount(view);
+            int dest = _rowDragTargetBefore;
+            bool noOp = (dest == _rowDragSourceIdx) || (dest == _rowDragSourceIdx + 1) ||
+                        (dest >= elemCount && _rowDragSourceIdx == elemCount - 1);
+            if (!noOp) {
+                mSequenceElements->get_undo_mgr().CreateUndoStep();
+                mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
+                wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
+                wxPostEvent(GetParent(), evt);
+            }
+        }
+
+        _rowDragSourceIdx = -1;
+        _rowDragTargetBefore = -1;
+        _rowDragIndicatorY = -1;
+        Refresh(false);
+        return;
+    }
+
     if (_dragging) {
         auto size = GetSize();
         auto* config = GetXLightsConfig();
@@ -352,11 +420,16 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         ReleaseMouse();
         _dragging = false;
     }
+
+    _rowDragSourceIdx = -1;
 }
 
 void RowHeading::mouseLeftDown(wxMouseEvent& event)
 {
     _dragging = false;
+    _rowDragging = false;
+    _rowDragSourceIdx = -1;
+
     auto size = GetSize();
     if (event.GetX() > size.GetWidth() - 5 && event.GetX() < size.GetWidth()) {
         CaptureMouse();
@@ -384,11 +457,17 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
             mSequenceElements->DeactivateAllTimingElements();
             TimingElement* te = dynamic_cast<TimingElement*>(e);
             te->SetActive(!result);
-            // Set the selected timing row.
             int selectedTimingRow = result ? mSelectedRow : -1;
             mSequenceElements->SetSelectedTimingRow(selectedTimingRow);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             wxPostEvent(GetParent(), eventRowHeaderChanged);
+        } else {
+            Row_Information_Struct* ri = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+            if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
+                int view = mSequenceElements->GetCurrentView();
+                _rowDragSourceIdx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+                _rowDragStart = event.GetPosition();
+            }
         }
     }
 }
@@ -2642,6 +2721,12 @@ void RowHeading::render( wxPaintEvent& event )
     wxBrush b(xlColorToWxColour(ColorManager::instance()->GetColor(ColorManager::COLOR_ROW_HEADER)),wxBRUSHSTYLE_SOLID);
     dc.SetBrush(b);
     dc.DrawRectangle(0,endY,w,h);
+
+    if (_rowDragging && _rowDragIndicatorY >= 0) {
+        wxPen linePen(wxColour(0, 120, 215), 3);
+        dc.SetPen(linePen);
+        dc.DrawLine(0, _rowDragIndicatorY, w, _rowDragIndicatorY);
+    }
 }
 
 xlColor RowHeading::GetHeaderColor(Row_Information_Struct* info, int dragRow) const

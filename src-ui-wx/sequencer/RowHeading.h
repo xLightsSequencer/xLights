@@ -81,6 +81,11 @@ private:
     bool mCanPaste = false;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
+    bool _rowDragging = false;
+    int _rowDragSourceIdx = -1;
+    int _rowDragTargetBefore = -1;
+    int _rowDragIndicatorY = -1;
+    wxPoint _rowDragStart;
     bool groupEffectIndicator = true;
 
     
