@@ -118,18 +118,23 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
     int offsetY = 0;
     bool needsScale = false;
     if (exportWidth > 0 && exportHeight > 0) {
-        int scaleX = exportWidth / origwidth;
-        int scaleY = exportHeight / origheight;
-        int scale = std::max(1, std::min(scaleX, scaleY));
-        outW = exportWidth;
-        outH = exportHeight;
-        scaledW = origwidth * scale;
-        scaledH = origheight * scale;
-        offsetX = (outW - scaledW) / 2;
-        offsetY = (outH - scaledH) / 2;
-        needsScale = (scale > 1 || outW != origwidth || outH != origheight);
-        spdlog::debug("  4K upscale: {}x{} -> {}x{} (scale={}, offset={},{})",
-                      origwidth, origheight, outW, outH, scale, offsetX, offsetY);
+        if (exportWidth >= origwidth && exportHeight >= origheight) {
+            int scaleX = exportWidth / origwidth;
+            int scaleY = exportHeight / origheight;
+            int scale = std::max(1, std::min(scaleX, scaleY));
+            outW = exportWidth;
+            outH = exportHeight;
+            scaledW = origwidth * scale;
+            scaledH = origheight * scale;
+            offsetX = (outW - scaledW) / 2;
+            offsetY = (outH - scaledH) / 2;
+            needsScale = (scale > 1 || outW != origwidth || outH != origheight);
+            spdlog::debug("  model-video upscale: {}x{} -> {}x{} (scale={}, offset={},{})",
+                          origwidth, origheight, outW, outH, scale, offsetX, offsetY);
+        } else {
+            spdlog::warn("  Requested export size {}x{} is smaller than model {}x{}; exporting at native size.",
+                         exportWidth, exportHeight, origwidth, origheight);
+        }
     }
 
     const bool isAvi = EndsWith(filename, ".avi");
