@@ -143,6 +143,8 @@ public:
     void UpdateModelsForSelectedView();
     void RemoveModelFromLists(const std::string& modelName);
     void DoMakeMaster();
+    void SortDisplayElements(int sortType, const std::string& groupName = "");
+    bool IsMasterViewSelected() const;
 
     //(*Declarations(ViewsModelsPanel)
     wxButton* ButtonClone;

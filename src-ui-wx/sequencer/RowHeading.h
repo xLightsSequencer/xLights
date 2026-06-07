@@ -11,6 +11,7 @@
  **************************************************************/
 
 #include "wx/window.h"
+#include <string>
 #include <pugixml.hpp>
 #include "render/SequenceElements.h"
 #include "wx/wx.h"
@@ -79,6 +80,7 @@ private:
     int mSelectedRow = -1;
     SequenceElements* mSequenceElements = nullptr;
     bool mCanPaste = false;
+    std::string mSortGroupName;
     const int _minRowHeadingWidth = 158;
     bool _dragging = false;
     bool groupEffectIndicator = true;
@@ -154,4 +156,18 @@ private:
     static const long ID_ROW_MNU_SETLAYERNAME;
     static const long ID_ROW_MNU_HIDE_UNUSED_SUBMODELS;
     static const long ID_ROW_MNU_SHOW_ALL_SUBMODELS;
+
+    static const long ID_ROW_MNU_SORT_DISPLAY_ELEMENTS;
+    static const long ID_ROW_MNU_SORT_BY_NAME;
+    static const long ID_ROW_MNU_SORT_BY_NAME_GM;
+    static const long ID_ROW_MNU_SORT_BY_NAME_GM_SIZE;
+    static const long ID_ROW_MNU_SORT_BY_NAME_GM_COUNT;
+    static const long ID_ROW_MNU_SORT_BY_CP_GM;
+    static const long ID_ROW_MNU_SORT_BY_CP_GM_SIZE;
+    static const long ID_ROW_MNU_SORT_BY_SC_GM;
+    static const long ID_ROW_MNU_SORT_BY_SC_GM_SIZE;
+    static const long ID_ROW_MNU_SORT_BY_MASTER_VIEW;
+    static const long ID_ROW_MNU_SORT_BY_TYPE;
+    static const long ID_ROW_MNU_SORT_MODELS_UNDER_GROUP;
+    static const long ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS;
 };

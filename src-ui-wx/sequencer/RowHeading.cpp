@@ -43,6 +43,7 @@
 #include "LRCLIBSearchDialog.h"
 #include "lyrics/LyricBreakdown.h"
 #include "TimeLine.h"
+#include "layout/ViewsModelsPanel.h"
 
 #include <sstream>
 
@@ -235,6 +236,20 @@ const long RowHeading::ID_ROW_MNU_CREATE_SONG_REGIONS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SETLAYERNAME = wxNewId();
 const long RowHeading::ID_ROW_MNU_HIDE_UNUSED_SUBMODELS = wxNewId();
 const long RowHeading::ID_ROW_MNU_SHOW_ALL_SUBMODELS = wxNewId();
+
+const long RowHeading::ID_ROW_MNU_SORT_DISPLAY_ELEMENTS = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_NAME = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_NAME_GM = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_NAME_GM_SIZE = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_NAME_GM_COUNT = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_CP_GM = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_CP_GM_SIZE = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_SC_GM = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_SC_GM_SIZE = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_MASTER_VIEW = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BY_TYPE = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_MODELS_UNDER_GROUP = wxNewId();
+const long RowHeading::ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS = wxNewId();
 
 int DEFAULT_ROW_HEADING_HEIGHT = 22;
 
@@ -471,6 +486,24 @@ void RowHeading::rightClick( wxMouseEvent& event)
             xLightsFrame::CurrentSeqXmlFile != nullptr) {
             wxMenu mnuEmpty;
             mnuEmpty.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
+            mSortGroupName = "";
+            wxMenu* sortMenu = new wxMenu();
+            bool isMasterView = mSequenceElements->GetCurrentView() == MASTER_VIEW;
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME, "By Name");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM, "By Name But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM_SIZE, "By Name But Groups At Top by Size");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM_COUNT, "By Name But Groups At Top by Node Count");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_CP_GM, "By Controller/Port But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_CP_GM_SIZE, "By Controller/Port But Groups At Top by Size");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_SC_GM, "By Start Channel But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_SC_GM_SIZE, "By Start Channel But Groups At Top by Size");
+            if (!isMasterView)
+                sortMenu->Append(ID_ROW_MNU_SORT_BY_MASTER_VIEW, "The Same as Current Master View");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_TYPE, "By Type");
+            sortMenu->Append(ID_ROW_MNU_SORT_MODELS_UNDER_GROUP, "Models Under This Group")->Enable(false);
+            sortMenu->Append(ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS, "Bubble Up Groups");
+            sortMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+            mnuEmpty.Append(ID_ROW_MNU_SORT_DISPLAY_ELEMENTS, "Sort Display Elements", sortMenu);
             mnuEmpty.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
             PopupMenu(&mnuEmpty);
         }
@@ -672,6 +705,35 @@ void RowHeading::rightClick( wxMouseEvent& event)
 
         mnuLayer.AppendSeparator();
         mnuLayer.Append(ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS, "Edit Display Elements");
+        {
+            bool isMasterView = mSequenceElements->GetCurrentView() == MASTER_VIEW;
+            bool isGroup = false;
+            std::string groupName;
+            if (element != nullptr && element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                Model* m = xLightsApp::GetFrame()->AllModels[element->GetModelName()];
+                if (m != nullptr && m->GetDisplayAs() == DisplayAsType::ModelGroup) {
+                    isGroup = true;
+                    groupName = element->GetModelName();
+                }
+            }
+            wxMenu* sortMenu = new wxMenu();
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME, "By Name");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM, "By Name But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM_SIZE, "By Name But Groups At Top by Size");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_NAME_GM_COUNT, "By Name But Groups At Top by Node Count");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_CP_GM, "By Controller/Port But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_CP_GM_SIZE, "By Controller/Port But Groups At Top by Size");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_SC_GM, "By Start Channel But Groups At Top");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_SC_GM_SIZE, "By Start Channel But Groups At Top by Size");
+            if (!isMasterView)
+                sortMenu->Append(ID_ROW_MNU_SORT_BY_MASTER_VIEW, "The Same as Current Master View");
+            sortMenu->Append(ID_ROW_MNU_SORT_BY_TYPE, "By Type");
+            sortMenu->Append(ID_ROW_MNU_SORT_MODELS_UNDER_GROUP, "Models Under This Group")->Enable(isGroup);
+            sortMenu->Append(ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS, "Bubble Up Groups");
+            sortMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
+            mnuLayer.Append(ID_ROW_MNU_SORT_DISPLAY_ELEMENTS, "Sort Display Elements", sortMenu);
+            mSortGroupName = groupName;
+        }
         mnuLayer.Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&RowHeading::OnLayerPopup, nullptr, this);
         Refresh(false);
         Update();
@@ -888,6 +950,31 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
     if (id == ID_ROW_MNU_EDIT_DISPLAY_ELEMENTS) {
         wxCommandEvent displayElementEvent(EVT_SHOW_DISPLAY_ELEMENTS);
         wxPostEvent(GetParent(), displayElementEvent);
+        return;
+    }
+
+    if (id == ID_ROW_MNU_SORT_BY_NAME || id == ID_ROW_MNU_SORT_BY_NAME_GM ||
+        id == ID_ROW_MNU_SORT_BY_NAME_GM_SIZE || id == ID_ROW_MNU_SORT_BY_NAME_GM_COUNT ||
+        id == ID_ROW_MNU_SORT_BY_CP_GM || id == ID_ROW_MNU_SORT_BY_CP_GM_SIZE ||
+        id == ID_ROW_MNU_SORT_BY_SC_GM || id == ID_ROW_MNU_SORT_BY_SC_GM_SIZE ||
+        id == ID_ROW_MNU_SORT_BY_MASTER_VIEW || id == ID_ROW_MNU_SORT_BY_TYPE ||
+        id == ID_ROW_MNU_SORT_MODELS_UNDER_GROUP || id == ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS) {
+        ViewsModelsPanel* panel = xLightsApp::GetFrame()->GetDisplayElementsPanel();
+        if (panel != nullptr) {
+            int sortType = 0;
+            if (id == ID_ROW_MNU_SORT_BY_NAME_GM) sortType = 1;
+            else if (id == ID_ROW_MNU_SORT_BY_NAME_GM_SIZE) sortType = 2;
+            else if (id == ID_ROW_MNU_SORT_BY_NAME_GM_COUNT) sortType = 3;
+            else if (id == ID_ROW_MNU_SORT_BY_CP_GM) sortType = 4;
+            else if (id == ID_ROW_MNU_SORT_BY_CP_GM_SIZE) sortType = 5;
+            else if (id == ID_ROW_MNU_SORT_BY_SC_GM) sortType = 6;
+            else if (id == ID_ROW_MNU_SORT_BY_SC_GM_SIZE) sortType = 7;
+            else if (id == ID_ROW_MNU_SORT_BY_MASTER_VIEW) sortType = 8;
+            else if (id == ID_ROW_MNU_SORT_BY_TYPE) sortType = 9;
+            else if (id == ID_ROW_MNU_SORT_MODELS_UNDER_GROUP) sortType = 10;
+            else if (id == ID_ROW_MNU_SORT_BUBBLE_UP_GROUPS) sortType = 11;
+            panel->SortDisplayElements(sortType, mSortGroupName);
+        }
         return;
     }
 

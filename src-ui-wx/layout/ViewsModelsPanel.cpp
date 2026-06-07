@@ -2250,6 +2250,39 @@ void ViewsModelsPanel::SortModelsBubbleUpGroups()
     ValidateWindow();
 }
 
+void ViewsModelsPanel::SortDisplayElements(int sortType, const std::string& groupName)
+{
+    if (_sequenceViewManager == nullptr)
+        return;
+    switch (sortType) {
+    case 0: SortModelsByName(); break;
+    case 1: SortModelsByNameGM(); break;
+    case 2: SortModelsByNameGM(true, false); break;
+    case 3: SortModelsByNameGM(false, true); break;
+    case 4: SortModelsByCPGM(); break;
+    case 5: SortModelsByCPGM(true); break;
+    case 6: SortModelsBySCGM(); break;
+    case 7: SortModelsBySCGM(true); break;
+    case 8: SortModelsByMasterView(); break;
+    case 9: SortModelsByType(); break;
+    case 10: {
+        for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
+            if (ListCtrlModels->GetItemText(i, 2).ToStdString() == groupName) {
+                SortModelsUnderThisGroup(i);
+                break;
+            }
+        }
+        break;
+    }
+    case 11: SortModelsBubbleUpGroups(); break;
+    }
+}
+
+bool ViewsModelsPanel::IsMasterViewSelected() const
+{
+    return _sequenceViewManager != nullptr && _sequenceViewManager->GetSelectedViewIndex() == MASTER_VIEW;
+}
+
 int ViewsModelsPanel::GetTimingCount()
 {
     int timings = 0;
