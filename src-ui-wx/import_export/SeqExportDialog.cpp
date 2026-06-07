@@ -256,6 +256,7 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "HD ProRes Video, *.mov") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "HD ProRes Video (*.mov)|*.mov", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
+    } else if (fmt == "Uncompressed Video, *.avi") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "High Quality Compressed Video, *.mp4") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
