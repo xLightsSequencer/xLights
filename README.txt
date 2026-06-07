@@ -14,7 +14,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
                                  Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
-                                 New key-binding for Import Effects window.                            
+                                 New key-binding for Import Effects window.
     -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
     -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
                                 command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
@@ -23,9 +23,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
-    -bug (charlie)              Song Structure Regions now render correctly in light mode and on Windows - the
-                                region band no longer paints opaque over the timeline timing marks, and region
-                                names/boundaries use contrasting colors per appearance (#6500)
     -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
@@ -50,10 +47,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
     -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
+    -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
                                  from saved map files when the model existed in the xLights layout but
                                  not the current sequence.
-    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)        
+    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
     -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
     -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
     -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
@@ -68,7 +67,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
     -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
                                  deleting combo can't repaint with a stale property (top macOS crash).
-                                 
+
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
