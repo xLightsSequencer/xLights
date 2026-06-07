@@ -14,6 +14,7 @@
 #include "wx/window.h"
 
 class SequenceElements;
+struct SongStructureRegion;
 
 #define HORIZONTAL_PADDING      10
 #define PIXELS_PER_MAJOR_HASH   100
@@ -204,6 +205,8 @@ private:
     void RecalcMarkerPositions();
 
     // Song structure drawing and interaction
+    wxColour GetSongStructureBandColor(const SongStructureRegion& region) const;
+    void DrawSongStructureBands(wxDC& dc, int w, int h);
     void DrawSongStructureRegions(wxDC& dc, int w, int h);
     void DrawSongStructureBoundaries(wxDC& dc, int w, int h);
     void OnSongStructurePopup(wxCommandEvent& event);

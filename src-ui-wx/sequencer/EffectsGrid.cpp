@@ -8832,6 +8832,8 @@ void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
     }
 
     if (ssm.GetRegionCount() >= 2) {
+        // White boundary lines vanish against the light-mode grid background.
+        xlColor lineColor = IsDarkMode() ? xlColor(255, 255, 255, 40) : xlColor(0, 0, 0, 60);
         for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
             int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
             int xPos = mTimeline->GetPositionFromTimeMS(boundaryTimeMS);
@@ -8839,7 +8841,6 @@ void EffectsGrid::DrawSongStructureOverlays(xlGraphicsContext* ctx) {
                 xlVertexAccumulator* va = ctx->createVertexAccumulator();
                 va->AddVertex(xPos, 0);
                 va->AddVertex(xPos, mWindowHeight);
-                xlColor lineColor(255, 255, 255, 40);
                 ctx->drawLines(va, lineColor);
                 delete va;
             }
