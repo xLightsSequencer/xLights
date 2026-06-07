@@ -392,7 +392,9 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         if (HasCapture()) ReleaseMouse();
         _rowDragging = false;
 
-        if (_rowDragSourceIdx >= 0 && _rowDragTargetBefore >= 0) {
+        if (_rowDragSourceIdx >= 0 && _rowDragTargetBefore >= 0
+            && _rowDragTargetBefore != _rowDragSourceIdx
+            && _rowDragTargetBefore != _rowDragSourceIdx + 1) {
             int view = mSequenceElements->GetCurrentView();
             int dest = _rowDragTargetBefore;
             mSequenceElements->get_undo_mgr().CreateUndoStep();
@@ -2718,7 +2720,7 @@ void RowHeading::render( wxPaintEvent& event )
     dc.DrawRectangle(0,endY,w,h);
 
     if (_rowDragging && _rowDragIndicatorY >= 0) {
-        wxPen linePen(wxColour(0, 120, 215), 3);
+        wxPen linePen(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT), FromDIP(3));
         dc.SetPen(linePen);
         dc.DrawLine(0, _rowDragIndicatorY, w, _rowDragIndicatorY);
     }
