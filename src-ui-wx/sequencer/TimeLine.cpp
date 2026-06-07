@@ -1569,7 +1569,7 @@ void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
     if (!ssm.HasRegions()) return;
 
     wxFont f = dc.GetFont();
-    f.SetPointSize(8.0);
+    f.SetPointSize(7.0);
     dc.SetFont(f);
 
     for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
@@ -1582,7 +1582,8 @@ void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
         x1 = std::max(0, x1);
         x2 = std::min(w, x2);
 
-        // Draw region name centered, contrasting against the (light or dark) band
+        // Draw region name in the lower portion of the timeline so it sits
+        // below the timing values which are drawn in the upper half.
         if (x2 - x1 > 30) {
             wxColour bandColor = GetSongStructureBandColor(region);
             wxString name = region.name;
@@ -1593,7 +1594,7 @@ void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
             }
             if (textSize.GetWidth() <= (x2 - x1 - 8)) {
                 int textX = x1 + ((x2 - x1) - textSize.GetWidth()) / 2;
-                int textY = (h - textSize.GetHeight()) / 2;
+                int textY = h - textSize.GetHeight() - 1;
                 double luminance = 0.299 * bandColor.Red() + 0.587 * bandColor.Green() + 0.114 * bandColor.Blue();
                 dc.SetTextForeground(luminance > 140.0 ? wxColour(40, 40, 40) : wxColour(220, 220, 220));
                 dc.DrawText(name, textX, textY);
