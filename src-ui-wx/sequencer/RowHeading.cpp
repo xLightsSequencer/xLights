@@ -392,18 +392,13 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         if (HasCapture()) ReleaseMouse();
         _rowDragging = false;
 
-        if (_rowDragSourceIdx >= 0) {
+        if (_rowDragSourceIdx >= 0 && _rowDragTargetBefore >= 0) {
             int view = mSequenceElements->GetCurrentView();
-            int elemCount = (int)mSequenceElements->GetElementCount(view);
             int dest = _rowDragTargetBefore;
-            bool noOp = (dest == _rowDragSourceIdx) || (dest == _rowDragSourceIdx + 1) ||
-                        (dest >= elemCount && _rowDragSourceIdx == elemCount - 1);
-            if (!noOp) {
-                mSequenceElements->get_undo_mgr().CreateUndoStep();
-                mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
-                wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
-                wxPostEvent(GetParent(), evt);
-            }
+            mSequenceElements->get_undo_mgr().CreateUndoStep();
+            mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
+            wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
+            wxPostEvent(GetParent(), evt);
         }
 
         _rowDragSourceIdx = -1;
