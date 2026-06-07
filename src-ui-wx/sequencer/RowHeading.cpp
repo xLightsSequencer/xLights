@@ -365,7 +365,6 @@ void RowHeading::mouseMove(wxMouseEvent& event)
         int dy = event.GetY() - _rowDragStart.y;
         if (dy > FromDIP(5) || dy < -FromDIP(5)) {
             _rowDragging = true;
-            spdlog::info("RowHeading::mouseMove drag started srcIdx={} dy={}", _rowDragSourceIdx, dy);
             if (!HasCapture()) CaptureMouse();
             return;
         }
@@ -389,7 +388,6 @@ void RowHeading::mouseMove(wxMouseEvent& event)
 
 void RowHeading::mouseLeftUp(wxMouseEvent& event)
 {
-    spdlog::info("RowHeading::mouseLeftUp rowDragging={} srcIdx={} targetBefore={}", _rowDragging, _rowDragSourceIdx, _rowDragTargetBefore);
     if (_rowDragging) {
         if (HasCapture()) ReleaseMouse();
         _rowDragging = false;
@@ -397,7 +395,6 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
         if (_rowDragSourceIdx >= 0 && _rowDragTargetBefore >= 0) {
             int view = mSequenceElements->GetCurrentView();
             int dest = _rowDragTargetBefore;
-            spdlog::info("RowHeading::mouseLeftUp calling MoveSequenceElement src={} dest={} view={}", _rowDragSourceIdx, dest, view);
             mSequenceElements->get_undo_mgr().CreateUndoStep();
             mSequenceElements->MoveSequenceElement(_rowDragSourceIdx, dest, view);
             wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
@@ -465,7 +462,6 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
                 int view = mSequenceElements->GetCurrentView();
                 _rowDragSourceIdx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
                 _rowDragStart = event.GetPosition();
-                spdlog::info("RowHeading::mouseLeftDown arm drag element='{}' srcIdx={} view={}", ri->element->GetFullName(), _rowDragSourceIdx, view);
             }
         }
     }

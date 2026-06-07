@@ -1118,6 +1118,7 @@ void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
             }
         }
     }
+    displayElementsPanel->UpdateModelsForSelectedView();
     _sequenceElements.PopulateRowInformation();
     displayElementsPanel->Initialize();
     ResizeMainSequencer();
