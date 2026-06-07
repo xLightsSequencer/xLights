@@ -39,12 +39,15 @@
 
 std::string xLightsFrame::FindSequence(const std::string& seq)
 {
-    if (FileExists(seq))
-        return seq;
+    if (FileExists(seq)) {
+        std::error_code ec;
+        auto abs = std::filesystem::absolute(seq, ec);
+        return (!ec && !abs.empty()) ? abs.string() : seq;
+    }
 
     if (FileExists(CurrentDir + wxFileName::GetPathSeparator() + seq))
         return CurrentDir + wxFileName::GetPathSeparator() + seq;
-    
+
     return "";
 }
 static const char HTTP_ERROR_PAGE[] = "Could not process xLights Automation";
