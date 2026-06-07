@@ -23,6 +23,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
+    -bug (charlie)              Song Structure Regions now render correctly in light mode and on Windows - the
+                                region band no longer paints opaque over the timeline timing marks, and region
+                                names/boundaries use contrasting colors per appearance (#6500)
     -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)

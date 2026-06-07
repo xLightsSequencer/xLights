@@ -1283,6 +1283,10 @@ void TimeLine::render( wxDC& dc ) {
     if (!mIsInitialized)
         return;
 
+    // Region color bands are drawn first, as a background tint, so the ruler
+    // hash marks and time labels painted below remain visible on top of them.
+    DrawSongStructureBands(dc, w, h);
+
     wxFont f = dc.GetFont();
     f.SetPointSize(7.0);
     dc.SetFont(f);
@@ -1515,8 +1519,51 @@ void TimeLine::RecalcEndTime()
     mEndTimeMS = GetMaxViewableTimeMS();
 }
 
+wxColour TimeLine::GetSongStructureBandColor(const SongStructureRegion& region) const
+{
+    // wxDC ignores the alpha channel on some platforms (notably MSW/GDI), so a
+    // wxColour with alpha renders fully opaque. Manually blend the region color
+    // over the timeline background instead - this looks translucent on every
+    // platform and naturally adapts to light/dark mode (the background differs).
+    const wxColour bg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+    constexpr double bandAlpha = 50.0 / 255.0;
+    uint8_t r = (region.colorARGB >> 16) & 0xFF;
+    uint8_t g = (region.colorARGB >> 8) & 0xFF;
+    uint8_t b = region.colorARGB & 0xFF;
+    return wxColour((uint8_t)(r * bandAlpha + bg.Red() * (1.0 - bandAlpha)),
+                    (uint8_t)(g * bandAlpha + bg.Green() * (1.0 - bandAlpha)),
+                    (uint8_t)(b * bandAlpha + bg.Blue() * (1.0 - bandAlpha)));
+}
+
+void TimeLine::DrawSongStructureBands(wxDC& dc, int w, int h)
+{
+    // Drawn BEHIND the ruler hash marks/time labels (called before they are
+    // painted) so the timing stays visible - the band is just a background tint.
+    if (_sequenceElements == nullptr) return;
+    const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
+    if (!ssm.HasRegions()) return;
+
+    for (size_t i = 0; i < ssm.GetRegionCount(); i++) {
+        const SongStructureRegion& region = ssm.GetRegion(i);
+
+        int x1 = GetPositionFromTimeMS(region.startTimeMS);
+        int x2 = GetPositionFromTimeMS(region.endTimeMS);
+
+        if (x2 < 0 || x1 > w) continue;
+        x1 = std::max(0, x1);
+        x2 = std::min(w, x2);
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(GetSongStructureBandColor(region)));
+        dc.DrawRectangle(x1, 0, x2 - x1, h);
+    }
+}
+
 void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
 {
+    // Region name labels only - drawn on top of the ruler so both the name and
+    // the timing marks stay visible. The band tint is painted separately by
+    // DrawSongStructureBands() before the ruler.
     if (_sequenceElements == nullptr) return;
     const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
     if (!ssm.HasRegions()) return;
@@ -1535,18 +1582,9 @@ void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
         x1 = std::max(0, x1);
         x2 = std::min(w, x2);
 
-        uint8_t r = (region.colorARGB >> 16) & 0xFF;
-        uint8_t g = (region.colorARGB >> 8) & 0xFF;
-        uint8_t b = region.colorARGB & 0xFF;
-
-        // Draw transparent colored band spanning full height of timeline
-        wxColour bandColor(r, g, b, 50);
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(bandColor));
-        dc.DrawRectangle(x1, 0, x2 - x1, h);
-
-        // Draw region name centered
+        // Draw region name centered, contrasting against the (light or dark) band
         if (x2 - x1 > 30) {
+            wxColour bandColor = GetSongStructureBandColor(region);
             wxString name = region.name;
             wxSize textSize = dc.GetTextExtent(name);
             while (name.length() > 1 && textSize.GetWidth() > (x2 - x1 - 8)) {
@@ -1556,7 +1594,8 @@ void TimeLine::DrawSongStructureRegions(wxDC& dc, int w, int h)
             if (textSize.GetWidth() <= (x2 - x1 - 8)) {
                 int textX = x1 + ((x2 - x1) - textSize.GetWidth()) / 2;
                 int textY = (h - textSize.GetHeight()) / 2;
-                dc.SetTextForeground(wxColour(200, 200, 200));
+                double luminance = 0.299 * bandColor.Red() + 0.587 * bandColor.Green() + 0.114 * bandColor.Blue();
+                dc.SetTextForeground(luminance > 140.0 ? wxColour(40, 40, 40) : wxColour(220, 220, 220));
                 dc.DrawText(name, textX, textY);
             }
         }
@@ -1569,7 +1608,10 @@ void TimeLine::DrawSongStructureBoundaries(wxDC& dc, int w, int h)
     const SongStructureManager& ssm = _sequenceElements->GetSongStructureManager();
     if (ssm.GetRegionCount() < 2) return;
 
-    dc.SetPen(wxPen(wxColour(255, 255, 255, 120), 1));
+    // White is invisible against the light-mode timeline background; pick a
+    // contrasting boundary color per appearance.
+    const wxColour boundaryColor = IsDarkMode() ? wxColour(235, 235, 235) : wxColour(60, 60, 60);
+    dc.SetPen(wxPen(boundaryColor, 1));
     for (size_t i = 1; i < ssm.GetRegionCount(); i++) {
         int boundaryTimeMS = ssm.GetRegion(i).startTimeMS;
         int xPos = GetPositionFromTimeMS(boundaryTimeMS);
@@ -1582,7 +1624,7 @@ void TimeLine::DrawSongStructureBoundaries(wxDC& dc, int w, int h)
             diamond[1] = wxPoint(xPos + 3, cy);
             diamond[2] = wxPoint(xPos, cy + 4);
             diamond[3] = wxPoint(xPos - 3, cy);
-            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.SetBrush(wxBrush(boundaryColor));
             dc.DrawPolygon(4, diamond);
         }
     }
