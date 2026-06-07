@@ -32,6 +32,7 @@
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
 #include <wx/spinctrl.h>
+#include <wx/radiobox.h>
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
 
@@ -1595,12 +1596,49 @@ void SubModelsDialog::Symmetrize()
     if (!sm)
         return;
 
-    // Get user input
-    wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
+    // Get user input — Degree of Symmetry and rotation direction, persisted between openings
+    auto* config = GetXLightsConfig();
+    int savedDos = (int)config->ReadLong("SymmetrizeDoS", 8);
+    if (savedDos < 2 || savedDos > 100) {
+        savedDos = 8;
+    }
+    bool savedClockwise = config->ReadBool("SymmetrizeClockwise", false);
+    bool savedBottomToTop = config->ReadBool("SymmetrizeBottomToTop", false);
+
+    wxDialog dlg(this, wxID_ANY, "Symmetrize (Rotational)");
+    auto* spin = new wxSpinCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                wxSP_ARROW_KEYS, 2, 100, savedDos);
+    wxString dirChoices[] = { "Clockwise", "Counter-Clockwise" };
+    auto* dirBox = new wxRadioBox(&dlg, wxID_ANY, "Direction", wxDefaultPosition, wxDefaultSize,
+                                  2, dirChoices, 1, wxRA_SPECIFY_COLS);
+    dirBox->SetSelection(savedClockwise ? 0 : 1);
+
+    wxString orderChoices[] = { "Top to Bottom", "Bottom to Top" };
+    auto* orderBox = new wxRadioBox(&dlg, wxID_ANY, "Build Order", wxDefaultPosition, wxDefaultSize,
+                                    2, orderChoices, 1, wxRA_SPECIFY_COLS);
+    orderBox->SetSelection(savedBottomToTop ? 1 : 0);
+
+    auto* dosRow = new wxBoxSizer(wxHORIZONTAL);
+    dosRow->Add(new wxStaticText(&dlg, wxID_ANY, "Degree of Symmetry:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    dosRow->Add(spin, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto* main = new wxBoxSizer(wxVERTICAL);
+    main->Add(dosRow, 0, wxALL, 10);
+    main->Add(dirBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(orderBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(dlg.CreateButtonSizer(wxOK | wxCANCEL), 0, wxALL | wxEXPAND, 10);
+    dlg.SetSizerAndFit(main);
+
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    int dos = dlg.GetValue();
+    int dos = spin->GetValue();
+    bool clockwise = (dirBox->GetSelection() == 0);
+    bool bottomToTop = (orderBox->GetSelection() == 1);
+
+    config->Write("SymmetrizeDoS", dos);
+    config->Write("SymmetrizeClockwise", clockwise);
+    config->Write("SymmetrizeBottomToTop", bottomToTop);
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsSymmetrize") + ".txt";
@@ -1908,6 +1946,7 @@ void SubModelsDialog::Symmetrize()
     }
 
     // Use match list to make new strands
+    std::vector<std::string> generated;
     for (int t = 1; !fail && t < dos; ++t) {
         for (int sn = 0; sn < origStrands; ++sn) {
             bool first = true;
@@ -1927,13 +1966,27 @@ void SubModelsDialog::Symmetrize()
                 auto& matchs = matchIDToNodeSet[nodeToMatchIDs[nn]];
                 for (int ii = 0; ii < dos; ++ii) {
                     if (matchs[ii] == nn) {
-                        int mapn = matchs[(ii + t) % dos];
+                        // matchs is sorted CCW; step forward for CW, backward for CCW.
+                        int mapn = clockwise ? matchs[(ii + t) % dos] : matchs[(ii - t + dos) % dos];
                         str += wxString::Format("%d", mapn);
                         break;
                     }
                 }
             }
-            sm->strands.push_back(NodeUtils::CompressNodes(str.ToStdString()));
+            generated.push_back(NodeUtils::CompressNodes(str.ToStdString()));
+        }
+    }
+    // Build order controls where the original strand(s) sit relative to the generated copies; it
+    // does not change geometry. The grid displays strands in reverse (list index 0 = bottom row),
+    // so to put the originals at the TOP of the grid ("Top to Bottom") they must come LAST in the
+    // list; "Bottom to Top" keeps them first, leaving the originals at the bottom of the grid.
+    if (!bottomToTop) {
+        std::vector<std::string> originals(sm->strands.begin(), sm->strands.end());
+        sm->strands = generated;
+        sm->strands.insert(sm->strands.end(), originals.begin(), originals.end());
+    } else {
+        for (const auto& g : generated) {
+            sm->strands.push_back(g);
         }
     }
 

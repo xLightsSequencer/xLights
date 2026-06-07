@@ -23,6 +23,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
+    -enh (scott)                 SubModels Symmetrize: dialog now lets you pick Degree of Symmetry, rotation
+                                 direction (Clockwise/Counter-Clockwise), and build order (Top to Bottom/
+                                 Bottom to Top), all remembered between openings
     -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
