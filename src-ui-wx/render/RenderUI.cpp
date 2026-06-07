@@ -512,6 +512,16 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mov");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false, /*highQuality*/ false, /*forceProRes*/ true);
+    } else if (Out3 == "HD ") {
+        // HD ProRes Video, *.mov — ProRes 4444 near-lossless at 1920x1080.
+        // The model's native channel count is unchanged; the render is scaled
+        // up at export time using nearest-neighbour interpolation.
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mov");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model),
+                            /*compressed*/ false, /*highQuality*/ false, /*forceProRes*/ true,
+                            /*exportWidth*/ 1920, /*exportHeight*/ 1080);
     } else if (Out3 == "Min") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         oName.replace_extension(".bin");

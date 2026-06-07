@@ -94,6 +94,7 @@ SeqExportDialog::SeqExportDialog(wxWindow* parent, const std::string& model, wxW
     ChoiceFormat->Append(_("xLights/FPP, *.fseq"));
     ChoiceFormat->Append(_("Compressed Video, *.mp4"));
     ChoiceFormat->Append(_("High Quality Compressed Video, *.mp4"));
+    ChoiceFormat->Append(_("HD ProRes Video, *.mov"));
 #ifndef __APPLE__
     ChoiceFormat->Append(_("Uncompressed Video, *.avi"));
 #endif
@@ -120,6 +121,7 @@ void SeqExportDialog::ModelExportTypes(bool isgroup)
     if (isgroup) {
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("Compressed Video, *.mp4")));
         ChoiceFormat->Delete(ChoiceFormat->FindString(_("High Quality Compressed Video, *.mp4")));
+        ChoiceFormat->Delete(ChoiceFormat->FindString(_("HD ProRes Video, *.mov")));
         int idx = ChoiceFormat->FindString(_("Uncompressed Video, *.avi"));
         if (idx != -1) {
             ChoiceFormat->Delete(idx);
@@ -203,6 +205,8 @@ void SeqExportDialog::SetDefaultName()
         name.SetExt("mp4");
     } else if (fmt == "High Quality Compressed Video, *.mp4") {
         name.SetExt("mp4");
+    } else if (fmt == "HD ProRes Video, *.mov") {
+        name.SetExt("mov");
     } else if (fmt == "Uncompressed Video, *.avi") {
         name.SetExt("avi");
     } else if (fmt == "Lossless RGB Video, *.mov") {
@@ -250,7 +254,8 @@ void SeqExportDialog::OnButtonFilePickClick(wxCommandEvent& event)
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "xLights/FPP (*.fseq)|*.fseq", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "Compressed Video, *.mp4") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
-    } else if (fmt == "Uncompressed Video, *.avi") {
+    } else if (fmt == "HD ProRes Video, *.mov") {
+        TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "HD ProRes Video (*.mov)|*.mov", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.avi)|*.avi", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));
     } else if (fmt == "High Quality Compressed Video, *.mp4") {
         TextCtrlFilename->SetValue(wxFileSelector(_("Choose output file"), fn.GetPath(), fn.GetFullName(), wxEmptyString, "Video (*.mp4)|*.mp4", wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this));

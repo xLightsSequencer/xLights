@@ -834,7 +834,8 @@ std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
 
 
 void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans, unsigned int startFrame, unsigned int endFrame,
-                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes)
+                                       SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality, bool forceProRes,
+                                       int exportWidth, int exportHeight)
 {
     // The encode itself is wx-free core (src-core/render/ModelVideoExporter).
     // Run it on a worker thread and drive a wxProgressDialog on the main thread
@@ -850,6 +851,7 @@ void xLightsFrame::WriteVideoModelFile(const wxString& filenames, long numChans,
     std::thread worker([&]() {
         ModelVideoExporter::WriteModelVideo(fn, dataBuf, startFrame, endFrame, model, startAddr,
                                             compressed, highQuality, forceProRes,
+                                            exportWidth, exportHeight,
                                             [&pct](int p) { pct.store(p); },
                                             [&cancel]() { return cancel.load(); });
         done.store(true);
