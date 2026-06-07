@@ -38,6 +38,9 @@ void FillXlImage(xlImage& image, Model* model, uint8_t* framedata, int startAddr
 //   .avi             -> rawvideo (uncompressed; FFmpeg)
 //   .mp4 highQuality -> HEVC constant-quality (near-visually-lossless)
 //   .mp4 else        -> H.264 (compressed = lossy)
+// exportWidth/exportHeight: when non-zero, the output video is scaled up to
+//   these dimensions using nearest-neighbor (integer scale, aspect-ratio
+//   preserved, black bars fill any unused space). Pass 0/0 for native size.
 // Returns false on failure (also logged). `progress` (0..100) and `cancel`
 // are optional hooks forwarded to the underlying VideoWriter — pass them to
 // drive a progress dialog / allow aborting a long encode.
@@ -45,6 +48,7 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
                      unsigned int startFrame, unsigned int endFrame,
                      Model* model, int startAddr,
                      bool compressed, bool highQuality, bool forceProRes,
+                     int exportWidth = 0, int exportHeight = 0,
                      ProgressReportCb progress = nullptr,
                      QueryForCancelCb cancel = nullptr);
 

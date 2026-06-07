@@ -93,6 +93,7 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
                      unsigned int startFrame, unsigned int endFrame,
                      Model* model, int startAddr,
                      bool compressed, bool highQuality, bool forceProRes,
+                     int exportWidth, int exportHeight,
                      ProgressReportCb progress, QueryForCancelCb cancel)
 {
     spdlog::debug("Writing model video.");
@@ -103,6 +104,32 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
     if (origwidth <= 0 || origheight <= 0) {
         spdlog::error("   Model video has invalid dimensions {}x{}.", origwidth, origheight);
         return false;
+    }
+
+    // Compute output dimensions. When exportWidth/exportHeight are given,
+    // scale up using the largest integer scale factor that fits the target
+    // while preserving the model's aspect ratio; centre the result and fill
+    // the remainder with black.
+    int outW = origwidth;
+    int outH = origheight;
+    int scaledW = origwidth;
+    int scaledH = origheight;
+    int offsetX = 0;
+    int offsetY = 0;
+    bool needsScale = false;
+    if (exportWidth > 0 && exportHeight > 0) {
+        int scaleX = exportWidth / origwidth;
+        int scaleY = exportHeight / origheight;
+        int scale = std::max(1, std::min(scaleX, scaleY));
+        outW = exportWidth;
+        outH = exportHeight;
+        scaledW = origwidth * scale;
+        scaledH = origheight * scale;
+        offsetX = (outW - scaledW) / 2;
+        offsetY = (outH - scaledH) / 2;
+        needsScale = (scale > 1 || outW != origwidth || outH != origheight);
+        spdlog::debug("  4K upscale: {}x{} -> {}x{} (scale={}, offset={},{})",
+                      origwidth, origheight, outW, outH, scale, offsetX, offsetY);
     }
 
     const bool isAvi = EndsWith(filename, ".avi");
@@ -120,8 +147,8 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
     //                    standard Compressed mode.
     //   .mp4 else     -> H.264 (compressed = lossy).
     VideoWriterParams params;
-    params.width = origwidth;
-    params.height = origheight;
+    params.width = outW;
+    params.height = outH;
     params.fps = std::max(1u, 1000u / dataBuf->FrameTime());
     params.audioSampleRate = 0;       // video only
     params.inputChannels = 3;         // RGB24 extracted from the RGBA xlImage
@@ -131,7 +158,7 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
         params.videoCodec = "ProRes";
         params.lossless = false;      // ProRes is its own near-lossless codec
     } else if (isMov) {
-        params.videoCodec = (origwidth % 8 == 0) ? "rawvideo" : "ProRes";
+        params.videoCodec = (outW % 8 == 0) ? "rawvideo" : "ProRes";
     } else if (isAvi) {
         params.videoCodec = "rawvideo";
     } else if (highQuality) {
@@ -147,6 +174,17 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
     }
 
     const unsigned lastFrame = (endFrame > startFrame) ? (endFrame - 1) : startFrame;
+
+    // Capture scale variables for the lambda (origwidth/origheight always needed).
+    const int captOrigW = origwidth;
+    const int captOrigH = origheight;
+    const int captOutW = outW;
+    const int captOutH = outH;
+    const int captScaledW = scaledW;
+    const int captScaledH = scaledH;
+    const int captOffX = offsetX;
+    const int captOffY = offsetY;
+    const bool captScale = needsScale;
 
     try {
         VideoWriter writer(filename, params, /*videoOnly*/ true);
@@ -166,13 +204,36 @@ bool WriteModelVideo(const std::string& filename, SequenceData* dataBuf,
             }
             // Fresh (black, opaque-on-lit) RGBA frame, flipped to model-video
             // convention via invert, then RGB extracted into the writer buffer.
-            xlImage image(origwidth, origheight);
+            xlImage image(captOrigW, captOrigH);
             FillXlImage(image, model, (uint8_t*)&(*dataBuf)[dataIdx][0], startAddr, /*invert*/ true);
             const uint8_t* rgba = image.GetData();
-            for (int p = 0; p < origwidth * origheight; ++p) {
-                vf.rgbBuffer[p * 3 + 0] = rgba[p * 4 + 0];
-                vf.rgbBuffer[p * 3 + 1] = rgba[p * 4 + 1];
-                vf.rgbBuffer[p * 3 + 2] = rgba[p * 4 + 2];
+
+            if (!captScale) {
+                for (int p = 0; p < captOrigW * captOrigH; ++p) {
+                    vf.rgbBuffer[p * 3 + 0] = rgba[p * 4 + 0];
+                    vf.rgbBuffer[p * 3 + 1] = rgba[p * 4 + 1];
+                    vf.rgbBuffer[p * 3 + 2] = rgba[p * 4 + 2];
+                }
+            } else {
+                // Nearest-neighbour upscale: each source pixel expands to an
+                // integer block; unused border pixels stay black.
+                std::memset(vf.rgbBuffer, 0, captOutW * captOutH * 3);
+                const int scaleX2 = captScaledW / captOrigW;
+                const int scaleY2 = captScaledH / captOrigH;
+                for (int sy = 0; sy < captOrigH; ++sy) {
+                    for (int sx = 0; sx < captOrigW; ++sx) {
+                        const uint8_t* src = rgba + (sy * captOrigW + sx) * 4;
+                        for (int by = 0; by < scaleY2; ++by) {
+                            int dy = captOffY + sy * scaleY2 + by;
+                            uint8_t* dstRow = vf.rgbBuffer + (dy * captOutW + captOffX + sx * scaleX2) * 3;
+                            for (int bx = 0; bx < scaleX2; ++bx) {
+                                dstRow[bx * 3 + 0] = src[0];
+                                dstRow[bx * 3 + 1] = src[1];
+                                dstRow[bx * 3 + 2] = src[2];
+                            }
+                        }
+                    }
+                }
             }
             return true;
         });
