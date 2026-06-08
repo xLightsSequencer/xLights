@@ -379,7 +379,8 @@ Response
 
 Import Effects from a xLights Sequence.
 Command
-    {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapfile":"xjmap/xmap/xmaphint file path"}
+    {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapmethod":"file","mapfile":"xjmap/xmap/xmaphint file path"}
+    {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapmethod":"auto"}
     Optional params:
       "mapmethod" : "file" (default, requires mapfile) | "auto" (Auto Map by name, no mapfile needed) | "both" (Load Map first, then Auto Map for remaining; requires mapfile)
       "importmedia": "true" (default) | "false"  -- copy audio/media from package to destination show

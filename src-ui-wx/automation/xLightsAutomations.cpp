@@ -1109,7 +1109,7 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         auto filename = params["filename"];
         if (filename == "" || filename == "null"|| !wxFile::Exists(filename)) {
-            return sendResponse("Inport File not valid.", "msg", 503, false);
+            return sendResponse("Import file not valid.", "msg", 503, false);
         }
         auto mapmethod = params["mapmethod"];
         if (mapmethod.empty()) mapmethod = "file";

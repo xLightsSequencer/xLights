@@ -24,7 +24,7 @@ local allSeqs = listResult['sequences']
 local displayNames = {}
 local nameToSeq = {}
 for _, seq in ipairs(allSeqs) do
-    local label = seq['name'] .. '  [' .. seq['type'] .. ']'
+    local label = seq['name'] .. '  [' .. seq['type'] .. ']  ' .. seq['path']
     table.insert(displayNames, label)
     nameToSeq[label] = seq
 end
