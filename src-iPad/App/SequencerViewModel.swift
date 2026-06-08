@@ -930,34 +930,49 @@ class SequencerViewModel {
     /// detached show-folder load. Lives separately from `loadShowFolder`
     /// so the Task closure only needs to send Sendable values across the
     /// actor boundary.
-    private func applyLoadResult(loaded: Bool, sequenceFiles: [SequenceEntry], path: String) {
+    private func applyLoadResult(loaded: Bool, sequenceFiles: [SequenceEntry], path: String) async {
         self.isShowFolderLoaded = loaded
         self.sequenceFiles = sequenceFiles
         if loaded {
             // Record successful loads so the folder picker can surface them as MRU entries.
             RecentShowFolders.record(path: path)
-            maybeAutoUpdateFromBaseShowFolder()
+            await maybeAutoUpdateFromBaseShowFolder()
         }
         finishLoad()
     }
 
-    private func maybeAutoUpdateFromBaseShowFolder() {
+    private func maybeAutoUpdateFromBaseShowFolder() async {
         guard document.autoUpdateFromBaseShowDirectory(),
               document.baseShowDirectory() != nil else { return }
-        let result = document.updateFromBaseShowDirectory()
-        if let error = result["error"] as? String {
+        // updateFromBaseShowDirectory does heavy synchronous C++ work —
+        // OutputManager/ModelManager/ViewObjectManager::MergeFromBase plus
+        // security-scoped access on the base folder and every referenced mesh
+        // file (which can stall on iCloud). Running it on the main actor blew
+        // the 0x8BADF00D watchdog (crash buckets eadd8ba5e8 / b9698800b5), so
+        // detach it the same way loadShowFolder detaches the initial load. The
+        // load's in-flight guard is still held (applyLoadResult awaits us), so
+        // a coalesced reload can't race this on the C++ context. Unpack the
+        // result dictionary and save inside the detached task so only a
+        // Sendable tuple crosses back to the main actor.
+        let outcome = await Task.detached { [document] () -> (error: String?, needsReselect: Bool) in
+            let result = document.updateFromBaseShowDirectory()
+            if let error = result["error"] as? String {
+                return (error, result["needsReselect"] as? Bool ?? false)
+            }
+            let changed = result["controllersChanged"] as? Bool ?? false
+                       || result["modelsChanged"] as? Bool ?? false
+                       || result["objectsChanged"] as? Bool ?? false
+            if changed {
+                _ = document.saveLayoutChanges()
+            }
+            return (nil, false)
+        }.value
+        if let error = outcome.error {
             // No UI context to prompt from here — defer to FolderConfigView via FolderConfig so the user can recover on next open.
-            if result["needsReselect"] as? Bool ?? false {
+            if outcome.needsReselect {
                 FolderConfig.pendingBaseDirReselectMessage = error
             }
             print("auto base-folder update skipped: \(error)")
-            return
-        }
-        let changed = result["controllersChanged"] as? Bool ?? false
-                   || result["modelsChanged"] as? Bool ?? false
-                   || result["objectsChanged"] as? Bool ?? false
-        if changed {
-            _ = document.saveLayoutChanges()
         }
     }
 
