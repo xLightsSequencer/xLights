@@ -1109,22 +1109,90 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         auto filename = params["filename"];
         if (filename == "" || filename == "null"|| !wxFile::Exists(filename)) {
-            return sendResponse("Inport File not valid.", "msg", 503, false);
+            return sendResponse("Import file not valid.", "msg", 503, false);
         }
+        auto mapmethod = params["mapmethod"];
+        if (mapmethod.empty()) mapmethod = "file";
+        bool autoMap = (mapmethod == "auto") || (mapmethod == "both");
+        auto importMediaParam = params["importmedia"];
+        bool importMedia = importMediaParam.empty() ? true : ReadBool(importMediaParam);
         auto mapname = params["mapfile"];
-        if (mapname == "" || mapname == "null" || !wxFile::Exists(mapname)) {
-            return sendResponse("Mapping File no valid.", "msg", 503, false);
+        if (mapmethod != "auto") {
+            if (mapname == "" || mapname == "null" || !wxFile::Exists(mapname)) {
+                return sendResponse("Mapping File not valid.", "msg", 503, false);
+            }
         }
-        ImportXLights(wxFileName(filename), mapname);
+        ImportXLights(wxFileName(filename), mapname, autoMap, importMedia);
 
         wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
         wxPostEvent(this, eventRowHeaderChanged);
         mainSequencer->PanelEffectGrid->Refresh();
-        
+
         std::string response = "{\"msg\":\"Imported XLights Sequence.\",\"worked\":\"true\"}";
         return sendResponse(response, "", 200, true);
     } else if (cmd == "getShowFolder") {
         return sendResponse(JSONSafe(showDirectory), "folder", 200, false);
+    } else if (cmd == "listSequences") {
+        auto folder = params["folder"];
+        if (folder.empty() || !wxDir::Exists(folder)) {
+            return sendResponse("Folder does not exist.", "msg", 503, false);
+        }
+        // Single pass with explicit extension check avoids Windows 8.3 short-name
+        // wildcard ambiguity where "*.xsq" also matches "*.xsqz" files.
+        // std::map gives deduplication (by full path) and alphabetical order for free.
+        static const std::set<std::string> validExts = {"xsq", "xsqz", "zip", "piz"};
+        std::map<std::string, wxFileName> sortedFiles;
+        wxDir dir(folder);
+        if (dir.IsOpened()) {
+            wxString filename;
+            bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_FILES);
+            while (cont) {
+                wxFileName fn(folder, filename);
+                std::string ext = ToStdString(fn.GetExt().Lower());
+                if (validExts.count(ext)) {
+                    sortedFiles[ToStdString(fn.GetFullPath())] = fn;
+                }
+                cont = dir.GetNext(&filename);
+            }
+        }
+        nlohmann::json arr = nlohmann::json::array();
+        for (auto const& [path, fn] : sortedFiles) {
+            nlohmann::json entry;
+            entry["name"] = ToStdString(fn.GetName());
+            entry["path"] = path;
+            entry["type"] = (fn.GetExt().Lower() == "xsq") ? "sequence" : "package";
+            arr.push_back(entry);
+        }
+        nlohmann::json resp;
+        resp["sequences"] = arr;
+        return sendResponse(resp.dump(), "", 200, true);
+    } else if (cmd == "getSequenceInfo") {
+        auto filename = params["filename"];
+        if (filename.empty() || !wxFile::Exists(filename)) {
+            return sendResponse("File not found.", "msg", 503, false);
+        }
+        SequencePackage xsqPkg(std::filesystem::path(ToStdString(wxString(filename))),
+                               GetShowDirectory(), "", &AllModels);
+        if (xsqPkg.IsPkg()) {
+            xsqPkg.Extract();
+        } else {
+            xsqPkg.FindRGBEffectsFile();
+        }
+        if (!xsqPkg.IsValid()) {
+            return sendResponse("Not a valid sequence or package.", "msg", 503, false);
+        }
+        SequenceFile xlf(xsqPkg.GetXsqFile().string());
+        auto importDoc = xlf.Open(GetShowDirectory(), false, xsqPkg.GetXsqFile().string());
+        if (!importDoc) {
+            return sendResponse("Failed to open sequence file.", "msg", 503, false);
+        }
+        wxFileName fn(filename);
+        nlohmann::json info;
+        info["name"] = ToStdString(fn.GetName());
+        info["duration"] = xlf.GetSequenceDurationMS();
+        info["frameRate"] = xlf.GetFrequency();
+        info["mediaFile"] = xlf.GetMediaFile();
+        return sendResponse(info.dump(), "", 200, true);
     } else if (cmd == "setModelProperty") {
         auto model = params["model"];
         auto m = AllModels.GetModel(model);
