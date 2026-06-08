@@ -1379,7 +1379,16 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 else {
                     if (selectedModel != nullptr) {
                         selectedModel->SaveDisplayDimensions();
-                        int i = _propertyAdapter->OnPropertyGridChange(propertyEditor, event);
+                        if (!_propertyAdapter) {
+                            // DoUndo selects the model (which sets
+                            // selectedBaseObject synchronously) then calls us
+                            // immediately, before the deferred SetupPropGrid
+                            // rebuild has recreated the adapter. Build it on
+                            // demand so the undo value is still applied rather
+                            // than dereferencing a null adapter and crashing.
+                            _propertyAdapter = ModelPropertyManager::CreateAdapter(*selectedModel);
+                        }
+                        int i = _propertyAdapter ? _propertyAdapter->OnPropertyGridChange(propertyEditor, event) : 0;
                         if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
                             (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
                                 dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr)) {
@@ -1456,7 +1465,9 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             //    int a = 0;
             } else {
                 CreateUndoPoint("ModelProperty", selectedModel->name, name, prop->GetValue().GetString().ToStdString());
-                _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
+                if (_propertyAdapter) {
+                    _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
+                }
             }
         } else {
             ViewObject* selectedObject = dynamic_cast<ViewObject*>(selectedBaseObject);
@@ -1481,7 +1492,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 int segment = _propertyAdapter->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
@@ -1494,7 +1505,7 @@ void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemCollapsed(propertyEditor, event);
             }
         }
@@ -1505,7 +1516,7 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemExpanded(propertyEditor, event);
             }
         }

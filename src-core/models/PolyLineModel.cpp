@@ -224,16 +224,20 @@ void PolyLineModel::InitModel()
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
     
-    // Ensure per-segment vectors match the current segment count.
+    // Ensure per-segment vectors match the current segment count exactly.
     // During polyline creation, screenLocation may have more points than
-    // the per-segment vectors which are grown via AddHandle().
-    if ((int)_polyLineSizes.size() < _numSegments) {
+    // the per-segment vectors which are grown via AddHandle(); deleting a
+    // handle during placement shrinks num_points without shrinking these
+    // vectors. A stale-large _polyLineSizes lets DistributeLightsEvenly
+    // advance 'segment' past pPos's bounds (sized num_points), dereferencing
+    // a wild per-segment matrix and crashing in glm::operator*.
+    if (_numSegments >= 0 && (int)_polyLineSizes.size() != _numSegments) {
         _polyLineSizes.resize(_numSegments, 50);
         _polyLineSegDropSizes.resize(_numSegments, 1);
         _polyLeadOffset.resize(_numSegments, 0.5);
         _polyTrailOffset.resize(_numSegments, 0.5);
     }
-    if ((int)_polyCorner.size() < _numSegments + 1) {
+    if (_numSegments >= 0 && (int)_polyCorner.size() != _numSegments + 1) {
         _polyCorner.resize(_numSegments + 1, "Neither");
     }
 

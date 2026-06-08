@@ -1343,8 +1343,11 @@ xlGraphicsContext* xlOGL3GraphicsContext::drawPrimitive(int type, xlVertexColorA
     if (c <= 0) {
         return this;
     }
-    ShaderProgram *program = &normal3Program;
     xlOGL3VertexColorAccumulator *v = dynamic_cast<xlOGL3VertexColorAccumulator*>(vac);
+    if (!v) {
+        return this;
+    }
+    ShaderProgram *program = &normal3Program;
     program->UseProgram();
     program->SetMatrix(frameData.MVP);
     

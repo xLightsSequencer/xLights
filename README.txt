@@ -71,6 +71,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
     -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
                                  deleting combo can't repaint with a stale property (top macOS crash).
+    -bug (dan)                   Fix crash undoing a model property change (null property-grid adapter when
+                                 DoUndo re-selects the model before the deferred grid rebuild).
+    -bug (dan)                   Fix PolyLine model crash when deleting a handle during placement (stale
+                                 per-segment sizes ran the light distribution past the point array).
+    -bug (dan)                   Fix Windows crash drawing color-vertex primitives when the accumulator
+                                 type doesn't match (null-check the dynamic_cast, matching the other overload).
 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
