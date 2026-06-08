@@ -930,6 +930,9 @@ void SequenceElements::RemoveView(int view_index)
 
 void SequenceElements::SetCurrentView(int view)
 {
+    if (view < 0 || static_cast<size_t>(view) >= mAllViews.size()) {
+        view = MASTER_VIEW;
+    }
     mCurrentView = view;
     assert(_viewsManager != nullptr);
     _viewsManager->SetSelectedView(view);

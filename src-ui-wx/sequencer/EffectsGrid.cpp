@@ -1830,8 +1830,8 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
     } else {
         if (!xlights->IsACActive() || rowIndex < mSequenceElements->GetNumberOfTimingRows()) {
             if (!out_of_bounds) {
-                Element* element = mSequenceElements->GetVisibleRowInformation(rowIndex)->element;
-                if (element != nullptr) {
+                Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(rowIndex);
+                if (rowInfo != nullptr && rowInfo->element != nullptr) {
                     RunMouseOverHitTests(rowIndex, event.GetX(), event.GetY());
                 }
             }
