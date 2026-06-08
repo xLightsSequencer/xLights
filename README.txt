@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.11  June ??, 2026
+    -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
     -enh (AGFazio)               Drag rows in the sequencer row header to reorder models and timing tracks.
     -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
