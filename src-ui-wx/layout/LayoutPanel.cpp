@@ -6817,6 +6817,7 @@ void LayoutPanel::EditSubmodels()
         dlg.Save();
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
+        updatePropertyGrid();
     }
     if (dlg.ReloadLayout) { //force grid to reload
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -6841,6 +6842,7 @@ void LayoutPanel::EditFaces()
             md->SetFaceInfo(newFaceInfo);
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
+            updatePropertyGrid();
         }
     }
 }
@@ -6857,6 +6859,7 @@ void LayoutPanel::EditStates()
         md->SetStateInfo(dlg.GetStateInfo());
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
+        updatePropertyGrid();
     }
 }
 
