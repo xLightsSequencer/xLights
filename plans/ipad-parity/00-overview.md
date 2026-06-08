@@ -24,9 +24,9 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,169 |
-| **At parity** (both platforms) | 673 (**~57%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 314 |
+| Features audited | 1,184 |
+| **At parity** (both platforms) | 675 (**~57%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 327 |
 | **iPad-weaker** (partial on iPad) | 68 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 114 |
 | Infeasible on iPad (platform limits) | 59 |
@@ -178,6 +178,7 @@ whole editing modality the iPad grid lacks).
 | Keyboard-shortcut rebinding editor | 11 | hard | feasible | Desktop editor is wired (File ▸ Key Bindings, 137 bindings, 4 scopes). iPad shortcuts are static in XLightsCommands.swift. |
 | Tools > Test (Pixel/Light Test) | 13 | hard | hard | Launches PixelTestDialog driving controller outputs directly (OnActionTestMenuItemSelected:4172 stops timers/output, ope |
 | Tools > Prepare Audio | 13 | hard | hard | Resample/normalize via FFmpeg. FFmpeg core excluded from iPad build. AVFoundation reimpl possible but heavy. |
+| Song Structure Regions (entire feature) | 02 | hard | feasible | New desktop #6268: named/colored timeline regions, named views, boundary drag, ruler+grid overlay, region bulk actions, per-region .xsq export. Core SongStructureManager is wx-free and already round-trips on iPad (data preserved); only SwiftUI editing UI + Metal overlay missing. Bulk-action ops mostly wrap existing core/SequenceElements mutators. |
 
 ### Additional P1 / P2 gaps
 

@@ -1351,6 +1351,27 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return anyFlipped;
 }
 
+- (BOOL)swapStartEndForModels:(NSArray<NSString*>*)names
+                  forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return NO;
+    rctx->AbortRender(5000);
+    BOOL anySwapped = NO;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        if (!m->SupportsSwapStartEnd()) continue;
+        if (m->GetBaseObjectScreenLocation().IsLocked() || m->IsFromBase()) continue;
+        m->SwapStartEnd();
+        rctx->MarkLayoutModelDirty(nm);
+        anySwapped = YES;
+    }
+    return anySwapped;
+}
+
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc {
     NSMutableArray<NSString*>* out = [NSMutableArray array];

@@ -23,6 +23,32 @@ per-theme parity plans live in
 
 ### Desktop ↔ iPad parity (important)
 
+**MANDATORY — no desktop change may be lost to the iPad.** Every change
+to the desktop app (`src-ui-wx/`) or shared core (`src-core/`) must end
+in exactly one of two states before the work is considered done:
+
+1. **Reflected in the iPad app immediately** — when the iPad has (or
+   easily can have) an equivalent surface, apply the matching change to
+   `src-iPad/` in the *same* PR (build `xLights-iPadLib` to verify), and
+   flip the relevant `plans/ipad-parity/` scorecard row to ✅ / 🟡.
+2. **Captured in the parity plans** — when an immediate port isn't
+   straightforward (large SwiftUI/Metal work, bridge extraction needed,
+   or genuinely infeasible/restricted), add or update a scorecard row in
+   the matching [`plans/ipad-parity/`](plans/ipad-parity/) theme doc so
+   the gap is tracked. Use `file:line` evidence for both platforms,
+   pick the gap (`ipad-missing` / `ipad-weaker` / `parity` /
+   `desktop-missing`), and bump the `00-overview.md` headline counts /
+   roadmap when you add a sizable new gap. Infeasible/restricted items
+   go in that doc's *Infeasible / restricted* section with the reason.
+
+Never silently leave a desktop change unaccounted-for on the iPad side —
+"I'll track it later" loses the change. Core-only (`src-core/`) changes
+that need no iPad UI work still warrant a one-line note on the relevant
+scorecard row that the behavior is shared/auto-applied. The decision of
+which of the two states applies, and the supporting analysis, belong in
+the PR description. (See git history for the reconciliation pass that
+established this convention.)
+
 Any change that touches a feature that exists on both platforms
 **should have equivalent changes applied to the other** in the same
 PR whenever possible. Concretely:

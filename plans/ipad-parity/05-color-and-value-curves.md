@@ -62,7 +62,8 @@
 | "Adjustment" collapsible section | panel | ✅ | ✅ | parity | P3 | easy | feasible | Color.json `groups[type=section]`; iPad `EffectMetadataPanel.groupView(section)` renders header + members. |
 | ValueCurve type selector (23 types) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad `XLValueCurve.availableTypes()` lists 23 (`XLValueCurve.mm:190`). |
 | ValueCurve custom-point canvas | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ValueCurvePanel`; iPad `ValueCurveCustomPointEditor` (`ValueCurveCanvases.swift`). |
-| ValueCurve P1–P4 sliders + text | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Per-type ranges via `XLValueCurve.range(forParameter:…)`; labels mirror desktop. |
+| ValueCurve P1–P4 sliders + text | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Per-type ranges via `XLValueCurve.range(forParameter:…)` → `GetRangeParm` (`XLValueCurve.mm:180`); labels in `parameterLabel` (`ValueCurveEditor.swift:563`). Custom P1=Cycles 1–10 (#6488) auto-surfaces since core `GetRangeParm1` now returns 1..10. |
+| ValueCurve Custom "Cycles" (P1 1–10) | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Core replication shared (`ValueCurve.cpp` RenderType Custom, #6488). Desktop labels P1 "Cycles", disables point-edit/Reverse/Flip when >1. iPad now mirrors: P1 labeled "Cycles" for Custom + Points canvas and Reverse/Flip gated on cycles>1 (`ValueCurveEditor.swift` `customCyclesLocked`). |
 | ValueCurve min/max range fields | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad "Range" section (`ValueCurveEditor.swift:372`). |
 | ValueCurve wrap checkbox | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `CheckBox_WrapValues`; iPad Toggle "Wrap". |
 | ValueCurve real-values checkbox | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad Toggle "Real Values". |

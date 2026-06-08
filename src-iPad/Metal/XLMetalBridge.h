@@ -541,6 +541,15 @@ NS_ASSUME_NONNULL_BEGIN
               axis:(NSString*)axis
        forDocument:(XLSequenceDocument*)doc;
 
+// Swap the start/end of each named line model (Single Line / Poly
+// Line). Mirrors desktop's ID_PREVIEW_SWAP_START_END — reverses
+// endpoints, segment sizes, lead/trail offsets and curve control
+// points via the core `Model::SwapStartEnd()`. Models that don't
+// support it, are locked, or come from the base show are skipped.
+// Returns YES if at least one model changed.
+- (BOOL)swapStartEndForModels:(NSArray<NSString*>*)names
+                  forDocument:(XLSequenceDocument*)doc;
+
 // Phase J-7 (multi-select) — duplicate each named model. Each
 // copy is offset by (+50, +50, 0) world units from the source so
 // it doesn't overlap, gets a unique name via

@@ -2809,6 +2809,9 @@ struct LayoutEditorView: View {
                                       },
                                       onRequestDuplicate: {
                                           performDuplicate(of: [selected])
+                                      },
+                                      onSwapStartEnd: {
+                                          performSwapStartEnd(of: selected)
                                       })
                     .allowsHitTesting(true)
             }
@@ -3741,6 +3744,25 @@ struct LayoutEditorView: View {
             NotificationCenter.default.post(name: .layoutEditorModelMoved,
                                              object: "LayoutEditor",
                                              userInfo: [:])
+        }
+    }
+
+    /// Swap start/end on a line model (Single Line / Poly Line).
+    /// Mirrors desktop's "Swap Start/End" right-click option; the
+    /// core `Model::SwapStartEnd()` does the geometry, the bridge
+    /// guards lock/from-base. Pushes one undo snapshot.
+    private func performSwapStartEnd(of name: String) {
+        guard !name.isEmpty else { return }
+        viewModel.document.pushLayoutUndoSnapshot(forModel: name)
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let swapped = bridge.swapStartEnd(forModels: [name], for: viewModel.document)
+        if swapped {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: ["model": name])
         }
     }
 
@@ -12134,6 +12156,7 @@ private struct InlineModelActionBar: View {
     let onPropertyChange: () -> Void
     let onRequestDelete: () -> Void
     let onRequestDuplicate: () -> Void
+    let onSwapStartEnd: () -> Void
 
     var body: some View {
         // `TimelineView(.animation)` refreshes its content every
@@ -12153,6 +12176,16 @@ private struct InlineModelActionBar: View {
             return false
         }
         return (summary["locked"] as? NSNumber)?.boolValue ?? false
+    }
+
+    // Only Single Line / Poly Line models support Swap Start/End
+    // (matches core Model::SupportsSwapStartEnd()).
+    private var supportsSwapStartEnd: Bool {
+        guard let summary = viewModel.document.modelLayoutSummary(modelName) else {
+            return false
+        }
+        let displayAs = (summary["displayAs"] as? String) ?? ""
+        return displayAs == "Single Line" || displayAs == "Poly Line"
     }
 
     @ViewBuilder
@@ -12207,6 +12240,17 @@ private struct InlineModelActionBar: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.blue)
+
+                if supportsSwapStartEnd && !locked {
+                    Button {
+                        onSwapStartEnd()
+                    } label: {
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                }
 
                 Button(role: .destructive) {
                     onRequestDelete()
