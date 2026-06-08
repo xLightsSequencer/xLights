@@ -4046,6 +4046,26 @@ void xLightsImportChannelMapDialog::OnButton_AutoMapClick(wxCommandEvent& event)
     MarkUsed();
 }
 
+void xLightsImportChannelMapDialog::AutoMap()
+{
+    if (_dataModel == nullptr) return;
+    _dirty = true;
+    TreeListCtrl_Mapping->Freeze();
+    DoAutoMap(norm, norm, norm, "", "", "B", false);
+    DoAutoMap(aggressive, aggressive, aggressive, "", "", "B", false);
+    DoSubModelFallback(false);
+    for (auto const& e : LoadMapHintsFromShowDir(xlights->CurrentDir.ToStdString())) {
+        DoAutoMap(regex, regex, norm, e.toRegex, e.fromModel, e.applyTo, false);
+    }
+    if (CheckBox_HideUnmapped != nullptr && CheckBox_HideUnmapped->IsChecked()) {
+        _dataModel->Cleared();
+    } else {
+        NotifyMappingItemsChanged();
+    }
+    TreeListCtrl_Mapping->Thaw();
+    MarkUsed();
+}
+
 void xLightsImportChannelMapDialog::OnButton_AutoMapSelClick(wxCommandEvent& event) {
     if (_dataModel == nullptr)
         return;

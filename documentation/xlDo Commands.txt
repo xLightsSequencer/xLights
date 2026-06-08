@@ -380,8 +380,27 @@ Response
 Import Effects from a xLights Sequence.
 Command
     {"cmd":"importXLightsSequence","filename":"xsq/zip file path","mapfile":"xjmap/xmap/xmaphint file path"}
+    Optional params:
+      "mapmethod" : "file" (default, requires mapfile) | "auto" (Auto Map by name, no mapfile needed) | "both" (Load Map first, then Auto Map for remaining; requires mapfile)
+      "importmedia": "true" (default) | "false"  -- copy audio/media from package to destination show
 Response
     {"res":200, "msg":"Imported XLights Sequence.","worked":"true"}
+
+List sequence and package files in a folder (useful for Lua batch-import scripts).
+Scans for .xsq, .xsqz, .zip, and .piz files. The folder does not need to be
+an xLights show — any folder containing package files is accepted.
+Command
+    {"cmd":"listSequences","folder":"C:\\ShowFolder"}
+Response
+    {"res":200, "sequences":[{"name":"MyShow","path":"C:\\ShowFolder\\MyShow.xsq","type":"sequence"}, ...]}
+    type is "sequence" for .xsq, or "package" for .xsqz/.zip/.piz
+
+Read basic properties of a sequence file without opening it in the editor.
+Command
+    {"cmd":"getSequenceInfo","filename":"C:\\ShowFolder\\MyShow.xsq"}
+Response
+    {"res":200, "duration":180000, "frameRate":50, "mediaFile":"C:\\audio\\song.mp3", "name":"MyShow"}
+    duration is in milliseconds; frameRate is frames-per-second.
 
 Set Model Settings for a Model.
 Command

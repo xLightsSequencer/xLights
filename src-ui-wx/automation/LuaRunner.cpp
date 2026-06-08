@@ -73,6 +73,25 @@ std::string LuaRunner::PromptSelection(sol::object const& items, std::string con
     return {};
 }
 
+std::list<std::string> LuaRunner::PromptMultiSelection(sol::object const& items, std::string const& message) const
+{
+    wxArrayString itemList = getArrayString(items);
+    wxMultiChoiceDialog dlg(_frame, message, message, itemList);
+
+    // pre-select all items
+    wxArrayInt allSelected;
+    for (size_t i = 0; i < itemList.GetCount(); ++i) allSelected.push_back(static_cast<int>(i));
+    dlg.SetSelections(allSelected);
+
+    std::list<std::string> result;
+    if (dlg.ShowModal() == wxID_OK) {
+        for (int idx : dlg.GetSelections()) {
+            result.push_back(ToStdString(itemList[idx]));
+        }
+    }
+    return result;
+}
+
 std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
 {
     std::list<std::string> sequenceList;
@@ -139,6 +158,7 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
     lua.set_function("PromptOption", &LuaRunner::PromptOption, this);
     lua.set_function("PromptString", &LuaRunner::PromptString, this);
     lua.set_function("PromptSelection", &LuaRunner::PromptSelection, this);
+    lua.set_function("PromptMultiSelection", &LuaRunner::PromptMultiSelection, this);
     lua.set_function("SplitString", &LuaRunner::SplitString, this);
     lua.set_function("JoinString", &LuaRunner::JoinString, this);
     lua.set_function("JSONToTable", &LuaRunner::JSONToTable, this);
@@ -300,7 +320,7 @@ sol::object LuaRunner::getObjectType( nlohmann::json const& val, sol::state_view
     if (val.is_array()) {
         sol::table arry = lua.create_table();
         for (size_t x = 0; x < val.size(); x++) {
-            arry[x] = getObjectType(val.at(x), lua);
+            arry[x + 1] = getObjectType(val.at(x), lua);
         }
         return arry;
     }
