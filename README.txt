@@ -13,6 +13,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
 2026.11  June ??, 2026
     -enh (AGFazio)               Add "Sort Display Elements" submenu to sequencer row heading right-click menu,
                                  with the same sort options as Edit Display Elements.
+    -enh (AGFazio)               Drag rows in the sequencer row header to reorder models and timing tracks.
     -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
                                  Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
