@@ -2266,8 +2266,9 @@ void ViewsModelsPanel::SortDisplayElements(int sortType, const std::string& grou
     case 8: SortModelsByMasterView(); break;
     case 9: SortModelsByType(); break;
     case 10: {
+        wxString wxGroupName(groupName);
         for (int i = 0; i < ListCtrlModels->GetItemCount(); ++i) {
-            if (ListCtrlModels->GetItemText(i, 2).ToStdString() == groupName) {
+            if (ListCtrlModels->GetItemText(i, 2) == wxGroupName) {
                 SortModelsUnderThisGroup(i);
                 break;
             }
