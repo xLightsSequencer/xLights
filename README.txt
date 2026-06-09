@@ -78,6 +78,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  per-segment sizes ran the light distribution past the point array).
     -bug (dan)                   Fix Windows crash drawing color-vertex primitives when the accumulator
                                  type doesn't match (null-check the dynamic_cast, matching the other overload).
+    -bug (cybercop23)            Base show folder merge: preserve show-folder controller/port assignments when
+                                 the base model has no controller.
 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
