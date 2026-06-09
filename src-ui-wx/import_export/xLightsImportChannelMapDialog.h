@@ -535,6 +535,7 @@ class xLightsImportChannelMapDialog: public wxDialog
                         std::vector<std::pair<int,int>> intervals = {});
         void SetSequenceDuration(int durationMS) { _sequenceDurationMS = durationMS; }
         void LoadMappingFile(wxString const& filepath, bool hideWarnings = false);
+        void AutoMap();
 
         xLightsImportTreeModel *_dataModel;
 

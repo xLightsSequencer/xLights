@@ -930,6 +930,9 @@ void SequenceElements::RemoveView(int view_index)
 
 void SequenceElements::SetCurrentView(int view)
 {
+    if (view < 0 || static_cast<size_t>(view) >= mAllViews.size()) {
+        view = MASTER_VIEW;
+    }
     mCurrentView = view;
     assert(_viewsManager != nullptr);
     _viewsManager->SetSelectedView(view);
@@ -1209,10 +1212,12 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
             }
         }
     }
-    else if (elem->ShowStrands()) {
+    else if (elem->ShowSubModels() || elem->ShowStrands()) {
         bool hideUnused = hideUnusedSubmodels && elem->HasEffects();
         for (int s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement* se = elem->GetSubModel(s);
+            if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND && !elem->ShowStrands()) continue;
+            if (se->GetType() != ElementType::ELEMENT_TYPE_STRAND && !elem->ShowSubModels()) continue;
             if (hideUnused && !se->HasEffects()) continue;
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {

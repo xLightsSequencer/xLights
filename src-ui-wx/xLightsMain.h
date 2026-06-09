@@ -458,11 +458,11 @@ public:
     bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
-    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string());
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0);
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0, bool autoMap = false, bool importMedia = true);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);

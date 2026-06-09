@@ -283,16 +283,16 @@ void RowHeading::ProcessTooltip(wxMouseEvent& event)
             wxClientDC dc(this);
             wxSize size = dc.GetTextExtent(e->GetName() + layers);
 
-            // Only set tooltip if the text looks too big to display correctly
+            wxString tip;
             if (size.x > getWidth() - DEFAULT_ROW_HEADING_MARGIN - ICON_SPACE) {
-                auto s1 = GetToolTipText().ToStdString();
-                auto s2 = e->GetName();
-                if (GetToolTipText() != e->GetName() + layers) {
-                    SetToolTip(e->GetName() + layers);
-                }
+                tip = e->GetName() + layers;
             }
-            else {
-                SetToolTip("");
+            if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+                if (!tip.empty()) tip += "\n";
+                tip += "Double-click: show/hide submodels\nShift+double-click: show/hide submodels and strands";
+            }
+            if (GetToolTipText() != tip) {
+                SetToolTip(tip);
             }
         }
         else {
@@ -535,6 +535,23 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     Row_Information_Struct *ri =  mSequenceElements->GetVisibleRowInformation(mSelectedRow);
     Element* element = ri->element;
 
+    if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+        ModelElement* me = dynamic_cast<ModelElement*>(element);
+        if (event.ShiftDown()) {
+            bool showAll = !(me->ShowSubModels() && me->ShowStrands());
+            me->ShowSubModels(showAll);
+            me->ShowStrands(showAll);
+        } else if (me->ShowSubModels()) {
+            me->ShowSubModels(false);
+            me->ShowStrands(false);
+        } else {
+            me->ShowSubModels(true);
+        }
+        wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
+        evt.SetString(element->GetModelName());
+        wxPostEvent(GetParent(), evt);
+        return;
+    }
     ToggleExpand(element);
 }
 
@@ -603,7 +620,7 @@ void RowHeading::rightClick( wxMouseEvent& event)
                     if (element->GetType() != ElementType::ELEMENT_TYPE_SUBMODEL) {
                         canPromote = true;
                     }
-                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Strands");
+                    mnuLayer.Append(ID_ROW_MNU_TOGGLE_STRANDS, "Toggle Strands (Shift+DblClick)");
                     if (ri->strandIndex >= 0) {
                         mnuLayer.Append(ID_ROW_MNU_TOGGLE_NODES, "Toggle Nodes");
                     }
@@ -2122,7 +2139,9 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             me = se->GetModelElement();
         }
         if (me != nullptr) {
-            me->ShowStrands(!me->ShowStrands());
+            bool show = !me->ShowStrands();
+            me->ShowStrands(show);
+            if (show) me->ShowSubModels(true);
             wxCommandEvent eventRowHeaderChanged(EVT_ROW_HEADINGS_CHANGED);
             eventRowHeaderChanged.SetString(element->GetModelName());
             wxPostEvent(GetParent(), eventRowHeaderChanged);
@@ -2135,8 +2154,10 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
             if (e->GetType() != ElementType::ELEMENT_TYPE_TIMING) {
                 if (ExpandElementIfEffects(e)) {
                     ModelElement* me = dynamic_cast<ModelElement*>(e);
-                    if (me != nullptr)
+                    if (me != nullptr) {
                         me->ShowStrands(true);
+                        me->ShowSubModels(true);
+                    }
                 }
             }
         }
@@ -2150,6 +2171,7 @@ void RowHeading::OnLayerPopup(wxCommandEvent& event)
                 ModelElement* me = dynamic_cast<ModelElement*>(e);
                 if (me != nullptr) {
                     me->ShowStrands(false);
+                    me->ShowSubModels(false);
                 }
             }
         }
@@ -2269,8 +2291,10 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
                     hasEffects = mm->HasEffects();
                     hasEffects |= ExpandElementIfEffects(mSequenceElements->GetElement(*it));
 
-                    if (hasEffects)
+                    if (hasEffects) {
                         me->ShowStrands(true);
+                        me->ShowSubModels(true);
+                    }
                 }
             }
         } else {
@@ -2281,8 +2305,10 @@ bool RowHeading::ExpandElementIfEffects(Element* e)
                 hasEffects |= ExpandElementIfEffects(me->GetSubModel(i));
             }
 
-            if (hasEffects)
+            if (hasEffects) {
                 me->ShowStrands(true);
+                me->ShowSubModels(true);
+            }
         }
     } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
         StrandElement* se = dynamic_cast<StrandElement*>(e);
