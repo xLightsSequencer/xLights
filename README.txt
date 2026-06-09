@@ -16,14 +16,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
                                  Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
                                  New key-binding for Import Effects window.
-    -enh (cybercop23)           Add the ability to access base showfolder presets (#2524)
-    -enh (charlie)              Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
-                                command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
-    -enh (charlie)              Song Structure Regions: divide the sequencer timeline into named, colored sections
-                                (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
-                                a translucent overlay on timeline + effects grid, and per-region bulk actions —
-                                Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
-                                Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
+    -enh (cybercop23)            Add the ability to access base showfolder presets (#2524)
+    -enh (charlie)               Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
+                                 command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
+    -enh (charlie)               Song Structure Regions: divide the sequencer timeline into named, colored sections
+                                 (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
+                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
+                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
+                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
     -enh (scott)                 SubModels Symmetrize: dialog now lets you pick Degree of Symmetry, rotation
                                  direction (Clockwise/Counter-Clockwise), and build order (Top to Bottom/
                                  Bottom to Top), all remembered between openings
@@ -51,6 +51,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
     -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video
+                                 effects are loaded (#6449)
     -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
     -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped

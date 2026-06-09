@@ -560,11 +560,13 @@ struct GLContextManager::PlatformState {
     // is also the thread that owns the dummy HWNDs — Windows requires
     // window destruction on the creating thread.
     std::thread worker;
+    std::thread::id workerThreadId;    // set when worker starts; used in diagnostics
     std::queue<std::function<void()>> taskQueue;
     std::mutex taskMutex;
     std::condition_variable taskCv;
     std::once_flag workerStartFlag;
     bool workerStop = false;
+    bool shutdownInitiated = false;    // set at Shutdown() entry; helps detect post-shutdown calls
 
     struct WinGLContextInfo {
         HGLRC context;
@@ -810,16 +812,92 @@ bool GLContextManager::MakeCurrent(ContextHandle ctx) {
         if (wglMakeCurrent(info->hdc, info->context)) return true;
         DWORD gle = GetLastError();
         if (gle == ERROR_INVALID_HANDLE) {
-            // Bumped from debug to warn so a recurrence is visible in user
-            // logs without needing a debug-level config.  Common causes:
-            // share-root not primed (see bootstrapWGL), HDC/HWND destroyed
-            // out from under us, or the HGLRC being current on another
-            // thread.
+            // The HWND/HDC/HGLRC have been invalidated.  On NVIDIA this
+            // happens when concurrent NVDEC (FFmpeg hardware video decode)
+            // triggers a WDDM TDR reset that kills all WGL dummy windows
+            // simultaneously.  Recreate this slot in-place so rendering
+            // resumes on the next frame without user-visible failure.
+            bool onWorkerThread = (_platform->workerThreadId != std::thread::id{}) &&
+                                  (std::this_thread::get_id() == _platform->workerThreadId);
             spdlog::warn("GLContextManager: wglMakeCurrent invalid handle - "
-                         "hwnd_valid={} dc_type={} hglrc={:p}",
+                         "hwnd_valid={} dc_type={} hglrc={:p} "
+                         "on_worker_thread={} shutdown_initiated={} pool_size={} ctx_count={}"
+                         " - attempting context recreation",
                          (int)IsWindow(info->hwnd),
                          (int)GetObjectType(info->hdc),
-                         (void*)info->context);
+                         (void*)info->context,
+                         onWorkerThread,
+                         _platform->shutdownInitiated,
+                         _platform->pool.size(),
+                         _platform->contextCount);
+
+            if (_platform->shutdownInitiated || !_platform->wglCreateContextAttribsARB)
+                return false;
+
+            // Best-effort teardown of the now-invalid resources.
+            wglDeleteContext(info->context);
+            if (info->hdc)  ReleaseDC(info->hwnd, info->hdc);
+            if (info->hwnd && IsWindow(info->hwnd)) DestroyWindow(info->hwnd);
+            info->context = nullptr;
+            info->hdc     = nullptr;
+            info->hwnd    = nullptr;
+
+            // If TDR also killed the share-root, rebuild it first so the
+            // new pool context can re-join the share group.
+            if (_platform->shaderShareRoot &&
+                _platform->shaderShareRootHwnd &&
+                !IsWindow(_platform->shaderShareRootHwnd)) {
+                spdlog::warn("GLContextManager: share-root also invalidated by TDR, rebuilding");
+                wglDeleteContext(_platform->shaderShareRoot);
+                _platform->shaderShareRoot = nullptr;
+                if (_platform->shaderShareRootHdc) {
+                    ReleaseDC(_platform->shaderShareRootHwnd, _platform->shaderShareRootHdc);
+                    _platform->shaderShareRootHdc = nullptr;
+                }
+                _platform->shaderShareRootHwnd = nullptr;
+
+                HGLRC newRoot = createCoreContext(_platform, nullptr,
+                                                  _platform->shaderShareRootHwnd,
+                                                  _platform->shaderShareRootHdc);
+                if (newRoot && wglMakeCurrent(_platform->shaderShareRootHdc, newRoot)) {
+                    _platform->shaderShareRoot = newRoot;
+                    wglMakeCurrent(_platform->shaderShareRootHdc, nullptr);
+                    spdlog::info("GLContextManager: share-root recreated hglrc={:p}", (void*)newRoot);
+                } else {
+                    if (newRoot) {
+                        wglDeleteContext(newRoot);
+                        ReleaseDC(_platform->shaderShareRootHwnd, _platform->shaderShareRootHdc);
+                        DestroyWindow(_platform->shaderShareRootHwnd);
+                        _platform->shaderShareRootHwnd = nullptr;
+                        _platform->shaderShareRootHdc  = nullptr;
+                    }
+                    spdlog::warn("GLContextManager: share-root recreation failed; "
+                                 "pool contexts will be isolated");
+                }
+            }
+
+            // Recreate the pool context, sharing with the (possibly rebuilt) share-root.
+            HWND newHwnd = nullptr;
+            HDC  newHdc  = nullptr;
+            HGLRC newCtx = createCoreContext(_platform, _platform->shaderShareRoot,
+                                             newHwnd, newHdc);
+            if (newCtx) {
+                info->context = newCtx;
+                info->hdc     = newHdc;
+                info->hwnd    = newHwnd;
+                spdlog::info("GLContextManager: context recreated after TDR hglrc={:p}",
+                             (void*)newCtx);
+                // Loop continues — next iteration calls wglMakeCurrent on the fresh context.
+                continue;
+            }
+
+            // Recreation also failed; retire this slot so AcquireContext can
+            // allocate a fresh one next time.
+            {
+                std::unique_lock<std::mutex> lock(_platform->poolMutex);
+                --_platform->contextCount;
+            }
+            spdlog::error("GLContextManager: context recreation failed after TDR; slot retired");
             return false;
         }
         if (gle == 2004) {
@@ -846,6 +924,13 @@ void GLContextManager::ReleaseContext(ContextHandle ctx) {
     if (!_platform || !ctx) return;
     DoneCurrent(ctx);
     {
+        auto* info = (PlatformState::WinGLContextInfo*)ctx;
+        if (!IsWindow(info->hwnd)) {
+            spdlog::warn("GLContextManager: ReleaseContext — HWND already invalid at release "
+                         "hwnd={:p} hdc={:p} hglrc={:p} shutdown_initiated={}",
+                         (void*)info->hwnd, (void*)info->hdc, (void*)info->context,
+                         _platform->shutdownInitiated);
+        }
         std::unique_lock<std::mutex> lock(_platform->poolMutex);
         _platform->pool.push(ctx);
     }
@@ -864,6 +949,7 @@ void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
     // Lazy-start the GL worker thread on first dispatch.
     std::call_once(_platform->workerStartFlag, [this]() {
         _platform->worker = std::thread([this]() {
+            _platform->workerThreadId = std::this_thread::get_id();
             for (;;) {
                 std::function<void()> task;
                 {
@@ -909,6 +995,8 @@ void GLContextManager::ExecuteOnGLThread(std::function<void()> fn) {
 
 void GLContextManager::Shutdown() {
     if (!_platform) return;
+
+    _platform->shutdownInitiated = true;
 
     auto destroyPool = [this]() {
         while (!_platform->pool.empty()) {
