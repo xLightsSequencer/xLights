@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.11  June ??, 2026
+    -enh (cybercop23)            Controller Visualizer: show a link icon on model boxes that come from the base show folder.
     -enh (AGFazio)               Drag rows in the sequencer row header to reorder models and timing tracks.
     -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
                                  onto an already-mapped destination shows Replace / Add Additional prompt;
@@ -53,6 +54,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
     -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video
                                  effects are loaded (#6449)
+    -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
     -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
     -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
@@ -79,6 +81,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  per-segment sizes ran the light distribution past the point array).
     -bug (dan)                   Fix Windows crash drawing color-vertex primitives when the accumulator
                                  type doesn't match (null-check the dynamic_cast, matching the other overload).
+    -bug (cybercop23)            Base show folder merge: preserve show-folder controller/port assignments when
+                                 the base model has no controller.
 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
