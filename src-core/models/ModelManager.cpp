@@ -1739,10 +1739,8 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
             if (aName == "SourceVersion") continue;
             // Controller is locally managed in the show folder.
             if (aName == "Controller") {
-                bool baseNoCtrl = aValue.empty() || aValue == "No Controller";
-                std::string_view localCtrl = localAttr.as_string("");
-                bool localHasCtrl = !localCtrl.empty() && localCtrl != "No Controller";
-                if (baseNoCtrl && localHasCtrl) continue;
+                auto isNoCtrl = [](std::string_view v) { return v.empty() || v == NO_CONTROLLER; };
+                if (isNoCtrl(aValue) && !isNoCtrl(localAttr.as_string(""))) continue;
             }
             if (aName != "StartChannel" || local.attribute("Controller").empty()) {
                 // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
@@ -1828,7 +1826,7 @@ static void PreserveLocalControllerAttrs(pugi::xml_node localNode, pugi::xml_nod
     }
 }
 
-// Helper: copy the local ControllerConnection port onto the new node's ControllerConnection child if it has no port
+// Helper: preserve the local ControllerConnection onto the new node.
 static void PreserveLocalControllerPort(pugi::xml_node localNode, pugi::xml_node newNode)
 {
     pugi::xml_node localCC;
