@@ -52,6 +52,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
     -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
     -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
     -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped

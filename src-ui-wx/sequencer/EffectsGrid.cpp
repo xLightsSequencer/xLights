@@ -8731,6 +8731,14 @@ void EffectsGrid::PasteModelEffectsWithSubModelLayers(ModelElement* me) {
         return;
 
     mDropRow = base_abs_index - mSequenceElements->GetFirstVisibleModelRow();
+
+    // The single-effect Paste path uses mDropStartTimeMS, so seed it here so effects land at their original times.
+    if (all_efdata.size() > 1) {
+        wxArrayString firstEff = wxSplit(all_efdata[1], '\t', wxT('\0'));
+        if (firstEff.size() >= 4)
+            mDropStartTimeMS = wxAtoi(firstEff[3]);
+    }
+
     Paste(raw_clipboard_text, xlights_version_string, true, true);
     mPartialCellSelected = true;
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(true);
