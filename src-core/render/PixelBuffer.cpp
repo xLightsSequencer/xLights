@@ -3534,8 +3534,11 @@ void PixelBufferClass::LayerInfo::blurMaskToAlpha(int blurAmount) {
         }
     }
 
-    // Bake the blurred mask into pixel alpha (0=visible, 1=hidden) and clear the mask.
+    // Bake the blurred mask into pixel alpha (0=visible, 1=hidden).
     // Pixels near the wipe boundary get partial alpha, creating a soft edge.
+    // Keep the binary mask for fully-hidden pixels so non-alpha-aware blend
+    // modes still treat them as masked.
+    constexpr float kFullyHiddenEps = 1e-6f;
     for (int x = 0; x < w; x++) {
         for (int y = 0; y < h; y++) {
             float alphaFactor = 1.0f - maskFloat[x * h + y];
@@ -3543,11 +3546,10 @@ void PixelBufferClass::LayerInfo::blurMaskToAlpha(int blurAmount) {
             buffer.GetPixel(x, y, c);
             c.alpha = static_cast<uint8_t>(c.alpha * alphaFactor);
             buffer.SetPixel(x, y, c);
+
+            mask[x * h + y] = (alphaFactor <= kFullyHiddenEps) ? 255 : 0;
         }
     }
-    // Clear the mask to zeros so isMasked() returns false for all pixels.
-    // Alpha now carries the edge softness information.
-    memset(mask, 0, maskSize);
 }
 
 void PixelBufferClass::LayerInfo::renderTransitions(bool isFirstFrame, RenderBuffer* prevRB) {
