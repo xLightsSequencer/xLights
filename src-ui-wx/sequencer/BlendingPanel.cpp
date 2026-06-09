@@ -78,6 +78,12 @@ const std::vector<wxString> TRANSITIONS_NO_REVERSE = {
     "Doorway", "Blobs", "Pinwheel", "Swap", "Shatter", "Circles"
 };
 
+// Transitions that support the Blur slider.
+const std::vector<wxString> TRANSITIONS_WITH_BLUR = {
+    "Wipe", "Blobs", "Clock", "Blinds", "From Middle",
+    "Square Explode", "Circle Explode", "Blend", "Slide Checks", "Slide Bars"
+};
+
 // Layer method options in the legacy display order (the map order is
 // alphabetical which isn't what we want).
 const std::vector<wxString> LAYER_METHODS = {
@@ -455,6 +461,15 @@ void BlendingPanel::SetDefaultControls(const Model* /*model*/, bool optionbased)
     resetVC("ID_VALUECURVE_In_Transition_Adjust");
     resetVC("ID_VALUECURVE_Out_Transition_Adjust");
 
+    // Reset blur sliders to 0.
+    auto resetSlider = [this](const char* name) {
+        if (auto* w = wxWindow::FindWindowByName(name, this)) {
+            if (auto* s = dynamic_cast<wxSlider*>(w)) s->SetValue(0);
+        }
+    };
+    resetSlider("ID_SLIDER_In_Transition_Blur");
+    resetSlider("ID_SLIDER_Out_Transition_Blur");
+
     ValidateWindow();
 }
 
@@ -499,6 +514,8 @@ void BlendingPanel::ValidateWindow() {
     auto* outAdjust = GetPropertyInfo("Out_Transition_Adjust");
     auto* inReverse = GetPropertyInfo("In_Transition_Reverse");
     auto* outReverse = GetPropertyInfo("Out_Transition_Reverse");
+    auto* inBlur = GetPropertyInfo("In_Transition_Blur");
+    auto* outBlur = GetPropertyInfo("Out_Transition_Blur");
 
     auto enableRow = [this](JsonEffectPanel::PropertyInfo* p, bool enabled) {
         if (p == nullptr) return;
@@ -523,11 +540,13 @@ void BlendingPanel::ValidateWindow() {
     wxString inTypeSel = _inTypeChoice ? _inTypeChoice->GetStringSelection() : wxString("Fade");
     enableRow(inAdjust, inEnable && !inList(TRANSITIONS_NO_ADJUST, inTypeSel));
     enableRow(inReverse, inEnable && !inList(TRANSITIONS_NO_REVERSE, inTypeSel));
+    enableRow(inBlur, inEnable && inList(TRANSITIONS_WITH_BLUR, inTypeSel));
 
     bool outEnable = fadeOut != 0.0;
     wxString outTypeSel = _outTypeChoice ? _outTypeChoice->GetStringSelection() : wxString("Fade");
     enableRow(outAdjust, outEnable && !inList(TRANSITIONS_NO_ADJUST, outTypeSel));
     enableRow(outReverse, outEnable && !inList(TRANSITIONS_NO_REVERSE, outTypeSel));
+    enableRow(outBlur, outEnable && inList(TRANSITIONS_WITH_BLUR, outTypeSel));
 }
 
 wxString BlendingPanel::GetBlendingString() {
@@ -597,11 +616,13 @@ wxString BlendingPanel::GetBlendingString() {
         stripSetting("E_SLIDER_In_Transition_Adjust");
         stripSetting("E_VALUECURVE_In_Transition_Adjust");
         stripSetting("E_CHECKBOX_In_Transition_Reverse");
+        stripSetting("E_SLIDER_In_Transition_Blur");
     }
     if (fadeOutZero) {
         stripSetting("E_SLIDER_Out_Transition_Adjust");
         stripSetting("E_VALUECURVE_Out_Transition_Adjust");
         stripSetting("E_CHECKBOX_Out_Transition_Reverse");
+        stripSetting("E_SLIDER_Out_Transition_Blur");
     }
 
     s.Replace(",E_", ",T_");
