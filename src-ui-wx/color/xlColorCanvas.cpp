@@ -378,7 +378,7 @@ void xlColorCanvas::ProcessWheelClick(int row, int col) {
     float dy = row - cy;
     float r  = std::sqrt(dx * dx + dy * dy);
 
-    double hue = (std::atan2((double)dy, (double)dx) + PI) / TWO_PI;
+    double hue = (std::atan2((double)dy, (double)-dx) + PI) / TWO_PI;
     double sat = (double)(r / radius);
     mHSV.hue        = std::max(0.0, std::min(1.0, hue));
     mHSV.saturation = std::max(0.0, std::min(1.0, sat));
@@ -423,7 +423,7 @@ void xlColorCanvas::DrawWheel(xlGraphicsContext* ctx) {
             float r  = std::sqrt(dx * dx + dy * dy);
             xlColor color;
             if (r <= radius) {
-                double hue = (std::atan2((double)dy, (double)dx) + PI) / TWO_PI;
+                double hue = (std::atan2((double)dy, (double)-dx) + PI) / TWO_PI;
                 double sat = (double)(r / radius);
                 HSVValue hsv(hue, sat, mHSV.value);
                 color = hsv;
@@ -439,19 +439,23 @@ void xlColorCanvas::DrawWheel(xlGraphicsContext* ctx) {
     // Selection indicator: small square at current hue/sat position
     float angle      = (float)(mHSV.hue * TWO_PI - PI);
     float indicatorR = (float)(mHSV.saturation * radius);
-    float ix = cx + indicatorR * std::cos(angle);
+    float ix = cx - indicatorR * std::cos(angle);
     float iy = cy + indicatorR * std::sin(angle);
 
-    float sz = 5.0f;
-    auto* va = ctx->createVertexAccumulator();
-    va->AddVertex(ix - sz, iy - sz);
-    va->AddVertex(ix + sz, iy - sz);
-    va->AddVertex(ix + sz, iy + sz);
-    va->AddVertex(ix - sz, iy + sz);
-    va->AddVertex(ix - sz, iy - sz);   // close
-    bool useDark = (mHSV.value > 0.55 && mHSV.saturation < 0.4);
-    ctx->drawLineStrip(va, useDark ? xlBLACK : xlWHITE);
-    delete va;
+    // Dual-contrast handle: a black outline one pixel outside a white outline so the marker stays
+    // visible against any underlying color (light or dark) without relying on a brightness heuristic.
+    auto drawSquare = [&](float s, const xlColor& c) {
+        auto* va = ctx->createVertexAccumulator();
+        va->AddVertex(ix - s, iy - s);
+        va->AddVertex(ix + s, iy - s);
+        va->AddVertex(ix + s, iy + s);
+        va->AddVertex(ix - s, iy + s);
+        va->AddVertex(ix - s, iy - s);   // close
+        ctx->drawLineStrip(va, c);
+        delete va;
+    };
+    drawSquare(6.0f, xlBLACK);
+    drawSquare(5.0f, xlWHITE);
 }
 
 void xlColorCanvas::DrawSlider(xlGraphicsContext* ctx) {
