@@ -448,7 +448,7 @@ static void HandleChoices(xLightsFrame *frame,
                             } else {
                                 target = frame->AllModels[newName];
                             }
-                            if (target != nullptr) {
+                            if (target != nullptr && !target->IsAlias("oldname:" + oldName)) {
                                 target->AddAlias("oldname:" + oldName);
                                 frame->UnsavedRgbEffectsChanges = true;
                                 spdlog::debug("Sequence Element Mismatch 2: added alias 'oldname:{}' to '{}'", oldName.c_str(), newName.c_str());
@@ -687,7 +687,8 @@ void xLightsFrame::CheckForValidModels()
                             ((ModelElement*)_sequenceElements.GetElement(x))->Init(*AllModels[newName]);
                             Remove(AllNames, newName);
                             Remove(ModelNames, newName);
-                            if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr) {
+                            if (dialog.CheckBoxAddAlias->IsChecked() && AllModels[newName] != nullptr &&
+                                !AllModels[newName]->IsAlias("oldname:" + name)) {
                                 AllModels[newName]->AddAlias("oldname:" + name);
                                 UnsavedRgbEffectsChanges = true;
                                 spdlog::debug("Sequence Element Mismatch: added alias 'oldname:{}' to '{}'", (const char*)name.c_str(), (const char*)newName.c_str());
