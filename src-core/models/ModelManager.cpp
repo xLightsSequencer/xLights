@@ -1737,6 +1737,13 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
         if (localAttr.empty() || std::string_view(localAttr.as_string()) != aValue) {
             // SourceVersion is just the xLights version that last saved the model — not a real change
             if (aName == "SourceVersion") continue;
+            // Controller is locally managed in the show folder.
+            if (aName == "Controller") {
+                bool baseNoCtrl = aValue.empty() || aValue == "No Controller";
+                std::string_view localCtrl = localAttr.as_string("");
+                bool localHasCtrl = !localCtrl.empty() && localCtrl != "No Controller";
+                if (baseNoCtrl && localHasCtrl) continue;
+            }
             if (aName != "StartChannel" || local.attribute("Controller").empty()) {
                 // For float attributes, compare rounded to 4 decimal places as older versions of xLights only output to 4 decimals
                 if (FLOAT_ATTRIBUTES.count(std::string(aName)) > 0 && !localAttr.empty()) {
@@ -1784,6 +1791,7 @@ static bool IsXmlNodeChanged(pugi::xml_node local, pugi::xml_node base)
     }
     // Check child nodes (local → base): detect children removed from base (e.g. dimmingCurve reset to default)
     for (pugi::xml_node cc = local.first_child(); cc; cc = cc.next_sibling()) {
+        if (std::string_view(cc.name()) == "ControllerConnection") continue;
         bool found = false;
         for (pugi::xml_node nn = base.first_child(); nn; nn = nn.next_sibling()) {
             if (std::string_view(cc.name()) == std::string_view(nn.name()) && CheckNameAttrs(nn, cc)) {
@@ -1823,21 +1831,25 @@ static void PreserveLocalControllerAttrs(pugi::xml_node localNode, pugi::xml_nod
 // Helper: copy the local ControllerConnection port onto the new node's ControllerConnection child if it has no port
 static void PreserveLocalControllerPort(pugi::xml_node localNode, pugi::xml_node newNode)
 {
+    pugi::xml_node localCC;
     std::string port;
     for (pugi::xml_node p = localNode.first_child(); p; p = p.next_sibling()) {
         if (std::string_view(p.name()) == "ControllerConnection") {
+            localCC = p;
             port = p.attribute("Port").as_string();
         }
     }
-    if (!port.empty()) {
-        for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
-            if (std::string_view(bp.name()) == "ControllerConnection") {
-                if (bp.attribute("Port").empty()) {
-                    bp.append_attribute("Port") = port;
-                }
+    if (port.empty() || !localCC) return;
+
+    for (pugi::xml_node bp = newNode.first_child(); bp; bp = bp.next_sibling()) {
+        if (std::string_view(bp.name()) == "ControllerConnection") {
+            if (bp.attribute("Port").empty()) {
+                bp.append_attribute("Port") = port.c_str();
             }
+            return;
         }
     }
+    newNode.append_copy(localCC);
 }
 static void RemoveControllerConnection(pugi::xml_node node) {
     pugi::xml_node cc = node.child("ControllerConnection");
