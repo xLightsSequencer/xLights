@@ -1212,10 +1212,12 @@ void addModelElement(ModelElement* elem, std::vector<Row_Information_Struct>& mR
             }
         }
     }
-    else if (elem->ShowStrands()) {
+    else if (elem->ShowSubModels() || elem->ShowStrands()) {
         bool hideUnused = hideUnusedSubmodels && elem->HasEffects();
         for (int s = 0; s < elem->GetSubModelAndStrandCount(); s++) {
             SubModelElement* se = elem->GetSubModel(s);
+            if (se->GetType() == ElementType::ELEMENT_TYPE_STRAND && !elem->ShowStrands()) continue;
+            if (se->GetType() != ElementType::ELEMENT_TYPE_STRAND && !elem->ShowSubModels()) continue;
             if (hideUnused && !se->HasEffects()) continue;
             int m = se->GetEffectLayerCount();
             if (se->GetCollapsed()) {
