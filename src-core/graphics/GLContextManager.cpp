@@ -11,7 +11,6 @@
 #include "GLContextManager.h"
 
 #include <algorithm>
-#include <atomic>
 #include <list>
 #include <queue>
 #include <thread>
@@ -549,7 +548,6 @@ struct GLContextManager::PlatformState {
     HGLRC shaderShareRoot     = nullptr;
     std::queue<void*> pool;  // queue of WinGLContextInfo*
     int contextCount = 0;
-    std::atomic<int> inFlightCount{0};  // acquired but not yet released
     std::mutex poolMutex;
     std::condition_variable poolNotifier;
     PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
@@ -804,7 +802,6 @@ GLContextManager::ContextHandle GLContextManager::AcquireContext() {
 
     auto* info = (PlatformState::WinGLContextInfo*)_platform->pool.front();
     _platform->pool.pop();
-    ++_platform->inFlightCount;
     return (ContextHandle)info;
 }
 
@@ -925,7 +922,6 @@ void GLContextManager::DoneCurrent(ContextHandle ctx) {
 
 void GLContextManager::ReleaseContext(ContextHandle ctx) {
     if (!_platform || !ctx) return;
-    --_platform->inFlightCount;
     DoneCurrent(ctx);
     {
         auto* info = (PlatformState::WinGLContextInfo*)ctx;
@@ -1009,9 +1005,6 @@ void GLContextManager::Shutdown() {
     _platform->shutdownInitiated = true;
 
     auto destroyPool = [this]() {
-        int leaked = _platform->inFlightCount.load();
-        if (leaked > 0)
-            spdlog::warn("GLContextManager: {} context(s) still in-flight at shutdown (possible leak)", leaked);
         while (!_platform->pool.empty()) {
             auto* info = (PlatformState::WinGLContextInfo*)_platform->pool.front();
             _platform->pool.pop();
