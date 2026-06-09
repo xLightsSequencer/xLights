@@ -922,15 +922,15 @@ void GLContextManager::DoneCurrent(ContextHandle ctx) {
 
 void GLContextManager::ReleaseContext(ContextHandle ctx) {
     if (!_platform || !ctx) return;
+    auto* info = (PlatformState::WinGLContextInfo*)ctx;
+    if (!info->context) {
+        // MakeCurrent already retired this slot (context recreation failed): contextCount
+        // was decremented there, so discard the dead struct rather than re-pooling it.
+        delete info;
+        return;
+    }
     DoneCurrent(ctx);
     {
-        auto* info = (PlatformState::WinGLContextInfo*)ctx;
-        if (!info->context) {
-            // MakeCurrent already retired this slot (context recreation failed): contextCount
-            // was decremented there, so discard the dead struct rather than re-pooling it.
-            delete info;
-            return;
-        }
         if (!IsWindow(info->hwnd)) {
             spdlog::warn("GLContextManager: ReleaseContext — HWND already invalid at release "
                          "hwnd={:p} hdc={:p} hglrc={:p} shutdown_initiated={}",
