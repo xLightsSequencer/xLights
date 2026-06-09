@@ -300,8 +300,8 @@ bool BaseObject::IsContained(IModelPreview* preview, int x1, int y1, int x2, int
 }
 
 void BaseObject::SetActive(bool active) {
-	_active = active; 
-
+    if (active == _active) return;
+    _active = active;
     AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "BaseObject::SetActive");
     AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "BaseObject::SetActive");
     AddASAPWork(OutputModelManager::WORK_RELOAD_ALLMODELS, "BaseObject::SetActive"); // because the names are displayed differently

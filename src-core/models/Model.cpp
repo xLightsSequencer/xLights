@@ -4401,7 +4401,10 @@ std::string Model::GetShadowModelFor() const
 void Model::AddASAPWork(uint32_t work, const std::string& from)
 {
     if (auto* omm = modelManager.GetOutputModelManager()) {
-        omm->AddASAPWork(work, from, this, nullptr, GetName());
+        if (modelManager.IsModelsLoading())
+            work &= ~OutputModelManager::WORK_RGBEFFECTS_CHANGE;
+        if (work)
+            omm->AddASAPWork(work, from, this, nullptr, GetName());
     }
 }
 

@@ -115,6 +115,8 @@ class ModelManager : public ObjectManager
         // parallel.
         unsigned int GetModelGeneration() const { return _modelGeneration.load(); }
 
+        bool IsModelsLoading() const { return _modelsLoading; }
+
     private:
 
     OutputManager* _outputManager = nullptr;
