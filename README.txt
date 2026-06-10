@@ -60,6 +60,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
                                  from saved map files when the model existed in the xLights layout but
                                  not the current sequence.
+    -bug (agfazio)               Default transition adjust was not correctly defaulted (#6524)
     -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
     -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
     -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
