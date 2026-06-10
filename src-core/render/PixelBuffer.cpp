@@ -2106,8 +2106,8 @@ void PixelBufferClass::SetLayerSettings(int layer, const SettingsMap& settingsMa
 
     inf->inTransitionType = settingsMap.Get(CHOICE_In_Transition_Type, STR_FADE);
     inf->outTransitionType = settingsMap.Get(CHOICE_Out_Transition_Type, STR_FADE);
-    inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 0);
-    inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 0);
+    inf->inTransitionAdjust = settingsMap.GetInt(SLIDER_In_Transition_Adjust, 50);
+    inf->outTransitionAdjust = settingsMap.GetInt(SLIDER_Out_Transition_Adjust, 50);
     inf->InTransitionAdjustValueCurve = valueCurveFromSettingsMap(settingsMap, "In_Transition_Adjust");
     inf->OutTransitionAdjustValueCurve = valueCurveFromSettingsMap(settingsMap, "Out_Transition_Adjust");
     inf->inTransitionReverse = settingsMap.GetBool(CHECKBOX_In_Transition_Reverse);
