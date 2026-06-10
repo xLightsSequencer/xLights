@@ -8,6 +8,7 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <algorithm>
 #include <cassert>
 #include <spdlog/fmt/fmt.h>
 #include "BoxedScreenLocation.h"
@@ -189,8 +190,28 @@ CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, co
     if (preview != nullptr) {
         FindPlaneIntersection( x, y, preview );
         if (preview->Is3D()) {
+            // For a brand-new model the click point should become the
+            // top-left-front corner regardless of camera tilt or the
+            // model's preferred selection plane (e.g. Tree's ground
+            // plane) -- always sample the click against the z=0
+            // vertical plane (same as a 2D click), so x/y track the
+            // cursor, then pin z to 0.
+            if (active_plane != MSLPLANE::XY_PLANE) {
+                glm::vec3 clickIntersect(0.0f);
+                MSLAXIS savedAxis = active_axis;
+                MSLPLANE savedPlane = active_plane;
+                active_axis = MSLAXIS::X_AXIS;
+                active_plane = MSLPLANE::XY_PLANE;
+                if (DragHandle(preview, x, y, clickIntersect)) {
+                    worldPos_x = clickIntersect.x;
+                    worldPos_y = clickIntersect.y;
+                }
+                active_axis = savedAxis;
+                active_plane = savedPlane;
+            }
+            worldPos_z = 0.0f;
+
             if (supportsZScaling && !_startOnXAxis) {
-                worldPos_y = RenderHt / 2.0f;
                 active_axis = MSLAXIS::Y_AXIS;
             } else if (active_axis ==  MSLAXIS::Z_AXIS) {
                 // Funnel through SetRotation so rotate_quat stays
@@ -200,6 +221,14 @@ CursorType BoxedScreenLocation::InitializeLocation(int &handle, int x, int y, co
                 // the base vec3 overload.
                 ModelScreenLocation::SetRotation(glm::vec3(rotatex, 90.0f, rotatez));
             }
+
+            // Click point becomes the top-left-front corner; the model
+            // grows right (increasing x) and down (decreasing y) from
+            // there as the user drags.
+            const float clickX = worldPos_x;
+            const float clickY = worldPos_y;
+            SetLeft(clickX);
+            SetTop(clickY);
             handle = CENTER_HANDLE;
         } else {
             active_axis = MSLAXIS::Y_AXIS;
@@ -754,7 +783,8 @@ public:
     BoxedScaleSession(BoxedScreenLocation* loc,
                       std::string modelName,
                       handles::Id handleId,
-                      const handles::WorldRay& startRay)
+                      const handles::WorldRay& startRay,
+                      bool isCreation = false)
         : _loc(loc),
           _modelName(std::move(modelName)),
           _handleId(handleId),
@@ -765,8 +795,21 @@ public:
           _savedSize(loc->GetRenderWi(),
                       loc->GetRenderHt(),
                       loc->GetRenderWi()),
-          _supportsZScale(loc->GetSupportsZScaling()) {
+          _supportsZScale(loc->GetSupportsZScaling()),
+          _isCreation(isCreation) {
         ComputeConstraintPlane(handleId.axis);
+        if (_isCreation) {
+            // Sample the drag on a plane near the origin (z=0) rather
+            // than at the new model's own z. Ground-anchored models
+            // (e.g. Tree, which uses MSLPLANE::GROUND) can be created
+            // far from the camera in z; building the constraint plane
+            // at that depth turns small mouse moves into huge world-
+            // space deltas (perspective), making the size/position
+            // swing wildly. The anchor math below only depends on
+            // _savedWorldPos/_savedScale, not on the plane's depth, so
+            // this only affects how mouse movement maps to drag deltas.
+            _planePoint.z = 0.0f;
+        }
         if (!Intersect(startRay, _savedIntersect)) {
             _savedIntersect = _savedWorldPos;
         }
@@ -786,6 +829,62 @@ public:
         const float ratio_z = (base.z + dragDelta.z) / base.z;
         const bool shift = handles::HasModifier(mods, handles::Modifier::Shift);
         const bool ctrl  = handles::HasModifier(mods, handles::Modifier::Control);
+
+
+        if (_isCreation) {
+            // New-model creation drag: independent width/height from
+            // the click point, anchored at the click point's top-left
+            // corner (drag down = taller, drag right = wider).
+            // Clamp ratios so the box can never shrink through zero
+            // and flip to a negative scale.
+            constexpr float kMinRatio = 0.05f;
+            const float ratio_y_height = (base.y - dragDelta.y) / base.y;
+            const float clampedRatioX  = std::max(ratio_x, kMinRatio);
+            const float clampedRatioY  = std::max(ratio_y_height, kMinRatio);
+
+            glm::vec3 newScale = _savedScale;
+            newScale.x = _savedScale.x * clampedRatioX;
+            newScale.y = _savedScale.y * clampedRatioY;
+            if (_supportsZScale) newScale.z = newScale.x;
+
+            // Ground-anchored models (e.g. Tree) are placed with their
+            // base on the ground (y=0) by InitializeLocation. Use the
+            // normal top-anchored growth, but never let the base drop
+            // below the ground.
+            const bool groundAnchored =
+                _loc->GetPreferredSelectionPlane() == ModelScreenLocation::MSLPLANE::GROUND;
+
+            // Derive the anchor corner from the model's initial
+            // (centered) placement set by InitializeLocation, not from
+            // _savedIntersect -- _savedIntersect is sampled on a
+            // different plane (see constructor) and using it directly
+            // here made the box jump the instant the drag started.
+            const float left  = _savedWorldPos.x - (_savedScale.x * _loc->GetRenderWi() / 2.0f);
+            const float top   = _savedWorldPos.y + (_savedScale.y * _loc->GetRenderHt() / 2.0f);
+            const float front = _savedWorldPos.z + (_savedScale.z * _loc->GetRenderWi() / 2.0f);
+
+            glm::vec3 newPos = _savedWorldPos;
+            newPos.x = left + (newScale.x * _loc->GetRenderWi() / 2.0f);
+            newPos.y = top - (newScale.y * _loc->GetRenderHt() / 2.0f);
+            if (groundAnchored) {
+                const float halfHt = newScale.y * _loc->GetRenderHt() / 2.0f;
+                if (newPos.y - halfHt < 0.0f) newPos.y = halfHt;
+            }
+            if (_supportsZScale) {
+                newPos.z = front - (newScale.z * _loc->GetRenderWi() / 2.0f);
+            }
+
+            if (newScale == _savedScale && newPos == _savedWorldPos) {
+                return handles::UpdateResult::Unchanged;
+            }
+
+            _loc->SetScaleMatrix(newScale);
+            _loc->SetHcenterPos(newPos.x);
+            _loc->SetVcenterPos(newPos.y);
+            _loc->SetDcenterPos(newPos.z);
+            _changed = true;
+            return handles::UpdateResult::Updated;
+        }
 
         glm::vec3 newScale = _savedScale;
         glm::vec3 newPos   = _savedWorldPos;
@@ -898,6 +997,7 @@ private:
     glm::vec3            _planePoint    {0.0f};
     glm::vec3            _planeNormal   {0.0f, 0.0f, 1.0f};
     bool                 _supportsZScale;
+    bool                 _isCreation;
     bool                 _changed = false;
 };
 
@@ -1063,8 +1163,15 @@ public:
         const float posx = ray.origin.x;
         const float posy = ray.origin.y;
         const int handle = _handleId.index;
-        const float centerx = _loc->GetHcenterPos();
-        const float centery = _loc->GetVcenterPos();
+        // Reference point must stay fixed for the life of the
+        // gesture (matches the legacy `centerx`/`centery` members,
+        // latched once in InitializeLocation). Using the live
+        // GetHcenterPos()/GetVcenterPos() here would re-anchor sx/sy
+        // every frame, making new_width/new_height converge toward
+        // zero (and overshoot negative, flipping the model) instead
+        // of toward a stable size.
+        const float centerx = _savedWorldPos.x;
+        const float centery = _savedWorldPos.y;
         const float renderWi = _loc->GetRenderWi();
         const float renderHt = _loc->GetRenderHt();
         const float scalex = _loc->GetScaleMatrix().x;
@@ -1230,8 +1337,8 @@ private:
 // Wraps the existing scale (3D) / corner-resize (2D) sessions so
 // that creation reuses their math instead of re-implementing it.
 //
-//   3D: forces shift (bottom-up scale) + ctrl-when-z_scale
-//       (uniform scale).
+//   3D: independent width/height drag from the click point
+//       (BoxedScaleSession's isCreation mode).
 //   2D: R_BOT_HANDLE corner drag, no forced modifiers.
 class BoxedCreationSession : public handles::DragSession {
 public:
@@ -1240,14 +1347,13 @@ public:
                          const handles::WorldRay& clickRay,
                          handles::ViewMode mode)
         : _modelName(modelName),
-          _supportsZScale(loc->GetSupportsZScaling()),
           _is3D(mode == handles::ViewMode::ThreeD) {
         if (_is3D) {
             handles::Id id;
             id.role  = handles::Role::AxisCube;
             id.axis  = handles::Axis::Y;  // matches InitializeLocation's default
             _inner = std::make_unique<BoxedScaleSession>(
-                loc, modelName, id, clickRay);
+                loc, modelName, id, clickRay, /*isCreation=*/true);
             _innerId = id;
         } else {
             handles::Id id;
@@ -1261,10 +1367,6 @@ public:
 
     handles::UpdateResult Update(const handles::WorldRay& ray,
                                   handles::Modifier mods) override {
-        if (_is3D) {
-            mods = mods | handles::Modifier::Shift;
-            if (_supportsZScale) mods = mods | handles::Modifier::Control;
-        }
         return _inner->Update(ray, mods);
     }
 
@@ -1281,7 +1383,6 @@ private:
     std::string                            _modelName;
     std::unique_ptr<handles::DragSession>  _inner;
     handles::Id                            _innerId;
-    bool                                   _supportsZScale;
     bool                                   _is3D;
 };
 
