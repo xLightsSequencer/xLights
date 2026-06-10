@@ -11,6 +11,7 @@
 
 #include <set>
 #include <wx/propgrid/propgrid.h>
+#include <wx/propgrid/propgridiface.h>
 #include <wx/combo.h>
 
 // This is to workaround a crash in wxPropertyGrid where doing
@@ -29,6 +30,13 @@ public:
                    const wxString& name = wxASCII_STR(wxPropertyGridNameStr)) :
         wxPropertyGrid(parent, id, pos, size, style, name) {
             Connect(wxEVT_IDLE,(wxObjectEventFunction)&xlPropertyGrid::OnIdle, 0, this);
+            // Tab traversal: stock wxPropertyGrid sends focus to the next sibling
+            // widget on Tab (via Navigate()), so users have to click their way
+            // back into the grid to edit the next property. Intercept Tab via
+            // CHAR_HOOK on the grid and walk to the next/previous visible
+            // property instead, matching the behavior of every other property
+            // editor (Excel, Visual Studio properties pane, etc.).
+            Bind(wxEVT_CHAR_HOOK, &xlPropertyGrid::OnCharHook, this);
     }
     virtual ~xlPropertyGrid() {
     }
@@ -72,6 +80,51 @@ public:
         HideDeletingComboPopups();
 #endif
         wxPropertyGrid::Clear();
+    }
+
+    void OnCharHook(wxKeyEvent& event) {
+        // Only interested in plain Tab / Shift+Tab; Ctrl/Alt+Tab passes through.
+        if (event.GetKeyCode() != WXK_TAB || event.ControlDown() || event.AltDown()) {
+            event.Skip();
+            return;
+        }
+        // If no editor is open, let wx do its default traversal so Tab can
+        // exit the grid normally when the user is just navigating.
+        if (!IsEditorFocused()) {
+            event.Skip();
+            return;
+        }
+        wxPGProperty* sel = GetSelection();
+        if (sel == nullptr) {
+            event.Skip();
+            return;
+        }
+        wxPropertyGridIterator it = GetIterator(wxPG_ITERATE_VISIBLE, sel);
+        if (event.ShiftDown()) {
+            --it;
+        } else {
+            ++it;
+        }
+        if (it.AtEnd()) {
+            // Boundary: at the first/last property — fall through to default
+            // traversal so the user can Tab out of the grid entirely.
+            event.Skip();
+            return;
+        }
+        // Commit the current editor's value, then jump to the next property.
+        // The commit fires wxEVT_PG_CHANGED, which queues a model reload that
+        // rebuilds the whole grid and invalidates property pointers. Defer the
+        // focus shift via CallAfter so it runs once the rebuild has settled,
+        // and look up the target by name (pointers from before the rebuild
+        // are dead).
+        const wxString nextName = (*it)->GetName();
+        CommitChangesFromEditor();
+        CallAfter([this, nextName]() {
+            if (wxPGProperty* p = GetPropertyByName(nextName)) {
+                SelectProperty(p, true);
+                EnsureVisible(p);
+            }
+        });
     }
 
 private:
