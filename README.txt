@@ -29,12 +29,15 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  direction (Clockwise/Counter-Clockwise), and build order (Top to Bottom/
                                  Bottom to Top), all remembered between openings
     -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
+    -enh (derwin12)              Add lua scripting to provide sequence importing and auto mapping (#6475)
+    -enh (derwin12)              Add HD upscale option for model export (#4228)
     -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
     -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
+    -enh (derwin12)              Add Shift+double click on model to expand/collapse strands (#2411)
     -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
+    -enh (derwin12)              Add transition blur to many transitions (#816)
     -enh (cybercop23)            Add Cycles parameter (1-10) to Custom value curves to allow replication
-    -enh (derwin12)              Add right click to swap start/end nodes (#5450)
-    -enh (cybercob23)            In sequence import, add right click option to sort submodels within a model (#4636)
+    -enh (cybercop23)            In sequence import, add right click option to sort submodels within a model (#4636)
     -enh (agfazio)               Add drag/drop effects in sequencer
     -enh (derwin12)              Clean up MH UI to show and refresh the presets on all the panels
     -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
@@ -45,31 +48,32 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                 Add "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless,
                                  much smaller than uncompressed RGB, decodes on all platforms
     -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
-    -enh (cybercop)              Add ability to move bkgrnd image in Model Data (#5506)
+    -enh (cybercop)              Add ability to move background image in Model Data (#5506)
     -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the
                                  model list from the server and present model settings as a dropdown,
                                  including a model picker in the AI image generation dialog.
     -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
                                  are added as DDP with auto-size/auto-layout.
-    -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -enh (cybercop23)            Fix closing the Faces/States editor to prompt for confirmation (#6470)
+    -bug (derwin12)              Dont mark layout dirty by importing a sequence via batch render
+    -bug (derwin12)              Fix creation of some new native models in 3d were limited in width and location (#6526)
     -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video
                                  effects are loaded (#6449)
     -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
     -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
     -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
+    -bug (scott)                 Flip color wheel in Color picker to match moving head standard
     -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
                                  from saved map files when the model existed in the xLights layout but
                                  not the current sequence.
+    -bug (derwin12)              Warn user if attempting to upload channels too large for F16V3 ddp + serial mode (#5584)
     -bug (agfazio)               Default transition adjust was not correctly defaulted (#6524)
-    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
     -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
     -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
-    -bug (cybercop23)            Fix Sequencer Copy Layers/SubModels.
     -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
     -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
     -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
     -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
-    -bug (cybercop23)            Prompt before exiting a changed faces/states window (#6470)
     -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
                                  (div-by-zero produced NaN paint coordinates).
     -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
@@ -114,7 +118,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
-    -bug (derwin12)              Fix media relative paths when using temp showfolder
+    -bug (derwin12)              Fix media relative paths when using temp show folder
     -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
                                  start-channel references instead of resetting them to absolute channels.
     -bug (derwin12)              Package Log Files: fix duplicate primary log in zip; rolled log now included.
