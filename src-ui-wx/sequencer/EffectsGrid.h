@@ -284,7 +284,7 @@ private:
     void MoveAllSelectedEffects(int deltaMS, bool offset) const;
     void ResetEffectMoveDragState();
     int SnapCursorToTimingMark(int timeMS, int x) const;
-    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming);
+    void UpdateEffectMoveDragState(int x, int y, bool snapToTiming, bool altDown);
     void ApplyEffectMoveDrag();
     void DrawEffectMoveDragOverlay(xlGraphicsContext* ctx);
     void StretchAllSelectedEffects(int deltaMS, bool offset) const;
@@ -395,6 +395,7 @@ private:
     int mEffectMoveTargetRow = 0;
     int mEffectMoveTargetDeltaMS = 0;
     bool mEffectMoveHasCollision = false;
+    bool mEffectMoveCopyMode = false;
     std::vector<EffectMoveSnapshot> mEffectMoveSnapshots;
 
     bool mCellRangeSelected;
