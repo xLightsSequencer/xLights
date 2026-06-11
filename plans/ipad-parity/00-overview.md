@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,173 features** were enumerated across 14 themes (menu items, context-menu
+- **1,187 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (771 features; see the per-theme scorecards).
+  - **Parity** — both have it (791 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -26,9 +26,9 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,173 |
-| **At parity** (both platforms) | 771 (**~66%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 238 |
+| Features audited | 1,187 |
+| **At parity** (both platforms) | 791 (**~67%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 232 |
 | **iPad-weaker** (partial on iPad) | 64 |
 | **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 99 |
 | Infeasible on iPad (platform limits) | 60 |
@@ -39,7 +39,7 @@
 
 Each feature's gap is derived from its desktop/iPad status (✅/🟡/❌); the
 **% Parity** column in the scorecard below is *parity ÷ features* per theme.
-Overall the iPad sits at **~66% parity** with the desktop, with the biggest
+Overall the iPad sits at **~67% parity** with the desktop, with the biggest
 remaining backlogs in Preferences (theme 11), Layout (06), and Tools (13).
 
 The everyday workflow (create/open/save sequences, place/edit effects, color &
@@ -61,20 +61,20 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
 | 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 43 | 62% | 16 | 4 | 6 | 5 |
-| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 115 | 85 | 74% | 17 | 5 | 8 | 3 |
+| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 88 | 75% | 16 | 5 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 70 | 84% | 5 | 4 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 83 | 72 | 87% | 3 | 3 | 5 | 0 |
-| 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 66 | 81% | 9 | 3 | 3 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 135 | 91 | 67% | 25 | 12 | 7 | 3 |
-| 07 | [Setup](07-setup-controllers-upload.md) | 76 | 59 | 78% | 11 | 3 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 70 | 48 | 69% | 17 | 5 | 0 | 1 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 74 | 87% | 3 | 3 | 5 | 0 |
+| 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 68 | 84% | 7 | 3 | 3 | 1 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 95 | 68% | 25 | 12 | 7 | 3 |
+| 07 | [Setup](07-setup-controllers-upload.md) | 80 | 62 | 78% | 12 | 3 | 3 | 11 |
+| 08 | [Import & Export](08-import-export.md) | 71 | 51 | 72% | 15 | 5 | 0 | 1 |
 | 09 | [Render & Playback](09-render-playback.md) | 53 | 44 | 83% | 4 | 2 | 3 | 0 |
-| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 58 | 69% | 21 | 4 | 0 | 7 |
-| 11 | [Preferences](11-preferences-settings.md) | 131 | 34 | 26% | 70 | 14 | 13 | 19 |
-| 12 | [AI](12-ai-automation-scripting.md) | 47 | 25 | 53% | 20 | 0 | 2 | 16 |
+| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 59 | 70% | 20 | 4 | 0 | 7 |
+| 11 | [Preferences](11-preferences-settings.md) | 131 | 35 | 27% | 69 | 14 | 13 | 19 |
+| 12 | [AI](12-ai-automation-scripting.md) | 48 | 26 | 54% | 20 | 0 | 2 | 16 |
 | 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 26 | 53% | 20 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 50 | 52% | 0 | 3 | 44 | 10 |
-| — | **Total** | **1,173** | **771** | **~66%** | **238** | **64** | **≈99** | **83** |
+| — | **Total** | **1,187** | **791** | **~67%** | **232** | **64** | **≈99** | **83** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -158,6 +158,25 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 > snap-to-grid, case-sensitive Find, default ⌘R Render All, Copy
 > Palette String, ValueCurve clipboard copy/paste interchanging with
 > the iPad's `xlvc:v1:` envelope (themes 05/11/14 + README.txt).
+
+> **Landed (2026-06-11, Wave 4 — recent-desktop-feature parity):** Song
+> Structure region bulk ops wired (Copy-to-Region, Apply-Palette,
+> Fill-from-Marks; export analyzed + tracked); import wizard stacked/merge
+> mappings (#6474), multi-xmaphint load, sort-submodels (#4636), Edit
+> Display Elements mid-import (#6477); Command Palette ⌘⇧K (#6258);
+> Replace Model multi-target dialog (#4462); Bulk Edit Rotate X/Y/Z;
+> SubModels Symmetrize via new shared core `models/SubModelSymmetrize`
+> (desktop dialog refactored onto it); Sketch path management (#5871,
+> list + descriptions + delete); HD ProRes 1080p model export (#6506);
+> FPP Player-Only→xLights-Only (#6453); AutoSize universe warning
+> (#4123); Copy Layers/SubModels to Models; CSS + recent color swatches
+> (`XLColorSwatchPicker`); WLED mDNS discovery wired into iPad discovery
+> (+ `_wled._tcp` Bonjour entitlement); verified-shared: State/Faces on
+> SubModels, AI image model picker, Per-Model-Default group option,
+> Duplicate-include-submodels. A 678-commit git-log audit added 13
+> missing README.txt entries and 3 new tracked gaps (#5064 paste-at-
+> original-time, #6438 multi-model import positions, FPP-Connect input
+> push #2747).
 
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
@@ -573,7 +592,7 @@ list (unchanged).
 
 ## Per-theme detail
 
-Each theme doc has the full parity scorecard (including the 771 at-parity
+Each theme doc has the full parity scorecard (including the 791 at-parity
 features), the iPad-gap and desktop-gap breakdowns, infeasible/restricted lists,
 and per-theme sequencing:
 
