@@ -1102,8 +1102,6 @@ void xLightsFrame::MousePositionUpdated( wxCommandEvent& event)
 
 void xLightsFrame::RowHeadingsChanged( wxCommandEvent& event)
 {
-    if (CurrentSeqXmlFile != nullptr)
-        UnsavedRgbEffectsChanges = true;
     wxString s = event.GetString();
     if ("" != s) {
         for (const auto& it : AllModels) {
