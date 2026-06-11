@@ -191,7 +191,14 @@ public:
         }
         return def;
     }
-    void SetExtraProperty(const std::string &p, const std::string &v) { auto it = _extraProperties.find(p); if (it == _extraProperties.end() || it->second != v) { _extraProperties[p] = v; } }
+    bool SetExtraProperty(const std::string &p, const std::string &v) {
+        auto it = _extraProperties.find(p);
+        if (it == _extraProperties.end() || it->second != v) {
+            _extraProperties[p] = v;
+            return true;
+        }
+        return false;
+    }
     #pragma endregion
 
     #pragma region Virtual Functions
