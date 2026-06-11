@@ -2053,21 +2053,32 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             }
 
             {
+                auto* config = GetXLightsConfig();
+                wxString ctrlKey = controller->GetName();
+                ctrlKey.Replace(":", "_");
+                ctrlKey.Replace("/", "_");
+                ctrlKey.Replace("\\", "_");
+                ctrlKey.Replace(".", "_");
+                ctrlKey.Replace(" ", "_");
+
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never").c_str())));
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never").c_str()));
+                wxString ts;
+                if (!config->Read("LastInputUpload/" + ctrlKey.ToStdString(), &ts)) ts = "Never";
+                p->SetValue(ts);
 
                 p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
                 if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never").c_str())));
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never").c_str()));
+                if (!config->Read("LastOutputUpload/" + ctrlKey.ToStdString(), &ts)) ts = "Never";
+                p->SetValue(ts);
             }
 
             if (controller->IsFromBase()) {
@@ -2792,11 +2803,17 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            if (controller->SetExtraProperty("LastInputUpload", ts)) {
-                                NetworkChange();
-                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
-                                    prop->SetValue(wxString::FromUTF8(ts.c_str()));
-                                }
+                            auto* config = GetXLightsConfig();
+                            wxString ctrlKey = controller->GetName();
+                            ctrlKey.Replace(":", "_");
+                            ctrlKey.Replace("/", "_");
+                            ctrlKey.Replace("\\", "_");
+                            ctrlKey.Replace(".", "_");
+                            ctrlKey.Replace(" ", "_");
+                            config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }
                         }
                     }
@@ -2866,11 +2883,17 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            if (controller->SetExtraProperty("LastOutputUpload", ts)) {
-                                NetworkChange();
-                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
-                                    prop->SetValue(wxString::FromUTF8(ts.c_str()));
-                                }
+                            auto* config = GetXLightsConfig();
+                            wxString ctrlKey = controller->GetName();
+                            ctrlKey.Replace(":", "_");
+                            ctrlKey.Replace("/", "_");
+                            ctrlKey.Replace("\\", "_");
+                            ctrlKey.Replace(".", "_");
+                            ctrlKey.Replace(" ", "_");
+                            config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
                             }
                         }
                     } else {

@@ -1180,9 +1180,16 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
 
                         if (!controllerFailed) {
                             auto ts = FormatTimestamp();
-                            c.front()->SetExtraProperty("LastInputUpload", ts);
-                            c.front()->SetExtraProperty("LastOutputUpload", ts);
-                            frame->NetworkChange();
+                            auto* config = GetXLightsConfig();
+                            wxString ctrlKey = c.front()->GetName();
+                            ctrlKey.Replace(":", "_");
+                            ctrlKey.Replace("/", "_");
+                            ctrlKey.Replace("\\", "_");
+                            ctrlKey.Replace(".", "_");
+                            ctrlKey.Replace(" ", "_");
+                            config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
                         }
                     }
                 }
@@ -1207,9 +1214,16 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
                 if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
                     auto ts = FormatTimestamp();
-                    controller.front()->SetExtraProperty("LastInputUpload", ts);
-                    controller.front()->SetExtraProperty("LastOutputUpload", ts);
-                    frame->NetworkChange();
+                    auto* config = GetXLightsConfig();
+                    wxString ctrlKey = controller.front()->GetName();
+                    ctrlKey.Replace(":", "_");
+                    ctrlKey.Replace("/", "_");
+                    ctrlKey.Replace("\\", "_");
+                    ctrlKey.Replace(".", "_");
+                    ctrlKey.Replace(" ", "_");
+                    config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                    config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                    config->Flush();
                 }
                 delete bc;
             }
