@@ -40,6 +40,8 @@
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
 #include <algorithm>
+#include <chrono>
+#include <ctime>
 
 //(*IdInit(FPPConnectDialog)
 const wxWindowID FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -1133,6 +1135,21 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     std::map<std::string, std::string> virtualDisplayData;
     FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
+
+    auto FormatTimestamp = []() -> std::string {
+        auto now = std::chrono::system_clock::now();
+        auto tt = std::chrono::system_clock::to_time_t(now);
+        std::tm tm{};
+#ifdef _WIN32
+        localtime_s(&tm, &tt);
+#else
+        localtime_r(&tt, &tm);
+#endif
+        char buf[64];
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+        return buf;
+    };
+
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1177,6 +1194,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
                         cancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
                         cancelled |= inst->SetInputUniversesBridge(c.front());
+
+                        if (!cancelled) {
+                            auto ts = FormatTimestamp();
+                            c.front()->SetExtraProperty("LastInputUpload", ts);
+                            c.front()->SetExtraProperty("LastOutputUpload", ts);
+                            frame->NetworkChange();
+                        }
                     }
                 }
                 if (GetChoiceValueIndex(MODELS_COL + rowStr) == 1) {
@@ -1197,8 +1221,13 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 //if restart flag is now set, restart and recheck range
                 inst->Restart(true);
             } else if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr) && controller.size() == 1) {
-                BaseController *bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
-                bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame);
+                BaseController* bc = BaseController::CreateBaseController(controller.front(), inst->ipAddress);
+                if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
+                    auto ts = FormatTimestamp();
+                    controller.front()->SetExtraProperty("LastInputUpload", ts);
+                    controller.front()->SetExtraProperty("LastOutputUpload", ts);
+                    frame->NetworkChange();
+                }
                 delete bc;
             }
         }
