@@ -241,7 +241,7 @@ std::unique_ptr<WLEDOutput> WLED::ExtractOutputJSON(nlohmann::json const& jsonVa
         output->pin = GetOutputPin(port, caps);
     }
 
-    return std::move(output);
+    return output;
 }
 
 void WLED::UpdatePortData(WLEDOutput* pd, UDControllerPort* stringData, int startNumber, bool& rgbw) const {

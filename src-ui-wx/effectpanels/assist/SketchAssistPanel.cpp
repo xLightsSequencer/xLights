@@ -766,7 +766,6 @@ void SketchAssistPanel::UpdatePathLabels()
 void SketchAssistPanel::UpdatePathActionButtons()
 {
     auto selections = GetSelectedPathIndices();
-    const bool hasSelection = !selections.empty();
     const bool singleSelection = selections.size() == 1;
     const int selectedIndex = singleSelection ? selections.front() : -1;
     const int lastIndex = (int)m_sketch.pathCount() - 1;
