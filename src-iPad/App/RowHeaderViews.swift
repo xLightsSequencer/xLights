@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Timing-row header (row 2 left). Renders a colored background, an
 /// active indicator circle (filled when active, outlined when not),
@@ -61,6 +62,10 @@ struct TimingRowHeader: View {
     /// every timing mark on this row. Gated by `canSelectMarks`.
     var canSelectMarks: Bool = false
     var onSelectMarks: (() -> Void)?
+    /// #6268: fires when the user picks "Create Song Regions from
+    /// Timing Track" — replaces the active song-structure view's
+    /// regions with one per timing mark (plus gap fillers).
+    var onCreateSongRegions: (() -> Void)?
 
     // Active state is carried on `row.timing?.isActive` so a toggle
     // here flips the struct equality and re-runs the grid body —
@@ -263,6 +268,12 @@ struct TimingRowHeader: View {
                         Label("Select All Marks", systemImage: "checklist")
                     }
                 }
+                if let fire = onCreateSongRegions {
+                    Button { fire() } label: {
+                        Label("Create Song Regions from Timing Track",
+                               systemImage: "rectangle.split.3x1")
+                    }
+                }
                 Button(role: .destructive) {
                     showDelete = true
                 } label: { Label("Delete Timing Track", systemImage: "trash") }
@@ -344,9 +355,18 @@ struct ModelRowHeader: View {
     /// B50 delete-all-effects-on-row + count (for the confirm alert).
     var effectCountOnRow: Int = 0
     var onDeleteAllEffectsOnRow: (() -> Void)?
+    /// Desktop ID_ROW_MNU_DELETE_MODEL_EFFECTS — delete every effect
+    /// on the element (all layers + submodels/strands/nodes).
+    var onDeleteModelEffects: (() -> Void)?
     /// B51 toggle element render-disabled flag.
     var elementRenderDisabled: Bool = false
     var onToggleRenderDisabled: (() -> Void)?
+    /// Clear render-disabled on every element (desktop
+    /// ID_ROW_MNU_RENDERENABLE_ALL).
+    var onEnableRenderAll: (() -> Void)?
+    /// Loop-play the element's effects span (desktop
+    /// ID_ROW_MNU_PLAY_MODEL).
+    var onPlayModel: (() -> Void)?
     /// B53 / B54 row + model cut / copy. Paste is also exposed on
     /// the menu via `onPaste` (in addition to the global Cmd+V
     /// plumbed in B98) — fires `pasteAtRow` so a multi-layer
@@ -392,6 +412,9 @@ struct ModelRowHeader: View {
     /// owns the count prompt; we just fire the closure with the
     /// chosen value.
     var onInsertMultipleLayersBelow: (() -> Void)?
+    /// Delete N layers from this one down (desktop
+    /// ID_ROW_MNU_DELETE_LAYERS); opens the count prompt.
+    var onDeleteMultipleLayers: (() -> Void)?
     /// True when this row hosts the currently-selected effect.
     /// Drives a soft accent tint on the heading so the active row
     /// is recognisable at a glance — pairs with the height bump
@@ -400,6 +423,7 @@ struct ModelRowHeader: View {
 
     @State private var showDeleteLayerConfirm: Bool = false
     @State private var showDeleteAllEffectsConfirm: Bool = false
+    @State private var showDeleteModelEffectsConfirm: Bool = false
     @State private var showRenameLayer: Bool = false
     @State private var renameLayerText: String = ""
 
@@ -551,6 +575,14 @@ struct ModelRowHeader: View {
                            systemImage: "trash.slash")
                 }
             }
+            if !isSubLayer && !isNodeRow, onDeleteModelEffects != nil {
+                Button(role: .destructive) {
+                    showDeleteModelEffectsConfirm = true
+                } label: {
+                    Label("Delete Model Effects",
+                           systemImage: "trash.fill")
+                }
+            }
             if effectCountOnRow > 0, let fire = onCopyRow {
                 Button { fire() } label: {
                     Label("Copy Row", systemImage: "doc.on.doc")
@@ -638,6 +670,18 @@ struct ModelRowHeader: View {
                            systemImage: elementRenderDisabled ? "play.rectangle" : "stop.rectangle")
                 }
             }
+            if !isSubLayer && !isNodeRow, let fireAll = onEnableRenderAll {
+                Button { fireAll() } label: {
+                    Label("Enable Render on All Models",
+                           systemImage: "play.rectangle.on.rectangle")
+                }
+            }
+            if !isNodeRow, !row.effects.isEmpty || !isSubLayer,
+               let firePlay = onPlayModel {
+                Button { firePlay() } label: {
+                    Label("Play Model", systemImage: "play.circle")
+                }
+            }
             if !row.effects.isEmpty || onToggleRenderDisabled != nil
                 || onDeleteAllEffectsOnRow != nil {
                 Divider()
@@ -669,6 +713,11 @@ struct ModelRowHeader: View {
                     Button(role: .destructive) {
                         showDeleteLayerConfirm = true
                     } label: { Label("Delete Layer", systemImage: "trash") }
+                    if let fire = onDeleteMultipleLayers {
+                        Button(role: .destructive) { fire() } label: {
+                            Label("Delete Layers…", systemImage: "trash.slash")
+                        }
+                    }
                 }
                 if !isSubLayer, unusedLayerCount > 0,
                    let fire = onDeleteUnusedLayers {
@@ -726,6 +775,15 @@ struct ModelRowHeader: View {
         } message: {
             Text("Delete all \(effectCountOnRow) effects on \(row.displayName)? Undo with ⌘Z.")
         }
+        .alert("Delete Model Effects",
+               isPresented: $showDeleteModelEffectsConfirm) {
+            Button("Delete All", role: .destructive) {
+                onDeleteModelEffects?()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Delete every effect on \(row.displayName) — all layers, submodels, strands and nodes? Undo with ⌘Z.")
+        }
         .alert("Rename Layer",
                isPresented: $showRenameLayer) {
             TextField("Name", text: $renameLayerText)
@@ -767,5 +825,62 @@ private struct ExpandableRowTapModifier: ViewModifier {
         } else {
             content.onTapGesture { onSelect() }
         }
+    }
+}
+
+/// #6507 parity — top-level row drag-reorder. Attaches an `.onDrag`
+/// source (long-press-drag, the iPad-native reorder idiom) and an
+/// `.onDrop` destination to a model / group / timing-track header.
+/// Non-top-level rows (sub-layers, strands, nodes, submodels) are
+/// left untouched so only whole elements reorder, matching desktop's
+/// `RowHeading` block-drag. The drop lands the dragged element
+/// immediately *before* this row's element; the parent draws the
+/// indicator from `dropTargetId`.
+struct TopLevelRowReorderModifier: ViewModifier {
+    let isTopLevel: Bool
+    let rowId: Int
+    @Binding var sourceId: Int?
+    @Binding var dropTargetId: Int?
+    let onCommit: (_ src: Int, _ destBefore: Int) -> Void
+
+    func body(content: Content) -> some View {
+        if isTopLevel {
+            content
+                .onDrag {
+                    sourceId = rowId
+                    return NSItemProvider(object: String(rowId) as NSString)
+                }
+                .onDrop(of: [UTType.plainText],
+                        delegate: RowReorderDropDelegate(
+                            rowId: rowId,
+                            sourceId: $sourceId,
+                            dropTargetId: $dropTargetId,
+                            onCommit: onCommit))
+        } else {
+            content
+        }
+    }
+}
+
+private struct RowReorderDropDelegate: DropDelegate {
+    let rowId: Int
+    @Binding var sourceId: Int?
+    @Binding var dropTargetId: Int?
+    let onCommit: (_ src: Int, _ destBefore: Int) -> Void
+
+    func dropEntered(info: DropInfo) {
+        if let src = sourceId, src != rowId { dropTargetId = rowId }
+    }
+    func dropExited(info: DropInfo) {
+        if dropTargetId == rowId { dropTargetId = nil }
+    }
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+    func performDrop(info: DropInfo) -> Bool {
+        defer { sourceId = nil; dropTargetId = nil }
+        guard let src = sourceId, src != rowId else { return false }
+        onCommit(src, rowId)
+        return true
     }
 }

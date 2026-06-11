@@ -195,6 +195,18 @@ struct EffectsMetalGridView: UIViewRepresentable {
             var pairedOrigEndMS: Int = 0
         }
         var drag: DragLocal?
+        // Drag-create-on-empty-cell (palette armed). World-space
+        // anchor row + start/end while a new effect is being dragged
+        // out over empty space; nil when no create-drag is active.
+        struct CreateDrag {
+            let rowId: Int
+            let anchorMS: Int
+            let minMS: Int
+            let maxMS: Int
+            var liveStartMS: Int
+            var liveEndMS: Int
+        }
+        var createDrag: CreateDrag?
         var liveStartMS: Int?
         var liveEndMS: Int?
         var liveFadeInSec: Float?
@@ -842,6 +854,39 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
                                  r: lr, g: lg, b: lb, a: 0.95)
             bridge.flushLineBatch()
         }
+
+        // Drag-create preview: a translucent selection-coloured rect +
+        // bracket spanning the dragged-out range on the anchor row.
+        if let cd = c.createDrag {
+            var yy: CGFloat = -c.scrollOffsetY
+            var rowTop: CGFloat = 0
+            var rowH: CGFloat = c.metrics.rowHeight
+            var found = false
+            for row in c.rows {
+                let h = (row.id == c.selection?.rowIndex)
+                    ? c.metrics.selectedRowHeight : c.metrics.rowHeight
+                if row.id == cd.rowId { rowTop = yy; rowH = h; found = true; break }
+                yy += h
+            }
+            if found {
+                let x1 = CGFloat(cd.liveStartMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(cd.liveEndMS)   * c.pixelsPerMS - c.scrollOffsetX
+                let top = rowTop + 1
+                let bottom = rowTop + rowH - 1
+                let sel = c.bracketSelected
+                bridge.beginFilledRectBatch()
+                bridge.appendFilledRectX(x1, y: top, w: max(1, x2 - x1),
+                                          h: bottom - top,
+                                          r: sel.0, g: sel.1, b: sel.2, a: 0.25)
+                bridge.flushFilledRectBatch()
+                bridge.beginLineBatch()
+                bridge.appendLineX1(x1 + 0.5, y1: top, x2: x1 + 0.5, y2: bottom,
+                                     r: sel.0, g: sel.1, b: sel.2, a: 1.0)
+                bridge.appendLineX1(x2 - 0.5, y1: top, x2: x2 - 0.5, y2: bottom,
+                                     r: sel.0, g: sel.1, b: sel.2, a: 1.0)
+                bridge.flushLineBatch()
+            }
+        }
     }
 
     private func drawFadeDiamond(bridge: XLGridMetalBridge,
@@ -1185,7 +1230,19 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         guard let c = coordinator else { return }
         let p = g.location(in: self)
         if let hit = hitTestEffect(at: p) {
-            c.actions.onTapEffect(hit.rowIndex, hit.effectIndex)
+            // Modifier-click additive multi-select (desktop parity).
+            // ⌘ or Ctrl toggles membership; ⇧ extends from the anchor.
+            // Magic Keyboard / trackpad expose these via the gesture
+            // recognizer's `modifierFlags`; plain taps fall through to
+            // single-select.
+            let mods = g.modifierFlags
+            if mods.contains(.command) || mods.contains(.control) {
+                c.actions.onToggleSelectEffect(hit.rowIndex, hit.effectIndex)
+            } else if mods.contains(.shift) {
+                c.actions.onExtendSelectEffect(hit.rowIndex, hit.effectIndex)
+            } else {
+                c.actions.onTapEffect(hit.rowIndex, hit.effectIndex)
+            }
         } else {
             // Outside any effect — forward (rowId, ms) like the CG
             // path so palette tap-to-add still works.
@@ -1311,6 +1368,9 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             let p = g.location(in: self)
             if let hit = hitTestEffect(at: p), canvasHasDragCandidate(at: p) {
                 beginEffectDrag(hit: hit, c: c)
+            } else if c.actions.isPaletteArmed(), beginCreateDrag(at: p, c: c) {
+                // Drag-create: armed palette + empty model-row space.
+                // beginCreateDrag set up c.createDrag.
             } else {
                 // Plain scroll pan — capture origin for delta math.
                 c.drag = nil
@@ -1321,6 +1381,10 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         case .changed:
             if c.drag != nil {
                 updateEffectDrag(g: g, c: c)
+                lastTouchInSelf = g.location(in: self)
+                updateAutoScroll(c: c, viewport: bounds.size)
+            } else if c.createDrag != nil {
+                updateCreateDrag(g: g, c: c)
                 lastTouchInSelf = g.location(in: self)
                 updateAutoScroll(c: c, viewport: bounds.size)
             } else {
@@ -1334,6 +1398,8 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
             stopAutoScroll(c: c)
             if let _ = c.drag {
                 endEffectDrag(c: c)
+            } else if c.createDrag != nil {
+                endCreateDrag(c: c, commit: g.state == .ended)
             } else if g.state == .ended {
                 // B96: start momentum scroll from the pan's release
                 // velocity. Touch pans carry real momentum; trackpad
@@ -1499,6 +1565,90 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
 
     private var lastTouchInSelf: CGPoint = .zero
 
+    // MARK: - Drag-create on empty cell (palette armed)
+
+    /// Try to start a drag-create at `p`. Succeeds only on a model
+    /// (non-timing) row, in empty space between effects, with at least
+    /// a sliver of room to grow into. Returns true when a create-drag
+    /// was armed (and `c.createDrag` populated).
+    private func beginCreateDrag(at p: CGPoint,
+                                  c: EffectsMetalGridView.Coordinator) -> Bool {
+        guard c.pixelsPerMS > 0 else { return false }
+        var y: CGFloat = -c.scrollOffsetY
+        var rowId: Int? = nil
+        for row in c.rows {
+            let h = (row.id == c.selection?.rowIndex)
+                ? c.metrics.selectedRowHeight : c.metrics.rowHeight
+            if p.y >= y && p.y < y + h {
+                if row.timing == nil { rowId = row.id }
+                break
+            }
+            y += h
+        }
+        guard let rid = rowId,
+              let row = c.rows.first(where: { $0.id == rid }) else { return false }
+        let anchorMS = max(0, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS))
+        // Reject if the anchor is inside an existing effect; clamp the
+        // create range to the neighbouring effects so we never overlap.
+        var minMS = 0
+        var maxMS = Int.max
+        for e in row.effects {
+            if anchorMS >= e.startTimeMS && anchorMS < e.endTimeMS { return false }
+            if e.endTimeMS <= anchorMS { minMS = max(minMS, e.endTimeMS) }
+            else if e.startTimeMS > anchorMS { maxMS = min(maxMS, e.startTimeMS) }
+        }
+        guard maxMS - minMS > 10 else { return false }
+        c.drag = nil
+        c.createDrag = .init(rowId: rid, anchorMS: anchorMS,
+                             minMS: minMS, maxMS: maxMS,
+                             liveStartMS: anchorMS, liveEndMS: anchorMS)
+        publishCreateDrag(c: c)
+        setNeedsDisplay()
+        return true
+    }
+
+    private func updateCreateDrag(g: UIPanGestureRecognizer,
+                                   c: EffectsMetalGridView.Coordinator) {
+        guard var cd = c.createDrag else { return }
+        let p = g.location(in: self)
+        let curMS = max(0, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS))
+        var lo = min(cd.anchorMS, curMS)
+        var hi = max(cd.anchorMS, curMS)
+        if let s = snapMS(lo, c: c) { lo = s }
+        if let s = snapMS(hi, c: c) { hi = s }
+        cd.liveStartMS = max(cd.minMS, lo)
+        cd.liveEndMS = min(cd.maxMS, hi)
+        c.createDrag = cd
+        publishCreateDrag(c: c)
+        setNeedsDisplay()
+    }
+
+    private func endCreateDrag(c: EffectsMetalGridView.Coordinator, commit: Bool) {
+        defer {
+            c.createDrag = nil
+            c.actions.onActiveDragChanged(nil)
+            setNeedsDisplay()
+        }
+        guard commit, let cd = c.createDrag else { return }
+        if cd.liveEndMS - cd.liveStartMS < 10 { return }
+        c.actions.onCreateEffectDrag(cd.rowId, cd.liveStartMS, cd.liveEndMS)
+    }
+
+    /// Publish the in-flight create-drag as an `ActiveDrag` so the
+    /// renderer paints the live pill + bracket via the same path the
+    /// move/resize drags use.
+    private func publishCreateDrag(c: EffectsMetalGridView.Coordinator) {
+        guard let cd = c.createDrag else { return }
+        let snap = SequencerViewModel.ActiveDrag(
+            kind: .move,
+            srcRowId: cd.rowId, effectIndex: -1,
+            origStartMS: cd.liveStartMS, origEndMS: cd.liveEndMS,
+            liveStartMS: cd.liveStartMS, liveEndMS: cd.liveEndMS,
+            liveFadeInSec: 0, liveFadeOutSec: 0,
+            liveRowId: nil, liveDropInvalid: false)
+        c.actions.onActiveDragChanged(snap)
+    }
+
     private func beginEffectDrag(hit: Hit, c: EffectsMetalGridView.Coordinator) {
         guard let row = c.rows.first(where: { $0.id == hit.rowIndex }),
               hit.effectIndex < row.effects.count else { return }
@@ -1575,6 +1725,12 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
     /// (filtering happens up in `collectActiveTimingMarkTimes`).
     private func snapMS(_ ms: Int, c: EffectsMetalGridView.Coordinator,
                          snapPx: CGFloat = 10) -> Int? {
+        // Desktop pref xLightsSnapToTimingMarks (default ON). Gating here
+        // covers every drag/resize call site in one place.
+        if UserDefaults.standard.object(forKey: "snapToTimingMarks") != nil,
+           !UserDefaults.standard.bool(forKey: "snapToTimingMarks") {
+            return nil
+        }
         guard c.pixelsPerMS > 0, !c.timingMarkTimesMS.isEmpty else { return nil }
         let thresh = Int(snapPx / c.pixelsPerMS)
         var best: Int?

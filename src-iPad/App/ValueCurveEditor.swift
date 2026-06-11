@@ -288,6 +288,8 @@ struct ValueCurveEditorSheet: View {
     @State private var vc: EditableValueCurve?
     @State private var showingLoadPreset = false
     @State private var showingSavePreset = false
+    @State private var showingExport = false
+    @State private var exportDocument: ValueCurveExportDocument? = nil
 
     var body: some View {
         NavigationStack {
@@ -515,6 +517,14 @@ struct ValueCurveEditorSheet: View {
                         Label("Save As Preset…",
                               systemImage: "square.and.arrow.down")
                     }
+                    Button {
+                        if let doc = viewModel.document.valueCurveXvcDocument(vc.core.serialise()) {
+                            exportDocument = ValueCurveExportDocument(text: doc)
+                            showingExport = true
+                        }
+                    } label: {
+                        Label("Export…", systemImage: "square.and.arrow.up")
+                    }
                 } header: {
                     Text("Presets")
                 }
@@ -531,6 +541,12 @@ struct ValueCurveEditorSheet: View {
                 _ = viewModel.document.saveValueCurveSerialised(
                     vc.core.serialise(), asName: name)
             }
+        }
+        .fileExporter(isPresented: $showingExport,
+                      document: exportDocument,
+                      contentType: ValueCurveExportDocument.xvcType,
+                      defaultFilename: "ValueCurve") { _ in
+            exportDocument = nil
         }
     }
 

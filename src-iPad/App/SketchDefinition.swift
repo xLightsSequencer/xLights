@@ -64,6 +64,28 @@ struct SketchPath: Equatable {
     /// Endpoint count (includes the start point + one per segment).
     var totalPoints: Int { 1 + segments.count }
 
+    /// True when the path carries a trailing close token.
+    var isClosed: Bool { !closeToken.isEmpty }
+
+    /// Close the path, matching desktop's `SketchEffectPath::closePath`
+    /// state convention (the digit after 'c' is the
+    /// `SketchCanvasPathState` of the last segment: line=2, quad=3,
+    /// cubic=4; default line when there are no segments yet).
+    mutating func close() {
+        guard !isClosed else { return }
+        let state: Int
+        switch segments.last {
+        case .quad:  state = 3
+        case .cubic: state = 4
+        default:     state = 2
+        }
+        closeToken = "c\(state)"
+    }
+
+    mutating func open() {
+        closeToken = ""
+    }
+
     /// All endpoints in draw order — `points[0]` is the start, each
     /// subsequent point is the endpoint of the corresponding segment.
     /// Useful for the editor when it needs a flat list for hit-

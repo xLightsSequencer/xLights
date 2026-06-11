@@ -376,8 +376,12 @@
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
 		<Unit filename="../src-core/import_export/ExportModels.cpp" />
 		<Unit filename="../src-core/import_export/ExportModels.h" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.cpp" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.h" />
 		<Unit filename="../src-core/import_export/LOREdit.cpp" />
 		<Unit filename="../src-core/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/LORMusic.cpp" />
+		<Unit filename="../src-core/import_export/LORMusic.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />
@@ -869,6 +873,8 @@
 		<Unit filename="../src-core/effects/SketchEffect.h" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.cpp" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.h" />
+		<Unit filename="../src-core/effects/SketchSVGImport.cpp" />
+		<Unit filename="../src-core/effects/SketchSVGImport.h" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.h" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.cpp" />

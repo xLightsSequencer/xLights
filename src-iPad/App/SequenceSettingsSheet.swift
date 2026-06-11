@@ -102,6 +102,8 @@ private struct InfoTab: View {
     @State private var currentMediaPath: String = ""
     @State private var pickingMediaFile = false
     @State private var pickedMediaURL: URL? = nil
+    @State private var durationText: String = ""
+    @AppStorage("overwriteTagsOnMediaChange") private var overwriteTags = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -110,12 +112,23 @@ private struct InfoTab: View {
                         value: viewModel.document.sequenceFileVersion())
             SettingsRow(label: "App Version",
                         value: viewModel.document.currentAppVersion())
-            SettingsRow(label: "Duration",
-                        value: formatDuration(viewModel.sequenceDurationMS))
+            HStack {
+                Text("Duration (sec)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                TextField("Seconds", text: $durationText)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 110)
+                    .multilineTextAlignment(.trailing)
+                    .onSubmit { commitDuration() }
+            }
             SettingsRow(label: "Frame Interval",
                         value: "\(viewModel.frameIntervalMS) ms")
             SettingsRow(label: "Models / Submodels",
                         value: "\(viewModel.document.sequenceModelCount())")
+            SettingsRow(label: "Media Hash",
+                        value: viewModel.document.mediaFileHash())
             Divider().padding(.vertical, 4)
             // Changing from Musical to Animation clears the audio
             // file (bridge's SetSequenceType handles that). Changing
@@ -168,13 +181,21 @@ private struct InfoTab: View {
                 Label("Choose Audio File…", systemImage: "music.note.list")
             }
             .buttonStyle(.bordered)
-            Text("Swapping the audio file does not re-run song / artist auto-tagging. Use the Metadata tab to update text fields if needed.")
+            // Desktop "Overwrite Tags" checkbox: when on, swapping the
+            // audio pulls song/artist/album from the new file's tags
+            // into the sequence metadata.
+            Toggle("Overwrite metadata tags on audio change", isOn: $overwriteTags)
+                .font(.caption)
+            Text(overwriteTags
+                 ? "Swapping the audio file replaces Song / Artist / Album from the new file's tags."
+                 : "Swapping the audio file preserves the existing Song / Artist / Album metadata.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .onAppear {
             seqType = viewModel.document.sequenceType()
             currentMediaPath = viewModel.document.currentMediaFilePath()
+            durationText = String(format: "%.3f", Double(viewModel.sequenceDurationMS) / 1000.0)
         }
         .fileImporter(isPresented: $pickingMediaFile,
                       allowedContentTypes: [.audio]) { result in
@@ -188,7 +209,24 @@ private struct InfoTab: View {
         ) { storedPath in
             _ = viewModel.document.setMediaFilePath(storedPath)
             currentMediaPath = storedPath
+            if overwriteTags {
+                let title = viewModel.document.audioTitle()
+                let artist = viewModel.document.audioArtist()
+                let album = viewModel.document.audioAlbum()
+                if !title.isEmpty { _ = viewModel.document.setHeaderInfo(title, forKey: "song") }
+                if !artist.isEmpty { _ = viewModel.document.setHeaderInfo(artist, forKey: "artist") }
+                if !album.isEmpty { _ = viewModel.document.setHeaderInfo(album, forKey: "album") }
+            }
         }
+    }
+
+    private func commitDuration() {
+        let secs = Double(durationText.trimmingCharacters(in: .whitespaces)) ?? 0
+        let ms = Int(secs * 1000.0)
+        if ms > 0, viewModel.document.setSequenceDurationMS(Int32(ms)) {
+            viewModel.reloadRows()
+        }
+        durationText = String(format: "%.3f", Double(viewModel.sequenceDurationMS) / 1000.0)
     }
 
     private var displayFilename: String {

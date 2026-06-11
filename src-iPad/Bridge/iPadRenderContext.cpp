@@ -38,6 +38,7 @@
 #include "models/ModelScreenLocation.h"
 #include "models/Node.h"
 #include "render/ValueCurve.h"
+#include "render/UICallbacks.h"
 #include "utils/Color.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
@@ -61,6 +62,41 @@
 #include <system_error>
 #include <thread>
 #include <vector>
+
+namespace {
+// Adapts iPadRenderContext's Check-Sequence disable set to the
+// UICallbacks surface CustomModel / SketchEffect consult during a
+// sequence check. Every other UICallbacks method is a defensive
+// stub — the only check-time caller is IsCheckSequenceOptionDisabled.
+class iPadCheckUICallbacks final : public UICallbacks {
+public:
+    explicit iPadCheckUICallbacks(const iPadRenderContext* ctx) : _ctx(ctx) {}
+
+    bool IsCheckSequenceOptionDisabled(const std::string& option) const override {
+        return _ctx && _ctx->IsCheckOptionDisabled(option);
+    }
+
+    void ShowMessage(const std::string&, const std::string&) const override {}
+    bool PromptYesNo(const std::string&, const std::string&) const override { return false; }
+    std::string PromptForDirectory(const std::string&, const std::string&) const override { return ""; }
+    std::string PromptForFile(const std::string&, const std::string&, const std::string&) const override { return ""; }
+    long PromptForNumber(const std::string&, const std::string&, long defaultValue, long, long) const override { return defaultValue; }
+    std::string PromptForText(const std::string&, const std::string&, const std::string& defaultValue) const override { return defaultValue; }
+    ProgressToken BeginProgress(const std::string&, int) override { return INVALID_PROGRESS; }
+    void UpdateProgress(ProgressToken, int, const std::string&) override {}
+    void EndProgress(ProgressToken) override {}
+
+private:
+    const iPadRenderContext* _ctx;
+};
+} // namespace
+
+UICallbacks* iPadRenderContext::GetUICallbacks() {
+    if (!_checkUICallbacks) {
+        _checkUICallbacks = std::make_unique<iPadCheckUICallbacks>(this);
+    }
+    return _checkUICallbacks.get();
+}
 
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
@@ -343,7 +379,25 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
     }
 
+    LoadBasePresets();
+
     return true;
+}
+
+bool iPadRenderContext::LoadBasePresets() {
+    _basePresetManager.Reset();
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty() || baseDir == _showDir)
+        return false;
+    std::string basePresetsPath = baseDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(basePresetsPath, false);
+    if (_basePresetManager.LoadJsonFile(basePresetsPath) &&
+        !_basePresetManager.GetRoot().GetChildren().empty()) {
+        spdlog::info("iPadRenderContext: Loaded base effect presets from {}", basePresetsPath);
+        return true;
+    }
+    _basePresetManager.Reset();
+    return false;
 }
 
 bool iPadRenderContext::SaveEffectPresets() {

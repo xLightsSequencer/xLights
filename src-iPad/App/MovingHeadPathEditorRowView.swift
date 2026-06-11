@@ -1,37 +1,27 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
-// G4 — touch editor for the Sketch effect's `E_TEXTCTRL_SketchDef`
-// polyline string. Mirrors the authoring surface of desktop's
-// `SketchAssistPanel` in a form that works without a mouse:
+// Touch path editor for the Moving Head effect's `Path:` command.
+// Desktop's `MovingHeadCanvasPanel` / `SketchCanvasPanel` draws the
+// same Bezier waypoint path; the string format is identical to the
+// Sketch effect's `SketchDef` (start point + L / Q / C / c tokens in
+// [0,1] coords) so this view reuses `SketchDefinition` for parse /
+// serialise.
 //
-//   * Renders every path with line / quadratic / cubic segments,
-//     including closed paths.
-//   * Drag endpoints to move them.
-//   * Drag Q / C control points to re-shape curves.
-//   * Tap empty canvas in "Add Line" mode to append a line segment
-//     to the active (last) path.
-//   * Tap empty canvas in "Add Curve" mode to append a cubic-bezier
-//     segment whose control points seed automatically and are then
-//     draggable.
-//   * "New Path" starts a disconnected sub-path.
-//   * "Close" closes / re-opens the active path (desktop's path-close
-//     semantics — emits a `cN` token).
-//   * "▲ / ▼" reorder the active path among its siblings (paths draw
-//     in order, matching desktop's Move Path Up/Down).
-//   * "Import SVG" converts an SVG file's paths into sketch paths
-//     (shared nanosvg conversion with the desktop assist panel).
-//   * "Remove Last" trims the last segment off the active path
-//     (or drops the active path entirely when only the start
-//     point remains).
-//   * "Clear" resets to an empty definition.
+// Coordinate note: the renderer treats stored-Y as "up" (it maps
+// `(0.5 - y)` to the up axis in `MovingHeadEffect::CalculatePathPositions`),
+// and desktop's canvas flips Y at the UI layer so the top of the
+// canvas stores Y≈1. SwiftUI's canvas Y grows downward, so we flip Y
+// in `screen` / `normalise` — a waypoint dragged to the top of the
+// iPad canvas serialises to Y≈1, matching desktop's stored paths
+// exactly (round-trips cleanly + renders identically).
 //
-// The raw `SketchDef` text field (SketchDefRowView) remains available
-// for copy/paste import/export of definitions.
-struct SketchPathEditorRowView: View {
+// Unlike the Sketch editor this view reads / writes through the MH
+// command bridge (`movingHeadCommand("Path", …)` /
+// `setMovingHeadCommand("Path", …)`) rather than a settings key, so
+// the path is written to every active fixture.
+struct MovingHeadPathEditorRowView: View {
     @Environment(SequencerViewModel.self) var viewModel
 
-    private static let settingKey = "E_TEXTCTRL_SketchDef"
     private static let canvasSize: CGFloat = 260
     private static let margin: CGFloat = 12
     private static let handleRadius: CGFloat = 8
@@ -46,23 +36,14 @@ struct SketchPathEditorRowView: View {
 
     @State private var editMode: EditMode = .drag
     @State private var activeHandle: HandleID? = nil
-    @State private var importingSVG: Bool = false
-    /// The path the toolbar acts on (append / close / reorder /
-    /// highlight). `nil` means "the last path" — the common case after
-    /// drawing. Set explicitly when the user reorders so the moved path
-    /// stays selected, mirroring desktop's path-list selection.
     @State private var selectedPath: Int? = nil
-    /// Snapshot of the definition taken at the start of the current
-    /// drag — used so each drag commits exactly one undo step.
-    @State private var dragStartDef: SketchDefinition? = nil
 
-    /// Identifies a draggable handle in the current definition.
     private enum HandleKind: Equatable {
-        case start                  // path's move-to point
-        case endpoint(Int)          // segments[i].endpoint
-        case quadCtrl(Int)          // segments[i].ctrl (for Q)
-        case cubicCtrl1(Int)        // segments[i].ctrl1 (for C)
-        case cubicCtrl2(Int)        // segments[i].ctrl2 (for C)
+        case start
+        case endpoint(Int)
+        case quadCtrl(Int)
+        case cubicCtrl1(Int)
+        case cubicCtrl2(Int)
     }
     private struct HandleID: Equatable {
         let pathIndex: Int
@@ -70,7 +51,11 @@ struct SketchPathEditorRowView: View {
     }
 
     private var storedString: String {
-        viewModel.settingValue(forKey: Self.settingKey, defaultValue: "")
+        _ = viewModel.inspectorRevision
+        guard let sel = viewModel.selectedEffect else { return "" }
+        return viewModel.document.movingHeadCommand("Path",
+                                                     forRow: Int32(sel.rowIndex),
+                                                     atIndex: Int32(sel.effectIndex))
     }
 
     private var definition: SketchDefinition {
@@ -80,7 +65,7 @@ struct SketchPathEditorRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Text("Sketch Path")
+                Text("Path")
                     .font(.caption)
                 Spacer()
                 Text("\(definition.paths.count) paths · \(definition.totalPoints) pts")
@@ -106,28 +91,15 @@ struct SketchPathEditorRowView: View {
                 Button {
                     startNewPath()
                 } label: {
-                    Image(systemName: "scribble")
-                        .font(.caption2)
+                    Image(systemName: "scribble").font(.caption2)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
 
-                Button {
-                    importingSVG = true
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.caption2)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-            }
-
-            HStack(spacing: 6) {
                 Button {
                     toggleCloseActivePath()
                 } label: {
-                    Label(activePathClosed ? "Open" : "Close",
-                          systemImage: activePathClosed ? "lock.open" : "lock")
+                    Image(systemName: activePathClosed ? "lock.open" : "lock")
                         .font(.caption2)
                 }
                 .buttonStyle(.bordered)
@@ -135,30 +107,9 @@ struct SketchPathEditorRowView: View {
                 .disabled(!canCloseActivePath)
 
                 Button {
-                    moveActivePath(by: -1)
-                } label: {
-                    Image(systemName: "arrow.up")
-                        .font(.caption2)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(definition.paths.count < 2)
-
-                Button {
-                    moveActivePath(by: 1)
-                } label: {
-                    Image(systemName: "arrow.down")
-                        .font(.caption2)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(definition.paths.count < 2)
-
-                Button {
                     removeLastPoint()
                 } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                        .font(.caption2)
+                    Image(systemName: "arrow.uturn.backward").font(.caption2)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
@@ -167,30 +118,27 @@ struct SketchPathEditorRowView: View {
                 Button(role: .destructive) {
                     clearAll()
                 } label: {
-                    Image(systemName: "xmark.bin")
-                        .font(.caption2)
+                    Image(systemName: "xmark.bin").font(.caption2)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(definition.isEmpty)
             }
 
+            MovingHeadPathPresetStrip()
+
             Text(modeHelpText)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
-        .fileImporter(isPresented: $importingSVG,
-                      allowedContentTypes: [UTType(filenameExtension: "svg") ?? .image]) { result in
-            handleSVGImport(result)
-        }
     }
 
     private var modeHelpText: String {
         switch editMode {
-        case .drag:     return "Drag a handle to reshape. The active (highlighted) path is the last one."
-        case .addLine:  return "Tap to add a line segment to the active path."
-        case .addCurve: return "Tap to add a curve segment, then drag its control handles."
+        case .drag:     return "Drag a handle to reshape. Top of the canvas is the up direction."
+        case .addLine:  return "Tap to add a line waypoint to the active path."
+        case .addCurve: return "Tap to add a curve waypoint, then drag its control handles."
         }
     }
 
@@ -206,7 +154,6 @@ struct SketchPathEditorRowView: View {
     }
     private var canCloseActivePath: Bool {
         guard let i = activeIndex else { return false }
-        // A path needs at least one segment to be meaningfully closed.
         return !definition.paths[i].segments.isEmpty
     }
 
@@ -238,23 +185,18 @@ struct SketchPathEditorRowView: View {
             ctx.stroke(Path(rect),
                        with: .color(Color.secondary.opacity(0.4)),
                        lineWidth: 1)
-            // 10-unit (i.e., 10%) gridlines to keep users oriented.
             for i in 1..<10 {
                 let frac = CGFloat(i) / 10.0
                 let x = rect.minX + rect.width * frac
                 var v = Path()
                 v.move(to: CGPoint(x: x, y: rect.minY))
                 v.addLine(to: CGPoint(x: x, y: rect.maxY))
-                ctx.stroke(v,
-                           with: .color(Color.secondary.opacity(0.1)),
-                           lineWidth: 0.5)
+                ctx.stroke(v, with: .color(Color.secondary.opacity(0.1)), lineWidth: 0.5)
                 let y = rect.minY + rect.height * frac
                 var h = Path()
                 h.move(to: CGPoint(x: rect.minX, y: y))
                 h.addLine(to: CGPoint(x: rect.maxX, y: y))
-                ctx.stroke(h,
-                           with: .color(Color.secondary.opacity(0.1)),
-                           lineWidth: 0.5)
+                ctx.stroke(h, with: .color(Color.secondary.opacity(0.1)), lineWidth: 0.5)
             }
         }
     }
@@ -297,69 +239,46 @@ struct SketchPathEditorRowView: View {
         let def = definition
         ZStack {
             ForEach(Array(def.paths.enumerated()), id: \.offset) { pIdx, path in
-                // Start handle.
                 handleCircle(at: screen(path.start, in: rect),
-                             color: .accentColor,
-                             isActive: activeHandle == HandleID(pathIndex: pIdx,
-                                                                  kind: .start))
-                // Segment handles.
+                             isActive: activeHandle == HandleID(pathIndex: pIdx, kind: .start))
                 ForEach(Array(path.segments.enumerated()), id: \.offset) { sIdx, seg in
-                    // Endpoint.
                     let endID = HandleID(pathIndex: pIdx, kind: .endpoint(sIdx))
                     handleCircle(at: screen(seg.endpoint, in: rect),
-                                 color: .accentColor,
                                  isActive: activeHandle == endID)
-
-                    // Control points (dashed tether + smaller
-                    // handle, matching desktop's handle style).
                     switch seg {
                     case .line:
                         EmptyView()
                     case .quad(let c, let e):
-                        controlTether(from: prevEndpoint(in: path, before: sIdx,
-                                                          rect: rect),
+                        controlTether(from: prevEndpoint(in: path, before: sIdx, rect: rect),
                                       ctrl: screen(c, in: rect),
                                       to: screen(e, in: rect))
                         controlHandle(at: screen(c, in: rect),
-                                       isActive: activeHandle == HandleID(
-                                        pathIndex: pIdx,
-                                        kind: .quadCtrl(sIdx)))
+                                      isActive: activeHandle == HandleID(pathIndex: pIdx, kind: .quadCtrl(sIdx)))
                     case .cubic(let c1, let c2, let e):
                         let prev = prevEndpoint(in: path, before: sIdx, rect: rect)
-                        controlTether(from: prev,
-                                      ctrl: screen(c1, in: rect),
-                                      to: screen(e, in: rect))
-                        controlTether(from: prev,
-                                      ctrl: screen(c2, in: rect),
-                                      to: screen(e, in: rect))
+                        controlTether(from: prev, ctrl: screen(c1, in: rect), to: screen(e, in: rect))
+                        controlTether(from: prev, ctrl: screen(c2, in: rect), to: screen(e, in: rect))
                         controlHandle(at: screen(c1, in: rect),
-                                       isActive: activeHandle == HandleID(
-                                        pathIndex: pIdx,
-                                        kind: .cubicCtrl1(sIdx)))
+                                      isActive: activeHandle == HandleID(pathIndex: pIdx, kind: .cubicCtrl1(sIdx)))
                         controlHandle(at: screen(c2, in: rect),
-                                       isActive: activeHandle == HandleID(
-                                        pathIndex: pIdx,
-                                        kind: .cubicCtrl2(sIdx)))
+                                      isActive: activeHandle == HandleID(pathIndex: pIdx, kind: .cubicCtrl2(sIdx)))
                     }
                 }
             }
         }
     }
 
-    private func prevEndpoint(in path: SketchPath, before index: Int,
-                               rect: CGRect) -> CGPoint {
+    private func prevEndpoint(in path: SketchPath, before index: Int, rect: CGRect) -> CGPoint {
         if index == 0 { return screen(path.start, in: rect) }
         return screen(path.segments[index - 1].endpoint, in: rect)
     }
 
     @ViewBuilder
-    private func handleCircle(at p: CGPoint, color: Color,
-                               isActive: Bool) -> some View {
+    private func handleCircle(at p: CGPoint, isActive: Bool) -> some View {
         Circle()
-            .fill(color.opacity(isActive ? 0.95 : 0.75))
+            .fill(Color.accentColor.opacity(isActive ? 0.95 : 0.75))
             .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
-            .frame(width: Self.handleRadius * 2,
-                   height: Self.handleRadius * 2)
+            .frame(width: Self.handleRadius * 2, height: Self.handleRadius * 2)
             .position(p)
     }
 
@@ -368,15 +287,12 @@ struct SketchPathEditorRowView: View {
         Rectangle()
             .fill(Color.purple.opacity(isActive ? 0.95 : 0.7))
             .overlay(Rectangle().stroke(Color.white, lineWidth: 1))
-            .frame(width: Self.controlHandleRadius * 2,
-                   height: Self.controlHandleRadius * 2)
+            .frame(width: Self.controlHandleRadius * 2, height: Self.controlHandleRadius * 2)
             .position(p)
     }
 
     @ViewBuilder
-    private func controlTether(from: CGPoint, ctrl: CGPoint,
-                                to: CGPoint) -> some View {
-        // Dashed line from the owning endpoint to its control.
+    private func controlTether(from: CGPoint, ctrl: CGPoint, to: CGPoint) -> some View {
         Canvas { ctx, _ in
             var p1 = Path()
             p1.move(to: from)
@@ -397,36 +313,23 @@ struct SketchPathEditorRowView: View {
         DragGesture(minimumDistance: 0, coordinateSpace: .local)
             .onChanged { g in
                 if activeHandle == nil {
-                    // First event of this drag — try to grab a
-                    // handle. Nothing in range + drag mode → the
-                    // drag is a no-op; an add mode → don't grab a
-                    // handle, let `onEnded` treat it as a tap-to-add.
                     let picked = nearestHandle(to: g.startLocation, rect: rect)
                     if let picked {
                         activeHandle = picked
-                        dragStartDef = definition
-                        // Grabbing any handle selects that path so the
-                        // toolbar's close / reorder act on it.
                         selectedPath = picked.pathIndex
                     } else {
-                        // No handle in range — defer to onEnded which
-                        // performs the add (if in an add mode) so a
-                        // quick tap doesn't register as a stray drag.
                         return
                     }
                 }
                 guard let h = activeHandle else { return }
-                moveHandle(h, to: g.location, rect: rect, commit: false)
+                moveHandle(h, to: g.location, rect: rect)
             }
             .onEnded { g in
                 if let h = activeHandle {
-                    moveHandle(h, to: g.location, rect: rect, commit: true)
+                    moveHandle(h, to: g.location, rect: rect)
                     activeHandle = nil
-                    dragStartDef = nil
                     return
                 }
-                // No active handle — treat a short press as an
-                // add-mode tap, if enabled and within the grid.
                 guard editMode != .drag,
                       rect.contains(g.startLocation),
                       hypot(g.location.x - g.startLocation.x,
@@ -449,25 +352,20 @@ struct SketchPathEditorRowView: View {
         }
         for (pIdx, path) in def.paths.enumerated() {
             consider(HandleID(pathIndex: pIdx, kind: .start),
-                     screen(path.start, in: rect),
-                     Self.handleHitRadius)
+                     screen(path.start, in: rect), Self.handleHitRadius)
             for (sIdx, seg) in path.segments.enumerated() {
                 consider(HandleID(pathIndex: pIdx, kind: .endpoint(sIdx)),
-                         screen(seg.endpoint, in: rect),
-                         Self.handleHitRadius)
+                         screen(seg.endpoint, in: rect), Self.handleHitRadius)
                 switch seg {
                 case .line: break
                 case .quad(let c, _):
                     consider(HandleID(pathIndex: pIdx, kind: .quadCtrl(sIdx)),
-                             screen(c, in: rect),
-                             Self.handleHitRadius)
+                             screen(c, in: rect), Self.handleHitRadius)
                 case .cubic(let c1, let c2, _):
                     consider(HandleID(pathIndex: pIdx, kind: .cubicCtrl1(sIdx)),
-                             screen(c1, in: rect),
-                             Self.handleHitRadius)
+                             screen(c1, in: rect), Self.handleHitRadius)
                     consider(HandleID(pathIndex: pIdx, kind: .cubicCtrl2(sIdx)),
-                             screen(c2, in: rect),
-                             Self.handleHitRadius)
+                             screen(c2, in: rect), Self.handleHitRadius)
                 }
             }
         }
@@ -476,12 +374,7 @@ struct SketchPathEditorRowView: View {
 
     // MARK: - Mutations
 
-    /// Write a move of the given handle back to the settings map.
-    /// `commit=false` is issued during the drag (no-op for this
-    /// simple editor — we still write continuously so playback
-    /// follows the move); `commit=true` is the drag-end step.
-    private func moveHandle(_ id: HandleID, to screenPt: CGPoint,
-                             rect: CGRect, commit: Bool) {
+    private func moveHandle(_ id: HandleID, to screenPt: CGPoint, rect: CGRect) {
         var def = definition
         guard id.pathIndex >= 0, id.pathIndex < def.paths.count else { return }
         let p = normalise(screenPt, in: rect)
@@ -517,7 +410,6 @@ struct SketchPathEditorRowView: View {
         }
         def.paths[id.pathIndex] = path
         write(def)
-        _ = commit  // single undo entry per write via setSettingValue
     }
 
     private func appendLine(at screenPt: CGPoint, rect: CGRect) {
@@ -542,8 +434,6 @@ struct SketchPathEditorRowView: View {
             return
         }
         let from = def.paths[i].segments.last?.endpoint ?? def.paths[i].start
-        // Seed the two control points at the thirds of the chord so the
-        // user has visible handles to grab and reshape immediately.
         let c1 = CGPoint(x: from.x + (end.x - from.x) / 3,
                          y: from.y + (end.y - from.y) / 3)
         let c2 = CGPoint(x: from.x + 2 * (end.x - from.x) / 3,
@@ -563,31 +453,7 @@ struct SketchPathEditorRowView: View {
         write(def)
     }
 
-    private func moveActivePath(by delta: Int) {
-        var def = definition
-        guard let i = activeIndex else { return }
-        let j = i + delta
-        guard j >= 0, j < def.paths.count else { return }
-        def.paths.swapAt(i, j)
-        selectedPath = j
-        write(def)
-    }
-
-    private func handleSVGImport(_ result: Result<URL, Error>) {
-        guard case .success(let url) = result else { return }
-        let needsAccess = url.startAccessingSecurityScopedResource()
-        defer { if needsAccess { url.stopAccessingSecurityScopedResource() } }
-        _ = XLSequenceDocument.obtainAccess(toPath: url.path, enforceWritable: false)
-        let def = XLSequenceDocument.sketchDef(fromSVGFile: url.path)
-        guard !def.isEmpty else { return }
-        viewModel.setSettingValue(def, forKey: Self.settingKey)
-    }
-
     private func startNewPath() {
-        // Drop a placeholder start point at the canvas centre; the
-        // user drags it into position afterwards. A better UX would
-        // be "next tap places the start" — adds state complexity,
-        // skip for v1.
         var def = definition
         def.paths.append(SketchPath(start: CGPoint(x: 0.5, y: 0.5)))
         selectedPath = def.paths.count - 1
@@ -602,7 +468,6 @@ struct SketchPathEditorRowView: View {
         } else if !def.paths[i].segments.isEmpty {
             def.paths[i].segments.removeLast()
         } else {
-            // Only the start point remains — drop the whole path.
             def.paths.remove(at: i)
             selectedPath = nil
         }
@@ -615,20 +480,89 @@ struct SketchPathEditorRowView: View {
     }
 
     private func write(_ def: SketchDefinition) {
-        let s = def.serialise()
-        viewModel.setSettingValue(s, forKey: Self.settingKey)
+        guard let sel = viewModel.selectedEffect else { return }
+        let s = def.isEmpty ? "" : def.serialise()
+        _ = viewModel.document.setMovingHeadCommand(
+            "Path", value: s,
+            forRow: Int32(sel.rowIndex),
+            atIndex: Int32(sel.effectIndex))
+        viewModel.refreshSelectedEffectSettings()
+        viewModel.inspectorRevision &+= 1
     }
 
-    // MARK: - Coord conversions
+    // MARK: - Coord conversions (Y flipped: stored-Y up = canvas top)
 
     private func screen(_ p: CGPoint, in rect: CGRect) -> CGPoint {
         CGPoint(x: rect.minX + rect.width * p.x,
-                y: rect.minY + rect.height * p.y)
+                y: rect.minY + rect.height * (1.0 - p.y))
     }
 
     private func normalise(_ p: CGPoint, in rect: CGRect) -> CGPoint {
         let x = (p.x - rect.minX) / rect.width
-        let y = (p.y - rect.minY) / rect.height
+        let y = 1.0 - (p.y - rect.minY) / rect.height
         return CGPoint(x: max(0, min(1, x)), y: max(0, min(1, y)))
+    }
+}
+
+// Path quick-set presets — the two shipping desktop `.xmh` path
+// presets (Circle, Diamond) plus a horizontal line sweep. Tapping
+// one replaces the `Path:` command on every active fixture, matching
+// desktop's path-preset bitmap buttons. The literal strings are the
+// `data=` attributes from `resources/mhpresets/*.xmh`.
+struct MovingHeadPathPresetStrip: View {
+    @Environment(SequencerViewModel.self) var viewModel
+
+    private struct Preset: Identifiable {
+        let id = UUID()
+        let name: String
+        let icon: String
+        let path: String
+    }
+
+    private static let presets: [Preset] = [
+        Preset(name: "Circle", icon: "circle",
+               path: "0.5,0.704819;Q0.683908,0.686747,0.695402,0.503012;Q0.686782,0.319277,0.5,0.304217;Q0.310345,0.316265,0.298851,0.503012;Q0.313218,0.686747,0.5,0.704819;c3"),
+        Preset(name: "Diamond", icon: "diamond",
+               path: "0.502874,0.903614;L0.899425,0.5;L0.497126,0.0993976;L0.0948276,0.5;c2"),
+        Preset(name: "Sweep", icon: "arrow.left.and.right",
+               path: "0.1,0.5;L0.9,0.5"),
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Path Presets")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Self.presets) { preset in
+                        Button {
+                            apply(preset.path)
+                        } label: {
+                            VStack(spacing: 2) {
+                                Image(systemName: preset.icon)
+                                    .font(.caption)
+                                Text(preset.name)
+                                    .font(.caption2)
+                            }
+                            .frame(minWidth: 52)
+                            .padding(.vertical, 4)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
+            }
+        }
+    }
+
+    private func apply(_ path: String) {
+        guard let sel = viewModel.selectedEffect else { return }
+        _ = viewModel.document.setMovingHeadCommand(
+            "Path", value: path,
+            forRow: Int32(sel.rowIndex),
+            atIndex: Int32(sel.effectIndex))
+        viewModel.refreshSelectedEffectSettings()
+        viewModel.inspectorRevision &+= 1
     }
 }

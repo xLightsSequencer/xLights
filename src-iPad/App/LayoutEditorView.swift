@@ -273,6 +273,20 @@ struct LayoutEditorView: View {
     @State private var pendingUploadConfirmName: String? = nil
     @State private var uploadRunning: Bool = false
     @State private var uploadResult: String? = nil
+    /// Theme-07 — pre-upload FPP-proxy validation warning. Mirrors
+    /// desktop's `FPP::ValidateProxy` check: when the controller has
+    /// a proxy that isn't reachable / doesn't list the controller, we
+    /// warn and let the user continue or cancel before any HTTP runs.
+    @State private var pendingProxyWarning: ProxyWarningTarget? = nil
+    /// Theme-07 — per-controller ping/health state, keyed by name.
+    /// Values are the bridge ping result strings (ok/webok/failed/…).
+    @State private var controllerPingStates: [String: String] = [:]
+    @State private var controllerPingInFlight: Set<String> = []
+    /// Theme-07 — bulk multi-controller upload (desktop's
+    /// MultiControllerUploadDialog). `pendingBulkConfirm` gates a
+    /// confirmation alert; `bulkUploadState` drives the progress sheet.
+    @State private var pendingBulkUploadConfirm: Bool = false
+    @State private var bulkUploadState: BulkUploadState? = nil
 
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
@@ -888,6 +902,13 @@ struct LayoutEditorView: View {
             running: $uploadRunning,
             result: $uploadResult,
             onConfirm: { name in startControllerUpload(name: name) }))
+        .modifier(BulkAndProxyUploadModifier(
+            proxyWarning: $pendingProxyWarning,
+            pendingBulkConfirm: $pendingBulkUploadConfirm,
+            bulkState: $bulkUploadState,
+            bulkTargetCount: openSourceUploadableControllerNames().count,
+            onProxyContinue: { name in runControllerUpload(name: name) },
+            onBulkConfirm: { startBulkUpload() }))
         .modifier(DiscoveryMismatchModifier(
             mismatches: $pendingDiscoveryMismatches,
             onApply: { choices in applyDiscoveryMismatches(choices) }))
@@ -1256,6 +1277,14 @@ struct LayoutEditorView: View {
                             Label("Discover…", systemImage: "antenna.radiowaves.left.and.right")
                         }
                         .disabled(controllerDiscoveryRunning)
+                        Divider()
+                        Button {
+                            pendingBulkUploadConfirm = true
+                        } label: {
+                            Label("Upload All…", systemImage: "icloud.and.arrow.up")
+                        }
+                        .disabled(openSourceUploadableControllerNames().isEmpty
+                                   || bulkUploadState != nil)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                     }
@@ -1314,6 +1343,29 @@ struct LayoutEditorView: View {
     /// the wait.
     private func startControllerUpload(name: String) {
         guard !uploadRunning else { return }
+        // Theme-07 — pre-upload FPP-proxy validation. Desktop calls
+        // FPP::ValidateProxy before every upload and warns on failure;
+        // the user may still continue. We do the (potentially slow)
+        // HTTP probe off the main thread, then either warn or proceed.
+        let doc0 = viewModel.document
+        Task.detached {
+            let pv = doc0.validateProxy(forController: name) as NSDictionary
+            let hasProxy = (pv["hasProxy"] as? NSNumber)?.boolValue ?? false
+            let valid    = (pv["valid"]    as? NSNumber)?.boolValue ?? true
+            let proxy    = (pv["proxy"]    as? String) ?? ""
+            await MainActor.run {
+                if hasProxy && !valid {
+                    pendingProxyWarning = ProxyWarningTarget(controllerName: name,
+                                                              proxy: proxy)
+                } else {
+                    runControllerUpload(name: name)
+                }
+            }
+        }
+    }
+
+    private func runControllerUpload(name: String) {
+        guard !uploadRunning else { return }
         uploadRunning = true
         let doc = viewModel.document
         // Read the caps once on the main thread; the detached task
@@ -1366,6 +1418,84 @@ struct LayoutEditorView: View {
                 uploadRunning = false
                 uploadResult = full
             }
+        }
+    }
+
+    /// Theme-07 — ping a controller for a health dot. The bridge runs
+    /// the shared core HTTP reachability probe; we keep it off the
+    /// main thread so the UI stays responsive during the timeout.
+    private func pingController(_ name: String) {
+        guard !controllerPingInFlight.contains(name) else { return }
+        controllerPingInFlight.insert(name)
+        let doc = viewModel.document
+        Task.detached {
+            let state = doc.pingController(name)
+            await MainActor.run {
+                controllerPingStates[name] = state
+                controllerPingInFlight.remove(name)
+            }
+        }
+    }
+
+    /// Theme-07 — bulk multi-controller upload (desktop's
+    /// MultiControllerUploadDialog). Loops the shared per-controller
+    /// upload over every active open-source-firmware controller,
+    /// driving a progress sheet off the bridge's per-controller
+    /// callback. Closed-firmware controllers are skipped by the bridge.
+    private func startBulkUpload() {
+        guard bulkUploadState == nil else { return }
+        let names = openSourceUploadableControllerNames()
+        guard !names.isEmpty else {
+            uploadResult = "No open-source-firmware controllers support upload. Closed-firmware vendor uploads are not available on iPad."
+            return
+        }
+        bulkUploadState = BulkUploadState(total: names.count)
+        let doc = viewModel.document
+        Task.detached {
+            let results = doc.bulkUploadControllers { name, index, total in
+                Task { @MainActor in
+                    bulkUploadState?.current = name
+                    bulkUploadState?.completed = Int(index)
+                    bulkUploadState?.total = Int(total)
+                }
+            } as NSArray
+            var rows: [BulkUploadRow] = []
+            for entry in results {
+                guard let d = entry as? NSDictionary else { continue }
+                rows.append(BulkUploadRow(
+                    name: (d["name"] as? String) ?? "",
+                    success: (d["success"] as? NSNumber)?.boolValue ?? false,
+                    message: (d["message"] as? String) ?? ""))
+            }
+            await MainActor.run {
+                bulkUploadState?.results = rows
+                bulkUploadState?.finished = true
+                bulkUploadState?.completed = rows.count
+                hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            }
+        }
+    }
+
+    /// Names of active controllers whose caps advertise open-source
+    /// firmware + upload support — the bulk-upload target set, used
+    /// both to gate the toolbar button and to size the progress sheet.
+    private func openSourceUploadableControllerNames() -> [String] {
+        controllerRows.compactMap { row in
+            guard let name = row["name"] as? String else { return nil }
+            let osf = (row["caps.openSourceFirmware"] as? NSNumber)?.boolValue ?? false
+            let supportsUpload = (row["caps.supportsUpload"] as? NSNumber)?.boolValue ?? false
+            let supportsInput = (row["caps.supportsInputOnlyUpload"] as? NSNumber)?.boolValue ?? false
+            let active = (row["active"] as? String) ?? ""
+            guard osf, active == "Active", supportsUpload || supportsInput else { return nil }
+            return name
+        }
+    }
+
+    /// Theme-07 — commit one global output setting through the bridge.
+    private func commitGlobalSetting(key: String, value: Any) {
+        if viewModel.document.setGlobalOutputSetting(key, value: value) {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
         }
     }
 
@@ -1842,6 +1972,60 @@ struct LayoutEditorView: View {
     /// One sidebar row per controller. Shows name + a secondary
     /// line with Type / IP / Vendor / Model so the user can
     /// identify the fixture without opening the detail pane.
+    /// Theme-07 — controller health dot. Mirrors desktop's LedPing
+    /// colour coding (green = reachable, red = failed, grey = unknown).
+    /// Tapping re-probes; rows without a pingable IP show nothing.
+    @ViewBuilder
+    private func pingDot(for name: String, ip: String) -> some View {
+        if !ip.isEmpty && ip != "MULTICAST" {
+            let state = controllerPingStates[name]
+            Button {
+                pingController(name)
+            } label: {
+                if controllerPingInFlight.contains(name) {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(Self.pingColor(state))
+                }
+            }
+            .buttonStyle(.plain)
+            .help(Self.pingHelp(state))
+        }
+    }
+
+    static func pingColor(_ state: String?) -> Color {
+        switch state {
+        case "ok", "webok", "open": return .green
+        case "failed":              return .red
+        case "unavailable":         return .orange
+        default:                    return .secondary
+        }
+    }
+
+    static func pingHelp(_ state: String?) -> String {
+        switch state {
+        case "ok":          return "Reachable (ping OK)"
+        case "webok":       return "Reachable (web UI responded)"
+        case "open":        return "Port open"
+        case "failed":      return "No response — check power / network"
+        case "unavailable": return "Ping unavailable for this controller"
+        case .none:         return "Tap to check reachability"
+        default:            return "Unknown"
+        }
+    }
+
+    static func pingLabel(_ state: String?) -> String {
+        switch state {
+        case "ok", "webok", "open": return "Online"
+        case "failed":              return "Offline"
+        case "unavailable":         return "No ping"
+        case .none:                 return "Ping"
+        default:                    return "Unknown"
+        }
+    }
+
     private func controllerRow(row: [String: Any], name: String) -> some View {
         let type     = (row["type"]     as? String) ?? ""
         let proto    = (row["protocol"] as? String) ?? ""
@@ -1888,6 +2072,7 @@ struct LayoutEditorView: View {
                         .help("Open-source firmware — Upload + Visualize supported")
                 }
                 Spacer(minLength: 0)
+                pingDot(for: name, ip: ip)
                 if !active.isEmpty {
                     Text(active)
                         .font(.caption2)
@@ -2056,6 +2241,7 @@ struct LayoutEditorView: View {
         }
         LayoutEditorPropertiesView(
                     modelName: name,
+                    document: viewModel.document,
                     summary: summary,
                     typeDescriptors: descriptors,
                     layoutGroups: layoutGroups,
@@ -2256,6 +2442,8 @@ struct LayoutEditorView: View {
                 let osf = ((detail["caps.openSourceFirmware"] as? NSNumber)?.boolValue) ?? false
                 let ip = (detail["ip"] as? String) ?? ""
                 let httpURL: URL? = ip.isEmpty ? nil : URL(string: "http://\(ip)/")
+                let proxy = (detail["proxy"] as? String) ?? ""
+                let proxyURL: URL? = proxy.isEmpty ? nil : URL(string: "http://\(proxy)/")
                 let rawDescriptors = viewModel.document.controllerProperties(forName: name)
                 let descriptors: [[String: Any]] = rawDescriptors.compactMap { entry in
                     var out: [String: Any] = [:]
@@ -2271,6 +2459,9 @@ struct LayoutEditorView: View {
                     models: (viewModel.document.modelNames(forController: name) as [String]),
                     openSourceFirmware: osf,
                     httpURL: httpURL,
+                    proxyURL: proxyURL,
+                    pingState: controllerPingStates[name],
+                    pingInFlight: controllerPingInFlight.contains(name),
                     onTapModel: { modelName in
                         sidebarTab = .models
                         viewModel.layoutSelectSingle(modelName)
@@ -2278,6 +2469,7 @@ struct LayoutEditorView: View {
                     onOpenURL: { url in
                         UIApplication.shared.open(url)
                     },
+                    onPing: { pingController(name) },
                     onUpload: {
                         pendingUploadConfirmName = name
                     },
@@ -2288,10 +2480,14 @@ struct LayoutEditorView: View {
                         commitControllerProperty(name: name, key: key, value: value)
                     })
             } else {
-                emptyPropertyHint(
-                    title: "Pick a controller",
-                    body: "Tap a controller in the list above to see its IP, channel range, and the models assigned to it. Long-press for upload / visualize actions on open-source firmware controllers."
-                )
+                // Theme-07 — no controller selected: surface the global
+                // output settings (desktop's "nothing selected" grid).
+                GlobalOutputSettingsView(
+                    descriptors: globalOutputDescriptors,
+                    token: summaryToken,
+                    commit: { key, value in
+                        commitGlobalSetting(key: key, value: value)
+                    })
             }
         }
     }
@@ -2458,6 +2654,19 @@ struct LayoutEditorView: View {
     /// J-31 — filtered Controllers list. Searches by name +
     /// vendor + model + IP so power-users can find a fixture by
     /// any of its identifying fields.
+    /// Theme-07 — global output-setting descriptors, coerced to
+    /// String-keyed dicts for `ControllerDescriptorRow`.
+    private var globalOutputDescriptors: [[String: Any]] {
+        let raw = viewModel.document.globalOutputSettings()
+        return raw.compactMap { entry in
+            var out: [String: Any] = [:]
+            for (k, v) in entry {
+                if let key = k as? String { out[key] = v }
+            }
+            return out.isEmpty ? nil : out
+        }
+    }
+
     private var filteredControllerRows: [[String: Any]] {
         let q = controllerFilter.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return controllerRows }
@@ -3852,6 +4061,10 @@ struct LayoutEditorView: View {
 /// matching desktop's "the bits that vary per model first" intent.
 private struct LayoutEditorPropertiesView: View {
     let modelName: String
+    /// Document handle for the visual node picker in the Faces /
+    /// States editor (drives the embedded model preview that the
+    /// user taps to build each part / state's node-range string).
+    let document: XLSequenceDocument
     let summary: [String: Any]
     let typeDescriptors: [[String: Any]]
     let layoutGroups: [String]
@@ -3905,6 +4118,11 @@ private struct LayoutEditorPropertiesView: View {
     @State private var pendingClearDimmingCurve: Bool = false
     // J-22 — dimming curve editor sheet visibility.
     @State private var dimmingEditorVisible: Bool = false
+    // Node Layout / Wiring View sheet visibility (desktop
+    // ShowNodeLayout / ShowWiring). Both read per-node geometry
+    // from the bridge's nodeLayout(forModel:).
+    @State private var nodeLayoutSheetVisible: Bool = false
+    @State private var wiringViewSheetVisible: Bool = false
     // J-19 — Layered Arches layer-size editor.
     // J-20.7 — Switched to `.sheet(item:)` so the sheet is bound
     // to the data's identity rather than a separate boolean flag.
@@ -4049,6 +4267,30 @@ private struct LayoutEditorPropertiesView: View {
                 modelDataRow(kind: .strands)
                 modelDataRow(kind: .nodes)
                 modelDataRow(kind: .groups)
+                if canShowNodeLayout {
+                    row("Node Layout") {
+                        Button {
+                            nodeLayoutSheetVisible = true
+                        } label: {
+                            Image(systemName: "square.grid.3x3")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Show node layout")
+                    }
+                    row("Wiring View") {
+                        Button {
+                            wiringViewSheetVisible = true
+                        } label: {
+                            Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Show wiring view")
+                    }
+                }
                 row("Dimming Curve") {
                     HStack(spacing: 6) {
                         Text(hasDimmingCurve ? "Set" : "—")
@@ -4092,6 +4334,12 @@ private struct LayoutEditorPropertiesView: View {
                         entries: onLoadDimming(),
                         modelName: modelName),
                     commit: onCommitDimming)
+            }
+            .sheet(isPresented: $nodeLayoutSheetVisible) {
+                NodeLayoutSheet(modelName: modelName, wiring: false)
+            }
+            .sheet(isPresented: $wiringViewSheetVisible) {
+                NodeLayoutSheet(modelName: modelName, wiring: true)
             }
             .alert("Clear dimming curve?",
                    isPresented: $pendingClearDimmingCurve) {
@@ -4276,6 +4524,7 @@ private struct LayoutEditorPropertiesView: View {
                         kind: kind == .faces ? .faces : .states,
                         entries: onLoadFaceState(kind),
                         modelName: modelName),
+                    document: document,
                     commit: { newEntries in
                         onCommitFaceState(kind, newEntries)
                     })
@@ -5532,6 +5781,14 @@ private struct LayoutEditorPropertiesView: View {
     private func layerSizesLabel(_ sizes: [Int]) -> String {
         if sizes.isEmpty { return "—" }
         return sizes.map { "\($0)" }.joined(separator: ", ")
+    }
+
+    /// Desktop guards Node Layout / Wiring View to real models
+    /// (ChannelLayoutDialog / WiringDialog exclude ModelGroup +
+    /// SubModel). Mirror that here off the summary's displayAs.
+    private var canShowNodeLayout: Bool {
+        let displayAs = (summary["displayAs"] as? String) ?? ""
+        return displayAs != "ModelGroup" && displayAs != "SubModel"
     }
 
     // MARK: - Lookups
@@ -8513,6 +8770,11 @@ private struct FaceStatePayload: Identifiable {
 
 private struct FaceStateEditorSheet: View {
     let payload: FaceStatePayload
+    /// Document + model drive the visual node picker on each
+    /// node-range attribute (faces phoneme parts, state node
+    /// lists). `nil` for the Dimming Curve kind, which has no
+    /// node geometry — its detail view simply omits the picker.
+    let document: XLSequenceDocument?
     let commit: (_ entries: [String: [String: String]]) -> Void
 
     @State private var entries: [String: [String: String]]
@@ -8521,8 +8783,10 @@ private struct FaceStateEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     init(payload: FaceStatePayload,
+         document: XLSequenceDocument? = nil,
          commit: @escaping (_ entries: [String: [String: String]]) -> Void) {
         self.payload = payload
+        self.document = document
         self.commit = commit
         self._entries = State(initialValue: payload.entries)
     }
@@ -8575,6 +8839,8 @@ private struct FaceStateEditorSheet: View {
                 FaceStateEntryDetailView(
                     entryName: name,
                     suggestedKeys: payload.kind.suggestedAttributeKeys,
+                    document: payload.kind == .dimming ? nil : document,
+                    modelName: payload.modelName,
                     attributes: Binding(
                         get: { entries[name] ?? [:] },
                         set: { entries[name] = $0 }
@@ -8616,8 +8882,11 @@ private struct FaceStateEditorSheet: View {
 private struct FaceStateEntryDetailView: View {
     let entryName: String
     let suggestedKeys: [String]
+    let document: XLSequenceDocument?
+    let modelName: String
     @Binding var attributes: [String: String]
     @State private var newKey: String = ""
+    @State private var nodePickerKey: String? = nil
 
     var body: some View {
         List {
@@ -8682,6 +8951,16 @@ private struct FaceStateEntryDetailView: View {
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled(true)
                                 .multilineTextAlignment(.trailing)
+                            if document != nil, FaceStateAttr.isNodeRange(key: key) {
+                                Button {
+                                    nodePickerKey = key
+                                } label: {
+                                    Image(systemName: "hand.tap")
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel("Pick nodes for \(key)")
+                            }
                         }
                     }
                     .onDelete { idx in
@@ -8694,6 +8973,21 @@ private struct FaceStateEntryDetailView: View {
             }
         }
         .navigationTitle(entryName)
+        .sheet(item: Binding(
+            get: { nodePickerKey.map { NodePickerTarget(key: $0) } },
+            set: { nodePickerKey = $0?.key }
+        )) { target in
+            if let document {
+                NodeRangePickerSheet(
+                    document: document,
+                    modelName: modelName,
+                    label: target.key,
+                    initialRange: attributes[target.key] ?? "",
+                    commit: { range in
+                        attributes[target.key] = range
+                    })
+            }
+        }
     }
 
     private var normalizedNewKey: String {
@@ -9460,6 +9754,136 @@ private struct ControllerDeleteAlertModifier: ViewModifier {
 /// overlay → result alert. All three legs ride in one modifier
 /// so the outer LayoutEditorView body chain stays inside Swift's
 /// type-checker budget.
+/// Theme-07 — target for the pre-upload FPP-proxy validation warning.
+private struct ProxyWarningTarget: Identifiable {
+    let id = UUID()
+    let controllerName: String
+    let proxy: String
+}
+
+/// Theme-07 — one finished bulk-upload row.
+private struct BulkUploadRow: Identifiable {
+    let id = UUID()
+    let name: String
+    let success: Bool
+    let message: String
+}
+
+/// Theme-07 — observable progress state for the bulk-upload sheet.
+@MainActor
+private final class BulkUploadState: ObservableObject, Identifiable {
+    let id = UUID()
+    @Published var current: String = ""
+    @Published var completed: Int = 0
+    @Published var total: Int
+    @Published var finished: Bool = false
+    @Published var results: [BulkUploadRow] = []
+    init(total: Int) { self.total = total }
+}
+
+/// Theme-07 — bulk multi-controller upload progress + results sheet.
+/// Shows a live per-controller progress bar while uploads run, then a
+/// per-controller pass/fail list. Dismiss is disabled until finished
+/// so the in-flight HTTP isn't orphaned (cancel-between-controllers is
+/// implicit: the user simply waits for the current one).
+private struct BulkUploadSheet: View {
+    @ObservedObject var state: BulkUploadState
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                if !state.finished {
+                    ProgressView(value: Double(state.completed),
+                                  total: Double(max(1, state.total))) {
+                        Text("Uploading to \(state.total) controller\(state.total == 1 ? "" : "s")…")
+                            .font(.headline)
+                    } currentValueLabel: {
+                        Text(state.current.isEmpty
+                              ? "Preparing…"
+                              : "\(state.current) (\(state.completed + 1) of \(state.total))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Each controller's input + output configuration is pushed over HTTP. This can take a while for large shows.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                } else {
+                    let okCount = state.results.filter { $0.success }.count
+                    Text("\(okCount) of \(state.results.count) controller\(state.results.count == 1 ? "" : "s") uploaded successfully.")
+                        .font(.headline)
+                    List(state.results) { r in
+                        HStack(alignment: .firstTextBaseline) {
+                            Image(systemName: r.success
+                                  ? "checkmark.circle.fill"
+                                  : "xmark.octagon.fill")
+                                .foregroundStyle(r.success ? .green : .red)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(r.name).font(.body.weight(.medium))
+                                if !r.message.isEmpty {
+                                    Text(r.message)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .padding()
+            .navigationTitle("Bulk Upload")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(state.finished ? "Done" : "Running…") { onClose() }
+                        .disabled(!state.finished)
+                }
+            }
+        }
+        .interactiveDismissDisabled(!state.finished)
+    }
+}
+
+/// Theme-07 — bundles the proxy-warning alert + bulk-upload confirm +
+/// bulk-upload sheet into one modifier so the outer body chain stays
+/// inside Swift's type-checker budget (same pattern as the other
+/// Controllers modifiers).
+private struct BulkAndProxyUploadModifier: ViewModifier {
+    @Binding var proxyWarning: ProxyWarningTarget?
+    @Binding var pendingBulkConfirm: Bool
+    @Binding var bulkState: BulkUploadState?
+    let bulkTargetCount: Int
+    let onProxyContinue: (_ name: String) -> Void
+    let onBulkConfirm: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .alert("FPP Proxy Unreachable",
+                    isPresented: Binding(
+                        get: { proxyWarning != nil },
+                        set: { if !$0 { proxyWarning = nil } })) {
+                Button("Upload Anyway") {
+                    if let t = proxyWarning { onProxyContinue(t.controllerName) }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("FPP proxy \(proxyWarning?.proxy ?? "") is either offline or does not list this controller in its proxy table. The upload may fail until that's corrected.")
+            }
+            .alert("Upload to all controllers?",
+                    isPresented: $pendingBulkConfirm) {
+                Button("Upload \(bulkTargetCount)") { onBulkConfirm() }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Pushes input + output configuration to all \(bulkTargetCount) active open-source-firmware controller\(bulkTargetCount == 1 ? "" : "s"). Closed-firmware controllers are skipped. Make sure the iPad is on the same network.")
+            }
+            .sheet(item: $bulkState) { st in
+                BulkUploadSheet(state: st) { bulkState = nil }
+            }
+    }
+}
+
 private struct ControllerUploadModifier: ViewModifier {
     @Binding var pendingConfirmName: String?
     @Binding var running: Bool
@@ -10747,6 +11171,39 @@ private struct LayoutEditorBackgroundPropertiesView: View {
 /// FPPProxy / Protocol / Priority / Managed read-only) and
 /// Null-specific (Channels). Renders descriptors via the same
 /// kind-dispatch pattern the model per-type panel uses.
+/// Theme-07 — global output settings pane shown in the Controllers
+/// tab when no controller is selected. Mirrors desktop's "nothing
+/// selected" property grid (Controller Sync / E1.31 Sync Universe /
+/// Max-Suppress-Frames / Global Force-Local-IP / Global FPP Proxy).
+private struct GlobalOutputSettingsView: View {
+    let descriptors: [[String: Any]]
+    let token: Int
+    let commit: (_ key: String, _ value: Any) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Global Output Settings")
+                    .font(.headline)
+                Text("Apply to every controller. Select a controller above to edit its individual settings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Divider()
+                ForEach(Array(descriptors.enumerated()), id: \.offset) { _, d in
+                    ControllerDescriptorRow(
+                        descriptor: d,
+                        namePrefix: "global",
+                        token: token,
+                        commit: commit)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 private struct LayoutEditorControllerDetailView: View {
     let name: String
     let descriptors: [[String: Any]]
@@ -10754,8 +11211,12 @@ private struct LayoutEditorControllerDetailView: View {
     let models: [String]
     let openSourceFirmware: Bool
     let httpURL: URL?
+    let proxyURL: URL?
+    let pingState: String?
+    let pingInFlight: Bool
     let onTapModel: (String) -> Void
     let onOpenURL: (URL) -> Void
+    let onPing: () -> Void
     let onUpload: () -> Void
     let onVisualize: () -> Void
     let commit: (_ key: String, _ value: Any) -> Void
@@ -10773,6 +11234,23 @@ private struct LayoutEditorControllerDetailView: View {
                         .font(.caption)
                 }
                 Spacer()
+                Button {
+                    onPing()
+                } label: {
+                    if pingInFlight {
+                        ProgressView().controlSize(.mini)
+                    } else {
+                        Label {
+                            Text(LayoutEditorView.pingLabel(pingState))
+                                .font(.caption2)
+                        } icon: {
+                            Image(systemName: "circle.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(LayoutEditorView.pingColor(pingState))
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
 
             HStack(spacing: 10) {
@@ -10781,6 +11259,15 @@ private struct LayoutEditorControllerDetailView: View {
                         onOpenURL(url)
                     } label: {
                         Label("Open", systemImage: "safari")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+                if let purl = proxyURL {
+                    Button {
+                        onOpenURL(purl)
+                    } label: {
+                        Label("Open Proxy", systemImage: "arrow.triangle.branch")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)

@@ -131,6 +131,15 @@ public:
     // failure of the main file.
     bool SaveEffectPresets();
 
+    // #6450 — read-only preset library loaded from the base show
+    // folder's `xlights_effectpresets.json`, surfaced as the desktop's
+    // "From Base" section. Apply-only on iPad: never mutated or saved.
+    EffectPresetManager& GetBasePresetManager() { return _basePresetManager; }
+    // (Re)load the base preset library from the configured base show
+    // directory. Clears the manager when no base folder is set or it has
+    // no presets file. Returns true when at least one base preset loaded.
+    bool LoadBasePresets();
+
     bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
     TimingElement* AddTimingElement(const std::string& name,
@@ -383,6 +392,18 @@ public:
     PreviewCamera* GetNamedCamera3D(const std::string& name) override {
         return _viewpointMgr.GetNamedCamera3D(name);
     }
+
+    // Check-Sequence per-check disable flags (desktop parity with the
+    // CheckSequence preferences panel). The bridge populates this set
+    // from @AppStorage before running a sequence check; both the
+    // SequenceChecker callbacks and the model/effect-level checks
+    // (CustomModel / SketchEffect, which route through GetUICallbacks)
+    // consult it. Option ids match desktop: "DupUniv", "NonContigChOnPort",
+    // "PreviewGroup", "DupNodeMG", "TransTime", "CustomSizeCheck",
+    // "SketchImage".
+    void SetDisabledCheckOptions(const std::set<std::string>& options) { _disabledCheckOptions = options; }
+    bool IsCheckOptionDisabled(const std::string& option) const { return _disabledCheckOptions.count(option) > 0; }
+    UICallbacks* GetUICallbacks() override;
 
     // Rewrite just the `<Viewpoints>` subtree of the on-disk
     // xlights_rgbeffects.xml so saved-as / delete survive app restart.
@@ -661,6 +682,7 @@ private:
     std::unique_ptr<ViewObjectManager> _viewObjectManager;
     EffectManager _effectManager;
     EffectPresetManager _effectPresetManager;
+    EffectPresetManager _basePresetManager;
     SequenceElements _sequenceElements;
     SequenceViewManager _viewsManager;
     std::unique_ptr<SequenceFile> _sequenceFile;
@@ -767,6 +789,11 @@ private:
     // B43: -1 = main sequence audio, 0..N-1 = alt track index.
     int _waveformTrackIndex = -1;
 
+    // Check-Sequence per-check disable flags + the lazily-created
+    // UICallbacks adapter that surfaces them to CustomModel / SketchEffect.
+    std::set<std::string> _disabledCheckOptions;
+    std::unique_ptr<UICallbacks> _checkUICallbacks;
+
     // Preset model scaffolding — lazily built on first preview render.
     Model* _presetModel = nullptr;
     std::unique_ptr<ModelManager> _presetModelManager;
@@ -799,5 +826,6 @@ private:
     // Normally a no-op — OpenSequence pre-allocates once and
     // subsequent RenderAll passes reuse. Triggers a fresh init
     // after duration / frame-rate / channel-count mutations.
+public:
     void EnsureSequenceDataSized();
 };

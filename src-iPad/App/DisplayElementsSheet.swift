@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // F-6 — Display Elements editor. Ports the desktop
 // `ViewsModelsPanel` (src-ui-wx/layout/ViewsModelsPanel.cpp) into a
@@ -45,6 +46,16 @@ struct DisplayElementsSheet: View {
     }
     @State private var confirmRemove: RemoveTarget? = nil
 
+    // Master-View "Remove Unused" bulk confirmation — deletes every
+    // element with no effects from the sequence.
+    @State private var confirmRemoveUnused = false
+
+    // "Copy To Master" (user view → Master) confirmation + import-view
+    // config from another sequence (.fileImporter) + result message.
+    @State private var confirmCopyToMaster = false
+    @State private var showViewImporter = false
+    @State private var infoMessage: String? = nil
+
     // Local "Add Timing Track" sheet state. iOS only allows one
     // sheet per ancestor chain at a time — flipping
     // `viewModel.showingAddTimingTrack` from inside this sheet would
@@ -69,6 +80,37 @@ struct DisplayElementsSheet: View {
             .navigationTitle("Display Elements")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                if selectedViewIdx == 0 {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Menu {
+                            Button {
+                                _ = viewModel.document.setAllElementsVisible(true)
+                                model.refresh()
+                            } label: { Label("Show All", systemImage: "eye") }
+                            Button {
+                                _ = viewModel.document.setAllElementsVisible(false)
+                                model.refresh()
+                            } label: { Label("Hide All", systemImage: "eye.slash") }
+                            Button {
+                                _ = viewModel.document.hideUnusedElements()
+                                model.refresh()
+                            } label: { Label("Hide Unused", systemImage: "eye.slash.circle") }
+                            Divider()
+                            Button(role: .destructive) {
+                                confirmRemoveUnused = true
+                            } label: { Label("Remove Unused", systemImage: "trash") }
+                        } label: {
+                            Label("Bulk Actions", systemImage: "ellipsis.circle")
+                        }
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        showViewImporter = true
+                    } label: {
+                        Label("Import View…", systemImage: "square.and.arrow.down")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
@@ -137,6 +179,56 @@ struct DisplayElementsSheet: View {
             Button("Cancel", role: .cancel) { confirmRemove = nil }
         } message: {
             Text(removeConfirmationMessage)
+        }
+        .confirmationDialog("Copy To Master View?",
+                            isPresented: $confirmCopyToMaster,
+                            titleVisibility: .visible) {
+            Button("Copy To Master") {
+                let kept = viewModel.document.copyViewToMaster(atIndex: Int32(selectedViewIdx)) ?? []
+                model.refresh()
+                viewModel.reloadRows()
+                if !kept.isEmpty {
+                    let names = kept.joined(separator: ", ")
+                    infoMessage = "\(kept.count) model\(kept.count == 1 ? "" : "s") had effects and were kept: \(names)"
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Replaces the Master View's model list and order with this view's. Master models not in this view are removed (unless they have effects).")
+        }
+        .fileImporter(isPresented: $showViewImporter,
+                      allowedContentTypes: [UTType(filenameExtension: "xsq") ?? .xml, .xml],
+                      allowsMultipleSelection: false) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                let needsStop = url.startAccessingSecurityScopedResource()
+                defer { if needsStop { url.stopAccessingSecurityScopedResource() } }
+                if let name = viewModel.document.importViewConfig(fromSequencePath: url.path) {
+                    model.refresh()
+                    infoMessage = "Imported view \"\(name)\"."
+                } else {
+                    errorText = "No importable views found in that file."
+                }
+            }
+        }
+        .alert("Display Elements", isPresented: Binding(
+            get: { infoMessage != nil },
+            set: { if !$0 { infoMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { infoMessage = nil }
+        } message: {
+            Text(infoMessage ?? "")
+        }
+        .confirmationDialog("Remove Unused Models?",
+                            isPresented: $confirmRemoveUnused,
+                            titleVisibility: .visible) {
+            Button("Remove Unused", role: .destructive) {
+                _ = viewModel.document.removeUnusedElements()
+                model.refresh()
+                viewModel.reloadRows()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Deletes every element with no effects from the sequence. This cannot be undone.")
         }
         // Local "Add Timing Track" sheet — stacked on top of this
         // sheet so iOS doesn't reject it the way the app-level
@@ -480,6 +572,12 @@ struct DisplayElementsSheet: View {
                             Text("In This View")
                                 .font(.headline)
                             Spacer()
+                            Button {
+                                confirmCopyToMaster = true
+                            } label: {
+                                Label("Copy To Master", systemImage: "arrow.up.to.line")
+                            }
+                            .disabled(membership.members.isEmpty)
                             Button(role: .destructive) {
                                 removeAllMembers(membership.members)
                             } label: {

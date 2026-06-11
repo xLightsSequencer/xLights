@@ -536,6 +536,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffect.cpp" />
     <ClCompile Include="..\src-core\effects\SketchEffectDrawing.cpp" />
+    <ClCompile Include="..\src-core\effects\SketchSVGImport.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\SketchPanel.cpp" />
     <ClCompile Include="..\src-core\effects\WarpEffect.cpp" />
     <ClCompile Include="..\src-ui-wx\effectpanels\WarpPanel.cpp" />
@@ -631,7 +632,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\layout\LayoutUtils.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.cpp" />
     <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportEffectsReport.cpp" />
     <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORMusic.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LORPreview.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\LyricUserDictDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
@@ -1185,6 +1188,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\effectpanels\assist\SketchCanvasPanel.h" />
     <ClInclude Include="..\src-core\effects\SketchEffect.h" />
     <ClInclude Include="..\src-core\effects\SketchEffectDrawing.h" />
+    <ClInclude Include="..\src-core\effects\SketchSVGImport.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\SketchPanel.h" />
     <ClInclude Include="..\src-core\effects\WarpEffect.h" />
     <ClInclude Include="..\src-ui-wx\effectpanels\WarpPanel.h" />
@@ -1228,7 +1232,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\sequencer\LayerSelectDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LinkJukeboxButtonDialog.h" />
     <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\ExportEffectsReport.h" />
     <ClInclude Include="..\src-core\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\LORMusic.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricUserDictDialog.h" />
     <ClInclude Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.h" />
     <ClInclude Include="..\src-ui-wx\media\MediaImportOptionsDialog.h" />

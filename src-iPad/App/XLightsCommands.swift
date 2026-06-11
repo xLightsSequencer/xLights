@@ -53,6 +53,11 @@ struct XLSequencerCommands: Commands {
             .keyboardShortcut("s", modifiers: [.command, .shift])
             .disabled(!viewModel.isSequenceLoaded)
 
+            Button("Revert to Last Saved…") {
+                viewModel.revertRequestToken &+= 1
+            }
+            .disabled(!viewModel.isDirty || !viewModel.isSequenceLoaded)
+
             Divider()
 
             Button("Sequence Settings…") {
@@ -62,9 +67,7 @@ struct XLSequencerCommands: Commands {
         }
 
         // Edit menu — Undo / Redo replace the system defaults;
-        // Pasteboard group gets Copy / Paste / Duplicate / Delete.
-        // (Cut intentionally omitted; disabled-but-bound shortcuts
-        // still swallow key events.)
+        // Pasteboard group gets Cut / Copy / Paste / Duplicate / Delete.
         CommandGroup(replacing: .undoRedo) {
             // Surface the descriptive action name (set at the ~26
             // setActionName call sites) so the menu reads "Undo Move
@@ -102,6 +105,27 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Shift Effects — mirrors desktop's three Menu3 items. Each
+            // opens the same sheet with the scope preselected.
+            Divider()
+            Button("Shift Effects…") {
+                viewModel.shiftEffectsInitialScope = .allEffects
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Shift Effects And Timing…") {
+                viewModel.shiftEffectsInitialScope = .allEffectsAndTiming
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Shift Selected Effects…") {
+                viewModel.shiftEffectsInitialScope = .selectedOnly
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.canShiftSelectedEffects)
+
             // PRE-1 — persistent effect preset library.
             Button("Effect Presets…") {
                 viewModel.presetBrowserPresented = true
@@ -110,6 +134,11 @@ struct XLSequencerCommands: Commands {
             .disabled(!viewModel.isSequenceLoaded)
         }
         CommandGroup(replacing: .pasteboard) {
+            Button("Cut") { viewModel.cutSelectedEffects() }
+                .keyboardShortcut("x", modifiers: [.command])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
             Button("Copy") { viewModel.copySelectedEffect() }
                 .keyboardShortcut("c", modifiers: [.command])
                 .disabled(viewModel.selectedEffect == nil)
@@ -298,6 +327,14 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // CLN-1 — Tools → Cleanup File Locations. Sweeps every
+            // referenced external media file into the show folder and
+            // rewrites effect references. Non-undoable (the sheet warns).
+            Button("Cleanup File Locations…") {
+                viewModel.showingCleanupFileLocations = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
             Divider()
 
             // J-0 — Layout Editor (read-only in J-0; mutation lands in
@@ -306,6 +343,26 @@ struct XLSequencerCommands: Commands {
             // Disabled until a show folder loads — there's nothing to
             // edit before models exist.
             EditLayoutMenuItem(viewModel: viewModel)
+
+            Divider()
+
+            // EFX-1 — Tools → Export Effects. Writes the per-effect CSV
+            // (same columns as desktop ExportEffects.cpp). Triggers a
+            // fileExporter flow observed in SequencerView.
+            Button("Export Effects…") {
+                viewModel.exportEffectsRequestToken &+= 1
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // AI-2 — Tools → Generate AI Image. Presents
+            // AIImageGenerationSheet in standalone mode (saves to show
+            // folder, no effect context required).
+            Button("Generate AI Image…") {
+                viewModel.showingStandaloneAIImage = true
+            }
+            .disabled(!XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityImages))
 
             Divider()
 
@@ -393,6 +450,14 @@ struct XLSequencerCommands: Commands {
 
             Button("Stop") { viewModel.stop() }
                 .disabled(!viewModel.isSequenceLoaded)
+
+            // Desktop ID_AUITOOLBAR_REPLAY_SECTION: loop the selected
+            // time range. Sets the loop region to the selection's
+            // bounds and starts loop playback. ⇧Space matches no
+            // desktop key but reads naturally next to Play (Space).
+            Button("Replay Section") { viewModel.replaySection() }
+                .keyboardShortcut(.space, modifiers: [.shift])
+                .disabled(!viewModel.isSequenceLoaded || !viewModel.hasReplaySectionSelection)
 
             Divider()
 
@@ -493,6 +558,21 @@ struct XLSequencerCommands: Commands {
                 .keyboardShortcut(.downArrow, modifiers: [])
                 .disabled(viewModel.selectedEffect == nil)
 
+            // Desktop Up/Down arrows move the effect between layers;
+            // iPad arrows are taken by selection nav, so layer moves
+            // ride ⌥↑ / ⌥↓ (mirrors the ⌥←/→ frame nudges).
+            Button("Move Effect Up a Layer") {
+                viewModel.moveSelectedEffectToAdjacentLayer(-1)
+            }
+                .keyboardShortcut(.upArrow, modifiers: [.option])
+                .disabled(viewModel.selectedEffect == nil)
+
+            Button("Move Effect Down a Layer") {
+                viewModel.moveSelectedEffectToAdjacentLayer(1)
+            }
+                .keyboardShortcut(.downArrow, modifiers: [.option])
+                .disabled(viewModel.selectedEffect == nil)
+
             // B3 — Tab / Shift+Tab navigate next / previous effect
             // in row order. Mirrors the arrow-key bindings for
             // hardware-keyboard users who expect Tab to advance.
@@ -546,6 +626,9 @@ struct XLSequencerCommands: Commands {
         CommandGroup(replacing: .help) {
             Button("About xLights…") {
                 viewModel.showingAbout = true
+            }
+            Button("Key Bindings…") {
+                viewModel.showingKeyBindings = true
             }
 
             Divider()

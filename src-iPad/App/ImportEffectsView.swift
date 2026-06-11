@@ -72,6 +72,7 @@ struct ImportEffectsView: View {
     @State private var showingLoadHints = false      // IE-3
     @State private var resultMessage: String?        // IE-3 / IE-12 result alert
     @State private var showingTimingPopover = false
+    @State private var aiMapRunning = false           // AI structured mapping in flight
 
     var body: some View {
         NavigationStack {
@@ -161,7 +162,7 @@ struct ImportEffectsView: View {
             Text("Pick a sequence to import effects from.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, and .loredit LOR S5 exports are supported.")
+            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, .loredit LOR S5, and .lms / .las LOR Music / Animation exports are supported.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -283,6 +284,18 @@ struct ImportEffectsView: View {
                     .disabled(selectedDestNodeID == 0)
                 Button("Auto Map") { autoMap() }
                     .buttonStyle(.borderedProminent)
+                if XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityMapping) {
+                    Button {
+                        aiMap()
+                    } label: {
+                        if aiMapRunning {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("AI Map", systemImage: "wand.and.stars")
+                        }
+                    }
+                    .disabled(aiMapRunning)
+                }
                 Spacer()
                 if !timingTracks.isEmpty {
                     Button {
@@ -389,6 +402,11 @@ struct ImportEffectsView: View {
                 // mapping panes with `.xsq`; only source discovery differs.
                 // (The Settings → Timings tab handles `.tim` as timing-only.)
                 try session.loadVixen3Source(atPath: url.path)
+            } else if ext == "lms" || ext == "las" {
+                // LOR Music / Animation effect-level export — parsed by the
+                // core LORMusic reader. Shares the mapping panes / AutoMapper
+                // flow with `.xsq`; only source discovery differs.
+                try session.loadLMSSource(atPath: url.path)
             } else {
                 try session.loadSourceSequence(atPath: url.path)
             }
@@ -434,6 +452,22 @@ struct ImportEffectsView: View {
         guard let session else { return }
         session.runAutoMap()
         refreshSnapshots()
+    }
+
+    private func aiMap() {
+        guard let session else { return }
+        aiMapRunning = true
+        session.runAIMap { applied, error in
+            aiMapRunning = false
+            if let error {
+                resultMessage = error
+            } else {
+                resultMessage = applied > 0
+                    ? "AI mapped \(applied) model\(applied == 1 ? "" : "s")."
+                    : "AI returned no new mappings."
+                refreshSnapshots()
+            }
+        }
     }
 
     private func applyImport() {
@@ -549,6 +583,9 @@ struct ImportEffectsView: View {
         if let loredit = UTType(filenameExtension: "loredit") { types.append(loredit) }
         // Vixen 3 effect-level export (parsed by the core Vixen3 reader).
         if let tim = UTType(filenameExtension: "tim") { types.append(tim) }
+        // LOR Music / Animation effect-level export (parsed by core LORMusic).
+        if let lms = UTType(filenameExtension: "lms") { types.append(lms) }
+        if let las = UTType(filenameExtension: "las") { types.append(las) }
         // xLights package (zip-based, like .xsqz) — handled by SequencePackage.
         if let piz = UTType(filenameExtension: "piz") { types.append(piz) }
         return types

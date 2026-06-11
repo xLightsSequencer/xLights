@@ -18,6 +18,7 @@ struct ColorPaletteView: View {
     @State private var showingImportSheet = false
     @State private var showingSaveAsSheet = false
     @State private var showingAISheet = false
+    @State private var showingUpdatePaletteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -76,12 +77,29 @@ struct ColorPaletteView: View {
             AIPaletteGenerationSheet()
                 .environment(viewModel)
         }
+        .alert("Update Palette", isPresented: $showingUpdatePaletteConfirm) {
+            Button("Update", role: .destructive) {
+                viewModel.updatePaletteOnAllSelected()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let count = viewModel.selectedEffects.count - 1
+            Text("Apply this palette to \(count) other selected \(count == 1 ? "effect" : "effects")?")
+        }
     }
 
     // MARK: - Palette menu (save / load / import / export)
 
     @ViewBuilder
     private func paletteMenuContent() -> some View {
+        if viewModel.isMultiEffectSelection {
+            Button {
+                showingUpdatePaletteConfirm = true
+            } label: {
+                Label("Update Palette", systemImage: "square.stack.3d.up.fill")
+            }
+            Divider()
+        }
         Button {
             _ = viewModel.document.savePaletteString(
                 currentPaletteString(), asName: nil)

@@ -55,6 +55,17 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     /// needs to redraw at a new zoom / scroll / size.
     var showSpectrogram: Bool = false
     var spectrogramFetcher: ((Int, Int, Int, Int) -> Data?)? = nil
+    /// #6268 Song Structure regions for the active view. Drawn as
+    /// translucent colored bands with name labels across the ruler +
+    /// waveform strip. Flat tuples avoid pulling the view-model type
+    /// into the Metal layer: (startMS, endMS, colorARGB). Names ride
+    /// alongside in `songRegionNames`. `songRegionRevision` forces a
+    /// redraw when the set changes. Long-press on a band fires
+    /// `onRegionMenu(regionMidMS)`.
+    var songRegionBounds: [(Int, Int, UInt32)] = []
+    var songRegionNames: [String] = []
+    var songRegionRevision: Int = 0
+    var onRegionMenu: ((_ atMS: Int) -> Void)?
 
     func makeUIView(context: Context) -> TopChromeMetalMTKView {
         let v = TopChromeMetalMTKView()
@@ -89,6 +100,9 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         c.showSpectrogram = showSpectrogram
         c.spectrogramFetcher = spectrogramFetcher
         c.tagPositions = tagPositions
+        c.songRegionBounds = songRegionBounds
+        c.songRegionNames = songRegionNames
+        c.onRegionMenu = onRegionMenu
         view.setNeedsDisplay()
     }
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -135,6 +149,10 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         var spectrogramCacheKey: String = ""
         // B34 numbered-tag positions (0..9).
         var tagPositions: [Int] = Array(repeating: -1, count: 10)
+        // #6268 song-structure region bands.
+        var songRegionBounds: [(Int, Int, UInt32)] = []
+        var songRegionNames: [String] = []
+        var onRegionMenu: ((Int) -> Void)?
     }
 }
 
@@ -216,6 +234,51 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
                                   w: size.width, h: c.waveformHeight,
                                   r: bgGray, g: bgGray, b: bgGray, a: 1.0)
         bridge.flushFilledRectBatch()
+
+        // #6268 Song Structure region bands. Translucent colored
+        // fills spanning the ruler + waveform strip with a name label
+        // and faint boundary lines, drawn beneath the loop highlight so
+        // an active loop still reads on top. Mirrors the desktop ruler
+        // overlay (TimeLine.cpp).
+        if c.pixelsPerMS > 0 && !c.songRegionBounds.isEmpty {
+            let totalH = c.rulerHeight + c.waveformHeight
+            bridge.beginFilledRectBatch()
+            for (idx, rb) in c.songRegionBounds.enumerated() {
+                let (sMS, eMS, argb) = rb
+                if eMS <= sMS { continue }
+                let x1 = CGFloat(sMS) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(eMS) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < -1 || x1 > size.width + 1 { continue }
+                let a = CGFloat((argb >> 24) & 0xFF) / 255.0
+                let r = CGFloat((argb >> 16) & 0xFF) / 255.0
+                let g = CGFloat((argb >> 8) & 0xFF) / 255.0
+                let b = CGFloat(argb & 0xFF) / 255.0
+                _ = idx
+                bridge.appendFilledRectX(x1, y: 0, w: max(1, x2 - x1), h: totalH,
+                                          r: r, g: g, b: b, a: max(0.10, a))
+            }
+            bridge.flushFilledRectBatch()
+            // Boundary lines between regions.
+            bridge.beginLineBatch()
+            for rb in c.songRegionBounds {
+                let x = CGFloat(rb.0) * c.pixelsPerMS - c.scrollOffsetX
+                if x < -1 || x > size.width + 1 { continue }
+                bridge.appendLineX1(x, y1: 0, x2: x, y2: totalH,
+                                     r: 0.85, g: 0.85, b: 0.85, a: 0.5)
+            }
+            bridge.flushLineBatch()
+            // Name labels near the top of each band.
+            for (i, rb) in c.songRegionBounds.enumerated() {
+                let name = i < c.songRegionNames.count ? c.songRegionNames[i] : ""
+                if name.isEmpty { continue }
+                let x1 = CGFloat(rb.0) * c.pixelsPerMS - c.scrollOffsetX
+                let x2 = CGFloat(rb.1) * c.pixelsPerMS - c.scrollOffsetX
+                if x2 < 2 || x1 > size.width { continue }
+                let lx = max(2, x1 + 3)
+                bridge.drawText(name, atX: lx, y: c.rulerHeight + 2,
+                                 fontSize: 10, r: 1.0, g: 1.0, b: 1.0, a: 0.95)
+            }
+        }
 
         // B32 loop-region highlight. Draws whichever of the
         // persisted region or the in-flight drag range is active.
@@ -537,8 +600,20 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
         // surfaces the filter-variant menu on .began. Only ruler
         // presses proceed to the loop-region path below.
         if p.y >= c.rulerHeight {
-            if g.state == .began, c.hasAudio {
-                c.onWaveformMenu?()
+            if g.state == .began {
+                let ms = max(0, min(c.durationMS,
+                                     Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
+                // #6268: a long-press over a song-structure band opens
+                // the region menu; otherwise fall back to the waveform
+                // filter menu.
+                let onRegion = c.songRegionBounds.contains {
+                    ms >= $0.0 && ms < $0.1
+                }
+                if onRegion, let fire = c.onRegionMenu {
+                    fire(ms)
+                } else if c.hasAudio {
+                    c.onWaveformMenu?()
+                }
             }
             return
         }

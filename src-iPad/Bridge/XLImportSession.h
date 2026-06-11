@@ -103,6 +103,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)runAutoMapSelectedTargets:(NSArray<NSNumber*>*)selectedNodeIDs
                           sources:(NSArray<NSString*>*)selectedSourceDisplayNames;
 
+// Desktop "AI Map": asks the MAPPING-capable AI service (e.g. Claude
+// GenerateModelMapping) for target→source suggestions over the
+// currently-unmapped destination rows, applying validated results
+// like Auto Map. The network call runs on a utility queue; the
+// completion fires on the main queue with the applied-mapping count
+// or an error message.
+- (void)runAIMapWithCompletion:(void (^)(NSInteger applied, NSString* _Nullable error))completion
+    NS_SWIFT_NAME(runAIMap(completion:));
+
 // Write the current mapping state out to a `.xmaphint` file. `path`
 // must be writable. Returns NO on write failure.
 - (BOOL)saveMapHintsToPath:(NSString*)path;
@@ -156,6 +165,15 @@ NS_ASSUME_NONNULL_BEGIN
 // Settings → Timings tab.)
 - (BOOL)loadVixen3SourceAtPath:(NSString*)path
                          error:(NSError**)error NS_SWIFT_NAME(loadVixen3Source(atPath:));
+
+// Load a Light-O-Rama Music `.lms` or Animation `.las` file as an EFFECT-import
+// source (the iPad analogue of desktop xLightsFrame::ImportLMS — both extensions
+// share one XML schema and reader). Parses the document with the wx-free core
+// LORMusic reader and populates the shared available/destination tree; apply
+// synthesizes On / Color Wash / Twinkle effects (and per-pixel CCR fan-out)
+// onto the mapped layers. Returns a non-nil error on parse failure.
+- (BOOL)loadLMSSourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadLMSSource(atPath:));
 
 // IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
 // an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).

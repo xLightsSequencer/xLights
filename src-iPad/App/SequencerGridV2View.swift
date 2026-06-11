@@ -183,6 +183,34 @@ private struct InsertLayersAlert: ViewModifier {
     }
 }
 
+/// Delete-multiple-layers alert wrapper (desktop
+/// ID_ROW_MNU_DELETE_LAYERS). Same extracted-ViewModifier shape as
+/// `InsertLayersAlert` for the same type-check-budget reason.
+private struct DeleteLayersAlert: ViewModifier {
+    @Binding var targetRow: Int?
+    @Binding var countText: String
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.alert("Delete Multiple Layers",
+                      isPresented: Binding(
+                        get: { targetRow != nil },
+                        set: { if !$0 { targetRow = nil } }
+                      ),
+                      presenting: targetRow) { row in
+            TextField("Count", text: $countText)
+                .keyboardType(.numberPad)
+            Button("Delete", role: .destructive) {
+                let count = Int(countText) ?? 0
+                _ = viewModel.deleteLayersBelow(rowIndex: row, count: count)
+                targetRow = nil
+            }
+            Button("Cancel", role: .cancel) { targetRow = nil }
+        } message: { _ in
+            Text("How many layers to delete, starting at this one and moving down? Effects on them will be lost.")
+        }
+    }
+}
+
 /// B49 — Falcon Player sub-sequence export document. Same
 /// temp-path → `.fileExporter` pattern as `XTimingExportDoc`.
 struct FSEQExportDoc: FileDocument {
@@ -282,6 +310,13 @@ struct SequencerGridV2View: View {
     /// 96 pt "double-height" mode. Persisted so the user's choice
     /// survives app restarts.
     @AppStorage("waveformDoubleHeight") private var waveformDoubleHeight: Bool = false
+
+    // Desktop prefs xLightsSnapToTimingMarks / mTimingPlayOnDClick (both
+    // default ON). Read directly by the grid drag handlers / double-tap
+    // handler via UserDefaults; surfaced as toggles in the options menu.
+    @AppStorage("snapToTimingMarks") private var snapToTimingMarks: Bool = true
+    @AppStorage("timingPlayOnDoubleTap") private var timingPlayOnDoubleTap: Bool = true
+    @AppStorage("pasteByCell") private var pasteByCell: Bool = true
     private var metrics: GridMetrics {
         var m = GridMetrics.standard
         m.rowHeaderWidth = CGFloat(
@@ -335,6 +370,15 @@ struct SequencerGridV2View: View {
     /// B47 insert-N-layers prompt state.
     @State private var insertLayersTargetRow: Int? = nil
     @State private var insertLayersCountText: String = "3"
+    @State private var deleteLayersTargetRow: Int? = nil
+    @State private var deleteLayersCountText: String = "2"
+
+    /// #6507 top-level row drag-reorder. `rowDragSourceId` is the
+    /// visible row id of the row being dragged; `rowDropTargetId` is
+    /// the row the drop indicator currently sits above (nil = drop at
+    /// the end). Both reset on drop / cancel.
+    @State private var rowDragSourceId: Int? = nil
+    @State private var rowDropTargetId: Int? = nil
 
     /// B20 edit-description prompt state.
     @State private var editDescriptionTarget: EditDescriptionTarget? = nil
@@ -349,6 +393,16 @@ struct SequencerGridV2View: View {
     @State private var loopMenuPresented: Bool = false
     /// B41 waveform filter-picker trigger.
     @State private var waveformMenuPresented: Bool = false
+    /// #6268 song-structure region menu / edit-sheet state. `regionMenuMS`
+    /// is the long-press time used by Add/Delete-boundary; `regionEditID`
+    /// is the region being edited in the name+color sheet.
+    @State private var songRegionMenuMS: Int? = nil
+    @State private var songRegionEditID: Int? = nil
+    @State private var songRegionEditName: String = ""
+    @State private var songViewRenamePresented: Bool = false
+    @State private var songViewRenameText: String = ""
+    @State private var songViewAddPresented: Bool = false
+    @State private var songViewAddText: String = ""
     /// A9.1 custom-band picker sheet trigger.
     @State private var customBandSheetPresented: Bool = false
     /// A7 sound-class picker sheet trigger.
@@ -660,7 +714,9 @@ struct SequencerGridV2View: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } else {
+                Button("Play Effect") { viewModel.playSelectedEffect() }
                 Button("Copy") { viewModel.copySelectedEffect() }
+                Button("Cut") { viewModel.cutSelectedEffects() }
                 if viewModel.hasClipboard {
                     Button("Paste Here") {
                         let startMS = (viewModel.rows[target.rowIndex].effects[target.effectIndex]).startTimeMS
@@ -1110,6 +1166,87 @@ struct SequencerGridV2View: View {
             }
             Button("Cancel", role: .cancel) {}
         }
+        // #6268 Song Structure region context menu (long-press over a
+        // band in the waveform strip). Edit name/color, add or delete
+        // a boundary at the press point, and switch / manage views.
+        .confirmationDialog(
+            "Song Region",
+            isPresented: Binding(
+                get: { songRegionMenuMS != nil },
+                set: { if !$0 { songRegionMenuMS = nil } })
+        ) {
+            if let ms = songRegionMenuMS,
+               let idx = viewModel.songRegionIndexAtMS(ms) {
+                Button("Edit Region…") {
+                    let r = viewModel.songRegions[idx]
+                    songRegionEditName = r.name
+                    songRegionEditID = r.id
+                }
+            }
+            if let ms = songRegionMenuMS {
+                Button("Add Boundary Here") {
+                    viewModel.addSongBoundary(atMS: ms)
+                }
+                Button("Delete Boundary", role: .destructive) {
+                    viewModel.deleteSongBoundary(nearMS: ms)
+                }
+            }
+            ForEach(Array(viewModel.songViewNames.enumerated()), id: \.offset) { i, name in
+                Button(i == viewModel.songActiveViewIndex ? "✓ \(name)" : name) {
+                    viewModel.setActiveSongView(index: i)
+                }
+            }
+            Button("New View…") {
+                songViewAddText = ""
+                songViewAddPresented = true
+            }
+            if viewModel.songActiveViewIndex >= 0 {
+                Button("Duplicate View") {
+                    let cur = viewModel.songActiveViewIndex
+                    let nm = (cur < viewModel.songViewNames.count
+                              ? viewModel.songViewNames[cur] : "View") + " Copy"
+                    viewModel.duplicateSongView(at: cur, name: nm)
+                }
+                Button("Rename View…") {
+                    let cur = viewModel.songActiveViewIndex
+                    songViewRenameText = cur < viewModel.songViewNames.count
+                        ? viewModel.songViewNames[cur] : ""
+                    songViewRenamePresented = true
+                }
+                Button("Delete View", role: .destructive) {
+                    viewModel.deleteSongView(at: viewModel.songActiveViewIndex)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .sheet(isPresented: Binding(
+            get: { songRegionEditID != nil },
+            set: { if !$0 { songRegionEditID = nil } })) {
+            SongRegionEditSheet(
+                regionID: songRegionEditID ?? 0,
+                name: $songRegionEditName,
+                viewModel: viewModel,
+                onDone: { songRegionEditID = nil })
+                .presentationDetents([.height(280)])
+        }
+        .alert("New Song Structure View", isPresented: $songViewAddPresented) {
+            TextField("Name", text: $songViewAddText)
+            Button("Add") {
+                let t = songViewAddText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty { viewModel.addSongView(name: t) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Rename View", isPresented: $songViewRenamePresented) {
+            TextField("Name", text: $songViewRenameText)
+            Button("OK") {
+                let t = songViewRenameText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty, viewModel.songActiveViewIndex >= 0 {
+                    viewModel.renameSongView(at: viewModel.songActiveViewIndex, name: t)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
         // F-6 — Display Elements editor modal. State lives on the
         // view model so F-4 menu-bar "Edit Display Elements…" can
         // flip the same flag.
@@ -1130,6 +1267,12 @@ struct SequencerGridV2View: View {
             ColorReplaceSheet()
                 .environment(viewModel)
                 .presentationDetents([.medium, .large])
+        }
+        // Shift Effects sheet (Edit ▸ Shift Effects…).
+        .sheet(isPresented: Bindable(viewModel).shiftEffectsPresented) {
+            ShiftEffectsSheet()
+                .environment(viewModel)
+                .presentationDetents([.medium])
         }
         // B70 rename-timing-mark alert.
         .alert("Rename Mark",
@@ -1173,6 +1316,10 @@ struct SequencerGridV2View: View {
         .modifier(InsertLayersAlert(
             targetRow: $insertLayersTargetRow,
             countText: $insertLayersCountText,
+            viewModel: viewModel))
+        .modifier(DeleteLayersAlert(
+            targetRow: $deleteLayersTargetRow,
+            countText: $deleteLayersCountText,
             viewModel: viewModel))
         .modifier(EditDescriptionAlert(
             target: $editDescriptionTarget,
@@ -1449,6 +1596,26 @@ struct SequencerGridV2View: View {
                                 ? "rectangle.compress.vertical"
                                 : "rectangle.expand.vertical")
                     }
+                    // Sequencer behaviour toggles — desktop parity with
+                    // the Effects-Grid / Timing prefs.
+                    Divider()
+                    Toggle(isOn: $snapToTimingMarks) {
+                        Label("Snap to Timing Marks", systemImage: "ruler")
+                    }
+                    Toggle(isOn: $timingPlayOnDoubleTap) {
+                        Label("Timing Play on Double-Tap", systemImage: "play.circle")
+                    }
+                    // Desktop EditToolBar Paste-By-Cell / Paste-By-Time
+                    // toggle. By Cell stretches a single-effect paste to
+                    // fill the active timing cell (the long-standing iPad
+                    // auto behavior, kept as the default); By Time always
+                    // preserves the copied duration.
+                    Picker(selection: $pasteByCell) {
+                        Text("By Time").tag(false)
+                        Text("By Cell").tag(true)
+                    } label: {
+                        Label("Paste Mode", systemImage: "doc.on.clipboard")
+                    }
                     // B34 / B35 numbered-tag markers. Set / go-to /
                     // clear at the current play head. Desktop parity
                     // with the 0..9 bookmarks on the sequencer ruler.
@@ -1528,8 +1695,15 @@ struct SequencerGridV2View: View {
             spectrogramFetcher: { s, e, w, h in
                 viewModel.spectrogramBGRA(fromMS: s, toMS: e,
                                            width: w, height: h)
-            }
+            },
+            songRegionBounds: viewModel.songRegions.map {
+                ($0.startMS, $0.endMS, $0.colorARGB)
+            },
+            songRegionNames: viewModel.songRegions.map { $0.name },
+            songRegionRevision: viewModel.songStructureRevision,
+            onRegionMenu: { ms in songRegionMenuMS = ms }
         )
+        .id(viewModel.songStructureRevision)
     }
 
     /// B34 / B35 — tag menu entries for the View-picker. Extracted
@@ -1545,8 +1719,17 @@ struct SequencerGridV2View: View {
             }
         }
         Menu("Go To Tag") {
+            Button("Next Tag") { viewModel.goToNextTag() }
+            Button("Prior Tag") { viewModel.goToPriorTag() }
+            Divider()
             ForEach(0..<10, id: \.self) { i in
                 Button("Tag \(i)") { viewModel.goToTag(i) }
+                    .disabled(viewModel.tagPositions[i] < 0)
+            }
+        }
+        Menu("Delete Tag") {
+            ForEach(0..<10, id: \.self) { i in
+                Button("Tag \(i)", role: .destructive) { viewModel.clearTag(i) }
                     .disabled(viewModel.tagPositions[i] < 0)
             }
         }
@@ -1742,7 +1925,10 @@ struct SequencerGridV2View: View {
                     canSelectMarks: !row.effects.isEmpty,
                     onSelectMarks: {
                         viewModel.selectAllEffectsInRow(rowIndex: row.id)
-                    }
+                    },
+                    onCreateSongRegions: row.layerIndex == 0 && !row.effects.isEmpty ? {
+                        viewModel.createSongRegionsFromTimingRow(row.id)
+                    } : nil
                 )
             }
         }
@@ -1833,9 +2019,18 @@ struct SequencerGridV2View: View {
                     onDeleteAllEffectsOnRow: {
                         _ = viewModel.deleteAllEffectsOnRow(rowIndex: row.id)
                     },
+                    onDeleteModelEffects: {
+                        viewModel.deleteModelEffects(rowIndex: row.id)
+                    },
                     elementRenderDisabled: viewModel.isElementRenderDisabled(rowIndex: row.id),
                     onToggleRenderDisabled: {
                         viewModel.toggleElementRenderDisabled(rowIndex: row.id)
+                    },
+                    onEnableRenderAll: {
+                        viewModel.enableRenderOnAllModels()
+                    },
+                    onPlayModel: {
+                        viewModel.playModel(rowIndex: row.id)
                     },
                     onCopyRow: { viewModel.copyRow(rowIndex: row.id) },
                     onCutRow: { viewModel.cutRow(rowIndex: row.id) },
@@ -1867,11 +2062,37 @@ struct SequencerGridV2View: View {
                         insertLayersCountText = "3"
                         insertLayersTargetRow = row.id
                     },
+                    onDeleteMultipleLayers: {
+                        deleteLayersCountText = "2"
+                        deleteLayersTargetRow = row.id
+                    },
                     isSelected: row.id == selectedRowId
                 )
+                .overlay(alignment: .top) {
+                    if isTopLevelRow(row), rowDropTargetId == row.id,
+                       rowDragSourceId != nil, rowDragSourceId != row.id {
+                        Rectangle()
+                            .fill(Color.accentColor)
+                            .frame(height: 2)
+                    }
+                }
+                .modifier(TopLevelRowReorderModifier(
+                    isTopLevel: isTopLevelRow(row),
+                    rowId: row.id,
+                    sourceId: $rowDragSourceId,
+                    dropTargetId: $rowDropTargetId,
+                    onCommit: { src, dest in
+                        viewModel.moveTopLevelRow(from: src, toBefore: dest)
+                    }
+                ))
             }
         }
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func isTopLevelRow(_ row: SequencerViewModel.RowInfo) -> Bool {
+        row.layerIndex == 0 && row.strandIndex < 0
+            && row.nodeIndex < 0 && !row.isSubmodel
     }
 
     /// Interactive Metal grid for the model-effect column. Builds
@@ -1930,6 +2151,17 @@ struct SequencerGridV2View: View {
         }
         actions.onDoubleTapEmpty = { rowIdx, ms in
             viewModel.doubleTapCreateInCell(rowIndex: rowIdx, atMS: ms)
+        }
+        actions.isPaletteArmed = { viewModel.selectedPaletteEffect != nil }
+        actions.onCreateEffectDrag = { rowIdx, startMS, endMS in
+            viewModel.createEffectFromPaletteDrag(rowIndex: rowIdx,
+                                                  startMS: startMS, endMS: endMS)
+        }
+        actions.onToggleSelectEffect = { rowIdx, effIdx in
+            viewModel.toggleSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
+        }
+        actions.onExtendSelectEffect = { rowIdx, effIdx in
+            viewModel.extendSelectEffect(rowIndex: rowIdx, effectIndex: effIdx)
         }
         var stateLookup = EffectStateLookup()
         stateLookup.isLocked = { [document = viewModel.document] rowIdx, effIdx in

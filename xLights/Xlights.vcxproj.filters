@@ -189,7 +189,9 @@
     <ClCompile Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportEffectsReport.cpp" />
     <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORMusic.cpp" />
     <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\effects\CharMapDialog.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp">
@@ -824,6 +826,9 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\SketchEffectDrawing.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\SketchSVGImport.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\outputs\TwinklyOutput.cpp">
@@ -1558,7 +1563,9 @@
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\ExportEffectsReport.h" />
     <ClInclude Include="..\src-core\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\LORMusic.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\effects\CharMapDialog.h" />
@@ -2204,6 +2211,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\SketchEffectDrawing.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\SketchSVGImport.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\outputs\TwinklyOutput.h">

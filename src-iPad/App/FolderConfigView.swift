@@ -370,6 +370,7 @@ struct FolderConfigView: View {
     private func commitBaseShowDirectoryEdits() {
         viewModel.document.setBaseShowDirectory(baseShowFolderPath)
         viewModel.document.setAutoUpdateFromBaseShowDirectory(autoUpdateFromBase)
+        viewModel.reloadBasePresets()
     }
 
     private func displayName(_ path: String) -> String {

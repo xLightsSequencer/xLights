@@ -108,6 +108,15 @@
             "description": "iPad single-colour authoring: SwiftUI ColorPicker writes a single HSV triple into the active fixtures' Color: command."
         },
         {
+            "id": "MHColorWheelRow",
+            "label": "",
+            "type": "string",
+            "controlType": "custom",
+            "platform": "ipad",
+            "default": "",
+            "description": "iPad colour-wheel picker for colour-wheel fixtures: a strip of the model's wheel slots that writes a single-colour Wheel: command. Hidden for RGB/CMYW fixtures."
+        },
+        {
             "id": "MHDimmerRow",
             "label": "",
             "type": "string",
@@ -123,7 +132,7 @@
             "controlType": "custom",
             "platform": "ipad",
             "default": "",
-            "description": "iPad path authoring (read + clear). Full waypoint editing still requires desktop's Effect Assist; the iPad row shows the current Path: command and exposes a Clear action."
+            "description": "iPad waypoint path editor: a touch Canvas that draws Bezier (line / quadratic / cubic) waypoint paths plus path presets, writing the same Path: command desktop's Effect Assist reads."
         },
         {
             "id": "MHPathScale",

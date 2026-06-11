@@ -271,6 +271,12 @@ struct ContentView: View {
             AboutSheet()
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingKeyBindings },
+            set: { viewModel.showingKeyBindings = $0 }
+        )) {
+            KeyBindingsSheet()
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingCheckSequence },
             set: { viewModel.showingCheckSequence = $0 }
         )) {
@@ -282,6 +288,15 @@ struct ContentView: View {
             set: { viewModel.showingAIServices = $0 }
         )) {
             AIServicesSettingsSheet()
+        }
+        // CLN-1 Tools → Cleanup File Locations. Preview + execute
+        // sheet; hosted at the root so it survives navigation.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingCleanupFileLocations },
+            set: { viewModel.showingCleanupFileLocations = $0 }
+        )) {
+            CleanupFileLocationsSheet()
+                .environment(viewModel)
         }
         // EX-11 Tools → Package Sequence. Hosted here (not on the
         // sequencer view) so the option sheet survives navigation

@@ -31,6 +31,7 @@
 #include "lyrics/LyricBreakdown.h"
 #include "render/SequenceViewManager.h"
 #include "effects/RenderableEffect.h"
+#include "effects/SketchSVGImport.h"
 #include "effects/EffectManager.h"
 #include "effects/ShaderEffect.h"
 #include "graphics/xlGraphicsAccumulators.h"
@@ -48,8 +49,11 @@
 #include "media/MediaCompatibility.h"
 #include "media/VideoReader.h"
 #include "render/ValueCurve.h"
+#include "render/ColorCurve.h"
 #include "import_export/ExportModels.h"
+#include "import_export/ExportEffectsReport.h"
 #include "models/Model.h"
+#include "models/Node.h"
 #include "models/ModelManager.h"
 #include "models/DMX/DmxModel.h"
 #include "models/ModelGroup.h"
@@ -158,6 +162,31 @@
 
 #import <os/proc.h>
 
+// Shift-Effects undo snapshot. Bulk shift is destructive at the 0
+// boundary (truncation / deletion), so reversing it by re-shifting is
+// lossy. Instead we capture the full re-creatable state of every effect
+// on every layer we touch, keyed by the live EffectLayer* (valid for
+// the session — undo runs against the same loaded sequence), and
+// restore by clearing + re-adding. `selectedOnly` snapshots only the
+// in-scope layers, but stores every effect on them so a restore re-adds
+// any that the shift deleted.
+namespace {
+struct ShiftEffectSnap {
+    int id;
+    std::string name;
+    std::string settings;
+    std::string palette;
+    int startMS;
+    int endMS;
+    int selected;
+    bool protectd;
+};
+struct ShiftLayerSnap {
+    EffectLayer* layer;
+    std::vector<ShiftEffectSnap> effects;
+};
+}
+
 // Private helpers. extrasFor: takes a C++ Model* so it lives here
 // (not in the ObjC++-free header). Declared up front so it can be
 // called from any method below without ordering concerns.
@@ -168,7 +197,21 @@
 - (void)recalcModelStartChannels;
 - (void)reworkAndRecalcStartChannels;
 - (void)recalcAndMarkControllersDirty;
+- (BOOL)applyPresetFromManager:(EffectPresetManager&)mgr
+                        atPath:(NSString*)path
+                         toRow:(int)rowIndex
+                     atStartMS:(int)startMS
+                   usingLayers:(BOOL)usingLayers;
 @end
+
+// Controller-property descriptor builders are defined further down
+// (alongside controllerPropertiesForName); forward-declare them so
+// the global-output-settings methods above can use them too.
+static NSMutableDictionary* CtrlIntProp(NSString* key, NSString* label, int value, int minV, int maxV);
+static NSMutableDictionary* CtrlBoolProp(NSString* key, NSString* label, BOOL value);
+static NSMutableDictionary* CtrlEnumProp(NSString* key, NSString* label, int index, NSArray<NSString*>* options);
+static NSMutableDictionary* CtrlStringProp(NSString* key, NSString* label, NSString* _Nullable value, BOOL editable);
+static int IndexOfString(NSArray<NSString*>* options, const std::string& v);
 
 @implementation XLSequenceDocument {
     std::unique_ptr<iPadRenderContext> _context;
@@ -208,6 +251,12 @@
     // `_fppInstances` via `fpp->_authDelegate`. Defined below in the
     // FPP Connect (Slice A) section.
     std::unique_ptr<class XLiPadDiscoveryAuthDelegate> _fppAuthDelegate;
+
+    // Shift-Effects undo snapshots, keyed by token. The token is a
+    // monotonically increasing id handed to Swift; `restoreShiftSnapshot:`
+    // consumes the entry.
+    std::map<NSInteger, std::vector<ShiftLayerSnap>> _shiftSnapshots;
+    NSInteger _nextShiftToken;
 }
 
 // Block signature for the Swift-side password prompt. The bridge
@@ -244,6 +293,12 @@ typedef void (^XLFPPAuthPromptHandler)(NSString* host,
 + (BOOL)obtainAccessToPath:(NSString*)path enforceWritable:(BOOL)enforceWritable {
     if (path.length == 0) return NO;
     return ObtainAccessToURL(std::string([path UTF8String]), enforceWritable) ? YES : NO;
+}
+
++ (NSString*)sketchDefFromSVGFile:(NSString*)path {
+    if (path.length == 0) return @"";
+    std::string def = SketchDefFromSVGFile(std::string([path UTF8String]));
+    return [NSString stringWithUTF8String:def.c_str()];
 }
 
 // MARK: - Media relocation
@@ -647,6 +702,14 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return [NSString stringWithUTF8String:v.c_str()];
 }
 
+- (NSString*)mediaFileHash {
+    if (!_context) return @"N/A";
+    AudioManager* am = _context->GetCurrentMediaManager();
+    if (!am) return @"N/A";
+    std::string h = am->Hash();
+    return h.empty() ? @"N/A" : [NSString stringWithUTF8String:h.c_str()];
+}
+
 - (NSString*)audioTitle {
     if (!_context) return @"";
     AudioManager* am = _context->GetCurrentMediaManager();
@@ -784,6 +847,17 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
 - (int)sequenceDurationMS {
     auto* sf = _context->GetSequenceFile();
     return sf ? sf->GetSequenceDurationMS() : 0;
+}
+
+- (BOOL)setSequenceDurationMS:(int)ms {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf || ms <= 0) return NO;
+    if (sf->GetSequenceDurationMS() == ms) return NO;
+    sf->SetSequenceDurationMS(ms);
+    _context->EnsureSequenceDataSized();
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
 }
 
 - (int)frameIntervalMS {
@@ -1771,6 +1845,69 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     row->element->RemoveEffectLayer(row->layerIndex);
     _context->GetSequenceElements().PopulateRowInformation();
     return YES;
+}
+
+// #6507 parity: drag-reorder a top-level row. Mirrors the desktop
+// `RowHeading::mouseLeftUp` path — resolve the visible source/dest
+// rows to their owning elements' MASTER_VIEW indices, then call the
+// shared `MoveSequenceElement`. `destBeforeRowIndex == visibleRowCount`
+// (or any out-of-range visible index) drops the element at the end.
+- (BOOL)moveTopLevelRowFrom:(int)srcRowIndex toBefore:(int)destBeforeRowIndex {
+    auto& se = _context->GetSequenceElements();
+    auto isTopLevel = [](Row_Information_Struct* ri) {
+        return ri && ri->element && ri->layerIndex == 0
+            && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel;
+    };
+    auto* srcRow = se.GetVisibleRowInformation(srcRowIndex);
+    if (!isTopLevel(srcRow)) return NO;
+
+    int view = se.GetCurrentView();
+    int srcElemIdx = se.GetElementIndex(srcRow->element->GetFullName(), view);
+    if (srcElemIdx < 0) return NO;
+
+    int destElemIdx = (int)se.GetElementCount(view);
+    auto* destRow = se.GetVisibleRowInformation(destBeforeRowIndex);
+    if (isTopLevel(destRow)) {
+        int idx = se.GetElementIndex(destRow->element->GetFullName(), view);
+        if (idx >= 0) destElemIdx = idx;
+    }
+
+    // Desktop guards against the two no-op landings (drop on self, or
+    // immediately after self — which leaves order unchanged).
+    if (destElemIdx == srcElemIdx || destElemIdx == srcElemIdx + 1) return NO;
+
+    se.MoveSequenceElement(srcElemIdx, destElemIdx, view);
+    se.PopulateRowInformation();
+    return YES;
+}
+
+- (BOOL)moveTopLevelElementNamed:(NSString*)modelName
+                     beforeNamed:(NSString*)beforeModelName {
+    auto& se = _context->GetSequenceElements();
+    int view = se.GetCurrentView();
+    int srcElemIdx = se.GetElementIndex([modelName UTF8String], view);
+    if (srcElemIdx < 0) return NO;
+
+    int destElemIdx = (int)se.GetElementCount(view);
+    if (beforeModelName.length > 0) {
+        int idx = se.GetElementIndex([beforeModelName UTF8String], view);
+        if (idx >= 0) destElemIdx = idx;
+    }
+    if (destElemIdx == srcElemIdx || destElemIdx == srcElemIdx + 1) return NO;
+
+    se.MoveSequenceElement(srcElemIdx, destElemIdx, view);
+    se.PopulateRowInformation();
+    return YES;
+}
+
+- (NSString*)topLevelElementNameAfter:(NSString*)modelName {
+    auto& se = _context->GetSequenceElements();
+    int view = se.GetCurrentView();
+    int idx = se.GetElementIndex([modelName UTF8String], view);
+    if (idx < 0 || idx + 1 >= (int)se.GetElementCount(view)) return nil;
+    Element* next = se.GetElement(idx + 1, view);
+    if (!next) return nil;
+    return [NSString stringWithUTF8String:next->GetFullName().c_str()];
 }
 
 // B56: walk every strand of a model and promote node-level effects
@@ -2762,6 +2899,121 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (nullable NSArray<NSString*>*)copyViewToMasterAtIndex:(int)idx {
+    if (!_context || !_context->IsSequenceLoaded()) return nil;
+    if (idx <= MASTER_VIEW) return nil;
+    auto& se = _context->GetSequenceElements();
+    auto& vm = _context->GetSequenceViewManager();
+    SequenceView* view = vm.GetView(idx);
+    if (!view) return nil;
+
+    std::list<std::string> modelList = view->GetModels();
+    std::vector<std::string> models(modelList.begin(), modelList.end());
+    _context->AbortRender(5000);
+
+    // Drop Master model Elements absent from the view that have no
+    // effects; keep (and report) those that do (desktop DoMakeMaster).
+    NSMutableArray<NSString*>* kept = [NSMutableArray array];
+    for (int i = 0; i < (int)se.GetElementCount(MASTER_VIEW); ++i) {
+        Element* elem = se.GetElement(i);
+        if (!elem || elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        const std::string& name = elem->GetName();
+        if (std::find(models.begin(), models.end(), name) != models.end()) continue;
+        if (elem->HasEffects()) {
+            [kept addObject:[NSString stringWithUTF8String:name.c_str()]];
+        } else {
+            se.DeleteElement(name);
+            --i;
+        }
+    }
+
+    // Timing Elements always precede models in the Master View; the new
+    // models slot in right after them (desktop GetTimingCount offset).
+    int timingCount = 0;
+    for (int i = 0; i < (int)se.GetElementCount(MASTER_VIEW); ++i) {
+        Element* elem = se.GetElement(i);
+        if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) ++timingCount;
+    }
+    for (size_t i = 0; i < models.size(); ++i) {
+        int existing = se.GetElementIndex(models[i], MASTER_VIEW);
+        int dest = (int)i + timingCount;
+        if (existing < 0) {
+            Element* e = se.AddElement(dest, models[i], "model", true, false, false, false, false);
+            if (e) e->AddEffectLayer();
+        } else {
+            se.MoveSequenceElement(existing, dest, MASTER_VIEW);
+        }
+    }
+
+    se.PopulateRowInformation();
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return kept;
+}
+
+- (nullable NSString*)importViewConfigFromSequencePath:(NSString*)path {
+    if (!_context || !_context->IsSequenceLoaded() || !path) return nil;
+    std::string p = [path UTF8String];
+    ObtainAccessToURL(p, false);
+    pugi::xml_document doc;
+    if (!doc.load_file(p.c_str())) return nil;
+
+    pugi::xml_node dispElements;
+    for (pugi::xml_node node = doc.document_element().first_child(); node; node = node.next_sibling()) {
+        if (std::string_view(node.name()) == "DisplayElements") {
+            dispElements = node;
+            break;
+        }
+    }
+    if (!dispElements) return nil;
+
+    auto& se = _context->GetSequenceElements();
+    auto& vm = _context->GetSequenceViewManager();
+
+    std::vector<std::string> importedModels;
+    std::vector<std::string> importedTimings;
+    for (pugi::xml_node node = dispElements.first_child(); node; node = node.next_sibling()) {
+        std::string name = node.attribute("name").as_string();
+        std::string type = node.attribute("type").as_string();
+        if (name.empty()) continue;
+        if (type == "timing") {
+            Element* elem = se.GetElement(name);
+            if (elem && elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+                importedTimings.push_back(elem->GetName());
+            }
+        } else if (_context->GetModel(name) != nullptr) {
+            importedModels.push_back(name);
+        }
+    }
+    if (importedModels.empty() && importedTimings.empty()) return nil;
+
+    // Uniquify the new view name (desktop CreateUniqueName).
+    std::string base = "Imported Master";
+    std::string viewName = base;
+    int suffix = 1;
+    while (vm.GetView(viewName) != nullptr) {
+        viewName = base + "_" + std::to_string(suffix++);
+    }
+
+    SequenceView* view = vm.AddView(viewName);
+    if (!view) return nil;
+    std::string joined;
+    for (const std::string& m : importedModels) {
+        if (!joined.empty()) joined += ",";
+        joined += m;
+    }
+    view->SetModels(joined);
+    se.AddView(viewName);
+    if (!importedTimings.empty()) {
+        se.AddViewToTimings(importedTimings, viewName);
+        se.SetTimingVisibility(viewName);
+    }
+
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return [NSString stringWithUTF8String:viewName.c_str()];
+}
+
 // MARK: Element roster + visibility
 
 - (NSArray<NSString*>*)allModelNamesInShow {
@@ -2966,6 +3218,70 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     se.IncrementChangeCount(nullptr);
     [self postViewsChanged];
     return YES;
+}
+
+// Apply a master-visibility flag to one element, matching the
+// model/timing split in setElementVisible: (no row repopulate /
+// broadcast here — bulk callers do that once).
+static void SetElementMasterVisible(SequenceElements& se, Element* elem, bool visible) {
+    if (!elem) return;
+    if (elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) {
+        auto* te = dynamic_cast<TimingElement*>(elem);
+        if (te && te->GetMasterVisible() != visible) {
+            te->SetMasterVisible(visible);
+        }
+    } else if (elem->GetVisible() != visible) {
+        elem->SetVisible(visible);
+    }
+}
+
+- (BOOL)setAllElementsVisible:(BOOL)visible {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& se = _context->GetSequenceElements();
+    for (int i = 0; i < (int)se.GetElementCount(); i++) {
+        SetElementMasterVisible(se, se.GetElement(i), visible ? true : false);
+    }
+    se.SetTimingVisibility(se.GetViewName(se.GetCurrentView()));
+    se.PopulateRowInformation();
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return YES;
+}
+
+- (BOOL)hideUnusedElements {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto& se = _context->GetSequenceElements();
+    for (int i = 0; i < (int)se.GetElementCount(); i++) {
+        Element* elem = se.GetElement(i);
+        if (elem && !elem->HasEffects()) {
+            SetElementMasterVisible(se, elem, false);
+        }
+    }
+    se.SetTimingVisibility(se.GetViewName(se.GetCurrentView()));
+    se.PopulateRowInformation();
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return YES;
+}
+
+- (NSInteger)removeUnusedElements {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    auto& se = _context->GetSequenceElements();
+    std::vector<std::string> toRemove;
+    for (int i = 0; i < (int)se.GetElementCount(); i++) {
+        Element* elem = se.GetElement(i);
+        if (elem && !elem->HasEffects()) {
+            toRemove.push_back(elem->GetName());
+        }
+    }
+    if (toRemove.empty()) return 0;
+    _context->AbortRender(5000);
+    for (const std::string& n : toRemove) {
+        se.DeleteElement(n);
+    }
+    se.IncrementChangeCount(nullptr);
+    [self postViewsChanged];
+    return (NSInteger)toRemove.size();
 }
 
 // MARK: Timing-track per-view membership
@@ -4800,6 +5116,67 @@ static NSDictionary<NSString*, NSDictionary<NSString*, NSString*>*>* faceStateTo
     Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
     if (!m) return 0;
     return (NSInteger)m->GetNodeCount();
+}
+
+- (nullable NSDictionary*)nodeLayoutForModel:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return nil;
+    Model* m = _context->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return nil;
+    if (m->GetDisplayAs() == DisplayAsType::ModelGroup || m->GetDisplayAs() == DisplayAsType::SubModel) return nil;
+
+    int nodes = (int)m->GetNodeCount();
+
+    int bufWi = 0, bufHi = 0;
+    std::vector<NodeBaseClassPtr> nodeList;
+    m->InitRenderBufferNodes("Per Preview", "2D", "None", nodeList, bufWi, bufHi, 0);
+    if (nodes > (int)nodeList.size()) nodes = (int)nodeList.size();
+
+    float minx = std::numeric_limits<float>::max();
+    float miny = std::numeric_limits<float>::max();
+    float maxx = std::numeric_limits<float>::lowest();
+    float maxy = std::numeric_limits<float>::lowest();
+    for (int i = 0; i < nodes; ++i) {
+        for (const auto& c : nodeList[i]->Coords) {
+            if (c.screenX < minx) minx = c.screenX;
+            if (c.screenX > maxx) maxx = c.screenX;
+            if (c.screenY < miny) miny = c.screenY;
+            if (c.screenY > maxy) maxy = c.screenY;
+        }
+    }
+    if (nodes == 0) { minx = miny = 0; maxx = maxy = 0; }
+
+    float width = maxx - minx;
+    float height = maxy - miny;
+    bool flipY = (m->GetDisplayAs() != DisplayAsType::Icicles);
+
+    OutputManager& om = _context->GetOutputManager();
+
+    NSMutableArray* outNodes = [NSMutableArray arrayWithCapacity:nodes];
+    for (int i = 0; i < nodes; ++i) {
+        if (nodeList[i]->Coords.empty()) continue;
+        const auto& c = nodeList[i]->Coords[0];
+        float x = c.screenX - minx;
+        float y = c.screenY - miny;
+        if (flipY) y = height - y;
+
+        std::string chan = m->GetChannelInStartChannelFormat(&om, nodeList[i]->ActChan + 1);
+
+        [outNodes addObject:@{
+            @"node":    @(m->GetNodeNumber((size_t)i)),
+            @"string":  @(m->GetNodeStringNumber((size_t)i)),
+            @"x":       @((double)x),
+            @"y":       @((double)y),
+            @"channel": [NSString stringWithUTF8String:chan.c_str()],
+        }];
+    }
+
+    return @{
+        @"name":           [NSString stringWithUTF8String:m->GetName().c_str()],
+        @"width":          @((double)width),
+        @"height":         @((double)height),
+        @"supportsWiring": @(m->SupportsWiringView() ? YES : NO),
+        @"nodes":          outNodes,
+    };
 }
 
 - (BOOL)setSubmodelAliasesOnParent:(NSString*)parentName
@@ -9019,6 +9396,221 @@ NSString* trimPaletteStringSuffix(NSString* raw) {
     return n;
 }
 
+// Shift Effects ----------------------------------------------------------
+
+// Collect every EffectLayer reachable from the master-view elements,
+// mirroring desktop's `OnMenuItemShiftEffects*` walk (top layers +
+// strand node layers + submodel layers). When `includeTiming==NO`,
+// timing-track elements are skipped (their layers carry the marks).
+- (std::vector<EffectLayer*>)allShiftLayersIncludingTiming:(BOOL)includeTiming {
+    std::vector<EffectLayer*> out;
+    auto& se = _context->GetSequenceElements();
+    for (int elem = 0; elem < (int)se.GetElementCount(MASTER_VIEW); ++elem) {
+        Element* ele = se.GetElement(elem, MASTER_VIEW);
+        if (!ele) continue;
+        bool isTiming = ele->GetType() == ElementType::ELEMENT_TYPE_TIMING;
+        if (isTiming && !includeTiming) continue;
+        for (int layer = 0; layer < (int)ele->GetEffectLayerCount(); ++layer) {
+            if (EffectLayer* el = ele->GetEffectLayer(layer)) out.push_back(el);
+        }
+        if (ele->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+            ModelElement* me = dynamic_cast<ModelElement*>(ele);
+            for (int i = 0; me && i < me->GetStrandCount(); ++i) {
+                StrandElement* ste = dynamic_cast<StrandElement*>(me->GetStrand(i));
+                for (int k = 0; ste && k < ste->GetNodeLayerCount(); ++k) {
+                    if (NodeLayer* nl = ste->GetNodeLayer(k, false)) out.push_back(nl);
+                }
+            }
+            for (int i = 0; me && i < me->GetSubModelAndStrandCount(); ++i) {
+                Element* sub = me->GetSubModel(i);
+                for (int layer = 0; sub && layer < (int)sub->GetEffectLayerCount(); ++layer) {
+                    if (EffectLayer* sel = sub->GetEffectLayer(layer)) out.push_back(sel);
+                }
+            }
+        }
+    }
+    return out;
+}
+
+- (ShiftLayerSnap)snapshotLayer:(EffectLayer*)el {
+    ShiftLayerSnap snap;
+    snap.layer = el;
+    for (int ef = 0; ef < (int)el->GetEffectCount(); ++ef) {
+        Effect* e = el->GetEffect(ef);
+        if (!e) continue;
+        snap.effects.push_back({ e->GetID(), e->GetEffectName(),
+                                 e->GetSettingsAsString(), e->GetPaletteAsString(),
+                                 e->GetStartTimeMS(), e->GetEndTimeMS(),
+                                 e->GetSelected(), e->GetProtected() });
+    }
+    return snap;
+}
+
+// Apply the desktop `ShiftEffectsOnLayer` clamp: iterate backwards so
+// deletions are safe; truncate effects whose start crosses 0, delete
+// those pushed entirely below 0.
+- (void)shiftAllOnLayer:(EffectLayer*)el byMS:(int)ms {
+    for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
+        Effect* e = el->GetEffect(ef);
+        if (!e) continue;
+        int start = e->GetStartTimeMS();
+        int end = e->GetEndTimeMS();
+        if (start + ms < 0) {
+            if (end + ms < 0) {
+                el->RemoveEffect(ef);
+                continue;
+            }
+            e->SetStartTimeMS(0);
+        } else {
+            e->SetStartTimeMS(start + ms);
+        }
+        e->SetEndTimeMS(end + ms);
+    }
+}
+
+- (int)roundToFrame:(int)ms {
+    int frame = [self frameIntervalMS];
+    if (frame <= 0) return ms;
+    return (ms / frame) * frame;
+}
+
+- (NSInteger)shiftAllEffectsByMS:(int)ms includeTiming:(BOOL)includeTiming {
+    if (!_context) return 0;
+    ms = [self roundToFrame:ms];
+    std::vector<EffectLayer*> layers = [self allShiftLayersIncludingTiming:includeTiming];
+    if (layers.empty()) return 0;
+
+    std::vector<ShiftLayerSnap> snaps;
+    snaps.reserve(layers.size());
+    for (EffectLayer* el : layers) snaps.push_back([self snapshotLayer:el]);
+
+    if (ms != 0) {
+        for (EffectLayer* el : layers) [self shiftAllOnLayer:el byMS:ms];
+        _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    }
+
+    NSInteger token = ++_nextShiftToken;
+    _shiftSnapshots[token] = std::move(snaps);
+    return token;
+}
+
+// Selected-scope shift mirroring desktop `ShiftSelectedEffectsOnLayer`:
+// negative shifts move left (truncate / delete at 0), positive shifts
+// move right; either way a move is rejected when the shifted range
+// would clash with an unselected effect on the same layer.
+- (void)shiftSelectedOnLayer:(EffectLayer*)el byMS:(int)ms {
+    if (ms < 0) {
+        std::vector<int> toRemove;
+        for (int ef = 0; ef < (int)el->GetEffectCount(); ++ef) {
+            Effect* e = el->GetEffect(ef);
+            if (!e || !e->GetSelected()) continue;
+            bool moved = false;
+            int start = e->GetStartTimeMS();
+            int end = e->GetEndTimeMS();
+            if (start + ms < 0) {
+                if (end + ms < 0) {
+                    e->SetStartTimeMS(-100);
+                    e->SetEndTimeMS(-90);
+                    toRemove.insert(toRemove.begin(), ef);
+                    continue;
+                }
+                e->SetStartTimeMS(0);
+                moved = true;
+            } else {
+                auto clashers = el->GetAllEffectsByTime(start + ms, end + ms);
+                bool clash = false;
+                for (const auto& it : clashers) {
+                    if (it->GetID() != e->GetID()) { clash = true; break; }
+                }
+                if (!clash) {
+                    e->SetStartTimeMS(start + ms);
+                    moved = true;
+                }
+            }
+            if (moved) e->SetEndTimeMS(end + ms);
+        }
+        for (int idx : toRemove) el->RemoveEffect(idx);
+    } else {
+        for (int ef = (int)el->GetEffectCount() - 1; ef >= 0; --ef) {
+            Effect* e = el->GetEffect(ef);
+            if (!e || !e->GetSelected()) continue;
+            int start = e->GetStartTimeMS();
+            int end = e->GetEndTimeMS();
+            auto clashers = el->GetAllEffectsByTime(start + ms, end + ms);
+            bool clash = false;
+            for (const auto& it : clashers) {
+                if (it->GetID() != e->GetID()) { clash = true; break; }
+            }
+            if (!clash) {
+                e->SetStartTimeMS(start + ms);
+                e->SetEndTimeMS(end + ms);
+            }
+        }
+    }
+}
+
+- (NSInteger)shiftSelectedEffectsByMS:(int)ms
+                               atRows:(NSArray<NSNumber*>*)rows
+                        effectIndices:(NSArray<NSNumber*>*)indices {
+    if (!_context || rows.count == 0) return 0;
+    ms = [self roundToFrame:ms];
+    [self pushCoreSelectionAtRows:rows effectIndices:indices];
+
+    // Snapshot every layer that owns a selected effect (whole layer, so
+    // a delete near 0 can be restored). Dedupe by layer pointer.
+    std::vector<EffectLayer*> layers;
+    NSUInteger n = MIN(rows.count, indices.count);
+    for (NSUInteger i = 0; i < n; ++i) {
+        EffectLayer* el = [self effectLayerForRow:[rows[i] intValue]];
+        if (el && std::find(layers.begin(), layers.end(), el) == layers.end()) {
+            layers.push_back(el);
+        }
+    }
+    if (layers.empty()) {
+        _context->GetSequenceElements().UnSelectAllEffects();
+        return 0;
+    }
+
+    std::vector<ShiftLayerSnap> snaps;
+    snaps.reserve(layers.size());
+    for (EffectLayer* el : layers) snaps.push_back([self snapshotLayer:el]);
+
+    if (ms != 0) {
+        for (EffectLayer* el : layers) [self shiftSelectedOnLayer:el byMS:ms];
+        _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    }
+
+    _context->GetSequenceElements().UnSelectAllEffects();
+    NSInteger token = ++_nextShiftToken;
+    _shiftSnapshots[token] = std::move(snaps);
+    return token;
+}
+
+- (BOOL)restoreShiftSnapshot:(NSInteger)token {
+    if (!_context) return NO;
+    auto it = _shiftSnapshots.find(token);
+    if (it == _shiftSnapshots.end()) return NO;
+    for (const ShiftLayerSnap& ls : it->second) {
+        EffectLayer* el = ls.layer;
+        el->RemoveAllEffects(nullptr);
+        for (const ShiftEffectSnap& es : ls.effects) {
+            // Locked effects survive RemoveAllEffects (and the shift's
+            // RemoveEffect) keeping their ID; restore their times in
+            // place rather than re-adding a duplicate.
+            if (Effect* existing = el->GetEffectFromID(es.id)) {
+                existing->SetStartTimeMS(es.startMS);
+                existing->SetEndTimeMS(es.endMS);
+                continue;
+            }
+            el->AddEffect(es.id, es.name, es.settings, es.palette,
+                          es.startMS, es.endMS, es.selected, es.protectd);
+        }
+    }
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    _shiftSnapshots.erase(it);
+    return YES;
+}
+
 - (BOOL)applyPaletteString:(NSString*)paletteString
                      toRow:(int)rowIndex
                    atIndex:(int)effectIndex {
@@ -9103,6 +9695,28 @@ NSString* autogenVCName(NSString* dir) {
         }
     }
     return @"VC999.xvc";
+}
+
+NSString* autogenCCName(NSString* dir) {
+    NSFileManager* fm = [NSFileManager defaultManager];
+    for (int i = 1; i < 1000; i++) {
+        NSString* candidate = [NSString stringWithFormat:@"CC%03d.xcc", i];
+        if (![fm fileExistsAtPath:[dir stringByAppendingPathComponent:candidate]]) {
+            return candidate;
+        }
+    }
+    return @"CC999.xcc";
+}
+
+// Build the `.xcc` XML document for a serialised ColorCurve, matching
+// ColorCurveDialog::OnButtonExportClick byte-for-byte.
+std::string buildXccDocument(const std::string& serialised) {
+    std::string doc = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<colorcurve \n";
+    doc += "data=\"" + serialised + "\" ";
+    doc += "SourceVersion=\"" + xlights_version_string + "\" ";
+    doc += " >\n";
+    doc += "</colorcurve>";
+    return doc;
 }
 
 } // namespace
@@ -9201,6 +9815,139 @@ NSString* autogenVCName(NSString* dir) {
     NSFileManager* fm = [NSFileManager defaultManager];
     if (![fm fileExistsAtPath:full]) return NO;
     return [fm removeItemAtPath:full error:nil];
+}
+
+- (NSString*)valueCurveXvcDocument:(NSString*)serialised {
+    if (serialised.length == 0) return nil;
+    // Route through core SaveXVC (it applies the limit / scale
+    // normalisation desktop expects) by writing a temp file then
+    // reading it back as the document body.
+    NSString* tmp = [NSTemporaryDirectory()
+        stringByAppendingPathComponent:[[NSUUID UUID].UUIDString stringByAppendingString:@".xvc"]];
+    ValueCurve vc([serialised UTF8String]);
+    vc.SaveXVC([tmp UTF8String]);
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSString* contents = [NSString stringWithContentsOfFile:tmp
+                                                   encoding:NSUTF8StringEncoding
+                                                      error:nil];
+    [fm removeItemAtPath:tmp error:nil];
+    return contents;
+}
+
+#pragma mark - Color-curve preset save / load
+
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)savedColorCurves {
+    NSMutableArray<NSDictionary<NSString*, NSString*>*>* out = [NSMutableArray array];
+    NSMutableSet<NSString*>* seen = [NSMutableSet set];
+
+    auto loadSerialised = ^NSString*(NSString* path) {
+        ColorCurve cc;
+        cc.SetId("Dummy"); // ColorCurve::IsActive() requires a non-empty id
+        cc.LoadXCC([path UTF8String]);
+        if (!cc.IsActive()) return nil; // active only if it loaded ok
+        std::string s = cc.Serialise();
+        return [NSString stringWithUTF8String:s.c_str()];
+    };
+
+    auto scanDir = ^(NSString* dir, BOOL recurse) {
+        NSFileManager* fm = [NSFileManager defaultManager];
+        BOOL isDir = NO;
+        if (![fm fileExistsAtPath:dir isDirectory:&isDir] || !isDir) return;
+        NSArray* entries = [fm contentsOfDirectoryAtPath:dir error:nil];
+        for (NSString* name in entries) {
+            NSString* full = [dir stringByAppendingPathComponent:name];
+            BOOL sub = NO;
+            [fm fileExistsAtPath:full isDirectory:&sub];
+            if (sub) {
+                if (recurse) {
+                    NSArray* subEntries = [fm contentsOfDirectoryAtPath:full error:nil];
+                    for (NSString* subName in subEntries) {
+                        if (![subName.lowercaseString hasSuffix:@".xcc"]) continue;
+                        NSString* serialised = loadSerialised([full stringByAppendingPathComponent:subName]);
+                        if (serialised.length > 0 && ![seen containsObject:serialised]) {
+                            [seen addObject:serialised];
+                            [out addObject:@{@"filename": subName, @"serialised": serialised}];
+                        }
+                    }
+                }
+                continue;
+            }
+            if (![name.lowercaseString hasSuffix:@".xcc"]) continue;
+            NSString* serialised = loadSerialised(full);
+            if (serialised.length > 0 && ![seen containsObject:serialised]) {
+                [seen addObject:serialised];
+                [out addObject:@{@"filename": name, @"serialised": serialised}];
+            }
+        }
+    };
+
+    NSString* show = [self showFolderPath];
+    if (show.length > 0) {
+        scanDir([show stringByAppendingPathComponent:@"colorcurves"], YES);
+    }
+    NSString* bundled = [[NSBundle mainBundle] pathForResource:@"colorcurves" ofType:nil];
+    if (bundled.length > 0) {
+        scanDir(bundled, YES);
+    }
+    return out;
+}
+
+- (NSString*)saveColorCurveSerialised:(NSString*)serialised
+                               asName:(NSString*)name {
+    if (serialised.length == 0) return nil;
+    NSString* show = [self showFolderPath];
+    if (show.length == 0) return nil;
+
+    NSString* dir = [show stringByAppendingPathComponent:@"colorcurves"];
+    NSFileManager* fm = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    if (![fm fileExistsAtPath:dir isDirectory:&isDir] || !isDir) {
+        if (![fm createDirectoryAtPath:dir
+           withIntermediateDirectories:YES
+                            attributes:nil
+                                 error:nil]) {
+            return nil;
+        }
+    }
+
+    NSString* sanitised = sanitiseVCName(name);
+    NSString* filename = sanitised.length == 0
+        ? autogenCCName(dir)
+        : [sanitised stringByAppendingString:@".xcc"];
+    NSString* full = [dir stringByAppendingPathComponent:filename];
+
+    // Normalise through core ColorCurve so the persisted `data=` body
+    // matches what desktop writes, then wrap in the same XML envelope.
+    ColorCurve cc;
+    cc.SetId("Dummy");
+    cc.Deserialise([serialised UTF8String]);
+    cc.SetActive(true);
+    std::string doc = buildXccDocument(cc.Serialise());
+
+    NSData* data = [NSData dataWithBytes:doc.data() length:doc.size()];
+    if (![data writeToFile:full atomically:YES]) return nil;
+    return filename;
+}
+
+- (BOOL)deleteSavedColorCurve:(NSString*)filename {
+    if (filename.length == 0) return NO;
+    NSString* show = [self showFolderPath];
+    if (show.length == 0) return NO;
+    NSString* full = [[show stringByAppendingPathComponent:@"colorcurves"]
+                      stringByAppendingPathComponent:filename];
+    NSFileManager* fm = [NSFileManager defaultManager];
+    if (![fm fileExistsAtPath:full]) return NO;
+    return [fm removeItemAtPath:full error:nil];
+}
+
+- (NSString*)colorCurveXccDocument:(NSString*)serialised {
+    if (serialised.length == 0) return nil;
+    ColorCurve cc;
+    cc.SetId("Dummy");
+    cc.Deserialise([serialised UTF8String]);
+    cc.SetActive(true);
+    std::string doc = buildXccDocument(cc.Serialise());
+    return [NSString stringWithUTF8String:doc.c_str()];
 }
 
 /// Resolve the target Model for a row's effect, unwrapping ModelGroups
@@ -9669,11 +10416,102 @@ static const char* kFadeOutKey = "T_TEXTCTRL_Fadeout";
 // MARK: - Controller Output
 
 - (BOOL)startOutput {
-    return _context->GetOutputManager().StartOutput();
+    auto& om = _context->GetOutputManager();
+    BOOL ok = om.StartOutput();
+    // Desktop re-uploads auto-upload-flagged controllers when output
+    // is enabled. Mirror that for open-source-firmware controllers;
+    // closed-firmware ones are skipped silently (restricted on iPad).
+    if (ok) {
+        for (auto* c : om.GetControllers()) {
+            if (!c || !c->IsActive() || !c->IsAutoUpload()) continue;
+            ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+            if (!caps || !caps->OpenSourceFirmware()) continue;
+            NSString* cn = [NSString stringWithUTF8String:c->GetName().c_str()];
+            if (caps->SupportsInputOnlyUpload()) {
+                [self runUpload:cn input:YES];
+            }
+            if (caps->SupportsUpload()) {
+                [self runUpload:cn input:NO];
+            }
+        }
+    }
+    return ok;
 }
 
 - (void)stopOutput {
     _context->GetOutputManager().StopOutput();
+}
+
+- (NSArray<NSDictionary*>*)globalOutputSettings {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!_context) return out;
+    auto& om = _context->GetOutputManager();
+
+    [out addObject:CtrlBoolProp(@"ControllerSync", @"Controller Sync",
+                                  om.IsSyncEnabled() ? YES : NO)];
+    if (om.IsSyncEnabled()) {
+        [out addObject:CtrlIntProp(@"E131SyncUniverse", @"E1.31 Sync Universe",
+                                     om.GetSyncUniverse(), 0, 64000)];
+    }
+    [out addObject:CtrlIntProp(@"MaxSuppressFrames",
+                                 @"Max Duplicate Frames To Suppress",
+                                 om.GetSuppressFrames(), 0, 1000)];
+
+    auto const localIPs = ip_utils::GetLocalIPs();
+    NSMutableArray<NSString*>* flipOpts = [NSMutableArray array];
+    [flipOpts addObject:@""];
+    for (const auto& lip : localIPs) {
+        [flipOpts addObject:[NSString stringWithUTF8String:lip.c_str()]];
+    }
+    int flipIdx = IndexOfString(flipOpts, om.GetGlobalForceLocalIP());
+    [out addObject:CtrlEnumProp(@"ForceLocalIP", @"Global Force Local IP",
+                                  std::max(0, flipIdx), flipOpts)];
+
+    [out addObject:CtrlStringProp(@"GlobalFPPProxy", @"Global FPP Proxy",
+                                    [NSString stringWithUTF8String:om.GetGlobalFPPProxy().c_str()],
+                                    YES)];
+    return out;
+}
+
+- (BOOL)setGlobalOutputSetting:(NSString*)key value:(id)value {
+    if (!_context || !key) return NO;
+    auto& om = _context->GetOutputManager();
+    const std::string k = key.UTF8String;
+    BOOL changed = NO;
+
+    if (k == "ControllerSync") {
+        BOOL v = [(NSNumber*)value boolValue];
+        if (om.IsSyncEnabled() != (bool)v) { om.SetSyncEnabled(v); changed = YES; }
+    } else if (k == "E131SyncUniverse") {
+        int v = [(NSNumber*)value intValue];
+        if (om.GetSyncUniverse() != v) { om.SetSyncUniverse(v); changed = YES; }
+    } else if (k == "MaxSuppressFrames") {
+        int v = [(NSNumber*)value intValue];
+        if (om.GetSuppressFrames() != v) { om.SetSuppressFrames(v); changed = YES; }
+    } else if (k == "ForceLocalIP") {
+        int idx = [(NSNumber*)value intValue];
+        auto const localIPs = ip_utils::GetLocalIPs();
+        std::string newIP;  // index 0 == "" (no override)
+        if (idx > 0) {
+            auto it = localIPs.begin();
+            std::advance(it, idx - 1);
+            if (it != localIPs.end()) newIP = *it;
+        }
+        if (om.GetGlobalForceLocalIP() != newIP) {
+            om.SetGlobalForceLocalIP(newIP); changed = YES;
+        }
+    } else if (k == "GlobalFPPProxy") {
+        if (![value isKindOfClass:[NSString class]]) return NO;
+        std::string v = [(NSString*)value UTF8String];
+        if (om.GetGlobalFPPProxy() != v) { om.SetGlobalFPPProxy(v); changed = YES; }
+    } else {
+        return NO;
+    }
+
+    if (changed) {
+        [self recalcAndMarkControllersDirty];
+    }
+    return changed;
 }
 
 - (BOOL)isOutputting {
@@ -11120,16 +11958,22 @@ const char* canonicalSubdirForType(MediaType t) {
 
 namespace {
 
-// iPad-side callbacks for SequenceChecker. The base class defaults
-// (no per-check disable, render-cache "Enabled") match the iPad's
-// lack of equivalent settings UI; the AVFoundation video probe and
-// optional progress block are the only real overrides.
+// iPad-side callbacks for SequenceChecker. Per-check disable flags are
+// read back from the render context (populated from the CheckSequence
+// sheet's @AppStorage toggles); render-cache "Enabled" matches the
+// iPad's lack of that setting; the AVFoundation video probe and
+// optional progress block are the remaining overrides.
 class iPadSequenceCheckerCallbacks final : public SequenceCheckerCallbacks {
 public:
     using ProgressBlock = void (^)(int, NSString*);
 
-    explicit iPadSequenceCheckerCallbacks(ProgressBlock progress)
-        : _progress(progress ? [progress copy] : nil) {}
+    iPadSequenceCheckerCallbacks(ProgressBlock progress,
+                                 const iPadRenderContext* ctx)
+        : _progress(progress ? [progress copy] : nil), _ctx(ctx) {}
+
+    bool IsCheckOptionDisabled(const std::string& option) const override {
+        return _ctx && _ctx->IsCheckOptionDisabled(option);
+    }
 
     std::string CheckVideoCompatibility(const std::string& path) override {
         if (path.empty()) return "";
@@ -11147,6 +11991,7 @@ public:
 
 private:
     ProgressBlock _progress;
+    const iPadRenderContext* _ctx;
 };
 
 XLCheckSequenceSeverity SeverityFor(CheckSequenceReport::ReportIssue::Type t) {
@@ -11183,12 +12028,21 @@ NSString* OptionalString(const std::string& s) {
 
 }  // namespace
 
+- (void)setCheckSequenceDisabledOptions:(NSArray<NSString*>*)options {
+    if (!_context) return;
+    std::set<std::string> disabled;
+    for (NSString* opt in options) {
+        if (opt.length) disabled.insert(opt.UTF8String);
+    }
+    _context->SetDisabledCheckOptions(disabled);
+}
+
 - (NSArray<XLCheckSequenceIssue*>*)runSequenceCheckWithProgress:
     (void (^)(int, NSString*))progress {
     NSMutableArray<XLCheckSequenceIssue*>* issues = [NSMutableArray array];
     if (!_context || !_context->IsSequenceLoaded()) return issues;
 
-    iPadSequenceCheckerCallbacks callbacks(progress);
+    iPadSequenceCheckerCallbacks callbacks(progress, _context.get());
     SequenceChecker checker(_context->GetSequenceElements(),
                              _context->GetModelManager(),
                              _context->GetOutputManager(),
@@ -11265,6 +12119,139 @@ NSString* OptionalString(const std::string& s) {
     media.RemoveMedia(std::string([path UTF8String]));
     bumpSequenceDirty(_context.get());
     return YES;
+}
+
+namespace {
+
+// Extension → MediaType, wx-free mirror of ManageMediaPanel's
+// `MediaTypeFromPath`. Image is the fallback for everything not
+// otherwise recognised (jpg / png / gif / webp / bmp / …).
+MediaType mediaTypeFromExtension(const std::string& path) {
+    std::string ext = std::filesystem::path(path).extension().string();
+    if (!ext.empty() && ext.front() == '.') ext.erase(ext.begin());
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    if (ext == "fs") return MediaType::Shader;
+    if (ext == "svg") return MediaType::SVG;
+    if (ext == "txt") return MediaType::TextFile;
+    if (ext == "gled" || ext == "out" || ext == "csv") return MediaType::BinaryFile;
+    if (ext == "avi" || ext == "mp4" || ext == "mkv" || ext == "mov" ||
+        ext == "asf" || ext == "flv" || ext == "mpg" || ext == "mpeg" ||
+        ext == "m4v" || ext == "wmv") return MediaType::Video;
+    if (ext == "mp3" || ext == "ogg" || ext == "m4a" || ext == "wav" ||
+        ext == "flac" || ext == "aac" || ext == "wma") return MediaType::Audio;
+    return MediaType::Image;
+}
+
+// Register `path` in the media cache by forcing a fresh type-scoped
+// entry. Returns true when an entry didn't already exist.
+bool registerMediaPath(SequenceMedia& media, const std::string& path,
+                       MediaType type) {
+    if (media.HasMedia(path)) return false;
+    std::string resolved = FileUtils::FixFile("", path);
+    if (resolved.empty()) resolved = path;
+    media.ForceRefreshEntry(path, resolved, type);
+    return true;
+}
+
+} // namespace
+
+- (BOOL)addMediaAtPath:(NSString*)storedPath {
+    if (!_context || !_context->IsSequenceLoaded() || storedPath.length == 0) {
+        return NO;
+    }
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    std::string p([storedPath UTF8String]);
+    if (!registerMediaPath(media, p, mediaTypeFromExtension(p))) return NO;
+    bumpSequenceDirty(_context.get());
+    return YES;
+}
+
+- (BOOL)reloadMediaAtPath:(NSString*)path {
+    if (!_context || path.length == 0) return NO;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    return media.ReloadMedia(std::string([path UTF8String])) ? YES : NO;
+}
+
+- (int)reloadAllMedia {
+    if (!_context) return 0;
+    auto& media = _context->GetSequenceElements().GetSequenceMedia();
+    int reloaded = 0;
+    for (const auto& p : media.GetAllMediaPaths()) {
+        if (media.ReloadMedia(p.first)) reloaded++;
+    }
+    return reloaded;
+}
+
+namespace {
+
+// Shared sweep used by the cleanup preview + execute paths. Walks
+// the media inventory; for every external (non-embedded) entry whose
+// resolved on-disk file lives OUTSIDE the show / media folders,
+// computes the show-relative destination it would move to. When
+// `execute` is true the file is copied into the show folder and
+// every effect reference is rewritten; otherwise nothing is touched.
+// `moves` (optional) collects {from, to} pairs for the preview.
+int cleanupExternalMedia(iPadRenderContext& ctx, bool execute,
+                         NSMutableArray<NSDictionary<NSString*, NSString*>*>* moves) {
+    auto& media = ctx.GetSequenceElements().GetSequenceMedia();
+    int moved = 0;
+    // Snapshot the path list up front — executing mutates the cache.
+    auto paths = media.GetAllMediaPaths();
+    for (const auto& p : paths) {
+        const std::string& stored = p.first;
+        auto entry = lookupMediaEntry(media, stored, p.second);
+        if (!entry || entry->IsEmbedded()) continue;
+
+        std::string resolved = FileUtils::FixFile("", stored);
+        if (resolved.empty()) resolved = entry->GetFilePath();
+        if (resolved.empty() || !FileExists(resolved)) continue;
+        if (ctx.IsInShowOrMediaFolder(resolved)) continue;
+
+        std::string subdir = canonicalSubdirForType(p.second);
+        if (!execute) {
+            std::string basename = std::filesystem::path(resolved).filename().string();
+            std::string proposed = subdir.empty()
+                ? basename : (subdir + "/" + basename);
+            if (moves) {
+                [moves addObject:@{
+                    @"from": [NSString stringWithUTF8String:stored.c_str()],
+                    @"to":   [NSString stringWithUTF8String:proposed.c_str()],
+                }];
+            }
+            moved++;
+            continue;
+        }
+
+        ObtainAccessToURL(resolved, false);
+        std::string absDest = ctx.MoveToShowFolder(resolved, subdir, /*reuse*/ true);
+        if (absDest.empty()) continue;
+        std::string newStr = ctx.MakeRelativePath(absDest);
+        if (newStr.empty()) newStr = absDest;
+        if (newStr == stored) { moved++; continue; }
+        if (!media.RenameMedia(stored, newStr)) continue;
+        (void)media.ReloadMedia(newStr);
+        (void)rewriteEffectValues(ctx, stored, newStr);
+        moved++;
+    }
+    return moved;
+}
+
+} // namespace
+
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)cleanupFileLocationsPreview {
+    NSMutableArray<NSDictionary<NSString*, NSString*>*>* moves =
+        [NSMutableArray array];
+    if (!_context || !_context->IsSequenceLoaded()) return moves;
+    (void)cleanupExternalMedia(*_context, /*execute*/ false, moves);
+    return moves;
+}
+
+- (int)performCleanupFileLocations {
+    if (!_context || !_context->IsSequenceLoaded()) return 0;
+    int moved = cleanupExternalMedia(*_context, /*execute*/ true, nil);
+    if (moved > 0) bumpSequenceDirty(_context.get());
+    return moved;
 }
 
 - (int)extractAllMediaOfType:(NSString*)typeFilter {
@@ -11920,6 +12907,58 @@ static bool writeMHCommandToActiveFixtures(Effect& eff,
     return changed ? YES : NO;
 }
 
+- (NSArray<NSDictionary*>*)movingHeadWheelColorsForRow:(int)rowIndex
+                                               atIndex:(int)effectIndex {
+    if (!_context) return nil;
+    auto look = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!look.ok()) return nil;
+    if (look.effect->GetEffectName() != kMovingHeadEffectName) return nil;
+
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) return nil;
+    Model* model = _context->GetModel(row->element->GetModelName());
+    if (!model) return nil;
+
+    // The effect's model may be a group of fixtures; the desktop
+    // wheel panel sources its slots from the first colour-wheel
+    // fixture, so do the same here.
+    std::vector<Model*> candidates;
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
+        auto* mg = dynamic_cast<ModelGroup*>(model);
+        if (mg) {
+            for (const auto& it : mg->GetFlatModels(true, false)) {
+                if (it->GetDisplayAs() != DisplayAsType::ModelGroup &&
+                    it->GetDisplayAs() != DisplayAsType::SubModel) {
+                    candidates.push_back(it);
+                }
+            }
+        }
+    } else {
+        candidates.push_back(model);
+    }
+
+    for (Model* m : candidates) {
+        auto* dmx = dynamic_cast<DmxModel*>(m);
+        if (!dmx || !dmx->HasColorAbility()) continue;
+        auto* ca = dmx->GetColorAbility();
+        if (ca->GetColorType() != DmxColorAbility::DMX_COLOR_TYPE::DMX_COLOR_WHEEL) continue;
+        auto* wh = static_cast<DmxColorAbilityWheel*>(ca);
+        NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+        for (const auto& c : wh->GetWheelColorSettings()) {
+            HSVValue hsv = c.color.asHSV();
+            [out addObject:@{
+                @"hex": [NSString stringWithFormat:@"#%02X%02X%02X",
+                          c.color.Red(), c.color.Green(), c.color.Blue()],
+                @"hue": @(hsv.hue),
+                @"sat": @(hsv.saturation),
+                @"val": @(hsv.value),
+            }];
+        }
+        return out;
+    }
+    return nil;
+}
+
 // MARK: - DMX state + remap (G8 — C7)
 
 namespace {
@@ -12289,6 +13328,8 @@ static NSDictionary* BuildControllerSummary(const Controller* c) {
         d[@"url"] = [NSString stringWithFormat:@"http://%s/",
                       c->GetIP().c_str()];
     }
+    // FPP proxy (when set) — drives the detail-pane "Open Proxy" button.
+    d[@"proxy"] = [NSString stringWithUTF8String:c->GetFPPProxy().c_str()];
     return d;
 }
 
@@ -12588,10 +13629,64 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                                       protoOpts)];
         [out addObject:CtrlIntProp(@"Priority", @"Priority",
                                      eth->GetPriority(), 0, 100)];
+
+        // Force Local IP — desktop ethernet adapter enum prop. The
+        // empty option ("") means "no override"; the rest are the
+        // host's local interface IPs. Index 0 is the empty slot.
+        {
+            auto const localIPs = ip_utils::GetLocalIPs();
+            NSMutableArray<NSString*>* flipOpts = [NSMutableArray array];
+            [flipOpts addObject:@""];
+            for (const auto& lip : localIPs) {
+                [flipOpts addObject:[NSString stringWithUTF8String:lip.c_str()]];
+            }
+            int flipIdx = IndexOfString(flipOpts, eth->GetControllerForceLocalIP());
+            [out addObject:CtrlEnumProp(@"ForceLocalIP", @"Force Local IP",
+                                          std::max(0, flipIdx), flipOpts)];
+        }
+
         NSMutableDictionary* managed = CtrlBoolProp(@"Managed", @"Managed",
                                                       eth->IsManaged() ? YES : NO);
         managed[@"enabled"] = @NO;   // matches desktop read-only state
         [out addObject:managed];
+
+        // === Output (per-universe) editing — E1.31 / ArtNet / KiNET ===
+        // Mirrors desktop's ControllerEthernetPropertyAdapter universe
+        // tree. The controller holds one Output per universe; Universe =
+        // first output's number, Universes = output count, IndivSizes =
+        // !AllSameSize, and (when uniform) a single Channels field.
+        const std::string proto = eth->GetProtocol();
+        if (proto == OUTPUT_E131 || proto == OUTPUT_ARTNET || proto == OUTPUT_KINET) {
+            [out addObject:CtrlHeader(@"ControllerOutputHeader", @"Output")];
+            auto const& outs = eth->GetOutputs();
+            int startUniv = outs.empty() ? 1 : outs.front()->GetUniverse();
+            const int maxUniv = (proto == OUTPUT_ARTNET) ? 32767 : 64000;
+            [out addObject:CtrlIntProp(@"Universe", @"Start Universe",
+                                         startUniv, 1, maxUniv)];
+            [out addObject:CtrlIntProp(@"Universes", @"Universe Count",
+                                         (int)outs.size(), 1, 100000)];
+            [out addObject:CtrlBoolProp(@"UniversePerString", @"Universe Per String",
+                                          eth->IsUniversePerString() ? YES : NO)];
+            const bool indiv = !eth->AllSameSize();
+            [out addObject:CtrlBoolProp(@"IndivSizes", @"Individual Sizes",
+                                          indiv ? YES : NO)];
+            if (!indiv) {
+                int chans = outs.empty() ? 510 : outs.front()->GetChannels();
+                [out addObject:CtrlIntProp(@"Channels", @"Channels per Universe",
+                                             chans, 1, 512)];
+            } else {
+                // Individual per-universe channel sizes. Key encodes the
+                // universe number; the setter looks up the output by it.
+                for (const auto& o : outs) {
+                    NSString* key = [NSString stringWithFormat:@"Channels/%d",
+                                       o->GetUniverse()];
+                    NSString* label = [NSString stringWithFormat:@"Universe %d",
+                                         o->GetUniverse()];
+                    [out addObject:CtrlIntProp(key, label,
+                                                 o->GetChannels(), 1, 512)];
+                }
+            }
+        }
     } else if (auto* nul = dynamic_cast<ControllerNull*>(c)) {
         [out addObject:CtrlHeader(@"ControllerNullHeader", @"Output")];
         [out addObject:CtrlIntProp(@"Channels", @"Channels",
@@ -12955,12 +14050,63 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         if (!eth) return NO;
         int v = [(NSNumber*)value intValue];
         if (eth->GetPriority() != v) { eth->SetPriority(v); changed = YES; }
+    } else if (k == "ForceLocalIP") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        int idx = [(NSNumber*)value intValue];
+        auto const localIPs = ip_utils::GetLocalIPs();
+        std::string newIP;  // index 0 == "" (no override)
+        if (idx > 0) {
+            auto it = localIPs.begin();
+            std::advance(it, idx - 1);
+            if (it != localIPs.end()) newIP = *it;
+        }
+        if (eth->GetControllerForceLocalIP() != newIP) {
+            eth->SetForceLocalIP(newIP); changed = YES;
+        }
+    } else if (k == "Universe") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        int univ = [(NSNumber*)value intValue];
+        for (auto& o : eth->GetOutputs()) { o->SetUniverse(univ++); }
+        changed = YES;
+    } else if (k == "Universes") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        int want = [(NSNumber*)value intValue];
+        if (want < 1) want = 1;
+        while ((int)eth->GetOutputCount() < want) { eth->AddOutput(); }
+        eth->RemoveTrailingOutputs(want);
+        changed = YES;
+    } else if (k == "UniversePerString") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        BOOL v = [(NSNumber*)value boolValue];
+        if (eth->IsUniversePerString() != (bool)v) {
+            eth->SetUniversePerString(v); changed = YES;
+        }
+    } else if (k == "IndivSizes") {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        // `AllSameSize == !IndivSizes`. SetAllSameSize(true) collapses
+        // every universe to the first universe's channel count.
+        BOOL forceSizes = [(NSNumber*)value boolValue];
+        eth->SetAllSameSize(!forceSizes, nullptr);
+        changed = YES;
+    } else if (k.rfind("Channels/", 0) == 0) {
+        auto* eth = dynamic_cast<ControllerEthernet*>(c);
+        if (!eth) return NO;
+        const int univ = (int)std::strtol(k.c_str() + strlen("Channels/"), nullptr, 10);
+        int v = [(NSNumber*)value intValue];
+        for (auto& o : eth->GetOutputs()) {
+            if (o->GetUniverse() == univ) { o->SetChannels(v); changed = YES; break; }
+        }
     }
     // Null-specific
     else if (k == "Channels") {
-        // Two controller subclasses surface a `Channels` key. Try
-        // Null first, then Serial — they don't conflict because
-        // each fixture is one type.
+        // Three controller subclasses surface a `Channels` key —
+        // Null, Serial, and Ethernet (uniform per-universe size).
+        // They don't conflict because each fixture is one type.
         auto* nul = dynamic_cast<ControllerNull*>(c);
         if (nul) {
             int v = [(NSNumber*)value intValue];
@@ -12974,6 +14120,10 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
                 ser->SetChannels(v);
                 changed = YES;
             }
+        } else if (auto* eth = dynamic_cast<ControllerEthernet*>(c)) {
+            int v = [(NSNumber*)value intValue];
+            for (auto& o : eth->GetOutputs()) { o->SetChannels(v); }
+            changed = YES;
         } else {
             return NO;
         }
@@ -13467,6 +14617,100 @@ public:
 
 - (NSDictionary*)uploadInputForController:(NSString*)name {
     return [self runUpload:name input:YES];
+}
+
+- (NSDictionary*)validateProxyForController:(NSString*)name {
+    NSMutableDictionary* r = [@{
+        @"hasProxy": @NO, @"valid": @YES, @"proxy": @"", @"to": @"",
+    } mutableCopy];
+    if (!_context || !name) return r;
+    Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
+    if (!c) return r;
+    const std::string proxy = c->GetFPPProxy();
+    if (proxy.empty()) return r;
+    const std::string to = c->GetIP();
+    r[@"hasProxy"] = @YES;
+    r[@"proxy"] = [NSString stringWithUTF8String:proxy.c_str()];
+    r[@"to"]    = [NSString stringWithUTF8String:to.c_str()];
+    r[@"valid"] = @(FPP::ValidateProxy(to, proxy) ? YES : NO);
+    return r;
+}
+
+- (NSString*)pingController:(NSString*)name {
+    if (!_context || !name) return @"unknown";
+    Controller* c = _context->GetOutputManager().GetController(name.UTF8String);
+    if (!c) return @"unknown";
+    if (!c->CanPing()) return @"unavailable";
+    // Shared core ping — an HTTP reachability probe on non-Windows
+    // hosts (CurlManager::HTTPSGet), so it works inside the iOS
+    // sandbox without raw ICMP.
+    Output::PINGSTATE state = c->Ping();
+    switch (state) {
+        case Output::PINGSTATE::PING_OK:        return @"ok";
+        case Output::PINGSTATE::PING_WEBOK:     return @"webok";
+        case Output::PINGSTATE::PING_OPEN:      return @"open";
+        case Output::PINGSTATE::PING_OPENED:    return @"open";
+        case Output::PINGSTATE::PING_ALLFAILED: return @"failed";
+        case Output::PINGSTATE::PING_UNAVAILABLE: return @"unavailable";
+        default:                                return @"unknown";
+    }
+}
+
+- (NSArray<NSDictionary*>*)bulkUploadControllersWithProgress:(void (^)(NSString*, NSInteger, NSInteger))onProgress {
+    NSMutableArray<NSDictionary*>* results = [NSMutableArray array];
+    if (!_context) return results;
+    auto& om = _context->GetOutputManager();
+
+    // Collect open-source-firmware, active controllers that support
+    // any upload — matches the single-controller gate. Closed-firmware
+    // vendors are skipped silently (restricted/IAP tier on iPad).
+    std::vector<std::string> targets;
+    for (auto* c : om.GetControllers()) {
+        if (!c || !c->IsActive()) continue;
+        ControllerCaps* caps = ControllerCaps::GetControllerConfig(c);
+        if (!caps || !caps->OpenSourceFirmware()) continue;
+        if (!caps->SupportsUpload() && !caps->SupportsInputOnlyUpload()) continue;
+        targets.push_back(c->GetName());
+    }
+
+    // Recalc start channels once up front so every per-controller
+    // upload sees consistent model assignments.
+    if (_context->HasModelManager()) {
+        _context->GetModelManager().RecalcStartChannels();
+    }
+
+    const NSInteger total = (NSInteger)targets.size();
+    for (NSInteger i = 0; i < total; ++i) {
+        NSString* cn = [NSString stringWithUTF8String:targets[i].c_str()];
+        if (onProgress) onProgress(cn, i, total);
+
+        Controller* c = om.GetController(targets[i]);
+        ControllerCaps* caps = c ? ControllerCaps::GetControllerConfig(c) : nullptr;
+        NSMutableArray<NSString*>* msgs = [NSMutableArray array];
+        NSMutableArray<NSString*>* logs = [NSMutableArray array];
+        BOOL anyAttempt = NO, anySuccess = NO, anyFailure = NO;
+        if (caps && caps->SupportsInputOnlyUpload()) {
+            NSDictionary* r = [self runUpload:cn input:YES];
+            anyAttempt = YES;
+            if ([r[@"success"] boolValue]) anySuccess = YES; else anyFailure = YES;
+            [msgs addObject:[NSString stringWithFormat:@"Input: %@", r[@"message"]]];
+            if ([r[@"log"] length]) [logs addObject:r[@"log"]];
+        }
+        if (caps && caps->SupportsUpload()) {
+            NSDictionary* r = [self runUpload:cn input:NO];
+            anyAttempt = YES;
+            if ([r[@"success"] boolValue]) anySuccess = YES; else anyFailure = YES;
+            [msgs addObject:[NSString stringWithFormat:@"Output: %@", r[@"message"]]];
+            if ([r[@"log"] length]) [logs addObject:r[@"log"]];
+        }
+        [results addObject:@{
+            @"name":    cn,
+            @"success": @(anyAttempt && anySuccess && !anyFailure),
+            @"message": [msgs componentsJoinedByString:@"\n"],
+            @"log":     [logs componentsJoinedByString:@"\n"],
+        }];
+    }
+    return results;
 }
 
 - (NSDictionary*)runControllerDiscovery {
@@ -15206,6 +16450,20 @@ NSString* fppTypeString(FPP_TYPE t) {
                : NO;
 }
 
+#pragma mark - EFX-1 Export Effects report
+
+- (BOOL)exportEffectsReportToPath:(NSString*)path NS_SWIFT_NAME(exportEffectsReport(toPath:)) {
+    if (!_context || !path || !_context->IsSequenceLoaded() || !_context->HasModelManager()) {
+        return NO;
+    }
+    ObtainAccessToURL(path.UTF8String, /*enforceWritable=*/true);
+    return ::ExportEffects(std::string(path.UTF8String),
+                           _context->GetSequenceElements(),
+                           _context->GetModelManager())
+               ? YES
+               : NO;
+}
+
 @end
 
 // MARK: - Effect preset library (PRE-1)
@@ -15326,11 +16584,31 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     return YES;
 }
 
+- (BOOL)presetUsesLayersAtPath:(NSString*)path {
+    if (!path) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPreset* preset = mgr.FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) return NO;
+    return preset->GetSettings().find("\tLAYER:") != std::string::npos ? YES : NO;
+}
+
 - (BOOL)applyPresetAtPath:(NSString*)path
                     toRow:(int)rowIndex
-                atStartMS:(int)startMS {
+                atStartMS:(int)startMS
+              usingLayers:(BOOL)usingLayers {
+    return [self applyPresetFromManager:_context->GetEffectPresetManager()
+                                 atPath:path
+                                  toRow:rowIndex
+                              atStartMS:startMS
+                            usingLayers:usingLayers];
+}
+
+- (BOOL)applyPresetFromManager:(EffectPresetManager&)mgr
+                        atPath:(NSString*)path
+                         toRow:(int)rowIndex
+                     atStartMS:(int)startMS
+                   usingLayers:(BOOL)usingLayers {
     if (!path || rowIndex < 0) return NO;
-    auto& mgr = _context->GetEffectPresetManager();
     EffectPreset* preset = mgr.FindPresetByPath(std::string([path UTF8String]), '\\');
     if (preset == nullptr) return NO;
 
@@ -15340,7 +16618,7 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     // Parse the CopyFormat1 effect lines into relative-offset records,
     // then lay them out anchored at (rowIndex, startMS) the same way the
     // clipboard paste does.
-    struct Rec { std::string name, settings, palette; int relRow; int start; int end; };
+    struct Rec { std::string name, settings, palette; int relRow; int layer; int start; int end; };
     std::vector<Rec> recs;
     int minStart = INT_MAX;
     int minRow = INT_MAX;
@@ -15358,6 +16636,13 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
         r.start = (int)std::strtol(f[3].c_str(), nullptr, 10);
         r.end = (int)std::strtol(f[4].c_str(), nullptr, 10);
         r.relRow = (int)std::strtol(f[5].c_str(), nullptr, 10);
+        r.layer = 0;
+        for (size_t fi = f.size(); fi-- > 6;) {
+            if (f[fi].rfind("LAYER:", 0) == 0) {
+                r.layer = (int)std::strtol(f[fi].c_str() + 6, nullptr, 10);
+                break;
+            }
+        }
         if (r.end <= r.start) continue;
         minStart = std::min(minStart, r.start);
         minRow = std::min(minRow, r.relRow);
@@ -15365,8 +16650,36 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     }
     if (recs.empty() || minStart == INT_MAX) return NO;
 
-    int rowCount = (int)_context->GetSequenceElements().GetRowInformationSize();
     bool any = false;
+
+    if (usingLayers) {
+        // Stack every effect onto the anchor row's element, on successive
+        // effect layers (growing the element as needed). Ignores relRow.
+        auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+        if (!row || !row->element) return NO;
+        Element* element = row->element;
+        for (const Rec& r : recs) {
+            while ((int)element->GetEffectLayerCount() <= r.layer) {
+                element->AddEffectLayer();
+            }
+            EffectLayer* layer = element->GetEffectLayer(r.layer);
+            if (!layer) continue;
+            int targetStart = startMS + (r.start - minStart);
+            int targetEnd = targetStart + (r.end - r.start);
+            if (targetEnd <= targetStart) continue;
+            Effect* e = layer->AddEffect(0, r.name, r.settings, r.palette,
+                                         targetStart, targetEnd, EFFECT_NOT_SELECTED, false);
+            if (e) {
+                _context->RenderEffectForModel(element->GetModelName(),
+                                               targetStart, targetEnd, false);
+                any = true;
+            }
+        }
+        _context->GetSequenceElements().PopulateRowInformation();
+        return any ? YES : NO;
+    }
+
+    int rowCount = (int)_context->GetSequenceElements().GetRowInformationSize();
     for (const Rec& r : recs) {
         int targetRow = rowIndex + (r.relRow - minRow);
         if (targetRow < 0 || targetRow >= rowCount) continue;
@@ -15441,6 +16754,65 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     return YES;
 }
 
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath
+                       toIndex:(NSInteger)toIndex {
+    if (!fromPath) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPresetItem* item = mgr.FindItemByPath(std::string([fromPath UTF8String]), '\\');
+    if (item == nullptr) return NO;
+    EffectPresetGroup* dest = ResolveGroup(mgr, toGroupPath);
+    if (dest == nullptr) return NO;
+    // Refuse moving a group into itself or one of its descendants.
+    for (EffectPresetGroup* g = dest; g != nullptr; g = g->GetParent()) {
+        if (g == item) return NO;
+    }
+    // A name collision is only a problem when crossing into a different
+    // group; within the same group the item is just being reordered.
+    if (dest != item->GetParent() && dest->HasChildNamed(item->GetName())) {
+        return NO;
+    }
+
+    // Translate the destination child index into an insert-after sibling,
+    // skipping the moved item itself when it already lives in `dest`.
+    const auto& kids = dest->GetChildren();
+    EffectPresetItem* insertAfter = nullptr;
+    NSInteger seen = 0;
+    for (const auto& child : kids) {
+        if (child.get() == item) continue;
+        if (seen >= toIndex) break;
+        insertAfter = child.get();
+        ++seen;
+    }
+    if (insertAfter == item) insertAfter = nullptr;
+    mgr.MoveItem(item, dest, insertAfter);
+    return YES;
+}
+
+- (BOOL)updatePresetAtPath:(NSString*)path
+                   fromRow:(int)row
+               effectIndex:(int)effectIndex {
+    if (!path) return NO;
+    auto& mgr = _context->GetEffectPresetManager();
+    EffectPreset* preset = mgr.FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) return NO;
+
+    auto* layer = [self effectLayerForRow:row];
+    if (!layer || effectIndex < 0 || effectIndex >= layer->GetEffectCount()) return NO;
+    Effect* e = layer->GetEffect(effectIndex);
+    if (!e) return NO;
+
+    std::string effectData = e->GetEffectName() + "\t" + e->GetSettingsAsString() + "\t" +
+                             e->GetPaletteAsString() + "\t" +
+                             std::to_string(e->GetStartTimeMS()) + "\t" +
+                             std::to_string(e->GetEndTimeMS()) +
+                             "\t0\t-1000\tNO_PASTE_BY_CELL\tLAYER:0\n";
+    std::string blob = "CopyFormat1\t0\t1\t0\t0\t-1\tNO_PASTE_BY_CELL\n" + effectData;
+
+    mgr.UpdatePresetSettings(preset, blob, xlights_version_string);
+    return YES;
+}
+
 - (BOOL)importPresetsFromPath:(NSString*)xmlPath
               intoGroupAtPath:(NSString*)groupPath {
     if (!xmlPath) return NO;
@@ -15477,6 +16849,205 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 
 - (BOOL)savePresets {
     return _context->SaveEffectPresets() ? YES : NO;
+}
+
+#pragma mark - Song Structure Regions (#6268)
+
+- (NSArray<NSDictionary*>*)songStructureRegions {
+    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    const auto& regions = ssm.GetRegions();
+    for (const auto& r : regions) {
+        [out addObject:@{
+            @"id": @(r.id),
+            @"startMS": @(r.startTimeMS),
+            @"endMS": @(r.endTimeMS),
+            @"name": [NSString stringWithUTF8String:r.name.c_str()],
+            @"colorARGB": @(r.colorARGB)
+        }];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)songStructureViewNames {
+    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    for (size_t i = 0; i < ssm.GetViewCount(); ++i) {
+        [out addObject:[NSString stringWithUTF8String:ssm.GetViewName(i).c_str()]];
+    }
+    return out;
+}
+
+- (NSInteger)songStructureActiveViewIndex {
+    return _context->GetSequenceElements().GetSongStructureManager().GetActiveViewIndex();
+}
+
+- (void)setSongStructureActiveViewIndex:(NSInteger)index {
+    _context->GetSequenceElements().GetSongStructureManager().SetActiveView((int)index);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+}
+
+- (NSInteger)addSongStructureView:(NSString*)name {
+    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
+    int idx = ssm.AddView(name ? std::string([name UTF8String]) : std::string("View"));
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return idx;
+}
+
+- (NSInteger)duplicateSongStructureViewAtIndex:(NSInteger)sourceIndex
+                                       withName:(NSString*)name {
+    auto& ssm = _context->GetSequenceElements().GetSongStructureManager();
+    int idx = ssm.DuplicateView((int)sourceIndex,
+                                name ? std::string([name UTF8String]) : std::string("Copy"));
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return idx;
+}
+
+- (void)renameSongStructureViewAtIndex:(NSInteger)index toName:(NSString*)name {
+    if (!name) return;
+    _context->GetSequenceElements().GetSongStructureManager().RenameView((int)index, std::string([name UTF8String]));
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+}
+
+- (void)deleteSongStructureViewAtIndex:(NSInteger)index {
+    _context->GetSequenceElements().GetSongStructureManager().DeleteView((int)index);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+}
+
+- (void)addSongStructureBoundaryAtMS:(int)timeMS {
+    auto& se = _context->GetSequenceElements();
+    auto& ssm = se.GetSongStructureManager();
+    if (ssm.GetViewCount() == 0) {
+        ssm.SetActiveView(ssm.AddView("Default"));
+    }
+    ssm.AddBoundary(timeMS, se.GetSequenceEnd());
+    se.IncrementChangeCount(nullptr);
+}
+
+- (void)deleteSongStructureBoundaryNearMS:(int)timeMS {
+    auto& se = _context->GetSequenceElements();
+    se.GetSongStructureManager().DeleteBoundary(timeMS);
+    se.IncrementChangeCount(nullptr);
+}
+
+- (void)moveSongStructureBoundaryFromMS:(int)oldTimeMS toMS:(int)newTimeMS {
+    auto& se = _context->GetSequenceElements();
+    se.GetSongStructureManager().MoveBoundary(oldTimeMS, newTimeMS);
+    se.IncrementChangeCount(nullptr);
+}
+
+- (int)nearestSongStructureBoundaryToMS:(int)timeMS toleranceMS:(int)toleranceMS {
+    return _context->GetSequenceElements().GetSongStructureManager().FindNearestBoundary(timeMS, toleranceMS);
+}
+
+- (void)setSongStructureRegionNameForID:(int)regionID name:(NSString*)name {
+    auto& se = _context->GetSequenceElements();
+    auto& ssm = se.GetSongStructureManager();
+    for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
+        if (ssm.GetRegion(i).id == regionID) {
+            ssm.SetRegionName(i, name ? std::string([name UTF8String]) : std::string());
+            se.IncrementChangeCount(nullptr);
+            return;
+        }
+    }
+}
+
+- (void)setSongStructureRegionColorForID:(int)regionID colorARGB:(uint32_t)colorARGB {
+    auto& se = _context->GetSequenceElements();
+    auto& ssm = se.GetSongStructureManager();
+    for (size_t i = 0; i < ssm.GetRegionCount(); ++i) {
+        if (ssm.GetRegion(i).id == regionID) {
+            ssm.SetRegionColor(i, colorARGB);
+            se.IncrementChangeCount(nullptr);
+            return;
+        }
+    }
+}
+
+- (uint32_t)songStructurePaletteColorAtIndex:(int)index {
+    return SongStructureManager::GetPaletteColor(index);
+}
+
+- (NSInteger)createSongRegionsFromTimingRow:(int)rowIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element ||
+        row->element->GetType() != ElementType::ELEMENT_TYPE_TIMING) return 0;
+    auto* te = dynamic_cast<TimingElement*>(row->element);
+    if (!te) return 0;
+    EffectLayer* el = te->GetEffectLayer(0);
+    if (!el || el->GetEffectCount() == 0) return 0;
+
+    auto& ssm = se.GetSongStructureManager();
+    if (ssm.GetViewCount() > 0 || ssm.AnyViewHasRegions()) {
+        ssm.Clear();
+    }
+    int viewIdx = ssm.AddView("Default");
+    ssm.SetActiveView(viewIdx);
+
+    int seqEndMS = se.GetSequenceEnd();
+    int regionId = 1;
+    int colorIdx = 0;
+    int lastEndMS = 0;
+    std::vector<SongStructureRegion> regions;
+
+    for (int k = 0; k < el->GetEffectCount(); ++k) {
+        Effect* eff = el->GetEffect(k);
+        int markStart = eff->GetStartTimeMS();
+        int markEnd = eff->GetEndTimeMS();
+        std::string label = eff->GetEffectName();
+        if (label.empty()) {
+            label = "Region " + std::to_string(k + 1);
+        }
+        if (markStart > lastEndMS) {
+            regions.emplace_back(regionId++, lastEndMS, markStart, "", 0x40808080);
+        }
+        uint32_t color = SongStructureManager::GetPaletteColor(colorIdx % SongStructureManager::PALETTE_SIZE);
+        regions.emplace_back(regionId++, markStart, markEnd, label, color);
+        colorIdx++;
+        lastEndMS = markEnd;
+    }
+    if (lastEndMS < seqEndMS) {
+        regions.emplace_back(regionId++, lastEndMS, seqEndMS, "", 0x40808080);
+    }
+
+    ssm.SetRegions(regions);
+    se.IncrementChangeCount(nullptr);
+    return (NSInteger)regions.size();
+}
+
+// MARK: From Base presets (#6450)
+
+- (BOOL)hasBasePresets {
+    return _context->GetBasePresetManager().GetRoot().GetChildren().empty() ? NO : YES;
+}
+
+- (void)reloadBasePresets {
+    _context->LoadBasePresets();
+}
+
+- (NSArray<NSDictionary*>*)basePresetTree {
+    NSMutableArray* out = [NSMutableArray array];
+    CollectPresetTree(_context->GetBasePresetManager().GetRoot(), "", out);
+    return out;
+}
+
+- (BOOL)applyBasePresetAtPath:(NSString*)path
+                        toRow:(int)rowIndex
+                    atStartMS:(int)startMS
+                  usingLayers:(BOOL)usingLayers {
+    return [self applyPresetFromManager:_context->GetBasePresetManager()
+                                 atPath:path
+                                  toRow:rowIndex
+                              atStartMS:startMS
+                            usingLayers:usingLayers];
+}
+
+- (BOOL)basePresetUsesLayersAtPath:(NSString*)path {
+    if (!path) return NO;
+    EffectPreset* preset = _context->GetBasePresetManager().FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) return NO;
+    return preset->GetSettings().find("\tLAYER:") != std::string::npos ? YES : NO;
 }
 
 @end

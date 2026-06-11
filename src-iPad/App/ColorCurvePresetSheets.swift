@@ -2,19 +2,19 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-// Value-curve preset load / save sheets + clipboard helper
-// (G36 / G37 — C6). Works over the `.xvc` file-I/O bridge on
-// `XLSequenceDocument` (`savedValueCurves`,
-// `saveValueCurveSerialised(_:asName:)`, `deleteSavedValueCurve`).
+// Color-curve preset load / save sheets. Mirrors
+// `ValueCurvePresetSheets.swift` but over the `.xcc` file-I/O bridge
+// on `XLSequenceDocument` (`savedColorCurves`,
+// `saveColorCurveSerialised(_:asName:)`, `deleteSavedColorCurve`).
 
 // MARK: - Load
 
-/// Preset browser: lists `.xvc` files under
-/// `<showFolder>/valuecurves/` + any bundled `valuecurves/` in the
-/// app resources. Each row shows a small thumbnail of the curve
-/// shape via `ValueCurvePreviewStrip` + the filename. Swipe-to-
-/// delete on user-writable entries.
-struct ValueCurveLoadPresetSheet: View {
+/// Preset browser: lists `.xcc` files under
+/// `<showFolder>/colorcurves/` + any bundled `colorcurves/` in the
+/// app resources. Each row shows a gradient-strip thumbnail of the
+/// curve via `CCPresetThumbnail` + the filename. Swipe-to-delete on
+/// user-writable entries.
+struct ColorCurveLoadSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SequencerViewModel.self) private var viewModel
     let onApply: (String) -> Void
@@ -33,7 +33,7 @@ struct ValueCurveLoadPresetSheet: View {
             Group {
                 if didLoad && entries.isEmpty {
                     ContentUnavailableView(
-                        "No Saved Value Curves",
+                        "No Saved Color Curves",
                         systemImage: "folder.badge.questionmark",
                         description: Text("Saved presets appear here after you tap Save As Preset in the editor.")
                     )
@@ -45,7 +45,7 @@ struct ValueCurveLoadPresetSheet: View {
                                 dismiss()
                             } label: {
                                 HStack(spacing: 12) {
-                                    VCPresetThumbnail(serialised: e.serialised)
+                                    CCPresetThumbnail(serialised: e.serialised)
                                         .frame(width: 80, height: 28)
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(displayName(e.filename))
@@ -69,7 +69,7 @@ struct ValueCurveLoadPresetSheet: View {
                     }
                 }
             }
-            .navigationTitle("Saved Value Curves")
+            .navigationTitle("Saved Color Curves")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -85,7 +85,7 @@ struct ValueCurveLoadPresetSheet: View {
     }
 
     private func reload() {
-        let raw = viewModel.document.savedValueCurves()
+        let raw = viewModel.document.savedColorCurves()
         entries = raw.compactMap { d in
             guard let f = d["filename"], let s = d["serialised"] else { return nil }
             return Entry(filename: f, serialised: s)
@@ -95,38 +95,29 @@ struct ValueCurveLoadPresetSheet: View {
     }
 
     private func deleteEntry(_ e: Entry) {
-        if viewModel.document.deleteSavedValueCurve(e.filename) {
+        if viewModel.document.deleteSavedColorCurve(e.filename) {
             reload()
         }
     }
 }
 
-/// Canvas thumbnail sampling the curve at 1 px/column. Uses a
-/// throwaway `XLValueCurve` so we don't build a full
-/// `EditableValueCurve` per row.
-struct VCPresetThumbnail: View {
+/// Canvas thumbnail painting the gradient at 1 px/column. Uses a
+/// throwaway `XLColorCurve` so we don't build a full
+/// `EditableColorCurve` per row.
+struct CCPresetThumbnail: View {
     let serialised: String
 
     var body: some View {
-        let core = XLValueCurve(serialised: serialised)
+        let core = XLColorCurve(serialised: serialised, identifier: "Dummy")
         Canvas { ctx, size in
             let w = Int(size.width)
-            let h = Int(size.height)
-            guard w > 1, h > 1 else { return }
-            ctx.fill(Path(CGRect(origin: .zero, size: size)),
-                     with: .color(Color.secondary.opacity(0.1)))
-            var path = Path()
+            guard w > 0 else { return }
             for px in 0..<w {
-                let frac = Double(px) / Double(w - 1)
-                let v = core.value(atOffset: frac)
-                let y = CGFloat(1.0 - v) * size.height
-                if px == 0 {
-                    path.move(to: CGPoint(x: 0, y: y))
-                } else {
-                    path.addLine(to: CGPoint(x: CGFloat(px), y: y))
-                }
+                let frac = Float(px) / Float(w)
+                let c = Color(uiColor: core.color(atOffset: frac))
+                let r = CGRect(x: CGFloat(px), y: 0, width: 1, height: size.height)
+                ctx.fill(Path(r), with: .color(c))
             }
-            ctx.stroke(path, with: .color(Color.accentColor), lineWidth: 1.5)
         }
         .clipShape(RoundedRectangle(cornerRadius: 4))
     }
@@ -134,7 +125,7 @@ struct VCPresetThumbnail: View {
 
 // MARK: - Save As
 
-struct ValueCurveSaveAsSheet: View {
+struct ColorCurveSaveAsSheet: View {
     @Environment(\.dismiss) private var dismiss
     let onSave: (String) -> Void
 
@@ -144,16 +135,16 @@ struct ValueCurveSaveAsSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Value curve name", text: $name)
+                    TextField("Color curve name", text: $name)
                         .autocorrectionDisabled()
                 } header: {
                     Text("Save As")
                 } footer: {
-                    Text("Filename: \(sanitised).xvc")
+                    Text("Filename: \(sanitised).xcc")
                         .font(.caption2)
                 }
             }
-            .navigationTitle("Save Value Curve")
+            .navigationTitle("Save Color Curve")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -178,39 +169,15 @@ struct ValueCurveSaveAsSheet: View {
     }
 }
 
-// MARK: - Clipboard helper
-
-/// Round-trip a serialised VC string through `UIPasteboard`. We
-/// wrap it in a typed prefix so a stray paste into a text field
-/// somewhere else doesn't land as raw curve machinery, and so the
-/// Paste button in the editor can detect whether there's a real
-/// VC on the clipboard (vs. arbitrary text).
-enum ValueCurveClipboard {
-    static let prefix = "xlvc:v1:"
-
-    static func wrap(_ serialised: String) -> String {
-        return prefix + serialised
-    }
-
-    static func unwrap(_ raw: String?) -> String? {
-        guard let s = raw, s.hasPrefix(prefix) else { return nil }
-        return String(s.dropFirst(prefix.count))
-    }
-
-    static func isValid(_ raw: String?) -> Bool {
-        unwrap(raw) != nil
-    }
-}
-
 // MARK: - Export document
 
-/// `.xvc` document carrying the full XML built by the bridge, handed
-/// to SwiftUI's `.fileExporter` so a value curve can be saved to an
+/// `.xcc` document carrying the full XML built by the bridge, handed
+/// to SwiftUI's `.fileExporter` so a color curve can be saved to an
 /// arbitrary location (desktop's `ButtonExport` parity).
-struct ValueCurveExportDocument: FileDocument {
-    static let xvcType: UTType = UTType(filenameExtension: "xvc") ?? .xml
-    static var readableContentTypes: [UTType] { [xvcType] }
-    static var writableContentTypes: [UTType] { [xvcType] }
+struct ColorCurveExportDocument: FileDocument {
+    static let xccType: UTType = UTType(filenameExtension: "xcc") ?? .xml
+    static var readableContentTypes: [UTType] { [xccType] }
+    static var writableContentTypes: [UTType] { [xccType] }
 
     let text: String
 

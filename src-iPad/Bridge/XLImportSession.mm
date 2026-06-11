@@ -1,12 +1,16 @@
 #import "XLImportSession.h"
 #import "XLSequenceDocument.h"
+#import "XLAIServices.h"
 
 #include "iPadRenderContext.h"
 
+#include "ai/ServiceManager.h"
+#include "ai/aiBase.h"
 #include "import_export/AutoMapper.h"
 #include "import_export/BasicImportMappingNode.h"
 #include "import_export/EffectMapper.h"
 #include "import_export/LOREdit.h"
+#include "import_export/LORMusic.h"
 #include "import_export/Vixen3.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
@@ -26,6 +30,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -155,6 +160,18 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // timing-only `.tim` path used by Settings → Timings (XLSequenceDocument).
     bool _vixen3Mode;
     std::unique_ptr<Vixen3> _vixen3;
+
+    // LOR Music / Animation (.lms / .las) EFFECT source state. Like .loredit /
+    // .tim the source is a wx-free core reader (LORMusic) rather than an
+    // xLights tree. `_lmsMode` selects the LMS apply branch. `_lmsDoc` owns the
+    // parsed document the reader references for the session's lifetime.
+    bool _lmsMode;
+    pugi::xml_document _lmsDoc;
+    std::unique_ptr<LORMusic> _lms;
+    std::map<std::string, std::vector<std::pair<uint32_t, uint32_t>>> _lmsTimings;
+    // CCR prop prefix names (per-pixel rgbChannels collapsed to one source row);
+    // apply fans these across a model's node layers.
+    std::unordered_set<std::string> _lmsCCRNames;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
@@ -260,6 +277,10 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _loreditTimings.clear();
     _vixen3Mode = false;
     _vixen3.reset();
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
 
     [self rebuildAvailableSources];
     [self rebuildTimingTracks];
@@ -349,6 +370,10 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _loredit = std::make_unique<LOREdit>(_loreditDoc, rc->GetSequenceElements().GetFrequency());
     _vixen3Mode = false;
     _vixen3.reset();
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
     _loreditMode = true;
 
     [self rebuildAvailableSourcesFromLOREdit];
@@ -451,6 +476,11 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _loredit.reset();
     _loreditTimings.clear();
 
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
+
     _vixen3 = std::move(vixen);
     _vixen3Mode = true;
 
@@ -506,6 +536,111 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // Phrase / word / phoneme timing tracks.
     for (const auto& name : _vixen3->GetTimings()) {
         addTimingTrack(name);
+    }
+}
+
+#pragma mark - LOR Music / Animation (.lms / .las) effect source loading
+
+- (BOOL)loadLMSSourceAtPath:(NSString*)path
+                      error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    // Mirrors desktop xLightsFrame::ImportLMS — load the raw LOR document with
+    // pugixml and hand it to the core reader at the active sequence's frequency.
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse LOR .lms / .las file." }];
+        }
+        return NO;
+    }
+
+    // Reset any prior `.xsq` / `.loredit` / `.tim` source state — modes are
+    // mutually exclusive within one session.
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+
+    _lmsDoc.reset();
+    _lmsDoc = std::move(doc);
+    _lms = std::make_unique<LORMusic>(_lmsDoc, rc->GetSequenceElements().GetFrequency());
+    _lmsMode = true;
+
+    [self rebuildAvailableSourcesFromLMS];
+    [self rebuildTimingTracksFromLMS];
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromLMS {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _lmsCCRNames.clear();
+    if (_lms == nullptr) return;
+
+    auto addSource = [&](const std::string& name, const std::string& type) {
+        AvailableSource src;
+        src.displayName = name;
+        src.canonicalName = Lower(Trim(name));
+        src.modelType = type;
+        _availableSources.push_back(src);
+    };
+
+    for (const auto& n : _lms->GetChannelNames()) {
+        addSource(n, "Channel");
+    }
+    for (const auto& c : _lms->GetCCRNames()) {
+        _lmsCCRNames.insert(c);
+        addSource(c, "Model");
+    }
+}
+
+- (void)rebuildTimingTracksFromLMS {
+    _timingTracks.clear();
+    _lmsTimings.clear();
+    if (_lms == nullptr) return;
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) return;
+
+    SequenceElements& targetSE = rc->GetSequenceElements();
+    for (const auto& name : _lms->GetTimingTracks()) {
+        auto timings = _lms->GetTimings(name, 0);
+        if (timings.empty()) continue;
+        _lmsTimings[name] = timings;
+
+        TimingTrackEntry entry;
+        entry.name = name;
+        entry.sourceElement = nullptr; // synthesized on apply from _lmsTimings
+        TimingElement* existing = targetSE.GetTimingElement(name);
+        entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
+        entry.selected = !entry.alreadyExists;
+        _timingTracks.push_back(entry);
     }
 }
 
@@ -795,6 +930,97 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     }
 }
 
+- (void)runAIMapWithCompletion:(void (^)(NSInteger, NSString* _Nullable))completion {
+    ServiceManager* mgr = [[XLAIServices shared] serviceManager];
+    aiBase* ai = mgr ? mgr->findService(aiType::MAPPING) : nullptr;
+    if (ai == nullptr) {
+        if (completion) completion(0, @"No AI service with model-mapping support is enabled.");
+        return;
+    }
+
+    // Source side: the iPad's AvailableSource list carries less
+    // structure than desktop's ImportChannel (names + model type);
+    // names dominate the mapping signal so that's acceptable.
+    std::vector<aiBase::MappingModelInfo> sourceInfo;
+    std::set<std::string> validSources;
+    std::map<std::string, std::string> sourceTypes;
+    sourceInfo.reserve(_availableSources.size());
+    for (const auto& s : _availableSources) {
+        aiBase::MappingModelInfo info;
+        info.name = s.displayName;
+        info.type = s.modelType;
+        info.isSubModel = s.displayName.find('/') != std::string::npos;
+        sourceInfo.push_back(std::move(info));
+        validSources.insert(s.displayName);
+        sourceTypes[s.displayName] = s.modelType;
+    }
+
+    // Target side mirrors desktop DoStructuredAIMapping: unmapped rows
+    // become targets, mapped rows feed existingMappings as examples.
+    std::vector<aiBase::MappingModelInfo> targetInfo;
+    std::map<std::string, std::string> existingMappings;
+    std::vector<BasicImportMappingNode*> targets;
+    auto addTarget = [&](BasicImportMappingNode* n) {
+        std::string name = n->GetModelName();
+        if (!n->_mapping.empty()) {
+            existingMappings[name] = n->_mapping;
+            return;
+        }
+        aiBase::MappingModelInfo info;
+        info.name = name;
+        info.type = n->_isSubmodel ? std::string("SubModel") : n->_modelType;
+        info.isSubModel = n->_isSubmodel;
+        info.modelClass = n->_modelClass;
+        info.groupModels = n->_groupModels;
+        info.nodeCount = n->_nodeCount;
+        info.strandCount = n->_strandCount;
+        info.effectCount = n->_effectCount;
+        info.aliases.assign(n->_aliases.begin(), n->_aliases.end());
+        for (unsigned int c = 0; c < n->GetChildCount(); ++c) {
+            auto* child = n->GetNthChild(c);
+            if (child != nullptr && child->_isSubmodel) {
+                info.subModelNames.push_back(child->_strand);
+            }
+        }
+        targetInfo.push_back(std::move(info));
+        targets.push_back(n);
+    };
+    for (const auto& root : _destinationRoots) {
+        addTarget(root.get());
+        for (unsigned int i = 0; i < root->GetChildCount(); ++i) {
+            if (auto* child = root->GetNthChild(i)) addTarget(child);
+        }
+    }
+    if (targetInfo.empty()) {
+        if (completion) completion(0, nil);
+        return;
+    }
+
+    XLImportSession* strongSelf = self;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        auto result = ai->GenerateModelMapping(sourceInfo, targetInfo, existingMappings);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            (void)strongSelf;
+            if (!result.error.empty()) {
+                if (completion) completion(0, [NSString stringWithUTF8String:result.error.c_str()]);
+                return;
+            }
+            NSInteger applied = 0;
+            for (BasicImportMappingNode* node : targets) {
+                if (!node->_mapping.empty()) continue;
+                auto it = result.mappings.find(node->GetModelName());
+                if (it != result.mappings.end() && validSources.count(it->second) > 0) {
+                    auto t = sourceTypes.find(it->second);
+                    node->Map(it->second,
+                              t != sourceTypes.end() ? t->second : std::string("Model"));
+                    ++applied;
+                }
+            }
+            if (completion) completion(applied, nil);
+        });
+    });
+}
+
 - (int)loadMapHintsFromPath:(NSString*)path {
     if (!path || path.length == 0) return 0;
     iPadRenderContext* rc = RawRenderContext(_document);
@@ -915,6 +1141,107 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                   convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
+    if (_lmsMode) {
+        // LOR Music / Animation (.lms / .las) effect synthesis — the iPad
+        // equivalent of desktop xLightsFrame::ImportLMS. Walks the same
+        // destination tree but replays through the wx-free core LORMusic reader,
+        // synthesizing On / Color Wash / Twinkle effects (and CCR per-pixel
+        // fan-out) rather than copying SequenceElements effects.
+        if (rc == nullptr || _lms == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        bool const erase = eraseExisting ? true : false;
+
+        // Selected timing tracks → synthesized timing elements (mirrors the
+        // ImportLMS timing loop). Marks come from _lmsTimings.
+        for (const auto& track : _timingTracks) {
+            if (!track.selected) continue;
+            auto itTimings = _lmsTimings.find(track.name);
+            if (itTimings == _lmsTimings.end()) continue;
+
+            TimingElement* target = static_cast<TimingElement*>(
+                targetSE.AddElement(track.name, "timing", true, true, false, false, false));
+            char cnt = '1';
+            while (target == nullptr && cnt <= '9') {
+                target = static_cast<TimingElement*>(
+                    targetSE.AddElement(track.name + "-" + cnt, "timing", true, true, false, false, false));
+                ++cnt;
+            }
+            if (target == nullptr) {
+                spdlog::warn("XLImportSession::apply(lms): could not add timing element '{}'", track.name);
+                continue;
+            }
+            if (target->GetEffectLayerCount() == 0) {
+                target->AddEffectLayer();
+            }
+            EffectLayer* targetLayer = target->GetEffectLayer(0);
+            for (const auto& t : itTimings->second) {
+                targetLayer->AddEffect(0, "", "", "", t.first, t.second, false, false);
+            }
+        }
+
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(lms): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+            Model* mdl = rc->GetModel(targetEl->GetModelName());
+            int const cpn = mdl != nullptr ? mdl->GetChanCountPerNode() : 1;
+
+            if (!root->_mapping.empty()) {
+                if (_lmsCCRNames.count(root->_mapping) != 0 && targetModel != nullptr && mdl != nullptr) {
+                    // CCR prop: fan the prefix across every node layer of every
+                    // strand (mirrors desktop MapCCR / MapCCRModel).
+                    int node = 0;
+                    for (int str = 0; str < mdl->GetNumStrands(); ++str) {
+                        StrandElement* se = targetModel->GetStrand(str, true);
+                        if (se == nullptr) continue;
+                        for (int n = 0; n < se->GetNodeLayerCount(); ++n) {
+                            EffectLayer* nl = se->GetNodeLayer(n, true);
+                            std::string nm = _lms->ResolveCCRNodeName(root->_mapping, node);
+                            _lms->MapChannelEffects(nl, nm, _lms->GetChannelColor(nm), cpn, erase);
+                            ++node;
+                        }
+                    }
+                } else {
+                    _lms->MapChannelEffects(targetEl->GetEffectLayer(0), root->_mapping, _lms->GetChannelColor(root->_mapping), cpn, erase);
+                }
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr || child->_mapping.empty()) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+                if (ste == nullptr) continue;
+                if (_lmsCCRNames.count(child->_mapping) != 0) {
+                    StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                    if (stre == nullptr) continue;
+                    int node = 0;
+                    for (int n = 0; n < stre->GetNodeLayerCount(); ++n) {
+                        EffectLayer* nl = stre->GetNodeLayer(n, true);
+                        std::string nm = _lms->ResolveCCRNodeName(child->_mapping, node);
+                        _lms->MapChannelEffects(nl, nm, _lms->GetChannelColor(nm), cpn, erase);
+                        ++node;
+                    }
+                } else {
+                    _lms->MapChannelEffects(ste->GetEffectLayer(0), child->_mapping, _lms->GetChannelColor(child->_mapping), cpn, erase);
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
     if (_loreditMode) {
         // LOR S5 (.loredit) effect synthesis — the iPad equivalent of desktop
         // xLightsFrame::ImportS5. Walks the same destination tree the .xsq path
