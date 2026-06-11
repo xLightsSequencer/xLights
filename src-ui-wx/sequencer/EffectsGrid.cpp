@@ -2205,7 +2205,6 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
             mEffectMoveDragging = true;
             mEffectMoveDragThresholdExceeded = false;
             mEffectMoveDragGroup = wasSelectedForGroupDrag;
-            mEffectMoveCopyMode = event.AltDown();
             mEffectMoveDragStartX = event.GetX();
             mEffectMoveDragStartY = event.GetY();
             mEffectMoveAnchorRow = row;
@@ -8159,6 +8158,7 @@ void EffectsGrid::ApplyEffectMoveDrag() {
     // For cross-row move, same-row copy, and cross-row copy:
     // Add new effects at target positions (unselected so delete pass only removes originals).
     Effect* newAnchorEff = nullptr;
+    std::vector<Effect*> newEffects;
     for (auto& snap : mEffectMoveSnapshots) {
         int targetVisibleRow = snap.origVisibleRow + rowDelta;
         if (targetVisibleRow < 0 || targetVisibleRow >= (int)mSequenceElements->GetVisibleRowInformationSize()) continue;
@@ -8182,6 +8182,8 @@ void EffectsGrid::ApplyEffectMoveDrag() {
                 targetLayer->GetIndex(), newEff->GetID());
             if (snap.effect == mEffectMoveAnchorEffect)
                 newAnchorEff = newEff;
+            if (mEffectMoveCopyMode)
+                newEffects.push_back(newEff);
         }
     }
 
@@ -8192,6 +8194,12 @@ void EffectsGrid::ApplyEffectMoveDrag() {
             EffectLayer* el = mSequenceElements->GetEffectLayer(row);
             if (el) el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
+    } else {
+        // Copy: deselect originals, select all new copies
+        for (auto& snap : mEffectMoveSnapshots)
+            snap.effect->SetSelected(EFFECT_NOT_SELECTED);
+        for (Effect* e : newEffects)
+            e->SetSelected(EFFECT_SELECTED);
     }
 
     // Update selected effect pointer so it doesn't dangle
