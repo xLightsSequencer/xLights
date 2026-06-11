@@ -8044,6 +8044,7 @@ void EffectsGrid::ResetEffectMoveDragState() {
 void EffectsGrid::OnScrollTimer(wxTimerEvent&)
 {
     MainSequencer* ms = static_cast<MainSequencer*>(mParent);
+    bool scrolled = false;
 
     if (mScrollDir != 0) {
         int cur = mSequenceElements->GetFirstVisibleModelRow();
@@ -8053,6 +8054,7 @@ void EffectsGrid::OnScrollTimer(wxTimerEvent&)
             int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
             ScrollBy(scroll);
             ms->UpdateEffectGridVerticalScrollBar();
+            scrolled = true;
         }
     }
 
@@ -8068,12 +8070,13 @@ void EffectsGrid::OnScrollTimer(wxTimerEvent&)
                 hsb->SetThumbPosition(next);
                 wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
                 ms->HorizontalScrollChanged(eventScroll);
+                scrolled = true;
             }
         }
     }
 
     UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap);
-    Draw();
+    if (scrolled) Draw();
 }
 
 int EffectsGrid::SnapCursorToTimingMark(int timeMS, int x) const {
