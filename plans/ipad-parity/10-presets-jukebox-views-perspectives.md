@@ -4,15 +4,20 @@
 > iPad's `PresetBrowserSheet` + the `XLSequenceDocument (EffectPresets)`
 > bridge implement apply / save / group / rename / delete / import /
 > export against the same `EffectPresetManager` core the desktop
-> `EffectTreeDialog` uses. The real preset gaps are the *secondary*
-> EffectTreeDialog affordances: **Update Preset** (no bridge method
-> exists), the **Relative vs Using Layers** paste radio, **search**,
-> **reorder buttons** (the `movePreset` bridge+VM method exists but is
-> wired to *no UI*), and the animated **preview GIF**. **Display
-> Elements / Views** is also near-parity (create / rename / clone /
-> delete / reorder views, add-to / remove-from Master + user views,
-> visibility toggles, timing-track add/remove, filter), missing only
-> **Copy To Master** and **Import view config from another sequence**.
+> `EffectTreeDialog` uses. **Update Preset**, **search**, **reorder**
+> (Move Up/Down within a group + Move to Group across groups), and
+> **name-collision validation**, the **Relative vs Using Layers** paste
+> mode (segmented Auto/Relative/Using-Layers picker with `\tLAYER:`
+> auto-detect), and the read-only **"From Base"** section (base show
+> folder's preset library, apply-only) are now at parity in
+> `PresetBrowserSheet`. The only remaining preset gap is the animated
+> **preview GIF**. **Display Elements / Views** is also at parity
+> (create / rename / clone / delete / reorder views, add-to /
+> remove-from Master + user views, visibility toggles, timing-track
+> add/remove, filter, **Copy To Master**, **Show/Hide All + Hide/Remove
+> Unused** bulk ops, and **Import view config from another `.xsq`** —
+> the RGBEffects-layout import variant and per-panel undo/sort remain
+> desktop-only).
 > **Jukebox is 100% desktop-only** — no iPad UI, bridge, or VM (core
 > `JukeboxButtonData` exists and is loaded/saved with the sequence, so
 > the data round-trips, but nothing on iPad surfaces it); **declined
@@ -23,7 +28,8 @@
 > desktop covers via AUI float/dock. The desktop **AUI toolbar set**
 > (File / Playback / AC / View / Edit toolbars, Reset Toolbars) maps to
 > iPad's native menu bar + floating toolbar buttons — mostly parity by
-> different idiom, with the **AC toolbar** being the only real
+> different idiom (the Playback toolbar's **Replay Section** now ships
+> on iPad), with the **AC toolbar** being the only real
 > desktop-only sequencing surface. **Find / Replace** is at full parity
 > (both restrict to timing-track labels). The desktop **View > Windows**
 > submenu exposes ~16 panel-visibility toggles; iPad collapses these to
@@ -43,13 +49,13 @@
 | Import presets from file | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `OnbtImportClick` (.xml); iPad `.fileImporter([.xml])` → `importPresets(fromPath:)`. |
 | Export presets to file | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `OnbtExportClick` (.xpreset XML); iPad `.fileExporter` JSON → `exportPresets(toPath:)`. Format differs, data equivalent. |
 | Persist preset library to disk | other | ✅ | ✅ | parity | P1 | easy | feasible | Both write `xlights_effectpresets.json`; iPad `savePresets` (+ .jbkp backup). |
-| **Update preset from current effect** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `OnbtUpdateClick` overwrites preset blob with current settings. **No iPad bridge method** (`updatePreset` absent in `XLSequenceDocument.h`). New bridge + VM + button needed. |
-| **Apply mode: Relative vs Using Layers** | preference | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `btPosition`/`btLayers` radios + auto-detect from `\tLAYER:` token; passes `_layerMode` to `ApplyEffectsPreset`. iPad `applyPreset` has no layer-mode arg surfaced. |
-| **Search presets in tree** | toolbar | ✅ | ❌ | ipad-missing | P2 | easy | feasible | Desktop `TextCtrl1`+`ETButton1`/`SearchForText`. `PresetBrowserSheet` has no `.searchable`. Trivial client-side filter on `presetTree`. |
-| **Reorder presets within / across groups** | gesture | ✅ | ❌ | ipad-missing | P2 | easy | feasible | Desktop drag + Top/Up/Down/Bottom buttons. **iPad bridge+VM `movePreset(fromPath:toGroupPath:)` already exists** (`SequencerViewModel.swift:3181`) but **no UI calls it** — only needs a `.onMove`/menu wire-up. |
+| **Update preset from current effect** | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `OnbtUpdateClick`; iPad context-menu "Update from Selected Effect" → `updatePreset(atPath:)` (`SequencerViewModel.swift:3217`) → bridge `updatePresetAtPath:fromRow:effectIndex:` (`XLSequenceDocument.mm`) reusing the CopyFormat1 serializer + core `UpdatePresetSettings`. Gated on single-effect selection, confirm alert. |
+| **Apply mode: Relative vs Using Layers** | preference | ✅ | ✅ | parity | P2 | medium | feasible | iPad `PresetBrowserSheet` segmented Auto / Relative / Using Layers picker (`PresetBrowserSheet.swift`); Auto defers to the preset's `\tLAYER:` token via bridge `presetUsesLayers(atPath:)`, matching desktop's `_layerMode` auto-detect. `applyPreset(atPath:…usingLayers:)` threads the flag to bridge `applyPresetAtPath:…usingLayers:`, which stacks effects onto the anchor element's successive effect layers (Using Layers) or spreads them across rows (Relative). |
+| **Search presets in tree** | toolbar | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `TextCtrl1`+`ETButton1`/`SearchForText`; iPad `.searchable` on `PresetBrowserSheet` filters the in-memory `presetTree` (`PresetBrowserSheet.swift:visibleTree`), keeping ancestor groups of any match visible. Case-insensitive substring. |
+| **Reorder presets within / across groups** | gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop drag + Top/Up/Down/Bottom buttons; iPad context-menu Move Up / Move Down (within group, index move) + "Move to Group…" (cross-group) → `movePreset(fromPath:toGroupPath:)` / `movePreset(fromPath:toGroupPath:toIndex:)` (`SequencerViewModel.swift:3199/3209`). Bridge `movePresetItemFromPath:toGroupPath:toIndex:` translates the slot to a core `MoveItem(insertAfter)`. |
 | **Animated preset preview GIF** | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `GenerateGifImage`/`TimerGif` renders + animates a GIF of the selected preset. iPad would need Metal-render→thumbnail pipeline. Polish. |
-| Preset name-collision validation | dialog | ✅ | 🟡 | ipad-missing | P2 | easy | feasible | Desktop `NameCollissionInGroup` pre-check; core `EffectPresetManager` de-dups silently on add. iPad has no client-side pre-check (relies on core fix-up). |
-| **Presets: "From Base" section (base show folder)** | panel | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop #6450: `EffectTreeDialog` loads the base-folder `xlights_effectpresets.json` into `_basePresetManager`, shows a bold "From Base" root (`IsInBaseSection`), and prompts save-back via `PromptAndSaveBasePresets`. iPad has base-folder infra (`FolderConfigView.swift:245`, `baseShowDirectory()`) + `PresetBrowserSheet` but no base-presets bridge/section. Needs a `basePresets`-style bridge method + a sectioned list. |
+| Preset name-collision validation | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `NameCollissionInGroup` pre-check; iPad validates the entered name against the sibling set at the target path in the rename / new-group / save alerts (`PresetBrowserSheet.swift:siblingNames`), disabling the confirm action + showing inline feedback on collision. |
+| **Presets: "From Base" section (base show folder)** | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad `iPadRenderContext::LoadBasePresets` loads the base-folder `xlights_effectpresets.json` into a second `_basePresetManager`; bridge `basePresetTree` / `applyBasePreset(atPath:…)` / `hasBasePresets` expose it apply-only; `PresetBrowserSheet` shows a bold **From Base** section above the user library. Read-only on iPad (desktop save-back via `PromptAndSaveBasePresets` is intentionally out of scope — see *Infeasible / restricted*). Reloads on base-folder change (`FolderConfigView.swift`). |
 | **Jukebox: button grid (50 buttons)** | panel | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop `media/JukeboxPanel.cpp`. Core `JukeboxButtonData` round-trips in the .xsq but **no iPad UI/bridge/VM at all**. |
 | **Jukebox: link button to effect** | dialog | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop `LinkJukeboxButtonDialog.cpp`. No iPad counterpart. |
 | **Jukebox: play button (trigger effect)** | gesture | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop click/`JUKEBOX_BTN_1..` keybindings fire `EVT_PLAYJUKEBOXITEM`. No iPad path. |
@@ -69,10 +75,10 @@
 | User View: remove model | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `<`; iPad minus (no warning — view membership only). |
 | User View: add all / remove all | menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `>>`/`<<`; iPad Add All / Remove All. |
 | User View: reorder members | gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Top/Up/Down/Bottom; iPad `.onMove` drag-reorder. |
-| **Display Elements: Copy To Master** | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `Button_MakeMaster`/`DoMakeMaster` copies a user view's element list+order into Master. No iPad bridge/UI. |
-| **Display Elements: Import view config** | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `OnButtonImportClick` (import RGBEffects / from another sequence). No iPad bridge/UI. |
-| **Display Elements: Show All / Hide All / Hide Unused models** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1659-1661`. No counterpart in `DisplayElementsSheet.swift`. |
-| **Display Elements: Select Used/Unused/All; Remove Unused** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1662-1665`. No counterpart in `DisplayElementsSheet.swift`. |
+| **Display Elements: Copy To Master** | menu | ✅ | ✅ | parity | P3 | medium | feasible | iPad bridge `copyViewToMaster(atIndex:)` mirrors `DoMakeMaster` (adds the view's models to Master, reorders to match, drops effect-free Master models absent from the view, returns the effects-kept names); "Copy To Master" button in the user-view detail (`DisplayElementsSheet.swift`) with a confirm + kept-models info alert. |
+| **Display Elements: Import view config** | dialog | ✅ | 🟡 | parity | P3 | medium | feasible | iPad bridge `importViewConfig(fromSequencePath:)` reads another sequence's `<DisplayElements>` and creates an "Imported Master" view from the resolvable models + timings (mirrors `ImportSequenceMasterView`/`ImportViewData`); "Import View…" toolbar button + `.fileImporter([.xsq])` in `DisplayElementsSheet.swift`. The RGBEffects-layout-file import variant (`ImportRGBEffectsView`) is not yet on iPad. |
+| **Display Elements: Show All / Hide All / Hide Unused models** | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad bridge `setAllElementsVisible(_:)` / `hideUnusedElements()` (toggle each element's master-visible flag, model/timing split like `setElementVisible:`); Master-View "Bulk Actions" toolbar menu in `DisplayElementsSheet.swift`. |
+| **Display Elements: Select Used/Unused/All; Remove Unused** | menu | ✅ | 🟡 | parity | P2 | medium | feasible | iPad bridge `removeUnusedElements()` deletes every effect-free element (desktop Select Unused + Remove Unused) — "Remove Unused" in the Bulk Actions menu with a confirm. The pure list-selection ops (Select Used/Unused/All) have no standalone iPad analogue — they only seed Remove on desktop, which iPad folds directly into Remove Unused. |
 | **Display Elements: Sort models (many strategies)** | menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop `ViewsModelsPanel.cpp:1667-1682`. No sort symbol in `DisplayElementsSheet.swift` or `XLSequenceDocument.h`. |
 | **Edit Display Elements from import wizard** | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6477: `xLightsImportChannelMapDialog::EditDisplayElements` embeds `ViewsModelsPanel` mid-import, lets you add master-view models without leaving the wizard, then merges new models into the map tree. iPad has `DisplayElementsSheet` + `ImportEffectsView` as separate flows; no cross-link from import to Display Elements. |
 | **Display Elements: panel-local Undo** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1658` (`ID_MODELS_UNDO` + `_undo` stack). No undo stack in `DisplayElementsSheet.swift`. |
@@ -109,7 +115,7 @@
 | **Perspectives panel (manage)** | panel | ✅ | ❌ | desktop-only | P3 | hard | infeasible | Desktop `PerspectivesPanel.cpp`. No iPad equivalent. |
 | **Reset Toolbars** | menu | ✅ | ❌ | desktop-only | P3 | hard | feasible | Desktop View>Reset Toolbars (`ID_MENUITEM5`) restores AUI toolbar layout. iPad toolbars are fixed. |
 | File toolbar (Open/New/Save/SaveAs/RenderAll) | toolbar | ✅ | 🟡 | parity | P2 | medium | feasible | Desktop `ID_AUITOOLBAR_*`. iPad uses native File menu + floating buttons — equivalent function, different idiom. |
-| Playback toolbar (Play/Pause/Stop/First/Last/Replay) | toolbar | ✅ | 🟡 | both-missing | P1 | medium | feasible | iPad has Play/Pause/Stop/Rewind + Playback menu but **no Replay-Section** button (`ID_AUITOOLBAR_REPLAY_SECTION`). |
+| Playback toolbar (Play/Pause/Stop/First/Last/Replay) | toolbar | ✅ | ✅ | parity | P1 | medium | feasible | iPad has Play/Pause/Stop/Rewind + Playback menu **and now a Replay-Section** `repeat` toolbar button + Playback ▸ Replay Section (⇧Space) → `viewModel.replaySection()` (loops the selection's time bounds via the existing loop-region plumbing). |
 | View toolbar (panel toggles) | toolbar | ✅ | 🟡 | parity | P2 | easy | feasible | Desktop `ID_AUITOOLBAR_VIEW`; iPad header buttons + View menu cover preview/inspector toggles. |
 | View>Windows panel-toggle list (~16 docks) | menu | ✅ | 🟡 | desktop-only | P3 | hard | feasible | Desktop toggles each dock (Value Curves, Color Dropper, Effect Assist, Search Effects, Video Preview, Find Effect Data, …). iPad has no separate docks for most. |
 | Suppress Dock (House/Model Preview) submenu | menu | ✅ | ❌ | desktop-only | P3 | hard | infeasible | Desktop `ID_MNU_SUPPRESSDOCK_HP/MP` for AUI re-docking control. Not applicable to SwiftUI scenes. |
@@ -122,51 +128,53 @@
 
 ## iPad gaps (desktop has, iPad missing)
 
-### P1
-
-- **Playback "Replay Section"** — desktop `ID_AUITOOLBAR_REPLAY_SECTION`
-  loops the currently-selected time range. iPad's Playback menu has
-  Play / Stop / Render / seek / frame-step / speed but no replay-range
-  loop. *Work:* add a `replaySection` op in `SequencerViewModel`
-  (loop between selection start/end) + a Playback-menu button + toolbar
-  button in `SequencerView`. Bridge already exposes range/selection
-  state. *Ease: medium.*
-
 ### P2
 
-- **Update Preset from current effect** — desktop `OnbtUpdateClick`.
-  This is the only preset operation with **no bridge method at all**
-  (`XLSequenceDocument.h` has no `updatePreset`). *Work:* add
-  `-updatePresetAtPath:fromRows:effectIndices:` to the bridge
-  (reuse the `savePreset(fromRows:…)` serializer to rebuild the blob),
-  a VM wrapper, and an "Update from Selection" context-menu item in
-  `PresetBrowserSheet`. *Ease: medium.*
-- **Relative vs Using Layers apply mode** — desktop `btPosition` /
-  `btLayers` radios; desktop also auto-detects layer mode from the
-  preset's `\tLAYER:` token and passes `_layerMode` to
-  `ApplyEffectsPreset`. iPad's `applyPreset(atPath:)` doesn't surface
-  the choice. *Work:* thread a `usingLayers:` arg through
-  `applyPreset` (bridge already calls the core paste) and add a toggle
-  in the sheet (or auto-detect silently for parity). *Ease: medium.*
-- **Search presets** — desktop `TextCtrl1` + `SearchForText`.
-  `PresetBrowserSheet` lacks `.searchable`. *Work:* client-side filter
-  on the already-loaded `viewModel.presetTree` (path/name substring).
-  *Ease: easy.*
-- **Reorder presets** — the **bridge + VM already exist**
-  (`document.movePreset(fromPath:toGroupPath:)` →
-  `SequencerViewModel.movePreset` at `SequencerViewModel.swift:3181`)
-  but **no SwiftUI surface invokes them**. *Work:* wire a `.onMove`
-  on the preset List rows (or Up/Down context-menu items) into
-  `movePreset`. *Ease: easy.* (Lowest-effort highest-value preset gap.)
-- **Preset name-collision pre-check** — desktop
-  `NameCollissionInGroup`; iPad relies on the core manager's silent
-  de-dup. *Work:* validate the name against the sibling set in the
-  alert before committing. *Ease: easy.*
-- **Display Elements bulk model ops** — desktop
-  `ViewsModelsPanel.cpp:1659-1665`: Show All / Hide All / Hide Unused,
-  Select Used/Unused/All, Remove Unused. None present in
-  `DisplayElementsSheet.swift`. *Work:* bridge wrappers + a toolbar
-  menu in the sheet. *Ease: medium.*
+- **Update Preset from current effect** — *landed.* Bridge
+  `updatePresetAtPath:fromRow:effectIndex:` (`XLSequenceDocument.mm`)
+  rebuilds the CopyFormat1 blob from the selected effect and calls core
+  `EffectPresetManager::UpdatePresetSettings`; VM `updatePreset(atPath:)`
+  (`SequencerViewModel.swift:3217`); `PresetBrowserSheet` context-menu
+  "Update from Selected Effect" gated on a single-effect selection with
+  a confirm alert (it overwrites the preset). Parity with desktop
+  `OnbtUpdateClick`.
+- **Relative vs Using Layers apply mode** — *landed.*
+  `PresetBrowserSheet` adds a segmented Auto / Relative / Using Layers
+  picker; Auto reads the preset's `\tLAYER:` token via bridge
+  `presetUsesLayers(atPath:)` (desktop's `_layerMode` auto-detect).
+  `applyPreset(atPath:…usingLayers:)` / `applyBasePreset(…)` thread the
+  flag to bridge `applyPresetAtPath:…usingLayers:`, which in Using
+  Layers mode stacks the preset's effects onto the anchor element's
+  successive effect layers (growing the element as needed) and in
+  Relative mode spreads them across rows.
+- **Search presets** — *landed.* `PresetBrowserSheet` adds a
+  `.searchable` box; `visibleTree` filters the in-memory
+  `viewModel.presetTree` case-insensitively by name substring and keeps
+  the ancestor groups of any match visible. Parity with desktop
+  `SearchForText`.
+- **Reorder presets** — *landed.* `PresetBrowserSheet` context menu
+  exposes Move Up / Move Down (within-group index reorder) and "Move to
+  Group…" (cross-group). Within-group moves go through the new
+  `movePreset(fromPath:toGroupPath:toIndex:)` VM + bridge
+  `movePresetItemFromPath:toGroupPath:toIndex:`, which converts the drop
+  slot to a core `EffectPresetManager::MoveItem(insertAfter)` (the core
+  already keeps ordered children). Cross-group uses the existing
+  two-arg `movePreset`.
+- **Preset name-collision pre-check** — *landed.* The rename,
+  new-group, and save-selection alerts in `PresetBrowserSheet` validate
+  the entered name against the sibling set at the target path
+  (`siblingNames`), disabling the confirm button and showing inline
+  feedback on collision. Parity with desktop `NameCollissionInGroup`.
+- **Display Elements bulk model ops** — *landed.* Bridge
+  `setAllElementsVisible(_:)` (Show/Hide All), `hideUnusedElements()`
+  (Hide Unused), and `removeUnusedElements()` (Select Unused + Remove
+  Unused) over every sequence element, with the model/timing
+  master-visible split from `setElementVisible:`. Master-View "Bulk
+  Actions" toolbar menu in `DisplayElementsSheet.swift` (Remove Unused
+  behind a confirm). The pure list-selection ops (Select Used/Unused/
+  All) have no standalone iPad surface — they only feed Remove on
+  desktop, which iPad folds into Remove Unused. **From Base presets** —
+  *landed.* See the scorecard row + intro.
 - **Display Elements sort** — desktop offers many sort strategies
   (`ViewsModelsPanel.cpp:1667-1682`); no sort symbol exists in
   `DisplayElementsSheet.swift` or `XLSequenceDocument.h`. *Work:*
@@ -192,13 +200,19 @@
   `JukeboxButtonData` already round-trips through the .xsq, so data
   survives an iPad edit — that round-trip guarantee is the only
   obligation going forward. No iPad UI will be built.
-- **Display Elements: Copy To Master** — desktop `DoMakeMaster`
-  copies a user view's ordered element list into Master. *Work:* bridge
-  `copyViewToMaster:` + a button in `DisplayElementsSheet` user-view
-  detail. *Ease: medium.*
-- **Display Elements: Import view config** — desktop
-  `OnButtonImportClick` imports views/RGBEffects from another sequence.
-  *Work:* bridge + `.fileImporter`. *Ease: medium.*
+- **Display Elements: Copy To Master** — *landed.* Bridge
+  `copyViewToMaster(atIndex:)` mirrors `DoMakeMaster` (add the view's
+  models to Master, reorder to match, drop effect-free Master models
+  absent from the view, return the effects-kept names) + "Copy To
+  Master" button in the user-view detail with a confirm and kept-models
+  info alert.
+- **Display Elements: Import view config** — *landed (sequence
+  variant).* Bridge `importViewConfig(fromSequencePath:)` reads another
+  `.xsq`'s `<DisplayElements>` and builds an "Imported Master" view
+  from the resolvable models + timings (mirrors
+  `ImportSequenceMasterView`/`ImportViewData`); "Import View…" toolbar
+  button + `.fileImporter([.xsq])`. The RGBEffects-layout-file import
+  variant (`ImportRGBEffectsView`) remains desktop-only.
 - **Display Elements keyboard delete** — desktop deletes selected list
   rows via `List_KEY_DOWN` (`ViewsModelsPanel.cpp`); the iPad sheet has
   no `onDeleteCommand`. *Work:* add a delete key handler to the lists.
@@ -253,26 +267,49 @@ exists on both.)
 - **Jukebox — declined (won't-do, 2026-06-11).** Not a platform limit;
   a deliberate scope decision. Core `JukeboxButtonData` must keep
   round-tripping through `.xsq` load/save on iPad (it does today).
+- **"From Base" preset save-back** — the iPad "From Base" section is
+  read-only / apply-only by design. Desktop's `PromptAndSaveBasePresets`
+  writes edits back into the *base show folder's*
+  `xlights_effectpresets.json`; on iOS that folder is a separate
+  security-scoped location and mutating a shared base library from a
+  per-sequence client is out of scope (users curate the base library on
+  desktop). Browsing + applying base presets is at parity.
+- **Display Elements: RGBEffects-layout view import** — desktop
+  `ImportRGBEffectsView` imports a view from an `xlights_rgbeffects.xml`
+  layout file. iPad currently imports view config only from another
+  `.xsq` sequence's `<DisplayElements>`; the rgbeffects-layout variant
+  is deferred (low value, redundant with the sequence path for most
+  users).
 - No controller-firmware items fall in this theme (jukebox/views/
   presets/perspectives are sequence-local), so the closed-firmware
   IAP restriction does not apply here.
 
 ## Recommended sequencing
 
-1. **Wire `movePreset` into the UI** (P2, easy) — the bridge + VM
-   already exist; a `.onMove` on `PresetBrowserSheet` rows is the
-   cheapest meaningful preset win.
-2. **Preset search filter** (P2, easy) — client-side filter over the
-   in-memory `presetTree`; no bridge work.
-3. **Update Preset from selection** (P2, medium) — add the missing
-   bridge method + context-menu item; reuse the existing save serializer.
-4. **Relative/Using-Layers apply mode + collision pre-check** (P2) —
-   small bridge-arg + alert validation; closes the EffectTreeDialog
-   feature delta.
-5. **Playback Replay-Section** (P1, medium) — only P1 gap in the theme;
-   add a loop-range op + menu/toolbar entry.
-6. **Display Elements Copy-To-Master + Import view config** (P3) —
-   round out `ViewsModelsPanel` parity once the higher-value items land.
+1. ✅ **Done — reorder presets** (P2) — context-menu Move Up / Move
+   Down (within-group index move via `movePreset(…toIndex:)`) + "Move to
+   Group…" in `PresetBrowserSheet`.
+2. ✅ **Done — preset search filter** (P2) — `.searchable` over the
+   in-memory `presetTree` (`visibleTree`), ancestor groups stay visible.
+3. ✅ **Done — Update Preset from selection** (P2) — bridge
+   `updatePresetAtPath:fromRow:effectIndex:` + VM `updatePreset(atPath:)`
+   + context-menu item with confirm; reuses the CopyFormat1 serializer.
+4. ✅ **Done — Relative/Using-Layers apply mode + From Base presets +
+   Display Elements bulk ops** (P2) — `applyPreset(…usingLayers:)` with
+   an Auto/Relative/Using-Layers picker (`\tLAYER:` auto-detect); a
+   read-only From Base section over a second `EffectPresetManager`; and
+   Show/Hide All + Hide/Remove Unused bulk model ops in the Master-View
+   Bulk Actions menu. (Collision pre-check ✅ done alongside items 1-3.)
+5. ✅ **Done — Playback Replay-Section** (P1) — `replaySection`
+   op + `repeat` toolbar button + Playback ▸ Replay Section (⇧Space),
+   reusing the loop-region plumbing.
+6. ✅ **Done — Display Elements Copy-To-Master + Import view config**
+   (P3) — `copyViewToMaster(atIndex:)` + a user-view button, and
+   `importViewConfig(fromSequencePath:)` + an Import View toolbar button
+   (`.xsq` sequence variant; rgbeffects-layout import stays
+   desktop-only). Remaining `ViewsModelsPanel` gaps (sort strategies,
+   panel-local undo, per-view checkbox, keyboard delete) stay tracked
+   above.
 7. **Animated preset GIF preview** (P3, hard) — defer; heavy pipeline
    work. **Jukebox is declined (won't-do)**; Perspectives and AC stay
    desktop-only (AC deferred per theme 02).

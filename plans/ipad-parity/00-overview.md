@@ -7,7 +7,7 @@
 
 ## How to read this
 
-- **1,172 features** were enumerated across 14 themes (menu items, context-menu
+- **1,173 features** were enumerated across 14 themes (menu items, context-menu
   entries, dialog operations, preferences, keyboard shortcuts, gestures).
 - The **gap** for each feature is *derived from the `desktop`/`iPad` status*
   (✅ present / 🟡 partial / ❌ absent). Categories:
@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (674 features; see the per-theme scorecards).
+  - **Parity** — both have it (771 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -26,11 +26,11 @@
 
 | Metric | Count |
 |---|--:|
-| Features audited | 1,172 |
-| **At parity** (both platforms) | 674 (**~58%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 315 |
-| **iPad-weaker** (partial on iPad) | 69 |
-| **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 114 |
+| Features audited | 1,173 |
+| **At parity** (both platforms) | 771 (**~66%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 238 |
+| **iPad-weaker** (partial on iPad) | 64 |
+| **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 99 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
 | Declined — won't build (scope decision) | 5 |
@@ -39,7 +39,7 @@
 
 Each feature's gap is derived from its desktop/iPad status (✅/🟡/❌); the
 **% Parity** column in the scorecard below is *parity ÷ features* per theme.
-Overall the iPad sits at **~58% parity** with the desktop, with the biggest
+Overall the iPad sits at **~66% parity** with the desktop, with the biggest
 remaining backlogs in Preferences (theme 11), Layout (06), and Tools (13).
 
 The everyday workflow (create/open/save sequences, place/edit effects, color &
@@ -60,21 +60,21 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 36 | 52% | 23 | 4 | 6 | 5 |
-| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 114 | 70 | 61% | 29 | 7 | 8 | 3 |
-| 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 63 | 76% | 12 | 4 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 83 | 67 | 81% | 7 | 4 | 5 | 0 |
-| 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 58 | 72% | 14 | 3 | 6 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 135 | 77 | 57% | 39 | 12 | 7 | 3 |
-| 07 | [Setup](07-setup-controllers-upload.md) | 76 | 51 | 67% | 19 | 3 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 70 | 45 | 64% | 20 | 5 | 0 | 1 |
-| 09 | [Render & Playback](09-render-playback.md) | 53 | 43 | 81% | 5 | 2 | 3 | 0 |
-| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 47 | 56% | 32 | 5 | 0 | 7 |
-| 11 | [Preferences](11-preferences-settings.md) | 131 | 26 | 20% | 70 | 15 | 20 | 19 |
-| 12 | [AI](12-ai-automation-scripting.md) | 47 | 24 | 51% | 21 | 0 | 2 | 16 |
-| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 22 | 45% | 24 | 2 | 1 | 4 |
-| 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 45 | 46% | 0 | 3 | 49 | 10 |
-| — | **Total** | **1,172** | **674** | **~58%** | **315** | **69** | **≈114** | **83** |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 43 | 62% | 16 | 4 | 6 | 5 |
+| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 115 | 85 | 74% | 17 | 5 | 8 | 3 |
+| 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 70 | 84% | 5 | 4 | 4 | 3 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 83 | 72 | 87% | 3 | 3 | 5 | 0 |
+| 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 66 | 81% | 9 | 3 | 3 | 1 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 135 | 91 | 67% | 25 | 12 | 7 | 3 |
+| 07 | [Setup](07-setup-controllers-upload.md) | 76 | 59 | 78% | 11 | 3 | 3 | 11 |
+| 08 | [Import & Export](08-import-export.md) | 70 | 48 | 69% | 17 | 5 | 0 | 1 |
+| 09 | [Render & Playback](09-render-playback.md) | 53 | 44 | 83% | 4 | 2 | 3 | 0 |
+| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 58 | 69% | 21 | 4 | 0 | 7 |
+| 11 | [Preferences](11-preferences-settings.md) | 131 | 34 | 26% | 70 | 14 | 13 | 19 |
+| 12 | [AI](12-ai-automation-scripting.md) | 47 | 25 | 53% | 20 | 0 | 2 | 16 |
+| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 26 | 53% | 20 | 2 | 1 | 4 |
+| 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 50 | 52% | 0 | 3 | 44 | 10 |
+| — | **Total** | **1,173** | **771** | **~66%** | **238** | **64** | **≈99** | **83** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -86,11 +86,7 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 | Unsaved-changes handling on quit/background *(weaker)* | 01 | easy | feasible | Desktop prompts on quit; iPad silently saves on backgrounding because Stage-Manager pill close cannot host an alert (Not |
 | Serial port selection *(weaker)* | 07 | easy | feasible | Desktop port dropdown; iPad enumerates system ports or freeform (no hw serial) + FPP tty/i2c/spi ports. |
 | Drag-drop models in layout sidebar *(weaker)* | 14 | easy | feasible | Parity; iPad in progress. |
-| Sketch: path editor canvas *(weaker)* | 04 | medium | feasible | Desktop is full; iPad has add line/new path/undo point/clear/drag handles only; missing richer path ops. |
-| Import Effects from LOR Music .lms | 08 | medium | feasible | LMS parser lives in wx UI file (builds dialog directly); needs core extraction to src-core/import_export/ + new bridge e |
-| Playback toolbar (Play/Pause/Stop/First/Last/Replay) *(weaker)* | 10 | medium | feasible | iPad missing Replay-Section loop. Only P1 gap in theme. |
 | Visualizer: drag-drop wiring *(weaker)* | 14 | medium | feasible | Desktop visualizer supports drag-drop wiring; iPad implementation in progress. |
-| Bulk multi-controller upload | 07 | hard | feasible | Desktop OnMenuItemBulkControllerUploadSelected -> MultiControllerUploadDialog (all controllers + progress). iPad only si |
 
 > **Landed (2026-06-03):** Export House Preview Video — Tools → "Export House
 > Preview…" renders the preview offscreen at a chosen resolution via
@@ -116,6 +112,52 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 >   auto-shared, no row needed.
 > - Remaining June 9–11 commits are bug/crash fixes in shared core or
 >   desktop-only code paths — no parity impact.
+
+> **Landed (2026-06-11): Phase 1 "quick wins" wave — 30 rows flipped to
+> parity** across themes 01/03/04/05/08/09/10/11/13: position/seek slider,
+> Replay Section, render-progress gauge, Shift Effects / +Timing / Selected
+> (with snapshot undo), preset search/reorder/update/collision-check,
+> ColorCurve presets + export, ValueCurve export, Update Palette bulk-apply,
+> Revert To Last Saved, Tools → Export Effects (CSV report via new core
+> `import_export/ExportEffectsReport`), Tools → Generate AI Image entry,
+> transition-blur enable gate, snap-to-timing-marks + double-tap-play
+> toggles, and the 7 Check-Sequence disable toggles.
+
+> **Landed (2026-06-11, second batch — 11 more rows to parity):** Cut effect
+> (⌘X + context menu), Paste Mode picker (By Time / By Cell), move-effect-
+> between-layers (⌥↑/⌥↓), Play Effect / Play Model loop-region idioms,
+> Enable Render on All Models, Delete Multiple Layers (themes 02);
+> per-tag Delete + Next/Prior tag navigation (theme 03); AI structured
+> model auto-mapping in the import wizard (theme 12); tooltip rendering +
+> canvasMode auto-enable (theme 04); Help ▸ Key Bindings sheet (theme 13);
+> Info-tab Hash / Overwrite-Tags / editable-Duration fields (theme 01).
+
+> **Landed (2026-06-11, Wave 2 — 18 more rows to parity):** controllers
+> cluster (global output settings, per-universe editing, ping indicator,
+> proxy pre-upload validation, auto-upload-on-enable, bulk OSF upload,
+> Force Local IP, Open Proxy — theme 07); LOR `.lms`/`.las` import via new
+> wx-free core reader `import_export/LORMusic` (theme 08); media manager
+> Add/Bulk-Find/Reload + Cleanup File Locations (themes 01/13); sequencer
+> drag-create, modifier-tap additive select, top-level row drag-reorder
+> #6507 (theme 02); Sketch editor close-path/curve-authoring/reorder/SVG
+> import via new shared core `effects/SketchSVGImport` — the desktop panel
+> was refactored onto the same helper (theme 04).
+
+> **Landed (2026-06-11, Wave 3):** Faces/States visual node picker
+> (NodeRangePickerSheet over the SubModel Metal picker); Node Layout +
+> Wiring View sheets; Song Structure Regions UI (band overlay, region
+> edit/views menus, create-from-timing-track) — bulk effect ops + per-
+> region export still open; Moving Head waypoint path canvas + preset
+> strips + color-wheel picker; preset apply-mode (Relative/Using
+> Layers/Auto) + "From Base" preset section + Display Elements bulk ops
+> + Copy-To-Master + Import View; preview delete/rename, 2D
+> center-0/canvas/grid setters, overlap highlighting, group clone,
+> aspect-ratio fix, center offset, polyline segment size (themes
+> 02/04/06/10). **Desktop pull-backs:** fade-drag confirmed already at
+> parity via #6494; edge auto-scroll while dragging, layout
+> snap-to-grid, case-sensitive Find, default ⌘R Render All, Copy
+> Palette String, ValueCurve clipboard copy/paste interchanging with
+> the iPad's `xlvc:v1:` envelope (themes 05/11/14 + README.txt).
 
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
@@ -150,55 +192,24 @@ are declined.)
 
 | Feature | Theme | Ease | Feasibility | Notes |
 |---|---|---|---|---|
-| Cut effect | 02 | easy | feasible | iPad intentionally omits Cut (XLightsCommands.swift:66-67 comment); no menu item, no Cmd+X. |
-| Paste By Time mode toggle | 02 | easy | feasible | iPad is implicitly this mode (no toggle). |
 | Playback volume *(weaker)* | 03 | easy | feasible | Functionally equivalent; iPad lacks the named radio presets (cosmetic). |
-| Pref — snap to timing marks | 03 | easy | feasible | iPad snap not user-configurable. Add @AppStorage gate in drag-end handlers. |
-| Pref — timing play on double-click (toggle) *(weaker)* | 03 | easy | feasible | iPad needs an @AppStorage gate around onDoubleTapMark. |
-| Palette menu: Update Palette (bulk apply to selected effects) | 05 | easy | feasible | Desktop ID_MNU_UPDATE applies panel palette to ALL selected effects (with multi-select confirm). iPad palette menu has n |
-| Ping / controller health LED | 07 | easy | feasible | Desktop LedPing colour-codes GetLastPingState (TabSetup.cpp:2031). No iPad ping bridge/UI; TCP-port probe feasible (raw  |
-| Render progress indicator *(weaker)* | 09 | easy | feasible | Core emits IRenderProgressSink callbacks (RenderUI.cpp:15); iPad could surface per-job progress instead of a bare spinne |
-| Search presets in tree | 10 | easy | feasible | PresetBrowserSheet has no .searchable. Trivial client-side filter on presetTree. |
-| Reorder presets within / across groups | 10 | easy | feasible | Bridge+VM already exist; only UI wiring (.onMove) is missing. Lowest-effort preset win. |
-| Preset name-collision validation *(weaker)* | 10 | easy | feasible | Core manager de-dups silently; iPad lacks pre-commit check. |
 | View toolbar (panel toggles) *(weaker)* | 10 | easy | feasible | Preview/inspector toggles covered. |
-| Tools > Export Effects | 13 | easy | feasible | Effect-usage report export. No iPad equivalent. Easy: clone the existing exportModelsReport bridge as exportEffectsRepor |
-| Revert To - Last Saved | 01 | medium | feasible | Reload .xsq from disk discarding edits. Cheapest iPad win: discard-confirm + openSequence(path:) re-run. |
-| Paste By Cell mode toggle | 02 | medium | feasible | iPad always time-based paste. Core PasteModelEffects cell mode exists; needs a paste-mode pref + toggle. |
-| Move effect up/down one layer (Up/Down arrow) | 02 | medium | feasible | Desktop MoveSelectedEffectUp/Down. iPad Up/Down do selection nav (Effect Above/Below XLightsCommands.swift:479), no laye |
-| Double-click effect to play | 02 | medium | feasible | Desktop mouseLeftDClick -> RaisePlayModelEffect (EffectsGrid.cpp:7600). iPad has no play-this-effect gesture/menu. |
-| Play Model (row heading) | 02 | medium | feasible | ID_ROW_MNU_PLAY_MODEL + double-click. No iPad equivalent. |
-| Shift Effects (time offset, effects only) | 03 | medium | feasible | Needs a bridge shift method + sheet; core shift logic exists. |
-| Shift Effects And Timing (time offset, all) | 03 | medium | feasible | Highest-value missing operation; common during audio re-syncs. |
-| ValueCurve export to file | 05 | medium | feasible | Desktop exports .xvc to arbitrary path. iPad only saves into show folder; needs a document-picker export. Copy-to-clipbo |
-| ColorCurve load preset | 05 | medium | feasible | CONFIRMED gap: grep savedColorCurves in src-iPad returns nothing. Needs savedColorCurves bridge + ColorCurveLoadSheet mo |
-| ColorCurve save as preset | 05 | medium | feasible | Needs saveColorCurveSerialised bridge + save sheet. Core ColorCurve already serializes. |
 | Preview delete | 06 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. No iPad delete-layout-group bridge. |
 | Preview rename | 06 | medium | feasible | Desktop ID_PREVIEW_RENAME_ACTIVE. No iPad rename-layout-group bridge. |
-| Per-universe Output editing (Universe#/Universes/UniversePerString/IndivSizes/channels) | 07 | medium | feasible | Desktop ControllerEthernetPropertyAdapter.cpp:469-525. iPad shows only read-only channel-range summary; needs universe-t |
-| Global output settings (Controller Sync/E1.31 Sync Universe/Global FPP Proxy/Force-Local-IP/Max-Suppress-Frames) | 07 | medium | feasible | Desktop nothing-selected property grid (TabSetup.cpp:1957-1983). iPad never surfaces global toggles; OutputManager acces |
-| Import Effects from LOR Animation .las | 08 | medium | feasible | Same code path as .lms; comes for free once LMS reader is core. |
 | Import Effects from LOR Pixel Editor .lpe | 08 | medium | feasible | wx-bound parser; needs core extraction + bridge. |
 | Import Effects from HLS .hlsIdata | 08 | medium | feasible | wx-bound; low frequency. |
 | Export Effects to file (<effects> .xsq fragment) | 08 | medium | feasible | Core exists; needs Tools entry + XLSequenceDocument exporter. |
 | Import vendor model / vendor music (online catalog) *(weaker)* | 08 | medium | feasible | Model browser present on iPad; verify music-download breadth matches desktop. |
-| Position / seek slider (coarse scrub) | 09 | medium | feasible | Highest-value iPad-missing item. iPad only has TopChromeMetalGridView tap/scrub; no one-gesture coarse seek. Add SwiftUI |
-| Update preset from current effect | 10 | medium | feasible | No updatePreset in XLSequenceDocument.h; needs bridge+VM+button, reusing the existing apply path. |
 | Apply mode: Relative vs Using Layers | 10 | medium | feasible | Desktop passes _layerMode to ApplyEffectsPreset; iPad applyPreset has no layer-mode arg surfaced. |
 | File toolbar (Open/New/Save/SaveAs/RenderAll) *(weaker)* | 10 | medium | feasible | Equivalent via native idiom. |
 | Backup On Save | 11 | medium | feasible | No iPad backup-strategy UI; iPad relies on autosave + iCloud/Files version history. |
-| Effects Grid - Snap to Timing Marks | 11 | medium | feasible | iPad placement is timing-aware but has no snap on/off toggle. |
 | Effects Grid - Paste As (Relative/Layers) | 11 | medium | feasible | Desktop also has PASTE_BY_CELL/PASTE_BY_TIME bindings. iPad paste is fixed. |
 | Inline panel toggles F1-F4 (Settings/Color/Layer/Blending) *(weaker)* | 11 | medium | feasible | iPad inspector tabs always available; no F-key tab cycling. |
-| AI structured model auto-mapping | 12 | medium | feasible | Desktop suggests mappings via Claude (aiType::MAPPING). iPad only runs heuristic AutoMapper. Core GenerateModelMapping s |
-| Tools > Cleanup File Locations | 13 | medium | feasible | Sweeps all referenced media under the show folder. iPad MediaRelocation.swift only prompts at per-file import time, not as a global sweep. |
 | Tools > Download Sequences/Lyrics | 13 | medium | feasible | Marketplace/community sequence+lyric download. iPad needs a browser-style download-into-show-folder sheet. |
-| Tools > Generate AI Image *(weaker)* | 13 | medium | feasible | Distinct from iPad's AI Services config. iPad has the image generator but only reachable from the effect filename row, not as a standalone tool. |
 | Tools > Convert *(weaker)* | 13 | medium | feasible | iPad ImportEffectsView covers the modern formats; the gap is legacy formats (LMS/LSP/HLS/Vixen2). |
 | Tools > Search for Show Folders | 13 | medium | feasible | Scans drive for show folders. iPad has Files.app integration; scoped scan + results sheet straightforward. |
 | View > Windows > Color Dropper | 13 | medium | feasible | Dockable eyedropper to sample preview colors. iPad preview has no color sampler; add eyedropper gesture + bridge to read |
 | View > Windows > Find Effect Data | 13 | medium | feasible | Distinct from iPad Find/Replace: FindDataPanel queries effects by property values; iPad FindReplaceSheet only searches timing-mark labels. |
-| Help > Key Bindings | 13 | medium | feasible | Desktop opens accelerator reference. iPad relies on system cmd-hold HUD; could add a sheet listing CommandMenu bindings. |
 | Restore Backup dialog | 01 | hard | feasible | Pick backup date, restore layouts/sequences. A narrower in-show .xsq snapshot restore is the realistic iPad substitute. |
 | Moving Head: waypoint path canvas | 04 | hard | feasible | Desktop draws Bezier paths; iPad MovingHeadPathRowView only displays + clears. |
 | Effect Assist as first-class surface *(weaker)* | 04 | hard | feasible | Only Sketch+Morph inlined on iPad; Pictures absent. No detached-window concept on iPad (acceptable touch idiom). |
@@ -219,19 +230,11 @@ evidence lives in each theme doc's scorecard.
 
 | Feature | Theme | Pri | Gap | Ease |
 |---|---|---|---|---|
-| Add media to sequence (multi-file) | 01 | P1 | ipad-missing | medium |
-| Transition Blur per-transition enable gate (#6523) | 04 | P2 | ipad-weaker | easy |
-| Drag-create effect by dragging empty cell range | 02 | P1 | ipad-missing | medium |
-| Bulk find missing media | 01 | P2 | ipad-missing | medium |
-| Ctrl-click/Shift-click additive multi-select | 02 | P2 | ipad-weaker | medium |
-| Shift Selected Effects | 03 | P2 | ipad-missing | medium |
 | Convert selected effects to a different type | 04 | P2 | ipad-missing | hard |
 | SubModel import: from Model / File / Layout / Downloads | 06 | P2 | ipad-missing | hard |
 | SubModels: output-to-lights live test toggle | 06 | P2 | ipad-missing | medium |
 | Real-world dimension readouts (ruler-calibrated) | 06 | P2 | ipad-missing | medium |
-| FPP-proxy validation pre-upload warning | 07 | P2 | ipad-missing | easy |
 | FPP Connect: immediate-output upload for non-FPP devices | 07 | P2 | ipad-missing | medium |
-| Auto-upload on output-enable | 07 | P2 | ipad-missing | medium |
 | Import media options (sequence package asset destinations) | 08 | P2 | ipad-missing | medium |
 | Has-effects yellow indicator stripe | 10 | P2 | ipad-missing | medium |
 | Display Elements: Show All / Hide All / Hide Unused models | 10 | P2 | ipad-missing | medium |
@@ -500,7 +503,7 @@ iPad gaps.
 through 6/11 (see the *Reconciled* note above), deferred the AC toolbar,
 declined Jukebox + centralized Preferences, updated counts.
 
-**Phase 1 — iPad quick wins (bridge + sheet work; each small & independent):**
+**Phase 1 — iPad quick wins** ✅ **done 2026-06-11** (all ten items below landed):
 1. **Position/seek slider** for coarse scrubbing (theme 09) — flagged the single
    highest-value iPad-missing item.
 2. **Shift Effects / Shift Effects And Timing / Shift Selected** (theme 03) —
@@ -570,7 +573,7 @@ list (unchanged).
 
 ## Per-theme detail
 
-Each theme doc has the full parity scorecard (including the 674 at-parity
+Each theme doc has the full parity scorecard (including the 771 at-parity
 features), the iPad-gap and desktop-gap breakdowns, infeasible/restricted lists,
 and per-theme sequencing:
 

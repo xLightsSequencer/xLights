@@ -12,8 +12,10 @@
 > palette/chroma/sparkle color rows, SubBuffer/RotoZoom editors, Servo/Shape/
 > Faces/State/DMX/MovingHead rows, Sketch/Morph editors). The real gaps are a
 > small set of *specialized editing canvases* that need a touch redesign
-> (**Pictures paint tools** and the **Moving Head path canvas** are iPad-missing;
-> **Sketch** is iPad-partial — no close-path/SVG-import/reorder), the desktop's
+> (**Pictures paint tools** remain iPad-missing; the **Moving Head path canvas**
+> is now at parity — a touch Bezier waypoint editor plus path/dimmer presets and
+> a colour-wheel picker landed; **Sketch** is also at parity — close-path, SVG
+> import, path reorder, and curve-segment authoring all landed), the desktop's
 > richer **DMX RemapDMXChannelsDialog** grid (iPad ships a preset-menu subset),
 > **canvasMode auto-enable** (parsed but ignored on iPad), and **tooltip
 > rendering** (parsed but never shown on iPad). Going the other way, the iPad's
@@ -52,8 +54,8 @@
 | Grouped: Sections | panel | ✅ | ✅ | parity | P2 | easy | feasible | 14 sections across effects. iPad VStack w/ header; desktop wxStaticBox. |
 | Grouped: XY Center | panel | ✅ | ✅ | parity | P2 | medium | feasible | See XY pad row above. |
 | Scrollable panel overflow | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop wxScrolledWindow; iPad ScrollView. |
-| Tooltips on property labels | preference | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop SetToolTip (JsonEffectPanel.cpp:1602/1614). iPad parses `tooltip` (EffectMetadata.swift:36) but never renders it. |
-| canvasMode auto-enable | preference | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Adjust/Kaleidoscope/Warp have `canvasMode:true`. Desktop auto-checks Canvas (JsonEffectPanel.cpp:2187). iPad parses the field (EffectMetadata.swift:19) but ignores it — user must toggle CanvasRow manually. |
+| Tooltips on property labels | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop SetToolTip (JsonEffectPanel.cpp:1602/1614). iPad renders metadata `tooltip` as a `.help()` hover string on every property row (EffectPropertyView.swift body). |
+| canvasMode auto-enable | preference | ✅ | ✅ | parity | P3 | easy | feasible | Adjust/Kaleidoscope/Warp have `canvasMode:true`. Desktop auto-checks Canvas (JsonEffectPanel.cpp:2187). iPad: `selectEffect` writes `T_CHECKBOX_Canvas=1` when the metadata flags canvasMode and the setting is still absent (explicit user un-check respected). |
 | Canvas / Layers composite control | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad CanvasRow (BlendingPanelViews.swift:241) — Canvas checkbox + Layers… picker. |
 | Layer Morph (cross-fade Effect 1↔2) | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad LayerMorphRow (BlendingPanelViews.swift:75). |
 | Layer Method (24 blend modes) | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad LayerMethodRow + LayerMethodHelpSheet (BlendingPanelViews.swift:130). |
@@ -61,7 +63,7 @@
 | Transition fade time presets + manual | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad kFadePresets matches desktop Fadein/Fadeout. |
 | Transition Adjust disable rules | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad transitionAdjustDisabled (EffectPropertyView.swift:59) vs desktop kTransitionsNoAdjust ValidateWindow. |
 | Transition Reverse disable rules | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad transitionReverseDisabled (EffectPropertyView.swift:63) vs desktop kTransitionsNoReverse. |
-| Transition Blur slider (In/Out) | panel | ✅ | 🟡 | ipad-weaker | P2 | easy | feasible | Desktop #6523: `In/Out_Transition_Blur` sliders in shared Blending.json + core PixelBuffer render (shared — iPad renders blur correctly). iPad auto-renders the sliders via generic EffectMetadataPanel but lacks the per-transition enable gate (desktop `TRANSITIONS_WITH_BLUR`, BlendingPanel.cpp:82) — needs a transitionBlurDisabled rule beside transitionAdjust/ReverseDisabled in EffectPropertyView.swift. (Default transition-adjust=50 change, 356205b5d, is core PixelBuffer — auto-shared.) |
+| Transition Blur slider (In/Out) | panel | ✅ | ✅ | parity | P2 | easy | feasible | Desktop #6523 In/Out_Transition_Blur sliders, greyed unless the type is in `TRANSITIONS_WITH_BLUR` (BlendingPanel.cpp:82, 543/549). iPad renders the sliders generically and gates them via transitionBlurDisabled (EffectPropertyView.swift:88) against kTransitionsWithBlur (BlendingPanelViews.swift:69), with the same fade==0 guard. |
 | Buffer: Render style choice | panel | ✅ | ✅ | parity | P2 | easy | feasible | shared/Buffer.json. |
 | Buffer: Roto-Zoom sliders | panel | ✅ | ✅ | parity | P2 | easy | feasible | shared/Buffer.json, standard sliders + VC. |
 | Buffer: Roto-Zoom preset menu | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad RotoZoomPresetRowView (same reset values + VC shapes as BufferPanel::OnPresetSelect). |
@@ -79,8 +81,8 @@
 | Morph: line geometry editor | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad MorphLineEditorRowView (touch canvas, 4 colored draggable handles, coordinate readout) ≈ desktop xlGridCanvasMorph. |
 | Morph: swap start/end | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad MorphSwapRowView. |
 | Moving Head: fixture + color/dimmer rows | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad MovingHead{Fixture,Color,Dimmer}RowView: fixture select, pan/tilt/offset/groupings/cycles, single-color, dimmer intensity. |
-| Moving Head: path canvas (waypoint drawing) | panel | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop MovingHeadCanvasPanel.cpp draws Bezier waypoint paths; iPad MovingHeadPathRowView is **read + clear only** (MovingHeadFixtureRowView.swift:291, "Use desktop's Effect Assist to draw one"). |
-| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6473 (refined #4667): scrollable wrap-sizer panels of path/dimmer/rgb/color-wheel preset bitmap buttons (MovingHeadPanel + MH{Path,Dimmer,Rgb}PresetBitmapButton) + a color-wheel picker (MHColorWheelPanel) + RGB picker canvas (MHRgbPickerPanel); f9df1b052 further flips the color wheel to match MH orientation + draws a double color selector (xlColorCanvas.cpp). iPad MovingHead rows have single-color + intensity only (MovingHeadFixtureRowView.swift), no preset buttons / color-wheel / rgb-picker canvas. |
+| Moving Head: path canvas (waypoint drawing) | panel | ✅ | ✅ | parity | P2 | hard | feasible | Desktop MovingHeadCanvasPanel.cpp / SketchCanvasPanel.cpp draws Bezier waypoint paths; iPad MovingHeadPathEditorRowView (MovingHeadPathEditorRowView.swift) is a full touch Canvas — tap-to-add line/quadratic/cubic waypoints, drag endpoints + control handles, close/open paths, undo-point, multi-path, presets. Reuses SketchDefinition (identical L/Q/C/c grammar) and Y-flips coords (canvas top = stored Y≈1) so it round-trips the same `Path:` command the renderer reads (MovingHeadEffect.cpp:396 `(0.5 - pty)`). Writes via the existing movingHeadCommand/setMovingHeadCommand bridge. |
+| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad now has path presets (MovingHeadPathPresetStrip — the two shipping `.xmh` presets Circle/Diamond + a Sweep), dimmer presets (MovingHeadDimmerPresetStrip — On/Off/FadeIn/FadeOut/Pulse) and a colour-wheel picker (MovingHeadColorWheelRowView, MovingHeadPresetViews.swift) that surfaces the target model's wheel slots via the new `movingHeadWheelColors(forRow:atIndex:)` bridge (XLSequenceDocument.mm) and writes a single-colour `Wheel:` command. **Deferred:** desktop's RGB picker canvas (MHRgbPickerPanel — iPad uses the native ColorPicker instead) and the f9df1b052 double-selector multi-colour wheel *animation* across the effect (only single-slot wheel picks on iPad). User-saved `.xmh` dimmer presets aren't surfaced (built-ins only). |
 | Effect Wheel (radial keybinding quick-drop) | gesture | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6486: double-click empty non-timing cell → EffectWheelDialog drops 1 of ≤18 sequence-scoped EFFECT keybindings via EffectsGrid::DropEffectAt (skips timing rows, #6491). Depends on the user keybinding system iPad lacks (see 02-sequencer-grid-editing.md, 11-preferences-settings.md). iPad places effects via palette-tap-then-tap-cell (EffectPaletteView.swift:32 → addEffectFromPaletteTap) — same outcome, no radial launcher. |
 | Piano: note/octave + labels | panel | ✅ | ✅ | parity | P2 | easy | feasible | Piano.json standard controls. |
 | Pictures: filename block + transparent-black | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad EffectFilenameBlockView + TransparentBlackRowView. |
@@ -95,7 +97,7 @@
 | Shape: character / emoji picker | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ShapeCharRowView. |
 | Shape: skin-tone modifier | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad ShapeSkinToneRowView. |
 | Shape: SVG path field | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad ShapeSVGRowView (+ preview). |
-| Sketch: path editor canvas | panel | ✅ | 🟡 | ipad-weaker | P1 | medium | feasible | Desktop SketchAssistPanel is full (Start/Continue/End/**Close**, Import/Export Sketch, **Import SVG**, **Move Path Up/Down**, Bezier). iPad SketchPathEditorRowView = add line / new path / undo point / clear / drag handles only. iPad missing: close path, SVG import, reorder, curve segments. |
+| Sketch: path editor canvas | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad `SketchPathEditorRowView.swift` now matches desktop's authoring set: drag endpoints/control points, **Add Line / Add Curve** modes (cubic with draggable handles), **Close/Open** path (`cN` token), **▲/▼ reorder** (selected-path model), **Import SVG** (shared core `SketchDefFromSVGFile` → nanosvg). Import/Export of the raw def remains via SketchDefRowView (copy/paste). Desktop-only leftovers: per-path text descriptions and continue-from-arbitrary-endpoint. |
 | Sketch: background image + opacity | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchBackgroundRowView. |
 | Sketch: info block (counters) | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad SketchInfoRowView. |
 | Sketch: raw SketchDef field | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchDefRowView (accepts desktop-generated defs incl. curves). |
@@ -113,14 +115,20 @@
 ## iPad gaps (desktop has, iPad missing)
 
 ### P1
-- **Sketch close-path / SVG-import / path-reorder / curves.** Desktop
-  `SketchAssistPanel.cpp:76-84` (Close, Import Sketch, Export Sketch, Import SVG,
-  Move Path Up/Down) + Bezier curve segments on the canvas. iPad
-  `SketchPathEditorRowView.swift` covers add-line / new-path / undo-point / clear
-  / drag-to-reshape only. **Work:** extend SketchPathEditorRowView with a
-  close-path gesture/button, path-list reorder UI, a document-picker SVG import
-  routed through the existing core SVG→sketch parser, and curved-segment handles.
-  Medium. Highest-value iPad authoring gap in this theme.
+- **(LANDED) Sketch close-path / SVG-import / path-reorder / curves.** iPad
+  `SketchPathEditorRowView.swift` now mirrors desktop `SketchAssistPanel`'s
+  authoring set: an Add-Line / Add-Curve mode picker (cubic segments seed with
+  draggable control handles), a **Close/Open** toggle emitting the desktop `cN`
+  close token, **▲/▼** path reorder (a selected-path model — tap any handle to
+  select that path), and **Import SVG** via a document picker. The SVG→sketch
+  conversion was extracted from the wx panel into wx-free core
+  `src-core/effects/SketchSVGImport.{h,cpp}` (`SketchDefFromSVGFile`, nanosvg-
+  based, collinear→line / cp2==end→quad collapse identical to desktop) and the
+  desktop panel was refactored to call it, so both clients share one conversion.
+  Bridged to Swift via `XLSequenceDocument.sketchDef(fromSVGFile:)`. Import/Export
+  of the raw def text stays on the existing `SketchDefRowView` (copy/paste).
+  Remaining desktop-only niceties: per-path text descriptions (the `D…` token,
+  round-tripped but not editable on iPad) and continue-from-arbitrary-endpoint.
 
 ### P2
 - **Transition Blur enable gate.** Desktop #6523 added In/Out Transition Blur
@@ -131,12 +139,18 @@
   BlendingPanel.cpp:82); iPad needs a matching `transitionBlurDisabled(isIn:)`
   rule in `EffectPropertyView.swift` beside the existing adjust/reverse gates.
   Easy.
-- **Moving Head waypoint path canvas.** Desktop `MovingHeadCanvasPanel.cpp`
-  draws Bezier pan/tilt paths; iPad `MovingHeadPathRowView` is read+clear only.
-  **Work:** a new touch path canvas writing the same `Path=` command the bridge
-  already round-trips (`movingHeadCommand`/`setMovingHeadCommand`,
-  XLSequenceDocument.h:2141-2149). Hard (new interactive canvas), but the data
-  model is shared so it's purely UI.
+- **Moving Head waypoint path canvas. (Done.)** Desktop
+  `MovingHeadCanvasPanel.cpp` / `SketchCanvasPanel.cpp` draws Bezier pan/tilt
+  paths; iPad now has `MovingHeadPathEditorRowView`
+  (`MovingHeadPathEditorRowView.swift`) — a full touch Canvas (tap-to-add
+  line/quadratic/cubic waypoints, drag endpoints + control handles, close/open,
+  undo-point, multi-path, path presets). It reuses `SketchDefinition` (the
+  `Path:` command shares the Sketch effect's identical `L`/`Q`/`C`/`c` grammar)
+  and flips Y so the canvas top maps to stored Y≈1, matching desktop's canvas
+  and the renderer's `(0.5 - pty)` up-axis mapping
+  (`MovingHeadEffect.cpp:396`). Writes the same `Path:` command desktop reads via
+  the existing `movingHeadCommand`/`setMovingHeadCommand` bridge — no new bridge
+  was needed. The data model was already shared, so this was purely UI.
 - **Effect Assist as a first-class surface.** Only Sketch+Morph editors are
   inlined; Pictures has none. **Work:** see Pictures paint tools (P3) and Sketch
   (P1); no separate "window" needed on iPad — keep inlining in the inspector.
@@ -150,12 +164,8 @@
   grid; iPad exposes a preset menu only. **Work:** a touch grid editor calling a
   generalized `dmxRemapChannelsForRow` variant that accepts an explicit mapping.
   Medium; low value (uncommon op).
-- **Tooltips on property labels.** Metadata already carries `tooltip`
-  (EffectMetadata.swift:36); just unrendered. **Work:** add a `.help()` or
-  info-button affordance in EffectPropertyView's label. Easy.
-- **canvasMode auto-enable.** Field parsed but unused. **Work:** when
-  `selectedEffectMetadata.canvasMode == true`, have the view model set the
-  `T_CHECKBOX_Canvas` setting on selection (respecting user override). Easy.
+- ~~**Tooltips on property labels**~~ — **landed 2026-06-11** (`.help()` on every property row).
+- ~~**canvasMode auto-enable**~~ — **landed 2026-06-11** (auto-set on selection when absent).
 - **Pictures paint tools.** Desktop pixel editor with brushes + palette mgmt.
   Hard touch redesign; low priority (most users edit images externally).
 - **Resize-on-add image dialog.** Desktop ResizeImageDialog
@@ -186,25 +196,30 @@
 
 - *None platform-blocked in this theme.* Every gap above is feasible — the core
   effect/render/value-curve logic is shared (`src-core/`), so all remaining work
-  is SwiftUI + thin bridge additions. The harder ones (Moving Head path canvas,
-  Pictures paint tools) are "hard" only because they need new interactive touch
-  canvases, not because of any platform limitation.
+  is SwiftUI + thin bridge additions. The harder ones (Moving Head path canvas
+  — now done — and Pictures paint tools) are "hard" only because they need new
+  interactive touch canvases, not because of any platform limitation.
 - Note: nothing in *this* theme touches the closed-firmware controller
   restriction — that lives in the controller/upload themes, not effect panels.
 
 ## Recommended sequencing
 
-1. **Sketch parity (P1, medium):** close-path + SVG import + path reorder + curve
-   segments in `SketchPathEditorRowView`. Biggest authoring gap; core SVG/sketch
-   parsing already exists.
-2. **Tooltips + canvasMode auto-enable (P3, easy, cheap wins):** render the
-   already-parsed `tooltip`, and honor `canvasMode` on selection. Both are tiny
-   and remove "why is this different from desktop" friction.
+1. ~~**Sketch parity (P1, medium):** close-path + SVG import + path reorder + curve
+   segments in `SketchPathEditorRowView`~~ — ✅ **done 2026-06-11.** Shared SVG→
+   sketch conversion now lives in core `SketchSVGImport`; only per-path
+   descriptions remain desktop-only.
+2. ~~**Tooltips + canvasMode auto-enable (P3, easy)**~~ — ✅ **done 2026-06-11.**
 3. **Per-property Copy/Paste/Reset on desktop (P2, medium):** close the one real
    desktop-missing gap by porting the iPad context-menu trio into BulkEditControls
    — keeps the two clients symmetrical.
-4. **Moving Head path canvas (P2, hard):** new touch path editor writing the
-   shared `Path=` command. Defer until 1-3 land since it's the most UI-heavy.
+4. ~~**Moving Head path canvas (P2, hard):** new touch path editor writing the
+   shared `Path=` command.~~ — ✅ **done.** `MovingHeadPathEditorRowView` reuses
+   `SketchDefinition` with a Y-flip and writes the same `Path:` command via the
+   existing MH command bridge. Path/dimmer presets (`MovingHeadPathPresetStrip`,
+   `MovingHeadDimmerPresetStrip`) and a colour-wheel picker
+   (`MovingHeadColorWheelRowView` + the new `movingHeadWheelColors` bridge) also
+   landed; deferred: the RGB picker canvas (native ColorPicker used instead) and
+   the multi-colour wheel *animation* double-selector.
 5. **Pictures paint tools + DMX arbitrary remap (P3, hard/medium):** lowest value;
    tackle only if user demand surfaces. Until then the read/clear + preset-menu
    subsets are acceptable.

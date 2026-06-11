@@ -13,7 +13,8 @@
 > `SequenceSettingsSheet`) is at full format parity with desktop (xtiming,
 > LOR lms/las, Papagayo pgo, SRT, Audacity txt, ElevenLabs json, Vixen3
 > tim w/ track-select, LSP msq, xLights xsq). The real gaps are: iPad
-> effect-import is missing the **legacy sequencer formats** (LMS/LAS/LPE,
+> effect-import now covers **LMS/LAS** (shared core `LORMusic`) but is still
+> missing the other **legacy sequencer formats** (LPE,
 > HLS, Vixen2 vix, LSP msq-as-effects, VSA); iPad now has **video export**
 > (house-preview *and* per-model, via the offscreen `XLHousePreviewVideoExporter`
 > and core `ModelVideoExporter` → `VideoWriter`), but still has **no Convert
@@ -31,8 +32,8 @@
 | Import Effects from SuperStar `.sup` | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad `SuperStarImportView` (single-model form) vs desktop multi-model `SuperStarImportDialog`; shared `SuperStarImporter`. |
 | Import Effects from LOR S5 `.loredit` | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core `LOREdit`. iPad `loadLOREditSource(atPath:)`. |
 | Import Effects from Vixen 3 `.tim` (effect-level) | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core `Vixen3`. iPad `loadVixen3Source(atPath:)` (needs sibling SystemConfig.xml). |
-| Import Effects from LOR Music `.lms` | menu | ✅ | ❌ | ipad-missing | P1 | medium | feasible | Desktop `ImportLMS()` (`ImportEffects.cpp:1104`). No core LMS reader yet (parser lives in wx `ImportEffects.cpp`); needs core extraction + bridge. |
-| Import Effects from LOR Animation `.las` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Same code path as `.lms` (`ImportLMS` handles both). Follows LMS work. |
+| Import Effects from LOR Music `.lms` | menu | ✅ | ✅ | parity | P1 | medium | feasible | Shared core `LORMusic` (`src-core/import_export/LORMusic.cpp`, ported from desktop `ImportLMS` `ImportEffects.cpp:1104`). iPad `loadLMSSource(atPath:)` + `ImportEffectsView` picker. Desktop `ImportLMS` still uses its own wx parser — core unification is a follow-up. |
+| Import Effects from LOR Animation `.las` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Same core `LORMusic` reader handles `.las` (identical schema); routed through `loadLMSSource(atPath:)`. |
 | Import Effects from LOR Pixel Editor `.lpe` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportLPE()` (`ImportEffects.cpp:2984`). wx-bound parser; needs core extraction + bridge. |
 | Import Effects from HLS `.hlsIdata` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportHLS()` (`ImportEffects.cpp:949`). wx-bound; low frequency. |
 | Import Effects from Vixen 2.x `.vix` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVix()` (`ImportEffects.cpp:758`). Old format; superseded by Vixen 3. |
@@ -91,7 +92,7 @@
 | Map From Lights (camera-scan → model geometry) | menu/wizard | ✅ | ✅ | parity | P2 | hard | feasible | macOS desktop via `KLightMapperBridge` (Continuity Camera, `xLightsMain.cpp:4296`); iPad `MapFromLightsWizard`. (Windows/Linux desktop lacks it.) |
 | Export HinksPix configuration | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | restricted | Desktop `HinksPixExportDialog` (`xLightsMain.cpp:6083`). Closed/proprietary controller firmware → IAP-gated, low priority. |
 | Import vendor model / vendor music (online catalog) | dialog | ✅ | 🟡 | parity | P2 | medium | feasible | Desktop `VendorModelDialog` / `VendorMusicDialog`; iPad `VendorBrowserSheet` + `XLVendorCatalog` (shared `VendorCatalog`). Model browser present; verify music-download breadth. |
-| Export Effects summary (CSV) | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ExportEffects.cpp:347-360`, handlers `xLightsMain.cpp:5790,5798,4593`. No iPad ExportEffects UI/bridge. |
+| Export Effects summary (CSV) | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `ExportEffects.cpp:347-360`; iPad `src-core/import_export/ExportEffectsReport.cpp` (EFX-1) + bridge `XLSequenceDocument.mm:exportEffectsReport(toPath:)` + Tools menu in `XLightsCommands.swift` + fileExporter in `SequencerView.swift`. |
 | Import media options (sequence package asset destinations) | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Core `SequencePackage::GetImportOptions` exists but is unused on iPad; desktop surfaces asset-destination choices on package import. No iPad UI. |
 | Available-models list with CCR-strand mode and Used marking | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog.cpp:537,575,674` (CCR strand mode + Used markers); iPad `ImportEffectsView.swift:209-247` lists models without CCR/Used. |
 | Map-tree right-click menu (expand/collapse/clear/add group) | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog` `OnRightDown` context menu; iPad `ImportEffectsView.swift:587-597` has chevron expand only, no context menu. |
@@ -103,14 +104,18 @@
 
 ### P1
 
-- **Import Effects from LOR Music `.lms`.** Desktop `xLightsFrame::ImportLMS`
-  (`src-ui-wx/import_export/ImportEffects.cpp:1104` / parser at `:1683`). The
-  LMS parser currently lives in the wx UI file (it builds the
-  `xLightsImportChannelMapDialog` model directly), so the blocker is
-  extracting an LMS reader into `src-core/import_export/` (peer of
-  `LOREdit`/`Vixen3`) and adding `XLImportSession.loadLMSSource(atPath:)`
-  that reuses the existing mapping/apply path. Once the reader is core,
-  `.las` (P2) comes for free (same `ImportLMS`). Ease: medium.
+- ~~**Import Effects from LOR Music `.lms` / Animation `.las`.**~~ ✅ **Landed.**
+  Ported the desktop `xLightsFrame::ImportLMS` parser
+  (`src-ui-wx/import_export/ImportEffects.cpp:1104` / `:1683`) into a wx-free
+  core reader `LORMusic` (`src-core/import_export/LORMusic.{h,cpp}`, peer of
+  `LOREdit`/`Vixen3`). `XLImportSession.loadLMSSource(atPath:)` builds the same
+  available-source / destination-tree representation as the `.loredit` path, so
+  Auto Map, manual mapping, AI Map, MapHints and apply all work unchanged; the
+  apply branch synthesizes On / Color Wash / Twinkle effects (and CCR per-pixel
+  fan-out) onto the mapped layers. `ImportEffectsView` allows `.lms` / `.las` in
+  the picker and routes both to the same loader (the two share one schema).
+  **Follow-up:** the *desktop* `ImportLMS` still uses its own wx parser — unify
+  it onto the new core `LORMusic` reader so both clients share one code path.
 
 - **Export House Preview Video.** ✅ **Landed.** Tools → "Export House
   Preview…" (`ExportHousePreviewSheet`) → `XLSequenceDocument.exportHousePreviewVideo`
@@ -147,9 +152,8 @@
   then `.fileExporter`. AVI stays desktop-only (no AVFoundation AVI
   decoder). Synchronous (a single model's buffer is small).
 
-- **Export Effects summary (CSV).** Desktop writes a CSV summary of
-  effects (`src-ui-wx/import_export/ExportEffects.cpp:347-360`, handlers
-  `xLightsMain.cpp:5790,5798,4593`). iPad has no ExportEffects UI/bridge.
+- ~~**Export Effects summary (CSV).**~~ **Landed (EFX-1).** `src-core/import_export/ExportEffectsReport.cpp`,
+  bridge `exportEffectsReport(toPath:)`, Tools menu + fileExporter in SequencerView. ✅
 
 - **Import media options.** Core `SequencePackage::GetImportOptions`
   lets the user pick asset destinations when importing a package; the
@@ -215,14 +219,14 @@ iPad↔macOS-desktop parity audit.
 
 ## Recommended sequencing
 
-1. **Extract a core LMS/LAS reader → iPad `.lms`/`.las` effect import (P1).**
-   Highest-demand missing import format; unblocks two formats at once and
-   reuses the entire existing mapping/apply/auto-map/hints flow.
+1. ~~**Extract a core LMS/LAS reader → iPad `.lms`/`.las` effect import (P1).**~~
+   ✅ **Done** — core `LORMusic` reader + `loadLMSSource(atPath:)` reuse the
+   existing mapping/apply/auto-map/hints flow. Both formats land at once.
+   **Follow-up:** unify the desktop `ImportLMS` onto the new core reader.
 2. ~~**House Preview Video export (P1).**~~ ✅ **Done** — offscreen
    `XLHousePreviewVideoExporter` at chosen resolution + export sheet with
    progress. Per-model video export ✅ done alongside it.
-3. **Export Effects to file (P2).** Small, completes the import↔export
-   round trip; core `ExportEffects` already shared.
+3. ~~**Export Effects to file (P2).**~~ ✅ **Landed (EFX-1)** — `src-core/import_export/ExportEffectsReport.cpp` + bridge + Tools menu + fileExporter.
 4. **Remaining legacy effect-import formats (P2/P3)** — `.lpe`, `.hlsIdata`,
    `.vix`, `.msq`, `.vsa` — only as user demand warrants; each needs core
    parser extraction.

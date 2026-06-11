@@ -50,7 +50,7 @@
 | Effects Grid ▸ Effect Backgrounds | preference | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:66` (GIF backgrounds in cells). iPad Metal grid renders effect backgrounds always-on (`EffectsMetalGridView.swift:568` beginEffectBackgroundBatch + appendEffectBackground loop, drawRamps:true) with no enable toggle. |
 | Effects Grid ▸ Node Values | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:72`. |
 | Effects Grid ▸ Group Effect Indicator | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:77`. |
-| Effects Grid ▸ Snap to Timing Marks | preference | ✅ | 🟡 | ipad-weaker | P2 | medium | feasible | `EffectsGridSettingsPanel.cpp:83`. iPad placement always snaps (`EffectsMetalGridView.swift:1576` snapMS, applied at 1649-1713) with no enable gate. |
+| Effects Grid ▸ Snap to Timing Marks | preference | ✅ | ✅ | parity | P2 | medium | feasible | `EffectsGridSettingsPanel.cpp:83`. iPad gates `EffectsMetalGridView.swift:1576` snapMS on the `snapToTimingMarks` @AppStorage (default ON via absent-key check), toggled in the top-chrome options menu. |
 | Effects Grid ▸ Small Waveform | preference | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `EffectsGridSettingsPanel.cpp:95`; iPad `SequencerGridV2View.swift:233` (`waveformDoubleHeight` @AppStorage, default false), toggle at 1370-1374. |
 | Effects Grid ▸ Display Transition Marks | preference | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `EffectsGridSettingsPanel.cpp:101`; iPad draws fade in/out handles always (`EffectsMetalGridView.swift:50` fadeProvider, 177 fadeIn/fadeOut handles, 200-201 liveFadeIn/OutSec, 560 fade drawing) with no display toggle. |
 | Effects Grid ▸ Hide Color Update Warning | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `EffectsGridSettingsPanel.cpp:106`. |
@@ -77,13 +77,13 @@
 | Output ▸ Duplicate Frames to Suppress | preference | ✅ | ❌ | desktop-missing | P3 | hard | restricted | `OutputSettingsPanel.cpp:60` (None/10/20/40). |
 | Output ▸ xFade/xSchedule port | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OutputSettingsPanel.cpp:66`. Companion-app integration; not on iPad. |
 | Check Sequence (run + filtered report) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop report; iPad `CheckSequenceSheet.swift` (severity/section chips, tap-to-jump). Same core checker. |
-| Check Sequence ▸ Disable Duplicate Universe checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:50`. iPad runs all checks; no disable toggles. |
-| Check Sequence ▸ Disable Non-Contiguous Channel checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:54`. |
-| Check Sequence ▸ Disable Preview-Group checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:58`. |
-| Check Sequence ▸ Disable Duplicate Nodes in Groups | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:62`. |
-| Check Sequence ▸ Disable Transition-Time checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:66`. |
-| Check Sequence ▸ Disable Custom-Model-Size checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:70`. |
-| Check Sequence ▸ Disable Sketch-Image checks | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:74`. |
+| Check Sequence ▸ Disable Duplicate Universe checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:50` ("DupUniv"). iPad: gear menu in `CheckSequenceSheet.swift`, `csDisableDupUniv` @AppStorage → bridge `setCheckSequenceDisabledOptions` → `iPadRenderContext` disable set, read by both `SequenceCheckerCallbacks::IsCheckOptionDisabled` and `GetUICallbacks`. |
+| Check Sequence ▸ Disable Non-Contiguous Channel checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:54` ("NonContigChOnPort"). Same `CheckSequenceSheet` gear menu plumbing. |
+| Check Sequence ▸ Disable Preview-Group checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:58` ("PreviewGroup"). Same plumbing. |
+| Check Sequence ▸ Disable Duplicate Nodes in Groups | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:62` ("DupNodeMG"). Same plumbing. |
+| Check Sequence ▸ Disable Transition-Time checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:66` ("TransTime"). Same plumbing. |
+| Check Sequence ▸ Disable Custom-Model-Size checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:70` ("CustomSizeCheck"). Honoured both at the SequenceChecker level and the model-level check (CustomModel.cpp:812 via the iPad UICallbacks). |
+| Check Sequence ▸ Disable Sketch-Image checks | preference | ✅ | ✅ | parity | P3 | easy | feasible | `CheckSequenceSettingsPanel.cpp:74` ("SketchImage"). Routes through `iPadRenderContext::GetUICallbacks` so SketchEffect.cpp:193 honours it. |
 | Random Effects ▸ eligible-effect selection | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `RandomEffectsSettingsPanel.cpp` per-effect checkboxes feeding `RandomEffectsToUse`. iPad has no random-effect generator. |
 | Colors ▸ Suppress Dark Mode | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `ColorManagerSettingsPanel.cpp:75`. iPad follows system appearance. |
 | Colors ▸ UI color customization (Timing/Grid/Layout) + Import/Export/Reset | preference | ✅ | ❌ | desktop-missing | P3 | hard | feasible | `ColorManagerSettingsPanel.cpp` (per-element color pickers). iPad uses fixed theme colors. |
@@ -175,10 +175,9 @@
   `@AppStorage`, applied at command-build time. Medium-hard (SwiftUI key
   capture + a stable action registry). Lower urgency since hardware keyboards
   are a minority on iPad.
-- **Snap to Timing Marks toggle.** `EffectsGridSettingsPanel.cpp:83`. iPad
-  placement is timing-aware but offers no on/off switch. Add a toggle to
-  `SequenceSettingsSheet` (or a future grid-prefs section) reading/writing the
-  same core flag. Medium.
+- ✅ **Snap to Timing Marks toggle.** Done. `EffectsGridSettingsPanel.cpp:83`.
+  The `snapToTimingMarks` @AppStorage (default ON) gates `EffectsMetalGridView`'s
+  `snapMS`; toggle lives in the top-chrome options menu.
 - **Paste As (Relative vs Layers).** `EffectsGridSettingsPanel.cpp:124` plus
   desktop's PASTE_BY_CELL/PASTE_BY_TIME bindings. iPad paste mode is fixed; add
   a picker and route through the existing core paste path. Medium.
@@ -201,10 +200,14 @@
 - **Render Cache size limit / directory, Max Render Cache, Default Model
   Blending, Default View, Render-on-Save**: `SequenceFileSettingsPanel.cpp`.
   Easy-medium settings additions.
-- **Check-Sequence disable-checks toggles** (7 of them):
-  `CheckSequenceSettingsPanel.cpp:50–74`. iPad's `CheckSequenceSheet` shows
-  results but can't suppress check categories — add a settings section feeding
-  the same `SetCheckSequenceOptionDisable` core calls. Easy.
+- ✅ **Check-Sequence disable-checks toggles** (7 of them): Done.
+  `CheckSequenceSettingsPanel.cpp:50–74`. `CheckSequenceSheet` now has a gear
+  menu (`slider.horizontal.3`) with all 7 toggles persisted via `@AppStorage`.
+  They flow through the new bridge `setCheckSequenceDisabledOptions:` into
+  `iPadRenderContext`'s disable set, consulted by both the
+  `SequenceCheckerCallbacks::IsCheckOptionDisabled` path and (for the
+  model/effect-level CustomSizeCheck + SketchImage checks) the newly-added
+  `iPadRenderContext::GetUICallbacks()`. Flipping a toggle re-runs the check.
 - **Tip of the Day, Random-Effect weights, Color customization, Suppress Dark
   Mode, eMail, Alias prompt mode, Exclude audio/video from package, Prompt
   batch-render issues, Purge download cache at startup.** Mostly easy settings;
@@ -270,14 +273,15 @@
 
 ## Recommended sequencing
 
-1. **Check-Sequence disable-checks toggles** — 7 easy controls feeding existing
-   `SetCheckSequenceOptionDisable`; closes a whole desktop page and pairs with
-   the already-shipped `CheckSequenceSheet`.
+1. ✅ **Check-Sequence disable-checks toggles** — Done. 7 controls in the
+   `CheckSequenceSheet` gear menu, plumbed through the bridge into the core
+   disable set (both the SequenceChecker callbacks and the model/effect-level
+   UICallbacks path).
 2. **Render-cache size limit + Default Model Blending + Render-on-Save + Default
    View** — quick wins in `SequenceSettingsSheet`/`FolderConfigView` against
    existing core getters/setters.
-3. **Snap to Timing Marks + Paste As** — small but high-frequency editing prefs
-   with real workflow impact.
+3. **Paste As** (Snap to Timing Marks now Done) — small but high-frequency
+   editing prefs with real workflow impact.
 4. **Lightweight Backup-on-save toggle** — the most-requested missing
    safety-net; folder-duplicate is simpler than the full desktop backup matrix.
 5. **Tip-of-Day / Random-Effect weights / grid-display toggles** — incremental

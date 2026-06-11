@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|---|---|---|
 | Tools → Test (Pixel/Light Test) | menu | ✅ | ❌ | ipad-missing | P2 | hard | hard | `xLightsMain.cpp:1099`, `PixelTestDialog`. Direct controller output; no raw USB/serial/output-manager driving on iOS sandbox. Use FPP path instead. |
 | Tools → Check Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1102` / `CheckSequenceSheet.swift` (406 lines). Shared core `CheckSequence`, issues grouped by severity/section, tap row → jump grid+playhead. |
-| Tools → Cleanup File Locations | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1104`, `OnMenuItem_CleanupFileLocationsSelected` (5092→`6450`). Sweeps all media into show folder. iPad `MediaRelocation.swift` only prompts at import-time, not a global sweep. Needs bridge + sheet. |
+| Tools → Cleanup File Locations | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `xLightsMain.cpp:6451`, `OnMenuItem_CleanupFileLocationsSelected`. iPad Tools → "Cleanup File Locations…" (`XLightsCommands.swift`) → `CleanupFileLocationsSheet` previews the external files that would move, then `performCleanupFileLocations` bridge sweeps them into the show folder + rewrites effect references (`XLSequenceDocument.mm` `cleanupExternalMedia`). Non-undoable; the sheet warns (matches desktop). |
 | Tools → Package Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1106` / `PackageSequenceSheet.swift`, `XLSequencePackager`. Builds `.xsqz` of sequence+media. |
 | Tools → Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1108`. Marketplace/community download. iPad would need a browser-style sheet + download-into-show-folder. |
 | Tools → Batch Render | menu (desktop) / picker toolbar (iPad) | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1111`; iPad `BatchRenderSheet.swift` (326) + `BatchRenderRunner.swift`, launched from sequence-picker toolbar (`XLightsApp.swift:1070,1122`). Real multi-seq queue. Surface differs, capability present. |
@@ -39,7 +39,7 @@
 | Tools → HinksPix Export | menu | ✅ | ❌ | ipad-missing | P3 | medium | restricted | `xLightsMain.cpp:1117`, `HinksPixExportDialog`. HinksPix is closed firmware → restricted/IAP. |
 | Tools → Run Scripts | menu | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `xLightsMain.cpp:1119`. Executes user automation scripts; iOS sandbox forbids arbitrary script/process execution. |
 | Tools → Export Models | menu (desktop) / Layout Editor (iPad) | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1122`; iPad `exportModelsReport(toPath:)` (`XLSequenceDocument.mm:15005`) → `.xlsx`, surfaced in `LayoutEditorView.swift:1671`. Surface differs. |
-| Tools → Export Effects | menu | ✅ | ❌ | ipad-missing | P2 | easy | feasible | `xLightsMain.cpp:1124`. Effect-usage report export. No iPad equivalent; generic core, easy bridge + fileExporter. |
+| Tools → Export Effects | menu | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1124` / `XLSequenceDocument.mm:exportEffectsReport(toPath:)` (EFX-1). Core `src-core/import_export/ExportEffectsReport.cpp`; CSV format matching desktop. `XLightsCommands.swift` "Export Effects…" → fileExporter in `SequencerView.swift`. |
 | Tools → Export Controller Connections | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | `xLightsMain.cpp:1126`. CSV of controller/output mapping. Generic but model+output-manager bound; low demand on iPad. |
 | Tools → View Log | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1129` / `LogViewerSheet.swift` (275). Live tail with level/logger/text filter. Same spdlog file. |
 | Tools → Package Log Files | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1131` / `packageLogs()` + `XLLogPackager.mm`. iPad bundles logs+config+seq+device info+MetricKit; desktop bundles logs+config+seq. |
@@ -50,7 +50,7 @@
 | Tools → Generate 2D Path | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1142`. Procedural path-model generator; specialist dialog. |
 | Tools → Generate Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1144`, `GenerateCustomModelDialog`. Video/photo-driven custom-model builder; camera+dialog-heavy. |
 | Tools → Remap Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1146`. Node-index remap; specialist, dialog-heavy. |
-| Tools → Generate AI Image | menu (desktop) / effect-picker (iPad) | ✅ | 🟡 | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1148`, `AIImageDialog`. iPad `AIImageGenerationSheet.swift` exists but only reachable from `EffectFilenameBlockView.swift:135` (effect image picker), **no Tools-menu entry**. Add Tools button + standalone present. |
+| Tools → Generate AI Image | menu (desktop) / effect-picker (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1148`, `AIImageDialog`. iPad `AIImageGenerationSheet.swift` now also reachable from Tools menu (AI-2): `XLightsCommands.swift` "Generate AI Image…" → `showingStandaloneAIImage` → `SequencerView.swift` sheet. Saves to `AIImages/` show subfolder; no effect context needed. Gated on `XLAIServices.hasEnabledService(forCapability: XLAICapabilityImages)`. |
 | Media Manager → AI Generate Image | media panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop media manager has an `AI Generate…` button (`ManageMediaPanel.cpp:633` `_aiGenerateButton`, gated at `:718-719`/`:926` on image+hasAI, `:2237` `OnAIGenerateButtonClick` → `AIImageDialog` at `:2261`). iPad has the `AIImageGenerationSheet` but no media-manager AI-generate entry. |
 | Tools → Generate Lyrics From Data | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1150`, `GenerateLyricsDialog` (`OnMenuItem_GenerateLyricsSelected:7233`). Maps channel-data → face/phoneme tracks — *distinct* from iPad's AI speech-to-lyrics. Legacy; low demand. |
 | Tools → Convert | menu (desktop) / Import sheet (iPad) | ✅ | 🟡 | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1152`, `TabConvert`/`ConvertDialog`. iPad `ImportEffectsView.swift` already does `.xsq/.xsqz`, SuperStar `.sup`, LOR S5 `.loredit`, Vixen 3. Missing legacy formats (LMS/LSP/Vixen2/HLS/Glediator) + media transcode. |
@@ -64,7 +64,7 @@
 | Help → Tip of the Day | menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1269`, `TipOfTheDayDialog`. Could port as a sheet; low mobile engagement. |
 | Help → User Manual | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1271` → manual.xlights.org; iPad `XLightsCommands.swift:544`. |
 | Help → Zoom Room Help | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1273`; iPad `:578`. |
-| Help → Key Bindings | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1275`, `OnMenuItem_ShowKeybindingsSelected`. iPad relies on system ⌘-hold shortcut HUD; could add a sheet listing bindings. |
+| Help → Key Bindings | menu | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1275`. iPad: Help ▸ "Key Bindings…" → `KeyBindingsSheet.swift` (grouped read-only reference of the XLightsCommands bindings; complements the system ⌘-hold HUD). |
 | Help → Content (F1) | menu/shortcut | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1277` (`Content\tF1`). No F1 on iPad keyboards; could add a Help-sheet entry. |
 | Help → Forum | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1280`; iPad `:558`. |
 | Help → Video Tutorials | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1281` → videos.xlights.org; iPad `:547`. |
@@ -86,25 +86,23 @@ Sequence, Package Sequence, Batch Render, FPP Connect, View Log, Package
 Logs, Import Effects, all external Help links, About, crash capture).
 
 ### P2
-- **Cleanup File Locations** — desktop `xLightsMain.cpp:1104` →
-  `OnMenuItem_CleanupFileLocationsSelected` (`:6450`) sweeps every
-  referenced media file under the show folder. iPad only relocates
-  per-file at import (`MediaRelocation.swift`). Work: a
-  `cleanupFileLocations` bridge op on `XLSequenceDocument` + a confirm
-  sheet listing what would move. Medium.
+- ✅ **Cleanup File Locations** — **landed 2026-06-11.** Desktop
+  `xLightsMain.cpp:6451` → `OnMenuItem_CleanupFileLocationsSelected`
+  sweeps every referenced media file under the show folder. iPad now
+  has Tools → "Cleanup File Locations…" (`XLightsCommands.swift`) →
+  `CleanupFileLocationsSheet`: the `cleanupFileLocationsPreview` bridge
+  op lists every external file that would move ({from, to}); confirming
+  runs `performCleanupFileLocations`, which copies each file outside the
+  show/media folders into the show folder (type-canonical subdir, `_N`
+  on collision) and rewrites the effect references
+  (`XLSequenceDocument.mm` `cleanupExternalMedia`). The operation is NOT
+  undoable and the sheet warns — matching desktop, which warns rather
+  than registering an undo step.
 - **Convert (full)** — desktop `TabConvert`/`ConvertDialog`
   (`:1152`). iPad `ImportEffectsView` already covers `.xsq/.xsqz`,
   SuperStar, LOR S5, Vixen 3; gap is the legacy formats
   (LMS/LSP/Vixen2/HLS/Glediator/LCB) + media transcode. Add readers to
   `XLImportSession` and entries to the import sheet. Medium.
-- **Generate AI Image (Tools entry)** — capability exists
-  (`AIImageGenerationSheet.swift`) but only from the effect filename
-  picker (`EffectFilenameBlockView.swift:135`). Add a Tools-menu button
-  that presents the same sheet standalone (write image to show folder).
-  Medium → mostly UI wiring.
-- **Export Effects** — `xLightsMain.cpp:1124`. Add
-  `exportEffectsReport(toPath:)` bridge (mirror of the existing
-  `exportModelsReport`) + a `.fileExporter`. Easy.
 - **Search for Show Folders** — `xLightsMain.cpp:1158`. Scoped
   Files-app scan + results sheet. Medium.
 - **Download Sequences/Lyrics** — `xLightsMain.cpp:1108`. Browser-style
@@ -117,8 +115,7 @@ Logs, Import Effects, all external Help links, About, crash capture).
 - **Find Effect Data** — desktop `FindDataPanel` (`:1218`). iPad
   Find/Replace only covers timing labels; needs a property-query sheet
   driven by a new `findEffectData(...)` bridge op. Medium.
-- **Key Bindings (Help)** — `xLightsMain.cpp:1275`. A sheet listing the
-  iPad's `CommandMenu` shortcuts. Medium.
+- ~~**Key Bindings (Help)**~~ — **landed 2026-06-11**: `KeyBindingsSheet.swift` grouped reference, Help-menu entry.
 
 ### P3
 - **Bulk Controller Upload** (restricted for closed firmware),
@@ -168,11 +165,14 @@ Logs, Import Effects, all external Help links, About, crash capture).
 
 ## Recommended sequencing
 
-1. **Cheap parity wins first.** Add the **Generate AI Image** Tools-menu
-   entry (sheet already exists) and **Export Effects** (clone the working
-   `exportModelsReport` bridge). Both are low-risk, high-visibility.
-2. **Cleanup File Locations** — common housekeeping; one bridge op + a
-   confirm sheet; complements the existing per-file relocation.
+1. ~~**Cheap parity wins first.**~~ **Landed.** **Generate AI Image** Tools-menu
+   entry (`XLightsCommands.swift`, `SequencerView.swift:showingStandaloneAIImage`) and
+   **Export Effects** (`src-core/import_export/ExportEffectsReport.cpp`, bridge
+   `exportEffectsReport(toPath:)`, `SequencerView.swift` fileExporter) are both ✅.
+2. ~~**Cleanup File Locations**~~ **Landed 2026-06-11.** Tools menu entry
+   + preview/confirm sheet (`CleanupFileLocationsSheet`) + bridge
+   `cleanupFileLocationsPreview` / `performCleanupFileLocations`;
+   complements the existing per-file relocation.
 3. **Convert breadth** — extend `XLImportSession`/`ImportEffectsView`
    with the remaining legacy readers so "Convert" reaches real parity.
 4. **Diagnostic windows** — Color Dropper (eyedropper gesture) and Find

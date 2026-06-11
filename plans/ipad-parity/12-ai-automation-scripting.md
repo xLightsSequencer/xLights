@@ -35,7 +35,7 @@
 | AI lyrics — use vocals stem / alt track | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Both point the recognizer at the selected waveform track / HTDemucs stem. |
 | AI lyrics — multi-service picker | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `wxSingleChoiceDialog`; iPad service Picker in `aiLyricsParamsSection`. |
 | LRCLIB lyric search & import | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `LRCLIBSearchDialog` (from RowHeading "Import Lyrics"); iPad `AddTimingTrackSheet` `.lrclib` + `LRCLIBClient.swift`. |
-| AI structured model auto-mapping | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop import "AI Map" button → `GenerateModelMapping` (Claude) in `xLightsImportChannelMapDialog.cpp`. iPad `XLImportSession.runAutoMap` is the **heuristic** `AutoMapper` only — no AI path. |
+| AI structured model auto-mapping | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop import "AI Map" → `GenerateModelMapping` (xLightsImportChannelMapDialog.cpp:3543 DoStructuredAIMapping). iPad: `XLImportSession.runAIMap(completion:)` (XLImportSession.mm — MappingModelInfo from sources/targets, existing mappings as examples, validated apply) + gated "AI Map" button beside Auto Map in `ImportEffectsView.swift`. |
 | Heuristic Auto-Map (non-AI) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Shared `AutoMapper`; iPad `ImportEffectsView` "Auto Map". Listed for contrast with AI map above. |
 | "Generate Lyrics From Data" (Papagayo phoneme→channel) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Tools→Generate &Lyrics From Data (`GenerateLyricsDialog`) maps phonemes to coro-face DMX channels from typed text. **Not AI.** No iPad equivalent. |
 | Generate 2D Path from image | menu | ✅ | ❌ | ipad-missing | P3 | hard | hard | Desktop Tools→Generate 2D Path (`PathGenerationDialog`): interactive image-tracing canvas. iPad lacks the wx canvas infra; would need a bespoke Metal/SwiftUI tracer. |
@@ -61,7 +61,7 @@
 
 ### P2
 
-- **AI structured model auto-mapping** — Desktop's import "AI Map" button (`src-ui-wx/import_export/xLightsImportChannelMapDialog.cpp:635`, handler `OnButton_AIMapClick` at `:4119`, enabled when `GetAIService(aiType::MAPPING)` is non-null at `:727`) calls Claude's `GenerateModelMapping` (`src-core/ai/claude.cpp`) to suggest source→target mappings. iPad's `XLImportSession.runAutoMap` (`src-iPad/Bridge/XLImportSession.mm:769`) only runs the heuristic `AutoMapper` (`MatchNorm`/`MatchAggressive`). **Work:** add a bridge method on the import session (e.g. `runAIMap`) that gathers `aiBase::MappingModelInfo` from source/target trees, calls `ServiceManager::findService(aiType::MAPPING)->GenerateModelMapping(...)`, and applies the result; surface an "AI Map" button in `ImportEffectsView.swift` next to "Auto Map", gated on `XLAIServices.hasEnabledService(forCapability: XLAICapabilityMapping)`. Core is already shared; this is bridge + one button. Ease: medium.
+- ~~**AI structured model auto-mapping**~~ — **landed 2026-06-11.** `XLImportSession.runAIMap(completion:)` gathers `MappingModelInfo` for sources (names/types — the iPad source list carries less structure than desktop's ImportChannel; names dominate the signal) and unmapped targets (full node metadata incl. submodel names), passes mapped rows as `existingMappings` examples, calls `ServiceManager::findService(aiType::MAPPING)->GenerateModelMapping` on a utility queue, and applies validated results on the main queue. "AI Map" button beside Auto Map in `ImportEffectsView.swift`, gated on `XLAICapabilityMapping`, with progress + result/error alert.
 
 - **"Generate Lyrics From Data" (Papagayo phoneme→channel)** — Desktop Tools→Generate &Lyrics From Data (`src-ui-wx/xLightsMain.cpp:7233`, `GenerateLyricsDialog`) maps phonemes to coro-face DMX channels from typed text (NOT AI; distinct from the AI Speech-to-Text track, which iPad already has). **Work:** wrap the phoneme→channel logic in a bridge call and add a small SwiftUI sheet. Niche (coro-face authoring); ease: medium. Priority pinned P3 in the scorecard given low frequency.
 
@@ -94,7 +94,7 @@
 ## Recommended sequencing
 
 1. **Desktop Pictures-panel "AI…" button (P2, easy)** — closes the one genuinely user-facing desktop gap and reuses the existing embedded `AIImageDialog`. Cheap parity win.
-2. **iPad AI structured model-mapping (P2, medium)** — highest-value remaining iPad AI gap; the core `GenerateModelMapping` is already shared, so it's bridge + one button in `ImportEffectsView`. Materially improves the import flow that iPad users already exercise.
+2. ~~**iPad AI structured model-mapping (P2, medium)**~~ — ✅ **done 2026-06-11** (`runAIMap` bridge + AI Map button).
 3. **Desktop "Refresh models" button (P3, medium)** — small reciprocal parity item; mirror the iPad model-listing action into ServicesPanel.
 4. **iPad AI image crop/resize (P3)** and **Papagayo "Generate Lyrics From Data" (P3)** — only if user demand surfaces; both are niche and the AI scorecard is otherwise at parity.
 5. **Do not invest** in REST server / Lua-Python / 2D-Path / OpenVINO on iPad — they are infeasible under App Store + platform constraints; record and move on.

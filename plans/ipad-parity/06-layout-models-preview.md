@@ -13,15 +13,21 @@
 > visualize / upload / reorder). It also has full **viewpoint / saved-
 > camera** save/apply/delete/restore over `GetViewpointMgr()`. The
 > remaining real iPad gaps are the desktop's *rich visual* dialogs and
-> bulk/utility commands: **Faces/States are attribute-map editors on
-> iPad, not the desktop's node-grid / image face picker**; **Node Layout
-> / Wiring View, CAD/DXF export, export-as-custom/xmodel,
+> bulk/utility commands: **Faces/States now have a visual tap-to-pick
+> node assignment on iPad (NodeRangePickerSheet, reusing the SubModel
+> Metal node-picker) — only the matrix-face *image* mapping + xmodel
+> face/state file-import remain desktop-only**; **CAD/DXF export, export-as-custom/xmodel,
 > import-from-RGBeffects / LOR-S5, GDTF fixture import, make-start-
-> channel-valid / non-overlapping, correct-aspect-ratio, group clone,
-> model replace, set-center-offset, the dedicated Bulk-Edit submenu
+> channel-valid / non-overlapping,
+> model replace, the dedicated Bulk-Edit submenu
 > (incl. dimming curves / controller direction), unlink model/group from
-> base show, 2D-center-0 + canvas-size + global grid-spacing edits, and
-> layout clipboard copy/paste** are all desktop-only. iPad-only
+> base show, and
+> layout clipboard copy/paste** are all desktop-only. The theme-06
+> single-shot layout commands **preview delete / rename, model-group
+> clone, correct aspect ratio, set-center-offset, polyline
+> enter-segment-size, the overlap-checks toggle, and the
+> 2D-center-0 + canvas-size + global grid-spacing edits** are now at
+> parity (bridge wrappers + sidebar/context entries). iPad-only
 > conveniences for this theme: the vendor model browser, map-from-lights
 > (FPP camera scan), single-tap multi-select action bar, view-object
 > rename/duplicate, and the integrated Controllers sidebar. Faces/States
@@ -55,18 +61,18 @@
 | Model controller-port connection | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad controllerConnectionFields (port/protocol/smart-remote gated by caps). #6518 restored port management for from-base models in core ModelManager.cpp — shared, auto-applies to iPad. |
 | Model start channel picker | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad StartChannelEditorSheet. |
 | Individual start channels per string | panel | ✅ | ✅ | parity | P3 | medium | feasible | iPad hasIndividualStartChannels toggle + per-string individualStartChannel fields (LayoutEditorView.swift:3973-3990). |
-| Node Layout (node-grid visualization) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop ShowNodeLayout/NodeSelectGrid (LayoutPanel.cpp:6156). iPad has no node-grid view. |
-| Wiring View (model node wiring) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop ShowWiring (LayoutPanel.cpp:6159). iPad's "Visualize" is controller-level, not model wiring. |
+| Node Layout (node-grid visualization) | dialog | ✅ | ✅ | parity | P2 | hard | feasible | Desktop ShowNodeLayout/ChannelLayoutDialog (LayoutPanel.cpp:6889). iPad NodeLayoutSheet (NodeLayoutSheet.swift) — zoom/pan Canvas of node numbers at buffer coords, backed by `nodeLayout(forModel:)` (XLSequenceDocument.mm) over InitRenderBufferNodes. Launched from Model Data section (LayoutEditorView.swift). |
+| Wiring View (model node wiring) | dialog | ✅ | 🟡 | parity | P2 | hard | feasible | Desktop ShowWiring/WiringDialog (LayoutPanel.cpp:6899). iPad NodeLayoutSheet `wiring:true` — per-string node path, numbered, front/rear flip. Desktop's print + DXF export + theme/multi-light render options stay desktop-only (deep-dialog cluster). |
 | Pixel size / style | panel | ✅ | ✅ | parity | P2 | easy | feasible | intField pixelSize + pixelStylePicker. |
 | Transparency / alpha | panel | ✅ | ✅ | parity | P2 | easy | feasible | intField transparency. |
 | Black transparency | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad intField "blackTransparency" (Appearance section). |
 | Shadow Model For | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad shadowModelPicker (LayoutEditorView.swift:4856). |
 | Smart remote (per-port remote) | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ModelSmartRemoteSheet + descriptor caps. |
-| Correct Aspect Ratio | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_ASPECTRATIO. iPad: no UI/bridge. |
+| Correct Aspect Ratio | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_ASPECTRATIO. iPad: `correctAspectRatioForModel:` (XLSequenceDocument.mm) replicates the GetMWidth/MHeight ÷ GetRenderWi/Ht ratio adjustment + aspect button in InlineModelActionBar (LayoutEditorView.swift). |
 | SubModels create/edit/rename/delete | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad SubModelListSheet (add/delete/rename + detail edit via replaceSubModelsOnModel). |
 | SubModel aliases | dialog | ✅ | ✅ | parity | P3 | medium | feasible | iPad setSubmodelAliases / submodelAliases + alias editor (LayoutEditorView.swift:6704). |
-| Faces editor | dialog | ✅ | 🟡 | ipad-missing | P2 | hard | feasible | iPad FaceStateEditorSheet edits faceInfo as attr key/value maps. Desktop ModelFaceDialog is a rich node-grid + image-matrix face picker, and also imports faces/states from xmodel files (ModelFaceDialog::ImportFaces handles both new `<models><model>` and legacy `<custommodel>` roots, #6499); iPad has no file-import path. iPad lacks the visual node assignment. |
-| States editor | dialog | ✅ | 🟡 | ipad-missing | P2 | hard | feasible | Same as Faces: iPad attr-map editor vs desktop ModelStateDialog node-grid UI. |
+| Faces editor | dialog | ✅ | 🟡 | parity | P2 | hard | feasible | iPad FaceStateEditorSheet (LayoutEditorView.swift) now has a visual node picker: each phoneme/part attribute (FaceOutline, Mouth-*, Eyes-*) gets a tap-to-pick button (FaceStateEntryDetailView) → NodeRangePickerSheet (NodePickerPane.swift) which reuses SubmodelPreviewPane's Metal node-picker (tap-toggle + two-finger marquee, XLMetalBridge.nodeNearPoint/setSubmodelHighlightedNodes) and writes back the compressed channel-range string via SubModelRangeOps.compressNodes — matching desktop ModelFaceDialog node assignment + NodeUtils::CompressNodes format. Remaining 🟡: matrix-face image assignment stays the attr-map text path (FaceStateAttr.isNodeRange excludes `-Eyes*` image keys), and there's no xmodel face/state file-import (ModelFaceDialog::ImportFaces, #6499). |
+| States editor | dialog | ✅ | ✅ | parity | P2 | hard | feasible | Same node-picker as Faces: each state's node-list attribute (sNNN / part keys) gets the tap-to-pick NodeRangePickerSheet → SubmodelPreviewPane; `-Name`/`-Color`/Type/CustomColors metadata stay text fields. Matches desktop ModelStateDialog node-grid assignment. |
 | Custom model visual editor | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad CustomModelEditorSheet (grid + paint + Distribute-along-line). setCustomModelData bridge. Node-bounding-box centering (CustomModel.cpp InitCustomMatrix, #6452) is shared core — applies to iPad automatically. |
 | Strand / Node names editor | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad IndexedNamesEditorSheet (setStrandNames/setNodeNames + DMX generateNodeNames). |
 | Per-model aliases editor | dialog | ✅ | ✅ | parity | P3 | medium | feasible | iPad AliasEditorSheet (setModelAliases). |
@@ -78,7 +84,7 @@
 | Model group remove members | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad removeModel:fromGroup: via group property pane onRemoveMember. |
 | Model group reorder members | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad onReorderMembers (commit "members"). |
 | Model group properties (layout style/grid/tag) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad LayoutEditorGroupPropertiesView descriptor. |
-| Model group clone | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_MNU_CLONE_MODEL_GROUP. iPad: no clone bridge/UI. |
+| Model group clone | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_MNU_CLONE_MODEL_GROUP. iPad: `cloneModelGroup:` (XLSequenceDocument.mm — serialize via XmlSerializingVisitor → GenerateModelName → CreateModel) + "Clone Group" button in LayoutEditorGroupPropertiesView. |
 | Multi-select Align (8 + ground) | menu/toolbar | ✅ | ✅ | parity | P1 | medium | feasible | iPad MultiSelectActionBar Align menu (left/right/top/bottom/front/back/centerH/V/D/ground). |
 | Multi-select Distribute (H/V/Depth) | menu/toolbar | ✅ | ✅ | parity | P1 | medium | feasible | iPad Distribute menu (>=3 selected). |
 | Multi-select Match Size (W/H/Depth/All) | menu/toolbar | ✅ | ✅ | parity | P2 | medium | feasible | iPad Match-Size menu (XLMetalBridge.h:528 matchSizeOfModels:toLeader:dimension:). |
@@ -102,14 +108,14 @@
 | Layout export As DXF | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_LAYOUT_DXF_EXPORT. iPad: no UI. |
 | Preview / layout-group select | panel | ✅ | ✅ | parity | P1 | easy | feasible | Desktop ChoiceLayoutGroups; iPad sidebar layout-group list. |
 | Preview create | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad createLayoutGroup + New Preview sheet. |
-| Preview delete | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. No iPad delete-layout-group bridge. |
-| Preview rename | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop ID_PREVIEW_RENAME_ACTIVE. No iPad rename-layout-group bridge. |
+| Preview delete | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop ID_PREVIEW_DELETE_ACTIVE. iPad: `deleteLayoutGroup:` (iPadRenderContext::DeleteNamedLayoutGroup reassigns members to "Unassigned", patches `<layoutGroups>` on save) + Delete-Preview menu item (LayoutEditorView.swift). Refuses "Default". |
+| Preview rename | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop ID_PREVIEW_RENAME_ACTIVE. iPad: `renameLayoutGroup:to:` (iPadRenderContext::RenameNamedLayoutGroup reassigns members + patches `<layoutGroup>` name) + Rename-Preview sheet (LayoutEditorView.swift). |
 | Preview background image picker | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad Objects tab → 2D Background → backgroundImage .fileImporter. |
 | Preview background brightness / alpha / scale-to-fit | panel | ✅ | 🟡 | ipad-weaker | P2 | easy | feasible | iPad intField backgroundBrightness (LayoutEditorView.swift:10617), backgroundAlpha (:10620), scaleBackgroundImage (:10624-10625); narrower than desktop's full display-options grid. |
-| Preview 2D center-origin (X0=center) toggle | panel | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | iPad shows display2DCenter0 read-only; no setter. Needs bridge setDisplay2DCenter0. |
-| Preview canvas size edit | panel | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | iPad shows canvas WxH read-only. Needs bridge setters. |
+| Preview 2D center-origin (X0=center) toggle | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad: `setDisplay2DCenter0:` (iPadRenderContext::SetDisplay2DCenter0 + `<settings>` patch) toggled from the Models-header Display menu (LayoutEditorView.swift). |
+| Preview canvas size edit | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad: `setPreviewWidth:height:` (iPadRenderContext::SetPreviewSize + `<settings>` patch) via the "Edit Canvas / Grid…" sheet (LayoutEditorView.swift). |
 | Preview 2D grid overlay toggle | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad PreviewSettings.showLayoutGrid → bridge. |
-| Preview 2D grid spacing edit | panel | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Global preview grid spacing read-only on iPad (Gridlines view-object spacing is editable but separate). |
+| Preview 2D grid spacing edit | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad: `setDisplay2DGridSpacing:` (iPadRenderContext::SetDisplay2DGridSpacing + `<settings>` patch) via the "Edit Canvas / Grid…" sheet (LayoutEditorView.swift). |
 | Preview bounding-box overlay | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad showLayoutBoundingBox. |
 | Preview model-name labels | panel/overlay | ✅ | ✅ | parity | P2 | easy | feasible | iPad showModelLabels (SwiftUI overlay). |
 | Preview model-info labels (channels) | panel/overlay | ✅ | ✅ | parity | P2 | easy | feasible | iPad showModelInfo. |
@@ -119,7 +125,7 @@
 | Preview reset / fit view | gesture | ✅ | ✅ | parity | P2 | easy | feasible | iPad double-tap → resetCamera; desktop right-click Reset. |
 | Preview first-pixel marker | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad showFirstPixel; desktop _showFirstPixel. |
 | Preview snap-to-grid (drag) | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad PreviewSettings.snapToGrid. |
-| Preview set center offset (group) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_SET_CENTER_OFFSET. iPad: no UI. |
+| Preview set center offset (group) | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_SET_CENTER_OFFSET. iPad: `setCenterOffsetForGroup:x:y:` (XLSequenceDocument.mm) replicates ModelPreview::SetCenterOffset's centre-bounds → ±1000 offset conversion + "Set Centre Offset" button in LayoutEditorGroupPropertiesView. |
 | Save layout image (PNG) | menu | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad UIGraphicsImageRenderer + drawHierarchy → UIActivityViewController save/share (PreviewPaneView.swift:626-630); snapshots the preview rather than a dedicated full-layout image export. |
 | Print layout image | menu | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad shares via UIActivityViewController (print available through the share sheet); no dedicated print path. |
 | Viewpoint save / restore / default / delete | menu | ✅ | ✅ | parity | P2 | hard | feasible | iPad full save/apply/delete/restore over rctx->GetViewpointMgr() + SaveViewpoints (XLMetalBridge.mm:469-583); applyViewpointNamed / deleteViewpointNamed / restoreDefaultViewpointForDocument wired from PreviewPaneView. |
@@ -141,7 +147,7 @@
 | DMX preset / wheel-color / position-zone list editors | dialog | ✅ | ✅ | parity | P2 | hard | feasible | iPad DmxPresetListEditorSheet / DmxWheelColorListEditorSheet / DmxPositionZoneListEditorSheet. |
 | Polyline create (tap-to-add-point) | gesture | ✅ | ✅ | parity | P2 | hard | feasible | iPad layoutPolylineInProgress + tap-to-place + Esc/Return commit. |
 | Polyline segment context (Add/Delete Point, Define/Remove Curve) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | iPad long-press → confirmationDialog (vertex/segment/curve). |
-| Polyline "Enter Segment Size" | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_SET_SEGMENTS. iPad: no node-count-per-segment dialog. |
+| Polyline "Enter Segment Size" | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_SET_SEGMENTS. iPad: `setSegmentSizeForModel:segment:size:` (XLSequenceDocument.mm → PolyLineModel::SetSegmentSize + Reinitialize) + "Set Segment Size…" entry in the poly-line segment long-press menu (LayoutEditorView.swift). |
 | Model / group unlink from base show folder | menu/panel | ✅ | ❌ | ipad-missing | P1 | medium | feasible | No unlinkModel/unlinkGroup/UnlinkSelectedModels in src-iPad; only controller unlink exists (XLSequenceDocument.h:2341 unlinkControllerFromBase). |
 | Make Start Channel Valid (model) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_MNU_MAKESCVALID. iPad: no UI. |
 | Make All Start Channels Valid | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_MNU_MAKEALLSCVALID. iPad: no UI. |
@@ -160,7 +166,7 @@
 | SubModel import (from Model / File / Layout / Downloads / CSV) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop SubModelsDialog.cpp:1126 ImportSubModel, :1138 ImportCSVSubModel, def :3537. iPad has no submodel-import symbols. |
 | SubModels output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop SubModelsDialog output-to-lights. iPad startOutput (XLSequenceDocument.h:1650-1653) used only in SequencerViewModel, not in editors. |
 | Real-world dimension readouts (ruler-calibrated) | panel | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop ScreenLocationProperties RealWidth/RealHeight/RealDepth via ConvertDimension. iPad has no RealWidth/RealLength/ConvertDimension. |
-| Overlap checks toggle | panel | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop CheckBoxOverlap (LayoutPanel.cpp:636, :3456) + CheckModelForOverlaps (:7720). iPad has no overlap-check UI. |
+| Overlap checks toggle | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop CheckBoxOverlap (LayoutPanel.cpp:636, :3456) + CheckModelForOverlaps (:7720). iPad: `modelsOverlappingModel:` (XLSequenceDocument.mm — same start/last-channel overlap test) + Overlap-Checks toggle in the Models-header Display menu; overlapping roster rows get an orange highlight + warning badge (LayoutEditorView.swift). |
 | SubModel import from State / Face definitions | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop SubModelsDialog.cpp CreateSubmodel(name,nodes) (:3768) invoked from state/face context (:1064, :1117). iPad absent. |
 | SubModel 'Import Custom Model Overlay' (matrix only) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop SubModelsDialog.cpp:1132 ImportCustomModel, :3790/:3936/:4007 overlay helpers. iPad absent. |
 | SubModels Symmetrize (rotational generator) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop SubModelsDialog::Symmetrize() — degree/direction(CW/CCW)/build-order, config-persisted (menu added in 259230f0f). Algorithm is wx-coupled (wxFile temp + NodeUtils::CompressNodes), not in src-core; iPad SubModelListSheet has no Symmetrize. Needs core extraction + bridge before iPad UI. |
@@ -177,28 +183,35 @@
 
 ### P2
 
-- **Node Layout / Wiring View (model-level).** Desktop `ShowNodeLayout`
-  (NodeSelectGrid) and `ShowWiring` are launched from the model
-  right-click (`LayoutPanel.cpp:6156`, `:6159`) and Layout keybindings.
-  iPad has no node-grid view; its only "Visualize" is the
-  *controller*-level wiring table. Needs a new `NodeLayoutSheet`
-  (SwiftUI grid reading node positions/strand assignments) backed by a
-  bridge accessor over `Model::GetNodeXY` / strand info. Ease: hard.
-- **Faces / States rich editor.** iPad `FaceStateEditorSheet`
-  (`LayoutEditorView.swift:8492`) edits the `faceInfo` / `stateInfo`
-  attribute maps as key/value pairs and is fully wired
+- **Faces / States rich editor — visual node picker landed.** iPad
+  `FaceStateEditorSheet` (`LayoutEditorView.swift`) edits the
+  `faceInfo` / `stateInfo` attribute maps and is fully wired
   (`setFaceInfo:` / `setStateInfo:` / `faceInfoForModel:` /
-  `stateInfoForModel:`). What's missing vs desktop `ModelFaceDialog` /
-  `ModelStateDialog` is the **visual node-grid / image-matrix face
-  assignment** — tapping nodes to build a mouth/eye shape, and the
-  matrix-face image-channel mapping. Ease: hard (needs a Metal/CG node
-  picker over the model preview).
-- **Preview delete / rename (layout group).** Desktop
+  `stateInfoForModel:`). Each node-range attribute (face phoneme /
+  outline parts, state `sNNN` node lists) now has a tap-to-pick
+  button in `FaceStateEntryDetailView` → `NodeRangePickerSheet`
+  (`NodePickerPane.swift`), which reuses `SubmodelPreviewPane`'s
+  Metal node-picker (`XLMetalBridge.nodeNearPoint` /
+  `setSubmodelHighlightedNodes`): tap toggles a node, two-finger
+  long-press + drag paints a rectangle, and the result is compressed
+  to a channel-range string via `SubModelRangeOps.compressNodes`
+  (mirrors desktop `NodeUtils::CompressNodes`). This matches the
+  desktop `ModelFaceDialog` / `ModelStateDialog` node assignment.
+  Still open: **matrix-face image-channel mapping** (the
+  `Mouth-…-Eyes…` image keys stay on the attr-map text path —
+  `FaceStateAttr.isNodeRange` deliberately excludes them) and
+  **xmodel face/state file-import** (`ModelFaceDialog::ImportFaces`,
+  #6499). Ease: remaining work is medium (an image-assignment grid +
+  a file-import bridge).
+- **Preview delete / rename (layout group).** ✅ Done. Desktop
   `ID_PREVIEW_DELETE_ACTIVE` / `ID_PREVIEW_RENAME_ACTIVE`
-  (`LayoutPanel.cpp:6319-6320`). iPad has `createLayoutGroup` but no
-  delete/rename bridge for layout groups. Add `deleteLayoutGroup:` /
-  `renameLayoutGroup:to:` to `XLSequenceDocument` + sidebar actions.
-  Ease: medium.
+  (`LayoutPanel.cpp:6319-6320`). iPad now has `deleteLayoutGroup:` /
+  `renameLayoutGroup:to:` (backed by
+  `iPadRenderContext::DeleteNamedLayoutGroup` /
+  `RenameNamedLayoutGroup`, which reassign members to "Unassigned" on
+  delete / to the new name on rename, mirroring desktop, and patch the
+  `<layoutGroups>` element on save) + Delete / Rename Preview entries
+  in the Models-section header menu.
 - **GDTF fixture import.** iPad declares the `gdtf` UTType
   (`LayoutEditorView.swift:342`, `:515-532`) but has no `GdtfParser` /
   `CreateDmxModelFromGdtf` path; importing a GDTF fixture does nothing.
@@ -226,12 +239,16 @@
   and clear it, but the sheet explicitly says authoring a curve is
   desktop-only (`LayoutEditorView.swift:4081`). Desktop
   `ModelDimmingCurveDialog` has the graphical curve. Ease: hard.
-- **Group clone, model replace, correct aspect ratio, set-center-offset,
-  enter-segment-size.** All single desktop menu items
-  (`ID_MNU_CLONE_MODEL_GROUP`, `ID_PREVIEW_REPLACEMODEL`,
-  `ID_PREVIEW_MODEL_ASPECTRATIO`, `ID_SET_CENTER_OFFSET`,
-  `ID_PREVIEW_MODEL_SET_SEGMENTS`). Each needs a small bridge wrapper +
-  context entry. Ease: medium each.
+- **Group clone, correct aspect ratio, set-center-offset,
+  enter-segment-size.** ✅ Done. `cloneModelGroup:`,
+  `correctAspectRatioForModel:`, `setCenterOffsetForGroup:x:y:`,
+  `setSegmentSizeForModel:segment:size:` are bridged (replicating
+  `ID_MNU_CLONE_MODEL_GROUP`, `ID_PREVIEW_MODEL_ASPECTRATIO`,
+  `ID_SET_CENTER_OFFSET`, `ID_PREVIEW_MODEL_SET_SEGMENTS`) with
+  context entries (group-properties Clone / Set-Centre buttons, the
+  model action-bar aspect button, the poly-line segment menu's "Set
+  Segment Size…"). **Model replace** (`ID_PREVIEW_REPLACEMODEL`)
+  remains desktop-only. Ease: medium each.
 - **Make-start-channel-valid / -not-overlapping (model + all).** Desktop
   `ID_MNU_MAKESCVALID` / `ID_MNU_MAKEALLSCVALID` /
   `ID_MNU_MAKEALLSCNOTOVERLAPPING` (`LayoutPanel.cpp:10773-10802`).
@@ -249,15 +266,15 @@
   controller-specific keys aren't in the iPad property pane. Ease:
   medium.
 - **2D center-0 toggle, canvas-size edit, global 2D grid-spacing edit.**
-  All three are read-only roll-ups on iPad
-  (`LayoutEditorView.swift:2351`, `:10636`, `:10640`). Need bridge
-  setters (`setDisplay2DCenter0`, canvas-size, `setDisplay2DGridSpacing`
-  exists for the toggle path — confirm a global setter) + editable
-  rows. Ease: easy.
-- **Overlap checks toggle.** Desktop `CheckBoxOverlap`
-  (`LayoutPanel.cpp:636`, `:3456`) + `CheckModelForOverlaps` (`:7720`)
-  flags overlapping start channels. iPad has no overlap-check UI. Ease:
-  easy.
+  ✅ Done. `setDisplay2DCenter0:`, `setPreviewWidth:height:`,
+  `setDisplay2DGridSpacing:` (backed by `iPadRenderContext` setters +
+  a top-level `<settings>` save patch) are wired to the Models-header
+  Display menu's 2D-Centre toggle and the "Edit Canvas / Grid…" sheet.
+- **Overlap checks toggle.** ✅ Done. Desktop `CheckBoxOverlap`
+  (`LayoutPanel.cpp:636`, `:3456`) + `CheckModelForOverlaps` (`:7720`).
+  iPad: `modelsOverlappingModel:` runs the same start/last-channel
+  overlap test; a Display-menu toggle highlights the selected model's
+  channel-overlapping neighbours (orange row tint + warning badge).
 - **SubModel import from State / Face definitions** and **'Import Custom
   Model Overlay' (matrix only).** Desktop `SubModelsDialog.cpp`
   `CreateSubmodel` (`:3768`) from state/face context (`:1064`, `:1117`)
@@ -266,7 +283,12 @@
 - **Faces / States output-to-lights live test toggle.** Desktop
   `ModelFaceDialog` `CheckBox_OutputToLights` (`:223`) and
   `ModelStateDialog` (`:206`) drive the lights from the editor. iPad's
-  `startOutput` isn't wired into the Faces/States editors. Ease: medium.
+  `startOutput` isn't wired into the Faces/States editors. Deliberately
+  **not** bundled with the new node picker: `setSubmodelHighlightedNodes`
+  colours the preview `Model`'s nodes but those colours aren't pushed to
+  the output buffer, so a real live test needs a render/output loop
+  (`startOutput` + per-frame node-colour push), which is heavier and
+  risky to drive from a modal editor. Ease: medium.
 - **RGBW PWM per-channel Brightness + Gamma.** Desktop
   `DmxAbilityPropertyHelpers.cpp:265-320` exposes per-color
   brightness/gamma. iPad (`XLSequenceDocument.mm:6278-6289`) exposes the
@@ -327,23 +349,31 @@
 
 ## Recommended sequencing
 
-1. **Faces / States visual node picker (P2).** The single biggest
-   *qualitative* gap. The attribute-map editor already exists and is
-   bridged; layering a node-grid assignment view over the model preview
-   (reuse the custom-model grid paint code) closes the most-requested
-   layout gap.
+1. **Faces / States visual node picker (P2) — DONE.** Landed:
+   `NodeRangePickerSheet` (`NodePickerPane.swift`) layers a tap-to-pick
+   node-assignment view over the model preview by reusing
+   `SubmodelPreviewPane`'s Metal node-picker, reachable from each
+   node-range attribute in `FaceStateEntryDetailView`. Selections
+   round-trip through `SubModelRangeOps.compressNodes`. Remaining
+   Faces sub-gaps (matrix-face **image** assignment grid, xmodel
+   face/state **file-import**) are smaller follow-ups, not the
+   core node-picking gap.
 2. **Preview delete / rename (P2)** — tiny bridge additions
    (`deleteLayoutGroup` / `renameLayoutGroup`) + two sidebar actions;
    completes preview/layout-group CRUD which is otherwise create-only.
 3. **2D center-0 / canvas-size / grid-spacing editable rows (P3, easy)**
    — quick wins; the values are already surfaced read-only, just need
    setters and editable controls.
-4. **Node Layout / Wiring View (P2)** and **Viewpoint save/restore
-   (P2)** — both need new bridge accessors and a sheet; schedule after
-   the cheap wins.
+4. **Node Layout / Wiring View (P2)** — *done.* `NodeLayoutSheet`
+   (zoom/pan Canvas) reads per-node buffer geometry from the new
+   `nodeLayout(forModel:)` bridge accessor; the node-grid is at parity
+   and the wiring path/front-rear toggle lands the WiringDialog basics
+   (print + DXF export stay in the deep-dialog cluster). **Viewpoint
+   save/restore (P2)** is likewise already landed (parity).
 5. **Export family + make-SC-valid + group-clone / replace / aspect /
-   center-offset / segment-size (P3)** — batch the single-shot menu
-   wrappers; mostly mechanical bridge + context-entry work reusing
-   shared core serializers/solvers.
+   center-offset / segment-size (P3)** — group-clone, correct-aspect,
+   set-center-offset, and enter-segment-size are ✅ done (single-shot
+   bridge wrappers + context entries). Remaining: the export family,
+   make-SC-valid / -not-overlapping, and model replace.
 6. **Layout clipboard copy/paste & dimming-curve authoring (P3, hard)**
    — lowest priority; Duplicate + clear-dimming cover the common cases.

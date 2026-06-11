@@ -10,8 +10,8 @@
 > Save**, and **FSEQ folder** features are at **parity** — desktop
 > exposes them in the Setup tab / Preferences
 > (`SequenceFileSettingsPanel`, `BackupSettingsPanel`). The real
-> **iPad gaps** are the desktop **Backup / Alternate Backup /
-> Restore Backup / Revert To** family, plus several **Sequence Settings
+ > **iPad gaps** are the desktop **Backup / Alternate Backup /
+> Restore Backup** family (Revert To → Last Saved now at parity), plus several **Sequence Settings
 > Info-tab fields** (Render Mode, Hash, Pre/Post-milliseconds, Overwrite
 > Tags, editable duration), **Data Layers**, the **New-Sequence wizard
 > Metadata + Timings steps**, **quick-start importers**, and **Export
@@ -51,10 +51,10 @@
 | Settings — Render tab | dialog tab | ✅ | ✅ | parity | P1 | easy | feasible | iPad: model blending + frame interval + autosave interval picker. |
 | Settings — Data Layers tab | dialog tab | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop tree importer; absent on iPad. |
 | Settings — Render Mode selector | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | `RenderModeChoice`; iPad uses default. |
-| Settings — Hash/Checksum display | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `TextCtrl_Hash`; not surfaced on iPad. |
+| Settings — Hash/Checksum display | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `TextCtrl_Hash` (media hash); iPad Info-tab "Media Hash" row → bridge `mediaFileHash` (`AudioManager::Hash`). |
 | Settings — Pre/Post milliseconds | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | global timing shift; not on iPad. |
-| Settings — Overwrite Tags on media change | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | iPad always preserves metadata on audio swap. |
-| Settings — editable Duration override | dialog | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop editable `TextCtrl_Xml_Seq_Duration`; iPad displays read-only. |
+| Settings — Overwrite Tags on media change | dialog | ✅ | ✅ | parity | P3 | easy | feasible | iPad Info-tab toggle (`overwriteTagsOnMediaChange` @AppStorage, default off): on audio swap, pulls Song/Artist/Album from the new file's tags via `audioTitle/Artist/Album`. |
+| Settings — editable Duration override | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `TextCtrl_Xml_Seq_Duration`; iPad Info-tab editable Duration field → bridge `setSequenceDurationMS` (resizes render data via `EnsureSequenceDataSized`). |
 | Select Show Folder | menu / sheet | ✅ | 🟡 | ipad-weaker | P1 | easy | feasible | iPad FolderConfigView (gate-required before sequences); 'Change Show Folder…' button at `FolderConfigView.swift:90`, commit via `viewModel.loadShowFolder` at :400, but no validation/heuristic on the chosen folder. |
 | Recent Show Folders | menu / sheet | ✅ | ✅ | parity | P1 | easy | feasible | iPad list w/ swipe-delete; tap-to-switch (apply on Done). |
 | Change Show Folder Temporarily | menu / sheet | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `xLightsMain.cpp:894` (`Button_CheckShowFolderTemporarily` "Change Temporarily"), :896 (`Button_ChangeTemporarilyAgain`); no iPad analogue in FolderConfigView. |
@@ -62,10 +62,10 @@
 | Base Show Folder (inheritance) | setup/sheet | ✅ | ✅ | parity | P2 | medium | feasible | Desktop Setup tab (`Button_ChangeBaseShowDir`); iPad FolderConfigView base section + Auto-Update + Update Now. |
 | Media Folders configuration | preference/sheet | ✅ | ✅ | parity | P2 | medium | feasible | Desktop has media dirs concept; iPad FolderConfigView media-folder list. |
 | Media Relocation on file pick | gesture/dialog | ❌ | ✅ | desktop-missing | P2 | medium | feasible | iPad enforces "copy under show/media folder"; desktop free path + Cleanup later. |
-| Add media to sequence (multi-file) | manager/sheet | ✅ | ❌ | ipad-missing | P1 | medium | feasible | Desktop `ManageMediaPanel.cpp:628` (`_addButton` "Add"); iPad MediaManagerSheet has no Add in toolbar (`MediaManagerSheet.swift:141-159`, :8 "Read-only for now"). |
-| Bulk find missing media | manager/sheet | ✅ | ❌ | ipad-missing | P2 | medium | feasible | iPad MediaManagerSheet toolbar has no Bulk Find (`MediaManagerSheet.swift:141-159`); only a per-file primitive exists via bridge `replaceMissingMediaAtPath` (`XLSequenceDocument.h:1985`). |
+| Add media to sequence (multi-file) | manager/sheet | ✅ | ✅ | parity | P1 | medium | feasible | Desktop `ManageMediaPanel.cpp:2004` (`_addButton` "Add", `wxFD_MULTIPLE`); iPad MediaManagerSheet "Add…" toolbar button → multi-select `.fileImporter` → relocate under show folder + `addMedia(atPath:)` bridge (`MediaManagerSheet.swift` `addPickedFiles`; `XLSequenceDocument.mm` `addMediaAtPath:`). |
+| Bulk find missing media | manager/sheet | ✅ | ✅ | parity | P2 | medium | feasible | iPad MediaManagerSheet "Bulk Find Missing…" menu action → folder `.fileImporter` → one-pass basename index → relink each missing entry via `replaceMissingMedia` (`MediaManagerSheet.swift` `bulkFindMissing(in:)`). |
 | Media preview (still + animated) | manager/sheet | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad shows a static `MediaThumbnailView` with no animation (`MediaManagerSheet.swift:503-518`); bridge `ensureThumbnailPreviewForPath` (`XLSequenceDocument.h:2055`). |
-| Reload media from disk | manager/sheet | ✅ | ❌ | ipad-missing | P3 | easy | feasible | iPad MediaManagerSheet swipe actions have no Reload (`MediaManagerSheet.swift:461-500`); `ReloadMedia` is internal-only on the bridge (`XLSequenceDocument.mm:10890,10904`). |
+| Reload media from disk | manager/sheet | ✅ | ✅ | parity | P3 | easy | feasible | iPad MediaManagerSheet external rows have a "Reload from Disk" swipe action → `reloadMedia(atPath:)` bridge purges the cache entry so the next render re-reads the file (`MediaManagerSheet.swift` `reloadFromDisk`; `XLSequenceDocument.mm` `reloadMediaAtPath:` / `reloadAllMedia`). |
 | Render Cache mode | preference/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Preferences `RenderCacheChoice` (Enabled/Locked/Disabled); iPad FolderConfigView picker. |
 | Low-Definition Render toggle | preference/sheet | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `CheckBox_LowDefinitionRender`; iPad FolderConfigView toggle. |
 | FSEQ folder / save-on-save | preference/sheet | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `FSEQSaveCheckBox`; iPad FolderConfigView FSEQ section. |
@@ -78,7 +78,7 @@
 | Alternate Backup (F11) | menu/shortcut | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | Second backup dir (offsite/external). No iPad equivalent. |
 | Backup On Save / On Launch / Subfolders / Purge | preference | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | `BackupSettingsPanel`; tied to whole-folder backup. |
 | Restore Backup dialog | menu/dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | `RestoreBackupDialog` (pick date, restore layouts/sequences). Could be reimplemented for in-show backup dirs. |
-| Revert To → Last Saved | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Reload `.xsq` from disk, drop in-memory edits. iPad lacks; undo covers much. |
+| Revert To → Last Saved | menu | ✅ | ✅ | parity | P2 | medium | feasible | ✅ landed 2026-06-11. File menu "Revert to Last Saved…" (`XLightsCommands.swift:55`); confirmation dialog in `SequencerView.swift:204`; `revertRequestToken` token + `revertToLastSaved()` in `SequencerViewModel.swift:722,1719`. Deletes `.xbkp` before reopen so no spurious recovery offer. |
 | Revert To → backup history | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Submenu from backup folder versions. |
 | Cleanup File Locations | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Relocate all files under show folder. iPad's MediaRelocation enforces invariant at pick time → largely moot. |
 | Package Sequence (.xsqz) | menu/sheet | ✅ | ✅ | parity | P1 | easy | feasible | iPad sheet w/ Include Audio/Videos toggles → share sheet; shared `SequencePackage::Pack`. |
@@ -99,32 +99,36 @@
 
 ### P1
 
-- **Add media to sequence (multi-file)** — desktop `src-ui-wx/media/ManageMediaPanel.cpp:628`
-  (`_addButton` "Add"). iPad's `MediaManagerSheet` is read-only — no Add control in its toolbar
-  (`src-iPad/App/MediaManagerSheet.swift:141-159`, header comment ":8 'Read-only for now'"). *Work:*
-  a file picker + bridge import that copies the chosen media under the show/media folder. *Ease: medium.*
+- ✅ **Add media to sequence (multi-file)** — **landed 2026-06-11.** Desktop
+  `src-ui-wx/media/ManageMediaPanel.cpp:2004` (`_addButton` "Add", `wxFD_MULTIPLE`). iPad's
+  `MediaManagerSheet` now has an "Add…" toolbar button → multi-select `.fileImporter`; each picked
+  file is registered in place when already under the show/media folder, otherwise copied into the
+  show folder (type-canonical subdir, `_N`-suffixed on collision via `MoveToShowFolder`), then
+  registered via the new `addMedia(atPath:)` bridge (`src-iPad/Bridge/XLSequenceDocument.mm`
+  `addMediaAtPath:` → `SequenceMedia::ForceRefreshEntry`).
 
 ### P2
 
-- **Bulk find missing media** — iPad `MediaManagerSheet` toolbar has no Bulk Find
-  (`src-iPad/App/MediaManagerSheet.swift:141-159`); only the per-file primitive
-  `replaceMissingMediaAtPath` exists on the bridge (`src-iPad/Bridge/XLSequenceDocument.h:1985`).
-  *Work:* a "scan all + relink" pass over the sequence's media inventory. *Ease: medium.*
+- ✅ **Bulk find missing media** — **landed 2026-06-11.** iPad `MediaManagerSheet`'s overflow menu has
+  "Bulk Find Missing…" → folder `.fileImporter`; one security-scoped pass builds a lowercased-basename
+  index of the folder tree, then each missing inventory entry is relinked through the existing
+  `replaceMissingMedia` primitive (`src-iPad/App/MediaManagerSheet.swift` `bulkFindMissing(in:)`).
+  Reports "Relinked N, still missing M".
 
 - **Restore Backup dialog** — desktop `src-ui-wx/app-shell/RestoreBackupDialog.cpp` + menu wiring at
   `src-ui-wx/xLightsMain.cpp:1062` (`ID_FILE_RESTOREBACKUP`). Lets the user pick a dated backup and
   restore layouts/sequences. iPad has **no restore UI**. *Work:* a SwiftUI sheet enumerating an
   in-show `Backup/` directory + a bridge method to copy a chosen backup `.xsq` over the current one;
   the whole-folder restore is harder under the sandbox. *Ease: hard.*
-- **Revert To → Last Saved** — desktop builds the submenu at `src-ui-wx/xLightsMain.cpp:2182-2205`
-  (`revertToMenu`, "Last Saved" + backup-version list). iPad has nothing. The "Last Saved" case is a
-  simple close-without-saving-then-reopen-from-disk; this is the cheapest win. *Work:* add
-  `viewModel.revertToLastSaved()` that re-runs `openSequence(path:)` on the current path after a
-  discard-confirm. *Ease: medium.*
-- **Media Relocation parity going the OTHER way is fine** (iPad-only), but **Cleanup File Locations**
-  (`src-ui-wx/xLightsMain.cpp:6461`, `ID_MNU_CLEANUPFILE`) has no iPad analogue. Mostly moot because
-  iPad's `MediaRelocation` enforces the under-show-folder invariant at pick time, but a one-shot
-  "scan + relocate stragglers" could still help imported `.xsqz` shows. *P3, hard.*
+- ✅ **Revert To → Last Saved** — **landed 2026-06-11.** File menu item
+  (`src-iPad/App/XLightsCommands.swift:55`), confirmation dialog
+  (`src-iPad/App/SequencerView.swift:204`), `revertRequestToken` counter + `revertToLastSaved()`
+  (`src-iPad/App/SequencerViewModel.swift:722,1719`). Matches desktop
+  `src-ui-wx/xLightsMain.cpp:2182-2205` "Last Saved" case.
+- ✅ **Cleanup File Locations** — **landed 2026-06-11** (tracked in theme 13). Tools → Cleanup File
+  Locations sweeps every referenced external media file living outside the show/media folders into
+  the show folder and rewrites effect references. See `plans/ipad-parity/13-tools-diagnostics-help.md`.
+  (Media-Relocation-on-pick parity going the OTHER way remains an iPad-only idiom.)
 
 ### P3
 
@@ -133,12 +137,11 @@
   punts both to post-open (Settings sheet). Low value — the post-open paths exist. *Medium.*
 - **Quick-start importers** (LOR/Vixen/GLD/HLS/Lynx/xLights) — desktop wizard buttons that seed a new
   show's models/controllers from another tool's file. None on iPad. *Hard.*
-- **Sequence Settings Info-tab fields** absent on iPad: **Render Mode** (`RenderModeChoice`),
-  **Hash/Checksum** (`TextCtrl_Hash`), **Pre/Post-milliseconds** (`TextCtrl_Premilliseconds` /
-  `_Postmilliseconds`), **Overwrite Tags** checkbox, and **editable Duration override**
-  (`TextCtrl_Xml_Seq_Duration`). All are single-bridge-getter/setter additions to `XLSequenceDocument`
-  plus a row in `InfoTab`. Hash + Overwrite Tags + editable Duration are *easy*; Render Mode + Pre/Post
-  are *medium* (need re-render semantics). All P3.
+- **Sequence Settings Info-tab fields**: ~~Hash, Overwrite Tags, editable Duration~~ **landed
+  2026-06-11** (bridge `mediaFileHash` / `setSequenceDurationMS` + Info-tab rows + audio-swap
+  tag overwrite toggle). Still absent: **Render Mode** (`RenderModeChoice`) and
+  **Pre/Post-milliseconds** (`TextCtrl_Premilliseconds` / `_Postmilliseconds`) — both *medium*
+  (need re-render semantics). P3.
 - **Data Layers tab** — desktop `Panel_DataLayers` tree importer. iPad absent. *Hard, P3.*
 - **Default Model Blending for new sequences** preference (`ModelBlendDefaultChoice`). iPad only sets
   blending per-sequence in the Render tab. *Easy, P3.*
@@ -155,9 +158,11 @@
 - **Media preview (still + animated)** — iPad shows a static `MediaThumbnailView` with no animation
   (`src-iPad/App/MediaManagerSheet.swift:503-518`; bridge `ensureThumbnailPreviewForPath`,
   `src-iPad/Bridge/XLSequenceDocument.h:2055`). Desktop previews animate. *Medium.*
-- **Reload media from disk** — iPad's `MediaManagerSheet` swipe actions have no Reload
-  (`src-iPad/App/MediaManagerSheet.swift:461-500`); `ReloadMedia` is internal-only on the bridge
-  (`src-iPad/Bridge/XLSequenceDocument.mm:10890,10904`). *Easy.*
+- ✅ **Reload media from disk** — **landed 2026-06-11.** External rows in `MediaManagerSheet` have a
+  "Reload from Disk" swipe action (`src-iPad/App/MediaManagerSheet.swift` `reloadFromDisk`) backed by
+  the now-exposed `reloadMedia(atPath:)` / `reloadAllMedia` bridge
+  (`src-iPad/Bridge/XLSequenceDocument.mm` `reloadMediaAtPath:`), which purges the cache entry so the
+  next render re-reads the on-disk file.
 
 ## Desktop gaps (iPad has, desktop missing)
 
@@ -191,12 +196,13 @@ These are iPad touch/cloud idioms with no desktop equivalent — most are *feasi
 
 ## Recommended sequencing
 
-1. **Revert To → Last Saved** (P2, medium) — highest-value, lowest-cost iPad gap. A discard-confirm +
-   `openSequence(path:)` re-run. Gives users a real "throw away my edits" escape hatch beyond undo.
+1. ✅ **Revert To → Last Saved** (P2, medium) — **landed 2026-06-11.** File menu "Revert to Last
+   Saved…" with a destructive confirmation dialog; bumps `revertRequestToken`; `revertToLastSaved()`
+   suppresses the `.xbkp` then closes and reopens from the canonical `.xsq`. Disabled when not dirty.
 2. **Auto-Save recovery prompt on desktop** (P2, easy) — port the iPad recovery alert so desktop users
    don't have to know about manually opening `.xbkp`. Core/`.xbkp` logic already shared.
-3. **Sequence Settings Info-tab quick fields** (P3, easy): Hash display, Overwrite-Tags toggle, and
-   editable Duration override — each is one bridge getter/setter + one `InfoTab` row.
+3. ~~**Sequence Settings Info-tab quick fields** (P3, easy)~~ — ✅ **done 2026-06-11** (Hash,
+   Overwrite-Tags, editable Duration).
 4. **In-show Backup + Restore Backup sheet** (P2, hard) — a sandbox-friendly snapshot of the active
    sequence into an in-show `Backup/` dir, with a SwiftUI restore picker. Substitutes for desktop's
    whole-folder backup/restore within iOS limits.
