@@ -258,6 +258,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     auto* config = GetXLightsConfig();
     int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
     CallAfter(&RowHeading::SetWidth, w);
+    _scrollTimer.Bind(wxEVT_TIMER, &RowHeading::OnScrollTimer, this);
 }
 
 RowHeading::~RowHeading()
@@ -314,6 +315,56 @@ void RowHeading::mouseLeave(wxMouseEvent& event)
     SetToolTip("");
 }
 
+void RowHeading::OnScrollTimer(wxTimerEvent&)
+{
+    if (!_rowDragging) {
+        _scrollTimer.Stop();
+        return;
+    }
+    MainSequencer* ms = static_cast<MainSequencer*>(GetParent());
+    int cur = mSequenceElements->GetFirstVisibleModelRow();
+    int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
+    int next = std::clamp(cur + _scrollDir, 0, std::max(0, maxRow));
+    if (next != cur) {
+        int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
+        ms->PanelEffectGrid->ScrollBy(scroll);
+        ms->UpdateEffectGridVerticalScrollBar();
+    }
+    ComputeRowDragTarget(_lastDragY);
+    Refresh(false);
+}
+
+void RowHeading::ComputeRowDragTarget(int cursorY)
+{
+    int view = mSequenceElements->GetCurrentView();
+    int visCount = (int)mSequenceElements->GetVisibleRowInformationSize();
+    int elemCount = (int)mSequenceElements->GetElementCount(view);
+
+    struct TopLevelBlock { int viewIdx; int blockStartY; int blockEndY; };
+    std::vector<TopLevelBlock> blocks;
+    for (int r = 0; r < visCount; ++r) {
+        auto* ri = mSequenceElements->GetVisibleRowInformation(r);
+        if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
+            int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+            if (idx < 0) continue;
+            if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
+            blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
+        }
+    }
+
+    _rowDragTargetBefore = elemCount;
+    _rowDragIndicatorY = visCount * DEFAULT_ROW_HEADING_HEIGHT;
+    for (const auto& b : blocks) {
+        if (cursorY < (b.blockStartY + b.blockEndY) / 2) {
+            _rowDragTargetBefore = b.viewIdx;
+            _rowDragIndicatorY = b.blockStartY;
+            break;
+        }
+        _rowDragTargetBefore = b.viewIdx + 1;
+        _rowDragIndicatorY = b.blockEndY;
+    }
+}
+
 void RowHeading::SetWidth(int w)
 {
     auto minSize = GetMinSize();
@@ -328,31 +379,20 @@ void RowHeading::mouseMove(wxMouseEvent& event)
 {
     if (_rowDragging) {
         int cursorY = std::max(0, event.GetY());
-        int view = mSequenceElements->GetCurrentView();
-        int visCount = (int)mSequenceElements->GetVisibleRowInformationSize();
-        int elemCount = (int)mSequenceElements->GetElementCount(view);
+        _lastDragY = cursorY;
+        ComputeRowDragTarget(cursorY);
 
-        struct TopLevelBlock { int viewIdx; int blockStartY; int blockEndY; };
-        std::vector<TopLevelBlock> blocks;
-        for (int r = 0; r < visCount; ++r) {
-            auto* ri = mSequenceElements->GetVisibleRowInformation(r);
-            if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
-                if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
-                int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
-                blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
-            }
-        }
-
-        _rowDragTargetBefore = elemCount;
-        _rowDragIndicatorY = visCount * DEFAULT_ROW_HEADING_HEIGHT;
-        for (const auto& b : blocks) {
-            if (cursorY < (b.blockStartY + b.blockEndY) / 2) {
-                _rowDragTargetBefore = b.viewIdx;
-                _rowDragIndicatorY = b.blockStartY;
-                break;
-            }
-            _rowDragTargetBefore = b.viewIdx + 1;
-            _rowDragIndicatorY = b.blockEndY;
+        int h = GetSize().GetHeight();
+        int zone = FromDIP(40);
+        if (cursorY < zone) {
+            _scrollDir = -1;
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
+        } else if (cursorY > h - zone) {
+            _scrollDir = 1;
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
+        } else {
+            _scrollDir = 0;
+            _scrollTimer.Stop();
         }
 
         static const wxCursor s_hand(wxCURSOR_HAND);
@@ -403,6 +443,8 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
             wxPostEvent(GetParent(), evt);
         }
 
+        _scrollTimer.Stop();
+        _scrollDir = 0;
         _rowDragSourceIdx = -1;
         _rowDragTargetBefore = -1;
         _rowDragIndicatorY = -1;
