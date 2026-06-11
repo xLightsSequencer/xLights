@@ -317,7 +317,7 @@ void RowHeading::mouseLeave(wxMouseEvent& event)
 
 void RowHeading::OnScrollTimer(wxTimerEvent&)
 {
-    MainSequencer* ms = (MainSequencer*)GetParent();
+    MainSequencer* ms = static_cast<MainSequencer*>(GetParent());
     int cur = mSequenceElements->GetFirstVisibleModelRow();
     int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
     int next = std::clamp(cur + _scrollDir, 0, std::max(0, maxRow));
@@ -353,6 +353,7 @@ void RowHeading::ComputeRowDragTarget(int cursorY)
         if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
             if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
             int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
+            if (idx < 0) continue;
             blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
         }
     }

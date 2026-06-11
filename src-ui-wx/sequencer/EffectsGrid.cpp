@@ -8043,7 +8043,7 @@ void EffectsGrid::ResetEffectMoveDragState() {
 
 void EffectsGrid::OnScrollTimer(wxTimerEvent&)
 {
-    MainSequencer* ms = (MainSequencer*)mParent;
+    MainSequencer* ms = static_cast<MainSequencer*>(mParent);
 
     if (mScrollDir != 0) {
         int cur = mSequenceElements->GetFirstVisibleModelRow();
@@ -8058,14 +8058,17 @@ void EffectsGrid::OnScrollTimer(wxTimerEvent&)
 
     if (mHScrollDir != 0) {
         wxScrollBar* hsb = ms->ScrollBarEffectsHorizontal;
-        int position = hsb->GetThumbPosition();
-        int limit = hsb->GetRange();
-        int step = std::max(1, hsb->GetThumbSize() / 10);
-        int next = std::clamp(position + mHScrollDir * step, 0, limit - 1);
-        if (next != position) {
-            hsb->SetThumbPosition(next);
-            wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
-            ms->HorizontalScrollChanged(eventScroll);
+        int thumbSize = hsb->GetThumbSize();
+        int maxPos = std::max(0, hsb->GetRange() - thumbSize);
+        if (maxPos > 0) {
+            int position = hsb->GetThumbPosition();
+            int step = std::max(1, thumbSize / 10);
+            int next = std::clamp(position + mHScrollDir * step, 0, maxPos);
+            if (next != position) {
+                hsb->SetThumbPosition(next);
+                wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+                ms->HorizontalScrollChanged(eventScroll);
+            }
         }
     }
 
