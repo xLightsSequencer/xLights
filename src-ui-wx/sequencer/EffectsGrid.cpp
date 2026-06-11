@@ -233,6 +233,7 @@ EffectsGrid::EffectsGrid(MainSequencer* parent, wxWindowID id, const wxPoint& po
     mSearchRow = -1;
 
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+    mScrollTimer.Bind(wxEVT_TIMER, &EffectsGrid::OnScrollTimer, this);
 
     SetDropTarget(new EffectDropTarget(this));
     playArgs = new EventPlayEffectArgs();
@@ -1778,7 +1779,10 @@ void EffectsGrid::mouseMoved(wxMouseEvent& event) {
             }
         }
         if (mEffectMoveDragThresholdExceeded) {
-            UpdateEffectMoveDragState(event.GetX(), event.GetY(), event.ControlDown());
+            mLastDragX = event.GetX();
+            mLastDragY = event.GetY();
+            mLastDragSnap = event.ControlDown();
+            UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap);
             Draw();
         }
     } else if (mDragging) {
@@ -8026,12 +8030,47 @@ void EffectsGrid::MoveAllSelectedEffects(int deltaMS, bool offset) const {
 }
 
 void EffectsGrid::ResetEffectMoveDragState() {
+    mScrollTimer.Stop();
+    mScrollDir = 0;
+    mHScrollDir = 0;
     mEffectMoveDragging = false;
     mEffectMoveDragThresholdExceeded = false;
     mEffectMoveDragGroup = false;
     mEffectMoveHasCollision = false;
     mEffectMoveSnapshots.clear();
     mEffectMoveAnchorEffect = nullptr;
+}
+
+void EffectsGrid::OnScrollTimer(wxTimerEvent&)
+{
+    MainSequencer* ms = (MainSequencer*)mParent;
+
+    if (mScrollDir != 0) {
+        int cur = mSequenceElements->GetFirstVisibleModelRow();
+        int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
+        int next = std::clamp(cur + mScrollDir, 0, std::max(0, maxRow));
+        if (next != cur) {
+            int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
+            ScrollBy(scroll);
+            ms->UpdateEffectGridVerticalScrollBar();
+        }
+    }
+
+    if (mHScrollDir != 0) {
+        wxScrollBar* hsb = ms->ScrollBarEffectsHorizontal;
+        int position = hsb->GetThumbPosition();
+        int limit = hsb->GetRange();
+        int step = std::max(1, hsb->GetThumbSize() / 10);
+        int next = std::clamp(position + mHScrollDir * step, 0, limit - 1);
+        if (next != position) {
+            hsb->SetThumbPosition(next);
+            wxCommandEvent eventScroll(EVT_HORIZ_SCROLL);
+            ms->HorizontalScrollChanged(eventScroll);
+        }
+    }
+
+    UpdateEffectMoveDragState(mLastDragX, mLastDragY, mLastDragSnap);
+    Draw();
 }
 
 int EffectsGrid::SnapCursorToTimingMark(int timeMS, int x) const {
@@ -8136,6 +8175,18 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming) {
     }
     mEffectMoveHasCollision = collision;
     SetCursor(collision ? s_noEntry : s_sizing);
+
+    wxSize sz = GetSize();
+    int zone = FromDIP(40);
+
+    mScrollDir = (y < zone) ? -1 : (y > sz.GetHeight() - zone) ? 1 : 0;
+    mHScrollDir = (x < zone) ? -1 : (x > sz.GetWidth() - zone) ? 1 : 0;
+
+    if (mScrollDir != 0 || mHScrollDir != 0) {
+        if (!mScrollTimer.IsRunning()) mScrollTimer.Start(150);
+    } else {
+        mScrollTimer.Stop();
+    }
 }
 
 void EffectsGrid::ApplyEffectMoveDrag() {
