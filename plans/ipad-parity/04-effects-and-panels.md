@@ -61,6 +61,7 @@
 | Transition fade time presets + manual | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad kFadePresets matches desktop Fadein/Fadeout. |
 | Transition Adjust disable rules | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad transitionAdjustDisabled (EffectPropertyView.swift:59) vs desktop kTransitionsNoAdjust ValidateWindow. |
 | Transition Reverse disable rules | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad transitionReverseDisabled (EffectPropertyView.swift:63) vs desktop kTransitionsNoReverse. |
+| Transition Blur slider (In/Out) | panel | ✅ | 🟡 | ipad-weaker | P2 | easy | feasible | Desktop #6523: `In/Out_Transition_Blur` sliders in shared Blending.json + core PixelBuffer render (shared — iPad renders blur correctly). iPad auto-renders the sliders via generic EffectMetadataPanel but lacks the per-transition enable gate (desktop `TRANSITIONS_WITH_BLUR`, BlendingPanel.cpp:82) — needs a transitionBlurDisabled rule beside transitionAdjust/ReverseDisabled in EffectPropertyView.swift. (Default transition-adjust=50 change, 356205b5d, is core PixelBuffer — auto-shared.) |
 | Buffer: Render style choice | panel | ✅ | ✅ | parity | P2 | easy | feasible | shared/Buffer.json. |
 | Buffer: Roto-Zoom sliders | panel | ✅ | ✅ | parity | P2 | easy | feasible | shared/Buffer.json, standard sliders + VC. |
 | Buffer: Roto-Zoom preset menu | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad RotoZoomPresetRowView (same reset values + VC shapes as BufferPanel::OnPresetSelect). |
@@ -79,7 +80,7 @@
 | Morph: swap start/end | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad MorphSwapRowView. |
 | Moving Head: fixture + color/dimmer rows | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad MovingHead{Fixture,Color,Dimmer}RowView: fixture select, pan/tilt/offset/groupings/cycles, single-color, dimmer intensity. |
 | Moving Head: path canvas (waypoint drawing) | panel | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop MovingHeadCanvasPanel.cpp draws Bezier waypoint paths; iPad MovingHeadPathRowView is **read + clear only** (MovingHeadFixtureRowView.swift:291, "Use desktop's Effect Assist to draw one"). |
-| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6473 (refined #4667): scrollable wrap-sizer panels of path/dimmer/rgb/color-wheel preset bitmap buttons (MovingHeadPanel + MH{Path,Dimmer,Rgb}PresetBitmapButton) + a color-wheel picker (MHColorWheelPanel) + RGB picker canvas (MHRgbPickerPanel). iPad MovingHead rows have single-color + intensity only (MovingHeadFixtureRowView.swift), no preset buttons / color-wheel / rgb-picker canvas. |
+| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6473 (refined #4667): scrollable wrap-sizer panels of path/dimmer/rgb/color-wheel preset bitmap buttons (MovingHeadPanel + MH{Path,Dimmer,Rgb}PresetBitmapButton) + a color-wheel picker (MHColorWheelPanel) + RGB picker canvas (MHRgbPickerPanel); f9df1b052 further flips the color wheel to match MH orientation + draws a double color selector (xlColorCanvas.cpp). iPad MovingHead rows have single-color + intensity only (MovingHeadFixtureRowView.swift), no preset buttons / color-wheel / rgb-picker canvas. |
 | Effect Wheel (radial keybinding quick-drop) | gesture | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6486: double-click empty non-timing cell → EffectWheelDialog drops 1 of ≤18 sequence-scoped EFFECT keybindings via EffectsGrid::DropEffectAt (skips timing rows, #6491). Depends on the user keybinding system iPad lacks (see 02-sequencer-grid-editing.md, 11-preferences-settings.md). iPad places effects via palette-tap-then-tap-cell (EffectPaletteView.swift:32 → addEffectFromPaletteTap) — same outcome, no radial launcher. |
 | Piano: note/octave + labels | panel | ✅ | ✅ | parity | P2 | easy | feasible | Piano.json standard controls. |
 | Pictures: filename block + transparent-black | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad EffectFilenameBlockView + TransparentBlackRowView. |
@@ -122,6 +123,14 @@
   Medium. Highest-value iPad authoring gap in this theme.
 
 ### P2
+- **Transition Blur enable gate.** Desktop #6523 added In/Out Transition Blur
+  (shared Blending.json sliders + core PixelBuffer render — the *rendering* is
+  already shared and correct on iPad, and the sliders auto-appear via the
+  generic metadata panel). The only iPad delta: desktop greys the slider out
+  for transitions that ignore blur (`TRANSITIONS_WITH_BLUR`,
+  BlendingPanel.cpp:82); iPad needs a matching `transitionBlurDisabled(isIn:)`
+  rule in `EffectPropertyView.swift` beside the existing adjust/reverse gates.
+  Easy.
 - **Moving Head waypoint path canvas.** Desktop `MovingHeadCanvasPanel.cpp`
   draws Bezier pan/tilt paths; iPad `MovingHeadPathRowView` is read+clear only.
   **Work:** a new touch path canvas writing the same `Path=` command the bridge

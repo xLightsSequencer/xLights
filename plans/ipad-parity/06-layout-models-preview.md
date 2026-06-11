@@ -52,7 +52,7 @@
 | Per-type property grid (all model types) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad descriptor pane mirrors desktop adapters per type. |
 | Model tag color | panel | ✅ | ✅ | parity | P2 | easy | feasible | tagColorPicker. |
 | Model active/inactive | panel | ✅ | ✅ | parity | P1 | easy | feasible | boolBinding "active". |
-| Model controller-port connection | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad controllerConnectionFields (port/protocol/smart-remote gated by caps). |
+| Model controller-port connection | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad controllerConnectionFields (port/protocol/smart-remote gated by caps). #6518 restored port management for from-base models in core ModelManager.cpp — shared, auto-applies to iPad. |
 | Model start channel picker | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad StartChannelEditorSheet. |
 | Individual start channels per string | panel | ✅ | ✅ | parity | P3 | medium | feasible | iPad hasIndividualStartChannels toggle + per-string individualStartChannel fields (LayoutEditorView.swift:3973-3990). |
 | Node Layout (node-grid visualization) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop ShowNodeLayout/NodeSelectGrid (LayoutPanel.cpp:6156). iPad has no node-grid view. |

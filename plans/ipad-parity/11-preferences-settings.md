@@ -5,7 +5,9 @@
 > pages — Backup, View, Effects Grid, Sequences, Output, Check Sequence,
 > Random Effects, Colors, Other, and Services (when `ENABLE_SERVICES`) — totaling
 > ~80 individual settings. The iPad app deliberately has **no single Preferences
-> screen**; it scatters the equivalents into context sheets: `FolderConfigView`
+> screen** (a centralized dialog was **declined 2026-06-11 — won't build**;
+> context sheets are the intended iPad model, and only the per-setting gaps
+> remain backlog); it scatters the equivalents into context sheets: `FolderConfigView`
 > (folders + app-wide render/cache/FSEQ — the de-facto "settings" entry, reached
 > via the folder.badge.gearshape button), `SequenceSettingsSheet` (metadata,
 > audio, render-cache/auto-save, timings), `AIServicesSettingsSheet`, and
@@ -27,7 +29,7 @@
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Centralized Preferences dialog | menu | ✅ | ❌ | desktop-missing* | P2 | hard | feasible | Desktop `xLightsPreferences.cpp:86`, Cmd+,. iPad splits into context sheets by design; *gap is "no single entry point", not the settings themselves. |
+| Centralized Preferences dialog | menu | ✅ | ❌ | desktop-missing* | P3 | hard | declined | Desktop `xLightsPreferences.cpp:86`, Cmd+,. **Declined 2026-06-11 — won't build**: context sheets are the intended iPad settings model. The *individual settings* gaps below remain backlog; only the single-entry-point goal is dropped. |
 | Backup On Save | preference | ✅ | ❌ | desktop-missing | P2 | medium | feasible | `BackupSettingsPanel.cpp:54`. No iPad backup-strategy UI; iPad relies on autosave + iCloud/Files versioning. |
 | Backup On Launch | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `BackupSettingsPanel.cpp:57`. |
 | Backup Subfolders | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `BackupSettingsPanel.cpp:60`. |

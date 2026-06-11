@@ -15,7 +15,9 @@
 > **Copy To Master** and **Import view config from another sequence**.
 > **Jukebox is 100% desktop-only** — no iPad UI, bridge, or VM (core
 > `JukeboxButtonData` exists and is loaded/saved with the sequence, so
-> the data round-trips, but nothing on iPad surfaces it). **AUI
+> the data round-trips, but nothing on iPad surfaces it); **declined
+> 2026-06-11 — won't build on iPad** (low touch value; data continues to
+> round-trip safely). **AUI
 > perspectives are architecturally infeasible** on the fixed SwiftUI
 > layout; iPad instead has its own detach-to-window scene system that
 > desktop covers via AUI float/dock. The desktop **AUI toolbar set**
@@ -48,10 +50,10 @@
 | **Animated preset preview GIF** | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `GenerateGifImage`/`TimerGif` renders + animates a GIF of the selected preset. iPad would need Metal-render→thumbnail pipeline. Polish. |
 | Preset name-collision validation | dialog | ✅ | 🟡 | ipad-missing | P2 | easy | feasible | Desktop `NameCollissionInGroup` pre-check; core `EffectPresetManager` de-dups silently on add. iPad has no client-side pre-check (relies on core fix-up). |
 | **Presets: "From Base" section (base show folder)** | panel | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop #6450: `EffectTreeDialog` loads the base-folder `xlights_effectpresets.json` into `_basePresetManager`, shows a bold "From Base" root (`IsInBaseSection`), and prompts save-back via `PromptAndSaveBasePresets`. iPad has base-folder infra (`FolderConfigView.swift:245`, `baseShowDirectory()`) + `PresetBrowserSheet` but no base-presets bridge/section. Needs a `basePresets`-style bridge method + a sectioned list. |
-| **Jukebox: button grid (50 buttons)** | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `media/JukeboxPanel.cpp`. Core `JukeboxButtonData` round-trips in the .xsq but **no iPad UI/bridge/VM at all**. |
-| **Jukebox: link button to effect** | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `LinkJukeboxButtonDialog.cpp`. No iPad counterpart. |
-| **Jukebox: play button (trigger effect)** | gesture | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop click/`JUKEBOX_BTN_1..` keybindings fire `EVT_PLAYJUKEBOXITEM`. No iPad path. |
-| **Jukebox: toggle panel visibility** | menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop View>Windows>Jukebox (`ID_MNU_JUKEBOX`) + `JUKEBOX_TOGGLE` (F8). Blocked until iPad jukebox exists. |
+| **Jukebox: button grid (50 buttons)** | panel | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop `media/JukeboxPanel.cpp`. Core `JukeboxButtonData` round-trips in the .xsq but **no iPad UI/bridge/VM at all**. |
+| **Jukebox: link button to effect** | dialog | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop `LinkJukeboxButtonDialog.cpp`. No iPad counterpart. |
+| **Jukebox: play button (trigger effect)** | gesture | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop click/`JUKEBOX_BTN_1..` keybindings fire `EVT_PLAYJUKEBOXITEM`. No iPad path. |
+| **Jukebox: toggle panel visibility** | menu | ✅ | ❌ | ipad-missing | P3 | easy | declined | Desktop View>Windows>Jukebox (`ID_MNU_JUKEBOX`) + `JUKEBOX_TOGGLE` (F8). Blocked until iPad jukebox exists. |
 | Views: create view | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `OnButton_AddViewClick`; iPad `addView(named:)` + alert. |
 | Views: rename view | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `OnButtonRenameClick`; iPad `renameView(atIndex:to:)`. Master immobile both. |
 | Views: clone view | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `OnButtonCloneClick`; iPad `cloneView(atIndex:as:)` (default "Copy Of X"). |
@@ -96,7 +98,7 @@
 | View: edit display elements | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop View>Windows>Display Elements; iPad "Edit Display Elements…" (⌘⇧D) → `DisplayElementsSheet`. |
 | View: zoom in / out | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop ⌘+/⌘−; iPad ⌘=/⌘− via `XLZoomCommands`. |
 | View: zoom presets / fit | menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop 19-step ladder; iPad "Zoom To…" 8 geometric stops. |
-| **AC Lights toolbar toggle** | menu | ✅ | ❌ | desktop-only | P2 | hard | feasible | Desktop View>AC Lights Toolbar (`MNU_ID_ACLIGHTS`) shows/hides the AC toolbar. iPad has no AC editing surface. |
+| **AC Lights toolbar toggle** | menu | ✅ | ❌ | desktop-only | P3 | hard | feasible | Desktop View>AC Lights Toolbar (`MNU_ID_ACLIGHTS`) shows/hides the AC toolbar. iPad has no AC editing surface. AC cluster deferred 2026-06-11 (see theme 02). |
 | **Show AC Ramps** | menu | ✅ | ❌ | desktop-only | P3 | hard | feasible | Desktop `ID_MNU_SHOWRAMPS` renders AC ramps. No iPad AC. |
 | **AC editing toolbar (Off/On/Shimmer/Twinkle/Intensity/Ramp/Fill/Cascade)** | toolbar | ✅ | ❌ | desktop-only | P3 | hard | feasible | Desktop `ID_AUITOOLBAR_AC` mode buttons. No iPad AC sequencing surface. |
 | **Perspectives: save current** | menu | ✅ | ❌ | desktop-only | P3 | hard | infeasible | Desktop `ID_MENUITEM_SAVE_PERSPECTIVE` saves AUI dock layout. iPad layout is fixed SwiftUI — no dockable panes. |
@@ -185,11 +187,11 @@
 - **Animated preset preview GIF** — desktop `GenerateGifImage` /
   `TimerGif`. iPad would need a Metal-render→thumbnail pipeline
   (see MEMORY: `project_media_preview_generation`). *Ease: hard.*
-- **Jukebox (whole subsystem)** — `media/JukeboxPanel.cpp` +
-  `LinkJukeboxButtonDialog.cpp`; core `JukeboxButtonData` already
-  round-trips through the .xsq, so data survives an iPad edit. *Work:*
-  a `JukeboxSheet` SwiftUI grid + bridge wrappers over the existing
-  `JukeboxButtonMap` (get/set/play). *Ease: hard*, low value on touch.
+- **Jukebox (whole subsystem)** — **DECLINED (won't-do, 2026-06-11).**
+  `media/JukeboxPanel.cpp` + `LinkJukeboxButtonDialog.cpp`; core
+  `JukeboxButtonData` already round-trips through the .xsq, so data
+  survives an iPad edit — that round-trip guarantee is the only
+  obligation going forward. No iPad UI will be built.
 - **Display Elements: Copy To Master** — desktop `DoMakeMaster`
   copies a user view's ordered element list into Master. *Work:* bridge
   `copyViewToMaster:` + a button in `DisplayElementsSheet` user-view
@@ -246,8 +248,11 @@ exists on both.)
   there's no layout to reset (effectively infeasible / N/A).
 - **AC editing (AC Lights toolbar, Show AC Ramps, AC mode toolbar)** —
   desktop-only sequencing surface; iPad has no AC editing mode, so the
-  toggles have nothing to act on. Feasible to build but out of MVP
-  scope for now.
+  toggles have nothing to act on. **AC is deferred (P3) by decision
+  2026-06-11** — see theme 02's Deferred section.
+- **Jukebox — declined (won't-do, 2026-06-11).** Not a platform limit;
+  a deliberate scope decision. Core `JukeboxButtonData` must keep
+  round-tripping through `.xsq` load/save on iPad (it does today).
 - No controller-firmware items fall in this theme (jukebox/views/
   presets/perspectives are sequence-local), so the closed-firmware
   IAP restriction does not apply here.
@@ -268,6 +273,6 @@ exists on both.)
    add a loop-range op + menu/toolbar entry.
 6. **Display Elements Copy-To-Master + Import view config** (P3) —
    round out `ViewsModelsPanel` parity once the higher-value items land.
-7. **Jukebox** and **animated preset GIF preview** (P3, hard) — defer;
-   low touch-value / heavy pipeline work. Perspectives and AC stay
-   desktop-only.
+7. **Animated preset GIF preview** (P3, hard) — defer; heavy pipeline
+   work. **Jukebox is declined (won't-do)**; Perspectives and AC stay
+   desktop-only (AC deferred per theme 02).

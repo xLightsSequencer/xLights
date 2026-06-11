@@ -41,8 +41,12 @@ theme docs.
     does it worse) → candidates to pull back into desktop.
   - **parity** — both platforms have it.
 - Priority **P1/P2/P3**; Ease **easy/medium/hard**; Feasibility
-  **feasible / hard / infeasible / restricted** (restricted = closed-firmware
-  controller config/upload, IAP-gated, deliberately low priority).
+  **feasible / hard / infeasible / restricted / declined** (restricted =
+  closed-firmware controller config/upload, IAP-gated, deliberately low
+  priority; declined = feasible but deliberately won't-build — a scope
+  decision, e.g. Jukebox on iPad, the centralized Preferences dialog).
+- The **AC toolbar cluster** (theme 02) is **deferred** (P3, decision
+  2026-06-11) — revisit touch-first only on user demand.
 
 ## Deep-dialog surfaces still to enumerate
 

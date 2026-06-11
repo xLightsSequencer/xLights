@@ -40,6 +40,7 @@
 | "Generate Lyrics From Data" (Papagayo phoneme→channel) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Tools→Generate &Lyrics From Data (`GenerateLyricsDialog`) maps phonemes to coro-face DMX channels from typed text. **Not AI.** No iPad equivalent. |
 | Generate 2D Path from image | menu | ✅ | ❌ | ipad-missing | P3 | hard | hard | Desktop Tools→Generate 2D Path (`PathGenerationDialog`): interactive image-tracing canvas. iPad lacks the wx canvas infra; would need a bespoke Metal/SwiftUI tracer. |
 | Lua script execution | menu/dialog | ✅ | ❌ | ipad-missing | P2 | hard | infeasible | Desktop Tools→Run Scripts (`ScriptsDialog` + `LuaRunner`). iOS/App Store forbids runtime code execution. |
+| Lua/REST batch sequence importing (#6511) | other | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | Desktop #6511: `importSequence` automation command (`LuaRunner.cpp`, `xLightsAutomations.cpp`, sample `resources/scripts/BatchImportSequences.lua`) scripting `xLightsImportChannelMapDialog` mappings. Doubly blocked on iPad (code exec + no HTTP listener). iPad's interactive `ImportEffectsView` remains the manual path. |
 | Python script execution | menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | Desktop conditional (`PYTHON_RUNNER`, pybind11). No interpreter allowed on iOS. |
 | Scripts Dialog (browse/download/run/log) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | infeasible | Enumerates show `scripts/`, downloads from repos, runs with log capture. Sandbox + code-exec policy block it. |
 | REST/HTTP automation server | other | ✅ | ❌ | ipad-missing | P1 | hard | infeasible | `xLightsAutomations.cpp` (`ProcessHttpRequest`, `StartAutomationListener`); 75-command dispatch. iOS app-sandbox blocks listening-socket servers. |
@@ -83,7 +84,7 @@
 ## Infeasible / restricted on iPad
 
 - **REST/HTTP automation server + all 75 endpoints** — `xLightsAutomations.cpp` binds a listening socket (`StartAutomationListener`). The iOS app sandbox prohibits background server sockets; no Background Modes entitlement covers an arbitrary REST listener. *Infeasible.*
-- **Lua / Python script execution + Scripts Dialog** — App Store Guideline 2.5.2 forbids downloading and executing code (Lua VM, Python interpreter). The `runScript` REST endpoint is doubly blocked. *Infeasible.*
+- **Lua / Python script execution + Scripts Dialog** — App Store Guideline 2.5.2 forbids downloading and executing code (Lua VM, Python interpreter). The `runScript` REST endpoint is doubly blocked, as is the #6511 Lua/REST `importSequence` batch-import command. *Infeasible.*
 - **AI plugin loading (dylib)** — `ServiceManager::loadPlugins` `dlopen`s `AIPlugin*.dylib`; iPad deliberately passes an empty `pluginDir` (`XLAIServices.mm`). Loading external executable code is prohibited. *Infeasible.*
 - **Command-line / `xlDo` automation** — No CLI/argv automation surface on iOS. *Infeasible.*
 - **OpenVINO local AI service** — Compiled only with `HAVE_OPENVINO_GENAI` (Windows/Intel). Not built for macOS-arm or iOS; no OpenVINO GenAI runtime on iOS. *Infeasible* (and also absent on macOS-arm desktop).
