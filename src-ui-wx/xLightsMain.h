@@ -1465,6 +1465,7 @@ public:
     ControllerCaps* GetControllerCaps(const std::string& name);
     bool UploadInputToController(Controller* controller, wxString& message);
     bool UploadOutputToController(Controller* controller, wxString& message);
+    static std::string FormatTimestamp();
     int GetFirstSelectedControllerIndex() const;
     std::list<std::string> GetSelectedControllerNames() const;
     void OnListControllerPopup(wxCommandEvent& event);

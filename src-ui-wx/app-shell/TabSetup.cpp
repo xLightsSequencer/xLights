@@ -23,6 +23,8 @@
 #include <wx/thread.h>
 
 #include <thread>
+#include <chrono>
+#include <format>
 
 #include "xLightsMain.h"
 #include "xLightsApp.h"
@@ -2754,6 +2756,15 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_ARROW);
 }
 
+std::string xLightsFrame::FormatTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto local = std::chrono::zoned_time{
+        std::chrono::current_zone(),
+        std::chrono::floor<std::chrono::seconds>(now)
+    };
+    return std::format("{:%Y-%m-%d %H:%M:%S}", local);
+}
+
 bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
     message.clear();
     bool res = false;
@@ -2788,13 +2799,12 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
-                        time_t now = time(nullptr);
-                        struct tm* ltm = localtime(&now);
-                        char buf[64];
-                        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
-                        controller->SetExtraProperty("LastInputUpload", buf);
-                        wxPGProperty* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload");
-                        if (prop) prop->SetValue(buf);
+                        {
+                            auto ts = xLightsFrame::FormatTimestamp();
+                            controller->SetExtraProperty("LastInputUpload", ts);
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload"))
+                                prop->SetValue(ts);
+                        }
                     }
                     else {
                         spdlog::error("Attempt to upload controller inputs failed on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2860,13 +2870,12 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;
-                        time_t now = time(nullptr);
-                        struct tm* ltm = localtime(&now);
-                        char buf[64];
-                        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
-                        controller->SetExtraProperty("LastOutputUpload", buf);
-                        wxPGProperty* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
-                        if (prop) prop->SetValue(buf);
+                        {
+                            auto ts = xLightsFrame::FormatTimestamp();
+                            controller->SetExtraProperty("LastOutputUpload", ts);
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload"))
+                                prop->SetValue(ts);
+                        }
                     } else {
                         message = vendor + " Output Upload Failed.";
                     }
