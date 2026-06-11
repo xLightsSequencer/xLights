@@ -258,7 +258,7 @@ RowHeading::RowHeading(MainSequencer* parent, wxWindowID id, const wxPoint &pos,
     auto* config = GetXLightsConfig();
     int w = config->ReadLong("xLightsRowHeaderWidth", _minRowHeadingWidth);
     CallAfter(&RowHeading::SetWidth, w);
-    mScrollTimer.Bind(wxEVT_TIMER, &RowHeading::OnScrollTimer, this);
+    _scrollTimer.Bind(wxEVT_TIMER, &RowHeading::OnScrollTimer, this);
 }
 
 RowHeading::~RowHeading()
@@ -317,6 +317,10 @@ void RowHeading::mouseLeave(wxMouseEvent& event)
 
 void RowHeading::OnScrollTimer(wxTimerEvent&)
 {
+    if (!_rowDragging) {
+        _scrollTimer.Stop();
+        return;
+    }
     MainSequencer* ms = static_cast<MainSequencer*>(GetParent());
     int cur = mSequenceElements->GetFirstVisibleModelRow();
     int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
@@ -351,9 +355,9 @@ void RowHeading::ComputeRowDragTarget(int cursorY)
     for (int r = 0; r < visCount; ++r) {
         auto* ri = mSequenceElements->GetVisibleRowInformation(r);
         if (ri && ri->layerIndex == 0 && ri->strandIndex < 0 && ri->nodeIndex < 0 && !ri->submodel) {
-            if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
             int idx = mSequenceElements->GetElementIndex(ri->element->GetFullName(), view);
             if (idx < 0) continue;
+            if (!blocks.empty()) blocks.back().blockEndY = r * DEFAULT_ROW_HEADING_HEIGHT;
             blocks.push_back({idx, r * DEFAULT_ROW_HEADING_HEIGHT, visCount * DEFAULT_ROW_HEADING_HEIGHT});
         }
     }
@@ -382,13 +386,13 @@ void RowHeading::mouseMove(wxMouseEvent& event)
         int zone = FromDIP(40);
         if (cursorY < zone) {
             _scrollDir = -1;
-            if (!mScrollTimer.IsRunning()) mScrollTimer.Start(150);
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
         } else if (cursorY > h - zone) {
             _scrollDir = 1;
-            if (!mScrollTimer.IsRunning()) mScrollTimer.Start(150);
+            if (!_scrollTimer.IsRunning()) _scrollTimer.Start(150);
         } else {
             _scrollDir = 0;
-            mScrollTimer.Stop();
+            _scrollTimer.Stop();
         }
 
         static const wxCursor s_hand(wxCURSOR_HAND);
@@ -439,7 +443,7 @@ void RowHeading::mouseLeftUp(wxMouseEvent& event)
             wxPostEvent(GetParent(), evt);
         }
 
-        mScrollTimer.Stop();
+        _scrollTimer.Stop();
         _scrollDir = 0;
         _rowDragSourceIdx = -1;
         _rowDragTargetBefore = -1;
