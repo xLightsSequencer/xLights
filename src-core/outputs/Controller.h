@@ -191,7 +191,7 @@ public:
         }
         return def;
     }
-    void SetExtraProperty(const std::string &p, const std::string &v) { _extraProperties[p] = v;}
+    void SetExtraProperty(const std::string &p, const std::string &v) { if (_extraProperties[p] != v) { _extraProperties[p] = v; _dirty = true; } }
     #pragma endregion
 
     #pragma region Virtual Functions
