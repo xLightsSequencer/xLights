@@ -2756,18 +2756,20 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
     SetCursor(wxCURSOR_ARROW);
 }
 
-std::string xLightsFrame::FormatTimestamp() {
-    auto now = std::chrono::system_clock::now();
-    auto tt = std::chrono::system_clock::to_time_t(now);
-    std::tm tm{};
+namespace {
+    std::string FormatTimestamp() {
+        auto now = std::chrono::system_clock::now();
+        auto tt = std::chrono::system_clock::to_time_t(now);
+        std::tm tm{};
 #ifdef _WIN32
-    localtime_s(&tm, &tt);
+        localtime_s(&tm, &tt);
 #else
-    localtime_r(&tt, &tm);
+        localtime_r(&tt, &tm);
 #endif
-    char buf[64];
-    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-    return buf;
+        char buf[64];
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+        return buf;
+    }
 }
 
 bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
@@ -2805,10 +2807,11 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         message = vendor + " Input Upload complete.";
                         res = true;
                         {
-                            auto ts = xLightsFrame::FormatTimestamp();
+                            auto ts = FormatTimestamp();
                             controller->SetExtraProperty("LastInputUpload", ts);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload"))
-                                prop->SetValue(ts);
+                                prop->SetValue(wxString(ts));
+                            NetworkChange();
                         }
                     }
                     else {
@@ -2876,10 +2879,11 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         message = vendor + " Output Upload Complete.";
                         res = true;
                         {
-                            auto ts = xLightsFrame::FormatTimestamp();
+                            auto ts = FormatTimestamp();
                             controller->SetExtraProperty("LastOutputUpload", ts);
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload"))
-                                prop->SetValue(ts);
+                                prop->SetValue(wxString(ts));
+                            NetworkChange();
                         }
                     } else {
                         message = vendor + " Output Upload Failed.";
