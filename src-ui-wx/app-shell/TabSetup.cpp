@@ -2050,6 +2050,24 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
             }
 
+            {
+                wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", controller->GetExtraProperty("LastInputUpload", "Never")));
+                    p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                }
+                p->SetValue(controller->GetExtraProperty("LastInputUpload", "Never"));
+
+                p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", controller->GetExtraProperty("LastOutputUpload", "Never")));
+                    p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                }
+                p->SetValue(controller->GetExtraProperty("LastOutputUpload", "Never"));
+            }
+
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
                 auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
@@ -2770,6 +2788,13 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
+                        time_t now = time(nullptr);
+                        struct tm* ltm = localtime(&now);
+                        char buf[64];
+                        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
+                        controller->SetExtraProperty("LastInputUpload", buf);
+                        wxPGProperty* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload");
+                        if (prop) prop->SetValue(buf);
                     }
                     else {
                         spdlog::error("Attempt to upload controller inputs failed on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2835,6 +2860,13 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;
+                        time_t now = time(nullptr);
+                        struct tm* ltm = localtime(&now);
+                        char buf[64];
+                        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
+                        controller->SetExtraProperty("LastOutputUpload", buf);
+                        wxPGProperty* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
+                        if (prop) prop->SetValue(buf);
                     } else {
                         message = vendor + " Output Upload Failed.";
                     }
