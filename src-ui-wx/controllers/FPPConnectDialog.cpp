@@ -40,8 +40,6 @@
 #include "controllers/Experience.h"
 #include "controllers/PowerDMX.h"
 #include <algorithm>
-#include <chrono>
-#include <ctime>
 
 //(*IdInit(FPPConnectDialog)
 const wxWindowID FPPConnectDialog::ID_SCROLLEDWINDOW1 = wxNewId();
@@ -1136,20 +1134,6 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
     FPP::CreateVirtualDisplayMap(frame->AllModels, frame->AllObjects, pw, ph, virtualDisplayData);
     bool cancelled = false;
 
-    auto FormatTimestamp = []() -> std::string {
-        auto now = std::chrono::system_clock::now();
-        auto tt = std::chrono::system_clock::to_time_t(now);
-        std::tm tm{};
-#ifdef _WIN32
-        localtime_s(&tm, &tt);
-#else
-        localtime_r(&tt, &tm);
-#endif
-        char buf[64];
-        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-        return buf;
-    };
-
     int row = 0;
     for (const auto& inst : instances) {
         std::string rowStr = std::to_string(row);
@@ -1184,18 +1168,17 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                     inst->SetRestartFlag();
                 }
                 if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
-                    //auto vendor = FPP::GetVendor(inst->pixelControllerType);
-                    //auto model = FPP::GetModel(inst->pixelControllerType);
-                    //auto caps = ControllerCaps::GetControllerConfig(vendor, model, "");
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        cancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
-                        cancelled |= inst->SetInputUniversesBridge(c.front());
+                        bool controllerFailed = false;
+                        controllerFailed |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerFailed |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerFailed |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerFailed |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerFailed |= inst->SetInputUniversesBridge(c.front());
+                        cancelled |= controllerFailed;
 
-                        if (!cancelled) {
+                        if (!controllerFailed) {
                             auto ts = FormatTimestamp();
                             c.front()->SetExtraProperty("LastInputUpload", ts);
                             c.front()->SetExtraProperty("LastOutputUpload", ts);

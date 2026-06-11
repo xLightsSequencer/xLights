@@ -14,6 +14,7 @@
 #include "string_utils.h"
 
 #include <chrono>
+#include <ctime>
 #include <spdlog/fmt/fmt.h>
 #include <string>
 #include <algorithm>
@@ -40,6 +41,20 @@ inline std::string FormatTimeHMS(uint32_t ms) {
 inline int64_t GetCurrentTimeMillis() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+
+inline std::string FormatTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &tt);
+#else
+    localtime_r(&tt, &tm);
+#endif
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    return buf;
 }
 
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
