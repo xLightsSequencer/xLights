@@ -59,6 +59,7 @@ private:
 
     wxTextCtrl* _searchCtrl = nullptr;
     CommandPaletteListBox* _listBox = nullptr;
+    EffectManager* _effectManager = nullptr;
 
     std::vector<CommandEntry> _allCommands;
     std::vector<size_t> _filteredIndices;
