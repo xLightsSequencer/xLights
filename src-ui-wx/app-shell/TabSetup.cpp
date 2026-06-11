@@ -24,7 +24,7 @@
 
 #include <thread>
 #include <chrono>
-#include <format>
+#include <ctime>
 
 #include "xLightsMain.h"
 #include "xLightsApp.h"
@@ -2758,11 +2758,12 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 
 std::string xLightsFrame::FormatTimestamp() {
     auto now = std::chrono::system_clock::now();
-    auto local = std::chrono::zoned_time{
-        std::chrono::current_zone(),
-        std::chrono::floor<std::chrono::seconds>(now)
-    };
-    return std::format("{:%Y-%m-%d %H:%M:%S}", local);
+    auto tt = std::chrono::system_clock::to_time_t(now);
+    std::tm tm;
+    localtime_r(&tt, &tm);
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    return buf;
 }
 
 bool xLightsFrame::UploadInputToController(Controller* controller, wxString &message) {
