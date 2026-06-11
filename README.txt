@@ -57,6 +57,13 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (cybercop23)            Fix closing the Faces/States editor to prompt for confirmation (#6470)
     -bug (derwin12)              Dont mark layout dirty by importing a sequence via batch render
     -bug (derwin12)              Fix creation of some new native models in 3d were limited in width and location (#6526)
+    -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
+    -enh (derwin12)              Add a Blur option to effect transitions (#816)
+    -enh (agfazio)               Multi-model import now keeps the models' relative positions (#6438)
+    -enh (derwin12)              "Collapse Layers" now also collapses Timing Tracks (#6462)
+    -enh (derwin12)              Sequencer: Shift+double-click a model row to expand/collapse its strands (#2411)
+    -enh (alex)                  Paste selected effects positioned at their original times (#5064)
+    -enh (alex)                  Add an Edit Display Elements panel on the Layout tab, like the sequencer's (#6471)
     -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video
                                  effects are loaded (#6449)
     -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
@@ -68,6 +75,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  not the current sequence.
     -bug (derwin12)              Warn user if attempting to upload channels too large for F16V3 ddp + serial mode (#5584)
     -bug (agfazio)               Default transition adjust was not correctly defaulted (#6524)
+    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
+    -bug (alex)                  Preserve relative start channels on import even when Individual Start Channels is off (#6447)
+    -bug (derwin12)              Keep custom models centered in their bounding box after editing (#6452)
     -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
     -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
     -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
@@ -116,11 +126,14 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  show-timeline setting (#6403).
     -enh (jessica12ryan)         RenderProgressDialog now stays on top of other windows (#6404).
     -enh (scott)                 Custom color picker: skip duplicate colors in the recent colors list.
+    -enh (AlexB)                 Smart Presets: relative and auto layer-mode presets, plus Ctrl/Cmd+V paste
+                                 that auto-inserts the needed layers (#6428).
     -enh (dkulp)                 macOS: include MetricKit crash diagnostics in packaged log uploads; clean up
                                  older MetricKit data.
     -bug (derwin12)              Fix media relative paths when using temp show folder
     -bug (cybercop23)            Importing a multi-model xmodel file now preserves @Model:N and >Model:N
                                  start-channel references instead of resetting them to absolute channels.
+    -bug (keithsw1111)           Fix the "Suppress Dark Mode" preference not taking effect.
     -bug (derwin12)              Package Log Files: fix duplicate primary log in zip; rolled log now included.
     -bug (derwin12)              Fix lasso selection corrupting State/Faces effect values (#5783)
     -bug (derwin12)              Better handle multi chord MIDI tracks (#6434)
@@ -214,6 +227,7 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                 Fix SubModel alias import.
     -enh (scott)                Fix moving head effect Color Wheel not allowing 100 saturation.
     -bug (derwin12)             Default column width on layout tab for Linux was incorrect (#6328)
+    -bug (derwin12)             Fix 3D viewpoints being lost when saving a layout in 2D mode (#5603, #6346)
     -bug (derwin12)             Revert change to correct black artifacts in video render
     -bug (derwin12)             Shift select to delete nodes on submodels now removes all like entries (6359)
     -bug (derwin12)             After deleting a model, random item was selected (6342) (#6343)
@@ -281,6 +295,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)             Add duration to lrclib lyric results
     -enh (derwin12)             Add option to add alias when opening a sequence and missing models were found
     -enh (derwin12)             Provide option to select which groups to import to when importing from layout
+    -enh (derwin12)             Scale imported model sizes to match the destination layout's ruler when the
+                                source layout has one (#6250)
     -enh (dkulp)                Liquid effect: added an Enabled checkbox for particle source 1 (defaults to on)
     -enh (dkulp)                Linux: text rendering switched from wxGraphicsContext (Cairo+Pango) to a portable
                                 FreeType+HarfBuzz+Fontconfig backend in src-core/. Text and Shape effects can now
@@ -389,6 +405,12 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (dkulp)                Shader effect: dynamic uniforms emit JSON matching the effect-panel schema; JsonEffectPanel
                                 gains a reusable point2d control type, so iPad and desktop build the dynamic rows from the
                                 same description.
+    -enh (AGFazio)              Effect Presets window can now be docked into the main window (#5047).
+    -enh (AGFazio)              Layout tab panels (models, properties) are now dockable/floatable.
+    -enh (heffneil)             Vendor model catalog download now supports multi-select to download several
+                                models at once (#6073).
+    -enh (MrPierreB)            DmxMovingHeadAdv Position Zones: spinner inputs, on-screen instructions, preview
+                                indicator, and preferences (#6197).
     -enh (Neil)                 Edit Display Elements: add a filter box above the Available list so large shows can
                                 quickly find a model/timing/group to add. Filter clears automatically when items are
                                 moved into the view.
@@ -451,6 +473,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -enh (derwin12)             Add sequencer prop filter to quickly jump to a prop by name (#5066)
     -enh (derwin12)             Add "Small" option to Model Handle Size preference (#3583)
     -enh (derwin12)             Add Render Styles to Select Effects Window (#4848)
+    -enh (derwin12)             Add a search box to the Controller Visualizer to jump to a model by name (#5853)
+    -enh (MrPierreB)            DmxMovingHeadAdv model: add Position Zones property to define named pan/tilt regions (#6068)
     -enh (dkulp)                Add "Lossless RGB Video, *.mov" model export format — uncompressed RGB24
                                     in a mov container, bit-exact and decoded natively by AVFoundation,
                                     replaces the deprecated uncompressed AVI export for pixel-perfect

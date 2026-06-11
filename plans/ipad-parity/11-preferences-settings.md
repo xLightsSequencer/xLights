@@ -17,7 +17,10 @@
 > `xLightsMain.cpp:8653`) *and* a read-only dump (Help ▸ "Key Bindings",
 > `xLightsMain.cpp:7966`) over 137 bindings in 4 scopes; the iPad has ~50
 > hard-keyboard shortcuts declared in `XLightsCommands.swift` and **no rebinding
-> UI**. Both platforms have Color Replace (desktop `ColourReplaceDialog`, iPad
+> UI**. Both platforms now ship the **command palette** (#6258, ⌘⇧K) — a fuzzy
+> launcher over every menu command and effect type (`CommandPaletteSheet` /
+> `CommandPaletteRegistry` on iPad) — which doubles as the discoverability
+> surface that the read-only key-binding dump provides on desktop. Both platforms have Color Replace (desktop `ColourReplaceDialog`, iPad
 > `ColorReplaceSheet`), and the iPad has user-settable auto-save
 > (`autosaveIntervalMinutes`). The largest gap is that iPad
 > exposes no equivalent for whole categories of desktop prefs (backup strategy,
@@ -106,7 +109,7 @@
 | Other ▸ Use Custom Color Picker | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:208`. iPad uses the native system ColorPicker. |
 | Services ▸ AI Services config (keys/model/test) | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ServicesPanel.cpp` (wxPropertyGrid + Test); iPad `AIServicesSettingsSheet.swift` (Form + Test + Refresh model list). Both via core `aiBase`. |
 | Keyboard-shortcut rebinding editor | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop `KeyBindingEditDialog` (File ▸ "Key bindings", `xLightsMain.cpp:8653`). iPad shortcuts are static in `XLightsCommands.swift`. |
-| Command palette (fuzzy command/effect launcher) | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6258: `CommandPaletteDialog` + `CommandPaletteHelper` (Cmd+Shift+K, rebindable via `KeyBindings`) — fuzzy menu-command + effect search, runs the command or drops the effect on the selected timing region. No iPad equivalent — `XLightsCommands.swift` has only static shortcuts. Feasible as a SwiftUI searchable overlay bound to Cmd+Shift+K. |
+| Command palette (fuzzy command/effect launcher) | dialog | ✅ | ✅ | parity | — | done | done | Desktop #6258: `CommandPaletteDialog::OnCommandPalette` (`src-ui-wx/xLightsMain.cpp:8009`, Cmd+Shift+K) — fuzzy menu-command + effect search, runs the command or drops the effect on the selected timing region. iPad: `CommandPaletteSheet.swift` + `CommandPaletteRegistry.swift`, bound to ⌘⇧K in `XLightsCommands.swift` ("Command Palette…"), presented from `SequencerView.swift`. Two sections (Commands / Effects); the same subsequence scoring as desktop (`CommandPaletteMatch`, prefix > word-boundary > scattered), arrow/return/escape keyboard nav, SF-Symbol icons + effect-icon thumbnails, shortcut badges. Commands route through the same `viewModel` calls/tokens as the menu and honour their enabled-gates (disabled commands filtered out, matching desktop's `IsEnabled()` skip). Effects drop at the play head on the active row via `viewModel.dropEffectFromCommandPalette` (reuses `addEffectFromPaletteTap` timing-cell snapping). |
 | Keyboard-shortcut reference (read-only list) | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop Help ▸ "Key Bindings" dump (`xLightsMain.cpp:7966`). iPad gets the system Menu Bar ▸ Keyboard Shortcuts overlay for free. |
 | Save (Cmd+S) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SAVE_CURRENT_TAB=Ctrl+S `KeyBindings.cpp:342`; iPad `XLightsCommands.swift:47`. |
 | Save As (Cmd+Shift+S) | shortcut | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SAVEAS_SEQUENCE (Ctrl+Shift+S) `KeyBindings.cpp:344`; iPad `XLightsCommands.swift:53`. |

@@ -74,6 +74,19 @@ struct ImportEffectsView: View {
     @State private var showingTimingPopover = false
     @State private var aiMapRunning = false           // AI structured mapping in flight
 
+    // #6474 — when the user maps a source onto an already-mapped destination,
+    // prompt Replace / Add Additional / Cancel before applying.
+    @State private var pendingMapSource: String?
+    @State private var pendingMapModelType: String?
+    @State private var showingStackPrompt = false
+    // #6474 — multi-file .xmaphint load: when existing mappings would be
+    // touched, ask whether to keep them or overwrite before applying the files.
+    @State private var pendingHintURLs: [URL] = []
+    @State private var showingHintsConflictPrompt = false
+    // #6477 — edit display elements mid-import so newly-added models become
+    // mapping targets without leaving the wizard.
+    @State private var showingDisplayElements = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -267,7 +280,8 @@ struct ImportEffectsView: View {
                         DestinationRowView(row: row,
                                             depth: 0,
                                             selectedID: $selectedDestNodeID,
-                                            expansion: $rowExpansion)
+                                            expansion: $rowExpansion,
+                                            onSortSubmodels: { sortSubmodels(forRow: $0) })
                     }
                 }
             }
@@ -314,6 +328,7 @@ struct ImportEffectsView: View {
                 Button("Load Hints…") { showingLoadHints = true }   // IE-3
                 Button("Update Aliases") { updateAliases() }        // IE-12
                     .disabled(mappedCount == 0)
+                Button("Edit Display Elements…") { showingDisplayElements = true } // #6477
             }
             HStack(spacing: 16) {
                 Toggle("Erase existing", isOn: $eraseExisting)
@@ -335,10 +350,10 @@ struct ImportEffectsView: View {
                 importError = err.localizedDescription
             }
         }
-        // IE-3 — load a user-picked .xmaphint and apply its regex hints.
+        // IE-3 / #6474 — load one or more .xmaphint files and apply their regex hints.
         .fileImporter(isPresented: $showingLoadHints,
                       allowedContentTypes: [UTType(filenameExtension: "xmaphint") ?? .xml],
-                      allowsMultipleSelection: false) { result in
+                      allowsMultipleSelection: true) { result in
             loadHints(result: result)
         }
         .alert("Import",
@@ -347,6 +362,42 @@ struct ImportEffectsView: View {
             Button("OK", role: .cancel) { resultMessage = nil }
         } message: {
             Text(resultMessage ?? "")
+        }
+        // #6474 — Replace / Add Additional / Cancel when mapping over an
+        // already-mapped destination row.
+        .confirmationDialog("This destination is already mapped.",
+                            isPresented: $showingStackPrompt,
+                            titleVisibility: .visible) {
+            Button("Replace") { applyPendingMap(stack: false) }
+            Button("Add Additional") { applyPendingMap(stack: true) }
+            Button("Cancel", role: .cancel) {
+                pendingMapSource = nil; pendingMapModelType = nil
+            }
+        } message: {
+            Text("Replace the existing mapping, or add this as an additional stacked source?")
+        }
+        // #6474 — keep / overwrite when loading hint files over existing mappings.
+        .confirmationDialog("Some destinations are already mapped.",
+                            isPresented: $showingHintsConflictPrompt,
+                            titleVisibility: .visible) {
+            Button("Keep Existing") {
+                applyHints(pendingHintURLs, overwrite: false); pendingHintURLs = []
+            }
+            Button("Overwrite", role: .destructive) {
+                applyHints(pendingHintURLs, overwrite: true); pendingHintURLs = []
+            }
+            Button("Cancel", role: .cancel) { pendingHintURLs = [] }
+        } message: {
+            Text("Keep the current mappings (hints only fill unmapped rows) or clear them so the hint files take over?")
+        }
+        // #6477 — edit display elements without leaving the wizard; on dismiss
+        // rebuild the destination tree so new models appear as targets.
+        .sheet(isPresented: $showingDisplayElements, onDismiss: {
+            session?.rebuildDestinationTree()
+            refreshSnapshots()
+        }) {
+            DisplayElementsSheet()
+                .environment(viewModel)
         }
     }
 
@@ -359,18 +410,34 @@ struct ImportEffectsView: View {
         resultMessage = "\(n) alias\(n == 1 ? "" : "es") added. Future imports of these models will auto-map."
     }
 
-    // IE-3 — apply a chosen .xmaphint file's regex hints to the tree.
+    // IE-3 / #6474 — load one or more .xmaphint files. When mappings already
+    // exist, prompt keep-vs-overwrite before applying (the regex pass only
+    // fills *unmapped* rows, so "overwrite" clears them first).
     private func loadHints(result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, !urls.isEmpty else { return }
+        if mappedCount > 0 {
+            pendingHintURLs = urls
+            showingHintsConflictPrompt = true
+        } else {
+            applyHints(urls, overwrite: false)
+        }
+    }
+
+    private func applyHints(_ urls: [URL], overwrite: Bool) {
         guard let session else { return }
-        guard case .success(let urls) = result, let url = urls.first else { return }
-        let needs = url.startAccessingSecurityScopedResource()
-        defer { if needs { url.stopAccessingSecurityScopedResource() } }
-        _ = XLSequenceDocument.obtainAccess(toPath: url.path, enforceWritable: false)
-        let applied = Int(session.loadMapHints(fromPath: url.path))
+        if overwrite { session.clearAllMappings() }
+        var applied = 0
+        for url in urls {
+            let needs = url.startAccessingSecurityScopedResource()
+            _ = XLSequenceDocument.obtainAccess(toPath: url.path, enforceWritable: false)
+            applied += Int(session.loadMapHints(fromPath: url.path))
+            if needs { url.stopAccessingSecurityScopedResource() }
+        }
         refreshSnapshots()
+        let fileWord = urls.count == 1 ? "file" : "\(urls.count) files"
         resultMessage = applied > 0
-            ? "Applied \(applied) hint\(applied == 1 ? "" : "s") from the file."
-            : "No hints were applied (the file may be empty or none matched the source)."
+            ? "Applied \(applied) hint\(applied == 1 ? "" : "s") from \(fileWord)."
+            : "No hints were applied (the \(urls.count == 1 ? "file may be empty" : "files may be empty") or none matched the source)."
     }
 
     private func loadSource(url: URL) {
@@ -434,10 +501,49 @@ struct ImportEffectsView: View {
     private func mapSelected() {
         guard let session, let src = selectedSourceDisplay else { return }
         let modelType = availableSources.first(where: { $0.displayName == src })?.modelType ?? "Model"
+        // #6474 — if the target is already mapped, prompt Replace / Add
+        // Additional / Cancel instead of silently overwriting.
+        if let dest = findRow(byID: selectedDestNodeID), !dest.mapping.isEmpty {
+            pendingMapSource = src
+            pendingMapModelType = modelType
+            showingStackPrompt = true
+            return
+        }
         session.setMappingForRow(intptr_t(selectedDestNodeID),
                                   sourceDisplayName: src,
                                   modelType: modelType)
         refreshSnapshots()
+    }
+
+    private func applyPendingMap(stack: Bool) {
+        guard let session, let src = pendingMapSource else { return }
+        let modelType = pendingMapModelType ?? "Model"
+        if stack {
+            session.addStackedMapping(forRow: intptr_t(selectedDestNodeID),
+                                       sourceDisplayName: src,
+                                       modelType: modelType)
+        } else {
+            session.setMappingForRow(intptr_t(selectedDestNodeID),
+                                      sourceDisplayName: src,
+                                      modelType: modelType)
+        }
+        pendingMapSource = nil
+        pendingMapModelType = nil
+        refreshSnapshots()
+    }
+
+    private func findRow(byID id: Int) -> XLImportMappingRow? {
+        func walk(_ row: XLImportMappingRow) -> XLImportMappingRow? {
+            if Int(row.nodeID) == id { return row }
+            for child in row.children {
+                if let m = walk(child) { return m }
+            }
+            return nil
+        }
+        for row in destinationRows {
+            if let m = walk(row) { return m }
+        }
+        return nil
     }
 
     private func unmapSelected() {
@@ -467,6 +573,14 @@ struct ImportEffectsView: View {
                     : "AI returned no new mappings."
                 refreshSnapshots()
             }
+        }
+    }
+
+    // #4636 — toggle alphabetical submodel ordering for a destination model row.
+    private func sortSubmodels(forRow id: Int) {
+        guard let session else { return }
+        if session.sortSubmodels(forRow: intptr_t(id)) {
+            refreshSnapshots()
         }
     }
 
@@ -614,6 +728,11 @@ private struct DestinationRowView: View {
     let depth: Int
     @Binding var selectedID: Int
     @Binding var expansion: Set<Int>
+    let onSortSubmodels: (Int) -> Void
+
+    private var hasSubmodelChildren: Bool {
+        row.children.contains { $0.isSubmodel }
+    }
 
     var body: some View {
         let id = Int(row.nodeID)
@@ -643,6 +762,11 @@ private struct DestinationRowView: View {
                             .font(.caption)
                             .foregroundStyle(.tint)
                     }
+                    ForEach(row.stackedMappings, id: \.self) { stacked in
+                        Text("＋ \(stacked)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
                 if row.isGroup {
@@ -659,13 +783,25 @@ private struct DestinationRowView: View {
             .onTapGesture {
                 selectedID = isSelected ? 0 : id
             }
+            .contextMenu {
+                // #4636 — sort submodels alphabetically (model rows only).
+                if depth == 0 && hasSubmodelChildren {
+                    Button {
+                        onSortSubmodels(id)
+                        expansion.insert(id)
+                    } label: {
+                        Label("Sort Submodels By Name", systemImage: "arrow.up.arrow.down")
+                    }
+                }
+            }
             Divider()
             if isExpanded {
                 ForEach(row.children, id: \.nodeID) { child in
                     DestinationRowView(row: child,
                                         depth: depth + 1,
                                         selectedID: $selectedID,
-                                        expansion: $expansion)
+                                        expansion: $expansion,
+                                        onSortSubmodels: onSortSubmodels)
                 }
             }
         }

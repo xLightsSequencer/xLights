@@ -158,6 +158,52 @@ private struct EditDescriptionAlert: ViewModifier {
 /// B47 insert-multiple-layers alert wrapper. Extracted as its
 /// own ViewModifier because tacking it onto the body's long
 /// modifier chain pushed SwiftUI's type-checker over budget.
+/// B-CL: model-picker sheet for "Copy Layers/SubModels to Models…".
+/// Lists all sequencer model names, lets the user pick one or more
+/// destinations (excluding the source), then fires `onCopy`. Mirrors
+/// desktop's checkbox dialog (`RowHeading.cpp:594`, `CopyModelEffectsToModels`).
+private struct CopyLayersToModelsSheet: View {
+    let sourceModelName: String
+    let allModelNames: [String]
+    @Binding var pickedModels: Set<String>
+    let onCopy: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List(allModelNames.filter { $0 != sourceModelName }, id: \.self) { name in
+                Button {
+                    if pickedModels.contains(name) {
+                        pickedModels.remove(name)
+                    } else {
+                        pickedModels.insert(name)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: pickedModels.contains(name)
+                              ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(pickedModels.contains(name)
+                                             ? Color.accentColor : Color.secondary)
+                        Text(name)
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Copy to Models")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Copy") { onCopy() }
+                        .disabled(pickedModels.isEmpty)
+                }
+            }
+        }
+    }
+}
+
 private struct InsertLayersAlert: ViewModifier {
     @Binding var targetRow: Int?
     @Binding var countText: String
@@ -207,6 +253,33 @@ private struct DeleteLayersAlert: ViewModifier {
             Button("Cancel", role: .cancel) { targetRow = nil }
         } message: { _ in
             Text("How many layers to delete, starting at this one and moving down? Effects on them will be lost.")
+        }
+    }
+}
+
+/// #6268 — pick the target region for Copy-Effects-to-Region.
+/// Extracted as a ViewModifier (same type-check-budget reason as
+/// InsertLayersAlert / DeleteLayersAlert).
+private struct SongRegionCopyDialog: ViewModifier {
+    @Binding var sourceIdx: Int?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            "Copy Effects to…",
+            isPresented: Binding(
+                get: { sourceIdx != nil },
+                set: { if !$0 { sourceIdx = nil } })
+        ) {
+            if let src = sourceIdx {
+                ForEach(Array(viewModel.songRegions.enumerated()), id: \.offset) { i, r in
+                    if i != src {
+                        Button(r.name.isEmpty ? "Region \(i + 1)" : r.name) {
+                            viewModel.copySongRegionEffects(from: src, to: i)
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
         }
     }
 }
@@ -397,6 +470,7 @@ struct SequencerGridV2View: View {
     /// is the long-press time used by Add/Delete-boundary; `regionEditID`
     /// is the region being edited in the name+color sheet.
     @State private var songRegionMenuMS: Int? = nil
+    @State private var songRegionCopySourceIdx: Int? = nil
     @State private var songRegionEditID: Int? = nil
     @State private var songRegionEditName: String = ""
     @State private var songViewRenamePresented: Bool = false
@@ -464,6 +538,11 @@ struct SequencerGridV2View: View {
     /// flags + extension; the bridge encodes to a temp file, then
     /// `.fileExporter` copies it to the user's chosen destination.
     @State private var videoExportInProgress: Bool = false
+
+    /// B-CL: "Copy Layers/SubModels to Models…" sheet state. Non-nil
+    /// while the model-picker sheet is presented; holds the source row.
+    @State private var copyLayersSourceRow: Int? = nil
+    @State private var copyLayersPickedModels: Set<String> = []
 
     /// B21 edit-timing dialog state. Fields are bound to seconds
     /// strings so users enter `5.25` and see `0.75` for duration;
@@ -715,6 +794,11 @@ struct SequencerGridV2View: View {
                 Button("Cancel", role: .cancel) {}
             } else {
                 Button("Play Effect") { viewModel.playSelectedEffect() }
+                if !viewModel.songRegions.isEmpty {
+                    Button("Fill Region from Timing Marks") {
+                        viewModel.fillSongRegionFromTimingMarks()
+                    }
+                }
                 Button("Copy") { viewModel.copySelectedEffect() }
                 Button("Cut") { viewModel.cutSelectedEffects() }
                 if viewModel.hasClipboard {
@@ -1182,6 +1266,16 @@ struct SequencerGridV2View: View {
                     songRegionEditName = r.name
                     songRegionEditID = r.id
                 }
+                if viewModel.songRegions.count > 1 {
+                    Button("Copy Effects to Region…") {
+                        songRegionCopySourceIdx = idx
+                    }
+                }
+                if viewModel.selectedEffect != nil {
+                    Button("Apply Selected Effect's Palette") {
+                        viewModel.applySelectedPaletteToSongRegion(at: idx)
+                    }
+                }
             }
             if let ms = songRegionMenuMS {
                 Button("Add Boundary Here") {
@@ -1229,6 +1323,9 @@ struct SequencerGridV2View: View {
                 onDone: { songRegionEditID = nil })
                 .presentationDetents([.height(280)])
         }
+        .modifier(SongRegionCopyDialog(
+            sourceIdx: $songRegionCopySourceIdx,
+            viewModel: viewModel))
         .alert("New Song Structure View", isPresented: $songViewAddPresented) {
             TextField("Name", text: $songViewAddText)
             Button("Add") {
@@ -1321,6 +1418,29 @@ struct SequencerGridV2View: View {
             targetRow: $deleteLayersTargetRow,
             countText: $deleteLayersCountText,
             viewModel: viewModel))
+
+        .sheet(isPresented: Binding(
+            get: { copyLayersSourceRow != nil },
+            set: { if !$0 { copyLayersSourceRow = nil; copyLayersPickedModels = [] } }
+        )) {
+            if let srcRow = copyLayersSourceRow {
+                CopyLayersToModelsSheet(
+                    sourceModelName: (viewModel.document.rowModelName(at: Int32(srcRow)) as String?) ?? "",
+                    allModelNames: viewModel.sequencerModelNames(),
+                    pickedModels: $copyLayersPickedModels,
+                    onCopy: {
+                        viewModel.copyLayersSubmodelsToModels(
+                            sourceRowIndex: srcRow,
+                            targetModelNames: Array(copyLayersPickedModels))
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    },
+                    onCancel: {
+                        copyLayersSourceRow = nil
+                        copyLayersPickedModels = []
+                    })
+            }
+        }
         .modifier(EditDescriptionAlert(
             target: $editDescriptionTarget,
             text: $editDescriptionText,
@@ -1411,7 +1531,8 @@ struct SequencerGridV2View: View {
     /// sequence is quick. (The slow, full-resolution house-preview export
     /// runs off the main thread with progress; see ExportHousePreview.)
     private func startVideoExport(rowIndex: Int, compressed: Bool, highQuality: Bool,
-                                  forceProRes: Bool, ext: String, label: String) {
+                                  forceProRes: Bool, ext: String, label: String,
+                                  exportWidth: Int = 0, exportHeight: Int = 0) {
         let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
         let safeName = modelName.isEmpty ? "Model" : modelName
         let tempDir = FileManager.default.temporaryDirectory
@@ -1421,6 +1542,7 @@ struct SequencerGridV2View: View {
         viewModel.exportModelAsVideo(
             rowIndex: rowIndex, path: tempPath,
             compressed: compressed, highQuality: highQuality, forceProRes: forceProRes,
+            exportWidth: exportWidth, exportHeight: exportHeight,
             completion: { success in
                 videoExportInProgress = false
                 guard success else { return }
@@ -2036,16 +2158,21 @@ struct SequencerGridV2View: View {
                     onCutRow: { viewModel.cutRow(rowIndex: row.id) },
                     onCopyModel: { viewModel.copyModel(rowIndex: row.id) },
                     onCutModel: { viewModel.cutModel(rowIndex: row.id) },
+                    onCopyLayersToModels: {
+                        copyLayersPickedModels = []
+                        copyLayersSourceRow = row.id
+                    },
                     onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
                     hasClipboard: viewModel.hasClipboard,
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
                     },
-                    onExportModelVideo: { compressed, highQuality, forceProRes, ext, label in
+                    onExportModelVideo: { compressed, highQuality, forceProRes, ext, label, expW, expH in
                         startVideoExport(rowIndex: row.id, compressed: compressed,
                                          highQuality: highQuality, forceProRes: forceProRes,
-                                         ext: ext, label: label)
+                                         ext: ext, label: label,
+                                         exportWidth: expW, exportHeight: expH)
                     },
                     onConvertToPerModel: { allLayers in
                         viewModel.convertEffectsToPerModel(rowIndex: row.id,

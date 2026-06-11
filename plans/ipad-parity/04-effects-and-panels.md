@@ -77,6 +77,7 @@
 | DMX: Remap channels | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad ships a preset menu (Shift +1/-1, Reverse, Invert All, Double) via `dmxRemapChannelsForRow` (XLSequenceDocument.h:2205). Desktop has full `RemapDMXChannelsDialog` 48-row grid. iPad lacks the arbitrary per-channel remap. |
 | DMX: Save/Load State | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad DMXButtonsRowView → `dmxSaveStateForRow`/`dmxLoadStateForRow` (mirror DMXPanel Save/Load). |
 | Faces: phoneme vs timing-track selector | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad FacesMouthMovementsRowView (segmented + phoneme/track dropdown). (Face *definition* authoring is a model-level feature, not the effect panel.) |
+| Faces/State on SubModel: node-index translation | render | ✅ | ✅ | parity | P2 | n/a | feasible | Core render change (#6110/#6337, 2026.10): `FacesEffect.cpp:891` and `StateEffect.cpp:181` `toLocalNode` lambda maps parent node indices to submodel-local via `SubModel::GetNodeIndexMap()`, lighting only nodes that belong to the submodel. Pure `src-core/effects/` — auto-shared with iPad, no UI work. |
 | Morph: quick-set preset menu | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad MorphQuickSetRowView (8 presets). |
 | Morph: line geometry editor | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad MorphLineEditorRowView (touch canvas, 4 colored draggable handles, coordinate readout) ≈ desktop xlGridCanvasMorph. |
 | Morph: swap start/end | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad MorphSwapRowView. |
@@ -97,7 +98,8 @@
 | Shape: character / emoji picker | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ShapeCharRowView. |
 | Shape: skin-tone modifier | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad ShapeSkinToneRowView. |
 | Shape: SVG path field | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad ShapeSVGRowView (+ preview). |
-| Sketch: path editor canvas | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad `SketchPathEditorRowView.swift` now matches desktop's authoring set: drag endpoints/control points, **Add Line / Add Curve** modes (cubic with draggable handles), **Close/Open** path (`cN` token), **▲/▼ reorder** (selected-path model), **Import SVG** (shared core `SketchDefFromSVGFile` → nanosvg). Import/Export of the raw def remains via SketchDefRowView (copy/paste). Desktop-only leftovers: per-path text descriptions and continue-from-arbitrary-endpoint. |
+| Sketch: path editor canvas | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad `SketchPathEditorRowView.swift` now matches desktop's authoring set: drag endpoints/control points, **Add Line / Add Curve** modes (cubic with draggable handles), **Close/Open** path (`cN` token), **▲/▼ reorder** (selected-path model), **Import SVG** (shared core `SketchDefFromSVGFile` → nanosvg). Import/Export of the raw def remains via SketchDefRowView (copy/paste). Desktop-only leftovers: continue-from-arbitrary-endpoint and .sketch file Export. |
+| Sketch: path management (#5871) | panel | ✅ | ✅ | parity | P2 | medium | feasible | Desktop #5871: per-path list, multi-select, Delete key, Move Up/Down, per-path description labels + description editor (SketchAssistPanel.cpp:111-156). iPad SketchPathEditorRowView: tap-select path list (`Path N - desc` labels), per-row + selected-path Delete (button + hardware ⌫ via `keyboardShortcut(.delete)`), Move Up/Down, description text field. Descriptions round-trip the `D`+hex token (SketchDefinition.swift encodeHex/decodeHex mirrors SketchEffectDrawing). Multi-select deferred (single-select list; touch idiom). |
 | Sketch: background image + opacity | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchBackgroundRowView. |
 | Sketch: info block (counters) | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad SketchInfoRowView. |
 | Sketch: raw SketchDef field | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad SketchDefRowView (accepts desktop-generated defs incl. curves). |
@@ -127,8 +129,9 @@
   desktop panel was refactored to call it, so both clients share one conversion.
   Bridged to Swift via `XLSequenceDocument.sketchDef(fromSVGFile:)`. Import/Export
   of the raw def text stays on the existing `SketchDefRowView` (copy/paste).
-  Remaining desktop-only niceties: per-path text descriptions (the `D…` token,
-  round-tripped but not editable on iPad) and continue-from-arbitrary-endpoint.
+  Per-path descriptions (the `D…` token) are now editable on iPad too (#5871
+  path list + description field). Remaining desktop-only: continue-from-
+  arbitrary-endpoint and .sketch file Export (P3).
 
 ### P2
 - **Transition Blur enable gate.** Desktop #6523 added In/Out Transition Blur

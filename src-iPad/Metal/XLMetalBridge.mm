@@ -17,6 +17,7 @@
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
+#include "models/SubModelSymmetrize.h"
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
@@ -1370,6 +1371,142 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         anySwapped = YES;
     }
     return anySwapped;
+}
+
+- (BOOL)rotateModels:(NSArray<NSString*>*)names
+                axis:(NSString*)axis
+             degrees:(double)degrees
+         forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0 || axis.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return NO;
+    const std::string axisStr = axis.UTF8String;
+    const bool x = (axisStr == "X");
+    const bool y = (axisStr == "Y");
+    const bool z = (axisStr == "Z");
+    if (!x && !y && !z) return NO;
+    if (degrees < -180.0) degrees = -180.0;
+    if (degrees > 180.0) degrees = 180.0;
+    const float angle = (float)degrees;
+    rctx->AbortRender(5000);
+    BOOL anyRotated = NO;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        auto& loc = m->GetBaseObjectScreenLocation();
+        if (loc.IsLocked() || m->IsFromBase()) continue;
+        if (x) loc.SetRotateX(angle);
+        else if (y) loc.SetRotateY(angle);
+        else loc.SetRotateZ(angle);
+        loc.Reload();
+        loc.Init();
+        rctx->MarkLayoutModelDirty(nm);
+        anyRotated = YES;
+    }
+    return anyRotated;
+}
+
+- (NSInteger)replaceModels:(NSArray<NSString*>*)targets
+                withSource:(NSString*)source
+          keepStartChannel:(BOOL)keepStartChannel
+             keepSubmodels:(BOOL)keepSubmodels
+          keepSizePosition:(BOOL)keepSizePosition
+               forDocument:(XLSequenceDocument*)doc {
+    if (!doc || targets.count == 0 || source.length == 0) return 0;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return 0;
+    auto& mgr = rctx->GetModelManager();
+    const std::string sourceName = source.UTF8String;
+    Model* sourceModel = mgr[sourceName];
+    if (!sourceModel) return 0;
+    rctx->AbortRender(5000);
+
+    // Serialize the source once; each target gets a fresh deep copy.
+    XmlSerializer serializer;
+    pugi::xml_document srcDoc = serializer.SerializeModel(sourceModel);
+    pugi::xml_node srcRoot = srcDoc.document_element();
+    if (!srcRoot) return 0;
+    pugi::xml_node srcModelNode = srcRoot.first_child();
+    if (!srcModelNode) return 0;
+
+    NSInteger replaced = 0;
+    int counter = 0;
+    for (NSString* t in targets) {
+        if (t.length == 0) continue;
+        const std::string targetName = t.UTF8String;
+        if (targetName == sourceName) continue;
+        Model* target = mgr[targetName];
+        if (!target) continue;
+        if (target->IsFromBase()) continue;
+
+        pugi::xml_document cloneDoc;
+        cloneDoc.append_copy(srcModelNode);
+        pugi::xml_node cloneNode = cloneDoc.document_element();
+        if (!cloneNode) continue;
+
+        const std::string tmpName = "__xl_rmm_new_" + std::to_string(counter);
+        if (cloneNode.attribute("name")) cloneNode.remove_attribute("name");
+        cloneNode.append_attribute("name") = tmpName.c_str();
+
+        Model* clone = mgr.CreateModel(cloneNode);
+        if (!clone) continue;
+        clone->name = tmpName;
+        mgr.AddModel(clone);
+
+        if (keepStartChannel) {
+            clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetControllerProtocol(target->GetControllerProtocol());
+            clone->SetControllerPort(target->GetControllerPort());
+            clone->SetControllerName(target->GetControllerName());
+            clone->SetSmartRemote(target->GetSmartRemote());
+            clone->SetSmartRemoteType(target->GetSmartRemoteType());
+            clone->SetSRMaxCascade(target->GetSRMaxCascade());
+            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+        }
+        if (keepSubmodels) {
+            for (int i = 0; i < target->GetNumSubModels(); ++i) {
+                Model* sm = target->GetSubModel(i);
+                if (!sm) continue;
+                if (clone->GetSubModel(sm->Name()) != nullptr) continue;
+                const SubModel* srcSub = dynamic_cast<const SubModel*>(sm);
+                if (!srcSub) continue;
+                clone->AddSubmodel(new SubModel(clone, srcSub));
+            }
+        }
+        if (keepSizePosition) {
+            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
+            clone->SetHcenterPos(target->GetHcenterPos());
+            clone->SetVcenterPos(target->GetVcenterPos());
+            clone->SetDcenterPos(target->GetDcenterPos());
+            clone->SetHeight(target->GetHeight());
+            clone->SetWidth(target->GetWidth());
+            clone->SetDepth(target->GetDepth());
+        }
+
+        // Atomic name swap: park the old target under a trash name,
+        // promote the clone to the target's name, then delete the
+        // old model. Mirrors desktop ReplaceModel's rename dance.
+        const std::string trashName = "__xl_rmm_old_" + std::to_string(counter);
+        mgr.RenameInListOnly(targetName, trashName);
+        target->Rename(trashName);
+        mgr.RenameInListOnly(tmpName, targetName);
+        clone->Rename(targetName);
+        if (!mgr.Delete(trashName)) {
+            mgr.RenameInListOnly(targetName, tmpName);
+            clone->Rename(tmpName);
+            mgr.RenameInListOnly(trashName, targetName);
+            target->Rename(targetName);
+            mgr.Delete(tmpName);
+            continue;
+        }
+
+        rctx->MarkLayoutModelDirty(targetName);
+        ++replaced;
+        ++counter;
+    }
+    return replaced;
 }
 
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
@@ -3467,6 +3604,50 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         m->SetNodeColor(i, base);
     }
     return YES;
+}
+
+- (nullable NSArray<NSString*>*)symmetrizeRanges:(NSArray<NSString*>*)ranges
+                                         onModel:(NSString*)modelName
+                                 degreeOfSymmetry:(NSInteger)degree
+                                       clockwise:(BOOL)clockwise
+                                     bottomToTop:(BOOL)bottomToTop
+                                        squarify:(BOOL)squarify
+                                     forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName || degree < 2) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return nil;
+
+    std::map<int, std::pair<float, float>> coords;
+    if (!m->GetScreenLocations(_preview.get(), coords) || coords.empty()) return nil;
+
+    int w = _preview->getWidth();
+    int h = _preview->getHeight();
+    if (w <= 0 || h <= 0) return nil;
+
+    std::vector<std::string> strands;
+    for (NSString* r in ranges) {
+        if ([r isKindOfClass:[NSString class]]) {
+            strands.push_back(std::string(r.UTF8String));
+        }
+    }
+
+    SubModelSymmetrize::Options opts;
+    opts.degreeOfSymmetry = (int)degree;
+    opts.clockwise = clockwise;
+    opts.bottomToTop = bottomToTop;
+    opts.squarifyAspect = squarify;
+    opts.handleCenterNode = true;
+
+    SubModelSymmetrize::Result res = SubModelSymmetrize::Symmetrize(coords, w, h, strands, opts);
+    if (!res.success) return nil;
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:res.strands.size()];
+    for (const auto& s : res.strands) {
+        [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
 }
 
 @end

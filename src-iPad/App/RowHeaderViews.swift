@@ -376,6 +376,10 @@ struct ModelRowHeader: View {
     var onCutRow: (() -> Void)?
     var onCopyModel: (() -> Void)?
     var onCutModel: (() -> Void)?
+    /// B-CL: fan-out copy of this model's layers + submodels to one
+    /// or more target models chosen by the user. The outer view owns
+    /// the model-picker sheet; this closure just triggers it.
+    var onCopyLayersToModels: (() -> Void)?
     var onPaste: (() -> Void)?
     var hasClipboard: Bool = false
     /// B49 export rendered-channel data for this row's model as a
@@ -389,11 +393,12 @@ struct ModelRowHeader: View {
     var onExportModelFSEQ: ((_ useLoopRegion: Bool) -> Void)?
     /// Export this row's model as a video file. The closure receives the
     /// codec flags + file extension + a short label for the temp/default
-    /// filename. The outer view writes the temp file via
-    /// `SequencerViewModel.exportModelAsVideo` and presents `.fileExporter`.
-    /// Shown only on non-group model rows (desktop disables video export for
-    /// groups), matching the FSEQ entry's gating.
-    var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String) -> Void)?
+    /// filename + optional upscale dimensions (0/0 = native). The outer
+    /// view writes the temp file via `SequencerViewModel.exportModelAsVideo`
+    /// and presents `.fileExporter`. Shown only on non-group model rows
+    /// (desktop disables video export for groups), matching the FSEQ entry's
+    /// gating.
+    var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String, _ exportWidth: Int, _ exportHeight: Int) -> Void)?
     /// B55 — convert effects on the row's element to "Per Model"
     /// buffer styles. The closure decides scope (true = all layers
     /// of the model, false = just this row's layer); the outer view
@@ -604,6 +609,12 @@ struct ModelRowHeader: View {
                            systemImage: "square.stack.3d.up.trianglebadge.exclamationmark")
                 }
             }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onCopyLayersToModels {
+                Button { fire() } label: {
+                    Label("Copy Layers/SubModels to Models…",
+                           systemImage: "square.stack.3d.up.fill")
+                }
+            }
             if hasClipboard, let fire = onPaste {
                 Button { fire() } label: {
                     Label("Paste", systemImage: "doc.on.clipboard")
@@ -623,16 +634,19 @@ struct ModelRowHeader: View {
             }
             if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
                 Menu {
-                    Button { fire(true, false, false, "mp4", "Compressed") } label: {
+                    Button { fire(true, false, false, "mp4", "Compressed", 0, 0) } label: {
                         Label("Compressed (.mp4)", systemImage: "film")
                     }
-                    Button { fire(true, true, false, "mp4", "High Quality") } label: {
+                    Button { fire(true, true, false, "mp4", "High Quality", 0, 0) } label: {
                         Label("High Quality (.mp4)", systemImage: "film")
                     }
-                    Button { fire(false, false, true, "mov", "ProRes 4444") } label: {
+                    Button { fire(false, false, true, "mov", "ProRes 4444", 0, 0) } label: {
                         Label("ProRes 4444 (.mov)", systemImage: "film.stack")
                     }
-                    Button { fire(false, false, false, "mov", "Lossless RGB") } label: {
+                    Button { fire(false, false, true, "mov", "HD ProRes 1080p", 1920, 1080) } label: {
+                        Label("HD ProRes 1080p (.mov)", systemImage: "film.stack")
+                    }
+                    Button { fire(false, false, false, "mov", "Lossless RGB", 0, 0) } label: {
                         Label("Lossless RGB (.mov)", systemImage: "film.stack")
                     }
                 } label: {

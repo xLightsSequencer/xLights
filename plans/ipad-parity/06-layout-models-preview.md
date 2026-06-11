@@ -2,7 +2,9 @@
 
 > The iPad Layout Editor has full model/group CRUD, descriptor-driven
 > property editing, multi-select **Align / Distribute / Match-Size /
-> Flip / Duplicate / Group**, a complete **Model Data** section
+> Flip / Rotate X-Y-Z / Duplicate / Group**, single-model **Replace
+> Model** (clone a source over a checkbox list of targets), a complete
+> **Model Data** section
 > (SubModels, **Faces, States, Aliases, Strands, Nodes, Groups, Dimming
 > Curve** editors — all wired to the bridge), a custom-model grid editor
 > with point-distribution, polyline create + per-segment context menu,
@@ -18,8 +20,7 @@
 > Metal node-picker) — only the matrix-face *image* mapping + xmodel
 > face/state file-import remain desktop-only**; **CAD/DXF export, export-as-custom/xmodel,
 > import-from-RGBeffects / LOR-S5, GDTF fixture import, make-start-
-> channel-valid / non-overlapping,
-> model replace, the dedicated Bulk-Edit submenu
+> channel-valid / non-overlapping, the rest of the dedicated Bulk-Edit submenu
 > (incl. dimming curves / controller direction), unlink model/group from
 > base show, and
 > layout clipboard copy/paste** are all desktop-only. The theme-06
@@ -69,11 +70,13 @@
 | Shadow Model For | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad shadowModelPicker (LayoutEditorView.swift:4856). |
 | Smart remote (per-port remote) | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad ModelSmartRemoteSheet + descriptor caps. |
 | Correct Aspect Ratio | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_ASPECTRATIO. iPad: `correctAspectRatioForModel:` (XLSequenceDocument.mm) replicates the GetMWidth/MHeight ÷ GetRenderWi/Ht ratio adjustment + aspect button in InlineModelActionBar (LayoutEditorView.swift). |
+| Model Data count badges (SubModels/Faces/States/Nodes) | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop ModelPropertyAdapter Format*Label (SubModels (N) / Faces (N) / States (N) / Strand-Node (N nodes), #6512). iPad Model Data rows already show `list.count` per `modelDataRow` (LayoutEditorView.swift) fed by extrasFor: (faceNames/stateNames/submodelNames/nodeNames), plus nodeCount in the summary header — parity, shared/auto-refreshed via summaryToken. |
 | SubModels create/edit/rename/delete | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad SubModelListSheet (add/delete/rename + detail edit via replaceSubModelsOnModel). |
 | SubModel aliases | dialog | ✅ | ✅ | parity | P3 | medium | feasible | iPad setSubmodelAliases / submodelAliases + alias editor (LayoutEditorView.swift:6704). |
 | Faces editor | dialog | ✅ | 🟡 | parity | P2 | hard | feasible | iPad FaceStateEditorSheet (LayoutEditorView.swift) now has a visual node picker: each phoneme/part attribute (FaceOutline, Mouth-*, Eyes-*) gets a tap-to-pick button (FaceStateEntryDetailView) → NodeRangePickerSheet (NodePickerPane.swift) which reuses SubmodelPreviewPane's Metal node-picker (tap-toggle + two-finger marquee, XLMetalBridge.nodeNearPoint/setSubmodelHighlightedNodes) and writes back the compressed channel-range string via SubModelRangeOps.compressNodes — matching desktop ModelFaceDialog node assignment + NodeUtils::CompressNodes format. Remaining 🟡: matrix-face image assignment stays the attr-map text path (FaceStateAttr.isNodeRange excludes `-Eyes*` image keys), and there's no xmodel face/state file-import (ModelFaceDialog::ImportFaces, #6499). |
 | States editor | dialog | ✅ | ✅ | parity | P2 | hard | feasible | Same node-picker as Faces: each state's node-list attribute (sNNN / part keys) gets the tap-to-pick NodeRangePickerSheet → SubmodelPreviewPane; `-Name`/`-Color`/Type/CustomColors metadata stay text fields. Matches desktop ModelStateDialog node-grid assignment. |
 | Custom model visual editor | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad CustomModelEditorSheet (grid + paint + Distribute-along-line). setCustomModelData bridge. Node-bounding-box centering (CustomModel.cpp InitCustomMatrix, #6452) is shared core — applies to iPad automatically. |
+| Move background image in custom-model editor | dialog | ✅ | ❌ | ipad-missing | P3 | easy | infeasible-shared | Desktop #5506 (CustomModelDialog `_bkg_offset_x/_y`, BtnBkgLeft/Right/Up/Down/Reset). The offset is **transient desktop-UI state only** — explicitly NOT saved to the CustomModel or serialized (CustomModelDialog.cpp:1157 "Offsets are intentionally transient"). No shared-core data backs it, so an iPad port would be a separate session-only convenience in CustomModelEditorSheet, not a data-parity gap. Deferred; not a behavior gap. |
 | Strand / Node names editor | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad IndexedNamesEditorSheet (setStrandNames/setNodeNames + DMX generateNodeNames). |
 | Per-model aliases editor | dialog | ✅ | ✅ | parity | P3 | medium | feasible | iPad AliasEditorSheet (setModelAliases). |
 | Model dimming curve | dialog | ✅ | 🟡 | ipad-missing | P3 | hard | feasible | iPad edits dimmingInfo attr-map + can CLEAR; cannot author a new curve graphically (sheet warns). Desktop ModelDimmingCurveDialog full editor. |
@@ -83,7 +86,7 @@
 | Model group add members | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad addModel:toGroup: + LayoutGroupPickerSheet / Add-to-Group. |
 | Model group remove members | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad removeModel:fromGroup: via group property pane onRemoveMember. |
 | Model group reorder members | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad onReorderMembers (commit "members"). |
-| Model group properties (layout style/grid/tag) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad LayoutEditorGroupPropertiesView descriptor. |
+| Model group properties (layout style/grid/tag) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad LayoutEditorGroupPropertiesView descriptor. "Per Model Default" layout value (#4125, core `ModelGroup.cpp:36`) is present both sides — both UIs hardcode the option list (desktop `ModelGroupPanel.cpp:181`, iPad `XLSequenceDocument.mm:4976` `modelGroupLayoutSummary:` + `LayoutEditorView.swift:1789` label map). Verified iPad list already includes it. |
 | Model group clone | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_MNU_CLONE_MODEL_GROUP. iPad: `cloneModelGroup:` (XLSequenceDocument.mm — serialize via XmlSerializingVisitor → GenerateModelName → CreateModel) + "Clone Group" button in LayoutEditorGroupPropertiesView. |
 | Multi-select Align (8 + ground) | menu/toolbar | ✅ | ✅ | parity | P1 | medium | feasible | iPad MultiSelectActionBar Align menu (left/right/top/bottom/front/back/centerH/V/D/ground). |
 | Multi-select Distribute (H/V/Depth) | menu/toolbar | ✅ | ✅ | parity | P1 | medium | feasible | iPad Distribute menu (>=3 selected). |
@@ -91,14 +94,16 @@
 | Multi-select Flip H/V | menu/toolbar | ✅ | ✅ | parity | P2 | medium | feasible | iPad Flip menu (flipModels). |
 | Swap Start/End (Single/Poly Line) | menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop #6483 ID_PREVIEW_SWAP_START_END (LayoutPanel.cpp). Core Model::SwapStartEnd() shared (PolyLineModel/SingleLineModel/PolyPointScreenLocation/TwoPointScreenLocation). iPad: bridge `swapStartEndForModels:forDocument:` (XLMetalBridge.mm) + ⇄ button in InlineModelActionBar (LayoutEditorView.swift, shown only for Single Line/Poly Line, gated on lock/from-base) → performSwapStartEnd, pushes layout undo. |
 | Property-pane bulk edit across selection | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad J-4 applies a property-pane edit to all selected (bulkEditTargets, model-unique keys excluded). Desktop has dedicated Bulk-Edit submenu. |
+| Bulk Edit: Rotate X/Y/Z | menu/toolbar | ✅ | ✅ | parity | P2 | medium | feasible | Desktop BulkEditRotateAxis (LayoutPanel.cpp:2391) → loc.SetRotateX/Y/Z + Reload/Init, [-180,180] clamp. iPad: bridge `rotateModels:axis:degrees:forDocument:` (XLMetalBridge.mm) + Rotate X/Y/Z menu in MultiSelectActionBar (LayoutEditorView.swift) → promptBulkRotate/performBulkRotate, degrees alert pre-filled from leader, per-model undo. |
 | Bulk Edit: controller direction / colour-order / null-nodes / group-count | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop mnuBulkEdit specific items. iPad property pane doesn't expose these per-key bulk ops. |
 | Bulk Edit: dimming curves | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_BULKEDIT_DIMMINGCURVES. No iPad dimming authoring. |
-| Replace model(s) with this model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_REPLACEMODEL. iPad: no UI. |
+| Replace model(s) with this model | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_PREVIEW_REPLACEMODEL / ReplaceModelDialog (#4462, rewritten to multi-target): source model + filtered checkbox target list, options keep-start-channel / keep-submodels / keep-size+pos. iPad: bridge `replaceModels:withSource:keepStartChannel:keepSubmodels:keepSizePosition:forDocument:` (XLMetalBridge.mm) — clones source via XmlSerializer per target, copies start-channel/controller/SR + submodels (SubModel copy ctor) + size/pos/rotation per the flags, atomic name swap, deletes old. ReplaceModelSheet (LayoutEditorView.swift, searchable multi-select + 3 toggles) launched from the InlineModelActionBar ↻ button. |
 | Export as Custom / 3D Custom xLights model | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_EXPORTASCUSTOM(3D). iPad: import works, export missing. |
 | Export xLights model (.xmodel) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL. iPad: no UI. |
 | Export CAD (DXF/STL/VRML) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_MODEL_CAD_EXPORT. iPad: no UI. |
 | Export Faces/States/SubModels to other models | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS. iPad: no UI. |
 | Model import (.xmodel / multi-model) | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad .fileImporter + multi-model handling (xmodelFileIsMultiModel). |
+| Multi-model import preserves relative positions | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6438: importing several models from one .xmodel keeps their original relative layout positions instead of stacking them. iPad's multi-model import (xmodelFileIsMultiModel) places imported models without preserving inter-model offsets. Work: carry per-model offsets through the iPad import placement path. |
 | Import fixture from GDTF file | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad declares gdtf UTType (LayoutEditorView.swift:342, :515-532) but has no GdtfParser/ParseGdtf path. |
 | Import Previews/Models/Groups (from RGBeffects) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS. iPad: no UI. |
 | Import LOR S5 models/groups | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORT_MODELS_FROM_LORS5. iPad: no UI. |
@@ -169,7 +174,7 @@
 | Overlap checks toggle | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop CheckBoxOverlap (LayoutPanel.cpp:636, :3456) + CheckModelForOverlaps (:7720). iPad: `modelsOverlappingModel:` (XLSequenceDocument.mm — same start/last-channel overlap test) + Overlap-Checks toggle in the Models-header Display menu; overlapping roster rows get an orange highlight + warning badge (LayoutEditorView.swift). |
 | SubModel import from State / Face definitions | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop SubModelsDialog.cpp CreateSubmodel(name,nodes) (:3768) invoked from state/face context (:1064, :1117). iPad absent. |
 | SubModel 'Import Custom Model Overlay' (matrix only) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop SubModelsDialog.cpp:1132 ImportCustomModel, :3790/:3936/:4007 overlay helpers. iPad absent. |
-| SubModels Symmetrize (rotational generator) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop SubModelsDialog::Symmetrize() — degree/direction(CW/CCW)/build-order, config-persisted (menu added in 259230f0f). Algorithm is wx-coupled (wxFile temp + NodeUtils::CompressNodes), not in src-core; iPad SubModelListSheet has no Symmetrize. Needs core extraction + bridge before iPad UI. |
+| SubModels Symmetrize (rotational generator) | dialog | ✅ | ✅ | parity | P3 | hard | feasible | Algorithm extracted wx-free to `src-core/models/SubModelSymmetrize.{h,cpp}` (`Symmetrize` / `ShouldOfferSquarify`); desktop `SubModelsDialog::Symmetrize` (SubModelsDialog.cpp:1657) now calls it, keeping its file-log + interactive squarify / center-node prompts. iPad: bridge `symmetrizeRanges:onModel:degreeOfSymmetry:clockwise:bottomToTop:squarify:forDocument:` (XLMetalBridge.mm) feeds `Model::GetScreenLocations` over the SubModel preview into the core helper; SwiftUI `SubModelDetailEditor` Symmetrize button → option sheet (degree / CW-CCW / build-order / squarify, persisted via @AppStorage) → `SubmodelPreviewController.symmetrize`. |
 | Faces output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ModelFaceDialog CheckBox_OutputToLights (:223). iPad startOutput not wired into the Faces editor. |
 | States output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ModelStateDialog CheckBox_OutputToLights (:206). iPad startOutput not wired into the States editor. |
 | RGBW PWM per-channel Brightness + Gamma | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop DmxAbilityPropertyHelpers.cpp:265-320 per-color brightness/gamma. iPad XLSequenceDocument.mm:6278-6289 exposes RGBW channels only. |
@@ -264,7 +269,8 @@
   dimming). iPad applies the *property-pane* value across the selection
   (J-4) but doesn't expose the desktop's per-key bulk dialogs. The
   controller-specific keys aren't in the iPad property pane. Ease:
-  medium.
+  medium. (Bulk Edit **Rotate X/Y/Z** is now done — Rotate menu in
+  MultiSelectActionBar over bridge `rotateModels…`.)
 - **2D center-0 toggle, canvas-size edit, global 2D grid-spacing edit.**
   ✅ Done. `setDisplay2DCenter0:`, `setPreviewWidth:height:`,
   `setDisplay2DGridSpacing:` (backed by `iPadRenderContext` setters +

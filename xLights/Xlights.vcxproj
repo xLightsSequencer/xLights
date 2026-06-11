@@ -847,6 +847,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\SpinnerModel.cpp" />
     <ClCompile Include="..\src-core\models\StarModel.cpp" />
     <ClCompile Include="..\src-core\models\SubModel.cpp" />
+    <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp" />
     <ClCompile Include="..\src-core\models\TreeModel.cpp" />
     <ClCompile Include="..\src-core\models\WindowFrameModel.cpp" />
     <ClCompile Include="..\src-core\models\WreathModel.cpp" />
@@ -1448,6 +1449,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\SpinnerModel.h" />
     <ClInclude Include="..\src-core\models\StarModel.h" />
     <ClInclude Include="..\src-core\models\SubModel.h" />
+    <ClInclude Include="..\src-core\models\SubModelSymmetrize.h" />
     <ClInclude Include="..\src-core\models\TreeModel.h" />
     <ClInclude Include="..\src-core\models\WindowFrameModel.h" />
     <ClInclude Include="..\src-core\models\WreathModel.h" />

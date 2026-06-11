@@ -575,6 +575,18 @@ NS_ASSUME_NONNULL_BEGIN
                      completion:(nullable void (^)(BOOL success))completion
     NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:completion:));
 
+// HD-upscale variant — same as the async form above but scales the output to
+// `exportWidth`×`exportHeight` (nearest-neighbour integer upscale, black bars
+// fill unused space). Pass 0/0 to use the model's native pixel dimensions.
+// Mirrors desktop #6506 "HD ProRes Video" which passes 1920×1080.
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                    exportWidth:(int)exportWidth exportHeight:(int)exportHeight
+                     completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:exportWidth:exportHeight:completion:));
+
 // Export the house preview (all models of the active layout group) as an
 // H.264 / HEVC `.mp4` rendered offscreen at exactly `width`×`height` —
 // independent of any on-screen preview size. The 2D/3D projection follows the
@@ -2617,6 +2629,14 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   { "name", "success", "message", "log" }
 - (NSArray<NSDictionary*>*)bulkUploadControllersWithProgress:(nullable void (^)(NSString* name, NSInteger index, NSInteger total))onProgress;
 
+// Returns a non-nil warning string when `name` is an E1.31
+// controller with AutoSize enabled but an uncommon universe size
+// (not 170, 510, or 512). Mirrors desktop #4123 warning logic
+// from `ControllerPropertyAdapter::HandlePropertyEvent("AutoSize")`.
+// Call after enabling AutoSize to decide whether to show an alert.
+- (nullable NSString*)controllerAutoSizeUniverseWarning:(NSString*)name
+    NS_SWIFT_NAME(controllerAutoSizeUniverseWarning(name:));
+
 // Phase J-31.3 — add a new controller. `type` is one of
 // `"Ethernet"` / `"Serial"` / `"Null"`; mirrors the three
 // `OnButtonAddController…Click` entry points on desktop's Setup
@@ -3102,6 +3122,45 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // Returns NO when no sequence is loaded or the file can't be written.
 - (BOOL)exportEffectsReportToPath:(NSString*)path
     NS_SWIFT_NAME(exportEffectsReport(toPath:));
+
+// MARK: - Song Structure Regions (#6268 — bulk actions)
+//
+// Region data is wx-free core (`SongStructureManager`, owned by
+// `SequenceElements`) and already round-trips through save/load on
+// iPad. These wrappers expose the desktop region bulk-mutation ops so
+// a SwiftUI region menu can drive them. Each op runs under a single
+// undo step and reports how many effects it touched (0 means nothing
+// changed; the undo step is auto-cancelled in that case).
+
+// Index of the region spanning `timeMS`, or -1 if none.
+- (int)songStructureRegionIndexAtTimeMS:(int)timeMS;
+
+// Copy every effect whose span falls inside the source region into the
+// target region, offset by (targetStart - sourceStart) and snapped to
+// the frame grid. Existing effects are never overwritten — a copy is
+// skipped when its destination range isn't clear. Mirrors
+// `TimeLine::CopyEffectsToRegion`. Returns effects copied.
+- (int)copyEffectsFromRegion:(int)sourceRegionIndex
+                    toRegion:(int)targetRegionIndex
+    NS_SWIFT_NAME(copyEffects(fromRegion:toRegion:));
+
+// Apply `paletteString` (a serialised palette, e.g. from the effect at
+// the armed/selected slot via `currentPaletteStringForRow:atIndex:`)
+// to every effect inside the region. Mirrors
+// `TimeLine::ApplyPaletteToRegion`. Returns effects modified.
+- (int)applyPaletteString:(NSString*)paletteString
+          toRegionAtIndex:(int)regionIndex
+    NS_SWIFT_NAME(applyPalette(_:toRegionAtIndex:));
+
+// Fill the region containing the source effect (row/index) with copies
+// of that effect, one per active-timing mark inside the region. Each
+// copy keeps the source's duration, snapped to the grid and clamped to
+// the region end; marks overlapping the source or an occupied range are
+// skipped. Mirrors `EffectsGrid::FillRegionFromTimingMarks`. Returns
+// effects created.
+- (int)fillRegionFromTimingMarksWithSourceRow:(int)rowIndex
+                                  sourceIndex:(int)effectIndex
+    NS_SWIFT_NAME(fillRegionFromTimingMarks(sourceRow:sourceIndex:));
 
 @end
 

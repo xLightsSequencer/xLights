@@ -37,6 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString* node;
 @property (nonatomic, copy, readonly) NSString* mapping;       // empty if unmapped
 @property (nonatomic, copy, readonly) NSString* mappingModelType;
+@property (nonatomic, copy, readonly) NSArray<NSString*>* stackedMappings; // extra merged sources (empty for the common case)
 @property (nonatomic, assign, readonly) BOOL isGroup;
 @property (nonatomic, assign, readonly) BOOL isSubmodel;
 @property (nonatomic, assign, readonly) NSInteger effectCount;
@@ -93,6 +94,29 @@ NS_ASSUME_NONNULL_BEGIN
             sourceDisplayName:(nullable NSString*)sourceDisplayName
                     modelType:(nullable NSString*)modelType;
 
+// Append an additional source onto an already-mapped destination row — the
+// "Add Additional" branch of the desktop merge/stack prompt (#6474). The
+// primary `mapping` is kept; the extra source is replayed as appended layers
+// (separator + layers) at apply time, like the desktop's `_isStackDuplicate`.
+- (void)addStackedMappingForRow:(intptr_t)nodeID
+              sourceDisplayName:(NSString*)sourceDisplayName
+                      modelType:(nullable NSString*)modelType
+    NS_SWIFT_NAME(addStackedMapping(forRow:sourceDisplayName:modelType:));
+
+// Sort a destination model's submodel children alphabetically by name
+// (#4636). `nodeID` must be a top-level model row; strands keep their
+// order. No-op if the row isn't a root model. Returns YES if a re-sort
+// happened.
+- (BOOL)sortSubmodelsForRow:(intptr_t)nodeID
+    NS_SWIFT_NAME(sortSubmodels(forRow:));
+
+// Rebuild the destination mapping tree from the active sequence — used after
+// the user edits display elements mid-import so newly-added models appear as
+// targets. Mappings on rows that still exist are preserved by (model, strand,
+// node) name; rows that vanished drop their mappings.
+- (void)rebuildDestinationTree
+    NS_SWIFT_NAME(rebuildDestinationTree());
+
 // Run the desktop's Auto Map button: norm pass + aggressive pass +
 // every regex hint in `<showdir>/maphints/*.xmaphint`.
 - (void)runAutoMap;
@@ -124,6 +148,13 @@ NS_ASSUME_NONNULL_BEGIN
 // new core MappingIO module — tracked separately, not here.)
 - (int)loadMapHintsFromPath:(NSString*)path
     NS_SWIFT_NAME(loadMapHints(fromPath:));
+
+// Clear every destination mapping (the "Overwrite" branch of the multi-file
+// load-hints prompt). The AutoMapper regex pass that `loadMapHints` runs only
+// fills *unmapped* rows, so callers that want hints to win over the existing
+// mapping call this first.
+- (void)clearAllMappings
+    NS_SWIFT_NAME(clearAllMappings());
 
 // IE-12: add each mapped source model name as an alias on its
 // destination model so future imports auto-map without re-mapping.

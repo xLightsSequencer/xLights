@@ -132,6 +132,13 @@ struct XLSequencerCommands: Commands {
             }
             .keyboardShortcut("p", modifiers: [.command, .shift])
             .disabled(!viewModel.isSequenceLoaded)
+
+            // #6258 — command palette (fuzzy command/effect launcher).
+            // ⌘⇧K matches desktop's `OnCommandPalette` accelerator.
+            Button("Command Palette…") {
+                viewModel.commandPalettePresented = true
+            }
+            .keyboardShortcut("k", modifiers: [.command, .shift])
         }
         CommandGroup(replacing: .pasteboard) {
             Button("Cut") { viewModel.cutSelectedEffects() }

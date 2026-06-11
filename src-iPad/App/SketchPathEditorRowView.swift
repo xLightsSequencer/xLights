@@ -175,6 +175,8 @@ struct SketchPathEditorRowView: View {
                 .disabled(definition.isEmpty)
             }
 
+            pathManagementSection
+
             Text(modeHelpText)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -192,6 +194,102 @@ struct SketchPathEditorRowView: View {
         case .addLine:  return "Tap to add a line segment to the active path."
         case .addCurve: return "Tap to add a curve segment, then drag its control handles."
         }
+    }
+
+    // MARK: - Path management (#5871) — list, description, delete
+
+    @ViewBuilder
+    private var pathManagementSection: some View {
+        let def = definition
+        if !def.paths.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                VStack(spacing: 0) {
+                    ForEach(Array(def.paths.enumerated()), id: \.offset) { idx, _ in
+                        Button {
+                            selectedPath = idx
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: idx == activeIndex
+                                      ? "largecircle.fill.circle" : "circle")
+                                    .foregroundStyle(idx == activeIndex
+                                                     ? AnyShapeStyle(Color.accentColor)
+                                                     : AnyShapeStyle(.secondary))
+                                Text(pathLabel(def, idx))
+                                    .font(.caption)
+                                    .lineLimit(1)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Button {
+                                    deletePath(idx)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .font(.caption2)
+                                        .foregroundStyle(.red)
+                                }
+                                .buttonStyle(.borderless)
+                            }
+                            .contentShape(Rectangle())
+                            .padding(.vertical, 3)
+                        }
+                        .buttonStyle(.plain)
+                        if idx != def.paths.count - 1 { Divider() }
+                    }
+                }
+                .padding(.horizontal, 8)
+                .background(Color.secondary.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                if let active = activeIndex {
+                    HStack(spacing: 6) {
+                        Text("Desc")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        TextField("Path description",
+                                  text: descriptionBinding(active))
+                            .font(.caption)
+                            .textFieldStyle(.roundedBorder)
+                            .submitLabel(.done)
+                    }
+                    // Hardware ⌫ deletes the selected path (desktop #5871).
+                    Button("Delete Path") { deletePath(active) }
+                        .keyboardShortcut(.delete, modifiers: [])
+                        .hidden()
+                        .frame(width: 0, height: 0)
+                }
+            }
+        }
+    }
+
+    private func pathLabel(_ def: SketchDefinition, _ idx: Int) -> String {
+        let d = def.paths[idx].descriptionText
+        return d.isEmpty ? "Path \(idx + 1)" : "Path \(idx + 1) - \(d)"
+    }
+
+    private func descriptionBinding(_ idx: Int) -> Binding<String> {
+        Binding(
+            get: {
+                let def = definition
+                guard def.paths.indices.contains(idx) else { return "" }
+                return def.paths[idx].descriptionText
+            },
+            set: { newValue in
+                var def = definition
+                guard def.paths.indices.contains(idx) else { return }
+                def.paths[idx].descriptionText = newValue
+                write(def)
+            })
+    }
+
+    private func deletePath(_ idx: Int) {
+        var def = definition
+        guard def.paths.indices.contains(idx) else { return }
+        def.paths.remove(at: idx)
+        if def.paths.isEmpty {
+            selectedPath = nil
+        } else {
+            selectedPath = min(idx, def.paths.count - 1)
+        }
+        write(def)
     }
 
     private var activeIndex: Int? {

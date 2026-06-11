@@ -550,6 +550,34 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)swapStartEndForModels:(NSArray<NSString*>*)names
                   forDocument:(XLSequenceDocument*)doc;
 
+// Bulk Edit Rotate (desktop ID_PREVIEW_BULKEDIT_ROTATEX/Y/Z) —
+// set the absolute rotation about one axis on every editable model
+// in `names`. `axis`: @"X", @"Y", or @"Z". `degrees` is clamped to
+// [-180, 180] to match the rotation property grid; out-of-range
+// callers should reject before invoking. Locked / from-base models
+// are skipped. Returns YES if at least one model changed.
+- (BOOL)rotateModels:(NSArray<NSString*>*)names
+                axis:(NSString*)axis
+             degrees:(double)degrees
+         forDocument:(XLSequenceDocument*)doc;
+
+// Replace each model in `targets` with a copy of the model named
+// `source` (desktop ID_PREVIEW_REPLACEMODEL / ReplaceModelDialog,
+// #4462). Each target is swapped for a fresh clone of the source
+// that takes over the target's name. Option flags mirror the
+// desktop dialog: `keepStartChannel` preserves each target's
+// start-channel + controller/port/smart-remote assignment,
+// `keepSubmodels` carries the target's submodels onto the clone,
+// `keepSizePosition` preserves the target's centre / size /
+// rotation. Models from the base show or named `source` are
+// skipped. Returns the count of targets replaced.
+- (NSInteger)replaceModels:(NSArray<NSString*>*)targets
+                withSource:(NSString*)source
+          keepStartChannel:(BOOL)keepStartChannel
+             keepSubmodels:(BOOL)keepSubmodels
+          keepSizePosition:(BOOL)keepSizePosition
+               forDocument:(XLSequenceDocument*)doc;
+
 // Phase J-7 (multi-select) — duplicate each named model. Each
 // copy is offset by (+50, +50, 0) world units from the source so
 // it doesn't overlap, gets a unique name via
@@ -595,6 +623,24 @@ NS_ASSUME_NONNULL_BEGIN
 // off will repaint native pixel data).
 - (BOOL)clearSubmodelHighlightsOnModel:(NSString*)modelName
                            forDocument:(XLSequenceDocument*)doc;
+
+// SubModels Symmetrize (rotational generator) — mirrors desktop
+// SubModelsDialog::Symmetrize. Generates `degree`-fold rotationally
+// symmetric copies of `ranges` (the selected submodel's range
+// strings) over the parent `modelName`'s node cloud. Returns the new
+// full strand list (originals + generated copies, ordered per
+// `bottomToTop`) or nil if matching failed / model lookup miss.
+// `squarify` corrects a non-square node cloud before matching, the
+// same option desktop offers interactively. Uses the bridge's 2D
+// preview for node screen positions (`Model::GetScreenLocations`).
+- (nullable NSArray<NSString*>*)symmetrizeRanges:(NSArray<NSString*>*)ranges
+                                         onModel:(NSString*)modelName
+                                 degreeOfSymmetry:(NSInteger)degree
+                                       clockwise:(BOOL)clockwise
+                                     bottomToTop:(BOOL)bottomToTop
+                                        squarify:(BOOL)squarify
+                                     forDocument:(XLSequenceDocument*)doc
+    NS_SWIFT_NAME(symmetrizeRanges(_:onModel:degreeOfSymmetry:clockwise:bottomToTop:squarify:forDocument:));
 
 // J-30 — Submodel editor support. When YES, drawModelsForDocument
 // skips the per-frame `ctx->SetModelColors(frameMS)` step so any

@@ -26,7 +26,9 @@
 #include <pugixml.hpp>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <filesystem>
+#include <functional>
 #include <list>
 #include <map>
 #include <memory>
@@ -84,6 +86,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSString* _node;
     NSString* _mapping;
     NSString* _mappingModelType;
+    NSArray<NSString*>* _stackedMappings;
     BOOL _isGroup;
     BOOL _isSubmodel;
     NSInteger _effectCount;
@@ -95,6 +98,7 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
 - (NSString*)node { return _node; }
 - (NSString*)mapping { return _mapping; }
 - (NSString*)mappingModelType { return _mappingModelType; }
+- (NSArray<NSString*>*)stackedMappings { return _stackedMappings ?: @[]; }
 - (BOOL)isGroup { return _isGroup; }
 - (BOOL)isSubmodel { return _isSubmodel; }
 - (NSInteger)effectCount { return _effectCount; }
@@ -172,12 +176,17 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // CCR prop prefix names (per-pixel rgbChannels collapsed to one source row);
     // apply fans these across a model's node layers.
     std::unordered_set<std::string> _lmsCCRNames;
+
+    // Model-row nodeIDs whose submodel children are sorted-by-name in the
+    // SwiftUI snapshot (#4636). Display-only; the live child order is intact.
+    NSMutableSet<NSNumber*>* _sortedSubmodelNodeIDs;
 }
 
 - (instancetype)initWithDocument:(XLSequenceDocument*)document {
     self = [super init];
     if (self) {
         _document = document;
+        _sortedSubmodelNodeIDs = [[NSMutableSet alloc] init];
         [self buildDestinationTree];
     }
     return self;
@@ -834,6 +843,13 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     row->_node = [[NSString alloc] initWithUTF8String:node->_node.c_str()];
     row->_mapping = [[NSString alloc] initWithUTF8String:node->_mapping.c_str()];
     row->_mappingModelType = [[NSString alloc] initWithUTF8String:node->_mappingModelType.c_str()];
+    if (!node->_stackedMappings.empty()) {
+        NSMutableArray* stacked = [[NSMutableArray alloc] initWithCapacity:node->_stackedMappings.size()];
+        for (const auto& s : node->_stackedMappings) {
+            [stacked addObject:[[NSString alloc] initWithUTF8String:s.c_str()]];
+        }
+        row->_stackedMappings = stacked;
+    }
     row->_isGroup = node->_group ? YES : NO;
     row->_isSubmodel = node->_isSubmodel ? YES : NO;
     row->_effectCount = node->_effectCount;
@@ -841,6 +857,18 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     for (unsigned int i = 0; i < node->GetChildCount(); ++i) {
         BasicImportMappingNode* child = node->GetNthChild(i);
         if (child) [kids addObject:[self snapshotRow:child]];
+    }
+    if ([_sortedSubmodelNodeIDs containsObject:@(row->_nodeID)] && kids.count > 1) {
+        // Display-only submodel sort (#4636): submodel children first, ordered
+        // by name; strands keep their original order after.
+        NSArray* submodels = [[kids filteredArrayUsingPredicate:
+            [NSPredicate predicateWithBlock:^BOOL(XLImportMappingRow* r, NSDictionary* b) { return r->_isSubmodel; }]]
+            sortedArrayUsingComparator:^NSComparisonResult(XLImportMappingRow* a, XLImportMappingRow* b) {
+                return [a->_strand caseInsensitiveCompare:b->_strand];
+            }];
+        NSArray* strands = [kids filteredArrayUsingPredicate:
+            [NSPredicate predicateWithBlock:^BOOL(XLImportMappingRow* r, NSDictionary* b) { return !r->_isSubmodel; }]];
+        kids = [[submodels arrayByAddingObjectsFromArray:strands] mutableCopy];
     }
     row->_children = kids;
     return row;
@@ -876,13 +904,20 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
 
 #pragma mark - Mutations
 
+static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, intptr_t nodeID) {
+    if (n == nullptr) return nullptr;
+    if ((intptr_t)n == nodeID) return n;
+    for (unsigned int i = 0; i < n->GetChildCount(); ++i) {
+        BasicImportMappingNode* found = FindNodeByIDRecursive(n->GetNthChild(i), nodeID);
+        if (found) return found;
+    }
+    return nullptr;
+}
+
 - (BasicImportMappingNode*)findNodeByID:(intptr_t)nodeID {
     for (const auto& root : _destinationRoots) {
-        if ((intptr_t)root.get() == nodeID) return root.get();
-        for (unsigned int i = 0; i < root->GetChildCount(); ++i) {
-            BasicImportMappingNode* c = root->GetNthChild(i);
-            if ((intptr_t)c == nodeID) return c;
-        }
+        BasicImportMappingNode* found = FindNodeByIDRecursive(root.get(), nodeID);
+        if (found) return found;
     }
     return nullptr;
 }
@@ -899,6 +934,86 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     }
     std::string mt = modelType ? std::string(modelType.UTF8String) : std::string("Model");
     node->Map(sourceDisplayName.UTF8String, mt);
+}
+
+- (void)addStackedMappingForRow:(intptr_t)nodeID
+              sourceDisplayName:(NSString*)sourceDisplayName
+                      modelType:(nullable NSString*)modelType {
+    if (sourceDisplayName == nil || sourceDisplayName.length == 0) return;
+    BasicImportMappingNode* node = [self findNodeByID:nodeID];
+    if (node == nullptr) return;
+    std::string mt = modelType ? std::string(modelType.UTF8String) : std::string("Model");
+    if (node->_mapping.empty()) {
+        // Nothing to stack onto yet — behave like a plain map.
+        node->Map(sourceDisplayName.UTF8String, mt);
+        return;
+    }
+    node->AddStackedMapping(sourceDisplayName.UTF8String, mt);
+}
+
+- (BOOL)sortSubmodelsForRow:(intptr_t)nodeID {
+    BasicImportMappingNode* node = [self findNodeByID:nodeID];
+    if (node == nullptr) return NO;
+    // Display-only toggle, mirroring desktop's wxDataView Compare override:
+    // the underlying child order (which the apply path routes through via
+    // ModelElement::GetSubModel(index)) is left untouched; only the SwiftUI
+    // snapshot reorders the submodel children alphabetically.
+    int submodelCount = 0;
+    for (unsigned int i = 0; i < node->GetChildCount(); ++i) {
+        if (node->GetNthChild(i)->_isSubmodel) ++submodelCount;
+    }
+    if (submodelCount < 2) return NO;
+    [_sortedSubmodelNodeIDs containsObject:@(nodeID)]
+        ? [_sortedSubmodelNodeIDs removeObject:@(nodeID)]
+        : [_sortedSubmodelNodeIDs addObject:@(nodeID)];
+    return YES;
+}
+
+- (void)clearAllMappings {
+    for (const auto& root : _destinationRoots) {
+        root->ClearMapping();
+    }
+}
+
+- (void)rebuildDestinationTree {
+    // Snapshot the current mappings keyed by (model, strand, node) so we can
+    // re-apply them to surviving rows after the tree is rebuilt from the
+    // (possibly enlarged) active sequence.
+    struct SavedMapping {
+        std::string mapping;
+        std::string mappingModelType;
+        std::vector<std::string> stacked;
+        std::vector<std::string> stackedTypes;
+    };
+    std::map<std::string, SavedMapping> saved;
+    std::function<void(BasicImportMappingNode*)> collect = [&](BasicImportMappingNode* n) {
+        if (n == nullptr) return;
+        if (!n->_mapping.empty() || !n->_stackedMappings.empty()) {
+            saved[n->GetModelName()] = { n->_mapping, n->_mappingModelType,
+                                         n->_stackedMappings, n->_stackedMappingModelTypes };
+        }
+        for (unsigned int i = 0; i < n->GetChildCount(); ++i) collect(n->GetNthChild(i));
+    };
+    for (const auto& root : _destinationRoots) collect(root.get());
+
+    // nodeIDs are raw pointers; the rebuild invalidates every old one, so any
+    // submodel-sort flags keyed on them no longer apply.
+    [_sortedSubmodelNodeIDs removeAllObjects];
+    [self buildDestinationTree];
+
+    std::function<void(BasicImportMappingNode*)> restore = [&](BasicImportMappingNode* n) {
+        if (n == nullptr) return;
+        auto it = saved.find(n->GetModelName());
+        if (it != saved.end()) {
+            if (!it->second.mapping.empty()) n->Map(it->second.mapping, it->second.mappingModelType);
+            for (size_t i = 0; i < it->second.stacked.size(); ++i) {
+                n->AddStackedMapping(it->second.stacked[i],
+                                     i < it->second.stackedTypes.size() ? it->second.stackedTypes[i] : std::string("Model"));
+            }
+        }
+        for (unsigned int i = 0; i < n->GetChildCount(); ++i) restore(n->GetNthChild(i));
+    };
+    for (const auto& root : _destinationRoots) restore(root.get());
 }
 
 - (void)runAutoMap {
@@ -1548,6 +1663,32 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         }
     }
 
+    // Append a stacked (merged) source onto `target` as a separator layer
+    // followed by the source's layers — the iPad analogue of the desktop's
+    // `_isStackDuplicate` path (ImportEffects.cpp). Stacked merges never erase
+    // the target (the primary mapping already did any erase).
+    auto appendStacked = [&](Element* target, const std::string& srcName) {
+        EffectLayer* srcSingle = layerMap.count(srcName) ? layerMap[srcName] : nullptr;
+        Element* srcEl = elementMap.count(srcName) ? elementMap[srcName] : nullptr;
+        if (srcEl == nullptr) srcEl = _sourceElements->GetElement(srcName);
+        if (srcSingle != nullptr) {
+            target->AddEffectLayer(); // empty separator before stacked mapping
+            EffectLayer* newLayer = target->AddEffectLayer();
+            std::vector<EffectLayer*> m2;
+            MapXLightsEffects(newLayer, srcSingle, m2, false, xsqPkg, lockFlag,
+                              mapping, convertRender, mappingModelType);
+        } else if (srcEl != nullptr) {
+            target->AddEffectLayer(); // empty separator before stacked mapping
+            for (size_t x = 0; x < srcEl->GetEffectLayerCount(); ++x) {
+                EffectLayer* newLayer = target->AddEffectLayer();
+                newLayer->SetLayerName(srcEl->GetEffectLayer(x)->GetLayerName());
+                std::vector<EffectLayer*> m2;
+                MapXLightsEffects(newLayer, srcEl->GetEffectLayer(x), m2, false,
+                                  xsqPkg, lockFlag, mapping, convertRender, mappingModelType);
+            }
+        }
+    };
+
     for (const auto& root : _destinationRoots) {
         if (!root->HasMapping()) continue;
         Element* targetEl = targetSE.GetElement(root->_model);
@@ -1564,6 +1705,9 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                               elementMap, layerMap, mapped, erase,
                               xsqPkg, lockFlag, mapping,
                               /*convertRender=*/convertRender, mappingModelType);
+            for (const auto& s : root->_stackedMappings) {
+                appendStacked(targetEl, s);
+            }
         }
 
         // Child rows — submodels then strands. Index in the bridge
@@ -1581,6 +1725,9 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                                   elementMap, layerMap, mapped, erase,
                                   xsqPkg, lockFlag, mapping,
                                   /*convertRender=*/convertRender, mappingModelType);
+                for (const auto& s : child->_stackedMappings) {
+                    appendStacked(ste, s);
+                }
             }
 
             // Per-node grandchildren — only meaningful when the child

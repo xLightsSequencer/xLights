@@ -85,6 +85,7 @@
 #include "outputs/TwinklyOutput.h"
 #include "outputs/DDPOutput.h"
 #include "controllers/Pixlite16.h"
+#include "controllers/WLED.h"
 #include "controllers/BaseController.h"
 #include "controllers/ControllerUploadData.h"
 #include "controllers/ExportSettings.h"
@@ -1587,6 +1588,66 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         bool ok = ModelVideoExporter::WriteModelVideo(outPath, modelData.get(),
                                                       sf, ef, model, startAddr,
                                                       compressedB, hqB, prB);
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
+    });
+}
+
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                    exportWidth:(int)exportWidth exportHeight:(int)exportHeight
+                     completion:(void (^)(BOOL))completion {
+    void (^finishNO)(void) = ^{
+        if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(NO); });
+    };
+    if (!path || path.length == 0 || !_context) { finishNO(); return; }
+    auto* row = _context->GetSequenceElements().GetRowInformation(rowIndex);
+    if (!row || !row->element) { finishNO(); return; }
+    if (row->element->GetType() == ElementType::ELEMENT_TYPE_TIMING) { finishNO(); return; }
+    const std::string modelName = row->element->GetName();
+    if (modelName.empty()) { finishNO(); return; }
+
+    Model* model = _context->GetModel(modelName);
+    if (!model || model->GetDisplayAs() == DisplayAsType::ModelGroup) { finishNO(); return; }
+
+    RenderEngine* engine = _context->GetRenderEngine();
+    if (!engine) { finishNO(); return; }
+
+    SequenceData& fullData = _context->GetSequenceData();
+    if (fullData.NumFrames() == 0 || fullData.NumChannels() == 0) { finishNO(); return; }
+
+    auto exported = engine->ExportModelData(modelName, fullData);
+    if (!exported.data) { finishNO(); return; }
+    std::shared_ptr<SequenceData> modelData(std::move(exported.data));
+    const uint32_t totalFrames = (uint32_t)modelData->NumFrames();
+    if (totalFrames == 0) { finishNO(); return; }
+
+    const int frameTime = modelData->FrameTime();
+    uint32_t startFrame = 0;
+    uint32_t endFrame = totalFrames;
+    if (startMS >= 0 && endMS > startMS && frameTime > 0) {
+        startFrame = std::min<uint32_t>(totalFrames, (uint32_t)(startMS / frameTime));
+        endFrame = std::min<uint32_t>(totalFrames,
+                                      (uint32_t)((endMS + frameTime - 1) / frameTime));
+    }
+    if (endFrame <= startFrame) { finishNO(); return; }
+
+    const int startAddr = model->GetNumberFromChannelString(model->ModelStartChannel);
+    const std::string outPath = [path UTF8String];
+    const uint32_t sf = startFrame;
+    const uint32_t ef = endFrame;
+    const bool compressedB = compressed;
+    const bool hqB = highQuality;
+    const bool prB = forceProRes;
+    const int expW = exportWidth;
+    const int expH = exportHeight;
+
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        bool ok = ModelVideoExporter::WriteModelVideo(outPath, modelData.get(),
+                                                      sf, ef, model, startAddr,
+                                                      compressedB, hqB, prB,
+                                                      expW, expH);
         if (completion) dispatch_async(dispatch_get_main_queue(), ^{ completion(ok ? YES : NO); });
     });
 }
@@ -13958,6 +14019,11 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
             auto variants = ControllerCaps::GetVariants(
                 c->GetType(), c->GetVendor(), *it);
             c->SetVariant(variants.empty() ? "" : variants.front());
+            ControllerCaps* newCaps = ControllerCaps::GetControllerConfig(c);
+            if (newCaps && newCaps->IsPlayerOnly() &&
+                c->GetActive() == Controller::ACTIVESTATE::ACTIVE) {
+                c->SetActive("xLights Only");
+            }
             changed = YES;
         }
     } else if (k == "Variant") {
@@ -14239,6 +14305,20 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
         [self recalcAndMarkControllersDirty];
     }
     return changed;
+}
+
+- (nullable NSString*)controllerAutoSizeUniverseWarning:(NSString*)name {
+    if (!_context || !name) return nil;
+    auto& om = _context->GetOutputManager();
+    Controller* c = om.GetController([name UTF8String]);
+    if (!c || !c->IsAutoSize() || c->GetOutputCount() == 0) return nil;
+    if (c->GetProtocol() != std::string("E131")) return nil;
+    int universeSize = c->GetFirstOutput()->GetChannels();
+    if (universeSize == 170 || universeSize == 510 || universeSize == 512) return nil;
+    return [NSString stringWithFormat:
+        @"The current Universe Size is %d.\n\nFor Auto Size to work correctly, you may "
+         "need to update the Universe Size to a common value such as 510 or 512.",
+        universeSize];
 }
 
 #pragma mark - J-31.3 — Controllers add / delete
@@ -14737,6 +14817,7 @@ public:
     TwinklyOutput::PrepareDiscovery(discovery);
     Pixlite16::PrepareDiscovery(discovery);
     DDPOutput::PrepareDiscovery(discovery);
+    WLED::PrepareDiscovery(discovery);
 
     discovery.Discover();
 
@@ -16462,6 +16543,185 @@ NSString* fppTypeString(FPP_TYPE t) {
                            _context->GetModelManager())
                ? YES
                : NO;
+}
+
+#pragma mark - Song Structure Regions (#6268 — bulk actions)
+
+- (int)songStructureRegionIndexAtTimeMS:(int)timeMS {
+    return _context->GetSequenceElements().GetSongStructureManager().GetRegionIndexAtTime(timeMS);
+}
+
+- (int)copyEffectsFromRegion:(int)sourceRegionIndex toRegion:(int)targetRegionIndex {
+    auto& se = _context->GetSequenceElements();
+    auto& ssm = se.GetSongStructureManager();
+    if (sourceRegionIndex < 0 || targetRegionIndex < 0 ||
+        sourceRegionIndex >= (int)ssm.GetRegionCount() ||
+        targetRegionIndex >= (int)ssm.GetRegionCount() ||
+        sourceRegionIndex == targetRegionIndex) {
+        return 0;
+    }
+
+    const SongStructureRegion& sourceRegion = ssm.GetRegion(sourceRegionIndex);
+    const SongStructureRegion& targetRegion = ssm.GetRegion(targetRegionIndex);
+    int timeOffset = targetRegion.startTimeMS - sourceRegion.startTimeMS;
+    double freq = se.GetFrequency();
+
+    UndoManager& undoMgr = se.get_undo_mgr();
+    undoMgr.CreateUndoStep();
+    _context->AbortRender(5000);
+
+    int effectsCopied = 0;
+    for (size_t i = 0; i < se.GetElementCount(); i++) {
+        Element* elem = se.GetElement(i);
+        if (elem == nullptr || elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); layer++) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            if (el == nullptr) continue;
+
+            std::vector<Effect*> sourceEffects = el->GetAllEffectsByTime(
+                sourceRegion.startTimeMS, sourceRegion.endTimeMS);
+
+            for (Effect* eff : sourceEffects) {
+                int newStartMS = RoundToMultipleOfPeriod(eff->GetStartTimeMS() + timeOffset, freq);
+                int newEndMS = RoundToMultipleOfPeriod(eff->GetEndTimeMS() + timeOffset, freq);
+                if (newStartMS < 0 || newStartMS >= newEndMS) continue;
+
+                if (el->GetRangeIsClearMS(newStartMS, newEndMS)) {
+                    Effect* newEff = el->AddEffect(0,
+                        eff->GetEffectName(),
+                        eff->GetSettingsAsString(),
+                        eff->GetPaletteAsString(),
+                        newStartMS, newEndMS, EFFECT_NOT_SELECTED, false);
+                    if (newEff != nullptr) {
+                        undoMgr.CaptureAddedEffect(elem->GetName(), el->GetIndex(), newEff->GetID());
+                        effectsCopied++;
+                    }
+                }
+            }
+        }
+    }
+
+    if (effectsCopied == 0) {
+        undoMgr.CancelLastStep();
+    }
+    se.IncrementChangeCount(nullptr);
+    return effectsCopied;
+}
+
+- (int)applyPaletteString:(NSString*)paletteString toRegionAtIndex:(int)regionIndex {
+    auto& se = _context->GetSequenceElements();
+    auto& ssm = se.GetSongStructureManager();
+    if (!paletteString || regionIndex < 0 || regionIndex >= (int)ssm.GetRegionCount()) {
+        return 0;
+    }
+
+    const SongStructureRegion& region = ssm.GetRegion(regionIndex);
+    std::string palette([paletteString UTF8String]);
+
+    UndoManager& undoMgr = se.get_undo_mgr();
+    undoMgr.CreateUndoStep();
+    _context->AbortRender(5000);
+
+    int effectsModified = 0;
+    for (size_t i = 0; i < se.GetElementCount(); i++) {
+        Element* elem = se.GetElement(i);
+        if (elem == nullptr || elem->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+
+        for (int layer = 0; layer < (int)elem->GetEffectLayerCount(); layer++) {
+            EffectLayer* el = elem->GetEffectLayer(layer);
+            if (el == nullptr) continue;
+
+            std::vector<Effect*> regionEffects = el->GetAllEffectsByTime(
+                region.startTimeMS, region.endTimeMS);
+            for (Effect* eff : regionEffects) {
+                undoMgr.CaptureModifiedEffect(elem->GetName(), el->GetIndex(), eff);
+                eff->SetPalette(palette);
+                effectsModified++;
+            }
+        }
+    }
+
+    if (effectsModified == 0) {
+        undoMgr.CancelLastStep();
+    }
+    se.IncrementChangeCount(nullptr);
+    return effectsModified;
+}
+
+- (int)fillRegionFromTimingMarksWithSourceRow:(int)rowIndex sourceIndex:(int)effectIndex {
+    auto& se = _context->GetSequenceElements();
+    EffectLayer* el = [self effectLayerForRow:rowIndex];
+    if (el == nullptr || effectIndex < 0 || effectIndex >= el->GetEffectCount()) return 0;
+
+    Effect* sourceEffect = el->GetEffect(effectIndex);
+    if (sourceEffect == nullptr) return 0;
+
+    auto& ssm = se.GetSongStructureManager();
+    const SongStructureRegion* region = ssm.GetRegionAtTime(sourceEffect->GetStartTimeMS());
+    if (region == nullptr) return 0;
+
+    // Locate the active timing element's last populated layer — mirrors
+    // EffectsGrid::FillRegionFromTimingMarks's GetActiveTimingElement().
+    EffectLayer* timingLayer = nullptr;
+    for (int i = 0; i < se.GetNumberOfTimingElements(); i++) {
+        TimingElement* te = se.GetTimingElement(i);
+        if (te == nullptr || !te->GetActive()) continue;
+        for (int l = (int)te->GetEffectLayerCount() - 1; l >= 0; l--) {
+            EffectLayer* tl = te->GetEffectLayer(l);
+            if (tl != nullptr && tl->GetEffectCount() > 0) {
+                timingLayer = tl;
+                break;
+            }
+        }
+        break;
+    }
+    if (timingLayer == nullptr) return 0;
+
+    std::string effectName = sourceEffect->GetEffectName();
+    std::string settings = sourceEffect->GetSettingsAsString();
+    std::string palette = sourceEffect->GetPaletteAsString();
+    long sourceStart = sourceEffect->GetStartTimeMS();
+    long sourceEnd = sourceEffect->GetEndTimeMS();
+    long sourceDuration = sourceEnd - sourceStart;
+    double freq = se.GetFrequency();
+
+    UndoManager& undoMgr = se.get_undo_mgr();
+    undoMgr.CreateUndoStep();
+    _context->AbortRender(5000);
+
+    int effectsCreated = 0;
+    for (int i = 0; i < timingLayer->GetEffectCount(); i++) {
+        Effect* timingMark = timingLayer->GetEffect(i);
+        long markStart = timingMark->GetStartTimeMS();
+        long markEnd = timingMark->GetEndTimeMS();
+
+        if (markEnd <= region->startTimeMS || markStart >= region->endTimeMS) continue;
+        if (markStart < region->startTimeMS) markStart = region->startTimeMS;
+        if (markStart < sourceEnd && markEnd > sourceStart) continue;
+
+        long newStart = RoundToMultipleOfPeriod((int)markStart, freq);
+        long newEnd = RoundToMultipleOfPeriod((int)(newStart + sourceDuration), freq);
+        if (newEnd > region->endTimeMS) {
+            newEnd = RoundToMultipleOfPeriod(region->endTimeMS, freq);
+        }
+        if (newEnd <= newStart) continue;
+        if (el->HasEffectsInTimeRange((int)newStart, (int)newEnd)) continue;
+
+        Effect* newEffect = el->AddEffect(0, effectName, settings, palette,
+            (int)newStart, (int)newEnd, EFFECT_NOT_SELECTED, false);
+        if (newEffect != nullptr) {
+            undoMgr.CaptureAddedEffect(el->GetParentElement()->GetName(),
+                el->GetIndex(), newEffect->GetID());
+            effectsCreated++;
+        }
+    }
+
+    if (effectsCreated == 0) {
+        undoMgr.CancelLastStep();
+    }
+    se.IncrementChangeCount(nullptr);
+    return effectsCreated;
 }
 
 @end

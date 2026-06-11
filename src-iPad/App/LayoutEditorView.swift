@@ -288,6 +288,11 @@ struct LayoutEditorView: View {
     @State private var pendingBulkUploadConfirm: Bool = false
     @State private var bulkUploadState: BulkUploadState? = nil
 
+    /// #4123 — AutoSize uncommon-universe-size warning. Non-nil when
+    /// the user just enabled AutoSize on an E1.31 controller whose
+    /// universe size is not one of the common values (170, 510, 512).
+    @State private var autoSizeUniverseWarning: String? = nil
+
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
     @State private var addMemberSheetVisible: Bool = false
@@ -306,6 +311,15 @@ struct LayoutEditorView: View {
     /// "Create" passes the current selection as the initial member
     /// list instead of creating an empty group. Cleared after use.
     @State private var pendingGroupFromSelection: [String]? = nil
+
+    /// Bulk Edit Rotate — axis ("X"/"Y"/"Z") + degrees text while
+    /// the rotation prompt alert is up. nil axis == alert hidden.
+    @State private var bulkRotateAxis: String? = nil
+    @State private var bulkRotateText: String = ""
+
+    /// Replace Model — source model whose copy replaces the picked
+    /// targets, plus the sheet visibility. nil == sheet hidden.
+    @State private var replaceModelSource: String? = nil
 
     /// J-8 — file picker for the 2D Background image.
     @State private var backgroundImagePickerVisible: Bool = false
@@ -888,6 +902,8 @@ struct LayoutEditorView: View {
             error: $modelsReportError))
         .modifier(ControllerActionAlertModifier(
             message: $pendingControllerActionAlert))
+        .modifier(AutoSizeUniverseWarningModifier(
+            message: $autoSizeUniverseWarning))
         .modifier(ControllerDeleteAlertModifier(
             pendingName: $pendingDeleteControllerName,
             modelCount: { name in
@@ -936,6 +952,12 @@ struct LayoutEditorView: View {
         } message: {
             Text("Removes this model from the current layout. Save the layout to make the change permanent; Undo or Discard will roll it back.")
         }
+        .modifier(BulkRotateAndReplaceModifier(
+            rotateAxis: bulkRotateAxis,
+            rotatePresented: bulkRotatePresented,
+            rotateButtons: { bulkRotateAlertButtons },
+            replaceTarget: replaceModelTargetBinding,
+            replaceSheet: { replaceModelSheet(for: $0) }))
         // Confirm-before-save. xlights_rgbeffects.xml is the show's
         // master layout file; an unintended save during testing is
         // expensive to recover from. Discard-changes uses the undo
@@ -2514,6 +2536,12 @@ struct LayoutEditorView: View {
             // resets the downstream pickers; bumping the controller
             // row cache surfaces the fresh option lists.
             refreshModelList()
+            // #4123 — warn when AutoSize is enabled on an E1.31
+            // controller with an uncommon universe size.
+            if key == "AutoSize", let v = value as? Bool, v {
+                autoSizeUniverseWarning =
+                    viewModel.document.controllerAutoSizeUniverseWarning(name: name)
+            }
         }
     }
 
@@ -3019,6 +3047,9 @@ struct LayoutEditorView: View {
                                       onRequestDuplicate: {
                                           performDuplicate(of: [selected])
                                       },
+                                      onRequestReplace: {
+                                          replaceModelSource = selected
+                                      },
                                       onSwapStartEnd: {
                                           performSwapStartEnd(of: selected)
                                       })
@@ -3039,6 +3070,7 @@ struct LayoutEditorView: View {
                         onDistribute: { axis in performDistribute(axis: axis) },
                         onMatchSize: { dim in performMatchSize(dimension: dim) },
                         onFlip: { axis in performFlip(axis: axis) },
+                        onRotate: { axis in promptBulkRotate(axis: axis) },
                         onDuplicate: { performDuplicate(of: Array(viewModel.layoutEditorSelection)) },
                         onGroup: { newGroupFromSelectionPrompt() },
                         onAddToGroup: { addSelectionToGroupPrompt() },
@@ -3953,6 +3985,110 @@ struct LayoutEditorView: View {
             NotificationCenter.default.post(name: .layoutEditorModelMoved,
                                              object: "LayoutEditor",
                                              userInfo: [:])
+        }
+    }
+
+    /// Bulk Edit Rotate (desktop ID_PREVIEW_BULKEDIT_ROTATEX/Y/Z) —
+    /// open the degrees prompt, pre-filled with the leader's current
+    /// rotation about the chosen axis so the user only types to change.
+    private func promptBulkRotate(axis: String) {
+        guard !viewModel.layoutEditorSelection.isEmpty else { return }
+        var initial = 0.0
+        if let leader = viewModel.layoutEditorSelectedModel,
+           let s = viewModel.document.modelLayoutSummary(leader) {
+            switch axis {
+            case "X": initial = (s["rotateX"] as? Double) ?? 0
+            case "Y": initial = (s["rotateY"] as? Double) ?? 0
+            default:  initial = (s["rotateZ"] as? Double) ?? 0
+            }
+        }
+        bulkRotateText = String(format: "%g", initial)
+        bulkRotateAxis = axis
+    }
+
+    /// Apply the entered rotation to every selected model. Pushes one
+    /// undo snapshot per model so each rotation is revertible. Mirrors
+    /// desktop's BulkEditRotateAxis [-180, 180] clamp.
+    private func performBulkRotate() {
+        guard let axis = bulkRotateAxis else { return }
+        bulkRotateAxis = nil
+        guard let degrees = Double(bulkRotateText.trimmingCharacters(in: .whitespaces)),
+              degrees.isFinite else { return }
+        let names = Array(viewModel.layoutEditorSelection)
+        guard !names.isEmpty else { return }
+        for n in names {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let rotated = bridge.rotateModels(names, axis: axis, degrees: degrees, for: viewModel.document)
+        if rotated {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: [:])
+        }
+    }
+
+    /// Replace Model (desktop ID_PREVIEW_REPLACEMODEL, #4462) — swap
+    /// each target for a copy of `source`. The target keeps its name,
+    /// start channel / controller, position / size and submodels.
+    private func performReplaceModel(source: String, targets: [String],
+                                     keepStartChannel: Bool, keepSubmodels: Bool,
+                                     keepSizePosition: Bool) {
+        guard !source.isEmpty, !targets.isEmpty else { return }
+        for n in targets {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let replaced = bridge.replaceModels(targets, withSource: source,
+                                            keepStartChannel: keepStartChannel,
+                                            keepSubmodels: keepSubmodels,
+                                            keepSizePosition: keepSizePosition,
+                                            for: viewModel.document)
+        if replaced > 0 {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            refreshModelList()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: [:])
+        }
+    }
+
+    /// Candidate targets for a Replace Model — every model in the
+    /// active layout group except the source itself.
+    private func replaceModelCandidates(excluding source: String) -> [String] {
+        modelNames.filter { $0 != source }.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    private var bulkRotatePresented: Binding<Bool> {
+        Binding(get: { bulkRotateAxis != nil },
+                set: { if !$0 { bulkRotateAxis = nil } })
+    }
+
+    @ViewBuilder
+    private var bulkRotateAlertButtons: some View {
+        TextField("Degrees", text: $bulkRotateText)
+            .keyboardType(.numbersAndPunctuation)
+        Button("Rotate") { performBulkRotate() }
+        Button("Cancel", role: .cancel) { bulkRotateAxis = nil }
+    }
+
+    private var replaceModelTargetBinding: Binding<ReplaceModelTarget?> {
+        Binding(get: { replaceModelSource.map { ReplaceModelTarget(source: $0) } },
+                set: { if $0 == nil { replaceModelSource = nil } })
+    }
+
+    @ViewBuilder
+    private func replaceModelSheet(for target: ReplaceModelTarget) -> some View {
+        ReplaceModelSheet(source: target.source,
+                          candidates: replaceModelCandidates(excluding: target.source)) { picks, keepSC, keepSubs, keepSizePos in
+            performReplaceModel(source: target.source, targets: picks,
+                                keepStartChannel: keepSC, keepSubmodels: keepSubs,
+                                keepSizePosition: keepSizePos)
         }
     }
 
@@ -6360,6 +6496,17 @@ private struct SubModelDetailEditor: View {
     @State private var confirmCancel: Bool = false
     @Environment(\.dismiss) private var dismissDetail
 
+    @StateObject private var previewController = SubmodelPreviewController()
+
+    // SubModels Symmetrize (rotational generator). Options persisted
+    // between openings, mirroring desktop's config-backed defaults.
+    @AppStorage("SymmetrizeDoS") private var symmetrizeDoS: Int = 8
+    @AppStorage("SymmetrizeClockwise") private var symmetrizeClockwise: Bool = false
+    @AppStorage("SymmetrizeBottomToTop") private var symmetrizeBottomToTop: Bool = false
+    @AppStorage("SymmetrizeSquarify") private var symmetrizeSquarify: Bool = true
+    @State private var showSymmetrizeSheet: Bool = false
+    @State private var symmetrizeError: String? = nil
+
     private static let bufferStyles = [
         "Default", "Keep XY", "Stacked", "Stacked Right",
         "Stacked Left", "Stacked Up", "Stacked Down",
@@ -6415,7 +6562,8 @@ private struct SubModelDetailEditor: View {
                 parentModelName: parentModelName,
                 highlightedNodes: highlightedNodes,
                 onToggleNode: toggleNode,
-                onAddNodes: addNodes)
+                onAddNodes: addNodes,
+                controller: previewController)
                 .background(Color.black)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             Text(entry.isRanges
@@ -6620,6 +6768,14 @@ private struct SubModelDetailEditor: View {
         .onChange(of: entry.isRanges) { _, newVal in
             if !newVal { stopPlayback() }
         }
+        .sheet(isPresented: $showSymmetrizeSheet) { symmetrizeSheet }
+        .alert("Symmetrize Failed",
+               isPresented: Binding(get: { symmetrizeError != nil },
+                                    set: { if !$0 { symmetrizeError = nil } })) {
+            Button("OK", role: .cancel) { symmetrizeError = nil }
+        } message: {
+            Text(symmetrizeError ?? "")
+        }
     }
 
     private var rangesSection: some View {
@@ -6735,6 +6891,65 @@ private struct SubModelDetailEditor: View {
                 .disabled(entry.strands.count <= 1)
             }
             .buttonStyle(.bordered)
+
+            HStack(spacing: 12) {
+                Button {
+                    showSymmetrizeSheet = true
+                } label: {
+                    Label("Symmetrize", systemImage: "circle.hexagonpath")
+                }
+                .disabled(entry.strands.isEmpty)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private var symmetrizeSheet: some View {
+        NavigationStack {
+            Form {
+                Section(footer: Text("Generates rotationally-symmetric copies of the current lines around the model's centre. Mirrors the desktop Symmetrize (Rotational) tool.")) {
+                    Stepper("Degree of Symmetry: \(symmetrizeDoS)",
+                            value: $symmetrizeDoS, in: 2...100)
+                    Picker("Direction", selection: $symmetrizeClockwise) {
+                        Text("Clockwise").tag(true)
+                        Text("Counter-Clockwise").tag(false)
+                    }
+                    Picker("Build Order", selection: $symmetrizeBottomToTop) {
+                        Text("Top to Bottom").tag(false)
+                        Text("Bottom to Top").tag(true)
+                    }
+                    Toggle("Squarify Aspect Ratio", isOn: $symmetrizeSquarify)
+                }
+            }
+            .navigationTitle("Symmetrize")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showSymmetrizeSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        runSymmetrize()
+                        showSymmetrizeSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func runSymmetrize() {
+        guard entry.isRanges, !entry.strands.isEmpty else { return }
+        let result = previewController.symmetrize(ranges: entry.strands,
+                                                  degree: symmetrizeDoS,
+                                                  clockwise: symmetrizeClockwise,
+                                                  bottomToTop: symmetrizeBottomToTop,
+                                                  squarify: symmetrizeSquarify)
+        if let result, !result.isEmpty {
+            entry.strands = result
+            clampActiveRow()
+        } else {
+            symmetrizeError = "Symmetrize could not match all nodes. Ensure the model is centred and the node positions are clean, then try a different degree."
         }
     }
 
@@ -9714,6 +9929,22 @@ private struct ControllerActionAlertModifier: ViewModifier {
     }
 }
 
+/// #4123 — AutoSize uncommon universe warning modifier.
+private struct AutoSizeUniverseWarningModifier: ViewModifier {
+    @Binding var message: String?
+
+    func body(content: Content) -> some View {
+        content.alert("Universe Size Warning",
+                       isPresented: Binding(
+                            get: { message != nil },
+                            set: { if !$0 { message = nil } })) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(message ?? "")
+        }
+    }
+}
+
 /// J-31.3 — Delete-controller confirmation. Same extraction
 /// pattern as the placeholder alert above; the destructive
 /// action runs the supplied closure with the controller name
@@ -12494,6 +12725,125 @@ private struct AddMemberRow: View {
 /// Phase J-4 (multi-select) — operations bar shown when 2+ models
 /// are selected. Hosts Align ▾, Distribute ▾, Match Size ▾, and
 /// Clear. Top-centered like the creation banner.
+/// Identifiable wrapper so the Replace Model sheet can bind via
+/// `.sheet(item:)` keyed on the source model name.
+private struct ReplaceModelTarget: Identifiable {
+    let source: String
+    var id: String { source }
+}
+
+/// Bundles the Bulk-Rotate degrees alert and the Replace-Model sheet
+/// into one modifier so they add a single node to the (already large)
+/// LayoutEditorView body chain — keeps the SwiftUI type-checker under
+/// budget.
+private struct BulkRotateAndReplaceModifier<RotateButtons: View, ReplaceContent: View>: ViewModifier {
+    let rotateAxis: String?
+    let rotatePresented: Binding<Bool>
+    @ViewBuilder let rotateButtons: () -> RotateButtons
+    let replaceTarget: Binding<ReplaceModelTarget?>
+    @ViewBuilder let replaceSheet: (ReplaceModelTarget) -> ReplaceContent
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Rotate \(rotateAxis ?? "")", isPresented: rotatePresented) {
+                rotateButtons()
+            } message: {
+                Text("Sets the rotation about the \(rotateAxis ?? "") axis for every selected model. Range -180 to 180 degrees.")
+            }
+            .sheet(item: replaceTarget) { target in
+                replaceSheet(target)
+            }
+    }
+}
+
+/// Replace Model (desktop ReplaceModelDialog, #4462) — a searchable,
+/// multi-select list of target models that will each be replaced by a
+/// copy of `source`. The three toggles mirror the desktop dialog
+/// (keep start channel / keep submodels / keep size & position).
+private struct ReplaceModelSheet: View {
+    let source: String
+    let candidates: [String]
+    let onReplace: (_ targets: [String], _ keepStartChannel: Bool,
+                    _ keepSubmodels: Bool, _ keepSizePosition: Bool) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var search: String = ""
+    @State private var picked: Set<String> = []
+    @State private var keepStartChannel: Bool = true
+    @State private var keepSubmodels: Bool = false
+    @State private var keepSizePosition: Bool = true
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return candidates }
+        return candidates.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Each selected model is replaced by a copy of \(source).")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Section("Keep from each target") {
+                    Toggle("Start channel & controller", isOn: $keepStartChannel)
+                    Toggle("Submodels", isOn: $keepSubmodels)
+                    Toggle("Position & size", isOn: $keepSizePosition)
+                }
+                Section {
+                    Button(allVisibleSelected ? "Clear Visible" : "Select Visible") {
+                        if allVisibleSelected {
+                            filtered.forEach { picked.remove($0) }
+                        } else {
+                            filtered.forEach { picked.insert($0) }
+                        }
+                    }
+                    .font(.caption)
+                } header: {
+                    Text("Replace (\(picked.count))")
+                }
+                Section {
+                    ForEach(filtered, id: \.self) { name in
+                        Button {
+                            if picked.contains(name) { picked.remove(name) }
+                            else { picked.insert(name) }
+                        } label: {
+                            HStack {
+                                Image(systemName: picked.contains(name) ? "checkmark.square.fill" : "square")
+                                    .foregroundStyle(picked.contains(name) ? Color.accentColor : .secondary)
+                                Text(name)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Replace With \(source)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Replace") {
+                        onReplace(Array(picked), keepStartChannel, keepSubmodels, keepSizePosition)
+                        dismiss()
+                    }
+                    .disabled(picked.isEmpty)
+                }
+            }
+        }
+    }
+
+    private var allVisibleSelected: Bool {
+        !filtered.isEmpty && filtered.allSatisfy { picked.contains($0) }
+    }
+}
+
 private struct MultiSelectActionBar: View {
     let selection: Set<String>
     let leader: String?
@@ -12501,6 +12851,7 @@ private struct MultiSelectActionBar: View {
     let onDistribute: (String) -> Void
     let onMatchSize: (String) -> Void
     let onFlip: (String) -> Void
+    let onRotate: (String) -> Void
     let onDuplicate: () -> Void
     let onGroup: () -> Void
     let onAddToGroup: () -> Void
@@ -12585,6 +12936,17 @@ private struct MultiSelectActionBar: View {
             .menuStyle(.borderlessButton)
             .foregroundStyle(.white)
 
+            Menu {
+                Button("Rotate X…") { onRotate("X") }
+                Button("Rotate Y…") { onRotate("Y") }
+                Button("Rotate Z…") { onRotate("Z") }
+            } label: {
+                Label("Rotate", systemImage: "rotate.3d")
+                    .font(.caption.weight(.medium))
+            }
+            .menuStyle(.borderlessButton)
+            .foregroundStyle(.white)
+
             Divider()
                 .frame(height: 24)
                 .background(.white.opacity(0.3))
@@ -12643,6 +13005,7 @@ private struct InlineModelActionBar: View {
     let onPropertyChange: () -> Void
     let onRequestDelete: () -> Void
     let onRequestDuplicate: () -> Void
+    let onRequestReplace: () -> Void
     let onSwapStartEnd: () -> Void
 
     var body: some View {
@@ -12738,6 +13101,16 @@ private struct InlineModelActionBar: View {
                     .buttonStyle(.plain)
                     .foregroundStyle(.blue)
                 }
+
+                Button {
+                    onRequestReplace()
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath.circle")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
+                .accessibilityLabel("Replace other models with this one")
 
                 Button(role: .destructive) {
                     onRequestDelete()

@@ -20,8 +20,11 @@
 > a couple of palette-menu items (Update Palette to bulk-apply across
 > selection). iPad's former leads here — in-dialog VC clipboard copy/paste and
 > palette "Copy String" — have now been pulled back to desktop (shared
-> `xlvc:v1:` / `GetCurrentPalette()` clipboard formats). The residual iPad-ahead
-> items are per-VC-preset swipe-delete and a ColorCurve position field.
+> `xlvc:v1:` / `GetCurrentPalette()` clipboard formats). The color-picker gaps
+> (CSS named-color swatches and persisted recent-color swatches) are now closed:
+> `XLColorSwatchPicker` delivers both via the "Pick Color…" long-press entry on
+> palette slots. The residual iPad-ahead items are per-VC-preset swipe-delete
+> and a ColorCurve position field.
 
 ## Parity scorecard
 
@@ -107,8 +110,8 @@
 | "Reset panel on effect change" preference | preference | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `BuildResetPanelRow` → wxConfig `xLightsResetColorPanel`. iPad doesn't reset panel state on effect change, so the toggle has nothing to govern (`EffectPropertyView.swift:247` renders nothing for `ResetPanelRow`). |
 | Recent-palettes dropdown | menu/panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `_colourList` (`ColourList` owner-drawn combo, `ColorPanel.cpp:330`) lists bundled + on-disk palettes inline. iPad only has the Load sheet. |
 | Color Replace: color-curve replacement target | dialog | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop `ColourReplaceDialog` carries a `ColorCurveButton _ccb` (`ColourReplaceDialog.h:28`, created `ColourReplaceDialog.cpp:137`, rendered `:78-79`) so the replacement can be a color curve. iPad `ColorReplaceSheet` only offers a plain replacement color. |
-| Common (CSS) named color swatches | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `xlColourPickerDialog` shows a 140-entry CSS named-color grid (`xlColourPickerDialog.cpp:32` `CSS_COLORS[]`, `:104` `CSS_COUNT=140`, `:266` `cssGrid`). iPad color picker has no named-swatch grid. |
-| Recent colors swatches (persisted) | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `xlColourPickerDialog` shows a persisted recent-color grid (`xlColourPickerDialog.cpp:280` recent swatch grid, `:281` `recentGrid`). iPad has no persisted recent-colors strip in the color picker. |
+| Common (CSS) named color swatches | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `xlColourPickerDialog` CSS grid (`xlColourPickerDialog.cpp:32,104,266`); iPad `XLColorSwatchPicker` 140-entry `cssColors[]` grid (20 cols × 7 rows, `XLColorSwatchPicker.swift:cssColors`), opened via "Pick Color…" long-press context menu on plain palette slots (`ColorPaletteView.swift`). |
+| Recent colors swatches (persisted) | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `xlColourPickerDialog` persisted recents (`xlColourPickerDialog.cpp:280,383`); iPad `XLRecentColors` (`XLColorSwatchPicker.swift:XLRecentColors`) — `@AppStorage`-style `UserDefaults` hex list, deduped move-to-front, capped at 24, updated on every color commit from both the swatch picker and the system `ColorPicker` (`ColorPaletteView.swift:colorBinding.set`). |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -167,10 +170,6 @@
   carries a `ColorCurveButton _ccb` (`ColourReplaceDialog.h:28`,
   `ColourReplaceDialog.cpp:137`, `:78-79`) so the replacement can be a
   color curve; iPad `ColorReplaceSheet` only offers a plain color.
-- **CSS named-color swatches** and **persisted recent-color swatches** in
-  the color picker. Desktop `xlColourPickerDialog` shows a 140-entry CSS
-  grid (`xlColourPickerDialog.cpp:32,104,266`) and a recent-color grid
-  (`:280-281`); the iPad picker has neither.
 
 ## Desktop gaps (iPad has, desktop missing)
 

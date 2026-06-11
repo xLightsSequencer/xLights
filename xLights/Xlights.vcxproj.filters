@@ -270,6 +270,9 @@
     <ClCompile Include="..\src-core\models\SubModel.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1643,6 +1646,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\SubModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\SubModelSymmetrize.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h">

@@ -356,6 +356,11 @@ class SequencerViewModel {
     var selectedPaletteEffect: String?
     var showInspector = false
 
+    // Command palette (⌘⇧K) — fuzzy command/effect launcher. The
+    // sheet is presented by `SequencerView`; flipping this flag from
+    // the menu-bar command opens it.
+    var commandPalettePresented = false
+
     // F-1 scene-level routing. Set to true when the corresponding
     // preview is showing in its own Window scene. The embedded
     // version in `SequencerView` swaps for a "docked elsewhere"
@@ -2225,6 +2230,46 @@ class SequencerViewModel {
     /// 8-color palette used by the swatch picker (0xAARRGGBB).
     func songPaletteColor(_ index: Int) -> UInt32 {
         document.songStructurePaletteColor(at: Int32(index))
+    }
+
+    /// Region bulk ops (#6268). The bridge ops register their own undo
+    /// step and skip occupied ranges; the VM just re-renders the
+    /// affected region span and refreshes rows.
+    private func renderSongRegionRange(_ idx: Int) {
+        guard idx >= 0, idx < songRegions.count else { return }
+        let r = songRegions[idx]
+        for (rowIdx, row) in rows.enumerated() where row.timing == nil {
+            renderRangeAndTrack(rowIndex: rowIdx, startMS: r.startMS,
+                                 endMS: r.endMS, clear: false)
+        }
+        reloadRows()
+    }
+
+    func copySongRegionEffects(from sourceIdx: Int, to targetIdx: Int) {
+        let n = Int(document.copyEffects(fromRegion: Int32(sourceIdx),
+                                          toRegion: Int32(targetIdx)))
+        if n > 0 { renderSongRegionRange(targetIdx) }
+    }
+
+    func applySelectedPaletteToSongRegion(at idx: Int) {
+        guard let sel = selectedEffect else { return }
+        let palette = document.effectPaletteString(forRow: Int32(sel.rowIndex),
+                                                    at: Int32(sel.effectIndex))
+        let n = Int(document.applyPalette(palette, toRegionAtIndex: Int32(idx)))
+        if n > 0 { renderSongRegionRange(idx) }
+    }
+
+    func fillSongRegionFromTimingMarks() {
+        guard let sel = selectedEffect else { return }
+        let n = Int(document.fillRegionFromTimingMarks(sourceRow: Int32(sel.rowIndex),
+                                                        sourceIndex: Int32(sel.effectIndex)))
+        if n > 0 {
+            if let idx = songRegionIndexAtMS(sel.startTimeMS) {
+                renderSongRegionRange(idx)
+            } else {
+                reloadRows()
+            }
+        }
     }
 
     func addSongBoundary(atMS ms: Int) {
@@ -4495,16 +4540,31 @@ class SequencerViewModel {
     func exportModelAsVideo(rowIndex: Int, path: String,
                             compressed: Bool, highQuality: Bool, forceProRes: Bool,
                             startMS: Int? = nil, endMS: Int? = nil,
+                            exportWidth: Int = 0, exportHeight: Int = 0,
                             completion: @escaping (Bool) -> Void) {
-        document.exportModelAsVideo(
-            atRow: Int32(rowIndex),
-            toPath: path,
-            compressed: compressed,
-            highQuality: highQuality,
-            forceProRes: forceProRes,
-            startMS: Int32(startMS ?? -1),
-            endMS: Int32(endMS ?? -1),
-            completion: completion)
+        if exportWidth > 0 && exportHeight > 0 {
+            document.exportModelAsVideo(
+                atRow: Int32(rowIndex),
+                toPath: path,
+                compressed: compressed,
+                highQuality: highQuality,
+                forceProRes: forceProRes,
+                startMS: Int32(startMS ?? -1),
+                endMS: Int32(endMS ?? -1),
+                exportWidth: Int32(exportWidth),
+                exportHeight: Int32(exportHeight),
+                completion: completion)
+        } else {
+            document.exportModelAsVideo(
+                atRow: Int32(rowIndex),
+                toPath: path,
+                compressed: compressed,
+                highQuality: highQuality,
+                forceProRes: forceProRes,
+                startMS: Int32(startMS ?? -1),
+                endMS: Int32(endMS ?? -1),
+                completion: completion)
+        }
     }
 
     /// Layout preview canvas size (rgbeffects previewWidth × previewHeight) —
@@ -5604,6 +5664,50 @@ class SequencerViewModel {
         _ = deleteAllEffectsOnRow(rowIndex: rowIndex)
     }
 
+    /// Returns the names of all non-group, non-timing model elements
+    /// visible in the current sequencer row list.
+    func sequencerModelNames() -> [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for row in rows {
+            guard row.timing == nil, row.nestDepth == 0,
+                  row.layerIndex == 0, !row.isSubmodel else { continue }
+            let name = (document.rowModelName(at: Int32(row.id)) as String?) ?? ""
+            if !name.isEmpty, !seen.contains(name) {
+                seen.insert(name)
+                result.append(name)
+            }
+        }
+        return result
+    }
+
+    /// B-CL: fan-out copy of the source model's layers and submodels
+    /// to each target model. Mirrors desktop RowHeading.cpp:594
+    /// `CopyModelEffectsToModels` + `PasteModelEffectsWithSubModelLayers`.
+    /// Steps: copy source model into a private clipboard, then for each
+    /// target model's primary row call pasteAtRow (which auto-inserts
+    /// extra layers when needed), then restore the prior clipboard so the
+    /// user's copy/paste state is unchanged.
+    func copyLayersSubmodelsToModels(sourceRowIndex: Int, targetModelNames: [String]) {
+        guard !targetModelNames.isEmpty else { return }
+        let saved = clipboardEntries
+        copyModel(rowIndex: sourceRowIndex)
+        let srcName = (document.rowModelName(at: Int32(sourceRowIndex)) as String?) ?? ""
+        undoManager.beginUndoGrouping()
+        for target in targetModelNames {
+            if target == srcName { continue }
+            guard let primaryRow = rows.firstIndex(where: { row in
+                row.timing == nil && row.nestDepth == 0
+                    && row.layerIndex == 0 && !row.isSubmodel
+                    && ((document.rowModelName(at: Int32(row.id)) as String?) ?? "") == target
+            }) else { continue }
+            pasteAtRow(rowIndex: primaryRow)
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName("Copy Layers/SubModels to Models")
+        clipboardEntries = saved
+    }
+
     /// B54: copy every effect across a model (layers + submodels +
     /// strands + nodes) into the clipboard.
     func copyModel(rowIndex: Int) {
@@ -6095,6 +6199,33 @@ class SequencerViewModel {
         if newIdx >= 0 {
             selectEffect(rowIndex: rowIndex, effectIndex: newIdx)
         }
+    }
+
+    /// Command-palette effect drop. Mirrors desktop's
+    /// `OnCommandPalette` effect branch: place the chosen effect at the
+    /// current play position on the active row (the selected effect's
+    /// row, else the first model row), snapping to the active timing
+    /// cell when one brackets the play head. Returns true if an effect
+    /// was placed.
+    @discardableResult
+    func dropEffectFromCommandPalette(name: String) -> Bool {
+        let targetRowId: Int
+        if let sel = selectedEffect {
+            targetRowId = sel.rowIndex
+        } else if let first = rows.first(where: { $0.timing == nil }) {
+            targetRowId = first.id
+        } else {
+            return false
+        }
+        guard let rowIndex = rows.firstIndex(where: { $0.id == targetRowId }),
+              rows[rowIndex].timing == nil else { return false }
+
+        let prior = selectedPaletteEffect
+        selectedPaletteEffect = name
+        defer { selectedPaletteEffect = prior }
+        let before = rows[rowIndex].effects.count
+        addEffectFromPaletteTap(rowIndex: rowIndex, atMS: playPositionMS)
+        return rows[rowIndex].effects.count > before
     }
 
     /// Return the timing cell (mark pair) on the active timing track

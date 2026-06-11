@@ -78,7 +78,19 @@ public:
         _mappingExists = true;
         _mapping.clear();
         _mappingModelType.clear();
+        _stackedMappings.clear();
+        _stackedMappingModelTypes.clear();
         for (auto& c : _children) c->ClearMapping();
+    }
+
+    // Append an additional stacked source onto an already-mapped node — the
+    // iPad analogue of the desktop's `_isStackDuplicate` sibling row. The
+    // primary source stays in `_mapping`; each extra source is replayed as
+    // appended layers (separator + layers) at apply time.
+    void AddStackedMapping(const std::string& mapTo, const std::string& mappingModelType) {
+        _stackedMappings.push_back(mapTo);
+        _stackedMappingModelTypes.push_back(mappingModelType);
+        _mappingExists = true;
     }
 
     // Recursive — true if this node or any descendant has a mapping.
@@ -107,6 +119,11 @@ public:
     int _strandCount{ 0 };
     int _effectCount{ 0 };
     std::string _mappingModelType;
+
+    // Additional stacked sources (parallel arrays) appended after the
+    // primary `_mapping`. Empty for the common single-source case.
+    std::vector<std::string> _stackedMappings;
+    std::vector<std::string> _stackedMappingModelTypes;
 
 private:
     std::vector<std::unique_ptr<BasicImportMappingNode>> _children;

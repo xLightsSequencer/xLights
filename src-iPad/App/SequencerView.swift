@@ -334,6 +334,13 @@ struct SequencerView: View {
         .onChange(of: viewModel.revertRequestToken) { _, _ in
             showingRevertPrompt = true
         }
+        // #6258 — command palette (⌘⇧K). Presented as a sheet; the
+        // view-owned timeline is passed in so zoom commands can run.
+        .sheet(isPresented: Bindable(viewModel).commandPalettePresented) {
+            CommandPaletteSheet(timeline: timeline)
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
         // F-4: expose the live timeline to menu-bar commands (zoom).
         // `SequencerScene`-level Commands use `@FocusedValue(\.timeline)`.
         .focusedValue(\.timeline, timeline)

@@ -60,6 +60,10 @@ struct SketchPath: Equatable {
     /// when the path isn't closed. Round-tripped verbatim since iPad
     /// v1 doesn't expose a "close path" action.
     var closeToken: String = ""
+    /// Per-path description label (#5871). Serialised as a hex-encoded
+    /// 'D' token right after the start point, matching desktop's
+    /// SketchEffectSketch::toString placement.
+    var descriptionText: String = ""
 
     /// Endpoint count (includes the start point + one per segment).
     var totalPoints: Int { 1 + segments.count }
@@ -110,6 +114,11 @@ struct SketchPath: Equatable {
                 path.closeToken = tok
                 continue
             }
+            // Description token: 'D' + hex-encoded label.
+            if tok.first == "D" {
+                path.descriptionText = decodeHex(String(tok.dropFirst()))
+                continue
+            }
             if let seg = SketchSegment.parse(tok) {
                 path.segments.append(seg)
             }
@@ -119,6 +128,9 @@ struct SketchPath: Equatable {
 
     func serialise() -> String {
         var parts = [formatPoint(start)]
+        if !descriptionText.isEmpty {
+            parts.append("D" + encodeHex(descriptionText))
+        }
         for seg in segments { parts.append(seg.serialise()) }
         if !closeToken.isEmpty { parts.append(closeToken) }
         return parts.joined(separator: ";")
@@ -202,4 +214,25 @@ private func formatFloat(_ v: CGFloat) -> String {
     // small / large — neither of which is a concern for 0..1
     // normalised coords. 6 sig figs matches desktop.
     return String(format: "%g", clamped)
+}
+
+// Mirror desktop SketchEffectDrawing's encodeHex / decodeHex so the
+// per-path 'D' description token round-trips byte-for-byte (UTF-8
+// bytes -> uppercase hex pairs).
+private func encodeHex(_ s: String) -> String {
+    s.utf8.map { String(format: "%02X", $0) }.joined()
+}
+
+private func decodeHex(_ s: String) -> String {
+    guard s.count % 2 == 0 else { return "" }
+    var bytes = [UInt8]()
+    bytes.reserveCapacity(s.count / 2)
+    var idx = s.startIndex
+    while idx < s.endIndex {
+        let next = s.index(idx, offsetBy: 2)
+        guard let b = UInt8(s[idx..<next], radix: 16) else { return "" }
+        bytes.append(b)
+        idx = next
+    }
+    return String(decoding: bytes, as: UTF8.self)
 }
