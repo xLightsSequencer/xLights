@@ -2759,8 +2759,12 @@ void xLightsFrame::OnButtonUploadOutputClick(wxCommandEvent& event)
 std::string xLightsFrame::FormatTimestamp() {
     auto now = std::chrono::system_clock::now();
     auto tt = std::chrono::system_clock::to_time_t(now);
-    std::tm tm;
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &tt);
+#else
     localtime_r(&tt, &tm);
+#endif
     char buf[64];
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
     return buf;
