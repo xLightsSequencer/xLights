@@ -82,6 +82,7 @@ public:
         wxPropertyGrid::Clear();
     }
 
+private:
     void OnCharHook(wxKeyEvent& event) {
         // Only interested in plain Tab / Shift+Tab; Ctrl/Alt+Tab passes through.
         if (event.GetKeyCode() != WXK_TAB || event.ControlDown() || event.AltDown()) {
@@ -118,7 +119,11 @@ public:
         // and look up the target by name (pointers from before the rebuild
         // are dead).
         const wxString nextName = (*it)->GetName();
-        CommitChangesFromEditor();
+        // If validation rejects the value, stay on the current editor so the
+        // user can fix it rather than silently losing focus to another row.
+        if (!CommitChangesFromEditor()) {
+            return;
+        }
         CallAfter([this, nextName]() {
             if (wxPGProperty* p = GetPropertyByName(nextName)) {
                 SelectProperty(p, true);
@@ -127,6 +132,5 @@ public:
         });
     }
 
-private:
     bool m_hidingComboPopups = false;
 };
