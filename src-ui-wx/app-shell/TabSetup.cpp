@@ -2055,19 +2055,19 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
             {
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never"))));
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never").c_str())));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never")));
+                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastInputUpload", "Never").c_str()));
 
                 p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
                 if (!p) {
-                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never"))));
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never").c_str())));
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never")));
+                p->SetValue(wxString::FromUTF8(controller->GetExtraProperty("LastOutputUpload", "Never").c_str()));
             }
 
             if (controller->IsFromBase()) {
@@ -2808,10 +2808,12 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            controller->SetExtraProperty("LastInputUpload", ts);
-                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload"))
-                                prop->SetValue(wxString::FromUTF8(ts));
-                            NetworkChange();
+                            if (controller->SetExtraProperty("LastInputUpload", ts)) {
+                                NetworkChange();
+                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
+                                    prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                                }
+                            }
                         }
                     }
                     else {
@@ -2880,10 +2882,12 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         res = true;
                         {
                             auto ts = FormatTimestamp();
-                            controller->SetExtraProperty("LastOutputUpload", ts);
-                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload"))
-                                prop->SetValue(wxString::FromUTF8(ts));
-                            NetworkChange();
+                            if (controller->SetExtraProperty("LastOutputUpload", ts)) {
+                                NetworkChange();
+                                if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
+                                    prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                                }
+                            }
                         }
                     } else {
                         message = vendor + " Output Upload Failed.";
