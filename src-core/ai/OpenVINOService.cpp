@@ -274,5 +274,6 @@ aiBase::AILyricTrack OpenVINOService::GenerateLyricTrack(const std::string& audi
     return result;
 }
 #else
+#include <string>
 std::string OpenVINOServiceData;
 #endif // HAVE_OPENVINO_GENAI
