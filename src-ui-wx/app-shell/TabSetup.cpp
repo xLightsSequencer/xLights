@@ -2054,12 +2054,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
 
             {
                 auto* config = GetXLightsConfig();
-                wxString ctrlKey = controller->GetName();
-                ctrlKey.Replace(":", "_");
-                ctrlKey.Replace("/", "_");
-                ctrlKey.Replace("\\", "_");
-                ctrlKey.Replace(".", "_");
-                ctrlKey.Replace(" ", "_");
+                auto ctrlName = controller->GetName().ToStdString();
 
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
@@ -2068,7 +2063,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 wxString ts;
-                if (!config->Read("LastInputUpload/" + ctrlKey.ToStdString(), &ts)) ts = "Never";
+                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
                 p->SetValue(ts);
 
                 p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
@@ -2077,7 +2072,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 }
                 p->ChangeFlag(wxPGFlags::ReadOnly, true);
                 p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
-                if (!config->Read("LastOutputUpload/" + ctrlKey.ToStdString(), &ts)) ts = "Never";
+                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
                 p->SetValue(ts);
             }
 
@@ -2804,13 +2799,8 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            wxString ctrlKey = controller->GetName();
-                            ctrlKey.Replace(":", "_");
-                            ctrlKey.Replace("/", "_");
-                            ctrlKey.Replace("\\", "_");
-                            ctrlKey.Replace(".", "_");
-                            ctrlKey.Replace(" ", "_");
-                            config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            auto ctrlName = controller->GetName().ToStdString();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));
@@ -2884,13 +2874,8 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            wxString ctrlKey = controller->GetName();
-                            ctrlKey.Replace(":", "_");
-                            ctrlKey.Replace("/", "_");
-                            ctrlKey.Replace("\\", "_");
-                            ctrlKey.Replace(".", "_");
-                            ctrlKey.Replace(" ", "_");
-                            config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            auto ctrlName = controller->GetName().ToStdString();
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
                                 prop->SetValue(wxString::FromUTF8(ts.c_str()));

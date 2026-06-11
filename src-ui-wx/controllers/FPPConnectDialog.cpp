@@ -1181,14 +1181,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         if (!controllerFailed) {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            wxString ctrlKey = c.front()->GetName();
-                            ctrlKey.Replace(":", "_");
-                            ctrlKey.Replace("/", "_");
-                            ctrlKey.Replace("\\", "_");
-                            ctrlKey.Replace(".", "_");
-                            ctrlKey.Replace(" ", "_");
-                            config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
-                            config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                            auto ctrlName = c.front()->GetName().ToStdString();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
                         }
                     }
@@ -1215,14 +1210,9 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
                     auto ts = FormatTimestamp();
                     auto* config = GetXLightsConfig();
-                    wxString ctrlKey = controller.front()->GetName();
-                    ctrlKey.Replace(":", "_");
-                    ctrlKey.Replace("/", "_");
-                    ctrlKey.Replace("\\", "_");
-                    ctrlKey.Replace(".", "_");
-                    ctrlKey.Replace(" ", "_");
-                    config->Write("LastInputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
-                    config->Write("LastOutputUpload/" + ctrlKey.ToStdString(), wxString::FromUTF8(ts.c_str()));
+                    auto ctrlName = controller.front()->GetName().ToStdString();
+                    config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
+                    config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                     config->Flush();
                 }
                 delete bc;

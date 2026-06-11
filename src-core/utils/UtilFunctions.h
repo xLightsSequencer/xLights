@@ -57,6 +57,15 @@ inline std::string FormatTimestamp() {
     return buf;
 }
 
+inline std::string MakeControllerTimestampKey(const std::string& prefix, const std::string& ctrlName, const std::string& showDir) {
+    auto showPart = showDir.empty() ? "default" : showDir;
+    std::string key = prefix + "/" + showPart + "/" + ctrlName;
+    for (auto& c : key) {
+        if (c == ':' || c == '/' || c == '\\' || c == '.' || c == ' ') c = '_';
+    }
+    return key;
+}
+
 #define INTROUNDUPDIV(a, b) (((a) + (b) - 1) / (b))
 #define UNUSED(x) (void)(x)
 constexpr double PI = 3.141592653589793238463;
