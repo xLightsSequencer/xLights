@@ -90,7 +90,7 @@ private:
     wxPoint _rowDragStart;
     int _lastDragY = 0;
     int _scrollDir = 0;
-    wxTimer _scrollTimer;
+    wxTimer mScrollTimer;
     bool groupEffectIndicator = true;
 
     
