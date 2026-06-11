@@ -325,13 +325,14 @@ void RowHeading::OnScrollTimer(wxTimerEvent&)
     int cur = mSequenceElements->GetFirstVisibleModelRow();
     int maxRow = mSequenceElements->GetTotalNumberOfModelRows() - mSequenceElements->GetMaxModelsDisplayed();
     int next = std::clamp(cur + _scrollDir, 0, std::max(0, maxRow));
-    if (next != cur) {
+    bool scrolled = (next != cur);
+    if (scrolled) {
         int scroll = mSequenceElements->SetFirstVisibleModelRow(next);
         ms->PanelEffectGrid->ScrollBy(scroll);
         ms->UpdateEffectGridVerticalScrollBar();
     }
     ComputeRowDragTarget(_lastDragY);
-    Refresh(false);
+    if (!scrolled) Refresh(false);
 }
 
 void RowHeading::ComputeRowDragTarget(int cursorY)
