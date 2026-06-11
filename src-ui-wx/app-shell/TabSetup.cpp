@@ -2056,17 +2056,17 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
                     p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", controller->GetExtraProperty("LastInputUpload", "Never")));
-                    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-                    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 p->SetValue(controller->GetExtraProperty("LastInputUpload", "Never"));
 
                 p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
                 if (!p) {
                     p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", controller->GetExtraProperty("LastOutputUpload", "Never")));
-                    p->ChangeFlag(wxPGFlags::ReadOnly, true);
-                    p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
                 p->SetValue(controller->GetExtraProperty("LastOutputUpload", "Never"));
             }
 
