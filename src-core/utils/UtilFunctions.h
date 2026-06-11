@@ -53,7 +53,9 @@ inline std::string FormatTimestamp() {
     localtime_r(&tt, &tm);
 #endif
     char buf[64];
-    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+    if (strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm) == 0) {
+        buf[0] = '\0';
+    }
     return buf;
 }
 
