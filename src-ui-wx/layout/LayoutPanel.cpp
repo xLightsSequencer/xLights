@@ -2468,8 +2468,8 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
                     entered);
 
     // Model Sets: if any selected model belongs to a Set, rotate the whole
-    // Set around its bounding-box centroid (positions arc around the
-    // centroid; per-member rotation still goes to newAngle). Loose models
+    // Set around the mean of member centers (positions arc around that
+    // pivot; per-member rotation still goes to newAngle). Loose models
     // get the simple per-model rotation as before.
     auto& setMgr = xlights->AllModels.GetSetManager();
     std::set<ModelSet*> touchedSets;
@@ -2598,7 +2598,7 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
         wxString names;
         for (ModelSet* s : blockedSets) {
             if (!names.empty()) names += ", ";
-            names += wxString::Format("'%s'", s->GetName());
+            names += wxString::Format("'%s'", wxString(s->GetName()));
         }
         wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked model."), names),
                      _("Bulk Edit Rotate"), wxOK | wxICON_INFORMATION, this);
@@ -2695,7 +2695,7 @@ void LayoutPanel::DoLinkAsSet()
             setName = setMgr.SuggestName();
         }
         if (setMgr.GetSetByName(setName) == nullptr) break;
-        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), setName);
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), wxString(setName));
         current = setName;
     }
 
@@ -2724,9 +2724,9 @@ void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
         if (existing == target) continue;
         if (existing != nullptr) {
             wxString prompt = wxString::Format(
-                "'%s' is already in Set '%s'. Move it to Set '%s'?",
-                m->GetName(), existing->GetName(), target->GetName());
-            if (wxMessageBox(prompt, "Confirm Move", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+                _("'%s' is already in Set '%s'. Move it to Set '%s'?"),
+                wxString(m->GetName()), wxString(existing->GetName()), wxString(target->GetName()));
+            if (wxMessageBox(prompt, _("Confirm Move"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
                 continue;
             }
         }
@@ -2770,7 +2770,7 @@ void LayoutPanel::DoDeleteSet()
         if (s != nullptr) break;
     }
     if (s == nullptr) return;
-    wxString prompt = wxString::Format(_("Delete Set '%s'? Member models will not be affected."), s->GetName());
+    wxString prompt = wxString::Format(_("Delete Set '%s'? Member models will not be affected."), wxString(s->GetName()));
     if (wxMessageBox(prompt, _("Confirm Delete"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
         return;
     }
@@ -2803,7 +2803,7 @@ void LayoutPanel::DoRenameSet()
         std::string newName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
         if (newName.empty() || newName == s->GetName()) return;
         if (setMgr.RenameSet(s, newName)) break;
-        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), newName);
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), wxString(newName));
         current = newName;
     }
     xlights->UnsavedRgbEffectsChanges = true;
@@ -2949,7 +2949,7 @@ void LayoutPanel::DoManageSet()
         // move the model out of its current Set.
         ModelSet* owner = setMgr.GetSetContaining(name);
         if (owner != nullptr && owner != s) {
-            label += wxString::Format(_(" (in Set '%s')"), owner->GetName());
+            label += wxString::Format(_(" (in Set '%s')"), wxString(owner->GetName()));
         }
         labels.push_back(label);
         if (owner == s) {
@@ -2968,7 +2968,7 @@ void LayoutPanel::DoManageSet()
     const std::set<std::string>& finalMembers = dlg.GetChecked();
 
     if (finalMembers.size() < 2) {
-        if (wxMessageBox(wxString::Format(_("A Set needs at least 2 members. Delete Set '%s' instead?"), s->GetName()),
+        if (wxMessageBox(wxString::Format(_("A Set needs at least 2 members. Delete Set '%s' instead?"), wxString(s->GetName())),
                          _("Manage Set"), wxYES_NO | wxICON_QUESTION, this) == wxYES) {
             setMgr.DeleteSet(s);
             xlights->UnsavedRgbEffectsChanges = true;
@@ -2986,7 +2986,7 @@ void LayoutPanel::DoManageSet()
         if (setMgr.RenameSet(s, newName)) {
             changed = true;
         } else {
-            wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Name unchanged."), newName),
+            wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Name unchanged."), wxString(newName)),
                          _("Manage Set"), wxOK | wxICON_WARNING, this);
         }
     }
@@ -6727,8 +6727,8 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     }
                 }
                 if (isSelected || inTouchedSet) {
-                    if(!m->IsLocked()) {
-                        CreateUndoPoint("SingleModel", m->name, "location");
+                    if(!cur->IsLocked()) {
+                        CreateUndoPoint("SingleModel", cur->name, "location");
                     }
                     cur->AddOffset(delta_x, delta_y, 0.0);
                     //SetupPropGrid(modelPreview->GetModels()[i]);
