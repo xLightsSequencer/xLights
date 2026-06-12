@@ -8265,7 +8265,7 @@ void EffectsGrid::ApplyEffectMoveDrag() {
         newAnchorEff->SetSelected(EFFECT_SELECTED);
         mSelectedEffect = newAnchorEff;
         mSelectedRow = mEffectMoveTargetRow + mSequenceElements->GetFirstVisibleModelRow();
-    } else if (!mEffectMoveCopyMode) {
+    } else {
         mSelectedEffect = nullptr;
         mSelectedRow = -1;
     }
