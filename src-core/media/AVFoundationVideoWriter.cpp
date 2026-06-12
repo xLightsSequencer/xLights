@@ -98,10 +98,24 @@ void AVFoundationVideoWriter::exportFrames(int videoFrameCount)
     const int sampleRate = _outParams.audioSampleRate;
     const bool doAudio = !_videoOnly && sampleRate > 0;
 
-    long long audioSamplesPushed = 0;
+    if (doAudio) {
+        // Audio is pulled by the bridge on its own queue, never from this
+        // thread: the interleaving writer stops accepting video whenever it
+        // lacks the matching audio, and this thread can be blocked on video
+        // backpressure — supplying audio from here deadlocks the export.
+        // The callback only reads AudioManager's pre-decoded PCM, so pulling
+        // it from a background queue is safe.
+        auto getAudio = _getAudio;
+        Bridge::BeginAudio(_bridge,
+                           [getAudio](float* left, float* right, int numSamples) {
+                               if (getAudio != nullptr) {
+                                   getAudio(left, right, numSamples);
+                               }
+                           },
+                           static_cast<long long>(videoFrameCount) * sampleRate / fps);
+    }
+
     int progressReported = 0;
-    std::vector<float> left;
-    std::vector<float> right;
 
     for (int idx = 0; idx < videoFrameCount; ++idx) {
         if (_queryForCancel != nullptr && _queryForCancel()) {
@@ -140,22 +154,6 @@ void AVFoundationVideoWriter::exportFrames(int videoFrameCount)
             _getVideo(vf, static_cast<unsigned>(idx));
             if (!Bridge::AppendVideoFrame(_bridge, pb, idx)) {
                 throw std::runtime_error("VideoWriter - failed to append video frame");
-            }
-        }
-
-        if (doAudio) {
-            // Keep audio roughly in step with video: push enough samples so the
-            // audio timeline reaches the end of frame idx.
-            long long target = static_cast<long long>(idx + 1) * sampleRate / fps;
-            int chunk = static_cast<int>(target - audioSamplesPushed);
-            if (chunk > 0) {
-                left.assign(static_cast<size_t>(chunk), 0.0f);
-                right.assign(static_cast<size_t>(chunk), 0.0f);
-                _getAudio(left.data(), right.data(), chunk);
-                if (!Bridge::AppendAudio(_bridge, left.data(), right.data(), chunk, audioSamplesPushed)) {
-                    throw std::runtime_error("VideoWriter - failed to append audio");
-                }
-                audioSamplesPushed += chunk;
             }
         }
 
