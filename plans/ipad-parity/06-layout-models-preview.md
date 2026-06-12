@@ -20,14 +20,19 @@
 > Metal node-picker) — only the matrix-face *image* mapping + xmodel
 > face/state file-import remain desktop-only**; **CAD/DXF export, export-as-custom,
 > import-from-RGBeffects / LOR-S5, the rest of the dedicated Bulk-Edit submenu
-> (incl. dimming curves / controller direction), unlink model/group from
-> base show, and
-> layout clipboard copy/paste** are all desktop-only.
-> **Model export-as-.xmodel, GDTF fixture import, make-start-channel
+> (incl. dimming curves / controller direction), and unlink model/group from
+> base show** are all desktop-only.
+> **Model export-as-.xmodel, GDTF fixture import (now with a multi-mode
+> DMX-mode picker), make-start-channel
 > valid / all-valid / all-not-overlapping, SubModel import (from
-> .xmodel file / another model / CSV), and ruler-calibrated real-world
+> .xmodel file / another model / Layout RGBeffects-pull / CSV), the
+> layout clipboard (⌘C/⌘V/⌘X over a `com.xlights.layoutmodels`
+> pasteboard UTI, cross-sequence), the node-inspect tap tooltip,
+> the manipulation-handle-size + zone-indicator view toggles, and
+> ruler-calibrated real-world
 > dimension readouts are now at parity** (bridge wrappers + roster
-> context-menu / SubModel-editor / property-pane surfaces). The theme-06
+> context-menu / SubModel-editor / property-pane / canvas-controls
+> surfaces). The theme-06
 > single-shot layout commands **preview delete / rename, model-group
 > clone, correct aspect ratio, set-center-offset, polyline
 > enter-segment-size, the overlap-checks toggle, and the
@@ -58,7 +63,7 @@
 | Model rename | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad renameModel + rename sheet. |
 | Model duplicate | toolbar/menu | 🟡 | ✅ | parity | P2 | medium | feasible | iPad explicit Duplicate (XLMetalBridge.duplicateModels, +offset). Desktop has Copy/Paste, no 1-click Duplicate. |
 | Model delete | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad swipe/trash + confirm. |
-| Model clipboard copy/cut/paste (layout) | shortcut | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop DoCopy/DoPaste (CopyPasteBaseObject XML). iPad uses Duplicate instead; no UIPasteboard model copy. |
+| Model clipboard copy/cut/paste (layout) | shortcut | ✅ | ✅ | parity | P3 | hard | feasible | Desktop DoCopy/DoPaste (CopyPasteBaseObject XML). iPad: bridge `copyModelsToString:` (XmlSerializer::SerializeModels → string) + `pasteModelsFromString:` (deserialize, uniquify, clear controller, +50/+50 offset, RecalcStartChannels) wired to ⌘C/⌘V/⌘X in `LayoutClipboardKeysModifier` (LayoutEditorView.swift). Pasteboard carries a custom `com.xlights.layoutmodels` UTI (declared in xLights-iPad Info.plist) + plain-text fallback, so paste works cross-sequence. |
 | Model keyboard nudge (arrows ±) | shortcut | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Nudge(); iPad arrow-key nudge + per-step undo. |
 | Per-type property grid (all model types) | panel | ✅ | ✅ | parity | P1 | medium | feasible | iPad descriptor pane mirrors desktop adapters per type. |
 | Model tag color | panel | ✅ | ✅ | parity | P2 | easy | feasible | tagColorPicker. |
@@ -108,7 +113,7 @@
 | Export Faces/States/SubModels to other models | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS. iPad: no UI. |
 | Model import (.xmodel / multi-model) | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad .fileImporter + multi-model handling (xmodelFileIsMultiModel). |
 | Multi-model import preserves relative positions | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop #6438: importing several models from one .xmodel keeps their original relative layout positions. iPad already does this — `importXmodelFromPath:` (XLMetalBridge.mm:2520-2567) detects the `<models>` root, anchors the primary at the touch point, and re-applies each sibling's file-space `WorldPosX/Y/Z` delta from the primary (`primaryNew + (sibFilePos - primaryFilePos)`), the same min-corner-relative offset desktop's FinalizeModel computes. Verified at audit time; flipped. |
-| Import fixture from GDTF file | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad: `importXmodelFromPath:` (XLMetalBridge.mm) now branches on the `.gdtf` extension — `LoadGdtfDescriptionXml` unzips `description.xml` (minizip), then the shared core `XmlSerialize::ParseGdtfDescriptionXml` + `CreateDmxModelFromGdtfData` build the DMX model (same calls desktop makes), placed under the touch point via the existing import path. Multi-mode fixtures auto-pick the first mode (uiCallbacks==nullptr); an interactive mode picker is a small follow-up. |
+| Import fixture from GDTF file | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad: `importXmodelFromPath:` (XLMetalBridge.mm) now branches on the `.gdtf` extension — `LoadGdtfDescriptionXml` unzips `description.xml` (minizip), then the shared core `XmlSerialize::ParseGdtfDescriptionXml` + `CreateDmxModelFromGdtfData` build the DMX model (same calls desktop makes), placed under the touch point via the existing import path. **Multi-mode fixtures now get a mode picker**: `gdtfModesForFile:` lists the DMX modes, `GdtfModePickerSheet` presents the chooser, and `importGdtfFromPath:mode:` forces the choice through ChooseFromList (`iPadGdtfModeCallbacks`); single-mode fixtures skip the sheet. |
 | Import Previews/Models/Groups (from RGBeffects) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS. iPad: no UI. |
 | Import LOR S5 models/groups | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORT_MODELS_FROM_LORS5. iPad: no UI. |
 | Vendor model browser (download .xmodel/wiring) | dialog | ❌ | ✅ | desktop-missing | P2 | hard | feasible | iPad VendorBrowserSheet (XLVendorCatalog). Desktop downloads .xmodel manually. |
@@ -172,7 +177,7 @@
 | Controller properties (universe/channels/protocol) | panel | ✅ | ✅ | parity | P2 | hard | feasible | Desktop Controller adapters; iPad controller detail descriptor pane. |
 | Controller unlink from base show folder | menu/panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad controller property-pane Unlink; desktop in Setup tab. |
 | Undo / redo layout changes | toolbar/shortcut | ✅ | ✅ | parity | P1 | medium | feasible | iPad pushLayoutUndoSnapshot + Undo button; desktop Ctrl+Z/Y. |
-| SubModel import (from Model / File / Layout / Downloads / CSV) | dialog | ✅ | 🟡 | ipad-weaker | P2 | hard | feasible | Desktop SubModelsDialog.cpp:1126 ImportSubModel, :1138 ImportCSVSubModel, def :3537. iPad: the three highest-value sources are wired — **From .xmodel File** (`submodelDetailsFromXmodelFile:` → core `XmlSerialize::LoadSubModelsFromXml`, same parse as desktop's ImportSubModelXML), **From Another Model** (`submodelDetailsFromModel:` copies a layout model's SubModel defs, source picked via `SubModelSourceModelPicker` over `modelNamesWithSubmodelsExcluding:`), and **From CSV** (`submodelDetailsFromCSVFile:`, each line compressed via `NodeUtils::CompressNodes`). All three return the `submodelDetailsForModel:` dict shape; the SubModelListSheet "Import SubModels…" menu merges (auto-uniquifying colliding names) and commits via `replaceSubModelsOnModel:`. **Downloads** (online catalog) and **Layout RGBeffects-pull** sources remain desktop-only. |
+| SubModel import (from Model / File / Layout / Downloads / CSV) | dialog | ✅ | 🟡 | ipad-weaker | P2 | hard | feasible | Desktop SubModelsDialog.cpp:1126 ImportSubModel, :1138 ImportCSVSubModel, def :3537. **From Layout now wired** (`modelNamesInRGBEffectsFile:` + `submodelDetailsFromRGBEffectsFile:modelName:` → pick an external xlights_rgbeffects.xml, then `RGBEffectsModelPicker` chooses the model — same LoadSubModelsFromXml parse desktop's ReadRGBEffectsFile uses). iPad: four sources are wired — **From .xmodel File** (`submodelDetailsFromXmodelFile:` → core `XmlSerialize::LoadSubModelsFromXml`, same parse as desktop's ImportSubModelXML), **From Another Model** (`submodelDetailsFromModel:` copies a layout model's SubModel defs, source picked via `SubModelSourceModelPicker` over `modelNamesWithSubmodelsExcluding:`), and **From CSV** (`submodelDetailsFromCSVFile:`, each line compressed via `NodeUtils::CompressNodes`). All four return the `submodelDetailsForModel:` dict shape; the SubModelListSheet "Import SubModels…" menu merges (auto-uniquifying colliding names) and commits via `replaceSubModelsOnModel:`. Only the online **Downloads** (vendor catalog) source remains desktop-only. |
 | SubModels output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop SubModelsDialog output-to-lights. iPad startOutput (XLSequenceDocument.h:1650-1653) used only in SequencerViewModel, not in editors. |
 | Real-world dimension readouts (ruler-calibrated) | panel | ✅ | ✅ | parity | P2 | medium | feasible | Desktop ScreenLocationProperties RealWidth/RealHeight/RealDepth via RulerObject::Measure. iPad: `modelLayoutSummary:` now adds a `realDimensions` sub-dict (width/height/depth + units) computed from `GetModelScreenLocation().GetRealWidth/Height/Depth()` whenever `RulerObject::GetRuler()` is non-null (a Ruler view-object has been placed). Surfaced as read-only "Real Width / Height / Depth" rows at the foot of the Size/Location section (`realDimensionRows`, LayoutEditorView.swift). Shared core, so the ruler calibration auto-applies. |
 | Overlap checks toggle | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop CheckBoxOverlap (LayoutPanel.cpp:636, :3456) + CheckModelForOverlaps (:7720). iPad: `modelsOverlappingModel:` (XLSequenceDocument.mm — same start/last-channel overlap test) + Overlap-Checks toggle in the Models-header Display menu; overlapping roster rows get an orange highlight + warning badge (LayoutEditorView.swift). |
@@ -182,10 +187,10 @@
 | Faces output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ModelFaceDialog CheckBox_OutputToLights (:223). iPad startOutput not wired into the Faces editor. |
 | States output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ModelStateDialog CheckBox_OutputToLights (:206). iPad startOutput not wired into the States editor. |
 | RGBW PWM per-channel Brightness + Gamma | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop DmxAbilityPropertyHelpers.cpp:265-320 per-color brightness/gamma. iPad XLSequenceDocument.mm:6278-6289 exposes RGBW channels only. |
-| View object align / distribute / flip / resize | menu/toolbar | ✅ | ❌ | ipad-missing | P3 | medium | feasible | iPad alignModels/distributeModels/matchSizeOfModels/flipModels (XLMetalBridge.h:508-540) operate on models only, not view objects. |
-| Handle / crosshair scaling preferences | panel | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop adjustable handle/crosshair size. iPad iPadModelPreview.h:58 GetHandleScale() returns fixed 1; no handleSize/crosshairSize setting. |
-| Zone indicator overlay | panel/overlay | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop 'Show Zone Indicator in Preview' (xLightsMain.h:1331-1332, OtherSettingsPanel.cpp:203). iPad has no ZoneIndicator/showZone. |
-| Node tooltip on hover (2D) | overlay | ✅ | ❌ | ipad-missing | P3 | medium | feasible | iPad nodeNearPoint (XLMetalBridge.mm:3331) used only by SubmodelPreviewPane; no hover tooltip in the layout preview. |
+| View object align / distribute / flip / resize | menu/toolbar | ✅ | ❌ | ipad-missing | P3 | medium | feasible | iPad alignModels/distributeModels/matchSizeOfModels/flipModels (XLMetalBridge.h:508-540) operate on models only, not view objects. Blocked on view-object **multi-select**: the iPad layout editor only supports single view-object selection (`layoutEditorSelectedObject`), and align/distribute needs 2+ items. Building object multi-select is the prerequisite, so this stays deferred (the model-side align/distribute is at parity). |
+| Handle / crosshair scaling preferences | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop adjustable handle size (xLightsFrame::GetModelHandleSize). iPad: `iPadModelPreview::GetHandleScale()` is now settable (1..10) via `XLMetalBridge.setHandleScale:`, seeded from `@AppStorage("layoutEditor.handleScale")` and surfaced as the "Handles N×" menu in LayoutEditorCanvasControls (LayoutEditorView.swift). Larger handles give bigger touch targets — the same `DrawHandles` scale arg desktop passes. |
+| Zone indicator overlay | panel/overlay | ✅ | ✅ | parity | P3 | easy | feasible | Desktop 'Show Zone Indicator in Preview' (xLightsMain.h:1333, OtherSettingsPanel.cpp:203) drives `IModelPreview::GetShowZoneIndicator()`, read by DmxMovingHeadAdv. iPad: `iPadModelPreview::GetShowZoneIndicator()` is now settable via `XLMetalBridge.setShowZoneIndicator:` + a "Zones" toggle in LayoutEditorCanvasControls (LayoutEditorView.swift). Same shared-core draw path, so MovingHeadAdv position zones render identically. |
+| Node tooltip on hover (2D) | overlay | ✅ | ✅ | parity | P3 | medium | feasible | Desktop layout hover shows node # / channel under the cursor. iPad: `nodeInfoNearPoint:viewSize:forDocument:` (XLMetalBridge.mm) walks every model, returns the hit node's number, absolute channel (NodeStartChannel+1), and controller/port (GetControllerName / GetControllerConnectionRangeString). Surfaced via a "Node Inspect" (scope) toggle in the LayoutEditor canvas controls: armed, a tap reports the node info in a bottom banner (`SequencerViewModel.nodeInspectHit`). Touch idiom for desktop's hover tooltip. |
 | SpaceMouse 6-DOF input | other | ✅ | ❌ | ipad-missing | P3 | hard | infeasible | Desktop Mouse3DManager/SpaceMouseSession. No iOS HID SpaceMouse. |
 
 ## iPad gaps (desktop has, iPad missing)
@@ -227,19 +232,23 @@
   the shared core `XmlSerialize::ParseGdtfDescriptionXml` +
   `CreateDmxModelFromGdtfData` build the DMX model and the existing
   import path places it under the touch point. Multi-mode fixtures
-  auto-select the first mode (uiCallbacks==nullptr) — an interactive
-  DMX-mode picker is a small follow-up.
-- **SubModel import (from Model / File / CSV).** 🟡 Mostly done.
+  get a DMX-mode chooser: `gdtfModesForFile:` lists the modes,
+  `GdtfModePickerSheet` presents them, and `importGdtfFromPath:mode:`
+  forces the pick through `ChooseFromList` (`iPadGdtfModeCallbacks`).
+  Single-mode fixtures skip straight to placement.
+- **SubModel import (from Model / File / Layout / CSV).** 🟡 Mostly done.
   `submodelDetailsFromXmodelFile:` (core
   `XmlSerialize::LoadSubModelsFromXml`), `submodelDetailsFromModel:`
   (copy another layout model's SubModel defs, picked via
-  `SubModelSourceModelPicker`), and `submodelDetailsFromCSVFile:`
-  (lines compressed via `NodeUtils::CompressNodes`) all return the
-  `submodelDetailsForModel:` dict shape; the SubModelListSheet
+  `SubModelSourceModelPicker`), `submodelDetailsFromCSVFile:`
+  (lines compressed via `NodeUtils::CompressNodes`), and **From Layout**
+  (`modelNamesInRGBEffectsFile:` + `submodelDetailsFromRGBEffectsFile:modelName:`
+  — pick an external `xlights_rgbeffects.xml`, then `RGBEffectsModelPicker`
+  chooses the model, mirroring desktop `ReadRGBEffectsFile`) all return
+  the `submodelDetailsForModel:` dict shape; the SubModelListSheet
   "Import SubModels…" menu merges them (auto-uniquifying colliding
-  names) and commits via `replaceSubModelsOnModel:`. The online
-  **Downloads** catalog and the RGBeffects-pull **Layout** source
-  remain desktop-only.
+  names) and commits via `replaceSubModelsOnModel:`. Only the online
+  **Downloads** vendor catalog source remains desktop-only.
 - **SubModels output-to-lights live test toggle.** Desktop drives the
   selected submodel to the lights for testing. iPad's `startOutput`
   (`XLSequenceDocument.h:1650-1653`) is used only by the sequencer, not
@@ -254,10 +263,17 @@
 
 ### P3
 
-- **Model copy/cut/paste to clipboard (layout).** Desktop `DoCopy` /
-  `DoPaste` (`LayoutPanel.cpp:8875`) round-trips `CopyPasteBaseObject`
-  XML. iPad relies on Duplicate; a `UIPasteboard` model-XML copy/paste
-  would add cross-document paste. Ease: hard.
+- **Model copy/cut/paste to clipboard (layout).** ✅ Done. Desktop
+  `DoCopy` / `DoPaste` (`LayoutPanel.cpp:8875`) round-trips
+  `CopyPasteBaseObject` XML. iPad: `copyModelsToString:` /
+  `pasteModelsFromString:` (XLMetalBridge.mm) serialize the selection
+  to a `<models>` XML string and back (uniquify + clear controller +
+  +50/+50 offset + RecalcStartChannels), wired to ⌘C / ⌘V / ⌘X in
+  `LayoutClipboardAndGdtfModifier` (LayoutEditorView.swift). The
+  pasteboard carries a custom `com.xlights.layoutmodels` UTI (declared
+  in the xLights-iPad Info.plist) plus a plain-text fallback, so paste
+  works **cross-sequence**. Touch-button surfaces (action-bar Copy) are
+  a later nicety — the keyboard path is the desktop-parity surface.
 - **Dimming-curve authoring.** iPad can edit the dimming attribute map
   and clear it, but the sheet explicitly says authoring a curve is
   desktop-only (`LayoutEditorView.swift:4081`). Desktop
@@ -327,15 +343,24 @@
   `alignModels` / `distributeModels` / `matchSizeOfModels` /
   `flipModels` (`XLMetalBridge.h:508-540`) operate on models only;
   multi-select arrange isn't available for view objects. Ease: medium.
-- **Handle / crosshair scaling preferences.** Desktop lets users size
-  the manipulation handles; iPad `iPadModelPreview.h:58`
-  `GetHandleScale()` returns a fixed 1. Ease: easy.
-- **Zone indicator overlay.** Desktop 'Show Zone Indicator in Preview'
-  (`xLightsMain.h:1331-1332`, `OtherSettingsPanel.cpp:203`). iPad has no
-  zone-indicator overlay. Ease: easy.
-- **Node tooltip on hover (2D).** iPad `nodeNearPoint`
-  (`XLMetalBridge.mm:3331`) is used only by the SubModel preview; the
-  layout preview shows no per-node hover tooltip. Ease: medium.
+- **Handle / crosshair scaling preferences.** ✅ Done (handle size).
+  `iPadModelPreview::GetHandleScale()` is now settable (1..10) via
+  `XLMetalBridge.setHandleScale:`, seeded from
+  `@AppStorage("layoutEditor.handleScale")` and exposed as the
+  "Handles N×" menu in `LayoutEditorCanvasControls`. Crosshair size has
+  no iPad-side equivalent yet (desktop draws a separate crosshair).
+- **Zone indicator overlay.** ✅ Done. `iPadModelPreview::GetShowZoneIndicator()`
+  is settable via `XLMetalBridge.setShowZoneIndicator:` + a "Zones"
+  toggle in `LayoutEditorCanvasControls`; the shared-core
+  `DmxMovingHeadAdv` draw path renders position zones identically to
+  desktop.
+- **Node tooltip on hover (2D).** ✅ Done (touch idiom).
+  `nodeInfoNearPoint:viewSize:forDocument:` (`XLMetalBridge.mm`) walks
+  every model and returns the hit node's number, absolute channel, and
+  controller/port. A "Node Inspect" (scope) toggle in the LayoutEditor
+  canvas controls arms a one-tap probe that reports the info in a
+  bottom banner (`SequencerViewModel.nodeInspectHit`) — the touch
+  equivalent of desktop's hover tooltip.
 - **Per-node individual start channels** — desktop has a per-node
   editor; iPad exposes only the start-channel string. Ease: medium.
 
@@ -411,5 +436,13 @@
    custom / -3D-custom, CAD (DXF/STL/VRML), layout DXF, faces/states/
    submodels export, import-from-RGBeffects, import-LOR-S5, and the
    online SubModel **Downloads** / RGBeffects-pull **Layout** sources.
-6. **Layout clipboard copy/paste & dimming-curve authoring (P3, hard)**
-   — lowest priority; Duplicate + clear-dimming cover the common cases.
+6. **Layout clipboard copy/paste (P3) — DONE.** ⌘C/⌘V/⌘X round-trip
+   model XML through a `com.xlights.layoutmodels` pasteboard UTI
+   (`copyModelsToString:` / `pasteModelsFromString:`), so paste works
+   within and **across** sequences. Also landed this pass: the **GDTF
+   multi-mode picker**, **SubModel import From Layout**, the
+   **node-inspect tap tooltip**, and the **handle-size + zone-indicator**
+   canvas-control toggles. Remaining P3 holdouts: **dimming-curve
+   authoring** (Duplicate + clear-dimming cover the common cases) and
+   **view-object align/distribute** (needs view-object multi-select
+   infrastructure the iPad doesn't have yet — single-select only).

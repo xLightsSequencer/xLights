@@ -37,6 +37,13 @@ final class PreviewSettings {
     /// `_showModelInfo`. Requires `showModelLabels = true` to
     /// surface; off by default.
     var showModelInfo: Bool
+    /// Manipulation-handle size multiplier (1..10). Mirrors desktop's
+    /// "Model Handle Size" view preference; larger handles are easier
+    /// to grab by touch. Seeded from @AppStorage in the Layout Editor.
+    var handleScale: Int
+    /// Show Zone Indicator (desktop view preference) — DMX
+    /// MovingHeadAdv models draw their position zones when on.
+    var showZoneIndicator: Bool
 
     init(is3DDefault: Bool, showViewObjectsDefault: Bool) {
         self.is3D = is3DDefault
@@ -50,6 +57,8 @@ final class PreviewSettings {
         self.lockAxis = 0
         self.showModelLabels = false
         self.showModelInfo = false
+        self.handleScale = 1
+        self.showZoneIndicator = false
     }
 }
 

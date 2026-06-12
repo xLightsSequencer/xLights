@@ -237,6 +237,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setShowFirstPixel:(BOOL)show;
 - (BOOL)showFirstPixel;
 
+// Manipulation-handle size multiplier (1..10). Mirrors the desktop
+// "Model Handle Size" view preference; larger values draw bigger
+// selection handles, which makes them easier to grab by touch.
+- (void)setHandleScale:(NSInteger)scale;
+- (NSInteger)handleScale;
+
+// Show Zone Indicator (desktop 'Show Zone Indicator in Preview').
+// When on, DMX MovingHeadAdv models draw their position zones in
+// the layout preview.
+- (void)setShowZoneIndicator:(BOOL)show;
+- (BOOL)showZoneIndicator;
+
 // Phase J-2 — return the topmost model whose world bounding box
 // contains `point` (in view-point coordinates relative to the
 // MTKView's bounds), or nil if no model is hit. `viewSize` is the
@@ -393,6 +405,28 @@ NS_ASSUME_NONNULL_BEGIN
                                     targetLayoutGroup:(nullable NSString*)targetLayoutGroup
                                           forDocument:(XLSequenceDocument*)doc
     NS_SWIFT_NAME(importXmodel(fromPath:atScreenPoint:viewSize:targetLayoutGroup:for:));
+
+// GDTF mode picker support. When a .gdtf fixture defines multiple
+// DMX modes the SwiftUI side wants to chooser before placement
+// (desktop prompts via ChooseFromList). This lists the DMX mode
+// names in the fixture (sorted, as the parser sees them), or an
+// empty array on parse failure / non-GDTF input. Class method —
+// only opens the archive, no preview state needed.
++ (NSArray<NSString*>*)gdtfModesForFile:(NSString*)path
+    NS_SWIFT_NAME(gdtfModesForFile(path:));
+
+// GDTF import with an explicit DMX mode. Same as
+// importXmodelFromPath for a .gdtf file but forces `gdtfMode` as
+// the selected mode (skipping the auto-pick-first behaviour).
+// Pass nil to auto-pick the first mode. Returns the placed model
+// name (single element) or nil on failure.
+- (nullable NSArray<NSString*>*)importGdtfFromPath:(NSString*)path
+                                              mode:(nullable NSString*)gdtfMode
+                                     atScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                 targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                       forDocument:(XLSequenceDocument*)doc
+    NS_SWIFT_NAME(importGdtf(fromPath:mode:atScreenPoint:viewSize:targetLayoutGroup:for:));
 
 // Phase J-4 (import) — peek at an .xmodel file to determine if
 // it contains multiple models (root `<models>` element). Returns
@@ -587,6 +621,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc;
 
+// Layout clipboard (desktop DoCopy / DoPaste). Serialize the named
+// models to an XML string (a `<models>` document, same shape as a
+// multi-model .xmodel export) for placing on UIPasteboard, or nil
+// if nothing serializable. Groups are skipped (ambiguous member
+// copy, as with Duplicate).
+- (nullable NSString*)copyModelsToString:(NSArray<NSString*>*)names
+                             forDocument:(XLSequenceDocument*)doc;
+
+// Layout clipboard paste. Deserialize an XML string produced by
+// copyModelsToString (or a multi-model .xmodel), uniquifying each
+// model name, clearing its controller mapping (auto-assign), and
+// offsetting by (+50, +50, 0) world units so the paste doesn't sit
+// exactly on the source. Returns the new model names. Cross-
+// sequence safe — the string can come from any document.
+- (NSArray<NSString*>*)pasteModelsFromString:(NSString*)xml
+                                 forDocument:(XLSequenceDocument*)doc;
+
 // J-30 — Submodel editor support. Pick the node nearest `point`
 // on the named model. Returns the 1-based node index (>=1) or 0
 // for a miss. `point` is in UIKit view points relative to the
@@ -617,6 +668,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSString*)sampledColorHexNearPoint:(CGPoint)point
                                       viewSize:(CGSize)viewSize
                                    forDocument:(XLSequenceDocument*)doc;
+
+// Node inspect (desktop layout hover tooltip). Walk every model and
+// return info about the node under `point`, or nil for a miss / 3D
+// mode. Keys: "model" (NSString), "node" (1-based NSNumber),
+// "channel" (absolute start channel, NSNumber), "controller"
+// (NSString, may be empty), "port" (NSString port/connection range,
+// may be empty). 2D-only, same restriction as `nodeNearPoint`.
+- (nullable NSDictionary<NSString*, id>*)nodeInfoNearPoint:(CGPoint)point
+                                                 viewSize:(CGSize)viewSize
+                                              forDocument:(XLSequenceDocument*)doc;
 
 // J-30 — Submodel editor support. Apply highlight colours to the
 // named model's nodes: nodes in `highlighted` (1-based) are

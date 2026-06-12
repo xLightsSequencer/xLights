@@ -15,7 +15,7 @@
   - **iPad-weaker** — desktop ✅, iPad 🟡 → partial; finish it.
   - **Reverse (desktop-missing / desktop-weaker)** — iPad does it and desktop
     doesn't (or does it worse) → candidates to **pull back into desktop**.
-  - **Parity** — both have it (829 features; see the per-theme scorecards).
+  - **Parity** — both have it (858 features; see the per-theme scorecards).
 - **priority** P1/P2/P3, **ease** easy/medium/hard, **feasibility**
   feasible / hard / infeasible / **restricted** (closed-firmware controller
   config/upload — IAP-gated, deliberately low priority) / **declined**
@@ -27,10 +27,10 @@
 | Metric | Count |
 |---|--:|
 | Features audited | 1,187 |
-| **At parity** (both platforms) | 829 (**~70%**) |
-| **iPad-missing** (desktop has, iPad doesn't) | 197 |
+| **At parity** (both platforms) | 858 (**~72%**) |
+| **iPad-missing** (desktop has, iPad doesn't) | 176 |
 | **iPad-weaker** (partial on iPad) | 62 |
-| **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 99 |
+| **Reverse — desktop-missing/weaker** (iPad ahead) | ≈ 92 |
 | Infeasible on iPad (platform limits) | 60 |
 | Restricted (closed-firmware / IAP) | 23 |
 | Declined — won't build (scope decision) | 5 |
@@ -39,7 +39,7 @@
 
 Each feature's gap is derived from its desktop/iPad status (✅/🟡/❌); the
 **% Parity** column in the scorecard below is *parity ÷ features* per theme.
-Overall the iPad sits at **~70% parity** with the desktop, with the biggest
+Overall the iPad sits at **~72% parity** with the desktop, with the biggest
 remaining backlogs in Preferences (theme 11), Layout (06), and Tools (13).
 
 The everyday workflow (create/open/save sequences, place/edit effects, color &
@@ -60,21 +60,21 @@ region, actionable Check-Sequence navigation, and `.xsqz` in-place round-trip.
 
 | # | Theme | Feats | Parity | % Parity | iPad-missing | iPad-weaker | Reverse (dsk gap) | Infeasible/Restr |
 |---|---|--:|--:|--:|--:|--:|--:|--:|
-| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 43 | 62% | 16 | 5 | 6 | 4 |
-| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 92 | 79% | 12 | 5 | 8 | 3 |
+| 01 | [File Lifecycle & Sequence Management](01-file-lifecycle.md) | 69 | 47 | 68% | 12 | 5 | 6 | 4 |
+| 02 | [Sequencer Grid & Effect Editing](02-sequencer-grid-editing.md) | 117 | 95 | 81% | 10 | 4 | 8 | 3 |
 | 03 | [Timing Tracks & Audio](03-timing-audio.md) | 83 | 73 | 88% | 3 | 3 | 4 | 3 |
-| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 74 | 87% | 3 | 3 | 5 | 0 |
+| 04 | [Effects & Effect Setting Panels](04-effects-and-panels.md) | 85 | 77 | 91% | 1 | 2 | 5 | 0 |
 | 05 | [Color Panel](05-color-and-value-curves.md) | 81 | 65 | 80% | 7 | 3 | 6 | 1 |
-| 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 102 | 73% | 17 | 13 | 7 | 3 |
+| 06 | [Layout: Models](06-layout-models-preview.md) | 139 | 106 | 76% | 13 | 13 | 7 | 3 |
 | 07 | [Setup](07-setup-controllers-upload.md) | 80 | 66 | 82% | 8 | 3 | 3 | 11 |
-| 08 | [Import & Export](08-import-export.md) | 71 | 54 | 76% | 12 | 5 | 0 | 1 |
-| 09 | [Render & Playback](09-render-playback.md) | 53 | 44 | 83% | 4 | 2 | 3 | 0 |
-| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 84 | 65 | 77% | 14 | 4 | 0 | 7 |
-| 11 | [Preferences](11-preferences-settings.md) | 131 | 46 | 35% | 68 | 11 | 6 | 19 |
+| 08 | [Import & Export](08-import-export.md) | 71 | 55 | 77% | 9 | 7 | 0 | 1 |
+| 09 | [Render & Playback](09-render-playback.md) | 53 | 46 | 87% | 4 | 2 | 1 | 0 |
+| 10 | [Presets](10-presets-jukebox-views-perspectives.md) | 85 | 67 | 79% | 12 | 5 | 0 | 7 |
+| 11 | [Preferences](11-preferences-settings.md) | 131 | 53 | 40% | 67 | 10 | 1 | 19 |
 | 12 | [AI](12-ai-automation-scripting.md) | 48 | 29 | 60% | 17 | 0 | 2 | 16 |
-| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 30 | 61% | 16 | 2 | 1 | 4 |
+| 13 | [Tools](13-tools-diagnostics-help.md) | 49 | 33 | 67% | 13 | 2 | 1 | 4 |
 | 14 | [Reverse Parity](14-reverse-parity-ipad-only.md) | 97 | 46 | 47% | 0 | 3 | 48 | 10 |
-| — | **Total** | **1,187** | **829** | **~70%** | **197** | **62** | **≈99** | **82** |
+| — | **Total** | **1,188** | **858** | **~72%** | **176** | **62** | **≈92** | **82** |
 
 ## The roadmap — P1 iPad gaps (build first)
 
@@ -203,6 +203,25 @@ partially has). Sorted by ease. *(weaker)* = iPad has a partial version.
 > persistence), Vixen 2 `.vix` (wx-bound FileConverter), Download
 > Sequences/Lyrics (models-only vendor catalog core), Convert-To-Effect
 > render-down, single-color row swatch.
+
+> **Landed (2026-06-12, Wave 6 — 29 more rows to parity, 858/1,188 ≈ 72%):**
+> Convert To Effects render-down (blocking `RenderModelAndWait` + faithful
+> `DoConvertDataRowToEffects` port); Vixen 2 `.vix` importer (new shared
+> `import_export/ImportDataRow` reused by HLS); Download Sequences/Lyrics
+> via new wx-free `MusicCatalog` core + browser; Tip of the Day; Restore
+> Backup sheet over the Wave-5 snapshots; read-only open guard; Render
+> Mode picker; Change Show Folder Temporarily; import timeline density
+> strips; open `.xbkp`; DMX channel remap grid; Pictures resize-on-add;
+> per-effect Reset to Defaults; preset render thumbnails (+ Hide Preset
+> Previews pref); suspend background render ⇧⌘R; single-color row swatch;
+> layout model clipboard ⌘C/⌘V (`com.xlights.layoutmodels` UTI,
+> cross-sequence); node-inspect probe; handle-size setting; GDTF mode
+> picker; submodel import from external rgbeffects; zone indicator;
+> Export All Regions; scoped deletes; collapse models/layers split;
+> prefs batch 2 (persistent autosave interval, zoom-to-play-marker,
+> diagnostic email, hide color-update warning). Re-scoped: Pre/Post-ms
+> is an audio re-encode (feasible via Wave-5 encode path, P3); Effect
+> Wheel declined (touch idiom); Data Layers has a 5-step plan recorded.
 
 ### Deferred — AC toolbar cluster (decision 2026-06-11)
 
@@ -618,7 +637,7 @@ list (unchanged).
 
 ## Per-theme detail
 
-Each theme doc has the full parity scorecard (including the 829 at-parity
+Each theme doc has the full parity scorecard (including the 858 at-parity
 features), the iPad-gap and desktop-gap breakdowns, infeasible/restricted lists,
 and per-theme sequencing:
 

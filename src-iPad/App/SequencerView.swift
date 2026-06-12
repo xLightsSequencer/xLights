@@ -471,7 +471,7 @@ struct SequencerView: View {
                 } label: {
                     Label("Save", systemImage: "square.and.arrow.down")
                 }
-                .disabled(!viewModel.isDirty)
+                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
 
                 Button {
                     startSaveAs()
@@ -481,8 +481,9 @@ struct SequencerView: View {
                 .disabled(!viewModel.isSequenceLoaded)
             } label: {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: "square.and.arrow.down")
-                    if viewModel.isDirty {
+                    Image(systemName: viewModel.isReadOnly
+                          ? "lock" : "square.and.arrow.down")
+                    if viewModel.isDirty && !viewModel.isReadOnly {
                         Circle()
                             .fill(Color.orange)
                             .frame(width: 6, height: 6)
@@ -490,7 +491,11 @@ struct SequencerView: View {
                     }
                 }
             } primaryAction: {
-                _ = viewModel.saveSequence()
+                // Read-only opens the menu (Save As) rather than a
+                // no-op Save.
+                if !viewModel.isReadOnly {
+                    _ = viewModel.saveSequence()
+                }
             }
             .disabled(!viewModel.isSequenceLoaded)
 

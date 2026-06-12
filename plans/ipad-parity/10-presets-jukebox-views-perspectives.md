@@ -10,8 +10,12 @@
 > mode (segmented Auto/Relative/Using-Layers picker with `\tLAYER:`
 > auto-detect), and the read-only **"From Base"** section (base show
 > folder's preset library, apply-only) are now at parity in
-> `PresetBrowserSheet`. The only remaining preset gap is the animated
-> **preview GIF**. **Display Elements / Views** is now at near-full parity:
+> `PresetBrowserSheet`. The preset preview now shows a **static
+> representative still** per row (bridge `presetThumbnailBGRA` renders the
+> preset's anchor effect on the shared preset matrix model and caches the
+> last frame as the row icon); the only remaining preset gap is
+> *animating* that still (multi-frame GIF playback).
+> **Display Elements / Views** is now at near-full parity:
 > in addition to create / rename / clone / delete / reorder views,
 > add-to / remove-from Master + user views, visibility toggles,
 > timing-track add/remove, filter, **Copy To Master**, **Show/Hide All
@@ -26,8 +30,10 @@
 > equivalent). The RGBEffects-layout import variant and per-panel
 > undo remain desktop-only. **Row headings** now include the **has-effects
 > amber stripe** and the **model tag-color chip** (two new bridge methods
-> `rowHasEffects(at:)` and `rowTagColor(at:)` + `RowInfo` fields). The
-> single-color swatch remains deferred (needs `GetNodeMaskColor` bridge).
+> `rowHasEffects(at:)` and `rowTagColor(at:)` + `RowInfo` fields), plus
+> the **single-color model swatch** (bridge `rowNodeMaskColor(at:)` →
+> `GetNodeMaskColor(0)`, drawn as a 12×12 trailing swatch chip in
+> `ModelRowHeader`).
 > **Jukebox is 100% desktop-only** — no iPad UI, bridge, or VM (core
 > `JukeboxButtonData` exists and is loaded/saved with the sequence, so
 > the data round-trips, but nothing on iPad surfaces it); **declined
@@ -63,7 +69,7 @@
 | **Apply mode: Relative vs Using Layers** | preference | ✅ | ✅ | parity | P2 | medium | feasible | iPad `PresetBrowserSheet` segmented Auto / Relative / Using Layers picker (`PresetBrowserSheet.swift`); Auto defers to the preset's `\tLAYER:` token via bridge `presetUsesLayers(atPath:)`, matching desktop's `_layerMode` auto-detect. `applyPreset(atPath:…usingLayers:)` threads the flag to bridge `applyPresetAtPath:…usingLayers:`, which stacks effects onto the anchor element's successive effect layers (Using Layers) or spreads them across rows (Relative). |
 | **Search presets in tree** | toolbar | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `TextCtrl1`+`ETButton1`/`SearchForText`; iPad `.searchable` on `PresetBrowserSheet` filters the in-memory `presetTree` (`PresetBrowserSheet.swift:visibleTree`), keeping ancestor groups of any match visible. Case-insensitive substring. |
 | **Reorder presets within / across groups** | gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop drag + Top/Up/Down/Bottom buttons; iPad context-menu Move Up / Move Down (within group, index move) + "Move to Group…" (cross-group) → `movePreset(fromPath:toGroupPath:)` / `movePreset(fromPath:toGroupPath:toIndex:)` (`SequencerViewModel.swift:3199/3209`). Bridge `movePresetItemFromPath:toGroupPath:toIndex:` translates the slot to a core `MoveItem(insertAfter)`. |
-| **Animated preset preview GIF** | panel | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `GenerateGifImage`/`TimerGif` renders + animates a GIF of the selected preset. iPad would need Metal-render→thumbnail pipeline. Polish. |
+| **Animated preset preview GIF → still thumbnail** | panel | ✅ | 🟡 | ipad-weaker | P3 | hard | feasible | Desktop `GenerateGifImage`/`TimerGif` renders + *animates* a GIF of the selected preset. iPad now renders a **static representative still** (pragmatic take): bridge `presetThumbnailBGRA(atPath:outputSize:)` (`XLSequenceDocument.mm`) parses the preset's first CopyFormat1 effect, renders it on the shared preset matrix model via `iPadRenderContext::RenderEffectToFrames` (reusing the shader-preview scaffolding), and returns the last frame as BGRA. `PresetThumbnailCache` / `PresetThumbnailView` (`PresetBrowserSheet.swift`) lazy-load + cache it as the row's leading icon. Animation (multi-frame GIF playback) is the remaining gap. |
 | Preset name-collision validation | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `NameCollissionInGroup` pre-check; iPad validates the entered name against the sibling set at the target path in the rename / new-group / save alerts (`PresetBrowserSheet.swift:siblingNames`), disabling the confirm action + showing inline feedback on collision. |
 | **Presets: "From Base" section (base show folder)** | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad `iPadRenderContext::LoadBasePresets` loads the base-folder `xlights_effectpresets.json` into a second `_basePresetManager`; bridge `basePresetTree` / `applyBasePreset(atPath:…)` / `hasBasePresets` expose it apply-only; `PresetBrowserSheet` shows a bold **From Base** section above the user library. Read-only on iPad (desktop save-back via `PromptAndSaveBasePresets` is intentionally out of scope — see *Infeasible / restricted*). Reloads on base-folder change (`FolderConfigView.swift`). |
 | **Jukebox: button grid (50 buttons)** | panel | ✅ | ❌ | ipad-missing | P3 | hard | declined | Desktop `media/JukeboxPanel.cpp`. Core `JukeboxButtonData` round-trips in the .xsq but **no iPad UI/bridge/VM at all**. |
@@ -91,17 +97,18 @@
 | **Display Elements: Select Used/Unused/All; Remove Unused** | menu | ✅ | 🟡 | parity | P2 | medium | feasible | iPad bridge `removeUnusedElements()` deletes every effect-free element (desktop Select Unused + Remove Unused) — "Remove Unused" in the Bulk Actions menu with a confirm. The pure list-selection ops (Select Used/Unused/All) have no standalone iPad analogue — they only seed Remove on desktop, which iPad folds directly into Remove Unused. |
 | **Display Elements: Sort models (many strategies)** | menu | ✅ | ✅ | parity | P2 | hard | feasible | Desktop `ViewsModelsPanel.cpp:1667-1682`. iPad "Sort" toolbar menu in `DisplayElementsSheet.swift` (8 strategies: by name, groups-at-top variants, by start channel, by controller/port, by type, bubble-up groups). Client-side sort in Swift using `modelsListSummary` + `modelGroupsListSummary` bridge data, dispatched via `moveTopLevelElement(named:beforeNamed:)`. Node-count-by-group variant approximates with `modelCount` (pixel-count API absent in brief summaries). |
 | **Edit Display Elements from import wizard** | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop #6477: `xLightsImportChannelMapDialog::EditDisplayElements` embeds `ViewsModelsPanel` mid-import then merges new models into the map tree. iPad: `ImportEffectsView` now has an "Edit Display Elements…" button in the options bar that presents the existing `DisplayElementsSheet`; on dismiss it calls `XLImportSession.rebuildDestinationTree` (rebuilds destination roots from the active sequence, preserving existing mappings by name) so newly-added models appear as mapping targets. |
-| **Display Elements: panel-local Undo** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1658` (`ID_MODELS_UNDO` + `_undo` stack). No undo stack in `DisplayElementsSheet.swift`. |
+| **Display Elements: panel-local Undo** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1658` (`ID_MODELS_UNDO` + `_undo` stack) is a *panel-scoped* undo for view-membership ops. iPad `DisplayElementsSheet` view ops (`addView`/`deleteView`/`addModel(toMasterView:)`…) don't register undo with the global `undoManager`, so there's no undo for them yet. NOTE: this is **distinct from effect-panel slider undo**, which *is* at parity — every `setSettingValue` registers a discrete `undoManager` entry per key (`SequencerViewModel.swift:3246`), reachable via the global ⌘Z (`XLightsCommands.swift:77`). |
 | **Display Elements: keyboard delete in lists** | gesture | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `List_KEY_DOWN`. iPad: tap to select row (`focusedMemberID`), hardware Delete key fires `requestMasterRemove` via `.keyboardShortcut(.delete, modifiers:[])` on a background hidden Button in `DisplayElementsSheet.swift`. `onDeleteCommand` is iOS-unavailable; hardware-keyboard shortcut is the iPadOS equivalent. |
 | **Display Elements: per-view checkbox (toolbar view visibility)** | other | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `ViewsModelsPanel.cpp:205` (`wxCheckedListCtrl ListCtrlViews`). Semantics analysed: the checkbox is a radio-button view selector (one checked row = active view), not a separate visibility toggle. iPad sidebar tap-to-select in `DisplayElementsSheet.swift` is the direct equivalent — full parity by different idiom. No additional checkbox UI needed. |
 | **Display Elements: effect-sequence mode (hide Views UI)** | other | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `SetEffectSequenceMode` hides `ListCtrlViews`. iPad: `isEffectSequence` state set from `document.sequenceType() == "Effect"` in `.onAppear`; `DisplayElementsSheet.swift` shows only `masterViewDetail` (no NavigationSplitView sidebar) when effect-sequence. |
 | **Row heading: has-effects yellow indicator stripe** | panel | ✅ | ✅ | parity | P2 | medium | feasible | Bridge `rowHasEffectsAtIndex:` / `rowHasEffects(at:)` added to `XLSequenceDocument.h:262` + `.mm`; `RowInfo.hasEffects` populated in `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 3 pt amber (R0.918 G0.667 B0.0) trailing-edge rectangle overlay when `row.hasEffects`. Matches desktop `RowHeading.cpp:2706` `effectNoticePen/Brush` mustard-yellow stripe. |
-| **Row heading: single-color model swatch** | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | No mask/single-color swatch symbol in `src-iPad`; desktop `RowHeading.cpp:2502-2520` `GetNodeMaskColor` + `DrawRectangle`. Bridge would need a `rowNodeMaskColor(at:)` call (model's `GetNodeMaskColor(0)` for the first strand). Deferred — needs bridge addition. |
+| **Row heading: single-color model swatch** | panel | ✅ | ✅ | parity | P3 | medium | feasible | Bridge `rowNodeMaskColorAtIndex:` / `rowNodeMaskColor(at:)` added to `XLSequenceDocument.h` + `.mm` (returns `(std::string)GetNodeMaskColor(0)` hex for `"Single Color"`/`"Node Single Color"` string types with nodes, else empty); `RowInfo.nodeMaskColor` populated in `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 12×12 black-outlined `RoundedRectangle` swatch at the trailing edge (offset 9 pt, inside the has-effects stripe) when non-empty. Matches desktop `RowHeading.cpp:2668-2688` `GetNodeMaskColor` swatch. |
 | **Row heading: model tag-color chip** | panel | ✅ | ✅ | parity | P3 | medium | feasible | Bridge `rowTagColorAtIndex:` / `rowTagColor(at:)` added to `XLSequenceDocument.h:268` + `.mm` (returns `m->GetTagColourAsString()` hex, empty when black); `RowInfo.tagColor` populated in `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 6×(height−6) `RoundedRectangle` chip in the model's tag color at leading+16 pt offset when non-empty. Matches desktop `RowHeading.cpp:2547-2553` tag-colour draw. Uses existing `Color(hex:)` extension from `PaletteIOSheets.swift`. |
 | Effect dropper / icon palette | toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `EffectIconPanel` grid; iPad `EffectPaletteView` horizontal scroll. Both show icon+name; iPad tap-to-place vs desktop drag. |
 | Palette: select effect | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad `selectPaletteEffect` toggles armed effect for tap-to-place. |
 | Palette: random effect | toolbar | ✅ | ✅ | parity | P2 | easy | feasible | Desktop dice button; iPad dice → `availableEffects.randomElement()`. |
 | Palette: cached icon images | panel | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `EffectIconCache` wxBitmap; iPad `EffectIconCache` CGImage (18px). |
+| **Effect-panel slider/setting undo** | gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop effect panels register a panel-level undo of slider/control tweaks. iPad: every `SequencerViewModel.setSettingValue` (`:3246`) registers a discrete `undoManager` undo per key with a descriptive action name ("Edit \<key\>"), reachable via the global ⌘Z (`XLightsCommands.swift:77`). Parity by idiom — finer-grained than a panel-local stack since it threads into the unified undo history. |
 | Inspector notebook tabs | tab | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `wxNotebook`; iPad `NotebookTabsView` segmented (≤4) / menu (5+). Single-mode dispatch (e.g. SingleStrand). |
 | Notebook: persist tab to settings | preference | ✅ | ✅ | parity | P1 | easy | feasible | Both store tab *label* in settings (e.g. `E_NOTEBOOK_SSEFFECT_TYPE`); both suppress first-tab default. |
 | Notebook: ephemeral (no settingKey) tabs | preference | ✅ | ✅ | parity | P2 | easy | feasible | Buffer panel tabs; iPad uses `@State localSelection`. |
@@ -208,9 +215,18 @@
 
 ### P3
 
-- **Animated preset preview GIF** — desktop `GenerateGifImage` /
-  `TimerGif`. iPad would need a Metal-render→thumbnail pipeline
-  (see MEMORY: `project_media_preview_generation`). *Ease: hard.*
+- **Animated preset preview GIF → still thumbnail** — *landed (still
+  variant).* Bridge `presetThumbnailBGRA(atPath:outputSize:)`
+  (`XLSequenceDocument.mm`) parses the preset's first CopyFormat1 effect,
+  loads it onto the shared preset matrix model, renders via
+  `iPadRenderContext::RenderEffectToFrames` (the same scaffolding the
+  shader-preview path uses, guarded by a mutex), and returns the last
+  frame as BGRA. `PresetThumbnailCache` + `PresetThumbnailView`
+  (`PresetBrowserSheet.swift`) lazy-load it off the main thread and cache
+  it as the preset row's leading icon, falling back to `wand.and.stars`
+  while loading / on failure. The remaining gap is *animating* the
+  preview (multi-frame GIF playback) — the still covers the
+  "what does this preset look like" need at a fraction of the cost.
 - **Jukebox (whole subsystem)** — **DECLINED (won't-do, 2026-06-11).**
   `media/JukeboxPanel.cpp` + `LinkJukeboxButtonDialog.cpp`; core
   `JukeboxButtonData` already round-trips through the .xsq, so data
@@ -245,9 +261,14 @@
   sheet shows only `masterViewDetail` (bypassing the NavigationSplitView
   sidebar) when effect-sequence, matching desktop `SetEffectSequenceMode`
   hiding `ListCtrlViews`.
-- **Row-heading single-color model swatch** — still deferred. Desktop
-  `RowHeading.cpp:2502-2520` reads `GetNodeMaskColor(strand=0)`. Bridge
-  would need a new `rowNodeMaskColor(at:)` call. *Ease: medium.*
+- **Row-heading single-color model swatch** — *landed.* Bridge
+  `rowNodeMaskColorAtIndex:` / `rowNodeMaskColor(at:)`
+  (`XLSequenceDocument.h` + `.mm`) returns `(std::string)GetNodeMaskColor(0)`
+  hex for `"Single Color"`/`"Node Single Color"` string types that have
+  nodes, empty otherwise; `RowInfo.nodeMaskColor` populated in
+  `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 12×12
+  black-outlined `RoundedRectangle` swatch at the trailing edge (9 pt in,
+  beside the has-effects stripe). Matches desktop `RowHeading.cpp:2668-2688`.
 - **Row-heading model tag-color chip** — *landed.* Bridge
   `rowTagColorAtIndex:` / `rowTagColor(at:)` added
   (`XLSequenceDocument.h:268`, `.mm`) returning `m->GetTagColourAsString()`
@@ -338,7 +359,10 @@ exists on both.)
    per-view checkbox confirmed at parity by idiom; `rowHasEffects(at:)` +
    `rowTagColor(at:)` bridge methods + `RowInfo` fields + overlay draws in
    `ModelRowHeader`. Single-color swatch still deferred.
-8. **Animated preset GIF preview** (P3, hard) — defer; heavy pipeline
-   work. **Row-heading single-color swatch** (P3) — deferred, needs
-   `rowNodeMaskColor(at:)` bridge. **Jukebox is declined (won't-do)**;
+8. ✅ **Done — preset still-thumbnail + row-heading single-color swatch**
+   (P3). Preset preview ships a static representative still
+   (`presetThumbnailBGRA` → `RenderEffectToFrames` → cached row icon);
+   *animating* it (GIF playback) is the only remaining preset gap.
+   Single-color swatch ships via `rowNodeMaskColor(at:)` +
+   `ModelRowHeader` trailing swatch. **Jukebox is declined (won't-do)**;
    Perspectives and AC stay desktop-only (AC deferred per theme 02).

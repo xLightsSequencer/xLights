@@ -54,10 +54,18 @@ struct FolderConfigView: View {
     @AppStorage("bellOnRenderComplete") private var bellOnRenderComplete: Bool = false
     @AppStorage("backupOnSave") private var backupOnSave: Bool = false
     @AppStorage("purgeDownloadCacheAtStartup") private var purgeDownloadCacheAtStartup: Bool = false
+    @AppStorage("hidePresetPreviews") private var hidePresetPreviews: Bool = false
     @AppStorage("modelRenameAliasMode") private var modelRenameAliasMode: String = "Always Prompt"
+    // Optional contact email attached to uploaded diagnostic reports
+    // (read by `XLDiagnosticUploader.buildMultipartBody`), matching the
+    // desktop crash-report email field.
+    @AppStorage("xLightsEmail") private var xLightsEmail: String = ""
 
     enum PickerMode: Identifiable {
         case showFolder
+        // Picks a show folder, loads it temporarily, and dismisses — no
+        // persistence of default / MRU.
+        case showFolderTemporary
         case addMediaFolder
         case fseqFolder
         case baseShowFolder
@@ -66,6 +74,7 @@ struct FolderConfigView: View {
         var id: Int {
             switch self {
             case .showFolder: return 0
+            case .showFolderTemporary: return 5
             case .addMediaFolder: return 1
             case .fseqFolder: return 2
             case .baseShowFolder: return 3
@@ -110,6 +119,16 @@ struct FolderConfigView: View {
                     }
                     Button(showFolderPath == nil ? "Choose Show Folder…" : "Change Show Folder…") {
                         pickerMode = .showFolder
+                    }
+                    if showFolderPath != nil {
+                        Button("Switch Temporarily…") {
+                            pickerMode = .showFolderTemporary
+                        }
+                        if viewModel.temporaryShowFolderActive {
+                            Text("Temporary show folder — the saved default is unchanged and will be restored on next launch.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -248,10 +267,22 @@ struct FolderConfigView: View {
                     Toggle(isOn: $purgeDownloadCacheAtStartup) {
                         Text("Purge Download Cache at Startup")
                     }
+                    Toggle(isOn: $hidePresetPreviews) {
+                        Text("Hide Preset Previews")
+                    }
                     Picker("Model Rename Alias", selection: $modelRenameAliasMode) {
                         Text("Always Prompt").tag("Always Prompt")
                         Text("Always Yes").tag("Always Yes")
                         Text("Always No").tag("Always No")
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        TextField("Contact eMail (optional)", text: $xLightsEmail)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                        Text("Attached to diagnostic reports you upload so we can follow up.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
                 } header: {
                     Text("Other")
@@ -337,6 +368,13 @@ struct FolderConfigView: View {
                     switch mode {
                     case .showFolder:
                         showFolderPath = path
+                    case .showFolderTemporary:
+                        // Load now without touching FolderConfig.showFolder
+                        // or the Recent list, then close the sheet.
+                        viewModel.loadShowFolderTemporarily(path: path, mediaFolders: mediaFolderPaths)
+                        pickerMode = nil
+                        dismiss()
+                        return
                     case .addMediaFolder:
                         if !mediaFolderPaths.contains(path) {
                             mediaFolderPaths.append(path)

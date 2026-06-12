@@ -45,7 +45,7 @@ struct XLSequencerCommands: Commands {
 
             Button("Save") { _ = viewModel.saveSequence() }
                 .keyboardShortcut("s", modifiers: [.command])
-                .disabled(!viewModel.isDirty)
+                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
 
             Button("Save As…") {
                 viewModel.saveAsRequestToken &+= 1
@@ -57,6 +57,11 @@ struct XLSequencerCommands: Commands {
                 viewModel.revertRequestToken &+= 1
             }
             .disabled(!viewModel.isDirty || !viewModel.isSequenceLoaded)
+
+            Button("Restore Backup…") {
+                viewModel.showingRestoreBackup = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
 
             Divider()
 
@@ -297,7 +302,7 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
-            XLZoomCommands()
+            XLZoomCommands(viewModel: viewModel)
 
             Divider()
 
@@ -370,6 +375,15 @@ struct XLSequencerCommands: Commands {
             // core lyric breakdown.
             Button("User Lyric Dictionary…") {
                 viewModel.showingUserLyricDictionary = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded)
+
+            // Tools → Download Sequences/Lyrics (desktop
+            // VendorMusicDialog). Browses the music-vendor catalog and
+            // downloads sequences (.zip) / lyrics (.xtiming) into the
+            // show folder. Needs a show folder to download into.
+            Button("Download Sequences / Lyrics…") {
+                viewModel.showingMusicBrowser = true
             }
             .disabled(!viewModel.isShowFolderLoaded)
 
@@ -517,6 +531,16 @@ struct XLSequencerCommands: Commands {
             Button("Render All") { viewModel.startBackgroundRender() }
                 .keyboardShortcut("r", modifiers: [.command])
                 .disabled(!viewModel.isSequenceLoaded)
+
+            // Desktop TOGGLE_RENDER — defer per-edit background renders
+            // while editing heavily; resuming renders the deferred range.
+            Button(viewModel.renderSuspended
+                   ? "Resume Background Render"
+                   : "Suspend Background Render") {
+                viewModel.toggleRenderSuspended()
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
 
             Divider()
 
@@ -676,10 +700,22 @@ struct XLSequencerCommands: Commands {
             Button("Key Bindings…") {
                 viewModel.showingKeyBindings = true
             }
+            // Help → Tip of the Day (desktop TipOfTheDayDialog).
+            // Renders the same shared tod.xml tip set; "show at
+            // startup" pref lives in the sheet.
+            Button("Tip of the Day…") {
+                viewModel.showingTipOfDay = true
+            }
 
             Divider()
 
             Button("xLights Manual") {
+                XLOpenURL("https://manual.xlights.org/")
+            }
+            // Help → Content (desktop F1). No F1 on iPad keyboards;
+            // points at the manual landing page like desktop's
+            // Content handler.
+            Button("Help Contents") {
                 XLOpenURL("https://manual.xlights.org/")
             }
             Button("Tutorial Videos") {
@@ -762,7 +798,25 @@ enum XLPlaybackSpeeds {
 // body, so the zoom commands live in this helper view injected
 // into the View menu.
 private struct XLZoomCommands: View {
+    let viewModel: SequencerViewModel
     @FocusedValue(\.timeline) private var timeline
+    // Desktop View ▸ "Timeline Zooming" (`ViewSettingsPanel.cpp:97`):
+    // when ON, zoom keeps the play marker pixel-anchored; when OFF it
+    // anchors to the viewport's left edge (the prior behavior).
+    @AppStorage("zoomToPlayMarker") private var zoomToPlayMarker: Bool = true
+
+    /// Re-derive the scroll offset after a pixels-per-ms change so the
+    /// play marker stays at the same on-screen pixel (when enabled).
+    private func applyZoom(_ t: TimelineState, newPPMS: CGFloat) {
+        guard zoomToPlayMarker else {
+            t.pixelsPerMS = newPPMS
+            return
+        }
+        let playMS = viewModel.playPositionMS
+        let oldScreenX = t.x(forTimeMS: playMS) - t.hScrollOffsetPx
+        t.pixelsPerMS = newPPMS
+        t.hScrollOffsetPx = max(0, t.x(forTimeMS: playMS) - oldScreenX)
+    }
 
     /// B38 — zoom preset stops. Each label describes the rough span
     /// that fits in a 1000-pt viewport at that pixels-per-ms; picked
@@ -784,7 +838,7 @@ private struct XLZoomCommands: View {
     var body: some View {
         Button("Zoom Out") {
             if let t = timeline {
-                t.pixelsPerMS = max(0.005, t.pixelsPerMS / 1.5)
+                applyZoom(t, newPPMS: max(0.005, t.pixelsPerMS / 1.5))
             }
         }
         .keyboardShortcut("-", modifiers: [.command])
@@ -792,7 +846,7 @@ private struct XLZoomCommands: View {
 
         Button("Zoom In") {
             if let t = timeline {
-                t.pixelsPerMS = min(2.0, t.pixelsPerMS * 1.5)
+                applyZoom(t, newPPMS: min(2.0, t.pixelsPerMS * 1.5))
             }
         }
         .keyboardShortcut("=", modifiers: [.command])
@@ -801,11 +855,13 @@ private struct XLZoomCommands: View {
         Menu("Zoom To…") {
             ForEach(Array(Self.zoomPresets.enumerated()), id: \.offset) { _, preset in
                 Button(preset.label) {
-                    timeline?.pixelsPerMS = preset.ppms
+                    if let t = timeline { applyZoom(t, newPPMS: preset.ppms) }
                 }
             }
         }
         .disabled(timeline == nil)
+
+        Toggle("Zoom To Play Marker", isOn: $zoomToPlayMarker)
     }
 }
 

@@ -221,6 +221,8 @@
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
+		<Unit filename="../src-core/import_export/MusicCatalog.cpp" />
+		<Unit filename="../src-core/import_export/MusicCatalog.h" />
 		<Unit filename="../src-core/import_export/VendorCatalog.cpp" />
 		<Unit filename="../src-core/import_export/VendorCatalog.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
@@ -384,6 +386,10 @@
 		<Unit filename="../src-core/import_export/LOREdit.h" />
 		<Unit filename="../src-core/import_export/HLSFile.cpp" />
 		<Unit filename="../src-core/import_export/HLSFile.h" />
+		<Unit filename="../src-core/import_export/ImportDataRow.cpp" />
+		<Unit filename="../src-core/import_export/ImportDataRow.h" />
+		<Unit filename="../src-core/import_export/Vixen2File.cpp" />
+		<Unit filename="../src-core/import_export/Vixen2File.h" />
 		<Unit filename="../src-core/import_export/LORMusic.cpp" />
 		<Unit filename="../src-core/import_export/LORMusic.h" />
 		<Unit filename="../src-core/import_export/LORPixelEditor.cpp" />

@@ -635,6 +635,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\import_export\ExportEffectsReport.cpp" />
     <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
     <ClCompile Include="..\src-core\import_export\HLSFile.cpp" />
+    <ClCompile Include="..\src-core\import_export\ImportDataRow.cpp" />
+    <ClCompile Include="..\src-core\import_export\Vixen2File.cpp" />
     <ClCompile Include="..\src-core\import_export\LORMusic.cpp" />
     <ClCompile Include="..\src-core\import_export\LORPixelEditor.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\LORPreview.cpp" />
@@ -703,6 +705,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
     <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\MusicCatalog.cpp" />
     <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
@@ -1239,6 +1242,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\import_export\ExportEffectsReport.h" />
     <ClInclude Include="..\src-core\import_export\LOREdit.h" />
     <ClInclude Include="..\src-core\import_export\HLSFile.h" />
+    <ClInclude Include="..\src-core\import_export\ImportDataRow.h" />
+    <ClInclude Include="..\src-core\import_export\Vixen2File.h" />
     <ClInclude Include="..\src-core\import_export\LORMusic.h" />
     <ClInclude Include="..\src-core\import_export\LORPixelEditor.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\LyricUserDictDialog.h" />
@@ -1319,6 +1324,7 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
     <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\MusicCatalog.h" />
     <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />

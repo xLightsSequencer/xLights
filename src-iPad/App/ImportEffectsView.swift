@@ -61,6 +61,21 @@ struct ImportEffectsView: View {
         }
     }
 
+    // Largest source duration — normalizes the per-row density strips so they
+    // share a common time scale.
+    private var maxSourceDurationMs: Int {
+        availableSources.map { Int($0.durationMs) }.max() ?? 0
+    }
+
+    // Compact "N · M.Ss" caption — effect count + last-effect end time.
+    private func timelineSummary(effectCount: NSInteger, durationMs: NSInteger) -> String {
+        let secs = Double(durationMs) / 1000.0
+        if durationMs > 0 {
+            return String(format: "%d · %.1fs", effectCount, secs)
+        }
+        return "\(effectCount)"
+    }
+
     private var filteredDestinationRows: [XLImportMappingRow] {
         guard !destSearch.isEmpty else { return destinationRows }
         return destinationRows.filter {
@@ -175,7 +190,7 @@ struct ImportEffectsView: View {
             Text("Pick a sequence to import effects from.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, .loredit LOR S5, .lms / .las LOR Music / Animation, .lpe LOR Pixel Editor, and .hlsIdata HLS exports are supported.")
+            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, .loredit LOR S5, .lms / .las LOR Music / Animation, .lpe LOR Pixel Editor, .hlsIdata HLS, and .vix Vixen 2 exports are supported.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -240,9 +255,19 @@ struct ImportEffectsView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(filteredSources, id: \.displayName) { src in
                         let isSelected = selectedSourceDisplay == src.displayName
-                        HStack {
+                        HStack(spacing: 8) {
                             Text(src.displayName)
                             Spacer()
+                            if src.effectCount > 0 {
+                                SourceTimelineStrip(effectCount: src.effectCount,
+                                                    durationMs: src.durationMs,
+                                                    maxDurationMs: maxSourceDurationMs)
+                                    .frame(width: 56, height: 10)
+                                Text(timelineSummary(effectCount: src.effectCount, durationMs: src.durationMs))
+                                    .font(.caption2)
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
@@ -484,6 +509,12 @@ struct ImportEffectsView: View {
                 // HLSFile reader. Shares the mapping panes with `.xsq`; only
                 // source discovery differs.
                 try session.loadHLSSource(atPath: url.path)
+            } else if ext == "vix" {
+                // Vixen 2.x `.vix` effect-level export — parsed by the core
+                // Vixen2File reader (optional sibling `.pro` profile + base64
+                // event stream). Shares the mapping panes with `.xsq`; only
+                // source discovery differs.
+                try session.loadVixen2Source(atPath: url.path)
             } else {
                 try session.loadSourceSequence(atPath: url.path)
             }
@@ -718,6 +749,8 @@ struct ImportEffectsView: View {
         if let lpe = UTType(filenameExtension: "lpe") { types.append(lpe) }
         // HLS `.hlsIdata` effect-level export (parsed by core HLSFile).
         if let hls = UTType(filenameExtension: "hlsIdata") { types.append(hls) }
+        // Vixen 2.x `.vix` effect-level export (parsed by core Vixen2File).
+        if let vix = UTType(filenameExtension: "vix") { types.append(vix) }
         // xLights package (zip-based, like .xsqz) — handled by SequencePackage.
         if let piz = UTType(filenameExtension: "piz") { types.append(piz) }
         return types
@@ -829,5 +862,30 @@ private struct DestinationRowView: View {
         if !row.node.isEmpty { return row.node }
         if !row.strand.isEmpty { return row.strand }
         return row.model
+    }
+}
+
+// Lightweight per-source density strip: a track whose filled portion is the
+// source's duration relative to the longest source, tinted by effect density.
+// The iPad analogue of the desktop import-mapping timeline column — intentionally
+// minimal (no per-effect rectangles) to stay cheap in a long scrolling list.
+private struct SourceTimelineStrip: View {
+    let effectCount: NSInteger
+    let durationMs: NSInteger
+    let maxDurationMs: NSInteger
+
+    var body: some View {
+        GeometryReader { geo in
+            let frac: CGFloat = maxDurationMs > 0
+                ? CGFloat(durationMs) / CGFloat(maxDurationMs)
+                : (durationMs > 0 ? 1.0 : 0.0)
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.secondary.opacity(0.15))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.accentColor.opacity(0.55))
+                    .frame(width: max(2, geo.size.width * max(0.04, frac)))
+            }
+        }
     }
 }

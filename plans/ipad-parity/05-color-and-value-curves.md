@@ -220,4 +220,10 @@
    `GetCurrentPalette()` string, making cross-platform curve/palette sharing
    symmetric.
 5. Defer the dropper panes, lock buttons, and panel-size/reset preferences —
-   low value on a touch UI; revisit only if users ask.
+   low value on a touch UI; revisit only if users ask. (Re-scanned this theme
+   for newly-tractable ❌ rows: the remaining gaps are the dropper panes
+   declined as touch idioms, the cross-theme lock buttons, palette drag-drop
+   targets — all of which depend on the absent drag-source panes — and the
+   Color-Replace color-curve replacement target, which would require teaching the
+   single-hex `replaceColour` bridge to carry a serialised ColorCurve; left as
+   P3 ipad-weaker given its low value. Nothing newly landed here this pass.)

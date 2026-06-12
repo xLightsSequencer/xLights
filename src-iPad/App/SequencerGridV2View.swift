@@ -292,6 +292,7 @@ private struct SongRegionExportModifier: ViewModifier {
     @Binding var pickerPresented: Bool
     @Binding var exportIdx: Int?
     @Binding var message: String?
+    @Binding var exportAllPresented: Bool
     let viewModel: SequencerViewModel
     func body(content: Content) -> some View {
         content
@@ -306,6 +307,15 @@ private struct SongRegionExportModifier: ViewModifier {
                     defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
                     message = viewModel.exportSongRegion(
                         viewModel.songRegions[idx], toFolder: dir.path)
+                }
+            }
+            .fileImporter(isPresented: $exportAllPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportAllSongRegions(toFolder: dir.path)
                 }
             }
             .alert("Export Region", isPresented: Binding(
@@ -433,6 +443,9 @@ struct SequencerGridV2View: View {
     @AppStorage("grid.alternateTimingFormat") private var alternateTimingFormat: Bool = false
     // XS/S/M/L/XL → multiplier on the default 24 pt row height.
     @AppStorage("grid.spacing") private var gridSpacing: String = "M"
+    // Effects-Grid ▸ "Hide Color Update Warning" — consumed by
+    // ColorPaletteView's Update-Palette action (skips the confirm alert).
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
     private static func rowHeightMultiplier(_ spacing: String) -> CGFloat {
         switch spacing {
         case "XS": return 0.66
@@ -535,6 +548,7 @@ struct SequencerGridV2View: View {
     @State private var songRegionExportIdx: Int? = nil
     @State private var songRegionExportPickerPresented: Bool = false
     @State private var songRegionExportMessage: String? = nil
+    @State private var songRegionExportAllPickerPresented: Bool = false
     @State private var songViewRenamePresented: Bool = false
     @State private var songViewRenameText: String = ""
     @State private var songViewAddPresented: Bool = false
@@ -908,6 +922,14 @@ struct SequencerGridV2View: View {
                     let e = viewModel.rows[target.rowIndex].effects[target.effectIndex]
                     viewModel.selectAllEffectsInColumn(spanStartMS: e.startTimeMS,
                                                        spanEndMS: e.endTimeMS)
+                }
+                // Desktop EffectsGrid.cpp:386 "Create Timing" — also
+                // surfaced here on the effect menu (not just top-chrome).
+                Button("Create Timing From Effect(s)") {
+                    let base = (viewModel.document.rowModelName(at: Int32(target.rowIndex)) as String?) ?? "Model"
+                    _ = viewModel.createTimingTrackFromEffects(
+                        modelRowIndex: target.rowIndex,
+                        trackName: "\(base) Timing")
                 }
                 Button(viewModel.isEffectLocked(rowIndex: target.rowIndex,
                                                  effectIndex: target.effectIndex)
@@ -1347,6 +1369,11 @@ struct SequencerGridV2View: View {
                     songRegionExportIdx = idx
                     songRegionExportPickerPresented = true
                 }
+                if viewModel.songRegions.count > 1 {
+                    Button("Export All Regions…") {
+                        songRegionExportAllPickerPresented = true
+                    }
+                }
             }
             if let ms = songRegionMenuMS {
                 Button("Add Boundary Here") {
@@ -1401,6 +1428,7 @@ struct SequencerGridV2View: View {
             pickerPresented: $songRegionExportPickerPresented,
             exportIdx: $songRegionExportIdx,
             message: $songRegionExportMessage,
+            exportAllPresented: $songRegionExportAllPickerPresented,
             viewModel: viewModel))
         .alert("New Song Structure View", isPresented: $songViewAddPresented) {
             TextField("Name", text: $songViewAddText)
@@ -1606,6 +1634,25 @@ struct SequencerGridV2View: View {
         showingFSEQExporter = true
     }
 
+    /// Export only the selected effects' time span on the row's model
+    /// (desktop "Export Selected Model Effects"). Falls back silently
+    /// when no selected effect belongs to this model.
+    private func startSelectedFSEQExport(rowIndex: Int) {
+        guard let span = viewModel.selectedEffectsSpanForModel(rowIndex: rowIndex) else { return }
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).eseq").path
+        guard viewModel.exportModelAsFSEQ(rowIndex: rowIndex, path: tempPath,
+                                           startMS: span.start, endMS: span.end) else {
+            return
+        }
+        fseqExportDoc = FSEQExportDoc(sourcePath: tempPath)
+        fseqDefaultName = "\(safeName).eseq"
+        showingFSEQExporter = true
+    }
+
     /// Encode the row's model to a temp video file (codec from the flags +
     /// `ext`), then hand the path to `.fileExporter` for the user to place.
     /// Synchronous — a single model's buffer is small, so encoding the whole
@@ -1768,12 +1815,19 @@ struct SequencerGridV2View: View {
                             Label("Zoom to Selection", systemImage: "arrow.up.backward.and.arrow.down.forward")
                         }
                     }
-                    // B57: global collapse / expand.
+                    // B57: global collapse / expand. Desktop splits
+                    // "Collapse All Models" (hide strands/submodels) from
+                    // "Collapse All Layers" (SetCollapsed on every element).
                     Divider()
+                    Button {
+                        viewModel.collapseAllModelSubrows()
+                    } label: {
+                        Label("Collapse All Models", systemImage: "rectangle.compress.vertical")
+                    }
                     Button {
                         viewModel.collapseAllModels()
                     } label: {
-                        Label("Collapse All", systemImage: "chevron.up.chevron.down")
+                        Label("Collapse All Layers", systemImage: "chevron.up.chevron.down")
                     }
                     Button {
                         viewModel.expandAllElements()
@@ -1843,6 +1897,9 @@ struct SequencerGridV2View: View {
                     }
                     Toggle(isOn: $alternateTimingFormat) {
                         Label("Alternate Timing Format", systemImage: "clock")
+                    }
+                    Toggle(isOn: $hideColorUpdateWarning) {
+                        Label("Hide Color Update Warning", systemImage: "paintbrush")
                     }
                     Picker(selection: $gridSpacing) {
                         Text("Extra Small").tag("XS")
@@ -2303,6 +2360,19 @@ struct SequencerGridV2View: View {
                     },
                     onPromoteNodeEffects: {
                         viewModel.promoteNodeEffects(rowIndex: row.id)
+                    },
+                    onConvertDataToEffects: {
+                        viewModel.convertDataToEffects(rowIndex: row.id)
+                    },
+                    onDeleteScopedEffects: { scope in
+                        let name = scope == 0 ? "Delete SubModel Effects"
+                                 : scope == 1 ? "Delete Strand Effects"
+                                              : "Delete Node Effects"
+                        viewModel.deleteScopedEffects(rowIndex: row.id, scope: scope, actionName: name)
+                    },
+                    hasSelectedEffectsOnModel: viewModel.selectedEffectsSpanForModel(rowIndex: row.id) != nil,
+                    onExportSelectedModelFSEQ: {
+                        startSelectedFSEQExport(rowIndex: row.id)
                     },
                     unusedLayerCount: Int(viewModel.document.unusedLayerCount(atRow: Int32(row.id))),
                     onDeleteUnusedLayers: {

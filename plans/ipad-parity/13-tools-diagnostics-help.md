@@ -10,16 +10,19 @@
 > panel (= desktop **Preferences → AI Services**), not the desktop
 > Tools → *Generate AI Image* / *Generate Lyrics From Data* tools — those
 > two distinct generators are missing or only effect-embedded on iPad.
-> The Help menu is near-parity on external links; iPad is missing **Tip
-> of the Day, Key Bindings, Content (F1), Check for Updates**, and a
-> "Download" item (it has the equivalent "xLights Website"). Remaining
-> real iPad gaps are the controller/hardware specialists (Pixel Test,
-> Bulk Upload, HinksPix, Export Controller Connections), the legacy
-> generators (2D Path, Custom Model generate/remap, Generate Lyrics From
-> Data), and the FFmpeg-bound Prepare Audio + sandbox-blocked Run
-> Scripts. File-sweep utilities Cleanup File Locations + Search Show
-> Folders are now ✅ (Download Sequences/Lyrics is deferred — it needs
-> core-catalog work). The two diagnostic windows **Color Dropper** and
+> The Help menu is at parity on external links; **Tip of the Day**,
+> **Key Bindings**, and **Content/Help Contents** are now ✅ on iPad
+> too, leaving only **Check for Updates** (App-Store-restricted).
+> Remaining real iPad gaps are the controller/hardware specialists
+> (Pixel Test, Bulk Upload, HinksPix, Export Controller Connections),
+> the legacy generators (2D Path, Custom Model generate/remap, Generate
+> Lyrics From Data), and the FFmpeg-bound Prepare Audio + sandbox-blocked
+> Run Scripts. File-sweep utilities Cleanup File Locations + Search Show
+> Folders are ✅, and **Download Sequences/Lyrics is now ✅** — a new
+> wx-free core `music_catalog::Catalog` (parallel to `vendor_catalog`)
+> parses the music-vendor schema and the iPad `MusicBrowserSheet`
+> downloads sequences/lyrics into the show folder. The two diagnostic
+> windows **Color Dropper** and
 > **Find Effect Data**, plus the **User Lyric Dictionary** editor, are
 > now ✅ on iPad too. Diagnostics (spdlog
 > rotation, package-logs, crash auto-upload to the shared triage
@@ -34,7 +37,7 @@
 | Tools → Check Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1102` / `CheckSequenceSheet.swift` (406 lines). Shared core `CheckSequence`, issues grouped by severity/section, tap row → jump grid+playhead. |
 | Tools → Cleanup File Locations | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `xLightsMain.cpp:6451`, `OnMenuItem_CleanupFileLocationsSelected`. iPad Tools → "Cleanup File Locations…" (`XLightsCommands.swift`) → `CleanupFileLocationsSheet` previews the external files that would move, then `performCleanupFileLocations` bridge sweeps them into the show folder + rewrites effect references (`XLSequenceDocument.mm` `cleanupExternalMedia`). Non-undoable; the sheet warns (matches desktop). |
 | Tools → Package Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1106` / `PackageSequenceSheet.swift`, `XLSequencePackager`. Builds `.xsqz` of sequence+media. |
-| Tools → Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | `xLightsMain.cpp:1108` → `VendorMusicDialog` (`MSLVendor` / `MSLSequenceLyric`, with an `MSL_SEQUENCE`/`MSL_LYRIC` type enum). **Heavier than it looks:** the desktop dialog uses its own wx-only catalog model, NOT the shared `vendor_catalog::Catalog` the iPad `VendorBrowserSheet` (models) is built on — the core catalog is models-only. Adding a sequences/lyrics mode to the iPad browser first requires extending core `vendor_catalog::Catalog` with a sequence/lyric item type (multi-schema XML parse) + a new bridge, then UI. Deferred; tracked here. |
+| Tools → Download Sequences/Lyrics | menu | ✅ | ✅ | parity | P2 | hard | feasible | **Landed.** Desktop `xLightsMain.cpp:1108` → `VendorMusicDialog` (`MSLVendor` / `MSLSequenceLyric`) is wx-only and the shared `vendor_catalog::Catalog` is models-only. New wx-free core `src-core/import_export/MusicCatalog.{h,cpp}` (`music_catalog::Catalog`) parallels VendorCatalog: parses the `<musicvendor>` master-index entries + per-vendor `<musicinventory>`/`<song>` schema (sequence/lyric items), with `DownloadTo` landing files in the show folder (sequences `.zip`, lyrics `.xtiming`). Bridge `XLMusicCatalog.{h,mm}` (`loadWithProgress`, `downloadItemFromURL:fileName:destFolder:`). iPad Tools → "Download Sequences / Lyrics…" → `MusicBrowserSheet.swift` (vendors → items, search, download into show folder). Schema knowledge is duplicated from desktop's `MSL*` (not yet unified — same situation VendorCatalog started in). |
 | Tools → Batch Render | menu (desktop) / picker toolbar (iPad) | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1111`; iPad `BatchRenderSheet.swift` (326) + `BatchRenderRunner.swift`, launched from sequence-picker toolbar (`XLightsApp.swift:1070,1122`). Real multi-seq queue. Surface differs, capability present. |
 | Tools → FPP Connect | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1113` / `FPPConnectSheet.swift` (1314), `FPPConnectMenuItem`. Discover FPP + upload `.fseq`. Open-firmware path. |
 | Tools → Bulk Controller Upload | menu | ✅ | ❌ | ipad-missing | P3 | hard | restricted | `xLightsMain.cpp:1115`. Batch firmware/config to many controllers; vendor-closed firmwares are IAP-gated. Open-firmware (FPP/WLED/ESPixelStick) subset is in-scope but low priority. |
@@ -49,7 +52,7 @@
 | Tools → Purge Download Cache | menu | ✅ | ✅ | parity | P2 | easy | feasible | `xLightsMain.cpp:1133` (`iD_MNU_VENDORCACHEPURGE`) / `purgeDownloadCache()`. |
 | Tools → Crash xLights | menu (hidden in release) | 🟡 | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1137`; removed from menu unless `EnableCrash` special option set (`:2074-2079`). Debug-only; low value to port. |
 | Tools → Log Render State | menu (hidden in release) | 🟡 | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1139`; also removed unless `EnableCrash` set. Internal diagnostic dump. |
-| Tools → Generate 2D Path | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1142`. Procedural path-model generator; specialist dialog. |
+| Tools → Generate 2D Path | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1142` → `PathGenerationDialog` (`src-ui-wx/model/PathGenerationDialog.cpp`). NOT a model generator — it's a freehand 2D-path sketch tool that exports a **pair of `.xvc` value-curve files** (`NameX.xvc` + `NameY.xvc`, X/Y coordinate vs. normalized arc-length) optionally traced over a reference image, with point insert/drag/delete/undo + flip-X/flip-Y/rotate transforms. Deferred: a full freehand drawing canvas with magnetic snapping + per-axis `.xvc` save is substantial SwiftUI-canvas work for a low-mobile-demand P3 specialist. iPad already has `ValueCurveEditor`/`ValueCurveCanvases` + the Sketch path editor as nearby building blocks for a future port. |
 | Tools → Generate Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1144`, `GenerateCustomModelDialog`. Video/photo-driven custom-model builder; camera+dialog-heavy. |
 | Tools → Remap Custom Model | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1146`. Node-index remap; specialist, dialog-heavy. |
 | Tools → Generate AI Image | menu (desktop) / effect-picker (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1148`, `AIImageDialog`. iPad `AIImageGenerationSheet.swift` now also reachable from Tools menu (AI-2): `XLightsCommands.swift` "Generate AI Image…" → `showingStandaloneAIImage` → `SequencerView.swift` sheet. Saves to `AIImages/` show subfolder; no effect context needed. Gated on `XLAIServices.hasEnabledService(forCapability: XLAICapabilityImages)`. |
@@ -63,11 +66,11 @@
 | Tools → Edit Layout | menu (iPad) / Layout tab (desktop) | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | iPad `EditLayoutMenuItem` opens a detached `WindowGroup`. Desktop reaches Layout via the `Layout` notebook tab (`xLightsMain.cpp:997`), not a Tools menu item — surface difference, not a true capability gap. |
 | View → Windows → Color Dropper | menu (toggle) / preview eyedropper (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1204` (`ID_MNU_COLOURDROPPER`, checkable). Desktop docks an eyedropper that samples preview pixels. iPad: an eyedropper button in `PreviewControlsOverlay` (`HousePreviewView.swift`) arms a one-shot dropper; the next tap on the House/Model preview routes through `PreviewPaneView.handleSingleTap` → bridge `sampledColorHexNearPoint:viewSize:forDocument:` (`XLMetalBridge.mm`), which maps the tap to the nearest model node (`GetNodeNear`) and returns that node's current rendered colour (`GetNodeColor`) — a node-colour read, not a GPU pixel read-back, so no drawable stall. The sample is pushed into `XLRecentColors` with a transient banner. 2D-only (matches the node-pick path). |
 | View → Windows → Find Effect Data | menu (toggle) / Tools sheet (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1218` (`ID_MNU_FINDDATA`), `FindDataPanel` + `SearchPanel`. iPad Tools → "Find Effect Data…" → `FindEffectDataSheet.swift`: query by effect-type picker (populated from `effectTypesInSequence`), settings-text substring, and model-name substring; bridge `findEffectsMatching(type:settingsText:modelFilter:maxResults:)` (`XLSequenceDocument.mm`) walks model/submodel/strand/node layers (mirrors SearchPanel coverage) matching on `key=value` settings + palette entries, returning `XLFindEffectResult` rows (effect / element / layer / start / matched-setting). Tapping a result reuses `SequencerViewModel.jumpToEffect` (same path CheckSequence uses) to select + seek. iPad Find/Replace (`FindReplaceSheet`) still covers timing-mark labels separately. |
-| Help → Tip of the Day | menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1269`, `TipOfTheDayDialog`. Could port as a sheet; low mobile engagement. |
+| Help → Tip of the Day | menu | ✅ | ✅ | parity | P3 | easy | feasible | **Landed.** Desktop `xLightsMain.cpp:1269`, `TipOfTheDayDialog` reads `TipOfDay/tod.xml` (`<tip url title category level exclude>`) + per-tip HTML from the GitHub TipOfDay folder. iPad: bridge `XLTipOfDay.{h,mm}` fetches the same `tod.xml` + tip HTML via `CachedFileDownloader` (skipping `exclude="OSX"` tips, shared by Apple platforms); Help → "Tip of the Day…" → `TipOfDaySheet.swift` renders the HTML in a `WKWebView`, with a "Next Tip" button and a "Show tips on startup" toggle (`TipOfDayPrefs`, UserDefaults `xl.showTipAtStartup`, default on). Auto-shown once per launch from `XLightsApp` `.task` when the pref is on. |
 | Help → User Manual | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1271` → manual.xlights.org; iPad `XLightsCommands.swift:544`. |
 | Help → Zoom Room Help | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1273`; iPad `:578`. |
 | Help → Key Bindings | menu | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1275`. iPad: Help ▸ "Key Bindings…" → `KeyBindingsSheet.swift` (grouped read-only reference of the XLightsCommands bindings; complements the system ⌘-hold HUD). |
-| Help → Content (F1) | menu/shortcut | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1277` (`Content\tF1`). No F1 on iPad keyboards; could add a Help-sheet entry. |
+| Help → Content (F1) | menu/shortcut | ✅ | ✅ | parity | P3 | easy | feasible | **Landed.** Desktop `xLightsMain.cpp:1277` (`Content\tF1`) opens the manual. No F1 on iPad keyboards, so iPad Help → "Help Contents" (`XLightsCommands.swift`) opens the same manual landing page (`https://manual.xlights.org/`). Surface differs (no F1 accelerator); capability present. |
 | Help → Forum | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1280`; iPad `:558`. |
 | Help → Video Tutorials | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1281` → videos.xlights.org; iPad `:547`. |
 | Help → Download / Website | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `Download` (`:1283`) opens xlights.org; iPad `xLights Website` (`:570`) opens same URL. Same target, different label; no "installer download" needed on App Store. |
@@ -109,11 +112,15 @@ Logs, Import Effects, all external Help links, About, crash capture).
   iPad `SearchShowFoldersSheet.swift` picks a security-scoped folder
   tree and recurses for `xlights_rgbeffects.xml`, tap-to-switch via
   `loadShowFolder`.
-- **Download Sequences/Lyrics** — `xLightsMain.cpp:1108`. Deferred:
-  the desktop dialog (`VendorMusicDialog` / `MSLVendor`) is wx-only and
-  the shared `vendor_catalog::Catalog` the iPad browser uses is
-  models-only, so a sequences/lyrics mode needs core-catalog work
-  first. Now `hard` on the scorecard.
+- ✅ **Download Sequences/Lyrics** — **landed.** New wx-free core
+  `src-core/import_export/MusicCatalog.{h,cpp}` (`music_catalog::Catalog`)
+  parallels `vendor_catalog::Catalog`: parses the `<musicvendor>`
+  master-index entries + per-vendor `<musicinventory>`/`<song>` schema
+  (the wx-only `MSLVendor`/`MSLSequenceLyric` knowledge, duplicated into
+  core — not yet unified, same path VendorCatalog took). Bridge
+  `XLMusicCatalog.{h,mm}`; iPad Tools → "Download Sequences / Lyrics…"
+  → `MusicBrowserSheet.swift` browses vendors → items and downloads
+  straight into the show folder (sequences `.zip`, lyrics `.xtiming`).
 - **Prepare Audio** — `xLightsMain.cpp:1154`. FFmpeg-bound on desktop;
   see Infeasible/restricted (AVFoundation reimpl is heavy). hard.
 - ✅ **Color Dropper** — **landed.** Desktop toggle
@@ -130,12 +137,14 @@ Logs, Import Effects, all external Help links, About, crash capture).
 ### P3
 - **Bulk Controller Upload** (restricted for closed firmware),
   **HinksPix Export** (restricted), **Run Scripts** (infeasible),
-  **Export Controller Connections**, **Generate 2D Path**, **Generate
-  Custom Model**, **Remap Custom Model**, **Generate Lyrics From Data**,
-  **Tip of the Day**, **Content (F1)**,
+  **Export Controller Connections**, **Generate 2D Path** (the
+  `.xvc`-pair freehand-path sketch tool — substantial canvas work,
+  deferred), **Generate Custom Model**, **Remap Custom Model**,
+  **Generate Lyrics From Data**,
   **Crash xLights** / **Log Render State** (hidden debug),
   **Check for Updates** (infeasible),
   **Media Manager → AI Generate Image** (`ManageMediaPanel.cpp:633`).
+  **Tip of the Day** and **Content/Help Contents** are now ✅.
   See scorecard for refs/reasons.
 
 ## Desktop gaps (iPad has, desktop missing)
@@ -194,10 +203,15 @@ Logs, Import Effects, all external Help links, About, crash capture).
    the **User Lyric Dictionary** editor (`UserLyricDictionarySheet` →
    `user_dictionary` rewrite + `ReloadPhonemeDictionary`) landed
    alongside.
-5. **Help polish** — Key Bindings sheet, then Tip of the Day; defer
-   Content/F1 and Check-for-Updates (infeasible).
-6. **Defer** the controller-specialist (Bulk Upload, HinksPix, Export
-   Controller Connections), legacy generators (2D Path, Custom Model
-   gen/remap, Generate Lyrics From Data), **Download Sequences/Lyrics**
-   (needs core-catalog extension first), FFmpeg-bound Prepare Audio,
-   and sandbox-blocked Run Scripts — all P3/restricted/heavy.
+5. ~~**Help polish**~~ **Landed.** Key Bindings sheet, **Tip of the
+   Day** (`TipOfDaySheet` + `XLTipOfDay` bridge, startup pref), and
+   **Help Contents** (manual link, replacing desktop's F1). Only
+   Check-for-Updates remains deferred (App-Store-restricted).
+6. ~~**Download Sequences/Lyrics**~~ **Landed.** Core
+   `music_catalog::Catalog` + `XLMusicCatalog` bridge + `MusicBrowserSheet`,
+   downloading into the show folder.
+7. **Defer** the controller-specialist (Bulk Upload, HinksPix, Export
+   Controller Connections), legacy generators (2D Path — the `.xvc`-pair
+   freehand-path sketch tool, Custom Model gen/remap, Generate Lyrics
+   From Data), FFmpeg-bound Prepare Audio, and sandbox-blocked Run
+   Scripts — all P3/restricted/heavy.

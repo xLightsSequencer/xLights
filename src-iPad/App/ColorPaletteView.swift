@@ -20,6 +20,10 @@ struct ColorPaletteView: View {
     @State private var showingSaveAsSheet = false
     @State private var showingAISheet = false
     @State private var showingUpdatePaletteConfirm = false
+    // Desktop Effects-Grid ▸ "Hide Color Update Warning"
+    // (`EffectsGridSettingsPanel.cpp:106`): when ON, apply the palette to
+    // the other selected effects without the confirmation prompt.
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -108,7 +112,11 @@ struct ColorPaletteView: View {
     private func paletteMenuContent() -> some View {
         if viewModel.isMultiEffectSelection {
             Button {
-                showingUpdatePaletteConfirm = true
+                if hideColorUpdateWarning {
+                    viewModel.updatePaletteOnAllSelected()
+                } else {
+                    showingUpdatePaletteConfirm = true
+                }
             } label: {
                 Label("Update Palette", systemImage: "square.stack.3d.up.fill")
             }

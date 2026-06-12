@@ -1027,10 +1027,32 @@ private struct RenderTab: View {
 
     @State private var blendingEnabled: Bool = false
     @State private var frameMS: Int = 50
-    @State private var autosaveInterval: Int = 5
+    @AppStorage("autosaveIntervalMinutes") private var autosaveInterval: Int = 5
+    @State private var renderMode: String = "Erase"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Render Mode")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("", selection: $renderMode) {
+                    Text("Erase").tag("Erase")
+                    Text("Canvas").tag("Canvas")
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: renderMode) { _, new in
+                    _ = viewModel.document.setRenderMode(new)
+                }
+                Text(renderMode == "Canvas"
+                     ? "Canvas mode preserves the previous frame so layered effects accumulate on top of each other."
+                     : "Erase mode clears the buffer each frame (the default).")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
             Toggle(isOn: $blendingEnabled) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Model Blending")
@@ -1073,9 +1095,10 @@ private struct RenderTab: View {
                     .foregroundStyle(.secondary)
                 Picker("", selection: $autosaveInterval) {
                     Text("Off").tag(0)
-                    Text("2 min").tag(2)
+                    Text("3 min").tag(3)
                     Text("5 min").tag(5)
                     Text("10 min").tag(10)
+                    Text("15 min").tag(15)
                     Text("30 min").tag(30)
                 }
                 .pickerStyle(.segmented)
@@ -1098,6 +1121,7 @@ private struct RenderTab: View {
             blendingEnabled = viewModel.document.sequenceSupportsModelBlending()
             frameMS = viewModel.frameIntervalMS
             autosaveInterval = viewModel.autosaveIntervalMinutes
+            renderMode = viewModel.document.renderMode()
         }
     }
 }

@@ -1966,6 +1966,26 @@ void iPadRenderContext::RenderEffectForModel(const std::string& model,
     }
 }
 
+bool iPadRenderContext::RenderModelAndWait(const std::string& model, int maxTimeMs) {
+    EnsureSequenceDataSized();
+    if (!_sequenceData.IsValidData()) return false;
+    EnsureRenderEngine();
+    // Make sure no stale jobs are touching the model's frames before we
+    // kick off a fresh full-range render.
+    AbortRender(maxTimeMs);
+    _renderEngine->RenderEffectForModel(model, 0, 99999999,
+                                        _sequenceElements, _sequenceData,
+                                        false, _modelsChangeCount, true);
+    if (maxTimeMs <= 0) maxTimeMs = 60000;
+    int loops = maxTimeMs / 10;
+    int i = 0;
+    while (!IsRenderDone() && i < loops) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++i;
+    }
+    return IsRenderDone();
+}
+
 void iPadRenderContext::EnsureRenderEngine() {
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");

@@ -47,7 +47,7 @@
 | Render Selected / Loop Region | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop Waveform ▸ "Render Selected Region" (`ID_WAVE_MNU_RENDER`); iPad loop-region menu ▸ "Render Loop Region" (B44). |
 | Output to Lights | toolbar / keybind | ✅ | ✅ | parity | P1 | easy | feasible | Both via `OutputManager::StartOutput`. iPad streams DDP/E1.31/ArtNet only (network). See "Infeasible/restricted". |
 | Render abort / cancel | internal / keybind | ✅ | ✅ | parity | P1 | medium | feasible | Desktop `AbortRender` + `CANCEL_RENDER` keybind; iPad `abortRenderAndWait`. iPad has no user-facing cancel button (auto on memory pressure). |
-| Background / toggle render | preference / keybind | ✅ | 🟡 | desktop-missing | P3 | medium | feasible | Desktop `TOGGLE_RENDER` keybind + `_suspendRender`. iPad always background-renders on edit; no explicit suspend toggle. |
+| Background / toggle render | preference / keybind | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `TOGGLE_RENDER` keybind + `_suspendRender`. iPad: `SequencerViewModel.renderSuspended` + `toggleRenderSuspended()` (`SequencerViewModel.swift`) — while suspended the two render wrappers (`renderEffectAndTrack` / `renderRangeAndTrack`) defer instead of kicking the renderer, accumulating a `suspendedDirtyRange`; resuming renders the union (focused range when one row, `beginFreshRender` render-all when several). Surfaced as Playback ▸ Suspend/Resume Background Render (⇧⌘R, `XLightsCommands.swift`) + a command-palette entry. |
 | Render-on-edit (single effect) | internal | ✅ | ✅ | parity | P1 | easy | feasible | Both auto-render the edited model via `RenderEffectForModel`. Internal, not a user menu item on either. |
 | Render-on-edit (time range) | internal | ✅ | ✅ | parity | P1 | easy | feasible | Both render the affected row+range via `RenderEffectForModel(model,start,end)`. iPad `renderRangeAndTrack` (private). |
 | Render on save (write .fseq) | preference / internal | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `xLightsRenderOnSave` pref; iPad always writes `.fseq` alongside `.xsq` on save. |
@@ -58,7 +58,7 @@
 | Set Tag at Play Head | menu / key | ✅ | ✅ | parity | P2 | easy | feasible | Desktop keybind; iPad Playback ▸ Set Tag (Ctrl+Shift+0–9). |
 | Clear All Tags | menu | ✅ | ✅ | parity | P3 | easy | feasible | iPad Playback ▸ Clear All Tags (`clearAllTags`); desktop tag-clear. |
 | Log Render State (diagnostic) | menu | ✅ | ❌ | desktop-missing | P3 | hard | feasible | Desktop Tools ▸ Log Render State (`ID_MNU_DUMPRENDERSTATE`) dumps thread-pool/render state. No iPad analogue (could write to View Log). |
-| Render bell (audio cue on done) | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | Desktop `xLightsRenderBell` pref plays a chime when render completes. Not on iPad. Niche. |
+| Render bell (audio cue on done) | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `xLightsRenderBell` pref. iPad: `bellOnRenderComplete` `@AppStorage` toggle in `FolderConfigView.swift:237` (default OFF); `beginFreshRender`'s completion poll plays a system chime (`AudioServicesPlaySystemSound(1057)`) when set (`SequencerViewModel.swift:2750`). |
 | Frame interval (fps) | preference / dialog | ✅ | ✅ | parity | P2 | easy | feasible | Both read frame interval from the sequence (Sequence Settings); drives timer tick + frame-step size. |
 | Model blending modes (layer mix types) | render | ✅ | ✅ | parity | P1 | easy | feasible | Shared `src-core` render path. `resources/effectmetadata/shared/Blending.json` (LayerMethodRow, LayerMorphRow, EffectLayerMix). |
 | Cross-model blending (model blending toggle) | render | ✅ | ✅ | parity | P1 | easy | feasible | `src-iPad/Bridge/XLSequenceDocument.mm:711` sequenceSupportsModelBlending, :716/:720 setSequenceSupportsModelBlending; shared `src-core` render. |
@@ -100,13 +100,19 @@ These render-pipeline rows are shared-core features at parity by construction �
   into the existing View Log sheet, but it's a debug-only feature.
   **Ease: hard** (needs a new bridge method exposing the dump + wiring to
   the log sheet).
-- **Render bell / completion chime.** Desktop `xLightsRenderBell` pref.
-  Trivial to port but low value on a handheld device.
-- **Explicit "toggle background render" / suspend.** Desktop
-  `TOGGLE_RENDER` keybind + `_suspendRender` lets power users pause the
-  auto-render queue. iPad always renders on edit. *Work:* expose a
-  suspend flag through `iPadRenderContext` and a Playback-menu toggle.
-  **Ease: medium**; **P3** (auto-render is the right default on iPad).
+- **Render bell / completion chime.** *Landed.* `bellOnRenderComplete`
+  `@AppStorage` toggle (`FolderConfigView.swift:237`, default OFF) plays a
+  system chime when a render-all completes (`SequencerViewModel.swift:2750`).
+- **Explicit "toggle background render" / suspend.** *Landed.* Desktop
+  `TOGGLE_RENDER` keybind + `_suspendRender`; iPad
+  `SequencerViewModel.renderSuspended` + `toggleRenderSuspended()`. While
+  suspended the render wrappers (`renderEffectAndTrack` /
+  `renderRangeAndTrack`) record a `suspendedDirtyRange` instead of
+  kicking the renderer; resuming renders the union (focused range for a
+  single repeatedly-edited row, full `beginFreshRender` render-all when
+  several rows were dirtied). Playback ▸ Suspend/Resume Background Render
+  (⇧⌘R) + command-palette entry. Auto-render stays the default; the
+  toggle is for power users batching heavy edits on large shows.
 
 ## Desktop gaps (iPad has, desktop missing)
 
@@ -146,8 +152,9 @@ These render-pipeline rows are shared-core features at parity by construction �
   definitions on iPad is **restricted** (IAP-gated, P3) per the firmware
   rule; open-source firmware (FPP/WLED/ESPixelStick/DDP/generic) config is
   in scope but lives under the Controllers theme, not here.
-- **Render bell / Log Render State** are feasible but low value (see
-  above) — left desktop-only by choice, not platform limit.
+- **Log Render State** is feasible but low value (see above) — left
+  desktop-only by choice, not a platform limit. (Render bell has since
+  landed on iPad — see the scorecard row.)
 
 ## Recommended sequencing
 
@@ -161,8 +168,10 @@ These render-pipeline rows are shared-core features at parity by construction �
    audible-burst scrub to the desktop slider; needs a portable
    `PlaySegment` helper in `src-core/media`, which also de-duplicates the
    two scrub paths.
-4. **Toggle/suspend background render on iPad (P3).** For power users on
-   large shows; small bridge + menu toggle.
+4. ✅ **Done — toggle/suspend background render on iPad (P3).**
+   `renderSuspended` + `toggleRenderSuspended()` defer per-edit renders
+   into a `suspendedDirtyRange` and render the union on resume; Playback
+   ▸ Suspend/Resume Background Render (⇧⌘R) + command-palette entry.
 5. **Nice-to-haves last (P3):** desktop volume slider, desktop
    double-tap-to-loop, iPad Log-Render-State into View Log, render bell.
    Defer; none block users.

@@ -426,6 +426,19 @@ struct ModelRowHeader: View {
     /// hierarchy. Only meaningful on ModelElement rows; outer view
     /// gates visibility.
     var onPromoteNodeEffects: (() -> Void)?
+    /// Convert To Effect (render-down): render the model and replace
+    /// its rendered node output with On / Color Wash effects. Model /
+    /// strand rows only (desktop RowHeading.cpp:541/548/552).
+    var onConvertDataToEffects: (() -> Void)?
+    /// Scoped effect deletes (desktop RowHeading.cpp:603-606). The
+    /// closure receives the scope (0 = submodels, 1 = strands,
+    /// 2 = nodes). Model-heading rows only.
+    var onDeleteScopedEffects: ((_ scope: Int) -> Void)?
+    /// Export only the selected effects' time span on this model as a
+    /// Falcon Player `.eseq` (desktop RowHeading.cpp:585). Shown only
+    /// when at least one selected effect belongs to this model.
+    var hasSelectedEffectsOnModel: Bool = false
+    var onExportSelectedModelFSEQ: (() -> Void)?
     /// B48 — delete every empty layer on this row's element.
     /// Shown only on the element's primary row (`layerIndex == 0`)
     /// and only when there's > 1 layer to begin with.
@@ -564,6 +577,19 @@ struct ModelRowHeader: View {
                     .frame(width: 3)
             }
         }
+        .overlay(alignment: .trailing) {
+            if !row.nodeMaskColor.isEmpty,
+               let color = Color(hex: row.nodeMaskColor) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: 12, height: 12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 2)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+                    .padding(.trailing, 9)
+            }
+        }
         .overlay(alignment: .leading) {
             if !row.tagColor.isEmpty,
                let color = Color(hex: row.tagColor) {
@@ -622,6 +648,25 @@ struct ModelRowHeader: View {
                            systemImage: "trash.fill")
                 }
             }
+            // Scoped deletes (desktop RowHeading.cpp:603-606). Model
+            // heading rows only; the bridge walks the element's
+            // submodels / strands / node layers.
+            if !isSubLayer && !isNodeRow && !isGroup && !isSubmodelRow,
+               let fire = onDeleteScopedEffects {
+                Menu {
+                    Button(role: .destructive) { fire(0) } label: {
+                        Label("Delete SubModel Effects", systemImage: "trash")
+                    }
+                    Button(role: .destructive) { fire(1) } label: {
+                        Label("Delete Strand Effects", systemImage: "trash")
+                    }
+                    Button(role: .destructive) { fire(2) } label: {
+                        Label("Delete Node Effects", systemImage: "trash")
+                    }
+                } label: {
+                    Label("Delete Scoped Effects", systemImage: "trash.circle")
+                }
+            }
             if effectCountOnRow > 0, let fire = onCopyRow {
                 Button { fire() } label: {
                     Label("Copy Row", systemImage: "doc.on.doc")
@@ -671,6 +716,12 @@ struct ModelRowHeader: View {
                                systemImage: "arrow.up.doc")
                     }
                 }
+                if hasSelectedEffectsOnModel, let fireSel = onExportSelectedModelFSEQ {
+                    Button { fireSel() } label: {
+                        Label("Export Selected Model Effects as FSEQ…",
+                               systemImage: "square.and.arrow.up.badge.clock")
+                    }
+                }
             }
             if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelVideo {
                 Menu {
@@ -716,6 +767,16 @@ struct ModelRowHeader: View {
                 Button { fire() } label: {
                     Label("Promote Node Effects",
                            systemImage: "arrow.up.to.line.compact")
+                }
+            }
+            // Convert To Effect (render-down). Model-heading, strand,
+            // and node rows — never groups/submodels (no single buffer
+            // of rendered node data to read back).
+            if let fire = onConvertDataToEffects, !isGroup, !isSubmodelRow,
+               (!isSubLayer && !isNodeRow) || isStrandRow || isNodeRow {
+                Button { fire() } label: {
+                    Label("Convert To Effects",
+                           systemImage: "wand.and.stars")
                 }
             }
             if !isSubLayer && !isNodeRow, let fire = onToggleRenderDisabled {

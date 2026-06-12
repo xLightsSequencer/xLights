@@ -105,6 +105,16 @@ struct EffectSettingsView: View {
                 .font(.headline)
                 .lineLimit(1)
             Spacer()
+            Menu {
+                Button(role: .destructive) {
+                    viewModel.resetSelectedEffectToDefaults()
+                } label: {
+                    Label("Reset to Defaults", systemImage: "arrow.uturn.backward")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .help("Reset this effect's settings panel to its defaults")
             Button(action: { viewModel.deleteSelectedEffect() }) {
                 Image(systemName: "trash")
                     .foregroundStyle(.red)

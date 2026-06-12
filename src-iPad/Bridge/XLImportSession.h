@@ -13,6 +13,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString* displayName;
 @property (nonatomic, copy, readonly) NSString* canonicalName;
 @property (nonatomic, copy, readonly) NSString* modelType;
+// Per-source timeline summary surfaced in the mapping list (the iPad analogue
+// of the desktop per-row timeline column). `effectCount` is the number of
+// source effects under this entry; `durationMs` is its last effect's end time.
+// Both 0 for sources whose reader doesn't compute them (legacy channel-data
+// formats).
+@property (nonatomic, assign, readonly) NSInteger effectCount;
+@property (nonatomic, assign, readonly) NSInteger durationMs;
 @end
 
 // A timing track from the source sequence that the user can choose
@@ -223,6 +230,16 @@ NS_ASSUME_NONNULL_BEGIN
 // failure.
 - (BOOL)loadHLSSourceAtPath:(NSString*)path
                       error:(NSError**)error NS_SWIFT_NAME(loadHLSSource(atPath:));
+
+// Load a Vixen 2.x `.vix` file as an EFFECT-import source (the iPad analogue of
+// desktop xLightsFrame::ImportVix). Parses the document with the wx-free core
+// Vixen2File reader — including the optional sibling `<name>.pro` profile and
+// the base64 `<EventValues>` stream — and populates the shared
+// available/destination tree; apply decodes each mapped channel's per-frame
+// intensity stream into On / Color Wash effects. Returns a non-nil error on
+// parse failure (e.g. no channels / no event data resolved).
+- (BOOL)loadVixen2SourceAtPath:(NSString*)path
+                         error:(NSError**)error NS_SWIFT_NAME(loadVixen2Source(atPath:));
 
 // IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
 // an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).

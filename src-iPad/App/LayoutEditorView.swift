@@ -195,6 +195,12 @@ struct LayoutEditorView: View {
     /// the `LayoutGroupPickerSheet`; on confirm the path moves to
     /// `viewModel.layoutPendingImportPath` along with the chosen group.
     @State private var pendingMultiModelImportPath: String? = nil
+    /// GDTF mode picker — a picked `.gdtf` fixture with multiple DMX
+    /// modes waiting on the user's mode choice. Holds (path, modes);
+    /// non-nil drives `GdtfModePickerSheet`. On confirm the path moves
+    /// to `viewModel.layoutPendingImportPath` with the chosen mode in
+    /// `layoutPendingImportGdtfMode`.
+    @State private var pendingGdtfImport: (path: String, modes: [String])? = nil
     /// J-4 (download) — drives the vendor catalog browser sheet.
     @State private var downloadBrowserVisible: Bool = false
 
@@ -570,6 +576,24 @@ struct LayoutEditorView: View {
     /// XML up-front and route through `LayoutGroupPickerSheet` so
     /// the user picks a destination layout group before any models
     /// land in the show.
+    /// Drop transient Layout Editor session state on close so the next
+    /// open starts in a known single-select, no-creation-mode state.
+    private func resetLayoutEditorTransientState() {
+        viewModel.layoutPendingNewModelType = nil
+        viewModel.layoutPolylineInProgress = nil
+        viewModel.layoutPendingImportPath = nil
+        viewModel.layoutPendingImportTargetGroup = nil
+        viewModel.layoutEditMode = false
+        if let primary = viewModel.layoutEditorSelectedModel {
+            viewModel.layoutEditorSelection = [primary]
+        } else {
+            viewModel.layoutEditorSelection.removeAll()
+        }
+        viewModel.layoutEditorSelectedGroup = nil
+        viewModel.layoutEditorSelectedObject = nil
+        viewModel.terrainEditTarget = nil
+    }
+
     private func handleImportPick(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
@@ -578,11 +602,24 @@ struct LayoutEditorView: View {
             let path = url.path
             _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
             if granted { url.stopAccessingSecurityScopedResource() }
-            if XLMetalBridge.xmodelFileIsMultiModel(path: path) {
+            if path.lowercased().hasSuffix(".gdtf") {
+                // GDTF fixtures with several DMX modes get a chooser
+                // before placement (desktop prompts via ChooseFromList);
+                // a single-mode fixture skips straight to placement.
+                let modes = XLMetalBridge.gdtfModesForFile(path: path)
+                if modes.count > 1 {
+                    pendingGdtfImport = (path, modes)
+                } else {
+                    viewModel.layoutPendingImportPath = path
+                    viewModel.layoutPendingImportTargetGroup = nil
+                    viewModel.layoutPendingImportGdtfMode = nil
+                }
+            } else if XLMetalBridge.xmodelFileIsMultiModel(path: path) {
                 pendingMultiModelImportPath = path
             } else {
                 viewModel.layoutPendingImportPath = path
                 viewModel.layoutPendingImportTargetGroup = nil
+                viewModel.layoutPendingImportGdtfMode = nil
             }
         case .failure(let err):
             importErrorMessage = err.localizedDescription
@@ -607,32 +644,7 @@ struct LayoutEditorView: View {
         // all live in the canvas overlay (top-left + top-right) so
         // they're actually reachable.
         .onAppear { refresh() }
-        .onDisappear {
-            // Drop any half-started Add-Model so the editor opens
-            // fresh next time rather than re-entering creation mode
-            // on a stale type.
-            viewModel.layoutPendingNewModelType = nil
-            viewModel.layoutPolylineInProgress = nil
-            viewModel.layoutPendingImportPath = nil
-            viewModel.layoutPendingImportTargetGroup = nil
-            // J-4 (multi-select) — exit edit mode and collapse to
-            // the primary so the next open starts in a known
-            // single-select state.
-            viewModel.layoutEditMode = false
-            if let primary = viewModel.layoutEditorSelectedModel {
-                viewModel.layoutEditorSelection = [primary]
-            } else {
-                viewModel.layoutEditorSelection.removeAll()
-            }
-            // J-6 — clear group / object picks so a re-open starts
-            // clean (matches model-selection lifecycle).
-            viewModel.layoutEditorSelectedGroup = nil
-            viewModel.layoutEditorSelectedObject = nil
-            // J-13 — exit any active terrain edit session so the
-            // next open doesn't paint heightmap data on the first
-            // tap.
-            viewModel.terrainEditTarget = nil
-        }
+        .onDisappear { resetLayoutEditorTransientState() }
         .onChange(of: viewModel.isShowFolderLoaded) { _, _ in refresh() }
         .onChange(of: activeLayoutGroup) { _, newValue in
             viewModel.document.setActiveLayoutGroup(newValue)
@@ -663,6 +675,31 @@ struct LayoutEditorView: View {
         // Also drops fresh-model placement mode if armed.
         .onKeyPress(.escape, phases: .down) { _ in endCreationModes() }
         .onKeyPress(.return, phases: .down) { _ in endCreationModes() }
+        // Layout clipboard hot-keys (desktop Ctrl+C / Ctrl+V / Ctrl+X)
+        // + GDTF multi-mode picker, bundled into one modifier to keep
+        // the body's type-check tractable.
+        .modifier(LayoutClipboardAndGdtfModifier(
+            onCopy: {
+                let sel = selectionForClipboard()
+                guard !sel.isEmpty else { return false }
+                performCopy(of: sel)
+                return true
+            },
+            onPaste: { performPaste(); return true },
+            onCut: {
+                let sel = selectionForClipboard()
+                guard !sel.isEmpty else { return false }
+                performCopy(of: sel)
+                performDelete(of: sel)
+                return true
+            },
+            pendingGdtf: $pendingGdtfImport,
+            onGdtfConfirm: { path, mode in
+                viewModel.layoutPendingImportPath = path
+                viewModel.layoutPendingImportTargetGroup = nil
+                viewModel.layoutPendingImportGdtfMode = mode
+                pendingGdtfImport = nil
+            }))
         .onReceive(NotificationCenter.default.publisher(for: .layoutEditorModelMoved)) { note in
             // Drag-to-move on the canvas (or a keyboard nudge / undo)
             // mutates the bridge directly; refresh the summary +
@@ -3092,6 +3129,21 @@ struct LayoutEditorView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
 
+                // Node Inspect — desktop layout hover tooltip. Armed,
+                // a tap reports the node # / channel / controller-port
+                // under the touch.
+                Button {
+                    viewModel.nodeInspectActive.toggle()
+                    if viewModel.nodeInspectActive {
+                        viewModel.colorDropperActive = false
+                    }
+                } label: {
+                    Image(systemName: "scope")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(viewModel.nodeInspectActive ? .accentColor : nil)
+
                 if controlsVisible {
                     LayoutEditorCanvasControls(previewName: "LayoutEditor",
                                                settings: settings,
@@ -3101,6 +3153,26 @@ struct LayoutEditorView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(8)
+
+            // Node Inspect feedback banner — armed hint + the node info
+            // reported by the last tap (bottom edge, non-interactive).
+            if viewModel.nodeInspectActive || viewModel.nodeInspectStatus != nil {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Image(systemName: "scope")
+                        Text(viewModel.nodeInspectStatus
+                             ?? "Tap a model to inspect a node")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.black.opacity(0.6), in: Capsule())
+                    .padding(.bottom, 8)
+                }
+                .allowsHitTesting(false)
+            }
 
             // J-3 (touch UX) — creation-mode banner. Visible while
             // `layoutPendingNewModelType` is set (first-vertex tap)
@@ -4297,6 +4369,71 @@ struct LayoutEditorView: View {
                                          object: "LayoutEditor",
                                          userInfo: [:])
     }
+
+    /// The models a clipboard op should act on: the full multi-select
+    /// set if present, otherwise just the single selected model.
+    private func selectionForClipboard() -> [String] {
+        if !viewModel.layoutEditorSelection.isEmpty {
+            return Array(viewModel.layoutEditorSelection)
+        }
+        if let one = viewModel.layoutEditorSelectedModel, !one.isEmpty {
+            return [one]
+        }
+        return []
+    }
+
+    /// Delete each named model (used by Cut after the copy succeeds).
+    private func performDelete(of names: [String]) {
+        for name in names { deleteModel(name: name) }
+        viewModel.layoutEditorSelection.removeAll()
+    }
+
+    /// Layout clipboard copy (desktop DoCopy). Serializes the named
+    /// models to XML and places them on the system pasteboard under a
+    /// custom UTI plus a plain-text fallback, so paste works within
+    /// this sequence and across sequences / app launches.
+    private func performCopy(of names: [String]) {
+        guard !names.isEmpty else { return }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        guard let xml = bridge.copyModels(toString: names, for: viewModel.document),
+              !xml.isEmpty else { return }
+        UIPasteboard.general.setItems([[
+            Self.layoutClipboardUTI: xml,
+            "public.utf8-plain-text": xml
+        ]])
+    }
+
+    /// Layout clipboard paste (desktop DoPaste). Reads the custom-UTI
+    /// (or plain-text) XML off the pasteboard, deserializes it into
+    /// uniquified models offset from the originals, and selects the
+    /// result so the user can drag it into place.
+    private func performPaste() {
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let pb = UIPasteboard.general
+        var xml: String? = nil
+        if let data = pb.data(forPasteboardType: Self.layoutClipboardUTI),
+           let s = String(data: data, encoding: .utf8) {
+            xml = s
+        } else if let s = pb.string {
+            xml = s
+        }
+        guard let payload = xml, payload.contains("<model") else { return }
+        let pasted = bridge.pasteModels(from: payload, for: viewModel.document)
+        guard !pasted.isEmpty else { return }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        viewModel.layoutEditorSelection = Set(pasted)
+        viewModel.layoutEditorSelectedModel = pasted.first
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor",
+                                         userInfo: [:])
+    }
+
+    /// Custom pasteboard UTI declared in the app's Info.plist
+    /// (com.xlights.layoutmodels) so cross-sequence paste keeps the
+    /// full model XML rather than degrading to plain text.
+    private static let layoutClipboardUTI = "com.xlights.layoutmodels"
 
     /// J-7 — Group-from-selection. Reuses NewGroupSheet for the
     /// name prompt; the create handler reads
@@ -6172,6 +6309,62 @@ private enum ModelDataKind: String, Identifiable {
 /// J-18 — generic read-only list sheet for popup-style model
 /// data. Editing comes in a later pass; the sheet only needs to
 /// render the strings and offer a Done button.
+/// GDTF mode picker — shown when a picked `.gdtf` fixture defines
+/// multiple DMX modes. Mirrors desktop's ChooseFromList prompt; the
+/// chosen mode is forced through the GDTF import on the next canvas
+/// tap. Cancel aborts the import entirely.
+private struct GdtfModePickerSheet: View {
+    let modes: [String]
+    let onConfirm: (String) -> Void
+    let onCancel: () -> Void
+    @State private var selectedMode: String = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(modes, id: \.self) { mode in
+                        Button {
+                            selectedMode = mode
+                        } label: {
+                            HStack {
+                                Text(mode)
+                                Spacer()
+                                if selectedMode == mode {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                } header: {
+                    Text("DMX Mode")
+                } footer: {
+                    Text("This fixture defines several DMX modes. Pick the one that matches your hardware before placing the model.")
+                }
+            }
+            .navigationTitle("Select DMX Mode")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel(); dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Place") {
+                        onConfirm(selectedMode.isEmpty ? modes.first ?? "" : selectedMode)
+                        dismiss()
+                    }
+                    .disabled(modes.isEmpty)
+                }
+            }
+        }
+        .onAppear { if selectedMode.isEmpty { selectedMode = modes.first ?? "" } }
+        .presentationDetents([.medium])
+    }
+}
+
 private struct ModelDataViewerSheet: View {
     let title: String
     let entries: [String]
@@ -6401,15 +6594,20 @@ private struct SubModelListSheet: View {
     @State private var importFileType: SubModelImportFileType = .xmodel
     @State private var importModelPickerVisible: Bool = false
     @State private var importErrorMessage: String? = nil
+    /// From Layout — an external rgbeffects file the user picked, plus
+    /// the model names it declares, awaiting a model choice.
+    @State private var rgbEffectsModelPick: (path: String, models: [String])? = nil
     @Environment(\.dismiss) private var dismiss
 
     enum SubModelImportFileType {
         case xmodel
         case csv
+        case rgbeffects
         var utTypes: [UTType] {
             switch self {
             case .xmodel: return [UTType(filenameExtension: "xmodel") ?? .data]
             case .csv:    return [.commaSeparatedText, .plainText]
+            case .rgbeffects: return [.xml, UTType(filenameExtension: "xml") ?? .data]
             }
         }
     }
@@ -6545,6 +6743,16 @@ private struct SubModelListSheet: View {
             raw = (viewModel.document.submodelDetails(fromXmodelFile: url.path) as? [[String: Any]]) ?? []
         case .csv:
             raw = (viewModel.document.submodelDetails(fromCSVFile: url.path) as? [[String: Any]]) ?? []
+        case .rgbeffects:
+            // From Layout — list the file's models, then let the user
+            // pick which model's submodels to pull (desktop ReadRGBEffectsFile).
+            let models = viewModel.document.modelNames(inRGBEffectsFile: url.path)
+            if models.isEmpty {
+                importErrorMessage = "No models found in that RGB Effects file."
+            } else {
+                rgbEffectsModelPick = (url.path, models)
+            }
+            return
         }
         mergeImported(raw)
     }
@@ -6585,6 +6793,12 @@ private struct SubModelListSheet: View {
                             importModelPickerVisible = true
                         } label: {
                             Label("From Another Model…", systemImage: "square.on.square")
+                        }
+                        Button {
+                            importFileType = .rgbeffects
+                            importFileVisible = true
+                        } label: {
+                            Label("From Layout…", systemImage: "rectangle.3.group")
                         }
                     } label: {
                         Label("Import SubModels…", systemImage: "square.and.arrow.down")
@@ -6744,6 +6958,20 @@ private struct SubModelListSheet: View {
                     mergeImported(raw)
                 })
         }
+        .sheet(item: Binding<RGBEffectsModelPickPayload?>(
+                get: { rgbEffectsModelPick.map { RGBEffectsModelPickPayload(path: $0.path, models: $0.models) } },
+                set: { if $0 == nil { rgbEffectsModelPick = nil } })) { payload in
+            RGBEffectsModelPicker(
+                models: payload.models,
+                onPick: { source in
+                    let raw = (viewModel.document.submodelDetails(fromRGBEffectsFile: payload.path,
+                                                                  modelName: source)
+                               as? [[String: Any]]) ?? []
+                    mergeImported(raw)
+                    rgbEffectsModelPick = nil
+                },
+                onCancel: { rgbEffectsModelPick = nil })
+        }
         .alert("Import SubModels",
                isPresented: Binding(get: { importErrorMessage != nil },
                                     set: { if !$0 { importErrorMessage = nil } })) {
@@ -6824,6 +7052,59 @@ private struct SubModelSourceModelPicker: View {
             }
             .onAppear {
                 candidates = document.modelNamesWithSubmodels(excluding: excludingModel)
+            }
+        }
+    }
+}
+
+private struct RGBEffectsModelPickPayload: Identifiable {
+    let path: String
+    let models: [String]
+    var id: String { path }
+}
+
+/// From Layout — picks which model (out of those declared in an
+/// external rgbeffects file) to pull submodels from. Mirrors desktop
+/// SubModelsDialog::ReadRGBEffectsFile's "Select Model" chooser.
+private struct RGBEffectsModelPicker: View {
+    let models: [String]
+    let onPick: (_ source: String) -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var search: String = ""
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return models }
+        return models.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(filtered, id: \.self) { name in
+                    Button {
+                        onPick(name)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(name).foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Import From Layout")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel(); dismiss() }
+                }
             }
         }
     }
@@ -10818,6 +11099,53 @@ private struct MultiModelImportPickerModifier: ViewModifier {
     }
 }
 
+private struct GdtfModeImportPayload: Identifiable {
+    let path: String
+    let modes: [String]
+    var id: String { path }
+}
+
+/// Bundles the layout clipboard hot-keys (⌘C/⌘V/⌘X) and the GDTF
+/// multi-mode picker sheet into one modifier so the Layout Editor
+/// body stays within the Swift type-checker's budget.
+private struct LayoutClipboardAndGdtfModifier: ViewModifier {
+    let onCopy: () -> Bool
+    let onPaste: () -> Bool
+    let onCut: () -> Bool
+    @Binding var pendingGdtf: (path: String, modes: [String])?
+    let onGdtfConfirm: (String, String) -> Void
+
+    private var gdtfPayloadBinding: Binding<GdtfModeImportPayload?> {
+        Binding(
+            get: { pendingGdtf.map { GdtfModeImportPayload(path: $0.path, modes: $0.modes) } },
+            set: { newValue in if newValue == nil { pendingGdtf = nil } }
+        )
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .onKeyPress(keys: ["c"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onCopy() ? .handled : .ignored
+            }
+            .onKeyPress(keys: ["v"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onPaste() ? .handled : .ignored
+            }
+            .onKeyPress(keys: ["x"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onCut() ? .handled : .ignored
+            }
+            .sheet(item: gdtfPayloadBinding) { payload in
+                GdtfModePickerSheet(
+                    modes: payload.modes,
+                    onConfirm: { mode in onGdtfConfirm(payload.path, mode) },
+                    onCancel: { pendingGdtf = nil }
+                )
+            }
+    }
+}
+
 private struct SidebarSelectionMutex: ViewModifier {
     @Environment(SequencerViewModel.self) var viewModel
     @Binding var sidebarTab: LayoutSidebarTab
@@ -13762,6 +14090,7 @@ private struct LayoutEditorCanvasControls: View {
     let previewName: String
     @Bindable var settings: PreviewSettings
     let selectedModelName: String?
+    @AppStorage("layoutEditor.handleScale") private var storedHandleScale: Int = 1
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
@@ -13857,6 +14186,41 @@ private struct LayoutEditorCanvasControls: View {
             .toggleStyle(.button)
             .controlSize(.small)
             .disabled(!settings.showModelLabels)
+
+            // Manipulation-handle size — larger handles are easier to
+            // grab by touch. Mirrors desktop's "Model Handle Size"
+            // view preference. Persisted via @AppStorage.
+            Menu {
+                ForEach([1, 2, 3, 4, 5], id: \.self) { n in
+                    Button {
+                        settings.handleScale = n
+                        storedHandleScale = n
+                    } label: {
+                        if settings.handleScale == n {
+                            Label("\(n)×", systemImage: "checkmark")
+                        } else {
+                            Text("\(n)×")
+                        }
+                    }
+                }
+            } label: {
+                Label("Handles \(settings.handleScale)×", systemImage: "hand.point.up.left")
+                    .font(.caption2)
+            }
+            .menuStyle(.button)
+            .controlSize(.small)
+
+            // Show Zone Indicator — DMX MovingHeadAdv position zones.
+            Toggle(isOn: $settings.showZoneIndicator) {
+                Text("Zones").font(.caption2)
+            }
+            .toggleStyle(.button)
+            .controlSize(.small)
+        }
+        .onAppear {
+            if settings.handleScale != storedHandleScale {
+                settings.handleScale = storedHandleScale
+            }
         }
     }
 

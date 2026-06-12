@@ -13,6 +13,7 @@
 #include "import_export/LOREdit.h"
 #include "import_export/LORMusic.h"
 #include "import_export/LORPixelEditor.h"
+#include "import_export/Vixen2File.h"
 #include "import_export/Vixen3.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
@@ -52,21 +53,29 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     NSString* _displayName;
     NSString* _canonicalName;
     NSString* _modelType;
+    NSInteger _effectCount;
+    NSInteger _durationMs;
 }
 - (instancetype)initWithDisplay:(NSString*)display
                        canonical:(NSString*)canonical
-                       modelType:(NSString*)modelType {
+                       modelType:(NSString*)modelType
+                    effectCount:(NSInteger)effectCount
+                     durationMs:(NSInteger)durationMs {
     self = [super init];
     if (self) {
         _displayName = [display copy];
         _canonicalName = [canonical copy];
         _modelType = [modelType copy];
+        _effectCount = effectCount;
+        _durationMs = durationMs;
     }
     return self;
 }
 - (NSString*)displayName { return _displayName; }
 - (NSString*)canonicalName { return _canonicalName; }
 - (NSString*)modelType { return _modelType; }
+- (NSInteger)effectCount { return _effectCount; }
+- (NSInteger)durationMs { return _durationMs; }
 @end
 
 @implementation XLImportTimingTrack {
@@ -193,6 +202,12 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     pugi::xml_document _hlsDoc;
     std::unique_ptr<HLSFile> _hls;
     std::unordered_set<std::string> _hlsCCRNames;
+
+    // Vixen 2.x (.vix) EFFECT source state. wx-free core reader (Vixen2File)
+    // reads the document fully at construction (no retained doc reference).
+    // `_vix2Mode` selects the Vixen 2 apply branch.
+    bool _vix2Mode;
+    std::unique_ptr<Vixen2File> _vix2;
 
     // Model-row nodeIDs whose submodel children are sorted-by-name in the
     // SwiftUI snapshot (#4636). Display-only; the live child order is intact.
@@ -400,6 +415,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _lms.reset();
     _lmsTimings.clear();
     _lmsCCRNames.clear();
+    _vix2Mode = false;
+    _vix2.reset();
     _loreditMode = true;
 
     [self rebuildAvailableSourcesFromLOREdit];
@@ -506,6 +523,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _lms.reset();
     _lmsTimings.clear();
     _lmsCCRNames.clear();
+    _vix2Mode = false;
+    _vix2.reset();
 
     _vixen3 = std::move(vixen);
     _vixen3Mode = true;
@@ -612,6 +631,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _loreditTimings.clear();
     _vixen3Mode = false;
     _vixen3.reset();
+    _vix2Mode = false;
+    _vix2.reset();
 
     _lmsDoc.reset();
     _lmsDoc = std::move(doc);
@@ -718,6 +739,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _hlsMode = false;
     _hls.reset();
     _hlsCCRNames.clear();
+    _vix2Mode = false;
+    _vix2.reset();
 
     _lpeDoc.reset();
     _lpeDoc = std::move(doc);
@@ -791,6 +814,8 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     _lmsCCRNames.clear();
     _lpeMode = false;
     _lpe.reset();
+    _vix2Mode = false;
+    _vix2.reset();
 
     _hlsDoc.reset();
     _hlsDoc = std::move(doc);
@@ -823,6 +848,95 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     for (const auto& c : _hls->GetCCRNames()) {
         _hlsCCRNames.insert(c);
         addSource(c, "Model");
+    }
+}
+
+- (BOOL)loadVixen2SourceAtPath:(NSString*)path
+                         error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse Vixen 2 .vix file." }];
+        }
+        return NO;
+    }
+
+    std::string vixDir = std::filesystem::path(pathStr).parent_path().string();
+    std::string profileDir = rc->GetShowDirectory();
+
+    auto vix = std::make_unique<Vixen2File>(doc, vixDir, profileDir);
+    if (!vix->IsValid()) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:5
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No Vixen 2 channels or event data found — the .vix may reference a missing .pro profile." }];
+        }
+        return NO;
+    }
+
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
+    _lpeMode = false;
+    _lpe.reset();
+    _hlsMode = false;
+    _hls.reset();
+    _hlsCCRNames.clear();
+
+    // Vixen2File reads everything at construction and holds no reference to the
+    // document, so the parsed `vix` can outlive the local `doc`.
+    _vix2 = std::move(vix);
+    _vix2Mode = true;
+
+    [self rebuildAvailableSourcesFromVixen2];
+    _timingTracks.clear();
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromVixen2 {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_vix2 == nullptr) return;
+
+    for (const auto& n : _vix2->GetChannelNames()) {
+        AvailableSource src;
+        src.displayName = n;
+        src.canonicalName = Lower(Trim(n));
+        src.modelType = "Channel";
+        _availableSources.push_back(src);
     }
 }
 
@@ -934,12 +1048,26 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // slash-delimited names — same shape the desktop's
     // ImportXLights/AddChannel pass produces. AutoMapper splits on '/'
     // to descend into the destination tree.
-    auto addSource = [&](const std::string& name, const std::string& type) {
+    auto addSource = [&](const std::string& name, const std::string& type, int effectCount, int durationMs) {
         AvailableSource src;
         src.displayName = name;
         src.canonicalName = Lower(Trim(name));
         src.modelType = type;
+        src.effectCount = effectCount;
+        src.durationMs = durationMs;
         _availableSources.push_back(src);
+    };
+
+    // Per-source timeline summary (count + last end time) across every effect
+    // layer of an element — the data behind the import-mapping timeline column.
+    auto summarizeLayer = [](EffectLayer* layer, int& count, int& durationMs) {
+        if (layer == nullptr) return;
+        int n = layer->GetEffectCount();
+        count += n;
+        if (n > 0) {
+            Effect* last = layer->GetEffect(n - 1);
+            if (last != nullptr) durationMs = std::max(durationMs, last->GetEndTimeMS());
+        }
     };
 
     for (size_t e = 0; e < _sourceElements->GetElementCount(); ++e) {
@@ -948,15 +1076,13 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         if (el->GetType() != ElementType::ELEMENT_TYPE_MODEL) continue;
 
         ModelElement* modelEl = dynamic_cast<ModelElement*>(el);
-        bool hasEffects = false;
+        int elCount = 0;
+        int elDuration = 0;
         for (size_t l = 0; l < el->GetEffectLayerCount(); ++l) {
-            if (el->GetEffectLayer(l)->GetEffectCount() > 0) {
-                hasEffects = true;
-                break;
-            }
+            summarizeLayer(el->GetEffectLayer(l), elCount, elDuration);
         }
-        if (hasEffects) {
-            addSource(el->GetName(), "Model");
+        if (elCount > 0) {
+            addSource(el->GetName(), "Model", elCount, elDuration);
             _sourceElementMap[el->GetName()] = el;
         }
 
@@ -974,7 +1100,12 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
             }
             std::string flatName = el->GetName() + "/" + smName;
             if (sme->HasEffects()) {
-                addSource(flatName, ste != nullptr ? "Strand" : "SubModel");
+                int smCount = 0;
+                int smDuration = 0;
+                for (int l = 0; l < sme->GetEffectLayerCount(); ++l) {
+                    summarizeLayer(sme->GetEffectLayer(l), smCount, smDuration);
+                }
+                addSource(flatName, ste != nullptr ? "Strand" : "SubModel", smCount, smDuration);
                 _sourceElementMap[flatName] = sme;
             }
             if (ste != nullptr) {
@@ -985,7 +1116,10 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
                     std::string nodeName = nl->GetNodeName();
                     if (nodeName.empty()) nodeName = "Node " + std::to_string(n + 1);
                     std::string nodeFlat = flatName + "/" + nodeName;
-                    addSource(nodeFlat, "Node");
+                    int nCount = 0;
+                    int nDuration = 0;
+                    summarizeLayer(nl, nCount, nDuration);
+                    addSource(nodeFlat, "Node", nCount, nDuration);
                     _sourceLayerMap[nodeFlat] = nl;
                 }
             }
@@ -1002,7 +1136,9 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         NSString* c = [[NSString alloc] initWithUTF8String:src.canonicalName.c_str()];
         NSString* t = [[NSString alloc] initWithUTF8String:src.modelType.c_str()];
         XLImportAvailableSource* row = [[XLImportAvailableSource alloc]
-            initWithDisplay:d canonical:c modelType:t];
+            initWithDisplay:d canonical:c modelType:t
+                effectCount:(NSInteger)src.effectCount
+                 durationMs:(NSInteger)src.durationMs];
         [arr addObject:row];
     }
     return arr;
@@ -1485,6 +1621,60 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
                     EffectLayer* nl = stre->GetNodeLayer((int)n, true);
                     if (nl != nullptr) {
                         _lpe->MapPropNodeEffects(nl, ns->_mapping, 0, erase);
+                    }
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
+    if (_vix2Mode) {
+        // Vixen 2.x (.vix) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportVix. Decodes each mapped channel's per-frame
+        // intensity stream into On / Color Wash effects via the wx-free core
+        // Vixen2File reader. Flat channel list (no CCR strand fan-out).
+        if (rc == nullptr || _vix2 == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        bool const erase = eraseExisting ? true : false;
+
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(vix): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+
+            if (!root->_mapping.empty()) {
+                _vix2->MapChannelEffects(targetEl->GetEffectLayer(0), root->_mapping, _vix2->GetChannelColor(root->_mapping), erase);
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+                if (ste == nullptr) continue;
+                if (!child->_mapping.empty()) {
+                    _vix2->MapChannelEffects(ste->GetEffectLayer(0), child->_mapping, _vix2->GetChannelColor(child->_mapping), erase);
+                }
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                if (stre == nullptr) continue;
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* ns = child->GetNthChild(n);
+                    if (ns == nullptr || ns->_mapping.empty()) continue;
+                    EffectLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl != nullptr) {
+                        _vix2->MapChannelEffects(nl, ns->_mapping, _vix2->GetChannelColor(ns->_mapping), erase);
                     }
                 }
             }

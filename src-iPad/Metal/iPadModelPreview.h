@@ -55,7 +55,17 @@ public:
     float GetCameraZoomForHandles() const override {
         return _is3d ? _camera3d.GetZoom() : 1.0f;
     }
-    int GetHandleScale() const override { return 1; }
+    // Mirrors desktop ModelPreview::GetHandleScale (a user preference,
+    // xLightsFrame::GetModelHandleSize). Touch targets benefit from larger
+    // handles, so the iPad lets the user bump this above 1.
+    int GetHandleScale() const override { return _handleScale; }
+    void SetHandleScale(int s) { _handleScale = (s < 1) ? 1 : (s > 10 ? 10 : s); }
+
+    // Mirrors desktop xLightsFrame::GetShowZoneIndicator (a view
+    // preference). DmxMovingHeadAdv draws its position zones in the
+    // preview only when this is on.
+    bool GetShowZoneIndicator() const override { return _showZoneIndicator; }
+    void SetShowZoneIndicator(bool v) { _showZoneIndicator = v; }
     float GetCameraRotationX() const override { return ActiveCamera().GetAngleX(); }
     float GetCameraRotationY() const override { return ActiveCamera().GetAngleY(); }
     glm::mat4& GetProjViewMatrix() override { return _projViewMatrix; }
@@ -145,6 +155,8 @@ private:
     bool _isDrawing = false;
     bool _is3d = true;
     bool _center2D0 = false;
+    int _handleScale = 1;
+    bool _showZoneIndicator = false;
     void* _offscreenTarget = nullptr;   // id<MTLTexture>, non-owning
     void* _offscreenCapture = nullptr;  // id<MTLBuffer>, non-owning
     PreviewCamera _camera2d{false};

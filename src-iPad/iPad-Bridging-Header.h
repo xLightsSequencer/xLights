@@ -15,3 +15,5 @@
 #import "Bridge/XLAIServices.h"
 #import "Bridge/XLAIImageSession.h"
 #import "Bridge/XLVendorCatalog.h"
+#import "Bridge/XLMusicCatalog.h"
+#import "Bridge/XLTipOfDay.h"

@@ -198,6 +198,10 @@ enum CommandPaletteRegistry {
         add("Render All", "Playback", "arrow.triangle.2.circlepath", "⌘R", loaded) {
             vm.startBackgroundRender()
         }
+        add(vm.renderSuspended ? "Resume Background Render" : "Suspend Background Render",
+            "Playback", "pause.rectangle", "⇧⌘R", loaded) {
+            vm.toggleRenderSuspended()
+        }
         add("Rewind to Start", "Playback", "backward.end.fill", "home", loaded) {
             vm.seekTo(ms: 0)
         }

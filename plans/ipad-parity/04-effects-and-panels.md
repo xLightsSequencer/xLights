@@ -15,10 +15,14 @@
 > (**Pictures paint tools** remain iPad-missing; the **Moving Head path canvas**
 > is now at parity — a touch Bezier waypoint editor plus path/dimmer presets and
 > a colour-wheel picker landed; **Sketch** is also at parity — close-path, SVG
-> import, path reorder, and curve-segment authoring all landed), the desktop's
-> richer **DMX RemapDMXChannelsDialog** grid (iPad ships a preset-menu subset),
-> **canvasMode auto-enable** (parsed but ignored on iPad), and **tooltip
-> rendering** (parsed but never shown on iPad). Going the other way, the iPad's
+> import, path reorder, and curve-segment authoring all landed). The **DMX
+> arbitrary channel remap** now has a touch grid (`DMXRemapGridSheet`) matching
+> the desktop `RemapDMXChannelsDialog`'s per-channel mapping, **resize-on-add**
+> for Pictures images landed (`PicturesResizeOnAddSheet`), and a per-effect
+> **Reset to Defaults** action now sits in the inspector header menu. The
+> **Effect Wheel** is declined as a touch-idiom mismatch (it's a keybinding
+> accelerator and iPad has no keybinding store; palette-tap-then-tap-cell is the
+> fuller touch equivalent). Going the other way, the iPad's
 > uniform per-property **Copy / Paste Value + Reset to Default** context menu has
 > *no desktop equivalent* (desktop right-click only offers "Bulk Edit").
 
@@ -74,7 +78,7 @@
 | Color: Brightness Level checkbox | panel | ✅ | ✅ | parity | P3 | easy | feasible | iPad BrightnessLevelRowView (legacy toggle). |
 | Adjust: Mode enum | panel | ✅ | ✅ | parity | P2 | easy | feasible | Adjust.json standard choice. |
 | DMX: Channel notebook (per-page channels) | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad DMXChannelsNotebookView (EffectCustomRowsFinal.swift:510). |
-| DMX: Remap channels | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad ships a preset menu (Shift +1/-1, Reverse, Invert All, Double) via `dmxRemapChannelsForRow` (XLSequenceDocument.h:2205). Desktop has full `RemapDMXChannelsDialog` 48-row grid. iPad lacks the arbitrary per-channel remap. |
+| DMX: Remap channels | dialog | ✅ | ✅ | parity | P3 | medium | feasible | iPad ships the preset menu (Shift +1/-1, Reverse, Invert All, Double, Half) **plus** a "Custom Mapping…" 48-row touch grid (`DMXRemapGridSheet.swift`) — each target channel gets a source-channel stepper with a live preview column, committed via the new `dmxRemapChannels(forRow:atIndex:mapping:)` bridge (snapshot-then-write so the permutation can't self-collide; source 0 → off). Mirrors desktop `RemapDMXChannelsDialog`'s arbitrary per-channel mapping. Bridge also adds `dmxChannelValues(forRow:atIndex:)` to seed the grid. |
 | DMX: Save/Load State | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad DMXButtonsRowView → `dmxSaveStateForRow`/`dmxLoadStateForRow` (mirror DMXPanel Save/Load). |
 | Faces: phoneme vs timing-track selector | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad FacesMouthMovementsRowView (segmented + phoneme/track dropdown). (Face *definition* authoring is a model-level feature, not the effect panel.) |
 | Faces/State on SubModel: node-index translation | render | ✅ | ✅ | parity | P2 | n/a | feasible | Core render change (#6110/#6337, 2026.10): `FacesEffect.cpp:891` and `StateEffect.cpp:181` `toLocalNode` lambda maps parent node indices to submodel-local via `SubModel::GetNodeIndexMap()`, lighting only nodes that belong to the submodel. Pure `src-core/effects/` — auto-shared with iPad, no UI work. |
@@ -83,8 +87,8 @@
 | Morph: swap start/end | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad MorphSwapRowView. |
 | Moving Head: fixture + color/dimmer rows | panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad MovingHead{Fixture,Color,Dimmer}RowView: fixture select, pan/tilt/offset/groupings/cycles, single-color, dimmer intensity. |
 | Moving Head: path canvas (waypoint drawing) | panel | ✅ | ✅ | parity | P2 | hard | feasible | Desktop MovingHeadCanvasPanel.cpp / SketchCanvasPanel.cpp draws Bezier waypoint paths; iPad MovingHeadPathEditorRowView (MovingHeadPathEditorRowView.swift) is a full touch Canvas — tap-to-add line/quadratic/cubic waypoints, drag endpoints + control handles, close/open paths, undo-point, multi-path, presets. Reuses SketchDefinition (identical L/Q/C/c grammar) and Y-flips coords (canvas top = stored Y≈1) so it round-trips the same `Path:` command the renderer reads (MovingHeadEffect.cpp:396 `(0.5 - pty)`). Writes via the existing movingHeadCommand/setMovingHeadCommand bridge. |
-| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad now has path presets (MovingHeadPathPresetStrip — the two shipping `.xmh` presets Circle/Diamond + a Sweep), dimmer presets (MovingHeadDimmerPresetStrip — On/Off/FadeIn/FadeOut/Pulse) and a colour-wheel picker (MovingHeadColorWheelRowView, MovingHeadPresetViews.swift) that surfaces the target model's wheel slots via the new `movingHeadWheelColors(forRow:atIndex:)` bridge (XLSequenceDocument.mm) and writes a single-colour `Wheel:` command. **Deferred:** desktop's RGB picker canvas (MHRgbPickerPanel — iPad uses the native ColorPicker instead) and the f9df1b052 double-selector multi-colour wheel *animation* across the effect (only single-slot wheel picks on iPad). User-saved `.xmh` dimmer presets aren't surfaced (built-ins only). |
-| Effect Wheel (radial keybinding quick-drop) | gesture | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6486: double-click empty non-timing cell → EffectWheelDialog drops 1 of ≤18 sequence-scoped EFFECT keybindings via EffectsGrid::DropEffectAt (skips timing rows, #6491). Depends on the user keybinding system iPad lacks (see 02-sequencer-grid-editing.md, 11-preferences-settings.md). iPad places effects via palette-tap-then-tap-cell (EffectPaletteView.swift:32 → addEffectFromPaletteTap) — same outcome, no radial launcher. |
+| Moving Head: quick-set preset buttons + color-wheel / RGB picker | panel | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | iPad now has path presets (MovingHeadPathPresetStrip — the two shipping `.xmh` presets Circle/Diamond + a Sweep), dimmer presets (MovingHeadDimmerPresetStrip — On/Off/FadeIn/FadeOut/Pulse) and a colour-wheel picker (MovingHeadColorWheelRowView, MovingHeadPresetViews.swift) that surfaces the target model's wheel slots via the new `movingHeadWheelColors(forRow:atIndex:)` bridge (XLSequenceDocument.mm) and writes a single-colour `Wheel:` command. The **RGB-picker portion is at parity by substitution** — desktop's bespoke MHRgbPickerPanel HSV canvas is replaced by the native SwiftUI `ColorPicker` (system colour wheel + sliders + recents), which is the standard touch colour-picking idiom and carries no functional deficit for single-colour selection. **Genuinely deferred (kept 🟡):** the f9df1b052 double-selector multi-colour wheel *animation* across the effect (iPad does single-slot wheel picks only), and user-saved `.xmh` dimmer presets (built-ins only). |
+| Effect Wheel (radial keybinding quick-drop) | gesture | ✅ | ➖ | declined | P3 | medium | infeasible-idiom | Desktop #6486: double-click empty non-timing cell → EffectWheelDialog drops 1 of ≤18 sequence-scoped EFFECT keybindings via EffectsGrid::DropEffectAt (skips timing rows, #6491). **Declined as a touch-idiom mismatch:** the wheel is a keybinding accelerator (it surfaces the user's bound EFFECT keys), and iPad has no per-user keybinding system (see 02-sequencer-grid-editing.md, 11-preferences-settings.md), so there are no bindings to radial-launch. iPad's palette-tap-then-tap-cell flow (`EffectPaletteView.swift:32` → `addEffectFromPaletteTap`) already gives a single-tap quick-drop with the *full* effect list, which is strictly more capable than an ≤18-slot wheel on a touch surface. Forcing a radial popover would duplicate the palette with fewer effects and no underlying binding store to populate it. |
 | Piano: note/octave + labels | panel | ✅ | ✅ | parity | P2 | easy | feasible | Piano.json standard controls. |
 | Pictures: filename block + transparent-black | panel | ✅ | ✅ | parity | P1 | easy | feasible | iPad EffectFilenameBlockView + TransparentBlackRowView. |
 | Pictures: AI image generate | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop PicturesPanel "AI Generate…" (PicturesPanel.cpp:137) ↔ iPad AIImageGenerationSheet (from filename block "AI…"). |
@@ -110,9 +114,10 @@
 | Video: duration / metadata readout | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad VideoDurationRowView. |
 | VUMeter: mode choice | panel | ✅ | ✅ | parity | P2 | easy | feasible | VUMeter.json standard choice. |
 | Effect Assist (separate window concept) | panel | ✅ | 🟡 | ipad-missing | P2 | hard | feasible | Desktop floating Assist window for Sketch/Morph/Pictures (EffectPanelManager HasAssistPanel — only these 3). iPad inlines Sketch+Morph editors in the inspector; Pictures painting absent; no detached-window concept. |
-| Preference: reset Color/Buffer/Blending panel on effect change | preference | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop wxConfig xLightsReset{Color,Buffer,Blending}Panel. iPad ResetPanelRow renders EmptyView by design (inspector always shows anchor values; nothing to govern). |
+| Preference: reset Color/Buffer/Blending panel on effect change | preference | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop wxConfig xLightsReset{Color,Buffer,Blending}Panel. iPad ResetPanelRow renders EmptyView by design (inspector always shows anchor values; nothing to govern). (Distinct from the on-demand **Reset to Defaults** action below.) |
+| Reset panel to defaults (per-effect) | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop right-click → "Reset panel" clears an effect panel's controls to defaults. iPad: inspector header overflow (`ellipsis.circle`) menu → "Reset to Defaults" → `SequencerViewModel.resetSelectedEffectToDefaults()` (`SequencerViewModel.swift`) clears the whole effect settings string (E_/B_/T_) and resets the palette to a two-colour default via the existing `replaceEffectSettings(_:palette:inRow:atIndex:)` bridge, in one undoable step (captures the prior settings + palette strings for Cmd+Z via `restoreEffectSettingsString`). |
 | Convert selected effects to a different type | context-menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop converts a multi-selection of effects to another effect type; no iPad equivalent. |
-| Resize-on-add image dialog | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop ResizeImageDialog (src-ui-wx/media/ResizeImageDialog.cpp) prompts to resize an image when added to a Pictures effect; iPad has no resize-on-add dialog. |
+| Resize-on-add image dialog | dialog | ✅ | ✅ | parity | P3 | easy | feasible | Desktop ResizeImageDialog (src-ui-wx/media/ResizeImageDialog.cpp) prompts to resize an image when added to a Pictures effect. iPad: after a Pictures image is browsed in (`EffectFilenameBlockView.commitPicked`, Images subdir only), `PicturesResizeOnAddSheet.swift` offers Width/Height steppers seeded from the image's pixel size (optional keep-aspect), writes a resized `<name>_WxH.<ext>` copy via UIGraphicsImageRenderer alongside the original, and repoints the effect filename at it. "Skip" leaves the original untouched. |
 
 ## iPad gaps (desktop has, iPad missing)
 
@@ -163,18 +168,24 @@
   (and migrates settings where sensible). Hard.
 
 ### P3
-- **DMX arbitrary channel remap.** Desktop `RemapDMXChannelsDialog` is a 48-row
-  grid; iPad exposes a preset menu only. **Work:** a touch grid editor calling a
-  generalized `dmxRemapChannelsForRow` variant that accepts an explicit mapping.
-  Medium; low value (uncommon op).
+- ~~**DMX arbitrary channel remap.**~~ — **landed.** `DMXRemapGridSheet.swift`
+  is a 48-row touch grid (per-target source-channel stepper + live preview)
+  reached from the DMX panel's Remap menu ("Custom Mapping…"). Commits through
+  the new `dmxRemapChannels(forRow:atIndex:mapping:)` bridge variant (explicit
+  mapping, snapshot-then-write); `dmxChannelValues(forRow:atIndex:)` seeds it.
 - ~~**Tooltips on property labels**~~ — **landed 2026-06-11** (`.help()` on every property row).
 - ~~**canvasMode auto-enable**~~ — **landed 2026-06-11** (auto-set on selection when absent).
+- ~~**Reset panel to defaults (per-effect).**~~ — **landed.** Inspector header
+  overflow menu → "Reset to Defaults" clears the effect settings string + resets
+  the palette to defaults in one undoable step
+  (`SequencerViewModel.resetSelectedEffectToDefaults`).
 - **Pictures paint tools.** Desktop pixel editor with brushes + palette mgmt.
   Hard touch redesign; low priority (most users edit images externally).
-- **Resize-on-add image dialog.** Desktop ResizeImageDialog
-  (src-ui-wx/media/ResizeImageDialog.cpp) prompts to resize an image when it's
-  added to a Pictures effect; iPad has no resize-on-add dialog. **Work:** a small
-  SwiftUI sheet offering resize-to-model-buffer on image add. Easy.
+- ~~**Resize-on-add image dialog.**~~ — **landed.** After a Pictures image is
+  browsed in, `PicturesResizeOnAddSheet.swift` offers Width/Height steppers
+  (seeded from the image's pixels, optional keep-aspect), writes a resized copy
+  alongside the original, and repoints the effect filename. "Skip" keeps the
+  original.
 - **Reset-panel-on-effect-change preference.** Intentionally a no-op on iPad
   (inspector shows anchor values). Only relevant if iPad ever adopts sticky
   panel state. Low priority.
@@ -197,7 +208,13 @@
 
 ## Infeasible / restricted on iPad
 
-- *None platform-blocked in this theme.* Every gap above is feasible — the core
+- **Effect Wheel (radial keybinding quick-drop)** — *declined as a touch-idiom
+  mismatch* (not platform-blocked). The wheel is a keybinding accelerator that
+  surfaces the user's bound EFFECT keys; iPad has no per-user keybinding store
+  (see 02 / 11), so there are no bindings to launch. The existing
+  palette-tap-then-tap-cell flow is a single-tap quick-drop over the *full*
+  effect list — strictly more capable than an ≤18-slot wheel on a touch surface.
+- *Otherwise none platform-blocked in this theme.* Every other gap above is feasible — the core
   effect/render/value-curve logic is shared (`src-core/`), so all remaining work
   is SwiftUI + thin bridge additions. The harder ones (Moving Head path canvas
   — now done — and Pictures paint tools) are "hard" only because they need new
@@ -223,6 +240,11 @@
    (`MovingHeadColorWheelRowView` + the new `movingHeadWheelColors` bridge) also
    landed; deferred: the RGB picker canvas (native ColorPicker used instead) and
    the multi-colour wheel *animation* double-selector.
-5. **Pictures paint tools + DMX arbitrary remap (P3, hard/medium):** lowest value;
-   tackle only if user demand surfaces. Until then the read/clear + preset-menu
-   subsets are acceptable.
+5. ~~**DMX arbitrary remap (P3, medium):**~~ — ✅ **done.** Touch grid
+   (`DMXRemapGridSheet`) + explicit-mapping bridge variant. **Pictures paint
+   tools** remain the only P3 hard item here; lowest value (most users edit
+   images externally), tackle only if user demand surfaces.
+6. ~~**Reset to Defaults + Resize-on-add (P3, easy):**~~ — ✅ **done.** Header
+   menu reset action + `PicturesResizeOnAddSheet` on Pictures image add.
+7. **Effect Wheel** — ➖ **declined** (touch-idiom mismatch; no keybinding store
+   on iPad, palette tap-to-drop is the fuller equivalent).

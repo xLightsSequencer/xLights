@@ -16,6 +16,7 @@
 
 #include <spdlog/fmt/fmt.h>
 
+#include "ImportDataRow.h"
 #include "render/EffectLayer.h"
 #include "utils/UtilFunctions.h"
 
@@ -72,104 +73,6 @@ void ReadHLSData(pugi::xml_node chand, std::vector<unsigned char>& data)
                     offset++;
                 }
             }
-        }
-    }
-}
-
-bool isOnLine(int x1, int y1, int x2, int y2, int x3, int y3)
-{
-    double diffx = x2 - x1;
-    double diffy = y2 - y1;
-    double b = y1 - diffy / diffx * x1;
-    double ye1 = diffy / diffx * x3 + b;
-
-    return (y3 + 1) >= ye1 && (y3 - 1) <= ye1;
-}
-
-bool isOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3, int x, int x2, int x3)
-{
-    return isOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red()) && isOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green()) && isOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
-}
-
-int RampLenColor(int start, std::vector<xlColor>& colors)
-{
-    int s = start + 2;
-    for (; s < (int)colors.size(); s++) {
-        if (!isOnLineColor(colors[start], colors[s - 1], colors[s], start, s - 1, s)) {
-            return s - start;
-        }
-    }
-    if (s == (int)colors.size()) {
-        return s - start;
-    }
-    return 0;
-}
-
-// Convert a per-frame colour stream into On / Color Wash effects. Direct port
-// of desktop xLightsFrame::DoConvertDataRowToEffects.
-void ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting)
-{
-    if (eraseExisting) {
-        layer->DeleteAllEffects();
-    }
-
-    colors.push_back(xlBLACK);
-    int startTime = 0;
-    xlColor lastColor(xlBLACK);
-
-    for (size_t x = 0; x < colors.size() - 3; ++x) {
-        if (colors[x] != colors[x + 1]) {
-            int len = RampLenColor(x, colors);
-            if (len >= 3) {
-                HSVValue v1 = colors[x].asHSV();
-                HSVValue v2 = colors[x + len - 1].asHSV();
-
-                int stime = x * frameTime;
-                int etime = (x + len) * frameTime;
-                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
-                    HSVValue c = colors[x].asHSV();
-                    if (colors[x] == xlBLACK) {
-                        c = colors[x + len - 1].asHSV();
-                    }
-                    c.value = 1.0;
-                    xlColor c2(c);
-
-                    int i = v1.value * 100.0;
-                    int i2 = v2.value * 100.0;
-                    std::string settings = fmt::format("E_TEXTCTRL_Eff_On_Start={},E_TEXTCTRL_Eff_On_End={}", i, i2);
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
-                    }
-                } else {
-                    std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
-                                                                                          "C_BUTTON_Palette2=" +
-                                          (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
-                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
-                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
-                    }
-                }
-                for (int z = 0; z < len; ++z) {
-                    colors[x + z] = xlBLACK;
-                }
-            }
-        }
-    }
-
-    for (size_t x = 0; x < colors.size(); ++x) {
-        if (lastColor != colors[x]) {
-            int time = x * frameTime;
-            if (lastColor != xlBLACK) {
-                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
-
-                if (time != startTime) {
-                    if (!layer->HasEffectsInTimeRange(startTime, time)) {
-                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
-                    }
-                }
-            }
-            startTime = time;
-            lastColor = colors[x];
         }
     }
 }

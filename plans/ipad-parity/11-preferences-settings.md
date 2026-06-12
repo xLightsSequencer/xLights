@@ -45,8 +45,8 @@
 | View ▸ Auto Show House Preview | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `ViewSettingsPanel.cpp:86`. iPad house preview is a detachable scene. |
 | View ▸ Disable Key Acceleration (held) | preference | ✅ | ❌ | desktop-missing | P3 | easy | infeasible | `ViewSettingsPanel.cpp:89`. Desktop key-repeat concept; n/a to touch. |
 | View ▸ Enable Base Show Folder Settings | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop checkbox `ViewSettingsPanel.cpp:92`; iPad full Base Show Folder section `FolderConfigView.swift:292` (change/clear/auto-update/update-now). |
-| View ▸ Timeline Zooming (play vs mouse marker) | preference | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | `ViewSettingsPanel.cpp:97`. iPad zoom (`XLightsCommands.swift:626`) lacks the play-vs-cursor-anchor toggle. |
-| View ▸ Hide Preset Previews | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `ViewSettingsPanel.cpp:101`. iPad preset browser doesn't have a preview-toggle setting. |
+| View ▸ Timeline Zooming (play vs mouse marker) | preference | ✅ | ✅ | parity | P3 | easy | feasible | `ViewSettingsPanel.cpp:97`. iPad: `@AppStorage("zoomToPlayMarker")` (default ON) in `XLZoomCommands` (`XLightsCommands.swift`); when on, Zoom In/Out/To re-anchor `hScrollOffsetPx` so the play marker stays at the same screen pixel; off anchors to the viewport left edge. Toggle ("Zoom To Play Marker") in the View ▸ zoom menu. |
+| View ▸ Hide Preset Previews | preference | ✅ | ✅ | parity | P3 | easy | feasible | `ViewSettingsPanel.cpp:101`. Wave 6 added rendered preset thumbnails (`PresetThumbnailView`); `hidePresetPreviews` @AppStorage toggle in `FolderConfigView` falls the browser back to SF-Symbol icons. |
 | View ▸ Zoom To Cursor | preference | ✅ | ❌ | desktop-missing | P3 | easy | infeasible | `ViewSettingsPanel.cpp:104`. Mouse-only behavior. |
 | View ▸ Group Center Crosshair Size | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `ViewSettingsPanel.cpp:107` (Large/Normal/Small/Tiny/None). Layout-editor concern. |
 | View ▸ Color Palette Size | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `ViewSettingsPanel.cpp:117` (Normal/Large). iPad palette is responsive. |
@@ -56,12 +56,12 @@
 | Effects Grid ▸ Snap to Timing Marks | preference | ✅ | ✅ | parity | P2 | medium | feasible | `EffectsGridSettingsPanel.cpp:83`. iPad gates `EffectsMetalGridView.swift:1576` snapMS on the `snapToTimingMarks` @AppStorage (default ON via absent-key check), toggled in the top-chrome options menu. |
 | Effects Grid ▸ Small Waveform | preference | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `EffectsGridSettingsPanel.cpp:95`; iPad `SequencerGridV2View.swift:233` (`waveformDoubleHeight` @AppStorage, default false), toggle at 1370-1374. |
 | Effects Grid ▸ Display Transition Marks | preference | ✅ | ✅ | parity | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:101`. iPad: `@AppStorage("grid.showTransitionMarks")` (default ON) → `EffectsMetalGridView.showTransitionMarks` gates the fade-bar fills + fade-handle diamonds; toggle in the top-chrome options menu. Drag hit-testing still works whenever a handle is visible. |
-| Effects Grid ▸ Hide Color Update Warning | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `EffectsGridSettingsPanel.cpp:106`. |
+| Effects Grid ▸ Hide Color Update Warning | preference | ✅ | ✅ | parity | P3 | easy | feasible | `EffectsGridSettingsPanel.cpp:106`. iPad: `@AppStorage("hideColorUpdateWarning")` (default OFF) toggle in the top-chrome options menu; consumed by `ColorPaletteView`'s "Update Palette" action — when on it calls `updatePaletteOnAllSelected()` directly, skipping the confirmation alert. |
 | Effects Grid ▸ Show Alternate Timing Format | preference | ✅ | ✅ | parity | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:111` (s.ms display). iPad: `@AppStorage("grid.alternateTimingFormat")` (default OFF) → `TopChromeMetalGridView.alternateTimingFormat`; ruler labels render absolute seconds.ms instead of min:sec.frac. Toggle in the top-chrome options menu. |
 | Effects Grid ▸ Bell on Render Completion | preference | ✅ | ✅ | parity | P3 | easy | feasible | `EffectsGridSettingsPanel.cpp:117`. iPad: `@AppStorage("bellOnRenderComplete")` (default OFF) in `FolderConfigView`; `SequencerViewModel.beginFreshRender` plays `AudioServicesPlaySystemSound(1057)` when the full RenderAll poll reports done. |
-| Effects Grid ▸ Paste As (Relative/Layers) | preference | ✅ | ❌ | desktop-missing | P2 | medium | feasible | `EffectsGridSettingsPanel.cpp:124`. Desktop also exposes PASTE_BY_CELL/PASTE_BY_TIME bindings. iPad paste is fixed. |
+| Effects Grid ▸ Paste As (By Cell / By Time) | preference | ✅ | ✅ | parity | P2 | medium | feasible | `EffectsGridSettingsPanel.cpp:124` (desktop PASTE_BY_CELL/PASTE_BY_TIME). iPad: `@AppStorage("pasteByCell")` (default ON) Paste-Mode picker in the top-chrome options menu; consumed by `SequencerViewModel` paste path (`SequencerViewModel.swift:7114`) — "By Cell" stretches a single-effect paste to fill the active timing cell, "By Time" preserves the copied duration. (Desktop's Relative/Layers vocabulary maps to the same two cell-vs-time behaviors.) |
 | Effects Grid ▸ Grid Spacing | preference | ✅ | ✅ | parity | P3 | medium | feasible | `EffectsGridSettingsPanel.cpp:58` (XS/S/M/L/XL → row height). iPad: `@AppStorage("grid.spacing")` picker in the top-chrome options menu scales `GridMetrics.rowHeight`/`timingRowHeight` (XS 0.66× … XL 1.5×) in `SequencerGridV2View.metrics`; the Metal grid + row headers read it via `metrics`. |
-| Effects Grid ▸ Double-Click Mode | preference | ✅ | ❌ | desktop-missing | P3 | easy | infeasible | `EffectsGridSettingsPanel.cpp:90` (Edit Text/Play Timing). No double-click on touch. |
+| Effects Grid ▸ Double-Click (Play Timing) | preference | ✅ | ✅ | parity | P3 | easy | feasible | `EffectsGridSettingsPanel.cpp:90` (Edit Text/Play Timing). iPad: `@AppStorage("timingPlayOnDoubleTap")` (default ON) "Timing Play on Double-Tap" toggle in the top-chrome options menu; consumed in `SequencerViewModel.swift:2230` — double-tapping a timing mark plays that span when on. (Touch maps double-tap to the desktop double-click; the Edit-Text mode is the always-available tap-to-rename.) |
 | Sequences ▸ Render on Save | preference | ✅ | ✅ | parity | P3 | easy | feasible | `SequenceFileSettingsPanel.cpp:72`. iPad: `@AppStorage("renderOnSave")` (default ON, preserving the prior always-write behavior) in `FolderConfigView` gates the fseq companion write in `SequencerViewModel.saveSequence`. |
 | Sequences ▸ Save FSEQ on Save | preference | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:78`; iPad `FolderConfigView.swift:182`. |
 | Sequences ▸ FSEQ Version / format | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:107` (V1/V2 ZSTD/Uncompressed/ZLIB/ZSTD-sparse). iPad `FolderConfigView.swift:208` (Zstd/Zlib/None). Different vocabulary; sparse mode not on iPad. |
@@ -70,7 +70,7 @@
 | Sequences ▸ Render Cache mode | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:89` (Enabled/Locked Only/Disabled); iPad `FolderConfigView.swift:166`. iPad app-wide vs desktop per-show. |
 | Sequences ▸ Maximum Render Cache Size | preference | ✅ | ✅ | parity | P3 | easy | feasible | `SequenceFileSettingsPanel.cpp:124` (Unlimited…200GB). iPad: `@AppStorage("render.cacheMaxMB")` picker in `FolderConfigView` (Unlimited / 50 MB … 5 GB, default 50 MB) read by `iPadRenderContext::ReadRenderCacheMaxMB()`, fed to `RenderCache::SetMaximumSizeMB` at construction + each render kickoff (LRU eviction past the cap). Smaller MB caps than desktop since iPad disk/memory are scarce. |
 | Sequences ▸ Render Cache Directory | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `SequenceFileSettingsPanel.cpp:114`. iPad cache location is app-managed. |
-| Sequences ▸ Auto-Save Interval | preference | ✅ | 🟡 | ipad-weaker | P2 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:96` (Disabled/3/5/10/15/30 min); iPad has `autosaveIntervalMinutes` (`SequencerViewModel.swift:810-812`, default 5) but a narrower interval choice. |
+| Sequences ▸ Auto-Save Interval | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:96` (Disabled/3/5/10/15/30 min). iPad: `SequenceSettingsSheet` autosave picker now Off/3/5/10/15/30 (matching desktop) and persisted via `@AppStorage("autosaveIntervalMinutes")`; `SequencerViewModel.autosaveIntervalMinutes` restores that key at startup so the choice survives relaunch (prior to this it reset to 5 each launch). |
 | Sequences ▸ Default Model Blending for new seq | preference | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:83` (Enabled/Disabled). iPad: `@AppStorage("sequence.defaultModelBlending")` picker in `FolderConfigView` (default "Enabled" to preserve prior behavior); the bridge `newSequenceAtPath:` reads it via CFPreferences and sets `SequenceElements::SetSupportsModelBlending` before the initial Save so the `ModelBlending` attribute is written. Per-sequence override still in `SequenceSettingsSheet`. |
 | Sequences ▸ FSEQ Directory | preference | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `SequenceFileSettingsPanel.cpp:140`; iPad `FolderConfigView.swift:192` (folder or next-to-sequence). |
 | Sequences ▸ Media/Resource Directories | preference | ✅ | ✅ | parity | P1 | easy | feasible | Desktop list `SequenceFileSettingsPanel.cpp:147`; iPad Media Folders section `FolderConfigView.swift:124`. |
@@ -103,7 +103,7 @@
 | Other ▸ Tip of the Day (level + recycle) | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `OtherSettingsPanel.cpp:146`. iPad has no Tip-of-Day feature. |
 | Other ▸ Link Controller Upload | preference | ✅ | ❌ | desktop-missing | P3 | medium | restricted | `OtherSettingsPanel.cpp:166` (None / Inputs+Outputs). Controller-config concern. |
 | Other ▸ Model Rename Alias behavior | preference | ✅ | ✅ | parity | P3 | easy | feasible | `OtherSettingsPanel.cpp:174` (Always Prompt/Yes/No). iPad: `@AppStorage("modelRenameAliasMode")` picker in `FolderConfigView` seeds the default "Add alias" state of each row in `MissingModelAliasSheet` ("Always No" → off; Always Prompt / Always Yes → on). The per-row toggle is still the prompt — closest touch-idiom mapping of the desktop modes. |
-| Other ▸ eMail address | preference | ✅ | ❌ | desktop-missing | P3 | easy | feasible | `OtherSettingsPanel.cpp:183`. Used for crash/diagnostic attribution. |
+| Other ▸ eMail address | preference | ✅ | ✅ | parity | P3 | easy | feasible | `OtherSettingsPanel.cpp:183`. iPad: `@AppStorage("xLightsEmail")` text field in `FolderConfigView` "Other" section; `XLDiagnosticUploader.buildMultipartBody` attaches it as the `email` multipart form field on uploaded diagnostic reports (skipped when blank), mirroring the desktop crash-report email. |
 | Other ▸ Controller Ping Interval | preference | ✅ | ❌ | desktop-missing | P3 | hard | restricted | `OtherSettingsPanel.cpp:194`. Live-output tuning; out of scope. |
 | Other ▸ Moving-Head Position Zones (enable + indicator) | preference | ✅ | ❌ | desktop-missing | P3 | medium | feasible | `OtherSettingsPanel.cpp:200`. Moving-head authoring concern. |
 | Other ▸ Use Custom Color Picker | preference | ✅ | ❌ | desktop-missing | P3 | hard | infeasible | `OtherSettingsPanel.cpp:208`. iPad uses the native system ColorPicker. |
@@ -181,9 +181,9 @@
 - ✅ **Snap to Timing Marks toggle.** Done. `EffectsGridSettingsPanel.cpp:83`.
   The `snapToTimingMarks` @AppStorage (default ON) gates `EffectsMetalGridView`'s
   `snapMS`; toggle lives in the top-chrome options menu.
-- **Paste As (Relative vs Layers).** `EffectsGridSettingsPanel.cpp:124` plus
-  desktop's PASTE_BY_CELL/PASTE_BY_TIME bindings. iPad paste mode is fixed; add
-  a picker and route through the existing core paste path. Medium.
+- ✅ **Paste As (By Cell / By Time).** Done. `EffectsGridSettingsPanel.cpp:124`.
+  `@AppStorage("pasteByCell")` Paste-Mode picker in the top-chrome options menu,
+  consumed by the `SequencerViewModel` paste path (`SequencerViewModel.swift:7114`).
 - **Inline panel toggle keys (F1–F4) parity.** Desktop F1/F2/F3/F4 cycle the
   Settings/Color/Layer/Blending panels (`KeyBindings.cpp:351`). iPad has the
   tabs but no F-key cycling — `XLightsCommands.swift` only offers Cmd+2
@@ -204,8 +204,11 @@
   Grid Spacing): all in `EffectsGridSettingsPanel.cpp`. ✅ **Done 2026-06-12**
   for Effect Backgrounds, Transition Marks, Alternate Timing Format, Bell on
   render, and Grid Spacing — all five gated on `@AppStorage` and surfaced in
-  the top-chrome options menu (Bell lives in `FolderConfigView`). Remaining:
-  Node Values, Group Indicator (both still need the Metal-grid render path).
+  the top-chrome options menu (Bell lives in `FolderConfigView`). ✅ **Hide
+  Color Update Warning done 2026-06-12** — top-chrome toggle consumed by
+  `ColorPaletteView`'s Update-Palette action (skips the confirm alert).
+  Remaining: Node Values, Group Indicator (both still need the Metal-grid
+  render path).
 - **Render Cache size limit / directory, Max Render Cache, Default Model
   Blending, Default View, Render-on-Save**: `SequenceFileSettingsPanel.cpp`.
   ✅ **Done 2026-06-12**: Maximum Render Cache Size, Default Model Blending,
@@ -221,10 +224,12 @@
   model/effect-level CustomSizeCheck + SketchImage checks) the newly-added
   `iPadRenderContext::GetUICallbacks()`. Flipping a toggle re-runs the check.
 - **Tip of the Day, Random-Effect weights, Color customization, Suppress Dark
-  Mode, eMail, Prompt batch-render issues.** Mostly easy settings; each maps to
-  an existing core getter/setter. (✅ **Alias prompt mode** and ✅ **Purge
-  download cache at startup** done 2026-06-12 in `FolderConfigView` — see
-  scorecard.)
+  Mode, Prompt batch-render issues.** Mostly easy settings; each maps to
+  an existing core getter/setter. (✅ **Alias prompt mode**, ✅ **Purge
+  download cache at startup**, and ✅ **eMail address** done in `FolderConfigView`
+  — see scorecard. **Prompt batch-render issues** skipped: the iPad batch-render
+  runner doesn't run a per-item check-sequence pass, so there's no issue prompt
+  to gate — needs that subsystem first.)
 - **Single-key effect-insert bindings (~20)** and **Random insert (Shift+R)**:
   `KeyBindings.cpp:350,413`. Touch-first iPad inserts via the drag/long-press
   effect library; remapping single keys to a touch grid is awkward and low
@@ -276,9 +281,10 @@
   field (`VideoWriter` chooses). *feasible as a pref, but per-export is the iPad idiom.*
 - **Use Custom Color Picker** (`OtherSettingsPanel.cpp:208`): iPad uses the
   native system ColorPicker. *infeasible (n/a).*
-- **Disable Key Acceleration / Zoom-To-Cursor / Double-Click Mode** (`View` &
+- **Disable Key Acceleration / Zoom-To-Cursor** (`View` &
   `Effects Grid` panels): mouse/keyboard-repeat idioms with no touch analogue.
-  *infeasible (n/a).*
+  *infeasible (n/a).* (Double-Click Mode is now mapped — double-tap toggle in
+  the options menu, see scorecard.)
 - **Jukebox, Perspectives, Effect Assist** F-key panels (`KeyBindings.cpp`):
   those features don't exist on iPad. *desktop-only.*
 - **~20 single-key effect-insert bindings**: technically possible but a poor fit
@@ -294,8 +300,9 @@
    Done 2026-06-12 in `FolderConfigView` (+ the `newSequenceAtPath:` bridge for
    blending). **Default View** deferred — it needs show-level view persistence
    first (see its scorecard note).
-3. **Paste As** (Snap to Timing Marks now Done) — small but high-frequency
-   editing prefs with real workflow impact.
+3. ✅ **Paste As** (By Cell / By Time) and ✅ **Snap to Timing Marks** — Done.
+   Both surfaced in the top-chrome options menu and consumed by the
+   `SequencerViewModel` paste / drag paths.
 4. ✅ **Lightweight Backup-on-save toggle** — Done 2026-06-12. Snapshots the
    saved `.xsq`/package into `<show>/Backup/` (keep last 20); simpler than the
    full desktop On-Launch/Subfolders/Purge matrix.

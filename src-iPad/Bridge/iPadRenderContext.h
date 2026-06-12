@@ -142,6 +142,12 @@ public:
 
     bool AbortRender(int maxTimeMs = 60000) override;
     void RenderEffectForModel(const std::string& model, int startms, int endms, bool clear) override;
+    // Render a single model over the whole sequence and BLOCK until the
+    // render workers finish (or maxTimeMs elapses). Used by the
+    // Convert-To-Effect bridge, which must read fully-rendered
+    // `_sequenceData` node values immediately after. Returns true if the
+    // render completed within the timeout.
+    bool RenderModelAndWait(const std::string& model, int maxTimeMs = 60000);
     TimingElement* AddTimingElement(const std::string& name,
                                     const std::string& subType = "") override;
     void SuspendAutoSave(bool) override {}

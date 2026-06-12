@@ -234,6 +234,9 @@ struct ContentView: View {
     /// values surface an alert; the caller sets this from the
     /// URL-handling path.
     @State private var openURLErrorMessage: String? = nil
+    // Set when a `.xbkp` backup is opened directly so we can sheet a
+    // "this is a backup" notice offering Save As.
+    @State private var backupOpenNoticeName: String? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -249,6 +252,9 @@ struct ContentView: View {
                 FseqSkippedBanner(message: msg) {
                     viewModel.fseqWriteSkippedMessage = nil
                 }
+            }
+            if viewModel.isSequenceLoaded && viewModel.isReadOnly {
+                ReadOnlyBanner { viewModel.saveAsRequestToken &+= 1 }
             }
             Group {
                 if !viewModel.isShowFolderLoaded {
@@ -281,10 +287,30 @@ struct ContentView: View {
             KeyBindingsSheet()
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingTipOfDay },
+            set: { viewModel.showingTipOfDay = $0 }
+        )) {
+            TipOfDaySheet()
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingMusicBrowser },
+            set: { viewModel.showingMusicBrowser = $0 }
+        )) {
+            MusicBrowserSheet(showFolder: viewModel.showFolderPath ?? "",
+                              onDownloaded: { _ in })
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingCheckSequence },
             set: { viewModel.showingCheckSequence = $0 }
         )) {
             CheckSequenceSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingRestoreBackup },
+            set: { viewModel.showingRestoreBackup = $0 }
+        )) {
+            RestoreBackupSheet()
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
@@ -450,6 +476,15 @@ struct ContentView: View {
             didKickoffShowFolderRestore = true
             viewModel.restorePersistedShowFolder()
         }
+        // Help → Tip of the Day at startup. Show once per launch when
+        // the pref is on (mirrors desktop's startup TipOfTheDayDialog).
+        .task {
+            guard !TipOfDayPrefs.shownThisLaunch else { return }
+            TipOfDayPrefs.shownThisLaunch = true
+            if TipOfDayPrefs.showAtStartup {
+                viewModel.showingTipOfDay = true
+            }
+        }
         // G-3 — handle "Open in xLights" from Files / share sheets /
         // AirDrop. The system delivers a `file://` URL to the
         // app's registered .xsq UTI; we obtain security-scoped
@@ -578,6 +613,21 @@ struct ContentView: View {
         } message: {
             Text(openURLErrorMessage ?? "")
         }
+        .alert("Opened a Backup File",
+               isPresented: Binding(
+                get: { backupOpenNoticeName != nil },
+                set: { if !$0 { backupOpenNoticeName = nil } }
+               )) {
+            Button("Save As…") {
+                backupOpenNoticeName = nil
+                viewModel.saveAsRequestToken &+= 1
+            }
+            Button("Keep Editing Backup", role: .cancel) {
+                backupOpenNoticeName = nil
+            }
+        } message: {
+            Text("\(backupOpenNoticeName ?? "This file") is an xLights autosave backup (.xbkp), not a normal sequence. Use Save As to write your changes to a regular .xsq file.")
+        }
         .alert("Recover Autosave Backup?",
                isPresented: Binding(
                 get: { autosaveRecoveryDate != nil },
@@ -692,6 +742,14 @@ struct ContentView: View {
                                              enforceWritable: true)
         if scopeStarted {
             url.stopAccessingSecurityScopedResource()
+        }
+
+        // A `.xbkp` is an autosave snapshot in `.xsq` (XML) form — the desktop
+        // Open wildcard accepts it directly. Open it like an `.xsq`, then sheet
+        // a "this is a backup" notice offering Save As so the user lands on a
+        // real `.xsq` rather than editing the backup in place.
+        if url.pathExtension.lowercased() == "xbkp" {
+            backupOpenNoticeName = url.lastPathComponent
         }
 
         if viewModel.isShowFolderLoaded {
@@ -873,6 +931,31 @@ struct MissingMediaBanner: View {
         .padding(.vertical, 6)
         .foregroundStyle(.white)
         .background(Color.red.opacity(0.85))
+    }
+}
+
+/// Banner shown when the open sequence lives at a non-writable
+/// location (write-protected provider, locked iCloud item, read-only
+/// download). Desktop shows a "read only" guard
+/// (`xLightsMain.cpp:9119`); here Save is disabled and the user is
+/// nudged toward Save As to a writable spot.
+struct ReadOnlyBanner: View {
+    let onSaveAs: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lock.fill")
+            Text("Opened read-only — Save is disabled. Use Save As to edit a copy.")
+                .font(.caption)
+            Spacer()
+            Button("Save As…", action: onSaveAs)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.gray)
     }
 }
 

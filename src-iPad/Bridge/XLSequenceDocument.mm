@@ -921,6 +921,33 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     return YES;
 }
 
+- (NSString*)renderMode {
+    if (!_context || !_context->IsSequenceLoaded()) return @"Erase";
+    auto* sf = _context->GetSequenceFile();
+    if (!sf) return @"Erase";
+    // Desktop stores the literal choice string ("Erase"/"Canvas") on
+    // the Nutcracker data layer once the user picks one; an untouched
+    // sequence reports the ERASE_MODE sentinel. Normalize both to the
+    // two UI-facing strings.
+    const std::string mode = sf->GetRenderMode();
+    if (mode == "Canvas" || mode == SequenceFile::CANVAS_MODE) return @"Canvas";
+    return @"Erase";
+}
+
+- (BOOL)setRenderMode:(NSString*)mode {
+    if (!_context || !_context->IsSequenceLoaded()) return NO;
+    auto* sf = _context->GetSequenceFile();
+    if (!sf || mode.length == 0) return NO;
+    std::string m([mode UTF8String]);
+    if (m != "Erase" && m != "Canvas") return NO;
+    const std::string cur = sf->GetRenderMode();
+    const bool curCanvas = (cur == "Canvas" || cur == SequenceFile::CANVAS_MODE);
+    if ((m == "Canvas") == curCanvas) return NO;
+    sf->SetRenderMode(m);
+    _context->GetSequenceElements().IncrementChangeCount(nullptr);
+    return YES;
+}
+
 - (int)sequenceModelCount {
     if (!_context || !_context->IsSequenceLoaded()) return 0;
     int count = 0;
@@ -1058,6 +1085,20 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
     xlColor tag = m->GetTagColour();
     if (tag == xlBLACK) return @"";
     return [NSString stringWithUTF8String:m->GetTagColourAsString().c_str()];
+}
+
+- (NSString*)rowNodeMaskColorAtIndex:(int)index {
+    if (!_context || !_context->HasModelManager()) return @"";
+    auto* row = _context->GetSequenceElements().GetRowInformation(index);
+    if (!row || !row->element) return @"";
+    if (row->element->GetType() != ElementType::ELEMENT_TYPE_MODEL) return @"";
+    Model* m = _context->GetModelManager()[row->element->GetModelName()];
+    if (!m) return @"";
+    const std::string st = m->GetStringType();
+    if (st.rfind("Single Color", 0) != 0 && st != "Node Single Color") return @"";
+    if (m->GetNodeCount() <= 0) return @"";
+    std::string hex = (std::string)m->GetNodeMaskColor(0);
+    return [NSString stringWithUTF8String:hex.c_str()];
 }
 
 // MARK: - Timing Rows
@@ -1229,6 +1270,82 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         e->SetCollapsed(false);
     }
     se.PopulateRowInformation();
+}
+
+- (void)collapseAllModels {
+    // Desktop "Collapse All Models" (RowHeading.cpp): hide every
+    // ModelElement's strands + submodels (distinct from "Collapse All
+    // Layers", which `collapseAllElements` already covers via
+    // SetCollapsed).
+    auto& se = _context->GetSequenceElements();
+    size_t n = se.GetElementCount(se.GetCurrentView());
+    for (size_t i = 0; i < n; i++) {
+        Element* e = se.GetElement(i, se.GetCurrentView());
+        if (!e) continue;
+        if (e->GetType() == ElementType::ELEMENT_TYPE_TIMING) continue;
+        if (ModelElement* me = dynamic_cast<ModelElement*>(e)) {
+            me->ShowStrands(false);
+            me->ShowSubModels(false);
+        }
+    }
+    se.PopulateRowInformation();
+}
+
+// Scoped delete helpers — mirror desktop RowHeading.cpp
+// ID_ROW_MNU_DELETE_MODEL_{SUBMODEL,STRAND,NODE}_EFFECTS. Each clears
+// every effect on the relevant layers under the row's ModelElement.
+// Returns the number of layers cleared (informational).
+- (int)deleteScopedEffectsAtRow:(int)rowIndex scope:(int)scope {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return 0;
+    ModelElement* me = dynamic_cast<ModelElement*>(row->element);
+    if (!me) {
+        if (auto* sm = dynamic_cast<SubModelElement*>(row->element)) {
+            me = sm->GetModelElement();
+        }
+    }
+    if (!me) return 0;
+
+    se.get_undo_mgr().CreateUndoStep();
+    _context->AbortRender(5000);
+    int cleared = 0;
+    auto clearLayer = [&](EffectLayer* l) {
+        if (l && l->GetEffectCount() > 0) {
+            l->RemoveAllEffects(&se.get_undo_mgr());
+            ++cleared;
+        }
+    };
+
+    if (scope == 0) { // submodels
+        for (int s = 0; s < me->GetSubModelCount(); ++s) {
+            SubModelElement* sub = me->GetSubModel(s);
+            if (!sub) continue;
+            for (int i = 0; i < (int)sub->GetEffectLayerCount(); ++i) {
+                clearLayer(sub->GetEffectLayer(i));
+            }
+        }
+    } else if (scope == 1) { // strands
+        for (int s = 0; s < me->GetStrandCount(); ++s) {
+            StrandElement* st = me->GetStrand(s);
+            if (!st) continue;
+            for (int i = 0; i < (int)st->GetEffectLayerCount(); ++i) {
+                clearLayer(st->GetEffectLayer(i));
+            }
+        }
+    } else { // nodes
+        for (int s = 0; s < me->GetStrandCount(); ++s) {
+            StrandElement* st = me->GetStrand(s);
+            if (!st) continue;
+            for (int nidx = 0; nidx < st->GetNodeLayerCount(); ++nidx) {
+                clearLayer(st->GetNodeLayer(nidx));
+            }
+        }
+    }
+    if (cleared > 0) {
+        _context->RenderEffectForModel(me->GetModelName(), 0, 99999999, true);
+    }
+    return cleared;
 }
 
 - (void)expandElementsWithEffects {
@@ -2278,6 +2395,179 @@ static std::optional<HEADER_INFO_TYPES> headerTypeFromString(NSString* key) {
         _context->RenderEffectForModel(element->GetModelName(), 0, 99999999, true);
     }
     return promoted;
+}
+
+// Line-fit helpers for ramp detection — direct ports of the desktop
+// tabSequencer.cpp isOnLine / isOnLineColor / RampLenColor.
+static bool ConvertIsOnLine(int x1, int y1, int x2, int y2, int x3, int y3) {
+    double diffx = x2 - x1;
+    double diffy = y2 - y1;
+    double b = y1 - diffy / diffx * x1;
+    double ye1 = diffy / diffx * x3 + b;
+    return (y3 + 1) >= ye1 && (y3 - 1) <= ye1;
+}
+
+static bool ConvertIsOnLineColor(const xlColor& v1, const xlColor& v2, const xlColor& v3,
+                                 int x, int x2, int x3) {
+    return ConvertIsOnLine(x, v1.Red(), x2, v2.Red(), x3, v3.Red())
+        && ConvertIsOnLine(x, v1.Green(), x2, v2.Green(), x3, v3.Green())
+        && ConvertIsOnLine(x, v1.Blue(), x2, v2.Blue(), x3, v3.Blue());
+}
+
+static int ConvertRampLenColor(int start, std::vector<xlColor>& colors) {
+    int s = start + 2;
+    for (; s < (int)colors.size(); s++) {
+        if (!ConvertIsOnLineColor(colors[start], colors[s - 1], colors[s], start, s - 1, s)) {
+            return s - start;
+        }
+    }
+    if (s == (int)colors.size()) {
+        return s - start;
+    }
+    return 0;
+}
+
+// Direct port of xLightsFrame::DoConvertDataRowToEffects. Returns the
+// number of effects added so the caller can total them across layers.
+static int ConvertDataRowToEffects(EffectLayer* layer, xlColorVector& colors, int frameTime, bool eraseExisting) {
+    if (eraseExisting)
+        layer->DeleteAllEffects();
+
+    colors.push_back(xlBLACK);
+    int startTime = 0;
+    xlColor lastColor(xlBLACK);
+    int added = 0;
+
+    for (size_t x = 0; x + 3 < colors.size(); ++x) {
+        if (colors[x] != colors[x + 1]) {
+            int len = ConvertRampLenColor((int)x, colors);
+            if (len >= 3) {
+                HSVValue v1 = colors[x].asHSV();
+                HSVValue v2 = colors[x + len - 1].asHSV();
+
+                int stime = (int)x * frameTime;
+                int etime = (int)(x + len) * frameTime;
+                if (colors[x] == xlBLACK || colors[x + len - 1] == xlBLACK || (v1.hue == v2.hue)) {
+                    HSVValue c = colors[x].asHSV();
+                    if (colors[x] == xlBLACK) {
+                        c = colors[x + len - 1].asHSV();
+                    }
+                    c.value = 1.0;
+                    xlColor c2(c);
+
+                    int i = v1.value * 100.0;
+                    int i2 = v2.value * 100.0;
+                    std::string settings = "E_TEXTCTRL_Eff_On_Start=" + std::to_string(i) + ",E_TEXTCTRL_Eff_On_End=" + std::to_string(i2);
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)c2 + ",C_CHECKBOX_Palette1=1";
+                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
+                        layer->AddEffect(0, "On", settings, palette, stime, etime, false, false);
+                        ++added;
+                    }
+                } else {
+                    std::string palette = "C_BUTTON_Palette1=" + (std::string)colors[x] + ",C_CHECKBOX_Palette1=1,"
+                                          "C_BUTTON_Palette2=" + (std::string)colors[x + len - 1] + ",C_CHECKBOX_Palette2=1";
+                    if (!layer->HasEffectsInTimeRange(stime, etime)) {
+                        layer->AddEffect(0, "Color Wash", "", palette, stime, etime, false, false);
+                        ++added;
+                    }
+                }
+                for (int z = 0; z < len; ++z) {
+                    colors[x + z] = xlBLACK;
+                }
+            }
+        }
+    }
+
+    for (size_t x = 0; x < colors.size(); ++x) {
+        if (lastColor != colors[x]) {
+            int time = (int)x * frameTime;
+            if (lastColor != xlBLACK) {
+                std::string palette = "C_BUTTON_Palette1=" + (std::string)lastColor + ",C_CHECKBOX_Palette1=1";
+                if (time != startTime) {
+                    if (!layer->HasEffectsInTimeRange(startTime, time)) {
+                        layer->AddEffect(0, "On", "", palette, startTime, time, false, false);
+                        ++added;
+                    }
+                }
+            }
+            startTime = time;
+            lastColor = colors[x];
+        }
+    }
+    return added;
+}
+
+- (int)convertDataToEffectsOnRow:(int)rowIndex {
+    auto& se = _context->GetSequenceElements();
+    auto* row = se.GetRowInformation(rowIndex);
+    if (!row || !row->element) return 0;
+    Element* e = row->element;
+
+    std::string modelName = e->GetModelName();
+    if (modelName.empty()) return 0;
+    Model* model = _context->GetModel(modelName);
+    if (!model) return 0;
+    // Desktop refuses ModelGroup / SubModel — there is no single buffer
+    // of rendered node data to read back.
+    if (model->GetDisplayAs() == DisplayAsType::ModelGroup || model->GetDisplayAs() == DisplayAsType::SubModel) {
+        return 0;
+    }
+
+    SequenceData& seqData = _context->GetSequenceData();
+    if (seqData.NumFrames() == 0 || seqData.NumChannels() == 0) return 0;
+
+    // Render the model over the whole sequence and wait so the node
+    // colours we read below reflect the current effects.
+    _context->RenderModelAndWait(modelName);
+    const int frameTime = seqData.FrameTime();
+    const size_t numFrames = seqData.NumFrames();
+
+    se.get_undo_mgr().CreateUndoStep();
+    _context->AbortRender(5000);
+
+    int total = 0;
+    auto convertLayer = [&](EffectLayer* layer, int strand, int node) {
+        if (!layer) return;
+        xlColorVector colors;
+        colors.reserve(numFrames);
+        SingleLineModel ssModel(model->GetModelManager());
+        ssModel.Reset(1, *model, strand, node);
+        const int32_t startChan = ssModel.NodeStartChannel(0);
+        if (startChan < 0 || (size_t)startChan >= seqData.NumChannels()) return;
+        for (size_t f = 0; f < numFrames; ++f) {
+            ssModel.SetNodeChannelValues(0, &seqData[f][startChan]);
+            colors.push_back(ssModel.GetNodeColor(0));
+        }
+        total += ConvertDataRowToEffects(layer, colors, frameTime, false);
+    };
+
+    if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
+        ModelElement* el = dynamic_cast<ModelElement*>(e);
+        if (!el) return 0;
+        for (int i = 0; i < el->GetStrandCount(); ++i) {
+            StrandElement* sse = el->GetStrand(i);
+            if (!sse) continue;
+            for (int j = 0; j < sse->GetNodeLayerCount(); ++j) {
+                convertLayer(sse->GetNodeLayer(j), i, j);
+            }
+        }
+    } else if (e->GetType() == ElementType::ELEMENT_TYPE_STRAND) {
+        StrandElement* el = dynamic_cast<StrandElement*>(e);
+        if (!el) return 0;
+        const int strand = el->GetStrand();
+        if (row->nodeIndex >= 0) {
+            convertLayer(el->GetNodeLayer(row->nodeIndex), strand, row->nodeIndex);
+        } else {
+            for (int j = 0; j < el->GetNodeLayerCount(); ++j) {
+                convertLayer(el->GetNodeLayer(j), strand, j);
+            }
+        }
+    }
+
+    if (total > 0) {
+        _context->RenderEffectForModel(modelName, 0, 99999999, true);
+    }
+    return total;
 }
 
 - (int)convertEffectsToPerModelOnRow:(int)rowIndex acrossAllLayers:(BOOL)allLayers {
@@ -5461,6 +5751,49 @@ static NSDictionary* SubModelImportDataToDict(const XmlSerialize::SubModelImport
     if (!root) return out;
     for (const auto& sm : XmlSerialize::LoadSubModelsFromXml(root)) {
         [out addObject:SubModelImportDataToDict(sm)];
+    }
+    return out;
+}
+
+- (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!path || path.length == 0) return out;
+    ObtainAccessToURL([path UTF8String]);
+    pugi::xml_document doc;
+    if (!doc.load_file(path.UTF8String)) return out;
+    pugi::xml_node root = doc.document_element();
+    if (!root) return out;
+    pugi::xml_node models = root.child("models");
+    if (!models) return out;
+    for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+        if (m.type() != pugi::node_element) continue;
+        const char* mn = m.attribute("name").as_string("");
+        if (mn && mn[0]) [out addObject:[NSString stringWithUTF8String:mn]];
+    }
+    [out sortUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    return out;
+}
+
+- (NSArray<NSDictionary*>*)submodelDetailsFromRGBEffectsFile:(NSString*)path
+                                                  modelName:(NSString*)modelName {
+    NSMutableArray<NSDictionary*>* out = [NSMutableArray array];
+    if (!path || path.length == 0 || !modelName) return out;
+    ObtainAccessToURL([path UTF8String]);
+    pugi::xml_document doc;
+    if (!doc.load_file(path.UTF8String)) return out;
+    pugi::xml_node root = doc.document_element();
+    if (!root) return out;
+    pugi::xml_node models = root.child("models");
+    if (!models) return out;
+    std::string want(modelName.UTF8String);
+    for (pugi::xml_node m = models.first_child(); m; m = m.next_sibling()) {
+        if (m.type() != pugi::node_element) continue;
+        if (want == m.attribute("name").as_string("")) {
+            for (const auto& sm : XmlSerialize::LoadSubModelsFromXml(m)) {
+                [out addObject:SubModelImportDataToDict(sm)];
+            }
+            break;
+        }
     }
     return out;
 }
@@ -14042,6 +14375,53 @@ static int parseDMXColorRed(const std::string& hex) {
     return changed ? YES : NO;
 }
 
+- (BOOL)dmxRemapChannelsForRow:(int)rowIndex
+                        atIndex:(int)effectIndex
+                        mapping:(NSArray<NSNumber*>*)mapping {
+    if (!_context || mapping.count == 0) return NO;
+    auto eff = lookupEffect(*_context, rowIndex, effectIndex);
+    if (!eff.ok()) return NO;
+
+    std::array<int, kDMXChannelCount + 1> before{};  // 1-based
+    for (int i = 1; i <= kDMXChannelCount; ++i) {
+        before[i] = readDMXChannel(*eff.effect, i);
+    }
+
+    std::array<int, kDMXChannelCount + 1> after{};
+    for (int i = 1; i <= kDMXChannelCount; ++i) {
+        int src = (i - 1 < (int)mapping.count) ? mapping[i - 1].intValue : 0;
+        after[i] = (src >= 1 && src <= kDMXChannelCount) ? before[src] : 0;
+    }
+
+    bool changed = false;
+    for (int i = 1; i <= kDMXChannelCount; ++i) {
+        if (after[i] != before[i]) {
+            writeDMXChannel(*eff.effect, i, after[i]);
+            changed = true;
+        }
+    }
+    if (changed) {
+        eff.effect->IncrementChangeCount();
+    }
+    return changed ? YES : NO;
+}
+
+- (NSArray<NSNumber*>*)dmxChannelValuesForRow:(int)rowIndex
+                                       atIndex:(int)effectIndex {
+    NSMutableArray<NSNumber*>* out = [NSMutableArray arrayWithCapacity:kDMXChannelCount + 1];
+    [out addObject:@0];  // index 0 unused (channels are 1-based)
+    if (!_context) {
+        for (int i = 1; i <= kDMXChannelCount; ++i) [out addObject:@0];
+        return out;
+    }
+    auto eff = lookupEffect(*_context, rowIndex, effectIndex);
+    for (int i = 1; i <= kDMXChannelCount; ++i) {
+        int v = eff.ok() ? readDMXChannel(*eff.effect, i) : 0;
+        [out addObject:@(v)];
+    }
+    return out;
+}
+
 - (int)syncMovingHeadPositionForRow:(int)rowIndex
                               atIndex:(int)effectIndex {
     if (!_context) return 0;
@@ -17756,6 +18136,100 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
 - (NSArray<NSDictionary*>*)presetTree {
     NSMutableArray* out = [NSMutableArray array];
     CollectPresetTree(_context->GetEffectPresetManager().GetRoot(), "", out);
+    return out;
+}
+
+- (NSData*)presetThumbnailBGRAAtPath:(NSString*)path outputSize:(int*)outputSize {
+    if (outputSize) *outputSize = 0;
+    if (!_context || !path) return nil;
+
+    EffectPreset* preset =
+        _context->GetEffectPresetManager().FindPresetByPath(std::string([path UTF8String]), '\\');
+    if (preset == nullptr) {
+        preset = _context->GetBasePresetManager().FindPresetByPath(std::string([path UTF8String]), '\\');
+    }
+    if (preset == nullptr) return nil;
+
+    const std::string& blob = preset->GetSettings();
+    if (blob.empty()) return nil;
+
+    // Pull the first renderable effect line out of the CopyFormat1 blob.
+    // The thumbnail only needs a representative effect; multi-row presets
+    // collapse to their anchor effect for the still.
+    std::string fxName, fxSettings, fxPalette;
+    int fxStart = 0, fxEnd = 0;
+    for (const std::string& line : SplitOn(blob, '\n')) {
+        if (line.empty()) continue;
+        std::vector<std::string> f = SplitOn(line, '\t');
+        if (f.empty() || f[0] == "CopyFormat1" || f[0] == "CopyFormatAC" ||
+            f[0] == "None" || f.size() < 6) {
+            continue;
+        }
+        fxName = f[0];
+        fxSettings = f[1];
+        fxPalette = f[2];
+        fxStart = (int)std::strtol(f[3].c_str(), nullptr, 10);
+        fxEnd = (int)std::strtol(f[4].c_str(), nullptr, 10);
+        break;
+    }
+    if (fxName.empty() || fxEnd <= fxStart) return nil;
+
+    // Serialize against the shared single preset model — the same
+    // scaffolding the shader-preview path uses, so guard with the same
+    // mutex to avoid two renders fighting over the one effect layer.
+    static std::mutex s_presetThumbMutex;
+    std::scoped_lock lock(s_presetThumbMutex);
+
+    Model* model = _context->GetPresetModel();
+    if (!model) return nil;
+    SequenceElements& se = _context->GetPresetSequenceElements();
+    Element* elem = se.GetElement(model->GetName());
+    if (!elem) return nil;
+
+    for (const auto& layer : elem->GetEffectLayers()) {
+        layer->DeleteAllEffects();
+    }
+    if (elem->GetEffectLayerCount() == 0) {
+        elem->AddEffectLayer();
+    }
+    EffectLayer* el = elem->GetEffectLayer(0);
+    if (!el) return nil;
+
+    constexpr int frameTimeMs = 50;
+    const int spanMs = fxEnd - fxStart;
+    // Cap the render span so an absurdly long preset doesn't stall the
+    // thumbnail; one second of frames is plenty for a representative still.
+    const int cappedSpan = std::min(spanMs, 1000);
+    el->AddEffect(0, fxName, fxSettings, fxPalette, 0, cappedSpan, EFFECT_NOT_SELECTED, false);
+
+    const size_t numFrames = std::max<size_t>(1, (size_t)(cappedSpan / frameTimeMs));
+    auto frames = _context->RenderEffectToFrames(model,
+                                                  _context->GetPresetSequenceData(),
+                                                  se, numFrames, frameTimeMs);
+    el->DeleteAllEffects();
+    if (frames.empty() || !frames.back() || !frames.back()->IsOk()) return nil;
+
+    // Use the last frame as the representative still — by then animated
+    // effects have developed past their lead-in blank.
+    const xlImage& img = *frames.back();
+    int w = img.GetWidth();
+    int h = img.GetHeight();
+    if (w <= 0 || h <= 0) return nil;
+
+    // Convert RGBA → BGRA premultipliedFirst-compatible byte order so the
+    // existing Swift makeCGImage helper renders it correctly.
+    NSMutableData* out = [NSMutableData dataWithLength:(NSUInteger)w * h * 4];
+    uint8_t* dst = (uint8_t*)out.mutableBytes;
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            size_t di = ((size_t)y * w + x) * 4;
+            dst[di + 0] = img.GetBlue(x, y);
+            dst[di + 1] = img.GetGreen(x, y);
+            dst[di + 2] = img.GetRed(x, y);
+            dst[di + 3] = 255;
+        }
+    }
+    if (outputSize) *outputSize = w;
     return out;
 }
 

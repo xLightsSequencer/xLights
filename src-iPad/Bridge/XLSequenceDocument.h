@@ -254,6 +254,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)sequenceSupportsModelBlending;
 - (BOOL)setSequenceSupportsModelBlending:(BOOL)enabled;
 
+// Render mode (desktop SeqSettings `RenderModeChoice`): "Erase" or
+// "Canvas". Stored on the sequence's Nutcracker data layer. "Canvas"
+// preserves prior-frame pixels so layered effects accumulate; "Erase"
+// (default) clears each frame. Changing requires a re-render on save.
+- (NSString*)renderMode;
+- (BOOL)setRenderMode:(NSString*)mode;
+
 // Read-only summary for the Info tab.
 - (int)sequenceModelCount;
 
@@ -283,6 +290,12 @@ NS_ASSUME_NONNULL_BEGIN
 // desktop RowHeading.cpp:2547-2553 GetTagColour draw.
 // Only meaningful on ELEMENT_TYPE_MODEL rows; returns "" for others.
 - (NSString*)rowTagColorAtIndex:(int)index NS_SWIFT_NAME(rowTagColor(at:));
+// Single-colour model mask-colour hex string (e.g. "#RRGGBB") for the
+// row's model, or empty string when the model is not a single-colour
+// string type (or has no nodes). Matches desktop RowHeading.cpp:2668-2688
+// GetNodeMaskColor(0) swatch draw for "Single Color"/"Node Single Color"
+// models. Only meaningful on ELEMENT_TYPE_MODEL rows; returns "" for others.
+- (NSString*)rowNodeMaskColorAtIndex:(int)index NS_SWIFT_NAME(rowNodeMaskColor(at:));
 
 // Timing-row queries (rows whose Element is TIMING). Returns indices into
 // the visible-row list used by effectCountForRow: and friends.
@@ -397,6 +410,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (int)convertEffectsToPerModelOnRow:(int)rowIndex acrossAllLayers:(BOOL)allLayers
     NS_SWIFT_NAME(convertEffectsToPerModel(onRow:acrossAllLayers:));
 
+// Convert To Effect (render-down): renders the row's model over the
+// whole sequence, then walks each strand's node layers reading the
+// rendered node colours frame-by-frame and emits "On" / "Color Wash"
+// effects describing that output (mirrors desktop
+// xLightsFrame::ConvertDataRowToEffects + DoConvertDataRowToEffects).
+// Works on a MODEL row (all strands/nodes) or a STRAND row (its node
+// layers, or a single node row). No-op for ModelGroup / SubModel.
+// Returns the number of effects created; triggers a model re-render
+// on success. Caller should reloadRows afterward.
+- (int)convertDataToEffectsOnRow:(int)rowIndex
+    NS_SWIFT_NAME(convertDataToEffects(onRow:));
+
 // B56: promote node-level "On" / "Color Wash" effects up the
 // strand → model hierarchy when every node carries an identical
 // copy at the same time range. Two-pass: nodes → strand layer 0,
@@ -421,6 +446,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)expandAllElements;
 // SEQ-15: expand model elements that have effects (collapse the empty ones).
 - (void)expandElementsWithEffects;
+// Desktop "Collapse All Models" — hide every ModelElement's strands +
+// submodels (distinct from "Collapse All Layers" = collapseAllElements).
+- (void)collapseAllModels;
+
+// Scoped effect delete. `scope`: 0 = submodels, 1 = strands, 2 = nodes.
+// Clears every effect on the matching layers under the row's
+// ModelElement. Mirrors desktop RowHeading.cpp
+// ID_ROW_MNU_DELETE_MODEL_{SUBMODEL,STRAND,NODE}_EFFECTS. Returns the
+// number of layers cleared; triggers a model re-render on success.
+- (int)deleteScopedEffectsAtRow:(int)rowIndex scope:(int)scope
+    NS_SWIFT_NAME(deleteScopedEffects(atRow:scope:));
 
 // B46: in-place rename of an effect layer's name (`EffectLayer::
 // SetLayerName`). Empty string clears the name. Returns NO if the
@@ -1536,6 +1572,21 @@ NS_ASSUME_NONNULL_BEGIN
 // failure).
 - (NSArray<NSDictionary*>*)submodelDetailsFromCSVFile:(NSString*)path
     NS_SWIFT_NAME(submodelDetails(fromCSVFile:));
+
+// From Layout — list the model names declared in an external
+// show's `xlights_rgbeffects.xml` (the `<models>/<model>` names).
+// Mirrors desktop SubModelsDialog::ReadRGBEffectsFile model list.
+// Sorted ascending; empty on parse failure / no models.
+- (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path
+    NS_SWIFT_NAME(modelNames(inRGBEffectsFile:));
+
+// From Layout — copy a named model's submodel defs out of an
+// external `xlights_rgbeffects.xml` (same LoadSubModelsFromXml
+// parse as the .xmodel path). Mirrors desktop ImportSubModelXML
+// from the chosen RGBeffects model. Empty if missing / no submodels.
+- (NSArray<NSDictionary*>*)submodelDetailsFromRGBEffectsFile:(NSString*)path
+                                                  modelName:(NSString*)modelName
+    NS_SWIFT_NAME(submodelDetails(fromRGBEffectsFile:modelName:));
 
 // Model export. Write the named model (with its submodels,
 // faces, states, aliases, dimming curve) to a .xmodel file at
@@ -2687,6 +2738,26 @@ NS_ASSUME_NONNULL_BEGIN
                         atIndex:(int)effectIndex
                          preset:(int)preset;
 
+/// Arbitrary per-channel remap — the touch-grid analogue of desktop's
+/// `RemapDMXChannelsDialog`. `mapping` is a 48-element array of source
+/// channel numbers (1..48); the value written to channel `i` (1-based)
+/// becomes the *pre-remap* value of `mapping[i-1]`. A source of 0 (or
+/// out of range) clears that target channel to 0, matching the desktop
+/// "unmapped → off" convention. Reads all 48 channels into a snapshot
+/// first so the permutation can't step on itself. Returns YES if any
+/// channel value changed.
+- (BOOL)dmxRemapChannelsForRow:(int)rowIndex
+                        atIndex:(int)effectIndex
+                        mapping:(NSArray<NSNumber*>*)mapping
+    NS_SWIFT_NAME(dmxRemapChannels(forRow:atIndex:mapping:));
+
+/// Snapshot the effect's current 48 DMX channel values (1-based,
+/// index 0 unused → 49 entries) so the remap-grid editor can seed its
+/// rows and preview the result. Each entry is 0..255.
+- (NSArray<NSNumber*>*)dmxChannelValuesForRow:(int)rowIndex
+                                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(dmxChannelValues(forRow:atIndex:));
+
 // Effect bracket palette — sourced from the show folder's <colors>
 // node in xlights_rgbeffects.xml so user-customised desktop palettes
 // round-trip to iPad. Falls back to ColorManager defaults when the
@@ -3386,6 +3457,19 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   "layerCount" — NSNumber(int), grid rows the preset spans (0 for groups).
 //   "durationMS" — NSNumber(int), total ms covered (0 for groups).
 - (NSArray<NSDictionary*>*)presetTree;
+
+// Render a representative still thumbnail for the preset at `path` (the
+// pragmatic alternative to the desktop animated GIF). Renders the
+// preset's first/anchor effect on the standalone preset matrix model for
+// a short span and returns the last frame as BGRA8 bytes
+// (premultipliedFirst | byteOrder32Little, square, `outputSize` px per
+// side) — the same layout `iconBGRA` returns, so Swift can wrap it in a
+// CGImage with the existing helper. Returns nil for groups, missing
+// presets, or presets whose first line isn't a renderable effect.
+// Synchronous + render-blocking; call off the main thread.
+- (nullable NSData*)presetThumbnailBGRAAtPath:(NSString*)path
+                                   outputSize:(int*)outputSize
+    NS_SWIFT_NAME(presetThumbnailBGRA(atPath:outputSize:));
 
 // Capture the effects identified by parallel `rows` / `effectIndices`
 // arrays into a new preset named `name` under `groupPath` (empty =

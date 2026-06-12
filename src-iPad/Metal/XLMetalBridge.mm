@@ -21,7 +21,9 @@
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include <sstream>
 #include "XmlSerializer/GdtfParser.h"
+#include "render/UICallbacks.h"
 #include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
 #include "models/Node.h"
 #include "models/RulerObject.h"
@@ -69,6 +71,7 @@
     BOOL _isModelPreview;        // YES = single-model pane; NO = full house
     BOOL _isLayoutEditor;        // YES = LayoutEditor pane (selection / handles enabled)
     BOOL _showFirstPixel;        // J-2 — `highlightFirst` arg to DisplayModelOnWindow
+    std::string _forcedGdtfMode; // GDTF mode picker: forces ChooseFromList during import
     BOOL _showViewObjects;       // House Preview view-object visibility toggle
     std::string _selectedModelName;  // J-2 — Layout Editor selection ring (primary)
     std::set<std::string> _extraSelectedModels;  // J-4 — multi-select secondary set
@@ -368,6 +371,26 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
 
 - (BOOL)showFirstPixel {
     return _showFirstPixel;
+}
+
+- (void)setHandleScale:(NSInteger)scale {
+    if (_preview) {
+        _preview->SetHandleScale((int)scale);
+    }
+}
+
+- (NSInteger)handleScale {
+    return _preview ? _preview->GetHandleScale() : 1;
+}
+
+- (void)setShowZoneIndicator:(BOOL)show {
+    if (_preview) {
+        _preview->SetShowZoneIndicator(show);
+    }
+}
+
+- (BOOL)showZoneIndicator {
+    return _preview ? _preview->GetShowZoneIndicator() : NO;
 }
 
 // Visual zoom factor — > 1 = zoomed in (scene appears larger), < 1 = zoomed out.
@@ -1561,6 +1584,83 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return out;
 }
 
+- (NSString*)copyModelsToString:(NSArray<NSString*>*)names
+                    forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return nil;
+    auto& mgr = rctx->GetModelManager();
+    std::vector<const Model*> models;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        Model* m = mgr[n.UTF8String];
+        if (!m) continue;
+        // Groups have ambiguous member-copy semantics (same as Duplicate) — skip.
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        models.push_back(m);
+    }
+    if (models.empty()) return nil;
+    XmlSerializer serializer;
+    pugi::xml_document doc2 = serializer.SerializeModels(models, /*includeGroups*/ false);
+    std::ostringstream oss;
+    doc2.save(oss);
+    return [NSString stringWithUTF8String:oss.str().c_str()];
+}
+
+- (NSArray<NSString*>*)pasteModelsFromString:(NSString*)xml
+                                 forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!doc || xml.length == 0) return out;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return out;
+    pugi::xml_document src;
+    if (!src.load_string(xml.UTF8String)) return out;
+    pugi::xml_node root = src.document_element();
+    if (!root) return out;
+    rctx->AbortRender(5000);
+    auto& mgr = rctx->GetModelManager();
+
+    std::string layoutGroup = rctx->GetActiveLayoutGroup();
+    if (layoutGroup.empty() || layoutGroup == "All Models") layoutGroup = "Default";
+
+    // The serializer writes a `<models>` root with one `<model>` per
+    // model. A single-model copy may arrive bare, so accept both.
+    std::vector<pugi::xml_node> modelNodes;
+    if (std::string_view(root.name()) == "models") {
+        for (pugi::xml_node c = root.first_child(); c; c = c.next_sibling()) {
+            if (c.type() == pugi::node_element) modelNodes.push_back(c);
+        }
+    } else if (root.type() == pugi::node_element) {
+        modelNodes.push_back(root);
+    }
+
+    for (pugi::xml_node modelNode : modelNodes) {
+        const char* origName = modelNode.attribute("name").as_string("Model");
+        const std::string newName = mgr.GenerateModelName(origName);
+        if (modelNode.attribute("name")) modelNode.remove_attribute("name");
+        modelNode.append_attribute("name") = newName.c_str();
+        // Strip controller mapping so the paste auto-assigns channels
+        // (matches Duplicate + desktop Paste).
+        if (modelNode.attribute("Controller")) modelNode.remove_attribute("Controller");
+        if (modelNode.attribute("StartChannel")) modelNode.remove_attribute("StartChannel");
+        if (auto cc = modelNode.child("ControllerConnection")) modelNode.remove_child(cc);
+
+        Model* paste = mgr.CreateModel(modelNode);
+        if (!paste) continue;
+        paste->SetControllerName("");
+        paste->SetStartChannel("");
+        paste->name = newName;
+        paste->Lock(false);
+        paste->SetLayoutGroup(layoutGroup);
+        paste->AddOffset(50.0, 50.0, 0.0);
+        mgr.AddModel(paste);
+        rctx->MarkLayoutModelDirty(newName);
+        [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
+    }
+    if (out.count > 0) mgr.RecalcStartChannels();
+    return out;
+}
+
 - (void)endHandleDragForDocument:(XLSequenceDocument*)doc {
     _handleDragNeedsLatch = NO;
     if (iPadRenderContext* abortCtx = ContextFromDoc(doc)) abortCtx->AbortRender(5000);
@@ -2434,6 +2534,84 @@ static bool LoadGdtfDescriptionXml(NSString* path, pugi::xml_document& outDoc) {
     return ok;
 }
 
+// Enumerate the DMX mode names declared in a GDTF description.xml.
+// Mirrors the mode-walk in ParseGdtfDescriptionXml so the iPad can
+// present a mode picker before placement. Returns sorted names.
+static std::vector<std::string> GdtfModeNames(pugi::xml_document& gdtfDoc) {
+    std::map<std::string, pugi::xml_node> modes;
+    for (pugi::xml_node n = gdtfDoc.first_child(); n; n = n.next_sibling()) {
+        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+            if (std::string_view(nn.name()) == "DMXModes") {
+                for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                    if (std::string_view(nnn.name()) == "DMXMode") {
+                        modes[nnn.attribute("Name").as_string()] = nnn;
+                    }
+                }
+            }
+        }
+    }
+    std::vector<std::string> out;
+    out.reserve(modes.size());
+    for (const auto& [name, node] : modes) out.push_back(name);
+    return out;
+}
+
+// UICallbacks that forces a pre-chosen GDTF mode through
+// ChooseFromList (used when the SwiftUI mode picker already
+// resolved the user's choice). Every other prompt is stubbed
+// defensively — the GDTF parse path only reaches ChooseFromList.
+class iPadGdtfModeCallbacks : public UICallbacks {
+public:
+    std::string forcedMode;
+    explicit iPadGdtfModeCallbacks(std::string mode) : forcedMode(std::move(mode)) {}
+    std::vector<std::string> ChooseFromList(const std::string& /*prompt*/,
+                                            const std::vector<std::string>& options) const override {
+        if (!forcedMode.empty()) {
+            for (const auto& o : options) {
+                if (o == forcedMode) return { o };
+            }
+        }
+        return options.empty() ? std::vector<std::string>{} : std::vector<std::string>{ options.front() };
+    }
+    void ShowMessage(const std::string&, const std::string&) const override {}
+    bool PromptYesNo(const std::string&, const std::string&) const override { return true; }
+    std::string PromptForDirectory(const std::string&, const std::string&) const override { return ""; }
+    std::string PromptForFile(const std::string&, const std::string&, const std::string&) const override { return ""; }
+    long PromptForNumber(const std::string&, const std::string&, long defaultValue, long, long) const override { return defaultValue; }
+    std::string PromptForText(const std::string&, const std::string&, const std::string& defaultValue) const override { return defaultValue; }
+    ProgressToken BeginProgress(const std::string&, int) override { return 1; }
+    void UpdateProgress(ProgressToken, int, const std::string&) override {}
+    void EndProgress(ProgressToken) override {}
+};
+
++ (NSArray<NSString*>*)gdtfModesForFile:(NSString*)path {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!path || path.length == 0) return out;
+    if (![[path.pathExtension lowercaseString] isEqualToString:@"gdtf"]) return out;
+    pugi::xml_document gdtfDoc;
+    if (!LoadGdtfDescriptionXml(path, gdtfDoc)) return out;
+    for (const std::string& name : GdtfModeNames(gdtfDoc)) {
+        [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
+}
+
+- (nullable NSArray<NSString*>*)importGdtfFromPath:(NSString*)path
+                                              mode:(nullable NSString*)gdtfMode
+                                     atScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                 targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                       forDocument:(XLSequenceDocument*)doc {
+    _forcedGdtfMode = gdtfMode ? std::string(gdtfMode.UTF8String) : std::string();
+    NSArray<NSString*>* result = [self importXmodelFromPath:path
+                                              atScreenPoint:point
+                                                   viewSize:viewSize
+                                          targetLayoutGroup:targetLayoutGroup
+                                                forDocument:doc];
+    _forcedGdtfMode.clear();
+    return result;
+}
+
 - (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
                                         atScreenPoint:(CGPoint)point
                                              viewSize:(CGSize)viewSize
@@ -2460,8 +2638,13 @@ static bool LoadGdtfDescriptionXml(NSString* path, pugi::xml_document& outDoc) {
         rctx->AbortRender(5000);
         XmlSerialize::GdtfModelData gdtfData;
         bool cancelled = false;
+        // When the SwiftUI mode picker already chose a mode, force it
+        // through ChooseFromList; otherwise nullptr auto-picks the
+        // first (the lone-mode fixtures never reach the chooser).
+        iPadGdtfModeCallbacks modeCb(_forcedGdtfMode);
+        UICallbacks* gdtfCb = _forcedGdtfMode.empty() ? nullptr : &modeCb;
         if (!XmlSerialize::ParseGdtfDescriptionXml(gdtfDoc, rctx->GetModelManager(),
-                                                   nullptr, cancelled, gdtfData) || cancelled) {
+                                                   gdtfCb, cancelled, gdtfData) || cancelled) {
             return nil;
         }
         // CreateDmxModelFromGdtfData consumes (deletes) its baseline
@@ -3606,6 +3789,38 @@ static bool LoadGdtfDescriptionXml(NSString* path, pugi::xml_document& outDoc) {
         if (endp == s.c_str() || v <= 0) continue;
         xlColor c = m->GetNodeColor((size_t)(v - 1));
         return [NSString stringWithFormat:@"#%02X%02X%02X", c.red, c.green, c.blue];
+    }
+    return nil;
+}
+
+- (NSDictionary<NSString*, id>*)nodeInfoNearPoint:(CGPoint)point
+                                         viewSize:(CGSize)viewSize
+                                      forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    if (_preview->Is3D()) return nil;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    for (const auto& [name, m] : rctx->GetModelManager()) {
+        if (!m) continue;
+        std::string s = m->GetNodeNear(_preview.get(), p, false);
+        if (s.empty()) continue;
+        char* endp = nullptr;
+        long v = std::strtol(s.c_str(), &endp, 10);
+        if (endp == s.c_str() || v <= 0) continue;
+        int32_t chan = m->NodeStartChannel((size_t)(v - 1)) + 1;  // 1-based absolute
+        NSString* ctrl = [NSString stringWithUTF8String:m->GetControllerName().c_str()];
+        NSString* portRange = [NSString stringWithUTF8String:m->GetControllerConnectionRangeString().c_str()];
+        return @{
+            @"model": [NSString stringWithUTF8String:name.c_str()],
+            @"node": @((NSInteger)v),
+            @"channel": @((NSInteger)chan),
+            @"controller": ctrl ?: @"",
+            @"port": portRange ?: @"",
+        };
     }
     return nil;
 }

@@ -14,9 +14,15 @@
 > LOR lms/las, Papagayo pgo, SRT, Audacity txt, ElevenLabs json, Vixen3
 > tim w/ track-select, LSP msq, xLights xsq). The real gaps are: iPad
 > effect-import now covers **LMS/LAS** (shared core `LORMusic`), **LPE**
-> (shared core `LORPixelEditor`), and **HLS** (shared core `HLSFile`) but is
-> still missing the remaining **legacy sequencer formats** (Vixen2 vix,
-> LSP msq-as-effects, VSA); iPad now has **video export**
+> (shared core `LORPixelEditor`), **HLS** (shared core `HLSFile`), and
+> **Vixen2 vix** (shared core `Vixen2File`, incl. base64 event-stream decode
+> + optional `.pro` profile lookup) but is still missing the remaining
+> **legacy sequencer formats** (LSP msq-as-effects, VSA); the source-mapping
+> list now shows a per-source **effect-count + duration timeline strip**
+> (the iPad analogue of the desktop import timeline column) and `.xbkp`
+> backups **open through the normal sequence path** (with a Save-As notice;
+> the Files "Open in" UTI registration is a deferred submodule plist bump);
+> iPad now has **video export**
 > (house-preview *and* per-model, via the offscreen `XLHousePreviewVideoExporter`
 > and core `ModelVideoExporter` → `VideoWriter`), but still has **no Convert
 > tool** and **no HinksPix export**, and per-model non-video export stays
@@ -37,7 +43,7 @@
 | Import Effects from LOR Animation `.las` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Same core `LORMusic` reader handles `.las` (identical schema); routed through `loadLMSSource(atPath:)`. |
 | Import Effects from LOR Pixel Editor `.lpe` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Shared core `LORPixelEditor` (`src-core/import_export/LORPixelEditor.cpp`, ported from desktop `ImportLPE` `ImportEffects.cpp:2984` incl. the full `LPEParseEffectSettings` effect-translation table). iPad `loadLPESource(atPath:)` + `ImportEffectsView` picker. Desktop `ImportLPE` still uses its own wx parser — core unification is a follow-up. |
 | Import Effects from HLS `.hlsIdata` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Shared core `HLSFile` (`src-core/import_export/HLSFile.cpp`, ported from desktop `ImportHLS` `ImportEffects.cpp:949` incl. the wx-free `ConvertDataRowToEffects` On/Color-Wash conversion). iPad `loadHLSSource(atPath:)` + picker. Desktop `ImportHLS` still uses its own wx parser — core unification is a follow-up. |
-| Import Effects from Vixen 2.x `.vix` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVix()` (`ImportEffects.cpp:758`). Old format; superseded by Vixen 3. |
+| Import Effects from Vixen 2.x `.vix` | menu | ✅ | ✅ | parity | P3 | medium | feasible | Shared core `Vixen2File` (`src-core/import_export/Vixen2File.cpp`, ported from desktop `ImportVix` `ImportEffects.cpp:802` incl. base64 `<EventValues>` decode, RGB-leg collapse, and optional sibling `<name>.pro` profile lookup; intensity→effect synthesis reuses the new shared `src-core/import_export/ImportDataRow.cpp` `ConvertDataRowToEffects`). iPad `loadVixen2Source(atPath:)` + `ImportEffectsView` `.vix` picker (`UTType(filenameExtension: "vix")`). Desktop `ImportVix` still uses its own wx parser + `FileConverter::LoadVixenProfile` — core unification is a follow-up. |
 | Import Effects from LSP 2.x `.msq` (as effects) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportLSP()` (`ImportEffects.cpp:3353`). Niche. (Note: LSP *timing-only* import IS on iPad.) |
 | Import Effects from VSA `.vsa` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVsa()` (`ImportEffects.cpp:3603`) + `VsaImportDialog`. Niche. |
 | Effect-import channel-mapping wizard (two-pane src/dest tree) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `xLightsImportChannelMapDialog`; iPad `ImportEffectsView` mapping panes + search filters. |
@@ -53,7 +59,7 @@
 | Effect-import: missing-media report (post-apply) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `applyWarning` from `sourceMissingMedia` after the media walk. |
 | Import effects by mapping from any on-disk `.xsq` | menu | ✅ | ✅ | parity | P1 | easy | feasible | This IS the iPad Import Effects flow (file-picker → map). |
 | Open `.fseq` directly (FSEQ→effects round-trip) | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop Open Sequence wildcard accepts `.fseq` (`SeqFileUtilities.cpp:262`). iPad only round-trips a matching FSEQ sidecar via `tryLoadFseq`, not as an open format. Low value. |
-| Open `.xbkp` backup directly | dialog/menu | ✅ | 🟡 | ipad-missing | P3 | easy | feasible | Desktop Open wildcard accepts `.xbkp`. iPad only *recovers* `.xbkp` (promote→.xsq sheet, `XLightsApp.swift:193`), no direct open. |
+| Open `.xbkp` backup directly | dialog/menu | ✅ | 🟡 | ipad-weaker | P3 | easy | feasible | Desktop Open wildcard accepts `.xbkp`. iPad routing is **in place**: `handleIncomingSequenceURL` (`XLightsApp.swift`) detects a `.xbkp` URL, opens it through the normal `openSequence` path (it IS `.xsq` XML), then sheets an "Opened a Backup File" alert offering **Save As…** (bumps `saveAsRequestToken`); the pre-existing newer-than-`.xsq` autosave *recovery* sheet is unchanged. **Blocking follow-up:** the `org.xlights.sequence-backup` UTI (extension `xbkp`) + CFBundleDocumentType must be added to `macOS/Assets/xLights-iPad/Info.plist` for Files/iCloud to deliver `.xbkp` taps to `.onOpenURL` — that plist lives in the pinned `macOS` submodule (read-only here), so registration is deferred to a submodule bump. Until then `.xbkp` opens only via in-app pickers that already hand us the URL. |
 | Import timing track standalone (`.xtiming`) | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop SeqSettings + RowHeading; iPad `importXTiming(fromPath:)` in `SequenceSettingsSheet`. |
 | Import timing from LOR `.lms` / `.las` | dialog | ✅ | ✅ | parity | P1 | easy | feasible | iPad `importLorTiming(fromPath:)`. |
 | Import timing from Papagayo `.pgo` | dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `importPapagayoTiming(fromPath:)`. |
@@ -98,8 +104,8 @@
 | Available-models list with CCR-strand mode and Used marking | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog.cpp:537,575,674` (CCR strand mode + Used markers); iPad `ImportEffectsView.swift:209-247` lists models without CCR/Used. |
 | Map-tree right-click menu (expand/collapse/clear/add group) | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `xLightsImportChannelMapDialog` `OnRightDown` context menu. iPad `DestinationRowView` now has a `.contextMenu` (long-press) on model rows with **Sort Submodels By Name** (#4636, below); expand/collapse/clear/add-group entries still TODO. |
 | Map-tree: sort submodels within a model | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop #4636 right-click "Sort Submodels By Name" (`xLightsImportChannelMapDialog.cpp:782-785,253-259`, display-only `wxDataView Compare`). iPad: long-press a destination model row → "Sort Submodels By Name" → `XLImportSession.sortSubmodels(forRow:)` toggles a per-node display flag applied in `snapshotRow` (submodel children sorted by name; strands keep order so apply-time `GetSubModel(index)` routing is unaffected — same display-only model as desktop). |
-| Import timeline preview column | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportEffects.cpp` `GenerateTimelineBitmap` renders a per-row timeline; iPad `ImportEffectsView.swift` has no timeline column. |
-| Model-blending import toggle | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop per-model blend toggle `xLightsImportChannelMapDialog.cpp:538,593-594,1261`; iPad `XLSequenceDocument.h:228-229` exposes sequence-level blending only, not per-model on import. |
+| Import timeline preview column | dialog | ✅ | 🟡 | ipad-weaker | P3 | medium | feasible | Desktop `ImportEffects.cpp` `GenerateTimelineBitmap` renders a per-row pixel timeline. iPad now shows a lightweight per-source **effect-count + duration** caption plus a normalized density strip (`SourceTimelineStrip`) in `ImportEffectsView.swift`'s source list. Data flows from new `AvailableSource::effectCount`/`durationMs` (`src-core/import_export/ImportMappingNode.h`), populated in `XLImportSession.rebuildAvailableSources` (`.xsq`/package sources) and surfaced via `XLImportAvailableSource.effectCount`/`durationMs`. Legacy channel-data readers (vix/hls/lms/lpe) report 0 (no cheap per-channel count); the desktop's full per-effect rectangle strip is still richer. |
+| Model-blending import toggle | dialog | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop per-model blend toggle `xLightsImportChannelMapDialog.cpp:538,593-594,1261`; iPad `XLSequenceDocument.h:228-229` exposes sequence-level blending only, not per-model on import. The iPad `ImportEffectsView` has no per-row blend column yet; the shared `AvailableSource` carries no blend flag. Deferred — needs a per-destination-row blend flag plumbed through `BasicImportMappingNode` + apply, plus a SwiftUI toggle column. |
 | Model wiring remap generator | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ModelRemap.cpp` generates a wiring remap; no iPad `ModelRemap` symbol/UI. |
 
 ## iPad gaps (desktop has, iPad missing)
@@ -195,19 +201,22 @@
 
 ### P3 (low value)
 
-- **Other effect-import formats** — Vixen 2 `.vix` (`ImportVix`, `:758`),
-  LSP `.msq` as effects (`ImportLSP`, `:3353`), VSA `.vsa` (`ImportVsa`,
-  `:3603`). Each parser is wx-bound; would need core extraction + a bridge
-  entry. Low frequency / legacy. (Note: LSP/Vixen3 *timing-only* import
-  already on iPad; `.lpe` and `.hlsIdata` effect-import now landed — see P2.)
+- **Other effect-import formats** — LSP `.msq` as effects (`ImportLSP`,
+  `:3353`), VSA `.vsa` (`ImportVsa`, `:3603`). Each parser is wx-bound; would
+  need core extraction + a bridge entry. Low frequency / legacy. (Note:
+  LSP/Vixen3 *timing-only* import already on iPad; `.lpe`, `.hlsIdata`, and
+  Vixen 2 `.vix` effect-import now landed — `.vix` via shared core
+  `Vixen2File`.)
 - **Per-model LOR/Lcb/Vixen/LSP/HLS export, GIF export, Minleon `.bin`** —
   all in desktop `SeqExportDialog`. iPad per-model export is FSEQ-only.
 - **Convert tool** — desktop `ConvertDialog` (`xLightsMain.cpp:4261`) maps
   raw channel data between formats; substantial bridge, niche.
-- **Open `.fseq` / `.xbkp` directly** — desktop Open wildcard accepts both
+- **Open `.fseq` directly** — desktop Open wildcard accepts `.fseq`
   (`SeqFileUtilities.cpp:262`). iPad round-trips an FSEQ sidecar
-  (`tryLoadFseq`) and recovers `.xbkp` (promote→`.xsq` sheet) but doesn't
-  open either as a first-class format.
+  (`tryLoadFseq`) but doesn't open it as a first-class format. (`.xbkp`
+  direct open is now 🟡 — Swift routing + Save-As notice landed; the Files
+  "Open in" UTI registration is a deferred submodule plist bump. See
+  scorecard.)
 - ~~**Export timing track as Papagayo `.pgo`**~~ — ✅ **Done.** iPad
   "Export as Papagayo (.pgo)…" on broken-down timing rows routes through
   the shared core `TimingElement::GetPapagayoExport` and shares the file.
@@ -219,11 +228,15 @@
   The iPad has now picked up the **merge/stack** prompt (#6474), **multi-file
   hint load** with keep/overwrite (#6474), **submodel sort** in a row
   `.contextMenu` (#4636), and **Edit Display Elements** mid-import (#6477,
-  theme-10). Still missing on iPad: CCR/Used markers, the full
-  expand/collapse/clear/add-group context menu, the per-row **timeline preview
-  column** (`GenerateTimelineBitmap`; deferred — a Canvas sparkline per source
-  row is feasible but sizable SwiftUI/Metal work), and the per-model blending
-  toggle (`XLSequenceDocument.h:228-229` exposes sequence-level blending only).
+  theme-10), and a lightweight **per-source timeline strip** — an
+  effect-count + duration caption plus a normalized density bar
+  (`SourceTimelineStrip` in `ImportEffectsView`, fed by new
+  `AvailableSource::effectCount`/`durationMs`). Still missing on iPad:
+  CCR/Used markers, the full expand/collapse/clear/add-group context menu,
+  the desktop's richer per-effect rectangle strip (`GenerateTimelineBitmap` —
+  the iPad strip is a single normalized bar, not per-effect rectangles), and
+  the per-model blending toggle (`XLSequenceDocument.h:228-229` exposes
+  sequence-level blending only).
 - **Model wiring remap generator** — desktop `ModelRemap.cpp`; no iPad
   equivalent.
 
@@ -267,10 +280,13 @@ iPad↔macOS-desktop parity audit.
    progress. Per-model video export ✅ done alongside it.
 3. ~~**Export Effects to file (P2).**~~ ✅ **Landed (EFX-1)** — `src-core/import_export/ExportEffectsReport.cpp` + bridge + Tools menu + fileExporter.
 4. **Remaining legacy effect-import formats (P2/P3).** `.lpe` (core
-   `LORPixelEditor`) and `.hlsIdata` (core `HLSFile`) ✅ **done** — both reuse the
-   shared mapping/apply flow via `loadLPESource(atPath:)` /
-   `loadHLSSource(atPath:)`. Still open: `.vix`, `.msq`, `.vsa` — only as user
-   demand warrants; each needs core parser extraction. **Follow-up:** unify the
-   desktop `ImportLPE` / `ImportHLS` onto the new core readers.
+   `LORPixelEditor`), `.hlsIdata` (core `HLSFile`), and `.vix` (core
+   `Vixen2File`) ✅ **done** — all reuse the shared mapping/apply flow via
+   `loadLPESource(atPath:)` / `loadHLSSource(atPath:)` /
+   `loadVixen2Source(atPath:)`. The HLS + Vixen 2 readers share
+   `src-core/import_export/ImportDataRow.cpp`'s `ConvertDataRowToEffects` /
+   `Base64Decode`. Still open: `.msq`, `.vsa` — only as user demand warrants;
+   each needs core parser extraction. **Follow-up:** unify the desktop
+   `ImportLPE` / `ImportHLS` / `ImportVix` onto the new core readers.
 5. **Convert tool / per-model LOR/Lcb/GIF/Minleon export / HinksPix
    (P3/restricted)** — defer; niche or IAP-gated.
