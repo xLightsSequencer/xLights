@@ -51,6 +51,8 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  alpha-preserving, bit-exact uncompressed .mov at any size) and FFmpeg for AVI/MPEG-4.
     -enh (dkulp)                 Add a "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless, much smaller than uncompressed RGB, and
                                  decodes on all platforms.
+    -bug (dkulp)                 macOS: Model export failed when a filename was typed instead of chosen via the file dialog. The Export Sequence
+                                 dialog is now a format list + Next that always opens a Save As panel so the sandbox grants write access.
     -bug (dkulp)                 Fix crash selecting a view after a view was deleted (out-of-bounds current view in PopulateRowInformation).
     -bug (dkulp)                 Fix a crash on app close (EffectsGrid::SetRCToolTip touching a half-destroyed window during CloseSequence).
     -bug (dkulp)                 Fix render-buffer crash building per-preview 3D node positions when no house preview is available.

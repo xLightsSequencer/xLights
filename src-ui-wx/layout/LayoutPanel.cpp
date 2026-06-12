@@ -6576,6 +6576,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -6592,6 +6593,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -6653,7 +6655,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
-            ObtainAccessToURL(filename);
+            ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
                 ? serializer.SerializeModel(selectedModels[0], true)
                 : serializer.SerializeModels(selectedModels, true);
@@ -6918,6 +6920,7 @@ void LayoutPanel::ExportModelAsCAD()
 
     wxString const filename = wxFileSelector(_("Choose Output File"), wxEmptyString, md->GetName(), wxEmptyString, filter, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
+        ObtainAccessToURL(ToStdString(filename), true);
         wxFileName file(filename);
         if (ModelToCAD::ExportCAD(md, filename, file.GetExt())) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
@@ -6931,6 +6934,7 @@ void LayoutPanel::ExportLayoutDXF()
 {
     wxString const filename = wxFileSelector(_("Choose output file"), wxEmptyString, currentLayoutGroup + "_Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
+        ObtainAccessToURL(ToStdString(filename), true);
         if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf", currentLayoutGroup)) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
         } else {
@@ -9370,6 +9374,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -9386,6 +9391,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -9445,7 +9451,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
-            ObtainAccessToURL(filename);
+            ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
                 ? serializer.SerializeModel(selectedModels[0], true)
                 : serializer.SerializeModels(selectedModels, true);
