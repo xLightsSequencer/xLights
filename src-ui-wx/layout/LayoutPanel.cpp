@@ -33,7 +33,6 @@
 #include <wx/checklst.h>
 #include <pugixml.hpp>
 #include <cmath>
-#include <numbers>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -2492,7 +2491,8 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     }
 
     auto rotateAround = [axis](Model* m, float cx, float cy, float cz, float deltaDeg) {
-        const float r = deltaDeg * std::numbers::pi_v<float> / 180.0f;
+        static constexpr float kPi = 3.14159265358979323846f;
+        const float r = deltaDeg * kPi / 180.0f;
         const float s = std::sin(r);
         const float co = std::cos(r);
         float x = m->GetHcenterPos();
@@ -2550,6 +2550,10 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
         cz /= members.size();
 
         // Delta from first member's current rotation on this axis.
+        // Use the first member as the rotation reference. All Set members
+        // share the same rotation after being moved together, so any member
+        // would give the same delta; front() is deterministic for a given
+        // save/load cycle.
         float oldAngle = 0.0f;
         switch (axis) {
             case 'X': oldAngle = members.front()->GetBaseObjectScreenLocation().GetRotateX(); break;
@@ -2669,7 +2673,7 @@ void LayoutPanel::AddModelSetOptionsToMenu(wxMenu& menu)
         setMenu->Append(ID_PREVIEW_MODEL_RENAMESET, _("Rename..."));
         setMenu->Append(ID_PREVIEW_MODEL_MANAGESET, _("Manage..."));
         setMenu->Append(ID_PREVIEW_MODEL_DELETESET, _("Delete"));
-        setMenu->Connect(wxEVT_MENU, (wxObjectEventFunction)&LayoutPanel::OnPreviewModelPopup, nullptr, this);
+        setMenu->Bind(wxEVT_MENU, &LayoutPanel::OnPreviewModelPopup, this);
         menu.AppendSeparator();
         menu.AppendSubMenu(setMenu, _("Set"));
     }

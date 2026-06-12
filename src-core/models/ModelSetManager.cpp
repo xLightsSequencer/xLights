@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <string_view>
+#include <unordered_set>
 
 void ModelSetManager::RebuildIndex()
 {
@@ -150,18 +151,20 @@ void ModelSetManager::Load(pugi::xml_node setsNode)
         RebuildIndex();
         return;
     }
+    std::unordered_set<std::string> claimed;
     for (pugi::xml_node e = setsNode.first_child(); e; e = e.next_sibling()) {
         if (std::string_view(e.name()) == "modelSet") {
             auto set = std::make_unique<ModelSet>();
             set->Load(e);
-            // Drop members that already belong to a previously-loaded Set
-            // (collision protection). First occurrence wins.
-            for (auto it = _sets.begin(); it != _sets.end(); ++it) {
-                for (const auto& m : (*it)->GetMembers()) {
-                    set->RemoveMember(m);
-                }
+            // Drop members already claimed by a previously-loaded Set.
+            // O(members) per Set using the claimed set instead of a nested loop.
+            std::vector<std::string> toRemove;
+            for (const auto& m : set->GetMembers()) {
+                if (claimed.count(m)) toRemove.push_back(m);
             }
+            for (const auto& m : toRemove) set->RemoveMember(m);
             if (set->GetMembers().size() >= 2 && !set->GetName().empty()) {
+                for (const auto& m : set->GetMembers()) claimed.insert(m);
                 _sets.push_back(std::move(set));
             }
         }
