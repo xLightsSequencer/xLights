@@ -2054,7 +2054,7 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
 
             {
                 auto* config = GetXLightsConfig();
-                auto ctrlName = controller->GetName().ToStdString();
+                auto ctrlName = controller->GetName();
 
                 wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
                 if (!p) {
@@ -2799,7 +2799,7 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            auto ctrlName = controller->GetName().ToStdString();
+                            auto ctrlName = controller->GetName();
                             config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
@@ -2874,7 +2874,7 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                         {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            auto ctrlName = controller->GetName().ToStdString();
+                            auto ctrlName = controller->GetName();
                             config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
                             if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {

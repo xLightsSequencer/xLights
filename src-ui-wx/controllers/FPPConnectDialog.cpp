@@ -1181,7 +1181,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                         if (!controllerFailed) {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
-                            auto ctrlName = c.front()->GetName().ToStdString();
+                            auto ctrlName = c.front()->GetName();
                             config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                             config->Flush();
@@ -1210,7 +1210,7 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 if (bc->UploadForImmediateOutput(&frame->AllModels, _outputManager, controller.front(), frame)) {
                     auto ts = FormatTimestamp();
                     auto* config = GetXLightsConfig();
-                    auto ctrlName = controller.front()->GetName().ToStdString();
+                    auto ctrlName = controller.front()->GetName();
                     config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                     config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, frame->showDirectory), wxString::FromUTF8(ts.c_str()));
                     config->Flush();
