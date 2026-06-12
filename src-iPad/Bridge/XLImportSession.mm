@@ -9,8 +9,10 @@
 #include "import_export/AutoMapper.h"
 #include "import_export/BasicImportMappingNode.h"
 #include "import_export/EffectMapper.h"
+#include "import_export/HLSFile.h"
 #include "import_export/LOREdit.h"
 #include "import_export/LORMusic.h"
+#include "import_export/LORPixelEditor.h"
 #include "import_export/Vixen3.h"
 #include "import_export/MapHintsIO.h"
 #include "models/Model.h"
@@ -176,6 +178,21 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
     // CCR prop prefix names (per-pixel rgbChannels collapsed to one source row);
     // apply fans these across a model's node layers.
     std::unordered_set<std::string> _lmsCCRNames;
+
+    // LOR Pixel Editor (.lpe) EFFECT source state. Like the other legacy effect
+    // formats the source is a wx-free core reader (LORPixelEditor) over the owned
+    // _lpeDoc. `_lpeMode` selects the LPE apply branch.
+    bool _lpeMode;
+    pugi::xml_document _lpeDoc;
+    std::unique_ptr<LORPixelEditor> _lpe;
+
+    // HLS (.hlsIdata) EFFECT source state. wx-free core reader (HLSFile) over the
+    // owned _hlsDoc. `_hlsMode` selects the HLS apply branch; `_hlsCCRNames` are
+    // the strand prefixes fanned across node layers at apply time.
+    bool _hlsMode;
+    pugi::xml_document _hlsDoc;
+    std::unique_ptr<HLSFile> _hls;
+    std::unordered_set<std::string> _hlsCCRNames;
 
     // Model-row nodeIDs whose submodel children are sorted-by-name in the
     // SwiftUI snapshot (#4636). Display-only; the live child order is intact.
@@ -650,6 +667,162 @@ static iPadRenderContext* RawRenderContext(XLSequenceDocument* doc) {
         entry.alreadyExists = (existing != nullptr) && existing->HasEffects();
         entry.selected = !entry.alreadyExists;
         _timingTracks.push_back(entry);
+    }
+}
+
+- (BOOL)loadLPESourceAtPath:(NSString*)path
+                      error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse LOR Pixel Editor .lpe file." }];
+        }
+        return NO;
+    }
+
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
+    _hlsMode = false;
+    _hls.reset();
+    _hlsCCRNames.clear();
+
+    _lpeDoc.reset();
+    _lpeDoc = std::move(doc);
+    _lpe = std::make_unique<LORPixelEditor>(_lpeDoc, rc->GetSequenceElements().GetFrequency());
+    _lpeMode = true;
+
+    [self rebuildAvailableSourcesFromLPE];
+    _timingTracks.clear();
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromLPE {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    if (_lpe == nullptr) return;
+
+    for (const auto& n : _lpe->GetChannelNames()) {
+        AvailableSource src;
+        src.displayName = n;
+        src.canonicalName = Lower(Trim(n));
+        src.modelType = "Model";
+        _availableSources.push_back(src);
+    }
+}
+
+- (BOOL)loadHLSSourceAtPath:(NSString*)path
+                      error:(NSError**)outError {
+    iPadRenderContext* rc = RawRenderContext(_document);
+    if (rc == nullptr) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:1
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No active sequence loaded." }];
+        }
+        return NO;
+    }
+    if (path == nil || path.length == 0) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:2
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"No source file specified." }];
+        }
+        return NO;
+    }
+
+    std::string pathStr = path.UTF8String;
+    pugi::xml_document doc;
+    if (!doc.load_file(pathStr.c_str())) {
+        if (outError) {
+            *outError = [NSError errorWithDomain:@"XLImportSession" code:3
+                          userInfo:@{ NSLocalizedDescriptionKey:
+                                      @"Could not parse HLS .hlsIdata file." }];
+        }
+        return NO;
+    }
+
+    _sourcePackage.reset();
+    _sourceFile.reset();
+    _sourceElements.reset();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _loreditMode = false;
+    _loredit.reset();
+    _loreditTimings.clear();
+    _vixen3Mode = false;
+    _vixen3.reset();
+    _lmsMode = false;
+    _lms.reset();
+    _lmsTimings.clear();
+    _lmsCCRNames.clear();
+    _lpeMode = false;
+    _lpe.reset();
+
+    _hlsDoc.reset();
+    _hlsDoc = std::move(doc);
+    _hls = std::make_unique<HLSFile>(_hlsDoc);
+    _hlsMode = true;
+
+    [self rebuildAvailableSourcesFromHLS];
+    _timingTracks.clear();
+    return YES;
+}
+
+- (void)rebuildAvailableSourcesFromHLS {
+    _availableSources.clear();
+    _sourceElementMap.clear();
+    _sourceLayerMap.clear();
+    _hlsCCRNames.clear();
+    if (_hls == nullptr) return;
+
+    auto addSource = [&](const std::string& name, const std::string& type) {
+        AvailableSource src;
+        src.displayName = name;
+        src.canonicalName = Lower(Trim(name));
+        src.modelType = type;
+        _availableSources.push_back(src);
+    };
+
+    for (const auto& n : _hls->GetChannelNames()) {
+        addSource(n, "Channel");
+    }
+    for (const auto& c : _hls->GetCCRNames()) {
+        _hlsCCRNames.insert(c);
+        addSource(c, "Model");
     }
 }
 
@@ -1256,6 +1429,138 @@ static BasicImportMappingNode* FindNodeByIDRecursive(BasicImportMappingNode* n, 
                   convertRenderStyle:(BOOL)convertRenderStyle
                                 error:(NSError**)outError {
     iPadRenderContext* rc = RawRenderContext(_document);
+    if (_lpeMode) {
+        // LOR Pixel Editor (.lpe) effect synthesis — the iPad equivalent of
+        // desktop xLightsFrame::ImportLPE. Walks the same destination tree but
+        // replays through the wx-free core LORPixelEditor reader, translating LPE
+        // pixel effects (per left/right side + layer) into xLights effects.
+        if (rc == nullptr || _lpe == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        bool const erase = eraseExisting ? true : false;
+
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(lpe): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+
+            if (!root->_mapping.empty()) {
+                _lpe->MapPropEffects(targetEl, root->_mapping, erase);
+                for (const auto& s : root->_stackedMappings) {
+                    targetEl->AddEffectLayer(); // empty separator before stacked mapping
+                    int startLayer = (int)targetEl->GetEffectLayerCount();
+                    _lpe->MapPropEffects(targetEl, s, false, startLayer);
+                }
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+                if (ste == nullptr) continue;
+                if (!child->_mapping.empty()) {
+                    _lpe->MapPropEffects(ste, child->_mapping, erase);
+                    for (const auto& s : child->_stackedMappings) {
+                        ste->AddEffectLayer();
+                        int startLayer = (int)ste->GetEffectLayerCount();
+                        _lpe->MapPropEffects(ste, s, false, startLayer);
+                    }
+                }
+                StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                if (stre == nullptr) continue;
+                for (unsigned int n = 0; n < child->GetChildCount(); ++n) {
+                    BasicImportMappingNode* ns = child->GetNthChild(n);
+                    if (ns == nullptr || ns->_mapping.empty()) continue;
+                    EffectLayer* nl = stre->GetNodeLayer((int)n, true);
+                    if (nl != nullptr) {
+                        _lpe->MapPropNodeEffects(nl, ns->_mapping, 0, erase);
+                    }
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
+    if (_hlsMode) {
+        // HLS (.hlsIdata) effect synthesis — the iPad equivalent of desktop
+        // xLightsFrame::ImportHLS. Decodes each mapped channel's per-frame colour
+        // stream into On / Color Wash effects via the wx-free core HLSFile reader,
+        // fanning CCR strand prefixes across node layers.
+        if (rc == nullptr || _hls == nullptr) {
+            if (outError) {
+                *outError = [NSError errorWithDomain:@"XLImportSession" code:10
+                              userInfo:@{ NSLocalizedDescriptionKey:
+                                          @"Source sequence not loaded." }];
+            }
+            return NO;
+        }
+        SequenceElements& targetSE = rc->GetSequenceElements();
+        bool const erase = eraseExisting ? true : false;
+
+        for (const auto& root : _destinationRoots) {
+            if (!root->HasMapping()) continue;
+            Element* targetEl = targetSE.GetElement(root->_model);
+            if (targetEl == nullptr) {
+                spdlog::warn("XLImportSession::apply(hls): target element '{}' missing", root->_model);
+                continue;
+            }
+            ModelElement* targetModel = dynamic_cast<ModelElement*>(targetEl);
+
+            if (!root->_mapping.empty()) {
+                if (_hlsCCRNames.count(root->_mapping) != 0 && targetModel != nullptr) {
+                    int node = 0;
+                    for (int str = 0; str < targetModel->GetSubModelAndStrandCount(); ++str) {
+                        StrandElement* se = targetModel->GetStrand(str, true);
+                        if (se == nullptr) continue;
+                        for (int n = 0; n < se->GetNodeLayerCount(); ++n) {
+                            EffectLayer* nl = se->GetNodeLayer(n, true);
+                            std::string nm = _hls->FindStrandName(root->_mapping, node + 1);
+                            _hls->MapChannelEffects(nl, nm, _hls->GetChannelColor(nm), erase);
+                            ++node;
+                        }
+                    }
+                } else {
+                    _hls->MapChannelEffects(targetEl->GetEffectLayer(0), root->_mapping, _hls->GetChannelColor(root->_mapping), erase);
+                }
+            }
+
+            if (targetModel == nullptr) continue;
+            for (unsigned int j = 0; j < root->GetChildCount(); ++j) {
+                BasicImportMappingNode* child = root->GetNthChild(j);
+                if (child == nullptr || child->_mapping.empty()) continue;
+                SubModelElement* ste = targetModel->GetSubModel((int)j);
+                if (ste == nullptr) continue;
+                if (_hlsCCRNames.count(child->_mapping) != 0) {
+                    StrandElement* stre = dynamic_cast<StrandElement*>(ste);
+                    if (stre == nullptr) continue;
+                    int node = 0;
+                    for (int n = 0; n < stre->GetNodeLayerCount(); ++n) {
+                        EffectLayer* nl = stre->GetNodeLayer(n, true);
+                        std::string nm = _hls->FindStrandName(child->_mapping, node + 1);
+                        _hls->MapChannelEffects(nl, nm, _hls->GetChannelColor(nm), erase);
+                        ++node;
+                    }
+                } else {
+                    _hls->MapChannelEffects(ste->GetEffectLayer(0), child->_mapping, _hls->GetChannelColor(child->_mapping), erase);
+                }
+            }
+        }
+
+        rc->MarkRgbEffectsChanged();
+        return YES;
+    }
     if (_lmsMode) {
         // LOR Music / Animation (.lms / .las) effect synthesis — the iPad
         // equivalent of desktop xLightsFrame::ImportLMS. Walks the same

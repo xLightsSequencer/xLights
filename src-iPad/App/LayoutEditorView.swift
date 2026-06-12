@@ -25,6 +25,27 @@ struct ModelsReportExportDoc: FileDocument {
     }
 }
 
+/// .xmodel UTType for model export. Falls back to generic data.
+let kXmodelFileType: UTType = UTType(filenameExtension: "xmodel") ?? .data
+
+/// FileDocument wrapper for an exported model (.xmodel). The
+/// bridge writes the model XML to a temp path; this copies the
+/// bytes to the user's chosen destination via `.fileExporter`.
+struct XmodelExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kXmodelFileType] }
+    static var writableContentTypes: [UTType] { [kXmodelFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
 /// J-5 (sidebar tabs) — Layout Editor left-pane roster picker.
 /// Controllers tab is intentionally omitted in J-5; iPad doesn't
 /// yet have a controller editor and surfacing the tab with no UI
@@ -237,6 +258,15 @@ struct LayoutEditorView: View {
     @State private var showingModelsReportExporter: Bool = false
     @State private var modelsReportDefaultName: String = "Models.xlsx"
     @State private var modelsReportError: String? = nil
+    /// Theme-07 — Export Controller Connections (.xlsx). Reuses the
+    /// same temp-path → `.fileExporter` plumbing as the models report.
+    @State private var controllerConnExportDoc: ModelsReportExportDoc? = nil
+    @State private var showingControllerConnExporter: Bool = false
+    @State private var controllerConnError: String? = nil
+    @State private var xmodelExportDoc: XmodelExportDoc? = nil
+    @State private var showingXmodelExporter: Bool = false
+    @State private var xmodelExportDefaultName: String = "Model.xmodel"
+    @State private var layoutHousekeepingMessage: String? = nil
     /// J-31 — Controllers tab filter + cached list. The cache is
     /// rebuilt on `.task` / `.onChange(of: showFolderLoaded)` /
     /// after layout-save (controllers are stored in the output
@@ -900,6 +930,16 @@ struct LayoutEditorView: View {
             exportDoc: $modelsReportExportDoc,
             defaultFilename: modelsReportDefaultName,
             error: $modelsReportError))
+        .modifier(ModelsReportExportModifier(
+            showingExporter: $showingControllerConnExporter,
+            exportDoc: $controllerConnExportDoc,
+            defaultFilename: "Controller_Connections.xlsx",
+            error: $controllerConnError))
+        .modifier(XmodelExportModifier(
+            showingExporter: $showingXmodelExporter,
+            exportDoc: $xmodelExportDoc,
+            defaultFilename: xmodelExportDefaultName,
+            housekeepingMessage: $layoutHousekeepingMessage))
         .modifier(ControllerActionAlertModifier(
             message: $pendingControllerActionAlert))
         .modifier(AutoSizeUniverseWarningModifier(
@@ -1074,6 +1114,9 @@ struct LayoutEditorView: View {
                                                                      firstCh: firstCh,
                                                                      lastCh: lastCh))
                             .tag(name)
+                            .contextMenu {
+                                modelRosterContextMenu(name: name, isFromBase: fromBase)
+                            }
                     }
                 } header: {
                     modelsSectionHeader
@@ -1307,6 +1350,24 @@ struct LayoutEditorView: View {
                         }
                         .disabled(openSourceUploadableControllerNames().isEmpty
                                    || bulkUploadState != nil)
+                        Divider()
+                        Menu {
+                            Button("Name") { sortControllers(byMode: "name") }
+                            Button("Id") { sortControllers(byMode: "id") }
+                            Button("IP") { sortControllers(byMode: "ip") }
+                            Button("Proxy") { sortControllers(byMode: "proxy") }
+                            Button("Vendor") { sortControllers(byMode: "vendor") }
+                            Button("Protocol") { sortControllers(byMode: "protocol") }
+                        } label: {
+                            Label("Sort", systemImage: "arrow.up.arrow.down")
+                        }
+                        .disabled(controllerRows.count < 2)
+                        Button {
+                            startControllerConnectionsExport()
+                        } label: {
+                            Label("Export Connections…", systemImage: "tablecells")
+                        }
+                        .disabled(controllerRows.isEmpty)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                     }
@@ -1827,6 +1888,111 @@ struct LayoutEditorView: View {
         modelsReportExportDoc = ModelsReportExportDoc(sourcePath: tempPath)
         modelsReportDefaultName = "Models.xlsx"
         showingModelsReportExporter = true
+    }
+
+    /// Theme-07 — write the Controller Connections workbook to a temp
+    /// `.xlsx` and hand it to `.fileExporter`. Mirrors the desktop
+    /// File > Export Controller Connections.
+    private func startControllerConnectionsExport() {
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "Controller_Connections-\(UUID().uuidString).xlsx").path
+        guard viewModel.document.exportControllerConnections(toPath: tempPath) else {
+            controllerConnError = "Couldn't build the controller connections report."
+            return
+        }
+        controllerConnExportDoc = ModelsReportExportDoc(sourcePath: tempPath)
+        showingControllerConnExporter = true
+    }
+
+    /// Theme-07 — sort the controller list persistently via the
+    /// OutputManager (mirrors desktop's Sort submenu). Refreshes the
+    /// cached rows and marks the show dirty so Save lights up.
+    private func sortControllers(byMode mode: String) {
+        guard viewModel.document.sortControllers(byMode: mode) else { return }
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                        object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Per-model roster context menu: export as .xmodel + the
+    /// make-start-channel housekeeping commands (mirrors desktop's
+    /// ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL + ID_MNU_MAKESCVALID /
+    /// MAKEALLSCVALID / MAKEALLSCNOTOVERLAPPING).
+    @ViewBuilder
+    private func modelRosterContextMenu(name: String, isFromBase: Bool) -> some View {
+        Button {
+            startXmodelExport(modelName: name)
+        } label: {
+            Label("Export as .xmodel…", systemImage: "square.and.arrow.up")
+        }
+        Divider()
+        if !isFromBase {
+            Button {
+                runMakeStartChannelValid(modelName: name)
+            } label: {
+                Label("Make Start Channel Valid", systemImage: "checkmark.seal")
+            }
+        }
+        Button {
+            runMakeAllStartChannelsValid()
+        } label: {
+            Label("Make All Start Channels Valid", systemImage: "checkmark.seal.fill")
+        }
+        Button {
+            runMakeAllStartChannelsNotOverlapping()
+        } label: {
+            Label("Make All Start Channels Not Overlapping", systemImage: "arrow.left.and.right.square")
+        }
+    }
+
+    /// Serialize the model (with submodels/faces/states) to a temp
+    /// .xmodel and hand it to `.fileExporter`. Mirrors desktop
+    /// ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL.
+    private func startXmodelExport(modelName: String) {
+        let safe = modelName.replacingOccurrences(of: "/", with: "_")
+        let tempPath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(safe)-\(UUID().uuidString).xmodel").path
+        guard viewModel.document.exportModel(toXmodelFile: modelName, path: tempPath) else {
+            layoutHousekeepingMessage = "Couldn't export \(modelName)."
+            return
+        }
+        xmodelExportDoc = XmodelExportDoc(sourcePath: tempPath)
+        xmodelExportDefaultName = "\(safe).xmodel"
+        showingXmodelExporter = true
+    }
+
+    private func runMakeStartChannelValid(modelName: String) {
+        let n = viewModel.document.makeStartChannelValid(forModel: modelName)
+        finishHousekeeping(touched: n,
+                           ok: "\(modelName)'s start channel is now valid.",
+                           none: "\(modelName)'s start channel was already valid.")
+    }
+
+    private func runMakeAllStartChannelsValid() {
+        let n = viewModel.document.makeAllStartChannelsValid()
+        finishHousekeeping(touched: n,
+                           ok: "Reassigned \(n) start channel\(n == 1 ? "" : "s").",
+                           none: "All start channels were already valid.")
+    }
+
+    private func runMakeAllStartChannelsNotOverlapping() {
+        let n = viewModel.document.makeAllStartChannelsNotOverlapping()
+        finishHousekeeping(touched: n,
+                           ok: "Reassigned \(n) overlapping start channel\(n == 1 ? "" : "s").",
+                           none: "No overlapping start channels found.")
+    }
+
+    private func finishHousekeeping(touched: Int, ok: String, none: String) {
+        if touched > 0 {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            refreshModelList()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor", userInfo: [:])
+        }
+        layoutHousekeepingMessage = touched > 0 ? ok : none
     }
 
     /// Bridges return `[[AnyHashable: Any]]` for arrays of
@@ -5216,6 +5382,36 @@ private struct LayoutEditorPropertiesView: View {
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        realDimensionRows
+    }
+
+    /// Real-world dimension readouts (ruler-calibrated). Only
+    /// present in the summary when a Ruler view-object has been
+    /// placed + calibrated. Read-only — mirrors desktop's
+    /// RealWidth / RealHeight / RealDepth ScreenLocationProperties.
+    @ViewBuilder
+    private var realDimensionRows: some View {
+        if let real = summary["realDimensions"] as? [String: Any] {
+            let units = (real["units"] as? String) ?? ""
+            let rw = (real["width"]  as? NSNumber)?.doubleValue ?? 0
+            let rh = (real["height"] as? NSNumber)?.doubleValue ?? 0
+            let rd = (real["depth"]  as? NSNumber)?.doubleValue ?? 0
+            row("Real Width")  { realDimensionLabel(rw, units: units) }
+            row("Real Height") { realDimensionLabel(rh, units: units) }
+            if rd > 0 {
+                row("Real Depth") { realDimensionLabel(rd, units: units) }
+            }
+        }
+    }
+
+    private func realDimensionLabel(_ value: Double, units: String) -> some View {
+        Text(units.isEmpty
+             ? String(format: "%.2f", value)
+             : String(format: "%.2f %@", value, units))
+            .font(.body.monospacedDigit())
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: 160, alignment: .trailing)
+            .textSelection(.enabled)
     }
 
     /// J-20.7 — Size/Location spin-widget field. Bounded by min/
@@ -6201,7 +6397,22 @@ private struct SubModelListSheet: View {
     @State private var generateSheetVisible: Bool = false
     @State private var aliasesSheetTarget: String? = nil
     @State private var confirmCancel: Bool = false
+    @State private var importFileVisible: Bool = false
+    @State private var importFileType: SubModelImportFileType = .xmodel
+    @State private var importModelPickerVisible: Bool = false
+    @State private var importErrorMessage: String? = nil
     @Environment(\.dismiss) private var dismiss
+
+    enum SubModelImportFileType {
+        case xmodel
+        case csv
+        var utTypes: [UTType] {
+            switch self {
+            case .xmodel: return [UTType(filenameExtension: "xmodel") ?? .data]
+            case .csv:    return [.commaSeparatedText, .plainText]
+            }
+        }
+    }
 
     init(modelName: String,
          initial: [String],
@@ -6286,6 +6497,58 @@ private struct SubModelListSheet: View {
         }
     }
 
+    /// Merge bridge-imported submodel dictionaries into the working
+    /// set, uniquifying names that collide with existing ones, then
+    /// commit through the wholesale-replace bridge. Mirrors desktop
+    /// ImportSubModels' collision handling (it prompts; we auto-
+    /// rename, which is the less destructive default for touch).
+    private func mergeImported(_ raw: [[String: Any]]) {
+        guard !raw.isEmpty else {
+            importErrorMessage = "No submodels found to import."
+            return
+        }
+        var existing = Set(entries.map { $0.name })
+        var merged = entries
+        for d in raw {
+            let baseName    = (d["name"] as? String) ?? "Imported"
+            let isRanges    = (d["isRanges"] as? Bool) ?? true
+            let isVertical  = (d["isVertical"] as? Bool) ?? false
+            let bufferStyle = (d["bufferStyle"] as? String) ?? "Default"
+            let strands     = (d["strands"] as? [String]) ?? []
+            let subBuffer   = (d["subBuffer"] as? String) ?? ""
+            var name = baseName
+            var n = 2
+            while existing.contains(name) {
+                name = "\(baseName) \(n)"
+                n += 1
+            }
+            existing.insert(name)
+            merged.append(SubModelEntry(name: name,
+                                        isRanges: isRanges,
+                                        isVertical: isVertical,
+                                        bufferStyle: bufferStyle,
+                                        strands: strands,
+                                        subBuffer: subBuffer))
+        }
+        if commitDetails(merged) {
+            entries = loadDetails()
+            names = entries.map { $0.name }
+        }
+    }
+
+    private func importFromFile(_ url: URL) {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+        let raw: [[String: Any]]
+        switch importFileType {
+        case .xmodel:
+            raw = (viewModel.document.submodelDetails(fromXmodelFile: url.path) as? [[String: Any]]) ?? []
+        case .csv:
+            raw = (viewModel.document.submodelDetails(fromCSVFile: url.path) as? [[String: Any]]) ?? []
+        }
+        mergeImported(raw)
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -6304,6 +6567,27 @@ private struct SubModelListSheet: View {
                         generateSheetVisible = true
                     } label: {
                         Label("Generate Slices…", systemImage: "wand.and.stars")
+                    }
+                    Menu {
+                        Button {
+                            importFileType = .xmodel
+                            importFileVisible = true
+                        } label: {
+                            Label("From .xmodel File…", systemImage: "doc")
+                        }
+                        Button {
+                            importFileType = .csv
+                            importFileVisible = true
+                        } label: {
+                            Label("From CSV File…", systemImage: "tablecells")
+                        }
+                        Button {
+                            importModelPickerVisible = true
+                        } label: {
+                            Label("From Another Model…", systemImage: "square.on.square")
+                        }
+                    } label: {
+                        Label("Import SubModels…", systemImage: "square.and.arrow.down")
                     }
                 }
                 Section(footer: Text("Tap a submodel to edit its name + geometry (ranges, lines, sub-buffer). Swipe to delete.")
@@ -6440,6 +6724,33 @@ private struct SubModelListSheet: View {
                 submodelName: target.name,
                 document: viewModel.document)
         }
+        .fileImporter(isPresented: $importFileVisible,
+                      allowedContentTypes: importFileType.utTypes,
+                      allowsMultipleSelection: false) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first { importFromFile(url) }
+            case .failure(let err):
+                importErrorMessage = err.localizedDescription
+            }
+        }
+        .sheet(isPresented: $importModelPickerVisible) {
+            SubModelSourceModelPicker(
+                excludingModel: modelName,
+                document: viewModel.document,
+                onPick: { source in
+                    let raw = (viewModel.document.submodelDetails(fromSourceModel: source)
+                               as? [[String: Any]]) ?? []
+                    mergeImported(raw)
+                })
+        }
+        .alert("Import SubModels",
+               isPresented: Binding(get: { importErrorMessage != nil },
+                                    set: { if !$0 { importErrorMessage = nil } })) {
+            Button("OK", role: .cancel) { importErrorMessage = nil }
+        } message: {
+            Text(importErrorMessage ?? "")
+        }
     }
 
     private func entryFor(_ name: String) -> SubModelEntry? {
@@ -6458,6 +6769,63 @@ private struct SubModelListSheet: View {
             entries = loadDetails()
         }
         newSubName = ""
+    }
+}
+
+/// Picks a source model (one that has submodels) to copy submodel
+/// definitions from. Mirrors desktop SubModelsDialog's
+/// import-from-another-model source picker.
+private struct SubModelSourceModelPicker: View {
+    let excludingModel: String
+    let document: XLSequenceDocument
+    let onPick: (_ source: String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var candidates: [String] = []
+    @State private var search: String = ""
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return candidates }
+        return candidates.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if candidates.isEmpty {
+                    Text("No other models in this show have submodels.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(filtered, id: \.self) { name in
+                        Button {
+                            onPick(name)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Text(name).foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Import From Model")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .onAppear {
+                candidates = document.modelNamesWithSubmodels(excluding: excludingModel)
+            }
+        }
     }
 }
 
@@ -9910,6 +10278,33 @@ private struct ModelsReportExportModifier: ViewModifier {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(error ?? "")
+            }
+    }
+}
+
+private struct XmodelExportModifier: ViewModifier {
+    @Binding var showingExporter: Bool
+    @Binding var exportDoc: XmodelExportDoc?
+    let defaultFilename: String
+    @Binding var housekeepingMessage: String?
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingExporter,
+                document: exportDoc,
+                contentType: kXmodelFileType,
+                defaultFilename: defaultFilename
+            ) { _ in
+                exportDoc = nil
+            }
+            .alert("Layout",
+                   isPresented: Binding(
+                        get: { housekeepingMessage != nil },
+                        set: { if !$0 { housekeepingMessage = nil } })) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(housekeepingMessage ?? "")
             }
     }
 }

@@ -7,6 +7,7 @@
 // Manages show folder loading and sequence access.
 
 @class XLCheckSequenceIssue;
+@class XLFindEffectResult;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -148,6 +149,21 @@ NS_ASSUME_NONNULL_BEGIN
 // `-saveSequence` writes to the new location.
 - (BOOL)saveSequenceAs:(NSString*)path;
 
+// Per-region .xsq export (desktop DoExportSongRegion,
+// TabSequence.cpp:2114). Writes a standalone sequence at `path`
+// containing only the effects in [startMS,endMS), offset to start at
+// 0, with the duration trimmed to the region and (when the sequence
+// has audio) a trimmed `.m4a` written alongside and referenced as the
+// new mediaFile. Built wx-free by post-windowing the document
+// `SequenceFile::BuildDocument` produces — no SequenceElements
+// deep-copy needed. Returns an empty string on success, else a short
+// human-readable error.
+- (NSString*)exportSongRegionToPath:(NSString*)path
+                            startMS:(int)startMS
+                              endMS:(int)endMS
+                               name:(NSString*)regionName
+    NS_SWIFT_NAME(exportSongRegion(toPath:startMS:endMS:name:));
+
 // Absolute on-disk path the sequence was opened from (or last
 // saved to). Empty when no sequence is loaded.
 - (NSString*)currentSequencePath;
@@ -258,6 +274,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)rowIsCollapsedAtIndex:(int)index;
 // Model name for a row (element->GetName()). Empty for non-model rows (e.g. timings).
 - (NSString*)rowModelNameAtIndex:(int)index;
+// True iff the row's Element has any effects on any of its layers.
+// Matches desktop RowHeading.cpp effectNotice stripe logic. Only
+// meaningful on ELEMENT_TYPE_MODEL rows; returns NO for timing / sub-layer rows.
+- (BOOL)rowHasEffectsAtIndex:(int)index NS_SWIFT_NAME(rowHasEffects(at:));
+// Tag-colour hex string (e.g. "#RRGGBB") for the row's model, or
+// empty string when the tag colour is black (unset). Matches
+// desktop RowHeading.cpp:2547-2553 GetTagColour draw.
+// Only meaningful on ELEMENT_TYPE_MODEL rows; returns "" for others.
+- (NSString*)rowTagColorAtIndex:(int)index NS_SWIFT_NAME(rowTagColor(at:));
 
 // Timing-row queries (rows whose Element is TIMING). Returns indices into
 // the visible-row list used by effectCountForRow: and friends.
@@ -532,6 +557,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path
     NS_SWIFT_NAME(exportTimingTracks(atRows:toPath:));
 
+// Export the timing element at `rowIndex` as a Papagayo `.pgo`
+// lipsync file (mirrors desktop RowHeading `GetPapagayoExport`).
+// Routes through `TimingElement::GetPapagayoExport(frequency)`.
+// Returns NO if the row isn't a timing row or the write failed.
+// Caller must `ObtainAccessToURL` on `path` first.
+- (BOOL)exportTimingTrackAsPapagayoAtRow:(int)rowIndex toPath:(NSString*)path
+    NS_SWIFT_NAME(exportTimingTrackAsPapagayo(atRow:toPath:));
+
 // B49: export the rendered channel data for the row's model as a
 // compressed FSEQ v2 `.eseq` sub-sequence — the format Falcon
 // Player uses to play back per-model data. Uses the current render
@@ -696,6 +729,40 @@ NS_ASSUME_NONNULL_BEGIN
 // it as a precondition — `writeCurrentToTempWav` always writes
 // whatever the user has currently selected on the waveform.
 - (BOOL)hasVocalsStems;
+
+// Import Notes: build a note-labelled timing track from a MIDI /
+// MusicXML / Audacity-timing file (mirrors the desktop
+// `ExecuteImportNotes`). `format` is one of "midi", "musicxml",
+// "audacity". For MIDI/MusicXML, `track` selects a part/track ("All"
+// or "" merges everything), `speedAdjustPct` (100 = unchanged) and
+// `startAdjustMS` (in hundredths of a second, matching the desktop
+// sliders' scale) tweak timing. Marks are quantised to the sequence
+// frame interval. Returns the (possibly uniquified) track name on
+// success or empty string on failure. Caller must `ObtainAccessToURL`
+// on `path` first. The zipped `.mxl` MusicXML container is not
+// supported here (desktop-only).
+- (NSString*)importNotesFromPath:(NSString*)path
+                          format:(NSString*)format
+                            name:(NSString*)name
+                           track:(NSString*)track
+                  speedAdjustPct:(int)speedAdjustPct
+                   startAdjustMS:(int)startAdjustMS
+    NS_SWIFT_NAME(importNotes(fromPath:format:name:track:speedAdjustPct:startAdjustMS:));
+
+// Track/part names for a note-import file (for the picker). `format`
+// is "midi" or "musicxml". MIDI returns "1".."N"; MusicXML returns
+// part names. Empty array if unreadable / unsupported format.
+- (NSArray<NSString*>*)noteImportTracksFromPath:(NSString*)path
+                                         format:(NSString*)format
+    NS_SWIFT_NAME(noteImportTracks(fromPath:format:));
+
+// Encode the currently-displayed audio to `path`; the container/codec
+// is chosen by the file extension (.wav / .m4a). Routes through
+// `AudioManager::WriteCurrentAudioToFile`. Returns NO if no audio is
+// loaded or the encode failed. Caller must `ObtainAccessToURL` on
+// `path` first.
+- (BOOL)exportCurrentAudioToPath:(NSString*)path
+    NS_SWIFT_NAME(exportCurrentAudio(toPath:));
 
 // Write whatever audio the user currently has selected on the
 // waveform (RAW, STEM_VOCALS, a band-passed filter, etc.) to a
@@ -1435,6 +1502,63 @@ NS_ASSUME_NONNULL_BEGIN
                                       submodel:(NSString*)submodelName
     NS_SWIFT_NAME(submodelAliases(onParent:submodel:));
 
+// SubModel import. Read submodel definitions from an external
+// source and return them in the same dictionary shape as
+// `submodelDetailsForModel:` (name / isRanges / isVertical /
+// bufferStyle / strands / subBuffer). The caller merges these
+// into the editor's working set and commits via
+// `replaceSubModelsOnModel:`. Mirrors desktop
+// SubModelsDialog::ImportSubModel / ImportCSVSubModel /
+// import-from-another-model.
+//
+// From an .xmodel file (parses `<subModel>` children via
+// XmlSerialize::LoadSubModelsFromXml, same as desktop's
+// ImportSubModelXML). Returns an empty array on parse failure.
+- (NSArray<NSDictionary*>*)submodelDetailsFromXmodelFile:(NSString*)path
+    NS_SWIFT_NAME(submodelDetails(fromXmodelFile:));
+
+// From another model already in this show — copies its submodel
+// defs. Returns an empty array if the source has none / missing.
+- (NSArray<NSDictionary*>*)submodelDetailsFromModel:(NSString*)sourceModel
+    NS_SWIFT_NAME(submodelDetails(fromSourceModel:));
+
+// Names of non-group models (other than `excluded`) that have at
+// least one submodel — the candidate sources for an
+// import-from-another-model. Sorted ascending.
+- (NSArray<NSString*>*)modelNamesWithSubmodelsExcluding:(NSString*)excluded
+    NS_SWIFT_NAME(modelNamesWithSubmodels(excluding:));
+
+// From a CSV file: each non-empty line is a node-range spec
+// ("1-10,15,20-25"); lines are compressed via
+// NodeUtils::CompressNodes and become the strands of a single
+// ranges-type submodel named after the file stem. Mirrors
+// desktop ImportCSVSubModel. Returns one entry (or empty on
+// failure).
+- (NSArray<NSDictionary*>*)submodelDetailsFromCSVFile:(NSString*)path
+    NS_SWIFT_NAME(submodelDetails(fromCSVFile:));
+
+// Model export. Write the named model (with its submodels,
+// faces, states, aliases, dimming curve) to a .xmodel file at
+// `path`. Mirrors desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL
+// (XmlSerializer::SerializeModel(model, true) → save_file).
+// Returns NO on missing model / write failure.
+- (BOOL)exportModelToXmodelFile:(NSString*)modelName
+                           path:(NSString*)path
+    NS_SWIFT_NAME(exportModel(toXmodelFile:path:));
+
+// Make-start-channel commands (desktop LayoutPanel
+// ID_MNU_MAKESCVALID / ID_MNU_MAKEALLSCVALID /
+// ID_MNU_MAKEALLSCNOTOVERLAPPING). Each clears the controller
+// name on the offending model(s) (NO_CONTROLLER) so the
+// start-channel rework auto-assigns a fresh non-overlapping
+// range, then recomputes. Returns the number of models touched.
+- (NSInteger)makeStartChannelValidForModel:(NSString*)modelName
+    NS_SWIFT_NAME(makeStartChannelValid(forModel:));
+- (NSInteger)makeAllStartChannelsValid
+    NS_SWIFT_NAME(makeAllStartChannelsValid());
+- (NSInteger)makeAllStartChannelsNotOverlapping
+    NS_SWIFT_NAME(makeAllStartChannelsNotOverlapping());
+
 // J-18 pass 6 — clear any dimming curve set on this model.
 // SetDimmingInfo({}) deletes the cached `modelDimmingCurve`
 // and empties the `<dimmingCurve>` XML child block on save.
@@ -1836,6 +1960,29 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)effectSettingsStringForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSString*)effectPaletteStringForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSString*)effectNameForRow:(int)rowIndex atIndex:(int)effectIndex;
+
+// #5064 / Copy Effects incl SubModels — gather every effect on the
+// model that owns `rowIndex`: the model's own layers followed by
+// every submodel's layers, regardless of whether those rows are
+// currently expanded/visible (mirrors desktop
+// `EffectsGrid::CopyModelEffects(.., incSubModels=true)`). Each
+// element is a dict with keys: name, settings, palette (NSString),
+// rowOffset, startMS, endMS (NSNumber). `rowOffset` is the layer's
+// 0-based position in the model→submodel layer walk. Returns an
+// empty array if the row isn't model-backed or has no effects.
+- (NSArray<NSDictionary*>*)copyModelInclSubmodelsAtRow:(int)rowIndex;
+
+// Find Possible Source Effects (EffectsGrid.cpp:476). For a node /
+// strand row, resolve the channel range the node occupies and return
+// every model-/strand-/submodel-level effect active at `ms` that
+// renders onto that channel range — i.e. the candidate sources that
+// produced this node's data. Each result is a dict with keys:
+// label (NSString, "<model> · <layer> · <effect>"), startMS, endMS
+// (NSNumber), and visibleRow / effectIndex (NSNumber, -1 when the
+// owning row isn't currently visible) so the UI can jump+select.
+// Returns an empty array when the row isn't a node/strand row or
+// the channel can't be resolved.
+- (NSArray<NSDictionary*>*)findSourceEffectsForRow:(int)rowIndex atMS:(int)ms;
 
 // B15: replace an effect's settings + palette wholesale. Used by
 // Randomize / Reset bulk ops and (future) preset-apply. Empty
@@ -2320,6 +2467,47 @@ NS_ASSUME_NONNULL_BEGIN
 // pushed here before each run.
 - (void)setCheckSequenceDisabledOptions:(nonnull NSArray<NSString*>*)options
     NS_SWIFT_NAME(setCheckSequenceDisabledOptions(_:));
+
+// Find Effect Data (desktop View ▸ Windows ▸ Find Effect Data /
+// FindDataPanel + SearchPanel). Walk the loaded SequenceElements for
+// effects matching the query and return one XLFindEffectResult per
+// hit (capped at `maxResults` to keep the UI responsive on large
+// shows). An effect matches when ALL supplied filters hold:
+//   * `effectType` (case-insensitive, empty = any) equals the
+//     effect's name;
+//   * `modelFilter` (case-insensitive substring, empty = any) is
+//     contained in the parent model name;
+//   * `settingsText` (case-insensitive substring, empty = any) is
+//     contained in some "key=value" of the effect's settings or
+//     palette map — the matched entry is returned in `matchedSetting`.
+// Walks model, strand, submodel, and node layers (mirrors desktop's
+// SearchPanel coverage). Safe to call from a background queue: it
+// only reads in-memory objects and the result array is detached.
+- (NSArray<XLFindEffectResult*>*)findEffectsMatchingType:(nonnull NSString*)effectType
+                                            settingsText:(nonnull NSString*)settingsText
+                                             modelFilter:(nonnull NSString*)modelFilter
+                                              maxResults:(NSInteger)maxResults
+    NS_SWIFT_NAME(findEffectsMatching(type:settingsText:modelFilter:maxResults:));
+
+// Distinct effect names present in the loaded sequence, sorted — feeds
+// the Find Effect Data sheet's effect-type picker so it only offers
+// types that actually occur.
+- (nonnull NSArray<NSString*>*)effectTypesInSequence;
+
+// User Lyric Dictionary (desktop Tools → User Lyric Dictionary /
+// LyricUserDictDialog). Read the show folder's `user_dictionary`
+// (the file the core PhonemeDictionary loads with highest precedence)
+// as an array of @{"word": NSString, "phonemes": NSString} where
+// `phonemes` is the space-joined phoneme list. Returns an empty array
+// when no show folder / file exists.
+- (nonnull NSArray<NSDictionary<NSString*, NSString*>*>*)userLyricDictionaryEntries;
+
+// Persist `entries` (same @{"word","phonemes"} shape) to the show
+// folder's `user_dictionary` in the desktop line format
+// (`WORD phoneme1 phoneme2 …`) and refresh the live PhonemeDictionary
+// so the next lyric breakdown picks the edits up. Returns NO when
+// there's no show folder or the write fails.
+- (BOOL)saveUserLyricDictionaryEntries:(nonnull NSArray<NSDictionary<NSString*, NSString*>*>*)entries;
 
 // Ensure a preview-frame bundle exists for `path` at the requested
 // thumbnail bounds. Loads the entry if not yet loaded and calls
@@ -3122,6 +3310,23 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // Returns NO when no sequence is loaded or the file can't be written.
 - (BOOL)exportEffectsReportToPath:(NSString*)path
     NS_SWIFT_NAME(exportEffectsReport(toPath:));
+
+// Theme-07 — Setup → Export Controller Connections (.xlsx).
+// Writes one merged-header block per controller (port/model wiring,
+// smart-remote shading) to `path`, mirroring the desktop
+// OnMenuItem_ExportControllerConnectionsSelected. All export fields
+// are included (the desktop prompts; the iPad takes the full set).
+// Returns NO when there are no controllers or the workbook can't be
+// written. Caller hands `path` a temp .xlsx URL then shares it.
+- (BOOL)exportControllerConnectionsToPath:(NSString*)path
+    NS_SWIFT_NAME(exportControllerConnections(toPath:));
+
+// Theme-07 — Setup → Sort controllers. Reorders the OutputManager's
+// controller list persistently (mirrors desktop's
+// OutputManager::SortControllersby*). `mode` is one of: "name", "id",
+// "ip", "proxy", "vendor", "protocol". Returns NO on an unknown mode.
+- (BOOL)sortControllersByMode:(NSString*)mode
+    NS_SWIFT_NAME(sortControllers(byMode:));
 
 // MARK: - Song Structure Regions (#6268 — bulk actions)
 //

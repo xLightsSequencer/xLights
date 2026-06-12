@@ -284,6 +284,41 @@ private struct SongRegionCopyDialog: ViewModifier {
     }
 }
 
+/// Per-region .xsq export — folds the destination-folder importer +
+/// result alert out of the main body to keep it under the Swift
+/// type-checker's complexity limit (same reason as the other
+/// extracted export modifiers).
+private struct SongRegionExportModifier: ViewModifier {
+    @Binding var pickerPresented: Bool
+    @Binding var exportIdx: Int?
+    @Binding var message: String?
+    let viewModel: SequencerViewModel
+    func body(content: Content) -> some View {
+        content
+            .fileImporter(isPresented: $pickerPresented,
+                          allowedContentTypes: [.folder],
+                          allowsMultipleSelection: false) { result in
+                guard let idx = exportIdx,
+                      idx < viewModel.songRegions.count else { return }
+                exportIdx = nil
+                if case .success(let urls) = result, let dir = urls.first {
+                    let needsStop = dir.startAccessingSecurityScopedResource()
+                    defer { if needsStop { dir.stopAccessingSecurityScopedResource() } }
+                    message = viewModel.exportSongRegion(
+                        viewModel.songRegions[idx], toFolder: dir.path)
+                }
+            }
+            .alert("Export Region", isPresented: Binding(
+                get: { message != nil },
+                set: { if !$0 { message = nil } }
+            )) {
+                Button("OK", role: .cancel) { message = nil }
+            } message: {
+                Text(message ?? "")
+            }
+    }
+}
+
 /// B49 — Falcon Player sub-sequence export document. Same
 /// temp-path → `.fileExporter` pattern as `XTimingExportDoc`.
 struct FSEQExportDoc: FileDocument {
@@ -390,6 +425,23 @@ struct SequencerGridV2View: View {
     @AppStorage("snapToTimingMarks") private var snapToTimingMarks: Bool = true
     @AppStorage("timingPlayOnDoubleTap") private var timingPlayOnDoubleTap: Bool = true
     @AppStorage("pasteByCell") private var pasteByCell: Bool = true
+    // Desktop Effects-Grid display prefs (all default ON except the
+    // alternate timing format). The grid-render toggles are gated in the
+    // Metal grid views; grid spacing scales the row height in `metrics`.
+    @AppStorage("grid.showEffectBackgrounds") private var showEffectBackgrounds: Bool = true
+    @AppStorage("grid.showTransitionMarks") private var showTransitionMarks: Bool = true
+    @AppStorage("grid.alternateTimingFormat") private var alternateTimingFormat: Bool = false
+    // XS/S/M/L/XL → multiplier on the default 24 pt row height.
+    @AppStorage("grid.spacing") private var gridSpacing: String = "M"
+    private static func rowHeightMultiplier(_ spacing: String) -> CGFloat {
+        switch spacing {
+        case "XS": return 0.66
+        case "S": return 0.83
+        case "L": return 1.25
+        case "XL": return 1.5
+        default: return 1.0
+        }
+    }
     private var metrics: GridMetrics {
         var m = GridMetrics.standard
         m.rowHeaderWidth = CGFloat(
@@ -397,6 +449,11 @@ struct SequencerGridV2View: View {
                 max(Self.rowHeaderMinWidth, rowHeaderWidthStorage)))
         if waveformDoubleHeight {
             m.waveformHeight = 96
+        }
+        let mult = Self.rowHeightMultiplier(gridSpacing)
+        if mult != 1.0 {
+            m.rowHeight = (m.rowHeight * mult).rounded()
+            m.timingRowHeight = (m.timingRowHeight * mult).rounded()
         }
         return m
     }
@@ -473,6 +530,11 @@ struct SequencerGridV2View: View {
     @State private var songRegionCopySourceIdx: Int? = nil
     @State private var songRegionEditID: Int? = nil
     @State private var songRegionEditName: String = ""
+    /// Per-region .xsq export — the region pending a destination-folder
+    /// pick, plus the folder importer toggle + result message.
+    @State private var songRegionExportIdx: Int? = nil
+    @State private var songRegionExportPickerPresented: Bool = false
+    @State private var songRegionExportMessage: String? = nil
     @State private var songViewRenamePresented: Bool = false
     @State private var songViewRenameText: String = ""
     @State private var songViewAddPresented: Bool = false
@@ -817,6 +879,11 @@ struct SequencerGridV2View: View {
                         } else {
                             viewModel.pasteEffect(rowIndex: target.rowIndex,
                                                    startMS: startMS)
+                        }
+                    }
+                    if viewModel.clipboardHasOriginalTime {
+                        Button("Paste at Original Time") {
+                            viewModel.pasteAtOriginalTime()
                         }
                     }
                 }
@@ -1276,6 +1343,10 @@ struct SequencerGridV2View: View {
                         viewModel.applySelectedPaletteToSongRegion(at: idx)
                     }
                 }
+                Button("Export Region as Sequence…") {
+                    songRegionExportIdx = idx
+                    songRegionExportPickerPresented = true
+                }
             }
             if let ms = songRegionMenuMS {
                 Button("Add Boundary Here") {
@@ -1326,6 +1397,11 @@ struct SequencerGridV2View: View {
         .modifier(SongRegionCopyDialog(
             sourceIdx: $songRegionCopySourceIdx,
             viewModel: viewModel))
+        .modifier(SongRegionExportModifier(
+            pickerPresented: $songRegionExportPickerPresented,
+            exportIdx: $songRegionExportIdx,
+            message: $songRegionExportMessage,
+            viewModel: viewModel))
         .alert("New Song Structure View", isPresented: $songViewAddPresented) {
             TextField("Name", text: $songViewAddText)
             Button("Add") {
@@ -1356,6 +1432,11 @@ struct SequencerGridV2View: View {
         .sheet(isPresented: Bindable(viewModel).findReplacePresented) {
             FindReplaceSheet(replaceText: $findReplaceText,
                               onDone: { viewModel.findReplacePresented = false })
+                .environment(viewModel)
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: Bindable(viewModel).sourceEffectsPresented) {
+            SourceEffectsSheet()
                 .environment(viewModel)
                 .presentationDetents([.medium, .large])
         }
@@ -1569,6 +1650,20 @@ struct SequencerGridV2View: View {
         showingXTimingExporter = true
     }
 
+    /// Write the timing track to a temp `.pgo` (Papagayo) file and hand
+    /// it to the system share sheet. Imperative presentation (not a
+    /// stacked `.fileExporter`) so it doesn't conflict with the other
+    /// exporters chained on this view.
+    private func startPapagayoExport(rowIndex: Int, trackName: String) {
+        let safeName = trackName.isEmpty ? "Timing" : trackName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent("\(safeName)-\(UUID().uuidString).pgo").path
+        guard viewModel.exportTimingTrackAsPapagayo(rowIndex: rowIndex, path: tempPath) else {
+            return
+        }
+        XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+    }
+
     /// B67: default add-mark duration is 500 ms, clamped against the
     /// next existing mark on that row (min 100 ms) and the sequence
     /// end. Start = tap time (clamped >= previous mark's end).
@@ -1738,6 +1833,26 @@ struct SequencerGridV2View: View {
                     } label: {
                         Label("Paste Mode", systemImage: "doc.on.clipboard")
                     }
+                    // Desktop Effects-Grid display prefs.
+                    Divider()
+                    Toggle(isOn: $showEffectBackgrounds) {
+                        Label("Effect Backgrounds", systemImage: "paintpalette")
+                    }
+                    Toggle(isOn: $showTransitionMarks) {
+                        Label("Transition Marks", systemImage: "triangle")
+                    }
+                    Toggle(isOn: $alternateTimingFormat) {
+                        Label("Alternate Timing Format", systemImage: "clock")
+                    }
+                    Picker(selection: $gridSpacing) {
+                        Text("Extra Small").tag("XS")
+                        Text("Small").tag("S")
+                        Text("Medium").tag("M")
+                        Text("Large").tag("L")
+                        Text("Extra Large").tag("XL")
+                    } label: {
+                        Label("Grid Spacing", systemImage: "arrow.up.and.down.text.horizontal")
+                    }
                     // B34 / B35 numbered-tag markers. Set / go-to /
                     // clear at the current play head. Desktop parity
                     // with the 0..9 bookmarks on the sequencer ruler.
@@ -1823,7 +1938,8 @@ struct SequencerGridV2View: View {
             },
             songRegionNames: viewModel.songRegions.map { $0.name },
             songRegionRevision: viewModel.songStructureRevision,
-            onRegionMenu: { ms in songRegionMenuMS = ms }
+            onRegionMenu: { ms in songRegionMenuMS = ms },
+            alternateTimingFormat: alternateTimingFormat
         )
         .id(viewModel.songStructureRevision)
     }
@@ -2018,6 +2134,11 @@ struct SequencerGridV2View: View {
                         startXTimingExport(rowIndex: row.id,
                                              trackName: row.timing?.elementName ?? row.displayName)
                     },
+                    canExportPapagayo: viewModel.canExportPapagayo(rowIndex: row.id),
+                    onExportPapagayo: {
+                        startPapagayoExport(rowIndex: row.id,
+                                             trackName: row.timing?.elementName ?? row.displayName)
+                    },
                     canSpeechToLyrics: viewModel.canSpeechToLyrics(rowIndex: row.id),
                     onSpeechToLyrics: {
                         // Reuse the unified Add-Timing flow's AI-Lyrics path
@@ -2157,6 +2278,7 @@ struct SequencerGridV2View: View {
                     onCopyRow: { viewModel.copyRow(rowIndex: row.id) },
                     onCutRow: { viewModel.cutRow(rowIndex: row.id) },
                     onCopyModel: { viewModel.copyModel(rowIndex: row.id) },
+                    onCopyModelInclSubmodels: { viewModel.copyModelInclSubmodels(rowIndex: row.id) },
                     onCutModel: { viewModel.cutModel(rowIndex: row.id) },
                     onCopyLayersToModels: {
                         copyLayersPickedModels = []
@@ -2164,6 +2286,7 @@ struct SequencerGridV2View: View {
                     },
                     onPaste: { viewModel.pasteAtRow(rowIndex: row.id) },
                     hasClipboard: viewModel.hasClipboard,
+                    onFindSourceEffects: { viewModel.findSourceEffects(rowIndex: row.id) },
                     hasLoopRegion: viewModel.hasLoopRegion,
                     onExportModelFSEQ: { useLoop in
                         startFSEQExport(rowIndex: row.id, useLoopRegion: useLoop)
@@ -2307,6 +2430,8 @@ struct SequencerGridV2View: View {
             timingMarkTimesMS: collectActiveTimingMarkTimes(),
             renderedBackgroundsRevision: viewModel.renderedBackgroundsRevision,
             inspectorRevision: viewModel.inspectorRevision,
+            showEffectBackgrounds: showEffectBackgrounds,
+            showTransitionMarks: showTransitionMarks,
             scrollOffsetX: Binding(
                 get: { timeline.hScrollOffsetPx },
                 set: { timeline.hScrollOffsetPx = $0 }),

@@ -13,9 +13,10 @@
 > `SequenceSettingsSheet`) is at full format parity with desktop (xtiming,
 > LOR lms/las, Papagayo pgo, SRT, Audacity txt, ElevenLabs json, Vixen3
 > tim w/ track-select, LSP msq, xLights xsq). The real gaps are: iPad
-> effect-import now covers **LMS/LAS** (shared core `LORMusic`) but is still
-> missing the other **legacy sequencer formats** (LPE,
-> HLS, Vixen2 vix, LSP msq-as-effects, VSA); iPad now has **video export**
+> effect-import now covers **LMS/LAS** (shared core `LORMusic`), **LPE**
+> (shared core `LORPixelEditor`), and **HLS** (shared core `HLSFile`) but is
+> still missing the remaining **legacy sequencer formats** (Vixen2 vix,
+> LSP msq-as-effects, VSA); iPad now has **video export**
 > (house-preview *and* per-model, via the offscreen `XLHousePreviewVideoExporter`
 > and core `ModelVideoExporter` → `VideoWriter`), but still has **no Convert
 > tool** and **no HinksPix export**, and per-model non-video export stays
@@ -34,8 +35,8 @@
 | Import Effects from Vixen 3 `.tim` (effect-level) | menu | ✅ | ✅ | parity | P1 | easy | feasible | Shared core `Vixen3`. iPad `loadVixen3Source(atPath:)` (needs sibling SystemConfig.xml). |
 | Import Effects from LOR Music `.lms` | menu | ✅ | ✅ | parity | P1 | medium | feasible | Shared core `LORMusic` (`src-core/import_export/LORMusic.cpp`, ported from desktop `ImportLMS` `ImportEffects.cpp:1104`). iPad `loadLMSSource(atPath:)` + `ImportEffectsView` picker. Desktop `ImportLMS` still uses its own wx parser — core unification is a follow-up. |
 | Import Effects from LOR Animation `.las` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Same core `LORMusic` reader handles `.las` (identical schema); routed through `loadLMSSource(atPath:)`. |
-| Import Effects from LOR Pixel Editor `.lpe` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportLPE()` (`ImportEffects.cpp:2984`). wx-bound parser; needs core extraction + bridge. |
-| Import Effects from HLS `.hlsIdata` | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ImportHLS()` (`ImportEffects.cpp:949`). wx-bound; low frequency. |
+| Import Effects from LOR Pixel Editor `.lpe` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Shared core `LORPixelEditor` (`src-core/import_export/LORPixelEditor.cpp`, ported from desktop `ImportLPE` `ImportEffects.cpp:2984` incl. the full `LPEParseEffectSettings` effect-translation table). iPad `loadLPESource(atPath:)` + `ImportEffectsView` picker. Desktop `ImportLPE` still uses its own wx parser — core unification is a follow-up. |
+| Import Effects from HLS `.hlsIdata` | menu | ✅ | ✅ | parity | P2 | medium | feasible | Shared core `HLSFile` (`src-core/import_export/HLSFile.cpp`, ported from desktop `ImportHLS` `ImportEffects.cpp:949` incl. the wx-free `ConvertDataRowToEffects` On/Color-Wash conversion). iPad `loadHLSSource(atPath:)` + picker. Desktop `ImportHLS` still uses its own wx parser — core unification is a follow-up. |
 | Import Effects from Vixen 2.x `.vix` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVix()` (`ImportEffects.cpp:758`). Old format; superseded by Vixen 3. |
 | Import Effects from LSP 2.x `.msq` (as effects) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportLSP()` (`ImportEffects.cpp:3353`). Niche. (Note: LSP *timing-only* import IS on iPad.) |
 | Import Effects from VSA `.vsa` | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ImportVsa()` (`ImportEffects.cpp:3603`) + `VsaImportDialog`. Niche. |
@@ -70,7 +71,7 @@
 | Export Models report (`.xlsx`) | menu | ✅ | ✅ | parity | P2 | easy | feasible | Shared `ExportModels` (libxlsxwriter). iPad `exportModelsReport(toPath:)` from Layout Editor; desktop File → Export Models. |
 | Export single timing track (`.xtiming`) | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop RowHeading "Export" (pgo too); iPad `exportTimingTrack(atRow:toPath:)`. |
 | Export multiple timing tracks in one `.xtiming` (`<timings>`) | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop SelectTimingsDialog multi-export; iPad `exportTimingTracks(atRows:toPath:)` ("Export Multiple Tracks"). |
-| Export timing track as Papagayo `.pgo` | context-menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop RowHeading `GetPapagayoExport` (`RowHeading.cpp:1668`). iPad only exports `.xtiming`. |
+| Export timing track as Papagayo `.pgo` | context-menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop RowHeading `GetPapagayoExport` (`RowHeading.cpp:1668`) ↔ iPad "Export as Papagayo (.pgo)…" (`RowHeaderViews.onExportPapagayo` → `XLSequenceDocument.exportTimingTrackAsPapagayo` → core `TimingElement::GetPapagayoExport`); gated on a 3-layer phrase/word/phoneme breakdown like desktop. |
 | Export model rendered data as FSEQ/`.eseq` | context-menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `SeqExportDialog` "xLights/FPP *.fseq"; iPad row "Export Model as FSEQ…" (`exportModelAsFSEQ`). |
 | Export model FSEQ over a sub-range | context-menu | ✅ | ✅ | parity | P2 | easy | feasible | Desktop "Export Model (selected effects)" range; iPad "Export Model (Loop Range) as FSEQ…". Different range source (selection vs loop region). |
 | Export single model to LOR / Lcb / Vixen / LSP / HLS | context-menu/dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop `SeqExportDialog` format list (`SeqExportDialog.cpp:87`). iPad per-model export is FSEQ-only. Niche legacy targets. |
@@ -140,6 +141,37 @@
 
 ### P2
 
+- ~~**Import Effects from LOR Pixel Editor `.lpe`.**~~ ✅ **Landed.**
+  Ported the desktop `xLightsFrame::ImportLPE` parser
+  (`src-ui-wx/import_export/ImportEffects.cpp:2984`, plus the `MapLPE` /
+  `MapLPEEffects` / `LPEParseEffectSettings` family) into a wx-free core reader
+  `LORPixelEditor` (`src-core/import_export/LORPixelEditor.{h,cpp}`, peer of
+  `LORMusic`). The full per-effect translation table is carried over verbatim
+  (Butterfly/Bars/Spirals/Curtain/Fire/Garlands/Meteors/Pinwheel/Snowflakes/
+  Text/etc.), reading the effect VC min/max from the already-wx-free effect
+  statics (`ButterflyEffect::sChunksMin` …). `wxString::Format` →
+  `fmt::format`, `wxSplit` → `string_utils::Split`, `wxURI::Unescape` → a small
+  local `UriUnescape`. `XLImportSession.loadLPESource(atPath:)` reuses the
+  shared available-source / destination-tree flow; apply fans the LPE left/right
+  sides + layers 0/1 across effect layers (and per-node strands), honouring the
+  stacked-mapping separator-layer convention. `ImportEffectsView` allows `.lpe`
+  in the picker. **Follow-up:** the *desktop* `ImportLPE` still uses its own wx
+  parser — unify it onto the new core reader.
+
+- ~~**Import Effects from HLS `.hlsIdata`.**~~ ✅ **Landed.**
+  Ported the desktop `xLightsFrame::ImportHLS` parser
+  (`src-ui-wx/import_export/ImportEffects.cpp:949`, plus `MapHLSChannelInformation`
+  / `FindHLSStrandName` / `MapToStrandName` / `ReadHLSData`) into a wx-free core
+  reader `HLSFile` (`src-core/import_export/HLSFile.{h,cpp}`). The On / Color
+  Wash conversion (`xLightsFrame::DoConvertDataRowToEffects` +
+  `RampLenColor`/`isOnLineColor` from `tabSequencer.cpp`) was already wx-free
+  bar one `wxString::Format`, brought across as a static `ConvertDataRowToEffects`.
+  `XLImportSession.loadHLSSource(atPath:)` reuses the shared flow; apply decodes
+  each mapped channel's per-frame colour stream into effects, fanning CCR strand
+  prefixes across node layers (the desktop MapByStrand path). `ImportEffectsView`
+  allows `.hlsIdata` in the picker. **Follow-up:** the *desktop* `ImportHLS` still
+  uses its own wx parser — unify it onto the new core reader.
+
 - **Export Effects to file.** Desktop Tools → Export Effects
   (`src-ui-wx/import_export/ExportEffects.cpp`, handler `xLightsMain.cpp:5790`)
   writes selected/all effects as an `<effects>` `.xsq` fragment for
@@ -163,12 +195,11 @@
 
 ### P3 (low value)
 
-- **Other effect-import formats** — `.lpe` (`ImportLPE`, `:2984`), `.hlsIdata`
-  (`ImportHLS`, `:949`), Vixen 2 `.vix` (`ImportVix`, `:758`), LSP `.msq`
-  as effects (`ImportLSP`, `:3353`), VSA `.vsa` (`ImportVsa`, `:3603`). Each
-  parser is wx-bound; would need core extraction + a bridge entry. Low
-  frequency / legacy. (Note: LSP/Vixen3 *timing-only* import already on
-  iPad.)
+- **Other effect-import formats** — Vixen 2 `.vix` (`ImportVix`, `:758`),
+  LSP `.msq` as effects (`ImportLSP`, `:3353`), VSA `.vsa` (`ImportVsa`,
+  `:3603`). Each parser is wx-bound; would need core extraction + a bridge
+  entry. Low frequency / legacy. (Note: LSP/Vixen3 *timing-only* import
+  already on iPad; `.lpe` and `.hlsIdata` effect-import now landed — see P2.)
 - **Per-model LOR/Lcb/Vixen/LSP/HLS export, GIF export, Minleon `.bin`** —
   all in desktop `SeqExportDialog`. iPad per-model export is FSEQ-only.
 - **Convert tool** — desktop `ConvertDialog` (`xLightsMain.cpp:4261`) maps
@@ -177,8 +208,9 @@
   (`SeqFileUtilities.cpp:262`). iPad round-trips an FSEQ sidecar
   (`tryLoadFseq`) and recovers `.xbkp` (promote→`.xsq` sheet) but doesn't
   open either as a first-class format.
-- **Export timing track as Papagayo `.pgo`** — desktop RowHeading
-  `GetPapagayoExport` (`RowHeading.cpp:1668`); iPad exports `.xtiming` only.
+- ~~**Export timing track as Papagayo `.pgo`**~~ — ✅ **Done.** iPad
+  "Export as Papagayo (.pgo)…" on broken-down timing rows routes through
+  the shared core `TimingElement::GetPapagayoExport` and shares the file.
 - **Import-wizard refinements** — desktop's `xLightsImportChannelMapDialog`
   has an available-models list with CCR-strand mode and Used markers
   (`:537,575,674`), a map-tree right-click menu (expand/collapse/clear/add
@@ -234,8 +266,11 @@ iPad↔macOS-desktop parity audit.
    `XLHousePreviewVideoExporter` at chosen resolution + export sheet with
    progress. Per-model video export ✅ done alongside it.
 3. ~~**Export Effects to file (P2).**~~ ✅ **Landed (EFX-1)** — `src-core/import_export/ExportEffectsReport.cpp` + bridge + Tools menu + fileExporter.
-4. **Remaining legacy effect-import formats (P2/P3)** — `.lpe`, `.hlsIdata`,
-   `.vix`, `.msq`, `.vsa` — only as user demand warrants; each needs core
-   parser extraction.
+4. **Remaining legacy effect-import formats (P2/P3).** `.lpe` (core
+   `LORPixelEditor`) and `.hlsIdata` (core `HLSFile`) ✅ **done** — both reuse the
+   shared mapping/apply flow via `loadLPESource(atPath:)` /
+   `loadHLSSource(atPath:)`. Still open: `.vix`, `.msq`, `.vsa` — only as user
+   demand warrants; each needs core parser extraction. **Follow-up:** unify the
+   desktop `ImportLPE` / `ImportHLS` onto the new core readers.
 5. **Convert tool / per-model LOR/Lcb/GIF/Minleon export / HinksPix
    (P3/restricted)** — defer; niche or IAP-gated.

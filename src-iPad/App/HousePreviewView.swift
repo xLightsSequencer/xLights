@@ -302,6 +302,7 @@ struct ModelPreviewDockedPlaceholder: View {
 /// Shared container that hosts a PreviewPaneView and overlays the controls
 /// toggle and — when visible — camera shortcut buttons.
 private struct PreviewContainer: View {
+    @Environment(SequencerViewModel.self) private var viewModel
     let title: String
     let previewName: String
     let previewModelName: String?
@@ -396,6 +397,28 @@ private struct PreviewContainer: View {
                 .padding(6)
                 .allowsHitTesting(false)
             }
+
+            // Color Dropper feedback — an armed-eyedropper hint plus a
+            // transient "sampled #RRGGBB" / "missed" banner along the
+            // bottom edge (this preview surface has no persistent
+            // colour-well to land the sample in).
+            if viewModel.colorDropperActive || viewModel.colorDropperStatus != nil {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Image(systemName: "eyedropper")
+                        Text(viewModel.colorDropperStatus
+                             ?? "Tap a model to sample its color")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.black.opacity(0.6), in: Capsule())
+                    .padding(.bottom, 8)
+                }
+                .allowsHitTesting(false)
+            }
         }
         .background(Color.black)
         .clipped()
@@ -408,6 +431,7 @@ private struct PreviewContainer: View {
 /// only its own — the mode/appearance state lives on the shared
 /// `PreviewSettings` and is synced to the bridge in updateUIView.
 private struct PreviewControlsOverlay: View {
+    @Environment(SequencerViewModel.self) private var viewModel
     let previewName: String
     @Bindable var settings: PreviewSettings
     let supportsViewObjects: Bool
@@ -466,6 +490,19 @@ private struct PreviewControlsOverlay: View {
                     Image(systemName: "viewfinder")
                 }
                 .disabled(selectedModelName?.isEmpty ?? true)
+
+                // Color Dropper (desktop View ▸ Windows ▸ Color
+                // Dropper). Arms a one-shot eyedropper: the next tap on
+                // the preview samples the node colour under the touch
+                // into Recent Colours. Disabled in 3D (the sampler is
+                // 2D-only, matching the node-pick path).
+                Button {
+                    viewModel.colorDropperActive.toggle()
+                } label: {
+                    Image(systemName: "eyedropper")
+                }
+                .tint(viewModel.colorDropperActive ? .accentColor : nil)
+                .disabled(settings.is3D)
             }
             .buttonStyle(.bordered)
             .controlSize(.small)

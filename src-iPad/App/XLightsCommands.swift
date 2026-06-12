@@ -160,6 +160,14 @@ struct XLSequencerCommands: Commands {
             .keyboardShortcut("v", modifiers: [.command])
             .disabled(!viewModel.hasClipboard)
 
+            // #5064 — paste copied effects back at their original
+            // absolute timeline positions (row + ms), ignoring the
+            // play head. Only enabled when the clipboard carries the
+            // copy-time anchor.
+            Button("Paste at Original Time") { viewModel.pasteAtOriginalTime() }
+                .keyboardShortcut("v", modifiers: [.command, .option])
+                .disabled(!viewModel.clipboardHasOriginalTime)
+
             Button("Duplicate") { viewModel.duplicateSelectedEffect() }
                 .keyboardShortcut("d", modifiers: [.command])
                 .disabled(viewModel.selectedEffect == nil)
@@ -334,6 +342,14 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Find Effect Data (desktop View ▸ Windows ▸ Find Effect
+            // Data). Query effects by type / settings-text / model and
+            // jump to a result.
+            Button("Find Effect Data…") {
+                viewModel.showingFindEffectData = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
             // CLN-1 — Tools → Cleanup File Locations. Sweeps every
             // referenced external media file into the show folder and
             // rewrites effect references. Non-undoable (the sheet warns).
@@ -341,6 +357,21 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingCleanupFileLocations = true
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Search for Show Folders. Scans a user-picked
+            // folder tree for directories containing
+            // xlights_rgbeffects.xml and offers to switch to one.
+            Button("Search for Show Folders…") {
+                viewModel.showingSearchShowFolders = true
+            }
+
+            // Tools → User Lyric Dictionary. Edits the show folder's
+            // `user_dictionary` (word → phoneme list) consumed by the
+            // core lyric breakdown.
+            Button("User Lyric Dictionary…") {
+                viewModel.showingUserLyricDictionary = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded)
 
             Divider()
 
@@ -410,6 +441,14 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingExportHousePreview = true
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Export Audio. Encodes the currently-displayed
+            // audio (mix / stem / filtered band) to WAV or M4A and
+            // shares it.
+            Button("Export Audio…") {
+                viewModel.showingExportAudio = true
+            }
+            .disabled(!viewModel.hasExportableAudio)
 
             Divider()
 

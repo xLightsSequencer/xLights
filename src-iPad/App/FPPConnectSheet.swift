@@ -1,19 +1,23 @@
 import SwiftUI
 
-// EX-4 — FPP Connect (Slice A).
+// EX-4 — FPP Connect (Slice A + Slice B).
 //
-// Three-phase sheet:
+// Multi-phase sheet:
 //   1. Discovering — broadcast-ping scan + version probe (5-10s).
-//   2. Selection   — pick FPP instances and .fseq files to push.
-//   3. Uploading   — sequential per-target × per-sequence upload
-//      with per-task progress, overall progress, cancel.
-//   4. Done        — summary with retry / close.
+//   2. Selection   — pick FPP instances and .fseq files to push,
+//      plus per-instance config (Media / Cape / Proxies / UDP Out /
+//      Models / Playlist).
+//   3. Configuring — per-FPP applyConfig pass (Slice B): pushes the
+//      pixel/panel/serial/virtual-matrix outputs + input universes
+//      (bridge mode), UDP Out, Models, proxies, playlist setup.
+//   4. Uploading   — per-sequence fan-out to every selected target.
+//   5. Finalizing  — playlist commit + restart-if-needed.
+//   6. Done        — summary with retry / close.
 //
-// Slice A intentionally limits the per-instance options to "upload
-// this sequence to this FPP" — none of the UDP-Out / Models / Pixel
-// Outputs / Cape configuration the desktop dialog exposes. Those
-// land in Slice B once the basic flow has been validated on real
-// FPP hardware.
+// Slice B wires the full per-instance config through the
+// `applyConfigToFPP` bridge (FPP devices) and an immediate-output
+// controller upload for non-FPP discovered devices (e.g.
+// ESPixelStick), matching the desktop FPPConnectDialog upload loop.
 
 // MARK: - Models
 
@@ -54,6 +58,12 @@ struct FPPInstance: Identifiable, Hashable, Sendable {
     /// True when the FPP has a real cape / hat the user can configure.
     /// Drives whether the Pixel Hat/Cape toggle row even renders.
     var hasCape: Bool { !capeModel.isEmpty }
+
+    /// True for genuine FPP instances (vs. non-FPP discovered devices
+    /// like ESPixelStick). Non-FPP devices only get the single
+    /// "Upload Controller Config" immediate-output toggle — none of the
+    /// FPP-specific Models / UDP Out / Cape / Playlist config applies.
+    var isFPP: Bool { fppType == "FPP" }
 
     var id: String { uuid }
 
@@ -102,11 +112,12 @@ struct FPPInstance: Identifiable, Hashable, Sendable {
 /// (None/All/Local), UDP Out dropdown (None/All/Proxied), Pixel
 /// Hat/Cape checkbox, Add Proxies checkbox, Playlist combobox.
 ///
-/// **In B2, only `uploadMedia` is honored by the upload bridge.** The
-/// other fields are persisted so the user can configure now and the
-/// settings will activate when the corresponding bridge methods land
-/// (B3 = Cape + Add Proxies, B4 = Models + UDP Out + Playlist + restart
-/// sequencing). See `plans/future-controller-upload.md`.
+/// All fields are now honored: `uploadMedia` rides along with the
+/// fseq upload; the rest drive the per-FPP `applyConfigToFPP` config
+/// pass (Cape → pixel/panel/serial/virtual-matrix + input universes,
+/// Add Proxies, UDP Out, Models, Playlist). For non-FPP discovered
+/// devices `uploadCape` instead triggers an immediate-output
+/// controller upload.
 struct FPPInstanceConfig: Codable, Equatable, Sendable {
     var uploadMedia: Bool = false
     var modelsMode: ModelsMode = .none
@@ -985,14 +996,27 @@ struct FPPConnectSheet: View {
         )
     }
 
-    /// Per-instance settings drawer. **B2 wires only Media through to
-    /// the upload bridge** — the other fields persist but their
-    /// uploads land in B3 / B4. The footer surfaces that distinction
-    /// so users aren't surprised when "Cape" stays unchecked on the FPP
-    /// despite being toggled here.
+    /// Per-instance settings drawer. Every field is wired through to
+    /// the upload pipeline: Media rides with the fseq upload, the rest
+    /// drive the per-FPP `applyConfigToFPP` config pass. Non-FPP
+    /// devices show only the single immediate-output controller toggle.
     @ViewBuilder
     private func instanceSettings(_ inst: FPPInstance) -> some View {
         let cfg = configBinding(for: inst.uuid)
+        if !inst.isFPP {
+            // Non-FPP discovered device (e.g. ESPixelStick). Only an
+            // immediate-output controller upload applies — none of the
+            // FPP-specific Models / UDP Out / Cape / Playlist config.
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Upload Controller Config", isOn: cfg.uploadCape)
+                    .help("Push the show's pixel-output configuration to this controller (immediate output).")
+                Text("This device isn't an FPP. Only the controller's pixel-output config can be pushed; FPP Models / UDP Out / Playlist options don't apply.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 4)
+            }
+            .padding(.bottom, 4)
+        } else {
         VStack(alignment: .leading, spacing: 10) {
             Toggle("Media (MP3 / MP4 / WAV)", isOn: cfg.uploadMedia)
                 .help("Upload the sequence's audio companion alongside the .fseq. Typically only the player / master FPP needs this.")
@@ -1107,6 +1131,7 @@ struct FPPConnectSheet: View {
             }
         } message: {
             Text("Sequences uploaded to this FPP will be added to a playlist with this name. The playlist is created on the FPP at upload time.")
+        }
         }
     }
 

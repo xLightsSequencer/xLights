@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import AudioToolbox
 
 // XLSequenceDocument is the Objective-C bridge over the C++ render
 // context. It's main-actor-owned for normal mutation but several
@@ -127,6 +128,18 @@ class SequencerViewModel {
     var currentFindIndex: Int = -1
     /// Toggled by ⌘F (XLightsCommands) and by `Done` in the sheet.
     var findReplacePresented: Bool = false
+    /// Find Possible Source Effects — populated + presented by the
+    /// node-row menu item; cleared by the results sheet's Done.
+    struct SourceEffectMatch: Identifiable {
+        let id = UUID()
+        let label: String
+        let startMS: Int
+        let endMS: Int
+        let visibleRow: Int
+        let effectIndex: Int
+    }
+    var sourceEffectMatches: [SourceEffectMatch] = []
+    var sourceEffectsPresented: Bool = false
     /// SEQ-2 — toggled by the Edit ▸ Color Replace menu item.
     var colorReplacePresented: Bool = false
     /// Toggled by the Edit ▸ Shift Effects… menu items. The accompanying
@@ -520,6 +533,27 @@ class SequencerViewModel {
     // then executes (non-undoable, matching desktop). Gated on
     // isSequenceLoaded — it walks the loaded sequence's media.
     var showingCleanupFileLocations = false
+    // Tools → Find Effect Data (desktop View ▸ Windows ▸ Find Effect
+    // Data). Query sheet that walks the loaded SequenceElements for
+    // effects matching a type / settings-text / model filter and
+    // jumps to the picked result. Gated on isSequenceLoaded.
+    var showingFindEffectData = false
+    // Tools → Search for Show Folders. Scans a user-picked folder tree
+    // for directories containing xlights_rgbeffects.xml and lets the
+    // user switch to one. Independent of any open sequence.
+    var showingSearchShowFolders = false
+    // Tools → User Lyric Dictionary. Editor for the show folder's
+    // `user_dictionary` (word → phoneme list) consumed by the core
+    // lyric breakdown. Gated on a loaded show folder.
+    var showingUserLyricDictionary = false
+    // Color Dropper (desktop View ▸ Windows ▸ Color Dropper). When
+    // armed, the next tap on a preview samples the node colour under
+    // the touch into Recent Colours (one-shot). The eyedropper toolbar
+    // button in PreviewControlsOverlay toggles this.
+    var colorDropperActive = false
+    // Transient banner shown after a dropper sample / miss so the user
+    // gets feedback on a surface with no persistent colour-well.
+    var colorDropperStatus: String? = nil
     // Unified Add Timing Track sheet — replaces the per-call-site
     // confirmationDialogs that used to live in DisplayElementsSheet
     // and the view-selection menu. Any call site that wants to add
@@ -538,6 +572,9 @@ class SequencerViewModel {
     // Tools → Export House Preview. Renders the house preview offscreen at a
     // chosen resolution and encodes it to .mp4 (see ExportHousePreviewSheet).
     var showingExportHousePreview = false
+    // Tools → Export Audio. Encodes the currently-displayed audio to a
+    // user-chosen format (WAV / M4A) and shares it (see ExportAudioSheet).
+    var showingExportAudio = false
     // Tools → View Log. Reads the rotating spdlog file in
     // Library/Logs/xLights.log; level + logger + text filters
     // with optional follow-tail.
@@ -587,6 +624,36 @@ class SequencerViewModel {
     /// (caller should fall back to a plain `seekTo`) when:
     /// - `modelName` is empty or no matching row exists in any view;
     /// - no effect at that time matches `effectName` on the row.
+    ///
+    /// Color Dropper handlers are grouped here too since they share the
+    /// preview-interaction surface.
+
+    // Color Dropper — a node colour was sampled under the touch.
+    // Push it to Recent Colours, show a brief banner, and disarm the
+    // eyedropper (one-shot, matching the desktop dropper).
+    func colorDropperSampled(hex: String) {
+        XLRecentColors.push(hex)
+        colorDropperActive = false
+        showColorDropperStatus("Sampled \(hex.uppercased()) → Recent Colors")
+    }
+
+    // Color Dropper — the tap missed every node. Keep the eyedropper
+    // armed so the user can try again, but tell them what happened.
+    func colorDropperMissed() {
+        showColorDropperStatus("No model under tap — try again")
+    }
+
+    private func showColorDropperStatus(_ text: String) {
+        colorDropperStatus = text
+        let token = text
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            if colorDropperStatus == token {
+                colorDropperStatus = nil
+            }
+        }
+    }
+
     @discardableResult
     func jumpToEffect(modelName: String?,
                        effectName: String?,
@@ -897,6 +964,13 @@ class SequencerViewModel {
         /// -1 for non-node rows; else the node index within the parent
         /// strand.
         let nodeIndex: Int
+        /// True iff the element has any effects on any of its layers.
+        /// Drives the yellow has-effects stripe on the row heading.
+        /// Always false for timing / sub-layer rows.
+        let hasEffects: Bool
+        /// Tag-colour hex string (e.g. "#RRGGBB") or empty when unset.
+        /// Drives the small tag-colour chip on the row heading.
+        let tagColor: String
     }
 
     struct TimingRowInfo: Equatable {
@@ -1487,13 +1561,22 @@ class SequencerViewModel {
                 }
             }
             isDirty = false
+            // Lightweight Backup-On-Save: snapshot the just-saved .xsq
+            // into an in-show Backup/ dir. Default OFF (absent key).
+            if UserDefaults.standard.bool(forKey: "backupOnSave") {
+                writeSaveBackup(ofSequenceAt: path)
+            }
             // FSEQ companion write: when the user has the feature enabled,
             // emit a v2/zstd/sparse fseq next to (or in the configured fseq
             // folder for) the sequence so FPP / Falcon Connect / Batch
             // Render can pick it up without re-rendering. We only do this
             // on user-initiated saves — autosave goes through
             // writeAutosaveBackup which doesn't touch the fseq.
-            if let fseqPath = FolderConfig.fseqPath(forXsq: path) {
+            // Desktop "Render on Save" pref gates the fseq write; default
+            // ON (absent key) preserves the prior always-write behavior.
+            let renderOnSave = UserDefaults.standard.object(forKey: "renderOnSave") == nil
+                || UserDefaults.standard.bool(forKey: "renderOnSave")
+            if renderOnSave, let fseqPath = FolderConfig.fseqPath(forXsq: path) {
                 if document.wasRenderAborted() {
                     // The most recent render was aborted before
                     // completion (almost always memory pressure —
@@ -1567,6 +1650,60 @@ class SequencerViewModel {
             return false
         }
         return true
+    }
+
+    /// Lightweight Backup-On-Save: copy the just-saved sequence file
+    /// (or package) into `<showFolder>/Backup/` with a timestamped
+    /// name, keeping only the most recent `backupKeepCount` snapshots.
+    /// A best-effort safety net — failures are logged, never surfaced,
+    /// since the primary save already succeeded.
+    private static let backupKeepCount = 20
+    private func writeSaveBackup(ofSequenceAt path: String) {
+        guard let showFolder = FolderConfig.showFolder, !showFolder.isEmpty else { return }
+        // Back up the user-facing artifact: the package for packaged
+        // sequences, otherwise the .xsq we just wrote.
+        var sourcePath = path
+        if document.isPackagedSequence() {
+            let pkg = document.packagePath()
+            if !pkg.isEmpty { sourcePath = pkg }
+        }
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: sourcePath) else { return }
+        let backupDir = (showFolder as NSString).appendingPathComponent("Backup")
+        _ = XLSequenceDocument.obtainAccess(toPath: showFolder, enforceWritable: true)
+        do {
+            try fm.createDirectory(atPath: backupDir, withIntermediateDirectories: true)
+        } catch {
+            print("writeSaveBackup: could not create \(backupDir): \(error)")
+            return
+        }
+        let src = sourcePath as NSString
+        let base = src.deletingPathExtension as NSString
+        let ext = src.pathExtension
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyyMMdd-HHmmss"
+        let stamp = fmt.string(from: Date())
+        let name = base.lastPathComponent + "-" + stamp + (ext.isEmpty ? "" : "." + ext)
+        let dest = (backupDir as NSString).appendingPathComponent(name)
+        do {
+            if fm.fileExists(atPath: dest) { try fm.removeItem(atPath: dest) }
+            try fm.copyItem(atPath: sourcePath, toPath: dest)
+        } catch {
+            print("writeSaveBackup: copy to \(dest) failed: \(error)")
+            return
+        }
+        pruneSaveBackups(inDir: backupDir, baseName: base.lastPathComponent)
+    }
+
+    private func pruneSaveBackups(inDir backupDir: String, baseName: String) {
+        let fm = FileManager.default
+        guard let entries = try? fm.contentsOfDirectory(atPath: backupDir) else { return }
+        let prefix = baseName + "-"
+        let mine = entries.filter { $0.hasPrefix(prefix) }.sorted()
+        if mine.count <= Self.backupKeepCount { return }
+        for stale in mine.prefix(mine.count - Self.backupKeepCount) {
+            try? fm.removeItem(atPath: (backupDir as NSString).appendingPathComponent(stale))
+        }
     }
 
     /// Save to a new path. Caller is responsible for invoking a
@@ -2259,6 +2396,28 @@ class SequencerViewModel {
         if n > 0 { renderSongRegionRange(idx) }
     }
 
+    /// Per-region .xsq export (desktop DoExportSongRegion). Writes
+    /// `<folder>/<sanitized name>.xsq` (plus a trimmed `.m4a` sibling
+    /// when the sequence has audio) via the bridge. Returns a
+    /// user-facing success/error message.
+    func exportSongRegion(_ region: SongRegion, toFolder folder: String) -> String {
+        let safe = sanitizedFilename(region.name.isEmpty ? "Region" : region.name)
+        let dest = (folder as NSString).appendingPathComponent("\(safe).xsq")
+        let err = document.exportSongRegion(toPath: dest,
+                                             startMS: Int32(region.startMS),
+                                             endMS: Int32(region.endMS),
+                                             name: region.name)
+        if err.isEmpty {
+            return "Exported \"\(safe).xsq\"."
+        }
+        return err
+    }
+
+    private func sanitizedFilename(_ name: String) -> String {
+        let bad = CharacterSet(charactersIn: "/\\:*?\"<>|")
+        return String(name.unicodeScalars.map { bad.contains($0) ? "_" : Character($0) })
+    }
+
     func fillSongRegionFromTimingMarks() {
         guard let sel = selectedEffect else { return }
         let n = Int(document.fillRegionFromTimingMarks(sourceRow: Int32(sel.rowIndex),
@@ -2572,6 +2731,10 @@ class SequencerViewModel {
                     self?.isRendering = false
                     self?.isRenderDone = true
                     self?.renderProgress = 1
+                    // Desktop "Bell on Render Completion" pref (default OFF).
+                    if UserDefaults.standard.bool(forKey: "bellOnRenderComplete") {
+                        AudioServicesPlaySystemSound(1057)
+                    }
                 } else {
                     self?.renderProgress = fraction
                 }
@@ -4168,6 +4331,39 @@ class SequencerViewModel {
         undoManager.setActionName(actionName)
     }
 
+    /// Import Notes: build a note-labelled timing track from a MIDI /
+    /// MusicXML / Audacity-timing file (desktop "Import Notes" parity).
+    /// `format` is "midi" / "musicxml" / "audacity". Returns the final
+    /// track name on success, nil on failure.
+    @discardableResult
+    func importNotes(fromPath path: String,
+                     format: String,
+                     name: String,
+                     track: String,
+                     speedAdjustPct: Int,
+                     startAdjustMS: Int) -> String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+        let actual = document.importNotes(fromPath: path,
+                                          format: format,
+                                          name: trimmed,
+                                          track: track,
+                                          speedAdjustPct: Int32(speedAdjustPct),
+                                          startAdjustMS: Int32(startAdjustMS))
+        guard !actual.isEmpty else { return nil }
+        reloadRows()
+        registerUndoForAddedTimingTrack(name: actual, actionName: "Import Notes")
+        return actual
+    }
+
+    /// Track/part names for a note-import file (MIDI/MusicXML), used to
+    /// populate the picker in the import sheet.
+    func noteImportTracks(fromPath path: String, format: String) -> [String] {
+        _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
+        return document.noteImportTracks(fromPath: path, format: format)
+    }
+
     /// B73: add a new variable timing track. On success the new track
     /// is made active and the rows are reloaded. Undo-able.
     @discardableResult
@@ -5715,6 +5911,78 @@ class SequencerViewModel {
         copySelectedEffects()
     }
 
+    /// #5064 — desktop "Copy Effects incl SubModels"
+    /// (RowHeading.cpp:593). Unlike `copyModel` (which only reaches
+    /// effects on currently-visible rows), this walks the model's own
+    /// layers then every submodel's layers directly through the
+    /// bridge, so collapsed/hidden submodels are still captured.
+    /// `rowOffset` is the 0-based layer position in that walk; entries
+    /// are re-anchored to the earliest start so a later "Paste at
+    /// Original Time" can restore absolute placement.
+    func copyModelInclSubmodels(rowIndex: Int) {
+        let raw = document.copyModelInclSubmodels(atRow: Int32(rowIndex))
+        guard !raw.isEmpty else { return }
+        // Visible top row of this model — used as the absolute row
+        // anchor so Paste-at-Original-Time lands the model layer back
+        // on its own row.
+        var top = rowIndex
+        while top > 0 {
+            let r = rows[top]
+            if r.timing == nil, r.nestDepth == 0, r.layerIndex == 0,
+               !r.isSubmodel { break }
+            top -= 1
+        }
+        let minStart = raw.compactMap { ($0["startMS"] as? NSNumber)?.intValue }.min() ?? 0
+        var entries: [ClipboardEntry] = []
+        for d in raw {
+            guard let name = d["name"] as? String,
+                  let settings = d["settings"] as? String,
+                  let palette = d["palette"] as? String,
+                  let rowOffset = (d["rowOffset"] as? NSNumber)?.intValue,
+                  let startMS = (d["startMS"] as? NSNumber)?.intValue,
+                  let endMS = (d["endMS"] as? NSNumber)?.intValue else { continue }
+            entries.append(ClipboardEntry(
+                rowOffset: rowOffset,
+                startOffsetMS: startMS - minStart,
+                endOffsetMS: endMS - minStart,
+                name: name, settings: settings, palette: palette,
+                anchorAbsRow: top, anchorAbsStartMS: minStart))
+        }
+        guard !entries.isEmpty else { return }
+        clipboardEntries = entries
+    }
+
+    /// Find Possible Source Effects (EffectsGrid.cpp:476). Trace the
+    /// node row's channel range back to the model-level effects that
+    /// rendered onto it, at the current play head. Populates
+    /// `sourceEffectMatches` and presents the results sheet.
+    func findSourceEffects(rowIndex: Int) {
+        let raw = document.findSourceEffects(forRow: Int32(rowIndex),
+                                              atMS: Int32(playPositionMS))
+        var matches: [SourceEffectMatch] = []
+        for d in raw {
+            guard let label = d["label"] as? String,
+                  let startMS = (d["startMS"] as? NSNumber)?.intValue,
+                  let endMS = (d["endMS"] as? NSNumber)?.intValue,
+                  let visibleRow = (d["visibleRow"] as? NSNumber)?.intValue,
+                  let effectIndex = (d["effectIndex"] as? NSNumber)?.intValue else { continue }
+            matches.append(.init(label: label, startMS: startMS, endMS: endMS,
+                                  visibleRow: visibleRow, effectIndex: effectIndex))
+        }
+        sourceEffectMatches = matches
+        sourceEffectsPresented = true
+    }
+
+    /// Jump to a Find-Source result: move the play head to its start
+    /// and select the effect when its owning row is currently visible.
+    func jumpToSourceEffect(_ match: SourceEffectMatch) {
+        seekTo(ms: match.startMS)
+        if match.visibleRow >= 0, match.effectIndex >= 0,
+           match.visibleRow < rows.count {
+            selectEffect(rowIndex: match.visibleRow, effectIndex: match.effectIndex)
+        }
+    }
+
     /// B54: cut every effect across a model — copy then delete on
     /// every participating row. Operates over the set copied above
     /// so rows shift without stranding references.
@@ -5835,6 +6103,43 @@ class SequencerViewModel {
         let row = rows[rowIndex]
         guard row.timing != nil, row.layerIndex == 0 else { return false }
         return Int(document.rowLayerCount(at: Int32(rowIndex))) > 2
+    }
+
+    /// Papagayo `.pgo` export needs the full phrase/word/phoneme
+    /// breakdown (exactly 3 effect layers), matching the desktop
+    /// writer which bails on anything else.
+    func canExportPapagayo(rowIndex: Int) -> Bool {
+        guard rowIndex >= 0, rowIndex < rows.count else { return false }
+        let row = rows[rowIndex]
+        guard row.timing != nil, row.layerIndex == 0 else { return false }
+        return Int(document.rowLayerCount(at: Int32(rowIndex))) == 3
+    }
+
+    /// Write the timing track at `rowIndex` to `path` as a Papagayo
+    /// `.pgo` lipsync file. Returns true on success.
+    func exportTimingTrackAsPapagayo(rowIndex: Int, path: String) -> Bool {
+        _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
+        return document.exportTimingTrackAsPapagayo(atRow: Int32(rowIndex), toPath: path)
+    }
+
+    /// True when the loaded sequence has audio that can be exported.
+    var hasExportableAudio: Bool {
+        let p = document.sequenceAudioFilePath() ?? ""
+        return !p.isEmpty
+    }
+
+    /// Encode the currently-displayed audio to a temp file with the
+    /// given extension ("wav" / "m4a") and return its URL for sharing,
+    /// or nil on failure.
+    func exportCurrentAudio(ext: String) -> URL? {
+        guard hasExportableAudio else { return nil }
+        let base = document.audioTitle().isEmpty ? "audio" : document.audioTitle()
+        let safe = base.components(separatedBy: CharacterSet(charactersIn: "/\\:")).joined(separator: "_")
+        let tempDir = FileManager.default.temporaryDirectory
+        let path = tempDir.appendingPathComponent("\(safe)-\(UUID().uuidString).\(ext)").path
+        _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: true)
+        guard document.exportCurrentAudio(toPath: path) else { return nil }
+        return URL(fileURLWithPath: path)
     }
 
     /// B57: global expand / collapse. `collapseAllModels` folds
@@ -6505,6 +6810,12 @@ class SequencerViewModel {
         let name: String
         let settings: String
         let palette: String
+        // #5064 — the copy anchor's absolute placement at copy time,
+        // so "Paste at Original Time" can restore each effect to the
+        // exact (row, ms) it came from. Optional for forward-compat
+        // with clipboards written before this field existed.
+        var anchorAbsRow: Int? = nil
+        var anchorAbsStartMS: Int? = nil
     }
 
     /// B99 — custom UTI for effect clipboard data on `UIPasteboard`.
@@ -6646,7 +6957,8 @@ class SequencerViewModel {
         clipboardEntries = [ClipboardEntry(
             rowOffset: 0, startOffsetMS: 0,
             endOffsetMS: sel.endTimeMS - sel.startTimeMS,
-            name: name, settings: settings, palette: palette)]
+            name: name, settings: settings, palette: palette,
+            anchorAbsRow: sel.rowIndex, anchorAbsStartMS: sel.startTimeMS)]
     }
 
     /// B98: copy every effect in `selectedEffects` into the clipboard,
@@ -6675,7 +6987,9 @@ class SequencerViewModel {
                 rowOffset: sel.rowIndex - anchor.rowIndex,
                 startOffsetMS: sel.startTimeMS - anchor.startTimeMS,
                 endOffsetMS: sel.endTimeMS - anchor.startTimeMS,
-                name: name, settings: settings, palette: palette))
+                name: name, settings: settings, palette: palette,
+                anchorAbsRow: anchor.rowIndex,
+                anchorAbsStartMS: anchor.startTimeMS))
         }
         clipboardEntries = entries
     }
@@ -6853,6 +7167,55 @@ class SequencerViewModel {
         undoManager.setActionName(clipboardEntries.count > 1
                                     ? "Paste \(clipboardEntries.count) Effects"
                                     : "Paste Effect")
+        if anchorRow >= 0 {
+            selectEffect(rowIndex: anchorRow, effectIndex: anchorIdx)
+        }
+    }
+
+    /// #5064 — true iff the clipboard carries the absolute copy-time
+    /// placement needed by "Paste at Original Time". Clipboards
+    /// written before this field (or via a cell-stretch path) lack it.
+    var clipboardHasOriginalTime: Bool {
+        if clipboardEntries.isEmpty { syncClipboardFromPasteboard() }
+        return clipboardEntries.first?.anchorAbsStartMS != nil
+            && clipboardEntries.first?.anchorAbsRow != nil
+    }
+
+    /// #5064 — paste each clipboard entry back at the exact absolute
+    /// (row, ms) it was copied from, ignoring the play head and any
+    /// paste-by-cell stretch. Each entry's absolute target is
+    /// `anchorAbsRow + rowOffset` / `anchorAbsStartMS + startOffsetMS`.
+    /// Overlap handling matches `pasteEffect`: the per-effect add path
+    /// silently skips a target whose range isn't clear (desktop only
+    /// pastes into a clear range too). Single undo group.
+    func pasteAtOriginalTime() {
+        if clipboardEntries.isEmpty { syncClipboardFromPasteboard() }
+        guard !clipboardEntries.isEmpty,
+              let baseRow = clipboardEntries.first?.anchorAbsRow,
+              let baseStart = clipboardEntries.first?.anchorAbsStartMS else { return }
+        var anchorRow = -1
+        var anchorIdx = -1
+        undoManager.beginUndoGrouping()
+        for entry in clipboardEntries {
+            let targetRow = baseRow + entry.rowOffset
+            if targetRow < 0 || targetRow >= rows.count { continue }
+            if rows[targetRow].timing != nil { continue }
+            let targetStart = baseStart + entry.startOffsetMS
+            let targetEnd = min(baseStart + entry.endOffsetMS, sequenceDurationMS)
+            guard targetEnd > targetStart else { continue }
+            let newIdx = addEffectWithSettings(rowIndex: targetRow, name: entry.name,
+                                                 settings: entry.settings,
+                                                 palette: entry.palette,
+                                                 startMS: targetStart, endMS: targetEnd)
+            if newIdx >= 0, anchorRow < 0 {
+                anchorRow = targetRow
+                anchorIdx = newIdx
+            }
+        }
+        undoManager.endUndoGrouping()
+        undoManager.setActionName(clipboardEntries.count > 1
+                                    ? "Paste \(clipboardEntries.count) Effects at Original Time"
+                                    : "Paste Effect at Original Time")
         if anchorRow >= 0 {
             selectEffect(rowIndex: anchorRow, effectIndex: anchorIdx)
         }
@@ -7484,6 +7847,10 @@ class SequencerViewModel {
                 }
             }
 
+            let isToplevelModel = timingInfo == nil && layerIndex == 0
+                && Int(document.rowStrandIndex(at: idx)) < 0
+                && Int(document.rowNodeIndex(at: idx)) < 0
+                && !document.rowIsSubmodel(at: idx)
             newRows.append(RowInfo(
                 id: i,
                 displayName: displayName,
@@ -7494,7 +7861,9 @@ class SequencerViewModel {
                 isSubmodel: document.rowIsSubmodel(at: idx),
                 nestDepth: Int(document.rowNestDepth(at: idx)),
                 strandIndex: Int(document.rowStrandIndex(at: idx)),
-                nodeIndex: Int(document.rowNodeIndex(at: idx))
+                nodeIndex: Int(document.rowNodeIndex(at: idx)),
+                hasEffects: isToplevelModel && document.rowHasEffects(at: idx),
+                tagColor: isToplevelModel ? document.rowTagColor(at: idx) : ""
             ))
         }
 

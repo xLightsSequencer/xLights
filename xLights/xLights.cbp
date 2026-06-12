@@ -183,6 +183,8 @@
 		<Unit filename="../src-ui-wx/model/AlignmentDialog.h" />
 		<Unit filename="../src-core/media/AudioManager.cpp" />
 		<Unit filename="../src-core/media/AudioManager.h" />
+		<Unit filename="../src-core/media/NoteImporter.cpp" />
+		<Unit filename="../src-core/media/NoteImporter.h" />
 		<Unit filename="../src-core/media/OnsetDetector.cpp" />
 		<Unit filename="../src-core/media/OnsetDetector.h" />
 		<Unit filename="../src-core/media/TempoDetector.cpp" />
@@ -380,8 +382,12 @@
 		<Unit filename="../src-core/import_export/ExportEffectsReport.h" />
 		<Unit filename="../src-core/import_export/LOREdit.cpp" />
 		<Unit filename="../src-core/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/HLSFile.cpp" />
+		<Unit filename="../src-core/import_export/HLSFile.h" />
 		<Unit filename="../src-core/import_export/LORMusic.cpp" />
 		<Unit filename="../src-core/import_export/LORMusic.h" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.cpp" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />

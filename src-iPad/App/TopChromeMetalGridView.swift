@@ -66,6 +66,9 @@ struct TopChromeMetalGridView: UIViewRepresentable {
     var songRegionNames: [String] = []
     var songRegionRevision: Int = 0
     var onRegionMenu: ((_ atMS: Int) -> Void)?
+    /// Desktop "Effects Grid ▸ Show Alternate Timing Format" — ruler
+    /// labels render absolute seconds.ms instead of min:sec.frac.
+    var alternateTimingFormat: Bool = false
 
     func makeUIView(context: Context) -> TopChromeMetalMTKView {
         let v = TopChromeMetalMTKView()
@@ -103,6 +106,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         c.songRegionBounds = songRegionBounds
         c.songRegionNames = songRegionNames
         c.onRegionMenu = onRegionMenu
+        c.alternateTimingFormat = alternateTimingFormat
         view.setNeedsDisplay()
     }
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -153,6 +157,7 @@ struct TopChromeMetalGridView: UIViewRepresentable {
         var songRegionBounds: [(Int, Int, UInt32)] = []
         var songRegionNames: [String] = []
         var onRegionMenu: ((Int) -> Void)?
+        var alternateTimingFormat: Bool = false
     }
 }
 
@@ -203,7 +208,17 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
         for ms in Self.niceIntervals where Double(ms) >= target { return ms }
         return Self.niceIntervals.last ?? 60000
     }
-    private static func fmtTime(_ ms: Int, majorMS: Int) -> String {
+    private static func fmtTime(_ ms: Int, majorMS: Int, alternate: Bool) -> String {
+        // Desktop "Show Alternate Timing Format": absolute seconds.ms
+        // (e.g. "63.500") instead of min:sec.frac.
+        if alternate {
+            let seconds = ms / 1000
+            let millis  = ms % 1000
+            if majorMS < 1000 {
+                return String(format: "%d.%03d", seconds, millis)
+            }
+            return String(format: "%d", seconds)
+        }
         let minutes = ms / 60000
         let seconds = (ms % 60000) / 1000
         let millis  = ms % 1000
@@ -332,7 +347,7 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
                                          x2: x, y2: c.rulerHeight,
                                          r: 0.65, g: 0.65, b: 0.65, a: 1.0)
                     if isMajor {
-                        labels.append((x, Self.fmtTime(ms, majorMS: major)))
+                        labels.append((x, Self.fmtTime(ms, majorMS: major, alternate: c.alternateTimingFormat)))
                     }
                 }
                 ms += minor
@@ -578,7 +593,16 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
         addGestureRecognizer(tap)
         let pan = UIPanGestureRecognizer(target: self, action: #selector(onPan(_:)))
         pan.allowedScrollTypesMask = .all   // B95: trackpad + scroll-wheel scroll
+        pan.maximumNumberOfTouches = 1      // leave 2-finger drags to the range-select gesture
         addGestureRecognizer(pan)
+        // Two-finger drag on the waveform strip sweeps out the loop
+        // (selection) region — the one-gesture range-select from the
+        // audio strip that desktop gets by dragging on the waveform.
+        // Two fingers keep single-finger tap-to-seek and scroll intact.
+        let rangePan = UIPanGestureRecognizer(target: self, action: #selector(onRangePan(_:)))
+        rangePan.minimumNumberOfTouches = 2
+        rangePan.maximumNumberOfTouches = 2
+        addGestureRecognizer(rangePan)
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(onPinch(_:)))
         addGestureRecognizer(pinch)
         // B32 loop region: long-press on the ruler establishes a
@@ -672,6 +696,44 @@ final class TopChromeMetalMTKView: MTKView, MTKViewDelegate {
         let p = g.location(in: self)
         let ms = max(0, min(c.durationMS, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
         c.onSeek(ms)
+    }
+
+    // Two-finger range-drag: sweep out the loop region (iPad's
+    // selection equivalent), which drives Render Selected Region and
+    // Zoom to Selection. Mirrors desktop's waveform drag-to-select.
+    @objc func onRangePan(_ g: UIPanGestureRecognizer) {
+        guard let c = coordinator, c.pixelsPerMS > 0 else { return }
+        let p = g.location(in: self)
+        let ms = max(0, min(c.durationMS, Int((p.x + c.scrollOffsetX) / c.pixelsPerMS)))
+        switch g.state {
+        case .began:
+            c.loopDragAnchorMS = ms
+            c.loopDragCurrentMS = ms
+            c.onUserInteraction?()
+            setNeedsDisplay()
+        case .changed:
+            c.loopDragCurrentMS = ms
+            if let anchor = c.loopDragAnchorMS {
+                let lo = min(anchor, ms), hi = max(anchor, ms)
+                if hi > lo { c.onSetLoop?(lo, hi) }
+            }
+            c.onUserInteraction?()
+            setNeedsDisplay()
+        case .ended:
+            if let anchor = c.loopDragAnchorMS {
+                let lo = min(anchor, ms), hi = max(anchor, ms)
+                if hi > lo { c.onSetLoop?(lo, hi) }
+            }
+            c.loopDragAnchorMS = nil
+            c.loopDragCurrentMS = nil
+            setNeedsDisplay()
+        case .cancelled, .failed:
+            c.loopDragAnchorMS = nil
+            c.loopDragCurrentMS = nil
+            setNeedsDisplay()
+        default:
+            break
+        }
     }
 
     @objc func onPan(_ g: UIPanGestureRecognizer) {

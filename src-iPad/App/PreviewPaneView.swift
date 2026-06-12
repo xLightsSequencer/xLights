@@ -1373,6 +1373,24 @@ struct PreviewPaneView: UIViewRepresentable {
         /// handler is preview-name gated). 3D mode currently bails
         /// (full ray-cast hit testing lands with the gizmo work).
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
+            // Color Dropper (desktop View ▸ Windows ▸ Color Dropper).
+            // When dropper mode is armed, a tap on ANY preview samples
+            // the node colour under the touch and pushes it to recent
+            // colours, then disarms (one-shot, matching the desktop
+            // eyedropper). Checked before the LayoutEditor guard so it
+            // works on the House / Model previews too.
+            if let viewModel, viewModel.colorDropperActive,
+               let bridge, let view = mtkView {
+                let pt = recognizer.location(in: view)
+                if let hex = bridge.sampledColorHexNearPoint(
+                    pt, viewSize: view.bounds.size,
+                    for: viewModel.document) {
+                    viewModel.colorDropperSampled(hex: hex)
+                } else {
+                    viewModel.colorDropperMissed()
+                }
+                return
+            }
             guard previewNameForNotifications == "LayoutEditor",
                   let viewModel,
                   let bridge,

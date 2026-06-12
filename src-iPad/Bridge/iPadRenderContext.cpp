@@ -109,7 +109,7 @@ iPadRenderContext::iPadRenderContext()
     //     ModifiedEffect snapshot can be several KB of settings
     //     strings, so 2000-edit sessions on a long show add up.
     //     iPad users don't need desktop-scale undo depth anyway.
-    _renderCache.SetMaximumSizeMB(50);
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
     _sequenceElements.get_undo_mgr().SetMaxSteps(50);
 
     // Render cache defaults OFF on iPad (see ReadRenderCacheMode): it trades
@@ -1872,6 +1872,26 @@ std::string iPadRenderContext::ReadRenderCacheMode() const {
     return mode;
 }
 
+size_t iPadRenderContext::ReadRenderCacheMaxMB() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMaxMB"). The desktop "Maximum Render Cache
+    // Size" choices are Unlimited / 1 / 5 / 10 / 50 / 100 / 200 GB; the
+    // SwiftUI picker stores the cap directly in MB (0 = Unlimited). Absent
+    // key → 50 MB, the long-standing iPad default that keeps a desktop-
+    // authored cache from ballooning the in-memory frame map at open.
+    long mb = 50;
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMaxMB"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+            CFNumberGetValue((CFNumberRef)v, kCFNumberLongType, &mb);
+        }
+        CFRelease(v);
+    }
+    if (mb < 0) mb = 0;
+    return (size_t)mb;
+}
+
 void iPadRenderContext::PurgeDownloadCache() {
     CachedFileDownloader::GetDefaultCache().ClearCache();
 }
@@ -1963,6 +1983,7 @@ void iPadRenderContext::EnsureRenderEngine() {
     // picker takes effect without an app restart (the engine itself is long-
     // lived). RenderEngine checks _renderCache.IsEnabled() per effect.
     _renderCache.Enable(ReadRenderCacheMode());
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
 }
 
 void iPadRenderContext::RenderAll() {

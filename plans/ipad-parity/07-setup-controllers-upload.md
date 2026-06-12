@@ -22,11 +22,12 @@
 > per-universe channels), **per-controller Force-Local-IP**, the
 > **"Open Proxy" browser** shortcut, **ping/health LED**,
 > **FPP-proxy pre-upload validation**, and **auto-upload on
-> output-enable** all ship on iPad. The genuine remaining iPad gaps are
-> the **global "Export Controller Connections" XLSX**, the **controller
-> sort menu**, **FPP Connect immediate-output upload for non-FPP
-> discovered devices**, and **pixel test** (infeasible — raw
-> DMX/sACN/ArtNet output is sandbox-blocked).
+> output-enable** all ship on iPad. The **global "Export Controller
+> Connections" XLSX**, the **controller sort menu**, **FPP Connect
+> immediate-output upload for non-FPP discovered devices**, and the
+> **FPP Connect "Upload Controller" input-universe push (#2747)** now
+> ship on iPad too. The genuine remaining iPad gap is **pixel test**
+> (infeasible — raw DMX/sACN/ArtNet output is sandbox-blocked).
 > Closed-firmware vendor uploads (Falcon, SanDevices, HinksPix, AlphaPix,
 > J1Sys, Minleon, vendor-FW Pixlite) are **restricted/IAP-gated P3** on
 > iPad.
@@ -72,7 +73,7 @@
 | Discovery mismatch resolution (IP/name) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop inline `wxMessageDialog` prompts (TabSetup ~1569/1612); iPad dedicated `DiscoveryMismatchModifier` sheet → `applyDiscoveryMismatch`. |
 | Discovery auth (401 credentials) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `DiscoveryAuthDialog`; iPad `setFPPAuthPromptHandler` + `FPPAuthPrompt`. |
 | Controller filter / search | tab | ❌ | ✅ | desktop-missing | P3 | easy | feasible | iPad name/vendor/model/IP search; desktop has no search box (small list). |
-| Controller list sort (by name/id/ip/proxy/vendor/protocol) | context-menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop "Sort" submenu; iPad only manual drag order. |
+| Controller list sort (by name/id/ip/proxy/vendor/protocol) | context-menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop "Sort" submenu (`TabSetup.cpp:2504`). iPad Controllers-tab header menu → Sort submenu (`LayoutEditorView.swift`), bridged through `sortControllers(byMode:)` → `OutputManager::SortControllersby*` (same core reorder the desktop calls; persists + marks dirty). |
 | Controller list column sort (header click) | gesture | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `OnListControllersColClick`; iPad list isn't column-based. |
 | Open browser to controller | context-menu/gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ButtonOpen` / double-click; iPad double-tap row + context-menu "Open <ip>" + detail button → `UIApplication.shared.open`. |
 | Open FPP Proxy in browser | toolbar | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `Button_OpenProxy`; iPad detail-pane "Open Proxy" button (`LayoutEditorControllerDetailView`) opens `http://<proxy>/` when the controller has an FPP proxy set. |
@@ -91,7 +92,7 @@
 | Model controller-properties (brightness/gamma/color-order/nulls/groups) | dialog | ✅ | ✅ | parity | P2 | medium | feasible | iPad `ModelControllerPropertiesSheet` + `controllerConnectionForModel`. |
 | Wiring export (per controller) — CSV | dialog | ✅ | ✅ | parity | P3 | easy | feasible | iPad Visualize "Export as CSV" → `exportWiringCSV`. |
 | Wiring export (per controller) — JSON | dialog | ✅ | ✅ | parity | P3 | easy | feasible | iPad Visualize "Export as JSON" → `exportWiringJSON`. |
-| Export Controller Connections (global XLSX) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `OnMenuItem_ExportControllerConnectionsSelected` → libxlsxwriter all-controllers workbook. iPad only per-controller CSV/JSON. |
+| Export Controller Connections (global XLSX) | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `OnMenuItem_ExportControllerConnectionsSelected` → libxlsxwriter all-controllers workbook. iPad Controllers-tab header menu → "Export Connections…" → `exportControllerConnections(toPath:)` (same core `UDController::ExportAsCSV` + libxlsxwriter, smart-remote shading) → `.fileExporter`. iPad exports the full field set rather than prompting (desktop shows a field picker). |
 | Upload output (wiring) | toolbar/menu | ✅ | ✅ | parity | P1 | hard | restricted | iPad `uploadOutputForController`, gated to open-source firmware (osf). Closed FW = restricted P3. |
 | Upload input (universes) | toolbar/menu | ✅ | ✅ | parity | P1 | hard | restricted | iPad `uploadInputForController`, osf-gated. |
 | Linked input+output upload | toolbar | ✅ | ✅ | parity | P1 | medium | restricted | Desktop link checkbox; iPad runs input then output automatically. osf-gated. |
@@ -100,8 +101,8 @@
 | Remap DMX channels | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop DMX-effect panel → `RemapDMXChannelsDialog` (effect-level, edge of theme). No iPad DMX-remap UI. |
 | FPP Connect (discover + per-FPP config + fseq upload) | menu/dialog | ✅ | ✅ | parity | P1 | hard | feasible | Desktop `FPPConnectDialog`; iPad Tools→FPP Connect `FPPConnectSheet` w/ parallel fan-out (`discoverFPPInstances`, `applyConfigToFPP`, `uploadFseq:toFPPInstances:`). |
 | FPP-proxy validation pre-upload warning | toolbar/dialog | ✅ | ✅ | parity | P2 | easy | feasible | iPad `validateProxyForController` bridge wraps `FPP::ValidateProxy`; `startControllerUpload` runs it off-thread and surfaces a continue/cancel warning alert (`BulkAndProxyUploadModifier`) before any upload HTTP. |
-| FPP Connect immediate-output upload for non-FPP discovered | menu/dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop uploads immediate output to non-FPP discovered devices (`src-ui-wx/controllers/FPPConnectDialog.cpp:1201` `bc->UploadForImmediate`). iPad early-returns when `fppType != FPP` (`src-iPad/Bridge/XLSequenceDocument.mm:14503-14507`). |
-| FPP Connect "Upload Controller" pushes input universes (#2747) | menu/dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop FPP Connect now calls `inst->SetInputUniversesBridge(c.front())` (`src-ui-wx/controllers/FPPConnectDialog.cpp:1179`) in the upload-controller path so input universes match the Controller-Properties upload (core `FPP::SetInputUniversesBridge`, `src-core/controllers/FPP.cpp:2176`). iPad FPP Connect is Slice A (sequence upload only — `src-iPad/App/FPPConnectSheet.swift:3-16`); per-FPP Cape/UDP/input config (incl. this input push) is scheduled for Slice B and not yet wired. iPad's standalone `uploadInputForController` (`XLSequenceDocument.mm:13441`) already uses core `SetInputUniverses`, so the regular controller-upload path is aligned; only the FPP-Connect surface lacks it. |
+| FPP Connect immediate-output upload for non-FPP discovered | menu/dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop uploads immediate output to non-FPP discovered devices (`src-ui-wx/controllers/FPPConnectDialog.cpp:1201` `bc->UploadForImmediateOutput`). iPad `applyConfigToFPP` non-FPP branch now creates a `BaseController` and calls `UploadForImmediateOutput` when the "Upload Controller Config" toggle is set and exactly one controller matches the device IP (`src-iPad/Bridge/XLSequenceDocument.mm`); the FPPConnectSheet surfaces that single toggle for non-FPP devices. |
+| FPP Connect "Upload Controller" pushes input universes (#2747) | menu/dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop FPP Connect calls `inst->SetInputUniversesBridge(c.front())` (`src-ui-wx/controllers/FPPConnectDialog.cpp:1179`) in the upload-controller path (core `FPP::SetInputUniversesBridge`, `src-core/controllers/FPP.cpp:2176`). iPad `applyConfigToFPP` Cape branch now calls `target->SetInputUniversesBridge(matchedEth)` after the pixel/panel/serial/virtual-matrix uploads, gated on the same `uploadCape` ("Upload Controller") toggle + single matched controller (`src-iPad/Bridge/XLSequenceDocument.mm`). |
 | Auto-upload on output-enable | dialog/panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad `startOutput` now sweeps AutoUpload-flagged active open-source-firmware controllers after `StartOutput()` and re-runs `runUpload` input+output (`src-iPad/Bridge/XLSequenceDocument.mm`). Closed firmware skipped silently. |
 | Global output settings (Controller Sync, E1.31 Sync Universe, Global FPP Proxy, Global Force-Local-IP, Max-Suppress-Frames) | dialog/panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad `globalOutputSettings`/`setGlobalOutputSetting` bridge + `GlobalOutputSettingsView` shown in the Controllers tab when no controller is selected. Uses existing `OutputManager` accessors. |
 | Vendor catalog browser | dialog | ✅ | ✅ | parity | P1 | hard | feasible | Desktop `VendorModelDialog` (LayoutPanel); iPad `VendorBrowserSheet` + `XLVendorCatalog`. |
@@ -171,14 +172,13 @@
 ### P2 — remaining
 
 - **FPP Connect immediate-output upload for non-FPP discovered
-  devices.** Desktop pushes an immediate output config to non-FPP
-  devices found during FPP Connect discovery
-  (`src-ui-wx/controllers/FPPConnectDialog.cpp:1201`
-  `bc->UploadForImmediate`). iPad early-returns when the discovered
-  device's `fppType != FPP`
-  (`src-iPad/Bridge/XLSequenceDocument.mm:14503-14507`), skipping those
-  devices. **Work:** extend the iPad FPP Connect upload to handle the
-  non-FPP immediate-output branch. **medium.**
+  devices.** ✅ **Shipped.** iPad `applyConfigToFPP`'s non-FPP branch
+  now creates a `BaseController` and runs `UploadForImmediateOutput`
+  when the per-device "Upload Controller Config" toggle is set and
+  exactly one controller matches the device IP — mirroring desktop's
+  `FPPConnectDialog.cpp:1199-1203`. The FPPConnectSheet shows that
+  single toggle (instead of the FPP Models/UDP/Cape/Playlist set) for
+  non-FPP devices.
 
 - **Auto-upload on output-enable.** Desktop re-uploads controllers
   flagged auto-upload when output is enabled. iPad surfaces the
@@ -190,20 +190,26 @@
 
 ### P3
 
-- **Controller list sort menu** (by name/id/ip/proxy/vendor/protocol),
-  desktop `OnListControllerPopup` "Sort" submenu
-  (`src-ui-wx/app-shell/TabSetup.cpp:2497-2504`) + header-click sort.
-  iPad only supports manual drag order. **medium.**
+- **Controller list sort menu** (by name/id/ip/proxy/vendor/protocol).
+  ✅ **Shipped.** The iPad Controllers-tab header menu now has a Sort
+  submenu (Name / Id / IP / Proxy / Vendor / Protocol) bridged through
+  `sortControllers(byMode:)` → `OutputManager::SortControllersby*` —
+  the same persistent core reorder desktop's `OnListControllerPopup`
+  Sort submenu (`src-ui-wx/app-shell/TabSetup.cpp:2504`) invokes. Manual
+  drag order still works too.
 - **"Open Proxy" browser shortcut.** ✅ **Shipped.** The
   controller detail pane (`LayoutEditorControllerDetailView`) shows an
   **Open Proxy** button next to **Open** whenever the controller has
   an FPP proxy set; it opens `http://<proxy>/`.
-- **Global "Export Controller Connections" XLSX.** Desktop
+- **Global "Export Controller Connections" XLSX.** ✅ **Shipped.** The
+  iPad Controllers-tab header menu has an "Export Connections…" action
+  → `exportControllerConnections(toPath:)`, which builds the same
+  all-controllers libxlsxwriter workbook desktop's
   `OnMenuItem_ExportControllerConnectionsSelected`
-  (`src-ui-wx/xLightsMain.cpp:8660`) writes an all-controllers
-  libxlsxwriter workbook. iPad has only per-controller CSV/JSON from
-  the Visualize sheet. The iPad already has a libxlsxwriter path
-  (`exportModelsReport`) to model from. **medium.**
+  (`src-ui-wx/xLightsMain.cpp:8660`) does — per-controller merged
+  header + `UDController::ExportAsCSV` rows + smart-remote shading — and
+  hands it to `.fileExporter`. iPad exports the full field set rather
+  than prompting (desktop shows a multi-choice field picker).
 - **Force Local IP (per-controller)** — ✅ **Shipped.** `ForceLocalIP`
   enum descriptor + setter in the iPad ethernet property list, options
   sourced from `ip_utils::GetLocalIPs()` (index 0 = no override).
@@ -261,8 +267,9 @@ FPP-proxy-validation / auto-upload-on-enable items have **all shipped**
 2. ~~Global output settings (P2).~~ ✅ Done.
 3. ~~Per-universe Output editing (P2).~~ ✅ Done.
 4. ~~Ping / health LED (P2).~~ ✅ Done.
-5. **P3 polish (remaining):** controller sort menu, global
+5. ~~P3 polish: controller sort menu, global
    Export-Controller-Connections XLSX, FPP Connect immediate-output
-   upload for non-FPP discovered devices.
+   upload for non-FPP discovered devices, FPP Connect input-universe
+   push (#2747).~~ ✅ Done.
 6. **Restricted tier (P3, deferred):** closed-firmware vendor uploads
    behind IAP once the open-firmware experience is fully solid.

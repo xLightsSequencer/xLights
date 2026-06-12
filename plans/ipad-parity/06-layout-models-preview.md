@@ -18,12 +18,16 @@
 > bulk/utility commands: **Faces/States now have a visual tap-to-pick
 > node assignment on iPad (NodeRangePickerSheet, reusing the SubModel
 > Metal node-picker) — only the matrix-face *image* mapping + xmodel
-> face/state file-import remain desktop-only**; **CAD/DXF export, export-as-custom/xmodel,
-> import-from-RGBeffects / LOR-S5, GDTF fixture import, make-start-
-> channel-valid / non-overlapping, the rest of the dedicated Bulk-Edit submenu
+> face/state file-import remain desktop-only**; **CAD/DXF export, export-as-custom,
+> import-from-RGBeffects / LOR-S5, the rest of the dedicated Bulk-Edit submenu
 > (incl. dimming curves / controller direction), unlink model/group from
 > base show, and
-> layout clipboard copy/paste** are all desktop-only. The theme-06
+> layout clipboard copy/paste** are all desktop-only.
+> **Model export-as-.xmodel, GDTF fixture import, make-start-channel
+> valid / all-valid / all-not-overlapping, SubModel import (from
+> .xmodel file / another model / CSV), and ruler-calibrated real-world
+> dimension readouts are now at parity** (bridge wrappers + roster
+> context-menu / SubModel-editor / property-pane surfaces). The theme-06
 > single-shot layout commands **preview delete / rename, model-group
 > clone, correct aspect ratio, set-center-offset, polyline
 > enter-segment-size, the overlap-checks toggle, and the
@@ -99,12 +103,12 @@
 | Bulk Edit: dimming curves | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_BULKEDIT_DIMMINGCURVES. No iPad dimming authoring. |
 | Replace model(s) with this model | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_PREVIEW_REPLACEMODEL / ReplaceModelDialog (#4462, rewritten to multi-target): source model + filtered checkbox target list, options keep-start-channel / keep-submodels / keep-size+pos. iPad: bridge `replaceModels:withSource:keepStartChannel:keepSubmodels:keepSizePosition:forDocument:` (XLMetalBridge.mm) — clones source via XmlSerializer per target, copies start-channel/controller/SR + submodels (SubModel copy ctor) + size/pos/rotation per the flags, atomic name swap, deletes old. ReplaceModelSheet (LayoutEditorView.swift, searchable multi-select + 3 toggles) launched from the InlineModelActionBar ↻ button. |
 | Export as Custom / 3D Custom xLights model | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_EXPORTASCUSTOM(3D). iPad: import works, export missing. |
-| Export xLights model (.xmodel) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL. iPad: no UI. |
+| Export xLights model (.xmodel) | menu | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL. iPad: bridge `exportModelToXmodelFile:path:` (XLSequenceDocument.mm — `XmlSerializer::SerializeModel(m, true)` → `doc.save_file`, same call desktop's single-model export makes) + "Export as .xmodel…" in the model roster context menu (LayoutEditorView.swift) → temp-file + `.fileExporter` (`XmodelExportDoc` / `XmodelExportModifier`). Carries submodels / faces / states / aliases / dimming via the visitor. |
 | Export CAD (DXF/STL/VRML) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_MODEL_CAD_EXPORT. iPad: no UI. |
 | Export Faces/States/SubModels to other models | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_EXPORT_FACESSTATESSUBMODELS. iPad: no UI. |
 | Model import (.xmodel / multi-model) | dialog | ✅ | ✅ | parity | P1 | medium | feasible | iPad .fileImporter + multi-model handling (xmodelFileIsMultiModel). |
-| Multi-model import preserves relative positions | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop #6438: importing several models from one .xmodel keeps their original relative layout positions instead of stacking them. iPad's multi-model import (xmodelFileIsMultiModel) places imported models without preserving inter-model offsets. Work: carry per-model offsets through the iPad import placement path. |
-| Import fixture from GDTF file | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad declares gdtf UTType (LayoutEditorView.swift:342, :515-532) but has no GdtfParser/ParseGdtf path. |
+| Multi-model import preserves relative positions | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop #6438: importing several models from one .xmodel keeps their original relative layout positions. iPad already does this — `importXmodelFromPath:` (XLMetalBridge.mm:2520-2567) detects the `<models>` root, anchors the primary at the touch point, and re-applies each sibling's file-space `WorldPosX/Y/Z` delta from the primary (`primaryNew + (sibFilePos - primaryFilePos)`), the same min-corner-relative offset desktop's FinalizeModel computes. Verified at audit time; flipped. |
+| Import fixture from GDTF file | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop GdtfParser → CreateDmxModelFromGdtf. iPad: `importXmodelFromPath:` (XLMetalBridge.mm) now branches on the `.gdtf` extension — `LoadGdtfDescriptionXml` unzips `description.xml` (minizip), then the shared core `XmlSerialize::ParseGdtfDescriptionXml` + `CreateDmxModelFromGdtfData` build the DMX model (same calls desktop makes), placed under the touch point via the existing import path. Multi-mode fixtures auto-pick the first mode (uiCallbacks==nullptr); an interactive mode picker is a small follow-up. |
 | Import Previews/Models/Groups (from RGBeffects) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORTMODELSFROMRGBEFFECTS. iPad: no UI. |
 | Import LOR S5 models/groups | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_PREVIEW_IMPORT_MODELS_FROM_LORS5. iPad: no UI. |
 | Vendor model browser (download .xmodel/wiring) | dialog | ❌ | ✅ | desktop-missing | P2 | hard | feasible | iPad VendorBrowserSheet (XLVendorCatalog). Desktop downloads .xmodel manually. |
@@ -154,9 +158,9 @@
 | Polyline segment context (Add/Delete Point, Define/Remove Curve) | context-menu | ✅ | ✅ | parity | P2 | hard | feasible | iPad long-press → confirmationDialog (vertex/segment/curve). |
 | Polyline "Enter Segment Size" | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop ID_PREVIEW_MODEL_SET_SEGMENTS. iPad: `setSegmentSizeForModel:segment:size:` (XLSequenceDocument.mm → PolyLineModel::SetSegmentSize + Reinitialize) + "Set Segment Size…" entry in the poly-line segment long-press menu (LayoutEditorView.swift). |
 | Model / group unlink from base show folder | menu/panel | ✅ | ❌ | ipad-missing | P1 | medium | feasible | No unlinkModel/unlinkGroup/UnlinkSelectedModels in src-iPad; only controller unlink exists (XLSequenceDocument.h:2341 unlinkControllerFromBase). |
-| Make Start Channel Valid (model) | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_MNU_MAKESCVALID. iPad: no UI. |
-| Make All Start Channels Valid | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_MNU_MAKEALLSCVALID. iPad: no UI. |
-| Make All Start Channels Not Overlapping | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop ID_MNU_MAKEALLSCNOTOVERLAPPING. iPad: no UI. |
+| Make Start Channel Valid (model) | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_MNU_MAKESCVALID. iPad: bridge `makeStartChannelValidForModel:` (XLSequenceDocument.mm — clears the controller name to NO_CONTROLLER when `!CouldComputeStartChannel || !IsValidStartChannelString`, then `RecalcStartChannels`, same trigger desktop uses) + "Make Start Channel Valid" in the model roster context menu (LayoutEditorView.swift). |
+| Make All Start Channels Valid | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_MNU_MAKEALLSCVALID. iPad: bridge `makeAllStartChannelsValid` (same invalid-check across every non-group model) + roster context-menu entry. |
+| Make All Start Channels Not Overlapping | menu | ✅ | ✅ | parity | P3 | hard | feasible | Desktop ID_MNU_MAKEALLSCNOTOVERLAPPING. iPad: bridge `makeAllStartChannelsNotOverlapping` (clears the controller name on every model where `ModelManager::IsModelOverlapping` is true, then recalcs) + roster context-menu entry. |
 | Delete Empty Groups / Delete All Aliases (bulk) | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop tree context. iPad: no bulk-housekeeping UI. |
 | Model list sort | menu | ✅ | ✅ | parity | P2 | easy | feasible | iPad ModelSortMode picker; desktop column sort. |
 | Model list filter / search | panel | ✅ | ✅ | parity | P2 | easy | feasible | iPad searchable list; desktop wxSearchCtrl. |
@@ -168,9 +172,9 @@
 | Controller properties (universe/channels/protocol) | panel | ✅ | ✅ | parity | P2 | hard | feasible | Desktop Controller adapters; iPad controller detail descriptor pane. |
 | Controller unlink from base show folder | menu/panel | ✅ | ✅ | parity | P2 | medium | feasible | iPad controller property-pane Unlink; desktop in Setup tab. |
 | Undo / redo layout changes | toolbar/shortcut | ✅ | ✅ | parity | P1 | medium | feasible | iPad pushLayoutUndoSnapshot + Undo button; desktop Ctrl+Z/Y. |
-| SubModel import (from Model / File / Layout / Downloads / CSV) | dialog | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop SubModelsDialog.cpp:1126 ImportSubModel, :1138 ImportCSVSubModel, def :3537. iPad has no submodel-import symbols. |
+| SubModel import (from Model / File / Layout / Downloads / CSV) | dialog | ✅ | 🟡 | ipad-weaker | P2 | hard | feasible | Desktop SubModelsDialog.cpp:1126 ImportSubModel, :1138 ImportCSVSubModel, def :3537. iPad: the three highest-value sources are wired — **From .xmodel File** (`submodelDetailsFromXmodelFile:` → core `XmlSerialize::LoadSubModelsFromXml`, same parse as desktop's ImportSubModelXML), **From Another Model** (`submodelDetailsFromModel:` copies a layout model's SubModel defs, source picked via `SubModelSourceModelPicker` over `modelNamesWithSubmodelsExcluding:`), and **From CSV** (`submodelDetailsFromCSVFile:`, each line compressed via `NodeUtils::CompressNodes`). All three return the `submodelDetailsForModel:` dict shape; the SubModelListSheet "Import SubModels…" menu merges (auto-uniquifying colliding names) and commits via `replaceSubModelsOnModel:`. **Downloads** (online catalog) and **Layout RGBeffects-pull** sources remain desktop-only. |
 | SubModels output-to-lights live test toggle | dialog | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop SubModelsDialog output-to-lights. iPad startOutput (XLSequenceDocument.h:1650-1653) used only in SequencerViewModel, not in editors. |
-| Real-world dimension readouts (ruler-calibrated) | panel | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop ScreenLocationProperties RealWidth/RealHeight/RealDepth via ConvertDimension. iPad has no RealWidth/RealLength/ConvertDimension. |
+| Real-world dimension readouts (ruler-calibrated) | panel | ✅ | ✅ | parity | P2 | medium | feasible | Desktop ScreenLocationProperties RealWidth/RealHeight/RealDepth via RulerObject::Measure. iPad: `modelLayoutSummary:` now adds a `realDimensions` sub-dict (width/height/depth + units) computed from `GetModelScreenLocation().GetRealWidth/Height/Depth()` whenever `RulerObject::GetRuler()` is non-null (a Ruler view-object has been placed). Surfaced as read-only "Real Width / Height / Depth" rows at the foot of the Size/Location section (`realDimensionRows`, LayoutEditorView.swift). Shared core, so the ruler calibration auto-applies. |
 | Overlap checks toggle | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop CheckBoxOverlap (LayoutPanel.cpp:636, :3456) + CheckModelForOverlaps (:7720). iPad: `modelsOverlappingModel:` (XLSequenceDocument.mm — same start/last-channel overlap test) + Overlap-Checks toggle in the Models-header Display menu; overlapping roster rows get an orange highlight + warning badge (LayoutEditorView.swift). |
 | SubModel import from State / Face definitions | dialog | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop SubModelsDialog.cpp CreateSubmodel(name,nodes) (:3768) invoked from state/face context (:1064, :1117). iPad absent. |
 | SubModel 'Import Custom Model Overlay' (matrix only) | dialog | ✅ | ❌ | ipad-missing | P3 | hard | feasible | Desktop SubModelsDialog.cpp:1132 ImportCustomModel, :3790/:3936/:4007 overlay helpers. iPad absent. |
@@ -217,22 +221,36 @@
   delete / to the new name on rename, mirroring desktop, and patch the
   `<layoutGroups>` element on save) + Delete / Rename Preview entries
   in the Models-section header menu.
-- **GDTF fixture import.** iPad declares the `gdtf` UTType
-  (`LayoutEditorView.swift:342`, `:515-532`) but has no `GdtfParser` /
-  `CreateDmxModelFromGdtf` path; importing a GDTF fixture does nothing.
-  Needs a bridge entry point over the shared GDTF parser. Ease: medium.
-- **SubModel import (from Model / File / Layout / Downloads / CSV).**
-  Desktop `SubModelsDialog.cpp:1126` `ImportSubModel`, `:1138`
-  `ImportCSVSubModel` (def `:3537`). iPad's SubModel editor only
-  creates/edits/deletes inline — no import sources. Ease: hard.
+- **GDTF fixture import.** ✅ Done. `importXmodelFromPath:`
+  (`XLMetalBridge.mm`) branches on the `.gdtf` extension:
+  `LoadGdtfDescriptionXml` unzips `description.xml` via minizip, then
+  the shared core `XmlSerialize::ParseGdtfDescriptionXml` +
+  `CreateDmxModelFromGdtfData` build the DMX model and the existing
+  import path places it under the touch point. Multi-mode fixtures
+  auto-select the first mode (uiCallbacks==nullptr) — an interactive
+  DMX-mode picker is a small follow-up.
+- **SubModel import (from Model / File / CSV).** 🟡 Mostly done.
+  `submodelDetailsFromXmodelFile:` (core
+  `XmlSerialize::LoadSubModelsFromXml`), `submodelDetailsFromModel:`
+  (copy another layout model's SubModel defs, picked via
+  `SubModelSourceModelPicker`), and `submodelDetailsFromCSVFile:`
+  (lines compressed via `NodeUtils::CompressNodes`) all return the
+  `submodelDetailsForModel:` dict shape; the SubModelListSheet
+  "Import SubModels…" menu merges them (auto-uniquifying colliding
+  names) and commits via `replaceSubModelsOnModel:`. The online
+  **Downloads** catalog and the RGBeffects-pull **Layout** source
+  remain desktop-only.
 - **SubModels output-to-lights live test toggle.** Desktop drives the
   selected submodel to the lights for testing. iPad's `startOutput`
   (`XLSequenceDocument.h:1650-1653`) is used only by the sequencer, not
   the SubModel editor. Ease: medium.
-- **Real-world dimension readouts (ruler-calibrated).** Desktop
-  ScreenLocationProperties show RealWidth/RealHeight/RealDepth via
-  `ConvertDimension`. iPad has no real-world dimension fields. Ease:
-  medium.
+- **Real-world dimension readouts (ruler-calibrated).** ✅ Done.
+  `modelLayoutSummary:` adds a `realDimensions` sub-dict
+  (width/height/depth + units) from
+  `GetModelScreenLocation().GetRealWidth/Height/Depth()` whenever a
+  Ruler view-object exists (`RulerObject::GetRuler() != nullptr`);
+  SwiftUI shows read-only "Real Width / Height / Depth" rows at the
+  foot of the Size/Location section (`realDimensionRows`).
 
 ### P3
 
@@ -254,13 +272,19 @@
   model action-bar aspect button, the poly-line segment menu's "Set
   Segment Size…"). **Model replace** (`ID_PREVIEW_REPLACEMODEL`)
   remains desktop-only. Ease: medium each.
-- **Make-start-channel-valid / -not-overlapping (model + all).** Desktop
-  `ID_MNU_MAKESCVALID` / `ID_MNU_MAKEALLSCVALID` /
-  `ID_MNU_MAKEALLSCNOTOVERLAPPING` (`LayoutPanel.cpp:10773-10802`).
-  Useful housekeeping; needs bridge ops over the channel solver.
-- **Export-as-custom / -3D-custom / -xmodel, CAD (DXF/STL/VRML),
+- **Make-start-channel-valid / -all-valid / -not-overlapping (model +
+  all).** ✅ Done. Bridge `makeStartChannelValidForModel:` /
+  `makeAllStartChannelsValid` / `makeAllStartChannelsNotOverlapping`
+  (XLSequenceDocument.mm) replicate the desktop handlers — clear the
+  controller name (NO_CONTROLLER) on each offending model
+  (`!CouldComputeStartChannel || !IsValidStartChannelString`, or
+  `ModelManager::IsModelOverlapping`) then `RecalcStartChannels` — and
+  are reachable from the model roster context menu.
+- **Export-as-.xmodel** ✅ Done (`exportModelToXmodelFile:path:` →
+  `XmlSerializer::SerializeModel(m, true)` + `.fileExporter`, roster
+  context menu). **Export-as-custom / -3D-custom, CAD (DXF/STL/VRML),
   layout DXF, faces/states/submodels export, import-from-RGBeffects,
-  import LOR-S5.** All desktop export/import menu items
+  import LOR-S5** remain desktop-only
   (`LayoutPanel.cpp:6164-6173`, `:6325-6327`). Most reuse shared
   serializers — needs file-exporter UI + bridge entry points. Ease:
   medium–hard.
@@ -378,8 +402,14 @@
    save/restore (P2)** is likewise already landed (parity).
 5. **Export family + make-SC-valid + group-clone / replace / aspect /
    center-offset / segment-size (P3)** — group-clone, correct-aspect,
-   set-center-offset, and enter-segment-size are ✅ done (single-shot
-   bridge wrappers + context entries). Remaining: the export family,
-   make-SC-valid / -not-overlapping, and model replace.
+   set-center-offset, enter-segment-size, model replace, **export-as-
+   .xmodel**, and **make-SC-valid / all-valid / all-not-overlapping**
+   are ✅ done (single-shot bridge wrappers + context entries). Also
+   landed this pass: **GDTF fixture import**, **SubModel import** (from
+   .xmodel file / another model / CSV), and **ruler-calibrated real-
+   world dimension readouts**. Remaining export/import: export-as-
+   custom / -3D-custom, CAD (DXF/STL/VRML), layout DXF, faces/states/
+   submodels export, import-from-RGBeffects, import-LOR-S5, and the
+   online SubModel **Downloads** / RGBeffects-pull **Layout** sources.
 6. **Layout clipboard copy/paste & dimming-curve authoring (P3, hard)**
    — lowest priority; Duplicate + clear-dimming cover the common cases.

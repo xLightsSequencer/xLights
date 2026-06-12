@@ -21,6 +21,8 @@
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include "XmlSerializer/GdtfParser.h"
+#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
 #include "models/Node.h"
 #include "models/RulerObject.h"
 #include <pugixml.hpp>
@@ -2408,6 +2410,30 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return std::string_view(root.name()) == "models";
 }
 
+// GDTF fixtures are ZIP archives; the fixture definition lives in
+// description.xml at the archive root. Extract it into a pugixml
+// document. Mirrors desktop LayoutPanel's wxZipInputStream pull.
+static bool LoadGdtfDescriptionXml(NSString* path, pugi::xml_document& outDoc) {
+    unzFile uf = unzOpen([path UTF8String]);
+    if (!uf) return false;
+    bool ok = false;
+    if (unzLocateFile(uf, "description.xml", 2) == UNZ_OK &&
+        unzOpenCurrentFile(uf) == UNZ_OK) {
+        std::string buf;
+        std::vector<char> chunk(64 * 1024);
+        int n;
+        while ((n = unzReadCurrentFile(uf, chunk.data(), (unsigned)chunk.size())) > 0) {
+            buf.append(chunk.data(), (size_t)n);
+        }
+        unzCloseCurrentFile(uf);
+        if (!buf.empty()) {
+            ok = (bool)outDoc.load_buffer(buf.data(), buf.size());
+        }
+    }
+    unzClose(uf);
+    return ok;
+}
+
 - (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
                                         atScreenPoint:(CGPoint)point
                                              viewSize:(CGSize)viewSize
@@ -2417,29 +2443,58 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return nil;
 
-    // Parse the .xmodel XML before creating anything — failing
-    // late would leak a stub model into the show.
-    pugi::xml_document xdoc;
-    pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
-    if (!parseRes) return nil;
-    pugi::xml_node root = xdoc.document_element();
-    if (!root) return nil;
+    const bool isGdtf = [[path.pathExtension lowercaseString] isEqualToString:@"gdtf"];
 
-    rctx->AbortRender(5000);
-    // CreateDefaultModelFromSavedModelNode wants a baseline Model*
-    // to mutate / replace. Use "Custom" — the import path swaps it
-    // out for the deserialized type anyway, so the placeholder
-    // choice only matters in the very narrow paths where the
-    // function preserves baseline state (start channel, layout
-    // group, hcenter/vcenter — we override those below).
-    Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
-    if (!baseline) return nil;
-    bool cancelled = false;
-    Model* imported = baseline->CreateDefaultModelFromSavedModelNode(
-        baseline, root, rctx->GetModelManager(), cancelled);
-    if (cancelled || !imported) {
-        delete baseline;
-        return nil;
+    Model* imported = nullptr;
+    pugi::xml_document xdoc;
+    pugi::xml_node root;
+
+    if (isGdtf) {
+        // GDTF fixture import — parse description.xml and build a DMX
+        // model via the shared core path (GdtfParser), the same one
+        // desktop's CreateDmxModelFromGdtf uses. uiCallbacks==nullptr
+        // auto-selects the first DMX mode when the fixture defines
+        // several (the desktop prompts; a mode picker is a follow-up).
+        pugi::xml_document gdtfDoc;
+        if (!LoadGdtfDescriptionXml(path, gdtfDoc)) return nil;
+        rctx->AbortRender(5000);
+        XmlSerialize::GdtfModelData gdtfData;
+        bool cancelled = false;
+        if (!XmlSerialize::ParseGdtfDescriptionXml(gdtfDoc, rctx->GetModelManager(),
+                                                   nullptr, cancelled, gdtfData) || cancelled) {
+            return nil;
+        }
+        // CreateDmxModelFromGdtfData consumes (deletes) its baseline
+        // and returns a fresh DMX model; it requires a non-null one.
+        Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+        if (!baseline) return nil;
+        imported = XmlSerialize::CreateDmxModelFromGdtfData(baseline, gdtfData,
+                                                            rctx->GetModelManager());
+        if (!imported) return nil;
+    } else {
+        // Parse the .xmodel XML before creating anything — failing
+        // late would leak a stub model into the show.
+        pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
+        if (!parseRes) return nil;
+        root = xdoc.document_element();
+        if (!root) return nil;
+
+        rctx->AbortRender(5000);
+        // CreateDefaultModelFromSavedModelNode wants a baseline Model*
+        // to mutate / replace. Use "Custom" — the import path swaps it
+        // out for the deserialized type anyway, so the placeholder
+        // choice only matters in the very narrow paths where the
+        // function preserves baseline state (start channel, layout
+        // group, hcenter/vcenter — we override those below).
+        Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+        if (!baseline) return nil;
+        bool cancelled = false;
+        imported = baseline->CreateDefaultModelFromSavedModelNode(
+            baseline, root, rctx->GetModelManager(), cancelled);
+        if (cancelled || !imported) {
+            delete baseline;
+            return nil;
+        }
     }
 
     // J-4 (import) — match the show's ruler when the imported
@@ -3529,6 +3584,30 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     long v = std::strtol(s.c_str(), &endp, 10);
     if (endp == s.c_str() || v <= 0) return 0;
     return (NSInteger)v;
+}
+
+- (NSString*)sampledColorHexNearPoint:(CGPoint)point
+                             viewSize:(CGSize)viewSize
+                          forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    if (_preview->Is3D()) return nil;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    for (const auto& [name, m] : rctx->GetModelManager()) {
+        if (!m) continue;
+        std::string s = m->GetNodeNear(_preview.get(), p, false);
+        if (s.empty()) continue;
+        char* endp = nullptr;
+        long v = std::strtol(s.c_str(), &endp, 10);
+        if (endp == s.c_str() || v <= 0) continue;
+        xlColor c = m->GetNodeColor((size_t)(v - 1));
+        return [NSString stringWithFormat:@"#%02X%02X%02X", c.red, c.green, c.blue];
+    }
+    return nil;
 }
 
 - (NSArray<NSNumber*>*)nodesInRect:(CGRect)rect

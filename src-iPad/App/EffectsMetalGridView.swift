@@ -39,6 +39,14 @@ struct EffectsMetalGridView: UIViewRepresentable {
     /// render-completion poll. Cached-display-list effects still
     /// update a second time when `renderedBackgroundsRevision` bumps.
     let inspectorRevision: Int
+    /// Desktop "Effects Grid ▸ Effect Backgrounds" pref. When off, the
+    /// per-effect `DrawEffectBackground` geometry batch is skipped (icons
+    /// still draw). Gates drawing only.
+    var showEffectBackgrounds: Bool = true
+    /// Desktop "Effects Grid ▸ Display Transition Marks" pref. When off,
+    /// the fade bars + fade-handle diamonds are not drawn; the drag
+    /// hit-testing still works whenever a handle would be visible.
+    var showTransitionMarks: Bool = true
 
     // Shared scroll state (pan writes, other canvases read)
     @Binding var scrollOffsetX: CGFloat
@@ -85,6 +93,8 @@ struct EffectsMetalGridView: UIViewRepresentable {
         ctx.selectedEffects = selectedEffects
         ctx.activeDrag = activeDrag
         ctx.timingMarkTimesMS = timingMarkTimesMS
+        ctx.showEffectBackgrounds = showEffectBackgrounds
+        ctx.showTransitionMarks = showTransitionMarks
         ctx.scrollOffsetX = scrollOffsetX
         ctx.scrollOffsetY = scrollOffsetY
         ctx.actions = actions
@@ -136,6 +146,8 @@ struct EffectsMetalGridView: UIViewRepresentable {
         var selectedEffects: Set<SequencerViewModel.EffectSelection> = []
         var activeDrag: SequencerViewModel.ActiveDrag?
         var timingMarkTimesMS: [Int] = []
+        var showEffectBackgrounds: Bool = true
+        var showTransitionMarks: Bool = true
         var scrollOffsetX: CGFloat = 0
         var scrollOffsetY: CGFloat = 0
         var actions = EffectCanvasActions()
@@ -577,19 +589,21 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         // effect asks `RenderableEffect::DrawEffectBackground` to
         // append its geometry into a shared accumulator, then we flush
         // once. The returned hint (0/1/2) drives icon sizing below.
-        bridge.beginEffectBackgroundBatch()
-        for i in vis.indices {
-            let e = vis[i]
-            let hint = c.document.appendEffectBackground(
-                forRow: Int32(e.rowId),
-                at: Int32(e.effectIndex),
-                x1: Float(e.x1), y1: Float(e.top),
-                x2: Float(e.x2), y2: Float(e.bottom),
-                bridge: c.bridge,
-                drawRamps: true)
-            vis[i].drawIconHint = Int(hint)
+        if c.showEffectBackgrounds {
+            bridge.beginEffectBackgroundBatch()
+            for i in vis.indices {
+                let e = vis[i]
+                let hint = c.document.appendEffectBackground(
+                    forRow: Int32(e.rowId),
+                    at: Int32(e.effectIndex),
+                    x1: Float(e.x1), y1: Float(e.top),
+                    x2: Float(e.x2), y2: Float(e.bottom),
+                    bridge: c.bridge,
+                    drawRamps: true)
+                vis[i].drawIconHint = Int(hint)
+            }
+            bridge.flushEffectBackgroundBatch()
         }
-        bridge.flushEffectBackgroundBatch()
 
         // Disabled overlays.
         bridge.beginFilledRectBatch()
@@ -744,31 +758,33 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         }
 
         // Fade bars + yellow overlap stripe.
-        bridge.beginFilledRectBatch()
-        for e in vis {
-            let fadeInPx = CGFloat(e.fadeInSec) * 1000 * c.pixelsPerMS
-            let fadeOutPx = CGFloat(e.fadeOutSec) * 1000 * c.pixelsPerMS
-            let barH: CGFloat = 3
-            let width = max(e.x2 - e.x1, 1)
-            if fadeInPx > 0 {
-                bridge.appendFilledRectX(e.x1, y: e.top, w: min(fadeInPx, width), h: barH,
-                                          r: 0.20, g: 0.78, b: 0.35, a: 0.85)
-            }
-            if fadeOutPx > 0 {
-                bridge.appendFilledRectX(max(e.x1, e.x2 - fadeOutPx), y: e.top,
-                                          w: min(fadeOutPx, width), h: barH,
-                                          r: 0.95, g: 0.30, b: 0.25, a: 0.85)
-            }
-            if fadeInPx + fadeOutPx > width, width > 0 {
-                let s = max(e.x1, e.x2 - fadeOutPx)
-                let eX = min(e.x1 + fadeInPx, e.x2)
-                if eX > s {
-                    bridge.appendFilledRectX(s, y: e.top, w: eX - s, h: barH,
-                                              r: 0.95, g: 0.85, b: 0.15, a: 0.95)
+        if c.showTransitionMarks {
+            bridge.beginFilledRectBatch()
+            for e in vis {
+                let fadeInPx = CGFloat(e.fadeInSec) * 1000 * c.pixelsPerMS
+                let fadeOutPx = CGFloat(e.fadeOutSec) * 1000 * c.pixelsPerMS
+                let barH: CGFloat = 3
+                let width = max(e.x2 - e.x1, 1)
+                if fadeInPx > 0 {
+                    bridge.appendFilledRectX(e.x1, y: e.top, w: min(fadeInPx, width), h: barH,
+                                              r: 0.20, g: 0.78, b: 0.35, a: 0.85)
+                }
+                if fadeOutPx > 0 {
+                    bridge.appendFilledRectX(max(e.x1, e.x2 - fadeOutPx), y: e.top,
+                                              w: min(fadeOutPx, width), h: barH,
+                                              r: 0.95, g: 0.30, b: 0.25, a: 0.85)
+                }
+                if fadeInPx + fadeOutPx > width, width > 0 {
+                    let s = max(e.x1, e.x2 - fadeOutPx)
+                    let eX = min(e.x1 + fadeInPx, e.x2)
+                    if eX > s {
+                        bridge.appendFilledRectX(s, y: e.top, w: eX - s, h: barH,
+                                                  r: 0.95, g: 0.85, b: 0.15, a: 0.95)
+                    }
                 }
             }
+            bridge.flushFilledRectBatch()
         }
-        bridge.flushFilledRectBatch()
 
         // Invalid-drop tint.
         if let d = c.activeDrag, d.liveDropInvalid,
@@ -796,7 +812,8 @@ final class EffectsMetalGridMTKView: MTKView, MTKViewDelegate, UIPencilInteracti
         }
 
         // Fade-handle diamonds for selected effect.
-        for e in vis where c.selection?.rowIndex == e.rowId
+        for e in vis where c.showTransitionMarks
+                            && c.selection?.rowIndex == e.rowId
                             && c.selection?.effectIndex == e.effectIndex {
             if e.x2 - e.x1 < 8 { continue }
             let fadeInPx = CGFloat(e.fadeInSec) * 1000 * c.pixelsPerMS

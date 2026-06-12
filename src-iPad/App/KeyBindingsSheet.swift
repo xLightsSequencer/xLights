@@ -33,6 +33,7 @@ struct KeyBindingsSheet: View {
             .init(keys: "⌘X", action: "Cut"),
             .init(keys: "⌘C", action: "Copy"),
             .init(keys: "⌘V", action: "Paste"),
+            .init(keys: "⌥⌘V", action: "Paste at Original Time"),
             .init(keys: "⌘D", action: "Duplicate"),
             .init(keys: "⌘A", action: "Select All"),
             .init(keys: "Delete", action: "Delete Selection"),

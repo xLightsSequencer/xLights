@@ -607,6 +607,17 @@ NS_ASSUME_NONNULL_BEGIN
                           viewSize:(CGSize)viewSize
                        forDocument:(XLSequenceDocument*)doc;
 
+// Color Dropper (desktop View ▸ Windows ▸ Color Dropper). Sample the
+// current rendered colour of whichever model node sits under `point`.
+// Walks every model in ModelManager iteration order and returns the
+// `#RRGGBB` colour of the first node hit (so it works on the multi-
+// model House preview as well as a single-model preview), or nil for
+// a miss / 3D mode. The colour comes from the node's last-rendered
+// value, not a GPU pixel read-back — no drawable stall.
+- (nullable NSString*)sampledColorHexNearPoint:(CGPoint)point
+                                      viewSize:(CGSize)viewSize
+                                   forDocument:(XLSequenceDocument*)doc;
+
 // J-30 — Submodel editor support. Apply highlight colours to the
 // named model's nodes: nodes in `highlighted` (1-based) are
 // painted white, every other node is painted dark grey. Matches

@@ -206,6 +206,24 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)loadLMSSourceAtPath:(NSString*)path
                       error:(NSError**)error NS_SWIFT_NAME(loadLMSSource(atPath:));
 
+// Load a LOR Pixel Editor `.lpe` file as an EFFECT-import source (the iPad
+// analogue of desktop xLightsFrame::ImportLPE). Parses the document with the
+// wx-free core LORPixelEditor reader and populates the shared
+// available/destination tree; apply synthesizes the translated pixel effects
+// (per LPE left/right side + layer) onto the mapped layers. Returns a non-nil
+// error on parse failure.
+- (BOOL)loadLPESourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadLPESource(atPath:));
+
+// Load an HLS `.hlsIdata` file as an EFFECT-import source (the iPad analogue of
+// desktop xLightsFrame::ImportHLS). Parses the document with the wx-free core
+// HLSFile reader and populates the shared available/destination tree; apply
+// decodes each mapped channel's per-frame colour stream into On / Color Wash
+// effects (with per-pixel CCR strand fan-out). Returns a non-nil error on parse
+// failure.
+- (BOOL)loadHLSSourceAtPath:(NSString*)path
+                      error:(NSError**)error NS_SWIFT_NAME(loadHLSSource(atPath:));
+
 // IE-7 — source-sequence metadata for pre-import warnings. Only meaningful for
 // an `.xsq` / package source (nil / 0 / empty for `.loredit` / `.tim`).
 // `sourceFrequency` is frames-per-second. `sourceMissingMedia` is only

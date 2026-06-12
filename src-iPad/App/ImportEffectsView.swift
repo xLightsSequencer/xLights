@@ -175,7 +175,7 @@ struct ImportEffectsView: View {
             Text("Pick a sequence to import effects from.")
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, .loredit LOR S5, and .lms / .las LOR Music / Animation exports are supported.")
+            Text(".xsq / .xsqz xLights sequences, .sup SuperStar files, .loredit LOR S5, .lms / .las LOR Music / Animation, .lpe LOR Pixel Editor, and .hlsIdata HLS exports are supported.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -474,6 +474,16 @@ struct ImportEffectsView: View {
                 // core LORMusic reader. Shares the mapping panes / AutoMapper
                 // flow with `.xsq`; only source discovery differs.
                 try session.loadLMSSource(atPath: url.path)
+            } else if ext == "lpe" {
+                // LOR Pixel Editor effect-level export — parsed by the core
+                // LORPixelEditor reader. Shares the mapping panes with `.xsq`;
+                // only source discovery differs.
+                try session.loadLPESource(atPath: url.path)
+            } else if ext == "hlsidata" {
+                // HLS `.hlsIdata` effect-level export — parsed by the core
+                // HLSFile reader. Shares the mapping panes with `.xsq`; only
+                // source discovery differs.
+                try session.loadHLSSource(atPath: url.path)
             } else {
                 try session.loadSourceSequence(atPath: url.path)
             }
@@ -704,6 +714,10 @@ struct ImportEffectsView: View {
         // LOR Music / Animation effect-level export (parsed by core LORMusic).
         if let lms = UTType(filenameExtension: "lms") { types.append(lms) }
         if let las = UTType(filenameExtension: "las") { types.append(las) }
+        // LOR Pixel Editor effect-level export (parsed by core LORPixelEditor).
+        if let lpe = UTType(filenameExtension: "lpe") { types.append(lpe) }
+        // HLS `.hlsIdata` effect-level export (parsed by core HLSFile).
+        if let hls = UTType(filenameExtension: "hlsIdata") { types.append(hls) }
         // xLights package (zip-based, like .xsqz) — handled by SequencePackage.
         if let piz = UTType(filenameExtension: "piz") { types.append(piz) }
         return types

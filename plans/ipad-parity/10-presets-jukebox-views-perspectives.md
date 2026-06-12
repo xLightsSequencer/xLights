@@ -11,13 +11,23 @@
 > auto-detect), and the read-only **"From Base"** section (base show
 > folder's preset library, apply-only) are now at parity in
 > `PresetBrowserSheet`. The only remaining preset gap is the animated
-> **preview GIF**. **Display Elements / Views** is also at parity
-> (create / rename / clone / delete / reorder views, add-to /
-> remove-from Master + user views, visibility toggles, timing-track
-> add/remove, filter, **Copy To Master**, **Show/Hide All + Hide/Remove
-> Unused** bulk ops, and **Import view config from another `.xsq`** —
-> the RGBEffects-layout import variant and per-panel undo/sort remain
-> desktop-only).
+> **preview GIF**. **Display Elements / Views** is now at near-full parity:
+> in addition to create / rename / clone / delete / reorder views,
+> add-to / remove-from Master + user views, visibility toggles,
+> timing-track add/remove, filter, **Copy To Master**, **Show/Hide All
+> + Hide/Remove Unused** bulk ops, and **Import view config from another
+> `.xsq`**, the latest pass added **sort strategies** (8 sort modes via a
+> "Sort" toolbar menu in the Master-View pane, matching
+> `ViewsModelsPanel.cpp:1667-1682`), **keyboard delete** (hardware Delete
+> key via `.keyboardShortcut` on the selected member), **effect-sequence
+> mode** (Views sidebar hidden when `sequenceType == "Effect"`), and
+> **per-view checkbox at parity** (the desktop checkbox is a view
+> selector, not a visibility toggle — iPad sidebar selection is the
+> equivalent). The RGBEffects-layout import variant and per-panel
+> undo remain desktop-only. **Row headings** now include the **has-effects
+> amber stripe** and the **model tag-color chip** (two new bridge methods
+> `rowHasEffects(at:)` and `rowTagColor(at:)` + `RowInfo` fields). The
+> single-color swatch remains deferred (needs `GetNodeMaskColor` bridge).
 > **Jukebox is 100% desktop-only** — no iPad UI, bridge, or VM (core
 > `JukeboxButtonData` exists and is loaded/saved with the sequence, so
 > the data round-trips, but nothing on iPad surfaces it); **declined
@@ -79,15 +89,15 @@
 | **Display Elements: Import view config** | dialog | ✅ | 🟡 | parity | P3 | medium | feasible | iPad bridge `importViewConfig(fromSequencePath:)` reads another sequence's `<DisplayElements>` and creates an "Imported Master" view from the resolvable models + timings (mirrors `ImportSequenceMasterView`/`ImportViewData`); "Import View…" toolbar button + `.fileImporter([.xsq])` in `DisplayElementsSheet.swift`. The RGBEffects-layout-file import variant (`ImportRGBEffectsView`) is not yet on iPad. |
 | **Display Elements: Show All / Hide All / Hide Unused models** | menu | ✅ | ✅ | parity | P2 | medium | feasible | iPad bridge `setAllElementsVisible(_:)` / `hideUnusedElements()` (toggle each element's master-visible flag, model/timing split like `setElementVisible:`); Master-View "Bulk Actions" toolbar menu in `DisplayElementsSheet.swift`. |
 | **Display Elements: Select Used/Unused/All; Remove Unused** | menu | ✅ | 🟡 | parity | P2 | medium | feasible | iPad bridge `removeUnusedElements()` deletes every effect-free element (desktop Select Unused + Remove Unused) — "Remove Unused" in the Bulk Actions menu with a confirm. The pure list-selection ops (Select Used/Unused/All) have no standalone iPad analogue — they only seed Remove on desktop, which iPad folds directly into Remove Unused. |
-| **Display Elements: Sort models (many strategies)** | menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | Desktop `ViewsModelsPanel.cpp:1667-1682`. No sort symbol in `DisplayElementsSheet.swift` or `XLSequenceDocument.h`. |
+| **Display Elements: Sort models (many strategies)** | menu | ✅ | ✅ | parity | P2 | hard | feasible | Desktop `ViewsModelsPanel.cpp:1667-1682`. iPad "Sort" toolbar menu in `DisplayElementsSheet.swift` (8 strategies: by name, groups-at-top variants, by start channel, by controller/port, by type, bubble-up groups). Client-side sort in Swift using `modelsListSummary` + `modelGroupsListSummary` bridge data, dispatched via `moveTopLevelElement(named:beforeNamed:)`. Node-count-by-group variant approximates with `modelCount` (pixel-count API absent in brief summaries). |
 | **Edit Display Elements from import wizard** | dialog | ✅ | ✅ | parity | P3 | medium | feasible | Desktop #6477: `xLightsImportChannelMapDialog::EditDisplayElements` embeds `ViewsModelsPanel` mid-import then merges new models into the map tree. iPad: `ImportEffectsView` now has an "Edit Display Elements…" button in the options bar that presents the existing `DisplayElementsSheet`; on dismiss it calls `XLImportSession.rebuildDestinationTree` (rebuilds destination roots from the active sequence, preserving existing mappings by name) so newly-added models appear as mapping targets. |
 | **Display Elements: panel-local Undo** | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | Desktop `ViewsModelsPanel.cpp:1658` (`ID_MODELS_UNDO` + `_undo` stack). No undo stack in `DisplayElementsSheet.swift`. |
-| **Display Elements: keyboard delete in lists** | gesture | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `List_KEY_DOWN`. No `onDeleteCommand` in `DisplayElementsSheet.swift`. |
-| **Display Elements: per-view checkbox (toolbar view visibility)** | other | ✅ | ❌ | ipad-missing | P3 | medium | feasible | Desktop `ViewsModelsPanel.cpp:205` (`wxCheckedListCtrl ListCtrlViews`). No per-view checkbox in `DisplayElementsSheet.swift`. |
-| **Display Elements: effect-sequence mode (hide Views UI)** | other | ✅ | ❌ | ipad-missing | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `SetEffectSequenceMode`. No effect-only handling in `DisplayElementsSheet.swift`. |
-| **Row heading: has-effects yellow indicator stripe** | panel | ✅ | ❌ | ipad-missing | P2 | medium | feasible | No has-effects heading stripe in `RowHeaderViews.swift` (only `document.elementHasEffects` bridge `XLSequenceDocument.h:749`); `EffectsMetalGridView.swift:73`. |
-| **Row heading: single-color model swatch** | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | No mask/single-color swatch symbol in `src-iPad`; desktop `RowHeading.cpp:2502-2520` `GetNodeMaskColor` + `DrawRectangle`. |
-| **Row heading: model tag-color chip** | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | No tag-color heading draw in `RowHeaderViews.swift`; `XLSequenceDocument.h:1314` `tagColor` is a group-layout property setter only; desktop draws it in `RowHeading`. |
+| **Display Elements: keyboard delete in lists** | gesture | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `List_KEY_DOWN`. iPad: tap to select row (`focusedMemberID`), hardware Delete key fires `requestMasterRemove` via `.keyboardShortcut(.delete, modifiers:[])` on a background hidden Button in `DisplayElementsSheet.swift`. `onDeleteCommand` is iOS-unavailable; hardware-keyboard shortcut is the iPadOS equivalent. |
+| **Display Elements: per-view checkbox (toolbar view visibility)** | other | ✅ | ✅ | parity | P3 | medium | feasible | Desktop `ViewsModelsPanel.cpp:205` (`wxCheckedListCtrl ListCtrlViews`). Semantics analysed: the checkbox is a radio-button view selector (one checked row = active view), not a separate visibility toggle. iPad sidebar tap-to-select in `DisplayElementsSheet.swift` is the direct equivalent — full parity by different idiom. No additional checkbox UI needed. |
+| **Display Elements: effect-sequence mode (hide Views UI)** | other | ✅ | ✅ | parity | P3 | easy | feasible | Desktop `ViewsModelsPanel.cpp` `SetEffectSequenceMode` hides `ListCtrlViews`. iPad: `isEffectSequence` state set from `document.sequenceType() == "Effect"` in `.onAppear`; `DisplayElementsSheet.swift` shows only `masterViewDetail` (no NavigationSplitView sidebar) when effect-sequence. |
+| **Row heading: has-effects yellow indicator stripe** | panel | ✅ | ✅ | parity | P2 | medium | feasible | Bridge `rowHasEffectsAtIndex:` / `rowHasEffects(at:)` added to `XLSequenceDocument.h:262` + `.mm`; `RowInfo.hasEffects` populated in `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 3 pt amber (R0.918 G0.667 B0.0) trailing-edge rectangle overlay when `row.hasEffects`. Matches desktop `RowHeading.cpp:2706` `effectNoticePen/Brush` mustard-yellow stripe. |
+| **Row heading: single-color model swatch** | panel | ✅ | ❌ | ipad-missing | P3 | medium | feasible | No mask/single-color swatch symbol in `src-iPad`; desktop `RowHeading.cpp:2502-2520` `GetNodeMaskColor` + `DrawRectangle`. Bridge would need a `rowNodeMaskColor(at:)` call (model's `GetNodeMaskColor(0)` for the first strand). Deferred — needs bridge addition. |
+| **Row heading: model tag-color chip** | panel | ✅ | ✅ | parity | P3 | medium | feasible | Bridge `rowTagColorAtIndex:` / `rowTagColor(at:)` added to `XLSequenceDocument.h:268` + `.mm` (returns `m->GetTagColourAsString()` hex, empty when black); `RowInfo.tagColor` populated in `reloadRows()` for top-level model rows; `ModelRowHeader` draws a 6×(height−6) `RoundedRectangle` chip in the model's tag color at leading+16 pt offset when non-empty. Matches desktop `RowHeading.cpp:2547-2553` tag-colour draw. Uses existing `Color(hex:)` extension from `PaletteIOSheets.swift`. |
 | Effect dropper / icon palette | toolbar | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `EffectIconPanel` grid; iPad `EffectPaletteView` horizontal scroll. Both show icon+name; iPad tap-to-place vs desktop drag. |
 | Palette: select effect | menu | ✅ | ✅ | parity | P1 | easy | feasible | iPad `selectPaletteEffect` toggles armed effect for tap-to-place. |
 | Palette: random effect | toolbar | ✅ | ✅ | parity | P2 | easy | feasible | Desktop dice button; iPad dice → `availableEffects.randomElement()`. |
@@ -175,20 +185,26 @@
   All) have no standalone iPad surface — they only feed Remove on
   desktop, which iPad folds into Remove Unused. **From Base presets** —
   *landed.* See the scorecard row + intro.
-- **Display Elements sort** — desktop offers many sort strategies
-  (`ViewsModelsPanel.cpp:1667-1682`); no sort symbol exists in
-  `DisplayElementsSheet.swift` or `XLSequenceDocument.h`. *Work:*
-  bridge sort op + a sort picker. *Ease: hard.*
+- **Display Elements sort** — *landed.* "Sort" toolbar menu in
+  `DisplayElementsSheet.swift` adds 8 strategies: By Name, By Name
+  Groups At Top (alphabetical / by member count / by member count for
+  "by node count" approximation), By Start Channel (+ by size), By
+  Controller/Port (+ by size), By Type, and Bubble Up Groups. Client-
+  side sort in Swift — `modelsListSummary` / `modelGroupsListSummary`
+  supply the metadata; `moveTopLevelElement(named:beforeNamed:)`
+  reorders master-view elements. Node-count sort approximates with
+  `modelCount` (pixel-count API not in brief summaries).
 - **Display Elements panel-local Undo** — desktop keeps a panel undo
   stack (`ViewsModelsPanel.cpp:1658`, `ID_MODELS_UNDO`); the iPad sheet
   has no undo stack. *Work:* mirror the stack in the sheet or route
   through the shared undo manager. *Ease: medium.*
-- **Row-heading has-effects stripe** — desktop draws a yellow
-  has-effects indicator on row headings; `RowHeaderViews.swift` draws
-  none (the `document.elementHasEffects` bridge exists,
-  `XLSequenceDocument.h:749`; grid at `EffectsMetalGridView.swift:73`).
-  *Work:* read the flag and draw the stripe in the row header.
-  *Ease: medium.*
+- **Row-heading has-effects stripe** — *landed.* Bridge
+  `rowHasEffectsAtIndex:` / `rowHasEffects(at:)` added
+  (`XLSequenceDocument.h:262`, `.mm`); `RowInfo.hasEffects` field
+  populated in `reloadRows()` for top-level model rows only; `ModelRowHeader`
+  draws a 3 pt amber trailing-edge `Rectangle` overlay when
+  `row.hasEffects`. Matches desktop `RowHeading.cpp:2706` mustard-yellow
+  stripe.
 
 ### P3
 
@@ -213,29 +229,32 @@
   `ImportSequenceMasterView`/`ImportViewData`); "Import View…" toolbar
   button + `.fileImporter([.xsq])`. The RGBEffects-layout-file import
   variant (`ImportRGBEffectsView`) remains desktop-only.
-- **Display Elements keyboard delete** — desktop deletes selected list
-  rows via `List_KEY_DOWN` (`ViewsModelsPanel.cpp`); the iPad sheet has
-  no `onDeleteCommand`. *Work:* add a delete key handler to the lists.
-  *Ease: easy.*
-- **Display Elements per-view checkbox** — desktop toolbar-view
-  visibility uses `wxCheckedListCtrl ListCtrlViews`
-  (`ViewsModelsPanel.cpp:205`); the iPad sheet has no per-view
-  checkbox. *Work:* add a checkbox column to the views list.
-  *Ease: medium.*
-- **Display Elements effect-sequence mode** — desktop hides the Views
-  UI in effect-sequence mode (`ViewsModelsPanel.cpp`
-  `SetEffectSequenceMode`); the iPad sheet has no effect-only handling.
-  *Work:* conditionally hide the Views section. *Ease: easy.*
-- **Row-heading single-color model swatch** — desktop draws a swatch
-  for single-color models (`RowHeading.cpp:2502-2520`,
-  `GetNodeMaskColor` + `DrawRectangle`); no equivalent symbol exists in
-  `src-iPad`. *Work:* read the mask color and draw the swatch in the
-  row header. *Ease: medium.*
-- **Row-heading model tag-color chip** — desktop draws the model
-  tag-color chip in the row heading; `RowHeaderViews.swift` draws none
-  (the `tagColor` setter at `XLSequenceDocument.h:1314` is a
-  group-layout property only). *Work:* draw the chip from the model's
-  tag color. *Ease: medium.*
+- **Display Elements keyboard delete** — *landed.* Tap to select a
+  member row (`focusedMemberID`), then hardware Delete key fires
+  `requestMasterRemove` via `.keyboardShortcut(.delete, modifiers:[])` on
+  a hidden background Button in `DisplayElementsSheet.swift`.
+  (`onDeleteCommand` is iOS-unavailable; hardware-keyboard shortcut is
+  the iPadOS equivalent.)
+- **Display Elements per-view checkbox** — *at parity by idiom.* The
+  desktop checkbox (`wxCheckedListCtrl ListCtrlViews`) is a radio-button
+  view selector (checked row = active view). iPad's sidebar
+  tap-to-select in `DisplayElementsSheet.swift` is the direct
+  equivalent. No extra checkbox UI needed.
+- **Display Elements effect-sequence mode** — *landed.* `isEffectSequence`
+  state set from `document.sequenceType() == "Effect"` in `.onAppear`;
+  sheet shows only `masterViewDetail` (bypassing the NavigationSplitView
+  sidebar) when effect-sequence, matching desktop `SetEffectSequenceMode`
+  hiding `ListCtrlViews`.
+- **Row-heading single-color model swatch** — still deferred. Desktop
+  `RowHeading.cpp:2502-2520` reads `GetNodeMaskColor(strand=0)`. Bridge
+  would need a new `rowNodeMaskColor(at:)` call. *Ease: medium.*
+- **Row-heading model tag-color chip** — *landed.* Bridge
+  `rowTagColorAtIndex:` / `rowTagColor(at:)` added
+  (`XLSequenceDocument.h:268`, `.mm`) returning `m->GetTagColourAsString()`
+  hex or empty when black; `RowInfo.tagColor` populated in `reloadRows()`;
+  `ModelRowHeader` draws a 6×(height−6) `RoundedRectangle` chip at
+  leading+16 pt when non-empty, using existing `Color(hex:)` from
+  `PaletteIOSheets.swift`.
 
 ## Desktop gaps (iPad has, desktop missing)
 
@@ -310,6 +329,16 @@ exists on both.)
    desktop-only). Remaining `ViewsModelsPanel` gaps (sort strategies,
    panel-local undo, per-view checkbox, keyboard delete) stay tracked
    above.
-7. **Animated preset GIF preview** (P3, hard) — defer; heavy pipeline
-   work. **Jukebox is declined (won't-do)**; Perspectives and AC stay
-   desktop-only (AC deferred per theme 02).
+7. ✅ **Done — Display Elements sort + keyboard delete + effect-sequence
+   mode + per-view checkbox (parity-by-idiom) + row-heading has-effects
+   stripe + row-heading tag-color chip** (P2/P3) — Sort toolbar menu in
+   `DisplayElementsSheet.swift` (8 strategies via `modelsListSummary` +
+   `moveTopLevelElement`); hardware Delete key via hidden Button with
+   `.keyboardShortcut`; `isEffectSequence` hides the Views sidebar;
+   per-view checkbox confirmed at parity by idiom; `rowHasEffects(at:)` +
+   `rowTagColor(at:)` bridge methods + `RowInfo` fields + overlay draws in
+   `ModelRowHeader`. Single-color swatch still deferred.
+8. **Animated preset GIF preview** (P3, hard) — defer; heavy pipeline
+   work. **Row-heading single-color swatch** (P3) — deferred, needs
+   `rowNodeMaskColor(at:)` bridge. **Jukebox is declined (won't-do)**;
+   Perspectives and AC stay desktop-only (AC deferred per theme 02).

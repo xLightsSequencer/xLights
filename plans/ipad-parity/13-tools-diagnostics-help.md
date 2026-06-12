@@ -16,10 +16,12 @@
 > real iPad gaps are the controller/hardware specialists (Pixel Test,
 > Bulk Upload, HinksPix, Export Controller Connections), the legacy
 > generators (2D Path, Custom Model generate/remap, Generate Lyrics From
-> Data, User Lyric Dictionary), file-sweep utilities (Cleanup File
-> Locations, Search Show Folders, Download Sequences), FFmpeg-bound
-> Prepare Audio, sandbox-blocked Run Scripts, and the two diagnostic
-> windows (Color Dropper, Find Effect Data). Diagnostics (spdlog
+> Data), and the FFmpeg-bound Prepare Audio + sandbox-blocked Run
+> Scripts. File-sweep utilities Cleanup File Locations + Search Show
+> Folders are now ✅ (Download Sequences/Lyrics is deferred — it needs
+> core-catalog work). The two diagnostic windows **Color Dropper** and
+> **Find Effect Data**, plus the **User Lyric Dictionary** editor, are
+> now ✅ on iPad too. Diagnostics (spdlog
 > rotation, package-logs, crash auto-upload to the shared triage
 > endpoint) are at parity, with iPad slightly ahead via automatic
 > MetricKit capture + Settings opt-in.
@@ -32,7 +34,7 @@
 | Tools → Check Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1102` / `CheckSequenceSheet.swift` (406 lines). Shared core `CheckSequence`, issues grouped by severity/section, tap row → jump grid+playhead. |
 | Tools → Cleanup File Locations | menu | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `xLightsMain.cpp:6451`, `OnMenuItem_CleanupFileLocationsSelected`. iPad Tools → "Cleanup File Locations…" (`XLightsCommands.swift`) → `CleanupFileLocationsSheet` previews the external files that would move, then `performCleanupFileLocations` bridge sweeps them into the show folder + rewrites effect references (`XLSequenceDocument.mm` `cleanupExternalMedia`). Non-undoable; the sheet warns (matches desktop). |
 | Tools → Package Sequence | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1106` / `PackageSequenceSheet.swift`, `XLSequencePackager`. Builds `.xsqz` of sequence+media. |
-| Tools → Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1108`. Marketplace/community download. iPad would need a browser-style sheet + download-into-show-folder. |
+| Tools → Download Sequences/Lyrics | menu | ✅ | ❌ | ipad-missing | P2 | hard | feasible | `xLightsMain.cpp:1108` → `VendorMusicDialog` (`MSLVendor` / `MSLSequenceLyric`, with an `MSL_SEQUENCE`/`MSL_LYRIC` type enum). **Heavier than it looks:** the desktop dialog uses its own wx-only catalog model, NOT the shared `vendor_catalog::Catalog` the iPad `VendorBrowserSheet` (models) is built on — the core catalog is models-only. Adding a sequences/lyrics mode to the iPad browser first requires extending core `vendor_catalog::Catalog` with a sequence/lyric item type (multi-schema XML parse) + a new bridge, then UI. Deferred; tracked here. |
 | Tools → Batch Render | menu (desktop) / picker toolbar (iPad) | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1111`; iPad `BatchRenderSheet.swift` (326) + `BatchRenderRunner.swift`, launched from sequence-picker toolbar (`XLightsApp.swift:1070,1122`). Real multi-seq queue. Surface differs, capability present. |
 | Tools → FPP Connect | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1113` / `FPPConnectSheet.swift` (1314), `FPPConnectMenuItem`. Discover FPP + upload `.fseq`. Open-firmware path. |
 | Tools → Bulk Controller Upload | menu | ✅ | ❌ | ipad-missing | P3 | hard | restricted | `xLightsMain.cpp:1115`. Batch firmware/config to many controllers; vendor-closed firmwares are IAP-gated. Open-firmware (FPP/WLED/ESPixelStick) subset is in-scope but low priority. |
@@ -55,12 +57,12 @@
 | Tools → Generate Lyrics From Data | menu | ✅ | ❌ | ipad-missing | P3 | hard | feasible | `xLightsMain.cpp:1150`, `GenerateLyricsDialog` (`OnMenuItem_GenerateLyricsSelected:7233`). Maps channel-data → face/phoneme tracks — *distinct* from iPad's AI speech-to-lyrics. Legacy; low demand. |
 | Tools → Convert | menu (desktop) / Import sheet (iPad) | ✅ | 🟡 | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1152`, `TabConvert`/`ConvertDialog`. iPad `ImportEffectsView.swift` already does `.xsq/.xsqz`, SuperStar `.sup`, LOR S5 `.loredit`, Vixen 3. Missing legacy formats (LMS/LSP/Vixen2/HLS/Glediator) + media transcode. |
 | Tools → Prepare Audio | menu | ✅ | ❌ | ipad-missing | P2 | hard | hard | `xLightsMain.cpp:1154` (`OnMenuItem_PrepareAudioSelected:8031`). Resample/normalize via FFmpeg; FFmpeg-bound core excluded from iPad build. AVFoundation reimpl possible but heavy. |
-| Tools → User Lyric Dictionary | menu | ✅ | ❌ | ipad-missing | P3 | medium | feasible | `xLightsMain.cpp:1156`. Edit custom phoneme dictionary. iPad has lyric import/AI lyrics but no dictionary editor. |
-| Tools → Search for Show Folders | menu | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1158`. Scans drive for show folders. iPad has Files.app integration; a scoped scan sheet would be straightforward. |
+| Tools → User Lyric Dictionary | menu | ✅ | ✅ | parity | P3 | medium | feasible | `xLightsMain.cpp:1156` / `LyricUserDictDialog`. iPad Tools → "User Lyric Dictionary…" → `UserLyricDictionarySheet.swift` lists/adds/edits/deletes word→phoneme entries, writing the show folder's `user_dictionary` in the desktop line format (`WORD PH1 PH2 …`, uppercased) via bridge `userLyricDictionaryEntries` / `saveUserLyricDictionaryEntries:` (`XLSequenceDocument.mm`). Save also calls `iPadRenderContext::ReloadPhonemeDictionary` so the core breakdown (`PhonemeDictionary`) picks edits up immediately. |
+| Tools → Search for Show Folders | menu | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1158` / `ShowFolderSearchDialog` (desktop sweeps the drive / log history). iPad Tools → "Search for Show Folders…" → `SearchShowFoldersSheet.swift`: the user picks a folder tree (security-scoped `ShowFolderPicker`) and it recurses for directories containing `xlights_rgbeffects.xml` (the show-folder marker), listing each with a tap-to-switch that registers a bookmark + calls `loadShowFolder`. Surface differs (no drive to sweep on iOS) but the capability is present. |
 | Tools → Import Effects | menu (Import on desktop) | ✅ | ✅ | parity | P1 | easy | feasible | desktop `Menu2`/`ID_IMPORT_EFFECTS` (`:1265`); iPad `ImportEffectsView.swift` (642). Mapping + render-style options on both. |
 | Tools → Edit Layout | menu (iPad) / Layout tab (desktop) | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | iPad `EditLayoutMenuItem` opens a detached `WindowGroup`. Desktop reaches Layout via the `Layout` notebook tab (`xLightsMain.cpp:997`), not a Tools menu item — surface difference, not a true capability gap. |
-| View → Windows → Color Dropper | menu (toggle) | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1204` (`ID_MNU_COLOURDROPPER`, checkable). Dockable eyedropper to sample preview colors. iPad preview has no color sampler; add a long-press/eyedropper gesture + bridge. |
-| View → Windows → Find Effect Data | menu (toggle) | ✅ | ❌ | ipad-missing | P2 | medium | feasible | `xLightsMain.cpp:1218` (`ID_MNU_FINDDATA`), `FindDataPanel`. Query effects by property values. iPad Find/Replace (`FindReplaceSheet`) only searches *timing-mark labels* — not effect data. Needs a query builder sheet. |
+| View → Windows → Color Dropper | menu (toggle) / preview eyedropper (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1204` (`ID_MNU_COLOURDROPPER`, checkable). Desktop docks an eyedropper that samples preview pixels. iPad: an eyedropper button in `PreviewControlsOverlay` (`HousePreviewView.swift`) arms a one-shot dropper; the next tap on the House/Model preview routes through `PreviewPaneView.handleSingleTap` → bridge `sampledColorHexNearPoint:viewSize:forDocument:` (`XLMetalBridge.mm`), which maps the tap to the nearest model node (`GetNodeNear`) and returns that node's current rendered colour (`GetNodeColor`) — a node-colour read, not a GPU pixel read-back, so no drawable stall. The sample is pushed into `XLRecentColors` with a transient banner. 2D-only (matches the node-pick path). |
+| View → Windows → Find Effect Data | menu (toggle) / Tools sheet (iPad) | ✅ | ✅ | parity | P2 | medium | feasible | `xLightsMain.cpp:1218` (`ID_MNU_FINDDATA`), `FindDataPanel` + `SearchPanel`. iPad Tools → "Find Effect Data…" → `FindEffectDataSheet.swift`: query by effect-type picker (populated from `effectTypesInSequence`), settings-text substring, and model-name substring; bridge `findEffectsMatching(type:settingsText:modelFilter:maxResults:)` (`XLSequenceDocument.mm`) walks model/submodel/strand/node layers (mirrors SearchPanel coverage) matching on `key=value` settings + palette entries, returning `XLFindEffectResult` rows (effect / element / layer / start / matched-setting). Tapping a result reuses `SequencerViewModel.jumpToEffect` (same path CheckSequence uses) to select + seek. iPad Find/Replace (`FindReplaceSheet`) still covers timing-mark labels separately. |
 | Help → Tip of the Day | menu | ✅ | ❌ | ipad-missing | P3 | easy | feasible | `xLightsMain.cpp:1269`, `TipOfTheDayDialog`. Could port as a sheet; low mobile engagement. |
 | Help → User Manual | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1271` → manual.xlights.org; iPad `XLightsCommands.swift:544`. |
 | Help → Zoom Room Help | menu | ✅ | ✅ | parity | P1 | easy | feasible | `xLightsMain.cpp:1273`; iPad `:578`. |
@@ -103,18 +105,26 @@ Logs, Import Effects, all external Help links, About, crash capture).
   SuperStar, LOR S5, Vixen 3; gap is the legacy formats
   (LMS/LSP/Vixen2/HLS/Glediator/LCB) + media transcode. Add readers to
   `XLImportSession` and entries to the import sheet. Medium.
-- **Search for Show Folders** — `xLightsMain.cpp:1158`. Scoped
-  Files-app scan + results sheet. Medium.
-- **Download Sequences/Lyrics** — `xLightsMain.cpp:1108`. Browser-style
-  download sheet into the show folder. Medium.
+- ✅ **Search for Show Folders** — **landed.** `xLightsMain.cpp:1158`.
+  iPad `SearchShowFoldersSheet.swift` picks a security-scoped folder
+  tree and recurses for `xlights_rgbeffects.xml`, tap-to-switch via
+  `loadShowFolder`.
+- **Download Sequences/Lyrics** — `xLightsMain.cpp:1108`. Deferred:
+  the desktop dialog (`VendorMusicDialog` / `MSLVendor`) is wx-only and
+  the shared `vendor_catalog::Catalog` the iPad browser uses is
+  models-only, so a sequences/lyrics mode needs core-catalog work
+  first. Now `hard` on the scorecard.
 - **Prepare Audio** — `xLightsMain.cpp:1154`. FFmpeg-bound on desktop;
   see Infeasible/restricted (AVFoundation reimpl is heavy). hard.
-- **Color Dropper** — desktop toggle `ID_MNU_COLOURDROPPER`
-  (`:1204`). Add an eyedropper gesture over the iPad preview + a bridge
-  to read the sampled pixel into the color panel. Medium.
-- **Find Effect Data** — desktop `FindDataPanel` (`:1218`). iPad
-  Find/Replace only covers timing labels; needs a property-query sheet
-  driven by a new `findEffectData(...)` bridge op. Medium.
+- ✅ **Color Dropper** — **landed.** Desktop toggle
+  `ID_MNU_COLOURDROPPER` (`:1204`). iPad eyedropper button in
+  `PreviewControlsOverlay`; one-shot tap → bridge
+  `sampledColorHexNearPoint` (node-colour read, not pixel read-back) →
+  `XLRecentColors`.
+- ✅ **Find Effect Data** — **landed.** Desktop `FindDataPanel` /
+  `SearchPanel` (`:1218`). iPad `FindEffectDataSheet.swift` +
+  `findEffectsMatching(type:settingsText:modelFilter:maxResults:)`
+  bridge op; tap → `jumpToEffect`.
 - ~~**Key Bindings (Help)**~~ — **landed 2026-06-11**: `KeyBindingsSheet.swift` grouped reference, Help-menu entry.
 
 ### P3
@@ -122,7 +132,7 @@ Logs, Import Effects, all external Help links, About, crash capture).
   **HinksPix Export** (restricted), **Run Scripts** (infeasible),
   **Export Controller Connections**, **Generate 2D Path**, **Generate
   Custom Model**, **Remap Custom Model**, **Generate Lyrics From Data**,
-  **User Lyric Dictionary**, **Tip of the Day**, **Content (F1)**,
+  **Tip of the Day**, **Content (F1)**,
   **Crash xLights** / **Log Render State** (hidden debug),
   **Check for Updates** (infeasible),
   **Media Manager → AI Generate Image** (`ManageMediaPanel.cpp:633`).
@@ -175,12 +185,19 @@ Logs, Import Effects, all external Help links, About, crash capture).
    complements the existing per-file relocation.
 3. **Convert breadth** — extend `XLImportSession`/`ImportEffectsView`
    with the remaining legacy readers so "Convert" reaches real parity.
-4. **Diagnostic windows** — Color Dropper (eyedropper gesture) and Find
-   Effect Data (property-query sheet); both are self-contained additions
-   that round out the Tools/View surface.
+4. ~~**Diagnostic windows**~~ **Landed.** Color Dropper
+   (`PreviewControlsOverlay` eyedropper → `sampledColorHexNearPoint`
+   bridge → `XLRecentColors`) and Find Effect Data
+   (`FindEffectDataSheet` + `findEffectsMatching…` bridge →
+   `jumpToEffect`). **Search for Show Folders**
+   (`SearchShowFoldersSheet`, scoped `xlights_rgbeffects.xml` scan) and
+   the **User Lyric Dictionary** editor (`UserLyricDictionarySheet` →
+   `user_dictionary` rewrite + `ReloadPhonemeDictionary`) landed
+   alongside.
 5. **Help polish** — Key Bindings sheet, then Tip of the Day; defer
    Content/F1 and Check-for-Updates (infeasible).
 6. **Defer** the controller-specialist (Bulk Upload, HinksPix, Export
    Controller Connections), legacy generators (2D Path, Custom Model
-   gen/remap, Generate Lyrics From Data, User Dictionary), FFmpeg-bound
-   Prepare Audio, and sandbox-blocked Run Scripts — all P3/restricted.
+   gen/remap, Generate Lyrics From Data), **Download Sequences/Lyrics**
+   (needs core-catalog extension first), FFmpeg-bound Prepare Audio,
+   and sandbox-blocked Run Scripts — all P3/restricted/heavy.

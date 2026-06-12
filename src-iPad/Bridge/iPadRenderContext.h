@@ -278,6 +278,10 @@ public:
     // user overrides). Thread-safe is NOT required — callers are
     // on the main thread.
     PhonemeDictionary& GetPhonemeDictionary();
+    // Drop the cached dictionary so the next GetPhonemeDictionary()
+    // re-reads the show folder's `user_dictionary` — used after the
+    // User Lyric Dictionary editor rewrites that file.
+    void ReloadPhonemeDictionary() { _phonemeDict.reset(); }
     // Virtual preview canvas size from <settings><previewWidth/Height>
     // in xlights_rgbeffects.xml, defaulted to desktop's 1280×720 when
     // absent. Consumed by iPadModelPreview in House Preview mode so the
@@ -813,6 +817,12 @@ private:
     // speed re-renders, and both are scarce on iPad — desktop defaults to
     // the milder "Locked Only", but iPad starts fully off.
     std::string ReadRenderCacheMode() const;
+
+    // Reads the `render.cacheMaxMB` app preference (Folder Config →
+    // Rendering "Maximum Render Cache Size" picker, stored in MB; 0 =
+    // Unlimited). Absent key → 50 MB, the iPad default. Fed to
+    // RenderCache::SetMaximumSizeMB at construction + each render kickoff.
+    size_t ReadRenderCacheMaxMB() const;
 
     // FSEQ-1 — FSEQ export format preferences, written by the Folder
     // Config → Rendering pickers via @AppStorage. Compression returns

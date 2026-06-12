@@ -42,6 +42,11 @@ struct TimingRowHeader: View {
     var canSubdivide: Bool = false
     /// B75: fires when the user picks "Export Timing Track…".
     var onExportTimingTrack: (() -> Void)?
+    /// Fires when the user picks "Export as Papagayo (.pgo)…". Gated by
+    /// `canExportPapagayo` — the track must have a phrase/word/phoneme
+    /// breakdown (3 effect layers), matching desktop's writer.
+    var canExportPapagayo: Bool = false
+    var onExportPapagayo: (() -> Void)?
     /// AUTO-3: fires when the user picks "Speech to Lyrics…" (AI audio
     /// transcription). Gated by `canSpeechToLyrics` — audio is loaded and a
     /// Speech-to-Text AI service is configured. Declared before
@@ -227,6 +232,12 @@ struct TimingRowHeader: View {
                                systemImage: "square.and.arrow.up")
                     }
                 }
+                if canExportPapagayo, let fire = onExportPapagayo {
+                    Button { fire() } label: {
+                        Label("Export as Papagayo (.pgo)…",
+                               systemImage: "mouth")
+                    }
+                }
                 if canSpeechToLyrics, let fire = onSpeechToLyrics {
                     Button { fire() } label: {
                         Label("Speech to Lyrics…",
@@ -375,6 +386,9 @@ struct ModelRowHeader: View {
     var onCopyRow: (() -> Void)?
     var onCutRow: (() -> Void)?
     var onCopyModel: (() -> Void)?
+    /// #5064 — copy the model's layers plus every submodel's layers,
+    /// reaching collapsed submodels the visible-row copy can't.
+    var onCopyModelInclSubmodels: (() -> Void)?
     var onCutModel: (() -> Void)?
     /// B-CL: fan-out copy of this model's layers + submodels to one
     /// or more target models chosen by the user. The outer view owns
@@ -382,6 +396,10 @@ struct ModelRowHeader: View {
     var onCopyLayersToModels: (() -> Void)?
     var onPaste: (() -> Void)?
     var hasClipboard: Bool = false
+    /// Find Possible Source Effects (EffectsGrid.cpp:476) — node-row
+    /// only. Traces this node's channel range back to the model-level
+    /// effects rendering onto it and presents a pickable results list.
+    var onFindSourceEffects: (() -> Void)?
     /// B49 export rendered-channel data for this row's model as a
     /// Falcon Player `.eseq` sub-sequence. The closure receives
     /// `true` when the caller should restrict the export to the
@@ -539,6 +557,22 @@ struct ModelRowHeader: View {
                     .frame(width: 3)
             }
         }
+        .overlay(alignment: .trailing) {
+            if row.hasEffects {
+                Rectangle()
+                    .fill(Color(red: 0.918, green: 0.667, blue: 0.0))
+                    .frame(width: 3)
+            }
+        }
+        .overlay(alignment: .leading) {
+            if !row.tagColor.isEmpty,
+               let color = Color(hex: row.tagColor) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: 6, height: height - 6)
+                    .padding(.leading, 16)
+            }
+        }
         // B66 — render-disabled (desktop calls it "muted") rows
         // show at 45 % opacity so the user can tell at a glance
         // which models won't contribute to the render pass.
@@ -601,6 +635,12 @@ struct ModelRowHeader: View {
             if !isSubLayer && !isNodeRow, let fire = onCopyModel {
                 Button { fire() } label: {
                     Label("Copy Model", systemImage: "square.stack.3d.up")
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onCopyModelInclSubmodels {
+                Button { fire() } label: {
+                    Label("Copy Effects incl SubModels",
+                           systemImage: "square.stack.3d.up.badge.a")
                 }
             }
             if !isSubLayer && !isNodeRow, let fire = onCutModel {
@@ -766,6 +806,13 @@ struct ModelRowHeader: View {
                 } label: {
                     Label(showsChildren ? "Hide Nodes" : "Show Nodes",
                           systemImage: showsChildren ? "eye.slash" : "eye")
+                }
+            }
+            if isNodeRow, let fire = onFindSourceEffects {
+                Divider()
+                Button { fire() } label: {
+                    Label("Find Possible Source Effects",
+                          systemImage: "scope")
                 }
             }
         }

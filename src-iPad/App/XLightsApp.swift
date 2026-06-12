@@ -56,6 +56,10 @@ struct XLightsApp: App {
         XLiPadInit.initialize()
         XLDiagnosticUploader.shared.bootstrap()
         let vm = SequencerViewModel()
+        // Desktop "Other ▸ Purge Download Cache at Startup" (default OFF).
+        if UserDefaults.standard.bool(forKey: "purgeDownloadCacheAtStartup") {
+            vm.purgeDownloadCache()
+        }
         vm.startMemoryMonitoring()
         _viewModel = State(initialValue: vm)
         // restorePersistedShowFolder is deliberately NOT called here.
@@ -289,6 +293,32 @@ struct ContentView: View {
         )) {
             AIServicesSettingsSheet()
         }
+        // Find Effect Data — root-hosted so it survives navigation,
+        // like Check Sequence. Walks the loaded SequenceElements.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingFindEffectData },
+            set: { viewModel.showingFindEffectData = $0 }
+        )) {
+            FindEffectDataSheet()
+                .environment(viewModel)
+        }
+        // Search for Show Folders — independent of any open sequence.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingSearchShowFolders },
+            set: { viewModel.showingSearchShowFolders = $0 }
+        )) {
+            SearchShowFoldersSheet()
+                .environment(viewModel)
+        }
+        // User Lyric Dictionary — edits the show folder's
+        // `user_dictionary` consumed by the core lyric breakdown.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingUserLyricDictionary },
+            set: { viewModel.showingUserLyricDictionary = $0 }
+        )) {
+            UserLyricDictionarySheet()
+                .environment(viewModel)
+        }
         // CLN-1 Tools → Cleanup File Locations. Preview + execute
         // sheet; hosted at the root so it survives navigation.
         .sheet(isPresented: Binding(
@@ -317,6 +347,15 @@ struct ContentView: View {
             set: { viewModel.showingExportHousePreview = $0 }
         )) {
             ExportHousePreviewSheet()
+                .environment(viewModel)
+        }
+        // Tools → Export Audio. Hosted at the root like the other Tools
+        // sheets so the format chooser + share hand-off survive navigation.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingExportAudio },
+            set: { viewModel.showingExportAudio = $0 }
+        )) {
+            ExportAudioSheet()
                 .environment(viewModel)
         }
         // H-6 / T-2 Tools → View Log. Same hosting rationale as
