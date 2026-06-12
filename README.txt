@@ -11,93 +11,82 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.11  June ??, 2026
-    -enh (cybercop23)            Controller Visualizer: show a link icon on model boxes that come from the base show folder.
-    -enh (AGFazio)               Drag rows in the sequencer row header to reorder models and timing tracks.
-    -enh (cybercop23)            Import Effects: stacked mappings — dropping/double-clicking an available model
-                                 onto an already-mapped destination shows Replace / Add Additional prompt;
-                                 Add the ability to load multiple xmap files with a prompt of what to do if maps exist.
-                                 New key-binding for Import Effects window.
-    -enh (cybercop23)            Add the ability to access base showfolder presets (#2524)
-    -enh (charlie)               Command palette: Ctrl/Cmd+Shift+K opens a searchable launcher for any menu
-                                 command or effect (fuzzy match, keyboard nav, SF Symbol icons on macOS).
-    -enh (charlie)               Song Structure Regions: divide the sequencer timeline into named, colored sections
-                                 (Intro/Verse/Chorus/…) with boundary-based editing, multiple named views per sequence,
-                                 a translucent overlay on timeline + effects grid, and per-region bulk actions —
-                                 Copy Effects to Region, Apply Selected Effect Palette to Region, Fill Region from
-                                 Timing Marks, Create Regions from Timing Marks, and Export Region(s) as new sequences.
-    -enh (scott)                 SubModels Symmetrize: dialog now lets you pick Degree of Symmetry, rotation
-                                 direction (Clockwise/Counter-Clockwise), and build order (Top to Bottom/
-                                 Bottom to Top), all remembered between openings
-    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926)
-    -enh (derwin12)              Add lua scripting to provide sequence importing and auto mapping (#6475)
-    -enh (derwin12)              Add HD upscale option for model export (#4228)
-    -enh (alex)                  Radial effect wheel popup on empty sequencer grid double-click
-    -enh (alex)                  Shift-drag effect edges in sequencer grid to adjust fade-in/fade-out times (#6492)
-    -enh (derwin12)              Add Shift+double click on model to expand/collapse strands (#2411)
-    -enh (derwin12)              Add "Swap Start/End" right-click option to Single Line and Poly Line models (#5450)
-    -enh (derwin12)              Add transition blur to many transitions (#816)
-    -enh (cybercop23)            Add Cycles parameter (1-10) to Custom value curves to allow replication
-    -enh (cybercop23)            In sequence import, add right click option to sort submodels within a model (#4636)
-    -enh (agfazio)               Add drag/drop effects in sequencer
-    -enh (derwin12)              Clean up MH UI to show and refresh the presets on all the panels
-    -enh (dkulp)                 macOS - Export House Preview Video now uses AVFoundation (AVAssetWriter)
-    -enh (dkulp)                 Model video export and video-media transcoding now share the VideoWriter
-                                 abstraction, using AVFoundation on macOS where possible (incl. bit-exact
-                                 uncompressed .mov via AVAssetWriter passthrough at any size, alpha-preserving)
-                                 and FFmpeg for AVI/MPEG-4
-    -enh (dkulp)                 Add "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless,
-                                 much smaller than uncompressed RGB, decodes on all platforms
-    -enh (cybercop)              FPP Player Only now sets xLights Only (#6453)
-    -enh (cybercop)              Add ability to move background image in Model Data (#5506)
-    -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the
-                                 model list from the server and present model settings as a dropdown,
-                                 including a model picker in the AI image generation dialog.
-    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices
-                                 are added as DDP with auto-size/auto-layout.
-    -enh (cybercop23)            Fix closing the Faces/States editor to prompt for confirmation (#6470)
-    -bug (derwin12)              Dont mark layout dirty by importing a sequence via batch render
-    -bug (derwin12)              Fix creation of some new native models in 3d were limited in width and location (#6526)
-    -enh (cybercop23)            Fix the closing faces or States editor to prompt for confirmation (#6470)
-    -enh (derwin12)              Add a Blur option to effect transitions (#816)
-    -enh (agfazio)               Multi-model import now keeps the models' relative positions (#6438)
-    -enh (derwin12)              "Collapse Layers" now also collapses Timing Tracks (#6462)
-    -enh (derwin12)              Sequencer: Shift+double-click a model row to expand/collapse its strands (#2411)
-    -enh (alex)                  Paste selected effects positioned at their original times (#5064)
-    -enh (alex)                  Add an Edit Display Elements panel on the Layout tab, like the sequencer's (#6471)
-    -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video
-                                 effects are loaded (#6449)
-    -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing single-effect paste at wrong time position.
-    -bug (derwin12)              REST API packageSequence writes to wrong folder (#3114)
-    -bug (charlie)               Song Structure Regions now render correctly in light mode and on Windows (#6500)
-    -bug (scott)                 Flip color wheel in Color picker to match moving head standard
-    -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped
-                                 from saved map files when the model existed in the xLights layout but
-                                 not the current sequence.
-    -bug (derwin12)              Warn user if attempting to upload channels too large for F16V3 ddp + serial mode (#5584)
-    -bug (agfazio)               Default transition adjust was not correctly defaulted (#6524)
-    -bug (derwin12)              Fix Falcon V3 controllers receiving DDP channel numbers beyond hardware maximum (#5584)
-    -bug (alex)                  Preserve relative start channels on import even when Individual Start Channels is off (#6447)
-    -bug (derwin12)              Keep custom models centered in their bounding box after editing (#6452)
-    -bug (derwin12)              Fix MH color wheel doesnt show the correct color choices when switching (#4667)
-    -bug (derwin12)              Fix MH to reset the values if existing values are not found (#4660)
-    -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist. (#6476)
-    -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460)
-    -bug (cybercop)              Fix model movement in layout using cursor keys (#6459)
-    -bug (derwin12)              Missing assets screen was not clickable/too large (#6457)
-    -bug (dan)                   Fix Moving Head dimmer panel crash when the timing window is zero-width
-                                 (div-by-zero produced NaN paint coordinates).
-    -bug (dan)                   Maybe fix crash closing a sequence / show folder before the sequencer tab
-                                 fully exists (null EffectsPanel1 in ResetAllPanelDefaultSettings).
-    -bug (dan)                   Harden property-grid combo popup teardown against re-entrancy so hiding a
-                                 deleting combo can't repaint with a stale property (top macOS crash).
-    -bug (dan)                   Fix crash undoing a model property change (null property-grid adapter when
-                                 DoUndo re-selects the model before the deferred grid rebuild).
-    -bug (dan)                   Fix PolyLine model crash when deleting a handle during placement (stale
-                                 per-segment sizes ran the light distribution past the point array).
-    -bug (dan)                   Fix Windows crash drawing color-vertex primitives when the accumulator
-                                 type doesn't match (null-check the dynamic_cast, matching the other overload).
-    -bug (cybercop23)            Base show folder merge: preserve show-folder controller/port assignments when
-                                 the base model has no controller.
+    -enh (charlie)               Command palette (Ctrl/Cmd+Shift+K): a searchable launcher for any menu command or effect with fuzzy match, keyboard nav,
+                                 and SF Symbol icons on macOS (#6258).
+    -enh (charlie)               Song Structure Regions: divide the timeline into named, colored sections with per-region bulk actions
+                                 (copy/fill/apply-palette, create from timing marks) and export region(s) as new
+                                 sequences (#6268).
+    -enh (cybercop23)            Radial effect wheel popup on empty sequencer-grid double-click for quick keybinding/effect access (ignored on timing
+                                 tracks) (#6486).
+    -enh (cybercop23)            Shift-drag effect edges in the sequencer grid to adjust fade-in/fade-out times (#6492).
+    -enh (agfazio)               Drag/drop effects in the sequencer, including ghost drag-to-move (#6478).
+    -enh (agfazio)               Drag rows in the sequencer row header to reorder models and timing tracks (#6493).
+    -enh (agfazio)               Multi-model import now keeps the models' relative positions (#6438).
+    -enh (cybercop23)            Paste selected effects positioned at their original times (#5064).
+    -enh (cybercop23)            Add an Edit Display Elements panel on the Layout tab, like the sequencer's (#6471).
+    -enh (derwin12)              Sequencer: Shift+double-click a model row to expand/collapse its strands (#2411).
+    -enh (derwin12)              "Collapse Layers" now also collapses Timing Tracks (#6462).
+    -enh (derwin12)              Add transition blur to many transitions (#816).
+    -enh (cybercop23)            Add a Cycles parameter (1-10) to Custom value curves to allow replication (#6488).
+    -enh (cybercop23)            Import Effects: stacked mappings (Replace / Add Additional prompt), loading multiple xmap files, and a new key-binding
+                                 for the Import Effects window (#6474).
+    -enh (derwin12)              Add Lua scripting for sequence importing and auto-mapping (#6475).
+    -enh (cybercop23)            In sequence import, add a right-click option to sort submodels within a model (#4636).
+    -enh (cybercop23)            Controller Visualizer: show a link icon on model boxes that come from the base show folder (#6516).
+    -enh (cybercop23)            Add the ability to access base show folder presets (#2524).
+    -enh (cybercop23)            KulpLights controllers with 2 serial ports now support independent protocols per port (#3926).
+    -enh (cybercop23)            FPP "Player Only" now also sets "xLights Only" (#6453).
+    -enh (cybercop23)            Add the ability to move the background image in Model Data (#5506).
+    -enh (cybercop23)            Closing the Faces or States editor now prompts for confirmation before discarding (#6470).
+    -enh (scott)                 SubModels Symmetrize: choose Degree of Symmetry, rotation direction, and build order, all remembered between openings.
+    -enh (scott)                 Alternate-audio selection in Sequence Settings now supports multi-select.
+    -enh (scott)                 AI Services: ChatGPT, the Generic OpenAI client, and Ollama now fetch the model list from the server and present it as a
+                                 dropdown, including a model picker in the AI image generation dialog.
+    -enh (scott)                 Auto-discover WLED controllers via mDNS (_wled._tcp); discovered devices are added as DDP with auto-size/auto-layout.
+    -enh (derwin12)              Add an HD upscale option for model export (#4228).
+    -enh (derwin12)              Add a "Swap Start/End" right-click option to Single Line and Poly Line models (#5450).
+    -enh (derwin12)              Clean up the Moving Head UI to show and refresh presets on all panels (#4667).
+    -enh (dkulp)                 macOS: Export House Preview Video now uses AVFoundation (AVAssetWriter).
+    -enh (dkulp)                 Model video export and media transcoding now share a VideoWriter abstraction: AVFoundation on macOS (incl.
+                                 alpha-preserving, bit-exact uncompressed .mov at any size) and FFmpeg for AVI/MPEG-4.
+    -enh (dkulp)                 Add a "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless, much smaller than uncompressed RGB, and
+                                 decodes on all platforms.
+    -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video effects are loaded (#6449).
+    -bug (derwin12)              Fix creation of some new native 3D models being limited in width and location (#6526).
+    -bug (derwin12)              Don't mark the layout dirty when importing a sequence via batch render (#6522).
+    -bug (derwin12)              REST API packageSequence wrote the .xsqz to the wrong folder (#3114).
+    -bug (derwin12)              Warn before uploading channels too large for F16V3 DDP + serial mode, and stop Falcon V3 controllers from receiving DDP
+                                 channel numbers beyond the hardware maximum (#5584).
+    -bug (derwin12)              Keep custom models centered in their bounding box after editing (#6452).
+    -bug (derwin12)              Fix Moving Head color wheel showing wrong color choices when switching, and reset values when existing ones aren't found
+                                 (#4667, #4660).
+    -bug (derwin12)              Sketch effect: background image not displaying in Effect Assist (#6476).
+    -bug (derwin12)              Fix Text effect xlFont up/down scroll (#6460).
+    -bug (derwin12)              Fix state and face import from the new xmodel file format (#6499).
+    -bug (derwin12)              Fix the model tree stealing focus after non-import model selections (#6461).
+    -bug (derwin12)              Catch a crash on AlphaPix upload (#6536).
+    -bug (derwin12)              Guard against a controller-discovery crash in ESPixelStick/PowerDMX (#5844).
+    -bug (derwin12)              Missing assets screen was not clickable / was too large (#6457).
+    -bug (cybercop23)            Fix model movement in the layout using the cursor keys (#6459).
+    -bug (cybercop23)            Fix Copy Layers/SubModels to Models placing a single-effect paste at the wrong time position (#6482, #6514).
+    -bug (cybercop23)            Import Effects: fix stashed (unused) model mappings being silently dropped from saved map files when the model existed
+                                 in the xLights layout but not the current sequence.
+    -bug (cybercop23)            Base show folder merge: preserve show-folder controller/port assignments when the base model has no controller (#6518).
+    -bug (heffneil)              Fix Faces/States/SubModels count badges not updating after editing (#6512).
+    -bug (scott)                 Flip the color wheel in the Color picker to match the moving-head standard.
+    -bug (scott)                 Fix the AI image generation dialog always shrinking.
+    -bug (agfazio)               Default transition adjust was not correctly defaulted (#6524).
+    -bug (cybercop23)            Preserve relative start channels on import even when Individual Start Channels is off (#6447).
+    -bug (dkulp)                 Fix Moving Head dimmer panel crash when the timing window is zero-width (div-by-zero produced NaN paint coordinates).
+    -bug (dkulp)                 Maybe fix crash closing a sequence/show folder before the sequencer tab fully exists (null EffectsPanel1 in
+                                 ResetAllPanelDefaultSettings).
+    -bug (dkulp)                 Harden the property-grid combo popup teardown against re-entrancy so hiding a deleting combo can't repaint with a stale
+                                 property (top macOS crash).
+    -bug (dkulp)                 Fix crash undoing a model property change (null property-grid adapter when DoUndo re-selects the model before the
+                                 deferred grid rebuild).
+    -bug (dkulp)                 Fix PolyLine model crash when deleting a handle during placement (stale per-segment sizes ran the light distribution
+                                 past the point array).
+    -bug (dkulp)                 Fix Windows crash drawing color-vertex primitives when the accumulator type doesn't match (null-check the dynamic_cast).
 
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
