@@ -18,9 +18,10 @@
 > View-menu dockable panes with drag-to-slot, plus the F11
 > `COLOR_DROPPER_TOGGLE` keybinding) which iPad has no equivalent for, plus
 > a couple of palette-menu items (Update Palette to bulk-apply across
-> selection). iPad's former leads here — in-dialog VC clipboard copy/paste and
-> palette "Copy String" — have now been pulled back to desktop (shared
-> `xlvc:v1:` / `GetCurrentPalette()` clipboard formats). The color-picker gaps
+> selection). iPad's leads here — in-dialog VC clipboard copy/paste and
+> palette "Copy String" — are implemented for desktop on the
+> `desktop-pullbacks` branch (shared `xlvc:v1:` / `GetCurrentPalette()`
+> clipboard formats), pending post-release merge. The color-picker gaps
 > (CSS named-color swatches and persisted recent-color swatches) are now closed:
 > `XLColorSwatchPicker` delivers both via the "Pick Color…" long-press entry on
 > palette slots. The residual iPad-ahead items are per-VC-preset swipe-delete
@@ -41,7 +42,7 @@
 | Palette: Delete saved palette | menu/gesture | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ID_MNU_DELETE` (enabled only for custom on-disk palettes); iPad swipe-to-delete in `PaletteLoadSheet`. UX differs, function equal. |
 | Palette menu: Import from text | menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `ID_MNU_IMPORT`→`ImportPalette`; iPad `PaletteImportSheet` (validates + prefills from pasteboard). |
 | Palette menu: AI Generate Palette | menu | ✅ | ✅ | parity | P2 | medium | feasible | Both gated on AI ColorPalettes capability. Desktop `AIColorPaletteDialog`; iPad `AIPaletteGenerationSheet`. |
-| Palette: Copy palette string | menu | ✅ | ✅ | parity | P3 | easy | feasible | Desktop adds "Copy Palette String" to `OnBitmapButton_MenuPaletteClick` (`ID_MNU_COPY` → `ColorPanel::CopyPaletteString` writes `GetCurrentPalette()` to `wxTheClipboard`). iPad menu → `UIPasteboard` (`ColorPaletteView.swift:114`). |
+| Palette: Copy palette string | menu | ❌ | ✅ | desktop-missing | P3 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop adds "Copy Palette String" to `OnBitmapButton_MenuPaletteClick` (`ID_MNU_COPY` → `ColorPanel::CopyPaletteString` writes `GetCurrentPalette()` to `wxTheClipboard`). iPad menu → `UIPasteboard` (`ColorPaletteView.swift:114`). |
 | Palette shift left | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_leftShiftColoursButton` (`ColorPanel.cpp:257`); iPad menu "Shift Left". |
 | Palette shift right | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_rightShiftColoursButton`; iPad menu "Shift Right". |
 | Palette reverse colors | toolbar/menu | ✅ | ✅ | parity | P1 | easy | feasible | Desktop `_reverseColoursButton`; iPad menu "Reverse Colors". |
@@ -82,8 +83,8 @@
 | ValueCurve save-as preset | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop saves to `<show>/valuecurves/`; iPad `ValueCurveSaveAsSheet`. |
 | ValueCurve delete preset | dialog/gesture | ❌ | ✅ | desktop-missing | P3 | easy | feasible | iPad swipe-delete in load sheet (`deleteSavedValueCurve`). Desktop dialog has only a CLEAR-curve button, no per-preset delete (file managed in Finder). |
 | ValueCurve export-to-file | dialog | ✅ | ✅ | parity | P2 | medium | feasible | Desktop `ButtonExport` writes `.xvc` to an arbitrary path. iPad "Export…" in `ValueCurveEditorSheet` (`ValueCurveEditor.swift`) → `.fileExporter` over `valueCurveXvcDocument` bridge (`XLSequenceDocument.mm`), which routes through core `ValueCurve::SaveXVC` so bytes match desktop. |
-| ValueCurve copy to clipboard | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ValueCurveDialog` 'Copy' button (`OnButton_CopyClick`) writes `xlvc:v1:` + `ValueCurve::Serialise()` to `wxTheClipboard`, matching iPad `ValueCurveClipboard.wrap` so curves interchange. |
-| ValueCurve paste from clipboard | dialog | ✅ | ✅ | parity | P2 | easy | feasible | Desktop `ValueCurveDialog` 'Paste' button (`OnButton_PasteClick`) unwraps the `xlvc:v1:` envelope, `Deserialise`s into the curve, then resyncs the dialog controls. Matches iPad "Paste". |
+| ValueCurve copy to clipboard | dialog | ❌ | ✅ | desktop-missing | P2 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop `ValueCurveDialog` 'Copy' button (`OnButton_CopyClick`) writes `xlvc:v1:` + `ValueCurve::Serialise()` to `wxTheClipboard`, matching iPad `ValueCurveClipboard.wrap` so curves interchange. |
+| ValueCurve paste from clipboard | dialog | ❌ | ✅ | desktop-missing | P2 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop `ValueCurveDialog` 'Paste' button (`OnButton_PasteClick`) unwraps the `xlvc:v1:` envelope, `Deserialise`s into the curve, then resyncs the dialog controls. Matches iPad "Paste". |
 | ValueCurve undo of point edits | dialog | ✅ | 🟡 | ipad-missing | P3 | medium | feasible | Desktop `ValueCurvePanel::Undo()` per-point undo stack. iPad has no in-editor undo; sequence-level Foundation undo covers the whole curve write. |
 | ValueCurve preview strip | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop paints in panel; iPad `ValueCurvePreviewStrip`. |
 | ColorCurve editor: active toggle | dialog | ✅ | ✅ | parity | P1 | easy | feasible | Desktop dialog Ok=active; iPad "Use gradient" toggle (writes `Active=FALSE\|`). |
