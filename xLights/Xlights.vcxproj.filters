@@ -216,6 +216,12 @@
     <ClCompile Include="..\src-core\models\ModelManager.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\models\ModelSet.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\ModelSetManager.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\models\Model.cpp">
       <Filter>Models</Filter>
     </ClCompile>
@@ -1598,6 +1604,12 @@
     </ClInclude>
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\models\ModelManager.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ModelSet.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ModelSetManager.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\Model.h">

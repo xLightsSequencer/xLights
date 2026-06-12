@@ -108,6 +108,7 @@ std::string xLightsFrame::BuildEffectsXml()
     serializer.SerializeAllLayoutGroups(lgData, visitor);
     SerializePerspectives(visitor);
     SerializeSettings(visitor);
+    SerializeModelSets(visitor);
     _sequenceViewManager.Save(visitor);
     color_mgr.Save(visitor);
     viewpoint_mgr.Save(visitor);
@@ -138,6 +139,24 @@ void xLightsFrame::SerializePerspectives(BaseSerializingVisitor &visitor)
         attr.Add("settings", p.settings);
         attr.Add("version", p.version.empty() ? "2.0" : p.version);
         visitor.WriteOpenTag("perspective", attr, true);
+    }
+    visitor.WriteCloseTag();
+}
+
+void xLightsFrame::SerializeModelSets(BaseSerializingVisitor &visitor)
+{
+    visitor.WriteOpenTag("modelSets");
+    for (const auto& s : AllModels.GetSetManager().GetAllSets()) {
+        if (s->GetMembers().size() < 2) continue;
+        BaseSerializingVisitor::AttrCollector attr;
+        attr.Add("name", s->GetName());
+        std::string list;
+        for (size_t i = 0; i < s->GetMembers().size(); ++i) {
+            if (i > 0) list += ",";
+            list += s->GetMembers()[i];
+        }
+        attr.Add("models", list);
+        visitor.WriteOpenTag("modelSet", attr, true);
     }
     visitor.WriteCloseTag();
 }
@@ -1184,6 +1203,11 @@ void xLightsFrame::LoadModels(pugi::xml_node modelsNode,
     AllModels.LoadGroups(modelGroupsNode,
         modelPreview->GetVirtualCanvasWidth(),
         modelPreview->GetVirtualCanvasHeight());
+
+    // Load Model Sets (translation-only links between models). Lives in a
+    // <modelSets> sibling element under <xrgb>. See ModelSetManager.h.
+    pugi::xml_node modelSetsNode = modelGroupsNode.parent().child("modelSets");
+    AllModels.GetSetManager().Load(modelSetsNode);
 
     // Add all models to default House Preview that are set to Default or All Previews
     for (const auto& it : AllModels) {

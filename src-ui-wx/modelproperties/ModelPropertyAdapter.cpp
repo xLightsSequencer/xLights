@@ -456,6 +456,16 @@ void ModelPropertyAdapter::AddProperties(wxPropertyGridInterface* grid, OutputMa
         p->ChangeFlag(wxPGFlags::ReadOnly, true);
     }
 
+    // Model Set membership (read-only row). See plans/layout-group-move-lock.md.
+    if (auto* set = _model.GetModelManager().GetSetManager().GetSetContaining(_model.GetName())) {
+        p = grid->Append(new wxStringProperty("In Model Set", "ModelSet", set->GetName()));
+        p->SetHelpString("This model belongs to a Model Set. Dragging any member of the Set moves them all together.\n"
+                         "Hold Alt/Option while dragging to move only this model and reposition it within the Set.\n"
+                         "Manage Sets via the right-click menu on the Layout tab.");
+        p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+        p->ChangeFlag(wxPGFlags::ReadOnly, true);
+    }
+
     AddControllerProperties(grid);
 
     p = grid->Append(new wxPropertyCategory("String Properties", "ModelStringProperties"));

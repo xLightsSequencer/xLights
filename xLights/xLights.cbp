@@ -1114,6 +1114,10 @@
 		<Unit filename="../src-core/models/ModelManager.h" />
 		<Unit filename="../src-core/models/ModelScreenLocation.cpp" />
 		<Unit filename="../src-core/models/ModelScreenLocation.h" />
+		<Unit filename="../src-core/models/ModelSet.cpp" />
+		<Unit filename="../src-core/models/ModelSet.h" />
+		<Unit filename="../src-core/models/ModelSetManager.cpp" />
+		<Unit filename="../src-core/models/ModelSetManager.h" />
 		<Unit filename="../src-core/models/MultiPointModel.cpp" />
 		<Unit filename="../src-core/models/MultiPointModel.h" />
 		<Unit filename="../src-core/models/MultiPointScreenLocation.cpp" />

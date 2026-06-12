@@ -51,6 +51,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  alpha-preserving, bit-exact uncompressed .mov at any size) and FFmpeg for AVI/MPEG-4.
     -enh (dkulp)                 Add a "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless, much smaller than uncompressed RGB, and
                                  decodes on all platforms.
+    -enh (heffneil)              Layout Model Sets: link props together (right-click > Link as Set) so dragging or rotating any member moves
+                                 the whole Set as one, in 2D and 3D. Hold Alt/Option to reposition a single member within its Set.
+                                 A Set containing a locked model will not move. Manage via the right-click Set menu (#3703).
     -bug (dkulp)                 Fix crash selecting a view after a view was deleted (out-of-bounds current view in PopulateRowInformation).
     -bug (dkulp)                 Guard EffectsGrid selection-rectangle update against a torn-down sequence to fix a crash on close.
     -bug (dkulp)                 Fix render-buffer crash building per-preview 3D node positions when no house preview is available.
@@ -90,7 +93,6 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
     -bug (dkulp)                 Fix PolyLine model crash when deleting a handle during placement (stale per-segment sizes ran the light distribution
                                  past the point array).
     -bug (dkulp)                 Fix Windows crash drawing color-vertex primitives when the accumulator type doesn't match (null-check the dynamic_cast).
-
 2026.10  May 31, 2026
     -enh (cybercop23)            Add State effect on SubModels. Ensure only nodes that are part of the SubModel are lit.
                                  Same node-index translation on Faces effect if using Faces effect on a SubModel.
