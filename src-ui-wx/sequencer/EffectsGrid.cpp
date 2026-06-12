@@ -6990,7 +6990,9 @@ void EffectsGrid::UpdateSelectionRectangle() {
 }
 
 void EffectsGrid::SetRCToolTip() {
-    if (mSequenceElements == nullptr || !IsShownOnScreen()) {
+    // Bail while the app is exiting: the parent window hierarchy / native peer may be
+    // mid-teardown, making IsShownOnScreen() (parent walk) and SetToolTip() unsafe.
+    if (mSequenceElements == nullptr || (xlights != nullptr && xlights->IsExiting()) || !IsShownOnScreen()) {
         return;
     }
 

@@ -3251,10 +3251,16 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     spdlog::info("xLights Closing");
 
+    // Mark the frame as exiting up front so the teardown that CloseSequence drives
+    // (e.g. EffectsGrid::SetRCToolTip touching an already half-destroyed window/peer)
+    // can bail. Reset it if the close is vetoed below.
+    _exiting = true;
+
     StopNow();
 
     if (!CloseSequence()) {
         spdlog::info("Closing aborted.");
+        _exiting = false;
         event.Veto();
         inClose = false;
         return;
@@ -3263,8 +3269,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     selectedEffect = nullptr;
 
     CheckUnsavedChanges();
-
-    _exiting = true;
 
     // Release GL resources from all models while contexts are still alive.
     // Must happen before ShowHideAllSequencerWindows: hiding canvases causes
