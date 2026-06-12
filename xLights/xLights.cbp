@@ -497,6 +497,8 @@
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
 		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.h" />
 		<Unit filename="../src-core/render/ModelVideoExporter.cpp" />
 		<Unit filename="../src-core/render/ModelVideoExporter.h" />
 		<Unit filename="../src-core/render/RenderBuffer.cpp" />

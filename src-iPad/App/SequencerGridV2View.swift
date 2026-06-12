@@ -359,7 +359,9 @@ private struct ExportFileExportersModifier: ViewModifier {
     @Binding var showingFSEQExporter: Bool
     @Binding var fseqExportDoc: FSEQExportDoc?
     let fseqDefaultName: String
-    let videoExportInProgress: Bool
+    /// Non-nil while a model media export (video or GIF) is encoding; the
+    /// string is shown under the spinner.
+    let exportInProgressMessage: String?
 
     func body(content: Content) -> some View {
         content
@@ -376,14 +378,14 @@ private struct ExportFileExportersModifier: ViewModifier {
                 defaultFilename: fseqDefaultName
             ) { _ in fseqExportDoc = nil }
             .overlay {
-                if videoExportInProgress {
+                if let msg = exportInProgressMessage {
                     ZStack {
                         Color.black.opacity(0.35).ignoresSafeArea()
                         VStack(spacing: 12) {
                             ProgressView()
                                 .controlSize(.large)
                                 .tint(.white)
-                            Text("Exporting video…")
+                            Text(msg)
                                 .foregroundStyle(.white)
                                 .font(.headline)
                         }
@@ -614,6 +616,7 @@ struct SequencerGridV2View: View {
     /// flags + extension; the bridge encodes to a temp file, then
     /// `.fileExporter` copies it to the user's chosen destination.
     @State private var videoExportInProgress: Bool = false
+    @State private var gifExportInProgress: Bool = false
 
     /// B-CL: "Copy Layers/SubModels to Models…" sheet state. Non-nil
     /// while the model-picker sheet is presented; holds the source row.
@@ -1153,7 +1156,8 @@ struct SequencerGridV2View: View {
             showingFSEQExporter: $showingFSEQExporter,
             fseqExportDoc: $fseqExportDoc,
             fseqDefaultName: fseqDefaultName,
-            videoExportInProgress: videoExportInProgress))
+            exportInProgressMessage: videoExportInProgress ? "Exporting video…"
+                                   : (gifExportInProgress ? "Exporting GIF…" : nil)))
         // B41 waveform filter picker.
         .confirmationDialog(
             "Waveform",
@@ -1678,6 +1682,25 @@ struct SequencerGridV2View: View {
                 // Files", AirDrop, …). Imperative presentation (not a stacked
                 // SwiftUI `.fileExporter`, which doesn't reliably present when
                 // several are chained on the same view).
+                XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
+            })
+    }
+
+    /// Encode the row's model to a temp animated GIF (wx-free core encoder),
+    /// then hand the path to the system share sheet. The encode runs off the
+    /// main thread; the overlay spinner shows "Exporting GIF…" meanwhile.
+    private func startGifExport(rowIndex: Int) {
+        let modelName = (viewModel.document.rowModelName(at: Int32(rowIndex)) as String?) ?? "Model"
+        let safeName = modelName.isEmpty ? "Model" : modelName
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "\(safeName)-\(UUID().uuidString).gif").path
+        gifExportInProgress = true
+        viewModel.exportModelAsGif(
+            rowIndex: rowIndex, path: tempPath,
+            completion: { success in
+                gifExportInProgress = false
+                guard success else { return }
                 XLPresentShareSheet(items: [URL(fileURLWithPath: tempPath)])
             })
     }
@@ -2353,6 +2376,9 @@ struct SequencerGridV2View: View {
                                          highQuality: highQuality, forceProRes: forceProRes,
                                          ext: ext, label: label,
                                          exportWidth: expW, exportHeight: expH)
+                    },
+                    onExportModelGif: {
+                        startGifExport(rowIndex: row.id)
                     },
                     onConvertToPerModel: { allLayers in
                         viewModel.convertEffectsToPerModel(rowIndex: row.id,

@@ -417,6 +417,10 @@ struct ModelRowHeader: View {
     /// (desktop disables video export for groups), matching the FSEQ entry's
     /// gating.
     var onExportModelVideo: ((_ compressed: Bool, _ highQuality: Bool, _ forceProRes: Bool, _ ext: String, _ label: String, _ exportWidth: Int, _ exportHeight: Int) -> Void)?
+    /// Export this row's model as an animated GIF. Same gating as the video
+    /// entry (non-group model rows). The outer view encodes via
+    /// `SequencerViewModel.exportModelAsGif` and shares the resulting file.
+    var onExportModelGif: (() -> Void)?
     /// B55 — convert effects on the row's element to "Per Model"
     /// buffer styles. The closure decides scope (true = all layers
     /// of the model, false = just this row's layer); the outer view
@@ -742,6 +746,11 @@ struct ModelRowHeader: View {
                     }
                 } label: {
                     Label("Export Model as Video", systemImage: "film")
+                }
+            }
+            if !isSubLayer && !isNodeRow && !isGroup, let fire = onExportModelGif {
+                Button { fire() } label: {
+                    Label("Export Model as GIF", systemImage: "photo.stack")
                 }
             }
             // B55 — model-scope variant on the model heading; layer-

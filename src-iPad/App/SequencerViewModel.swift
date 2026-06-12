@@ -5113,6 +5113,20 @@ class SequencerViewModel {
         }
     }
 
+    /// Export the model at `rowIndex` as an animated GIF (wx-free core encoder,
+    /// gif-h). `startMS`/`endMS` nil => whole sequence. The encode runs on a
+    /// background queue; `completion` arrives on the main actor.
+    func exportModelAsGif(rowIndex: Int, path: String,
+                          startMS: Int? = nil, endMS: Int? = nil,
+                          completion: @escaping @Sendable @MainActor (Bool) -> Void) {
+        document.exportModelAsGIF(
+            atRow: Int32(rowIndex),
+            toPath: path,
+            startMS: Int32(startMS ?? -1),
+            endMS: Int32(endMS ?? -1),
+            completion: { ok in MainActor.assumeIsolated { completion(ok) } })
+    }
+
     /// Layout preview canvas size (rgbeffects previewWidth × previewHeight) —
     /// the "Match preview" option for house-preview video export.
     func layoutPreviewSize() -> (width: Int, height: Int) {

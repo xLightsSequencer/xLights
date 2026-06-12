@@ -89,6 +89,9 @@
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src-core\render\ModelGifExporter.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\render\ModelVideoExporter.cpp">
       <Filter>render</Filter>
     </ClCompile>
@@ -1472,6 +1475,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\layout\PreviewPane.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-core\render\ModelGifExporter.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\ModelVideoExporter.h">
       <Filter>render</Filter>
     </ClInclude>

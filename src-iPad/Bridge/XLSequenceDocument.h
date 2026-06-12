@@ -656,6 +656,16 @@ NS_ASSUME_NONNULL_BEGIN
                      completion:(nullable void (^)(BOOL success))completion
     NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:exportWidth:exportHeight:completion:));
 
+// Export the model at `rowIndex` as an animated GIF (wx-free core encoder,
+// gif-h). The encode runs on a background queue; `completion` (success) is
+// delivered on the main queue. Frame-range and render-currency semantics match
+// exportModelAsFSEQ. Returns NO for timing/group rows, when there's no rendered
+// data, or on write failure. Caller must `ObtainAccessToURL` on `path` first.
+- (void)exportModelAsGIFAtRow:(int)rowIndex toPath:(NSString*)path
+                      startMS:(int)startMS endMS:(int)endMS
+                   completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportModelAsGIF(atRow:toPath:startMS:endMS:completion:));
+
 // Export the house preview (all models of the active layout group) as an
 // H.264 / HEVC `.mp4` rendered offscreen at exactly `width`×`height` —
 // independent of any on-screen preview size. The 2D/3D projection follows the
