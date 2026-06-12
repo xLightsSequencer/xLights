@@ -6940,6 +6940,9 @@ void EffectsGrid::EstablishSelectionRectangle() {
 }
 
 void EffectsGrid::UpdateSelectionRectangle() {
+    if (mSequenceElements == nullptr || mTimeline == nullptr) {
+        return;
+    }
     // Unselect all effects and clear mSelectedEffect
     UnselectEffect();
     mSequenceElements->UnSelectAllEffects();

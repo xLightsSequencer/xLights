@@ -653,6 +653,9 @@ void ModelScreenLocation::RotateAboutPoint(glm::vec3 position, glm::vec3 angle) 
 
 glm::vec2 ModelScreenLocation::GetScreenPosition(int screenwidth, int screenheight, IModelPreview* preview,  PreviewCamera* camera, float &sx, float &sy, float &sz) const
 {
+    if (preview == nullptr || camera == nullptr) {
+        return glm::vec2(sx, sy);
+    }
     glm::vec2 position = VectorMath::GetScreenCoord(screenwidth,
         screenheight,
         glm::vec3(sx, sy, sz),                                // X,Y,Z coords of the position when not transformed at all.

@@ -51,6 +51,9 @@ XLIGHTS/NUTCRACKER RELEASE NOTES
                                  alpha-preserving, bit-exact uncompressed .mov at any size) and FFmpeg for AVI/MPEG-4.
     -enh (dkulp)                 Add a "ProRes 4444 Video, *.mov" model export option: 4:4:4 near-lossless, much smaller than uncompressed RGB, and
                                  decodes on all platforms.
+    -bug (dkulp)                 Fix crash selecting a view after a view was deleted (out-of-bounds current view in PopulateRowInformation).
+    -bug (dkulp)                 Guard EffectsGrid selection-rectangle update against a torn-down sequence to fix a crash on close.
+    -bug (dkulp)                 Fix render-buffer crash building per-preview 3D node positions when no house preview is available.
     -bug (derwin12)              Fix shader effects going blank on Windows when sequences with many video effects are loaded (#6449).
     -bug (derwin12)              Fix creation of some new native 3D models being limited in width and location (#6526).
     -bug (derwin12)              Don't mark the layout dirty when importing a sequence via batch render (#6522).
