@@ -15611,6 +15611,30 @@ static NSArray<NSString*>* StdListToNSArray(const std::list<std::string>& list) 
     return YES;
 }
 
+- (BOOL)unlinkModelFromBase:(NSString*)modelName {
+    if (!_context || !_context->HasModelManager() || !modelName) return NO;
+    auto& mgr = _context->GetModelManager();
+    Model* m = mgr[std::string(modelName.UTF8String)];
+    // Reject groups — use unlinkGroupFromBase: instead, which
+    // routes through the <modelGroups> persistence path.
+    if (!m || m->GetDisplayAs() == DisplayAsType::ModelGroup || !m->IsFromBase()) return NO;
+    m->SetFromBase(false);
+    _context->MarkLayoutModelDirty(std::string(modelName.UTF8String));
+    return YES;
+}
+
+- (BOOL)unlinkGroupFromBase:(NSString*)groupName {
+    if (!_context || !_context->HasModelManager() || !groupName) return NO;
+    auto& mgr = _context->GetModelManager();
+    Model* m = mgr[std::string(groupName.UTF8String)];
+    if (!m || m->GetDisplayAs() != DisplayAsType::ModelGroup) return NO;
+    ModelGroup* g = static_cast<ModelGroup*>(m);
+    if (!g->IsFromBase()) return NO;
+    g->SetFromBase(false);
+    _context->MarkLayoutModelDirty(std::string(groupName.UTF8String));
+    return YES;
+}
+
 #pragma mark - Base Show Directory
 
 - (nullable NSString*)baseShowDirectory {

@@ -761,6 +761,22 @@ bool iPadRenderContext::SaveLayoutChanges() {
                 members += g->ModelNames()[i];
             }
             setAttr("models", members);
+            // Persist the FromBase flag: clear the attribute when
+            // unlinked (so a subsequent base-folder merge doesn't
+            // re-overwrite local edits), or ensure it's "1" when
+            // still linked. Matches how BaseSerializingVisitor
+            // handles FromBase for models.
+            if (g->IsFromBase()) {
+                if (!existing.attribute("FromBase") ||
+                    strcmp(existing.attribute("FromBase").value(), "1") != 0) {
+                    if (existing.attribute("FromBase"))
+                        existing.remove_attribute("FromBase");
+                    existing.append_attribute("FromBase") = "1";
+                }
+            } else {
+                if (existing.attribute("FromBase"))
+                    existing.remove_attribute("FromBase");
+            }
             continue;
         }
 

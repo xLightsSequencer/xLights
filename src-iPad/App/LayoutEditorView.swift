@@ -1185,6 +1185,15 @@ struct LayoutEditorView: View {
                                                                      layoutStyle: style,
                                                                      gridSize: gridSize))
                             .tag(name)
+                            .contextMenu {
+                                if fromBase {
+                                    Button {
+                                        runUnlinkGroupFromBase(groupName: name)
+                                    } label: {
+                                        Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+                                    }
+                                }
+                            }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 // Don't mark this destructive: iOS 26's
                                 // SwiftUI pre-commits a row removal to
@@ -1965,6 +1974,14 @@ struct LayoutEditorView: View {
             Label("Export as .xmodel…", systemImage: "square.and.arrow.up")
         }
         Divider()
+        if isFromBase {
+            Button {
+                runUnlinkModelFromBase(modelName: name)
+            } label: {
+                Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+            }
+            Divider()
+        }
         if !isFromBase {
             Button {
                 runMakeStartChannelValid(modelName: name)
@@ -2019,6 +2036,34 @@ struct LayoutEditorView: View {
         finishHousekeeping(touched: n,
                            ok: "Reassigned \(n) overlapping start channel\(n == 1 ? "" : "s").",
                            none: "No overlapping start channels found.")
+    }
+
+    private func runUnlinkModelFromBase(modelName: String) {
+        guard viewModel.document.unlinkModelFromBase(modelName) else {
+            layoutHousekeepingMessage = "\(modelName) was not linked to a base show folder."
+            return
+        }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor", userInfo: [:]
+        )
+        layoutHousekeepingMessage = "\(modelName) unlinked from base show folder."
+    }
+
+    private func runUnlinkGroupFromBase(groupName: String) {
+        guard viewModel.document.unlinkGroupFromBase(groupName) else {
+            layoutHousekeepingMessage = "\(groupName) was not linked to a base show folder."
+            return
+        }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor", userInfo: [:]
+        )
+        layoutHousekeepingMessage = "\(groupName) unlinked from base show folder."
     }
 
     private func finishHousekeeping(touched: Int, ok: String, none: String) {

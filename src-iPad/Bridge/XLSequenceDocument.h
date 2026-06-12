@@ -2942,6 +2942,17 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (BOOL)unlinkControllerFromBase:(NSString*)name
     NS_SWIFT_NAME(unlinkControllerFromBase(_:));
 
+// Clear the `FromBase` flag on a model so subsequent base-folder
+// merges won't overwrite local edits. Returns NO if the model
+// doesn't exist or isn't currently flagged.
+- (BOOL)unlinkModelFromBase:(NSString*)modelName
+    NS_SWIFT_NAME(unlinkModelFromBase(_:));
+
+// Clear the `FromBase` flag on a model group. Returns NO if the
+// group doesn't exist or isn't currently flagged.
+- (BOOL)unlinkGroupFromBase:(NSString*)groupName
+    NS_SWIFT_NAME(unlinkGroupFromBase(_:));
+
 #pragma mark - Base Show Directory
 
 // Path of the configured base show folder, or nil if none is
