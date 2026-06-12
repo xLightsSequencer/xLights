@@ -37,6 +37,8 @@ public:
     void RemoveMember(const std::string& modelName);
     void RenameMember(const std::string& oldName, const std::string& newName);
 
+    std::string GetMembersCsv() const;
+
     // XML round-trip.
     void Load(pugi::xml_node node);
     void Save(pugi::xml_node node) const;

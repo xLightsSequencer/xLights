@@ -150,12 +150,7 @@ void xLightsFrame::SerializeModelSets(BaseSerializingVisitor &visitor)
         if (s->GetMembers().size() < 2) continue;
         BaseSerializingVisitor::AttrCollector attr;
         attr.Add("name", s->GetName());
-        std::string list;
-        for (size_t i = 0; i < s->GetMembers().size(); ++i) {
-            if (i > 0) list += ",";
-            list += s->GetMembers()[i];
-        }
-        attr.Add("models", list);
+        attr.Add("models", s->GetMembersCsv());
         visitor.WriteOpenTag("modelSet", attr, true);
     }
     visitor.WriteCloseTag();

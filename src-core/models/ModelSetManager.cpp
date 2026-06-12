@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <string_view>
 
 void ModelSetManager::RebuildIndex()
 {
@@ -78,10 +79,16 @@ bool ModelSetManager::RenameSet(ModelSet* set, const std::string& newName)
 void ModelSetManager::AddMember(ModelSet* set, const std::string& modelName)
 {
     if (set == nullptr || modelName.empty()) return;
-    // If the model is in a different Set, remove it from that Set first.
+    // If the model is in a different Set, remove it from that Set first -
+    // and dissolve that Set if the removal leaves it under 2 members, the
+    // same invariant RemoveMember() enforces.
     auto it = _memberIndex.find(modelName);
     if (it != _memberIndex.end() && it->second != set) {
-        it->second->RemoveMember(modelName);
+        ModelSet* old = it->second;
+        old->RemoveMember(modelName);
+        if (old->GetMembers().size() < 2) {
+            DeleteSet(old);
+        }
     }
     set->AddMember(modelName);
     RebuildIndex();
@@ -166,9 +173,7 @@ void ModelSetManager::Save(pugi::xml_node setsNode) const
 {
     if (!setsNode) return;
     // Wipe and rewrite. Caller guarantees setsNode is the <modelSets> node.
-    while (setsNode.first_child()) {
-        setsNode.remove_child(setsNode.first_child());
-    }
+    setsNode.remove_children();
     for (const auto& s : _sets) {
         if (s->GetMembers().size() < 2) continue;
         pugi::xml_node node = setsNode.append_child("modelSet");

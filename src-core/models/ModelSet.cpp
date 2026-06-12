@@ -48,19 +48,28 @@ void ModelSet::Load(pugi::xml_node node)
     std::stringstream ss(modelsAttr);
     std::string token;
     while (std::getline(ss, token, ',')) {
-        if (!token.empty()) {
-            _members.push_back(token);
-        }
+        // Trim and dedupe (via AddMember) so hand-edited files with padded
+        // or repeated names can't fake the >= 2 member rule or break the
+        // name-based lookups.
+        size_t b = token.find_first_not_of(" \t\r\n");
+        if (b == std::string::npos) continue;
+        size_t e = token.find_last_not_of(" \t\r\n");
+        AddMember(token.substr(b, e - b + 1));
     }
 }
 
-void ModelSet::Save(pugi::xml_node node) const
+std::string ModelSet::GetMembersCsv() const
 {
-    node.append_attribute("name") = _name.c_str();
     std::string list;
     for (size_t i = 0; i < _members.size(); ++i) {
         if (i > 0) list += ",";
         list += _members[i];
     }
-    node.append_attribute("models") = list.c_str();
+    return list;
+}
+
+void ModelSet::Save(pugi::xml_node node) const
+{
+    node.append_attribute("name") = _name.c_str();
+    node.append_attribute("models") = GetMembersCsv().c_str();
 }

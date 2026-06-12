@@ -33,6 +33,7 @@
 #include <wx/checklst.h>
 #include <pugixml.hpp>
 #include <cmath>
+#include <numbers>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -2491,7 +2492,7 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     }
 
     auto rotateAround = [axis](Model* m, float cx, float cy, float cz, float deltaDeg) {
-        const float r = deltaDeg * (float)M_PI / 180.0f;
+        const float r = deltaDeg * std::numbers::pi_v<float> / 180.0f;
         const float s = std::sin(r);
         const float co = std::cos(r);
         float x = m->GetHcenterPos();
@@ -2599,8 +2600,8 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
             if (!names.empty()) names += ", ";
             names += wxString::Format("'%s'", s->GetName());
         }
-        wxMessageBox(wxString::Format("Set %s was not rotated because it contains a locked model.", names),
-                     "Bulk Edit Rotate", wxOK | wxICON_INFORMATION, this);
+        wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked model."), names),
+                     _("Bulk Edit Rotate"), wxOK | wxICON_INFORMATION, this);
     }
 }
 
@@ -2683,10 +2684,10 @@ void LayoutPanel::DoLinkAsSet()
     // Re-prompt on a name collision (keeping what the user typed) rather
     // than making them start the whole action over.
     std::string setName;
-    wxString prompt = "Name for the new Set:";
+    wxString prompt = _("Name for the new Set:");
     wxString current = setMgr.SuggestName();
     while (true) {
-        wxTextEntryDialog dlg(this, prompt, "Link as Set", current);
+        wxTextEntryDialog dlg(this, prompt, _("Link as Set"), current);
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() != wxID_OK) return;
         setName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
@@ -2694,7 +2695,7 @@ void LayoutPanel::DoLinkAsSet()
             setName = setMgr.SuggestName();
         }
         if (setMgr.GetSetByName(setName) == nullptr) break;
-        prompt = wxString::Format("A Set named '%s' already exists. Choose another name:", setName);
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), setName);
         current = setName;
     }
 
@@ -2769,8 +2770,8 @@ void LayoutPanel::DoDeleteSet()
         if (s != nullptr) break;
     }
     if (s == nullptr) return;
-    wxString prompt = wxString::Format("Delete Set '%s'? Member models will not be affected.", s->GetName());
-    if (wxMessageBox(prompt, "Confirm Delete", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+    wxString prompt = wxString::Format(_("Delete Set '%s'? Member models will not be affected."), s->GetName());
+    if (wxMessageBox(prompt, _("Confirm Delete"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
         return;
     }
     setMgr.DeleteSet(s);
@@ -2793,16 +2794,16 @@ void LayoutPanel::DoRenameSet()
 
     // Re-prompt on a name collision (keeping what the user typed) rather
     // than making them start over.
-    wxString prompt = "New Set name:";
+    wxString prompt = _("New Set name:");
     wxString current = s->GetName();
     while (true) {
-        wxTextEntryDialog dlg(this, prompt, "Rename Set", current);
+        wxTextEntryDialog dlg(this, prompt, _("Rename Set"), current);
         OptimiseDialogPosition(&dlg);
         if (dlg.ShowModal() != wxID_OK) return;
         std::string newName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
         if (newName.empty() || newName == s->GetName()) return;
         if (setMgr.RenameSet(s, newName)) break;
-        prompt = wxString::Format("A Set named '%s' already exists. Choose another name:", newName);
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), newName);
         current = newName;
     }
     xlights->UnsavedRgbEffectsChanges = true;
@@ -2819,7 +2820,7 @@ public:
                     const std::vector<wxString>& labels,
                     const std::set<std::string>& initialChecked,
                     std::function<bool(const std::string&)> nameAvailable) :
-        wxDialog(parent, wxID_ANY, "Manage Set", wxDefaultPosition, wxDefaultSize,
+        wxDialog(parent, wxID_ANY, _("Manage Set"), wxDefaultPosition, wxDefaultSize,
                  wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
         _candidates(candidates),
         _labels(labels),
@@ -2829,16 +2830,16 @@ public:
     {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         auto* nameSizer = new wxBoxSizer(wxHORIZONTAL);
-        nameSizer->Add(new wxStaticText(this, wxID_ANY, "Name:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+        nameSizer->Add(new wxStaticText(this, wxID_ANY, _("Name:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
         _name = new wxTextCtrl(this, wxID_ANY, setName);
         nameSizer->Add(_name, 1, wxEXPAND);
         sizer->Add(nameSizer, 0, wxEXPAND | wxALL, 8);
         sizer->Add(new wxStaticText(this, wxID_ANY,
-                                    "Checked models are members of this Set.\nCheck to add, uncheck to remove."),
+                                    _("Checked models are members of this Set.\nCheck to add, uncheck to remove.")),
                    0, wxLEFT | wxRIGHT | wxBOTTOM, 8);
         _filter = new wxSearchCtrl(this, wxID_ANY);
         _filter->ShowCancelButton(true);
-        _filter->SetDescriptiveText("Filter models");
+        _filter->SetDescriptiveText(_("Filter models"));
         sizer->Add(_filter, 0, wxEXPAND | wxLEFT | wxRIGHT, 8);
         _list = new wxCheckListBox(this, wxID_ANY);
         sizer->Add(_list, 1, wxEXPAND | wxALL, 8);
@@ -2863,8 +2864,8 @@ public:
         Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             const std::string n = GetSetName();
             if (!n.empty() && n != _originalName && _nameAvailable && !_nameAvailable(n)) {
-                wxMessageBox(wxString::Format("A Set named '%s' already exists. Choose another name.", n),
-                             "Manage Set", wxOK | wxICON_WARNING, this);
+                wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Choose another name."), n),
+                             _("Manage Set"), wxOK | wxICON_WARNING, this);
                 _name->SetFocus();
                 _name->SelectAll();
                 return;
@@ -2948,7 +2949,7 @@ void LayoutPanel::DoManageSet()
         // move the model out of its current Set.
         ModelSet* owner = setMgr.GetSetContaining(name);
         if (owner != nullptr && owner != s) {
-            label += wxString::Format(" (in Set '%s')", owner->GetName());
+            label += wxString::Format(_(" (in Set '%s')"), owner->GetName());
         }
         labels.push_back(label);
         if (owner == s) {
@@ -2967,8 +2968,8 @@ void LayoutPanel::DoManageSet()
     const std::set<std::string>& finalMembers = dlg.GetChecked();
 
     if (finalMembers.size() < 2) {
-        if (wxMessageBox(wxString::Format("A Set needs at least 2 members. Delete Set '%s' instead?", s->GetName()),
-                         "Manage Set", wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+        if (wxMessageBox(wxString::Format(_("A Set needs at least 2 members. Delete Set '%s' instead?"), s->GetName()),
+                         _("Manage Set"), wxYES_NO | wxICON_QUESTION, this) == wxYES) {
             setMgr.DeleteSet(s);
             xlights->UnsavedRgbEffectsChanges = true;
             xlights->GetOutputModelManager()->AddASAPWork(
@@ -2985,8 +2986,8 @@ void LayoutPanel::DoManageSet()
         if (setMgr.RenameSet(s, newName)) {
             changed = true;
         } else {
-            wxMessageBox(wxString::Format("A Set named '%s' already exists. Name unchanged.", newName),
-                         "Manage Set", wxOK | wxICON_WARNING, this);
+            wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Name unchanged."), newName),
+                         _("Manage Set"), wxOK | wxICON_WARNING, this);
         }
     }
 
@@ -2997,9 +2998,9 @@ void LayoutPanel::DoManageSet()
         ModelSet* owner = setMgr.GetSetContaining(name);
         if (owner != nullptr && owner != s) {
             wxString prompt = wxString::Format(
-                "'%s' is already in Set '%s'. Move it to Set '%s'?",
+                _("'%s' is already in Set '%s'. Move it to Set '%s'?"),
                 name, owner->GetName(), s->GetName());
-            if (wxMessageBox(prompt, "Confirm Move", wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+            if (wxMessageBox(prompt, _("Confirm Move"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
                 continue;
             }
         }
@@ -4566,7 +4567,7 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                         ModelSet* ms = xlights->AllModels.GetSetManager().GetSetContaining(selModel->GetName());
                                         if (ms != nullptr && ModelSetHasLockedMember(xlights->AllModels, ms)) {
                                             xlights->SetStatusText(wxString::Format(
-                                                "Set '%s' contains a locked model - unlock it to move the Set.", ms->GetName()));
+                                                _("Set '%s' contains a locked model - unlock it to move the Set."), ms->GetName()));
                                             handledByNewApi = true;
                                             m_last_mouse_x = event.GetX();
                                             m_last_mouse_y = event.GetY();
@@ -6742,7 +6743,7 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
         if (setDragBlocked) {
-            xlights->SetStatusText("Model Set contains a locked model - unlock it to move the Set (Alt-drag moves a single model).");
+            xlights->SetStatusText(_("Model Set contains a locked model - unlock it to move the Set (Alt-drag moves a single model)."));
         } else {
             xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
         }
