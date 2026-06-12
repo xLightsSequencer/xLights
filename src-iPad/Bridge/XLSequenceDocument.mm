@@ -198,11 +198,6 @@ struct ShiftLayerSnap {
 - (void)recalcModelStartChannels;
 - (void)reworkAndRecalcStartChannels;
 - (void)recalcAndMarkControllersDirty;
-- (BOOL)applyPresetFromManager:(EffectPresetManager&)mgr
-                        atPath:(NSString*)path
-                         toRow:(int)rowIndex
-                     atStartMS:(int)startMS
-                   usingLayers:(BOOL)usingLayers;
 @end
 
 // Controller-property descriptor builders are defined further down
@@ -16852,17 +16847,6 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     return preset->GetSettings().find("\tLAYER:") != std::string::npos ? YES : NO;
 }
 
-- (BOOL)applyPresetAtPath:(NSString*)path
-                    toRow:(int)rowIndex
-                atStartMS:(int)startMS
-              usingLayers:(BOOL)usingLayers {
-    return [self applyPresetFromManager:_context->GetEffectPresetManager()
-                                 atPath:path
-                                  toRow:rowIndex
-                              atStartMS:startMS
-                            usingLayers:usingLayers];
-}
-
 - (BOOL)applyPresetFromManager:(EffectPresetManager&)mgr
                         atPath:(NSString*)path
                          toRow:(int)rowIndex
@@ -16961,6 +16945,18 @@ std::vector<std::string> SplitOn(const std::string& s, char sep) {
     }
     return any ? YES : NO;
 }
+
+- (BOOL)applyPresetAtPath:(NSString*)path
+                    toRow:(int)rowIndex
+                atStartMS:(int)startMS
+              usingLayers:(BOOL)usingLayers {
+    return [self applyPresetFromManager:_context->GetEffectPresetManager()
+                                 atPath:path
+                                  toRow:rowIndex
+                              atStartMS:startMS
+                            usingLayers:usingLayers];
+}
+
 
 - (BOOL)addPresetGroupNamed:(NSString*)name
               inGroupAtPath:(NSString*)parentGroupPath {

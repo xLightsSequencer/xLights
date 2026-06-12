@@ -28,6 +28,7 @@ final class SubmodelPreviewController: ObservableObject {
     /// Run rotational symmetrize over the parent model's node cloud
     /// using the pane's preview. Returns the new full strand list or
     /// nil if matching failed / the preview isn't ready.
+    @MainActor
     func symmetrize(ranges: [String],
                     degree: Int,
                     clockwise: Bool,

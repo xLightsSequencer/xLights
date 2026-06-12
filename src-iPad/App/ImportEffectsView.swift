@@ -564,14 +564,18 @@ struct ImportEffectsView: View {
         guard let session else { return }
         aiMapRunning = true
         session.runAIMap { applied, error in
-            aiMapRunning = false
-            if let error {
-                resultMessage = error
-            } else {
-                resultMessage = applied > 0
-                    ? "AI mapped \(applied) model\(applied == 1 ? "" : "s")."
-                    : "AI returned no new mappings."
-                refreshSnapshots()
+            // Bridge delivers on the main queue; assumeIsolated avoids a
+            // Sendable-closure hop for the @State writes below.
+            MainActor.assumeIsolated {
+                aiMapRunning = false
+                if let error {
+                    resultMessage = error
+                } else {
+                    resultMessage = applied > 0
+                        ? "AI mapped \(applied) model\(applied == 1 ? "" : "s")."
+                        : "AI returned no new mappings."
+                    refreshSnapshots()
+                }
             }
         }
     }

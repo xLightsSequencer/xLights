@@ -4541,7 +4541,7 @@ class SequencerViewModel {
                             compressed: Bool, highQuality: Bool, forceProRes: Bool,
                             startMS: Int? = nil, endMS: Int? = nil,
                             exportWidth: Int = 0, exportHeight: Int = 0,
-                            completion: @escaping (Bool) -> Void) {
+                            completion: @escaping @Sendable @MainActor (Bool) -> Void) {
         if exportWidth > 0 && exportHeight > 0 {
             document.exportModelAsVideo(
                 atRow: Int32(rowIndex),
@@ -4553,7 +4553,7 @@ class SequencerViewModel {
                 endMS: Int32(endMS ?? -1),
                 exportWidth: Int32(exportWidth),
                 exportHeight: Int32(exportHeight),
-                completion: completion)
+                completion: { ok in MainActor.assumeIsolated { completion(ok) } })
         } else {
             document.exportModelAsVideo(
                 atRow: Int32(rowIndex),
@@ -4563,7 +4563,7 @@ class SequencerViewModel {
                 forceProRes: forceProRes,
                 startMS: Int32(startMS ?? -1),
                 endMS: Int32(endMS ?? -1),
-                completion: completion)
+                completion: { ok in MainActor.assumeIsolated { completion(ok) } })
         }
     }
 
@@ -4578,13 +4578,13 @@ class SequencerViewModel {
     /// `progress` (0..1) and `completion` arrive on the main actor.
     func exportHousePreview(path: String, width: Int, height: Int, highQuality: Bool,
                             progress: @escaping (Double) -> Void,
-                            completion: @escaping (Bool) -> Void) {
+                            completion: @escaping @Sendable @MainActor (Bool) -> Void) {
         document.exportHousePreviewVideo(toPath: path,
                                          width: Int32(width), height: Int32(height),
                                          highQuality: highQuality,
                                          startMS: -1, endMS: -1,
                                          progress: progress,
-                                         completion: completion)
+                                         completion: { ok in MainActor.assumeIsolated { completion(ok) } })
     }
 
     /// B76: convert a fixed-interval timing track to variable
