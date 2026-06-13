@@ -191,7 +191,7 @@ public:
         }
         return def;
     }
-    bool SetExtraProperty(const std::string &p, const std::string &v) {
+    [[nodiscard]] bool SetExtraProperty(const std::string &p, const std::string &v) {
         auto it = _extraProperties.find(p);
         if (it == _extraProperties.end() || it->second != v) {
             _extraProperties[p] = v;

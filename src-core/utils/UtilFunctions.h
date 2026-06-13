@@ -43,6 +43,15 @@ inline int64_t GetCurrentTimeMillis() {
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
+inline uint32_t fnv1a(const std::string& str) {
+    uint32_t hash = 2166136261u;
+    for (char c : str) {
+        hash ^= static_cast<uint8_t>(c);
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
 inline std::string FormatTimestamp() {
     auto now = std::chrono::system_clock::now();
     auto tt = std::chrono::system_clock::to_time_t(now);
@@ -60,7 +69,13 @@ inline std::string FormatTimestamp() {
 }
 
 inline std::string MakeControllerTimestampKey(const std::string& prefix, const std::string& ctrlName, const std::string& showDir) {
-    auto showPart = showDir.empty() ? "default" : showDir;
+    std::string showPart = "default";
+    if (!showDir.empty()) {
+        auto normPath = std::filesystem::path(showDir).lexically_normal();
+        std::string bname = normPath.filename().string();
+        if (bname.empty() || bname == "/") bname = "root";
+        showPart = bname + "_" + fmt::format("{:08x}", fnv1a(showDir));
+    }
     std::string key = prefix + "/" + showPart + "/" + ctrlName;
     for (auto& c : key) {
         if (c == ':' || c == '/' || c == '\\' || c == '.' || c == ' ') c = '_';

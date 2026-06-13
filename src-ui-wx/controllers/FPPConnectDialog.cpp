@@ -1170,15 +1170,15 @@ void FPPConnectDialog::doUpload(FPPUploadProgressDialog *prgs, std::vector<bool>
                 if (GetCheckValue(UPLOAD_CONTROLLER_COL + rowStr)) {
                     auto c = _outputManager->GetControllers(inst->ipAddress);
                     if (c.size() == 1) {
-                        bool controllerFailed = false;
-                        controllerFailed |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
-                        controllerFailed |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
-                        controllerFailed |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
-                        controllerFailed |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
-                        controllerFailed |= inst->SetInputUniversesBridge(c.front());
-                        cancelled |= controllerFailed;
+                        bool controllerCancelled = false;
+                        controllerCancelled |= inst->UploadPanelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadVirtualMatrixOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadPixelOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->UploadSerialOutputs(&frame->AllModels, _outputManager, c.front());
+                        controllerCancelled |= inst->SetInputUniversesBridge(c.front());
+                        cancelled |= controllerCancelled;
 
-                        if (!controllerFailed) {
+                        if (!controllerCancelled) {
                             auto ts = FormatTimestamp();
                             auto* config = GetXLightsConfig();
                             auto ctrlName = c.front()->GetName();
