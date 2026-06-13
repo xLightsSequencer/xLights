@@ -299,7 +299,7 @@ struct AIImageGenerationSheet: View {
 
     /// Flood-fill from all near-black border pixels (tolerance 25/255 per channel),
     /// setting their alpha to 0. Mirrors desktop AIImageDialog.cpp RemoveBlackBackground.
-    private func removeBlackBackgroundFromImage(_ src: UIImage) -> UIImage? {
+    private nonisolated func removeBlackBackgroundFromImage(_ src: UIImage) -> UIImage? {
         guard let cgSrc = src.cgImage else { return nil }
         let width = cgSrc.width
         let height = cgSrc.height
