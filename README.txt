@@ -10,7 +10,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
-2026.11  June ??, 2026
+2026.11  June 14, 2026
     NOTE:   Support for macOS versions 10.15 and 11 will likely be dropped fairly soon as the tools we use to build xLights are dropping support.
     -enh (charlie)               Command palette (Ctrl/Cmd+Shift+K): a searchable launcher for any menu command or effect with fuzzy match, keyboard nav,
                                  and SF Symbol icons on macOS (#6258).
