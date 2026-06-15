@@ -1904,6 +1904,7 @@ std::list<Model*> MovingHeadPanel::GetActiveModels()
     std::list<Model*> res;
 
     if (xLightsApp::GetFrame()->GetMainSequencer() == nullptr) return res;
+    if (!xLightsApp::GetFrame()->IsSequenceLoaded()) return res;
 
     auto effect = xLightsApp::GetFrame()->GetMainSequencer()->GetSelectedEffect();
     if (effect != nullptr) {
