@@ -8186,8 +8186,7 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
         }
         int ts = snap.origStartTimeMS + rawDelta;
         int te = snap.origEndTimeMS + rawDelta;
-        bool sameLayer = !mEffectMoveCopyMode && (snapTargetRow == snap.origVisibleRow);
-        snap.hasCollision = !tl->GetRangeIsClearMS(ts, te, sameLayer);
+        snap.hasCollision = !tl->GetRangeIsClearMS(ts, te, !mEffectMoveCopyMode);
         if (snap.hasCollision) anyCollision = true;
     }
     mEffectMoveHasCollision = anyCollision;
