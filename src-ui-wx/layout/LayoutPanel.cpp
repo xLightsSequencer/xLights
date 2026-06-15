@@ -2406,19 +2406,68 @@ bool ModelSetHasLockedMember(ModelManager& mgr, ModelSet* s) {
     }
     return false;
 }
+// Which axes a model's screen-location class meaningfully rotates around.
+// BoxedScreenLocation supports all three. ThreePointScreenLocation (Arches,
+// CandyCane, Icicles) only exposes X. Two/Poly/Multi/Terrain point screen
+// locations derive their orientation from their anchor points - calling
+// SetRotateX/Y/Z stores a value but has no visible effect.
+bool ModelSupportsRotationAxis(Model* model, char axis) {
+    if (model == nullptr) {
+        return false;
+    }
+    if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(model) != nullptr) {
+        return true;
+    }
+    if (dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(model) != nullptr) {
+        return axis == 'X';
+    }
+    return false;
+}
 } // namespace
 
 void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
 
     std::vector<Model*> editableModels;
+    std::vector<Model*> unsupportedModels;
     editableModels.reserve(modelsToEdit.size());
     for (Model* model : modelsToEdit) {
-        if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
+        if (model == nullptr || model->GetBaseObjectScreenLocation().IsLocked()) {
+            continue;
+        }
+        if (ModelSupportsRotationAxis(model, axis)) {
             editableModels.push_back(model);
+        } else {
+            unsupportedModels.push_back(model);
         }
     }
+    auto formatSkippedNames = [](const std::vector<Model*>& skipped) {
+        // Cap list to keep the dialog from getting absurdly tall on huge
+        // selections. 20 lines is roughly a comfortable max for a message
+        // box on a typical display.
+        constexpr size_t kMaxLines = 20;
+        wxString out;
+        size_t n = std::min(skipped.size(), kMaxLines);
+        for (size_t i = 0; i < n; ++i) {
+            out += "  • " + wxString(skipped[i]->GetName()) + "\n";
+        }
+        if (skipped.size() > kMaxLines) {
+            out += wxString::Format("  … and %zu more\n", skipped.size() - kMaxLines);
+        }
+        return out;
+    };
+
     if (editableModels.empty()) {
+        if (!unsupportedModels.empty()) {
+            wxMessageBox(
+                wxString::Format(
+                    "None of the selected models support rotation on the %c axis.\n\n"
+                    "Skipped:\n%s\n"
+                    "Arches/CandyCane/Icicles only support X; Lines/PolyLines derive orientation from their endpoints.",
+                    axis,
+                    formatSkippedNames(unsupportedModels)),
+                "Bulk Edit Rotate", wxOK | wxICON_INFORMATION, this);
+        }
         return;
     }
 
@@ -2606,6 +2655,18 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
         }
         wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked model."), names),
                      _("Bulk Edit Rotate"), wxOK | wxICON_INFORMATION, this);
+    }
+    if (!unsupportedModels.empty()) {
+        wxMessageBox(
+            wxString::Format(
+                "Rotated %zu of %zu selected models.\n\n"
+                "Skipped because their model type does not support rotation on the %c axis:\n%s\n"
+                "Arches/CandyCane/Icicles only support X; Lines/PolyLines derive orientation from their endpoints.",
+                editableModels.size(),
+                editableModels.size() + unsupportedModels.size(),
+                axis,
+                formatSkippedNames(unsupportedModels)),
+            "Bulk Edit Rotate", wxOK | wxICON_INFORMATION, this);
     }
 }
 
