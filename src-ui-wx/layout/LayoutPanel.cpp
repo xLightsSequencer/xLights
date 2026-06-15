@@ -9377,13 +9377,12 @@ namespace {
 // replacement clone, taking a single consistent snapshot from the target's
 // screen location.
 //
-// Applied directly through the screen location, NOT via Model::SetHcenterPos /
-// SetWidth / etc. Those go through BaseObject, which silently no-ops when the
-// model IsLocked() or IsFromBase(); the clone inherits those flags from its
-// source, so a locked or base-show-folder source would otherwise keep its own
-// geometry instead of the target's. A replace is an explicit, user-authorized
-// repositioning of the new model onto the target it is replacing, so it is
-// allowed to override those guards here.
+// Applied directly through the screen location rather than via
+// Model::SetHcenterPos / SetWidth / etc. The clone is cloned from the source's
+// XML and may inherit the source's locked flag; the Model::Set* setters no-op
+// when IsLocked(), so going straight to the screen location keeps the copy
+// working for a locked source. (Base linkage is not a concern here: the caller
+// clears FromBase on the clone, and base-linked targets are blocked up front.)
 //
 // Size MUST be set before the centre: two-point / poly-point screen locations
 // derive their centre from the current width/height/depth
@@ -9411,11 +9410,17 @@ void LayoutPanel::ReplaceModel()
     if (sourceModel == nullptr) return;
 
     // Build alphabetised candidate list - everything in the preview except the source itself.
+    // Base-folder models are collected separately so the dialog can show them
+    // disabled: replacing one would delete a model the base folder owns.
     std::vector<std::string> candidates;
+    std::set<std::string> baseLinked;
     candidates.reserve(modelPreview->GetModels().size());
     for (auto* m : modelPreview->GetModels()) {
         if (m != nullptr && m != sourceModel) {
             candidates.push_back(m->GetName());
+            if (m->IsFromBase()) {
+                baseLinked.insert(m->GetName());
+            }
         }
     }
     if (candidates.empty()) {
@@ -9425,7 +9430,7 @@ void LayoutPanel::ReplaceModel()
     }
     std::sort(candidates.begin(), candidates.end());
 
-    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates, baseLinked);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -9512,6 +9517,14 @@ void LayoutPanel::ReplaceModel()
         const std::string tmpNewName = uniqueTempName("__xl_rmm_new_", successCount);
         clone->Rename(tmpNewName);
         xlights->AllModels.AddModel(clone);
+
+        // The replacement is a brand-new local model standing in for the
+        // target; it is not managed by the base show folder even if the source
+        // was. Clearing FromBase keeps us from creating a fake base-linked
+        // model and lets its geometry be set to the target's below without
+        // overriding a real base lock. (Base-linked targets are themselves
+        // blocked in the dialog.)
+        clone->SetFromBase(false);
 
         // Per-target carryovers. These match the semantics of the three Yes/No
         // prompts in the existing single-replace flow (see ReplaceModel()).
