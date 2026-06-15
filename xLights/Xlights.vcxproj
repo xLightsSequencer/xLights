@@ -36,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -557,6 +557,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-ui-wx\graphics\opengl\xlOGL3GraphicsContext.cpp" />
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-core\graphics\xlGraphicsAccumulators.cpp" />
+    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp" />
+    <ClCompile Include="..\src-core\graphics\GLBackend.cpp" />
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp" />
     <ClCompile Include="..\src-core\graphics\xlMesh.cpp" />
     <ClCompile Include="..\src-ui-wx\layout\HousePreviewPanel.cpp" />
@@ -1729,6 +1731,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-ui-wx\shared\utils\xlPropertyGrid.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\ExternalHooksUI.h" />
     <ClInclude Include="..\src-ui-wx\graphics\xlGraphicsBase.h" />
+    <ClInclude Include="..\src-core\graphics\AngleEGL.h" />
+    <ClInclude Include="..\src-core\graphics\GLBackend.h" />
     <ClInclude Include="..\src-core\graphics\GLContextManager.h" />
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h" />
     <ClInclude Include="..\src-core\utils\xlSize.h" />

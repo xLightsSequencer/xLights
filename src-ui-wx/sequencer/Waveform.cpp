@@ -9,7 +9,9 @@
  **************************************************************/
 
 #include <wx/wx.h>
-#ifdef __WXMAC__
+#if defined(USE_GLES) && !defined(__WXMAC__)
+    #include <GLES3/gl3.h>
+#elif defined(__WXMAC__)
     #include "OpenGL/gl.h"
 #else
     #include <GL/gl.h>

@@ -1010,6 +1010,10 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
+		<Unit filename="../src-core/graphics/AngleEGL.cpp" />
+		<Unit filename="../src-core/graphics/AngleEGL.h" />
+		<Unit filename="../src-core/graphics/GLBackend.cpp" />
+		<Unit filename="../src-core/graphics/GLBackend.h" />
 		<Unit filename="../src-core/graphics/GLContextManager.cpp" />
 		<Unit filename="../src-core/graphics/GLContextManager.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsContext.h" />
