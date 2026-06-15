@@ -2424,6 +2424,13 @@ static std::list<const Model*> GetModelsForPanel(const Model* model)
 
 void MovingHeadPanel::SetDefaultParameters()
 {
+    // Suppress the live update handlers while we programmatically populate the
+    // controls. SetSliderValue synthesises wxEVT_SLIDER events that otherwise
+    // cascade into UpdateMHSettings->UpdateColorPanel->GetActiveModels, which
+    // dereferences the (now stale) selected effect/model during CloseSequence
+    // teardown.
+    recall = true;
+
     ValueCurve_MHPan->SetActive(false);
     ValueCurve_MHTilt->SetActive(false);
     ValueCurve_MHPanOffset->SetActive(false);
@@ -2464,6 +2471,8 @@ void MovingHeadPanel::SetDefaultParameters()
         PanelDimmer->FitInside();
         Layout();
     }
+
+    recall = false;
 }
 
 void MovingHeadPanel::SetPanelStatus(Model* cls)

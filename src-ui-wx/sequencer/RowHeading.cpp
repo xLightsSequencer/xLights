@@ -479,7 +479,14 @@ void RowHeading::mouseLeftDown(wxMouseEvent& event)
     mSelectedRow = event.GetY() / DEFAULT_ROW_HEADING_HEIGHT;
     if (mSelectedRow < (int)mSequenceElements->GetVisibleRowInformationSize()) {
         bool result;
-        Element* e = mSequenceElements->GetVisibleRowInformation(mSelectedRow)->element;
+        Row_Information_Struct* rowInfo = mSequenceElements->GetVisibleRowInformation(mSelectedRow);
+        if (rowInfo == nullptr) {
+            return;
+        }
+        Element* e = rowInfo->element;
+        if (e == nullptr) {
+            return;
+        }
         if (e->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
             mSequenceElements->UnSelectAllElements();
             ModelElement* me = dynamic_cast<ModelElement*>(e);

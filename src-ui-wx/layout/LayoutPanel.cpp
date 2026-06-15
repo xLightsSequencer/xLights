@@ -5429,7 +5429,17 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         pugi::xml_node root = doc.document_element();
 
         model->SetStartChannel("1");
-        model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
+        try {
+            model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
+        } catch (const std::exception& e) {
+            // A downloaded/imported model file with an unrecognized or malformed type
+            // throws out of the deserializer; xLights has no surrounding handler so it
+            // escapes to the main loop and is treated as a crash. Cancel the import
+            // cleanly instead (FinalizeModel deletes the in-flight model on cancel).
+            spdlog::error("Unable to load model from '{}': {}", last_model, e.what());
+            DisplayError("Unable to load model file:\n" + std::string(e.what()));
+            cancelled = true;
+        }
 
         if (!cancelled && model != nullptr) {
             // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
@@ -5469,7 +5479,13 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     xlights->GetOutputModelManager()->DisableASAPWork(false);
                     if (extraModel == nullptr) continue;
                     extraModel->SetStartChannel("1");
-                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    try {
+                        extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    } catch (const std::exception& e) {
+                        spdlog::error("Unable to load additional model: {}", e.what());
+                        delete extraModel;
+                        continue;
+                    }
                     if (extraCancelled || extraModel == nullptr) continue;
                     const std::string& extraSc = extraModel->GetModelStartChannel();
                     if (!extraModel->HasIndividualStartChannels() && (extraSc.empty() || (extraSc[0] != '@' && extraSc[0] != '>'))) {

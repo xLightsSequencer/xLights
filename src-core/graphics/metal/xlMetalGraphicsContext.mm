@@ -16,6 +16,9 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <set>
+#include <spdlog/spdlog.h>
+
 #include "xlMetalGraphicsContext.h"
 #include "osxUtils/MetalDeviceManager.h"
 
@@ -1886,7 +1889,18 @@ void xlMetalGraphicsContext::setPointSize(float ps, bool smoothPoints) {
 
 bool xlMetalGraphicsContext::setPipelineState(const std::string &name, const char *vShader, const char *fShader) {
     if (lastPipeline != name || blending != lastPipelineBlend) {
-        [encoder setRenderPipelineState:delegate->getPipelineState(name, vShader, fShader, blending)];
+        id<MTLRenderPipelineState> ps = delegate->getPipelineState(name, vShader, fShader, blending);
+        if (ps == nil) {
+            // Pipeline compilation can fail (e.g. an unsupported shader feature on older Metal);
+            // passing nil to setRenderPipelineState: crashes. Skip the draw and leave the cache
+            // untouched so a later frame can retry once a valid pipeline is available.
+            static std::set<std::string> warned;
+            if (warned.insert(name).second) {
+                spdlog::warn("Metal pipeline '{}' failed to build; skipping draw.", name);
+            }
+            return false;
+        }
+        [encoder setRenderPipelineState:ps];
         lastPipeline = name;
         lastPipelineBlend = blending;
         lastAccumulator = nullptr;
