@@ -191,6 +191,12 @@ class LayoutPanel: public wxPanel
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM;
         static const long ID_PREVIEW_MODEL_EXPORTASCUSTOM3D;
         static const long ID_PREVIEW_MODEL_CREATEGROUP;
+        static const long ID_PREVIEW_MODEL_LINKASSET;
+        static const long ID_PREVIEW_MODEL_ADDTOSET;
+        static const long ID_PREVIEW_MODEL_REMOVEFROMSET;
+        static const long ID_PREVIEW_MODEL_DELETESET;
+        static const long ID_PREVIEW_MODEL_RENAMESET;
+        static const long ID_PREVIEW_MODEL_MANAGESET;
         static const long ID_PREVIEW_MODEL_WIRINGVIEW;
         static const long ID_PREVIEW_MODEL_ASPECTRATIO;
         static const long ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL;
@@ -434,6 +440,15 @@ class LayoutPanel: public wxPanel
         bool IsAllSelectedModelsArePixelProtocol() const;
         void AddSingleModelOptionsToBaseMenu(wxMenu &menu);
         void AddBulkEditOptionsToMenu(wxMenu* bulkEditMenu);
+        void AddModelSetOptionsToMenu(wxMenu& menu);
+        void DoLinkAsSet();
+        void DoAddSelectedToSet(const std::string& setName);
+        void DoRemoveSelectedFromSet();
+        void DoDeleteSet();
+        void DoRenameSet();
+        void DoManageSet();
+        // Returns models present in the current selection (canvas + tree).
+        std::vector<Model*> GetSelectedModelsForSetActions() const;
         void AddAlignOptionsToMenu(wxMenu* mnuAlign);
         void AddDistributeOptionsToMenu(wxMenu* mnuDistribute);
         void AddResizeOptionsToMenu(wxMenu* mnuResize);

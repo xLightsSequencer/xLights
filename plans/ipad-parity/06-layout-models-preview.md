@@ -197,6 +197,16 @@
 
 ### P2
 
+- **Model Sets (layout move-linking).** Desktop links props into a
+  persistent "Set" (`<modelSets>` in `xlights_rgbeffects.xml`,
+  `src-core/models/ModelSetManager.h`) so dragging/rotating any member
+  moves the whole Set; Alt-drag repositions a single member; a Set
+  with a locked member is frozen. The data layer is in `src-core/` so
+  the iPad already loads/saves it — the gap is honoring Set membership
+  in `LayoutEditorView` drag gestures plus a management UI
+  (link/unlink, member checklist). Desktop UI: `LayoutPanel.cpp`
+  (`AddModelSetOptionsToMenu`, `DoLinkAsSet`, `DoManageSet`). See
+  `plans/layout-group-move-lock.md`. Ease: medium.
 - **Faces / States rich editor — visual node picker landed.** iPad
   `FaceStateEditorSheet` (`LayoutEditorView.swift`) edits the
   `faceInfo` / `stateInfo` attribute maps and is fully wired

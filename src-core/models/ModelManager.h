@@ -17,6 +17,7 @@
 #include <atomic>
 
 #include "ObjectManager.h"
+#include "ModelSetManager.h"
 #include <pugixml.hpp>
 
 class Model;
@@ -115,6 +116,11 @@ class ModelManager : public ObjectManager
         // parallel.
         unsigned int GetModelGeneration() const { return _modelGeneration.load(); }
 
+        // Model Sets - persistent translation-only links between models.
+        // See plans/layout-group-move-lock.md and ModelSetManager.h.
+        ModelSetManager& GetSetManager() { return _setManager; }
+        const ModelSetManager& GetSetManager() const { return _setManager; }
+
     private:
 
     OutputManager* _outputManager = nullptr;
@@ -127,5 +133,6 @@ class ModelManager : public ObjectManager
     std::atomic<bool> _modelsLoading;
     std::atomic<unsigned int> _modelGeneration{ 0 };
     mutable std::string lastGeneratedModelName = "";
+    ModelSetManager _setManager;
 };
 

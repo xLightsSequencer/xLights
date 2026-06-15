@@ -845,6 +845,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\models\ModelGroup.cpp" />
     <ClCompile Include="..\src-core\models\ModelManager.cpp" />
     <ClCompile Include="..\src-core\models\ModelScreenLocation.cpp" />
+    <ClCompile Include="..\src-core\models\ModelSet.cpp" />
+    <ClCompile Include="..\src-core\models\ModelSetManager.cpp" />
     <ClCompile Include="..\src-core\models\Node.cpp" />
     <ClCompile Include="..\src-core\models\PolyLineModel.cpp" />
     <ClCompile Include="..\src-core\models\Shapes.cpp" />
@@ -1454,6 +1456,8 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\models\ModelGroup.h" />
     <ClInclude Include="..\src-core\models\ModelManager.h" />
     <ClInclude Include="..\src-core\models\ModelScreenLocation.h" />
+    <ClInclude Include="..\src-core\models\ModelSet.h" />
+    <ClInclude Include="..\src-core\models\ModelSetManager.h" />
     <ClInclude Include="..\src-core\models\Node.h" />
     <ClInclude Include="..\src-core\models\PolyLineModel.h" />
     <ClInclude Include="..\src-core\models\Shapes.h" />
