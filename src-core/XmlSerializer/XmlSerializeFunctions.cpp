@@ -358,7 +358,7 @@ std::optional<SubModelImportData> ParseSubModelNode(pugi::xml_node node) {
     }
 
     SubModelImportData sm;
-    sm.name = node.attribute(XmlNodeKeys::NameAttribute).as_string();
+    sm.name = Trim(node.attribute(XmlNodeKeys::NameAttribute).as_string());
     sm.isRanges = std::string_view(node.attribute(XmlNodeKeys::SMTypeAttribute).as_string("ranges")) == "ranges";
     sm.vertical = std::string_view(node.attribute(XmlNodeKeys::LayoutAttribute).as_string("vertical")) == "vertical";
     sm.subBuffer = node.attribute(XmlNodeKeys::SubBufferAttribute).as_string();
