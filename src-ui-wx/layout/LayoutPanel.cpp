@@ -9388,6 +9388,36 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+namespace {
+// Copy a target model's geometry (size, centre, rotation) onto a freshly-built
+// replacement clone, taking a single consistent snapshot from the target's
+// screen location.
+//
+// Applied directly through the screen location rather than via
+// Model::SetHcenterPos / SetWidth / etc. The clone is cloned from the source's
+// XML and may inherit the source's locked flag; the Model::Set* setters no-op
+// when IsLocked(), so going straight to the screen location keeps the copy
+// working for a locked source. (Base linkage is not a concern here: the caller
+// clears FromBase on the clone, and base-linked targets are blocked up front.)
+//
+// Size MUST be set before the centre: two-point / poly-point screen locations
+// derive their centre from the current width/height/depth
+// (worldPos = centre - size/2), so a centre set against a stale size lands the
+// model off by half the size delta.
+void CopyGeometryFromTarget(Model* clone, const Model* target) {
+    ModelScreenLocation& cloc = clone->GetModelScreenLocation();
+    const ModelScreenLocation& tloc = target->GetModelScreenLocation();
+    cloc.SetMWidth(tloc.GetMWidth());
+    cloc.SetMHeight(tloc.GetMHeight());
+    cloc.SetMDepth(tloc.GetMDepth());
+    cloc.SetHcenterPos(tloc.GetHcenterPos());
+    cloc.SetVcenterPos(tloc.GetVcenterPos());
+    cloc.SetDcenterPos(tloc.GetDcenterPos());
+    cloc.SetRotation(tloc.GetRotation());
+    clone->Setup();
+    clone->IncrementChangeCount();
+}
+} // namespace
 
 void LayoutPanel::ReplaceModel()
 {
@@ -9396,11 +9426,17 @@ void LayoutPanel::ReplaceModel()
     if (sourceModel == nullptr) return;
 
     // Build alphabetised candidate list - everything in the preview except the source itself.
+    // Base-folder models are collected separately so the dialog can show them
+    // disabled: replacing one would delete a model the base folder owns.
     std::vector<std::string> candidates;
+    std::set<std::string> baseLinked;
     candidates.reserve(modelPreview->GetModels().size());
     for (auto* m : modelPreview->GetModels()) {
         if (m != nullptr && m != sourceModel) {
             candidates.push_back(m->GetName());
+            if (m->IsFromBase()) {
+                baseLinked.insert(m->GetName());
+            }
         }
     }
     if (candidates.empty()) {
@@ -9410,7 +9446,7 @@ void LayoutPanel::ReplaceModel()
     }
     std::sort(candidates.begin(), candidates.end());
 
-    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates, baseLinked);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -9498,6 +9534,14 @@ void LayoutPanel::ReplaceModel()
         clone->Rename(tmpNewName);
         xlights->AllModels.AddModel(clone);
 
+        // The replacement is a brand-new local model standing in for the
+        // target; it is not managed by the base show folder even if the source
+        // was. Clearing FromBase keeps us from creating a fake base-linked
+        // model and lets its geometry be set to the target's below without
+        // overriding a real base lock. (Base-linked targets are themselves
+        // blocked in the dialog.)
+        clone->SetFromBase(false);
+
         // Per-target carryovers. These match the semantics of the three Yes/No
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {
@@ -9523,13 +9567,7 @@ void LayoutPanel::ReplaceModel()
             }
         }
         if (copySizePos) {
-            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
-            clone->SetHcenterPos(target->GetHcenterPos());
-            clone->SetVcenterPos(target->GetVcenterPos());
-            clone->SetDcenterPos(target->GetDcenterPos());
-            clone->SetHeight(target->GetHeight());
-            clone->SetWidth(target->GetWidth());
-            clone->SetDepth(target->GetDepth());
+            CopyGeometryFromTarget(clone, target);
         }
 
         // Rename dance: swap the target out and the clone in under the target's
