@@ -815,27 +815,38 @@ void CubeModel::InitModel()
 
     SetStringStartChannels(_cubeStrings, stringStartChan[0]+1 , NodesPerString() * chanPerNode);
 
-    // Calculates 3D screen position for a logical grid coordinate.
-    // Cylinder shape maps (x,z) to polar coords; cube applies optional row offset.
-    auto calcScreen = [&](int lx, int ly, int lz) -> std::tuple<float, float, float> {
-        if (_cubeShape == 1) {
-            float outer_radius = width / (2.0f * std::numbers::pi_v<float>);
-            float inner_fraction = _hollowPct / 100.0f;
-            float ring_radius;
-            if (depth <= 1) {
-                ring_radius = outer_radius;
-            } else {
-                ring_radius = outer_radius * (1.0f - static_cast<float>(lz) / (depth - 1) * (1.0f - inner_fraction));
+    std::vector<float> cos_table, sin_table, ring_rad_table;
+    float outer_radius = 0.0f;
+    if (IsCylinder()) {
+        constexpr float two_pi = 2.0f * std::numbers::pi_v<float>;
+        outer_radius = width / two_pi;
+        float inner_fraction = _hollowPct / 100.0f;
+        cos_table.resize(width);
+        sin_table.resize(width);
+        for (int i = 0; i < width; ++i) {
+            float angle = two_pi * i / width;
+            cos_table[i] = std::cos(angle);
+            sin_table[i] = std::sin(angle);
+        }
+        ring_rad_table.resize(std::max(depth, 1));
+        if (depth <= 1) {
+            ring_rad_table[0] = outer_radius;
+        } else {
+            for (int i = 0; i < depth; ++i) {
+                ring_rad_table[i] = outer_radius * (1.0f - static_cast<float>(i) / (depth - 1) * (1.0f - inner_fraction));
             }
-            float angle = 2.0f * std::numbers::pi_v<float> * lx / width;
-            return { ring_radius * std::cos(angle), static_cast<float>(ly - height / 2), ring_radius * std::sin(angle) };
+        }
+    }
+
+    auto calcScreen = [&](int lx, int ly, int lz) -> std::tuple<float, float, float> {
+        if (_cubeShape == CubeShape::Cylinder) {
+            return { ring_rad_table[lz] * cos_table[lx], static_cast<float>(ly - height / 2), ring_rad_table[lz] * sin_table[lx] };
         } else {
             float sx = static_cast<float>(lx - width / 2);
             float sy = static_cast<float>(ly - height / 2);
             float sz = static_cast<float>(depth - lz - 1 - depth / 2);
-            // Even depth slices (2nd, 4th row front-to-back) are offset in X by half a node spacing
-            if (_rowOffset != 0 && lz % 2 == 1) {
-                sx += (_rowOffset == 1) ? 0.5f : -0.5f;
+            if (_rowOffset != RowOffset::None && lz % 2 == 1) {
+                sx += (_rowOffset == RowOffset::Positive) ? 0.5f : -0.5f;
             }
             return { sx, sy, sz };
         }
@@ -890,10 +901,8 @@ void CubeModel::InitModel()
         _strands = width;
     }
 
-    if (_cubeShape == 1) {
-        float outer_radius = width / (2.0f * std::numbers::pi_v<float>);
-        float diameter = outer_radius * 2.0f;
-        screenLocation.SetRenderSize(diameter, static_cast<float>(height), diameter);
+    if (IsCylinder()) {
+        screenLocation.SetRenderSize(outer_radius * 2.0f, static_cast<float>(height), outer_radius * 2.0f);
     } else {
         screenLocation.SetRenderSize(width, height, depth);
     }

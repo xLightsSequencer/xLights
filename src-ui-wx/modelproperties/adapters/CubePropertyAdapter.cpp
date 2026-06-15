@@ -105,7 +105,7 @@ void CubePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Outpu
 
 int CubePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
     if ("CubeShape" == event.GetPropertyName()) {
-        _cube.SetCubeShape(static_cast<int>(event.GetValue().GetLong()));
+        _cube.SetCubeShape(static_cast<int>(event.GetPropertyValue().GetLong()));
         _cube.IncrementChangeCount();
         _cube.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
