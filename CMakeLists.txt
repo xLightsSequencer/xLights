@@ -263,6 +263,7 @@ file(GLOB_RECURSE SRC_CORE
 	src-core/diagnostics/*.cpp
     src-core/discovery/*.cpp
     src-core/import_export/*.cpp
+    src-core/graphics/GLBackend.cpp
     src-core/graphics/GLContextManager.cpp
     src-core/graphics/xlFontInfo.cpp
     src-core/graphics/xlGraphicsAccumulators.cpp
