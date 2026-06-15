@@ -538,14 +538,25 @@ void RowHeading::leftDoubleClick(wxMouseEvent& event)
     if (element->GetType() == ElementType::ELEMENT_TYPE_MODEL) {
         ModelElement* me = dynamic_cast<ModelElement*>(element);
         if (event.ShiftDown()) {
+            // Shift+DblClick: submodels + strands
             bool showAll = !(me->ShowSubModels() && me->ShowStrands());
             me->ShowSubModels(showAll);
             me->ShowStrands(showAll);
-        } else if (me->ShowSubModels()) {
-            me->ShowSubModels(false);
-            me->ShowStrands(false);
         } else {
-            me->ShowSubModels(true);
+            Model* m = xLightsApp::GetFrame()->AllModels[me->GetModelName()];
+            bool isGroup = m && m->GetDisplayAs() == DisplayAsType::ModelGroup;
+            if (isGroup) {
+                // Groups expand via ShowStrands — ShowSubModels has no effect on them
+                me->ShowStrands(!me->ShowStrands());
+            } else {
+                // Plain DblClick: submodels only (no strands)
+                if (me->ShowSubModels()) {
+                    me->ShowSubModels(false);
+                    me->ShowStrands(false);
+                } else {
+                    me->ShowSubModels(true);
+                }
+            }
         }
         wxCommandEvent evt(EVT_ROW_HEADINGS_CHANGED);
         evt.SetString(element->GetModelName());
