@@ -900,9 +900,8 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset, EffectPresetMana
                     UpdateRenderStatus();
                 }
                 _presetRendering = false;
-            }
-
-            WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+                WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+            }                
         }
     }
 }
