@@ -9372,6 +9372,37 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+namespace {
+// Copy a target model's geometry (size, centre, rotation) onto a freshly-built
+// replacement clone, taking a single consistent snapshot from the target's
+// screen location.
+//
+// Applied directly through the screen location, NOT via Model::SetHcenterPos /
+// SetWidth / etc. Those go through BaseObject, which silently no-ops when the
+// model IsLocked() or IsFromBase(); the clone inherits those flags from its
+// source, so a locked or base-show-folder source would otherwise keep its own
+// geometry instead of the target's. A replace is an explicit, user-authorized
+// repositioning of the new model onto the target it is replacing, so it is
+// allowed to override those guards here.
+//
+// Size MUST be set before the centre: two-point / poly-point screen locations
+// derive their centre from the current width/height/depth
+// (worldPos = centre - size/2), so a centre set against a stale size lands the
+// model off by half the size delta.
+void CopyGeometryFromTarget(Model* clone, const Model* target) {
+    ModelScreenLocation& cloc = clone->GetModelScreenLocation();
+    const ModelScreenLocation& tloc = target->GetModelScreenLocation();
+    cloc.SetMWidth(tloc.GetMWidth());
+    cloc.SetMHeight(tloc.GetMHeight());
+    cloc.SetMDepth(tloc.GetMDepth());
+    cloc.SetHcenterPos(tloc.GetHcenterPos());
+    cloc.SetVcenterPos(tloc.GetVcenterPos());
+    cloc.SetDcenterPos(tloc.GetDcenterPos());
+    cloc.SetRotation(tloc.GetRotation());
+    clone->Setup();
+    clone->IncrementChangeCount();
+}
+} // namespace
 
 void LayoutPanel::ReplaceModel()
 {
@@ -9507,26 +9538,7 @@ void LayoutPanel::ReplaceModel()
             }
         }
         if (copySizePos) {
-            // Copy the target's geometry onto the replacement directly through the
-            // screen location. Going via Model::SetHcenterPos/SetWidth/etc. would
-            // silently no-op when the clone is locked or fromBase (those guards
-            // live in BaseObject), so a locked/base-folder source kept its own
-            // position instead of the target's. Size is applied BEFORE the centre
-            // because two-point/poly-point locations derive their centre from the
-            // current width/height/depth (worldPos = centre - size/2); setting the
-            // centre first would leave the model off by half the size delta once
-            // the size changed.
-            ModelScreenLocation& cloc = clone->GetModelScreenLocation();
-            const ModelScreenLocation& tloc = target->GetModelScreenLocation();
-            cloc.SetMWidth(tloc.GetMWidth());
-            cloc.SetMHeight(tloc.GetMHeight());
-            cloc.SetMDepth(tloc.GetMDepth());
-            cloc.SetHcenterPos(target->GetHcenterPos());
-            cloc.SetVcenterPos(target->GetVcenterPos());
-            cloc.SetDcenterPos(target->GetDcenterPos());
-            cloc.SetRotation(tloc.GetRotation());
-            clone->Setup();
-            clone->IncrementChangeCount();
+            CopyGeometryFromTarget(clone, target);
         }
 
         // Rename dance: swap the target out and the clone in under the target's
