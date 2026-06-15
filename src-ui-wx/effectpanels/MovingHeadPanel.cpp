@@ -1749,6 +1749,7 @@ void MovingHeadPanel::UncheckAllFixtures()
 }
 
 void MovingHeadPanel::CheckAllFixtures() {
+	if (recall) return;
     auto models = GetActiveModels();
 
     for (const auto& it : models) {
