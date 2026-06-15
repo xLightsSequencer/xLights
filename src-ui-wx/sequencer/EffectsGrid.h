@@ -384,6 +384,7 @@ private:
         int origStartTimeMS;
         int origEndTimeMS;
         int origVisibleRow;
+        bool hasCollision = false;
     };
     bool mEffectMoveDragging = false;
     bool mEffectMoveDragThresholdExceeded = false;

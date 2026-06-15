@@ -8169,29 +8169,29 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
     }
     mEffectMoveTargetRow = mEffectMoveAnchorRow + rowDelta;
 
-    // Collision detection
-    bool collision = false;
+    // Collision detection — track per-effect so only colliding ghosts turn red
+    bool anyCollision = false;
     for (auto& snap : mEffectMoveSnapshots) {
         int snapTargetRow = snap.origVisibleRow + rowDelta;
         if (snapTargetRow < numTimingRows || snapTargetRow >= numVisibleRows) {
-            collision = true;
-            break;
+            snap.hasCollision = true;
+            anyCollision = true;
+            continue;
         }
         EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snapTargetRow);
         if (tl == nullptr) {
-            collision = true;
-            break;
+            snap.hasCollision = true;
+            anyCollision = true;
+            continue;
         }
         int ts = snap.origStartTimeMS + rawDelta;
         int te = snap.origEndTimeMS + rawDelta;
         bool sameLayer = !mEffectMoveCopyMode && (snapTargetRow == snap.origVisibleRow);
-        if (!tl->GetRangeIsClearMS(ts, te, sameLayer)) {
-            collision = true;
-            break;
-        }
+        snap.hasCollision = !tl->GetRangeIsClearMS(ts, te, sameLayer);
+        if (snap.hasCollision) anyCollision = true;
     }
-    mEffectMoveHasCollision = collision;
-    SetCursor(collision ? s_noEntry : s_sizing);
+    mEffectMoveHasCollision = anyCollision;
+    SetCursor(anyCollision ? s_noEntry : s_sizing);
 
     wxSize sz = GetSize();
     int zone = FromDIP(40);
@@ -8284,17 +8284,9 @@ void EffectsGrid::DrawEffectMoveDragOverlay(xlGraphicsContext* ctx) {
     int rowDelta = mEffectMoveTargetRow - mEffectMoveAnchorRow;
 
     xlColor dimColor(0, 0, 0, 80);
-    xlColor ghostFill, ghostBorder;
-    if (mEffectMoveHasCollision) {
-        ghostFill   = xlColor(200, 40,  40,  100);
-        ghostBorder = xlColor(220, 0,   0,   230);
-    } else if (mEffectMoveCopyMode) {
-        ghostFill   = xlColor(40,  180, 40,  100);
-        ghostBorder = xlColor(0,   200, 0,   230);
-    } else {
-        ghostFill   = xlColor(220, 220, 220, 80);
-        ghostBorder = xlColor(160, 160, 255, 230);
-    }
+    xlColor fillCollide(200, 40,  40,  100), borderCollide(220, 0,   0,   230);
+    xlColor fillCopy   (40,  180, 40,  100), borderCopy   (0,   200, 0,   230);
+    xlColor fillNormal (220, 220, 220, 80),  borderNormal (160, 160, 255, 230);
 
     xlVertexColorAccumulator* fills = ctx->createVertexColorAccumulator();
     xlVertexColorAccumulator* borders = ctx->createVertexColorAccumulator();
@@ -8309,15 +8301,17 @@ void EffectsGrid::DrawEffectMoveDragOverlay(xlGraphicsContext* ctx) {
             fills->AddRectAsTriangles(ox1, oy1, ox2, oy2, dimColor);
         }
 
-        // Ghost at target position
+        // Ghost at target position — color per effect based on its own collision state
         int snapTargetRow = snap.origVisibleRow + rowDelta;
         if (snapTargetRow >= 0 && snapTargetRow < numVisibleRows) {
+            xlColor& gFill   = snap.hasCollision ? fillCollide   : (mEffectMoveCopyMode ? fillCopy   : fillNormal);
+            xlColor& gBorder = snap.hasCollision ? borderCollide : (mEffectMoveCopyMode ? borderCopy : borderNormal);
             int gx1 = mTimeline->GetPositionFromTimeMS(snap.origStartTimeMS + mEffectMoveTargetDeltaMS);
             int gx2 = mTimeline->GetPositionFromTimeMS(snap.origEndTimeMS + mEffectMoveTargetDeltaMS);
             float gy1 = snapTargetRow * DEFAULT_ROW_HEADING_HEIGHT + 2;
             float gy2 = (snapTargetRow + 1) * DEFAULT_ROW_HEADING_HEIGHT - 2;
-            fills->AddRectAsTriangles(gx1, gy1, gx2, gy2, ghostFill);
-            borders->AddRectAsLines(gx1, gy1, gx2, gy2, ghostBorder);
+            fills->AddRectAsTriangles(gx1, gy1, gx2, gy2, gFill);
+            borders->AddRectAsLines(gx1, gy1, gx2, gy2, gBorder);
         }
     }
 
