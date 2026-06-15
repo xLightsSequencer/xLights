@@ -590,6 +590,9 @@ Model* XmlDeserializingModelFactory::DeserializeCube(pugi::xml_node node, ModelM
     model->SetCubeStyle(node.attribute(XmlNodeKeys::StyleAttribute).as_string(""));
     model->SetStrandStyle(node.attribute(XmlNodeKeys::StrandPerLineAttribute).as_string(""));
     model->SetStrandPerLayer(std::string_view(node.attribute(XmlNodeKeys::StrandPerLayerAttribute).as_string("FALSE")) == "TRUE");
+    model->SetCubeShape(node.attribute(XmlNodeKeys::CubeShapeAttribute).as_int(0));
+    model->SetHollowPct(node.attribute(XmlNodeKeys::CubeHollowAttribute).as_int(0));
+    model->SetRowOffset(node.attribute(XmlNodeKeys::CubeRowOffsetAttribute).as_int(0));
     model->Setup();
     return model;
 }

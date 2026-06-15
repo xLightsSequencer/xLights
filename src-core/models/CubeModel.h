@@ -65,6 +65,14 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         void SetStrandStyleIndex(int idx) { _strandStyle = idx; }
         void SetStrandPerLayer(bool val) { _strandPerLayer = val; }
 
+        [[nodiscard]] int GetCubeShape() const { return _cubeShape; }
+        void SetCubeShape(int val) { _cubeShape = val; }
+        [[nodiscard]] bool IsCylinder() const { return _cubeShape == 1; }
+        [[nodiscard]] int GetHollowPct() const { return _hollowPct; }
+        void SetHollowPct(int val) { _hollowPct = val; }
+        [[nodiscard]] int GetRowOffset() const { return _rowOffset; }
+        void SetRowOffset(int val) { _rowOffset = val; }
+
     protected:
         void FlipX(std::tuple<int, int, int>& pt, int width) const;
         void RotateX90Degrees(std::tuple<int, int, int>& pt, int by, int height, int depth) const;
@@ -90,4 +98,7 @@ class CubeModel : public ModelWithScreenLocation<BoxedScreenLocation>
         int _cubeStyle = 0;
         int _strandStyle = 0;
         bool _strandPerLayer = false;
+        int _cubeShape = 0;   // 0=Cube, 1=Cylinder
+        int _hollowPct = 0;   // 0-99, cylinder inner hollow radius as % of outer
+        int _rowOffset = 0;   // 0=None, 1=Positive (+0.5), 2=Negative (-0.5) — cube only
 };

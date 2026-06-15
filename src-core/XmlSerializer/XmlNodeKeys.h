@@ -289,6 +289,9 @@ namespace XmlNodeKeys {
     constexpr auto CubeStringsAttribute    = "Strings";
     constexpr auto StrandPerLineAttribute  = "StrandPerLine";
     constexpr auto StrandPerLayerAttribute = "StrandPerLayer";
+    constexpr auto CubeShapeAttribute      = "CubeShape";
+    constexpr auto CubeHollowAttribute     = "CubeHollow";
+    constexpr auto CubeRowOffsetAttribute  = "CubeRowOffset";
 
     // Custom Model
     constexpr auto CustomModelAttribute    = "CustomModel";
