@@ -1,4 +1,4 @@
-# Plan: Add ANGLE Support to xLights (Windows + Linux, runtime opt-in)
+# Plan: Add ANGLE Support to xLights (Windows + Linux, compile-time opt-in)
 
 > Status: **WORKING on Windows (2026-06-07).** An ANGLE build of xLights compiles, links,
 > launches, and renders its previews through **OpenGL ES 3.0 on Direct3D 11**
