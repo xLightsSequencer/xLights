@@ -108,7 +108,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
             if (FileExists(fname)) {
                 sequenceList.push_back(fname.GetFullPath());
             } else {
-                spdlog::info("PromptSequences: Sequence File not Found: {}.", (const char*)fname.GetFullPath().c_str());
+                spdlog::info("PromptSequences: Sequence File not Found: {}.", fname.GetFullPath().utf8_string());
             }
         }
         if (dlg.CheckBox_ForceHighDefinition->IsChecked()) {
@@ -176,7 +176,7 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it's successfully loaded
         if (!lr.valid()) {
             sol::error err = lr;
-            spdlog::info("LuaRunner: Script is Invalid: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Script is Invalid: {}.", filepath);
             spdlog::info("LuaRunner: Error: {}.", err.what());
             wxMessageBox("Script is Invalid: " + filepath + "\n\n" + err.what(), "Load Script Error", wxOK);
             return false;
@@ -186,14 +186,14 @@ bool LuaRunner::Run_Script(std::string const& filepath, std::function<void(std::
         // check if it was done properly
         if (!result2.valid()) {
             sol::error err2 = result2;
-            spdlog::info("LuaRunner: Error Running Script: {}.", (const char*)filepath.c_str());
+            spdlog::info("LuaRunner: Error Running Script: {}.", filepath);
             spdlog::info("LuaRunner: Error: {}.", err2.what());
             SendResponse(err2.what());
             wxMessageBox("Error Running Script: " + filepath + "\n\n" + err2.what(), "Script Error", wxOK);
             return false;
         }
     } catch (std::exception& e) {
-        spdlog::info("LuaRunner: Throw Running Script: {}.", (const char*)filepath.c_str());
+        spdlog::info("LuaRunner: Throw Running Script: {}.", filepath);
         spdlog::info("LuaRunner: Error: {}.", e.what());
         SendResponse(e.what());
         wxMessageBox(e.what(), "Error", wxOK);
