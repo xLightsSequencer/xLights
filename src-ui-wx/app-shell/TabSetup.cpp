@@ -23,6 +23,8 @@
 #include <wx/thread.h>
 
 #include <thread>
+#include <chrono>
+#include <ctime>
 
 #include "xLightsMain.h"
 #include "xLightsApp.h"
@@ -2050,6 +2052,30 @@ void xLightsFrame::SetControllersProperties(bool rebuildPropGrid) {
                 _controllerAdapter->UpdateProperties(Controllers_PropertyEditor, &AllModels, expandProperties, &_outputModelManager);
             }
 
+            {
+                auto* config = GetXLightsConfig();
+                auto ctrlName = controller->GetName();
+
+                wxPGProperty* p = Controllers_PropertyEditor->GetProperty("LastInputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Input Upload", "LastInputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                wxString ts;
+                if (!config->Read(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+
+                p = Controllers_PropertyEditor->GetProperty("LastOutputUpload");
+                if (!p) {
+                    p = Controllers_PropertyEditor->Append(new wxStringProperty("Last Output Upload", "LastOutputUpload", "Never"));
+                }
+                p->ChangeFlag(wxPGFlags::ReadOnly, true);
+                p->SetTextColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
+                if (!config->Read(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), &ts)) ts = "Never";
+                p->SetValue(ts);
+            }
+
             if (controller->IsFromBase()) {
                 Controllers_PropertyEditor->SetToolTip("This model comes from the base folder and its properties cannot be edited.");
                 auto it = Controllers_PropertyEditor->GetIterator(wxPG_ITERATE_ALL, nullptr);
@@ -2770,6 +2796,16 @@ bool xLightsFrame::UploadInputToController(Controller* controller, wxString &mes
                         spdlog::debug("Attempt to upload controller inputs successful on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
                         message = vendor + " Input Upload complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastInputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastInputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     }
                     else {
                         spdlog::error("Attempt to upload controller inputs failed on controller {}:{}:{}", (const char*)controller->GetVendor().c_str(), (const char*)controller->GetModel().c_str(), (const char*)controller->GetVariant().c_str());
@@ -2835,6 +2871,16 @@ bool xLightsFrame::UploadOutputToController(Controller* controller, wxString& me
                     if (bc->SetOutputs(&AllModels, &_outputManager, controller, this)) {
                         message = vendor + " Output Upload Complete.";
                         res = true;
+                        {
+                            auto ts = FormatTimestamp();
+                            auto* config = GetXLightsConfig();
+                            auto ctrlName = controller->GetName();
+                            config->Write(MakeControllerTimestampKey("LastOutputUpload", ctrlName, showDirectory), wxString::FromUTF8(ts.c_str()));
+                            config->Flush();
+                            if (auto* prop = Controllers_PropertyEditor->GetProperty("LastOutputUpload")) {
+                                prop->SetValue(wxString::FromUTF8(ts.c_str()));
+                            }
+                        }
                     } else {
                         message = vendor + " Output Upload Failed.";
                     }
