@@ -1048,12 +1048,13 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     _media = media;
     views.clear();
     ResetAnalysisState();
-	if (_media != nullptr) {
+    if (_media != nullptr) {
         _media->SwitchTo(_type);
-		float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
-		views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
-		mCurrentWaveView = 0;
-		return media->LengthMS();
+        if (mTimeline) mLastEffectiveTick = mTimeline->TimePerMajorTickInMS();
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
+        mCurrentWaveView = 0;
+        return media->LengthMS();
     } else {
         mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
         SetZoomLevel(GetZoomLevel());
@@ -1463,6 +1464,12 @@ void Waveform::SetZoomLevel(int level)
 
     if (!mIsInitialized) return;
 
+    int effectiveTick = mTimeline ? mTimeline->TimePerMajorTickInMS() : 0;
+    if (effectiveTick > 0 && effectiveTick != mLastEffectiveTick) {
+        views.clear();
+        mLastEffectiveTick = effectiveTick;
+    }
+
     mCurrentWaveView = NO_WAVE_VIEW_SELECTED;
     for (size_t i = 0; i < views.size(); i++) {
         if (views[i].GetZoomLevel() == mZoomLevel && views[i].GetType() == _type) {
@@ -1508,17 +1515,23 @@ int Waveform::GetTimeFrequency() const
 
 float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
 {
-    // The number of periods for each Zoomlevel is held in ZoomLevelValues array
-    int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
-    float timePerPixel = ((float)periodsPerMajorHash/(float)mFrequency)/(float)PIXELS_PER_MAJOR_HASH;
+    float timePerPixel;
+    if (mTimeline != nullptr) {
+        // Use the timeline's tick (fit or discrete) so both panels share the same scale.
+        int tickMS = mTimeline->TimePerMajorTickInMS();
+        timePerPixel = (float)tickMS / 1000.0f / (float)PIXELS_PER_MAJOR_HASH;
+    } else {
+        int periodsPerMajorHash = TimeLine::ZoomLevelValues[mZoomLevel];
+        timePerPixel = ((float)periodsPerMajorHash / (float)mFrequency) / (float)PIXELS_PER_MAJOR_HASH;
+    }
     if (!drawingUsingLogicalSize()) {
         timePerPixel /= GetContentScaleFactor();
     }
-	if (_media != nullptr) {
-		return (float)timePerPixel * (float)_media->GetRate();
+    if (_media != nullptr) {
+        return (float)timePerPixel * (float)_media->GetRate();
     } else {
-		return 0.0f;
-	}
+        return 0.0f;
+    }
 }
 
 void Waveform::SetWaveFormSize(int h)

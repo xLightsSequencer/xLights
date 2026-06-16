@@ -936,7 +936,7 @@ void xLightsFrame::LoadAudioData(SequenceFile& xml_file)
     mainSequencer->PanelTimeLine->SetTimeLength(mMediaLengthMS);
     mainSequencer->PanelTimeLine->Initialize();
     int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-    mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+    mainSequencer->PanelTimeLine->SetFitZoom();  // default: sequence fills the full viewport
     mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
     mainSequencer->PanelTimeLine->RaiseChangeTimeline();  // force refresh when new media is loaded
     mainSequencer->PanelWaveForm->UpdatePlayMarker();

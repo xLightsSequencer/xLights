@@ -989,6 +989,7 @@ int TimeLine::GetTimeFrequency() const
 
 void TimeLine::SetZoomLevel(int level)
 {
+    mInFitZoom = false;
     mZoomLevel = level;
     if( (mZoomMarkerMS != -1) && ((mEndTimeMS - mStartTimeMS) > 0) )
     {
@@ -1048,16 +1049,16 @@ void TimeLine::RecalcMarkerPositions()
 
 int TimeLine::GetZoomLevel() const
 {
-    return  mZoomLevel;
+    return mInFitZoom ? mMaxZoomLevel : mZoomLevel;
 }
 
 void TimeLine::ZoomOut()
 {
-    if (mZoomLevel < mMaxZoomLevel)
-    {
-        SetZoomLevel(mZoomLevel + 1);
-        if (GetTotalViewableTimeMS() > mTimeLength)
-        {
+    if (mInFitZoom) {
+        mInFitZoom = false;
+        int maxZoom = GetMaxZoomLevel();
+        SetZoomLevel(maxZoom);
+        if (GetTotalViewableTimeMS() > mTimeLength) {
             mStartTimeMS = 0;
             mStartPixelOffset = 0;
             mEndTimeMS = GetMaxViewableTimeMS();
@@ -1065,14 +1066,92 @@ void TimeLine::ZoomOut()
             mSequenceEndMarker = GetPositionFromTimeMS(mSequenceEndMarkerMS);
             RaiseChangeTimeline();
         }
+        return;
+    }
+    int maxZoom = GetMaxZoomLevel();
+    if (mZoomLevel < maxZoom)
+    {
+        if (mZoomLevel >= maxZoom - 1) {
+            SetFitZoom();
+        } else {
+            SetZoomLevel(mZoomLevel + 1);
+            if (GetTotalViewableTimeMS() > mTimeLength) {
+                mStartTimeMS = 0;
+                mStartPixelOffset = 0;
+                mEndTimeMS = GetMaxViewableTimeMS();
+                mEndPos = GetPositionFromTimeMS(mEndTimeMS);
+                mSequenceEndMarker = GetPositionFromTimeMS(mSequenceEndMarkerMS);
+                RaiseChangeTimeline();
+            }
+        }
     }
 }
 
 void TimeLine::ZoomIn()
 {
+    if (mInFitZoom) {
+        mInFitZoom = false;
+        SetZoomLevel(GetMaxZoomLevel() - 1);
+        return;
+    }
+    if (mZoomLevel >= GetMaxZoomLevel()) {
+        SetFitZoom();
+        return;
+    }
     if (mZoomLevel > 0) {
         SetZoomLevel(mZoomLevel - 1);
     }
+}
+
+static double niceFitTickMS(double raw)
+{
+    // Round up to next "nice" value so tick labels land on round numbers
+    // (e.g. 12/24/36, 15/30/45, 18/36/54, 20/40/60, 2.5/5/7.5).
+    if (raw <= 0.0) return 1000.0;
+    double mag = 1.0;
+    if (raw >= 1.0) {
+        while (mag * 10.0 <= raw) mag *= 10.0;
+    } else {
+        while (mag > raw) mag /= 10.0;
+    }
+    double norm = raw / mag;
+    double niceNorm;
+    if (norm <= 1.0)       niceNorm = 1.0;
+    else if (norm <= 1.5)  niceNorm = 1.5;
+    else if (norm <= 2.0)  niceNorm = 2.0;
+    else if (norm <= 2.5)  niceNorm = 2.5;
+    else if (norm <= 3.0)  niceNorm = 3.0;
+    else if (norm <= 3.5)  niceNorm = 3.5;
+    else if (norm <= 4.0)  niceNorm = 4.0;
+    else if (norm <= 4.5)  niceNorm = 4.5;
+    else if (norm <= 5.0)  niceNorm = 5.0;
+    else if (norm <= 5.5)  niceNorm = 5.5;
+    else if (norm <= 6.0)  niceNorm = 6.0;
+    else if (norm <= 6.5)  niceNorm = 6.5;
+    else if (norm <= 7.0)  niceNorm = 7.0;
+    else if (norm <= 7.5)  niceNorm = 7.5;
+    else if (norm <= 8.0)  niceNorm = 8.0;
+    else if (norm <= 8.5)  niceNorm = 8.5;
+    else if (norm <= 9.0)  niceNorm = 9.0;
+    else if (norm <= 9.5)  niceNorm = 9.5;
+    else                   niceNorm = 10.0;
+    return niceNorm * mag;
+}
+
+void TimeLine::SetFitZoom()
+{
+    int w = GetSize().x;
+    if (w <= 0 || mTimeLength <= 0) return;
+
+    double idealTickMS = (double)mTimeLength * PIXELS_PER_MAJOR_HASH / (double)w;
+    mFitTimePerMajorTickMS = niceFitTickMS(idealTickMS);
+    mZoomLevel = GetMaxZoomLevel();  // keep Waveform using overview-level audio data
+    mInFitZoom = true;
+    mStartTimeMS = 0;
+    mStartPixelOffset = 0;
+    mEndTimeMS = GetMaxViewableTimeMS();  // may be slightly > mTimeLength due to rounding up
+    RecalcMarkerPositions();
+    RaiseChangeTimeline();
 }
 
 void TimeLine::ZoomSelection()
@@ -1386,9 +1465,12 @@ void TimeLine::render( wxDC& dc ) {
         dc.DrawLine(mSelectedPlayMarkerStart, 0, mSelectedPlayMarkerStart, h-1);
     }
 
-    // grey out where sequence ends
-    dc.SetBrush(brush_past_end);
-    dc.DrawRectangle(mSequenceEndMarker, 0, mEndPos, h);
+    // grey out where sequence ends — clamp to viewport width
+    int hashStart = std::max(0, mSequenceEndMarker);
+    if (hashStart < w) {
+        dc.SetBrush(brush_past_end);
+        dc.DrawRectangle(hashStart, 0, w - hashStart, h);
+    }
 
     // Draw song structure regions
     DrawSongStructureRegions(dc, w, h);
@@ -1484,6 +1566,15 @@ void TimeLine::DrawRectangle(wxDC& dc, int x1, int y1, int x2, int y2)
 
 int TimeLine::TimePerMajorTickInMS()
 {
+    if (mInFitZoom && mTimeLength > 0) {
+        int w = GetSize().x;
+        if (w > 0) {
+            double idealTickMS = (double)mTimeLength * PIXELS_PER_MAJOR_HASH / (double)w;
+            return (int)niceFitTickMS(idealTickMS);
+        }
+        if (mFitTimePerMajorTickMS > 0.0)
+            return (int)mFitTimePerMajorTickMS;
+    }
     return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1000.0/(double)mFrequency));
 }
 

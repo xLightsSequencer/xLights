@@ -122,6 +122,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
         //int mMediaTrackSize;
         int mFrequency;
         int mZoomLevel;
+        int mLastEffectiveTick = 0;
         //bool mPointSize;
         bool m_dragging;
         DRAG_MODE m_drag_mode;
