@@ -10,8 +10,9 @@
  **************************************************************/
 
 #include "CommandPaletteDialog.h"
-#include "CommandPaletteHelper.h"
 #include "effects/EffectManager.h"
+#include "effects/RenderableEffect.h"
+#include "effectpanels/EffectIconCache.h"
 
 #include <wx/menu.h>
 #include <wx/vlbox.h>
@@ -141,20 +142,17 @@ protected:
 
         if (cmd.isEffect) {
             constexpr int iconColW = 28;
-#ifdef __WXMAC__
-            wxBitmap icon = GetCachedSymbol(cmd.effectName);
+            constexpr int logicalIconSize = 16;
+            double scale = GetDPIScaleFactor();
+            int physSize = (int)std::round(logicalIconSize * scale);
+            wxBitmap icon = GetCachedBundle(cmd.effectName).GetBitmap(wxSize(physSize, physSize));
             if (icon.IsOk()) {
-                int iconX = x + (iconColW - icon.GetWidth()) / 2;
-                int iconY = rect.y + (rect.height - icon.GetHeight()) / 2 + 8;
+                icon.SetScaleFactor(scale);
+                int iconX = x + (iconColW - logicalIconSize) / 2;
+                int iconY = rect.y + (rect.height - logicalIconSize) / 2;
                 dc.DrawBitmap(icon, iconX, iconY, true);
             }
             x += iconColW;
-#else
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.SetBrush(wxBrush(CP_EFFECT_DOT));
-            dc.DrawCircle(x + iconColW / 2, rect.y + rect.height / 2, 4);
-            x += iconColW;
-#endif
         }
 
         auto matchPositions = GetFuzzyMatchPositions(cmd.name, searchText);
@@ -235,21 +233,21 @@ private:
     CommandPaletteDialog* _dialog;
     int _hoveredRow = -1;
 
-#ifdef __WXMAC__
-    mutable std::map<wxString, wxBitmap> _symbolCache;
+    mutable std::map<wxString, wxBitmapBundle> _iconBundleCache;
 
-    wxBitmap GetCachedSymbol(const wxString& effectName) const
+    const wxBitmapBundle& GetCachedBundle(const wxString& effectName) const
     {
-        auto it = _symbolCache.find(effectName);
-        if (it != _symbolCache.end()) return it->second;
+        auto it = _iconBundleCache.find(effectName);
+        if (it != _iconBundleCache.end()) return it->second;
 
-        std::string sym = GetSFSymbolForEffect(effectName.ToStdString());
-        wxColour col = GetColorForEffect(effectName.ToStdString());
-        wxBitmap bmp = GetSFSymbolBitmap(sym, 14, col);
-        _symbolCache[effectName] = bmp;
-        return bmp;
+        wxBitmapBundle bundle;
+        if (_dialog->_effectManager) {
+            auto* eff = _dialog->_effectManager->GetEffect(effectName.ToStdString());
+            if (eff)
+                bundle = EffectIconCache::GetEffectIcon(eff, 16);
+        }
+        return _iconBundleCache.emplace(effectName, std::move(bundle)).first->second;
     }
-#endif
 };
 
 // --- CommandPaletteDialog ---
@@ -352,6 +350,7 @@ CommandPaletteDialog::CommandPaletteDialog(wxWindow* parent, wxMenuBar* menuBar,
 
     mainPanel->SetSizer(innerSizer);
 
+    _effectManager = effectManager;
     BuildCommandList(menuBar);
     AddEffectEntries(effectManager);
     UpdateResults();

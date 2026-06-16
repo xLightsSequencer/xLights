@@ -30,6 +30,7 @@
 #include <wx/propgrid/advprops.h>
 #include <wx/tglbtn.h>
 #include <wx/srchctrl.h>
+#include <wx/checklst.h>
 #include <pugixml.hpp>
 #include <cmath>
 #include <fstream>
@@ -381,6 +382,12 @@ const long LayoutPanel::ID_PREVIEW_MODEL_UNLINKFROMBASE = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTASCUSTOM3D = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_CREATEGROUP = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_LINKASSET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_ADDTOSET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_REMOVEFROMSET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_DELETESET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_RENAMESET = wxNewId();
+const long LayoutPanel::ID_PREVIEW_MODEL_MANAGESET = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_WIRINGVIEW = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_ASPECTRATIO = wxNewId();
 const long LayoutPanel::ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL = wxNewId();
@@ -1379,7 +1386,16 @@ void LayoutPanel::OnPropertyGridChange(wxPropertyGridEvent& event) {
                 else {
                     if (selectedModel != nullptr) {
                         selectedModel->SaveDisplayDimensions();
-                        int i = _propertyAdapter->OnPropertyGridChange(propertyEditor, event);
+                        if (!_propertyAdapter) {
+                            // DoUndo selects the model (which sets
+                            // selectedBaseObject synchronously) then calls us
+                            // immediately, before the deferred SetupPropGrid
+                            // rebuild has recreated the adapter. Build it on
+                            // demand so the undo value is still applied rather
+                            // than dereferencing a null adapter and crashing.
+                            _propertyAdapter = ModelPropertyManager::CreateAdapter(*selectedModel);
+                        }
+                        int i = _propertyAdapter ? _propertyAdapter->OnPropertyGridChange(propertyEditor, event) : 0;
                         if ((i & GRIDCHANGE_SUPPRESS_HOLDSIZE) == 0 &&
                             (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(selectedModel) != nullptr ||
                                 dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(selectedModel) != nullptr)) {
@@ -1456,7 +1472,9 @@ void LayoutPanel::OnPropertyGridChanging(wxPropertyGridEvent& event) {
             //    int a = 0;
             } else {
                 CreateUndoPoint("ModelProperty", selectedModel->name, name, prop->GetValue().GetString().ToStdString());
-                _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
+                if (_propertyAdapter) {
+                    _propertyAdapter->OnPropertyGridChanging(propertyEditor, event);
+                }
             }
         } else {
             ViewObject* selectedObject = dynamic_cast<ViewObject*>(selectedBaseObject);
@@ -1481,7 +1499,7 @@ void LayoutPanel::OnPropertyGridSelection(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 int segment = _propertyAdapter->OnPropertyGridSelection(propertyEditor, event);
                 selectedModel->GetBaseObjectScreenLocation().SelectSegment(segment);
                 xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPropertyGridSelection");
@@ -1494,7 +1512,7 @@ void LayoutPanel::OnPropertyGridItemCollapsed(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemCollapsed(propertyEditor, event);
             }
         }
@@ -1505,7 +1523,7 @@ void LayoutPanel::OnPropertyGridItemExpanded(wxPropertyGridEvent& event) {
     if (selectedBaseObject != nullptr) {
         if( editing_models ) {
             Model* selectedModel = dynamic_cast<Model*>(selectedBaseObject);
-            if( selectedModel != nullptr && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
+            if( selectedModel != nullptr && _propertyAdapter && selectedModel->GetDisplayAs() == DisplayAsType::PolyLine ) {
                 _propertyAdapter->OnPropertyGridItemExpanded(propertyEditor, event);
             }
         }
@@ -2377,17 +2395,79 @@ void LayoutPanel::BulkEditRotateX() { BulkEditRotateAxis('X'); }
 void LayoutPanel::BulkEditRotateY() { BulkEditRotateAxis('Y'); }
 void LayoutPanel::BulkEditRotateZ() { BulkEditRotateAxis('Z'); }
 
+namespace {
+// A Set containing a locked model is frozen: no member may be translated
+// or rotated as part of Set movement, so the locked arrangement survives.
+bool ModelSetHasLockedMember(ModelManager& mgr, ModelSet* s) {
+    if (s == nullptr) return false;
+    for (const auto& n : s->GetMembers()) {
+        Model* m = mgr[n];
+        if (m != nullptr && m->IsLocked()) return true;
+    }
+    return false;
+}
+// Which axes a model's screen-location class meaningfully rotates around.
+// BoxedScreenLocation supports all three. ThreePointScreenLocation (Arches,
+// CandyCane, Icicles) only exposes X. Two/Poly/Multi/Terrain point screen
+// locations derive their orientation from their anchor points - calling
+// SetRotateX/Y/Z stores a value but has no visible effect.
+bool ModelSupportsRotationAxis(Model* model, char axis) {
+    if (model == nullptr) {
+        return false;
+    }
+    if (dynamic_cast<ModelWithScreenLocation<BoxedScreenLocation>*>(model) != nullptr) {
+        return true;
+    }
+    if (dynamic_cast<ModelWithScreenLocation<ThreePointScreenLocation>*>(model) != nullptr) {
+        return axis == 'X';
+    }
+    return false;
+}
+} // namespace
+
 void LayoutPanel::BulkEditRotateAxis(char axis) {
     std::vector<Model*> modelsToEdit = GetSelectedModelsForEdit();
 
     std::vector<Model*> editableModels;
+    std::vector<Model*> unsupportedModels;
     editableModels.reserve(modelsToEdit.size());
     for (Model* model : modelsToEdit) {
-        if (model != nullptr && !model->GetBaseObjectScreenLocation().IsLocked()) {
+        if (model == nullptr || model->GetBaseObjectScreenLocation().IsLocked()) {
+            continue;
+        }
+        if (ModelSupportsRotationAxis(model, axis)) {
             editableModels.push_back(model);
+        } else {
+            unsupportedModels.push_back(model);
         }
     }
+    auto formatSkippedNames = [](const std::vector<Model*>& skipped) {
+        // Cap list to keep the dialog from getting absurdly tall on huge
+        // selections. 20 lines is roughly a comfortable max for a message
+        // box on a typical display.
+        constexpr size_t kMaxLines = 20;
+        wxString out;
+        size_t n = std::min(skipped.size(), kMaxLines);
+        for (size_t i = 0; i < n; ++i) {
+            out += "  • " + wxString(skipped[i]->GetName()) + "\n";
+        }
+        if (skipped.size() > kMaxLines) {
+            out += wxString::Format("  … and %zu more\n", skipped.size() - kMaxLines);
+        }
+        return out;
+    };
+
     if (editableModels.empty()) {
+        if (!unsupportedModels.empty()) {
+            wxMessageBox(
+                wxString::Format(
+                    "None of the selected models support rotation on the %c axis.\n\n"
+                    "Skipped:\n%s\n"
+                    "Arches/CandyCane/Icicles only support X; Lines/PolyLines derive orientation from their endpoints.",
+                    axis,
+                    formatSkippedNames(unsupportedModels)),
+                "Bulk Edit Rotate", wxOK | wxICON_INFORMATION, this);
+        }
         return;
     }
 
@@ -2435,7 +2515,124 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
                     wxString::Format("BulkRotate%c", axis).ToStdString(),
                     entered);
 
+    // Model Sets: if any selected model belongs to a Set, rotate the whole
+    // Set around the mean of member centers (positions arc around that
+    // pivot; per-member rotation still goes to newAngle). Loose models
+    // get the simple per-model rotation as before.
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    std::set<ModelSet*> touchedSets;
+    for (Model* m : editableModels) {
+        if (ModelSet* s = setMgr.GetSetContaining(m->GetName())) {
+            touchedSets.insert(s);
+        }
+    }
+
+    // Sets containing a locked model are frozen - no member rotates, so the
+    // locked arrangement survives.
+    std::set<ModelSet*> blockedSets;
+    for (ModelSet* s : touchedSets) {
+        if (ModelSetHasLockedMember(xlights->AllModels, s)) {
+            blockedSets.insert(s);
+        }
+    }
+    for (ModelSet* s : blockedSets) {
+        touchedSets.erase(s);
+    }
+
+    auto rotateAround = [axis](Model* m, float cx, float cy, float cz, float deltaDeg) {
+        static constexpr float kPi = 3.14159265358979323846f;
+        const float r = deltaDeg * kPi / 180.0f;
+        const float s = std::sin(r);
+        const float co = std::cos(r);
+        float x = m->GetHcenterPos();
+        float y = m->GetVcenterPos();
+        float z = m->GetDcenterPos();
+        float dx = x - cx, dy = y - cy, dz = z - cz;
+        switch (axis) {
+            case 'Z': {
+                float nx = dx * co - dy * s;
+                float ny = dx * s + dy * co;
+                m->SetHcenterPos(cx + nx);
+                m->SetVcenterPos(cy + ny);
+                break;
+            }
+            case 'X': {
+                float ny = dy * co - dz * s;
+                float nz = dy * s + dz * co;
+                m->SetVcenterPos(cy + ny);
+                m->SetDcenterPos(cz + nz);
+                break;
+            }
+            case 'Y': {
+                float nx = dx * co + dz * s;
+                float nz = -dx * s + dz * co;
+                m->SetHcenterPos(cx + nx);
+                m->SetDcenterPos(cz + nz);
+                break;
+            }
+        }
+    };
+
+    // First: handle each touched Set as a group (use ALL its members, not
+    // just the selected ones, so the relative arrangement is preserved).
+    std::set<Model*> doneViaSet;
+    for (ModelSet* s : touchedSets) {
+        std::vector<Model*> members;
+        members.reserve(s->GetMembers().size());
+        for (const auto& name : s->GetMembers()) {
+            Model* mm = xlights->AllModels[name];
+            if (mm != nullptr && !mm->GetBaseObjectScreenLocation().IsLocked()) {
+                members.push_back(mm);
+            }
+        }
+        if (members.empty()) continue;
+
+        // Centroid is the mean of member centers.
+        float cx = 0, cy = 0, cz = 0;
+        for (Model* mm : members) {
+            cx += mm->GetHcenterPos();
+            cy += mm->GetVcenterPos();
+            cz += mm->GetDcenterPos();
+        }
+        cx /= members.size();
+        cy /= members.size();
+        cz /= members.size();
+
+        // Delta from first member's current rotation on this axis.
+        // Use the first member as the rotation reference. All Set members
+        // share the same rotation after being moved together, so any member
+        // would give the same delta; front() is deterministic for a given
+        // save/load cycle.
+        float oldAngle = 0.0f;
+        switch (axis) {
+            case 'X': oldAngle = members.front()->GetBaseObjectScreenLocation().GetRotateX(); break;
+            case 'Y': oldAngle = members.front()->GetBaseObjectScreenLocation().GetRotateY(); break;
+            case 'Z': oldAngle = members.front()->GetBaseObjectScreenLocation().GetRotateZ(); break;
+        }
+        const float delta = newAngle - oldAngle;
+
+        for (Model* mm : members) {
+            rotateAround(mm, cx, cy, cz, delta);
+            auto& loc = mm->GetBaseObjectScreenLocation();
+            switch (axis) {
+                case 'X': loc.SetRotateX(newAngle); break;
+                case 'Y': loc.SetRotateY(newAngle); break;
+                case 'Z': loc.SetRotateZ(newAngle); break;
+            }
+            loc.Reload();
+            loc.Init();
+            doneViaSet.insert(mm);
+        }
+    }
+
+    // Loose models: original per-model rotation (rotate around own origin).
+    // Members of frozen Sets are excluded so they don't rotate individually.
     for (Model* model : editableModels) {
+        if (doneViaSet.count(model)) continue;
+        if (!blockedSets.empty()) {
+            ModelSet* s = setMgr.GetSetContaining(model->GetName());
+            if (s != nullptr && blockedSets.count(s) != 0) continue;
+        }
         auto& loc = model->GetBaseObjectScreenLocation();
         switch (axis) {
             case 'X': loc.SetRotateX(newAngle); break;
@@ -2449,6 +2646,450 @@ void LayoutPanel::BulkEditRotateAxis(char axis) {
     xlights->GetOutputModelManager()->AddASAPWork(
         OutputModelManager::WORK_SCREEN_LOCATION_CHANGE,
         wxString::Format("BulkEditRotate%c", axis).ToStdString());
+
+    if (!blockedSets.empty()) {
+        wxString names;
+        for (ModelSet* s : blockedSets) {
+            if (!names.empty()) names += ", ";
+            names += wxString::Format("'%s'", wxString(s->GetName()));
+        }
+        wxMessageBox(wxString::Format(_("Set %s was not rotated because it contains a locked model."), names),
+                     _("Bulk Edit Rotate"), wxOK | wxICON_INFORMATION, this);
+    }
+    if (!unsupportedModels.empty()) {
+        wxMessageBox(
+            wxString::Format(
+                "Rotated %zu of %zu selected models.\n\n"
+                "Skipped because their model type does not support rotation on the %c axis:\n%s\n"
+                "Arches/CandyCane/Icicles only support X; Lines/PolyLines derive orientation from their endpoints.",
+                editableModels.size(),
+                editableModels.size() + unsupportedModels.size(),
+                axis,
+                formatSkippedNames(unsupportedModels)),
+            "Bulk Edit Rotate", wxOK | wxICON_INFORMATION, this);
+    }
+}
+
+// -- Model Set helpers --
+//
+// A Model Set is a persistent translation-only link between models. See
+// plans/layout-group-move-lock.md. The right-click menu surfaces Set
+// management; drag-time propagation lives in OnPreviewLeftDown/Up; the
+// rest of the runtime API lives in ModelSetManager.
+
+std::vector<Model*> LayoutPanel::GetSelectedModelsForSetActions() const
+{
+    std::vector<Model*> out;
+    // Include models that have Selected() or GroupSelected() set on the
+    // canvas. Cover both tree-selection and click-selection paths.
+    for (auto* m : modelPreview->GetModels()) {
+        if (m != nullptr && (m->Selected() || m->GroupSelected())) {
+            // Skip submodels and ModelGroups - Sets only operate on real
+            // top-level models.
+            if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+            if (m->GetDisplayAs() == DisplayAsType::SubModel) continue;
+            if (std::find(out.begin(), out.end(), m) == out.end()) {
+                out.push_back(m);
+            }
+        }
+    }
+    return out;
+}
+
+void LayoutPanel::AddModelSetOptionsToMenu(wxMenu& menu)
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+
+    auto& setMgr = xlights->AllModels.GetSetManager();
+
+    // Find which Sets the selection touches.
+    std::vector<ModelSet*> touchedSets;
+    int loose = 0;
+    for (auto* m : selected) {
+        ModelSet* s = setMgr.GetSetContaining(m->GetName());
+        if (s == nullptr) {
+            ++loose;
+        } else if (std::find(touchedSets.begin(), touchedSets.end(), s) == touchedSets.end()) {
+            touchedSets.push_back(s);
+        }
+    }
+
+    if (touchedSets.empty()) {
+        if (selected.size() >= 2) {
+            // 2+ loose models - single action, keep it top-level.
+            menu.AppendSeparator();
+            menu.Append(ID_PREVIEW_MODEL_LINKASSET, _("Link as Set..."));
+        }
+        return;
+    }
+
+    if (touchedSets.size() == 1) {
+        wxMenu* setMenu = new wxMenu();
+        if (selected.size() >= 2 && loose > 0) {
+            // Some are in this Set, some are loose - offer to add the loose ones.
+            setMenu->Append(ID_PREVIEW_MODEL_ADDTOSET, _("Add Selected to Set"));
+        }
+        setMenu->Append(ID_PREVIEW_MODEL_REMOVEFROMSET, _("Remove from Set"));
+        setMenu->Append(ID_PREVIEW_MODEL_RENAMESET, _("Rename..."));
+        setMenu->Append(ID_PREVIEW_MODEL_MANAGESET, _("Manage..."));
+        setMenu->Append(ID_PREVIEW_MODEL_DELETESET, _("Delete"));
+        setMenu->Bind(wxEVT_MENU, &LayoutPanel::OnPreviewModelPopup, this);
+        menu.AppendSeparator();
+        menu.AppendSubMenu(setMenu, _("Set"));
+    }
+}
+
+void LayoutPanel::DoLinkAsSet()
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.size() < 2) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+
+    // Re-prompt on a name collision (keeping what the user typed) rather
+    // than making them start the whole action over.
+    std::string setName;
+    wxString prompt = _("Name for the new Set:");
+    wxString current = setMgr.SuggestName();
+    while (true) {
+        wxTextEntryDialog dlg(this, prompt, _("Link as Set"), current);
+        OptimiseDialogPosition(&dlg);
+        if (dlg.ShowModal() != wxID_OK) return;
+        setName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
+        if (setName.empty()) {
+            setName = setMgr.SuggestName();
+        }
+        if (setMgr.GetSetByName(setName) == nullptr) break;
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), wxString(setName));
+        current = setName;
+    }
+
+    std::vector<std::string> names;
+    names.reserve(selected.size());
+    for (auto* m : selected) {
+        names.push_back(m->GetName());
+    }
+    setMgr.CreateSet(names, setName);
+    xlights->UnsavedRgbEffectsChanges = true;
+    xlights->GetOutputModelManager()->AddASAPWork(
+        OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoLinkAsSet");
+}
+
+void LayoutPanel::DoAddSelectedToSet(const std::string& setName)
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    ModelSet* target = setMgr.GetSetByName(setName);
+    if (target == nullptr) return;
+
+    bool anyMoved = false;
+    for (auto* m : selected) {
+        ModelSet* existing = setMgr.GetSetContaining(m->GetName());
+        if (existing == target) continue;
+        if (existing != nullptr) {
+            wxString prompt = wxString::Format(
+                _("'%s' is already in Set '%s'. Move it to Set '%s'?"),
+                wxString(m->GetName()), wxString(existing->GetName()), wxString(target->GetName()));
+            if (wxMessageBox(prompt, _("Confirm Move"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+                continue;
+            }
+        }
+        setMgr.AddMember(target, m->GetName());
+        anyMoved = true;
+    }
+    if (anyMoved) {
+        xlights->UnsavedRgbEffectsChanges = true;
+        xlights->GetOutputModelManager()->AddASAPWork(
+            OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoAddSelectedToSet");
+    }
+}
+
+void LayoutPanel::DoRemoveSelectedFromSet()
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    bool anyRemoved = false;
+    for (auto* m : selected) {
+        if (setMgr.GetSetContaining(m->GetName()) != nullptr) {
+            setMgr.RemoveMember(m->GetName());
+            anyRemoved = true;
+        }
+    }
+    if (anyRemoved) {
+        xlights->UnsavedRgbEffectsChanges = true;
+        xlights->GetOutputModelManager()->AddASAPWork(
+            OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoRemoveSelectedFromSet");
+    }
+}
+
+void LayoutPanel::DoDeleteSet()
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    ModelSet* s = nullptr;
+    for (auto* m : selected) {
+        s = setMgr.GetSetContaining(m->GetName());
+        if (s != nullptr) break;
+    }
+    if (s == nullptr) return;
+    wxString prompt = wxString::Format(_("Delete Set '%s'? Member models will not be affected."), wxString(s->GetName()));
+    if (wxMessageBox(prompt, _("Confirm Delete"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+        return;
+    }
+    setMgr.DeleteSet(s);
+    xlights->UnsavedRgbEffectsChanges = true;
+    xlights->GetOutputModelManager()->AddASAPWork(
+        OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoDeleteSet");
+}
+
+void LayoutPanel::DoRenameSet()
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    ModelSet* s = nullptr;
+    for (auto* m : selected) {
+        s = setMgr.GetSetContaining(m->GetName());
+        if (s != nullptr) break;
+    }
+    if (s == nullptr) return;
+
+    // Re-prompt on a name collision (keeping what the user typed) rather
+    // than making them start over.
+    wxString prompt = _("New Set name:");
+    wxString current = s->GetName();
+    while (true) {
+        wxTextEntryDialog dlg(this, prompt, _("Rename Set"), current);
+        OptimiseDialogPosition(&dlg);
+        if (dlg.ShowModal() != wxID_OK) return;
+        std::string newName = dlg.GetValue().Trim(true).Trim(false).ToStdString();
+        if (newName.empty() || newName == s->GetName()) return;
+        if (setMgr.RenameSet(s, newName)) break;
+        prompt = wxString::Format(_("A Set named '%s' already exists. Choose another name:"), wxString(newName));
+        current = newName;
+    }
+    xlights->UnsavedRgbEffectsChanges = true;
+    xlights->GetOutputModelManager()->AddASAPWork(
+        OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoRenameSet");
+}
+
+namespace {
+// Checkbox-list dialog with realtime filtering for Model Set membership.
+class ManageSetDialog : public wxDialog {
+public:
+    ManageSetDialog(wxWindow* parent, const wxString& setName,
+                    const std::vector<std::string>& candidates,
+                    const std::vector<wxString>& labels,
+                    const std::set<std::string>& initialChecked,
+                    std::function<bool(const std::string&)> nameAvailable) :
+        wxDialog(parent, wxID_ANY, _("Manage Set"), wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
+        _candidates(candidates),
+        _labels(labels),
+        _checked(initialChecked),
+        _originalName(setName.ToStdString()),
+        _nameAvailable(std::move(nameAvailable))
+    {
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+        auto* nameSizer = new wxBoxSizer(wxHORIZONTAL);
+        nameSizer->Add(new wxStaticText(this, wxID_ANY, _("Name:")), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+        _name = new wxTextCtrl(this, wxID_ANY, setName);
+        nameSizer->Add(_name, 1, wxEXPAND);
+        sizer->Add(nameSizer, 0, wxEXPAND | wxALL, 8);
+        sizer->Add(new wxStaticText(this, wxID_ANY,
+                                    _("Checked models are members of this Set.\nCheck to add, uncheck to remove.")),
+                   0, wxLEFT | wxRIGHT | wxBOTTOM, 8);
+        _filter = new wxSearchCtrl(this, wxID_ANY);
+        _filter->ShowCancelButton(true);
+        _filter->SetDescriptiveText(_("Filter models"));
+        sizer->Add(_filter, 0, wxEXPAND | wxLEFT | wxRIGHT, 8);
+        _list = new wxCheckListBox(this, wxID_ANY);
+        sizer->Add(_list, 1, wxEXPAND | wxALL, 8);
+        sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxALL, 8);
+        SetSizer(sizer);
+        SetSize(FromDIP(wxSize(450, 600)));
+
+        _filter->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { Rebuild(); });
+        _filter->Bind(wxEVT_SEARCHCTRL_CANCEL_BTN, [this](wxCommandEvent&) { _filter->Clear(); });
+        _list->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent& e) {
+            int idx = e.GetInt();
+            if (idx >= 0 && idx < (int)_visible.size()) {
+                if (_list->IsChecked(idx)) {
+                    _checked.insert(_visible[idx]);
+                } else {
+                    _checked.erase(_visible[idx]);
+                }
+            }
+        });
+        // Validate the name on OK so a collision keeps the dialog open for
+        // an in-place fix instead of discarding the user's work.
+        Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            const std::string n = GetSetName();
+            if (!n.empty() && n != _originalName && _nameAvailable && !_nameAvailable(n)) {
+                wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Choose another name."), n),
+                             _("Manage Set"), wxOK | wxICON_WARNING, this);
+                _name->SetFocus();
+                _name->SelectAll();
+                return;
+            }
+            e.Skip();
+        }, wxID_OK);
+        Rebuild();
+    }
+
+    const std::set<std::string>& GetChecked() const { return _checked; }
+    std::string GetSetName() const { return _name->GetValue().Trim(true).Trim(false).ToStdString(); }
+
+private:
+    void Rebuild() {
+        const wxString f = _filter->GetValue().Lower();
+        _list->Freeze();
+        _list->Clear();
+        _visible.clear();
+        for (size_t i = 0; i < _candidates.size(); ++i) {
+            if (!f.empty() && _labels[i].Lower().Find(f) == wxNOT_FOUND) continue;
+            int pos = _list->Append(_labels[i]);
+            _visible.push_back(_candidates[i]);
+            if (_checked.count(_candidates[i]) != 0) {
+                _list->Check(pos);
+            }
+        }
+        _list->Thaw();
+    }
+
+    std::vector<std::string> _candidates;
+    std::vector<wxString> _labels;
+    std::set<std::string> _checked;
+    std::vector<std::string> _visible;
+    std::string _originalName;
+    std::function<bool(const std::string&)> _nameAvailable;
+    wxSearchCtrl* _filter = nullptr;
+    wxCheckListBox* _list = nullptr;
+    wxTextCtrl* _name = nullptr;
+};
+} // namespace
+
+void LayoutPanel::DoManageSet()
+{
+    auto selected = GetSelectedModelsForSetActions();
+    if (selected.empty()) return;
+    auto& setMgr = xlights->AllModels.GetSetManager();
+    ModelSet* s = nullptr;
+    for (auto* m : selected) {
+        s = setMgr.GetSetContaining(m->GetName());
+        if (s != nullptr) break;
+    }
+    if (s == nullptr) return;
+
+    // Checkbox list: current members first (checked), then the remaining
+    // models, each section alphabetized. Checking adds, unchecking removes.
+    std::vector<std::string> members;
+    std::vector<std::string> nonMembers;
+    for (const auto& it : xlights->AllModels) {
+        Model* m = it.second;
+        if (m == nullptr) continue;
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        if (m->GetDisplayAs() == DisplayAsType::SubModel) continue;
+        if (setMgr.GetSetContaining(m->GetName()) == s) {
+            members.push_back(m->GetName());
+        } else {
+            nonMembers.push_back(m->GetName());
+        }
+    }
+    std::sort(members.begin(), members.end());
+    std::sort(nonMembers.begin(), nonMembers.end());
+
+    std::vector<std::string> candidates = members;
+    candidates.insert(candidates.end(), nonMembers.begin(), nonMembers.end());
+
+    std::vector<wxString> labels;
+    std::set<std::string> initialChecked;
+    labels.reserve(candidates.size());
+    for (const auto& name : candidates) {
+        wxString label = name;
+        // Show foreign-Set membership so the user knows checking it will
+        // move the model out of its current Set.
+        ModelSet* owner = setMgr.GetSetContaining(name);
+        if (owner != nullptr && owner != s) {
+            label += wxString::Format(_(" (in Set '%s')"), wxString(owner->GetName()));
+        }
+        labels.push_back(label);
+        if (owner == s) {
+            initialChecked.insert(name);
+        }
+    }
+
+    ManageSetDialog dlg(this, s->GetName(), candidates, labels, initialChecked,
+                        [&setMgr, s](const std::string& n) {
+                            ModelSet* existing = setMgr.GetSetByName(n);
+                            return existing == nullptr || existing == s;
+                        });
+    OptimiseDialogPosition(&dlg);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    const std::set<std::string>& finalMembers = dlg.GetChecked();
+
+    if (finalMembers.size() < 2) {
+        if (wxMessageBox(wxString::Format(_("A Set needs at least 2 members. Delete Set '%s' instead?"), wxString(s->GetName())),
+                         _("Manage Set"), wxYES_NO | wxICON_QUESTION, this) == wxYES) {
+            setMgr.DeleteSet(s);
+            xlights->UnsavedRgbEffectsChanges = true;
+            xlights->GetOutputModelManager()->AddASAPWork(
+                OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoManageSet");
+        }
+        return;
+    }
+
+    bool changed = false;
+
+    // Apply a rename typed into the dialog's name field.
+    const std::string newName = dlg.GetSetName();
+    if (!newName.empty() && newName != s->GetName()) {
+        if (setMgr.RenameSet(s, newName)) {
+            changed = true;
+        } else {
+            wxMessageBox(wxString::Format(_("A Set named '%s' already exists. Name unchanged."), wxString(newName)),
+                         _("Manage Set"), wxOK | wxICON_WARNING, this);
+        }
+    }
+
+    // Adds first so membership never dips below 2 mid-stream (RemoveMember
+    // auto-deletes Sets that fall under 2 members).
+    for (const auto& name : finalMembers) {
+        if (s->HasMember(name)) continue;
+        ModelSet* owner = setMgr.GetSetContaining(name);
+        if (owner != nullptr && owner != s) {
+            wxString prompt = wxString::Format(
+                _("'%s' is already in Set '%s'. Move it to Set '%s'?"),
+                name, owner->GetName(), s->GetName());
+            if (wxMessageBox(prompt, _("Confirm Move"), wxYES_NO | wxICON_QUESTION, this) != wxYES) {
+                continue;
+            }
+        }
+        setMgr.AddMember(s, name);
+        changed = true;
+    }
+
+    // Then removals.
+    std::vector<std::string> toRemove;
+    for (const auto& name : s->GetMembers()) {
+        if (finalMembers.count(name) == 0) {
+            toRemove.push_back(name);
+        }
+    }
+    for (const auto& name : toRemove) {
+        setMgr.RemoveMember(name);
+        changed = true;
+    }
+
+    if (changed) {
+        xlights->UnsavedRgbEffectsChanges = true;
+        xlights->GetOutputModelManager()->AddASAPWork(
+            OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::DoManageSet");
+    }
 }
 
 void LayoutPanel::BulkEditPixelStyle() {
@@ -3978,6 +4619,27 @@ void LayoutPanel::ProcessLeftMouseClick3D(wxMouseEvent& event)
                                     handledByNewApi = true;
                                 }
                             } else {
+                                // Model Sets: a Set containing a locked model is
+                                // frozen - block the 3D translate/rotate gizmo
+                                // drag at the source so the grabbed member can't
+                                // move away from the rest. Alt still allows an
+                                // unlocked member to be moved individually.
+                                if ((hit->id.role == handles::Role::AxisArrow ||
+                                     hit->id.role == handles::Role::AxisRing) &&
+                                    !event.AltDown()) {
+                                    Model* selModel = dynamic_cast<Model*>(selectedBaseObject);
+                                    if (selModel != nullptr) {
+                                        ModelSet* ms = xlights->AllModels.GetSetManager().GetSetContaining(selModel->GetName());
+                                        if (ms != nullptr && ModelSetHasLockedMember(xlights->AllModels, ms)) {
+                                            xlights->SetStatusText(wxString::Format(
+                                                _("Set '%s' contains a locked model - unlock it to move the Set."), ms->GetName()));
+                                            handledByNewApi = true;
+                                            m_last_mouse_x = event.GetX();
+                                            m_last_mouse_y = event.GetY();
+                                            return;
+                                        }
+                                    }
+                                }
                                 handles::WorldRay startRay{ray_origin, ray_direction};
                                 if (auto session = selectedBaseObject->BeginDrag(hit->id, startRay)) {
                                     xlights->AbortRender();
@@ -4362,24 +5024,35 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
                                 "LayoutPanel::OnPreviewLeftDown-NewAPI2D-Segment");
                             handledByNewApi = true;
                         } else {
+                            // Model Sets: a centre-handle translate on a Set
+                            // member routes through the body-drag path instead
+                            // of a single-model session, so the whole Set
+                            // moves (or stays frozen if a member is locked).
+                            // Alt keeps the single-model session.
+                            bool deferToSetDrag = false;
+                            if (hit->id.role == handles::Role::Move && !event.AltDown()) {
+                                deferToSetDrag = xlights->AllModels.GetSetManager().GetSetContaining(model->GetName()) != nullptr;
+                            }
                             handles::WorldRay startRay;
                             GetMouseLocation(event.GetX(), event.GetY(),
                                               startRay.origin, startRay.direction);
-                            if (auto session = model->BeginDrag(hit->id, startRay)) {
-                                xlights->AbortRender();
-                                if (selectedBaseObject != _newModel) {
-                                    CreateUndoPoint("SingleModel", selectedBaseObject->name, "");
+                            if (!deferToSetDrag) {
+                                if (auto session = model->BeginDrag(hit->id, startRay)) {
+                                    xlights->AbortRender();
+                                    if (selectedBaseObject != _newModel) {
+                                        CreateUndoPoint("SingleModel", selectedBaseObject->name, "");
+                                    }
+                                    m_dragSession = std::move(session);
+                                    m_moving_handle = true;
+                                    m_mouse_down = true;
+                                    last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
+                                    last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
+                                    last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
+                                    xlights->GetOutputModelManager()->AddASAPWork(
+                                        OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
+                                        "LayoutPanel::OnPreviewLeftDown-NewAPI2D");
+                                    handledByNewApi = true;
                                 }
-                                m_dragSession = std::move(session);
-                                m_moving_handle = true;
-                                m_mouse_down = true;
-                                last_centerpos   = selectedBaseObject->GetBaseObjectScreenLocation().GetCenterPosition();
-                                last_worldrotate = glm::vec3(0.0f); // accumulated resets to 0 at session start
-                                last_worldscale  = selectedBaseObject->GetBaseObjectScreenLocation().GetScaleMatrix();
-                                xlights->GetOutputModelManager()->AddASAPWork(
-                                    OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW,
-                                    "LayoutPanel::OnPreviewLeftDown-NewAPI2D");
-                                handledByNewApi = true;
                             }
                         }
                     }
@@ -4411,9 +5084,26 @@ void LayoutPanel::OnPreviewLeftDown(wxMouseEvent& event)
     }
     else if (event.AltDown())
     {
-        m_previous_mouse_x = event.GetX();
-        m_previous_mouse_y = event.GetY();
-        m_wheel_down = true;
+        // Alt+click on a model starts a single-model drag - the move handler
+        // suppresses Model Set propagation while Alt is held, which is how a
+        // member is repositioned within its Set. Alt+drag on empty space
+        // pans the canvas, as before.
+        std::vector<int> found;
+        if (FindModelsClicked(event.GetX(), event.GetY(), found) > 0) {
+            m_moving_handle = false;
+            m_creating_bound_rect = false;
+            Model* singleModel = SelectSingleModel(event.GetX(), event.GetY());
+            if (singleModel != nullptr) {
+                SelectModelInTree(singleModel);
+                m_dragging = true;
+            }
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+        } else {
+            m_previous_mouse_x = event.GetX();
+            m_previous_mouse_y = event.GetY();
+            m_wheel_down = true;
+        }
     }
     else if (selectedButton != nullptr)
     {
@@ -4800,7 +5490,17 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
         pugi::xml_node root = doc.document_element();
 
         model->SetStartChannel("1");
-        model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
+        try {
+            model = model->CreateDefaultModelFromSavedModelNode(model, root, xlights->AllModels, cancelled);
+        } catch (const std::exception& e) {
+            // A downloaded/imported model file with an unrecognized or malformed type
+            // throws out of the deserializer; xLights has no surrounding handler so it
+            // escapes to the main loop and is treated as a crash. Cancel the import
+            // cleanly instead (FinalizeModel deletes the in-flight model on cancel).
+            spdlog::error("Unable to load model from '{}': {}", last_model, e.what());
+            DisplayError("Unable to load model file:\n" + std::string(e.what()));
+            cancelled = true;
+        }
 
         if (!cancelled && model != nullptr) {
             // Reset controller name to NO_CONTROLLER so ReworkStartChannel auto-assigns
@@ -4840,7 +5540,13 @@ static Model* GetXlightsModel(Model* model, std::string& last_model, xLightsFram
                     xlights->GetOutputModelManager()->DisableASAPWork(false);
                     if (extraModel == nullptr) continue;
                     extraModel->SetStartChannel("1");
-                    extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    try {
+                        extraModel = extraModel->CreateDefaultModelFromSavedModelNode(extraModel, child, xlights->AllModels, extraCancelled);
+                    } catch (const std::exception& e) {
+                        spdlog::error("Unable to load additional model: {}", e.what());
+                        delete extraModel;
+                        continue;
+                    }
                     if (extraCancelled || extraModel == nullptr) continue;
                     const std::string& extraSc = extraModel->GetModelStartChannel();
                     if (!extraModel->HasIndividualStartChannels() && (extraSc.empty() || (extraSc[0] != '@' && extraSc[0] != '>'))) {
@@ -5593,7 +6299,49 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                         const int selectedModelCnt      = ModelsSelectedCount();
                         const int selectedViewObjectCnt = ViewObjectsSelectedCount();
                         const bool multiSel = (selectedModelCnt > 1 || selectedViewObjectCnt > 1);
-                        if (multiSel) {
+
+                        // Model Sets: members of any Set touched by the moved
+                        // selection follow translate/rotate even when only one
+                        // model is selected. Holding Alt/Option during the drag
+                        // suppresses this, allowing a single member to be
+                        // repositioned within its Set. See
+                        // plans/layout-group-move-lock.md.
+                        auto& setMgr = xlights->AllModels.GetSetManager();
+                        std::set<ModelSet*> touchedSets;
+                        if (!event.AltDown()) {
+                            for (auto* mm : modelPreview->GetModels()) {
+                                if (mm != nullptr && (mm->Selected() || mm->GroupSelected())) {
+                                    if (ModelSet* ts = setMgr.GetSetContaining(mm->GetName())) {
+                                        touchedSets.insert(ts);
+                                    }
+                                }
+                            }
+                        }
+                        // Sets containing a locked model are frozen - drop
+                        // them from propagation and keep their selected
+                        // members from following a multi-select drag.
+                        std::set<ModelSet*> blockedSets;
+                        for (auto* ts : touchedSets) {
+                            if (ModelSetHasLockedMember(xlights->AllModels, ts)) {
+                                blockedSets.insert(ts);
+                            }
+                        }
+                        for (auto* ts : blockedSets) {
+                            touchedSets.erase(ts);
+                        }
+                        auto isBlockedSetMember = [&](Model* mm) {
+                            if (mm == nullptr || blockedSets.empty()) return false;
+                            ModelSet* ts = setMgr.GetSetContaining(mm->GetName());
+                            return ts != nullptr && blockedSets.count(ts) != 0;
+                        };
+                        auto isUnselectedSetMember = [&](Model* mm) {
+                            if (mm == nullptr || mm == selectedBaseObject) return false;
+                            if (mm->Selected() || mm->GroupSelected()) return false;
+                            ModelSet* ts = setMgr.GetSetContaining(mm->GetName());
+                            return ts != nullptr && touchedSets.count(ts) != 0;
+                        };
+
+                        if (multiSel || !touchedSets.empty()) {
                             auto& sloc = selectedBaseObject->GetBaseObjectScreenLocation();
                             const handles::Role dragRole = m_dragSession->GetHandleId().role;
                             if (dragRole == handles::Role::AxisArrow) {
@@ -5601,14 +6349,17 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                                 glm::vec3 pos_offset    = new_centerpos - last_centerpos;
                                 for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                                     Model* mm = modelPreview->GetModels()[i];
-                                    if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                    bool follow = multiSel && (mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject && !isBlockedSetMember(mm);
+                                    if (follow || isUnselectedSetMember(mm)) {
                                         mm->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
                                     }
                                 }
-                                for (const auto& it : xlights->AllObjects) {
-                                    ViewObject* vo = it.second;
-                                    if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
-                                        vo->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
+                                if (multiSel) {
+                                    for (const auto& it : xlights->AllObjects) {
+                                        ViewObject* vo = it.second;
+                                        if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                            vo->AddOffset(pos_offset.x, pos_offset.y, pos_offset.z);
+                                        }
                                     }
                                 }
                                 last_centerpos = new_centerpos;
@@ -5625,22 +6376,25 @@ void LayoutPanel::OnPreviewMouseMove3D(wxMouseEvent& event)
                                         const glm::vec3 pivot = ri->pivot;
                                         for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
                                             Model* mm = modelPreview->GetModels()[i];
-                                            if ((mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject) {
+                                            bool follow = multiSel && (mm->GroupSelected() || mm->Selected()) && mm != selectedBaseObject && !isBlockedSetMember(mm);
+                                            if (follow || isUnselectedSetMember(mm)) {
                                                 xlights->AbortRender();
                                                 mm->RotateAboutPoint(pivot, angle);
                                             }
                                         }
-                                        for (const auto& it : xlights->AllObjects) {
-                                            ViewObject* vo = it.second;
-                                            if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
-                                                xlights->AbortRender();
-                                                vo->RotateAboutPoint(pivot, angle);
+                                        if (multiSel) {
+                                            for (const auto& it : xlights->AllObjects) {
+                                                ViewObject* vo = it.second;
+                                                if ((vo->GroupSelected() || vo->Selected()) && vo != selectedBaseObject) {
+                                                    xlights->AbortRender();
+                                                    vo->RotateAboutPoint(pivot, angle);
+                                                }
                                             }
                                         }
                                         last_worldrotate.x = ri->accumulated;
                                     }
                                 }
-                            } else if (dragRole == handles::Role::AxisCube) {
+                            } else if (multiSel && dragRole == handles::Role::AxisCube) {
                                 glm::vec3 new_worldscale = sloc.GetScaleMatrix();
                                 if (last_worldscale.x == 0 || last_worldscale.y == 0 || last_worldscale.z == 0) {
                                     spdlog::critical("11 multi-select scale: last_worldscale has a zero component");
@@ -6007,13 +6761,57 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
         delta_y /= modelPreview->GetZoom() / scale;
         int wi, ht;
         modelPreview->GetVirtualCanvasSize(wi, ht);
+        bool setDragBlocked = false;
         if (wi > 0 && ht > 0) {
-            for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
-                if (modelPreview->GetModels()[i]->Selected() || modelPreview->GetModels()[i]->GroupSelected()) {
-                    if(!m->IsLocked()) {
-                        CreateUndoPoint("SingleModel", m->name, "location");
+            // Model Sets: identify Sets touched by the current selection so
+            // their members translate together as one logical prop. Holding
+            // Alt/Option during the drag suppresses this, allowing a single
+            // member to be repositioned within its Set. See
+            // plans/layout-group-move-lock.md.
+            auto& setMgr = xlights->AllModels.GetSetManager();
+            std::set<ModelSet*> touchedSets;
+            if (!event.AltDown()) {
+                for (auto* sm : modelPreview->GetModels()) {
+                    if (sm != nullptr && (sm->Selected() || sm->GroupSelected())) {
+                        if (ModelSet* s = setMgr.GetSetContaining(sm->GetName())) {
+                            touchedSets.insert(s);
+                        }
                     }
-                    modelPreview->GetModels()[i]->AddOffset(delta_x, delta_y, 0.0);
+                }
+            }
+            // Sets containing a locked model are frozen: no member moves
+            // (the dragged one included), so the locked arrangement survives.
+            std::set<ModelSet*> blockedSets;
+            for (auto* ts : touchedSets) {
+                if (ModelSetHasLockedMember(xlights->AllModels, ts)) {
+                    blockedSets.insert(ts);
+                }
+            }
+            for (auto* ts : blockedSets) {
+                touchedSets.erase(ts);
+            }
+
+            for (size_t i = 0; i < modelPreview->GetModels().size(); i++) {
+                Model* cur = modelPreview->GetModels()[i];
+                bool isSelected = cur->Selected() || cur->GroupSelected();
+                bool inTouchedSet = false;
+                if ((isSelected || !touchedSets.empty()) && !blockedSets.empty()) {
+                    ModelSet* s = setMgr.GetSetContaining(cur->GetName());
+                    if (s != nullptr && blockedSets.count(s) != 0) {
+                        continue;
+                    }
+                }
+                if (!isSelected && !touchedSets.empty()) {
+                    ModelSet* s = setMgr.GetSetContaining(cur->GetName());
+                    if (s != nullptr && touchedSets.count(s) != 0) {
+                        inTouchedSet = true;
+                    }
+                }
+                if (isSelected || inTouchedSet) {
+                    if(!cur->IsLocked()) {
+                        CreateUndoPoint("SingleModel", cur->name, "location");
+                    }
+                    cur->AddOffset(delta_x, delta_y, 0.0);
                     //SetupPropGrid(modelPreview->GetModels()[i]);
                     xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_RELOAD_PROPERTYGRID, "LayoutPanel::OnPreviewMouseMove");
                     // dont need these until finished moving
@@ -6021,10 +6819,15 @@ void LayoutPanel::OnPreviewMouseMove(wxMouseEvent& event)
                     //xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_MODELS_CHANGE_REQUIRING_RERENDER, "LayoutPanel::OnPreviewMouseMove");
                 }
             }
+            setDragBlocked = !blockedSets.empty();
         }
         m_previous_mouse_x = event.GetPosition().x;
         m_previous_mouse_y = event.GetPosition().y;
-        xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
+        if (setDragBlocked) {
+            xlights->SetStatusText(_("Model Set contains a locked model - unlock it to move the Set (Alt-drag moves a single model)."));
+        } else {
+            xlights->SetStatusText(wxString::Format("x=%d y=%d", m_previous_mouse_x, m_previous_mouse_y));
+        }
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewMouseMove");
     }
     else {
@@ -6316,6 +7119,10 @@ void LayoutPanel::OnPreviewRightDown(wxMouseEvent& event)
         AddSingleModelOptionsToBaseMenu(mnu);
     }
 
+    if (editing_models && selectedObjectCnt > 0) {
+        AddModelSetOptionsToMenu(mnu);
+    }
+
     if( currentLayoutGroup != "Default" && currentLayoutGroup != "All Models" && currentLayoutGroup != "Unassigned" ) {
         if (selectedObjectCnt > 0) {
             mnu.AppendSeparator();
@@ -6386,6 +7193,25 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
     if (event.GetId() == ID_PREVIEW_RESET) {
         modelPreview->Reset();
         xlights->GetOutputModelManager()->AddASAPWork(OutputModelManager::WORK_REDRAW_LAYOUTPREVIEW, "LayoutPanel::OnPreviewModelPopup::ID_PREVIEW_RESET");
+    } else if (event.GetId() == ID_PREVIEW_MODEL_LINKASSET) {
+        DoLinkAsSet();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_ADDTOSET) {
+        // Find the touched Set and route through DoAddSelectedToSet.
+        auto sel = GetSelectedModelsForSetActions();
+        ModelSet* target = nullptr;
+        for (auto* m : sel) {
+            target = xlights->AllModels.GetSetManager().GetSetContaining(m->GetName());
+            if (target != nullptr) break;
+        }
+        if (target != nullptr) DoAddSelectedToSet(target->GetName());
+    } else if (event.GetId() == ID_PREVIEW_MODEL_REMOVEFROMSET) {
+        DoRemoveSelectedFromSet();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_DELETESET) {
+        DoDeleteSet();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_RENAMESET) {
+        DoRenameSet();
+    } else if (event.GetId() == ID_PREVIEW_MODEL_MANAGESET) {
+        DoManageSet();
     } else if (event.GetId() == ID_PREVIEW_REPLACEMODEL) {
         ReplaceModel();
     } else if (event.GetId() == ID_PREVIEW_ALIGN_TOP) {
@@ -6565,6 +7391,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -6581,6 +7408,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -6642,7 +7470,7 @@ void LayoutPanel::OnPreviewModelPopup(wxCommandEvent& event)
         wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
-            ObtainAccessToURL(filename);
+            ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
                 ? serializer.SerializeModel(selectedModels[0], true)
                 : serializer.SerializeModels(selectedModels, true);
@@ -6806,6 +7634,7 @@ void LayoutPanel::EditSubmodels()
         dlg.Save();
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditSubmodels");
+        updatePropertyGrid();
     }
     if (dlg.ReloadLayout) { //force grid to reload
         wxCommandEvent eventForceRefresh(EVT_FORCE_SEQUENCER_REFRESH);
@@ -6830,6 +7659,7 @@ void LayoutPanel::EditFaces()
             md->SetFaceInfo(newFaceInfo);
             md->IncrementChangeCount();
             md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditFaces");
+            updatePropertyGrid();
         }
     }
 }
@@ -6846,6 +7676,7 @@ void LayoutPanel::EditStates()
         md->SetStateInfo(dlg.GetStateInfo());
         md->IncrementChangeCount();
         md->AddASAPWork(OutputModelManager::WORK_RGBEFFECTS_CHANGE, "LayoutPanel::EditStates");
+        updatePropertyGrid();
     }
 }
 
@@ -6904,6 +7735,7 @@ void LayoutPanel::ExportModelAsCAD()
 
     wxString const filename = wxFileSelector(_("Choose Output File"), wxEmptyString, md->GetName(), wxEmptyString, filter, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
+        ObtainAccessToURL(ToStdString(filename), true);
         wxFileName file(filename);
         if (ModelToCAD::ExportCAD(md, filename, file.GetExt())) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
@@ -6917,6 +7749,7 @@ void LayoutPanel::ExportLayoutDXF()
 {
     wxString const filename = wxFileSelector(_("Choose output file"), wxEmptyString, currentLayoutGroup + "_Layout", wxEmptyString, "DXF File (*.dxf)|*.dxf", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (filename != "") {
+        ObtainAccessToURL(ToStdString(filename), true);
         if (ModelToCAD::ExportCAD(&xlights->AllModels, filename, "dxf", currentLayoutGroup)) {
             xlights->SetStatusText(wxString::Format("Exported '%s' Successfully", filename));
         } else {
@@ -8616,6 +9449,36 @@ void LayoutPanel::EditSubModelAlias() {
     }
 }
 
+namespace {
+// Copy a target model's geometry (size, centre, rotation) onto a freshly-built
+// replacement clone, taking a single consistent snapshot from the target's
+// screen location.
+//
+// Applied directly through the screen location rather than via
+// Model::SetHcenterPos / SetWidth / etc. The clone is cloned from the source's
+// XML and may inherit the source's locked flag; the Model::Set* setters no-op
+// when IsLocked(), so going straight to the screen location keeps the copy
+// working for a locked source. (Base linkage is not a concern here: the caller
+// clears FromBase on the clone, and base-linked targets are blocked up front.)
+//
+// Size MUST be set before the centre: two-point / poly-point screen locations
+// derive their centre from the current width/height/depth
+// (worldPos = centre - size/2), so a centre set against a stale size lands the
+// model off by half the size delta.
+void CopyGeometryFromTarget(Model* clone, const Model* target) {
+    ModelScreenLocation& cloc = clone->GetModelScreenLocation();
+    const ModelScreenLocation& tloc = target->GetModelScreenLocation();
+    cloc.SetMWidth(tloc.GetMWidth());
+    cloc.SetMHeight(tloc.GetMHeight());
+    cloc.SetMDepth(tloc.GetMDepth());
+    cloc.SetHcenterPos(tloc.GetHcenterPos());
+    cloc.SetVcenterPos(tloc.GetVcenterPos());
+    cloc.SetDcenterPos(tloc.GetDcenterPos());
+    cloc.SetRotation(tloc.GetRotation());
+    clone->Setup();
+    clone->IncrementChangeCount();
+}
+} // namespace
 
 void LayoutPanel::ReplaceModel()
 {
@@ -8624,11 +9487,17 @@ void LayoutPanel::ReplaceModel()
     if (sourceModel == nullptr) return;
 
     // Build alphabetised candidate list - everything in the preview except the source itself.
+    // Base-folder models are collected separately so the dialog can show them
+    // disabled: replacing one would delete a model the base folder owns.
     std::vector<std::string> candidates;
+    std::set<std::string> baseLinked;
     candidates.reserve(modelPreview->GetModels().size());
     for (auto* m : modelPreview->GetModels()) {
         if (m != nullptr && m != sourceModel) {
             candidates.push_back(m->GetName());
+            if (m->IsFromBase()) {
+                baseLinked.insert(m->GetName());
+            }
         }
     }
     if (candidates.empty()) {
@@ -8638,7 +9507,7 @@ void LayoutPanel::ReplaceModel()
     }
     std::sort(candidates.begin(), candidates.end());
 
-    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates);
+    ReplaceModelDialog dlg(this, sourceModel->GetName(), candidates, baseLinked);
     OptimiseDialogPosition(&dlg);
     if (dlg.ShowModal() != wxID_OK) return;
 
@@ -8726,6 +9595,14 @@ void LayoutPanel::ReplaceModel()
         clone->Rename(tmpNewName);
         xlights->AllModels.AddModel(clone);
 
+        // The replacement is a brand-new local model standing in for the
+        // target; it is not managed by the base show folder even if the source
+        // was. Clearing FromBase keeps us from creating a fake base-linked
+        // model and lets its geometry be set to the target's below without
+        // overriding a real base lock. (Base-linked targets are themselves
+        // blocked in the dialog.)
+        clone->SetFromBase(false);
+
         // Per-target carryovers. These match the semantics of the three Yes/No
         // prompts in the existing single-replace flow (see ReplaceModel()).
         if (copyStartCh) {
@@ -8751,13 +9628,7 @@ void LayoutPanel::ReplaceModel()
             }
         }
         if (copySizePos) {
-            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
-            clone->SetHcenterPos(target->GetHcenterPos());
-            clone->SetVcenterPos(target->GetVcenterPos());
-            clone->SetDcenterPos(target->GetDcenterPos());
-            clone->SetHeight(target->GetHeight());
-            clone->SetWidth(target->GetWidth());
-            clone->SetDepth(target->GetDepth());
+            CopyGeometryFromTarget(clone, target);
         }
 
         // Rename dance: swap the target out and the clone in under the target's
@@ -9356,6 +10227,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -9372,6 +10244,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
             wxLogNull logNo; // kludge: avoid "error 0" message from wxWidgets after new file is written
             wxString fn = wxFileSelector(_("Choose output file"), wxEmptyString, name, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if (!fn.IsEmpty()) {
+                ObtainAccessToURL(ToStdString(fn), true);
                 FileSerializingVisitor visitor(ToStdString(fn), true /*exporting*/);
                 if (!visitor.IsOpen())
                     DisplayError("Unable to create file " + ToStdString(fn));
@@ -9431,7 +10304,7 @@ void LayoutPanel::OnModelsPopup(wxCommandEvent& event) {
         wxString defaultName = selectedModels.size() == 1 ? wxString(selectedModels[0]->GetName()) : wxString("models");
         wxString filename = wxFileSelector(_("Choose output file"), wxEmptyString, defaultName, wxEmptyString, "Custom Model files (*.xmodel)|*.xmodel", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (!filename.IsEmpty()) {
-            ObtainAccessToURL(filename);
+            ObtainAccessToURL(filename, true);
             pugi::xml_document doc = selectedModels.size() == 1
                 ? serializer.SerializeModel(selectedModels[0], true)
                 : serializer.SerializeModels(selectedModels, true);

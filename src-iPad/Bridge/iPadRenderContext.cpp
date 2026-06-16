@@ -38,6 +38,7 @@
 #include "models/ModelScreenLocation.h"
 #include "models/Node.h"
 #include "render/ValueCurve.h"
+#include "render/UICallbacks.h"
 #include "utils/Color.h"
 #include "utils/ExternalHooks.h"
 #include "XmlSerializer/XmlSerializingVisitor.h"
@@ -62,6 +63,41 @@
 #include <thread>
 #include <vector>
 
+namespace {
+// Adapts iPadRenderContext's Check-Sequence disable set to the
+// UICallbacks surface CustomModel / SketchEffect consult during a
+// sequence check. Every other UICallbacks method is a defensive
+// stub — the only check-time caller is IsCheckSequenceOptionDisabled.
+class iPadCheckUICallbacks final : public UICallbacks {
+public:
+    explicit iPadCheckUICallbacks(const iPadRenderContext* ctx) : _ctx(ctx) {}
+
+    bool IsCheckSequenceOptionDisabled(const std::string& option) const override {
+        return _ctx && _ctx->IsCheckOptionDisabled(option);
+    }
+
+    void ShowMessage(const std::string&, const std::string&) const override {}
+    bool PromptYesNo(const std::string&, const std::string&) const override { return false; }
+    std::string PromptForDirectory(const std::string&, const std::string&) const override { return ""; }
+    std::string PromptForFile(const std::string&, const std::string&, const std::string&) const override { return ""; }
+    long PromptForNumber(const std::string&, const std::string&, long defaultValue, long, long) const override { return defaultValue; }
+    std::string PromptForText(const std::string&, const std::string&, const std::string& defaultValue) const override { return defaultValue; }
+    ProgressToken BeginProgress(const std::string&, int) override { return INVALID_PROGRESS; }
+    void UpdateProgress(ProgressToken, int, const std::string&) override {}
+    void EndProgress(ProgressToken) override {}
+
+private:
+    const iPadRenderContext* _ctx;
+};
+} // namespace
+
+UICallbacks* iPadRenderContext::GetUICallbacks() {
+    if (!_checkUICallbacks) {
+        _checkUICallbacks = std::make_unique<iPadCheckUICallbacks>(this);
+    }
+    return _checkUICallbacks.get();
+}
+
 iPadRenderContext::iPadRenderContext()
     : _effectManager(FileUtils::GetResourcesDir() + "/effectmetadata"),
       _sequenceElements(this) {
@@ -73,7 +109,7 @@ iPadRenderContext::iPadRenderContext()
     //     ModifiedEffect snapshot can be several KB of settings
     //     strings, so 2000-edit sessions on a long show add up.
     //     iPad users don't need desktop-scale undo depth anyway.
-    _renderCache.SetMaximumSizeMB(50);
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
     _sequenceElements.get_undo_mgr().SetMaxSteps(50);
 
     // Render cache defaults OFF on iPad (see ReadRenderCacheMode): it trades
@@ -343,7 +379,25 @@ bool iPadRenderContext::LoadShowFolder(const std::string& showDir,
         _effectPresetManager.SetVersion(XLIGHTS_RGBEFFECTS_VERSION);
     }
 
+    LoadBasePresets();
+
     return true;
+}
+
+bool iPadRenderContext::LoadBasePresets() {
+    _basePresetManager.Reset();
+    std::string baseDir = _outputManager.GetBaseShowDir();
+    if (baseDir.empty() || baseDir == _showDir)
+        return false;
+    std::string basePresetsPath = baseDir + "/" + XLIGHTS_PRESETS_FILE;
+    ObtainAccessToURL(basePresetsPath, false);
+    if (_basePresetManager.LoadJsonFile(basePresetsPath) &&
+        !_basePresetManager.GetRoot().GetChildren().empty()) {
+        spdlog::info("iPadRenderContext: Loaded base effect presets from {}", basePresetsPath);
+        return true;
+    }
+    _basePresetManager.Reset();
+    return false;
 }
 
 bool iPadRenderContext::SaveEffectPresets() {
@@ -707,6 +761,22 @@ bool iPadRenderContext::SaveLayoutChanges() {
                 members += g->ModelNames()[i];
             }
             setAttr("models", members);
+            // Persist the FromBase flag: clear the attribute when
+            // unlinked (so a subsequent base-folder merge doesn't
+            // re-overwrite local edits), or ensure it's "1" when
+            // still linked. Matches how BaseSerializingVisitor
+            // handles FromBase for models.
+            if (g->IsFromBase()) {
+                if (!existing.attribute("FromBase") ||
+                    strcmp(existing.attribute("FromBase").value(), "1") != 0) {
+                    if (existing.attribute("FromBase"))
+                        existing.remove_attribute("FromBase");
+                    existing.append_attribute("FromBase") = "1";
+                }
+            } else {
+                if (existing.attribute("FromBase"))
+                    existing.remove_attribute("FromBase");
+            }
             continue;
         }
 
@@ -1818,6 +1888,26 @@ std::string iPadRenderContext::ReadRenderCacheMode() const {
     return mode;
 }
 
+size_t iPadRenderContext::ReadRenderCacheMaxMB() const {
+    // App preference written by the Folder Config → Rendering picker via
+    // @AppStorage("render.cacheMaxMB"). The desktop "Maximum Render Cache
+    // Size" choices are Unlimited / 1 / 5 / 10 / 50 / 100 / 200 GB; the
+    // SwiftUI picker stores the cap directly in MB (0 = Unlimited). Absent
+    // key → 50 MB, the long-standing iPad default that keeps a desktop-
+    // authored cache from ballooning the in-memory frame map at open.
+    long mb = 50;
+    CFPropertyListRef v = CFPreferencesCopyAppValue(CFSTR("render.cacheMaxMB"),
+                                                    kCFPreferencesCurrentApplication);
+    if (v) {
+        if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+            CFNumberGetValue((CFNumberRef)v, kCFNumberLongType, &mb);
+        }
+        CFRelease(v);
+    }
+    if (mb < 0) mb = 0;
+    return (size_t)mb;
+}
+
 void iPadRenderContext::PurgeDownloadCache() {
     CachedFileDownloader::GetDefaultCache().ClearCache();
 }
@@ -1892,6 +1982,26 @@ void iPadRenderContext::RenderEffectForModel(const std::string& model,
     }
 }
 
+bool iPadRenderContext::RenderModelAndWait(const std::string& model, int maxTimeMs) {
+    EnsureSequenceDataSized();
+    if (!_sequenceData.IsValidData()) return false;
+    EnsureRenderEngine();
+    // Make sure no stale jobs are touching the model's frames before we
+    // kick off a fresh full-range render.
+    AbortRender(maxTimeMs);
+    _renderEngine->RenderEffectForModel(model, 0, 99999999,
+                                        _sequenceElements, _sequenceData,
+                                        false, _modelsChangeCount, true);
+    if (maxTimeMs <= 0) maxTimeMs = 60000;
+    int loops = maxTimeMs / 10;
+    int i = 0;
+    while (!IsRenderDone() && i < loops) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++i;
+    }
+    return IsRenderDone();
+}
+
 void iPadRenderContext::EnsureRenderEngine() {
     if (!_jobPool) {
         _jobPool = std::make_unique<JobPool>("RenderPool");
@@ -1909,6 +2019,7 @@ void iPadRenderContext::EnsureRenderEngine() {
     // picker takes effect without an app restart (the engine itself is long-
     // lived). RenderEngine checks _renderCache.IsEnabled() per effect.
     _renderCache.Enable(ReadRenderCacheMode());
+    _renderCache.SetMaximumSizeMB(ReadRenderCacheMaxMB());
 }
 
 void iPadRenderContext::RenderAll() {

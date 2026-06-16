@@ -109,8 +109,8 @@ void MapS5Effects(const EffectManager& effectManager, SubModelElement* se,
 // effect in time and `frameMS` is the sequence frame interval. MapVixen3Effects
 // is the logging wrapper the desktop / iPad call per mapped model / strand.
 void MapVixen3(Element* model, const Vixen3& vixen, const std::string& modelName,
-               long offset, int frameMS, bool eraseExisting);
+               long offset, int frameMS, bool eraseExisting, int startLayer = 0);
 
 void MapVixen3Effects(const EffectManager& effectManager, Element* model,
                       const Vixen3& vixen, const std::string& mapping,
-                      long offset, int frameMS, bool eraseExisting);
+                      long offset, int frameMS, bool eraseExisting, int startLayer = 0);

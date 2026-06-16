@@ -1692,10 +1692,20 @@ void ModelFaceDialog::ImportFaces(const wxString& filename)
     }
 
     // Collect all face definitions from the model file
+    // New format: <models><model>...<faceInfo/></model></models>
+    // Old format: <custommodel>...<faceInfo/></custommodel>
     FaceStateData allFaces;
-    for (pugi::xml_node node : root.children("faceInfo"))
-    {
-        XmlSerialize::DeserializeFaceInfo(node, allFaces);
+    auto processFaceInfoChildren = [&](pugi::xml_node parent) {
+        for (pugi::xml_node node : parent.children("faceInfo"))
+            XmlSerialize::DeserializeFaceInfo(node, allFaces);
+    };
+
+    std::string_view rootName = root.name();
+    if (rootName == "models") {
+        for (pugi::xml_node model : root.children("model"))
+            processFaceInfoChildren(model);
+    } else {
+        processFaceInfoChildren(root);
     }
 
     if (allFaces.empty())

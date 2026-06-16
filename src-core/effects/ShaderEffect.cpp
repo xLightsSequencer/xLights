@@ -25,7 +25,16 @@
 #include <semaphore>
 #include <sstream>
 
-#ifndef __APPLE__
+#ifdef USE_GLES
+    // OpenGL ES 3.0 via ANGLE (Windows/Linux) or ANGLE-on-Metal (Apple).
+    // Direct ES3 prototypes (no function-pointer loading) plus EGL for interop.
+    #define GL_GLES_PROTOTYPES 1
+    #define EGL_EGL_PROTOTYPES 1
+    #include <EGL/egl.h>
+    #include <EGL/eglext.h>
+    #include <EGL/eglext_angle.h>
+    #include <GLES3/gl3.h>
+#elif !defined(__APPLE__)
     #ifdef _WIN32
     #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
@@ -69,15 +78,8 @@
     extern PFNGLUNIFORM2FPROC glUniform2f;
     extern PFNGLUNIFORM4FPROC glUniform4f;
 #else
-    #ifdef USE_GLES
-        // ANGLE provides OpenGL ES 3.0 on top of Metal
-        #define GL_GLES_PROTOTYPES 1
-        #define EGL_EGL_PROTOTYPES 1
-        #include <EGL/egl.h>
-        #include <EGL/eglext.h>
-        #include <EGL/eglext_angle.h>
-        #include <GLES3/gl3.h>
-    #elif !TARGET_OS_IPHONE
+    // Apple desktop GL (CGL)
+    #if !TARGET_OS_IPHONE
         #include "OpenGL/gl3.h"
         #define __gl_h_
         #include <OpenGL/OpenGL.h>
@@ -752,7 +754,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     int colourIndex = 0;
     if (!si->SetUniform2f("RENDERSIZE", buffer.BufferWi, buffer.BufferHt)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasRendersize()) {
-            spdlog::warn("Unable to bind to RENDERSIZE\n{}", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to RENDERSIZE in shader '{}'", _shaderConfig->GetFilename());
         }
     }
     if (!si->SetUniform2f("XL_OFFSET", offsetX, offsetY)) {
@@ -767,7 +769,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
     }
     if (!si->SetUniform1f("TIME", (GLfloat)(_timeMS) / 1000.0)) {
         if (buffer.curPeriod == buffer.curEffStartPer && _shaderConfig->HasTime()) {
-            spdlog::warn("Unable to bind to TIME\n{}", (const char*)_shaderConfig->GetCode().c_str());
+            spdlog::warn("Unable to bind to TIME in shader '{}'", _shaderConfig->GetFilename());
         }
     }
     si->SetUniform1f("TIMEDELTA", (GLfloat)(buffer.frameTimeInMs /1000.f));
@@ -863,7 +865,7 @@ void ShaderEffect::Render(Effect* eff, const SettingsMap& SettingsMap, RenderBuf
             }
         } else {
             if (buffer.curPeriod == buffer.curEffStartPer)
-                spdlog::warn("Unable to bind to {}", (const char*)it._name.c_str());
+                spdlog::warn("Unable to bind to {} in shader '{}'", (const char*)it._name.c_str(), _shaderConfig->GetFilename());
         }
     }
 
@@ -1028,7 +1030,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
     std::string canvasImgName;
     std::string audioFFTName;
 
-    auto getNumberProperty = [](nlohmann::json const& item, std::string const& name, double defaultVal) {
+    auto getNumberProperty = [&filename](nlohmann::json const& item, std::string const& name, double defaultVal) {
         if (!item.contains(name) || item.at(name).is_null()) {
             return defaultVal;
         }
@@ -1045,7 +1047,7 @@ ShaderConfig::ShaderConfig(const std::string& filename, const std::string& code,
             if (end != s.c_str()) {
                 return val;
             }
-            spdlog::warn("Error parsing shader Property : {} (not a number).", name);
+            spdlog::warn("Error parsing shader Property : {} (not a number) in shader '{}'.", name, filename);
         }
         return defaultVal;
     };

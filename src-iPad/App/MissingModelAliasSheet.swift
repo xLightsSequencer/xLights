@@ -111,11 +111,17 @@ struct MissingModelAliasSheet: View {
         guard rows.isEmpty else { return }
         let defaultAction: MissingModelAction =
             availableModels.first.map { .rename(target: $0) } ?? .delete
+        // Desktop "Model Rename Alias behavior" (Always Prompt / Always
+        // Yes / Always No). On iPad the per-row "Add alias" toggle is the
+        // prompt; this pref seeds its default. "Always No" → off; the
+        // others → on (the long-standing default).
+        let aliasMode = UserDefaults.standard.string(forKey: "modelRenameAliasMode") ?? "Always Prompt"
+        let defaultAlias = aliasMode != "Always No"
         rows = prompt.originalNames.map { name in
             MissingModelRowState(id: name,
                                  originalName: name,
                                  action: defaultAction,
-                                 addAlias: true)
+                                 addAlias: defaultAlias)
         }
     }
 

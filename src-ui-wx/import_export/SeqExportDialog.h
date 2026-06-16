@@ -12,18 +12,22 @@
 
 //(*Headers(SeqExportDialog)
 #include <wx/button.h>
-#include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/listbox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
-#include <wx/textctrl.h>
 //*)
+
+#include <string>
 
 class SeqExportDialog: public wxDialog
 {
     std::string _model;
+    std::string _filename;
     void ValidateWindow();
-    void SetDefaultName();
+    wxString GetWildcardForFormat() const;
+    wxString GetDefaultName() const;
+    bool PromptForFilename();
 
 public:
 
@@ -32,24 +36,24 @@ public:
     void ModelExportTypes(bool isgroup);
     void SetExportType(bool selectedEffects, bool render);
 
+    // The format string the user selected (e.g. "GIF Image, *.gif").
+    wxString GetExportFormat() const;
+    // The fully-resolved output path chosen via the Save As dialog. Empty until
+    // the dialog returns wxID_OK.
+    const std::string& GetExportFilename() const { return _filename; }
+
     //(*Declarations(SeqExportDialog)
     wxButton* ButtonCancel;
-    wxButton* ButtonFilePick;
     wxButton* ButtonOk;
-    wxChoice* ChoiceFormat;
+    wxListBox* ListBoxFormat;
     wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxTextCtrl* TextCtrlFilename;
     //*)
 
 protected:
 
     //(*Identifiers(SeqExportDialog)
     static const long ID_STATICTEXT1;
-    static const long ID_CHOICE1;
-    static const long ID_STATICTEXT3;
-    static const long ID_TEXTCTRL2;
-    static const long ID_BUTTON1;
+    static const long ID_LISTBOX1;
     static const long ID_BUTTON2;
     static const long ID_BUTTON3;
     //*)
@@ -57,11 +61,10 @@ protected:
 private:
 
     //(*Handlers(SeqExportDialog)
-    void OnChoiceFormatSelect(wxCommandEvent& event);
-    void OnButtonFilePickClick(wxCommandEvent& event);
+    void OnListBoxFormatSelect(wxCommandEvent& event);
+    void OnListBoxFormatDClick(wxCommandEvent& event);
     void OnButtonOkClick(wxCommandEvent& event);
     void OnButtonCancelClick(wxCommandEvent& event);
-    void OnTextCtrlFilenameText(wxCommandEvent& event);
     //*)
 
     DECLARE_EVENT_TABLE()

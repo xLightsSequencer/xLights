@@ -127,8 +127,9 @@ void SongStructureManager::AddBoundary(int timeMS, int sequenceEndMS)
             return;
         }
 
-        SongStructureRegion newRegion(nextId++, timeMS, existing.endTimeMS,
-            "Region " + std::to_string(nextId - 1),
+        int newId = nextId++;
+        SongStructureRegion newRegion(newId, timeMS, existing.endTimeMS,
+            "Region " + std::to_string(newId),
             GetPaletteColor((regions.size()) % PALETTE_SIZE));
         existing.endTimeMS = timeMS;
         regions.insert(regions.begin() + idx + 1, newRegion);

@@ -64,6 +64,10 @@ struct EffectPropertyView: View {
             return transitionReverseDisabled(isIn: true)
         case "Out_Transition_Reverse":
             return transitionReverseDisabled(isIn: false)
+        case "In_Transition_Blur":
+            return transitionBlurDisabled(isIn: true)
+        case "Out_Transition_Blur":
+            return transitionBlurDisabled(isIn: false)
         default:
             return false
         }
@@ -86,6 +90,12 @@ struct EffectPropertyView: View {
         return kTransitionsNoReverse.contains(type)
     }
 
+    private func transitionBlurDisabled(isIn: Bool) -> Bool {
+        if fadeIsZero(isIn: isIn) { return true }
+        let type = currentTransitionType(isIn: isIn)
+        return !kTransitionsWithBlur.contains(type)
+    }
+
     private func fadeIsZero(isIn: Bool) -> Bool {
         let key = isIn ? "T_TEXTCTRL_Fadein" : "T_TEXTCTRL_Fadeout"
         let v = viewModel.settingValue(forKey: key, defaultValue: "0.00")
@@ -102,6 +112,17 @@ struct EffectPropertyView: View {
     }
 
     var body: some View {
+        // Surface the metadata `tooltip` (desktop SetToolTip parity)
+        // as a pointer-hover help string; no-op without one.
+        if let tip = property.tooltip, !tip.isEmpty {
+            propertyBody.help(tip)
+        } else {
+            propertyBody
+        }
+    }
+
+    @ViewBuilder
+    private var propertyBody: some View {
         switch property.controlType {
         case "slider":
             sliderView
@@ -232,10 +253,12 @@ struct EffectPropertyView: View {
             MovingHeadInfoRowView()
         case "MHColorRow":
             MovingHeadColorRowView()
+        case "MHColorWheelRow":
+            MovingHeadColorWheelRowView()
         case "MHDimmerRow":
             MovingHeadDimmerRowView()
         case "MHPathRow":
-            MovingHeadPathRowView()
+            MovingHeadPathEditorRowView()
         case "Sketch_BackgroundRow":
             SketchBackgroundRowView()
         case "Video_DurationRow":

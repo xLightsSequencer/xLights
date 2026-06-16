@@ -1,5 +1,3 @@
-#pragma once
-
 /***************************************************************
  * This source files comes from the xLights project
  * https://www.xlights.org
@@ -10,12 +8,24 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#include <wx/bitmap.h>
-#include <wx/colour.h>
-#include <string>
+#include "GLBackend.h"
 
-#ifdef __WXMAC__
-wxBitmap GetSFSymbolBitmap(const std::string& symbolName, int pointSize, const wxColour& color);
-std::string GetSFSymbolForEffect(const std::string& effectName);
-wxColour GetColorForEffect(const std::string& effectName);
+namespace xlGLBackend {
+
+Type CompiledBackend() {
+#ifdef USE_GLES
+    return Type::ANGLE;
+#else
+    return Type::Native;
 #endif
+}
+
+const char* ToString(Type t) {
+    switch (t) {
+    case Type::Native: return "Native";
+    case Type::ANGLE:  return "ANGLE";
+    }
+    return "?";
+}
+
+} // namespace xlGLBackend

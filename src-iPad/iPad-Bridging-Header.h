@@ -2,6 +2,7 @@
 #import "Metal/XLMetalBridge.h"
 #import "Metal/XLGridMetalBridge.h"
 #import "Bridge/XLCheckSequenceIssue.h"
+#import "Bridge/XLFindEffectResult.h"
 #import "Bridge/XLSequenceDocument.h"
 #import "Bridge/XLValueCurve.h"
 #import "Bridge/XLColorCurve.h"
@@ -14,3 +15,5 @@
 #import "Bridge/XLAIServices.h"
 #import "Bridge/XLAIImageSession.h"
 #import "Bridge/XLVendorCatalog.h"
+#import "Bridge/XLMusicCatalog.h"
+#import "Bridge/XLTipOfDay.h"

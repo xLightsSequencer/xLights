@@ -32,6 +32,7 @@
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h>
 #include <wx/spinctrl.h>
+#include <wx/radiobox.h>
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
 
@@ -63,6 +64,7 @@
 #include "XmlSerializer/XmlSerializeFunctions.h"
 
 #include "utils/NodeUtils.h"
+#include "models/SubModelSymmetrize.h"
 
 #include <log.h>
 
@@ -1336,8 +1338,20 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
     if (model->IsCustom()) {
         mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+        wxString mname = GetSelectedName();
+        SubModelInfo* sm = mname.empty() ? nullptr : GetSubModelInfo(mname);
+        bool hasNodes = sm != nullptr && !sm->strands.empty() &&
+                        std::any_of(sm->strands.begin(), sm->strands.end(),
+                                    [](const std::string& s) { return !s.empty(); });
+        mnu.Enable(SUBMODEL_DIALOG_SYMMETRIZE, hasNodes);
     }
-    mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+    {
+        mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+        wxString csname = GetSelectedName();
+        SubModelInfo* cssm = csname.empty() ? nullptr : GetSubModelInfo(csname);
+        bool hasMultipleStrands = cssm != nullptr && cssm->strands.size() > 1;
+        mnu.Enable(SUBMODEL_DIALOG_COMBINE_STRANDS, hasMultipleStrands);
+    }
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
@@ -1595,12 +1609,50 @@ void SubModelsDialog::Symmetrize()
     if (!sm)
         return;
 
-    // Get user input
-    wxNumberEntryDialog dlg(this, "Degree of Symmetry", "", "Select Degree of Rotational Symmetry", 8, 2, 100);
+    // Get user input — Degree of Symmetry and rotation direction, persisted between openings
+    auto* config = GetXLightsConfig();
+    int savedDos = (int)config->ReadLong("SymmetrizeDoS", 8);
+    if (savedDos < 2 || savedDos > 100) {
+        savedDos = 8;
+    }
+    bool savedClockwise = config->ReadBool("SymmetrizeClockwise", false);
+    bool savedBottomToTop = config->ReadBool("SymmetrizeBottomToTop", false);
+
+    wxDialog dlg(this, wxID_ANY, "Symmetrize (Rotational)");
+    auto* spin = new wxSpinCtrl(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                wxSP_ARROW_KEYS, 2, 100, savedDos);
+    wxString dirChoices[] = { "Clockwise", "Counter-Clockwise" };
+    auto* dirBox = new wxRadioBox(&dlg, wxID_ANY, "Direction", wxDefaultPosition, wxDefaultSize,
+                                  2, dirChoices, 1, wxRA_SPECIFY_COLS);
+    dirBox->SetSelection(savedClockwise ? 0 : 1);
+
+    wxString orderChoices[] = { "Top to Bottom", "Bottom to Top" };
+    auto* orderBox = new wxRadioBox(&dlg, wxID_ANY, "Build Order", wxDefaultPosition, wxDefaultSize,
+                                    2, orderChoices, 1, wxRA_SPECIFY_COLS);
+    orderBox->SetSelection(savedBottomToTop ? 1 : 0);
+    orderBox->SetToolTip("Top to Bottom: generated strands are added after original");
+
+    auto* dosRow = new wxBoxSizer(wxHORIZONTAL);
+    dosRow->Add(new wxStaticText(&dlg, wxID_ANY, "Degree of Symmetry:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    dosRow->Add(spin, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto* main = new wxBoxSizer(wxVERTICAL);
+    main->Add(dosRow, 0, wxALL, 10);
+    main->Add(dirBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(orderBox, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 10);
+    main->Add(dlg.CreateButtonSizer(wxOK | wxCANCEL), 0, wxALL | wxEXPAND, 10);
+    dlg.SetSizerAndFit(main);
+
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
-    int dos = dlg.GetValue();
+    int dos = spin->GetValue();
+    bool clockwise = (dirBox->GetSelection() == 0);
+    bool bottomToTop = (orderBox->GetSelection() == 1);
+
+    config->Write("SymmetrizeDoS", dos);
+    config->Write("SymmetrizeClockwise", clockwise);
+    config->Write("SymmetrizeBottomToTop", bottomToTop);
 
     wxFile f;
     wxString filename = wxFileName::CreateTempFileName("xLightsSymmetrize") + ".txt";
@@ -1631,310 +1683,44 @@ void SubModelsDialog::Symmetrize()
     }
     LogAndWrite(f, wxString::Format("Number of nodes: %d", int(coords.size())));
 
-    //  Calculate centroid
     if (coords.empty())
         return;
-    float cx = 0, cy = 0;
-    std::vector<float> xsv, ysv;
-    for (const auto& x : coords) {
-        cx += x.second.first;
-        cy += x.second.second;
-        xsv.push_back(x.second.first);
-        ysv.push_back(x.second.second);
-    }
-    cx /= float(coords.size());
-    cy /= float(coords.size());
-    LogAndWrite(f, wxString::Format("Centroid: %f, %f", cx, cy));
 
-    //  Calculate radius / centroid another way
-    float nx = cx, ny = cy, xx = cx, xy = cy;
-    float varx = 0, vary = 0;
-    for (const auto& x : coords) {
-        nx = std::min(nx, x.second.first);
-        xx = std::max(xx, x.second.first);
-        ny = std::min(ny, x.second.second);
-        xy = std::max(xy, x.second.second);
+    SubModelSymmetrize::Options opts;
+    opts.degreeOfSymmetry = dos;
+    opts.clockwise = clockwise;
+    opts.bottomToTop = bottomToTop;
+    opts.squarifyAspect = true;
+    opts.handleCenterNode = true;
 
-        varx += (x.second.first - cx) * (x.second.first - cx);
-        vary += (x.second.second - cy) * (x.second.second - cy);
-    }
-    LogAndWrite(f, wxString::Format("Ranges x:%.1f-%.1f, y:%1f-%1f", nx, xx, ny, xy));
-    float clx = (nx + xx) / 2;
-    float cly = (ny + xy) / 2;
-    LogAndWrite(f, wxString::Format("Center by extremity: %f, %f", clx, cly));
-
-    // And another
-    std::sort(xsv.begin(), xsv.end());
-    std::sort(ysv.begin(), ysv.end());
-    float mcx, mcy;
-    if (xsv.size() % 2 == 1) {
-        mcx = xsv[xsv.size() / 2];
-        mcy = ysv[ysv.size() / 2];
-    } else {
-        mcx = (xsv[xsv.size() / 2] + xsv[xsv.size() / 2 + 1]) / 2;
-        mcy = (ysv[ysv.size() / 2] + ysv[ysv.size() / 2 + 1]) / 2;
-    }
-    LogAndWrite(f, wxString::Format("Center by median: %f, %f", mcx, mcy));
-
-    float dlx = xx - nx;
-    float dly = xy - ny;
-    if (dlx > 0 && dly > 0) {
-        float aspectx = dlx / std::max(dlx, dly);
-        float aspecty = dly / std::max(dlx, dly);
-
-        LogAndWrite(f, wxString::Format("Aspect ratio by extremity: %f / %f", aspectx, aspecty));
-
-        if (true) {
-            // Variance-based aspect ratio
-            float mvar = std::max(varx, vary);
-            aspectx = sqrtf(varx / mvar);
-            aspecty = sqrtf(vary / mvar);
-            LogAndWrite(f, wxString::Format("Aspect Ratio by variance: %f / %f", aspectx, aspecty));
-        }
-
-        if (aspectx < .98 || aspecty < .98) {
-            wxArrayString chs;
-            chs.push_back("Yes");
-            chs.push_back("No");
-            wxSingleChoiceDialog dlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
-            dlg.ShowModal();
-            if (dlg.GetStringSelection() == "Yes") {
-                for (auto& pt : coords) {
-                    pt.second.first = (pt.second.first - cx) * aspecty + cx;
-                    pt.second.second = (pt.second.second - cy) * aspectx + cy;
-                }
-            }
-        }
+    if (SubModelSymmetrize::ShouldOfferSquarify(coords)) {
+        wxArrayString chs;
+        chs.push_back("Yes");
+        chs.push_back("No");
+        wxSingleChoiceDialog adlg(this, "Squarify aspect ratio?", "Aspect Ratio", chs);
+        adlg.ShowModal();
+        opts.squarifyAspect = (adlg.GetStringSelection() == "Yes");
     }
 
-    bool handleCenterNode = false;
     if (coords.size() % dos == 1) {
         wxArrayString chs;
         chs.push_back("Yes");
         chs.push_back("No");
-        wxSingleChoiceDialog dlg(this, "Shoud a center node be identified?", "Center Node", chs);
-        dlg.ShowModal();
-        if (dlg.GetStringSelection() == "Yes") {
-            handleCenterNode = true;
-        }
+        wxSingleChoiceDialog cdlg(this, "Shoud a center node be identified?", "Center Node", chs);
+        cdlg.ShowModal();
+        opts.handleCenterNode = (cdlg.GetStringSelection() == "Yes");
     }
 
-    //  Calculate locations in new space
-    std::map<int, std::pair<float, float>> fcoords1, fcoords2;
-    std::map<int, float> fturns;
-    for (const auto& p : coords) {
-        float dx = p.second.first - cx;
-        float dy = p.second.second - cy;
-        if (dx == 0 && dy == 0) {
-            fcoords1[p.first] = std::make_pair(cx, cy);
-            fturns[p.first] = 0;
-            continue;
-        }
-        float rad = sqrtf(dx * dx + dy * dy);
-        float ang = atan2f(dy, dx);
-        if (ang <= 0) {
-            ang += float(2 * PI);
-        }
-        ang *= float(dos);
-        float turn = float(ang / (2 * PI)); // Which trip around?  We want one from each trip.
-        if (turn >= dos)
-            turn -= dos;
-        fturns[p.first] = turn;
-        while (ang >= 2 * PI)
-            ang -= float(2 * PI);
-        ang /= float(dos);
-        fcoords1[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
-        if (ang < PI / dos / 2)
-            ang += 2 * PI / dos;
-        fcoords2[p.first] = std::make_pair(rad * cosf(ang) + cx, rad * sinf(ang) + cy);
-    }
-    LogAndWrite(f, wxString::Format("Transformed nodes: %d", int(fcoords1.size())));
+    SubModelSymmetrize::Result sym = SubModelSymmetrize::Symmetrize(coords, w, h, sm->strands, opts);
 
-    //  Build list that need matched, and match list
-    std::set<int> nodesNeedMatch;
-    std::map<int, std::vector<int>> matchIDToNodeSet; // vector index is relative turn #
-    std::map<int, int> nodeToMatchIDs;
-
-    // Copy and expand data
-    int origStrands = sm->strands.size();
-    for (unsigned i = 0; i < sm->strands.size(); ++i) {
-        auto x = Split(NodeUtils::ExpandNodes(sm->strands[sm->strands.size() - 1 - i]), ',');
-        for (auto n : x) {
-            if (n == "" || n == "0")
-                continue;
-            nodesNeedMatch.insert(wxAtoi(n));
-        }
-    }
-
-    // Handle the business of a center node, if any
-    if (handleCenterNode) {
-        bool first = true;
-        float ndst = 0;
-        int nnode = -1;
-        for (const auto& pt : coords) {
-            float dx = pt.second.first - cx;
-            float dy = pt.second.second - cy;
-            float dst = dx * dx + dy * dy;
-            if (first || dst < ndst) {
-                ndst = dst;
-                nnode = pt.first;
-            }
-            first = false;
-        }
-
-        nodesNeedMatch.erase(nnode);
-        nodeToMatchIDs[nnode] = matchIDToNodeSet.size();
-        matchIDToNodeSet[nodeToMatchIDs[nnode]] = std::vector<int>(dos, nnode);
-    }
-
-    int radius = 0;
-    //  For each of numerous search radii, calculate list per grid cell
-    //  We will stop if all nodes have matches
-    while (!nodesNeedMatch.empty()) {
-        std::vector<std::vector<std::vector<int>>> bins; // [x][y][which]
-        for (int x = 0; x < w; ++x) {
-            bins.push_back(std::vector<std::vector<int>>());
-            for (int y = 0; y < h; ++y) {
-                bins[x].push_back(std::vector<int>());
-            }
-        }
-
-        // Append to lists
-        for (const auto& pt : fcoords1) {
-            if (nodeToMatchIDs.count(pt.first))
-                continue; // Already matched
-
-            int bx = int(pt.second.first);
-            int by = int(pt.second.second);
-            for (int x = bx - radius; x <= bx + radius; ++x) {
-                if (x < 0 || x >= w)
-                    continue;
-                for (int y = by - radius; y <= by + radius; ++y) {
-                    if (y < 0 || y >= h)
-                        continue;
-                    bins[x][y].push_back(pt.first);
-                }
-            }
-        }
-        // Add redundant copy of some - should check if already in bin?
-        for (const auto& pt : fcoords2) {
-            if (nodeToMatchIDs.count(pt.first))
-                continue; // Already matched
-
-            int bx = int(pt.second.first);
-            int by = int(pt.second.second);
-            for (int x = bx - radius; x <= bx + radius; ++x) {
-                if (x < 0 || x >= w)
-                    continue;
-                for (int y = by - radius; y <= by + radius; ++y) {
-                    if (y < 0 || y >= h)
-                        continue;
-                    bins[x][y].push_back(pt.first);
-                }
-            }
-        }
-
-        // See if any lists are ready
-        for (int x = 0; x < w; ++x) {
-            for (int y = 0; y < h; ++y) {
-                if (int(bins[x][y].size()) < dos)
-                    continue; // Quick test without looking at bins closely, not enough here
-                std::vector<std::pair<float, int>> matches;
-                for (int pt : bins[x][y]) {
-                    if (nodeToMatchIDs.count(pt) != 0)
-                        continue; // Already matched this pass
-                    matches.push_back(std::make_pair(fturns[pt], pt));
-                }
-                if ((int)matches.size() < dos)
-                    continue;
-                std::sort(matches.begin(), matches.end()); // Sort CCW
-
-                // Try to pick
-                float tgt = matches[0].first;
-                int found = 0;
-                for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
-                        ++found;
-                        tgt += 1;
-                    }
-                    if (found == dos)
-                        break;
-                }
-                if (found != dos)
-                    continue; // On closer inspection, nope
-
-                // OK, repeat that process and record it
-                std::vector<int> matched;
-                tgt = matches[0].first;
-                int mid = matchIDToNodeSet.size();
-                for (unsigned j = 0; j < matches.size(); ++j) {
-                    if (matches[j].first >= tgt - .5 && matches[j].first <= tgt + .5) {
-                        ++found;
-                        tgt += 1;
-                        matched.push_back(matches[j].second);
-                        nodeToMatchIDs[matches[j].second] = mid;
-                        nodesNeedMatch.erase(matches[j].second);
-                    }
-                    if (found == dos)
-                        break;
-                }
-                matchIDToNodeSet[mid] = matched;
-
-                LogAndWrite(f, wxString::Format("Found Match for %d at radius %d", matched[0], radius));
-                for (auto n : matched) {
-                    LogAndWrite(f, wxString::Format("    Member %d", n));
-                }
-            }
-        }
-
-        // Sanity
-        ++radius;
-        if (radius > 20 && !nodesNeedMatch.empty()) {
-            LogAndWrite(f, wxString::Format("Maximum search radius hit: %d", radius));
-            break;
-        }
-
-        wxSafeYield();
-    }
-
-    bool fail = false;
-    // Report any trouble
-    if (!nodesNeedMatch.empty()) {
+    bool fail = !sym.success;
+    if (fail) {
         LogAndWrite(f, "Note the following nodes could not be matched.  Ensure that zoom in/out is reasonable, that the model is centered, and that the point locations are clean.");
-        for (auto x : nodesNeedMatch) {
+        for (auto x : sym.unmatchedNodes) {
             LogAndWrite(f, wxString::Format("  Node %d", x));
         }
-        fail = true;
-    }
-
-    // Use match list to make new strands
-    for (int t = 1; !fail && t < dos; ++t) {
-        for (int sn = 0; sn < origStrands; ++sn) {
-            bool first = true;
-            // auto x = wxSplit(ExpandNodes(sm->strands[sm->strands.size() - 1 - sn]), ',');
-            auto x = wxSplit(NodeUtils::ExpandNodes(sm->strands[sn]), ',');
-            wxString str;
-            for (auto n : x) {
-                if (first) {
-                    first = false;
-                } else {
-                    str += ",";
-                }
-                if (n == "" || n == "0")
-                    continue;
-                int nn = wxAtoi(n);
-                // Find it
-                auto& matchs = matchIDToNodeSet[nodeToMatchIDs[nn]];
-                for (int ii = 0; ii < dos; ++ii) {
-                    if (matchs[ii] == nn) {
-                        int mapn = matchs[(ii + t) % dos];
-                        str += wxString::Format("%d", mapn);
-                        break;
-                    }
-                }
-            }
-            sm->strands.push_back(NodeUtils::CompressNodes(str.ToStdString()));
-        }
+    } else {
+        sm->strands = sym.strands;
     }
 
     // Update UI

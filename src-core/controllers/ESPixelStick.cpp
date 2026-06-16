@@ -354,6 +354,9 @@ bool ESPixelStick::SetInputUniverses(Controller* controller, UICallbacks* ui) {
         GetInputConfig(inputConfig);
 
         std::list<Output*> outputs = controller->GetOutputs();
+        if (outputs.empty()) {
+            return false;
+        }
 
         std::string type = "DDP";
         int startUniverse = 0;

@@ -592,6 +592,11 @@ int ControllerCaps::GetMaxSerialPortChannels() const {
     return (int)strtol(GetXmlNodeContent(_config, "MaxSerialPortChannels").c_str(), nullptr, 10);
 }
 
+int ControllerCaps::GetMaxDDPChannels() const {
+
+    return (int)strtol(GetXmlNodeContent(_config, "MaxDDPChannels", "0").c_str(), nullptr, 10);
+}
+
 int ControllerCaps::GetMaxInputUniverseChannels() const {
 
     return (int)strtol(GetXmlNodeContent(_config, "MaxInputUniverseChannels", "512").c_str(), nullptr, 10);

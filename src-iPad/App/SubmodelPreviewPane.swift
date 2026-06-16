@@ -18,12 +18,37 @@ import UIKit
 /// editor instance so its channel-update suppression + node
 /// colour overrides don't leak into the Layout Editor or House
 /// Preview panes.
+/// Lightweight bridge handle the editor uses to run preview-backed
+/// operations (e.g. Symmetrize) that need the live `XLMetalBridge`
+/// + sized `iPadModelPreview` owned by the pane's coordinator. The
+/// pane publishes its coordinator here; the editor reads it.
+final class SubmodelPreviewController: ObservableObject {
+    weak var coordinator: SubmodelPreviewPane.Coordinator?
+
+    /// Run rotational symmetrize over the parent model's node cloud
+    /// using the pane's preview. Returns the new full strand list or
+    /// nil if matching failed / the preview isn't ready.
+    @MainActor
+    func symmetrize(ranges: [String],
+                    degree: Int,
+                    clockwise: Bool,
+                    bottomToTop: Bool,
+                    squarify: Bool) -> [String]? {
+        coordinator?.symmetrize(ranges: ranges,
+                                degree: degree,
+                                clockwise: clockwise,
+                                bottomToTop: bottomToTop,
+                                squarify: squarify)
+    }
+}
+
 struct SubmodelPreviewPane: UIViewRepresentable {
     let document: XLSequenceDocument
     let parentModelName: String
     let highlightedNodes: [Int]
     let onToggleNode: (Int) -> Void
     let onAddNodes: ([Int]) -> Void
+    var controller: SubmodelPreviewController? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: parentModelName)
@@ -53,6 +78,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         context.coordinator.document = document
         context.coordinator.onToggleNode = onToggleNode
         context.coordinator.onAddNodes = onAddNodes
+        controller?.coordinator = context.coordinator
 
         let pinch = UIPinchGestureRecognizer(
             target: context.coordinator,
@@ -109,6 +135,7 @@ struct SubmodelPreviewPane: UIViewRepresentable {
         context.coordinator.document = document
         context.coordinator.onToggleNode = onToggleNode
         context.coordinator.onAddNodes = onAddNodes
+        controller?.coordinator = context.coordinator
         if context.coordinator.lastHighlight != highlightedNodes {
             context.coordinator.applyHighlights(highlightedNodes)
         }
@@ -151,6 +178,21 @@ struct SubmodelPreviewPane: UIViewRepresentable {
             bridge = nil
             mtkView = nil
             document = nil
+        }
+
+        func symmetrize(ranges: [String],
+                        degree: Int,
+                        clockwise: Bool,
+                        bottomToTop: Bool,
+                        squarify: Bool) -> [String]? {
+            guard let bridge, let document else { return nil }
+            return bridge.symmetrizeRanges(ranges,
+                                           onModel: parent,
+                                           degreeOfSymmetry: degree,
+                                           clockwise: clockwise,
+                                           bottomToTop: bottomToTop,
+                                           squarify: squarify,
+                                           forDocument: document)
         }
 
         func applyHighlights(_ nodes: [Int]) {

@@ -224,16 +224,20 @@ void PolyLineModel::InitModel()
     _numSegments = screenLocation.num_points - 1;
     _numDropPoints = 0;
     
-    // Ensure per-segment vectors match the current segment count.
+    // Ensure per-segment vectors match the current segment count exactly.
     // During polyline creation, screenLocation may have more points than
-    // the per-segment vectors which are grown via AddHandle().
-    if ((int)_polyLineSizes.size() < _numSegments) {
+    // the per-segment vectors which are grown via AddHandle(); deleting a
+    // handle during placement shrinks num_points without shrinking these
+    // vectors. A stale-large _polyLineSizes lets DistributeLightsEvenly
+    // advance 'segment' past pPos's bounds (sized num_points), dereferencing
+    // a wild per-segment matrix and crashing in glm::operator*.
+    if (_numSegments >= 0 && (int)_polyLineSizes.size() != _numSegments) {
         _polyLineSizes.resize(_numSegments, 50);
         _polyLineSegDropSizes.resize(_numSegments, 1);
         _polyLeadOffset.resize(_numSegments, 0.5);
         _polyTrailOffset.resize(_numSegments, 0.5);
     }
-    if ((int)_polyCorner.size() < _numSegments + 1) {
+    if (_numSegments >= 0 && (int)_polyCorner.size() != _numSegments + 1) {
         _polyCorner.resize(_numSegments + 1, "Neither");
     }
 
@@ -618,10 +622,11 @@ void PolyLineModel::DistributeLightsEvenly(       std::vector<xlPolyPoint>& pPos
         glm::vec3 v;
         float pos = (segment_length > 0.0f) ? (current_pos - seg_start) / segment_length : 0.0f;
         if (pPos[segment].has_curve) {
-            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(pos, 0, 0, 1));
+            auto* cm = pPos[segment].curve->GetMatrix(sub_segment);
+            v = cm ? glm::vec3(*cm * glm::vec4(pos, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         else {
-            v = glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1));
+            v = pPos[segment].matrix ? glm::vec3(*pPos[segment].matrix * glm::vec4(pos, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         bool up = dropSizes[drop_index] < 0;
         unsigned int drops_this_node = std::abs(dropSizes[drop_index++]);
@@ -756,10 +761,11 @@ void PolyLineModel::DistributeLightsAcrossSegment( const int                    
         glm::vec3 v;
         if (isCurve) {
             float t = (segment_length > 0.0f) ? (current_pos - seg_start) / segment_length : 0.0f;
-            v = glm::vec3(*pPos[segment].curve->GetMatrix(sub_segment) * glm::vec4(t, 0, 0, 1));
+            auto* cm = pPos[segment].curve->GetMatrix(sub_segment);
+            v = cm ? glm::vec3(*cm * glm::vec4(t, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         } else {
             float t = (_polyLineSizes[segment] > 0.0f) ? current_pos / _polyLineSizes[segment] : 0.0f;
-            v = glm::vec3(*pPos[segment].matrix * glm::vec4(t, 0, 0, 1));
+            v = pPos[segment].matrix ? glm::vec3(*pPos[segment].matrix * glm::vec4(t, 0, 0, 1)) : glm::vec3(pPos[segment].x, pPos[segment].y, pPos[segment].z);
         }
         if (SingleNode) {
             for (size_t z = 0; z < drops_this_node; z++) {

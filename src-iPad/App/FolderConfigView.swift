@@ -35,8 +35,37 @@ struct FolderConfigView: View {
     @AppStorage("fseq.compression") private var fseqCompression: String = "zstd"
     @AppStorage("fseq.compressionLevel") private var fseqCompressionLevel: Int = 2
 
+    // Maximum render-cache size in MB (0 = Unlimited). Read by
+    // `iPadRenderContext::ReadRenderCacheMaxMB()`. Desktop choices are
+    // Unlimited / 1 / 5 / 10 / 50 / 100 / 200 GB; iPad keeps smaller MB
+    // caps too since disk + memory are scarce here. Default 50 MB.
+    @AppStorage("render.cacheMaxMB") private var renderCacheMaxMB: Int = 50
+
+    // Sequences prefs. Render on Save (default ON) gates the fseq write
+    // on each save; Default Model Blending seeds new sequences (read by
+    // the bridge `newSequenceAtPath:` via "sequence.defaultModelBlending").
+    @AppStorage("renderOnSave") private var renderOnSave: Bool = true
+    @AppStorage("sequence.defaultModelBlending") private var defaultModelBlending: String = "Enabled"
+
+    // Other prefs. Bell on full-render completion (default OFF);
+    // lightweight Backup-On-Save snapshot into <show>/Backup (default
+    // OFF); purge the download cache at app startup (default OFF);
+    // model-rename alias prompt default for the Missing-Model sheet.
+    @AppStorage("bellOnRenderComplete") private var bellOnRenderComplete: Bool = false
+    @AppStorage("backupOnSave") private var backupOnSave: Bool = false
+    @AppStorage("purgeDownloadCacheAtStartup") private var purgeDownloadCacheAtStartup: Bool = false
+    @AppStorage("hidePresetPreviews") private var hidePresetPreviews: Bool = false
+    @AppStorage("modelRenameAliasMode") private var modelRenameAliasMode: String = "Always Prompt"
+    // Optional contact email attached to uploaded diagnostic reports
+    // (read by `XLDiagnosticUploader.buildMultipartBody`), matching the
+    // desktop crash-report email field.
+    @AppStorage("xLightsEmail") private var xLightsEmail: String = ""
+
     enum PickerMode: Identifiable {
         case showFolder
+        // Picks a show folder, loads it temporarily, and dismisses — no
+        // persistence of default / MRU.
+        case showFolderTemporary
         case addMediaFolder
         case fseqFolder
         case baseShowFolder
@@ -45,6 +74,7 @@ struct FolderConfigView: View {
         var id: Int {
             switch self {
             case .showFolder: return 0
+            case .showFolderTemporary: return 5
             case .addMediaFolder: return 1
             case .fseqFolder: return 2
             case .baseShowFolder: return 3
@@ -89,6 +119,16 @@ struct FolderConfigView: View {
                     }
                     Button(showFolderPath == nil ? "Choose Show Folder…" : "Change Show Folder…") {
                         pickerMode = .showFolder
+                    }
+                    if showFolderPath != nil {
+                        Button("Switch Temporarily…") {
+                            pickerMode = .showFolderTemporary
+                        }
+                        if viewModel.temporaryShowFolderActive {
+                            Text("Temporary show folder — the saved default is unchanged and will be restored on next launch.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -172,10 +212,82 @@ struct FolderConfigView: View {
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Picker("Maximum Cache Size", selection: $renderCacheMaxMB) {
+                            Text("Unlimited").tag(0)
+                            Text("50 MB").tag(50)
+                            Text("100 MB").tag(100)
+                            Text("250 MB").tag(250)
+                            Text("500 MB").tag(500)
+                            Text("1 GB").tag(1024)
+                            Text("5 GB").tag(5120)
+                        }
+                        Text("Caps the on-disk render cache; oldest entries are evicted past the limit. 50 MB is the iPad default — keep it modest to leave room for the show. Takes effect on the next render.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 } header: {
                     Text("Rendering")
                 } footer: {
                     Text("App-wide settings (not saved in the sequence).")
+                }
+
+                Section {
+                    Toggle(isOn: $renderOnSave) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Render on Save")
+                            Text("When on, saving also writes the FSEQ playback file from the rendered data (the current behavior). Turn off to skip the FSEQ write on save — faster saves when you don't need a fresh FSEQ each time.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Picker("Default Model Blending", selection: $defaultModelBlending) {
+                        Text("Enabled").tag("Enabled")
+                        Text("Disabled").tag("Disabled")
+                    }
+                } header: {
+                    Text("New Sequences")
+                } footer: {
+                    Text("Default Model Blending applies when a new sequence is created; existing sequences keep their own setting (changed in Sequence Settings).")
+                }
+
+                Section {
+                    Toggle(isOn: $bellOnRenderComplete) {
+                        Text("Bell on Render Completion")
+                    }
+                    Toggle(isOn: $backupOnSave) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Backup on Save")
+                            Text("Snapshots the sequence into a Backup folder in the show folder on each save, keeping the 20 most recent.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Toggle(isOn: $purgeDownloadCacheAtStartup) {
+                        Text("Purge Download Cache at Startup")
+                    }
+                    Toggle(isOn: $hidePresetPreviews) {
+                        Text("Hide Preset Previews")
+                    }
+                    Picker("Model Rename Alias", selection: $modelRenameAliasMode) {
+                        Text("Always Prompt").tag("Always Prompt")
+                        Text("Always Yes").tag("Always Yes")
+                        Text("Always No").tag("Always No")
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        TextField("Contact eMail (optional)", text: $xLightsEmail)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                        Text("Attached to diagnostic reports you upload so we can follow up.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Other")
+                } footer: {
+                    Text("Model Rename Alias sets the default for the \"Add alias\" choice when reconciling missing models on sequence open.")
                 }
 
                 Section {
@@ -256,6 +368,13 @@ struct FolderConfigView: View {
                     switch mode {
                     case .showFolder:
                         showFolderPath = path
+                    case .showFolderTemporary:
+                        // Load now without touching FolderConfig.showFolder
+                        // or the Recent list, then close the sheet.
+                        viewModel.loadShowFolderTemporarily(path: path, mediaFolders: mediaFolderPaths)
+                        pickerMode = nil
+                        dismiss()
+                        return
                     case .addMediaFolder:
                         if !mediaFolderPaths.contains(path) {
                             mediaFolderPaths.append(path)
@@ -370,6 +489,7 @@ struct FolderConfigView: View {
     private func commitBaseShowDirectoryEdits() {
         viewModel.document.setBaseShowDirectory(baseShowFolderPath)
         viewModel.document.setAutoUpdateFromBaseShowDirectory(autoUpdateFromBase)
+        viewModel.reloadBasePresets()
     }
 
     private func displayName(_ path: String) -> String {

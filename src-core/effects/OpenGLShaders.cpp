@@ -8,7 +8,17 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
-#ifndef __APPLE__
+#ifdef USE_GLES
+// OpenGL ES 3.0 via ANGLE (Windows/Linux) or ANGLE-on-Metal (Apple).  ES3
+// exposes the gl* functions as direct prototypes from libGLESv2, so the
+// function-pointer loading the desktop-GL path needs is unnecessary here.
+#define GL_GLES_PROTOTYPES 1
+#include <GLES3/gl3.h>
+
+static bool canUseShaders() { return true; }
+static bool canUseFramebufferObjects() { return true; }
+
+#elif !defined(__APPLE__)
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -73,17 +83,12 @@ static bool canUseFramebufferObjects()
 		&& glFramebufferRenderbuffer != nullptr;
 }
 #else
-    #ifdef USE_GLES
-        // ANGLE provides OpenGL ES 3.0 on top of Metal
-        #define GL_GLES_PROTOTYPES 1
-        #include <GLES3/gl3.h>
-    #else
-        // OpenGL is marked deprecated in OSX so we'll turn off the deprecation warnings for this file
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // Apple desktop GL (CGL).  OpenGL is deprecated on macOS so silence the
+    // deprecation warnings for this file.
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-        #include "OpenGL/gl.h"
-    #endif
+    #include "OpenGL/gl.h"
 
 static bool canUseShaders()
 {

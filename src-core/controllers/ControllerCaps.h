@@ -110,6 +110,7 @@ public:
     int GetMaxLEDPanelMatrixPort() const;
     int GetMaxPixelPortChannels() const;
     int GetMaxSerialPortChannels() const;
+    int GetMaxDDPChannels() const;
     int GetMaxInputUniverseChannels() const;
     int GetMinInputUniverseChannels() const;
     int GetNumberOfBanks() const;

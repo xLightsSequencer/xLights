@@ -18,6 +18,7 @@
     <ClCompile Include="..\src-ui-wx\setup\IPEntryDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\model\MatrixFaceDownloadDialog.cpp" />
     <ClCompile Include="..\src-core\media\AudioManager.cpp" />
+    <ClCompile Include="..\src-core\media\NoteImporter.cpp" />
     <ClCompile Include="..\src-core\media\OnsetDetector.cpp" />
     <ClCompile Include="..\src-core\media\TempoDetector.cpp" />
     <ClCompile Include="..\src-core\media\PitchDetector.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="..\src-core\import_export\EffectMapper.cpp" />
     <ClCompile Include="..\src-core\import_export\MapHintsIO.cpp" />
     <ClCompile Include="..\src-core\import_export\SuperStarImporter.cpp" />
+    <ClCompile Include="..\src-core\import_export\MusicCatalog.cpp" />
     <ClCompile Include="..\src-core\import_export\VendorCatalog.cpp" />
     <ClCompile Include="..\src-ui-wx\shared\utils\BitmapCache.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\BufferPanel.cpp" />
@@ -85,6 +87,9 @@
     <ClCompile Include="..\src-ui-wx\layout\PreviewPane.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\RenameTextDialog.cpp" />
     <ClCompile Include="..\src-core\render\RenderEngine.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\render\ModelGifExporter.cpp">
       <Filter>render</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\render\ModelVideoExporter.cpp">
@@ -189,7 +194,13 @@
     <ClCompile Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\setup\DiscoveryAuthDialog.cpp" />
     <ClCompile Include="..\src-core\import_export\ExportModels.cpp" />
+    <ClCompile Include="..\src-core\import_export\ExportEffectsReport.cpp" />
     <ClCompile Include="..\src-core\import_export\LOREdit.cpp" />
+    <ClCompile Include="..\src-core\import_export\HLSFile.cpp" />
+    <ClCompile Include="..\src-core\import_export\ImportDataRow.cpp" />
+    <ClCompile Include="..\src-core\import_export\Vixen2File.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORMusic.cpp" />
+    <ClCompile Include="..\src-core\import_export\LORPixelEditor.cpp" />
     <ClCompile Include="..\src-ui-wx\model\AlignmentDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\effects\CharMapDialog.cpp" />
     <ClCompile Include="..\src-core\models\ArchesModel.cpp">
@@ -206,6 +217,12 @@
     </ClCompile>
     <ClCompile Include="..\src-core\models\OutputModelManager.cpp" />
     <ClCompile Include="..\src-core\models\ModelManager.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\ModelSet.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\ModelSetManager.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\Model.cpp">
@@ -266,6 +283,9 @@
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\models\SubModel.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\models\SubModelSymmetrize.cpp">
       <Filter>Models</Filter>
     </ClCompile>
     <ClCompile Include="..\src-ui-wx\model\SubModelsDialog.cpp">
@@ -785,6 +805,12 @@
     </ClCompile>
     <ClCompile Include="..\src-core\graphics\xlFontInfo.cpp" />
     <ClCompile Include="..\src-ui-wx\automation\ScriptsDialog.cpp" />
+    <ClCompile Include="..\src-core\graphics\AngleEGL.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\graphics\GLBackend.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\src-core\graphics\GLContextManager.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
@@ -833,6 +859,9 @@
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\effects\SketchEffectDrawing.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src-core\effects\SketchSVGImport.cpp">
       <Filter>Effects</Filter>
     </ClCompile>
     <ClCompile Include="..\src-core\outputs\TwinklyOutput.cpp">
@@ -1390,6 +1419,7 @@
     <ClInclude Include="..\src-core\utils\AnimatedImage.h" />
     <ClInclude Include="..\src-ui-wx\setup\IPEntryDialog.h" />
     <ClInclude Include="..\src-core\media\AudioManager.h" />
+    <ClInclude Include="..\src-core\media\NoteImporter.h" />
     <ClInclude Include="..\src-core\media\OnsetDetector.h" />
     <ClInclude Include="..\src-core\media\TempoDetector.h" />
     <ClInclude Include="..\src-core\media\PitchDetector.h" />
@@ -1411,6 +1441,7 @@
     <ClInclude Include="..\src-core\import_export\ImportMappingNode.h" />
     <ClInclude Include="..\src-core\import_export\MapHintsIO.h" />
     <ClInclude Include="..\src-core\import_export\SuperStarImporter.h" />
+    <ClInclude Include="..\src-core\import_export\MusicCatalog.h" />
     <ClInclude Include="..\src-core\import_export\VendorCatalog.h" />
     <ClInclude Include="..\src-ui-wx\shared\utils\BitmapCache.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\BufferPanel.h" />
@@ -1465,6 +1496,9 @@
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\layout\PreviewPane.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\RenameTextDialog.h" />
+    <ClInclude Include="..\src-core\render\ModelGifExporter.h">
+      <Filter>render</Filter>
+    </ClInclude>
     <ClInclude Include="..\src-core\render\ModelVideoExporter.h">
       <Filter>render</Filter>
     </ClInclude>
@@ -1567,7 +1601,13 @@
     <ClInclude Include="..\src-ui-wx\setup\RemapDMXChannelsDialog.h" />
     <ClInclude Include="..\src-ui-wx\setup\DiscoveryAuthDialog.h" />
     <ClInclude Include="..\src-core\import_export\ExportModels.h" />
+    <ClInclude Include="..\src-core\import_export\ExportEffectsReport.h" />
     <ClInclude Include="..\src-core\import_export\LOREdit.h" />
+    <ClInclude Include="..\src-core\import_export\HLSFile.h" />
+    <ClInclude Include="..\src-core\import_export\ImportDataRow.h" />
+    <ClInclude Include="..\src-core\import_export\Vixen2File.h" />
+    <ClInclude Include="..\src-core\import_export\LORMusic.h" />
+    <ClInclude Include="..\src-core\import_export\LORPixelEditor.h" />
     <ClInclude Include="..\include\globals.h" />
     <ClInclude Include="..\src-ui-wx\model\AlignmentDialog.h" />
     <ClInclude Include="..\src-ui-wx\effects\CharMapDialog.h" />
@@ -1585,6 +1625,12 @@
     </ClInclude>
     <ClInclude Include="..\src-core\models\OutputModelManager.h" />
     <ClInclude Include="..\src-core\models\ModelManager.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ModelSet.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\ModelSetManager.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\Model.h">
@@ -1645,6 +1691,9 @@
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\models\SubModel.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\models\SubModelSymmetrize.h">
       <Filter>Models</Filter>
     </ClInclude>
     <ClInclude Include="..\src-ui-wx\model\SubModelsDialog.h">
@@ -2222,6 +2271,9 @@
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\effects\SketchEffectDrawing.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\effects\SketchSVGImport.h">
       <Filter>Effects</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\outputs\TwinklyOutput.h">
@@ -2805,6 +2857,12 @@
     </ClInclude>
     <ClInclude Include="..\src-core\outputs\SocketAbstraction.h">
       <Filter>Outputs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\AngleEGL.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src-core\graphics\GLBackend.h">
+      <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src-core\graphics\GLContextManager.h">
       <Filter>graphics</Filter>

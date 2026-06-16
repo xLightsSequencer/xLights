@@ -379,6 +379,7 @@ public:
     void LoadPerspectivesMenu();
     void SerializePerspectives(BaseSerializingVisitor &visitor);
     void SerializeSettings(BaseSerializingVisitor &visitor);
+    void SerializeModelSets(BaseSerializingVisitor &visitor);
     struct Perspective {
         std::string name;
         std::string settings;
@@ -458,11 +459,11 @@ public:
     bool ExportVideoPreview(wxString const& path);
 
 	void SetAudioControls();
-    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string());
+    void ImportXLights(const wxFileName &filename, std::string const& mapFile = std::string(), bool autoMap = false, bool importMedia = true);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, const wxFileName &filename,
         bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false);
     void ImportXLights(SequenceElements &se, const std::vector<Element *> &elements, SequencePackage &xsqPkg,
-        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0);
+        bool modelBlendig = false, bool showModelBlending = false, bool allowAllModels = false, bool clearSrc = false, std::string const& mapFile = std::string(), int sequenceDurationMS = 0, bool autoMap = false, bool importMedia = true);
     void ImportVix(const wxFileName &filename);
     void ImportHLS(const wxFileName &filename);
     void ImportLMS(const wxFileName &filename);
@@ -1621,7 +1622,8 @@ private:
                                 SeqDataType *dataBuf, int startAddr, int modelSize,
                                 bool v2 = false); //Falcon Pi sub sequence .eseq
     void WriteVideoModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
-        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality = false, bool forceProRes = false);
+        SeqDataType *dataBuf, int startAddr, int modelSize, Model* model, bool compressed, bool highQuality = false, bool forceProRes = false,
+        int exportWidth = 0, int exportHeight = 0);
     void WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
         SeqDataType *dataBuf, int startAddr, int modelSize, Model* model); //.bin file
     void WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,

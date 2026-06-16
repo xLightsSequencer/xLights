@@ -122,5 +122,7 @@ void OpenVINOImageGenerator::SetProperty(const std::string& id, int value) {
 }
 
 void OpenVINOImageGenerator::SetProperty(const std::string& /*id*/, const std::string& /*value*/) {}
-
+#else
+#include <string>
+std::string OpenVINOImageGeneratorData;
 #endif // HAVE_OPENVINO_GENAI

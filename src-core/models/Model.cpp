@@ -2018,13 +2018,18 @@ void Model::InitRenderBufferNodes(const std::string& tp, const std::string& came
                         float sz = it2.screenZ;
                         GetModelScreenLocation().TranslatePoint(sx, sy, sz);
 
-                        // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
-                        glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
-                        loc.y *= -1.0f;
-                        sx = loc.x;
-                        sy = loc.y;
-                        it2.screenX = sx;
-                        it2.screenY = sy;
+                        // modelPreview (house preview) can be null when there is no preview surface
+                        // yet (e.g. the iPad render path before a preview is attached); the TranslatePoint
+                        // result above is the correct fallback in that case.
+                        if (modelPreview != nullptr) {
+                            // really not sure if 400,400 is the best thing to pass in here ... but it seems to work
+                            glm::vec2 loc = GetModelScreenLocation().GetScreenPosition(400, 400, modelPreview, pcamera, sx, sy, sz);
+                            loc.y *= -1.0f;
+                            sx = loc.x;
+                            sy = loc.y;
+                            it2.screenX = sx;
+                            it2.screenY = sy;
+                        }
                     }
                 }
 

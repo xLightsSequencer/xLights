@@ -1729,6 +1729,26 @@ std::string AudioManager::WriteCurrentToTempWav() const {
     return outPath.string();
 }
 
+bool AudioManager::WriteCurrentAudioToFile(const std::string& path) const {
+    // Snapshot the playback buffers under the audio lock (same
+    // reasoning as WriteCurrentToTempWav) then hand the float PCM to
+    // the platform decoder's encoder. The output format is chosen by
+    // `path`'s extension (.wav / .m4a / .aac …).
+    std::vector<float> leftData;
+    std::vector<float> rightData;
+    size_t sr = 44100;
+    {
+        std::shared_lock<std::shared_timed_mutex> locker(const_cast<std::shared_timed_mutex&>(_mutex));
+        if (_data[0] == nullptr || _trackSize <= 0) return false;
+        const float* L = _data[0];
+        const float* R = (_data[1] != nullptr) ? _data[1] : _data[0];
+        leftData.assign(L, L + _trackSize);
+        rightData.assign(R, R + _trackSize);
+        sr = (size_t)(_rate > 0 ? _rate : 44100);
+    }
+    return GetDecoder().EncodeToFile(leftData, rightData, sr, path);
+}
+
 void AudioManager::SetClassifyGate(const std::string& className,
                                     const std::vector<float>& confidencePerStep,
                                     float timeStepSec) {

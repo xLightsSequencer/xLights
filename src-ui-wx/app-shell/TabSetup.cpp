@@ -336,7 +336,7 @@ bool xLightsFrame::SetDir(const wxString& newdir, bool permanent)
     ApplyLoggingSpecialOptions();
 
     
-    spdlog::debug("Show directory set to : {}.", (const char*)showDirectory.c_str());
+    spdlog::info("Show directory set to : {}.", (const char*)showDirectory.c_str());
 
     if (_logfile != nullptr) {
         wxLog::SetActiveTarget(nullptr);

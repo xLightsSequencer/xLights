@@ -2337,16 +2337,22 @@ void SeqSettingsDialog::OnButton_AudioAddClick(wxCommandEvent& /*event*/)
     wxString filter = _("Audio Files|*.mp3;*.ogg;*.flac;*.wav;*.m4a;*.aac;*.wma;*.aiff;*.aif|All Files|*.*");
     wxString startDir;
     auto* cfg = GetXLightsConfig();
-    if (!cfg->Read("LastAudioDir", &startDir) || startDir.empty())
+    if (!cfg->Read("LastAudioDir", &startDir) || startDir.empty()) {
         startDir = xLightsParent ? wxString(xLightsParent->GetShowDirectory()) : wxString{};
-    wxFileDialog dlg(this, _("Choose Audio File"), startDir, wxEmptyString, filter, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    if (dlg.ShowModal() != wxID_OK) return;
+    }
+    wxFileDialog dlg(this, _("Choose Audio File"), startDir, wxEmptyString, filter, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
 
     cfg->Write("LastAudioDir", dlg.GetDirectory());
-    wxString path = dlg.GetPath();
-    ObtainAccessToURL(path.ToStdString());
-    std::string showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
-    xml_file->AddAltTrack(showDir, path.ToStdString());
+    wxArrayString paths;
+    dlg.GetPaths(paths);
+    std::string const showDir = xLightsParent ? xLightsParent->GetShowDirectory() : std::string{};
+    for (auto const& path : paths) {
+        ObtainAccessToURL(path.ToStdString());
+        xml_file->AddAltTrack(showDir, path.ToStdString());
+    }
     PopulateAudioTrackList();
 }
 

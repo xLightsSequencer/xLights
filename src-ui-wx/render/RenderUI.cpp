@@ -512,6 +512,16 @@ bool xLightsFrame::DoExportModel(unsigned int startFrame, unsigned int endFrame,
         oName.replace_extension(".mov");
         fullpath = oName.string();
         WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model), false, /*highQuality*/ false, /*forceProRes*/ true);
+    } else if (Out3 == "HD ") {
+        // HD ProRes Video, *.mov — ProRes 4444 near-lossless at 1920x1080.
+        // The model's native channel count is unchanged; the render is scaled
+        // up at export time using nearest-neighbour interpolation.
+        int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
+        oName.replace_extension(".mov");
+        fullpath = oName.string();
+        WriteVideoModelFile(fullpath, data->NumChannels(), startFrame, endFrame, data, stChan, data->NumChannels(), GetModel(model),
+                            /*compressed*/ false, /*highQuality*/ false, /*forceProRes*/ true,
+                            /*exportWidth*/ 1920, /*exportHeight*/ 1080);
     } else if (Out3 == "Min") {
         int stChan = m->GetNumberFromChannelString(m->ModelStartChannel);
         oName.replace_extension(".bin");
@@ -565,10 +575,10 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
-        std::string filename = dialog.TextCtrlFilename->GetValue().ToStdString();
-        ObtainAccessToURL(filename);
+        std::string filename = dialog.GetExportFilename();
+        ObtainAccessToURL(filename, true);
         EnableSequenceControls(false);
-        std::string format = dialog.ChoiceFormat->GetStringSelection().ToStdString();
+        std::string format = dialog.GetExportFormat().ToStdString();
 
         DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
     }

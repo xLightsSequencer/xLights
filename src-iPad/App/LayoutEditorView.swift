@@ -25,6 +25,27 @@ struct ModelsReportExportDoc: FileDocument {
     }
 }
 
+/// .xmodel UTType for model export. Falls back to generic data.
+let kXmodelFileType: UTType = UTType(filenameExtension: "xmodel") ?? .data
+
+/// FileDocument wrapper for an exported model (.xmodel). The
+/// bridge writes the model XML to a temp path; this copies the
+/// bytes to the user's chosen destination via `.fileExporter`.
+struct XmodelExportDoc: FileDocument {
+    static var readableContentTypes: [UTType] { [kXmodelFileType] }
+    static var writableContentTypes: [UTType] { [kXmodelFileType] }
+    let sourcePath: String
+    init(sourcePath: String) { self.sourcePath = sourcePath }
+    init(configuration: ReadConfiguration) throws { sourcePath = "" }
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        if !sourcePath.isEmpty,
+           let data = try? Data(contentsOf: URL(fileURLWithPath: sourcePath)) {
+            return FileWrapper(regularFileWithContents: data)
+        }
+        return FileWrapper(regularFileWithContents: Data())
+    }
+}
+
 /// J-5 (sidebar tabs) — Layout Editor left-pane roster picker.
 /// Controllers tab is intentionally omitted in J-5; iPad doesn't
 /// yet have a controller editor and surfacing the tab with no UI
@@ -174,6 +195,12 @@ struct LayoutEditorView: View {
     /// the `LayoutGroupPickerSheet`; on confirm the path moves to
     /// `viewModel.layoutPendingImportPath` along with the chosen group.
     @State private var pendingMultiModelImportPath: String? = nil
+    /// GDTF mode picker — a picked `.gdtf` fixture with multiple DMX
+    /// modes waiting on the user's mode choice. Holds (path, modes);
+    /// non-nil drives `GdtfModePickerSheet`. On confirm the path moves
+    /// to `viewModel.layoutPendingImportPath` with the chosen mode in
+    /// `layoutPendingImportGdtfMode`.
+    @State private var pendingGdtfImport: (path: String, modes: [String])? = nil
     /// J-4 (download) — drives the vendor catalog browser sheet.
     @State private var downloadBrowserVisible: Bool = false
 
@@ -237,6 +264,15 @@ struct LayoutEditorView: View {
     @State private var showingModelsReportExporter: Bool = false
     @State private var modelsReportDefaultName: String = "Models.xlsx"
     @State private var modelsReportError: String? = nil
+    /// Theme-07 — Export Controller Connections (.xlsx). Reuses the
+    /// same temp-path → `.fileExporter` plumbing as the models report.
+    @State private var controllerConnExportDoc: ModelsReportExportDoc? = nil
+    @State private var showingControllerConnExporter: Bool = false
+    @State private var controllerConnError: String? = nil
+    @State private var xmodelExportDoc: XmodelExportDoc? = nil
+    @State private var showingXmodelExporter: Bool = false
+    @State private var xmodelExportDefaultName: String = "Model.xmodel"
+    @State private var layoutHousekeepingMessage: String? = nil
     /// J-31 — Controllers tab filter + cached list. The cache is
     /// rebuilt on `.task` / `.onChange(of: showFolderLoaded)` /
     /// after layout-save (controllers are stored in the output
@@ -273,6 +309,25 @@ struct LayoutEditorView: View {
     @State private var pendingUploadConfirmName: String? = nil
     @State private var uploadRunning: Bool = false
     @State private var uploadResult: String? = nil
+    /// Theme-07 — pre-upload FPP-proxy validation warning. Mirrors
+    /// desktop's `FPP::ValidateProxy` check: when the controller has
+    /// a proxy that isn't reachable / doesn't list the controller, we
+    /// warn and let the user continue or cancel before any HTTP runs.
+    @State private var pendingProxyWarning: ProxyWarningTarget? = nil
+    /// Theme-07 — per-controller ping/health state, keyed by name.
+    /// Values are the bridge ping result strings (ok/webok/failed/…).
+    @State private var controllerPingStates: [String: String] = [:]
+    @State private var controllerPingInFlight: Set<String> = []
+    /// Theme-07 — bulk multi-controller upload (desktop's
+    /// MultiControllerUploadDialog). `pendingBulkConfirm` gates a
+    /// confirmation alert; `bulkUploadState` drives the progress sheet.
+    @State private var pendingBulkUploadConfirm: Bool = false
+    @State private var bulkUploadState: BulkUploadState? = nil
+
+    /// #4123 — AutoSize uncommon-universe-size warning. Non-nil when
+    /// the user just enabled AutoSize on an E1.31 controller whose
+    /// universe size is not one of the common values (170, 510, 512).
+    @State private var autoSizeUniverseWarning: String? = nil
 
     /// J-7 (group CRUD) — sheet visibility flags + targets.
     @State private var newGroupSheetVisible: Bool = false
@@ -292,6 +347,15 @@ struct LayoutEditorView: View {
     /// "Create" passes the current selection as the initial member
     /// list instead of creating an empty group. Cleared after use.
     @State private var pendingGroupFromSelection: [String]? = nil
+
+    /// Bulk Edit Rotate — axis ("X"/"Y"/"Z") + degrees text while
+    /// the rotation prompt alert is up. nil axis == alert hidden.
+    @State private var bulkRotateAxis: String? = nil
+    @State private var bulkRotateText: String = ""
+
+    /// Replace Model — source model whose copy replaces the picked
+    /// targets, plus the sheet visibility. nil == sheet hidden.
+    @State private var replaceModelSource: String? = nil
 
     /// J-8 — file picker for the 2D Background image.
     @State private var backgroundImagePickerVisible: Bool = false
@@ -512,6 +576,24 @@ struct LayoutEditorView: View {
     /// XML up-front and route through `LayoutGroupPickerSheet` so
     /// the user picks a destination layout group before any models
     /// land in the show.
+    /// Drop transient Layout Editor session state on close so the next
+    /// open starts in a known single-select, no-creation-mode state.
+    private func resetLayoutEditorTransientState() {
+        viewModel.layoutPendingNewModelType = nil
+        viewModel.layoutPolylineInProgress = nil
+        viewModel.layoutPendingImportPath = nil
+        viewModel.layoutPendingImportTargetGroup = nil
+        viewModel.layoutEditMode = false
+        if let primary = viewModel.layoutEditorSelectedModel {
+            viewModel.layoutEditorSelection = [primary]
+        } else {
+            viewModel.layoutEditorSelection.removeAll()
+        }
+        viewModel.layoutEditorSelectedGroup = nil
+        viewModel.layoutEditorSelectedObject = nil
+        viewModel.terrainEditTarget = nil
+    }
+
     private func handleImportPick(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
@@ -520,11 +602,24 @@ struct LayoutEditorView: View {
             let path = url.path
             _ = XLSequenceDocument.obtainAccess(toPath: path, enforceWritable: false)
             if granted { url.stopAccessingSecurityScopedResource() }
-            if XLMetalBridge.xmodelFileIsMultiModel(path: path) {
+            if path.lowercased().hasSuffix(".gdtf") {
+                // GDTF fixtures with several DMX modes get a chooser
+                // before placement (desktop prompts via ChooseFromList);
+                // a single-mode fixture skips straight to placement.
+                let modes = XLMetalBridge.gdtfModesForFile(path: path)
+                if modes.count > 1 {
+                    pendingGdtfImport = (path, modes)
+                } else {
+                    viewModel.layoutPendingImportPath = path
+                    viewModel.layoutPendingImportTargetGroup = nil
+                    viewModel.layoutPendingImportGdtfMode = nil
+                }
+            } else if XLMetalBridge.xmodelFileIsMultiModel(path: path) {
                 pendingMultiModelImportPath = path
             } else {
                 viewModel.layoutPendingImportPath = path
                 viewModel.layoutPendingImportTargetGroup = nil
+                viewModel.layoutPendingImportGdtfMode = nil
             }
         case .failure(let err):
             importErrorMessage = err.localizedDescription
@@ -549,32 +644,7 @@ struct LayoutEditorView: View {
         // all live in the canvas overlay (top-left + top-right) so
         // they're actually reachable.
         .onAppear { refresh() }
-        .onDisappear {
-            // Drop any half-started Add-Model so the editor opens
-            // fresh next time rather than re-entering creation mode
-            // on a stale type.
-            viewModel.layoutPendingNewModelType = nil
-            viewModel.layoutPolylineInProgress = nil
-            viewModel.layoutPendingImportPath = nil
-            viewModel.layoutPendingImportTargetGroup = nil
-            // J-4 (multi-select) — exit edit mode and collapse to
-            // the primary so the next open starts in a known
-            // single-select state.
-            viewModel.layoutEditMode = false
-            if let primary = viewModel.layoutEditorSelectedModel {
-                viewModel.layoutEditorSelection = [primary]
-            } else {
-                viewModel.layoutEditorSelection.removeAll()
-            }
-            // J-6 — clear group / object picks so a re-open starts
-            // clean (matches model-selection lifecycle).
-            viewModel.layoutEditorSelectedGroup = nil
-            viewModel.layoutEditorSelectedObject = nil
-            // J-13 — exit any active terrain edit session so the
-            // next open doesn't paint heightmap data on the first
-            // tap.
-            viewModel.terrainEditTarget = nil
-        }
+        .onDisappear { resetLayoutEditorTransientState() }
         .onChange(of: viewModel.isShowFolderLoaded) { _, _ in refresh() }
         .onChange(of: activeLayoutGroup) { _, newValue in
             viewModel.document.setActiveLayoutGroup(newValue)
@@ -605,6 +675,31 @@ struct LayoutEditorView: View {
         // Also drops fresh-model placement mode if armed.
         .onKeyPress(.escape, phases: .down) { _ in endCreationModes() }
         .onKeyPress(.return, phases: .down) { _ in endCreationModes() }
+        // Layout clipboard hot-keys (desktop Ctrl+C / Ctrl+V / Ctrl+X)
+        // + GDTF multi-mode picker, bundled into one modifier to keep
+        // the body's type-check tractable.
+        .modifier(LayoutClipboardAndGdtfModifier(
+            onCopy: {
+                let sel = selectionForClipboard()
+                guard !sel.isEmpty else { return false }
+                performCopy(of: sel)
+                return true
+            },
+            onPaste: { performPaste(); return true },
+            onCut: {
+                let sel = selectionForClipboard()
+                guard !sel.isEmpty else { return false }
+                performCopy(of: sel)
+                performDelete(of: sel)
+                return true
+            },
+            pendingGdtf: $pendingGdtfImport,
+            onGdtfConfirm: { path, mode in
+                viewModel.layoutPendingImportPath = path
+                viewModel.layoutPendingImportTargetGroup = nil
+                viewModel.layoutPendingImportGdtfMode = mode
+                pendingGdtfImport = nil
+            }))
         .onReceive(NotificationCenter.default.publisher(for: .layoutEditorModelMoved)) { note in
             // Drag-to-move on the canvas (or a keyboard nudge / undo)
             // mutates the bridge directly; refresh the summary +
@@ -872,8 +967,20 @@ struct LayoutEditorView: View {
             exportDoc: $modelsReportExportDoc,
             defaultFilename: modelsReportDefaultName,
             error: $modelsReportError))
+        .modifier(ModelsReportExportModifier(
+            showingExporter: $showingControllerConnExporter,
+            exportDoc: $controllerConnExportDoc,
+            defaultFilename: "Controller_Connections.xlsx",
+            error: $controllerConnError))
+        .modifier(XmodelExportModifier(
+            showingExporter: $showingXmodelExporter,
+            exportDoc: $xmodelExportDoc,
+            defaultFilename: xmodelExportDefaultName,
+            housekeepingMessage: $layoutHousekeepingMessage))
         .modifier(ControllerActionAlertModifier(
             message: $pendingControllerActionAlert))
+        .modifier(AutoSizeUniverseWarningModifier(
+            message: $autoSizeUniverseWarning))
         .modifier(ControllerDeleteAlertModifier(
             pendingName: $pendingDeleteControllerName,
             modelCount: { name in
@@ -888,6 +995,13 @@ struct LayoutEditorView: View {
             running: $uploadRunning,
             result: $uploadResult,
             onConfirm: { name in startControllerUpload(name: name) }))
+        .modifier(BulkAndProxyUploadModifier(
+            proxyWarning: $pendingProxyWarning,
+            pendingBulkConfirm: $pendingBulkUploadConfirm,
+            bulkState: $bulkUploadState,
+            bulkTargetCount: openSourceUploadableControllerNames().count,
+            onProxyContinue: { name in runControllerUpload(name: name) },
+            onBulkConfirm: { startBulkUpload() }))
         .modifier(DiscoveryMismatchModifier(
             mismatches: $pendingDiscoveryMismatches,
             onApply: { choices in applyDiscoveryMismatches(choices) }))
@@ -915,6 +1029,12 @@ struct LayoutEditorView: View {
         } message: {
             Text("Removes this model from the current layout. Save the layout to make the change permanent; Undo or Discard will roll it back.")
         }
+        .modifier(BulkRotateAndReplaceModifier(
+            rotateAxis: bulkRotateAxis,
+            rotatePresented: bulkRotatePresented,
+            rotateButtons: { bulkRotateAlertButtons },
+            replaceTarget: replaceModelTargetBinding,
+            replaceSheet: { replaceModelSheet(for: $0) }))
         // Confirm-before-save. xlights_rgbeffects.xml is the show's
         // master layout file; an unintended save during testing is
         // expensive to recover from. Discard-changes uses the undo
@@ -1031,6 +1151,9 @@ struct LayoutEditorView: View {
                                                                      firstCh: firstCh,
                                                                      lastCh: lastCh))
                             .tag(name)
+                            .contextMenu {
+                                modelRosterContextMenu(name: name, isFromBase: fromBase)
+                            }
                     }
                 } header: {
                     modelsSectionHeader
@@ -1062,6 +1185,15 @@ struct LayoutEditorView: View {
                                                                      layoutStyle: style,
                                                                      gridSize: gridSize))
                             .tag(name)
+                            .contextMenu {
+                                if fromBase {
+                                    Button {
+                                        runUnlinkGroupFromBase(groupName: name)
+                                    } label: {
+                                        Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+                                    }
+                                }
+                            }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 // Don't mark this destructive: iOS 26's
                                 // SwiftUI pre-commits a row removal to
@@ -1256,6 +1388,32 @@ struct LayoutEditorView: View {
                             Label("Discover…", systemImage: "antenna.radiowaves.left.and.right")
                         }
                         .disabled(controllerDiscoveryRunning)
+                        Divider()
+                        Button {
+                            pendingBulkUploadConfirm = true
+                        } label: {
+                            Label("Upload All…", systemImage: "icloud.and.arrow.up")
+                        }
+                        .disabled(openSourceUploadableControllerNames().isEmpty
+                                   || bulkUploadState != nil)
+                        Divider()
+                        Menu {
+                            Button("Name") { sortControllers(byMode: "name") }
+                            Button("Id") { sortControllers(byMode: "id") }
+                            Button("IP") { sortControllers(byMode: "ip") }
+                            Button("Proxy") { sortControllers(byMode: "proxy") }
+                            Button("Vendor") { sortControllers(byMode: "vendor") }
+                            Button("Protocol") { sortControllers(byMode: "protocol") }
+                        } label: {
+                            Label("Sort", systemImage: "arrow.up.arrow.down")
+                        }
+                        .disabled(controllerRows.count < 2)
+                        Button {
+                            startControllerConnectionsExport()
+                        } label: {
+                            Label("Export Connections…", systemImage: "tablecells")
+                        }
+                        .disabled(controllerRows.isEmpty)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                     }
@@ -1314,6 +1472,29 @@ struct LayoutEditorView: View {
     /// the wait.
     private func startControllerUpload(name: String) {
         guard !uploadRunning else { return }
+        // Theme-07 — pre-upload FPP-proxy validation. Desktop calls
+        // FPP::ValidateProxy before every upload and warns on failure;
+        // the user may still continue. We do the (potentially slow)
+        // HTTP probe off the main thread, then either warn or proceed.
+        let doc0 = viewModel.document
+        Task.detached {
+            let pv = doc0.validateProxy(forController: name) as NSDictionary
+            let hasProxy = (pv["hasProxy"] as? NSNumber)?.boolValue ?? false
+            let valid    = (pv["valid"]    as? NSNumber)?.boolValue ?? true
+            let proxy    = (pv["proxy"]    as? String) ?? ""
+            await MainActor.run {
+                if hasProxy && !valid {
+                    pendingProxyWarning = ProxyWarningTarget(controllerName: name,
+                                                              proxy: proxy)
+                } else {
+                    runControllerUpload(name: name)
+                }
+            }
+        }
+    }
+
+    private func runControllerUpload(name: String) {
+        guard !uploadRunning else { return }
         uploadRunning = true
         let doc = viewModel.document
         // Read the caps once on the main thread; the detached task
@@ -1366,6 +1547,84 @@ struct LayoutEditorView: View {
                 uploadRunning = false
                 uploadResult = full
             }
+        }
+    }
+
+    /// Theme-07 — ping a controller for a health dot. The bridge runs
+    /// the shared core HTTP reachability probe; we keep it off the
+    /// main thread so the UI stays responsive during the timeout.
+    private func pingController(_ name: String) {
+        guard !controllerPingInFlight.contains(name) else { return }
+        controllerPingInFlight.insert(name)
+        let doc = viewModel.document
+        Task.detached {
+            let state = doc.pingController(name)
+            await MainActor.run {
+                controllerPingStates[name] = state
+                controllerPingInFlight.remove(name)
+            }
+        }
+    }
+
+    /// Theme-07 — bulk multi-controller upload (desktop's
+    /// MultiControllerUploadDialog). Loops the shared per-controller
+    /// upload over every active open-source-firmware controller,
+    /// driving a progress sheet off the bridge's per-controller
+    /// callback. Closed-firmware controllers are skipped by the bridge.
+    private func startBulkUpload() {
+        guard bulkUploadState == nil else { return }
+        let names = openSourceUploadableControllerNames()
+        guard !names.isEmpty else {
+            uploadResult = "No open-source-firmware controllers support upload. Closed-firmware vendor uploads are not available on iPad."
+            return
+        }
+        bulkUploadState = BulkUploadState(total: names.count)
+        let doc = viewModel.document
+        Task.detached {
+            let results = doc.bulkUploadControllers { name, index, total in
+                Task { @MainActor in
+                    bulkUploadState?.current = name
+                    bulkUploadState?.completed = Int(index)
+                    bulkUploadState?.total = Int(total)
+                }
+            } as NSArray
+            var rows: [BulkUploadRow] = []
+            for entry in results {
+                guard let d = entry as? NSDictionary else { continue }
+                rows.append(BulkUploadRow(
+                    name: (d["name"] as? String) ?? "",
+                    success: (d["success"] as? NSNumber)?.boolValue ?? false,
+                    message: (d["message"] as? String) ?? ""))
+            }
+            await MainActor.run {
+                bulkUploadState?.results = rows
+                bulkUploadState?.finished = true
+                bulkUploadState?.completed = rows.count
+                hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            }
+        }
+    }
+
+    /// Names of active controllers whose caps advertise open-source
+    /// firmware + upload support — the bulk-upload target set, used
+    /// both to gate the toolbar button and to size the progress sheet.
+    private func openSourceUploadableControllerNames() -> [String] {
+        controllerRows.compactMap { row in
+            guard let name = row["name"] as? String else { return nil }
+            let osf = (row["caps.openSourceFirmware"] as? NSNumber)?.boolValue ?? false
+            let supportsUpload = (row["caps.supportsUpload"] as? NSNumber)?.boolValue ?? false
+            let supportsInput = (row["caps.supportsInputOnlyUpload"] as? NSNumber)?.boolValue ?? false
+            let active = (row["active"] as? String) ?? ""
+            guard osf, active == "Active", supportsUpload || supportsInput else { return nil }
+            return name
+        }
+    }
+
+    /// Theme-07 — commit one global output setting through the bridge.
+    private func commitGlobalSetting(key: String, value: Any) {
+        if viewModel.document.setGlobalOutputSetting(key, value: value) {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
         }
     }
 
@@ -1677,6 +1936,147 @@ struct LayoutEditorView: View {
         showingModelsReportExporter = true
     }
 
+    /// Theme-07 — write the Controller Connections workbook to a temp
+    /// `.xlsx` and hand it to `.fileExporter`. Mirrors the desktop
+    /// File > Export Controller Connections.
+    private func startControllerConnectionsExport() {
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempPath = tempDir.appendingPathComponent(
+            "Controller_Connections-\(UUID().uuidString).xlsx").path
+        guard viewModel.document.exportControllerConnections(toPath: tempPath) else {
+            controllerConnError = "Couldn't build the controller connections report."
+            return
+        }
+        controllerConnExportDoc = ModelsReportExportDoc(sourcePath: tempPath)
+        showingControllerConnExporter = true
+    }
+
+    /// Theme-07 — sort the controller list persistently via the
+    /// OutputManager (mirrors desktop's Sort submenu). Refreshes the
+    /// cached rows and marks the show dirty so Save lights up.
+    private func sortControllers(byMode mode: String) {
+        guard viewModel.document.sortControllers(byMode: mode) else { return }
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                        object: nil)
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+    }
+
+    /// Per-model roster context menu: export as .xmodel + the
+    /// make-start-channel housekeeping commands (mirrors desktop's
+    /// ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL + ID_MNU_MAKESCVALID /
+    /// MAKEALLSCVALID / MAKEALLSCNOTOVERLAPPING).
+    @ViewBuilder
+    private func modelRosterContextMenu(name: String, isFromBase: Bool) -> some View {
+        Button {
+            startXmodelExport(modelName: name)
+        } label: {
+            Label("Export as .xmodel…", systemImage: "square.and.arrow.up")
+        }
+        Divider()
+        if isFromBase {
+            Button {
+                runUnlinkModelFromBase(modelName: name)
+            } label: {
+                Label("Unlink from Base Show Folder", systemImage: "link.badge.minus")
+            }
+            Divider()
+        }
+        if !isFromBase {
+            Button {
+                runMakeStartChannelValid(modelName: name)
+            } label: {
+                Label("Make Start Channel Valid", systemImage: "checkmark.seal")
+            }
+        }
+        Button {
+            runMakeAllStartChannelsValid()
+        } label: {
+            Label("Make All Start Channels Valid", systemImage: "checkmark.seal.fill")
+        }
+        Button {
+            runMakeAllStartChannelsNotOverlapping()
+        } label: {
+            Label("Make All Start Channels Not Overlapping", systemImage: "arrow.left.and.right.square")
+        }
+    }
+
+    /// Serialize the model (with submodels/faces/states) to a temp
+    /// .xmodel and hand it to `.fileExporter`. Mirrors desktop
+    /// ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL.
+    private func startXmodelExport(modelName: String) {
+        let safe = modelName.replacingOccurrences(of: "/", with: "_")
+        let tempPath = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(safe)-\(UUID().uuidString).xmodel").path
+        guard viewModel.document.exportModel(toXmodelFile: modelName, path: tempPath) else {
+            layoutHousekeepingMessage = "Couldn't export \(modelName)."
+            return
+        }
+        xmodelExportDoc = XmodelExportDoc(sourcePath: tempPath)
+        xmodelExportDefaultName = "\(safe).xmodel"
+        showingXmodelExporter = true
+    }
+
+    private func runMakeStartChannelValid(modelName: String) {
+        let n = viewModel.document.makeStartChannelValid(forModel: modelName)
+        finishHousekeeping(touched: n,
+                           ok: "\(modelName)'s start channel is now valid.",
+                           none: "\(modelName)'s start channel was already valid.")
+    }
+
+    private func runMakeAllStartChannelsValid() {
+        let n = viewModel.document.makeAllStartChannelsValid()
+        finishHousekeeping(touched: n,
+                           ok: "Reassigned \(n) start channel\(n == 1 ? "" : "s").",
+                           none: "All start channels were already valid.")
+    }
+
+    private func runMakeAllStartChannelsNotOverlapping() {
+        let n = viewModel.document.makeAllStartChannelsNotOverlapping()
+        finishHousekeeping(touched: n,
+                           ok: "Reassigned \(n) overlapping start channel\(n == 1 ? "" : "s").",
+                           none: "No overlapping start channels found.")
+    }
+
+    private func runUnlinkModelFromBase(modelName: String) {
+        guard viewModel.document.unlinkModelFromBase(modelName) else {
+            layoutHousekeepingMessage = "\(modelName) was not linked to a base show folder."
+            return
+        }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor", userInfo: [:]
+        )
+        layoutHousekeepingMessage = "\(modelName) unlinked from base show folder."
+    }
+
+    private func runUnlinkGroupFromBase(groupName: String) {
+        guard viewModel.document.unlinkGroupFromBase(groupName) else {
+            layoutHousekeepingMessage = "\(groupName) was not linked to a base show folder."
+            return
+        }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor", userInfo: [:]
+        )
+        layoutHousekeepingMessage = "\(groupName) unlinked from base show folder."
+    }
+
+    private func finishHousekeeping(touched: Int, ok: String, none: String) {
+        if touched > 0 {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            refreshModelList()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor", userInfo: [:])
+        }
+        layoutHousekeepingMessage = touched > 0 ? ok : none
+    }
+
     /// Bridges return `[[AnyHashable: Any]]` for arrays of
     /// dictionaries; coerce keys to String and key the result
     /// by the row's `name` so the sidebar can look up per-row
@@ -1842,6 +2242,60 @@ struct LayoutEditorView: View {
     /// One sidebar row per controller. Shows name + a secondary
     /// line with Type / IP / Vendor / Model so the user can
     /// identify the fixture without opening the detail pane.
+    /// Theme-07 — controller health dot. Mirrors desktop's LedPing
+    /// colour coding (green = reachable, red = failed, grey = unknown).
+    /// Tapping re-probes; rows without a pingable IP show nothing.
+    @ViewBuilder
+    private func pingDot(for name: String, ip: String) -> some View {
+        if !ip.isEmpty && ip != "MULTICAST" {
+            let state = controllerPingStates[name]
+            Button {
+                pingController(name)
+            } label: {
+                if controllerPingInFlight.contains(name) {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(Self.pingColor(state))
+                }
+            }
+            .buttonStyle(.plain)
+            .help(Self.pingHelp(state))
+        }
+    }
+
+    static func pingColor(_ state: String?) -> Color {
+        switch state {
+        case "ok", "webok", "open": return .green
+        case "failed":              return .red
+        case "unavailable":         return .orange
+        default:                    return .secondary
+        }
+    }
+
+    static func pingHelp(_ state: String?) -> String {
+        switch state {
+        case "ok":          return "Reachable (ping OK)"
+        case "webok":       return "Reachable (web UI responded)"
+        case "open":        return "Port open"
+        case "failed":      return "No response — check power / network"
+        case "unavailable": return "Ping unavailable for this controller"
+        case .none:         return "Tap to check reachability"
+        default:            return "Unknown"
+        }
+    }
+
+    static func pingLabel(_ state: String?) -> String {
+        switch state {
+        case "ok", "webok", "open": return "Online"
+        case "failed":              return "Offline"
+        case "unavailable":         return "No ping"
+        case .none:                 return "Ping"
+        default:                    return "Unknown"
+        }
+    }
+
     private func controllerRow(row: [String: Any], name: String) -> some View {
         let type     = (row["type"]     as? String) ?? ""
         let proto    = (row["protocol"] as? String) ?? ""
@@ -1888,6 +2342,7 @@ struct LayoutEditorView: View {
                         .help("Open-source firmware — Upload + Visualize supported")
                 }
                 Spacer(minLength: 0)
+                pingDot(for: name, ip: ip)
                 if !active.isEmpty {
                     Text(active)
                         .font(.caption2)
@@ -2056,6 +2511,7 @@ struct LayoutEditorView: View {
         }
         LayoutEditorPropertiesView(
                     modelName: name,
+                    document: viewModel.document,
                     summary: summary,
                     typeDescriptors: descriptors,
                     layoutGroups: layoutGroups,
@@ -2256,6 +2712,8 @@ struct LayoutEditorView: View {
                 let osf = ((detail["caps.openSourceFirmware"] as? NSNumber)?.boolValue) ?? false
                 let ip = (detail["ip"] as? String) ?? ""
                 let httpURL: URL? = ip.isEmpty ? nil : URL(string: "http://\(ip)/")
+                let proxy = (detail["proxy"] as? String) ?? ""
+                let proxyURL: URL? = proxy.isEmpty ? nil : URL(string: "http://\(proxy)/")
                 let rawDescriptors = viewModel.document.controllerProperties(forName: name)
                 let descriptors: [[String: Any]] = rawDescriptors.compactMap { entry in
                     var out: [String: Any] = [:]
@@ -2271,6 +2729,9 @@ struct LayoutEditorView: View {
                     models: (viewModel.document.modelNames(forController: name) as [String]),
                     openSourceFirmware: osf,
                     httpURL: httpURL,
+                    proxyURL: proxyURL,
+                    pingState: controllerPingStates[name],
+                    pingInFlight: controllerPingInFlight.contains(name),
                     onTapModel: { modelName in
                         sidebarTab = .models
                         viewModel.layoutSelectSingle(modelName)
@@ -2278,6 +2739,7 @@ struct LayoutEditorView: View {
                     onOpenURL: { url in
                         UIApplication.shared.open(url)
                     },
+                    onPing: { pingController(name) },
                     onUpload: {
                         pendingUploadConfirmName = name
                     },
@@ -2288,10 +2750,14 @@ struct LayoutEditorView: View {
                         commitControllerProperty(name: name, key: key, value: value)
                     })
             } else {
-                emptyPropertyHint(
-                    title: "Pick a controller",
-                    body: "Tap a controller in the list above to see its IP, channel range, and the models assigned to it. Long-press for upload / visualize actions on open-source firmware controllers."
-                )
+                // Theme-07 — no controller selected: surface the global
+                // output settings (desktop's "nothing selected" grid).
+                GlobalOutputSettingsView(
+                    descriptors: globalOutputDescriptors,
+                    token: summaryToken,
+                    commit: { key, value in
+                        commitGlobalSetting(key: key, value: value)
+                    })
             }
         }
     }
@@ -2318,6 +2784,12 @@ struct LayoutEditorView: View {
             // resets the downstream pickers; bumping the controller
             // row cache surfaces the fresh option lists.
             refreshModelList()
+            // #4123 — warn when AutoSize is enabled on an E1.31
+            // controller with an uncommon universe size.
+            if key == "AutoSize", let v = value as? Bool, v {
+                autoSizeUniverseWarning =
+                    viewModel.document.controllerAutoSizeUniverseWarning(name: name)
+            }
         }
     }
 
@@ -2458,6 +2930,19 @@ struct LayoutEditorView: View {
     /// J-31 — filtered Controllers list. Searches by name +
     /// vendor + model + IP so power-users can find a fixture by
     /// any of its identifying fields.
+    /// Theme-07 — global output-setting descriptors, coerced to
+    /// String-keyed dicts for `ControllerDescriptorRow`.
+    private var globalOutputDescriptors: [[String: Any]] {
+        let raw = viewModel.document.globalOutputSettings()
+        return raw.compactMap { entry in
+            var out: [String: Any] = [:]
+            for (k, v) in entry {
+                if let key = k as? String { out[key] = v }
+            }
+            return out.isEmpty ? nil : out
+        }
+    }
+
     private var filteredControllerRows: [[String: Any]] {
         let q = controllerFilter.trimmingCharacters(in: .whitespaces)
         guard !q.isEmpty else { return controllerRows }
@@ -2689,6 +3174,21 @@ struct LayoutEditorView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
 
+                // Node Inspect — desktop layout hover tooltip. Armed,
+                // a tap reports the node # / channel / controller-port
+                // under the touch.
+                Button {
+                    viewModel.nodeInspectActive.toggle()
+                    if viewModel.nodeInspectActive {
+                        viewModel.colorDropperActive = false
+                    }
+                } label: {
+                    Image(systemName: "scope")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(viewModel.nodeInspectActive ? .accentColor : nil)
+
                 if controlsVisible {
                     LayoutEditorCanvasControls(previewName: "LayoutEditor",
                                                settings: settings,
@@ -2698,6 +3198,26 @@ struct LayoutEditorView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(8)
+
+            // Node Inspect feedback banner — armed hint + the node info
+            // reported by the last tap (bottom edge, non-interactive).
+            if viewModel.nodeInspectActive || viewModel.nodeInspectStatus != nil {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Image(systemName: "scope")
+                        Text(viewModel.nodeInspectStatus
+                             ?? "Tap a model to inspect a node")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(.black.opacity(0.6), in: Capsule())
+                    .padding(.bottom, 8)
+                }
+                .allowsHitTesting(false)
+            }
 
             // J-3 (touch UX) — creation-mode banner. Visible while
             // `layoutPendingNewModelType` is set (first-vertex tap)
@@ -2809,6 +3329,12 @@ struct LayoutEditorView: View {
                                       },
                                       onRequestDuplicate: {
                                           performDuplicate(of: [selected])
+                                      },
+                                      onRequestReplace: {
+                                          replaceModelSource = selected
+                                      },
+                                      onSwapStartEnd: {
+                                          performSwapStartEnd(of: selected)
                                       })
                     .allowsHitTesting(true)
             }
@@ -2827,6 +3353,7 @@ struct LayoutEditorView: View {
                         onDistribute: { axis in performDistribute(axis: axis) },
                         onMatchSize: { dim in performMatchSize(dimension: dim) },
                         onFlip: { axis in performFlip(axis: axis) },
+                        onRotate: { axis in promptBulkRotate(axis: axis) },
                         onDuplicate: { performDuplicate(of: Array(viewModel.layoutEditorSelection)) },
                         onGroup: { newGroupFromSelectionPrompt() },
                         onAddToGroup: { addSelectionToGroupPrompt() },
@@ -3744,6 +4271,129 @@ struct LayoutEditorView: View {
         }
     }
 
+    /// Bulk Edit Rotate (desktop ID_PREVIEW_BULKEDIT_ROTATEX/Y/Z) —
+    /// open the degrees prompt, pre-filled with the leader's current
+    /// rotation about the chosen axis so the user only types to change.
+    private func promptBulkRotate(axis: String) {
+        guard !viewModel.layoutEditorSelection.isEmpty else { return }
+        var initial = 0.0
+        if let leader = viewModel.layoutEditorSelectedModel,
+           let s = viewModel.document.modelLayoutSummary(leader) {
+            switch axis {
+            case "X": initial = (s["rotateX"] as? Double) ?? 0
+            case "Y": initial = (s["rotateY"] as? Double) ?? 0
+            default:  initial = (s["rotateZ"] as? Double) ?? 0
+            }
+        }
+        bulkRotateText = String(format: "%g", initial)
+        bulkRotateAxis = axis
+    }
+
+    /// Apply the entered rotation to every selected model. Pushes one
+    /// undo snapshot per model so each rotation is revertible. Mirrors
+    /// desktop's BulkEditRotateAxis [-180, 180] clamp.
+    private func performBulkRotate() {
+        guard let axis = bulkRotateAxis else { return }
+        bulkRotateAxis = nil
+        guard let degrees = Double(bulkRotateText.trimmingCharacters(in: .whitespaces)),
+              degrees.isFinite else { return }
+        let names = Array(viewModel.layoutEditorSelection)
+        guard !names.isEmpty else { return }
+        for n in names {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let rotated = bridge.rotateModels(names, axis: axis, degrees: degrees, for: viewModel.document)
+        if rotated {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: [:])
+        }
+    }
+
+    /// Replace Model (desktop ID_PREVIEW_REPLACEMODEL, #4462) — swap
+    /// each target for a copy of `source`. The target keeps its name,
+    /// start channel / controller, position / size and submodels.
+    private func performReplaceModel(source: String, targets: [String],
+                                     keepStartChannel: Bool, keepSubmodels: Bool,
+                                     keepSizePosition: Bool) {
+        guard !source.isEmpty, !targets.isEmpty else { return }
+        for n in targets {
+            viewModel.document.pushLayoutUndoSnapshot(forModel: n)
+        }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let replaced = bridge.replaceModels(targets, withSource: source,
+                                            keepStartChannel: keepStartChannel,
+                                            keepSubmodels: keepSubmodels,
+                                            keepSizePosition: keepSizePosition,
+                                            for: viewModel.document)
+        if replaced > 0 {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            refreshModelList()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: [:])
+        }
+    }
+
+    /// Candidate targets for a Replace Model — every model in the
+    /// active layout group except the source itself.
+    private func replaceModelCandidates(excluding source: String) -> [String] {
+        modelNames.filter { $0 != source }.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    private var bulkRotatePresented: Binding<Bool> {
+        Binding(get: { bulkRotateAxis != nil },
+                set: { if !$0 { bulkRotateAxis = nil } })
+    }
+
+    @ViewBuilder
+    private var bulkRotateAlertButtons: some View {
+        TextField("Degrees", text: $bulkRotateText)
+            .keyboardType(.numbersAndPunctuation)
+        Button("Rotate") { performBulkRotate() }
+        Button("Cancel", role: .cancel) { bulkRotateAxis = nil }
+    }
+
+    private var replaceModelTargetBinding: Binding<ReplaceModelTarget?> {
+        Binding(get: { replaceModelSource.map { ReplaceModelTarget(source: $0) } },
+                set: { if $0 == nil { replaceModelSource = nil } })
+    }
+
+    @ViewBuilder
+    private func replaceModelSheet(for target: ReplaceModelTarget) -> some View {
+        ReplaceModelSheet(source: target.source,
+                          candidates: replaceModelCandidates(excluding: target.source)) { picks, keepSC, keepSubs, keepSizePos in
+            performReplaceModel(source: target.source, targets: picks,
+                                keepStartChannel: keepSC, keepSubmodels: keepSubs,
+                                keepSizePosition: keepSizePos)
+        }
+    }
+
+    /// Swap start/end on a line model (Single Line / Poly Line).
+    /// Mirrors desktop's "Swap Start/End" right-click option; the
+    /// core `Model::SwapStartEnd()` does the geometry, the bridge
+    /// guards lock/from-base. Pushes one undo snapshot.
+    private func performSwapStartEnd(of name: String) {
+        guard !name.isEmpty else { return }
+        viewModel.document.pushLayoutUndoSnapshot(forModel: name)
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let swapped = bridge.swapStartEnd(forModels: [name], for: viewModel.document)
+        if swapped {
+            summaryToken &+= 1
+            hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+            canUndo = viewModel.document.canUndoLayoutChange()
+            NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                             object: "LayoutEditor",
+                                             userInfo: ["model": name])
+        }
+    }
+
     /// J-7 — Duplicate each model in `names`. The bridge clones
     /// them with a small (+50, +50) offset so they don't overlap
     /// the originals; the new selection becomes the duplicates so
@@ -3764,6 +4414,71 @@ struct LayoutEditorView: View {
                                          object: "LayoutEditor",
                                          userInfo: [:])
     }
+
+    /// The models a clipboard op should act on: the full multi-select
+    /// set if present, otherwise just the single selected model.
+    private func selectionForClipboard() -> [String] {
+        if !viewModel.layoutEditorSelection.isEmpty {
+            return Array(viewModel.layoutEditorSelection)
+        }
+        if let one = viewModel.layoutEditorSelectedModel, !one.isEmpty {
+            return [one]
+        }
+        return []
+    }
+
+    /// Delete each named model (used by Cut after the copy succeeds).
+    private func performDelete(of names: [String]) {
+        for name in names { deleteModel(name: name) }
+        viewModel.layoutEditorSelection.removeAll()
+    }
+
+    /// Layout clipboard copy (desktop DoCopy). Serializes the named
+    /// models to XML and places them on the system pasteboard under a
+    /// custom UTI plus a plain-text fallback, so paste works within
+    /// this sequence and across sequences / app launches.
+    private func performCopy(of names: [String]) {
+        guard !names.isEmpty else { return }
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        guard let xml = bridge.copyModels(toString: names, for: viewModel.document),
+              !xml.isEmpty else { return }
+        UIPasteboard.general.setItems([[
+            Self.layoutClipboardUTI: xml,
+            "public.utf8-plain-text": xml
+        ]])
+    }
+
+    /// Layout clipboard paste (desktop DoPaste). Reads the custom-UTI
+    /// (or plain-text) XML off the pasteboard, deserializes it into
+    /// uniquified models offset from the originals, and selects the
+    /// result so the user can drag it into place.
+    private func performPaste() {
+        guard let bridge = XLightsBridgeBox.bridgeForLayoutEditor() else { return }
+        let pb = UIPasteboard.general
+        var xml: String? = nil
+        if let data = pb.data(forPasteboardType: Self.layoutClipboardUTI),
+           let s = String(data: data, encoding: .utf8) {
+            xml = s
+        } else if let s = pb.string {
+            xml = s
+        }
+        guard let payload = xml, payload.contains("<model") else { return }
+        let pasted = bridge.pasteModels(from: payload, for: viewModel.document)
+        guard !pasted.isEmpty else { return }
+        summaryToken &+= 1
+        hasUnsavedChanges = viewModel.document.hasUnsavedLayoutChanges()
+        refreshModelList()
+        viewModel.layoutEditorSelection = Set(pasted)
+        viewModel.layoutEditorSelectedModel = pasted.first
+        NotificationCenter.default.post(name: .layoutEditorModelMoved,
+                                         object: "LayoutEditor",
+                                         userInfo: [:])
+    }
+
+    /// Custom pasteboard UTI declared in the app's Info.plist
+    /// (com.xlights.layoutmodels) so cross-sequence paste keeps the
+    /// full model XML rather than degrading to plain text.
+    private static let layoutClipboardUTI = "com.xlights.layoutmodels"
 
     /// J-7 — Group-from-selection. Reuses NewGroupSheet for the
     /// name prompt; the create handler reads
@@ -3830,6 +4545,10 @@ struct LayoutEditorView: View {
 /// matching desktop's "the bits that vary per model first" intent.
 private struct LayoutEditorPropertiesView: View {
     let modelName: String
+    /// Document handle for the visual node picker in the Faces /
+    /// States editor (drives the embedded model preview that the
+    /// user taps to build each part / state's node-range string).
+    let document: XLSequenceDocument
     let summary: [String: Any]
     let typeDescriptors: [[String: Any]]
     let layoutGroups: [String]
@@ -3883,6 +4602,11 @@ private struct LayoutEditorPropertiesView: View {
     @State private var pendingClearDimmingCurve: Bool = false
     // J-22 — dimming curve editor sheet visibility.
     @State private var dimmingEditorVisible: Bool = false
+    // Node Layout / Wiring View sheet visibility (desktop
+    // ShowNodeLayout / ShowWiring). Both read per-node geometry
+    // from the bridge's nodeLayout(forModel:).
+    @State private var nodeLayoutSheetVisible: Bool = false
+    @State private var wiringViewSheetVisible: Bool = false
     // J-19 — Layered Arches layer-size editor.
     // J-20.7 — Switched to `.sheet(item:)` so the sheet is bound
     // to the data's identity rather than a separate boolean flag.
@@ -4027,6 +4751,30 @@ private struct LayoutEditorPropertiesView: View {
                 modelDataRow(kind: .strands)
                 modelDataRow(kind: .nodes)
                 modelDataRow(kind: .groups)
+                if canShowNodeLayout {
+                    row("Node Layout") {
+                        Button {
+                            nodeLayoutSheetVisible = true
+                        } label: {
+                            Image(systemName: "square.grid.3x3")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Show node layout")
+                    }
+                    row("Wiring View") {
+                        Button {
+                            wiringViewSheetVisible = true
+                        } label: {
+                            Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Show wiring view")
+                    }
+                }
                 row("Dimming Curve") {
                     HStack(spacing: 6) {
                         Text(hasDimmingCurve ? "Set" : "—")
@@ -4070,6 +4818,12 @@ private struct LayoutEditorPropertiesView: View {
                         entries: onLoadDimming(),
                         modelName: modelName),
                     commit: onCommitDimming)
+            }
+            .sheet(isPresented: $nodeLayoutSheetVisible) {
+                NodeLayoutSheet(modelName: modelName, wiring: false)
+            }
+            .sheet(isPresented: $wiringViewSheetVisible) {
+                NodeLayoutSheet(modelName: modelName, wiring: true)
             }
             .alert("Clear dimming curve?",
                    isPresented: $pendingClearDimmingCurve) {
@@ -4254,6 +5008,7 @@ private struct LayoutEditorPropertiesView: View {
                         kind: kind == .faces ? .faces : .states,
                         entries: onLoadFaceState(kind),
                         modelName: modelName),
+                    document: document,
                     commit: { newEntries in
                         onCommitFaceState(kind, newEntries)
                     })
@@ -4809,6 +5564,36 @@ private struct LayoutEditorPropertiesView: View {
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        realDimensionRows
+    }
+
+    /// Real-world dimension readouts (ruler-calibrated). Only
+    /// present in the summary when a Ruler view-object has been
+    /// placed + calibrated. Read-only — mirrors desktop's
+    /// RealWidth / RealHeight / RealDepth ScreenLocationProperties.
+    @ViewBuilder
+    private var realDimensionRows: some View {
+        if let real = summary["realDimensions"] as? [String: Any] {
+            let units = (real["units"] as? String) ?? ""
+            let rw = (real["width"]  as? NSNumber)?.doubleValue ?? 0
+            let rh = (real["height"] as? NSNumber)?.doubleValue ?? 0
+            let rd = (real["depth"]  as? NSNumber)?.doubleValue ?? 0
+            row("Real Width")  { realDimensionLabel(rw, units: units) }
+            row("Real Height") { realDimensionLabel(rh, units: units) }
+            if rd > 0 {
+                row("Real Depth") { realDimensionLabel(rd, units: units) }
+            }
+        }
+    }
+
+    private func realDimensionLabel(_ value: Double, units: String) -> some View {
+        Text(units.isEmpty
+             ? String(format: "%.2f", value)
+             : String(format: "%.2f %@", value, units))
+            .font(.body.monospacedDigit())
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: 160, alignment: .trailing)
+            .textSelection(.enabled)
     }
 
     /// J-20.7 — Size/Location spin-widget field. Bounded by min/
@@ -5512,6 +6297,14 @@ private struct LayoutEditorPropertiesView: View {
         return sizes.map { "\($0)" }.joined(separator: ", ")
     }
 
+    /// Desktop guards Node Layout / Wiring View to real models
+    /// (ChannelLayoutDialog / WiringDialog exclude ModelGroup +
+    /// SubModel). Mirror that here off the summary's displayAs.
+    private var canShowNodeLayout: Bool {
+        let displayAs = (summary["displayAs"] as? String) ?? ""
+        return displayAs != "ModelGroup" && displayAs != "SubModel"
+    }
+
     // MARK: - Lookups
 
     private func doubleVal(_ key: String) -> Double {
@@ -5561,6 +6354,62 @@ private enum ModelDataKind: String, Identifiable {
 /// J-18 — generic read-only list sheet for popup-style model
 /// data. Editing comes in a later pass; the sheet only needs to
 /// render the strings and offer a Done button.
+/// GDTF mode picker — shown when a picked `.gdtf` fixture defines
+/// multiple DMX modes. Mirrors desktop's ChooseFromList prompt; the
+/// chosen mode is forced through the GDTF import on the next canvas
+/// tap. Cancel aborts the import entirely.
+private struct GdtfModePickerSheet: View {
+    let modes: [String]
+    let onConfirm: (String) -> Void
+    let onCancel: () -> Void
+    @State private var selectedMode: String = ""
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(modes, id: \.self) { mode in
+                        Button {
+                            selectedMode = mode
+                        } label: {
+                            HStack {
+                                Text(mode)
+                                Spacer()
+                                if selectedMode == mode {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.tint)
+                                }
+                            }
+                        }
+                        .foregroundStyle(.primary)
+                    }
+                } header: {
+                    Text("DMX Mode")
+                } footer: {
+                    Text("This fixture defines several DMX modes. Pick the one that matches your hardware before placing the model.")
+                }
+            }
+            .navigationTitle("Select DMX Mode")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel(); dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Place") {
+                        onConfirm(selectedMode.isEmpty ? modes.first ?? "" : selectedMode)
+                        dismiss()
+                    }
+                    .disabled(modes.isEmpty)
+                }
+            }
+        }
+        .onAppear { if selectedMode.isEmpty { selectedMode = modes.first ?? "" } }
+        .presentationDetents([.medium])
+    }
+}
+
 private struct ModelDataViewerSheet: View {
     let title: String
     let entries: [String]
@@ -5786,7 +6635,27 @@ private struct SubModelListSheet: View {
     @State private var generateSheetVisible: Bool = false
     @State private var aliasesSheetTarget: String? = nil
     @State private var confirmCancel: Bool = false
+    @State private var importFileVisible: Bool = false
+    @State private var importFileType: SubModelImportFileType = .xmodel
+    @State private var importModelPickerVisible: Bool = false
+    @State private var importErrorMessage: String? = nil
+    /// From Layout — an external rgbeffects file the user picked, plus
+    /// the model names it declares, awaiting a model choice.
+    @State private var rgbEffectsModelPick: (path: String, models: [String])? = nil
     @Environment(\.dismiss) private var dismiss
+
+    enum SubModelImportFileType {
+        case xmodel
+        case csv
+        case rgbeffects
+        var utTypes: [UTType] {
+            switch self {
+            case .xmodel: return [UTType(filenameExtension: "xmodel") ?? .data]
+            case .csv:    return [.commaSeparatedText, .plainText]
+            case .rgbeffects: return [.xml, UTType(filenameExtension: "xml") ?? .data]
+            }
+        }
+    }
 
     init(modelName: String,
          initial: [String],
@@ -5871,6 +6740,68 @@ private struct SubModelListSheet: View {
         }
     }
 
+    /// Merge bridge-imported submodel dictionaries into the working
+    /// set, uniquifying names that collide with existing ones, then
+    /// commit through the wholesale-replace bridge. Mirrors desktop
+    /// ImportSubModels' collision handling (it prompts; we auto-
+    /// rename, which is the less destructive default for touch).
+    private func mergeImported(_ raw: [[String: Any]]) {
+        guard !raw.isEmpty else {
+            importErrorMessage = "No submodels found to import."
+            return
+        }
+        var existing = Set(entries.map { $0.name })
+        var merged = entries
+        for d in raw {
+            let baseName    = (d["name"] as? String) ?? "Imported"
+            let isRanges    = (d["isRanges"] as? Bool) ?? true
+            let isVertical  = (d["isVertical"] as? Bool) ?? false
+            let bufferStyle = (d["bufferStyle"] as? String) ?? "Default"
+            let strands     = (d["strands"] as? [String]) ?? []
+            let subBuffer   = (d["subBuffer"] as? String) ?? ""
+            var name = baseName
+            var n = 2
+            while existing.contains(name) {
+                name = "\(baseName) \(n)"
+                n += 1
+            }
+            existing.insert(name)
+            merged.append(SubModelEntry(name: name,
+                                        isRanges: isRanges,
+                                        isVertical: isVertical,
+                                        bufferStyle: bufferStyle,
+                                        strands: strands,
+                                        subBuffer: subBuffer))
+        }
+        if commitDetails(merged) {
+            entries = loadDetails()
+            names = entries.map { $0.name }
+        }
+    }
+
+    private func importFromFile(_ url: URL) {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+        let raw: [[String: Any]]
+        switch importFileType {
+        case .xmodel:
+            raw = (viewModel.document.submodelDetails(fromXmodelFile: url.path) as? [[String: Any]]) ?? []
+        case .csv:
+            raw = (viewModel.document.submodelDetails(fromCSVFile: url.path) as? [[String: Any]]) ?? []
+        case .rgbeffects:
+            // From Layout — list the file's models, then let the user
+            // pick which model's submodels to pull (desktop ReadRGBEffectsFile).
+            let models = viewModel.document.modelNames(inRGBEffectsFile: url.path)
+            if models.isEmpty {
+                importErrorMessage = "No models found in that RGB Effects file."
+            } else {
+                rgbEffectsModelPick = (url.path, models)
+            }
+            return
+        }
+        mergeImported(raw)
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -5889,6 +6820,33 @@ private struct SubModelListSheet: View {
                         generateSheetVisible = true
                     } label: {
                         Label("Generate Slices…", systemImage: "wand.and.stars")
+                    }
+                    Menu {
+                        Button {
+                            importFileType = .xmodel
+                            importFileVisible = true
+                        } label: {
+                            Label("From .xmodel File…", systemImage: "doc")
+                        }
+                        Button {
+                            importFileType = .csv
+                            importFileVisible = true
+                        } label: {
+                            Label("From CSV File…", systemImage: "tablecells")
+                        }
+                        Button {
+                            importModelPickerVisible = true
+                        } label: {
+                            Label("From Another Model…", systemImage: "square.on.square")
+                        }
+                        Button {
+                            importFileType = .rgbeffects
+                            importFileVisible = true
+                        } label: {
+                            Label("From Layout…", systemImage: "rectangle.3.group")
+                        }
+                    } label: {
+                        Label("Import SubModels…", systemImage: "square.and.arrow.down")
                     }
                 }
                 Section(footer: Text("Tap a submodel to edit its name + geometry (ranges, lines, sub-buffer). Swipe to delete.")
@@ -6025,6 +6983,47 @@ private struct SubModelListSheet: View {
                 submodelName: target.name,
                 document: viewModel.document)
         }
+        .fileImporter(isPresented: $importFileVisible,
+                      allowedContentTypes: importFileType.utTypes,
+                      allowsMultipleSelection: false) { result in
+            switch result {
+            case .success(let urls):
+                if let url = urls.first { importFromFile(url) }
+            case .failure(let err):
+                importErrorMessage = err.localizedDescription
+            }
+        }
+        .sheet(isPresented: $importModelPickerVisible) {
+            SubModelSourceModelPicker(
+                excludingModel: modelName,
+                document: viewModel.document,
+                onPick: { source in
+                    let raw = (viewModel.document.submodelDetails(fromSourceModel: source)
+                               as? [[String: Any]]) ?? []
+                    mergeImported(raw)
+                })
+        }
+        .sheet(item: Binding<RGBEffectsModelPickPayload?>(
+                get: { rgbEffectsModelPick.map { RGBEffectsModelPickPayload(path: $0.path, models: $0.models) } },
+                set: { if $0 == nil { rgbEffectsModelPick = nil } })) { payload in
+            RGBEffectsModelPicker(
+                models: payload.models,
+                onPick: { source in
+                    let raw = (viewModel.document.submodelDetails(fromRGBEffectsFile: payload.path,
+                                                                  modelName: source)
+                               as? [[String: Any]]) ?? []
+                    mergeImported(raw)
+                    rgbEffectsModelPick = nil
+                },
+                onCancel: { rgbEffectsModelPick = nil })
+        }
+        .alert("Import SubModels",
+               isPresented: Binding(get: { importErrorMessage != nil },
+                                    set: { if !$0 { importErrorMessage = nil } })) {
+            Button("OK", role: .cancel) { importErrorMessage = nil }
+        } message: {
+            Text(importErrorMessage ?? "")
+        }
     }
 
     private func entryFor(_ name: String) -> SubModelEntry? {
@@ -6043,6 +7042,116 @@ private struct SubModelListSheet: View {
             entries = loadDetails()
         }
         newSubName = ""
+    }
+}
+
+/// Picks a source model (one that has submodels) to copy submodel
+/// definitions from. Mirrors desktop SubModelsDialog's
+/// import-from-another-model source picker.
+private struct SubModelSourceModelPicker: View {
+    let excludingModel: String
+    let document: XLSequenceDocument
+    let onPick: (_ source: String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var candidates: [String] = []
+    @State private var search: String = ""
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return candidates }
+        return candidates.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if candidates.isEmpty {
+                    Text("No other models in this show have submodels.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(filtered, id: \.self) { name in
+                        Button {
+                            onPick(name)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Text(name).foregroundStyle(.primary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Import From Model")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .onAppear {
+                candidates = document.modelNamesWithSubmodels(excluding: excludingModel)
+            }
+        }
+    }
+}
+
+private struct RGBEffectsModelPickPayload: Identifiable {
+    let path: String
+    let models: [String]
+    var id: String { path }
+}
+
+/// From Layout — picks which model (out of those declared in an
+/// external rgbeffects file) to pull submodels from. Mirrors desktop
+/// SubModelsDialog::ReadRGBEffectsFile's "Select Model" chooser.
+private struct RGBEffectsModelPicker: View {
+    let models: [String]
+    let onPick: (_ source: String) -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var search: String = ""
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return models }
+        return models.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(filtered, id: \.self) { name in
+                    Button {
+                        onPick(name)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Text(name).foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Import From Layout")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { onCancel(); dismiss() }
+                }
+            }
+        }
     }
 }
 
@@ -6080,6 +7189,17 @@ private struct SubModelDetailEditor: View {
     @State private var entrySnapshot: SubModelEntry? = nil
     @State private var confirmCancel: Bool = false
     @Environment(\.dismiss) private var dismissDetail
+
+    @StateObject private var previewController = SubmodelPreviewController()
+
+    // SubModels Symmetrize (rotational generator). Options persisted
+    // between openings, mirroring desktop's config-backed defaults.
+    @AppStorage("SymmetrizeDoS") private var symmetrizeDoS: Int = 8
+    @AppStorage("SymmetrizeClockwise") private var symmetrizeClockwise: Bool = false
+    @AppStorage("SymmetrizeBottomToTop") private var symmetrizeBottomToTop: Bool = false
+    @AppStorage("SymmetrizeSquarify") private var symmetrizeSquarify: Bool = true
+    @State private var showSymmetrizeSheet: Bool = false
+    @State private var symmetrizeError: String? = nil
 
     private static let bufferStyles = [
         "Default", "Keep XY", "Stacked", "Stacked Right",
@@ -6136,7 +7256,8 @@ private struct SubModelDetailEditor: View {
                 parentModelName: parentModelName,
                 highlightedNodes: highlightedNodes,
                 onToggleNode: toggleNode,
-                onAddNodes: addNodes)
+                onAddNodes: addNodes,
+                controller: previewController)
                 .background(Color.black)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             Text(entry.isRanges
@@ -6341,6 +7462,14 @@ private struct SubModelDetailEditor: View {
         .onChange(of: entry.isRanges) { _, newVal in
             if !newVal { stopPlayback() }
         }
+        .sheet(isPresented: $showSymmetrizeSheet) { symmetrizeSheet }
+        .alert("Symmetrize Failed",
+               isPresented: Binding(get: { symmetrizeError != nil },
+                                    set: { if !$0 { symmetrizeError = nil } })) {
+            Button("OK", role: .cancel) { symmetrizeError = nil }
+        } message: {
+            Text(symmetrizeError ?? "")
+        }
     }
 
     private var rangesSection: some View {
@@ -6456,6 +7585,65 @@ private struct SubModelDetailEditor: View {
                 .disabled(entry.strands.count <= 1)
             }
             .buttonStyle(.bordered)
+
+            HStack(spacing: 12) {
+                Button {
+                    showSymmetrizeSheet = true
+                } label: {
+                    Label("Symmetrize", systemImage: "circle.hexagonpath")
+                }
+                .disabled(entry.strands.isEmpty)
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+
+    private var symmetrizeSheet: some View {
+        NavigationStack {
+            Form {
+                Section(footer: Text("Generates rotationally-symmetric copies of the current lines around the model's centre. Mirrors the desktop Symmetrize (Rotational) tool.")) {
+                    Stepper("Degree of Symmetry: \(symmetrizeDoS)",
+                            value: $symmetrizeDoS, in: 2...100)
+                    Picker("Direction", selection: $symmetrizeClockwise) {
+                        Text("Clockwise").tag(true)
+                        Text("Counter-Clockwise").tag(false)
+                    }
+                    Picker("Build Order", selection: $symmetrizeBottomToTop) {
+                        Text("Top to Bottom").tag(false)
+                        Text("Bottom to Top").tag(true)
+                    }
+                    Toggle("Squarify Aspect Ratio", isOn: $symmetrizeSquarify)
+                }
+            }
+            .navigationTitle("Symmetrize")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showSymmetrizeSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        runSymmetrize()
+                        showSymmetrizeSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func runSymmetrize() {
+        guard entry.isRanges, !entry.strands.isEmpty else { return }
+        let result = previewController.symmetrize(ranges: entry.strands,
+                                                  degree: symmetrizeDoS,
+                                                  clockwise: symmetrizeClockwise,
+                                                  bottomToTop: symmetrizeBottomToTop,
+                                                  squarify: symmetrizeSquarify)
+        if let result, !result.isEmpty {
+            entry.strands = result
+            clampActiveRow()
+        } else {
+            symmetrizeError = "Symmetrize could not match all nodes. Ensure the model is centred and the node positions are clean, then try a different degree."
         }
     }
 
@@ -8491,6 +9679,11 @@ private struct FaceStatePayload: Identifiable {
 
 private struct FaceStateEditorSheet: View {
     let payload: FaceStatePayload
+    /// Document + model drive the visual node picker on each
+    /// node-range attribute (faces phoneme parts, state node
+    /// lists). `nil` for the Dimming Curve kind, which has no
+    /// node geometry — its detail view simply omits the picker.
+    let document: XLSequenceDocument?
     let commit: (_ entries: [String: [String: String]]) -> Void
 
     @State private var entries: [String: [String: String]]
@@ -8499,8 +9692,10 @@ private struct FaceStateEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     init(payload: FaceStatePayload,
+         document: XLSequenceDocument? = nil,
          commit: @escaping (_ entries: [String: [String: String]]) -> Void) {
         self.payload = payload
+        self.document = document
         self.commit = commit
         self._entries = State(initialValue: payload.entries)
     }
@@ -8553,6 +9748,8 @@ private struct FaceStateEditorSheet: View {
                 FaceStateEntryDetailView(
                     entryName: name,
                     suggestedKeys: payload.kind.suggestedAttributeKeys,
+                    document: payload.kind == .dimming ? nil : document,
+                    modelName: payload.modelName,
                     attributes: Binding(
                         get: { entries[name] ?? [:] },
                         set: { entries[name] = $0 }
@@ -8594,8 +9791,11 @@ private struct FaceStateEditorSheet: View {
 private struct FaceStateEntryDetailView: View {
     let entryName: String
     let suggestedKeys: [String]
+    let document: XLSequenceDocument?
+    let modelName: String
     @Binding var attributes: [String: String]
     @State private var newKey: String = ""
+    @State private var nodePickerKey: String? = nil
 
     var body: some View {
         List {
@@ -8660,6 +9860,16 @@ private struct FaceStateEntryDetailView: View {
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled(true)
                                 .multilineTextAlignment(.trailing)
+                            if document != nil, FaceStateAttr.isNodeRange(key: key) {
+                                Button {
+                                    nodePickerKey = key
+                                } label: {
+                                    Image(systemName: "hand.tap")
+                                        .font(.caption)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel("Pick nodes for \(key)")
+                            }
                         }
                     }
                     .onDelete { idx in
@@ -8672,6 +9882,21 @@ private struct FaceStateEntryDetailView: View {
             }
         }
         .navigationTitle(entryName)
+        .sheet(item: Binding(
+            get: { nodePickerKey.map { NodePickerTarget(key: $0) } },
+            set: { nodePickerKey = $0?.key }
+        )) { target in
+            if let document {
+                NodeRangePickerSheet(
+                    document: document,
+                    modelName: modelName,
+                    label: target.key,
+                    initialRange: attributes[target.key] ?? "",
+                    commit: { range in
+                        attributes[target.key] = range
+                    })
+            }
+        }
     }
 
     private var normalizedNewKey: String {
@@ -9383,11 +10608,54 @@ private struct ModelsReportExportModifier: ViewModifier {
     }
 }
 
+private struct XmodelExportModifier: ViewModifier {
+    @Binding var showingExporter: Bool
+    @Binding var exportDoc: XmodelExportDoc?
+    let defaultFilename: String
+    @Binding var housekeepingMessage: String?
+
+    func body(content: Content) -> some View {
+        content
+            .fileExporter(
+                isPresented: $showingExporter,
+                document: exportDoc,
+                contentType: kXmodelFileType,
+                defaultFilename: defaultFilename
+            ) { _ in
+                exportDoc = nil
+            }
+            .alert("Layout",
+                   isPresented: Binding(
+                        get: { housekeepingMessage != nil },
+                        set: { if !$0 { housekeepingMessage = nil } })) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(housekeepingMessage ?? "")
+            }
+    }
+}
+
 private struct ControllerActionAlertModifier: ViewModifier {
     @Binding var message: String?
 
     func body(content: Content) -> some View {
         content.alert("Controller action",
+                       isPresented: Binding(
+                            get: { message != nil },
+                            set: { if !$0 { message = nil } })) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(message ?? "")
+        }
+    }
+}
+
+/// #4123 — AutoSize uncommon universe warning modifier.
+private struct AutoSizeUniverseWarningModifier: ViewModifier {
+    @Binding var message: String?
+
+    func body(content: Content) -> some View {
+        content.alert("Universe Size Warning",
                        isPresented: Binding(
                             get: { message != nil },
                             set: { if !$0 { message = nil } })) {
@@ -9438,6 +10706,136 @@ private struct ControllerDeleteAlertModifier: ViewModifier {
 /// overlay → result alert. All three legs ride in one modifier
 /// so the outer LayoutEditorView body chain stays inside Swift's
 /// type-checker budget.
+/// Theme-07 — target for the pre-upload FPP-proxy validation warning.
+private struct ProxyWarningTarget: Identifiable {
+    let id = UUID()
+    let controllerName: String
+    let proxy: String
+}
+
+/// Theme-07 — one finished bulk-upload row.
+private struct BulkUploadRow: Identifiable {
+    let id = UUID()
+    let name: String
+    let success: Bool
+    let message: String
+}
+
+/// Theme-07 — observable progress state for the bulk-upload sheet.
+@MainActor
+private final class BulkUploadState: ObservableObject, Identifiable {
+    let id = UUID()
+    @Published var current: String = ""
+    @Published var completed: Int = 0
+    @Published var total: Int
+    @Published var finished: Bool = false
+    @Published var results: [BulkUploadRow] = []
+    init(total: Int) { self.total = total }
+}
+
+/// Theme-07 — bulk multi-controller upload progress + results sheet.
+/// Shows a live per-controller progress bar while uploads run, then a
+/// per-controller pass/fail list. Dismiss is disabled until finished
+/// so the in-flight HTTP isn't orphaned (cancel-between-controllers is
+/// implicit: the user simply waits for the current one).
+private struct BulkUploadSheet: View {
+    @ObservedObject var state: BulkUploadState
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                if !state.finished {
+                    ProgressView(value: Double(state.completed),
+                                  total: Double(max(1, state.total))) {
+                        Text("Uploading to \(state.total) controller\(state.total == 1 ? "" : "s")…")
+                            .font(.headline)
+                    } currentValueLabel: {
+                        Text(state.current.isEmpty
+                              ? "Preparing…"
+                              : "\(state.current) (\(state.completed + 1) of \(state.total))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Each controller's input + output configuration is pushed over HTTP. This can take a while for large shows.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                } else {
+                    let okCount = state.results.filter { $0.success }.count
+                    Text("\(okCount) of \(state.results.count) controller\(state.results.count == 1 ? "" : "s") uploaded successfully.")
+                        .font(.headline)
+                    List(state.results) { r in
+                        HStack(alignment: .firstTextBaseline) {
+                            Image(systemName: r.success
+                                  ? "checkmark.circle.fill"
+                                  : "xmark.octagon.fill")
+                                .foregroundStyle(r.success ? .green : .red)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(r.name).font(.body.weight(.medium))
+                                if !r.message.isEmpty {
+                                    Text(r.message)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .padding()
+            .navigationTitle("Bulk Upload")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(state.finished ? "Done" : "Running…") { onClose() }
+                        .disabled(!state.finished)
+                }
+            }
+        }
+        .interactiveDismissDisabled(!state.finished)
+    }
+}
+
+/// Theme-07 — bundles the proxy-warning alert + bulk-upload confirm +
+/// bulk-upload sheet into one modifier so the outer body chain stays
+/// inside Swift's type-checker budget (same pattern as the other
+/// Controllers modifiers).
+private struct BulkAndProxyUploadModifier: ViewModifier {
+    @Binding var proxyWarning: ProxyWarningTarget?
+    @Binding var pendingBulkConfirm: Bool
+    @Binding var bulkState: BulkUploadState?
+    let bulkTargetCount: Int
+    let onProxyContinue: (_ name: String) -> Void
+    let onBulkConfirm: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .alert("FPP Proxy Unreachable",
+                    isPresented: Binding(
+                        get: { proxyWarning != nil },
+                        set: { if !$0 { proxyWarning = nil } })) {
+                Button("Upload Anyway") {
+                    if let t = proxyWarning { onProxyContinue(t.controllerName) }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("FPP proxy \(proxyWarning?.proxy ?? "") is either offline or does not list this controller in its proxy table. The upload may fail until that's corrected.")
+            }
+            .alert("Upload to all controllers?",
+                    isPresented: $pendingBulkConfirm) {
+                Button("Upload \(bulkTargetCount)") { onBulkConfirm() }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Pushes input + output configuration to all \(bulkTargetCount) active open-source-firmware controller\(bulkTargetCount == 1 ? "" : "s"). Closed-firmware controllers are skipped. Make sure the iPad is on the same network.")
+            }
+            .sheet(item: $bulkState) { st in
+                BulkUploadSheet(state: st) { bulkState = nil }
+            }
+    }
+}
+
 private struct ControllerUploadModifier: ViewModifier {
     @Binding var pendingConfirmName: String?
     @Binding var running: Bool
@@ -9743,6 +11141,53 @@ private struct MultiModelImportPickerModifier: ViewModifier {
                 onCancel: { pendingPath = nil }
             )
         }
+    }
+}
+
+private struct GdtfModeImportPayload: Identifiable {
+    let path: String
+    let modes: [String]
+    var id: String { path }
+}
+
+/// Bundles the layout clipboard hot-keys (⌘C/⌘V/⌘X) and the GDTF
+/// multi-mode picker sheet into one modifier so the Layout Editor
+/// body stays within the Swift type-checker's budget.
+private struct LayoutClipboardAndGdtfModifier: ViewModifier {
+    let onCopy: () -> Bool
+    let onPaste: () -> Bool
+    let onCut: () -> Bool
+    @Binding var pendingGdtf: (path: String, modes: [String])?
+    let onGdtfConfirm: (String, String) -> Void
+
+    private var gdtfPayloadBinding: Binding<GdtfModeImportPayload?> {
+        Binding(
+            get: { pendingGdtf.map { GdtfModeImportPayload(path: $0.path, modes: $0.modes) } },
+            set: { newValue in if newValue == nil { pendingGdtf = nil } }
+        )
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .onKeyPress(keys: ["c"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onCopy() ? .handled : .ignored
+            }
+            .onKeyPress(keys: ["v"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onPaste() ? .handled : .ignored
+            }
+            .onKeyPress(keys: ["x"], phases: .down) { kp in
+                guard kp.modifiers.contains(.command) else { return .ignored }
+                return onCut() ? .handled : .ignored
+            }
+            .sheet(item: gdtfPayloadBinding) { payload in
+                GdtfModePickerSheet(
+                    modes: payload.modes,
+                    onConfirm: { mode in onGdtfConfirm(payload.path, mode) },
+                    onCancel: { pendingGdtf = nil }
+                )
+            }
     }
 }
 
@@ -10725,6 +12170,39 @@ private struct LayoutEditorBackgroundPropertiesView: View {
 /// FPPProxy / Protocol / Priority / Managed read-only) and
 /// Null-specific (Channels). Renders descriptors via the same
 /// kind-dispatch pattern the model per-type panel uses.
+/// Theme-07 — global output settings pane shown in the Controllers
+/// tab when no controller is selected. Mirrors desktop's "nothing
+/// selected" property grid (Controller Sync / E1.31 Sync Universe /
+/// Max-Suppress-Frames / Global Force-Local-IP / Global FPP Proxy).
+private struct GlobalOutputSettingsView: View {
+    let descriptors: [[String: Any]]
+    let token: Int
+    let commit: (_ key: String, _ value: Any) -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Global Output Settings")
+                    .font(.headline)
+                Text("Apply to every controller. Select a controller above to edit its individual settings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Divider()
+                ForEach(Array(descriptors.enumerated()), id: \.offset) { _, d in
+                    ControllerDescriptorRow(
+                        descriptor: d,
+                        namePrefix: "global",
+                        token: token,
+                        commit: commit)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 private struct LayoutEditorControllerDetailView: View {
     let name: String
     let descriptors: [[String: Any]]
@@ -10732,8 +12210,12 @@ private struct LayoutEditorControllerDetailView: View {
     let models: [String]
     let openSourceFirmware: Bool
     let httpURL: URL?
+    let proxyURL: URL?
+    let pingState: String?
+    let pingInFlight: Bool
     let onTapModel: (String) -> Void
     let onOpenURL: (URL) -> Void
+    let onPing: () -> Void
     let onUpload: () -> Void
     let onVisualize: () -> Void
     let commit: (_ key: String, _ value: Any) -> Void
@@ -10751,6 +12233,23 @@ private struct LayoutEditorControllerDetailView: View {
                         .font(.caption)
                 }
                 Spacer()
+                Button {
+                    onPing()
+                } label: {
+                    if pingInFlight {
+                        ProgressView().controlSize(.mini)
+                    } else {
+                        Label {
+                            Text(LayoutEditorView.pingLabel(pingState))
+                                .font(.caption2)
+                        } icon: {
+                            Image(systemName: "circle.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(LayoutEditorView.pingColor(pingState))
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
             }
 
             HStack(spacing: 10) {
@@ -10759,6 +12258,15 @@ private struct LayoutEditorControllerDetailView: View {
                         onOpenURL(url)
                     } label: {
                         Label("Open", systemImage: "safari")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+                if let purl = proxyURL {
+                    Button {
+                        onOpenURL(purl)
+                    } label: {
+                        Label("Open Proxy", systemImage: "arrow.triangle.branch")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
@@ -11985,6 +13493,125 @@ private struct AddMemberRow: View {
 /// Phase J-4 (multi-select) — operations bar shown when 2+ models
 /// are selected. Hosts Align ▾, Distribute ▾, Match Size ▾, and
 /// Clear. Top-centered like the creation banner.
+/// Identifiable wrapper so the Replace Model sheet can bind via
+/// `.sheet(item:)` keyed on the source model name.
+private struct ReplaceModelTarget: Identifiable {
+    let source: String
+    var id: String { source }
+}
+
+/// Bundles the Bulk-Rotate degrees alert and the Replace-Model sheet
+/// into one modifier so they add a single node to the (already large)
+/// LayoutEditorView body chain — keeps the SwiftUI type-checker under
+/// budget.
+private struct BulkRotateAndReplaceModifier<RotateButtons: View, ReplaceContent: View>: ViewModifier {
+    let rotateAxis: String?
+    let rotatePresented: Binding<Bool>
+    @ViewBuilder let rotateButtons: () -> RotateButtons
+    let replaceTarget: Binding<ReplaceModelTarget?>
+    @ViewBuilder let replaceSheet: (ReplaceModelTarget) -> ReplaceContent
+
+    func body(content: Content) -> some View {
+        content
+            .alert("Rotate \(rotateAxis ?? "")", isPresented: rotatePresented) {
+                rotateButtons()
+            } message: {
+                Text("Sets the rotation about the \(rotateAxis ?? "") axis for every selected model. Range -180 to 180 degrees.")
+            }
+            .sheet(item: replaceTarget) { target in
+                replaceSheet(target)
+            }
+    }
+}
+
+/// Replace Model (desktop ReplaceModelDialog, #4462) — a searchable,
+/// multi-select list of target models that will each be replaced by a
+/// copy of `source`. The three toggles mirror the desktop dialog
+/// (keep start channel / keep submodels / keep size & position).
+private struct ReplaceModelSheet: View {
+    let source: String
+    let candidates: [String]
+    let onReplace: (_ targets: [String], _ keepStartChannel: Bool,
+                    _ keepSubmodels: Bool, _ keepSizePosition: Bool) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var search: String = ""
+    @State private var picked: Set<String> = []
+    @State private var keepStartChannel: Bool = true
+    @State private var keepSubmodels: Bool = false
+    @State private var keepSizePosition: Bool = true
+
+    private var filtered: [String] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return candidates }
+        return candidates.filter { $0.localizedCaseInsensitiveContains(q) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Each selected model is replaced by a copy of \(source).")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                Section("Keep from each target") {
+                    Toggle("Start channel & controller", isOn: $keepStartChannel)
+                    Toggle("Submodels", isOn: $keepSubmodels)
+                    Toggle("Position & size", isOn: $keepSizePosition)
+                }
+                Section {
+                    Button(allVisibleSelected ? "Clear Visible" : "Select Visible") {
+                        if allVisibleSelected {
+                            filtered.forEach { picked.remove($0) }
+                        } else {
+                            filtered.forEach { picked.insert($0) }
+                        }
+                    }
+                    .font(.caption)
+                } header: {
+                    Text("Replace (\(picked.count))")
+                }
+                Section {
+                    ForEach(filtered, id: \.self) { name in
+                        Button {
+                            if picked.contains(name) { picked.remove(name) }
+                            else { picked.insert(name) }
+                        } label: {
+                            HStack {
+                                Image(systemName: picked.contains(name) ? "checkmark.square.fill" : "square")
+                                    .foregroundStyle(picked.contains(name) ? Color.accentColor : .secondary)
+                                Text(name)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always))
+            .navigationTitle("Replace With \(source)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Replace") {
+                        onReplace(Array(picked), keepStartChannel, keepSubmodels, keepSizePosition)
+                        dismiss()
+                    }
+                    .disabled(picked.isEmpty)
+                }
+            }
+        }
+    }
+
+    private var allVisibleSelected: Bool {
+        !filtered.isEmpty && filtered.allSatisfy { picked.contains($0) }
+    }
+}
+
 private struct MultiSelectActionBar: View {
     let selection: Set<String>
     let leader: String?
@@ -11992,6 +13619,7 @@ private struct MultiSelectActionBar: View {
     let onDistribute: (String) -> Void
     let onMatchSize: (String) -> Void
     let onFlip: (String) -> Void
+    let onRotate: (String) -> Void
     let onDuplicate: () -> Void
     let onGroup: () -> Void
     let onAddToGroup: () -> Void
@@ -12076,6 +13704,17 @@ private struct MultiSelectActionBar: View {
             .menuStyle(.borderlessButton)
             .foregroundStyle(.white)
 
+            Menu {
+                Button("Rotate X…") { onRotate("X") }
+                Button("Rotate Y…") { onRotate("Y") }
+                Button("Rotate Z…") { onRotate("Z") }
+            } label: {
+                Label("Rotate", systemImage: "rotate.3d")
+                    .font(.caption.weight(.medium))
+            }
+            .menuStyle(.borderlessButton)
+            .foregroundStyle(.white)
+
             Divider()
                 .frame(height: 24)
                 .background(.white.opacity(0.3))
@@ -12134,6 +13773,8 @@ private struct InlineModelActionBar: View {
     let onPropertyChange: () -> Void
     let onRequestDelete: () -> Void
     let onRequestDuplicate: () -> Void
+    let onRequestReplace: () -> Void
+    let onSwapStartEnd: () -> Void
 
     var body: some View {
         // `TimelineView(.animation)` refreshes its content every
@@ -12153,6 +13794,16 @@ private struct InlineModelActionBar: View {
             return false
         }
         return (summary["locked"] as? NSNumber)?.boolValue ?? false
+    }
+
+    // Only Single Line / Poly Line models support Swap Start/End
+    // (matches core Model::SupportsSwapStartEnd()).
+    private var supportsSwapStartEnd: Bool {
+        guard let summary = viewModel.document.modelLayoutSummary(modelName) else {
+            return false
+        }
+        let displayAs = (summary["displayAs"] as? String) ?? ""
+        return displayAs == "Single Line" || displayAs == "Poly Line"
     }
 
     @ViewBuilder
@@ -12207,6 +13858,27 @@ private struct InlineModelActionBar: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.blue)
+
+                if supportsSwapStartEnd && !locked {
+                    Button {
+                        onSwapStartEnd()
+                    } label: {
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.blue)
+                }
+
+                Button {
+                    onRequestReplace()
+                } label: {
+                    Image(systemName: "arrow.triangle.2.circlepath.circle")
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
+                .accessibilityLabel("Replace other models with this one")
 
                 Button(role: .destructive) {
                     onRequestDelete()
@@ -12463,6 +14135,7 @@ private struct LayoutEditorCanvasControls: View {
     let previewName: String
     @Bindable var settings: PreviewSettings
     let selectedModelName: String?
+    @AppStorage("layoutEditor.handleScale") private var storedHandleScale: Int = 1
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
@@ -12558,6 +14231,41 @@ private struct LayoutEditorCanvasControls: View {
             .toggleStyle(.button)
             .controlSize(.small)
             .disabled(!settings.showModelLabels)
+
+            // Manipulation-handle size — larger handles are easier to
+            // grab by touch. Mirrors desktop's "Model Handle Size"
+            // view preference. Persisted via @AppStorage.
+            Menu {
+                ForEach([1, 2, 3, 4, 5], id: \.self) { n in
+                    Button {
+                        settings.handleScale = n
+                        storedHandleScale = n
+                    } label: {
+                        if settings.handleScale == n {
+                            Label("\(n)×", systemImage: "checkmark")
+                        } else {
+                            Text("\(n)×")
+                        }
+                    }
+                }
+            } label: {
+                Label("Handles \(settings.handleScale)×", systemImage: "hand.point.up.left")
+                    .font(.caption2)
+            }
+            .menuStyle(.button)
+            .controlSize(.small)
+
+            // Show Zone Indicator — DMX MovingHeadAdv position zones.
+            Toggle(isOn: $settings.showZoneIndicator) {
+                Text("Zones").font(.caption2)
+            }
+            .toggleStyle(.button)
+            .controlSize(.small)
+        }
+        .onAppear {
+            if settings.handleScale != storedHandleScale {
+                settings.handleScale = storedHandleScale
+            }
         }
     }
 

@@ -1308,6 +1308,7 @@ xLightsFrame::xLightsFrame(wxWindow* parent, int ab, wxWindowID id, bool renderO
     MenuBar->Append(MenuHelp, _("&Help"));
     SetMenuBar(MenuBar);
     OutputTimer.SetOwner(this, ID_TIMER_OutputTimer);
+    OutputTimer.SetName("OutputTimer");
     AutoSaveTimer.SetOwner(this, ID_TIMER_AutoSave);
     EffectSettingsTimer.SetOwner(this, ID_TIMER_EFFECT_SETTINGS);
     RenderStatusTimer.SetOwner(this, ID_TIMER_RENDERSTATUS);
@@ -3262,10 +3263,16 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
 
     spdlog::info("xLights Closing");
 
+    // Mark the frame as exiting up front so the teardown that CloseSequence drives
+    // (e.g. EffectsGrid::SetRCToolTip touching an already half-destroyed window/peer)
+    // can bail. Reset it if the close is vetoed below.
+    _exiting = true;
+
     StopNow();
 
     if (!CloseSequence()) {
         spdlog::info("Closing aborted.");
+        _exiting = false;
         event.Veto();
         inClose = false;
         return;
@@ -3274,8 +3281,6 @@ void xLightsFrame::OnClose(wxCloseEvent& event)
     selectedEffect = nullptr;
 
     CheckUnsavedChanges();
-
-    _exiting = true;
 
     // Release GL resources from all models while contexts are still alive.
     // Must happen before ShowHideAllSequencerWindows: hiding canvases causes
@@ -8105,6 +8110,9 @@ bool xLightsFrame::HandleAllKeyBinding(wxKeyEvent& event)
         } else if (type == "COMMAND_PALETTE") {
             wxCommandEvent e;
             OnCommandPalette(e);
+        } else if (type == "IMPORT_EFFECTS") {
+            wxCommandEvent e;
+            OnMenuItemImportEffects(e);
         } else {
             return false;
         }
