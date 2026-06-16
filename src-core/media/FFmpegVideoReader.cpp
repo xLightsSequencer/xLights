@@ -761,8 +761,9 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                         isHwFrame = (desc != nullptr && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL));
                     }
                     if (isHwFrame) {
+                        const char* fmtName = av_get_pix_fmt_name((AVPixelFormat)f->format);
                         spdlog::warn("VideoReader: frame is still hardware-backed (fmt={}, hw_frames_ctx={}) — skipping sws_scale.",
-                            av_get_pix_fmt_name((AVPixelFormat)f->format), (void*)f->hw_frames_ctx);
+                            fmtName ? fmtName : "unknown", (void*)f->hw_frames_ctx);
                         spdlog::default_logger()->flush();
                         f = nullptr;
                     }
