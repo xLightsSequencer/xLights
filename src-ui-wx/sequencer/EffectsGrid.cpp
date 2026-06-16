@@ -2262,8 +2262,25 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 mDragEndX = event.GetX();
                 mDragEndY = event.GetY();
                 if (event.ShiftDown()) {
+                    mDragAddToSelection = false;
+                    mAdditiveDragBaseSelection.clear();
                     UpdateSelectionRectangle();
+                } else if (event.ControlDown()) {
+                    mDragAddToSelection = true;
+                    mAdditiveDragBaseSelection.clear();
+                    for (int vrow = 0; vrow < (int)mSequenceElements->GetVisibleRowInformationSize(); vrow++) {
+                        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(vrow);
+                        if (el == nullptr) continue;
+                        for (int i = 0; i < el->GetEffectCount(); i++) {
+                            Effect* e = el->GetEffect(i);
+                            if (e->GetSelected() != EFFECT_NOT_SELECTED)
+                                mAdditiveDragBaseSelection.push_back(e);
+                        }
+                    }
+                    EstablishSelectionRectangle();
                 } else {
+                    mDragAddToSelection = false;
+                    mAdditiveDragBaseSelection.clear();
                     EstablishSelectionRectangle();
                 }
                 CaptureMouse();
@@ -3895,8 +3912,7 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             if (mEffectMoveDragThresholdExceeded && !mEffectMoveHasCollision && !mEffectMoveSnapshots.empty()) {
                 ApplyEffectMoveDrag();
             } else if (!mEffectMoveDragThresholdExceeded && mEffectMoveDragGroup && mEffectMoveAnchorEffect != nullptr) {
-                mSequenceElements->UnSelectAllEffects();
-                mEffectMoveAnchorEffect->SetSelected(EFFECT_SELECTED);
+                // Keep the group selected; just update the settings panel to the clicked effect
                 mSelectedEffect = mEffectMoveAnchorEffect;
                 RaiseSelectedEffectChanged(mSelectedEffect, false);
             }
@@ -3989,6 +4005,8 @@ void EffectsGrid::mouseReleased(wxMouseEvent& event) {
             UnsetToolTip();
             mDragging = false;
             mDragThresholdExceeded = false;
+            mDragAddToSelection = false;
+            mAdditiveDragBaseSelection.clear();
             if ((mDragStartX == event.GetX() && mDragStartY == event.GetY()) || (mSequenceElements->GetNumberOfActiveTimingEffects() > 0)) {
                 checkForEmptyCell = true;
             }
@@ -6893,7 +6911,12 @@ void EffectsGrid::UpdateZoomPosition(int time) const {
 }
 
 void EffectsGrid::EstablishSelectionRectangle() {
-    mSequenceElements->UnSelectAllEffects();
+    if (mDragAddToSelection) {
+        for (Effect* e : mAdditiveDragBaseSelection)
+            e->SetSelected(EFFECT_SELECTED);
+    } else {
+        mSequenceElements->UnSelectAllEffects();
+    }
     int first_row = mSequenceElements->GetFirstVisibleModelRow();
     int row1 = GetRow(mDragStartY);
     if (row1 >= mSequenceElements->GetNumberOfTimingRows()) {
@@ -6950,9 +6973,12 @@ void EffectsGrid::UpdateSelectionRectangle() {
     if (mSequenceElements == nullptr || mTimeline == nullptr) {
         return;
     }
-    // Unselect all effects and clear mSelectedEffect
     UnselectEffect();
     mSequenceElements->UnSelectAllEffects();
+    if (mDragAddToSelection) {
+        for (Effect* e : mAdditiveDragBaseSelection)
+            e->SetSelected(EFFECT_SELECTED);
+    }
 
     if (GetRow(mDragEndY) < mSequenceElements->GetNumberOfTimingRows()) {
         mRangeEndRow = GetRow(mDragEndY);
@@ -8189,6 +8215,47 @@ void EffectsGrid::UpdateEffectMoveDragState(int x, int y, bool snapToTiming, boo
         snap.hasCollision = !tl->GetRangeIsClearMS(ts, te, !mEffectMoveCopyMode);
         if (snap.hasCollision) anyCollision = true;
     }
+
+    // When dragging horizontally within the same rows in move mode, clamp the
+    // delta so effects butt up against the nearest blocking neighbor instead of
+    // bouncing back to their original position on collision.
+    if (anyCollision && rowDelta == 0 && !mEffectMoveCopyMode && rawDelta != 0) {
+        int clampedDelta = rawDelta;
+        for (auto& snap : mEffectMoveSnapshots) {
+            if (!snap.hasCollision) continue;
+            EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
+            if (tl == nullptr) continue;
+            int ts = snap.origStartTimeMS + rawDelta;
+            int te = snap.origEndTimeMS + rawDelta;
+            for (Effect* e : tl->GetEffects()) {
+                if (e->GetSelected() != EFFECT_NOT_SELECTED) continue;
+                if (e->GetStartTimeMS() >= te || e->GetEndTimeMS() <= ts) continue;
+                if (rawDelta > 0) {
+                    // Moving right: clamp so our end meets the blocker's start
+                    clampedDelta = std::min(clampedDelta, e->GetStartTimeMS() - snap.origEndTimeMS);
+                } else {
+                    // Moving left: clamp so our start meets the blocker's end
+                    clampedDelta = std::max(clampedDelta, e->GetEndTimeMS() - snap.origStartTimeMS);
+                }
+            }
+        }
+        if (clampedDelta != rawDelta && clampedDelta != 0) {
+            bool clampedOk = true;
+            for (auto& snap : mEffectMoveSnapshots) {
+                EffectLayer* tl = mSequenceElements->GetVisibleEffectLayer(snap.origVisibleRow);
+                if (tl == nullptr) { clampedOk = false; break; }
+                int ts = snap.origStartTimeMS + clampedDelta;
+                int te = snap.origEndTimeMS + clampedDelta;
+                if (!tl->GetRangeIsClearMS(ts, te, true)) { clampedOk = false; break; }
+            }
+            if (clampedOk) {
+                mEffectMoveTargetDeltaMS = clampedDelta;
+                anyCollision = false;
+                for (auto& snap : mEffectMoveSnapshots) snap.hasCollision = false;
+            }
+        }
+    }
+
     mEffectMoveHasCollision = anyCollision;
     SetCursor(anyCollision ? s_noEntry : s_sizing);
 
@@ -8244,8 +8311,7 @@ void EffectsGrid::ApplyEffectMoveDrag() {
                 targetLayer->GetIndex(), newEff->GetID());
             if (snap.effect == mEffectMoveAnchorEffect)
                 newAnchorEff = newEff;
-            if (mEffectMoveCopyMode)
-                newEffects.push_back(newEff);
+            newEffects.push_back(newEff);
         }
     }
 
@@ -8257,16 +8323,17 @@ void EffectsGrid::ApplyEffectMoveDrag() {
             if (el) el->DeleteSelectedEffects(mSequenceElements->get_undo_mgr());
         }
     } else {
-        // Copy: deselect originals, select all new copies
+        // Copy: deselect originals
         for (auto& snap : mEffectMoveSnapshots)
             snap.effect->SetSelected(EFFECT_NOT_SELECTED);
-        for (Effect* e : newEffects)
-            e->SetSelected(EFFECT_SELECTED);
     }
+
+    // Select all newly placed effects so the group stays selected after the drop
+    for (Effect* e : newEffects)
+        e->SetSelected(EFFECT_SELECTED);
 
     // Update selected effect pointer so it doesn't dangle
     if (newAnchorEff) {
-        newAnchorEff->SetSelected(EFFECT_SELECTED);
         mSelectedEffect = newAnchorEff;
         mSelectedRow = mEffectMoveTargetRow + mSequenceElements->GetFirstVisibleModelRow();
     } else {
