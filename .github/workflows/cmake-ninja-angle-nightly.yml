@@ -256,6 +256,18 @@ jobs:
         # installer script (the same xLights_4_64bit_VS.iss used by win_nightly).
         run: ISCC.exe /DCMAKEBUILD xLights_4_64bit_VS.iss
 
+      # The shared .iss emits the same filename as the regular Windows nightly
+      # (e.g. xLights64_2026_11_1.exe). Add an _angle marker so this installer
+      # can sit alongside the regular one on the shared 'nightly' release.
+      - name: Tag installer filename as ANGLE
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem build_scripts\msw\output\*.exe | Select-Object -First 1
+          if (-not $exe) { throw "No installer produced in build_scripts\msw\output" }
+          $dest = Join-Path $exe.DirectoryName ($exe.BaseName + "_angle" + $exe.Extension)
+          Move-Item $exe.FullName $dest -Force
+          Write-Host "renamed installer -> $(Split-Path $dest -Leaf)"
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
@@ -263,14 +275,25 @@ jobs:
           path: build_scripts\msw\output\**
           retention-days: 14
 
-      # ── Publish nightly prerelease ────────────────────────────────────────
-      - name: Create prerelease
+      # ── Publish onto the shared 'nightly' prerelease ──────────────────────
+      # Add the _angle installer as an asset on the same 'nightly' release the
+      # regular Windows nightly publishes to. Use an additive `gh release upload`
+      # (NOT marvinpinto, which deletes+recreates the release and would wipe the
+      # regular installer). This nightly runs at 07:00 UTC — after win_nightly
+      # (05:00) refreshes the release — so both installers coexist on it.
+      - name: Publish ANGLE installer to nightly release
         if: github.ref == 'refs/heads/master'
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: true
-          automatic_release_tag: "nightly-angle"
-          title: "Nightly (ANGLE)"
-          files: |
-            ./build_scripts/msw/output/*.exe
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          file=$(ls build_scripts/msw/output/*_angle.exe | head -1)
+          if [ -z "$file" ]; then echo "no _angle installer found"; exit 1; fi
+          echo "Uploading $file to the 'nightly' prerelease"
+          # Create the prerelease if it doesn't exist yet (e.g. this job runs
+          # before the regular nightly has created it).
+          if ! gh release view nightly >/dev/null 2>&1; then
+            gh release create nightly --prerelease --title nightly \
+              --notes "xLights nightly builds" --target "$GITHUB_SHA"
+          fi
+          gh release upload nightly "$file" --clobber
