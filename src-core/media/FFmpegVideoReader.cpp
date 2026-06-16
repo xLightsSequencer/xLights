@@ -694,26 +694,26 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     bool hwscale = false;
                     if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
-                            f = _srcFrame;
+                            spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
+                            _abandonHardwareDecode = true;
+                            if (_swsCtx != nullptr) {
+                                sws_freeContext(_swsCtx);
+                                _swsCtx = nullptr;
+                            }
                         } else {
                             unrefSrcFrame2 = true;
                             f = _srcFrame2;
                         }
-                    }
-
-                    if (_abandonHardwareDecode && _swsCtx != nullptr) {
-                        spdlog::warn("VideoReader: This could get ugly ... we have abandoned hardware decode but we already had a sws Context.");
                     }
                 } else {
                     f = _srcFrame;
                 }
 
                 if (f == nullptr) {
-                    spdlog::warn("VideoReader: Strange f was not valid so setting it to the source frame.");
-                    f = _srcFrame;
+                    spdlog::warn("VideoReader: No valid CPU frame available — skipping sws_scale for this frame.");
                 }
 
-                if (_swsCtx == nullptr) {
+                if (f != nullptr && _swsCtx == nullptr) {
                     if (_abandonHardwareDecode) {
                         spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
                     }
@@ -740,7 +740,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
 
-                if (_swsCtx != nullptr) {
+                if (f != nullptr && _swsCtx != nullptr) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
