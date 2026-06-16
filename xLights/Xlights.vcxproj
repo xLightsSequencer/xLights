@@ -939,6 +939,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClCompile Include="..\src-core\render\SequencePackage.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.cpp" />
     <ClCompile Include="..\src-core\render\Effect.cpp" />
+    <ClCompile Include="..\src-core\render\EffectSymbol.cpp" />
+    <ClCompile Include="..\src-core\render\EffectSymbolManager.cpp" />
+    <ClCompile Include="..\src-ui-wx\EffectSymbolDialog.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectDropTarget.cpp" />
     <ClCompile Include="..\src-core\render\EffectLayer.cpp" />
     <ClCompile Include="..\src-ui-wx\sequencer\EffectsGrid.cpp" />
@@ -1551,6 +1554,9 @@ xcopy "$(SolutionDir)..\bin64\Vamp\" "$(TargetDir)Vamp\" /e /y /i /r
     <ClInclude Include="..\src-core\render\SequencePackage.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\DragEffectBitmapButton.h" />
     <ClInclude Include="..\src-core\render\Effect.h" />
+    <ClInclude Include="..\src-core\render\EffectSymbol.h" />
+    <ClInclude Include="..\src-core\render\EffectSymbolManager.h" />
+    <ClInclude Include="..\src-ui-wx\EffectSymbolDialog.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectDropTarget.h" />
     <ClInclude Include="..\src-core\render\EffectLayer.h" />
     <ClInclude Include="..\src-ui-wx\sequencer\EffectsGrid.h" />

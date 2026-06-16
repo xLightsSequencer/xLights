@@ -29,6 +29,8 @@ class Model;
 class RenderableEffect;
 class RenderContext;
 class EffectManager;
+class EffectSymbolManager;
+class EffectSymbol;
 
 #define EFFECT_NOT_SELECTED     0
 #define EFFECT_LT_SELECTED      1
@@ -57,6 +59,7 @@ class Effect
     xlDisplayList background;
     RenderCacheItem *mCache = nullptr;
     int64_t _timeToDelete = 0;
+    std::string _linkedSymbolId;
 
     Effect() {}  //don't allow default or copy constructor
     static void ParseColorMap(const SettingsMap &mPaletteMap, xlColorVector &mColors, xlColorCurveVector& mCC);
@@ -100,6 +103,14 @@ public:
 
     bool GetProtected() const { return mProtected; }
     void SetProtected(bool Protected) { mProtected = Protected; }
+
+    // Symbol linking - allows effects to be linked to reusable EffectSymbol definitions.
+    bool IsLinkedToSymbol() const { return !_linkedSymbolId.empty(); }
+    const std::string& GetLinkedSymbolId() const { return _linkedSymbolId; }
+    void LinkToSymbol(const std::string& symbolId);
+    void UnlinkFromSymbol();
+    void ApplySymbolSettings(const EffectSymbol* symbol);
+    void HandlePastedSymbolLink();
 
     bool IsModelRenderDisabled() const;
     bool IsEffectRenderDisabled() const;

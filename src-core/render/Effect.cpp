@@ -12,6 +12,8 @@
 #include "EffectLayer.h"
 #include "Element.h"
 #include "SequenceElements.h"
+#include "EffectSymbol.h"
+#include "EffectSymbolManager.h"
 #include "RenderContext.h"
 #include "../effects/EffectManager.h"
 #include "ColorCurve.h"
@@ -191,6 +193,7 @@ Effect::Effect(const Effect& ef)
     mPaletteMap = ef.mPaletteMap;
     mColors = ef.mColors;
     mCC = ef.mCC;
+    _linkedSymbolId = ef._linkedSymbolId;
 }
 
 Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const std::string & name, const std::string &settings, const std::string &palette, int startTimeMS, int endTimeMS, int Selected, bool Protected, bool importing) :
@@ -251,6 +254,15 @@ Effect::Effect(EffectManager* effectManager, EffectLayer* parent,int id, const s
 
 Effect::~Effect()
 {
+    if (!_linkedSymbolId.empty() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                seqElements->GetEffectSymbolManager().UnregisterLinkedEffect(this);
+            }
+        }
+    }
     if (mCache) {
         mCache->Delete();
         mCache = nullptr;
@@ -474,20 +486,73 @@ void Effect::SetLocked(bool lock)
     }
 }
 
+// Guard against recursive symbol propagation when an effect's change is mirrored
+// to its symbol and back out to other linked effects.
+static thread_local bool s_propagatingSymbolChanges = false;
+
 void Effect::IncrementChangeCount()
 {
     mParentLayer->IncrementChangeCount(GetStartTimeMS(), GetEndTimeMS());
-    std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    if (mCache) {
-        mCache->Delete();
-        mCache = nullptr;
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        if (mCache) {
+            mCache->Delete();
+            mCache = nullptr;
+        }
+    }
+
+    if (!s_propagatingSymbolChanges && IsLinkedToSymbol() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                EffectSymbol* symbol = symbolManager.GetSymbol(_linkedSymbolId);
+                if (symbol != nullptr) {
+                    s_propagatingSymbolChanges = true;
+
+                    symbol->CopyFromEffect(this);
+
+                    std::vector<Effect*> linkedEffects = symbolManager.GetLinkedEffects(_linkedSymbolId);
+                    for (Effect* effect : linkedEffects) {
+                        if (effect != this && effect != nullptr) {
+                            effect->ApplySymbolSettings(symbol);
+                        }
+                    }
+
+                    s_propagatingSymbolChanges = false;
+
+                    RenderContext* ctx = seqElements->GetRenderContext();
+                    if (ctx != nullptr) {
+                        for (Effect* effect : linkedEffects) {
+                            if (effect != this && effect != nullptr) {
+                                EffectLayer* el = effect->GetParentEffectLayer();
+                                if (el != nullptr && el->GetParentElement() != nullptr) {
+                                    ctx->RenderEffectForModel(
+                                        el->GetParentElement()->GetModelName(),
+                                        effect->GetStartTimeMS(),
+                                        effect->GetEndTimeMS());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 std::string Effect::GetSettingsAsString() const
 {
     std::unique_lock<std::recursive_mutex> lock(settingsLock);
-    return mSettings.AsString();
+    std::string result = mSettings.AsString();
+    if (!_linkedSymbolId.empty()) {
+        if (!result.empty()) {
+            result += ",";
+        }
+        result += "X_LinkedSymbolId=" + _linkedSymbolId;
+    }
+    return result;
 }
 
 std::string Effect::GetSettingsAsJSON() const
@@ -880,5 +945,114 @@ void Effect::PurgeCache(bool deleteCache) {
         }
         mCache->Delete();
         mCache = nullptr;
+    }
+}
+
+void Effect::LinkToSymbol(const std::string& symbolId)
+{
+    if (_linkedSymbolId == symbolId) return;
+
+    if (!_linkedSymbolId.empty()) {
+        UnlinkFromSymbol();
+    }
+
+    _linkedSymbolId = symbolId;
+
+    if (!symbolId.empty() && mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                symbolManager.RegisterLinkedEffect(this, symbolId);
+
+                EffectSymbol* symbol = symbolManager.GetSymbol(symbolId);
+                if (symbol != nullptr) {
+                    SetEffectName(symbol->GetEffectType());
+                    SetSettings(symbol->GetSettingsAsString(), true);
+                    SetPalette(symbol->GetPalette());
+                    // The symbol's settings-string carries no X_LinkedSymbolId,
+                    // but a previously-pasted clipboard string parsed into
+                    // mSettings may have left one behind — strip it now that
+                    // _linkedSymbolId is the source of truth.
+                    {
+                        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+                        mSettings.erase("X_LinkedSymbolId");
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Effect::UnlinkFromSymbol()
+{
+    if (_linkedSymbolId.empty()) return;
+
+    if (mParentLayer != nullptr) {
+        Element* parentElement = mParentLayer->GetParentElement();
+        if (parentElement != nullptr) {
+            SequenceElements* seqElements = parentElement->GetSequenceElements();
+            if (seqElements != nullptr) {
+                EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+                symbolManager.UnregisterLinkedEffect(this);
+            }
+        }
+    }
+
+    _linkedSymbolId.clear();
+}
+
+void Effect::ApplySymbolSettings(const EffectSymbol* symbol)
+{
+    if (symbol == nullptr) return;
+
+    // Save/restore the guard so a nested ApplySymbolSettings call doesn't
+    // clobber an outer propagation scope (the outer IncrementChangeCount's
+    // for-loop iterates several effects; each one must remain guarded for
+    // the full sweep).
+    bool savedGuard = s_propagatingSymbolChanges;
+    s_propagatingSymbolChanges = true;
+
+    // keepxsettings=true so per-effect X_ state (lock, render-disable,
+    // description) survives a symbol update.
+    SetSettings(symbol->GetSettings().AsString(), true);
+    SetPalette(symbol->GetPalette());
+    SetEffectIndex(symbol->GetEffectIndex());
+
+    IncrementChangeCount();
+
+    s_propagatingSymbolChanges = savedGuard;
+}
+
+void Effect::HandlePastedSymbolLink()
+{
+    std::string symbolId;
+    {
+        std::unique_lock<std::recursive_mutex> lock(settingsLock);
+        symbolId = mSettings.Get("X_LinkedSymbolId", "");
+        if (!symbolId.empty()) {
+            mSettings.erase("X_LinkedSymbolId");
+        }
+    }
+
+    if (symbolId.empty()) {
+        return;
+    }
+
+    if (mParentLayer == nullptr) return;
+
+    Element* parentElement = mParentLayer->GetParentElement();
+    if (parentElement == nullptr) return;
+
+    SequenceElements* seqElements = parentElement->GetSequenceElements();
+    if (seqElements == nullptr) return;
+
+    EffectSymbolManager& symbolManager = seqElements->GetEffectSymbolManager();
+    EffectSymbol* symbol = symbolManager.GetSymbol(symbolId);
+
+    if (symbol != nullptr) {
+        _linkedSymbolId = symbolId;
+        symbolManager.RegisterLinkedEffect(this, symbolId);
     }
 }

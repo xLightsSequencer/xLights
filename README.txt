@@ -11,6 +11,10 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
+    -enh (charlie)               Effect Symbols: define a reusable effect (name, color, settings, palette) once and
+                                 link any number of effects to it. Editing a linked effect updates the symbol and
+                                 propagates to every other linked effect. Symbols round-trip through .xsq and have a
+                                 "Convert All Symbols to Effects" escape hatch for compatibility export (#2671).
     -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
     -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable
