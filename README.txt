@@ -11,6 +11,7 @@ Issue Tracker is found here: www.github.com/xLightsSequencer/xLights/issues
 XLIGHTS/NUTCRACKER RELEASE NOTES
 ---------------------------------
 2026.12  June ??, 2026
+    -enh (cybercop23)            Sequencer timeline fits the full sequence to the viewport width on load, keep same width for 20/40 fps.
     -bug (dan)                   Fix crash closing/switching sequences with a Moving Head effect selected (programmatic default
                                  reset fired live update handlers that dereferenced a stale model)
     -bug (dan)                   Fix crash clicking a sequencer row heading when the visible row information was momentarily unavailable

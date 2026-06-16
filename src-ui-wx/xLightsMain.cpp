@@ -4170,7 +4170,7 @@ void xLightsFrame::UpdateSequenceLength()
         mainSequencer->PanelTimeLine->SetTimeLength(CurrentSeqXmlFile->GetSequenceDurationMS());
         mainSequencer->PanelTimeLine->Initialize();
         int maxZoom = mainSequencer->PanelTimeLine->GetMaxZoomLevel();
-        mainSequencer->PanelTimeLine->SetZoomLevel(maxZoom);
+        mainSequencer->PanelTimeLine->SetFitZoom();
         mainSequencer->PanelWaveForm->SetZoomLevel(maxZoom);
         mainSequencer->PanelTimeLine->RaiseChangeTimeline();
         mainSequencer->PanelWaveForm->UpdatePlayMarker();
