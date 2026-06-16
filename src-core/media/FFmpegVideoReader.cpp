@@ -695,6 +695,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
                             spdlog::warn("VideoReader: av_hwframe_transfer_data failed for {} — abandoning hardware decode.", _filename);
+                            spdlog::default_logger()->flush();
                             _abandonHardwareDecode = true;
                             if (_swsCtx != nullptr) {
                                 sws_freeContext(_swsCtx);
@@ -740,11 +741,28 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
 
-                if (f != nullptr && f->hw_frames_ctx != nullptr) {
-                    spdlog::warn("VideoReader: frame passed to sws_scale is still GPU-backed (fmt={}) — skipping.", av_get_pix_fmt_name((AVPixelFormat)f->format));
-                    f = nullptr;
+                if (f != nullptr) {
+                    // Guard: reject any frame that is still hardware-backed — either
+                    // because hw_frames_ctx is set, or because the pixel format is a
+                    // hardware-accelerated format (AV_PIX_FMT_FLAG_HWACCEL). Passing
+                    // such a frame to sws_scale causes an access violation reading
+                    // GPU/device memory as if it were CPU data.
+                    bool isHwFrame = (f->hw_frames_ctx != nullptr);
+                    if (!isHwFrame) {
+                        const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get((AVPixelFormat)f->format);
+                        isHwFrame = (desc != nullptr && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL));
+                    }
+                    if (isHwFrame) {
+                        spdlog::warn("VideoReader: frame is still hardware-backed (fmt={}, hw_frames_ctx={}) — skipping sws_scale.",
+                            av_get_pix_fmt_name((AVPixelFormat)f->format), (void*)f->hw_frames_ctx);
+                        spdlog::default_logger()->flush();
+                        f = nullptr;
+                    }
                 }
                 if (f != nullptr && _swsCtx != nullptr) {
+                    spdlog::debug("VideoReader: sws_scale fmt={} {}x{} linesize={} -> fmt={} {}x{} linesize={}",
+                        av_get_pix_fmt_name((AVPixelFormat)f->format), f->width, f->height, f->linesize[0],
+                        av_get_pix_fmt_name(_pixelFmt), _width, _height, _dstFrame2->linesize[0]);
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
