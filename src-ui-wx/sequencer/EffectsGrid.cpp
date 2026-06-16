@@ -2268,8 +2268,8 @@ void EffectsGrid::mouseDown(wxMouseEvent& event) {
                 } else if (event.ControlDown()) {
                     mDragAddToSelection = true;
                     mAdditiveDragBaseSelection.clear();
-                    for (int vrow = 0; vrow < (int)mSequenceElements->GetVisibleRowInformationSize(); vrow++) {
-                        EffectLayer* el = mSequenceElements->GetVisibleEffectLayer(vrow);
+                    for (int row = 0; row < mSequenceElements->GetRowInformationSize(); row++) {
+                        EffectLayer* el = mSequenceElements->GetEffectLayer(row);
                         if (el == nullptr) continue;
                         for (int i = 0; i < el->GetEffectCount(); i++) {
                             Effect* e = el->GetEffect(i);
