@@ -2724,20 +2724,6 @@ static bool NeedToRenderFrame(wxWindow *w, const xLightsTimer& t, std::vector<bo
 
 bool xLightsFrame::TimerRgbSeq(long msec)
 {
-    //
-
-    // check if there are models that depend on timing tracks or similar that need to be rendered
-    std::vector<Element *> elsToRender;
-    if (_sequenceElements.GetElementsToRender(elsToRender)) {
-        for (const auto& it : elsToRender) {
-            int ss, es;
-            it->GetDirtyRange(ss, es);
-            if (!_suspendRender) {
-                RenderEffectForModel(it->GetModelName(), ss, es);
-            }
-        }
-    }
-
     // return if play is stopped
     if (playType == PLAY_TYPE_STOPPED || CurrentSeqXmlFile == nullptr) {
         return false;
@@ -2752,6 +2738,18 @@ bool xLightsFrame::TimerRgbSeq(long msec)
     // return if we have reset play times
     if (playEndTime == 0) {
         return false;
+    }
+
+    // check if there are models that depend on timing tracks or similar that need to be rendered
+    std::vector<Element *> elsToRender;
+    if (_sequenceElements.GetElementsToRender(elsToRender)) {
+        for (const auto& it : elsToRender) {
+            int ss, es;
+            it->GetDirtyRange(ss, es);
+            if (!_suspendRender) {
+                RenderEffectForModel(it->GetModelName(), ss, es);
+            }
+        }
     }
 
     // capture start time if necessary
