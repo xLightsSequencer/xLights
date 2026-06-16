@@ -143,14 +143,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
         }
         if (fname.empty()) {
             if (CurrentSeqXmlFile != nullptr) {
-                std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
-                                                        JSONSafe(CurrentSeqXmlFile->GetName()),
-                                                        JSONSafe(CurrentSeqXmlFile->GetFullPath()),
-                                                        JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
-                                                        CurrentSeqXmlFile->GetSequenceDurationMS(),
-                                                        CurrentSeqXmlFile->GetFrameMS());
-
-                return sendResponse(response, "", 200, true);
+                nlohmann::json j;
+                j["seq"] = CurrentSeqXmlFile->GetName();
+                j["fullseq"] = CurrentSeqXmlFile->GetFullPath();
+                j["media"] = CurrentSeqXmlFile->GetMediaFile();
+                j["len"] = CurrentSeqXmlFile->GetSequenceDurationMS();
+                j["framems"] = CurrentSeqXmlFile->GetFrameMS();
+                return sendResponse(j.dump(), "", 200, true);
             } else {
                 return sendResponse("Sequence not open.", "msg", 503, false);
             }
@@ -169,14 +168,13 @@ bool xLightsFrame::ProcessAutomation(std::vector<std::string> &paths,
             OpenSequence(seq, nullptr);
             _promptBatchRenderIssues = oldPrompt;
             _renderMode = oldRenderMode;
-            std::string response = wxString::Format("{\"seq\":\"%s\",\"fullseq\":\"%s\",\"media\":\"%s\",\"len\":%u,\"framems\":%u}",
-                                                    JSONSafe(CurrentSeqXmlFile->GetName()),
-                                                    JSONSafe(CurrentSeqXmlFile->GetFullPath()),
-                                                    JSONSafe(CurrentSeqXmlFile->GetMediaFile()),
-                                                    CurrentSeqXmlFile->GetSequenceDurationMS(),
-                                                    CurrentSeqXmlFile->GetFrameMS());
-
-            return sendResponse(response, "", 200, true);
+            nlohmann::json j;
+            j["seq"] = CurrentSeqXmlFile->GetName();
+            j["fullseq"] = CurrentSeqXmlFile->GetFullPath();
+            j["media"] = CurrentSeqXmlFile->GetMediaFile();
+            j["len"] = CurrentSeqXmlFile->GetSequenceDurationMS();
+            j["framems"] = CurrentSeqXmlFile->GetFrameMS();
+            return sendResponse(j.dump(), "", 200, true);
         }
     } else if (cmd == "closeSequence") {
         if (CurrentSeqXmlFile == nullptr) {

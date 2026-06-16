@@ -5717,7 +5717,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
     if (mSequenceElements == nullptr)
         return res;
 
-    spdlog::info("Pasting data: {}", (const char*)data.c_str());
+    spdlog::debug("Pasting data: {}", (const char*)data.c_str());
 
     wxArrayString all_efdata = wxSplit(data, '\n', wxT('\0'));
     if (all_efdata.size() == 0)
@@ -5776,7 +5776,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
     ((MainSequencer*)mParent)->PanelRowHeadings->SetCanPaste(false);
 
-    spdlog::info("mPartialCellSelected {},   OneCellSelected: {}    paste_by_cell:  {}", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
+    spdlog::debug("mPartialCellSelected {},   OneCellSelected: {}    paste_by_cell:  {}", (int)mPartialCellSelected, (int)OneCellSelected(), paste_by_cell);
 
     if (mPartialCellSelected || OneCellSelected() || xlights->IsACActive() || row_paste) {
         if (((number_of_timings + number_of_effects) > 1) || xlights->IsACActive() || paste_by_cell) // multi-effect paste or row_paste or paste_by_cell one effect
@@ -6189,7 +6189,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                             if (ef != nullptr) {
                                 ef->SetLocked(false);
-                                spdlog::info("(1) Created effect {}  {}  {}  {} {} -->  {}",
+                                spdlog::debug("(1) Created effect {}  {}  {}  {} {} -->  {}",
                                                  (const char*)efdata[0].c_str(),
                                                  (const char*)efdata[1].Left(128).c_str(),
                                                  (const char*)efdata[2].c_str(),
@@ -6229,7 +6229,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     return res;
                 }
                 bool is_timing_effect = (efdata[7] == "TIMING_EFFECT");
-                spdlog::info("mCellRangeSelected: {}   mPartialCellSelected: {}", mCellRangeSelected, mPartialCellSelected);
+                spdlog::debug("mCellRangeSelected: {}   mPartialCellSelected: {}", mCellRangeSelected, mPartialCellSelected);
 
                 if (mCellRangeSelected && !mPartialCellSelected) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
@@ -6243,7 +6243,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                     return res;
                 }
                 int effectIndex = xlights->GetEffectManager().GetEffectIndex(efdata[0].ToStdString());
-                spdlog::info("mDropRow: {}   effectIndex: {}", mDropRow, effectIndex);
+                spdlog::debug("mDropRow: {}   effectIndex: {}", mDropRow, effectIndex);
                 if (effectIndex >= 0 || is_timing_effect) {
                     int end_time = mDropEndTimeMS;
                     if (((efdata.size() >= 7) && GetActiveTimingElement() == nullptr) || !paste_by_cell) // use original effect length if no timing track is active
@@ -6269,7 +6269,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                         if (ef != nullptr) {
                             ef->SetLocked(false);
-                            spdlog::info("(2) Created effect {}  {}  {}  {} {} -->  {}",
+                            spdlog::debug("(2) Created effect {}  {}  {}  {} {} -->  {}",
                                              (const char*)efdata[0].c_str(),
                                              (const char*)efdata[1].Left(128).c_str(),
                                              (const char*)efdata[2].c_str(),
@@ -6317,17 +6317,17 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
                 if (col1 > col2) {
                     std::swap(col1, col2);
                 }
-                spdlog::info("row1: {}   row2: {}   col1: {}   col2: {}", row1, row2, col1, col2);
+                spdlog::debug("row1: {}   row2: {}   col1: {}   col2: {}", row1, row2, col1, col2);
 
                 for (int row = row1; row <= row2; row++) {
                     EffectLayer* tel = mSequenceElements->GetVisibleEffectLayer(mSequenceElements->GetSelectedTimingRow());
                     if (tel->GetEffect(col1) == nullptr) {
-                        spdlog::info("No start time");
+                        spdlog::debug("No start time");
                         break;
                     }
                     int start_time = tel->GetEffect(col1)->GetStartTimeMS();
                     if (tel->GetEffect(col2) == nullptr) {
-                        spdlog::info("No end time");
+                        spdlog::debug("No end time");
                         break;
                     }
                     int end_time = tel->GetEffect(col2)->GetEndTimeMS();
@@ -6357,7 +6357,7 @@ Effect* EffectsGrid::Paste(const wxString& data, const wxString& pasteDataVersio
 
                             if (ef != nullptr) {
                                 ef->SetLocked(false);
-                                spdlog::info("(3) Created effect {}  {}  {}  {} {} -->  {}",
+                                spdlog::debug("(3) Created effect {}  {}  {}  {} {} -->  {}",
                                                  (const char*)efdata[0].c_str(),
                                                  (const char*)efdata[1].Left(128).c_str(),
                                                  (const char*)efdata[2].c_str(),

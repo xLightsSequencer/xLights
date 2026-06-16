@@ -106,7 +106,7 @@ std::pair<std::list<std::string>, bool> LuaRunner::PromptSequences() const
         for (auto const& f : files) {
             wxFileName fname(_frame->GetShowDirectory() + GetPathSeparator() + f);
             if (FileExists(fname)) {
-                sequenceList.push_back(fname.GetFullPath());
+                sequenceList.push_back(fname.GetFullPath().utf8_string());
             } else {
                 spdlog::info("PromptSequences: Sequence File not Found: {}.", fname.GetFullPath().utf8_string());
             }
