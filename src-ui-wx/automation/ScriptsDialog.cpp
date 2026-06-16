@@ -281,9 +281,9 @@ void ScriptsDialog::Run_Lua_Script(wxString const& filepath) const
 
 
     auto LogMessage = [&](std::string const& message) {
-        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText(wxString::FromUTF8(message));
         TextCtrl_Log->AppendText("\n");
-        spdlog::info("{}", (const char*)message.c_str());
+        spdlog::info("{}", message);
     };
     _runner->Run_Script(filepath, LogMessage);
 }
@@ -296,9 +296,9 @@ void ScriptsDialog::Run_Python_Script(wxString const& filepath) const
 
 
     auto LogMessage = [&](std::string const& message) {
-        TextCtrl_Log->AppendText(message);
+        TextCtrl_Log->AppendText(wxString::FromUTF8(message));
         TextCtrl_Log->AppendText("\n");
-        spdlog::info("{}", (const char*)message.c_str());
+        spdlog::info("{}", message);
     };
     _pyrunner->Run_Script(filepath, LogMessage);
 #endif
