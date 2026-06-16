@@ -1338,8 +1338,20 @@ void SubModelsDialog::OnNodesGridCellRightClick(wxGridEvent& event)
     mnu.AppendSeparator();
     if (model->IsCustom()) {
         mnu.Append(SUBMODEL_DIALOG_SYMMETRIZE, "Symmetrize (Rotational)");
+        wxString mname = GetSelectedName();
+        SubModelInfo* sm = mname.empty() ? nullptr : GetSubModelInfo(mname);
+        bool hasNodes = sm != nullptr && !sm->strands.empty() &&
+                        std::any_of(sm->strands.begin(), sm->strands.end(),
+                                    [](const std::string& s) { return !s.empty(); });
+        mnu.Enable(SUBMODEL_DIALOG_SYMMETRIZE, hasNodes);
     }
-    mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+    {
+        mnu.Append(SUBMODEL_DIALOG_COMBINE_STRANDS, "Combine Strands");
+        wxString csname = GetSelectedName();
+        SubModelInfo* cssm = csname.empty() ? nullptr : GetSubModelInfo(csname);
+        bool hasMultipleStrands = cssm != nullptr && cssm->strands.size() > 1;
+        mnu.Enable(SUBMODEL_DIALOG_COMBINE_STRANDS, hasMultipleStrands);
+    }
 
     mnu.AppendSeparator();
     mnu.Append(SUBMODEL_DIALOG_EXPAND_STRANDS_ALL, "Expand All Strands");
@@ -1618,6 +1630,7 @@ void SubModelsDialog::Symmetrize()
     auto* orderBox = new wxRadioBox(&dlg, wxID_ANY, "Build Order", wxDefaultPosition, wxDefaultSize,
                                     2, orderChoices, 1, wxRA_SPECIFY_COLS);
     orderBox->SetSelection(savedBottomToTop ? 1 : 0);
+    orderBox->SetToolTip("Top to Bottom: generated strands are added after original");
 
     auto* dosRow = new wxBoxSizer(wxHORIZONTAL);
     dosRow->Add(new wxStaticText(&dlg, wxID_ANY, "Degree of Symmetry:"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
