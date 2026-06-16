@@ -1,0 +1,252 @@
+name: ANGLE Nightly (CMake + Ninja)
+
+# Nightly Windows build of the ANGLE (OpenGL ES 3.0 over Direct3D11) variant of
+# xLights, compiled with CMake + Ninja and packaged into an Inno Setup installer.
+#
+# Dependency resolution:
+#   - ANGLE (libGLESv2/libEGL + headers + import libs) is downloaded prebuilt
+#     from the mmozeiko/build-angle releases and pointed at via XLIGHTS_ANGLE_DIR.
+#     XLIGHTS_USE_ANGLE=ON selects the ES backend (USE_GLES); CMakeLists links the
+#     ANGLE import libs ahead of wxWidgets so gl* bind to ANGLE.
+#   - FFmpeg / SDL2 / curl / zstd / hidapi / webp / xlsxwriter come from the
+#     repo's vendored prebuilt libs (lib/windows64 + bin/ + bin64/), i.e.
+#     XLIGHTS_USE_VCPKG stays OFF — no vcpkg, no dependency source builds.
+#   - sccache caches xLights object files across runs.
+#
+# The single-config Ninja build places xLights.exe + the runtime DLLs + the
+# POST_BUILD-copied resource folders into bin\; xlDo.exe and fseq_convert.exe are
+# built by their own CMake projects into bin\ too, so the installer packages bin\
+# wholesale via the shared xLights_4_64bit_VS.iss /DCMAKEBUILD branch.
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # 07:00 UTC nightly (after win_nightly 05:00 / openvino 06:00)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Only build when there were commits in the last 24h ────────────────────
+  check_for_commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for new commits today
+        id: check-new-commits
+        shell: bash
+        run: |
+          CUTOFF_TIME=$(date -d '24 hours ago' +%s)
+          LATEST_COMMIT=$(git log -1 --format=%ct)
+          if [ "$LATEST_COMMIT" -gt "$CUTOFF_TIME" ]; then
+            echo "has-new-commits=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-new-commits=false" >> "$GITHUB_OUTPUT"
+          fi
+    outputs:
+      should_run: ${{ steps.check-new-commits.outputs.has-new-commits }}
+
+  build:
+    needs: check_for_commits
+    # Always build on manual dispatch; on schedule only when there are new commits.
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.check_for_commits.outputs.should_run == 'true' }}
+    name: CMake / Ninja / ANGLE / Windows x64
+    runs-on: windows-latest
+
+    env:
+      BUILD_DIR: cmake_ninja_angle
+      SCCACHE_GHA_ENABLED: "true"
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      # ── MSVC environment (Ninja drives cl.exe directly) ───────────────────
+      - name: Setup MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      # ── ISPC ──────────────────────────────────────────────────────────────
+      - name: Install ISPC
+        uses: ispc/install-ispc-action@main
+        with:
+          version: 1.30.0
+
+      # ── sccache ───────────────────────────────────────────────────────────
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Configure sccache
+        shell: bash
+        run: |
+          if ! sccache --zero-stats; then
+            echo "::warning::sccache GHA backend unavailable; falling back to local disk"
+            echo "SCCACHE_GHA_ENABLED=" >> "$GITHUB_ENV"
+            sccache --stop-server 2>/dev/null || true
+          fi
+
+      # ── Python helper for nightly version stamping ────────────────────────
+      - name: Install python dependency
+        run: pip install in_place
+
+      - name: Generate nightly version number
+        working-directory: build_scripts\msw
+        run: python WriteNightlyVersionFiles.py
+
+      # ── Prebuilt ANGLE ────────────────────────────────────────────────────
+      # Download the latest prebuilt ANGLE x64 SDK (libGLESv2/libEGL + import
+      # libs + headers + d3dcompiler_47.dll) from mmozeiko/build-angle. The asset
+      # is date-versioned (angle-x64-YYYY-MM-DD.zip), so resolve it from the
+      # latest release via the API rather than hard-coding a name.
+      - name: Download prebuilt ANGLE
+        shell: pwsh
+        run: |
+          $headers = @{ Authorization = "Bearer ${{ secrets.GITHUB_TOKEN }}"; "User-Agent" = "xlights-ci" }
+          $rel = Invoke-RestMethod "https://api.github.com/repos/mmozeiko/build-angle/releases/latest" -Headers $headers
+          $asset = $rel.assets | Where-Object { $_.name -like 'angle-x64-*.zip' } | Select-Object -First 1
+          if (-not $asset) { throw "No angle-x64 asset in mmozeiko/build-angle latest release ($($rel.tag_name))" }
+          Write-Host "ANGLE asset: $($asset.name)  (release $($rel.tag_name))"
+          $zip = "${{ runner.temp }}\angle-x64.zip"
+          Invoke-WebRequest $asset.browser_download_url -OutFile $zip -UseBasicParsing
+          Expand-Archive $zip -DestinationPath "${{ runner.temp }}\angle" -Force
+          # zip extracts to a single angle-x64\ folder containing bin\ lib\ include\
+          $dir = (Get-ChildItem "${{ runner.temp }}\angle" -Directory | Select-Object -First 1).FullName
+          "ANGLE_DIR=$dir" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "ANGLE_DIR=$dir"
+
+      # ── wxWidgets ─────────────────────────────────────────────────────────
+      # Shared cache key with the other Ninja nightlies — wxWidgets itself is
+      # identical regardless of the xLights GL backend.
+      - name: Get wxWidgets HEAD SHA
+        id: wx-sha
+        shell: bash
+        run: |
+          sha=$(git ls-remote https://github.com/xLightsSequencer/wxWidgets.git HEAD \
+                | cut -f1 | head -c 12)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Cache wxWidgets
+        id: cache-wx
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}\wxWidgets
+          key: wxwidgets-msvc2022-x64-ninja-${{ steps.wx-sha.outputs.sha }}
+
+      - name: Checkout wxWidgets
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: xLightsSequencer/wxWidgets
+          path: wxWidgets
+          submodules: recursive
+
+      - name: Build wxWidgets (Release)
+        if: steps.cache-wx.outputs.cache-hit != 'true'
+        working-directory: ${{ github.workspace }}\wxWidgets
+        run: msbuild /m .\build\msw\wx_vc17.sln /p:Configuration="Release" /p:Platform="x64"
+
+      # ── Configure (no vcpkg; vendored deps + prebuilt ANGLE) ──────────────
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          cmake -S . -B %BUILD_DIR% ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DXLIGHTS_USE_ANGLE=ON ^
+            -DXLIGHTS_ANGLE_DIR=%ANGLE_DIR% ^
+            -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      - name: Build
+        shell: cmd
+        run: cmake --build %BUILD_DIR% --parallel 8
+
+      - name: sccache stats
+        run: sccache --show-stats
+
+      # ── xlDo (companion CLI) ──────────────────────────────────────────────
+      # Built by its own CMake project; RUNTIME_OUTPUT_DIRECTORY -> bin\ so the
+      # installer's wholesale bin\ glob picks up xlDo.exe.
+      - name: Build xlDo
+        shell: cmd
+        run: |
+          cmake -S xlDo -B xldo_build ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin ^
+            -DwxWidgets_ROOT_DIR=${{ github.workspace }}\wxWidgets
+          cmake --build xldo_build --parallel 8
+
+      # ── fseq_convert (companion CLI) ──────────────────────────────────────
+      # Standalone CMake project (FetchContent pulls spdlog + argparse); links
+      # the vendored zstd/zlib from lib\windows64. Output -> bin\.
+      - name: Build fseq_convert
+        shell: cmd
+        run: |
+          cmake -S fseq_convert -B fseq_convert_build ^
+            -G Ninja ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin
+          cmake --build fseq_convert_build --parallel 8
+
+      # ── Bundle ANGLE runtime DLLs ─────────────────────────────────────────
+      # The CMake POST_BUILD copies the vendored FFmpeg/SDL2/curl DLLs from
+      # bin64\ into bin\; the prebuilt ANGLE runtime DLLs come from the downloaded
+      # SDK, so copy them into bin\ so the wholesale installer glob ships them.
+      - name: Copy ANGLE DLLs into bin
+        shell: pwsh
+        run: |
+          $dst = Join-Path $env:GITHUB_WORKSPACE "bin"
+          New-Item -ItemType Directory -Force -Path $dst | Out-Null
+          foreach ($dll in 'libGLESv2.dll','libEGL.dll','d3dcompiler_47.dll') {
+            $p = Join-Path "$env:ANGLE_DIR\bin" $dll
+            if (Test-Path $p) { Copy-Item $p $dst -Force; Write-Host "copied $dll" }
+            else { Write-Warning "$dll not found in $env:ANGLE_DIR\bin" }
+          }
+
+      # ── Installer ─────────────────────────────────────────────────────────
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build Installer
+        working-directory: build_scripts\msw
+        # /DCMAKEBUILD selects the cmake/ninja bin\ layout branch in the shared
+        # installer script (the same xLights_4_64bit_VS.iss used by win_nightly).
+        run: ISCC.exe /DCMAKEBUILD xLights_4_64bit_VS.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xLights_ANGLE_x64_Installer
+          path: build_scripts\msw\output\**
+          retention-days: 14
+
+      # ── Publish nightly prerelease ────────────────────────────────────────
+      - name: Create prerelease
+        if: github.ref == 'refs/heads/master'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: "nightly-angle"
+          title: "Nightly (ANGLE)"
+          files: |
+            ./build_scripts/msw/output/*.exe

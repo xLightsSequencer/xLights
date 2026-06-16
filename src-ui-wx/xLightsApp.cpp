@@ -362,6 +362,9 @@ void DumpConfig()
     int verMin = -1;
     wxOperatingSystemId o = wxGetOsVersion(&verMaj, &verMin);
     spdlog::info("  OS: {} {}.{}", (const char*)DecodeOS(o).c_str(), verMaj, verMin);
+#ifdef USE_GLES
+    spdlog::info("  Graphics backend: ANGLE (OpenGL ES / Direct3D)");
+#endif
     if (wxIsPlatform64Bit())
     {
         spdlog::info("      64 bit");
