@@ -690,7 +690,15 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
 
             if (!hardwareScaled) {
                 AVFrame* f = nullptr;
-                if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
+                // Detect hw-backed frames via hw_frames_ctx OR a matching hw pixel format.
+                // h264_cuvid can report format=NV12 while data is in CUDA device memory,
+                // so hw_frames_ctx is the reliable indicator.
+                bool srcIsHwBacked = IsHardwareAcceleratedVideo() &&
+                                     _codecContext->hw_device_ctx != nullptr &&
+                                     !_abandonHardwareDecode &&
+                                     (_srcFrame->hw_frames_ctx != nullptr ||
+                                      (_srcFrame->format == __hw_pix_fmt && __hw_pix_fmt != AV_PIX_FMT_NONE));
+                if (srcIsHwBacked) {
                     bool hwscale = false;
                     if (!hwscale) {
                         if (av_hwframe_transfer_data(_srcFrame2, _srcFrame, 0) < 0) {
@@ -718,7 +726,7 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     if (_abandonHardwareDecode) {
                         spdlog::debug("VideoReader: Using software decode (hardware decoding unavailable for this file).");
                     }
-                    if (IsHardwareAcceleratedVideo() && _codecContext->hw_device_ctx != nullptr && _srcFrame->format == __hw_pix_fmt && !_abandonHardwareDecode) {
+                    if (srcIsHwBacked) {
                         spdlog::debug("Hardware format {} -> Software format {}.", av_get_pix_fmt_name((AVPixelFormat)_srcFrame->format), av_get_pix_fmt_name((AVPixelFormat)_srcFrame2->format));
                         _swsCtx = sws_getContext(f->width, f->height, (AVPixelFormat)f->format,
                             _width, _height, _pixelFmt, scaleAlgorithm, nullptr, nullptr, nullptr);
