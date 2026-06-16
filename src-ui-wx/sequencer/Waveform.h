@@ -112,7 +112,7 @@ class Waveform : public GRAPHICS_BASE_CLASS
     private:
       	DECLARE_EVENT_TABLE()
         //void GetMinMaxSampleSet(int setSize, float*sampleData,int trackSize, MINMAX* minMax);
-        float GetSamplesPerLineFromZoomLevel(int ZoomLevel) const;
+        float GetSamplesPerLineFromZoomLevel() const;
 		TimeLine* mTimeline;
         wxPanel* mParent;
         //wxWindow* mMainWindow;

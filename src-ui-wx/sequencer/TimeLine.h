@@ -84,6 +84,7 @@ public:
 
     void SetZoomLevel(int level);
     int GetZoomLevel() const;
+    bool IsFitZoom() const { return mInFitZoom; }
     void SetFitZoom();
 
     int GetZoomLevelValue() const;

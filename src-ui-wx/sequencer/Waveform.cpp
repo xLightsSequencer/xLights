@@ -553,7 +553,7 @@ void Waveform::OnGridPopup(wxCommandEvent& event)
         _media->SwitchTo(_type, _lowNote, _highNote);
     }
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
@@ -1051,7 +1051,7 @@ int Waveform::OpenfileMedia(AudioManager* media, wxString& error)
     if (_media != nullptr) {
         _media->SwitchTo(_type);
         if (mTimeline) mLastEffectiveTick = mTimeline->TimePerMajorTickInMS();
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, media, _type, _lowNote, _highNote);
         mCurrentWaveView = 0;
         return media->LengthMS();
@@ -1477,7 +1477,7 @@ void Waveform::SetZoomLevel(int level)
         }
     }
     if (mCurrentWaveView == NO_WAVE_VIEW_SELECTED) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(mZoomLevel, samplesPerLine, _media, _type, _lowNote, _highNote);
         mCurrentWaveView = views.size() - 1;
     }
@@ -1513,7 +1513,7 @@ int Waveform::GetTimeFrequency() const
     return  mFrequency;
 }
 
-float Waveform::GetSamplesPerLineFromZoomLevel(int ZoomLevel) const
+float Waveform::GetSamplesPerLineFromZoomLevel() const
 {
     float timePerPixel;
     if (mTimeline != nullptr) {
@@ -1552,7 +1552,7 @@ void Waveform::SetWaveFormSize(int h)
     views.clear();
 
     if (_media != nullptr) {
-        float samplesPerLine = GetSamplesPerLineFromZoomLevel(mZoomLevel);
+        float samplesPerLine = GetSamplesPerLineFromZoomLevel();
         views.emplace_back(0, samplesPerLine, _media, _type, _lowNote, _highNote);
     }
 

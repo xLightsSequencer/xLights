@@ -8,6 +8,8 @@
  * License: https://github.com/xLightsSequencer/xLights/blob/master/License.txt
  **************************************************************/
 
+#include <cmath>
+
 #include <wx/wx.h>
 #include <wx/brush.h>
 #include <wx/textdlg.h>
@@ -1094,10 +1096,6 @@ void TimeLine::ZoomIn()
         SetZoomLevel(GetMaxZoomLevel() - 1);
         return;
     }
-    if (mZoomLevel >= GetMaxZoomLevel()) {
-        SetFitZoom();
-        return;
-    }
     if (mZoomLevel > 0) {
         SetZoomLevel(mZoomLevel - 1);
     }
@@ -1570,10 +1568,10 @@ int TimeLine::TimePerMajorTickInMS()
         int w = GetSize().x;
         if (w > 0) {
             double idealTickMS = (double)mTimeLength * PIXELS_PER_MAJOR_HASH / (double)w;
-            return (int)niceFitTickMS(idealTickMS);
+            return (int)std::lround(niceFitTickMS(idealTickMS));
         }
         if (mFitTimePerMajorTickMS > 0.0)
-            return (int)mFitTimePerMajorTickMS;
+            return (int)std::lround(mFitTimePerMajorTickMS);
     }
     return (int)((double)ZoomLevelValues[mZoomLevel] * ((double)1000.0/(double)mFrequency));
 }
