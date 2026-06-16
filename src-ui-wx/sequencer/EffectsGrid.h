@@ -358,6 +358,8 @@ private:
     bool mDragging;
     bool mDragThresholdExceeded;
     bool mMouseOperationsCancelled;
+    bool mDragAddToSelection = false;
+    std::vector<Effect*> mAdditiveDragBaseSelection;
     int mDragStartRow;
     int mDragStartX;
     int mDragStartY;
