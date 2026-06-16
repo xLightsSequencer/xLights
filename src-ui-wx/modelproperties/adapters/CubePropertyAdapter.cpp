@@ -104,13 +104,11 @@ void CubePropertyAdapter::AddTypeProperties(wxPropertyGridInterface* grid, Outpu
 }
 
 int CubePropertyAdapter::OnPropertyGridChange(wxPropertyGridInterface* grid, wxPropertyGridEvent& event) {
-    if ("CubeShape" == event.GetPropertyName()) {
-        _cube.SetCubeShape(static_cast<int>(event.GetPropertyValue().GetLong()));
-        _cube.IncrementChangeCount();
         _cube.AddASAPWork(OutputModelManager::WORK_RELOAD_MODEL_CHANGE |
                     OutputModelManager::WORK_RELOAD_MODELLIST |
                     OutputModelManager::WORK_CALCULATE_START_CHANNELS |
-                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS, "CubePropertyAdapter::OnPropertyGridChange::CubeShape");
+                    OutputModelManager::WORK_MODELS_REWORK_STARTCHANNELS |
+                    OutputModelManager::WORK_RELOAD_PROPERTYGRID, "CubePropertyAdapter::OnPropertyGridChange::CubeShape");
         return 0;
     } else if ("CubeHollow" == event.GetPropertyName()) {
         _cube.SetHollowPct(static_cast<int>(event.GetPropertyValue().GetLong()));
