@@ -1068,8 +1068,8 @@ bool xLightsFrame::CloseSequence()
             mainSequencer->PanelEffectGrid->ClearSelection();
     }
 
-    _sequenceElements.Clear();
     ResetAllPanelDefaultSettings();
+    _sequenceElements.Clear();
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 
