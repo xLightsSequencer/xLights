@@ -1533,7 +1533,7 @@ void xLightsFrame::OpenRenderAndSaveSequences(const wxArrayString &origFilenames
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), xlightsFilename, elapsedTime);
-            spdlog::info("{}", (const char*)displayBuff.c_str());
+            spdlog::info("{}", displayBuff.utf8_string());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
             mLastAutosaveCount = mSavedChangeCount;
@@ -1700,7 +1700,7 @@ void xLightsFrame::SaveSequence()
             DisplayXlightsFilename(xlightsFilename);
             float elapsedTime = sw.Time()/1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
             wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"),xlightsFilename,elapsedTime);
-            spdlog::info(displayBuff.ToStdString());
+            spdlog::info("{}", displayBuff.utf8_string());
             CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
             EnableSequenceControls(true);
             mSavedChangeCount = _sequenceElements.GetChangeCount();
@@ -1721,7 +1721,7 @@ void xLightsFrame::SaveSequence()
     }
     float elapsedTime = sw.Time() / 1000.0; // now stop stopwatch timer and get elapsed time. change into seconds from ms
     wxString displayBuff = wxString::Format(_("%s     Updated in %7.3f seconds"), display_name, elapsedTime);
-    spdlog::info(displayBuff.ToStdString());
+    spdlog::info("{}", displayBuff.utf8_string());
     CallAfter(&xLightsFrame::SetStatusText, displayBuff, 0);
     EnableSequenceControls(true);
     mSavedChangeCount = _sequenceElements.GetChangeCount();
