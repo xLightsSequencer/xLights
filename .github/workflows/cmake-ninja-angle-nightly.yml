@@ -9,7 +9,7 @@ name: ANGLE Nightly (CMake + Ninja)
 #     XLIGHTS_USE_ANGLE=ON selects the ES backend (USE_GLES); CMakeLists links the
 #     ANGLE import libs ahead of wxWidgets so gl* bind to ANGLE.
 #   - FFmpeg / SDL2 / curl / zstd / hidapi / webp / xlsxwriter come from the
-#     repo's vendored prebuilt libs (lib/windows64 + bin/ + bin64/), i.e.
+#     repo's vendored prebuilt libs (lib/windows64 + bin64/), i.e.
 #     XLIGHTS_USE_VCPKG stays OFF — no vcpkg, no dependency source builds.
 #   - sccache caches xLights object files across runs.
 #
@@ -121,6 +121,16 @@ jobs:
           $dir = (Get-ChildItem "${{ runner.temp }}\angle" -Directory | Select-Object -First 1).FullName
           "ANGLE_DIR=$dir" | Out-File $env:GITHUB_ENV -Append
           Write-Host "ANGLE_DIR=$dir"
+          # Stage the prebuilt ANGLE runtime DLLs into bin64 — the single source
+          # of truth for vendored 64-bit DLLs. The CMake POST_BUILD copies bin64
+          # into the build output, so they ship like every other runtime DLL.
+          $bin64 = Join-Path $env:GITHUB_WORKSPACE "bin64"
+          New-Item -ItemType Directory -Force -Path $bin64 | Out-Null
+          foreach ($dll in 'libGLESv2.dll','libEGL.dll','d3dcompiler_47.dll') {
+            $p = Join-Path "$dir\bin" $dll
+            if (Test-Path $p) { Copy-Item $p $bin64 -Force; Write-Host "staged $dll -> bin64" }
+            else { Write-Warning "$dll not found in $dir\bin" }
+          }
 
       # ── wxWidgets ─────────────────────────────────────────────────────────
       # Shared cache key with the other Ninja nightlies — wxWidgets itself is
@@ -207,20 +217,34 @@ jobs:
             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%CD%\bin
           cmake --build fseq_convert_build --parallel 8
 
-      # ── Bundle ANGLE runtime DLLs ─────────────────────────────────────────
-      # The CMake POST_BUILD copies the vendored FFmpeg/SDL2/curl DLLs from
-      # bin64\ into bin\; the prebuilt ANGLE runtime DLLs come from the downloaded
-      # SDK, so copy them into bin\ so the wholesale installer glob ships them.
-      - name: Copy ANGLE DLLs into bin
+      # ── Guard: build output must be pure x64 ──────────────────────────────
+      # All vendored runtime DLLs (incl. the staged ANGLE DLLs) live only in
+      # bin64 now; the CMake POST_BUILD copies them into the build output (bin).
+      # bin no longer carries any committed DLLs, so the historical 32-bit/64-bit
+      # mix that produced "0xc000007b" cannot recur. This is a defense-in-depth
+      # check: delete any non-x64 PE in the build output before packaging so a
+      # stray 32-bit DLL can never reach the installer.
+      - name: Verify bin is pure x64
         shell: pwsh
         run: |
-          $dst = Join-Path $env:GITHUB_WORKSPACE "bin"
-          New-Item -ItemType Directory -Force -Path $dst | Out-Null
-          foreach ($dll in 'libGLESv2.dll','libEGL.dll','d3dcompiler_47.dll') {
-            $p = Join-Path "$env:ANGLE_DIR\bin" $dll
-            if (Test-Path $p) { Copy-Item $p $dst -Force; Write-Host "copied $dll" }
-            else { Write-Warning "$dll not found in $env:ANGLE_DIR\bin" }
+          $bin = Join-Path $env:GITHUB_WORKSPACE "bin"
+          function Get-PEMachine($p) {
+            $fs = [IO.File]::OpenRead($p)
+            try {
+              $b = [byte[]]::new(0x40); $null = $fs.Read($b, 0, 0x40)
+              $pe = [BitConverter]::ToInt32($b, 0x3c); $fs.Position = $pe + 4
+              $m = [byte[]]::new(2); $null = $fs.Read($m, 0, 2)
+              [BitConverter]::ToUInt16($m, 0)
+            } finally { $fs.Close() }
           }
+          Get-ChildItem $bin -Recurse -Include *.dll,*.exe | ForEach-Object {
+            $m = Get-PEMachine $_.FullName
+            if ($m -ne 0x8664) {
+              Write-Warning ("removing non-x64 ({0:x4}): {1}" -f $m, $_.FullName)
+              Remove-Item $_.FullName -Force
+            }
+          }
+          Write-Host "bin/ is now pure x64."
 
       # ── Installer ─────────────────────────────────────────────────────────
       - name: Install Inno Setup
