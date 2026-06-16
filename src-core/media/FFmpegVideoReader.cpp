@@ -740,6 +740,10 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
 
+                if (f != nullptr && f->hw_frames_ctx != nullptr) {
+                    spdlog::warn("VideoReader: frame passed to sws_scale is still GPU-backed (fmt={}) — skipping.", av_get_pix_fmt_name((AVPixelFormat)f->format));
+                    f = nullptr;
+                }
                 if (f != nullptr && _swsCtx != nullptr) {
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
