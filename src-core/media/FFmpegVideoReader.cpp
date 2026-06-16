@@ -768,9 +768,6 @@ bool FFmpegVideoReader::readFrame(int timestampMS) {
                     }
                 }
                 if (f != nullptr && _swsCtx != nullptr) {
-                    spdlog::debug("VideoReader: sws_scale fmt={} {}x{} linesize={} -> fmt={} {}x{} linesize={}",
-                        av_get_pix_fmt_name((AVPixelFormat)f->format), f->width, f->height, f->linesize[0],
-                        av_get_pix_fmt_name(_pixelFmt), _width, _height, _dstFrame2->linesize[0]);
                     sws_scale(_swsCtx, f->data, f->linesize, 0,
                         f->height, _dstFrame2->data,
                         _dstFrame2->linesize);
