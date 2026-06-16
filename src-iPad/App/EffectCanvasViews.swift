@@ -53,6 +53,20 @@ struct EffectCanvasActions {
     /// plus the `ms` it landed on; the outer view decides whether
     /// to create an effect (palette armed) filling the cell.
     var onDoubleTapEmpty: (_ rowIndex: Int, _ ms: Int) -> Void = { _,_ in }
+    /// Drag-create (desktop parity): a horizontal drag across empty
+    /// space on a model row, with a palette effect armed, creates a
+    /// new effect spanning `[startMS, endMS]`. Fired once on drag end.
+    var onCreateEffectDrag: (_ rowIndex: Int, _ startMS: Int, _ endMS: Int) -> Void = { _,_,_ in }
+    /// True iff a palette effect is currently armed. Gates the
+    /// drag-create path so an empty-space pan still scrolls normally
+    /// when nothing is armed.
+    var isPaletteArmed: () -> Bool = { false }
+    /// ⌘/Ctrl-tap on an effect — toggle its membership in the
+    /// multi-selection (additive). Desktop `EffectsGrid` Ctrl-click.
+    var onToggleSelectEffect: (_ row: Int, _ effect: Int) -> Void = { _,_ in }
+    /// ⇧-tap on an effect — extend the selection from the current
+    /// anchor to the tapped effect. Desktop `EffectsGrid` Shift-click.
+    var onExtendSelectEffect: (_ row: Int, _ effect: Int) -> Void = { _,_ in }
 }
 
 /// State provider for per-effect lock / disabled look. Keeping this as a

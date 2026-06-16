@@ -5,12 +5,14 @@
 > ops, AI lyrics/services, controller-visualizer editing, Export-Models (.xlsx),
 > value-curve presets, FPP progress, recent menus, and the 3D ModelPreview; the
 > desktop also pinch-zooms / pinch-scales / two-finger-rotates via
-> `wxEVT_GESTURE_*` (parity/desktop-weaker). The genuine desktop work is led by a
-> **P1**: *adjusting transition (fade) times by dragging on the effect grid*
-> (desktop has no grid fade-drag at all). Other feasible pull-backs: **edge auto-
-> scroll while dragging**, **snap-to-grid for layout models**, a **persistent
-> shaded loop region**, **actionable Check-Sequence navigation**, **`.xsqz` in-
-> place round-trip**, **Remove-Unused-Media**, **selected-row-grow**, a
+> `wxEVT_GESTURE_*` (parity/desktop-weaker). The former lead **P1** —
+> *adjusting transition (fade) times by dragging on the effect grid* — now
+> ships on desktop (#6494: draggable fade diamonds + live readout). **Edge
+> auto-scroll while dragging**, **snap-to-grid for layout models**, the
+> **case-sensitive Find toggle**, and **Copy Palette String** have also been
+> pulled back. Remaining feasible pull-backs: a **persistent shaded loop
+> region**, **actionable Check-Sequence navigation**, **`.xsqz` in-place
+> round-trip**, **Remove-Unused-Media**, **selected-row-grow**, a
 > **draggable XY center pad**, and inline Sketch/Morph editors. The durable
 > *infeasible* residue is genuine touch/pencil/camera/iCloud idioms (two-finger
 > marquee, pencil-undo, LiDAR scan, cloud docs).
@@ -19,10 +21,10 @@
 
 | Feature | Surface | Desktop | iPad | Gap | Priority | Ease | Feasibility | Notes |
 |---|---|---|---|---|---|---|---|---|
-| **Adjust transition (fade in/out) times on the grid** | gesture | ❌ | ✅ | desktop-missing | **P1** | medium | feasible | iPad drags fade handles directly on the effect (`EffectsMetalGridView.swift:177` `Kind.fadeIn/fadeOut`, `liveFadeInSec/OutSec` :200-201). Desktop has **no** fade-drag on the grid (`EffectsGrid.cpp` has no fade-drag); transition in/out times are set only via the Blending/Layer panel. High-value desktop pull-back. |
+| **Adjust transition (fade in/out) times on the grid** | gesture | ✅ | ✅ | parity | **P1** | medium | feasible | Desktop drags fade in/out diamond handles directly on the effect (#6494): `EffectsGrid.cpp` hit-tests `FADE_IN_HANDLE`/`FADE_OUT_HANDLE`, resizes via `EFFECT_RESIZE_FADE_IN/OUT` updating `T_TEXTCTRL_Fadein/Fadeout`, draws the diamonds in `DrawFadeHints`, and shows a live `fadein/fadeout` status-bar readout (`:6762-6770`). iPad equivalent `EffectsMetalGridView.swift:177` `Kind.fadeIn/fadeOut`. |
 | **Selected grid row grows (expands height)** | gesture | ❌ | ✅ | desktop-missing | P2 | medium | feasible | iPad enlarges the selected row (`EffectsMetalGridView.swift` `selectedRowHeight` vs `rowHeight`, ~10 draw sites; `GridMetrics.swift`). Desktop grid rows are fixed height. Touch-driven but a genuine readability win desktop could adopt. |
 | **`.xsqz` package read *and write* (in-place round-trip)** | other | 🟡 | ✅ | desktop-weaker | P2 | medium | feasible | iPad opens an `.xsqz` and **repacks it back to the original on Save** (`SequencerViewModel.swift:32-37` copy-repacked-package-back; `XLSequenceDocument.h:75-97`). Desktop opens `.xsqz` by *extracting* to a temp (`xLightsApp.cpp:840` `readOnlyZipFile`) and its "Package Sequence" (`SequencePackage::Pack`, `xLightsMain.cpp:6161`) is a separate **export**, not an in-place round-trip. |
-| **"From base" link badge across all layout entities** | other | 🟡 | ✅ | desktop-weaker | P3 | easy | feasible | iPad shows a link/base indicator on models **and** groups/objects/controllers from `isFromBase` (`LayoutEditorView.swift:1026/1057/1120/1810/1824`). Desktop conveys "from base" via row styling, not a dedicated badge across all four entity types. |
+| **"From base" link badge across all layout entities** | other | 🟡 | ✅ | desktop-weaker | P3 | easy | feasible | iPad shows a link/base indicator on models **and** groups/objects/controllers from `isFromBase` (`LayoutEditorView.swift:1026/1057/1120/1810/1824`). Desktop conveys "from base" via row styling, not a dedicated badge across all four entity types — though #6516 (iPad-inspired) now adds a link icon to model cards in the controller visualizer (`ControllerModelDialog.cpp`), narrowing this gap. |
 | Map-from-Lights structured-light scan → Custom model | dialog | 🟡 | ✅ | parity | P2 | hard | infeasible | Mac has it via **Continuity Camera** (`KLightMapperBridge` + `xLightsMain.cpp:4296`); iPad uses on-device camera **+ LiDAR depth solve**. Mac path = no LiDAR, iPhone-paired only. The LiDAR depth multi-view solve is iPad-only HW. |
 | Two-finger marquee select (layout canvas) | gesture | ❌ | ✅ | desktop-missing | P3 | hard | infeasible | `PreviewPaneView.swift:148` two-finger long-press+drag. Desktop = single-pointer left-drag rubber-band (different idiom; already exists for its input model). |
 | Two-finger marquee select (effects grid) | gesture | 🟡 | ✅ | parity | P3 | hard | infeasible | iPad `EffectsMetalGridView.swift:58` two-finger marquee (1-finger = scroll). Desktop has equivalent left-drag rubber-band selection. Touch idiom. |
@@ -36,7 +38,7 @@
 | Keyboard menu-bar (iPadOS hardware-keyboard menus) | menu | ✅ | ✅ | parity | P3 | easy | feasible | `XLightsCommands.swift` SwiftUI `Commands`. Desktop has a native wx menubar. Both fine; nothing to port. |
 | In-app real-time log tail | dialog | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | Desktop "View Log" (`xLightsMain.cpp:5092`) hands the log file to an **external** text editor; iPad `LogViewerSheet.swift` tails in-app (no external editor on sandboxed iPad). Desktop could add a `wxLogWindow`. |
 | Interactive media-relocation assistant | dialog | 🟡 | ✅ | desktop-missing | P3 | medium | feasible | Desktop **auto**-relocates missing media on load + notifies (`xLightsMain.cpp:5570`); iPad `MediaRelocation.swift` is an interactive pick-the-file assistant. Polish gap only. |
-| Find / Replace — case-sensitive toggle | dialog | ❌ | ✅ | desktop-missing | P3 | easy | feasible | Desktop `EffectsGrid::Find` always lowercases (`EffectsGrid.cpp:705`, case-insensitive only). iPad `FindReplaceSheet.swift` exposes a toggle. Both operate on timing-mark labels. |
+| Find / Replace — case-sensitive toggle | dialog | ❌ | ✅ | desktop-missing | P3 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop `EffectsGrid::Find` now shows a 'Match case' checkbox; `mSearchCaseSensitive` gates `EffectsGrid::SearchMatches` (used by Find/FindNext/Previous/Replace) so the `::Lower()` fold is skipped when set. iPad `FindReplaceSheet.swift` exposes the same toggle. |
 | Layout model 8-mode sort picker | menu | 🟡 | ✅ | desktop-missing | P3 | easy | feasible | Desktop tree has column-sort (`wxCOL_SORTABLE`, persisted). iPad `LayoutEditorView.swift:57` adds an explicit 8-mode picker (name/start-ch/end-ch/type asc+desc + natural). Polish only. |
 | Batch-render explicit sort-order picker | menu | 🟡 | ✅ | desktop-missing | P3 | easy | feasible | Desktop sorts via clickable tree columns (`BatchRenderDialog.cpp:138`, persisted). iPad adds a dedicated picker. Polish. |
 | Recent sequences / recent folders quick-access | panel | ✅ | ✅ | parity | P3 | easy | feasible | Desktop File-menu submenus (`RecentSequencesMenu`, `RecentShowFoldersMenu`, `xLightsMain.cpp:1027/1055`). iPad sidebar panels. UX diff only. |
@@ -86,14 +88,14 @@
 | Drag-drop effects between rows | gesture | ✅ | ✅ | parity | P2 | medium | feasible | Desktop wx drag. iPad `EffectsMetalGridView.swift:66`. |
 | Drag-drop models in layout sidebar | gesture | ✅ | 🟡 | parity | P1 | easy | feasible | Desktop wx drag. iPad SwiftUI `dropDestination` (J-32 partial). |
 | Color palette — list sort | menu | ❌ | ❌ | parity | P3 | n/a | n/a | **Neither** has palette-list sorting (iPad `ColorPaletteView.swift` = 8 fixed slots, no sort; desktop palette has none). Not a reverse-parity item. |
-| Edge auto-scroll (auto-pan) while dragging/resizing/fading an effect | gesture | ❌ | ✅ | desktop-missing | P2 | medium | feasible | On desktop, dragging an effect to an off-screen time forces the user to abort, scroll, and re-grab. A wxTimer-driven edge auto-scroll during mResizing/mDragging (mirroring the iPad margin/speed ramp) would close this. |
-| Drag-to-move snap-to-grid for layout models / view objects | capability | ❌ | ✅ | desktop-missing | P2 | easy | feasible | Desktop already stores + renders the 2D grid spacing; adding a 'Snap to Grid' bool (preference or toolbar toggle) and quantising the moved centre to `GetDisplay2DGridSpacing()` in the BoxedScreenLocation drag would snap models to the 2D background grid spacing. |
+| Edge auto-scroll (auto-pan) while dragging/resizing/fading an effect | gesture | ❌ | ✅ | desktop-missing | P2 | medium | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop now runs a wxTimer-driven edge auto-scroll during resize/move drags: `EffectsGrid::UpdateEdgeAutoScroll`/`OnAutoScrollTimer` pan `PanelTimeLine` when the cursor enters the `AUTO_SCROLL_MARGIN` band, with a proximity speed ramp, re-running the active Resize/move each tick (mirrors the iPad margin/speed ramp). |
+| Drag-to-move snap-to-grid for layout models / view objects | capability | ❌ | ✅ | desktop-missing | P2 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop adds a 'Snap To Grid' bool to the layout preview property grid (`LayoutPanel.cpp` `2DSnapToGrid`, persisted via `xLightsFrame::Set/GetSnap2DGrid`); on 2D body-drag mouse-up `SnapSelectedModelsToGrid` quantises each selected model's centre to `GetDisplay2DGridSpacing()`. |
 | Check Sequence: tap an issue to navigate the live sequencer to the offending effect | other | 🟡 | ✅ | desktop-weaker | P2 | medium | feasible | Desktop's report is read-only and external; the user must hand-find the named effect. iPad turns the report into an actionable navigation list (auto-switching to Master View). Desktop could add an in-app wxDataViewCtrl report whose rows call SelectEffect/seek. |
 | Persistent, named, draggable shaded loop region on the ruler+waveform strip | gesture | 🟡 | ✅ | desktop-weaker | P2 | medium | feasible | Desktop CAN loop a section but only transiently (selection-tied, cleared on stop) and never visualizes it as a dedicated band. iPad keeps a standing region with a persistent shaded overlay + boundary lines across ruler and waveform, surviving play sessions, with toggleable loop-play that wraps the playhead. |
 | Reuse an up-to-date on-disk .fseq on open to skip the initial render | capability | ❌ | ✅ | desktop-missing | P3 | medium | feasible | Re-using an up-to-date on-disk .fseq to avoid the open-time RenderAll() would speed up opening large sequences. Core FSEQ read code already exists (`render/FSEQFile.h`). Internal/perf-facing. |
 | Memory-pressure render abort + partial-render guard flag | capability | ❌ | ✅ | desktop-missing | P3 | hard | infeasible | iPad-only: relies on iOS memory-warning callbacks that desktop OSes don't deliver, and desktop runs in a memory-rich environment. Largely infeasible/low-value to port; recorded as intentionally iPad-only. |
 | Undo-history memory cap (bounded undo step count) | capability | ❌ | ✅ | desktop-missing | P3 | easy | feasible | The capping API lives in shared core, so desktop COULD opt in with one line to bound undo-snapshot memory growth in long sessions. Low value on memory-rich desktops, hence P3. |
-| Copy current palette string to clipboard | context-menu | ❌ | ✅ | desktop-missing | P3 | easy | feasible | Desktop can paste a palette IN (Import Palette text dialog) but cannot copy the current palette OUT as a string. Trivial: one menu item + `wxTheClipboard->SetData(new wxTextDataObject(GetCurrentPalette()))`. |
+| Copy current palette string to clipboard | context-menu | ❌ | ✅ | desktop-missing | P3 | easy | feasible | **Implemented on branch `desktop-pullbacks`; pending post-release merge.** Desktop adds 'Copy Palette String' to the ColorPanel palette menu (`ID_MNU_COPY` → `ColorPanel::CopyPaletteString` writes `GetCurrentPalette()` to `wxTheClipboard`), round-tripping with the existing Import Palette text dialog. iPad `ColorPaletteView.swift:133`. |
 | Set transition TYPE directly on the effect grid (long-press the in/out fade diamond) | context-menu | ❌ | ✅ | desktop-missing | P3 | medium | feasible | Distinct from the fade-DRAG item (which sets fade TIMES); this sets the transition TYPE. Desktop could add a right-click entry on the in/out fade-stripe region of an effect that pops a transition-type choice. |
 | Remove Unused Media — bulk-drop every media entry not referenced by any effect (with confirm + count) | sheet | ❌ | ✅ | desktop-missing | P3 | easy | feasible | The core `SequenceMedia::RemoveUnusedMedia()` the iPad calls already lives in src-core/, so desktop just needs a 'Remove Unused Media' button on ManageMediaPanel (or a Tools menu item). |
 | Live invalid-drop red tint during cross-row / overlapping effect move | badge-indicator | ❌ | ✅ | desktop-missing | P3 | medium | feasible | Desktop gives no in-flight signal that a move will land on an overlap (it just clamps silently); the iPad red tint tells the user before they release, and is the only signal for cross-row moves. Feasible as a draw-time overlay. |
@@ -144,11 +146,9 @@ export-models, controller-edit, and FPP progress are all present in
 `src-ui-wx/` (parity).
 
 ### P3 (optional desktop polish)
-- **Case-sensitive Find toggle.** `EffectsGrid::Find` is hard-wired
-  case-insensitive (`::Lower()` both sides, `EffectsGrid.cpp:705`). iPad's
-  `FindReplaceSheet` exposes a toggle. Desktop work: add a wxCheckBox to the
-  find dialog (or a small `wxFindReplaceData`-style flag) and skip the `Lower()`
-  when set. Easy.
+- **Case-sensitive Find toggle.** *Done.* `EffectsGrid::Find` now hosts a
+  'Match case' checkbox; `EffectsGrid::SearchMatches` skips the `::Lower()`
+  fold when `mSearchCaseSensitive` is set, matching iPad's `FindReplaceSheet`.
 - **In-app log tail.** Desktop "View Log" opens the file in an external editor
   (`xLightsMain.cpp:5092`); iPad tails in-app (`LogViewerSheet`). Desktop could
   add a `wxLogWindow`/text-ctrl tail. Medium. (External-editor handoff is fine
@@ -200,18 +200,18 @@ Much of the "reverse parity" surface is already at parity, and many true
 iPad-only items are platform idioms that should stay iPad-only. The actionable
 desktop work, in order:
 
-1. **Fade-time drag on the grid (desktop, P1)** — the highest-value pull-back;
-   desktop has no grid fade-drag at all, so transition in/out times can only be
-   set via the Blending/Layer panel.
-2. **Edge auto-scroll while dragging (desktop, P2)** — a wxTimer-driven edge
-   auto-scroll during resize/drag removes the abort-scroll-regrab cycle.
-3. **Snap-to-grid for layout models (desktop, P2)** — quantise the moved centre
-   to `GetDisplay2DGridSpacing()` behind a Snap-to-Grid toggle.
+1. ~~**Fade-time drag on the grid (desktop, P1)**~~ — *Done* (#6494):
+   draggable fade diamonds, live status-bar fade readout.
+2. **Edge auto-scroll while dragging (desktop, P2)** — *on `desktop-pullbacks` branch*: wxTimer-driven
+   edge auto-scroll during resize/move drags with a proximity speed ramp.
+3. ~~**Snap-to-grid for layout models (desktop, P2)**~~ — *Done*: 'Snap To Grid'
+   preview toggle quantises the moved centre to `GetDisplay2DGridSpacing()`.
 4. **Actionable Check-Sequence navigation, persistent loop region, `.xsqz`
    round-trip, Remove-Unused-Media (desktop, P2)** — each turns an existing
    capability into an in-app interaction.
-5. **Case-sensitive Find toggle (desktop, P3)** — one checkbox + a branch around
-   `::Lower()` in `EffectsGrid::Find`.
+5. ~~**Case-sensitive Find toggle (desktop, P3)**~~ — *Done*: 'Match case'
+   checkbox + branch in `EffectsGrid::SearchMatches`. Also done: Copy Palette
+   String, Value-Curve clipboard Copy/Paste, default Ctrl/Cmd+R for Render All.
 6. **In-app log tail (desktop, P3)** — a `wxLogWindow` is cheap.
 7. *(Skip)* media-relocation assistant and sort-pickers — equivalent function
    already exists; defer indefinitely.

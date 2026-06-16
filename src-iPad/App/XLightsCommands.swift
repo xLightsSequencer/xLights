@@ -45,12 +45,22 @@ struct XLSequencerCommands: Commands {
 
             Button("Save") { _ = viewModel.saveSequence() }
                 .keyboardShortcut("s", modifiers: [.command])
-                .disabled(!viewModel.isDirty)
+                .disabled(!viewModel.isDirty || viewModel.isReadOnly)
 
             Button("Save As…") {
                 viewModel.saveAsRequestToken &+= 1
             }
             .keyboardShortcut("s", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Revert to Last Saved…") {
+                viewModel.revertRequestToken &+= 1
+            }
+            .disabled(!viewModel.isDirty || !viewModel.isSequenceLoaded)
+
+            Button("Restore Backup…") {
+                viewModel.showingRestoreBackup = true
+            }
             .disabled(!viewModel.isSequenceLoaded)
 
             Divider()
@@ -62,9 +72,7 @@ struct XLSequencerCommands: Commands {
         }
 
         // Edit menu — Undo / Redo replace the system defaults;
-        // Pasteboard group gets Copy / Paste / Duplicate / Delete.
-        // (Cut intentionally omitted; disabled-but-bound shortcuts
-        // still swallow key events.)
+        // Pasteboard group gets Cut / Copy / Paste / Duplicate / Delete.
         CommandGroup(replacing: .undoRedo) {
             // Surface the descriptive action name (set at the ~26
             // setActionName call sites) so the menu reads "Undo Move
@@ -102,14 +110,47 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Shift Effects — mirrors desktop's three Menu3 items. Each
+            // opens the same sheet with the scope preselected.
+            Divider()
+            Button("Shift Effects…") {
+                viewModel.shiftEffectsInitialScope = .allEffects
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Shift Effects And Timing…") {
+                viewModel.shiftEffectsInitialScope = .allEffectsAndTiming
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Button("Shift Selected Effects…") {
+                viewModel.shiftEffectsInitialScope = .selectedOnly
+                viewModel.shiftEffectsPresented = true
+            }
+            .disabled(!viewModel.canShiftSelectedEffects)
+
             // PRE-1 — persistent effect preset library.
             Button("Effect Presets…") {
                 viewModel.presetBrowserPresented = true
             }
             .keyboardShortcut("p", modifiers: [.command, .shift])
             .disabled(!viewModel.isSequenceLoaded)
+
+            // #6258 — command palette (fuzzy command/effect launcher).
+            // ⌘⇧K matches desktop's `OnCommandPalette` accelerator.
+            Button("Command Palette…") {
+                viewModel.commandPalettePresented = true
+            }
+            .keyboardShortcut("k", modifiers: [.command, .shift])
         }
         CommandGroup(replacing: .pasteboard) {
+            Button("Cut") { viewModel.cutSelectedEffects() }
+                .keyboardShortcut("x", modifiers: [.command])
+                .disabled(viewModel.selectedEffect == nil
+                           && viewModel.selectedEffects.isEmpty)
+
             Button("Copy") { viewModel.copySelectedEffect() }
                 .keyboardShortcut("c", modifiers: [.command])
                 .disabled(viewModel.selectedEffect == nil)
@@ -123,6 +164,14 @@ struct XLSequencerCommands: Commands {
             }
             .keyboardShortcut("v", modifiers: [.command])
             .disabled(!viewModel.hasClipboard)
+
+            // #5064 — paste copied effects back at their original
+            // absolute timeline positions (row + ms), ignoring the
+            // play head. Only enabled when the clipboard carries the
+            // copy-time anchor.
+            Button("Paste at Original Time") { viewModel.pasteAtOriginalTime() }
+                .keyboardShortcut("v", modifiers: [.command, .option])
+                .disabled(!viewModel.clipboardHasOriginalTime)
 
             Button("Duplicate") { viewModel.duplicateSelectedEffect() }
                 .keyboardShortcut("d", modifiers: [.command])
@@ -253,7 +302,7 @@ struct XLSequencerCommands: Commands {
 
             Divider()
 
-            XLZoomCommands()
+            XLZoomCommands(viewModel: viewModel)
 
             Divider()
 
@@ -298,6 +347,46 @@ struct XLSequencerCommands: Commands {
             }
             .disabled(!viewModel.isSequenceLoaded)
 
+            // Find Effect Data (desktop View ▸ Windows ▸ Find Effect
+            // Data). Query effects by type / settings-text / model and
+            // jump to a result.
+            Button("Find Effect Data…") {
+                viewModel.showingFindEffectData = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // CLN-1 — Tools → Cleanup File Locations. Sweeps every
+            // referenced external media file into the show folder and
+            // rewrites effect references. Non-undoable (the sheet warns).
+            Button("Cleanup File Locations…") {
+                viewModel.showingCleanupFileLocations = true
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Search for Show Folders. Scans a user-picked
+            // folder tree for directories containing
+            // xlights_rgbeffects.xml and offers to switch to one.
+            Button("Search for Show Folders…") {
+                viewModel.showingSearchShowFolders = true
+            }
+
+            // Tools → User Lyric Dictionary. Edits the show folder's
+            // `user_dictionary` (word → phoneme list) consumed by the
+            // core lyric breakdown.
+            Button("User Lyric Dictionary…") {
+                viewModel.showingUserLyricDictionary = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded)
+
+            // Tools → Download Sequences/Lyrics (desktop
+            // VendorMusicDialog). Browses the music-vendor catalog and
+            // downloads sequences (.zip) / lyrics (.xtiming) into the
+            // show folder. Needs a show folder to download into.
+            Button("Download Sequences / Lyrics…") {
+                viewModel.showingMusicBrowser = true
+            }
+            .disabled(!viewModel.isShowFolderLoaded)
+
             Divider()
 
             // J-0 — Layout Editor (read-only in J-0; mutation lands in
@@ -306,6 +395,26 @@ struct XLSequencerCommands: Commands {
             // Disabled until a show folder loads — there's nothing to
             // edit before models exist.
             EditLayoutMenuItem(viewModel: viewModel)
+
+            Divider()
+
+            // EFX-1 — Tools → Export Effects. Writes the per-effect CSV
+            // (same columns as desktop ExportEffects.cpp). Triggers a
+            // fileExporter flow observed in SequencerView.
+            Button("Export Effects…") {
+                viewModel.exportEffectsRequestToken &+= 1
+            }
+            .disabled(!viewModel.isSequenceLoaded)
+
+            Divider()
+
+            // AI-2 — Tools → Generate AI Image. Presents
+            // AIImageGenerationSheet in standalone mode (saves to show
+            // folder, no effect context required).
+            Button("Generate AI Image…") {
+                viewModel.showingStandaloneAIImage = true
+            }
+            .disabled(!XLAIServices.shared().hasEnabledService(forCapability: XLAICapabilityImages))
 
             Divider()
 
@@ -346,6 +455,14 @@ struct XLSequencerCommands: Commands {
                 viewModel.showingExportHousePreview = true
             }
             .disabled(!viewModel.isSequenceLoaded)
+
+            // Tools → Export Audio. Encodes the currently-displayed
+            // audio (mix / stem / filtered band) to WAV or M4A and
+            // shares it.
+            Button("Export Audio…") {
+                viewModel.showingExportAudio = true
+            }
+            .disabled(!viewModel.hasExportableAudio)
 
             Divider()
 
@@ -394,6 +511,14 @@ struct XLSequencerCommands: Commands {
             Button("Stop") { viewModel.stop() }
                 .disabled(!viewModel.isSequenceLoaded)
 
+            // Desktop ID_AUITOOLBAR_REPLAY_SECTION: loop the selected
+            // time range. Sets the loop region to the selection's
+            // bounds and starts loop playback. ⇧Space matches no
+            // desktop key but reads naturally next to Play (Space).
+            Button("Replay Section") { viewModel.replaySection() }
+                .keyboardShortcut(.space, modifiers: [.shift])
+                .disabled(!viewModel.isSequenceLoaded || !viewModel.hasReplaySectionSelection)
+
             Divider()
 
             // Kick off a fresh full-sequence render. Mirrors the
@@ -406,6 +531,16 @@ struct XLSequencerCommands: Commands {
             Button("Render All") { viewModel.startBackgroundRender() }
                 .keyboardShortcut("r", modifiers: [.command])
                 .disabled(!viewModel.isSequenceLoaded)
+
+            // Desktop TOGGLE_RENDER — defer per-edit background renders
+            // while editing heavily; resuming renders the deferred range.
+            Button(viewModel.renderSuspended
+                   ? "Resume Background Render"
+                   : "Suspend Background Render") {
+                viewModel.toggleRenderSuspended()
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+            .disabled(!viewModel.isSequenceLoaded)
 
             Divider()
 
@@ -493,6 +628,21 @@ struct XLSequencerCommands: Commands {
                 .keyboardShortcut(.downArrow, modifiers: [])
                 .disabled(viewModel.selectedEffect == nil)
 
+            // Desktop Up/Down arrows move the effect between layers;
+            // iPad arrows are taken by selection nav, so layer moves
+            // ride ⌥↑ / ⌥↓ (mirrors the ⌥←/→ frame nudges).
+            Button("Move Effect Up a Layer") {
+                viewModel.moveSelectedEffectToAdjacentLayer(-1)
+            }
+                .keyboardShortcut(.upArrow, modifiers: [.option])
+                .disabled(viewModel.selectedEffect == nil)
+
+            Button("Move Effect Down a Layer") {
+                viewModel.moveSelectedEffectToAdjacentLayer(1)
+            }
+                .keyboardShortcut(.downArrow, modifiers: [.option])
+                .disabled(viewModel.selectedEffect == nil)
+
             // B3 — Tab / Shift+Tab navigate next / previous effect
             // in row order. Mirrors the arrow-key bindings for
             // hardware-keyboard users who expect Tab to advance.
@@ -547,10 +697,25 @@ struct XLSequencerCommands: Commands {
             Button("About xLights…") {
                 viewModel.showingAbout = true
             }
+            Button("Key Bindings…") {
+                viewModel.showingKeyBindings = true
+            }
+            // Help → Tip of the Day (desktop TipOfTheDayDialog).
+            // Renders the same shared tod.xml tip set; "show at
+            // startup" pref lives in the sheet.
+            Button("Tip of the Day…") {
+                viewModel.showingTipOfDay = true
+            }
 
             Divider()
 
             Button("xLights Manual") {
+                XLOpenURL("https://manual.xlights.org/")
+            }
+            // Help → Content (desktop F1). No F1 on iPad keyboards;
+            // points at the manual landing page like desktop's
+            // Content handler.
+            Button("Help Contents") {
                 XLOpenURL("https://manual.xlights.org/")
             }
             Button("Tutorial Videos") {
@@ -633,7 +798,25 @@ enum XLPlaybackSpeeds {
 // body, so the zoom commands live in this helper view injected
 // into the View menu.
 private struct XLZoomCommands: View {
+    let viewModel: SequencerViewModel
     @FocusedValue(\.timeline) private var timeline
+    // Desktop View ▸ "Timeline Zooming" (`ViewSettingsPanel.cpp:97`):
+    // when ON, zoom keeps the play marker pixel-anchored; when OFF it
+    // anchors to the viewport's left edge (the prior behavior).
+    @AppStorage("zoomToPlayMarker") private var zoomToPlayMarker: Bool = true
+
+    /// Re-derive the scroll offset after a pixels-per-ms change so the
+    /// play marker stays at the same on-screen pixel (when enabled).
+    private func applyZoom(_ t: TimelineState, newPPMS: CGFloat) {
+        guard zoomToPlayMarker else {
+            t.pixelsPerMS = newPPMS
+            return
+        }
+        let playMS = viewModel.playPositionMS
+        let oldScreenX = t.x(forTimeMS: playMS) - t.hScrollOffsetPx
+        t.pixelsPerMS = newPPMS
+        t.hScrollOffsetPx = max(0, t.x(forTimeMS: playMS) - oldScreenX)
+    }
 
     /// B38 — zoom preset stops. Each label describes the rough span
     /// that fits in a 1000-pt viewport at that pixels-per-ms; picked
@@ -655,7 +838,7 @@ private struct XLZoomCommands: View {
     var body: some View {
         Button("Zoom Out") {
             if let t = timeline {
-                t.pixelsPerMS = max(0.005, t.pixelsPerMS / 1.5)
+                applyZoom(t, newPPMS: max(0.005, t.pixelsPerMS / 1.5))
             }
         }
         .keyboardShortcut("-", modifiers: [.command])
@@ -663,7 +846,7 @@ private struct XLZoomCommands: View {
 
         Button("Zoom In") {
             if let t = timeline {
-                t.pixelsPerMS = min(2.0, t.pixelsPerMS * 1.5)
+                applyZoom(t, newPPMS: min(2.0, t.pixelsPerMS * 1.5))
             }
         }
         .keyboardShortcut("=", modifiers: [.command])
@@ -672,11 +855,13 @@ private struct XLZoomCommands: View {
         Menu("Zoom To…") {
             ForEach(Array(Self.zoomPresets.enumerated()), id: \.offset) { _, preset in
                 Button(preset.label) {
-                    timeline?.pixelsPerMS = preset.ppms
+                    if let t = timeline { applyZoom(t, newPPMS: preset.ppms) }
                 }
             }
         }
         .disabled(timeline == nil)
+
+        Toggle("Zoom To Play Marker", isOn: $zoomToPlayMarker)
     }
 }
 

@@ -183,6 +183,8 @@
 		<Unit filename="../src-ui-wx/model/AlignmentDialog.h" />
 		<Unit filename="../src-core/media/AudioManager.cpp" />
 		<Unit filename="../src-core/media/AudioManager.h" />
+		<Unit filename="../src-core/media/NoteImporter.cpp" />
+		<Unit filename="../src-core/media/NoteImporter.h" />
 		<Unit filename="../src-core/media/OnsetDetector.cpp" />
 		<Unit filename="../src-core/media/OnsetDetector.h" />
 		<Unit filename="../src-core/media/TempoDetector.cpp" />
@@ -219,6 +221,8 @@
 		<Unit filename="../src-core/import_export/MapHintsIO.h" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.cpp" />
 		<Unit filename="../src-core/import_export/SuperStarImporter.h" />
+		<Unit filename="../src-core/import_export/MusicCatalog.cpp" />
+		<Unit filename="../src-core/import_export/MusicCatalog.h" />
 		<Unit filename="../src-core/import_export/VendorCatalog.cpp" />
 		<Unit filename="../src-core/import_export/VendorCatalog.h" />
 		<Unit filename="../src-ui-wx/sequencer/AutoLabelDialog.cpp" />
@@ -376,8 +380,20 @@
 		<Unit filename="../src-ui-wx/import_export/LMSImportChannelMapDialog.h" />
 		<Unit filename="../src-core/import_export/ExportModels.cpp" />
 		<Unit filename="../src-core/import_export/ExportModels.h" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.cpp" />
+		<Unit filename="../src-core/import_export/ExportEffectsReport.h" />
 		<Unit filename="../src-core/import_export/LOREdit.cpp" />
 		<Unit filename="../src-core/import_export/LOREdit.h" />
+		<Unit filename="../src-core/import_export/HLSFile.cpp" />
+		<Unit filename="../src-core/import_export/HLSFile.h" />
+		<Unit filename="../src-core/import_export/ImportDataRow.cpp" />
+		<Unit filename="../src-core/import_export/ImportDataRow.h" />
+		<Unit filename="../src-core/import_export/Vixen2File.cpp" />
+		<Unit filename="../src-core/import_export/Vixen2File.h" />
+		<Unit filename="../src-core/import_export/LORMusic.cpp" />
+		<Unit filename="../src-core/import_export/LORMusic.h" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.cpp" />
+		<Unit filename="../src-core/import_export/LORPixelEditor.h" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.cpp" />
 		<Unit filename="../src-ui-wx/layout/LORPreview.h" />
 		<Unit filename="../src-ui-wx/sequencer/LayerSelectDialog.cpp" />
@@ -481,6 +497,8 @@
 		<Unit filename="../src-core/render/ViewpointMgr.cpp" />
 		<Unit filename="../src-core/render/ViewpointMgr.h" />
 		<Unit filename="../src-ui-wx/render/RenderUI.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.cpp" />
+		<Unit filename="../src-core/render/ModelGifExporter.h" />
 		<Unit filename="../src-core/render/ModelVideoExporter.cpp" />
 		<Unit filename="../src-core/render/ModelVideoExporter.h" />
 		<Unit filename="../src-core/render/RenderBuffer.cpp" />
@@ -869,6 +887,8 @@
 		<Unit filename="../src-core/effects/SketchEffect.h" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.cpp" />
 		<Unit filename="../src-core/effects/SketchEffectDrawing.h" />
+		<Unit filename="../src-core/effects/SketchSVGImport.cpp" />
+		<Unit filename="../src-core/effects/SketchSVGImport.h" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.cpp" />
 		<Unit filename="../src-ui-wx/effectpanels/SketchPanel.h" />
 		<Unit filename="../src-core/effects/SnowflakesEffect.cpp" />
@@ -990,6 +1010,10 @@
 		<Unit filename="../src-core/graphics/xlFontInfo.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.cpp" />
 		<Unit filename="../src-core/graphics/xlGraphicsAccumulators.h" />
+		<Unit filename="../src-core/graphics/AngleEGL.cpp" />
+		<Unit filename="../src-core/graphics/AngleEGL.h" />
+		<Unit filename="../src-core/graphics/GLBackend.cpp" />
+		<Unit filename="../src-core/graphics/GLBackend.h" />
 		<Unit filename="../src-core/graphics/GLContextManager.cpp" />
 		<Unit filename="../src-core/graphics/GLContextManager.h" />
 		<Unit filename="../src-core/graphics/xlGraphicsContext.h" />
@@ -1096,6 +1120,10 @@
 		<Unit filename="../src-core/models/ModelManager.h" />
 		<Unit filename="../src-core/models/ModelScreenLocation.cpp" />
 		<Unit filename="../src-core/models/ModelScreenLocation.h" />
+		<Unit filename="../src-core/models/ModelSet.cpp" />
+		<Unit filename="../src-core/models/ModelSet.h" />
+		<Unit filename="../src-core/models/ModelSetManager.cpp" />
+		<Unit filename="../src-core/models/ModelSetManager.h" />
 		<Unit filename="../src-core/models/MultiPointModel.cpp" />
 		<Unit filename="../src-core/models/MultiPointModel.h" />
 		<Unit filename="../src-core/models/MultiPointScreenLocation.cpp" />
@@ -1123,6 +1151,8 @@
 		<Unit filename="../src-core/models/StarModel.h" />
 		<Unit filename="../src-core/models/SubModel.cpp" />
 		<Unit filename="../src-core/models/SubModel.h" />
+		<Unit filename="../src-core/models/SubModelSymmetrize.cpp" />
+		<Unit filename="../src-core/models/SubModelSymmetrize.h" />
 		<Unit filename="../src-core/models/TerrainObject.cpp" />
 		<Unit filename="../src-core/models/TerrainObject.h" />
 		<Unit filename="../src-core/models/TerrainScreenLocation.cpp" />

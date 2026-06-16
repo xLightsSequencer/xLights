@@ -17,9 +17,14 @@
 #include "models/ModelManager.h"
 #include "models/ModelGroup.h"
 #include "models/SubModel.h"
+#include "models/SubModelSymmetrize.h"
 #include "models/TerrainObject.h"
 #include "models/TerrainScreenLocation.h"
 #include "XmlSerializer/XmlSerializer.h"
+#include <sstream>
+#include "XmlSerializer/GdtfParser.h"
+#include "render/UICallbacks.h"
+#include "../../dependencies/libxlsxwriter/third_party/minizip/unzip.h"
 #include "models/Node.h"
 #include "models/RulerObject.h"
 #include <pugixml.hpp>
@@ -66,6 +71,7 @@
     BOOL _isModelPreview;        // YES = single-model pane; NO = full house
     BOOL _isLayoutEditor;        // YES = LayoutEditor pane (selection / handles enabled)
     BOOL _showFirstPixel;        // J-2 — `highlightFirst` arg to DisplayModelOnWindow
+    std::string _forcedGdtfMode; // GDTF mode picker: forces ChooseFromList during import
     BOOL _showViewObjects;       // House Preview view-object visibility toggle
     std::string _selectedModelName;  // J-2 — Layout Editor selection ring (primary)
     std::set<std::string> _extraSelectedModels;  // J-4 — multi-select secondary set
@@ -365,6 +371,26 @@ static std::unique_ptr<xlImage> LoadImageFile(const std::string& path, int& outW
 
 - (BOOL)showFirstPixel {
     return _showFirstPixel;
+}
+
+- (void)setHandleScale:(NSInteger)scale {
+    if (_preview) {
+        _preview->SetHandleScale((int)scale);
+    }
+}
+
+- (NSInteger)handleScale {
+    return _preview ? _preview->GetHandleScale() : 1;
+}
+
+- (void)setShowZoneIndicator:(BOOL)show {
+    if (_preview) {
+        _preview->SetShowZoneIndicator(show);
+    }
+}
+
+- (BOOL)showZoneIndicator {
+    return _preview ? _preview->GetShowZoneIndicator() : NO;
 }
 
 // Visual zoom factor — > 1 = zoomed in (scene appears larger), < 1 = zoomed out.
@@ -1372,6 +1398,142 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return anySwapped;
 }
 
+- (BOOL)rotateModels:(NSArray<NSString*>*)names
+                axis:(NSString*)axis
+             degrees:(double)degrees
+         forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0 || axis.length == 0) return NO;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return NO;
+    const std::string axisStr = axis.UTF8String;
+    const bool x = (axisStr == "X");
+    const bool y = (axisStr == "Y");
+    const bool z = (axisStr == "Z");
+    if (!x && !y && !z) return NO;
+    if (degrees < -180.0) degrees = -180.0;
+    if (degrees > 180.0) degrees = 180.0;
+    const float angle = (float)degrees;
+    rctx->AbortRender(5000);
+    BOOL anyRotated = NO;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        const std::string nm = n.UTF8String;
+        Model* m = rctx->GetModelManager()[nm];
+        if (!m) continue;
+        auto& loc = m->GetBaseObjectScreenLocation();
+        if (loc.IsLocked() || m->IsFromBase()) continue;
+        if (x) loc.SetRotateX(angle);
+        else if (y) loc.SetRotateY(angle);
+        else loc.SetRotateZ(angle);
+        loc.Reload();
+        loc.Init();
+        rctx->MarkLayoutModelDirty(nm);
+        anyRotated = YES;
+    }
+    return anyRotated;
+}
+
+- (NSInteger)replaceModels:(NSArray<NSString*>*)targets
+                withSource:(NSString*)source
+          keepStartChannel:(BOOL)keepStartChannel
+             keepSubmodels:(BOOL)keepSubmodels
+          keepSizePosition:(BOOL)keepSizePosition
+               forDocument:(XLSequenceDocument*)doc {
+    if (!doc || targets.count == 0 || source.length == 0) return 0;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return 0;
+    auto& mgr = rctx->GetModelManager();
+    const std::string sourceName = source.UTF8String;
+    Model* sourceModel = mgr[sourceName];
+    if (!sourceModel) return 0;
+    rctx->AbortRender(5000);
+
+    // Serialize the source once; each target gets a fresh deep copy.
+    XmlSerializer serializer;
+    pugi::xml_document srcDoc = serializer.SerializeModel(sourceModel);
+    pugi::xml_node srcRoot = srcDoc.document_element();
+    if (!srcRoot) return 0;
+    pugi::xml_node srcModelNode = srcRoot.first_child();
+    if (!srcModelNode) return 0;
+
+    NSInteger replaced = 0;
+    int counter = 0;
+    for (NSString* t in targets) {
+        if (t.length == 0) continue;
+        const std::string targetName = t.UTF8String;
+        if (targetName == sourceName) continue;
+        Model* target = mgr[targetName];
+        if (!target) continue;
+        if (target->IsFromBase()) continue;
+
+        pugi::xml_document cloneDoc;
+        cloneDoc.append_copy(srcModelNode);
+        pugi::xml_node cloneNode = cloneDoc.document_element();
+        if (!cloneNode) continue;
+
+        const std::string tmpName = "__xl_rmm_new_" + std::to_string(counter);
+        if (cloneNode.attribute("name")) cloneNode.remove_attribute("name");
+        cloneNode.append_attribute("name") = tmpName.c_str();
+
+        Model* clone = mgr.CreateModel(cloneNode);
+        if (!clone) continue;
+        clone->name = tmpName;
+        mgr.AddModel(clone);
+
+        if (keepStartChannel) {
+            clone->SetStartChannel(target->ModelStartChannel);
+            clone->SetControllerProtocol(target->GetControllerProtocol());
+            clone->SetControllerPort(target->GetControllerPort());
+            clone->SetControllerName(target->GetControllerName());
+            clone->SetSmartRemote(target->GetSmartRemote());
+            clone->SetSmartRemoteType(target->GetSmartRemoteType());
+            clone->SetSRMaxCascade(target->GetSRMaxCascade());
+            clone->SetSRCascadeOnPort(target->GetSRCascadeOnPort());
+        }
+        if (keepSubmodels) {
+            for (int i = 0; i < target->GetNumSubModels(); ++i) {
+                Model* sm = target->GetSubModel(i);
+                if (!sm) continue;
+                if (clone->GetSubModel(sm->Name()) != nullptr) continue;
+                const SubModel* srcSub = dynamic_cast<const SubModel*>(sm);
+                if (!srcSub) continue;
+                clone->AddSubmodel(new SubModel(clone, srcSub));
+            }
+        }
+        if (keepSizePosition) {
+            clone->GetModelScreenLocation().SetRotation(target->GetModelScreenLocation().GetRotation());
+            clone->SetHcenterPos(target->GetHcenterPos());
+            clone->SetVcenterPos(target->GetVcenterPos());
+            clone->SetDcenterPos(target->GetDcenterPos());
+            clone->SetHeight(target->GetHeight());
+            clone->SetWidth(target->GetWidth());
+            clone->SetDepth(target->GetDepth());
+        }
+
+        // Atomic name swap: park the old target under a trash name,
+        // promote the clone to the target's name, then delete the
+        // old model. Mirrors desktop ReplaceModel's rename dance.
+        const std::string trashName = "__xl_rmm_old_" + std::to_string(counter);
+        mgr.RenameInListOnly(targetName, trashName);
+        target->Rename(trashName);
+        mgr.RenameInListOnly(tmpName, targetName);
+        clone->Rename(targetName);
+        if (!mgr.Delete(trashName)) {
+            mgr.RenameInListOnly(targetName, tmpName);
+            clone->Rename(tmpName);
+            mgr.RenameInListOnly(trashName, targetName);
+            target->Rename(targetName);
+            mgr.Delete(tmpName);
+            continue;
+        }
+
+        rctx->MarkLayoutModelDirty(targetName);
+        ++replaced;
+        ++counter;
+    }
+    return replaced;
+}
+
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc {
     NSMutableArray<NSString*>* out = [NSMutableArray array];
@@ -1419,6 +1581,83 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         rctx->MarkLayoutModelDirty(newName);
         [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
     }
+    return out;
+}
+
+- (NSString*)copyModelsToString:(NSArray<NSString*>*)names
+                    forDocument:(XLSequenceDocument*)doc {
+    if (!doc || names.count == 0) return nil;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return nil;
+    auto& mgr = rctx->GetModelManager();
+    std::vector<const Model*> models;
+    for (NSString* n in names) {
+        if (n.length == 0) continue;
+        Model* m = mgr[n.UTF8String];
+        if (!m) continue;
+        // Groups have ambiguous member-copy semantics (same as Duplicate) — skip.
+        if (m->GetDisplayAs() == DisplayAsType::ModelGroup) continue;
+        models.push_back(m);
+    }
+    if (models.empty()) return nil;
+    XmlSerializer serializer;
+    pugi::xml_document doc2 = serializer.SerializeModels(models, /*includeGroups*/ false);
+    std::ostringstream oss;
+    doc2.save(oss);
+    return [NSString stringWithUTF8String:oss.str().c_str()];
+}
+
+- (NSArray<NSString*>*)pasteModelsFromString:(NSString*)xml
+                                 forDocument:(XLSequenceDocument*)doc {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!doc || xml.length == 0) return out;
+    iPadRenderContext* rctx = ContextFromDoc(doc);
+    if (!rctx || !rctx->HasModelManager()) return out;
+    pugi::xml_document src;
+    if (!src.load_string(xml.UTF8String)) return out;
+    pugi::xml_node root = src.document_element();
+    if (!root) return out;
+    rctx->AbortRender(5000);
+    auto& mgr = rctx->GetModelManager();
+
+    std::string layoutGroup = rctx->GetActiveLayoutGroup();
+    if (layoutGroup.empty() || layoutGroup == "All Models") layoutGroup = "Default";
+
+    // The serializer writes a `<models>` root with one `<model>` per
+    // model. A single-model copy may arrive bare, so accept both.
+    std::vector<pugi::xml_node> modelNodes;
+    if (std::string_view(root.name()) == "models") {
+        for (pugi::xml_node c = root.first_child(); c; c = c.next_sibling()) {
+            if (c.type() == pugi::node_element) modelNodes.push_back(c);
+        }
+    } else if (root.type() == pugi::node_element) {
+        modelNodes.push_back(root);
+    }
+
+    for (pugi::xml_node modelNode : modelNodes) {
+        const char* origName = modelNode.attribute("name").as_string("Model");
+        const std::string newName = mgr.GenerateModelName(origName);
+        if (modelNode.attribute("name")) modelNode.remove_attribute("name");
+        modelNode.append_attribute("name") = newName.c_str();
+        // Strip controller mapping so the paste auto-assigns channels
+        // (matches Duplicate + desktop Paste).
+        if (modelNode.attribute("Controller")) modelNode.remove_attribute("Controller");
+        if (modelNode.attribute("StartChannel")) modelNode.remove_attribute("StartChannel");
+        if (auto cc = modelNode.child("ControllerConnection")) modelNode.remove_child(cc);
+
+        Model* paste = mgr.CreateModel(modelNode);
+        if (!paste) continue;
+        paste->SetControllerName("");
+        paste->SetStartChannel("");
+        paste->name = newName;
+        paste->Lock(false);
+        paste->SetLayoutGroup(layoutGroup);
+        paste->AddOffset(50.0, 50.0, 0.0);
+        mgr.AddModel(paste);
+        rctx->MarkLayoutModelDirty(newName);
+        [out addObject:[NSString stringWithUTF8String:newName.c_str()]];
+    }
+    if (out.count > 0) mgr.RecalcStartChannels();
     return out;
 }
 
@@ -2271,6 +2510,108 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return std::string_view(root.name()) == "models";
 }
 
+// GDTF fixtures are ZIP archives; the fixture definition lives in
+// description.xml at the archive root. Extract it into a pugixml
+// document. Mirrors desktop LayoutPanel's wxZipInputStream pull.
+static bool LoadGdtfDescriptionXml(NSString* path, pugi::xml_document& outDoc) {
+    unzFile uf = unzOpen([path UTF8String]);
+    if (!uf) return false;
+    bool ok = false;
+    if (unzLocateFile(uf, "description.xml", 2) == UNZ_OK &&
+        unzOpenCurrentFile(uf) == UNZ_OK) {
+        std::string buf;
+        std::vector<char> chunk(64 * 1024);
+        int n;
+        while ((n = unzReadCurrentFile(uf, chunk.data(), (unsigned)chunk.size())) > 0) {
+            buf.append(chunk.data(), (size_t)n);
+        }
+        unzCloseCurrentFile(uf);
+        if (!buf.empty()) {
+            ok = (bool)outDoc.load_buffer(buf.data(), buf.size());
+        }
+    }
+    unzClose(uf);
+    return ok;
+}
+
+// Enumerate the DMX mode names declared in a GDTF description.xml.
+// Mirrors the mode-walk in ParseGdtfDescriptionXml so the iPad can
+// present a mode picker before placement. Returns sorted names.
+static std::vector<std::string> GdtfModeNames(pugi::xml_document& gdtfDoc) {
+    std::map<std::string, pugi::xml_node> modes;
+    for (pugi::xml_node n = gdtfDoc.first_child(); n; n = n.next_sibling()) {
+        for (pugi::xml_node nn = n.first_child(); nn; nn = nn.next_sibling()) {
+            if (std::string_view(nn.name()) == "DMXModes") {
+                for (pugi::xml_node nnn = nn.first_child(); nnn; nnn = nnn.next_sibling()) {
+                    if (std::string_view(nnn.name()) == "DMXMode") {
+                        modes[nnn.attribute("Name").as_string()] = nnn;
+                    }
+                }
+            }
+        }
+    }
+    std::vector<std::string> out;
+    out.reserve(modes.size());
+    for (const auto& [name, node] : modes) out.push_back(name);
+    return out;
+}
+
+// UICallbacks that forces a pre-chosen GDTF mode through
+// ChooseFromList (used when the SwiftUI mode picker already
+// resolved the user's choice). Every other prompt is stubbed
+// defensively — the GDTF parse path only reaches ChooseFromList.
+class iPadGdtfModeCallbacks : public UICallbacks {
+public:
+    std::string forcedMode;
+    explicit iPadGdtfModeCallbacks(std::string mode) : forcedMode(std::move(mode)) {}
+    std::vector<std::string> ChooseFromList(const std::string& /*prompt*/,
+                                            const std::vector<std::string>& options) const override {
+        if (!forcedMode.empty()) {
+            for (const auto& o : options) {
+                if (o == forcedMode) return { o };
+            }
+        }
+        return options.empty() ? std::vector<std::string>{} : std::vector<std::string>{ options.front() };
+    }
+    void ShowMessage(const std::string&, const std::string&) const override {}
+    bool PromptYesNo(const std::string&, const std::string&) const override { return true; }
+    std::string PromptForDirectory(const std::string&, const std::string&) const override { return ""; }
+    std::string PromptForFile(const std::string&, const std::string&, const std::string&) const override { return ""; }
+    long PromptForNumber(const std::string&, const std::string&, long defaultValue, long, long) const override { return defaultValue; }
+    std::string PromptForText(const std::string&, const std::string&, const std::string& defaultValue) const override { return defaultValue; }
+    ProgressToken BeginProgress(const std::string&, int) override { return 1; }
+    void UpdateProgress(ProgressToken, int, const std::string&) override {}
+    void EndProgress(ProgressToken) override {}
+};
+
++ (NSArray<NSString*>*)gdtfModesForFile:(NSString*)path {
+    NSMutableArray<NSString*>* out = [NSMutableArray array];
+    if (!path || path.length == 0) return out;
+    if (![[path.pathExtension lowercaseString] isEqualToString:@"gdtf"]) return out;
+    pugi::xml_document gdtfDoc;
+    if (!LoadGdtfDescriptionXml(path, gdtfDoc)) return out;
+    for (const std::string& name : GdtfModeNames(gdtfDoc)) {
+        [out addObject:[NSString stringWithUTF8String:name.c_str()]];
+    }
+    return out;
+}
+
+- (nullable NSArray<NSString*>*)importGdtfFromPath:(NSString*)path
+                                              mode:(nullable NSString*)gdtfMode
+                                     atScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                 targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                       forDocument:(XLSequenceDocument*)doc {
+    _forcedGdtfMode = gdtfMode ? std::string(gdtfMode.UTF8String) : std::string();
+    NSArray<NSString*>* result = [self importXmodelFromPath:path
+                                              atScreenPoint:point
+                                                   viewSize:viewSize
+                                          targetLayoutGroup:targetLayoutGroup
+                                                forDocument:doc];
+    _forcedGdtfMode.clear();
+    return result;
+}
+
 - (nullable NSArray<NSString*>*)importXmodelFromPath:(NSString*)path
                                         atScreenPoint:(CGPoint)point
                                              viewSize:(CGSize)viewSize
@@ -2280,29 +2621,63 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     iPadRenderContext* rctx = ContextFromDoc(doc);
     if (!rctx) return nil;
 
-    // Parse the .xmodel XML before creating anything — failing
-    // late would leak a stub model into the show.
-    pugi::xml_document xdoc;
-    pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
-    if (!parseRes) return nil;
-    pugi::xml_node root = xdoc.document_element();
-    if (!root) return nil;
+    const bool isGdtf = [[path.pathExtension lowercaseString] isEqualToString:@"gdtf"];
 
-    rctx->AbortRender(5000);
-    // CreateDefaultModelFromSavedModelNode wants a baseline Model*
-    // to mutate / replace. Use "Custom" — the import path swaps it
-    // out for the deserialized type anyway, so the placeholder
-    // choice only matters in the very narrow paths where the
-    // function preserves baseline state (start channel, layout
-    // group, hcenter/vcenter — we override those below).
-    Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
-    if (!baseline) return nil;
-    bool cancelled = false;
-    Model* imported = baseline->CreateDefaultModelFromSavedModelNode(
-        baseline, root, rctx->GetModelManager(), cancelled);
-    if (cancelled || !imported) {
-        delete baseline;
-        return nil;
+    Model* imported = nullptr;
+    pugi::xml_document xdoc;
+    pugi::xml_node root;
+
+    if (isGdtf) {
+        // GDTF fixture import — parse description.xml and build a DMX
+        // model via the shared core path (GdtfParser), the same one
+        // desktop's CreateDmxModelFromGdtf uses. uiCallbacks==nullptr
+        // auto-selects the first DMX mode when the fixture defines
+        // several (the desktop prompts; a mode picker is a follow-up).
+        pugi::xml_document gdtfDoc;
+        if (!LoadGdtfDescriptionXml(path, gdtfDoc)) return nil;
+        rctx->AbortRender(5000);
+        XmlSerialize::GdtfModelData gdtfData;
+        bool cancelled = false;
+        // When the SwiftUI mode picker already chose a mode, force it
+        // through ChooseFromList; otherwise nullptr auto-picks the
+        // first (the lone-mode fixtures never reach the chooser).
+        iPadGdtfModeCallbacks modeCb(_forcedGdtfMode);
+        UICallbacks* gdtfCb = _forcedGdtfMode.empty() ? nullptr : &modeCb;
+        if (!XmlSerialize::ParseGdtfDescriptionXml(gdtfDoc, rctx->GetModelManager(),
+                                                   gdtfCb, cancelled, gdtfData) || cancelled) {
+            return nil;
+        }
+        // CreateDmxModelFromGdtfData consumes (deletes) its baseline
+        // and returns a fresh DMX model; it requires a non-null one.
+        Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+        if (!baseline) return nil;
+        imported = XmlSerialize::CreateDmxModelFromGdtfData(baseline, gdtfData,
+                                                            rctx->GetModelManager());
+        if (!imported) return nil;
+    } else {
+        // Parse the .xmodel XML before creating anything — failing
+        // late would leak a stub model into the show.
+        pugi::xml_parse_result parseRes = xdoc.load_file(path.UTF8String);
+        if (!parseRes) return nil;
+        root = xdoc.document_element();
+        if (!root) return nil;
+
+        rctx->AbortRender(5000);
+        // CreateDefaultModelFromSavedModelNode wants a baseline Model*
+        // to mutate / replace. Use "Custom" — the import path swaps it
+        // out for the deserialized type anyway, so the placeholder
+        // choice only matters in the very narrow paths where the
+        // function preserves baseline state (start channel, layout
+        // group, hcenter/vcenter — we override those below).
+        Model* baseline = rctx->GetModelManager().CreateDefaultModel("Custom", "1");
+        if (!baseline) return nil;
+        bool cancelled = false;
+        imported = baseline->CreateDefaultModelFromSavedModelNode(
+            baseline, root, rctx->GetModelManager(), cancelled);
+        if (cancelled || !imported) {
+            delete baseline;
+            return nil;
+        }
     }
 
     // J-4 (import) — match the show's ruler when the imported
@@ -3394,6 +3769,62 @@ float ReadAlignReference(Model* model, const std::string& edge) {
     return (NSInteger)v;
 }
 
+- (NSString*)sampledColorHexNearPoint:(CGPoint)point
+                             viewSize:(CGSize)viewSize
+                          forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    if (_preview->Is3D()) return nil;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    for (const auto& [name, m] : rctx->GetModelManager()) {
+        if (!m) continue;
+        std::string s = m->GetNodeNear(_preview.get(), p, false);
+        if (s.empty()) continue;
+        char* endp = nullptr;
+        long v = std::strtol(s.c_str(), &endp, 10);
+        if (endp == s.c_str() || v <= 0) continue;
+        xlColor c = m->GetNodeColor((size_t)(v - 1));
+        return [NSString stringWithFormat:@"#%02X%02X%02X", c.red, c.green, c.blue];
+    }
+    return nil;
+}
+
+- (NSDictionary<NSString*, id>*)nodeInfoNearPoint:(CGPoint)point
+                                         viewSize:(CGSize)viewSize
+                                      forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    if (_preview->Is3D()) return nil;
+    double scale = _canvas->getScaleFactor();
+    if (scale <= 0) scale = 1.0;
+    xlPoint p{(int)std::round(point.x * scale),
+              (int)std::round(point.y * scale)};
+    for (const auto& [name, m] : rctx->GetModelManager()) {
+        if (!m) continue;
+        std::string s = m->GetNodeNear(_preview.get(), p, false);
+        if (s.empty()) continue;
+        char* endp = nullptr;
+        long v = std::strtol(s.c_str(), &endp, 10);
+        if (endp == s.c_str() || v <= 0) continue;
+        int32_t chan = m->NodeStartChannel((size_t)(v - 1)) + 1;  // 1-based absolute
+        NSString* ctrl = [NSString stringWithUTF8String:m->GetControllerName().c_str()];
+        NSString* portRange = [NSString stringWithUTF8String:m->GetControllerConnectionRangeString().c_str()];
+        return @{
+            @"model": [NSString stringWithUTF8String:name.c_str()],
+            @"node": @((NSInteger)v),
+            @"channel": @((NSInteger)chan),
+            @"controller": ctrl ?: @"",
+            @"port": portRange ?: @"",
+        };
+    }
+    return nil;
+}
+
 - (NSArray<NSNumber*>*)nodesInRect:(CGRect)rect
                            onModel:(NSString*)modelName
                           viewSize:(CGSize)viewSize
@@ -3467,6 +3898,50 @@ float ReadAlignReference(Model* model, const std::string& edge) {
         m->SetNodeColor(i, base);
     }
     return YES;
+}
+
+- (nullable NSArray<NSString*>*)symmetrizeRanges:(NSArray<NSString*>*)ranges
+                                         onModel:(NSString*)modelName
+                                 degreeOfSymmetry:(NSInteger)degree
+                                       clockwise:(BOOL)clockwise
+                                     bottomToTop:(BOOL)bottomToTop
+                                        squarify:(BOOL)squarify
+                                     forDocument:(XLSequenceDocument*)doc {
+    if (!_preview || !doc || !modelName || degree < 2) return nil;
+    iPadRenderContext* rctx = static_cast<iPadRenderContext*>([doc renderContext]);
+    if (!rctx) return nil;
+    Model* m = rctx->GetModelManager()[std::string(modelName.UTF8String)];
+    if (!m) return nil;
+
+    std::map<int, std::pair<float, float>> coords;
+    if (!m->GetScreenLocations(_preview.get(), coords) || coords.empty()) return nil;
+
+    int w = _preview->getWidth();
+    int h = _preview->getHeight();
+    if (w <= 0 || h <= 0) return nil;
+
+    std::vector<std::string> strands;
+    for (NSString* r in ranges) {
+        if ([r isKindOfClass:[NSString class]]) {
+            strands.push_back(std::string(r.UTF8String));
+        }
+    }
+
+    SubModelSymmetrize::Options opts;
+    opts.degreeOfSymmetry = (int)degree;
+    opts.clockwise = clockwise;
+    opts.bottomToTop = bottomToTop;
+    opts.squarifyAspect = squarify;
+    opts.handleCenterNode = true;
+
+    SubModelSymmetrize::Result res = SubModelSymmetrize::Symmetrize(coords, w, h, strands, opts);
+    if (!res.success) return nil;
+
+    NSMutableArray<NSString*>* out = [NSMutableArray arrayWithCapacity:res.strands.size()];
+    for (const auto& s : res.strands) {
+        [out addObject:[NSString stringWithUTF8String:s.c_str()]];
+    }
+    return out;
 }
 
 @end

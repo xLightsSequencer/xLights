@@ -1328,6 +1328,13 @@ void SequenceElements::PopulateRowInformation()
         }
     }
 
+    // mCurrentView can be left dangling past the end of mAllViews if the selected view was
+    // removed before this runs (e.g. a view-delete racing a ViewsModelsPanel view-select);
+    // SetCurrentView/PopulateView guard the same way before indexing mAllViews.
+    if (mCurrentView < 0 || static_cast<size_t>(mCurrentView) >= mAllViews.size()) {
+        mCurrentView = MASTER_VIEW;
+    }
+
     for (size_t i = 0; i < mAllViews[mCurrentView].size(); i++)
     {
         Element* elem = mAllViews[mCurrentView][i];

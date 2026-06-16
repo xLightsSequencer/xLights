@@ -98,6 +98,10 @@ struct ColorCurveEditorSheet: View {
 
     @State private var curve: EditableColorCurve?
     @State private var selectedPointX: Float? = nil
+    @State private var showingLoadPreset = false
+    @State private var showingSavePreset = false
+    @State private var showingExport = false
+    @State private var exportDocument: ColorCurveExportDocument? = nil
 
     private var storageKey: String { "C_BUTTON_Palette\(slot)" }
     private var identifier: String { "Palette\(slot)" }
@@ -224,7 +228,66 @@ struct ColorCurveEditorSheet: View {
                     Label("Flip Horizontally", systemImage: "arrow.left.arrow.right")
                 }
             }
+
+            // Presets. Bundled + `<showFolder>/colorcurves`, plus an
+            // export-to-anywhere path matching desktop's ButtonExport.
+            Section {
+                Button {
+                    showingLoadPreset = true
+                } label: {
+                    Label("Load Preset…", systemImage: "folder")
+                }
+                Button {
+                    showingSavePreset = true
+                } label: {
+                    Label("Save As Preset…",
+                          systemImage: "square.and.arrow.down")
+                }
+                Button {
+                    if let doc = viewModel.document.colorCurveXccDocument(curve.core.serialise()) {
+                        exportDocument = ColorCurveExportDocument(text: doc)
+                        showingExport = true
+                    }
+                } label: {
+                    Label("Export…", systemImage: "square.and.arrow.up")
+                }
+            } header: {
+                Text("Presets")
+            }
         }
+        .sheet(isPresented: $showingLoadPreset) {
+            ColorCurveLoadSheet { serialised in
+                applyPreset(serialised, to: curve)
+            }
+            .environment(viewModel)
+        }
+        .sheet(isPresented: $showingSavePreset) {
+            ColorCurveSaveAsSheet { name in
+                _ = viewModel.document.saveColorCurveSerialised(
+                    curve.core.serialise(), asName: name)
+            }
+        }
+        .fileExporter(isPresented: $showingExport,
+                      document: exportDocument,
+                      contentType: ColorCurveExportDocument.xccType,
+                      defaultFilename: "ColorCurve") { _ in
+            exportDocument = nil
+        }
+    }
+
+    /// Replace the editing curve's state from a loaded preset. The
+    /// preset's `data=` body carries points + mode + active; rebuild
+    /// the observable wrapper around a fresh core so the strip and
+    /// selection refresh, then persist into the slot's settings key.
+    private func applyPreset(_ serialised: String, to existing: EditableColorCurve) {
+        let core = XLColorCurve(serialised: serialised, identifier: identifier)
+        core.active = true
+        let rebuilt = EditableColorCurve(core: core,
+                                         storageKey: storageKey,
+                                         viewModel: viewModel)
+        viewModel.setSettingValue(core.serialise(), forKey: storageKey)
+        curve = rebuilt
+        selectedPointX = nil
     }
 
     private var modeFooter: String {

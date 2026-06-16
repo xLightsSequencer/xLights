@@ -7,6 +7,7 @@
 // Manages show folder loading and sequence access.
 
 @class XLCheckSequenceIssue;
+@class XLFindEffectResult;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -37,6 +38,12 @@ NS_ASSUME_NONNULL_BEGIN
 // Call this whenever the user picks a folder via UIDocumentPicker so the
 // bookmark is stored in UserDefaults and access survives app restart.
 + (BOOL)obtainAccessToPath:(NSString*)path enforceWritable:(BOOL)enforceWritable;
+
+// Convert an SVG file into the Sketch effect's SketchDef string
+// (normalised 0..1 paths). Returns an empty string when the file
+// can't be parsed. Shares the desktop assist panel's nanosvg
+// conversion via src-core/effects/SketchSVGImport.
++ (NSString*)sketchDefFromSVGFile:(NSString*)path NS_SWIFT_NAME(sketchDef(fromSVGFile:));
 
 // Show / media folder accessors — needed by the file-relocation logic
 // so Swift can tell whether a picked URL is already inside the
@@ -142,6 +149,21 @@ NS_ASSUME_NONNULL_BEGIN
 // `-saveSequence` writes to the new location.
 - (BOOL)saveSequenceAs:(NSString*)path;
 
+// Per-region .xsq export (desktop DoExportSongRegion,
+// TabSequence.cpp:2114). Writes a standalone sequence at `path`
+// containing only the effects in [startMS,endMS), offset to start at
+// 0, with the duration trimmed to the region and (when the sequence
+// has audio) a trimmed `.m4a` written alongside and referenced as the
+// new mediaFile. Built wx-free by post-windowing the document
+// `SequenceFile::BuildDocument` produces — no SequenceElements
+// deep-copy needed. Returns an empty string on success, else a short
+// human-readable error.
+- (NSString*)exportSongRegionToPath:(NSString*)path
+                            startMS:(int)startMS
+                              endMS:(int)endMS
+                               name:(NSString*)regionName
+    NS_SWIFT_NAME(exportSongRegion(toPath:startMS:endMS:name:));
+
 // Absolute on-disk path the sequence was opened from (or last
 // saved to). Empty when no sequence is loaded.
 - (NSString*)currentSequencePath;
@@ -163,6 +185,10 @@ NS_ASSUME_NONNULL_BEGIN
 // banner. Both are empty when no sequence is loaded.
 - (NSString*)sequenceFileVersion;
 - (NSString*)currentAppVersion;
+
+// Media-file hash (desktop SeqSettings Info-tab TextCtrl_Hash —
+// `GetMedia()->Hash()`); "N/A" when no audio is attached.
+- (NSString*)mediaFileHash;
 
 // About-screen helpers. `appVersion` (without an instance) and
 // `licenseText` are both static — same value across the whole app
@@ -228,11 +254,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)sequenceSupportsModelBlending;
 - (BOOL)setSequenceSupportsModelBlending:(BOOL)enabled;
 
+// Render mode (desktop SeqSettings `RenderModeChoice`): "Erase" or
+// "Canvas". Stored on the sequence's Nutcracker data layer. "Canvas"
+// preserves prior-frame pixels so layered effects accumulate; "Erase"
+// (default) clears each frame. Changing requires a re-render on save.
+- (NSString*)renderMode;
+- (BOOL)setRenderMode:(NSString*)mode;
+
 // Read-only summary for the Info tab.
 - (int)sequenceModelCount;
 
 // Sequence metadata
 - (int)sequenceDurationMS;
+// Editable duration override (desktop SeqSettings Info-tab
+// TextCtrl_Xml_Seq_Duration). Resizes the render data; effects past
+// the new end stay in the XML but won't render. Returns NO when
+// unchanged/invalid.
+- (BOOL)setSequenceDurationMS:(int)ms;
 - (int)frameIntervalMS;
 - (NSString*)sequenceName;
 
@@ -243,6 +281,21 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)rowIsCollapsedAtIndex:(int)index;
 // Model name for a row (element->GetName()). Empty for non-model rows (e.g. timings).
 - (NSString*)rowModelNameAtIndex:(int)index;
+// True iff the row's Element has any effects on any of its layers.
+// Matches desktop RowHeading.cpp effectNotice stripe logic. Only
+// meaningful on ELEMENT_TYPE_MODEL rows; returns NO for timing / sub-layer rows.
+- (BOOL)rowHasEffectsAtIndex:(int)index NS_SWIFT_NAME(rowHasEffects(at:));
+// Tag-colour hex string (e.g. "#RRGGBB") for the row's model, or
+// empty string when the tag colour is black (unset). Matches
+// desktop RowHeading.cpp:2547-2553 GetTagColour draw.
+// Only meaningful on ELEMENT_TYPE_MODEL rows; returns "" for others.
+- (NSString*)rowTagColorAtIndex:(int)index NS_SWIFT_NAME(rowTagColor(at:));
+// Single-colour model mask-colour hex string (e.g. "#RRGGBB") for the
+// row's model, or empty string when the model is not a single-colour
+// string type (or has no nodes). Matches desktop RowHeading.cpp:2668-2688
+// GetNodeMaskColor(0) swatch draw for "Single Color"/"Node Single Color"
+// models. Only meaningful on ELEMENT_TYPE_MODEL rows; returns "" for others.
+- (NSString*)rowNodeMaskColorAtIndex:(int)index NS_SWIFT_NAME(rowNodeMaskColor(at:));
 
 // Timing-row queries (rows whose Element is TIMING). Returns indices into
 // the visible-row list used by effectCountForRow: and friends.
@@ -320,6 +373,32 @@ NS_ASSUME_NONNULL_BEGIN
     NS_SWIFT_NAME(insertEffectLayersBelow(at:count:));
 - (BOOL)removeEffectLayerAtIndex:(int)rowIndex;
 
+// #6507 parity: drag-reorder a top-level row (model / group / timing
+// track) in the master view. `srcRowIndex` / `destBeforeRowIndex` are
+// *visible* row indices; both are resolved to their owning element's
+// MASTER_VIEW element index (matching desktop's
+// `RowHeading::mouseLeftUp` → `MoveSequenceElement`), and the source
+// element is moved so it lands immediately *before* the destination
+// element (pass `visibleRowCount` to drop at the very end). Returns NO
+// when either row isn't a top-level element or the move is a no-op.
+// Repopulates row info on success; the caller still owns undo.
+- (BOOL)moveTopLevelRowFrom:(int)srcRowIndex toBefore:(int)destBeforeRowIndex
+    NS_SWIFT_NAME(moveTopLevelRow(from:toBefore:));
+// Name-based variant used to build an exact undo: move the element
+// named `modelName` so it lands immediately before the element named
+// `beforeModelName` in the master view; pass an empty `beforeModelName`
+// to drop it at the very end. Returns NO on a no-op / missing element.
+// Repopulates row info on success.
+- (BOOL)moveTopLevelElementNamed:(NSString*)modelName
+                     beforeNamed:(NSString*)beforeModelName
+    NS_SWIFT_NAME(moveTopLevelElement(named:beforeNamed:));
+// The MASTER_VIEW element name immediately following `modelName`
+// (its successor in master order), or nil when `modelName` is the
+// last top-level element / not found. Used to snapshot the undo
+// landing spot before a reorder.
+- (NSString* _Nullable)topLevelElementNameAfter:(NSString*)modelName
+    NS_SWIFT_NAME(topLevelElementName(after:));
+
 // B55: rewrite each effect's `B_CHOICE_BufferStyle` setting from
 // "Per Preview" / "Default" / "Single Line" / "" to the matching
 // "Per Model …" variant. When `acrossAllLayers` is YES, walks every
@@ -330,6 +409,18 @@ NS_ASSUME_NONNULL_BEGIN
 // re-render of the affected model on success.
 - (int)convertEffectsToPerModelOnRow:(int)rowIndex acrossAllLayers:(BOOL)allLayers
     NS_SWIFT_NAME(convertEffectsToPerModel(onRow:acrossAllLayers:));
+
+// Convert To Effect (render-down): renders the row's model over the
+// whole sequence, then walks each strand's node layers reading the
+// rendered node colours frame-by-frame and emits "On" / "Color Wash"
+// effects describing that output (mirrors desktop
+// xLightsFrame::ConvertDataRowToEffects + DoConvertDataRowToEffects).
+// Works on a MODEL row (all strands/nodes) or a STRAND row (its node
+// layers, or a single node row). No-op for ModelGroup / SubModel.
+// Returns the number of effects created; triggers a model re-render
+// on success. Caller should reloadRows afterward.
+- (int)convertDataToEffectsOnRow:(int)rowIndex
+    NS_SWIFT_NAME(convertDataToEffects(onRow:));
 
 // B56: promote node-level "On" / "Color Wash" effects up the
 // strand → model hierarchy when every node carries an identical
@@ -355,6 +446,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)expandAllElements;
 // SEQ-15: expand model elements that have effects (collapse the empty ones).
 - (void)expandElementsWithEffects;
+// Desktop "Collapse All Models" — hide every ModelElement's strands +
+// submodels (distinct from "Collapse All Layers" = collapseAllElements).
+- (void)collapseAllModels;
+
+// Scoped effect delete. `scope`: 0 = submodels, 1 = strands, 2 = nodes.
+// Clears every effect on the matching layers under the row's
+// ModelElement. Mirrors desktop RowHeading.cpp
+// ID_ROW_MNU_DELETE_MODEL_{SUBMODEL,STRAND,NODE}_EFFECTS. Returns the
+// number of layers cleared; triggers a model re-render on success.
+- (int)deleteScopedEffectsAtRow:(int)rowIndex scope:(int)scope
+    NS_SWIFT_NAME(deleteScopedEffects(atRow:scope:));
 
 // B46: in-place rename of an effect layer's name (`EffectLayer::
 // SetLayerName`). Empty string clears the name. Returns NO if the
@@ -491,6 +593,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)exportTimingTracksAtRows:(NSArray<NSNumber*>*)rowIndices toPath:(NSString*)path
     NS_SWIFT_NAME(exportTimingTracks(atRows:toPath:));
 
+// Export the timing element at `rowIndex` as a Papagayo `.pgo`
+// lipsync file (mirrors desktop RowHeading `GetPapagayoExport`).
+// Routes through `TimingElement::GetPapagayoExport(frequency)`.
+// Returns NO if the row isn't a timing row or the write failed.
+// Caller must `ObtainAccessToURL` on `path` first.
+- (BOOL)exportTimingTrackAsPapagayoAtRow:(int)rowIndex toPath:(NSString*)path
+    NS_SWIFT_NAME(exportTimingTrackAsPapagayo(atRow:toPath:));
+
 // B49: export the rendered channel data for the row's model as a
 // compressed FSEQ v2 `.eseq` sub-sequence — the format Falcon
 // Player uses to play back per-model data. Uses the current render
@@ -533,6 +643,28 @@ NS_ASSUME_NONNULL_BEGIN
                         startMS:(int)startMS endMS:(int)endMS
                      completion:(nullable void (^)(BOOL success))completion
     NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:completion:));
+
+// HD-upscale variant — same as the async form above but scales the output to
+// `exportWidth`×`exportHeight` (nearest-neighbour integer upscale, black bars
+// fill unused space). Pass 0/0 to use the model's native pixel dimensions.
+// Mirrors desktop #6506 "HD ProRes Video" which passes 1920×1080.
+- (void)exportModelAsVideoAtRow:(int)rowIndex toPath:(NSString*)path
+                     compressed:(BOOL)compressed highQuality:(BOOL)highQuality
+                    forceProRes:(BOOL)forceProRes
+                        startMS:(int)startMS endMS:(int)endMS
+                    exportWidth:(int)exportWidth exportHeight:(int)exportHeight
+                     completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportModelAsVideo(atRow:toPath:compressed:highQuality:forceProRes:startMS:endMS:exportWidth:exportHeight:completion:));
+
+// Export the model at `rowIndex` as an animated GIF (wx-free core encoder,
+// gif-h). The encode runs on a background queue; `completion` (success) is
+// delivered on the main queue. Frame-range and render-currency semantics match
+// exportModelAsFSEQ. Returns NO for timing/group rows, when there's no rendered
+// data, or on write failure. Caller must `ObtainAccessToURL` on `path` first.
+- (void)exportModelAsGIFAtRow:(int)rowIndex toPath:(NSString*)path
+                      startMS:(int)startMS endMS:(int)endMS
+                   completion:(nullable void (^)(BOOL success))completion
+    NS_SWIFT_NAME(exportModelAsGIF(atRow:toPath:startMS:endMS:completion:));
 
 // Export the house preview (all models of the active layout group) as an
 // H.264 / HEVC `.mp4` rendered offscreen at exactly `width`×`height` —
@@ -643,6 +775,40 @@ NS_ASSUME_NONNULL_BEGIN
 // it as a precondition — `writeCurrentToTempWav` always writes
 // whatever the user has currently selected on the waveform.
 - (BOOL)hasVocalsStems;
+
+// Import Notes: build a note-labelled timing track from a MIDI /
+// MusicXML / Audacity-timing file (mirrors the desktop
+// `ExecuteImportNotes`). `format` is one of "midi", "musicxml",
+// "audacity". For MIDI/MusicXML, `track` selects a part/track ("All"
+// or "" merges everything), `speedAdjustPct` (100 = unchanged) and
+// `startAdjustMS` (in hundredths of a second, matching the desktop
+// sliders' scale) tweak timing. Marks are quantised to the sequence
+// frame interval. Returns the (possibly uniquified) track name on
+// success or empty string on failure. Caller must `ObtainAccessToURL`
+// on `path` first. The zipped `.mxl` MusicXML container is not
+// supported here (desktop-only).
+- (NSString*)importNotesFromPath:(NSString*)path
+                          format:(NSString*)format
+                            name:(NSString*)name
+                           track:(NSString*)track
+                  speedAdjustPct:(int)speedAdjustPct
+                   startAdjustMS:(int)startAdjustMS
+    NS_SWIFT_NAME(importNotes(fromPath:format:name:track:speedAdjustPct:startAdjustMS:));
+
+// Track/part names for a note-import file (for the picker). `format`
+// is "midi" or "musicxml". MIDI returns "1".."N"; MusicXML returns
+// part names. Empty array if unreadable / unsupported format.
+- (NSArray<NSString*>*)noteImportTracksFromPath:(NSString*)path
+                                         format:(NSString*)format
+    NS_SWIFT_NAME(noteImportTracks(fromPath:format:));
+
+// Encode the currently-displayed audio to `path`; the container/codec
+// is chosen by the file extension (.wav / .m4a). Routes through
+// `AudioManager::WriteCurrentAudioToFile`. Returns NO if no audio is
+// loaded or the encode failed. Caller must `ObtainAccessToURL` on
+// `path` first.
+- (BOOL)exportCurrentAudioToPath:(NSString*)path
+    NS_SWIFT_NAME(exportCurrentAudio(toPath:));
 
 // Write whatever audio the user currently has selected on the
 // waveform (RAW, STEM_VOCALS, a band-passed filter, etc.) to a
@@ -773,6 +939,26 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)moveModel:(NSString*)name inViewAtIndex:(int)idx toPosition:(int)pos
     NS_SWIFT_NAME(moveModel(_:inViewAtIndex:toPosition:));
 
+// Copy the user view at `idx`'s ordered model list into the Master
+// View (desktop `DoMakeMaster` / Copy To Master). Adds any of the
+// view's models that aren't yet Master Elements, reorders the Master
+// to match the view, and drops Master models absent from the view
+// that have no effects. Models with effects are kept and their names
+// returned (desktop shows them in a warning). Rejects the Master View
+// itself (idx 0). Returns nil on failure.
+- (nullable NSArray<NSString*>*)copyViewToMasterAtIndex:(int)idx
+    NS_SWIFT_NAME(copyViewToMaster(atIndex:));
+
+// Import view configuration from another .xsq sequence file: reads its
+// <DisplayElements> model + timing lists and creates one new view
+// ("Imported Master", uniquified) containing the models that resolve
+// in this show's layout, joined to the resolvable timing tracks.
+// Mirrors desktop `ImportSequenceMasterView` + `ImportViewData`.
+// Returns the created view's name, or nil on parse failure / no
+// importable elements.
+- (nullable NSString*)importViewConfigFromSequencePath:(NSString*)path
+    NS_SWIFT_NAME(importViewConfig(fromSequencePath:));
+
 // Roster for the "members" pane of the editor — Master-View *Elements*
 // (models the sequence has opted in, plus every timing track). A model
 // being in the show's `ModelManager` does NOT imply it's in the
@@ -845,6 +1031,23 @@ NS_ASSUME_NONNULL_BEGIN
 // `addTiming:toViewNamed:` below.
 - (BOOL)elementVisible:(NSString*)name;
 - (BOOL)setElementVisible:(NSString*)name visible:(BOOL)visible;
+
+// Bulk Master-View visibility / membership ops mirroring desktop
+// ViewsModelsPanel's right-click menu (ViewsModelsPanel.cpp:1659-1668).
+// Operate over every element in the sequence (the Master View's
+// members). Each posts a single views-changed broadcast.
+//
+// `setAllElementsVisible:` is desktop Show All (YES) / Hide All (NO).
+// `hideUnusedElements` clears visibility on elements with no effects
+// (desktop Hide Unused). `removeUnusedElements` deletes every element
+// with no effects from the sequence (desktop Select Unused + Remove
+// Unused); returns the number removed.
+- (BOOL)setAllElementsVisible:(BOOL)visible
+    NS_SWIFT_NAME(setAllElementsVisible(_:));
+- (BOOL)hideUnusedElements
+    NS_SWIFT_NAME(hideUnusedElements());
+- (NSInteger)removeUnusedElements
+    NS_SWIFT_NAME(removeUnusedElements());
 
 // Per-view membership for a timing track, via
 // `TimingElement::mViews` (comma-separated view names). An entry in
@@ -969,6 +1172,39 @@ NS_ASSUME_NONNULL_BEGIN
            effectIndices:(NSArray<NSNumber*>*)indices
     NS_SWIFT_NAME(replaceColour(from:to:atRows:effectIndices:));
 
+// Shift Effects (time-offset bulk move). Mirrors desktop's
+// `OnMenuItemShiftEffects(AndTiming)Selected` / `ShiftEffectsOnLayer`
+// (`xLightsMain.cpp:5808,5902,5970`): every effect on every layer of
+// every master-view element is offset by `ms` (signed). Effects whose
+// shifted start would go below 0 are truncated to start at 0; effects
+// pushed entirely below 0 are deleted — exactly the desktop clamp.
+// `includeTiming==NO` skips timing-track elements (the desktop "Shift
+// Effects" item); `YES` shifts their marks too ("Shift Effects And
+// Timing"). `ms` is rounded to the sequence frame interval, like
+// desktop. Returns an opaque snapshot token (>0) the caller passes to
+// `restoreShiftSnapshot:` to undo, or 0 if nothing was shiftable.
+- (NSInteger)shiftAllEffectsByMS:(int)ms
+                    includeTiming:(BOOL)includeTiming
+    NS_SWIFT_NAME(shiftAllEffects(byMS:includeTiming:));
+
+// Selected-scope shift, mirroring desktop's `MenuItemShiftSelectedEffects`
+// / `ShiftSelectedEffectsOnLayer` (`xLightsMain.cpp:5902,6035`): only
+// the effects at the given (row, effectIndex) pairs move, and a move is
+// rejected when the shifted range would clash with an unselected effect
+// on the same layer (per desktop). Because the iPad keeps selection in
+// Swift, the pairs are mirrored into the core Selected flags just for
+// the op, then cleared. Returns a snapshot token for undo (>0), or 0.
+- (NSInteger)shiftSelectedEffectsByMS:(int)ms
+                               atRows:(NSArray<NSNumber*>*)rows
+                        effectIndices:(NSArray<NSNumber*>*)indices
+    NS_SWIFT_NAME(shiftSelectedEffects(byMS:atRows:effectIndices:));
+
+// Restore the layer state captured by `shiftAllEffects`/
+// `shiftSelectedEffects` (undo). Consumes the token. Returns YES if
+// the token was found and applied.
+- (BOOL)restoreShiftSnapshot:(NSInteger)token
+    NS_SWIFT_NAME(restoreShiftSnapshot(_:));
+
 // Value-curve preset load / save (G36 — C6). `.xvc` files are the
 // same XML format desktop reads/writes
 // (`<valuecurve data="<serialised>"/>`), stored under
@@ -991,6 +1227,42 @@ NS_ASSUME_NONNULL_BEGIN
 // under `<showFolder>/valuecurves/`; bundled presets are read-
 // only. Returns YES on success.
 - (BOOL)deleteSavedValueCurve:(NSString*)filename;
+
+// Build the full `.xvc` XML document text for `serialised` (same
+// bytes desktop's ValueCurve::SaveXVC writes, including the limit /
+// scale normalisation), so the SwiftUI `.fileExporter` can save a
+// value curve to an arbitrary location. Returns nil if `serialised`
+// is empty.
+- (nullable NSString*)valueCurveXvcDocument:(NSString*)serialised;
+
+// Color-curve preset load / save / export. `.xcc` files are the
+// same XML format desktop reads/writes
+// (`<colorcurve data="<serialised>" SourceVersion="..."/>`), stored
+// under `<showFolder>/colorcurves/` plus any bundled `colorcurves/`
+// in app resources. Mirrors the `savedValueCurves` trio above.
+
+// List every saved color curve visible to the app. Each entry is
+// @{@"filename": <basename>.xcc, @"serialised": <CC string>}.
+// Duplicates (same serialised body already loaded) are dropped.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)savedColorCurves;
+
+// Write `serialised` (a ColorCurve::Serialise() string) into an
+// `.xcc` under `<showFolder>/colorcurves/<name>.xcc`. Name is
+// sanitised to alphanumerics; pass nil / empty to auto-generate
+// `CC001.xcc`. Returns the on-disk filename, or nil on failure.
+- (nullable NSString*)saveColorCurveSerialised:(NSString*)serialised
+                                         asName:(nullable NSString*)name;
+
+// Delete a saved color curve by basename. Only removes files
+// under `<showFolder>/colorcurves/`; bundled presets are read-
+// only. Returns YES on success.
+- (BOOL)deleteSavedColorCurve:(NSString*)filename;
+
+// Build the full `.xcc` XML document text for `serialised` (same
+// bytes desktop's ColorCurveDialog::OnButtonExportClick writes), so
+// the SwiftUI `.fileExporter` can save a color curve to an arbitrary
+// location. Returns nil if `serialised` is empty.
+- (nullable NSString*)colorCurveXccDocument:(NSString*)serialised;
 
 // Model-scoped sources. Uses the effect's parent element's ModelName to
 // resolve a Model; ModelGroups are unwrapped to their first contained
@@ -1276,12 +1548,106 @@ NS_ASSUME_NONNULL_BEGIN
                                       submodel:(NSString*)submodelName
     NS_SWIFT_NAME(submodelAliases(onParent:submodel:));
 
+// SubModel import. Read submodel definitions from an external
+// source and return them in the same dictionary shape as
+// `submodelDetailsForModel:` (name / isRanges / isVertical /
+// bufferStyle / strands / subBuffer). The caller merges these
+// into the editor's working set and commits via
+// `replaceSubModelsOnModel:`. Mirrors desktop
+// SubModelsDialog::ImportSubModel / ImportCSVSubModel /
+// import-from-another-model.
+//
+// From an .xmodel file (parses `<subModel>` children via
+// XmlSerialize::LoadSubModelsFromXml, same as desktop's
+// ImportSubModelXML). Returns an empty array on parse failure.
+- (NSArray<NSDictionary*>*)submodelDetailsFromXmodelFile:(NSString*)path
+    NS_SWIFT_NAME(submodelDetails(fromXmodelFile:));
+
+// From another model already in this show — copies its submodel
+// defs. Returns an empty array if the source has none / missing.
+- (NSArray<NSDictionary*>*)submodelDetailsFromModel:(NSString*)sourceModel
+    NS_SWIFT_NAME(submodelDetails(fromSourceModel:));
+
+// Names of non-group models (other than `excluded`) that have at
+// least one submodel — the candidate sources for an
+// import-from-another-model. Sorted ascending.
+- (NSArray<NSString*>*)modelNamesWithSubmodelsExcluding:(NSString*)excluded
+    NS_SWIFT_NAME(modelNamesWithSubmodels(excluding:));
+
+// From a CSV file: each non-empty line is a node-range spec
+// ("1-10,15,20-25"); lines are compressed via
+// NodeUtils::CompressNodes and become the strands of a single
+// ranges-type submodel named after the file stem. Mirrors
+// desktop ImportCSVSubModel. Returns one entry (or empty on
+// failure).
+- (NSArray<NSDictionary*>*)submodelDetailsFromCSVFile:(NSString*)path
+    NS_SWIFT_NAME(submodelDetails(fromCSVFile:));
+
+// From Layout — list the model names declared in an external
+// show's `xlights_rgbeffects.xml` (the `<models>/<model>` names).
+// Mirrors desktop SubModelsDialog::ReadRGBEffectsFile model list.
+// Sorted ascending; empty on parse failure / no models.
+- (NSArray<NSString*>*)modelNamesInRGBEffectsFile:(NSString*)path
+    NS_SWIFT_NAME(modelNames(inRGBEffectsFile:));
+
+// From Layout — copy a named model's submodel defs out of an
+// external `xlights_rgbeffects.xml` (same LoadSubModelsFromXml
+// parse as the .xmodel path). Mirrors desktop ImportSubModelXML
+// from the chosen RGBeffects model. Empty if missing / no submodels.
+- (NSArray<NSDictionary*>*)submodelDetailsFromRGBEffectsFile:(NSString*)path
+                                                  modelName:(NSString*)modelName
+    NS_SWIFT_NAME(submodelDetails(fromRGBEffectsFile:modelName:));
+
+// Model export. Write the named model (with its submodels,
+// faces, states, aliases, dimming curve) to a .xmodel file at
+// `path`. Mirrors desktop ID_PREVIEW_MODEL_EXPORTXLIGHTSMODEL
+// (XmlSerializer::SerializeModel(model, true) → save_file).
+// Returns NO on missing model / write failure.
+- (BOOL)exportModelToXmodelFile:(NSString*)modelName
+                           path:(NSString*)path
+    NS_SWIFT_NAME(exportModel(toXmodelFile:path:));
+
+// Make-start-channel commands (desktop LayoutPanel
+// ID_MNU_MAKESCVALID / ID_MNU_MAKEALLSCVALID /
+// ID_MNU_MAKEALLSCNOTOVERLAPPING). Each clears the controller
+// name on the offending model(s) (NO_CONTROLLER) so the
+// start-channel rework auto-assigns a fresh non-overlapping
+// range, then recomputes. Returns the number of models touched.
+- (NSInteger)makeStartChannelValidForModel:(NSString*)modelName
+    NS_SWIFT_NAME(makeStartChannelValid(forModel:));
+- (NSInteger)makeAllStartChannelsValid
+    NS_SWIFT_NAME(makeAllStartChannelsValid());
+- (NSInteger)makeAllStartChannelsNotOverlapping
+    NS_SWIFT_NAME(makeAllStartChannelsNotOverlapping());
+
 // J-18 pass 6 — clear any dimming curve set on this model.
 // SetDimmingInfo({}) deletes the cached `modelDimmingCurve`
 // and empties the `<dimmingCurve>` XML child block on save.
 // Returns NO if the model doesn't resolve or there's
 // nothing to clear.
 - (BOOL)clearDimmingCurveOnModel:(NSString*)modelName;
+
+// Node Layout / Wiring View support. Returns the named model's
+// per-node geometry, mirroring the desktop ShowNodeLayout
+// (ChannelLayoutHtml) + ShowWiring (WiringDialog) data: each
+// node's buffer-screen X/Y, 1-based node number, string number
+// and start channel. The returned dictionary has:
+//   "name"           — NSString (model display name)
+//   "width"          — NSNumber (int, buffer bounds width)
+//   "height"         — NSNumber (int, buffer bounds height)
+//   "supportsWiring" — NSNumber(BOOL)
+//   "nodes"          — NSArray<NSDictionary> with keys:
+//        "node"    NSNumber(int)    1-based node number
+//        "string"  NSNumber(int)    0-based string number
+//        "x"/"y"   NSNumber(double) buffer-screen coordinate of
+//                                   the node's first coord,
+//                                   origin-shifted + Y-flipped to
+//                                   match the desktop wiring view
+//        "channel" NSString         start channel in display format
+// Returns nil for missing / group / submodel inputs (matching
+// the desktop guard which excludes ModelGroup + SubModel).
+- (nullable NSDictionary*)nodeLayoutForModel:(NSString*)modelName
+    NS_SWIFT_NAME(nodeLayout(forModel:));
 
 // J-22 — wholesale-replace a model's full face / state map.
 // Value is NSDictionary<NSString*, NSDictionary<NSString*,
@@ -1655,6 +2021,29 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString*)effectSettingsStringForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSString*)effectPaletteStringForRow:(int)rowIndex atIndex:(int)effectIndex;
 - (NSString*)effectNameForRow:(int)rowIndex atIndex:(int)effectIndex;
+
+// #5064 / Copy Effects incl SubModels — gather every effect on the
+// model that owns `rowIndex`: the model's own layers followed by
+// every submodel's layers, regardless of whether those rows are
+// currently expanded/visible (mirrors desktop
+// `EffectsGrid::CopyModelEffects(.., incSubModels=true)`). Each
+// element is a dict with keys: name, settings, palette (NSString),
+// rowOffset, startMS, endMS (NSNumber). `rowOffset` is the layer's
+// 0-based position in the model→submodel layer walk. Returns an
+// empty array if the row isn't model-backed or has no effects.
+- (NSArray<NSDictionary*>*)copyModelInclSubmodelsAtRow:(int)rowIndex;
+
+// Find Possible Source Effects (EffectsGrid.cpp:476). For a node /
+// strand row, resolve the channel range the node occupies and return
+// every model-/strand-/submodel-level effect active at `ms` that
+// renders onto that channel range — i.e. the candidate sources that
+// produced this node's data. Each result is a dict with keys:
+// label (NSString, "<model> · <layer> · <effect>"), startMS, endMS
+// (NSNumber), and visibleRow / effectIndex (NSNumber, -1 when the
+// owning row isn't currently visible) so the UI can jump+select.
+// Returns an empty array when the row isn't a node/strand row or
+// the channel can't be resolved.
+- (NSArray<NSDictionary*>*)findSourceEffectsForRow:(int)rowIndex atMS:(int)ms;
 
 // B15: replace an effect's settings + palette wholesale. Used by
 // Randomize / Reset bulk ops and (future) preset-apply. Empty
@@ -2062,6 +2451,46 @@ NS_ASSUME_NONNULL_BEGIN
 // referenced — user re-sources or re-imports). Dirties the sequence.
 - (BOOL)removeMediaAtPath:(NSString*)path NS_SWIFT_NAME(removeMedia(atPath:));
 
+// Add a media file to the sequence inventory (MED-6 — parity with
+// desktop ManageMediaPanel's "Add"). `storedPath` is the path the
+// file already lives at after the caller has relocated it under the
+// show / media folder (relative for show-folder files, absolute for
+// media-folder files — the same convention the relocation prompt
+// uses). The bridge derives the MediaType from the extension and
+// force-inserts a fresh cache entry so the file shows up in the
+// media manager even before any effect references it. Returns YES if
+// a new entry was registered, NO on bad input or duplicate.
+- (BOOL)addMediaAtPath:(NSString*)storedPath
+    NS_SWIFT_NAME(addMedia(atPath:));
+
+// Reload one / all non-embedded cache entries from disk (MED-7 —
+// parity with desktop's internal ReloadMedia). Purges the cached
+// pixels / frames / resolved-path for the entry so the next render
+// re-reads the current file on disk — used after the user edits a
+// referenced image / video externally. Embedded entries are skipped
+// (their bytes live in the .xsq). `reloadAllMedia` returns the count
+// reloaded.
+- (BOOL)reloadMediaAtPath:(NSString*)path
+    NS_SWIFT_NAME(reloadMedia(atPath:));
+- (int)reloadAllMedia;
+
+// Cleanup File Locations (CLN-1 — parity with desktop
+// xLightsFrame::OnMenuItem_CleanupFileLocationsSelected). Sweeps
+// every referenced external media file that lives OUTSIDE the show /
+// media folders into the show folder (type-canonical subdirectory,
+// `_N` suffix on collision) and rewrites every effect setting /
+// palette value that pointed at the old location.
+//
+// `cleanupFileLocationsPreview` is a dry run: it returns one
+// dictionary per file that WOULD move with keys `from` (current
+// stored path) and `to` (proposed show-relative path), without
+// touching anything. `performCleanupFileLocations` executes the
+// sweep and returns the count actually moved. The operation is NOT
+// undoable — matching desktop, which warns rather than registering
+// an undo step.
+- (NSArray<NSDictionary<NSString*, NSString*>*>*)cleanupFileLocationsPreview;
+- (int)performCleanupFileLocations;
+
 // Video compatibility check (G32 — C5). Wraps
 // `MediaCompatibility::CheckVideoFile`: returns nil when the
 // file is AVFoundation-decodable on iPad, or a human-readable
@@ -2090,6 +2519,56 @@ NS_ASSUME_NONNULL_BEGIN
 // detached from any C++ state by the time it returns.
 - (NSArray<XLCheckSequenceIssue*>*)runSequenceCheckWithProgress:
     (nullable void (^)(int percent, NSString* _Nonnull step))progress;
+
+// Set the per-check disable flags consulted by the next sequence
+// check. `options` holds desktop check-option ids ("DupUniv",
+// "NonContigChOnPort", "PreviewGroup", "DupNodeMG", "TransTime",
+// "CustomSizeCheck", "SketchImage"); any id present is suppressed.
+// Persisted by the SwiftUI CheckSequence sheet via @AppStorage and
+// pushed here before each run.
+- (void)setCheckSequenceDisabledOptions:(nonnull NSArray<NSString*>*)options
+    NS_SWIFT_NAME(setCheckSequenceDisabledOptions(_:));
+
+// Find Effect Data (desktop View ▸ Windows ▸ Find Effect Data /
+// FindDataPanel + SearchPanel). Walk the loaded SequenceElements for
+// effects matching the query and return one XLFindEffectResult per
+// hit (capped at `maxResults` to keep the UI responsive on large
+// shows). An effect matches when ALL supplied filters hold:
+//   * `effectType` (case-insensitive, empty = any) equals the
+//     effect's name;
+//   * `modelFilter` (case-insensitive substring, empty = any) is
+//     contained in the parent model name;
+//   * `settingsText` (case-insensitive substring, empty = any) is
+//     contained in some "key=value" of the effect's settings or
+//     palette map — the matched entry is returned in `matchedSetting`.
+// Walks model, strand, submodel, and node layers (mirrors desktop's
+// SearchPanel coverage). Safe to call from a background queue: it
+// only reads in-memory objects and the result array is detached.
+- (NSArray<XLFindEffectResult*>*)findEffectsMatchingType:(nonnull NSString*)effectType
+                                            settingsText:(nonnull NSString*)settingsText
+                                             modelFilter:(nonnull NSString*)modelFilter
+                                              maxResults:(NSInteger)maxResults
+    NS_SWIFT_NAME(findEffectsMatching(type:settingsText:modelFilter:maxResults:));
+
+// Distinct effect names present in the loaded sequence, sorted — feeds
+// the Find Effect Data sheet's effect-type picker so it only offers
+// types that actually occur.
+- (nonnull NSArray<NSString*>*)effectTypesInSequence;
+
+// User Lyric Dictionary (desktop Tools → User Lyric Dictionary /
+// LyricUserDictDialog). Read the show folder's `user_dictionary`
+// (the file the core PhonemeDictionary loads with highest precedence)
+// as an array of @{"word": NSString, "phonemes": NSString} where
+// `phonemes` is the space-joined phoneme list. Returns an empty array
+// when no show folder / file exists.
+- (nonnull NSArray<NSDictionary<NSString*, NSString*>*>*)userLyricDictionaryEntries;
+
+// Persist `entries` (same @{"word","phonemes"} shape) to the show
+// folder's `user_dictionary` in the desktop line format
+// (`WORD phoneme1 phoneme2 …`) and refresh the live PhonemeDictionary
+// so the next lyric breakdown picks the edits up. Returns NO when
+// there's no show folder or the write fails.
+- (BOOL)saveUserLyricDictionaryEntries:(nonnull NSArray<NSDictionary<NSString*, NSString*>*>*)entries;
 
 // Ensure a preview-frame bundle exists for `path` at the requested
 // thumbnail bounds. Loads the entry if not yet loaded and calls
@@ -2199,6 +2678,18 @@ NS_ASSUME_NONNULL_BEGIN
                        atIndex:(int)effectIndex
     NS_SWIFT_NAME(setMovingHeadCommand(_:value:forRow:atIndex:));
 
+/// G3+ — color-wheel slot colours for the Moving Head effect's
+/// target model, mirroring desktop's `MHColorWheelPanel` source.
+/// Returns nil when the effect's first fixture model isn't a
+/// colour-wheel type (RGB/CMYW fixtures use the generic colour
+/// picker instead). Each entry is a dictionary with `hex`
+/// (`#RRGGBB`), `hue` (0..360), `sat` (0..1) and `val` (0..1) so
+/// the picker can both render the swatch and emit the `Wheel:`
+/// HSV-triplet command the renderer reads.
+- (nullable NSArray<NSDictionary*>*)movingHeadWheelColorsForRow:(int)rowIndex
+                                                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(movingHeadWheelColors(forRow:atIndex:));
+
 // MARK: - DMX state + remap plumbing (G8 — C7)
 //
 // Model states live on the `Model` object's in-memory
@@ -2256,6 +2747,26 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)dmxRemapChannelsForRow:(int)rowIndex
                         atIndex:(int)effectIndex
                          preset:(int)preset;
+
+/// Arbitrary per-channel remap — the touch-grid analogue of desktop's
+/// `RemapDMXChannelsDialog`. `mapping` is a 48-element array of source
+/// channel numbers (1..48); the value written to channel `i` (1-based)
+/// becomes the *pre-remap* value of `mapping[i-1]`. A source of 0 (or
+/// out of range) clears that target channel to 0, matching the desktop
+/// "unmapped → off" convention. Reads all 48 channels into a snapshot
+/// first so the permutation can't step on itself. Returns YES if any
+/// channel value changed.
+- (BOOL)dmxRemapChannelsForRow:(int)rowIndex
+                        atIndex:(int)effectIndex
+                        mapping:(NSArray<NSNumber*>*)mapping
+    NS_SWIFT_NAME(dmxRemapChannels(forRow:atIndex:mapping:));
+
+/// Snapshot the effect's current 48 DMX channel values (1-based,
+/// index 0 unused → 49 entries) so the remap-grid editor can seed its
+/// rows and preview the result. Each entry is 0..255.
+- (NSArray<NSNumber*>*)dmxChannelValuesForRow:(int)rowIndex
+                                       atIndex:(int)effectIndex
+    NS_SWIFT_NAME(dmxChannelValues(forRow:atIndex:));
 
 // Effect bracket palette — sourced from the show folder's <colors>
 // node in xlights_rgbeffects.xml so user-customised desktop palettes
@@ -2356,6 +2867,45 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
                  onController:(NSString*)name
                         value:(id)value;
 
+// Global output settings (desktop's "nothing selected" property
+// grid): Controller Sync, E1.31 Sync Universe, Max Duplicate
+// Frames To Suppress, Global Force Local IP, Global FPP Proxy.
+// Returned as the same descriptor dicts `controllerPropertiesForName`
+// uses so the Swift side renders them with `ControllerDescriptorRow`.
+- (NSArray<NSDictionary*>*)globalOutputSettings;
+
+// Commit one global output setting. Same key shapes as the
+// descriptors above. Returns NO for unknown key / wrong type.
+- (BOOL)setGlobalOutputSetting:(NSString*)key value:(id)value;
+
+// Ping a controller. Runs the shared core `Controller::Ping()`
+// (an HTTP reachability probe on non-Windows hosts — usable from
+// iOS). Returns one of: "ok" / "webok" / "open" / "failed" /
+// "unavailable" / "unknown" so the Swift status dot can colour-code.
+- (NSString*)pingController:(NSString*)name;
+
+// Validate the FPP proxy for a controller before upload (desktop
+// calls `FPP::ValidateProxy` ahead of every upload). Returns:
+//   { "hasProxy": BOOL, "valid": BOOL, "proxy": <ip>, "to": <ip> }
+// When `hasProxy` is NO there is nothing to validate (valid = YES).
+- (NSDictionary*)validateProxyForController:(NSString*)name;
+
+// Bulk multi-controller upload. Uploads input + output to every
+// active open-source-firmware controller that supports upload.
+// `onProgress` is called on the calling thread before each
+// controller starts (name, 0-based index, total). Returns an
+// array of per-controller result dicts:
+//   { "name", "success", "message", "log" }
+- (NSArray<NSDictionary*>*)bulkUploadControllersWithProgress:(nullable void (^)(NSString* name, NSInteger index, NSInteger total))onProgress;
+
+// Returns a non-nil warning string when `name` is an E1.31
+// controller with AutoSize enabled but an uncommon universe size
+// (not 170, 510, or 512). Mirrors desktop #4123 warning logic
+// from `ControllerPropertyAdapter::HandlePropertyEvent("AutoSize")`.
+// Call after enabling AutoSize to decide whether to show an alert.
+- (nullable NSString*)controllerAutoSizeUniverseWarning:(NSString*)name
+    NS_SWIFT_NAME(controllerAutoSizeUniverseWarning(name:));
+
 // Phase J-31.3 — add a new controller. `type` is one of
 // `"Ethernet"` / `"Serial"` / `"Null"`; mirrors the three
 // `OnButtonAddController…Click` entry points on desktop's Setup
@@ -2391,6 +2941,17 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // doesn't exist or isn't currently flagged.
 - (BOOL)unlinkControllerFromBase:(NSString*)name
     NS_SWIFT_NAME(unlinkControllerFromBase(_:));
+
+// Clear the `FromBase` flag on a model so subsequent base-folder
+// merges won't overwrite local edits. Returns NO if the model
+// doesn't exist or isn't currently flagged.
+- (BOOL)unlinkModelFromBase:(NSString*)modelName
+    NS_SWIFT_NAME(unlinkModelFromBase(_:));
+
+// Clear the `FromBase` flag on a model group. Returns NO if the
+// group doesn't exist or isn't currently flagged.
+- (BOOL)unlinkGroupFromBase:(NSString*)groupName
+    NS_SWIFT_NAME(unlinkGroupFromBase(_:));
 
 #pragma mark - Base Show Directory
 
@@ -2835,6 +3396,69 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 - (BOOL)exportModelsReportToPath:(NSString*)path
     NS_SWIFT_NAME(exportModelsReport(toPath:));
 
+// EFX-1 — Tools → Export Effects (CSV).
+// Writes the effect-usage report CSV (same columns as the desktop
+// ExportEffects.cpp output) to `path`. Returns YES on success.
+// Returns NO when no sequence is loaded or the file can't be written.
+- (BOOL)exportEffectsReportToPath:(NSString*)path
+    NS_SWIFT_NAME(exportEffectsReport(toPath:));
+
+// Theme-07 — Setup → Export Controller Connections (.xlsx).
+// Writes one merged-header block per controller (port/model wiring,
+// smart-remote shading) to `path`, mirroring the desktop
+// OnMenuItem_ExportControllerConnectionsSelected. All export fields
+// are included (the desktop prompts; the iPad takes the full set).
+// Returns NO when there are no controllers or the workbook can't be
+// written. Caller hands `path` a temp .xlsx URL then shares it.
+- (BOOL)exportControllerConnectionsToPath:(NSString*)path
+    NS_SWIFT_NAME(exportControllerConnections(toPath:));
+
+// Theme-07 — Setup → Sort controllers. Reorders the OutputManager's
+// controller list persistently (mirrors desktop's
+// OutputManager::SortControllersby*). `mode` is one of: "name", "id",
+// "ip", "proxy", "vendor", "protocol". Returns NO on an unknown mode.
+- (BOOL)sortControllersByMode:(NSString*)mode
+    NS_SWIFT_NAME(sortControllers(byMode:));
+
+// MARK: - Song Structure Regions (#6268 — bulk actions)
+//
+// Region data is wx-free core (`SongStructureManager`, owned by
+// `SequenceElements`) and already round-trips through save/load on
+// iPad. These wrappers expose the desktop region bulk-mutation ops so
+// a SwiftUI region menu can drive them. Each op runs under a single
+// undo step and reports how many effects it touched (0 means nothing
+// changed; the undo step is auto-cancelled in that case).
+
+// Index of the region spanning `timeMS`, or -1 if none.
+- (int)songStructureRegionIndexAtTimeMS:(int)timeMS;
+
+// Copy every effect whose span falls inside the source region into the
+// target region, offset by (targetStart - sourceStart) and snapped to
+// the frame grid. Existing effects are never overwritten — a copy is
+// skipped when its destination range isn't clear. Mirrors
+// `TimeLine::CopyEffectsToRegion`. Returns effects copied.
+- (int)copyEffectsFromRegion:(int)sourceRegionIndex
+                    toRegion:(int)targetRegionIndex
+    NS_SWIFT_NAME(copyEffects(fromRegion:toRegion:));
+
+// Apply `paletteString` (a serialised palette, e.g. from the effect at
+// the armed/selected slot via `currentPaletteStringForRow:atIndex:`)
+// to every effect inside the region. Mirrors
+// `TimeLine::ApplyPaletteToRegion`. Returns effects modified.
+- (int)applyPaletteString:(NSString*)paletteString
+          toRegionAtIndex:(int)regionIndex
+    NS_SWIFT_NAME(applyPalette(_:toRegionAtIndex:));
+
+// Fill the region containing the source effect (row/index) with copies
+// of that effect, one per active-timing mark inside the region. Each
+// copy keeps the source's duration, snapped to the grid and clamped to
+// the region end; marks overlapping the source or an occupied range are
+// skipped. Mirrors `EffectsGrid::FillRegionFromTimingMarks`. Returns
+// effects created.
+- (int)fillRegionFromTimingMarksWithSourceRow:(int)rowIndex
+                                  sourceIndex:(int)effectIndex
+    NS_SWIFT_NAME(fillRegionFromTimingMarks(sourceRow:sourceIndex:));
+
 @end
 
 // MARK: - Effect preset library (PRE-1)
@@ -2855,6 +3479,19 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 //   "durationMS" — NSNumber(int), total ms covered (0 for groups).
 - (NSArray<NSDictionary*>*)presetTree;
 
+// Render a representative still thumbnail for the preset at `path` (the
+// pragmatic alternative to the desktop animated GIF). Renders the
+// preset's first/anchor effect on the standalone preset matrix model for
+// a short span and returns the last frame as BGRA8 bytes
+// (premultipliedFirst | byteOrder32Little, square, `outputSize` px per
+// side) — the same layout `iconBGRA` returns, so Swift can wrap it in a
+// CGImage with the existing helper. Returns nil for groups, missing
+// presets, or presets whose first line isn't a renderable effect.
+// Synchronous + render-blocking; call off the main thread.
+- (nullable NSData*)presetThumbnailBGRAAtPath:(NSString*)path
+                                   outputSize:(int*)outputSize
+    NS_SWIFT_NAME(presetThumbnailBGRA(atPath:outputSize:));
+
 // Capture the effects identified by parallel `rows` / `effectIndices`
 // arrays into a new preset named `name` under `groupPath` (empty =
 // root). Serializes to the desktop CopyFormat1 blob so the preset
@@ -2871,10 +3508,24 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // remaining effects out relative to that anchor (same model trail as
 // desktop paste). Returns NO if the path isn't a preset or the row is
 // invalid. Routes through the same AddEffect path the clipboard uses.
+//
+// `usingLayers` mirrors desktop EffectTreeDialog's Relative vs Using
+// Layers radios: when NO (Relative), the preset's effects spread across
+// successive grid rows relative to the drop row; when YES (Using
+// Layers), every effect lands on the anchor row's element, stacked onto
+// successive effect layers (added as needed) — preserving the preset's
+// multi-layer structure on a single model.
 - (BOOL)applyPresetAtPath:(NSString*)path
                     toRow:(int)rowIndex
                 atStartMS:(int)startMS
-    NS_SWIFT_NAME(applyPreset(atPath:toRow:atStartMS:));
+              usingLayers:(BOOL)usingLayers
+    NS_SWIFT_NAME(applyPreset(atPath:toRow:atStartMS:usingLayers:));
+
+// Whether the preset at `path` was authored with layer structure (its
+// blob carries a `LAYER:` token). Mirrors desktop's auto-detect that
+// seeds the Using Layers radio. Returns NO for groups / unknown paths.
+- (BOOL)presetUsesLayersAtPath:(NSString*)path
+    NS_SWIFT_NAME(presetUsesLayers(atPath:));
 
 // Create an empty group named `name` under `parentGroupPath` (empty =
 // root). Returns NO on blank name, missing parent, or name collision.
@@ -2900,6 +3551,25 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
                    toGroupPath:(NSString*)toGroupPath
     NS_SWIFT_NAME(movePreset(fromPath:toGroupPath:));
 
+// Move the item at `fromPath` into the group at `toGroupPath` and
+// position it at child index `toIndex` (clamped to the sibling count).
+// Supports within-group reordering as well as cross-group moves with an
+// explicit drop slot. Returns NO under the same conditions as the
+// two-arg variant, or when the item already lives at the target slot.
+- (BOOL)movePresetItemFromPath:(NSString*)fromPath
+                   toGroupPath:(NSString*)toGroupPath
+                       toIndex:(NSInteger)toIndex
+    NS_SWIFT_NAME(movePreset(fromPath:toGroupPath:toIndex:));
+
+// Overwrite the preset at `path` with the effect at (`row`,
+// `effectIndex`) — the iPad analogue of desktop `OnbtUpdateClick`.
+// Reuses the same CopyFormat1 serializer as `savePreset`. Returns NO if
+// the path isn't a preset or the effect can't be resolved.
+- (BOOL)updatePresetAtPath:(NSString*)path
+                   fromRow:(int)row
+               effectIndex:(int)effectIndex
+    NS_SWIFT_NAME(updatePreset(atPath:fromRow:effectIndex:));
+
 // Import an effects-tree XML file (a desktop `xlights_rgbeffects.xml`
 // or exported `<effects>` fragment) into `groupPath` (empty = root).
 // Returns NO on parse failure or missing group.
@@ -2916,6 +3586,89 @@ typedef NS_ENUM(NSInteger, XLEffectBracketState) {
 // `<showFolder>/xlights_effectpresets.json` (+ .jbkp backup). Returns
 // NO on write failure of the main file.
 - (BOOL)savePresets;
+
+#pragma mark - Song Structure Regions (#6268)
+
+// Regions in the active view as an array of dictionaries with keys:
+// @"id" (Int), @"startMS" (Int), @"endMS" (Int), @"name" (String),
+// @"colorARGB" (UInt — 0xAARRGGBB). Sorted by start time.
+- (NSArray<NSDictionary*>*)songStructureRegions;
+
+// View management mirroring SongStructureManager.
+- (NSArray<NSString*>*)songStructureViewNames;
+- (NSInteger)songStructureActiveViewIndex;
+- (void)setSongStructureActiveViewIndex:(NSInteger)index
+    NS_SWIFT_NAME(setSongStructureActiveView(index:));
+- (NSInteger)addSongStructureView:(NSString*)name
+    NS_SWIFT_NAME(addSongStructureView(name:));
+- (NSInteger)duplicateSongStructureViewAtIndex:(NSInteger)sourceIndex
+                                       withName:(NSString*)name
+    NS_SWIFT_NAME(duplicateSongStructureView(at:name:));
+- (void)renameSongStructureViewAtIndex:(NSInteger)index
+                               toName:(NSString*)name
+    NS_SWIFT_NAME(renameSongStructureView(at:name:));
+- (void)deleteSongStructureViewAtIndex:(NSInteger)index
+    NS_SWIFT_NAME(deleteSongStructureView(at:));
+
+// Boundary + region editing (operate on the active view). The 8-color
+// palette is exposed for the swatch picker.
+- (void)addSongStructureBoundaryAtMS:(int)timeMS
+    NS_SWIFT_NAME(addSongStructureBoundary(atMS:));
+- (void)deleteSongStructureBoundaryNearMS:(int)timeMS
+    NS_SWIFT_NAME(deleteSongStructureBoundary(nearMS:));
+- (void)moveSongStructureBoundaryFromMS:(int)oldTimeMS
+                                   toMS:(int)newTimeMS
+    NS_SWIFT_NAME(moveSongStructureBoundary(fromMS:toMS:));
+- (int)nearestSongStructureBoundaryToMS:(int)timeMS
+                            toleranceMS:(int)toleranceMS
+    NS_SWIFT_NAME(nearestSongStructureBoundary(toMS:toleranceMS:));
+- (void)setSongStructureRegionNameForID:(int)regionID
+                                  name:(NSString*)name
+    NS_SWIFT_NAME(setSongStructureRegionName(forID:name:));
+- (void)setSongStructureRegionColorForID:(int)regionID
+                              colorARGB:(uint32_t)colorARGB
+    NS_SWIFT_NAME(setSongStructureRegionColor(forID:colorARGB:));
+- (uint32_t)songStructurePaletteColorAtIndex:(int)index
+    NS_SWIFT_NAME(songStructurePaletteColor(at:));
+
+// Replace all regions in the active view with one region per timing
+// mark on the timing element at `rowIndex`, plus filler regions in the
+// gaps (mirrors desktop "Create Song Regions from Timing Track").
+// Returns the number of regions created (0 if the row isn't a timing
+// track with marks).
+- (NSInteger)createSongRegionsFromTimingRow:(int)rowIndex
+    NS_SWIFT_NAME(createSongRegionsFromTimingRow(_:));
+
+// MARK: From Base presets (#6450, read-only / apply-only)
+//
+// The base show folder's `xlights_effectpresets.json` surfaced as the
+// desktop's "From Base" section. These presets are never mutated or
+// saved from iPad — only browsed and applied (desktop handles save-back
+// via PromptAndSaveBasePresets, which is intentionally out of scope on
+// iPad). Reload after the base show directory changes.
+
+// Whether the base show folder has a non-empty preset library.
+- (BOOL)hasBasePresets;
+
+// (Re)load the base preset library from the configured base show
+// folder. Call after changing the base show directory.
+- (void)reloadBasePresets;
+
+// Pre-order flat snapshot of the base preset tree (same dictionary
+// shape as `presetTree`). Empty when no base library is loaded.
+- (NSArray<NSDictionary*>*)basePresetTree;
+
+// Apply the base preset at `path` — same semantics as `applyPreset`,
+// reading from the base library instead of the show library.
+- (BOOL)applyBasePresetAtPath:(NSString*)path
+                        toRow:(int)rowIndex
+                    atStartMS:(int)startMS
+                  usingLayers:(BOOL)usingLayers
+    NS_SWIFT_NAME(applyBasePreset(atPath:toRow:atStartMS:usingLayers:));
+
+// Layer auto-detect for a base preset path (see `presetUsesLayers`).
+- (BOOL)basePresetUsesLayersAtPath:(NSString*)path
+    NS_SWIFT_NAME(basePresetUsesLayers(atPath:));
 
 @end
 

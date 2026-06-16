@@ -1061,13 +1061,15 @@ bool xLightsFrame::CloseSequence()
         CurrentSeqXmlFile = nullptr;
     }
 
-    if (mainSequencer != nullptr) {
+    // Skip the selection reset while exiting: the grid is being torn down, so its
+    // SetRCToolTip would touch a half-destroyed window/peer (crash on app close).
+    if (!IsExiting() && mainSequencer != nullptr) {
         if (mainSequencer->PanelEffectGrid != nullptr)
             mainSequencer->PanelEffectGrid->ClearSelection();
     }
 
-    _sequenceElements.Clear();
     ResetAllPanelDefaultSettings();
+    _sequenceElements.Clear();
     mSavedChangeCount = _sequenceElements.GetChangeCount();
     mLastAutosaveCount = mSavedChangeCount;
 

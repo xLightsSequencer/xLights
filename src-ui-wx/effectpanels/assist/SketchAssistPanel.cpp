@@ -24,6 +24,7 @@
 #include <wx/wfstream.h>
 
 #include "utils/nanosvg_xl.h"
+#include "effects/SketchSVGImport.h"
 
 #include <algorithm>
 #include <cmath>
@@ -414,42 +415,12 @@ void SketchAssistPanel::OnButton_ImportSVG(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector(_("Choose SVG File"), xLightsFrame::CurrentDir, wxEmptyString, wxEmptyString, "SVG Files (*.svg)|*.svg", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (!filename.IsEmpty()) {
-        m_sketch = SketchEffectSketch();
-
-        //100px scaling seems to scale the SVG parser right
-        auto* image = nsvgParseFromFile(filename.ToStdString().c_str(), "px", 100);
-
-        if ( nullptr == image) {
+        std::string def = SketchDefFromSVGFile(filename.ToStdString());
+        if (def.empty()) {
             DisplayError(wxString::Format("Could not open SVG image %s.", filename).ToStdString());
             return;
         }
-
-        float h = image->height;
-        float w = image->width;
-        for (NSVGshape* shape = image->shapes; shape != nullptr; shape = shape->next) {
-            for (NSVGpath* path = shape->paths; path != nullptr; path = path->next) {
-                auto skpath = std::make_shared<SketchEffectPath>();
-                for (int i = 0; i < path->npts - 1; i += 3) {
-                    float* p = &path->pts[i * 2];
-                    //sketch points are 0-1, need to scale from pixel xy
-                    //1-h, everything was upside down for some reason
-                    xlPointD start(p[0] / w, 1 - (p[1] / h));
-                    xlPointD cp1(p[2] / w, 1 - (p[3] / h));
-                    xlPointD cp2(p[4] / w, 1 - (p[5] / h));
-                    xlPointD end(p[6] / w, 1 - (p[7] / h));
-                    if (areCollinear(start,cp1,end, 0.001f) && areCollinear(start,cp2,end, 0.001f)) {//check if its a straight line
-                        skpath->appendSegment(std::make_shared<SketchLine>(start, end));
-                    } else if (areSame(end.x, cp2.x, 0.001f) && areSame(end.y, cp2.y, 0.001f)) { // check if control points2 is the end
-                        skpath->appendSegment(std::make_shared<SketchQuadraticBezier>(start, cp1, end));
-                    } else {
-                        skpath->appendSegment(std::make_shared<SketchCubicBezier>(start, cp1, cp2, end));
-                    }
-                }
-                m_sketch.appendPath(skpath);
-            }
-        }
-        // Delete svg pointer
-        nsvgDelete(image);
+        m_sketch = SketchEffectSketch::SketchFromString(def);
         //redraw screen
         m_sketchCanvasPanel->ResetHandlesState();
         populatePathListBoxFromSketch();

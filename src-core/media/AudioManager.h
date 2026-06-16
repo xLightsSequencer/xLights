@@ -264,6 +264,14 @@ public:
     // drums + bass + backing instruments).
     std::string WriteCurrentToTempWav() const;
 
+    // Encode the currently-displayed audio buffers to `path`, with the
+    // container/codec selected by the file extension (.wav / .m4a /
+    // .aac …). Like WriteCurrentToTempWav this exports whatever the
+    // user currently has selected in the waveform, but routes through
+    // the platform encoder so compressed formats are available. Returns
+    // false if no audio is loaded or the encode failed.
+    bool WriteCurrentAudioToFile(const std::string& path) const;
+
     // A7: provide the per-second confidence curve that
     // `AUDIOSAMPLETYPE::CLASSIFIED` should gate the raw signal by.
     // Clearing any existing CLASSIFIED cache entry so the next

@@ -56,6 +56,10 @@ struct XLightsApp: App {
         XLiPadInit.initialize()
         XLDiagnosticUploader.shared.bootstrap()
         let vm = SequencerViewModel()
+        // Desktop "Other ▸ Purge Download Cache at Startup" (default OFF).
+        if UserDefaults.standard.bool(forKey: "purgeDownloadCacheAtStartup") {
+            vm.purgeDownloadCache()
+        }
         vm.startMemoryMonitoring()
         _viewModel = State(initialValue: vm)
         // restorePersistedShowFolder is deliberately NOT called here.
@@ -230,6 +234,9 @@ struct ContentView: View {
     /// values surface an alert; the caller sets this from the
     /// URL-handling path.
     @State private var openURLErrorMessage: String? = nil
+    // Set when a `.xbkp` backup is opened directly so we can sheet a
+    // "this is a backup" notice offering Save As.
+    @State private var backupOpenNoticeName: String? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -245,6 +252,9 @@ struct ContentView: View {
                 FseqSkippedBanner(message: msg) {
                     viewModel.fseqWriteSkippedMessage = nil
                 }
+            }
+            if viewModel.isSequenceLoaded && viewModel.isReadOnly {
+                ReadOnlyBanner { viewModel.saveAsRequestToken &+= 1 }
             }
             Group {
                 if !viewModel.isShowFolderLoaded {
@@ -271,6 +281,25 @@ struct ContentView: View {
             AboutSheet()
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingKeyBindings },
+            set: { viewModel.showingKeyBindings = $0 }
+        )) {
+            KeyBindingsSheet()
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingTipOfDay },
+            set: { viewModel.showingTipOfDay = $0 }
+        )) {
+            TipOfDaySheet()
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingMusicBrowser },
+            set: { viewModel.showingMusicBrowser = $0 }
+        )) {
+            MusicBrowserSheet(showFolder: viewModel.showFolderPath ?? "",
+                              onDownloaded: { _ in })
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingCheckSequence },
             set: { viewModel.showingCheckSequence = $0 }
         )) {
@@ -278,10 +307,52 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: Binding(
+            get: { viewModel.showingRestoreBackup },
+            set: { viewModel.showingRestoreBackup = $0 }
+        )) {
+            RestoreBackupSheet()
+                .environment(viewModel)
+        }
+        .sheet(isPresented: Binding(
             get: { viewModel.showingAIServices },
             set: { viewModel.showingAIServices = $0 }
         )) {
             AIServicesSettingsSheet()
+        }
+        // Find Effect Data — root-hosted so it survives navigation,
+        // like Check Sequence. Walks the loaded SequenceElements.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingFindEffectData },
+            set: { viewModel.showingFindEffectData = $0 }
+        )) {
+            FindEffectDataSheet()
+                .environment(viewModel)
+        }
+        // Search for Show Folders — independent of any open sequence.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingSearchShowFolders },
+            set: { viewModel.showingSearchShowFolders = $0 }
+        )) {
+            SearchShowFoldersSheet()
+                .environment(viewModel)
+        }
+        // User Lyric Dictionary — edits the show folder's
+        // `user_dictionary` consumed by the core lyric breakdown.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingUserLyricDictionary },
+            set: { viewModel.showingUserLyricDictionary = $0 }
+        )) {
+            UserLyricDictionarySheet()
+                .environment(viewModel)
+        }
+        // CLN-1 Tools → Cleanup File Locations. Preview + execute
+        // sheet; hosted at the root so it survives navigation.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingCleanupFileLocations },
+            set: { viewModel.showingCleanupFileLocations = $0 }
+        )) {
+            CleanupFileLocationsSheet()
+                .environment(viewModel)
         }
         // EX-11 Tools → Package Sequence. Hosted here (not on the
         // sequencer view) so the option sheet survives navigation
@@ -302,6 +373,15 @@ struct ContentView: View {
             set: { viewModel.showingExportHousePreview = $0 }
         )) {
             ExportHousePreviewSheet()
+                .environment(viewModel)
+        }
+        // Tools → Export Audio. Hosted at the root like the other Tools
+        // sheets so the format chooser + share hand-off survive navigation.
+        .sheet(isPresented: Binding(
+            get: { viewModel.showingExportAudio },
+            set: { viewModel.showingExportAudio = $0 }
+        )) {
+            ExportAudioSheet()
                 .environment(viewModel)
         }
         // H-6 / T-2 Tools → View Log. Same hosting rationale as
@@ -395,6 +475,15 @@ struct ContentView: View {
             guard !didKickoffShowFolderRestore else { return }
             didKickoffShowFolderRestore = true
             viewModel.restorePersistedShowFolder()
+        }
+        // Help → Tip of the Day at startup. Show once per launch when
+        // the pref is on (mirrors desktop's startup TipOfTheDayDialog).
+        .task {
+            guard !TipOfDayPrefs.shownThisLaunch else { return }
+            TipOfDayPrefs.shownThisLaunch = true
+            if TipOfDayPrefs.showAtStartup {
+                viewModel.showingTipOfDay = true
+            }
         }
         // G-3 — handle "Open in xLights" from Files / share sheets /
         // AirDrop. The system delivers a `file://` URL to the
@@ -524,6 +613,21 @@ struct ContentView: View {
         } message: {
             Text(openURLErrorMessage ?? "")
         }
+        .alert("Opened a Backup File",
+               isPresented: Binding(
+                get: { backupOpenNoticeName != nil },
+                set: { if !$0 { backupOpenNoticeName = nil } }
+               )) {
+            Button("Save As…") {
+                backupOpenNoticeName = nil
+                viewModel.saveAsRequestToken &+= 1
+            }
+            Button("Keep Editing Backup", role: .cancel) {
+                backupOpenNoticeName = nil
+            }
+        } message: {
+            Text("\(backupOpenNoticeName ?? "This file") is an xLights autosave backup (.xbkp), not a normal sequence. Use Save As to write your changes to a regular .xsq file.")
+        }
         .alert("Recover Autosave Backup?",
                isPresented: Binding(
                 get: { autosaveRecoveryDate != nil },
@@ -638,6 +742,14 @@ struct ContentView: View {
                                              enforceWritable: true)
         if scopeStarted {
             url.stopAccessingSecurityScopedResource()
+        }
+
+        // A `.xbkp` is an autosave snapshot in `.xsq` (XML) form — the desktop
+        // Open wildcard accepts it directly. Open it like an `.xsq`, then sheet
+        // a "this is a backup" notice offering Save As so the user lands on a
+        // real `.xsq` rather than editing the backup in place.
+        if url.pathExtension.lowercased() == "xbkp" {
+            backupOpenNoticeName = url.lastPathComponent
         }
 
         if viewModel.isShowFolderLoaded {
@@ -819,6 +931,31 @@ struct MissingMediaBanner: View {
         .padding(.vertical, 6)
         .foregroundStyle(.white)
         .background(Color.red.opacity(0.85))
+    }
+}
+
+/// Banner shown when the open sequence lives at a non-writable
+/// location (write-protected provider, locked iCloud item, read-only
+/// download). Desktop shows a "read only" guard
+/// (`xLightsMain.cpp:9119`); here Save is disabled and the user is
+/// nudged toward Save As to a writable spot.
+struct ReadOnlyBanner: View {
+    let onSaveAs: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "lock.fill")
+            Text("Opened read-only — Save is disabled. Use Save As to edit a copy.")
+                .font(.caption)
+            Spacer()
+            Button("Save As…", action: onSaveAs)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .foregroundStyle(.white)
+        .background(Color.gray)
     }
 }
 

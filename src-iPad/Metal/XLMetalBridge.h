@@ -237,6 +237,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setShowFirstPixel:(BOOL)show;
 - (BOOL)showFirstPixel;
 
+// Manipulation-handle size multiplier (1..10). Mirrors the desktop
+// "Model Handle Size" view preference; larger values draw bigger
+// selection handles, which makes them easier to grab by touch.
+- (void)setHandleScale:(NSInteger)scale;
+- (NSInteger)handleScale;
+
+// Show Zone Indicator (desktop 'Show Zone Indicator in Preview').
+// When on, DMX MovingHeadAdv models draw their position zones in
+// the layout preview.
+- (void)setShowZoneIndicator:(BOOL)show;
+- (BOOL)showZoneIndicator;
+
 // Phase J-2 — return the topmost model whose world bounding box
 // contains `point` (in view-point coordinates relative to the
 // MTKView's bounds), or nil if no model is hit. `viewSize` is the
@@ -394,6 +406,28 @@ NS_ASSUME_NONNULL_BEGIN
                                           forDocument:(XLSequenceDocument*)doc
     NS_SWIFT_NAME(importXmodel(fromPath:atScreenPoint:viewSize:targetLayoutGroup:for:));
 
+// GDTF mode picker support. When a .gdtf fixture defines multiple
+// DMX modes the SwiftUI side wants to chooser before placement
+// (desktop prompts via ChooseFromList). This lists the DMX mode
+// names in the fixture (sorted, as the parser sees them), or an
+// empty array on parse failure / non-GDTF input. Class method —
+// only opens the archive, no preview state needed.
++ (NSArray<NSString*>*)gdtfModesForFile:(NSString*)path
+    NS_SWIFT_NAME(gdtfModesForFile(path:));
+
+// GDTF import with an explicit DMX mode. Same as
+// importXmodelFromPath for a .gdtf file but forces `gdtfMode` as
+// the selected mode (skipping the auto-pick-first behaviour).
+// Pass nil to auto-pick the first mode. Returns the placed model
+// name (single element) or nil on failure.
+- (nullable NSArray<NSString*>*)importGdtfFromPath:(NSString*)path
+                                              mode:(nullable NSString*)gdtfMode
+                                     atScreenPoint:(CGPoint)point
+                                          viewSize:(CGSize)viewSize
+                                 targetLayoutGroup:(nullable NSString*)targetLayoutGroup
+                                       forDocument:(XLSequenceDocument*)doc
+    NS_SWIFT_NAME(importGdtf(fromPath:mode:atScreenPoint:viewSize:targetLayoutGroup:for:));
+
 // Phase J-4 (import) — peek at an .xmodel file to determine if
 // it contains multiple models (root `<models>` element). Returns
 // YES for multi-model files, NO for single-model files or on
@@ -550,6 +584,34 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)swapStartEndForModels:(NSArray<NSString*>*)names
                   forDocument:(XLSequenceDocument*)doc;
 
+// Bulk Edit Rotate (desktop ID_PREVIEW_BULKEDIT_ROTATEX/Y/Z) —
+// set the absolute rotation about one axis on every editable model
+// in `names`. `axis`: @"X", @"Y", or @"Z". `degrees` is clamped to
+// [-180, 180] to match the rotation property grid; out-of-range
+// callers should reject before invoking. Locked / from-base models
+// are skipped. Returns YES if at least one model changed.
+- (BOOL)rotateModels:(NSArray<NSString*>*)names
+                axis:(NSString*)axis
+             degrees:(double)degrees
+         forDocument:(XLSequenceDocument*)doc;
+
+// Replace each model in `targets` with a copy of the model named
+// `source` (desktop ID_PREVIEW_REPLACEMODEL / ReplaceModelDialog,
+// #4462). Each target is swapped for a fresh clone of the source
+// that takes over the target's name. Option flags mirror the
+// desktop dialog: `keepStartChannel` preserves each target's
+// start-channel + controller/port/smart-remote assignment,
+// `keepSubmodels` carries the target's submodels onto the clone,
+// `keepSizePosition` preserves the target's centre / size /
+// rotation. Models from the base show or named `source` are
+// skipped. Returns the count of targets replaced.
+- (NSInteger)replaceModels:(NSArray<NSString*>*)targets
+                withSource:(NSString*)source
+          keepStartChannel:(BOOL)keepStartChannel
+             keepSubmodels:(BOOL)keepSubmodels
+          keepSizePosition:(BOOL)keepSizePosition
+               forDocument:(XLSequenceDocument*)doc;
+
 // Phase J-7 (multi-select) — duplicate each named model. Each
 // copy is offset by (+50, +50, 0) world units from the source so
 // it doesn't overlap, gets a unique name via
@@ -558,6 +620,23 @@ NS_ASSUME_NONNULL_BEGIN
 // updates the multi-selection to the new set if desired.
 - (NSArray<NSString*>*)duplicateModels:(NSArray<NSString*>*)names
                            forDocument:(XLSequenceDocument*)doc;
+
+// Layout clipboard (desktop DoCopy / DoPaste). Serialize the named
+// models to an XML string (a `<models>` document, same shape as a
+// multi-model .xmodel export) for placing on UIPasteboard, or nil
+// if nothing serializable. Groups are skipped (ambiguous member
+// copy, as with Duplicate).
+- (nullable NSString*)copyModelsToString:(NSArray<NSString*>*)names
+                             forDocument:(XLSequenceDocument*)doc;
+
+// Layout clipboard paste. Deserialize an XML string produced by
+// copyModelsToString (or a multi-model .xmodel), uniquifying each
+// model name, clearing its controller mapping (auto-assign), and
+// offsetting by (+50, +50, 0) world units so the paste doesn't sit
+// exactly on the source. Returns the new model names. Cross-
+// sequence safe — the string can come from any document.
+- (NSArray<NSString*>*)pasteModelsFromString:(NSString*)xml
+                                 forDocument:(XLSequenceDocument*)doc;
 
 // J-30 — Submodel editor support. Pick the node nearest `point`
 // on the named model. Returns the 1-based node index (>=1) or 0
@@ -579,6 +658,27 @@ NS_ASSUME_NONNULL_BEGIN
                           viewSize:(CGSize)viewSize
                        forDocument:(XLSequenceDocument*)doc;
 
+// Color Dropper (desktop View ▸ Windows ▸ Color Dropper). Sample the
+// current rendered colour of whichever model node sits under `point`.
+// Walks every model in ModelManager iteration order and returns the
+// `#RRGGBB` colour of the first node hit (so it works on the multi-
+// model House preview as well as a single-model preview), or nil for
+// a miss / 3D mode. The colour comes from the node's last-rendered
+// value, not a GPU pixel read-back — no drawable stall.
+- (nullable NSString*)sampledColorHexNearPoint:(CGPoint)point
+                                      viewSize:(CGSize)viewSize
+                                   forDocument:(XLSequenceDocument*)doc;
+
+// Node inspect (desktop layout hover tooltip). Walk every model and
+// return info about the node under `point`, or nil for a miss / 3D
+// mode. Keys: "model" (NSString), "node" (1-based NSNumber),
+// "channel" (absolute start channel, NSNumber), "controller"
+// (NSString, may be empty), "port" (NSString port/connection range,
+// may be empty). 2D-only, same restriction as `nodeNearPoint`.
+- (nullable NSDictionary<NSString*, id>*)nodeInfoNearPoint:(CGPoint)point
+                                                 viewSize:(CGSize)viewSize
+                                              forDocument:(XLSequenceDocument*)doc;
+
 // J-30 — Submodel editor support. Apply highlight colours to the
 // named model's nodes: nodes in `highlighted` (1-based) are
 // painted white, every other node is painted dark grey. Matches
@@ -595,6 +695,24 @@ NS_ASSUME_NONNULL_BEGIN
 // off will repaint native pixel data).
 - (BOOL)clearSubmodelHighlightsOnModel:(NSString*)modelName
                            forDocument:(XLSequenceDocument*)doc;
+
+// SubModels Symmetrize (rotational generator) — mirrors desktop
+// SubModelsDialog::Symmetrize. Generates `degree`-fold rotationally
+// symmetric copies of `ranges` (the selected submodel's range
+// strings) over the parent `modelName`'s node cloud. Returns the new
+// full strand list (originals + generated copies, ordered per
+// `bottomToTop`) or nil if matching failed / model lookup miss.
+// `squarify` corrects a non-square node cloud before matching, the
+// same option desktop offers interactively. Uses the bridge's 2D
+// preview for node screen positions (`Model::GetScreenLocations`).
+- (nullable NSArray<NSString*>*)symmetrizeRanges:(NSArray<NSString*>*)ranges
+                                         onModel:(NSString*)modelName
+                                 degreeOfSymmetry:(NSInteger)degree
+                                       clockwise:(BOOL)clockwise
+                                     bottomToTop:(BOOL)bottomToTop
+                                        squarify:(BOOL)squarify
+                                     forDocument:(XLSequenceDocument*)doc
+    NS_SWIFT_NAME(symmetrizeRanges(_:onModel:degreeOfSymmetry:clockwise:bottomToTop:squarify:forDocument:));
 
 // J-30 — Submodel editor support. When YES, drawModelsForDocument
 // skips the per-frame `ctx->SetModelColors(frameMS)` step so any

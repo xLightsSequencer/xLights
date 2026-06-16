@@ -99,6 +99,9 @@ class xlGLCanvas
     private:
         std::string _name;
         wxGLContext* m_context = nullptr;
+        // ANGLE (USE_GLES) build only: opaque xlAngleEGL window context/surface
+        // bound to this canvas's native window.  nullptr on native-GL builds.
+        void* m_eglContext = nullptr;
         int  m_zDepth = 0;
         bool isCoreProfile = false;
         std::map<GLuint, GLuint> vertexArrayIds;

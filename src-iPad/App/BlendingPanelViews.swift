@@ -62,6 +62,14 @@ let kTransitionsNoReverse: Set<String> = [
     "Doorway", "Blobs", "Pinwheel", "Swap", "Shatter", "Circles",
 ]
 
+/// Transitions that support the Blur slider. Kept in sync with desktop
+/// `BlendingPanel.cpp:82` (`TRANSITIONS_WITH_BLUR`) so the Blur row
+/// enables / disables for the same types on both platforms.
+let kTransitionsWithBlur: Set<String> = [
+    "Wipe", "Blobs", "Clock", "Blinds", "From Middle",
+    "Square Explode", "Circle Explode", "Blend", "Slide Checks", "Slide Bars",
+]
+
 /// Common preset fade times (seconds) shown in the drop-down — matches
 /// BlendingPanel.cpp:283.
 let kFadePresets: [String] = ["0.00", "0.25", "0.50", "0.75", "1.00", "1.50", "2.00"]

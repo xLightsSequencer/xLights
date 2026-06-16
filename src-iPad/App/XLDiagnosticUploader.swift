@@ -220,6 +220,17 @@ final class XLDiagnosticUploader {
         let postName = "xLights-iPad-iOS_\(arch)_\(version)-\(build)_\(stamp).zip"
 
         var body = Data()
+        // Desktop attaches the user's email to crash/diagnostic reports for
+        // attribution (`OtherSettingsPanel.cpp:183`). Mirror that here when
+        // the user has set one (`@AppStorage("xLightsEmail")`).
+        let email = (UserDefaults.standard.string(forKey: "xLightsEmail") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !email.isEmpty {
+            body.append("--\(Self.multipartBoundary)\n".data(using: .utf8)!)
+            body.append(
+                "Content-Disposition: form-data; name=\"email\"\n\n\(email)\n"
+                    .data(using: .utf8)!)
+        }
         body.append("--\(Self.multipartBoundary)\n".data(using: .utf8)!)
         body.append("Content-Type: application/octet-stream\n".data(using: .utf8)!)
         body.append(

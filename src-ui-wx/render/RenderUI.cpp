@@ -575,10 +575,10 @@ void xLightsFrame::ExportModel(wxCommandEvent& command)
     dialog.SetExportType(command.GetString().Contains('|'), command.GetInt() == 1);
 
     if (dialog.ShowModal() == wxID_OK) {
-        std::string filename = dialog.TextCtrlFilename->GetValue().ToStdString();
-        ObtainAccessToURL(filename);
+        std::string filename = dialog.GetExportFilename();
+        ObtainAccessToURL(filename, true);
         EnableSequenceControls(false);
-        std::string format = dialog.ChoiceFormat->GetStringSelection().ToStdString();
+        std::string format = dialog.GetExportFormat().ToStdString();
 
         DoExportModel(startFrame, endFrame, model, filename, format, command.GetInt() == 1);
     }

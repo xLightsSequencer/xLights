@@ -379,6 +379,7 @@ public:
     void LoadPerspectivesMenu();
     void SerializePerspectives(BaseSerializingVisitor &visitor);
     void SerializeSettings(BaseSerializingVisitor &visitor);
+    void SerializeModelSets(BaseSerializingVisitor &visitor);
     struct Perspective {
         std::string name;
         std::string settings;

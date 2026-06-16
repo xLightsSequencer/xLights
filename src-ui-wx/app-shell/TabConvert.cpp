@@ -18,9 +18,6 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <wx/wfstream.h>
-#include <wx/imaggif.h>
-#include <wx/anidecod.h>
-#include <wx/quantize.h>
 
 #include "utils/xlImage.h"
 #include "models/ModelManager.h"
@@ -39,6 +36,7 @@
 #include "sequencer/CopyFormat1.h"
 #include "media/VideoWriter.h"
 #include "render/ModelVideoExporter.h"
+#include "render/ModelGifExporter.h"
 
 #include <wx/progdlg.h>
 
@@ -680,116 +678,6 @@ void xLightsFrame::WriteFalconPiModelFile(const wxString& filename, long numChan
     }
 }
 
-// Render a model into our image
-void RenderModelOnImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, int x = 0, int y = 0, bool invert = false)
-{
-    int outheight = image.GetHeight();
-    int outwidth = image.GetWidth();
-
-    // 
-    // spdlog::debug("Writing model frame. Model={}, startAddr={}, x={}, y={}, w={}, h={}, ow={}, oh={}", (const char *)model->name.c_str(), startAddr, x, y, width, height, outwidth, outheight);
-
-    uint8_t* imagedata = image.GetData();
-
-    // model should be simpler as all channels should be together ... but are they
-    int chs = model->GetChanCountPerNode();
-    uint8_t* ps = framedata + startAddr; // pointer to the channel data in the frame
-
-    // Work out the colour order
-    char r = model->GetChannelColorLetter(0);
-    int rr = 0;
-    int gg = 1;
-    int bb = 2;
-    if (r == 'G') {
-        gg = 0;
-    } else if (r == 'B') {
-        bb = 0;
-    }
-    char g = model->GetChannelColorLetter(1);
-    if (g == 'R') {
-        rr = 1;
-    } else if (g == 'B') {
-        bb = 1;
-    }
-    char b = model->GetChannelColorLetter(2);
-    if (b == 'R') {
-        rr = 2;
-    } else if (b == 'G') {
-        gg = 2;
-    }
-
-    // Now process each node
-    for (size_t i = 0; i < model->GetNodeCount(); i++) {
-        xlColor c = model->GetNodeColor(i);
-
-        // Get all the bulbs attached to these nodes
-        std::vector<xlPoint> pts;
-        model->GetNodeCoords(i, pts);
-
-        // for each bulb
-        for (const auto& it : pts) {
-            // work out where we should display it in the output image
-            int xx = x + it.x;
-            int yy = y + it.y;
-
-            if (invert) {
-                yy = outheight - yy - 1;
-            }
-
-            // make sure it is within the image bounds
-            if (xx >= 0 && xx < outwidth && yy >= 0 && yy < outheight) {
-                // calculate a pointer to the pixal in the image
-                uint8_t* p = imagedata + (yy * outwidth + xx) * 3;
-
-                if (chs == 1) {
-                    // for single channels we use the node colour
-                    *p = c.Red();
-                    *(p + 1) = c.Green();
-                    *(p + 2) = c.Blue();
-                } else {
-                    // set the bulb colour to the pixel ... taking into account colour layout
-                    *(p) = *(ps + rr);
-                    *(p + 1) = *(ps + gg);
-                    *(p + 2) = *(ps + bb);
-                }
-            } else {
-                // this shouldnt happen
-                wxASSERT(false);
-            }
-        }
-
-        ps += chs;
-    }
-}
-
-void FillImage(wxImage& image, Model* model, uint8_t* framedata, int startAddr, bool invert)
-{
-    if (model->GetDisplayAs() == DisplayAsType::ModelGroup) {
-        ModelGroup* mg = static_cast<ModelGroup*>(model);
-
-        // Render each model
-        for (auto m = mg->Models().begin(); m != mg->Models().end(); ++m) {
-            // work out this models start channel relative to the buffer
-            int start = (*m)->GetFirstChannel() - startAddr;
-
-            // Work out where the zero point is for this model
-            // FIXME:  Models are no longer fixed percentages on the screen
-            //         We can use msl.GetScreenOffset(preview) but it needs a pointer to the ModelPreview that contains the model to be rendered.
-            int x = 0, y = 0;
-            // ModelScreenLocation& msl = (*m)->GetModelScreenLocation();
-            // int width = image.GetWidth();
-            // int height = image.GetHeight();
-            // int x = ((float)width * msl.GetHcenterOffset());
-            // int y = ((float)height * (1.0 - msl.GetVcenterOffset()));
-
-            RenderModelOnImage(image, *m, framedata, start, x, y, invert);
-        }
-    } else {
-        // Render the model
-        RenderModelOnImage(image, model, framedata, model->GetFirstChannel() - startAddr + 1, 0, 0, invert);
-    }
-}
-
 std::vector<std::shared_ptr<xlImage>> xLightsFrame::RenderEffectToFrames(
     Model* matrixModel, SequenceData& seqData, SequenceElements& seqElements,
     size_t numFrames, int frameTimeMs)
@@ -1012,9 +900,8 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset, EffectPresetMana
                     UpdateRenderStatus();
                 }
                 _presetRendering = false;
-            }
-
-            WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+                WriteGIFModelFile(filename, channels, 0, gifFrames, &_presetSequenceData, 1, 0, _presetModel, 50);
+            }                
         }
     }
 }
@@ -1022,65 +909,10 @@ void xLightsFrame::WriteGIFForPreset(const std::string& preset, EffectPresetMana
 void xLightsFrame::WriteGIFModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,
                                      SeqDataType* dataBuf, int startAddr, int modelSize, Model* model, unsigned int frameTime) const
 {
-    
-    spdlog::debug("Writing model GIF.");
-
-    int width;
-    int height;
-    model->GetBufferSize("Default", "2D", "None", width, height, 0);
-
-    // must be a multiple of 2
-    spdlog::debug("   GIF dimensions {}x{}.", width, height);
-    spdlog::debug("   GIF frames {}.", endFrame - startFrame);
-
-    wxImageArray imgArray;
-
-    for (size_t i = startFrame; i < endFrame; i++) {
-        // Create a bitmap with the current frame
-        wxImage image(width, height, true);
-        FillImage(image, model, (uint8_t*)&(*dataBuf)[i][0], startAddr, true);
-
-        wxImage image2;
-        wxQuantize::Quantize(image, image2);
-
-        // Black out the almost blacks
-        const unsigned char BLACK_THRESHOLD = 5;
-        auto& pal = image2.GetPalette();
-
-        unsigned char* red = (unsigned char*)malloc(pal.GetColoursCount());
-        unsigned char* green = (unsigned char*)malloc(pal.GetColoursCount());
-        unsigned char* blue = (unsigned char*)malloc(pal.GetColoursCount());
-        for (int i = 0; i < pal.GetColoursCount(); i++) {
-            pal.GetRGB(i, red + i, green + i, blue + i);
-            if (*(red + i) != 0 && (*(green + i) != 0) && *(blue + i) != 0) {
-                if (*(red + i) < BLACK_THRESHOLD && *(green + i) < BLACK_THRESHOLD && *(blue + i) < BLACK_THRESHOLD) {
-                    image2.Replace(*(red + i), *(green + i), *(blue + i), 0, 0, 0);
-                    *(red + i) = 0;
-                    *(green + i) = 0;
-                    *(blue + i) = 0;
-                }
-            }
-        }
-        wxPalette newpal = wxPalette(pal.GetColoursCount(), red, green, blue);
-        image2.SetPalette(newpal);
-
-        free(red);
-        free(green);
-        free(blue);
-
-        imgArray.Add(image2);
-    }
-
-    wxGIFHandler gif = wxGIFHandler();
-
-    wxFileOutputStream outStream(filename);
-
-    bool ret = gif.SaveAnimation(imgArray, &outStream, true, frameTime);
-    if (ret) {
-        spdlog::debug("Model GIF written successfully.");
-    } else {
-        spdlog::debug("Model GIF written successfully.");
-    }
+    // The actual encoding lives in the wx-free core (ModelGifExporter) so the
+    // iPad app shares it; it reuses ModelVideoExporter's frame builder and the
+    // vendored gif-h encoder instead of wxQuantize + wxGIFHandler.
+    ModelGifExporter::WriteModelGif(filename.ToStdString(), dataBuf, startFrame, endFrame, model, startAddr, frameTime);
 }
 
 void xLightsFrame::WriteMinleonNECModelFile(const wxString& filename, long numChans, unsigned int startFrame, unsigned int endFrame,

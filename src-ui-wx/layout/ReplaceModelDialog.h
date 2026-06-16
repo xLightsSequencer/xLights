@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include <wx/artprov.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
@@ -22,6 +23,7 @@
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/sizer.h>
+#include <wx/statbmp.h>
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/statline.h>
@@ -36,12 +38,14 @@ class ReplaceModelDialog : public wxDialog {
 public:
     ReplaceModelDialog(wxWindow* parent,
                        const wxString& sourceName,
-                       const std::vector<std::string>& candidateNames)
+                       const std::vector<std::string>& candidateNames,
+                       const std::set<std::string>& baseLinkedNames = {})
         : wxDialog(parent, wxID_ANY,
                    wxString::Format("Replace Model(s) With: %s", sourceName),
                    wxDefaultPosition, wxSize(460, 560),
                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-          _allCandidates(candidateNames)
+          _allCandidates(candidateNames),
+          _baseLinked(baseLinkedNames)
     {
         auto* top = new wxBoxSizer(wxVERTICAL);
 
@@ -188,6 +192,27 @@ private:
 
         for (const auto& name : _allCandidates) {
             if (!PassesFilter(name, filterLower)) continue;
+
+            // Base-folder models can't be replaced - doing so would delete a
+            // model the base show folder owns. Show them disabled with the
+            // link icon so the user sees why they're off-limits, and keep them
+            // out of _rows / _checkedSet so master select-all and the result
+            // never include them.
+            if (_baseLinked.count(name) > 0) {
+                auto* row = new wxBoxSizer(wxHORIZONTAL);
+                auto* cb = new wxCheckBox(_rowsWindow, wxID_ANY, name);
+                cb->SetValue(false);
+                cb->Disable();
+                cb->SetToolTip("Linked from the base show folder - cannot be replaced");
+                auto* icon = new wxStaticBitmap(_rowsWindow, wxID_ANY,
+                    wxArtProvider::GetBitmapBundle("xlART_LINK", wxART_OTHER, FromDIP(wxSize(16, 16))));
+                icon->SetToolTip("Linked from the base show folder");
+                row->Add(cb, 0, wxALIGN_CENTER_VERTICAL);
+                row->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 4);
+                _rowsSizer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
+                continue;
+            }
+
             auto* cb = new wxCheckBox(_rowsWindow, wxID_ANY, name);
             cb->SetValue(_checkedSet.count(name) > 0);
             _rowsSizer->Add(cb, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 2);
@@ -252,6 +277,7 @@ private:
     wxButton*   _okBtn = nullptr;
 
     std::vector<std::string> _allCandidates;
+    std::set<std::string> _baseLinked;
     std::vector<RowEntry> _rows;
     std::set<std::string> _checkedSet;
 };

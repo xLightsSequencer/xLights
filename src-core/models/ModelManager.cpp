@@ -133,6 +133,7 @@ void ModelManager::clear()
         }
     }
     models.clear();
+    _setManager.Clear();
     _modelGeneration++;
 }
 
@@ -212,6 +213,9 @@ bool ModelManager::Rename(const std::string& oldName, const std::string& newName
                 changed |= mg->ModelRenamed(on, nn);
             }
         }
+
+        // Keep Model Sets coherent with the rename.
+        _setManager.OnModelRenamed(on, nn);
 
         return changed;
     }
@@ -2141,6 +2145,7 @@ bool ModelManager::Delete(const std::string& name)
                         group->ModelRemoved(mn);
                     }
                 }
+                _setManager.OnModelDeleted(mn);
                 models.erase(it);
                 ResetModelGroups();
 

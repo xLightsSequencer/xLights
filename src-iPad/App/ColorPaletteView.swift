@@ -14,10 +14,16 @@ struct ColorPaletteView: View {
     @Environment(SequencerViewModel.self) var viewModel
 
     @State private var editingSlot: Int? = nil
+    @State private var swatchPickerSlot: Int? = nil
     @State private var showingLoadSheet = false
     @State private var showingImportSheet = false
     @State private var showingSaveAsSheet = false
     @State private var showingAISheet = false
+    @State private var showingUpdatePaletteConfirm = false
+    // Desktop Effects-Grid ▸ "Hide Color Update Warning"
+    // (`EffectsGridSettingsPanel.cpp:106`): when ON, apply the palette to
+    // the other selected effects without the confirmation prompt.
+    @AppStorage("hideColorUpdateWarning") private var hideColorUpdateWarning: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -76,12 +82,46 @@ struct ColorPaletteView: View {
             AIPaletteGenerationSheet()
                 .environment(viewModel)
         }
+        .alert("Update Palette", isPresented: $showingUpdatePaletteConfirm) {
+            Button("Update", role: .destructive) {
+                viewModel.updatePaletteOnAllSelected()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            let count = viewModel.selectedEffects.count - 1
+            Text("Apply this palette to \(count) other selected \(count == 1 ? "effect" : "effects")?")
+        }
+        .sheet(item: Binding(
+            get: { swatchPickerSlot.map { SlotRef(id: $0) } },
+            set: { swatchPickerSlot = $0?.id }
+        )) { ref in
+            let buttonKey = "C_BUTTON_Palette\(ref.id)"
+            let defaultHex = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00",
+                               "#FFFFFF", "#000000", "#FFA500", "#800080"][ref.id - 1]
+            let current = viewModel.settingValue(forKey: buttonKey, defaultValue: defaultHex)
+            XLColorSwatchPicker(initialHex: current) { hex in
+                viewModel.setSettingValue(hex, forKey: buttonKey)
+                swatchPickerSlot = nil
+            }
+        }
     }
 
     // MARK: - Palette menu (save / load / import / export)
 
     @ViewBuilder
     private func paletteMenuContent() -> some View {
+        if viewModel.isMultiEffectSelection {
+            Button {
+                if hideColorUpdateWarning {
+                    viewModel.updatePaletteOnAllSelected()
+                } else {
+                    showingUpdatePaletteConfirm = true
+                }
+            } label: {
+                Label("Update Palette", systemImage: "square.stack.3d.up.fill")
+            }
+            Divider()
+        }
         Button {
             _ = viewModel.document.savePaletteString(
                 currentPaletteString(), asName: nil)
@@ -229,6 +269,7 @@ struct ColorPaletteView: View {
             set: { newColor in
                 if let hex = hexFromColor(newColor) {
                     viewModel.setSettingValue(hex, forKey: buttonKey)
+                    XLRecentColors.push(hex)
                 }
             }
         )
@@ -266,6 +307,13 @@ struct ColorPaletteView: View {
         // toggle opens in "Use gradient = off" state; flipping it on
         // seeds a black→white ramp).
         .contextMenu {
+            if !isColorCurve {
+                Button {
+                    swatchPickerSlot = slot
+                } label: {
+                    Label("Pick Color…", systemImage: "swatchpalette")
+                }
+            }
             Button {
                 editingSlot = slot
             } label: {
@@ -274,7 +322,6 @@ struct ColorPaletteView: View {
             }
             if isColorCurve {
                 Button(role: .destructive) {
-                    // Strip the curve back to a plain colour.
                     viewModel.setSettingValue(defaultHex, forKey: buttonKey)
                 } label: {
                     Label("Convert to Plain Colour", systemImage: "circle.fill")

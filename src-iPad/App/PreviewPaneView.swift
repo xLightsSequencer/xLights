@@ -311,6 +311,14 @@ struct PreviewPaneView: UIViewRepresentable {
                     bridge.setShowFirstPixel(settings.showFirstPixel)
                     uiView.setNeedsDisplay()
                 }
+                if bridge.handleScale() != settings.handleScale {
+                    bridge.setHandleScale(settings.handleScale)
+                    uiView.setNeedsDisplay()
+                }
+                if bridge.showZoneIndicator() != settings.showZoneIndicator {
+                    bridge.setShowZoneIndicator(settings.showZoneIndicator)
+                    uiView.setNeedsDisplay()
+                }
             }
         }
 
@@ -1373,6 +1381,43 @@ struct PreviewPaneView: UIViewRepresentable {
         /// handler is preview-name gated). 3D mode currently bails
         /// (full ray-cast hit testing lands with the gizmo work).
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
+            // Color Dropper (desktop View ▸ Windows ▸ Color Dropper).
+            // When dropper mode is armed, a tap on ANY preview samples
+            // the node colour under the touch and pushes it to recent
+            // colours, then disarms (one-shot, matching the desktop
+            // eyedropper). Checked before the LayoutEditor guard so it
+            // works on the House / Model previews too.
+            if let viewModel, viewModel.colorDropperActive,
+               let bridge, let view = mtkView {
+                let pt = recognizer.location(in: view)
+                if let hex = bridge.sampledColorHexNearPoint(
+                    pt, viewSize: view.bounds.size,
+                    for: viewModel.document) {
+                    viewModel.colorDropperSampled(hex: hex)
+                } else {
+                    viewModel.colorDropperMissed()
+                }
+                return
+            }
+            // Node Inspect (desktop layout hover tooltip). When armed,
+            // a tap on any preview reports the node under the touch.
+            if let viewModel, viewModel.nodeInspectActive,
+               let bridge, let view = mtkView {
+                let pt = recognizer.location(in: view)
+                if let info = bridge.nodeInfoNearPoint(
+                    pt, viewSize: view.bounds.size,
+                    for: viewModel.document) {
+                    viewModel.nodeInspectHit(
+                        model: info["model"] as? String ?? "",
+                        node: (info["node"] as? NSNumber)?.intValue ?? 0,
+                        channel: (info["channel"] as? NSNumber)?.intValue ?? 0,
+                        controller: info["controller"] as? String ?? "",
+                        port: info["port"] as? String ?? "")
+                } else {
+                    viewModel.nodeInspectMissed()
+                }
+                return
+            }
             guard previewNameForNotifications == "LayoutEditor",
                   let viewModel,
                   let bridge,
@@ -1413,14 +1458,28 @@ struct PreviewPaneView: UIViewRepresentable {
                 // Select the primary single-mode when there's only
                 // one, or multi-select the whole batch so the user
                 // can immediately reposition them as a group.
-                if let names = bridge.importXmodel(fromPath: importPath,
-                                                    atScreenPoint: point,
-                                                    viewSize: size,
-                                                    targetLayoutGroup: viewModel.layoutPendingImportTargetGroup,
-                                                    for: viewModel.document),
+                let importedNames: [String]?
+                if let mode = viewModel.layoutPendingImportGdtfMode {
+                    importedNames = bridge.importGdtf(
+                        fromPath: importPath,
+                        mode: mode,
+                        atScreenPoint: point,
+                        viewSize: size,
+                        targetLayoutGroup: viewModel.layoutPendingImportTargetGroup,
+                        for: viewModel.document)
+                } else {
+                    importedNames = bridge.importXmodel(
+                        fromPath: importPath,
+                        atScreenPoint: point,
+                        viewSize: size,
+                        targetLayoutGroup: viewModel.layoutPendingImportTargetGroup,
+                        for: viewModel.document)
+                }
+                if let names = importedNames,
                    let primary = names.first {
                     viewModel.layoutPendingImportPath = nil
                     viewModel.layoutPendingImportTargetGroup = nil
+                    viewModel.layoutPendingImportGdtfMode = nil
                     if names.count == 1 {
                         viewModel.layoutSelectSingle(primary)
                     } else {

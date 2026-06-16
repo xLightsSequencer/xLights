@@ -130,7 +130,10 @@ Model* XmlDeserializingModelFactory::Deserialize(pugi::xml_node node, ModelManag
         model = DeserializeDmxGeneral(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxServoType || node_name == "dmxservo") {
         model = DeserializeDmxServo(node, modelManager, importing);
-    } else if (type == XmlNodeKeys::DmxServo3dType || node_name == "dmxservo3d") {
+    } else if (type == XmlNodeKeys::DmxServo3dType || type == "DmxServo3Axis" || node_name == "dmxservo3d") {
+        // "DmxServo3Axis" is a legacy alias for DmxServo3d (see DisplayAsTypeFromString
+        // and ModelManager::CreateModel, which both accept it); the servo configuration
+        // comes from the model's XML attributes on import.
         model = DeserializeDmxServo3d(node, modelManager, importing);
     } else if (type == XmlNodeKeys::DmxSkullType) {
         model = DeserializeDmxSkull(node, modelManager, importing);
