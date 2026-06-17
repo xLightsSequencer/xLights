@@ -318,7 +318,13 @@ void xLightsFrame::LoadEffectsFile()
         wxFileName presetsBkp(presetsFile);
         presetsBkp.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
         if (!_renderMode && !_checkSequenceMode && FileExists(presetsBkp.GetFullPath())) {
-            if (FileExists(presetsFile.GetFullPath())) {
+            // Discard empty backup files — nothing worth recovering
+            EffectPresetManager bkpCheck;
+            bool bkpEmpty = bkpCheck.LoadJsonFile(presetsBkp.GetFullPath().ToStdString()) &&
+                            bkpCheck.GetRoot().GetChildren().empty();
+            if (bkpEmpty) {
+                wxRemoveFile(presetsBkp.GetFullPath());
+            } else if (FileExists(presetsFile.GetFullPath())) {
                 wxDateTime jsonTime = presetsFile.GetModificationTime();
                 wxDateTime bkpTime = presetsBkp.GetModificationTime();
                 if (bkpTime > jsonTime) {
@@ -349,7 +355,9 @@ void xLightsFrame::LoadEffectsFile()
             // Migrate from XML effects node
             _effectPresetManager.Load(effectsNode);
             spdlog::info("Migrated effect presets from xlights_rgbeffects.xml to JSON");
-            UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            if (!_effectPresetManager.GetRoot().GetChildren().empty()) {
+                UnsavedRgbEffectsChanges = true; // trigger save to create the new JSON file
+            }
         }
     }
     if (_effectPresetManager.GetVersion().empty()) {
@@ -872,19 +880,34 @@ bool xLightsFrame::SaveEffectsFile(bool backup)
 
     // Save effect presets to separate JSON file
     {
-        wxFileName presetsFile;
-        presetsFile.AssignDir(CurrentDir);
-        if (backup) {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
-        } else {
-            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
-        }
+        wxFileName presetsBkp;
+        presetsBkp.AssignDir(CurrentDir);
+        presetsBkp.SetFullName(_(XLIGHTS_PRESETS_FILE_BACKUP));
 
-        if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
-            if (backup) {
-                spdlog::warn("Unable to save backup of effect presets file");
+        if (backup) {
+            // Don't write an empty autosave backup — nothing to protect
+            if (!_effectPresetManager.GetRoot().GetChildren().empty()) {
+                if (!_effectPresetManager.SaveJsonFile(presetsBkp.GetFullPath().ToStdString())) {
+                    spdlog::warn("Unable to save backup of effect presets file");
+                }
+            }
+        } else {
+            wxFileName presetsFile;
+            presetsFile.AssignDir(CurrentDir);
+            presetsFile.SetFullName(_(XLIGHTS_PRESETS_FILE));
+            if (_effectPresetManager.GetRoot().GetChildren().empty()) {
+                // No presets — delete any existing file rather than writing an empty one
+                if (FileExists(presetsFile.GetFullPath())) {
+                    wxRemoveFile(presetsFile.GetFullPath());
+                }
             } else {
-                DisplayError("Unable to save effect presets file", this);
+                if (!_effectPresetManager.SaveJsonFile(presetsFile.GetFullPath().ToStdString())) {
+                    DisplayError("Unable to save effect presets file", this);
+                }
+            }
+            // Remove any stale autosave backup now that the main file is current
+            if (FileExists(presetsBkp.GetFullPath())) {
+                wxRemoveFile(presetsBkp.GetFullPath());
             }
         }
     }
