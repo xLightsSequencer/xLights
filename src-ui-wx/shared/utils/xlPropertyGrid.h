@@ -59,7 +59,18 @@ public:
         wxPropertyGrid::OnIdle(event);
     }
     virtual void Clear() override {
+#ifdef __WXGTK__
+        // On GTK, HidePopup() pumps the event queue. Doing that while this
+        // window (or an ancestor) is Frozen() has been observed to wedge GTK's
+        // idle-driven repaint permanently (xlights #6215/#4175) - clicks still
+        // register but nothing ever redraws again until restart. Defer to the
+        // OnIdle handler below, which runs once Thaw() lets idle events flow.
+        if (!IsFrozen()) {
+            HideDeletingComboPopups();
+        }
+#else
         HideDeletingComboPopups();
+#endif
         wxPropertyGrid::Clear();
     }
 
