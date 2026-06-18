@@ -544,10 +544,20 @@ void VendorModelDialog::RebuildTreeUI()
     PruneEmptyBranches(root);
     spdlog::info("VMD::RTUI step 7: PruneEmptyBranches done");
 
-    // Per-vendor auto-expand removed: even with collapsed categories
-    // it hung on Windows for some vendors (EFL Designs). Tree shows
-    // the matched vendors, user clicks to drill in — same UX as the
-    // unfiltered tree.
+    // Under an active filter, auto-expand each surviving vendor so the
+    // matching models are visible without a click. This is safe now that
+    // the tree is only two levels (Vendor -> Model): we expand one level,
+    // revealing a bounded flat model list - unlike the old deep category
+    // hierarchy whose expansion exploded the visible-item count and hung
+    // Win32. With no filter we leave vendors collapsed, since a single
+    // vendor can carry hundreds of models.
+    if (!_filterTokens.empty()) {
+        wxTreeItemIdValue cookie;
+        for (auto v = TreeCtrl_Navigator->GetFirstChild(root, cookie); v.IsOk();
+             v = TreeCtrl_Navigator->GetNextChild(root, cookie)) {
+            TreeCtrl_Navigator->Expand(v);
+        }
+    }
 
     int rootKids = TreeCtrl_Navigator->GetChildrenCount(root, false);
     spdlog::info("VMD::RebuildTreeUI EXIT root_children={} tokens={}",
@@ -728,30 +738,33 @@ bool VendorModelDialog::ModelMatchesFilter(MVendor* vendor, const MModel* model,
     return false;
 }
 
-// Append one model as a leaf under its vendor node. Mirrors the leaf
-// shapes the old per-category code produced: a multi-wiring model is a
-// model row with one child per wiring; a single-wiring model is the
-// wiring leaf itself; a model with no wiring is a plain model leaf.
+// Append a model's downloadable end node(s) as flat leaves under its
+// vendor node - one level only, no nested wiring rows. A model with one
+// (or no) wiring is a single leaf. A multi-wiring model becomes one
+// "Model - Wiring" leaf per wiring, since each wiring is a separate
+// downloadable .xmodel and the download path needs a wiring node (a
+// bare multi-wiring model node resolves to no wiring).
 void VendorModelDialog::AppendModelLeaf(wxTreeItemId vendorNode, MModel* model)
 {
+    const wxColour colour = TreeItemColourForModel(model);
     if (model->_wiring.size() > 1)
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MModelTreeItemData(model));
         for (const auto& w : model->_wiring)
         {
-            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, w->_name, -1, -1, new MWiringTreeItemData(w));
-            TreeCtrl_Navigator->SetItemTextColour(id, TreeItemColourForModel(model));
+            const wxString label = wxString::FromUTF8(model->_name) + " - " + wxString::FromUTF8(w->_name);
+            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, label, -1, -1, new MWiringTreeItemData(w));
+            TreeCtrl_Navigator->SetItemTextColour(id, colour);
         }
     }
     else if (model->_wiring.size() == 0)
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MModelTreeItemData(model));
-        TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(model));
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, wxString::FromUTF8(model->_name), -1, -1, new MModelTreeItemData(model));
+        TreeCtrl_Navigator->SetItemTextColour(id, colour);
     }
     else
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MWiringTreeItemData(model->_wiring.front()));
-        TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(model));
+        wxTreeItemId id = TreeCtrl_Navigator->AppendItem(vendorNode, wxString::FromUTF8(model->_name), -1, -1, new MWiringTreeItemData(model->_wiring.front()));
+        TreeCtrl_Navigator->SetItemTextColour(id, colour);
     }
 }
 
