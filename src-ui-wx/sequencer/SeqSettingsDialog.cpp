@@ -112,6 +112,8 @@ const wxWindowID SeqSettingsDialog::ID_STATICTEXT_Info = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_STATICTEXT_Warn_No_Media = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON_CANCEL = wxNewId();
 const wxWindowID SeqSettingsDialog::ID_BUTTON_Close = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_SetDefaultDuration = wxNewId();
+const wxWindowID SeqSettingsDialog::ID_BUTTON_SetDefaultTiming = wxNewId();
 //*)
 
 const long SeqSettingsDialog::ID_GRID_TIMING = wxNewId();
@@ -298,13 +300,14 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Xml_Seq_Duration = new wxTextCtrl(PanelInfo, ID_TEXTCTRL_Xml_Seq_Duration, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL_Xml_Seq_Duration"));
     TextCtrl_Xml_Seq_Duration->SetMinSize(wxDLG_UNIT(PanelInfo,wxSize(50,-1)));
     FlexGridSizer6->Add(TextCtrl_Xml_Seq_Duration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-    wxSize __SpacerSize_2 = wxDLG_UNIT(PanelInfo,wxSize(25,-1));
-    FlexGridSizer6->Add(__SpacerSize_2.GetWidth(),__SpacerSize_2.GetHeight(),1, wxALL|wxEXPAND, 5);
+    Button_SetDefaultDuration = new wxButton(PanelInfo, ID_BUTTON_SetDefaultDuration, _("Set Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SetDefaultDuration"));
+    Button_SetDefaultDuration->SetToolTip(_("Save current duration as the default for new sequences"));
+    FlexGridSizer6->Add(Button_SetDefaultDuration, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     CheckBox_Overwrite_Tags = new wxCheckBox(PanelInfo, ID_CHECKBOX_Overwrite_Tags, _("Overwrite Media Tags"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX_Overwrite_Tags"));
     CheckBox_Overwrite_Tags->SetValue(false);
     FlexGridSizer6->Add(CheckBox_Overwrite_Tags, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     FlexGridSizer4->Add(FlexGridSizer6, 1, wxALL|wxEXPAND, 5);
-    FlexGridSizer3 = new wxFlexGridSizer(0, 4, 0, 0);
+    FlexGridSizer3 = new wxFlexGridSizer(0, 5, 0, 0);
     StaticText_Xml_Seq_Timing = new wxStaticText(PanelInfo, wxID_ANY, _("Sequence Timing:"), wxDefaultPosition, wxDefaultSize, 0, _T("wxID_ANY"));
     FlexGridSizer3->Add(StaticText_Xml_Seq_Timing, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     TextCtrl_SeqTiming = new wxTextCtrl(PanelInfo, ID_TEXTCTRL_SeqTiming, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY, wxDefaultValidator, _T("ID_TEXTCTRL_SeqTiming"));
@@ -312,6 +315,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     FlexGridSizer3->Add(TextCtrl_SeqTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BitmapButton_ModifyTiming = new wxBitmapButton(PanelInfo, ID_BITMAPBUTTON__ModifyTiming, wxArtProvider::GetBitmapBundle("wxART_INFORMATION",wxART_BUTTON), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW, wxDefaultValidator, _T("ID_BITMAPBUTTON__ModifyTiming"));
     FlexGridSizer3->Add(BitmapButton_ModifyTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+    Button_SetDefaultTiming = new wxButton(PanelInfo, ID_BUTTON_SetDefaultTiming, _("Set Default"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_BUTTON_SetDefaultTiming"));
+    Button_SetDefaultTiming->SetToolTip(_("Save current timing as the default for new sequences"));
+    FlexGridSizer3->Add(Button_SetDefaultTiming, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
     BlendingCheckBox = new wxCheckBox(PanelInfo, ID_CHECKBOX1, _("Allow Blending Between Models"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
     BlendingCheckBox->SetValue(false);
     FlexGridSizer3->Add(BlendingCheckBox, 1, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -454,6 +460,8 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     Connect(ID_BITMAPBUTTON_Xml_Media_File, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_Xml_Media_FileClick);
     Connect(ID_BUTTON1, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_DownloadClick);
     Connect(ID_BUTTON_AddMilliseconds, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_AddMillisecondsClick);
+    Connect(ID_BUTTON_SetDefaultDuration, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_SetDefaultDurationClick);
+    Connect(ID_BUTTON_SetDefaultTiming, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnButton_SetDefaultTimingClick);
     Connect(ID_TEXTCTRL_Xml_Seq_Duration, wxEVT_COMMAND_TEXT_UPDATED, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationText);
     Connect(ID_BITMAPBUTTON__ModifyTiming, wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnBitmapButton_ModifyTimingClick);
     Connect(ID_CHECKBOX1, wxEVT_COMMAND_CHECKBOX_CLICKED, (wxObjectEventFunction)&SeqSettingsDialog::OnCheckBox1Click);
@@ -552,6 +560,9 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
 
     TextCtrl_Xml_Seq_Duration->Connect(wxEVT_KILL_FOCUS, (wxObjectEventFunction)&SeqSettingsDialog::OnTextCtrl_Xml_Seq_DurationLoseFocus, nullptr, this);
 
+    m_defaultSavedTimer.SetOwner(this);
+    Connect(m_defaultSavedTimer.GetId(), wxEVT_TIMER, (wxObjectEventFunction)&SeqSettingsDialog::OnDefaultSavedTimer);
+
     TreeCtrl_Data_Layers->AddRoot("Layers to Render");
     Button_Close->SetDefault();
 
@@ -602,7 +613,7 @@ SeqSettingsDialog::SeqSettingsDialog(wxWindow* parent, SequenceFile* file_to_han
     TextCtrl_Xml_Music_Url->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::URL));
     TextCtrl_Xml_Comment->SetValue(xml_file->GetHeaderInfo(HEADER_INFO_TYPES::COMMENT));
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString(xml_file->GetSequenceType()));
-    TextCtrl_SeqTiming->SetValue(xml_file->GetSequenceTiming());
+    SetTimingDisplay(xml_file->GetSequenceTiming());
     if (xml_file->GetMedia() == nullptr) {
         TextCtrl_Xml_Media_File->SetValue("");
     } else {
@@ -1017,6 +1028,17 @@ void SeqSettingsDialog::OnTextCtrl_Xml_Music_UrlText(wxCommandEvent& event)
 void SeqSettingsDialog::OnTextCtrl_Xml_CommentText(wxCommandEvent& event)
 {
     xml_file->SetHeaderInfo(HEADER_INFO_TYPES::COMMENT, TextCtrl_Xml_Comment->GetValue());
+}
+
+void SeqSettingsDialog::SetTimingDisplay(const wxString& timing)
+{
+    int ms = wxAtoi(timing);
+    if (ms > 0) {
+        int fps = 1000 / ms;
+        TextCtrl_SeqTiming->SetValue(wxString::Format("%s / %d fps", timing, fps));
+    } else {
+        TextCtrl_SeqTiming->SetValue(timing);
+    }
 }
 
 bool SeqSettingsDialog::UpdateSequenceTiming()
@@ -1809,8 +1831,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_AnimClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(1);
     xml_file->SetSequenceType("Animation");
-    TextCtrl_Xml_Seq_Duration->ChangeValue("30.0");
-    xml_file->SetSequenceDuration(30.0);
+    wxString defaultDur = wxString(GetXLightsConfig()->Read("DefaultSeqDuration", std::string("30.0")));
+    TextCtrl_Xml_Seq_Duration->ChangeValue(defaultDur);
+    xml_file->SetSequenceDuration(wxAtof(defaultDur));
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     WizardPage2();
@@ -1821,8 +1844,9 @@ void SeqSettingsDialog::OnBitmapButton_Wiz_EffectClick(wxCommandEvent& event)
 {
     Choice_Xml_Seq_Type->SetSelection(Choice_Xml_Seq_Type->FindString("Effect"));
     xml_file->SetSequenceType("Effect");
-    TextCtrl_Xml_Seq_Duration->ChangeValue("30.0");
-    xml_file->SetSequenceDuration(30.0);
+    wxString defaultDur = wxString(GetXLightsConfig()->Read("DefaultSeqDuration", std::string("30.0")));
+    TextCtrl_Xml_Seq_Duration->ChangeValue(defaultDur);
+    xml_file->SetSequenceDuration(wxAtof(defaultDur));
     xLightsParent->SetSequenceEnd(xml_file->GetSequenceDurationMS());
     ProcessSequenceType();
     selected_view = "Empty";
@@ -1836,7 +1860,7 @@ void SeqSettingsDialog::OnBitmapButton_25msClick(wxCommandEvent& event)
     if (xml_file->HasAudioMedia()) {
         xml_file->GetMedia()->SetFrameInterval(25);
     }
-    TextCtrl_SeqTiming->SetValue("25 ms");
+    SetTimingDisplay("25 ms");
     AdvanceAfterTiming();
 }
 
@@ -1846,7 +1870,7 @@ void SeqSettingsDialog::OnBitmapButton_50msClick(wxCommandEvent& event)
     if (xml_file->HasAudioMedia()) {
         xml_file->GetMedia()->SetFrameInterval(50);
     }
-    TextCtrl_SeqTiming->SetValue("50 ms");
+    SetTimingDisplay("50 ms");
     AdvanceAfterTiming();
 }
 
@@ -1861,7 +1885,7 @@ void SeqSettingsDialog::OnBitmapButton_CustomClick(wxCommandEvent& event)
         xml_file->GetMedia()->SetFrameInterval(wxAtoi(dialog.GetTiming()));
     }
 
-    TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
+    SetTimingDisplay(dialog.GetTiming());
     AdvanceAfterTiming();
 }
 
@@ -1993,7 +2017,7 @@ void SeqSettingsDialog::OnBitmapButton_ModifyTimingClick(wxCommandEvent& event)
             }
         }
 
-        TextCtrl_SeqTiming->SetValue(dialog.GetTiming());
+        SetTimingDisplay(dialog.GetTiming());
         xml_file->SetSequenceTiming(dialog.GetTiming());
         xLightsParent->SetSequenceTiming(wxAtoi(dialog.GetTiming()));
         xLightsParent->SaveSequence();
@@ -2406,6 +2430,32 @@ void SeqSettingsDialog::OnButton_AudioEditShortnameClick(wxCommandEvent& /*event
 
     xml_file->SetAltTrackShortname(idx, dlg.GetValue().ToStdString());
     PopulateAudioTrackList();
+}
+
+void SeqSettingsDialog::OnButton_SetDefaultDurationClick(wxCommandEvent& /*event*/)
+{
+    auto* cfg = GetXLightsConfig();
+    cfg->Write("DefaultSeqDuration", TextCtrl_Xml_Seq_Duration->GetValue());
+    m_activeDefaultBtn = Button_SetDefaultDuration;
+    Button_SetDefaultDuration->SetLabel("Saved!");
+    m_defaultSavedTimer.StartOnce(1500);
+}
+
+void SeqSettingsDialog::OnButton_SetDefaultTimingClick(wxCommandEvent& /*event*/)
+{
+    auto* cfg = GetXLightsConfig();
+    cfg->Write("DefaultSeqTiming", xml_file->GetSequenceTiming());
+    m_activeDefaultBtn = Button_SetDefaultTiming;
+    Button_SetDefaultTiming->SetLabel("Saved!");
+    m_defaultSavedTimer.StartOnce(1500);
+}
+
+void SeqSettingsDialog::OnDefaultSavedTimer(wxTimerEvent& /*event*/)
+{
+    if (m_activeDefaultBtn) {
+        m_activeDefaultBtn->SetLabel("Set Default");
+        m_activeDefaultBtn = nullptr;
+    }
 }
 
 void SeqSettingsDialog::OnListCtrl_AudioTracksActivated(wxListEvent& event)
