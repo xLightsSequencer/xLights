@@ -16,6 +16,8 @@
 //*)
 
 #include <algorithm>
+#include <functional>
+#include <unordered_map>
 #include <log.h>
 #include <wx/msgdlg.h>
 #include <wx/stopwatch.h>
@@ -519,7 +521,7 @@ void VendorModelDialog::RebuildTreeUI()
         }
         if (!IsVendorSuppressed(it->_name))
         {
-            AddHierachy(v, it, it->_categories, it->_name);
+            AddVendorModelList(v, it);
         }
         spdlog::info("VMD::RTUI vendor[{}] '{}' end", vIdx, it->_name);
         vIdx++;
@@ -535,31 +537,12 @@ void VendorModelDialog::RebuildTreeUI()
         _initialBuild = false;
     }
 
-    // Two passes:
-    // 1) The original DeleteEmptyCategories only deletes leaf categories
-    //    that were already empty when first visited. After it deletes a
-    //    leaf, the parent may now be empty, but the recursion never
-    //    re-checks it. With the experimental filter trimming model leaves,
-    //    that leaves whole chains of empty parent categories on screen
-    //    (e.g. "DayCor Printed Props -> Hats" when no model named Hats
-    //    matches "pumpkin").
-    // 2) PruneEmptyBranches walks the tree bottom-up and also drops
-    //    empty Vendor nodes, so the final tree shows only branches that
-    //    actually have at least one matching model leaf.
-    spdlog::info("VMD::RTUI step 6: DeleteEmptyCategories pass start");
-    wxTreeItemIdValue cookie;
-    int dec = 0;
-    for (auto l1 = TreeCtrl_Navigator->GetFirstChild(root, cookie); l1.IsOk(); l1 = TreeCtrl_Navigator->GetNextChild(root, cookie))
-    {
-        spdlog::info("VMD::RTUI DEC vendor {} begin", dec);
-        UNUSED(DeleteEmptyCategories(l1));
-        spdlog::info("VMD::RTUI DEC vendor {} end", dec);
-        dec++;
-    }
-    spdlog::info("VMD::RTUI step 7: DeleteEmptyCategories pass done");
-    spdlog::info("VMD::RTUI step 8: PruneEmptyBranches start");
+    // The tree is now two levels (Vendor -> Model), so there are no
+    // category nodes to prune; PruneEmptyBranches just drops Vendor nodes
+    // that ended up with no matching models under the active filter.
+    spdlog::info("VMD::RTUI step 6: PruneEmptyBranches start");
     PruneEmptyBranches(root);
-    spdlog::info("VMD::RTUI step 9: PruneEmptyBranches done");
+    spdlog::info("VMD::RTUI step 7: PruneEmptyBranches done");
 
     // Per-vendor auto-expand removed: even with collapsed categories
     // it hung on Windows for some vendors (EFL Designs). Tree shows
@@ -614,7 +597,7 @@ bool VendorModelDialog::PruneEmptyBranches(wxTreeItemId parent)
         TreeCtrl_Navigator->GetChildrenCount(parent) == 0)
     {
         // Suppressed vendors intentionally have no children (we skipped
-        // AddHierachy for them). When no filter is active, leave them
+        // AddVendorModelList for them). When no filter is active, leave them
         // in place so the user can still see and un-suppress them via
         // the "Don't download this vendors list of models" checkbox.
         // BUT under an active filter, suppressed vendors with no
@@ -717,87 +700,85 @@ void VendorModelDialog::OnCatalogFilterDebounce(wxTimerEvent& /*event*/)
     }
 }
 
-bool VendorModelDialog::DeleteEmptyCategories(wxTreeItemId& parent)
+// Does a model satisfy the active filter? A model can sit in several
+// categories, so it matches if ANY of its category paths (or the vendor
+// name alone, for category-less models) passes every filter token. The
+// path keeps the hierarchy-aware behaviour: typing a vendor or category
+// name still surfaces that node's models even though categories are no
+// longer shown as their own rows.
+bool VendorModelDialog::ModelMatchesFilter(MVendor* vendor, const MModel* model,
+        const std::unordered_map<std::string, MVendorCategory*>& catById) const
 {
-    VendorBaseTreeItemData* tid = (VendorBaseTreeItemData*)TreeCtrl_Navigator->GetItemData(parent);
-    if (tid->GetType() == "Category" && TreeCtrl_Navigator->GetChildrenCount(parent) == 0)
-    {
-        TreeCtrl_Navigator->Delete(parent);
+    if (_filterTokens.empty()) {
         return true;
     }
-    else if (tid->GetType() == "Category" || tid->GetType() == "Vendor")
-    {
-        wxTreeItemIdValue cookie;
-        for (auto l1 = TreeCtrl_Navigator->GetFirstChild(parent, cookie);
-            l1.IsOk();
-            )
-        {
-            auto next = TreeCtrl_Navigator->GetNextChild(parent, cookie);
-            UNUSED(DeleteEmptyCategories(l1));
-            l1 = next;
+    if (CatalogFilterMatchesPath(vendor->_name, model->_name)) {
+        return true;
+    }
+    for (const auto& cid : model->_categoryIds) {
+        auto it = catById.find(cid);
+        if (it == catById.end() || it->second == nullptr) {
+            continue;
+        }
+        const std::string path = vendor->_name + " / " + it->second->GetPath();
+        if (CatalogFilterMatchesPath(path, model->_name)) {
+            return true;
         }
     }
     return false;
 }
 
-void VendorModelDialog::AddHierachy(wxTreeItemId id, MVendor* vendor, std::list<MVendorCategory*> categories, const std::string& pathSoFar)
+// Append one model as a leaf under its vendor node. Mirrors the leaf
+// shapes the old per-category code produced: a multi-wiring model is a
+// model row with one child per wiring; a single-wiring model is the
+// wiring leaf itself; a model with no wiring is a plain model leaf.
+void VendorModelDialog::AppendModelLeaf(wxTreeItemId vendorNode, MModel* model)
 {
-    for (const auto& it : categories)
+    if (model->_wiring.size() > 1)
     {
-        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(id, it->_name, -1, -1, new MCategoryTreeItemData(it));
-        std::string nextPath = pathSoFar.empty()
-            ? it->_name
-            : pathSoFar + " / " + it->_name;
-        AddHierachy(tid, vendor, it->_categories, nextPath);
-        AddModels(tid, vendor, it->_id, nextPath);
-        // Under an active filter, leave categories collapsed so the
-        // vendor Expand below doesn't trigger a Win32 TreeView hang
-        // from the resulting visible-item explosion.
-        if (_filterTokens.empty()) {
-            TreeCtrl_Navigator->Expand(tid);
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MModelTreeItemData(model));
+        for (const auto& w : model->_wiring)
+        {
+            wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, w->_name, -1, -1, new MWiringTreeItemData(w));
+            TreeCtrl_Navigator->SetItemTextColour(id, TreeItemColourForModel(model));
         }
+    }
+    else if (model->_wiring.size() == 0)
+    {
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MModelTreeItemData(model));
+        TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(model));
+    }
+    else
+    {
+        wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(vendorNode, model->_name, -1, -1, new MWiringTreeItemData(model->_wiring.front()));
+        TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(model));
     }
 }
 
-void VendorModelDialog::AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId, const std::string& pathSoFar)
+// Populate a vendor node with a flat, de-duplicated list of its models.
+// Iterating the vendor's owning _models list visits each model exactly
+// once, so a model listed under multiple categories no longer repeats.
+// Categories are not shown as rows - the result is a two-level tree:
+// Vendor -> Model.
+void VendorModelDialog::AddVendorModelList(wxTreeItemId vendorNode, MVendor* vendor)
 {
-    auto models = vendor->GetModels(categoryId);
+    // Index this vendor's categories by id so a model's _categoryIds can
+    // be resolved to a path for filter matching.
+    std::unordered_map<std::string, MVendorCategory*> catById;
+    std::function<void(const std::list<MVendorCategory*>&)> indexCats =
+        [&](const std::list<MVendorCategory*>& cats) {
+            for (auto* c : cats) {
+                if (c == nullptr) continue;
+                catById[c->_id] = c;
+                indexCats(c->_categories);
+            }
+        };
+    indexCats(vendor->_categories);
 
-    for (const auto& it : models)
-    {
-        // Catalog filter (experimental): drop models whose ancestor path
-        // + own name doesn't satisfy both filter inputs. Hierarchy is
-        // included so typing "halloween" or "boscoyo" surfaces every
-        // descendant of the matching node. Empty inputs match anything.
-        if (!CatalogFilterMatchesPath(pathSoFar, it->_name)) {
-            continue;
-        }
-        if (it->_wiring.size() > 1)
-        {
-            wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
-            for (const auto& it2 : it->_wiring)
-            {
-                wxTreeItemId id = TreeCtrl_Navigator->AppendItem(tid, it2->_name, -1, -1, new MWiringTreeItemData(it2));
-                TreeCtrl_Navigator->SetItemTextColour(id, TreeItemColourForModel(it));
-            }
-            // Multi-wiring auto-expand under filter removed: cumulative
-            // Expand calls during AddModels could chain into a Windows
-            // hang when a vendor like EFL Designs has many multi-wiring
-            // models. Users click to expand individual nodes.
-        }
-        else
-        {
-            if (it->_wiring.size() == 0)
-            {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MModelTreeItemData(it));
-                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
-            }
-            else
-            {
-                wxTreeItemId tid = TreeCtrl_Navigator->AppendItem(v, it->_name, -1, -1, new MWiringTreeItemData(it->_wiring.front()));
-                TreeCtrl_Navigator->SetItemTextColour(tid, TreeItemColourForModel(it));
-            }
-        }
+    for (auto* model : vendor->_models) {
+        if (model == nullptr) continue;
+        if (!ModelMatchesFilter(vendor, model, catById)) continue;
+        AppendModelLeaf(vendorNode, model);
     }
 }
 

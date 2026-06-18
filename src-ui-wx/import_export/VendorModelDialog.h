@@ -32,6 +32,7 @@
 #include <wx/timer.h>
 #include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <wx/uri.h>
 #include "CachedFileDownloader.h"
@@ -72,15 +73,19 @@ class VendorModelDialog: public wxDialog
 
     [[nodiscard]] pugi::xml_document* GetXMLFromURL(wxURI url, std::string& filename, wxProgressDialog* prog, int low, int high, bool keepProgress) const;
     [[nodiscard]] bool LoadTree(wxProgressDialog* prog, int low = 0, int high = 100);
-    void AddHierachy(wxTreeItemId v, MVendor* vendor, std::list<MVendorCategory*> categories, const std::string& pathSoFar = "");
-    void AddModels(wxTreeItemId v, MVendor* vendor, std::string categoryId, const std::string& pathSoFar = "");
+    // Two-level tree population: each vendor node gets a flat, de-duplicated
+    // list of its models (no category rows). See the .cpp for the dedup and
+    // filter-matching details.
+    void AddVendorModelList(wxTreeItemId vendorNode, MVendor* vendor);
+    void AppendModelLeaf(wxTreeItemId vendorNode, MModel* model);
+    [[nodiscard]] bool ModelMatchesFilter(MVendor* vendor, const MModel* model,
+                                          const std::unordered_map<std::string, MVendorCategory*>& catById) const;
     void ValidateWindow();
     void PopulateVendorPanel(MVendor* vendor);
     void PopulateModelPanel(MModel* vendor);
     void PopulateModelPanel(MModelWiring* vendor);
     void LoadModelImage(const std::list<std::string>& imageFiles, int image);
     void LoadImage(wxStaticBitmap* sb, wxImage* img) const;
-    [[nodiscard]] bool DeleteEmptyCategories(wxTreeItemId& parent);
     [[nodiscard]] bool IsVendorSuppressed(const std::string& vendor);
     void SuppressVendor(const std::string& vendor, bool suppress);
 	[[nodiscard]] bool DownloadModel(MModelWiring* wiring);
